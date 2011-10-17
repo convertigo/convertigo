@@ -1,0 +1,294 @@
+<!--
+ * Copyright (c) 2001-2011 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL: $
+ * $Author: $
+ * $Revision: $
+ * $Date: $
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+		<title>Convertigo - Welcome</title>
+		<link type="text/css" rel="stylesheet" href="css/common.css"/>
+        <link type="text/css" rel="stylesheet" href="css/new_style.css"/>
+		<script src="scripts/jquery.min.js" type="text/javascript"></script>	
+		<script src="scripts/common.js" type="text/javascript"></script>
+		<script src="scripts/index.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<div id="main">
+			<div class="logo">
+				<a href="http://www.convertigo.com"><img src="images/new/logo-convertigo.png" /></a>
+			</div>
+			<form action="" id="loginForm" class="hidden">
+				<span id="loginWarn">Unlock your Test Platform</span>
+				<img src="images/new/arrow_right.gif" alt="→"/>
+				<label for="loginUsername">User ID: </label><input type="text" name="username" id="loginUsername"/>
+				<label for="loginPassword">Password: </label><input type="password" name="password" id="loginPassword"/>
+				<input type="image" src="admin/images/btn_signin.png" alt="Sign In" id="loginBtn" />
+			</form>
+			<a href="#logout" id="logout" class="hidden">
+				Log out &nbsp;&nbsp;<img src="admin/images/convertigo-administration-picto-close.png" alt="Log out" />
+			</a>
+                <table cellpadding="0" cellspacing="0"  id="global">
+                    <tr>
+                        <td valign="top" width="10px"><img src="images/new/convertigo-ems-bg-gris-left.png" /></td>
+                        <td class="global_bg_center">
+                            <!-- Header -->
+                            <table cellpadding="0" cellspacing="0" class="header">
+                                <tr>
+                                    <td><img src="images/new/header-left.png" /></td>
+                                    <td class="header_center"></td>									
+                                    <td><img src="images/new/header-right.png" /></td>
+                                </tr>
+                            </table>                               
+                            <!-- End Header -->
+                            
+                            <!-- Container -->
+                            <table id="container">
+                                <tr>
+                                    <td class="menu">
+                                        <!-- Menu -->
+                                        <ul>
+                                            <li>
+                                                <a href="admin/index.html">
+                                                    <img src="images/new/picto_admin.png" alt="Convertigo administration" title="Convertigo administration"/><br/>
+                                                    <span class="txt_menu">Admin console</span>
+                                                </a>
+                                            </li>
+                                            <!--li>
+                                                <a href="">
+                                                <img src="images/new/picto_mashup.png" alt="Mashup composer" title="Mashup composer"/><br/>
+                                                <span class="txt_menu">Mashup composer</span>
+                                                </a>
+                                            </li-->
+                                            <li>
+                                                <a href="http://www.convertigo.com/en/docs.html">
+                                                    <img src="images/new/picto_doc.png" alt="Docs" title="Docs"/><br/>
+                                                    <span class="txt_menu">Documentation</span>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="http://www.convertigo.com">
+                                                    <img src="images/new/picto_site.png" alt="Convertigo website" title="Convertigo website"/><br/>
+                                                    <span class="txt_menu">Convertigo.com</span>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="http://www.convertigo.com/developernetwork">
+                                                    <img src="images/new/picto_itcenter.png" alt="Developer network" title="Developer network"/><br/>
+                                                    <span class="txt_menu">Developer network</span>
+                                                </a>
+                                            </li>	
+                                        </ul>                       					                       
+                                        <!-- End Menu -->
+                                    </td>
+                                    <td valign="top" >
+                                        <!-- Content -->
+                                        <div class="content">
+                                            <!-- Content Top -->
+                                            <div class="content_top">
+                                                <table cellpadding="0" cellspacing="0">
+                                                    <tr>
+                                                        <td><img src="images/new/convertigo-ems-bg-blanc-left.png" /></td>
+                                                        <td class="content_top_center" >
+                                                                <!-- Convertigo version --> 
+                                                                <div class="container_info">
+                                                                    <h1>Convertigo version</h1>
+                                                                    <div class="hr"></div>                                       
+                                                                    <div class="container_info_inside">               
+                                                                        <div class="picto">
+                                                                            <img src="images/new/picto_version_convertigo.png" alt="Convertigo version"/>
+                                                                        </div>
+                                                                        <p class="info"><span class="cems_version_product">…</span></p>
+                                                                    </div>  
+                                                                </div>   
+                                                                <!-- Engine version --> 
+                                                                <div class="container_info">
+                                                                    <h1>Engine version</h1>
+                                                                    <div class="hr"></div>                                       
+                                                                    <div class="container_info_inside">               
+                                                                        <div class="picto">
+                                                                            <img src="images/new/picto_version_engine.png" alt="Engine version"/>
+                                                                        </div>
+                                                                        <p class="info"><span class="cems_version_engine">…</span></p>
+                                                                    </div>  
+                                                                </div>
+                                                                <!-- Objects version --> 
+                                                                <div class="container_info">
+                                                                    <h1>Objects version</h1>
+                                                                    <div class="hr"></div>                                       
+                                                                    <div class="container_info_inside">               
+                                                                        <div class="picto">
+                                                                            <img src="images/new/picto_version_object.png" alt="Objects version"/>
+                                                                        </div>
+                                                                        <p class="info"><span class="cems_version_beans">…</span></p>
+                                                                    </div>  
+                                                                </div>  
+                                                                <!-- Java version --> 
+                                                                <div class="container_info">
+                                                                    <h1>Java version</h1>
+                                                                    <div class="hr"></div>                                       
+                                                                    <div class="container_info_inside">               
+                                                                        <div class="picto">
+                                                                            <img src="images/new/picto_version_java.png" alt="Java version"/>
+                                                                        </div>
+                                                                        <p class="info"><span class="java_version">…</span></p>
+                                                                    </div>  
+                                                                </div>  
+                                                                <!-- Classes version --> 
+                                                                <div class="container_info">
+                                                                    <h1>Classes version</h1>
+                                                                    <div class="hr"></div>                                   
+                                                                    <div class="container_info_inside">               
+                                                                        <div class="picto">
+                                                                            <img src="images/new/picto_version_classe.png" alt="Classes version"/>
+                                                                        </div>
+                                                                        <p class="info">
+                                                                            <span class="java_classVersion">…</span>
+                                                                            <span class="java_vendor">…</span>
+                                                                        </p>
+                                                                    </div>  
+                                                                </div>                                                                          
+                                                        </td>
+                                                        <td><img src="images/new/convertigo-ems-bg-blanc-right.png" /></td>
+                                                    </tr>
+                                                </table>                                                  
+                                            </div>
+                                            <!-- End Content Top -->
+                                            
+                                            <!-- Content Bottom -->
+                                            <div class="content_bottom">
+                                                <table class="table" cellspacing="0" cellpadding="0">
+                                                    <tr>
+                                                        <td>
+                                                            <table id="projects" class="table" cellspacing="0" cellpadding="0">
+                                                                <tr class="table_row">
+                                                                	<th class="window_corner_topL"></th>
+                                                                    <th class="table_title">
+                                                                        <div class="picto2">
+                                                                        	<img src="images/new/picto_project.png" alt="Project name" />
+                                                                        </div>
+                                                                        <span class="title">Project name</span>
+                                                                    </th>
+                                                                    <th class="table_title">
+                                                                        <div class="picto2">
+                                                                        	<img src="images/new/picto_comment.png" alt="Comment" />
+                                                                        </div>
+                                                                        <span class="title">Comment</span>
+                                                                    </th>
+                                                                    <th class="table_title">
+                                                                        <div class="picto2">
+                                                                      	  <img src="images/new/picto_deploy.png" alt="Deployment date" />
+                                                                        </div>
+                                                                        <span class="title">Deployment date</span>
+                                                                    </th>
+                                                                    <th class="table_title">
+                                                                        <div class="picto2">
+                                                                       	 <img src="images/new/picto_test.png" alt="Test platform" />
+                                                                        </div>
+                                                                        <span class="title">Test platform</span>
+                                                                    </th>
+                                                                    <th class="table_title">
+                                                                        <div class="picto2">
+                                                                       	 <img src="images/new/picto_wsdl.png" alt="Web-service definition" />
+                                                                        </div>
+                                                                        <span class="title">Web-service definition</span>
+                                                                    </th>
+                                                                    <th class="window_corner_topR"></th>
+                                                                </tr>                                                                                                                           
+                                                            </table> 
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div id="templates">
+                                                                <table class="table">
+                                                                    <tr class="table_row project">
+                                                                    	<td class="window_left" height="25"></td>
+                                                                        <td class="table_cell">
+                                                                            <a class="project_name project_link">…</a>
+                                                                        </td>
+                                                                        <td class="table_cell project_comment">…</td>
+                                                                        <td class="table_cell project_deployDate">…</td>
+                                                                        <td class="table_cell project_test">
+                                                                        	<a class="project_link"><img src="images/new/btn_go_test.png" alt="Test platform" border="0" /></a>
+                                                                        </td>
+                                                                        <td class="table_cell">
+                                                                            <a class="project_wsdl"><img src="images/new/btn_go_wsdl.png" alt="Web-service definition"  />&nbsp; wsdl</a>
+                                                                        </td> 
+                                                                        <td class="window_right" height="25"></td>                                                                               
+                                                                    </tr>                                                                                                                               
+                                                                </table>
+                                                                <ul>
+                                                                    <li class="menu_demo">
+                                                                        <a href="#">
+                                                                            <img src="images/new/picto_mashup.png" alt="Mashup composer" title="Mashup composer"/><br/>
+                                                                            <span class="txt_menu">Mashup composer</span>
+                                                                        </a>
+                                                                    </li>
+                                                				</ul>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                    	<td>
+                                                        	<!--[if !IE]> <!-->
+                                                        	<table class="table">
+                                                            	<tr>
+                                                                    <td class="window_corner_bottomL"></td>
+                                                                    <td colspan="5" class="window_center"></td>
+                                                                    <td class="window_corner_bottomR"></td>
+                                                                </tr>
+                                                            </table>
+                                                            <!--> <![endif]-->
+                                                            <!--[if IE]>
+                                                        	<table class="table" cellpadding="0" cellspacing="0">
+                                                            	<tr>
+                                                                    <td valign="top"><img src="images/new/window_bottom_left.png" width="15" height="15"  /></td>
+                                                                    <td colspan="5" class="window_center"></td>
+                                                                    <td valign="top"><img src="images/new/window_bottom_right.png" width="15" height="15"  /></td>
+                                                                </tr>
+                                                            </table>                                                            
+                                                            <![endif]-->
+                                                        </td>
+                                                    </tr>                                                     
+                                                </table>  
+                                            </div> 
+                                            <!-- Content Bottom -->                           
+                                    	</div>
+                                    	<!-- End content --> 
+                                    </td>
+                                </tr>
+                            </table>
+                            <!-- End Container -->
+                        </td>
+                        <td valign="top"><img src="images/new/convertigo-ems-bg-gris-right.png" /></td>
+                    </tr>
+                </table> 
+                <!-- Footer -->
+                <div class="footer">
+                    <div class="hr"></div>Copyright &copy; 2001-2011 Convertigo SA. All rights reserved.
+                </div>
+                <!-- End Footer -->
+            <!-- End Global content -->                            
+        </div>   
+        <!-- End main -->                
+	</body>
+</html>

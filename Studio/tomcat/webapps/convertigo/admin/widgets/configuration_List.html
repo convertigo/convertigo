@@ -1,0 +1,67 @@
+<!--
+ * Copyright (c) 2001-2011 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
+-->
+
+<form class="config-update-form">
+	<div id="configFirstUpdateButtonLocation" class="main-widget-toolbar">
+		<button type="submit" class="config-update">Update configuration</button>
+	</div>
+	
+	<p>Tip: some properties may have been configured thru a global symbol (like <code>${my_symbol}</code>). Just hover properties
+	value for displaying computed value in case of symbols use.</p>
+
+    <div id="configAccordion" class="config-accordion"></div>
+    
+    <div class="main-widget-toolbar">
+		<button  type="submit" class="config-update">Update configuration</button>
+	</div>
+</form>
+
+<div id="config-template" class="main-display-none">
+	<div class="config-category">
+		<h2 class="config-category-title">Main configuration parameters</h2>
+		<div class="config-pane">
+			<table class="config-accordion-main-properties config-accordion-mainTable"></table>
+			<button type="button" class="config-toggle-advanced-properties">Advanced properties</button>
+			<div class="main-display-none">
+				<table class="config-accordion-advanced-properties config-accordion-advancedTable"></table>
+			</div>
+		</div>
+	</div>
+	
+	<table>
+		<tr class="config-property">
+			<td><label class="config-property-name"></label></td>
+			<td class="config-property-value"></td>
+		</tr>
+		<tr class="config-property-boolean">
+			<td colspan="2"><input class="config-checkbox" type="checkbox"><label class="config-property-name"></label></input></td>
+		</tr>		
+	</table>
+	
+	<input class="config-text" type="text"></input>
+	<input class="config-password" type="password"></input>
+	<textarea class="config-text-area" wrap="off"></textarea>
+	<select class="config-combo"></select>
+	<select>
+		<option class="config-combo-item"/>
+	</select>
+</div>

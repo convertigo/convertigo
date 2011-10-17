@@ -1,0 +1,187 @@
+/*
+ * Copyright (c) 2001-2011 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
+ */
+
+@charset "utf-8";
+
+/* CSS Document */
+
+.common_mask {
+	background-repeat : no-repeat;
+}
+
+.common_contenu {
+	position:relative;
+}
+
+/* *** iPad1 768x1024 *** */
+
+.iPad1_mask {
+	width:1002px;
+	height:1285px;
+	background-image: url(../images/mobile/iPad1_mask_768x1024.png);
+}
+.iPad1_contenu {
+	top:127px;
+	left:118px;
+	width:768px;
+	height:1024px;
+}
+
+/* *** iPhone4 640x960 *** */
+
+.iPhone4_mask {
+	width:741px;
+	height:1455px;
+	background-image: url(../images/mobile/iPhone4_mask_640x960.png);
+}
+.iPhone4_contenu {
+	top:260px;
+	left:52px;
+	width:640px;
+	height:960px;
+}
+
+/* *** iPhone3 320x480 *** */
+
+.iPhone3_mask {
+	width:395px;
+	height:730px;
+	background-image: url(../images/mobile/iPhone3_mask_320x480.png);
+}
+.iPhone3_contenu {
+	top:123px;
+	left:39px;
+	width:320px;
+	height:480px;
+}
+
+/* *** HtcDesire 480x800 *** */
+
+.HtcDesire_mask {
+	width:584px;
+	height:1161px;
+	background-image: url(../images/mobile/HtcDesire_mask_480x800.png);
+}
+.HtcDesire_contenu {
+	top:125px;
+	left:49px;
+	width:480px;
+	height:800px;
+}
+
+/* *** SamsungGalaxyS 480x800 *** */
+
+.SamsungGalaxyS_mask {
+	width:583px;
+	height:1120px;
+	background-image: url(../images/mobile/SamsungGalaxyS_mask_480x800.png);
+}
+.SamsungGalaxyS_contenu {
+	top:164px;
+	left:50px;
+	width:480px;
+	height:800px;
+}
+
+/* *** SamsungGalaxyAce 320x480 *** */
+
+.SamsungGalaxyAce_mask {
+	width:475px;
+	height:925px;
+	background-image: url(../images/mobile/SamsungGalaxyAce_mask_320x480.png);
+}
+.SamsungGalaxyAce_contenu {
+	top:125px;
+	left:40px;
+	width:320px;
+	height:480px;
+}
+
+/* *** sony ericsson 480x854 *** */
+
+.SonyXperiaPro_mask {
+	width:568px;
+	height:1131px;
+	background-image: url(../images/mobile/SonyXperiaPro_mask_480x854.png);
+}
+.SonyXperiaPro_contenu {
+	top:164px;
+	left:44px;
+	width:480px;
+	height:854px;
+}
+
+/* *** nokia 320x240 *** */
+
+.NokiaE5_mask {
+	width:384px;
+	height:768px;
+	background-image: url(../images/mobile/NokiaE5_mask_320x240.png);
+}
+.NokiaE5_contenu {
+	top:112px;
+	left:30px;
+	width:320px;
+	height:240px;
+}
+
+/* *** nokiaN8 360x640 *** */
+
+.NokiaN8_mask {
+	width:475px;
+	height:925px;
+	background-image: url(../images/mobile/NokiaN8_mask_360x640.png);
+}
+.NokiaN8_contenu {
+	top:141px;
+	left:60px;
+	width:360px;
+	height:640px;
+}
+
+/* *** nokiaX7 360x640 *** */
+
+.NokiaX7_mask {
+	width:475px;
+	height:925px;
+	background-image: url(../images/mobile/NokiaX7_mask_360x640.png);
+}
+.NokiaX7_contenu {
+	top:115px;
+	left:45px;
+	width:360px;
+	height:640px;
+}
+
+/* *** Blackberry 360x480 *** */
+
+.BlackBerryTorch_mask {
+	width:440px;
+	height:773px;
+	background-image: url(../images/mobile/BlackBerryTorch_mask_360x480.png);
+}
+.BlackBerryTorch_contenu {
+	top:139px;
+	left:38px;
+	width:360px;
+	height:480px;
+}

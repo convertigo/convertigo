@@ -1,0 +1,95 @@
+<!--
+ * Copyright (c) 2001-2011 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
+-->
+
+<div>
+	<h4>Cache type</h4>
+	<p >The informations accessed in the project can be stored in cache	in files or in a database.<br/><br/>
+	Choose the desired cache type : </p>	
+	
+	<input id="cacheTypeRadioFile" type="radio" name="cacheType" value=file >file</input>
+	<input id="cacheTypeRadioDatabase" type="radio" name="cacheType" value=database>database</input>
+	
+</div>
+<br/>
+<button  class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" id="cacheClearEntries"><span class="ui-button-icon-primary ui-icon ui-icon-trash"></span><span class="ui-button-text">Clear entries</span></button>
+<button  class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" id="cacheApply"><span class="ui-button-icon-primary ui-icon ui-icon-check"></span><span class="ui-button-text">Apply</span></button>
+<br/>
+<br/>
+<div id="cacheConfigurationDiv">
+	<h4>Configuration</h4>	
+	<table  width="100%">
+		<tr  class="main_headerTab" >
+			<td colspan="2">Database used : </td>	
+						
+		</tr>
+		<tr class="main_even">
+			<td ></td>
+			<td >
+
+				<select id="databaseDriverSelect" name="databaseDriver">
+
+					<option value="sqlserver">SQLServer</option>
+					<option value="mysql">MySQL</option>
+
+				</select>
+			</td>
+		
+		</tr>
+		<tr class="main_headerTab">
+
+			<td colspan="2">Access configuration : </td>
+		</tr>
+
+		<tr class="main_even">
+			<td class="small">Server name :</td>
+			<td ><input name="Database server name" type="text" size="30" class="required" value="" id="cacheServerName"/></td>
+		</tr>
+		<tr class="main_odd">
+
+			<td  class="small">Access port :</td>
+			<td ><input name="Database server port" type="text" size="5" maxlength="5" class="required" value=""  id="cachePort"  onkeypress="chiffres(event)"/></td>
+		</tr>
+		<tr class="main_even">
+			<td class="small">Database name :</td>
+			<td ><input name="Database name" type="text" size="30" class="required" value="" id="cacheDatabaseName"/></td>
+		</tr>
+		<tr class="main_headerTab" >
+
+			<td colspan="2">Configuration of the identification : </td>
+		</tr>
+		<tr class="main_even">
+			<td  class="small">User name :</td>
+			<td ><input name="User name" type="text" class="required" size="30" value="" id="cacheUserName"></td>
+		</tr>
+		<tr class="main_odd">
+
+			<td class="small">User password :</td>
+			<td ><input id="cachePass1" name="password" type="password" class="cacheUserPassword" size="30" value=""/></td>
+		</tr>
+		<tr class="main_even">
+			<td class="small">Confirmation :</td>
+			<td ><input id="cachePass2"  type="password" class="cacheUserPassword" size="30" value=""/></td>
+		</tr>
+	</table>	
+	<button  class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary"  id="cacheCreateTable"><span class="ui-button-icon-primary ui-icon ui-icon-check"></span><span class="ui-button-text">Create table and apply</span></button>
+</div>
+	

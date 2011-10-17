@@ -1,0 +1,70 @@
+/*
+ * Copyright (c) 2001-2011 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
+ */
+
+/* CSS Document */
+.button{
+	font-size: 9px;
+	cursor: default;
+	line-height: 9px;
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+	text-decoration: none;
+	font-weight: normal;
+	background-repeat: repeat-x;
+	background-position: center top;
+}
+.buttonNormal{
+	font-size: 9px;
+	cursor: default;
+	line-height: 9px;
+	color: #002B82;
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+	text-decoration: none;
+	font-weight: normal;
+}
+.buttonTitle{
+	font-size: 12px;
+	cursor: default;
+	color: #F5FAFF;
+	line-height: 12px;
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+	text-decoration: none;
+	font-weight: bold;
+	background-repeat: no-repeat;
+
+}
+.buttonDisactive{
+	color: #002B82;
+	background-image: url(../images/button_fond.gif);
+	background-repeat: repeat-x;
+
+}
+.buttonActive{
+	color: #FCA956;
+	background-image: url(../images/button_fond_actif.gif);
+}
+
+.kbutton {
+	background-image: url(../images/kbutton_fond.gif);
+	background-repeat: repeat-x;
+	font-size: 10pt;
+	font-family: Verdana, Arial, Helvetica, Sans-Serif;
+}

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compositeCheatsheet name="Créer un projet avec un exemple">
+   <taskGroup kind="set" name="Créer un projet complet" skip="false">
+      <onCompletion>
+         <b>Conclusion</b>
+      </onCompletion>
+      <task kind="cheatsheet" name="Introduction" skip="true">
+         <intro>
+            Dans cette aide, vous allez comprendre comment marche convertigo tout en construisant pas à pas un premier projet.<br/><br/>
+ Le projet va etre construit en plusieurs étapes et chaque étape est indiqué par &quot;First project&quot; suivit du numéro de l&apos;étape.
+ <br/><br/>Il n&apos;y a <b>aucune</b> manipulation à faire dans convertigo hors de ces etapes. Cepandant les autres étpas sont essentielles à la compréhension de convertigo.  
+  <br/><br/>
+  Des informations complémentaires sont disponibles dans l&apos;aide complete &quot;Main Topic&quot;.  
+<br/><br/>
+Pour y acceder , cliquez sur:<br/> 
+&gt;Menu Help<br/> 
+&gt;Help Contents<br/> 
+&gt;Convertigo
+         </intro>
+         <onCompletion>
+            <b>Conclusion</b>
+         </onCompletion>
+      </task>
+      <task kind="cheatsheet" name="Créer un nouveau projet" skip="false">
+         <intro>
+            <b>Introduction</b>
+         </intro>
+         <onCompletion>
+            <b>Conclusion</b>
+         </onCompletion>
+         <param name="path" value="CreateNewProjectWithExemple.xml">
+         </param>
+      </task>
+      <task kind="cheatsheet" name="Créer des screen classes" skip="false">
+         <intro>
+            <b>Introduction</b>
+         </intro>
+         <onCompletion>
+            <b>Conclusion</b>
+         </onCompletion>
+         <param name="path" value="CreateScreenClassWithExemple.xml">
+         </param>
+      </task>
+      <task kind="cheatsheet" name="Créer des Extraction rules" skip="false">
+         <intro>
+            <b>Introduction</b>
+         </intro>
+         <onCompletion>
+            <b>Conclusion</b>
+         </onCompletion>
+         <param name="path" value="CreateExtractionRuleWithExemple.xml">
+         </param>
+      </task>
+      <task kind="cheatsheet" name="Créer des transactions" skip="false">
+         <intro>
+            <b>Introduction</b>
+         </intro>
+         <onCompletion>
+            <b>Conclusion</b>
+         </onCompletion>
+         <param name="path" value="CreateTransactionsWithExemple.xml">
+         </param>
+      </task>
+      <task kind="cheatsheet" name="Créer des séquences" skip="false">
+         <intro>
+            <b>Introduction</b>
+         </intro>
+         <onCompletion>
+            <b>Conclusion</b>
+         </onCompletion>
+         <param name="path" value="CreateSequencesWithExemple.xml">
+         </param>
+      </task>
+   </taskGroup>
+</compositeCheatsheet>

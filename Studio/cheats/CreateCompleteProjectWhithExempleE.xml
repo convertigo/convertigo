@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<compositeCheatsheet name="Create a project with an example">
+   <taskGroup kind="set" name="Create a complete project" skip="false">
+      <onCompletion>
+         <b>Conclusion</b>
+      </onCompletion>
+      <task kind="cheatsheet" name="Create a new project" skip="false">
+         <intro>
+            <b>Introduction</b>
+         </intro>
+         <onCompletion>
+            <b>Conclusion</b>
+         </onCompletion>
+         <param name="path" value="CreateNewProjectWithExempleE.xml">
+         </param>
+      </task>
+      <task kind="cheatsheet" name="Create screen classes" skip="false">
+         <intro>
+            <b>Introduction</b>
+         </intro>
+         <onCompletion>
+            <b>Conclusion</b>
+         </onCompletion>
+         <param name="path" value="CreateScreenClassWithExempleE.xml">
+         </param>
+      </task>
+      <task kind="cheatsheet" name="Create Extraction rules" skip="false">
+         <intro>
+            <b>Introduction</b>
+         </intro>
+         <onCompletion>
+            <b>Conclusion</b>
+         </onCompletion>
+         <param name="path" value="CreateExtractionRuleWithExempleE.xml">
+         </param>
+      </task>
+      <task kind="cheatsheet" name="Create transactions" skip="false">
+         <intro>
+            <b>Introduction</b>
+         </intro>
+         <onCompletion>
+            <b>Conclusion</b>
+         </onCompletion>
+         <param name="path" value="CreateTransactionsWithExempleE.xml">
+         </param>
+      </task>
+      <task kind="cheatsheet" name="Create sequences" skip="false">
+         <intro>
+            <b>Introduction</b>
+         </intro>
+         <onCompletion>
+            <b>Conclusion</b>
+         </onCompletion>
+         <param name="path" value="CreateSequencesWithExempleE.xml">
+         </param>
+      </task>
+   </taskGroup>
+</compositeCheatsheet>
