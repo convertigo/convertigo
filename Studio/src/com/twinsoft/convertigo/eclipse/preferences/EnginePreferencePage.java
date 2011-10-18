@@ -39,9 +39,10 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.ExpandBar;
+import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -57,7 +58,7 @@ public class EnginePreferencePage extends PreferencePage implements IWorkbenchPr
 
 	public EnginePreferencePage() {
 		super();
-		setDescription("Engine Settings\nYou can hover your mouse on all properties configured with symbols in order to display the computed value in a tooltip.");
+		setDescription("You can hover your mouse on all properties configured with symbols in order to display the computed value in a tooltip.");
 	}
 	
 	private Map<PropertyName, String> modifiedProperties;
@@ -65,30 +66,56 @@ public class EnginePreferencePage extends PreferencePage implements IWorkbenchPr
 	protected Control createContents(Composite parent) {
 		modifiedProperties = new Hashtable<PropertyName, String>();
 		
-		TabFolder tabFolder = new TabFolder(parent, SWT.NONE);
-		
-		Map<PropertyCategory, Composite> containersMap = new HashMap<PropertyCategory, Composite>();
-		for (PropertyCategory propertyCategory : PropertyCategory.values()) {
-			TabItem tabItem = new TabItem(tabFolder, SWT.NULL);
-			tabItem.setText(propertyCategory.getDisplayName());
+		ExpandBar bar = new ExpandBar(parent, SWT.VERTICAL);
 
-			Composite container = new Composite(tabFolder, SWT.NONE);
-			GridLayout gridLayout = new GridLayout(2, false);
-			container.setLayout(gridLayout);
-			tabItem.setControl(container);
+		Map<PropertyCategory, Composite> containersMap = new HashMap<PropertyCategory, Composite>();
+		Map<PropertyCategory, ExpandItem> expandItemsMap = new HashMap<PropertyCategory, ExpandItem>();
+
+		for (PropertyCategory propertyCategory : PropertyCategory.values()) {
+			Composite container = new Composite(bar, SWT.NONE);
+			
+			GridLayout layout = new GridLayout(1, true);
+			layout.marginLeft = layout.marginTop = layout.marginRight = layout.marginBottom = 2;
+			layout.verticalSpacing = 4;
+			container.setLayout(layout);
+
+			ExpandItem item = new ExpandItem(bar, SWT.NONE);
+			item.setText(propertyCategory.getDisplayName());
+			item.setControl(container);
+
 			containersMap.put(propertyCategory, container);
+			expandItemsMap.put(propertyCategory, item);
 		}
         
+		boolean toggleLineBackground = true;
         for (final PropertyName property : PropertyName.values()) {
-        	Composite container = containersMap.get(property.getCategory());
+        	toggleLineBackground = !toggleLineBackground;
 
-        	Label propertyLabel = new Label(container, SWT.NONE);
+        	Composite container = containersMap.get(property.getCategory());
+        	
+        	Composite line = new Composite(container, SWT.NONE);
+			GridLayout layout = new GridLayout(2, false);
+			layout.marginLeft = layout.marginTop = layout.marginRight = layout.marginBottom = 2;
+			layout.verticalSpacing = 0;
+			line.setLayout(layout);
+			GridData data = new GridData(GridData.FILL_HORIZONTAL);
+        	line.setLayoutData(data);
+        	
+        	if (toggleLineBackground) {
+        		line.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_TITLE_INACTIVE_BACKGROUND));
+        	}
+        	
+        	Label propertyLabel = new Label(line, SWT.WRAP);
+        	data = new GridData(240, SWT.DEFAULT);
+        	data.verticalAlignment = SWT.TOP;
         	propertyLabel.setText(property.getDescription());
+        	propertyLabel.setLayoutData(data);
         	
         	switch (property.getType()) {
         		case Text: {
-                	final Text propertyEditor = new Text(container, SWT.BORDER);
-                	GridData data = new GridData(500,12);
+                	final Text propertyEditor = new Text(line, SWT.BORDER);
+                	data = new GridData(GridData.FILL_HORIZONTAL);
+                	data.verticalAlignment = SWT.TOP;
                 	propertyEditor.setLayoutData(data);
                 	
                 	String value = EnginePropertiesManager.getProperty(property);
@@ -106,8 +133,9 @@ public class EnginePreferencePage extends PreferencePage implements IWorkbenchPr
         		
         		case PasswordHash:
         		case PasswordPlain: {
-                	final Text propertyEditor = new Text(container, SWT.BORDER);
-                	GridData data = new GridData(500,12);
+                	final Text propertyEditor = new Text(line, SWT.BORDER);
+                	data = new GridData(GridData.FILL_HORIZONTAL);
+                	data.verticalAlignment = SWT.TOP;
                 	propertyEditor.setLayoutData(data);
                 	
                 	String value = EnginePropertiesManager.getProperty(property);
@@ -123,8 +151,12 @@ public class EnginePreferencePage extends PreferencePage implements IWorkbenchPr
         		}
 
         		case Boolean: {
-        			final Button propertyEditor = new Button(container, SWT.CHECK);
+        			final Button propertyEditor = new Button(line, SWT.CHECK);
 					
+        			data = new GridData();
+                	data.verticalAlignment = SWT.TOP;
+                	propertyEditor.setLayoutData(data);
+                	
                 	boolean value = Boolean.parseBoolean(EnginePropertiesManager.getProperty(property));
         			propertyEditor.setSelection(value);
                 	
@@ -142,8 +174,12 @@ public class EnginePreferencePage extends PreferencePage implements IWorkbenchPr
         		}
 
         		case Combo: {
-        			final Combo propertyEditor = new Combo(container, SWT.SIMPLE | SWT.DROP_DOWN | SWT.READ_ONLY);
+        			final Combo propertyEditor = new Combo(line, SWT.SIMPLE | SWT.DROP_DOWN | SWT.READ_ONLY);
 
+        			data = new GridData(GridData.FILL_HORIZONTAL);
+                	data.verticalAlignment = SWT.TOP;
+                	propertyEditor.setLayoutData(data);
+                	
                 	String value = EnginePropertiesManager.getProperty(property);
                 	String comboDisplay, comboValue;
                 	int selectedIndex = 0;
@@ -170,8 +206,12 @@ public class EnginePreferencePage extends PreferencePage implements IWorkbenchPr
         		}
 
         		case Array: {
-                	final Text propertyEditor = new Text(container, SWT.BORDER | SWT.MULTI);
+                	final Text propertyEditor = new Text(line, SWT.BORDER | SWT.MULTI);
 
+                	data = new GridData(GridData.FILL_HORIZONTAL);
+                	data.verticalAlignment = SWT.TOP;
+                	propertyEditor.setLayoutData(data);
+                	
                 	String[] originalValue = EnginePropertiesManager.getOriginalPropertyAsStringArray(property);
                 	
                 	for (String item : originalValue) {
@@ -192,8 +232,15 @@ public class EnginePreferencePage extends PreferencePage implements IWorkbenchPr
         		}
         	}
         }
+        
+		for (PropertyCategory propertyCategory : PropertyCategory.values()) {
+			Composite container = containersMap.get(propertyCategory);
+			ExpandItem item = expandItemsMap.get(propertyCategory);
 
-        return tabFolder;
+			item.setHeight(container.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		}
+        
+        return bar;
 	}
 
 	public void init(IWorkbench workbench) {

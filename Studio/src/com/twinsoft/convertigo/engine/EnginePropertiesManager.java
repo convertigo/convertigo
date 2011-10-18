@@ -264,8 +264,6 @@ public class EnginePropertiesManager {
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		APPLICATION_SERVER_MASHUP_URL ("application_server.mashup.url", "http://localhost:18080/convertigo", "Mashup composer server base URL", PropertyCategory.Main),
 		DOCUMENT_THREADING_MAX_WORKER_THREADS ("document.threading.max_worker_threads", "100", "Maximal number of worker threads", PropertyCategory.Main),
-		@PropertyOptions(propertyType = PropertyType.Boolean)
-		NET_REVERSE_DNS ("net.reverse_dns", "false", "Use DNS reverse search for finding host names", PropertyCategory.Network),
 
 		/** MAIN ADVANCE */
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
@@ -356,6 +354,14 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX ("log4j.appender.CemsAppender.MaxBackupIndex", "100", "Log4J default appender max backup index", PropertyCategory.Logs),
 
+		/** NETWORK */
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		NET_REVERSE_DNS ("net.reverse_dns", "false", "Use DNS reverse search for finding host names", PropertyCategory.Network),
+		@PropertyOptions(advance = true)
+		HTTP_CLIENT_MAX_TOTAL_CONNECTIONS ("http_client.max_total_connections", "100", "Maximal number of HTTP connections (from 1 to 65535)", PropertyCategory.Network),
+		@PropertyOptions(advance = true)
+		HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST ("http_client.max_connections_per_host", "50", "Maximal number of HTTP connections per host (from 1 to 255)", PropertyCategory.Network),
+
 		/** CONTEXT */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		CONNECTORS_MONITORING ("connectors.monitoring", "false", "Display the connectors monitor", PropertyCategory.Context),
@@ -393,10 +399,6 @@ public class EnginePropertiesManager {
 		
 
 		/** XULRUNNER ADVANCE */
-		@PropertyOptions(advance = true)
-		HTTP_CLIENT_MAX_TOTAL_CONNECTIONS ("http_client.max_total_connections", "100", "Maximal number of HTTP connections (from 1 to 65535)", PropertyCategory.Network),
-		@PropertyOptions(advance = true)
-		HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST ("http_client.max_connections_per_host", "50", "Maximal number of HTTP connections per host (from 1 to 255)", PropertyCategory.Network),
 		@PropertyOptions(advance = true)
 		XULRUNNER_ACCEPT_LANGUAGES ("xulrunner.accept_languages", "", "HTTP_ACCEPT_LANGUAGE header value", PropertyCategory.XulRunner),
 		@PropertyOptions(advance = true)
