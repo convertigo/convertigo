@@ -387,9 +387,7 @@ public class PobiXslUtils {
 	
 	public static String urlEncode(String string) {
 		try {
-			String defaultEncoder = (String) AccessController.doPrivileged(new GetPropertyAction(
-					"file.encoding"));
-			return URLEncoder.encode(string, defaultEncoder).replace('+', ' ');
+			return URLEncoder.encode(string, "UTF-8").replace('+', ' ');
 		} catch (UnsupportedEncodingException e) {
 			// The system should always have the platform default
 			return null;
