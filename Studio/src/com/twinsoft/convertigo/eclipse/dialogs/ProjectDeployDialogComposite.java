@@ -30,17 +30,16 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
@@ -57,12 +56,13 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 
 	public Tree tree = null;
 	public Label label = null;
-	public Combo combo = null;
+	public Button delButton = null;
 	public Button checkBox = null;
 	public Button assembleXsl = null;
 	public Button checkTrustAllCertificates = null;
 	public Group webGroup = null;
 	public Group convertigoGroup = null;
+	public Group SSLGroup = null;
 	public Label webAdminLabel = null;
 	public Text webAdmin = null;
 	public Label webAdminPassword = null;
@@ -71,9 +71,14 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 	public Text convertigoAdmin = null;
 	public Label convertigoAdminPassword = null;
 	public Text convertigoPassword = null;
+	public Text convertigoServer = null;
 	public ProgressBar progressBar = null;
 	public Label labelProgress = null;
+	public MessageBox messageBox = null;
+	public List list = null;
 	public ObjectOutputStream objectOutputStream = null;
+	
+	public static String listMessage = "-- No deployment configuration saved --";
 	
 	public ProjectDeployDialogComposite(Composite parent, int style) {
 		super(parent, style);
@@ -99,22 +104,47 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
         }
     }
     
-    private void fillComboBox() {
-        combo.removeAll();
+    private void fillList() {
+        list.removeAll();
         
         for (DeploymentConfiguration deploymentConfiguration : deploymentInformation.deploymentConfigurations.values()) {
-        	combo.add(deploymentConfiguration.toString());
+        	list.add(deploymentConfiguration.toString());
         }
         
-        // Select the first entry if it exists
-        if (combo.getItemCount() > 0) {
-            combo.select(0);
-            DeploymentConfiguration dc = getDeployementConfiguration(combo.getText());
-            convertigoAdmin.setText(dc.getUsername());
-            convertigoPassword.setText(dc.getUserpassword());
-            checkBox.setSelection(dc.isBHttps());
-            checkTrustAllCertificates.setSelection(dc.isBTrustAllCertificates());
+        if (list.getItemCount() > 0) {
+        	String [] items = list.getItems();
+        	boolean found = false;
+        	for (int i=0; i < list.getItemCount(); i++) {
+        		if (items[i].equals(deploymentInformation.defaultDeploymentConfigurationName)) {
+        			list.select(i);
+        			DeploymentConfiguration dc = getDeployementConfiguration(list.getSelection()[0]);
+        			fillDialog(dc);
+        			found = true;
+        		}
+        	}
+        	if (!found) {
+        		list.select(0);
+        		DeploymentConfiguration dc = getDeployementConfiguration(list.getSelection()[0]);
+    			fillDialog(dc);
+        	}
+        } else {
+        	list.add(listMessage);
         }
+        
+        if (list.getSelectionIndex() == -1) {
+        	delButton.setEnabled(false);
+        }
+    }
+    
+    
+    private void fillDialog(DeploymentConfiguration dc) {
+    	convertigoAdmin.setText(dc.getUsername());
+        convertigoPassword.setText(dc.getUserpassword());
+        checkBox.setSelection(dc.isBHttps());
+        checkTrustAllCertificates.setSelection(dc.isBTrustAllCertificates());
+        convertigoServer.setText(dc.getServer());
+        assembleXsl.setSelection(dc.isBAssembleXsl());
+        convertigoServer.setText(dc.getServer());
     }
     
 	/**
@@ -123,34 +153,23 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 	 */
 	protected void initialize() {
 		GridLayout gridLayout = new GridLayout();
-		gridLayout.numColumns = 1;
+		gridLayout.numColumns = 2;
 		this.setLayout(gridLayout);
 		
         label = new Label(this, SWT.NONE);
         label.setText("Convertigo server");
         
-        createCombo();
-        
         GridData gridData1 = new GridData();
         gridData1.horizontalSpan = 2;
         gridData1.horizontalAlignment = GridData.FILL;
         gridData1.grabExcessHorizontalSpace = true;
-        gridData1.verticalIndent = 15;
-        checkBox = new Button(this, SWT.CHECK);
-        checkBox.setText("HTTPS connection");
-        checkBox.setLayoutData(gridData1);
-        
-        gridData1 = new GridData();
-        gridData1.horizontalSpan = 2;
-        gridData1.horizontalAlignment = GridData.FILL;
-        gridData1.grabExcessHorizontalSpace = true;
-        gridData1.verticalIndent = 5;
-        
-        checkTrustAllCertificates = new Button(this, SWT.CHECK);
-        checkTrustAllCertificates.setText("Trust all certificates");
-        checkTrustAllCertificates.setLayoutData(gridData1);
-        
+        convertigoServer = new Text(this, SWT.BORDER);
+        convertigoServer.setLayoutData(gridData1);
+
+        createList(); 
         createConvertigoGroup();
+        createSSLGroup();
+        
         GridData gridData3 = new GridData();
         gridData3.horizontalSpan = 2;
         gridData3.horizontalAlignment = GridData.FILL;
@@ -179,86 +198,127 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
         progressBar.setLayoutData(gridData4);
         
         getDeploymentInformation();
-        fillComboBox();
+        fillList();
 	}
 
 	public Object getValue(String name) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
+	
 	/**
-	 * This method initializes combo	
+	 * This method initializes list	
 	 *
 	 */
-	private void createCombo() {
-		GridData gridData1 = new GridData();
-		gridData1.horizontalAlignment = GridData.FILL;
-		gridData1.verticalAlignment = GridData.CENTER;
-		gridData1.grabExcessHorizontalSpace = true;
-		combo = new Combo(this, SWT.NONE);
-		combo.setLayoutData(gridData1);
-		combo.addSelectionListener(new SelectionAdapter() {
+	private void createList() {
+		
+		Composite composite = new Composite(this, SWT.NONE);
+		
+		GridData gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.horizontalAlignment = GridData.FILL;
+		composite.setLayoutData(gridData);
+		
+		GridLayout gridLayout = new GridLayout();
+		gridLayout.numColumns = 2;
+		gridLayout.marginHeight = 0;
+		gridLayout.marginWidth = 0;
+		composite.setLayout(gridLayout);
+
+		list = new List(composite, SWT.BORDER | SWT.V_SCROLL | SWT.SINGLE);
+		
+		gridData = new GridData();
+		gridData = new GridData();
+		gridData.horizontalAlignment = GridData.FILL;
+		gridData.verticalAlignment = GridData.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.grabExcessVerticalSpace = true;
+		list.setLayoutData(gridData);
+		
+		delButton = new Button(composite, SWT.PUSH);
+		delButton.setText("Remove");
+		
+		list.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent evt) {
-				//String serverName = combo.getText();
-	            DeploymentConfiguration dc = getDeployementConfiguration(combo.getText());
+	            DeploymentConfiguration dc = getDeployementConfiguration(list.getSelection()[0]);
 	            convertigoAdmin.setText(dc.getUsername());
 	            convertigoPassword.setText(dc.getUserpassword());
 	            checkBox.setSelection(dc.isBHttps());
+	            checkTrustAllCertificates.setSelection(dc.isBTrustAllCertificates());
+	            convertigoServer.setText(dc.getServer());
+	            assembleXsl.setSelection(dc.isBAssembleXsl());
+	            delButton.setEnabled(true);
 			}
 		});
-		combo.addKeyListener(new KeyListener() {
-			
-			public void keyReleased(KeyEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			public void keyPressed(KeyEvent e) {
-				// TODO Auto-generated method stub
-				if (e.character == SWT.DEL) {
-					int index = combo.getSelectionIndex();
-					String item = combo.getItem(index);
-					removeDeploymentConfiguration(item);
-					combo.remove(combo.getSelectionIndex());
-				}
-			}
-		});
-	}
-
-	private DeploymentConfiguration getDeployementConfiguration(String name) {
-		DeploymentConfiguration dc = null;
-
-		for (DeploymentConfiguration deploymentConfiguration : deploymentInformation.deploymentConfigurations.values()) {
-            if  (deploymentConfiguration.getServer().equals(name))
-            	return dc = deploymentConfiguration;
-        }
-
-        return dc;
-	}
-	
-	private void removeDeploymentConfiguration(String name) {
-		Set<String> keys = deploymentInformation.deploymentConfigurations.keySet();
-		Iterator<String> it = keys.iterator();
 		
-		while (it.hasNext()){
-		   Object key = it.next();
-		    if (key.equals(name)) {
-		    	deploymentInformation.deploymentConfigurations.remove(key);
-		    	
-				try {
-		            objectOutputStream = new ObjectOutputStream(new FileOutputStream(Engine.PROJECTS_PATH + "/" + ConvertigoPlugin.projectManager.currentProject.getName() + "/_private/deploy.ser"));
-		            objectOutputStream.writeObject(deploymentInformation);
-		            objectOutputStream.flush();
-		            objectOutputStream.close();
-		        }
-		        catch(Exception e) {
-		        	ConvertigoPlugin.logException(e, "Unable to save the deployment information.");
-		        }
-		    }
-		}
+		gridData = new GridData();
+		gridData.horizontalAlignment = GridData.END;
+		gridData.verticalAlignment = GridData.BEGINNING;
+		delButton.setLayoutData(gridData);
+		
+		delButton.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				int index = list.getSelectionIndex();
+				String item = list.getItem(index);
+				int response = 0;
+				if (!item.equals(listMessage)) {
+					messageBox = new MessageBox(parentDialog.getShell(), SWT.YES | SWT.NO);
+				    messageBox.setMessage("Do you really want to delete this configuration? \n\n\t" + item);
+				    messageBox.setText("Deleting configuration");
+				    response = messageBox.open();
+				}				    
+			    if (response == SWT.YES) {
+					removeDeploymentConfiguration(item);
+					list.remove(index);
+					
+					if (list.getItemCount() > 0) {
+						list.select(0);
+						
+						if (!item.equals(listMessage)) {
+							DeploymentConfiguration dc = getDeployementConfiguration(list.getItem(0));
+							fillDialog(dc);
+						}
+					}					
+					list.setRedraw(true);
+					list.redraw();
+			    }				  
+			}
+		});
 	}
 	
+	private void createSSLGroup() {
+		SSLGroup = new Group(this, SWT.FILL);
+		SSLGroup.setLayout(new GridLayout());
+		SSLGroup.setText("SSL options");
+		
+		GridData gridData = new GridData();
+		gridData.horizontalAlignment = GridData.FILL;
+		gridData.verticalAlignment = GridData.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.verticalIndent = 10;
+		gridData.grabExcessVerticalSpace = true;
+		SSLGroup.setLayoutData(gridData);
+		
+		gridData = new GridData();
+//		gridData.horizontalSpan = 2;
+		gridData.horizontalAlignment = GridData.FILL;
+		gridData.verticalAlignment = GridData.CENTER;
+		gridData.verticalIndent = 20;
+        checkBox = new Button(SSLGroup, SWT.CHECK);
+        checkBox.setText("HTTPS connection");
+        checkBox.setLayoutData(gridData);
+        
+        gridData = new GridData();
+//        gridData.horizontalSpan = 2;
+        gridData.horizontalAlignment = GridData.FILL;
+        gridData.verticalAlignment = GridData.FILL;
+        gridData.verticalIndent = 25;
+        
+        checkTrustAllCertificates = new Button(SSLGroup, SWT.CHECK);
+        checkTrustAllCertificates.setText("Trust all certificates");
+        checkTrustAllCertificates.setLayoutData(gridData);
+	}
 
 	/**
 	 * This method initializes convertigoGroup	
@@ -271,9 +331,9 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		
 		GridData gridData2 = new GridData();
 		gridData2.horizontalAlignment = GridData.FILL;
-		gridData2.verticalAlignment = GridData.CENTER;
+		gridData2.verticalAlignment = GridData.FILL;
 		gridData2.grabExcessHorizontalSpace = true;
-		gridData2.verticalIndent = 15;
+		gridData2.verticalIndent = 10;
 		convertigoGroup.setLayoutData(gridData2);
 		
 		GridData gridData3 = new GridData();
@@ -293,6 +353,42 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		convertigoAdminPassword.setText("Password");
 		convertigoPassword = new Text(convertigoGroup, SWT.BORDER | SWT.PASSWORD);
 		convertigoPassword.setLayoutData(gridData5);
+	}
+	
+
+	private DeploymentConfiguration getDeployementConfiguration(String name) {
+		DeploymentConfiguration dc = null;
+
+		for (DeploymentConfiguration deploymentConfiguration : deploymentInformation.deploymentConfigurations.values()) {
+            if  (deploymentConfiguration.getServer().equals(name))
+            	return dc = deploymentConfiguration;
+        }
+
+        return dc;
+	}
+	
+	private void removeDeploymentConfiguration(String name) {
+		Set<String> keys = deploymentInformation.deploymentConfigurations.keySet();
+		Iterator<String> it = keys.iterator();
+		Object removedKey = null;
+		while (it.hasNext() && removedKey == null){
+		   Object key = it.next();
+		    if (key.equals(name)) {
+		    	removedKey = key;
+		    }
+		}
+		
+		try {		
+	    	deploymentInformation.deploymentConfigurations.remove(removedKey);
+			
+            objectOutputStream = new ObjectOutputStream(new FileOutputStream(Engine.PROJECTS_PATH + "/" + ConvertigoPlugin.projectManager.currentProject.getName() + "/_private/deploy.ser"));
+            objectOutputStream.writeObject(deploymentInformation);
+            objectOutputStream.flush();
+            objectOutputStream.close();
+        }
+        catch(Exception e) {
+        	ConvertigoPlugin.logException(e, "Unable to save the deployment information.");
+        }
 	}
 	
 }  //  @jve:decl-index=0:visual-constraint="10,10"

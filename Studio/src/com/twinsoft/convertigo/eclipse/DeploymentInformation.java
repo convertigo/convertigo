@@ -35,6 +35,7 @@ public class DeploymentInformation implements Serializable {
 	
 	public List<File> undeployedFiles = new Vector<File>();
     public Map<String, DeploymentConfiguration> deploymentConfigurations = new Hashtable<String, DeploymentConfiguration>();
+    public String defaultDeploymentConfigurationName = "";
     
     /** Creates a new instance of DeploymentInformation */
     public DeploymentInformation() {

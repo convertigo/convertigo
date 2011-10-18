@@ -31,10 +31,11 @@ import java.io.Writer;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -56,7 +57,8 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	private Button checkBox = null;
 	private Button assembleXsl = null;
 	private Button checkTrustAllCertificates = null;
-	private Combo combo = null;
+	private List list = null;
+	private Text convertigoServerText = null;
 	private Text convertigoAdmin = null;
 	private Text convertigoPassword = null;
 
@@ -69,24 +71,31 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	boolean bAssembleXsl = false;
 	
 	public ProjectDeployDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle) {
-		super(parentShell, dialogAreaClass, dialogTitle, 300, 480);
+		super(parentShell, dialogAreaClass, dialogTitle, 460, 500);
 	}
-
+	
+	@Override
+	protected Control createButtonBar(Composite parent) {
+		Control buttonBar =  super.createButtonBar(parent);
+		getButton(IDialogConstants.OK_ID).setText("Deploy");
+		return buttonBar;
+	}
+	
 	protected void okPressed() {
 		try {
 			getButton(IDialogConstants.OK_ID).setEnabled(false);
-			getButton(IDialogConstants.CANCEL_ID).setEnabled(false);
 			deploymentInformation = ((ProjectDeployDialogComposite)dialogComposite).deploymentInformation;
 			progressBar = ((ProjectDeployDialogComposite)dialogComposite).progressBar;
 			labelProgression = ((ProjectDeployDialogComposite)dialogComposite).labelProgress;
 			checkBox = ((ProjectDeployDialogComposite)dialogComposite).checkBox;
 			checkTrustAllCertificates = ((ProjectDeployDialogComposite)dialogComposite).checkTrustAllCertificates;
 			assembleXsl = ((ProjectDeployDialogComposite)dialogComposite).assembleXsl;
-			combo = ((ProjectDeployDialogComposite)dialogComposite).combo;
+			list = ((ProjectDeployDialogComposite)dialogComposite).list;
 			convertigoAdmin = ((ProjectDeployDialogComposite)dialogComposite).convertigoAdmin;
 			convertigoPassword = ((ProjectDeployDialogComposite)dialogComposite).convertigoPassword;
+			convertigoServerText = ((ProjectDeployDialogComposite)dialogComposite).convertigoServer;
 
-			convertigoServer = combo.getText();
+			convertigoServer = convertigoServerText.getText();
 	        if ((convertigoServer == null) || (convertigoServer.equals(""))) return;
 	        
 	        convertigoUserName = convertigoAdmin.getText();
@@ -98,18 +107,37 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	        isHttps = checkBox.getSelection();
 	        trustAllCertificates = checkTrustAllCertificates.getSelection();
 	        bAssembleXsl = assembleXsl.getSelection();
+        
+	        boolean doubleFound = false;
+	        for (DeploymentConfiguration deploymentConfiguration : deploymentInformation.deploymentConfigurations.values()) {
+	        	if (convertigoServer.equals(deploymentConfiguration.getServer())) {
+	        		deploymentConfiguration.setBAssembleXsl(bAssembleXsl);
+	        		deploymentConfiguration.setBHttps(isHttps);
+	        		deploymentConfiguration.setUsername(convertigoUserName);
+	        		deploymentConfiguration.setUserpassword(convertigoUserPassword);
+	        		deploymentConfiguration.setBTrustAllCertificates(trustAllCertificates);
+	        		doubleFound = true;
+	        		deploymentInformation.defaultDeploymentConfigurationName = convertigoServer;
+	        	}
+	        }
 	        
 	        DeploymentConfiguration dc = new DeploymentConfiguration(
-							            convertigoServer,
-							            convertigoUserName,
-							            convertigoUserPassword,
-							            isHttps,
-							            trustAllCertificates,
-							            bAssembleXsl
-							        );
+		            convertigoServer,
+		            convertigoUserName,
+		            convertigoUserPassword,
+		            isHttps,
+		            trustAllCertificates,
+		            bAssembleXsl
+		        );
 	        
-	        combo.add(convertigoServer);
-	        deploymentInformation.deploymentConfigurations.put(convertigoServer, dc);
+	        if (!doubleFound) {
+	            list.add(convertigoServer);
+		        deploymentInformation.deploymentConfigurations.put(convertigoServer, dc);
+		        deploymentInformation.defaultDeploymentConfigurationName = convertigoServer;
+		        if (list.getItem(0).equals(ProjectDeployDialogComposite.listMessage)) {
+		        	list.remove(0);
+		        }
+	        }
 
 	        File projectDir = new File(Engine.PROJECTS_PATH + "/" + ConvertigoPlugin.projectManager.currentProject.getName() + "/_private");
 	        if (!projectDir.exists()) {
@@ -143,10 +171,6 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 		catch (Throwable e) {
 			ConvertigoPlugin.logException(e, "Unable to deploy project!");
 		}
-		finally {
-			getButton(IDialogConstants.OK_ID).setEnabled(true);
-			getButton(IDialogConstants.CANCEL_ID).setEnabled(true);
-		}
 	}
 	
 	public void run() {
@@ -178,7 +202,6 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 		try {
 			progressBarThread.start();
 			deploy();
-
 			display.asyncExec(new Runnable() {
 				public void run() {
 					setReturnCode(OK);
