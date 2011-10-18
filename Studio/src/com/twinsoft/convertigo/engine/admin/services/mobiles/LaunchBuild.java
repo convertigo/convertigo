@@ -25,8 +25,10 @@ package com.twinsoft.convertigo.engine.admin.services.mobiles;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -59,7 +61,8 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
 @ServiceDefinition(name = "LaunchBuild", roles = { Role.ANONYMOUS }, parameters = {}, returnValue = "")
 public class LaunchBuild extends XmlService {
 
-	private static Object buildLock = new Object();
+	private static final Pattern alphaNumPattern = Pattern.compile("[\\.\\w]*");
+	private static final Object buildLock = new Object();
 	
 	private String originalMobileResourcesPath;
 	private String tmpMobileResourcesPath;
@@ -112,34 +115,48 @@ public class LaunchBuild extends XmlService {
 					break;
 				}
 			}
-
-			// Update sencha script reference (to non debug version)
+			
 			File indexHtmlFile = new File(tmpMobileWwwPath + "/index.html");
 			String sIndexHtml = FileUtils.readFileToString(indexHtmlFile);
-			sIndexHtml = sIndexHtml.replaceAll("js/senchatouchdebugwcomments\\.js", "js/senchatouch.js");
-			// "js/mobilelib.js" "../../../../scripts/mobilelib.js"
-			File debugSenchaJsLibFile = new File(tmpMobileWwwPath + "/js/senchatouchdebugwcomments.js");
-			debugSenchaJsLibFile.delete();
-
-			// Update mobilelib script reference and copy from commom scripts if
-			// needed
-			File mobilelibFile = new File(tmpMobileWwwPath + "/js/mobilelib.js");
-			if (!mobilelibFile.exists()) {
-				IOUtils.copy(new FileInputStream(Engine.WEBAPP_PATH + "/scripts/mobilelib.js"),
-						new FileOutputStream(mobilelibFile));
-				sIndexHtml = sIndexHtml.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./scripts/mobilelib\\.js",
-						"js/mobilelib.js");
-			}
-
-			FileUtils.writeStringToFile(indexHtmlFile, sIndexHtml);
-
+			
 			// Update endpoint for C8O server
 			File serverJsFile = new File(tmpMobileWwwPath + "/sources/server.js");
-			String sServerJsHtml = FileUtils.readFileToString(serverJsFile);
-			sServerJsHtml = sServerJsHtml.replaceAll("/\\* DO NOT REMOVE THIS LINE endpoint \\: '' \\*/",
-					"endpoint : '" + endPoint + "'");
-			FileUtils.writeStringToFile(serverJsFile, sServerJsHtml);
-
+			if (serverJsFile.exists()) {
+				String sServerJsHtml = FileUtils.readFileToString(serverJsFile);
+				sServerJsHtml = sServerJsHtml.replaceAll("/\\* DO NOT REMOVE THIS LINE endpoint \\: '' \\*/", "endpoint : '" + endPoint + "'");
+				FileUtils.writeStringToFile(serverJsFile, sServerJsHtml);
+				
+				// Update sencha script reference (to non debug version)
+				
+				sIndexHtml = sIndexHtml.replaceAll("js/senchatouchdebugwcomments\\.js", "js/senchatouch.js");
+				// "js/mobilelib.js" "../../../../scripts/mobilelib.js"
+				File debugSenchaJsLibFile = new File(tmpMobileWwwPath + "/js/senchatouchdebugwcomments.js");
+				debugSenchaJsLibFile.delete();
+				
+				// Update mobilelib script reference and copy from commom scripts if
+				// needed
+				sIndexHtml = resolveFile(sIndexHtml, "scripts/mobilelib.js", "js/mobilelib.js");
+			} else {				
+				String sIndexHtml_resolved = resolveFile(sIndexHtml, "css/jquery.mobile.min.css", "css/jquery.mobile.min.css");
+				if (sIndexHtml != sIndexHtml_resolved) {
+					File destFile = new File(tmpMobileWwwPath + "/css/images");
+					if (!destFile.exists()) {
+						FileUtils.copyDirectory(new File(Engine.WEBAPP_PATH + "/css/images"), destFile);
+					}
+					sIndexHtml = sIndexHtml_resolved;
+				}
+				sIndexHtml = resolveFile(sIndexHtml, "scripts/jquery.min.js", "js/jquery.min.js");
+				sIndexHtml = resolveFile(sIndexHtml, "scripts/jquery.mobilelib.js", "js/jquery.mobilelib.js");
+				sIndexHtml = resolveFile(sIndexHtml, "scripts/jquery.mobile.min.js", "js/jquery.mobile.min.js");
+				
+				serverJsFile = new File(tmpMobileWwwPath + "/js/jquery.mobilelib.js");
+				String sJs = FileUtils.readFileToString(serverJsFile);
+				sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "/\"");
+				FileUtils.writeStringToFile(serverJsFile, sJs);
+			}
+			
+			FileUtils.writeStringToFile(indexHtmlFile, sIndexHtml);
+			
 			// Update config.xml
 			Document configXmlDocument = XMLUtils.loadXml(tmpMobileWwwPath + "/config.xml");
 			Element configXmlDocumentElement = configXmlDocument.getDocumentElement();
@@ -160,7 +177,7 @@ public class LaunchBuild extends XmlService {
 			// Build the ZIP file for the mobile device
 			String mobileArchiveFileName = tmpMobileResourcesPath + "/" + application + ".zip";
 			ZipUtils.makeZip(mobileArchiveFileName, tmpMobileResourcesPath + "/www", null);
-
+			
 			// Login to the mobile builder platform
 			String mobileBuilderPlatformURL = EnginePropertiesManager
 					.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
@@ -202,8 +219,15 @@ public class LaunchBuild extends XmlService {
 			document.getDocumentElement().appendChild(statusElement);
 		}
 	}
-
-	private Pattern alphaNumPattern = Pattern.compile("[\\.\\w]*");
+	
+	private String resolveFile(String html, String origin, String dest) throws FileNotFoundException, IOException {
+		File destFile = new File(tmpMobileWwwPath + "/" + dest);
+		if (!destFile.exists()) {
+			IOUtils.copy(new FileInputStream(Engine.WEBAPP_PATH + "/" + origin), new FileOutputStream(destFile));
+			html = html.replaceAll(Pattern.quote("../../../../" + origin), dest);
+		}
+		return html;
+	}
 
 	private void checkAlphaNumericCharsInFileNames(File resourcePath) throws ServiceException {
 		String filename = resourcePath.getName();
