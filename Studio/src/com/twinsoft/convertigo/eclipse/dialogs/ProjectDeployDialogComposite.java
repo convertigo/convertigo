@@ -216,8 +216,11 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		
 		GridData gridData = new GridData();
 		gridData.horizontalSpan = 2;
-		gridData.grabExcessHorizontalSpace = true;
 		gridData.horizontalAlignment = GridData.FILL;
+		gridData.verticalAlignment = GridData.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.grabExcessVerticalSpace = true;
+		
 		composite.setLayoutData(gridData);
 		
 		GridLayout gridLayout = new GridLayout();
@@ -227,8 +230,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		composite.setLayout(gridLayout);
 
 		list = new List(composite, SWT.BORDER | SWT.V_SCROLL | SWT.SINGLE);
-		
-		gridData = new GridData();
+
 		gridData = new GridData();
 		gridData.horizontalAlignment = GridData.FILL;
 		gridData.verticalAlignment = GridData.FILL;
@@ -297,11 +299,9 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		gridData.verticalAlignment = GridData.FILL;
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.verticalIndent = 10;
-		gridData.grabExcessVerticalSpace = true;
 		SSLGroup.setLayoutData(gridData);
 		
 		gridData = new GridData();
-//		gridData.horizontalSpan = 2;
 		gridData.horizontalAlignment = GridData.FILL;
 		gridData.verticalAlignment = GridData.CENTER;
 		gridData.verticalIndent = 20;
@@ -310,7 +310,6 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
         checkBox.setLayoutData(gridData);
         
         gridData = new GridData();
-//        gridData.horizontalSpan = 2;
         gridData.horizontalAlignment = GridData.FILL;
         gridData.verticalAlignment = GridData.FILL;
         gridData.verticalIndent = 25;
