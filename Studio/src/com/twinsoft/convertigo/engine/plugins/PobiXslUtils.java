@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.engine.plugins;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.security.AccessController;
 
 import javax.xml.transform.TransformerException;
 
@@ -32,8 +31,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
-
-import sun.security.action.GetPropertyAction;
 
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.util.StringEx;
