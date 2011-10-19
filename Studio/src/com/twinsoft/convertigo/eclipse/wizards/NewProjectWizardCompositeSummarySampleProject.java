@@ -59,7 +59,7 @@ public class NewProjectWizardCompositeSummarySampleProject extends Composite  {
 		gridData2.grabExcessHorizontalSpace = true;
 		gridData2.horizontalAlignment = GridData.FILL;
 		String text = "You chose to open a sample project.\n\n";
-		if (wz.isMobileSample())
+		if (wz.isSenchaSample())
 			text += "Click \"Next\" to configure the Sencha Touch framework to be used or \"Back\" to change project's type.\n";
 		else
 			text += "Click \"finish\" to create the project or \"back\" to change project's type.\n";

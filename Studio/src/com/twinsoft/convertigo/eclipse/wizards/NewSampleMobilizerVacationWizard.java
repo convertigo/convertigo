@@ -22,16 +22,10 @@
 
 package com.twinsoft.convertigo.eclipse.wizards;
 
-public class NewSampleMobilizerWebToPdfWizard extends NewProjectWizard {
+public class NewSampleMobilizerVacationWizard extends NewProjectWizard {
 	
-	public NewSampleMobilizerWebToPdfWizard() {
+	public NewSampleMobilizerVacationWizard() {
 		super();
-		this.templateId = NewProjectWizard.SAMPLE_MOBILE_SENCHA_WEBTOPDF;
+		this.templateId = NewProjectWizard.SAMPLE_MOBILE_JQUERYMOBILE_VACATION;
 	}
-
-	@Override
-	public boolean isSenchaSample() {
-		return true;
-	}
-
 }

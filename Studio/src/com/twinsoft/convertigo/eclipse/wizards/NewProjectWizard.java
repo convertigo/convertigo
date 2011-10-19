@@ -148,6 +148,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int SAMPLE_MOBILE_SENCHA_SIEBEL			= 1204;
 	public static final int SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO= 1205;
 	public static final int TEMPLATE_MOBILE_JQUERYMOBILE				= 1300;
+	public static final int SAMPLE_MOBILE_JQUERYMOBILE_VACATION				= 1301;
 	
 	// to import blank project
 	public static final String JAVELIN_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME 	= "template_javelin.car";
@@ -175,6 +176,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String MOBILE_SENCHA_RSSNYTIMES_PROJECT_FILE_NAME		= "sampleMobileRssNYTimes.car";
 	public static final String MOBILE_SENCHA_SIEBEL_PROJECT_FILE_NAME			= "sampleMobileSiebel.car";
 	public static final String MOBILE_SENCHA_USDIRECTORYDEMO_PROJECT_FILE_NAME	= "sampleMobileUsDirectoryDemo.car";
+	public static final String MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME	= "sampleMobileVacation.car";
 	public static final String SITECLIPPER_DOC_PROJECT_FILE_NAME				= "sampleDocumentationSiteClipper.car";
 	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME 			= "lib_GoogleMaps.car";
 	public static final String GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME 	= "lib_GoogleSpreadsheets.car";
@@ -193,7 +195,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		setWindowTitle("Create a new project");
 	}
 
-	public boolean isMobileSample() {
+	public boolean isSenchaSample() {
 		return false;
 	}
 
@@ -209,6 +211,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_DOCUMENTATION_CWC:
 			case SAMPLE_DOCUMENTATION_CWI:
 			case SAMPLE_DOCUMENTATION_SITECLIPPER:
+			case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
 			case LIBRARY_GOOGLE_MAPS:
 			case LIBRARY_GOOGLE_SPREADSHEETS:
 			case LIBRARY_GOOGLE_DOCS:
@@ -428,6 +431,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				case SAMPLE_MOBILE_SENCHA_SIEBEL:
 				case SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO:
 				case SAMPLE_DOCUMENTATION_SITECLIPPER:
+				case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
 				case LIBRARY_GOOGLE_MAPS:
 				case LIBRARY_GOOGLE_SPREADSHEETS:
 				case LIBRARY_GOOGLE_DOCS:
@@ -1069,6 +1073,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				projectName = MOBILE_SENCHA_SIEBEL_PROJECT_FILE_NAME.substring(0, MOBILE_SENCHA_SIEBEL_PROJECT_FILE_NAME.indexOf(".car"));
 				newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
 				break;
+			case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
+				projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME;
+				projectName = MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME.substring(0, MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME.indexOf(".car"));
+				newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
+				break;
 			case SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO:
 				projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + MOBILE_SENCHA_USDIRECTORYDEMO_PROJECT_FILE_NAME;
 				projectName = MOBILE_SENCHA_USDIRECTORYDEMO_PROJECT_FILE_NAME.substring(0, MOBILE_SENCHA_USDIRECTORYDEMO_PROJECT_FILE_NAME.indexOf(".car"));
@@ -1168,7 +1177,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		int mobileLook;
 		
 		// FOR SAMPLES
-		if (isMobileSample()) {
+		if (isSenchaSample()) {
 			// Retrieve sample look from index.html file
 			MobileUtils htmlIndexUtils = new MobileUtils(newProjectDir + "/" + MobileSencha.INDEX_HTML.directory() + "/" + MobileSencha.INDEX_HTML.displayName(), true);
 			mobileLook = htmlIndexUtils.getLook();

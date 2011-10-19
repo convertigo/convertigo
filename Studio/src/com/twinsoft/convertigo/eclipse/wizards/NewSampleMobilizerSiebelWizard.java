@@ -30,7 +30,7 @@ public class NewSampleMobilizerSiebelWizard extends NewProjectWizard {
 	}
 
 	@Override
-	public boolean isMobileSample() {
+	public boolean isSenchaSample() {
 		return true;
 	}
 
