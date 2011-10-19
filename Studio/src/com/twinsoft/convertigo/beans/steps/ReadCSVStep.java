@@ -25,8 +25,12 @@ package com.twinsoft.convertigo.beans.steps;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-//import java.io.FileReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -34,13 +38,6 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.util.StringEx;
-
-//import java.util.ArrayList;
-import java.util.StringTokenizer;
-import java.util.Vector;
-//import java.util.regex.* ;
-
-import javax.xml.parsers.DocumentBuilderFactory;
 
 public class ReadCSVStep extends ReadFileStep {
 	
@@ -62,12 +59,14 @@ public class ReadCSVStep extends ReadFileStep {
 		super();
 	}
 
+	@Override
     public Object clone() throws CloneNotSupportedException {
     	ReadCSVStep clonedObject = (ReadCSVStep) super.clone();
     	//clonedObject.listeTitle = null;
         return clonedObject;
     }
 	
+	@Override
     public Object copy() throws CloneNotSupportedException {
     	ReadCSVStep copiedObject = (ReadCSVStep) super.copy();
         return copiedObject;
@@ -123,6 +122,7 @@ public class ReadCSVStep extends ReadFileStep {
 		this.encoding = encoding;
 	}
 
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -147,15 +147,17 @@ public class ReadCSVStep extends ReadFileStep {
 		BufferedReader fichier;
 		try {
 			File csvFile = new File(getAbsoluteFilePath(filePath));
-			if (!csvFile.exists())
+			if (!csvFile.exists()) {
 				throw new EngineException("The CSV file \""+ filePath +"\" does not exist.");
+			}
 			
 			//construction of the DOM's root
 			csvDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();				
 			Element root = csvDoc.createElement("document");
 			csvDoc.appendChild(root);
 			
-			Vector vCol, vLines = new Vector();
+			List<String> vCol = new ArrayList<String>();
+			List<List<String>> vLines = new ArrayList<List<String>>();
 			int lines = 0, cols = 0, tokens = 0;
 			String str, data, value = "";
 			boolean start = false;
@@ -166,8 +168,12 @@ public class ReadCSVStep extends ReadFileStep {
                     new FileInputStream(getAbsoluteFilePath(filePath)),(encoding.length()>0)?encoding:"iso-8859-1"));
 			//fichier = new BufferedReader(new FileReader(csvFile));
 			while ((str = fichier.readLine()) != null) {
-				if (str.startsWith(separator)) str = "_empty_"+str;
-				if (str.endsWith(separator)) str = str + "_empty_";
+				if (str.startsWith(separator)) {
+					str = "_empty_"+str;
+				}
+				if (str.endsWith(separator)) {
+					str = str + "_empty_";
+				}
 				
 				StringEx tmp = new StringEx(str);
 				while(tmp.toString().contains(separator+separator)){
@@ -178,7 +184,7 @@ public class ReadCSVStep extends ReadFileStep {
 				st = new StringTokenizer(str, separator, true);
 				tokens = st.countTokens();
 				if (tokens > 0) {
-					vCol = new Vector();
+					vCol.clear();
 					while (st.hasMoreTokens()) {
 						data = st.nextToken();
 						if (!start && data.equals(separator)) {
@@ -200,13 +206,14 @@ public class ReadCSVStep extends ReadFileStep {
 							else if (data.endsWith("\"")) {
 								start = false;
 							}
-							else
+							else {
 								throw new EngineException("File '"+ filePath +"': corrupted at line="+ lines);
+							}
 						}
-						vCol.addElement(value);
+						vCol.add(value);
 						value = "";
 					}
-					vLines.addElement(vCol);
+					vLines.add(vCol);
 					cols = (tokens>cols)? tokens:cols;
 					lines++;
 				}
@@ -214,21 +221,24 @@ public class ReadCSVStep extends ReadFileStep {
 				
 			// Constructs array
 			String[][] table = new String[lines][cols];
-			for (int i=0; i<lines; i++) {
-				vCol = (Vector)vLines.elementAt(i);
-				for (int j=0; j<cols; j++) {
+			for (int i = 0; i < lines; i++) {
+				vCol = vLines.get(i);
+				for (int j = 0; j < cols; j++) {
 					try {
-						data = (String)vCol.elementAt(j);
-						if (data.equals("_empty_")) data = "";
+						data = vCol.get(j);
+						if (data.equals("_empty_")) {
+							data = "";
+						}
 					}
 					catch (ArrayIndexOutOfBoundsException e) {
 						data = "";
 					}
 					
-					if (titleLine && (i==0)) {
+					if (titleLine && (i == 0)) {
 						// Title tag name must not be empty!
-						if (data.trim().equals(""))
+						if (data.trim().equals("")) {
 							data = "titre"+j;
+						}
 						// Normalize tag name
 						data = StringUtils.normalize(data);
 					}
@@ -244,9 +254,11 @@ public class ReadCSVStep extends ReadFileStep {
 				while (j<cols) {
 					i = (titleLine ? 1:0);
 					col = csvDoc.createElement(titleLine ? table[0][j]:getTagColName());
-					while (i<lines) {
+					while (i < lines) {
 						line = csvDoc.createElement(getTagLineName());
-						if (!schema) line.appendChild(csvDoc.createTextNode(table[i][j]));
+						if (!schema) {
+							line.appendChild(csvDoc.createTextNode(table[i][j]));
+						}
 						col.appendChild(line);
 						i++;
 						//if (schema)break; // comment/uncomment this line to see or not iterations
@@ -258,12 +270,14 @@ public class ReadCSVStep extends ReadFileStep {
 			}
 			else {
 				i = (titleLine ? 1:0);
-				while ((i<lines && !schema)||(i<2 && schema)) {
+				while ((i < lines && !schema) || (i < 2 && schema)) {
 					j=0;
 					line = csvDoc.createElement(getTagLineName());
-					while (j<cols) {
+					while (j < cols) {
 						col = csvDoc.createElement(titleLine ? table[0][j]:getTagColName());
-						if (!schema) col.appendChild(csvDoc.createTextNode(table[i][j]));
+						if (!schema) {
+							col.appendChild(csvDoc.createTextNode(table[i][j]));
+						}
 						line.appendChild(col);
 						j++;
 						//if (schema && !titleLine)break; // comment/uncomment this line to see or not iterations

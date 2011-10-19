@@ -30,7 +30,7 @@ public class ConvertigoPluginPreferenceInitializer extends AbstractPreferenceIni
 
 	@Override
 	public void initializeDefaultPreferences() {
-		IEclipsePreferences node = new DefaultScope().getNode("com.twinsoft.convertigo.studio");
+		IEclipsePreferences node = DefaultScope.INSTANCE.getNode("com.twinsoft.convertigo.studio");
 		node.put(ConvertigoPlugin.PREFERENCE_AUTO_OPEN_PROJECTS, "");
 		node.put(ConvertigoPlugin.PREFERENCE_LOG_LEVEL, "3");
 		node.put(ConvertigoPlugin.PREFERENCE_OPENED_CONSOLES, "");

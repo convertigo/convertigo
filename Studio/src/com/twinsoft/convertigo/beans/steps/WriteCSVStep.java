@@ -24,7 +24,8 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -44,11 +45,13 @@ public class WriteCSVStep extends WriteFileStep {
 		super();
 	}
 
+	@Override
     public Object clone() throws CloneNotSupportedException {
     	WriteCSVStep clonedObject = (WriteCSVStep) super.clone();
         return clonedObject;
     }
 	
+	@Override
     public Object copy() throws CloneNotSupportedException {
     	WriteCSVStep copiedObject = (WriteCSVStep) super.copy();
         return copiedObject;
@@ -70,6 +73,7 @@ public class WriteCSVStep extends WriteFileStep {
 		this.titleLine = titleLine;
 	}
     
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -79,9 +83,11 @@ public class WriteCSVStep extends WriteFileStep {
 		return "WriteCSV" + label + (!text.equals("") ? " // "+text:"");
 	}
 
+	@Override
 	protected void writeFile(String filePath, NodeList nodeList) throws EngineException {
-		if (nodeList == null)
+		if (nodeList == null) {
 			throw new EngineException("Unable to write to xml file: element is Null");
+		}
 
 		writeFileByNat(filePath, nodeList);
 		//WriteFileByMartin(element.getOwnerDocument());		
@@ -89,43 +95,46 @@ public class WriteCSVStep extends WriteFileStep {
 	}
 	
 	protected void writeFileByNat(String filePath, NodeList nodeList) throws EngineException {
-		if (separator.equals(""))
+		if (separator.equals("")) {
 			throw new EngineException("The separator is empty");
+		}
 
 		String fullPathName = getAbsoluteFilePath(filePath);
 		synchronized (Engine.theApp.filePropertyManager.getMutex(fullPathName)) {
 			try {
 				boolean skipTitle = isReallyAppend(fullPathName);
 
-				OutputStreamWriter sortie = new OutputStreamWriter(new FileOutputStream(fullPathName, appendResult) , (encoding.length()>0)?encoding:"iso-8859-1"); 
-				Vector lines = null, titlesY = null, titlesX = null;
+				OutputStreamWriter sortie = new OutputStreamWriter(new FileOutputStream(fullPathName, appendResult) , (encoding.length()>0)?encoding:"iso-8859-1");
+				
+				List<String> line = new ArrayList<String>();
+				List<List<String>> lines = new ArrayList<List<String>>();
+				
+				List<String> titlesY = new ArrayList<String>();
+				List<String> titlesX = new ArrayList<String>();
 				int cols = 0;
 
 					// Parse element on two levels of children
-					for (int i=0; i<nodeList.getLength(); i++) {
+					for (int i = 0; i<nodeList.getLength(); i++) {
 						Node nodey = nodeList.item(i);
 						if (nodey.getNodeType() == Node.ELEMENT_NODE) {// first level
 							if (titleLine) {
-								if (titlesY == null) titlesY = new Vector();
-								titlesY.addElement(transform(((Element)nodey).getTagName()));
+								titlesY.add(transform(((Element)nodey).getTagName()));
 							}
 
-							if (lines == null) lines = new Vector();
 							if (nodey.hasChildNodes()) {
-								Vector line = new Vector();
+								line.clear();
 								NodeList listx = nodey.getChildNodes();
 								for (int j=0; j<listx.getLength(); j++) {
 									Node nodex = listx.item(j);
 									if (nodex.getNodeType() == Node.ELEMENT_NODE) {// second level
 										if (titleLine && (i==0)) {
-											if (titlesX == null) titlesX = new Vector();
-											titlesX.addElement(transform(((Element)nodex).getTagName()));
+											titlesX.add(transform(((Element)nodex).getTagName()));
 										}
-										line.addElement(transform(nodex.getTextContent()));
+										line.add(transform(nodex.getTextContent()));
 									}
 								}
 								cols = (line.size()>cols) ? line.size() : cols;
-								lines.addElement(line);
+								lines.add(line);
 							}
 						}
 					}
@@ -136,22 +145,22 @@ public class WriteCSVStep extends WriteFileStep {
 
 				// Determines direction
 				boolean verticalDirection = false;
-				if ((titlesY != null) && (titlesY.size()>1)) {
-					verticalDirection = !titlesY.elementAt(0).equals(titlesY.elementAt(1));
+				if (titlesY.size() > 0) {
+					verticalDirection = !titlesY.get(0).equals(titlesY.get(1));
 				}
 
 				// Writes to file
-				if ((lines != null) && (cols > 0)) {
+				if (cols > 0) {
 
 					// Fills the array
 					int dimX = cols;
 					int dimY = lines.size();
 					String[][] table = new String[dimY][dimX]; 
 					for (int i=0; i<dimY; i++) {
-						Vector line = (Vector)lines.elementAt(i);
+						line = lines.get(i);
 						for (int j=0; j<dimX; j++) {
 							try {
-								table[i][j] = (String)line.elementAt(j);
+								table[i][j] = line.get(j);
 							}
 							catch (ArrayIndexOutOfBoundsException e) {
 								table[i][j] = "";
@@ -161,11 +170,13 @@ public class WriteCSVStep extends WriteFileStep {
 
 					if(!skipTitle){
 						// Writes titles
-						Vector v = (verticalDirection ? titlesY:titlesX);
-						if (v != null) {
-							for (int i=0; i<v.size(); i++) {
-								sortie.write((String)v.elementAt(i));
-								if (i+1<v.size()) sortie.write(separator);
+						List<String> v = (verticalDirection ? titlesY : titlesX);
+						if (v.size() > 0) {
+							for (int i = 0; i < v.size(); i++) {
+								sortie.write(v.get(i));
+								if (i + 1 < v.size()) {
+									sortie.write(separator);
+								}
 							}
 							sortie.write("\n");
 						}
@@ -182,10 +193,12 @@ public class WriteCSVStep extends WriteFileStep {
 						}
 					}
 					else {
-						for (int i=0; i<dimY; i++) {
-							for (int j=0; j<dimX; j++) {
+						for (int i = 0; i < dimY; i++) {
+							for (int j = 0; j < dimX; j++) {
 								sortie.write(table[i][j]);
-								if (j+1<dimX) sortie.write(separator);
+								if (j +1 < dimX){
+									sortie.write(separator);
+								}
 							}
 							sortie.write("\n");
 						}
