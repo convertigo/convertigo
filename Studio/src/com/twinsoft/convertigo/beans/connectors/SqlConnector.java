@@ -83,6 +83,8 @@ public class SqlConnector extends Connector {
 	/** Holds value of property maxConnection. */
 	private int jdbcMaxConnection = 10;
 	
+	private boolean usePool = true;
+	
 	public SqlConnector() {
 		super();
 		vPropertiesForAdmin.add("jdbcDriverClassName");
@@ -196,7 +198,7 @@ public class SqlConnector extends Connector {
 		} catch (SQLException e) {
 			throw new EngineException("Unable to retrieve a valid connection from pool",e);
 		}
-		
+
 		Engine.logBeans.debug("[SqlConnector] Open connection ("+connection.hashCode()+") on database " + realJdbcURL);
 		
 		needReset = false;
@@ -231,6 +233,11 @@ public class SqlConnector extends Connector {
 				Engine.logBeans.debug("[SqlConnector] Close connection ("+connection.hashCode()+") on database " + realJdbcURL);
 				if(!connection.isClosed())
 					connection.close();
+				
+				if (!usePool) {
+					Engine.theApp.sqlConnectionManager.removeDatabasePool(this);
+				}
+				
 				Engine.logBeans.debug("(SqlConnector) Database connection closed");
 			}
 		}
@@ -402,7 +409,15 @@ public class SqlConnector extends Connector {
 	public String getSystemTablesQuery() {
 		return systemTablesQuery;
 	}
-	
+
+	public boolean isUsePool() {
+		return usePool;
+	}
+
+	public void setUsePool(boolean usePool) {
+		this.usePool = usePool;
+	}
+
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if(propertyName.equals("jdbcDriverClassName")){

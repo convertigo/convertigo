@@ -40,7 +40,7 @@ public class SqlConnectorBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[6];
+			properties = new PropertyDescriptor[7];
 			
 			properties[0] = new PropertyDescriptor("jdbcDriverClassName", beanClass, "getJdbcDriverClassName", "setJdbcDriverClassName");
 			properties[0].setDisplayName(getExternalizedString("property.jdbcDriverClassName.display_name"));
@@ -67,6 +67,11 @@ public class SqlConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[5].setDisplayName(getExternalizedString("property.systemTablesQuery.display_name"));
 			properties[5].setShortDescription(getExternalizedString("property.systemTablesQuery.short_description"));
 			properties[5].setExpert(true);
+			
+			properties[6] = new PropertyDescriptor("usePool", beanClass, "isUsePool", "setUsePool");
+			properties[6].setDisplayName(getExternalizedString("property.usePool.display_name"));
+			properties[6].setShortDescription(getExternalizedString("property.usePool.short_description"));
+			properties[6].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
