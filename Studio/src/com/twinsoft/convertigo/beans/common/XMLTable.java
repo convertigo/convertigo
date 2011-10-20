@@ -90,9 +90,7 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 		Element doc = outputDom.getDocumentElement();
 		
 		length = nodeList.getLength();
-		for (int i=0; i< length; i++) {
-			if (!isRequestedObjectRunning()) break;
-			
+		for (int i=0; i< length && isRequestedObjectRunning(); i++) {			
 			Node tableNode = nodeList.item(i);
 			String tableTagName = (tagName.equals("") ? name:tagName);
 			Element table;
@@ -109,7 +107,7 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 				appendTable = true;
 			}
 				
-	        for (int j =0; j < description.size(); j++) {
+	        for (int j =0; j < description.size() && isRequestedObjectRunning(); j++) {
 	        	NodeList rowList = null;
 	    		XMLTableRow xrow = getRow(j);
 	        	String rowXPath = xrow.getXpath();
@@ -119,11 +117,11 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 	        		Engine.logBeans.error("Error with :" + rowXPath, e);
 	        	}
 	        	if (rowList != null) {
-	        		for (int k=0; k < rowList.getLength(); k++) {
+	        		for (int k = 0; k < rowList.getLength() && isRequestedObjectRunning(); k++) {
 	        			Node row = outputDom.createElement(xrow.getName());
 	        			Node rowNode = rowList.item(k);
 	        			int len = xrow.getColumns().size();
-	    	        	for (int z=0; z<len; z++) {
+	    	        	for (int z = 0; z < len && isRequestedObjectRunning(); z++) {
 	    	        		String colXPath = xrow.getColumnXPath(z);
     		        		NodeList columList = null;
 	    		        	try {
@@ -133,7 +131,7 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 	    		        	}
 	    		        	
 	    		        	if (columList != null) {
-	    			        	for (int w=0; w < columList.getLength(); w++) {
+	    			        	for (int w = 0; w < columList.getLength() && isRequestedObjectRunning(); w++) {
 	    	    	        		Node col = outputDom.createElement(xrow.getColumnName(z));
 	    			        		Node colNode = columList.item(w);
 	    			            	Text text = outputDom.createTextNode(getStringValue(colNode, xrow.hasToExtract(z)));
@@ -146,11 +144,13 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 	        		}
 	        	}
 	        }
-	        if (appendTable){
-	        	if (isDisplayReferer())
+	        if (appendTable) {
+	        	if (isDisplayReferer()) {
 					addReferer(table);
-	        	if (isFlipTable())
+	        	}
+	        	if (isFlipTable()) {
 	        		table  = flipTable(table);
+	        	}
 	        	doc.appendChild(table);
 	        }        	
 			Engine.logBeans.trace("XMLTable '" + tableNode.getNodeName() + "' added to result document");
@@ -165,10 +165,10 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 		int		 nbSrcCols  = srcCols.getLength();
 		
 		// for each column create a line from the source column names.
-		for (int i=0; i< nbSrcCols; i++) {
+		for (int i = 0; i < nbSrcCols; i++) {
 			Element destLine = table.getOwnerDocument().createElement(srcCols.item(i).getNodeName());
 			// in this line create Columns from the source line names.
-			for (int j=0; j< nbSrcLines; j++) {
+			for (int j = 0; j < nbSrcLines; j++) {
 				Element 	destCol 	= table.getOwnerDocument().createElement(srcLines.item(j).getNodeName());
 				Node 		textNode 	= srcLines.item(j).getChildNodes().item(i).getFirstChild().cloneNode(true);
 				destCol.appendChild(textNode);
@@ -179,7 +179,7 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 		}
 		
 		// clean source table;
-		for (int j=0; j< nbSrcLines; j++) {
+		for (int j = 0; j < nbSrcLines; j++) {
 			table.removeChild(srcLines.item(0));
 		}
 
@@ -205,7 +205,7 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 		List<String> colsNames = new LinkedList<String>();
 		
 		if (!isFlipTable()) {
-			for (int i =0; i < description.size(); i++) {
+			for (int i = 0; i < description.size(); i++) {
 				colsNames.clear();
 				// get row
 				XMLTableRow xrow = getRow(i);
@@ -219,20 +219,23 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 				if (schemas.add(schema)) tableTypeSchema += schema;
 			}
 		} else {
-			for (int i=0;i <description.size(); i++) {
+			for (int i = 0; i <description.size(); i++) {
 				// get row
 				XMLTableRow xrow = getRow(i);
 				// get columns
 				for(List<Object> col : xrow.getColumns()) {
 					colsNames.clear();
 					// get columns names
-					for (int k = 0 ; k < description.size() ; k++)
+					for (int k = 0 ; k < description.size() ; k++) {
 						colsNames.add(getRow(k).getName());
+					}
 					// call making schema method
 					schema = getRowType(tns, tableName, (String)col.get(0), colsNames);
 					
 					// do not append doublet
-					if (schemas.add(schema)) tableTypeSchema += schema;
+					if (schemas.add(schema)) {
+						tableTypeSchema += schema;
+					}
 				}
 			}
 		}
@@ -262,7 +265,9 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 		for (String columnName : columnsNames) {
 			schema = "<xsd:element minOccurs=\"0\" "+maxOccurs+" name=\""+ columnName + "\" type=\"xsd:string\" />\n";
 			// do not append doublet
-			if(schemas.add(schema)) rowTypeSchema += schema;
+			if (schemas.add(schema)) {
+				rowTypeSchema += schema;
+			}
 		}
 		rowTypeSchema += "</xsd:sequence>\n";
 		rowTypeSchema += "</xsd:complexType>\n";
@@ -274,7 +279,7 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 	}
 	
 	public String getSchemaElementName() {
-		return (tagName.equals("") ? name:tagName);
+		return (tagName.equals("") ? name : tagName);
 	}
 
 	public String getSchemaElementType() {
@@ -282,7 +287,7 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 	}
 	
 	public String getSchemaElementNSType(String tns) {
-		return tns+":"+ getSchemaElementType();
+		return tns + ":" + getSchemaElementType();
 	}
 	
 	public boolean isAccumulateDataInSameTable() {
@@ -306,14 +311,16 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 	}
 
 	public XMLVector<XMLVector<Object>> getTableData(String propertyName) {
-		if (propertyName.equals("description"))
+		if (propertyName.equals("description")) {
 			return getDescription();
+		}
 		return null;
 	}
 	
 	public String getTableRenderer(String propertyName) {
-		if (propertyName.equals("description"))
+		if (propertyName.equals("description")) {
 			return "XMLTableDescriptionTreeObject";
+		}
 		return null;
 	}
 }
