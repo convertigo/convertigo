@@ -26,6 +26,14 @@ public class MoveStep extends Step {
 	public MoveStep() {
 		super();
 	}
+	
+	private String evaluateSourcePath(Context javascriptContext, Scriptable scope) throws EngineException {
+		return evaluateToString(javascriptContext, scope, sourcePath, "sourcePath", false);
+	}
+	
+	private String evaluateDestinationPath(Context javascriptContext, Scriptable scope) throws EngineException {
+		return evaluateToString(javascriptContext, scope, destinationPath, "destinationPath", false);
+	}
 
 	@Override
 	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
@@ -33,19 +41,12 @@ public class MoveStep extends Step {
 		if (isEnable) {
 			if (super.stepExcecute(javascriptContext, scope)) {
 				try {
-					
-					String sourceFilePath = getAbsoluteFilePath(sourcePath);
-					
-					String fileName = "";
-					int index = sourceFilePath.lastIndexOf("/");
-					if (index != -1) {
-						fileName = sourceFilePath.substring(index+1);
-					}
 
-					String destinationFilePath = getAbsoluteFilePath(destinationPath);
-					
+					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
+					String destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(javascriptContext, scope));
+
 					File sourcefile = new File(sourceFilePath);
-					File destinationFile = new File(destinationFilePath + "/" + fileName);
+					File destinationFile = new File(destinationFilePath);
 					
 					if (sourcefile.exists()) {
 						if (sourcefile.isDirectory()) {

@@ -26,6 +26,14 @@ public class RenameStep extends Step {
 	public RenameStep() {
 		super();
 	}
+	
+	private String evaluateSourcePath(Context javascriptContext, Scriptable scope) throws EngineException {
+		return evaluateToString(javascriptContext, scope, sourcePath, "sourcePath", false);
+	}
+	
+	private String evaluateNewName(Context javascriptContext, Scriptable scope) throws EngineException {
+		return evaluateToString(javascriptContext, scope, newName, "newName", false);
+	}
 
 	@Override
 	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
@@ -34,16 +42,19 @@ public class RenameStep extends Step {
 			if (super.stepExcecute(javascriptContext, scope)) {
 				try {
 					
-					String sourceFilePath = getAbsoluteFilePath(sourcePath);
+					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
+
 					String destinationPath = sourceFilePath.substring(0, sourceFilePath.lastIndexOf("/"));
 					
 					File sourceFile = new File(sourceFilePath);
 					
-					if (newName.length() == 0) {
+					String newFileName = evaluateNewName(javascriptContext, scope); 
+					
+					if (newFileName.length() == 0) {
 						throw new Exception("Please fill the New name property field.");
 					}
 					
-					File destinationFile = new File(destinationPath + "/" + newName);
+					File destinationFile = new File(destinationPath + "/" + newFileName);
 					
 					if (sourceFile.exists()) {
 						if (sourceFile.isDirectory()) {

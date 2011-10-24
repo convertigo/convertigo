@@ -26,7 +26,15 @@ public class CopyStep extends Step {
 	public CopyStep() {
 		super();
 	}
-
+	
+	private String evaluateSourcePath(Context javascriptContext, Scriptable scope) throws EngineException {
+		return evaluateToString(javascriptContext, scope, sourcePath, "sourcePath", false);
+	}
+	
+	private String evaluateDestinationPath(Context javascriptContext, Scriptable scope) throws EngineException {
+		return evaluateToString(javascriptContext, scope, destinationPath, "destinationPath", false);
+	}
+	
 	@Override
 	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		// TODO Auto-generated method stub
@@ -34,7 +42,7 @@ public class CopyStep extends Step {
 			if (super.stepExcecute(javascriptContext, scope)) {
 				try {
 					
-					String sourceFilePath = getAbsoluteFilePath(sourcePath);
+					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
 					
 					String fileName = "";
 					int index = sourceFilePath.lastIndexOf("/");
@@ -42,7 +50,7 @@ public class CopyStep extends Step {
 						fileName = sourceFilePath.substring(index+1);
 					}
 
-					String destinationFilePath = getAbsoluteFilePath(destinationPath);
+					String destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(javascriptContext, scope));
 					
 					File sourcefile = new File(sourceFilePath);
 					File destinationFile = new File(destinationFilePath + "/" + fileName);

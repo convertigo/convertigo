@@ -25,6 +25,10 @@ public class DeleteStep extends Step {
 	public DeleteStep() {
 		super();
 	}
+	
+	private String evaluateSourcePath(Context javascriptContext, Scriptable scope) throws EngineException {
+		return evaluateToString(javascriptContext, scope, sourcePath, "sourcePath", false);
+	}
 
 	@Override
 	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
@@ -33,7 +37,7 @@ public class DeleteStep extends Step {
 			if (super.stepExcecute(javascriptContext, scope)) {
 				try {
 					
-					String sourceFilePath = getAbsoluteFilePath(sourcePath);
+					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
 
 					File sourceFile = new File(sourceFilePath);
 					
