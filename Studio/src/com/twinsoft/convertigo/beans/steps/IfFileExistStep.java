@@ -13,8 +13,6 @@ import com.twinsoft.convertigo.engine.EngineException;
 public class IfFileExistStep extends BlockStep {
 
 	private static final long serialVersionUID = 1615428447261700976L;
-	
-	private String sourcePath = "";		
 
 	protected XMLVector<XMLVector<String>> testDefinition = new XMLVector<XMLVector<String>>();
 	
@@ -28,13 +26,13 @@ public class IfFileExistStep extends BlockStep {
 
 	public String toString() {
 		String text = this.getComment();
-		return "ifFileExists("+ (sourcePath.equals("")?"??":sourcePath) +")" + (!text.equals("") ? " // "+text:"");
+		return "ifFileExists("+ (condition.equals("")?"??":condition) +")" + (!text.equals("") ? " // "+text:"");
 	}
 	
 	public String toJsString() {
 		String code = "";
-		if (!sourcePath.equals("")) {
-			code += " ifFileExists ("+ sourcePath +") {\n";
+		if (!condition.equals("")) {
+			code += " ifFileExists ("+ condition +") {\n";
 			code += super.toString();
 			code += " \n}\n";
 		}
@@ -54,7 +52,7 @@ public class IfFileExistStep extends BlockStep {
 	}
 	
 	private String evaluateSourcePath(Context javascriptContext, Scriptable scope) throws EngineException {
-		return evaluateToString(javascriptContext, scope, sourcePath, "sourcePath", false);
+		return evaluateToString(javascriptContext, scope, condition, "sourcePath", false);
 	}
 	
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
@@ -90,13 +88,5 @@ public class IfFileExistStep extends BlockStep {
 			throw new EngineException("Please fill the Source property field.");
 				
 		return Engine.theApp.filePropertyManager.getFilepathFromProperty(entry, getProject().getName());
-	}
-
-	public void setSourcePath(String sourcePath) {
-		this.sourcePath = sourcePath;
-	}
-
-	public String getSourcePath() {
-		return sourcePath;
 	}
 }
