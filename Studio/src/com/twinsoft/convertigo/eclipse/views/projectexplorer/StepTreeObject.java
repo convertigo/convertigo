@@ -40,6 +40,8 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
 import com.twinsoft.convertigo.beans.steps.IfExistStep;
 import com.twinsoft.convertigo.beans.steps.IfExistThenElseStep;
+import com.twinsoft.convertigo.beans.steps.IfFileExistStep;
+import com.twinsoft.convertigo.beans.steps.IfFileExistThenElseStep;
 import com.twinsoft.convertigo.beans.steps.IfStep;
 import com.twinsoft.convertigo.beans.steps.IfThenElseStep;
 import com.twinsoft.convertigo.beans.steps.IsInStep;
@@ -401,7 +403,9 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 					bool.equals(Boolean.valueOf(getObject() instanceof IsInStep)) ||
 					bool.equals(Boolean.valueOf(getObject() instanceof IsInThenElseStep)) ||
 					bool.equals(Boolean.valueOf(getObject() instanceof IfExistStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof IfExistThenElseStep));
+					bool.equals(Boolean.valueOf(getObject() instanceof IfExistThenElseStep)) || 
+					bool.equals(Boolean.valueOf(getObject() instanceof IfFileExistStep)) ||
+					bool.equals(Boolean.valueOf(getObject() instanceof IfFileExistThenElseStep));
 		}
 		return super.testAttribute(target, name, value);
 	}

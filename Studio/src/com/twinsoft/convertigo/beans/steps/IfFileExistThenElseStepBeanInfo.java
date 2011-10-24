@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL: http://sourceus/svn/CEMS/trunk/Studio/src/com/twinsoft/convertigo/beans/steps/BlockStepBeanInfo.java $
+ * $URL: http://sourceus/svn/CEMS/trunk/Studio/src/com/twinsoft/convertigo/beans/steps/IfThenElseStepBeanInfo.java $
  * $Author: fabienb $
  * $Revision: 28379 $
  * $Date: 2011-09-27 11:38:59 +0200 (mar., 27 sept. 2011) $
@@ -22,32 +22,22 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
-import java.beans.PropertyDescriptor;
-
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class IfFileExistStepBeanInfo extends MySimpleBeanInfo {
+public class IfFileExistThenElseStepBeanInfo extends MySimpleBeanInfo {
     
-	public IfFileExistStepBeanInfo() {
+	public IfFileExistThenElseStepBeanInfo() {
 		try {
-			beanClass = IfFileExistStep.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.steps.BlockStep.class;
+			beanClass = IfFileExistThenElseStep.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.steps.IfFileExistStep.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/if_16x16.gif";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/if_32x32.gif";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/IfFileExistStep");
+			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/IfFileExistThenElseStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
-
-			properties = new PropertyDescriptor[1];
-			
-            properties[0] = new PropertyDescriptor("condition", beanClass, "getCondition", "setCondition");
-            properties[0].setDisplayName(getExternalizedString("property.condition.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.condition.short_description"));
-            properties[0].setValue("scriptable", Boolean.TRUE);
-            properties[0].setValue(BLACK_LIST_NAME, Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
