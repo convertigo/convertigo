@@ -541,17 +541,14 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	 * @throws Exception
 	 */
 	private void clean(BundleContext context) throws Exception {
-		disposeImages();
-		
-		cacheIProject.clear();
-		
-		if (embeddedTomcat != null)
-			embeddedTomcat.stop();
-		
 		if (consolePipes != null)
 			consolePipes.stopConsoleThreads();
 		
 		stderrConsoleStreamColor.dispose();
+		
+		disposeImages();
+		
+		cacheIProject.clear();
 		
 		// Removes listeners
 		try {
@@ -567,11 +564,12 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					activeWorkbenchWindow.removePerspectiveListener(perspectiveListener);
 				if (partListener != null)
 					activeWorkbenchWindow.getPartService().removePartListener(partListener);
-			} 
-			
+			}			
 		}
 		catch (IllegalStateException e) {}
 		
+		if (embeddedTomcat != null)
+			embeddedTomcat.stop();
 	}
 	
 	/**

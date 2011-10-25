@@ -39,235 +39,255 @@ public class ConsolePipes {
 
 	private Thread writerThreadEngine;
 
-    public ByteArrayOutputStream outputStreamConnector;
+	public ByteArrayOutputStream outputStreamConnector;
 
 	public ByteArrayOutputStream outputStreamTrace;
 
-    private boolean bContinue = true;
-    
-    private ConvertigoPlugin convertigoPlugin;
-        
-    public ConsolePipes() {
+	private boolean bContinue = true;
+
+	private ConvertigoPlugin convertigoPlugin;
+
+	public ConsolePipes() {
 		convertigoPlugin = ConvertigoPlugin.getDefault();
-    }
-    
-    public void stopConsoleThreads() {
-        bContinue = false;
-    }
-    
+	}
+
+	public void stopConsoleThreads() {
+		bContinue = false;
+		int nbRetry = 10;
+		while ((nbRetry > 0) && writerThreadEngine.isAlive()) {
+			try {
+				Thread.sleep(100);
+				nbRetry--;
+			} catch (InterruptedException e) {
+				return;
+			}
+		}
+		if (nbRetry > 0) {
+			convertigoPlugin.getLog().log(
+					new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, "Unable to close consoles"));
+		}
+	}
+
 	public void initConsoleStreams() {
 		try {
 			outputStreamConnector = new ByteArrayOutputStream(4096);
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			String message = java.text.MessageFormat.format(
-				java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/studio/res/ConsolePanel").getString("unable_to_initiate_console"),
-				new Object[] { "Connector" }
-			);
-			convertigoPlugin.getLog().log(new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
+					java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/studio/res/ConsolePanel")
+							.getString("unable_to_initiate_console"), new Object[] { "Connector" });
+			convertigoPlugin.getLog().log(
+					new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
 			return;
 		}
-		
+
 		try {
 			outputStreamTrace = new ByteArrayOutputStream(1024);
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			String message = java.text.MessageFormat.format(
-				java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/studio/res/ConsolePanel").getString("unable_to_initiate_console"),
-				new Object[] { "Trace" }
-			);
-			convertigoPlugin.getLog().log(new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
+					java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/studio/res/ConsolePanel")
+							.getString("unable_to_initiate_console"), new Object[] { "Trace" });
+			convertigoPlugin.getLog().log(
+					new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
 			return;
 		}
 	}
-		
+
 	public void startConsoleThreads() {
 		startEngineConsoleThread();
 		startStudioConsoleThread();
 		startTraceConsoleThread();
 	}
-	
+
 	public void startEngineConsoleThread() {
 		writerThreadEngine = new Thread() {
 			@Override
 			public void run() {
 				try {
 					int nbAvailableBytes;
-                    String sBuffer;
-                    char[] buffer = new char[1024];
-                    long logFileSize = 0;
-                    long seek = -1;
+					String sBuffer;
+					char[] buffer = new char[1024];
+					long logFileSize = 0;
+					long seek = -1;
 
-                    while (bContinue) {
-                    	if (Engine.logEngine != null) {
-                    		String logFileName = Engine.LOG_PATH + "/engine.log";
-                    		File logFile = new File(logFileName);
-                    		long logFileSizeCurrent = logFile.length();
-                    		if (logFileSize > logFileSizeCurrent) {
-                    			seek = -1;
-                    		}
+					while (bContinue) {
+						if (Engine.logEngine != null) {
+							String logFileName = Engine.LOG_PATH + "/engine.log";
+							File logFile = new File(logFileName);
+							long logFileSizeCurrent = logFile.length();
+							if (logFileSize > logFileSizeCurrent) {
+								seek = -1;
+							}
 
-                    		if (logFileSize != logFileSizeCurrent) {
-                    			FileReader fr = null;
-                    			try {
-                    				long fileLength = logFile.length();
-                    				fr = new FileReader(logFile);
+							if (logFileSize != logFileSizeCurrent) {
+								FileReader fr = null;
+								try {
+									long fileLength = logFile.length();
+									fr = new FileReader(logFile);
 
-                    				if (seek == -1) {
-                    					seek = 0;
-                    					if (fileLength > MAX_CONSOLE_START_SIZE) {
-                    						seek = fileLength - MAX_CONSOLE_START_SIZE;
-                    					}
-                    				}
-                    				fr.skip(seek);
+									if (seek == -1) {
+										seek = 0;
+										if (fileLength > MAX_CONSOLE_START_SIZE) {
+											seek = fileLength - MAX_CONSOLE_START_SIZE;
+										}
+									}
+									fr.skip(seek);
 
-                    				boolean loop = false;                                        
-                    				do{
-                    					nbAvailableBytes = fr.read(buffer, 0, buffer.length);
-                    					if (nbAvailableBytes == -1) {
-                    						loop=false;
-                    					}
-                    					else {
-                    						if(loop) Thread.sleep(25); // prevent Eclipse freeze with big log
-                    						else loop=true;
-                    						sBuffer = new String(buffer, 0, nbAvailableBytes);
-                    						seek += sBuffer.length();
-                    						convertigoPlugin.engineConsoleStream.print(sBuffer);
-                    					}                                       	
-                    				} while(loop);
-                    			}
-                    			catch(FileNotFoundException e) {
-                    				// Ignore: the file has yet been created
-                    				seek = -1;
-                    			}
-                    			catch(IOException e) {
-                    				seek = -1;
-                    			}
-                    			finally {
-                    				if (fr != null) fr.close();
-                    			}
-                    			logFileSize = logFileSizeCurrent;
-                    		}
-                    	}
+									boolean loop = false;
+									do {
+										nbAvailableBytes = fr.read(buffer, 0, buffer.length);
+										if (nbAvailableBytes == -1) {
+											loop = false;
+										} else {
+											if (loop)
+												Thread.sleep(25); // prevent Eclipse from freezing with big logs
+											else
+												loop = true;
+											sBuffer = new String(buffer, 0, nbAvailableBytes);
+											seek += sBuffer.length();
+											convertigoPlugin.engineConsoleStream.print(sBuffer);
+										}
+									} while (loop && bContinue);
+								} catch (FileNotFoundException e) {
+									// Ignore: the file has yet been created
+									seek = -1;
+								} catch (IOException e) {
+									seek = -1;
+								} finally {
+									if (fr != null)
+										fr.close();
+								}
+								logFileSize = logFileSizeCurrent;
+							}
+						}
 
-                    	Thread.sleep(REFRESH_DELAY);
-                    }
-                    convertigoPlugin.getLog().log(new Status(Status.INFO, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, "Stop thread for engine console", null));
-				}
-				catch(Exception e) {
-                    String message = "Unable to write to engine console";
-        			convertigoPlugin.getLog().log(new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
+						if (bContinue) Thread.sleep(REFRESH_DELAY);
+					}
+					convertigoPlugin.getLog().log(
+							new Status(Status.INFO, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK,
+									"Stop thread for engine console", null));
+				} catch (Exception e) {
+					String message = "Unable to write to engine console";
+					convertigoPlugin.getLog()
+							.log(new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK,
+									message, e));
 				}
 			}
 		};
 		writerThreadEngine.start();
 	}
-	
+
 	public void startStudioConsoleThread() {
-//		writerThreadStudio = new Thread() {
-//			public void run() {
-//				try {
-//					int nbAvailableBytes;
-//					String sBuffer, text;
-//					int len;
-//					char[] buffer = new char[1024];
-//					long modTime = 0;
-//					long seek = -1;
-//
-//					while (bContinue) {
-//						if (Studio.log != null) {
-//							synchronized(Studio.log) {
-//								String logFileName = Studio.log.getLogFileName();
-//								File logFile = new File(logFileName);
-//								long modTimeTmp = logFile.lastModified();
-//
-//								if (modTime != modTimeTmp) {
-//									FileReader fr = null;
-//									try {
-//										long fileLength = logFile.length();
-//										fr = new FileReader(logFile);
-//										
-//										if (seek == -1) {
-//											seek = 0;
-//											if (fileLength > MAX_CONSOLE_SIZE) {
-//												seek = fileLength - MAX_CONSOLE_SIZE;
-//											}
-//										}
-//										fr.skip(seek);
-//
-//										while (seek < fileLength) {
-//											nbAvailableBytes = fr.read(buffer, 0, buffer.length);
-//											seek += nbAvailableBytes;
-//											sBuffer = new String(buffer, 0, nbAvailableBytes);
-//											text = jTextAreaStudio.getText();
-//											len = text.length();
-//											if (len > MAX_CONSOLE_SIZE) {
-//												jTextAreaStudio.replaceRange("[...]", 0, text.indexOf("\n", len - MAX_CONSOLE_SIZE + 10));
-//											}
-//											jTextAreaStudio.append(sBuffer);
-//										}
-//									}
-//									catch(FileNotFoundException e) {
-//										// Ignore: the file has yet been created
-//										seek = -1;
-//									}
-//									catch(IOException e) {
-//										jTextAreaStudio.append("------------------------------------------------------------------------\n");
-//										jTextAreaStudio.append(java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/studio/res/ConsolePanel").getString("unable_to_load_studio_log"));
-//										jTextAreaStudio.append(Log.getStackTrace(e));
-//										jTextAreaStudio.append("------------------------------------------------------------------------\n");
-//										seek = -1;
-//									}
-//									finally {
-//										if (fr != null) fr.close();
-//										jTextAreaStudio.setCaretPosition(jTextAreaStudio.getText().length());
-//									}
-//									modTime = modTimeTmp;
-//								}
-//							}
-//						}
-//                        
-//						Thread.sleep(REFRESH_DELAY);
-//					}
-//					convertigoPlugin.getLog().log(new Status(Status.INFO, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, "Stop thread for studio console", null));
-//				}
-//				catch(Exception e) {
-//					String message = java.text.MessageFormat.format(
-//						java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/studio/res/ConsolePanel").getString("unable_to_write_console"),
-//						new Object[] { "Engine" }
-//					);
-//					convertigoPlugin.getLog().log(new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
-//				}
-//			}
-//		};
-//		writerThreadStudio.start();
+		// writerThreadStudio = new Thread() {
+		// public void run() {
+		// try {
+		// int nbAvailableBytes;
+		// String sBuffer, text;
+		// int len;
+		// char[] buffer = new char[1024];
+		// long modTime = 0;
+		// long seek = -1;
+		//
+		// while (bContinue) {
+		// if (Studio.log != null) {
+		// synchronized(Studio.log) {
+		// String logFileName = Studio.log.getLogFileName();
+		// File logFile = new File(logFileName);
+		// long modTimeTmp = logFile.lastModified();
+		//
+		// if (modTime != modTimeTmp) {
+		// FileReader fr = null;
+		// try {
+		// long fileLength = logFile.length();
+		// fr = new FileReader(logFile);
+		//
+		// if (seek == -1) {
+		// seek = 0;
+		// if (fileLength > MAX_CONSOLE_SIZE) {
+		// seek = fileLength - MAX_CONSOLE_SIZE;
+		// }
+		// }
+		// fr.skip(seek);
+		//
+		// while (seek < fileLength) {
+		// nbAvailableBytes = fr.read(buffer, 0, buffer.length);
+		// seek += nbAvailableBytes;
+		// sBuffer = new String(buffer, 0, nbAvailableBytes);
+		// text = jTextAreaStudio.getText();
+		// len = text.length();
+		// if (len > MAX_CONSOLE_SIZE) {
+		// jTextAreaStudio.replaceRange("[...]", 0, text.indexOf("\n", len -
+		// MAX_CONSOLE_SIZE + 10));
+		// }
+		// jTextAreaStudio.append(sBuffer);
+		// }
+		// }
+		// catch(FileNotFoundException e) {
+		// // Ignore: the file has yet been created
+		// seek = -1;
+		// }
+		// catch(IOException e) {
+		// jTextAreaStudio.append("------------------------------------------------------------------------\n");
+		// jTextAreaStudio.append(java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/studio/res/ConsolePanel").getString("unable_to_load_studio_log"));
+		// jTextAreaStudio.append(Log.getStackTrace(e));
+		// jTextAreaStudio.append("------------------------------------------------------------------------\n");
+		// seek = -1;
+		// }
+		// finally {
+		// if (fr != null) fr.close();
+		// jTextAreaStudio.setCaretPosition(jTextAreaStudio.getText().length());
+		// }
+		// modTime = modTimeTmp;
+		// }
+		// }
+		// }
+		//
+		// Thread.sleep(REFRESH_DELAY);
+		// }
+		// convertigoPlugin.getLog().log(new Status(Status.INFO,
+		// ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK,
+		// "Stop thread for studio console", null));
+		// }
+		// catch(Exception e) {
+		// String message = java.text.MessageFormat.format(
+		// java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/studio/res/ConsolePanel").getString("unable_to_write_console"),
+		// new Object[] { "Engine" }
+		// );
+		// convertigoPlugin.getLog().log(new Status(Status.ERROR,
+		// ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
+		// }
+		// }
+		// };
+		// writerThreadStudio.start();
 	}
-	
+
 	public void startTraceConsoleThread() {
-//		writerThreadTrace = new Thread() {
-//			public void run() {
-//				try {
-//                    String sBuffer;
-//
-//					while (bContinue) {
-//                        sBuffer = outputStreamTrace.toString();
-//						outputStreamTrace.reset();
-//                        jTextAreaTrace.append(sBuffer);
-//						jTextAreaTrace.setCaretPosition(jTextAreaTrace.getText().length());
-//
-//						Thread.sleep(REFRESH_DELAY);
-//					}
-//					convertigoPlugin.getLog().log(new Status(Status.INFO, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, "Stop thread for trace console", null));
-//				}
-//				catch(Exception e) {
-//                    String message = java.text.MessageFormat.format(
-//                        java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/studio/res/ConsolePanel").getString("unable_to_write_console"),
-//                        new Object[] { "Trace" }
-//                    );
-//        			convertigoPlugin.getLog().log(new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
-//				}
-//			}
-//		};
-//		writerThreadTrace.start();
-    }
+		// writerThreadTrace = new Thread() {
+		// public void run() {
+		// try {
+		// String sBuffer;
+		//
+		// while (bContinue) {
+		// sBuffer = outputStreamTrace.toString();
+		// outputStreamTrace.reset();
+		// jTextAreaTrace.append(sBuffer);
+		// jTextAreaTrace.setCaretPosition(jTextAreaTrace.getText().length());
+		//
+		// Thread.sleep(REFRESH_DELAY);
+		// }
+		// convertigoPlugin.getLog().log(new Status(Status.INFO,
+		// ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK,
+		// "Stop thread for trace console", null));
+		// }
+		// catch(Exception e) {
+		// String message = java.text.MessageFormat.format(
+		// java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/studio/res/ConsolePanel").getString("unable_to_write_console"),
+		// new Object[] { "Trace" }
+		// );
+		// convertigoPlugin.getLog().log(new Status(Status.ERROR,
+		// ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
+		// }
+		// }
+		// };
+		// writerThreadTrace.start();
+	}
 }
