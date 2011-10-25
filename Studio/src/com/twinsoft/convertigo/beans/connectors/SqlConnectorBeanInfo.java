@@ -68,9 +68,9 @@ public class SqlConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[5].setShortDescription(getExternalizedString("property.systemTablesQuery.short_description"));
 			properties[5].setExpert(true);
 			
-			properties[6] = new PropertyDescriptor("usePool", beanClass, "isUsePool", "setUsePool");
-			properties[6].setDisplayName(getExternalizedString("property.usePool.display_name"));
-			properties[6].setShortDescription(getExternalizedString("property.usePool.short_description"));
+			properties[6] = new PropertyDescriptor("keepConnectionAliveAfterTransaction", beanClass, "isKeepConnectionAliveAfterTransaction", "setKeepConnectionAliveAfterTransaction");
+			properties[6].setDisplayName(getExternalizedString("property.keepConnectionAliveAfterTransaction.display_name"));
+			properties[6].setShortDescription(getExternalizedString("property.keepConnectionAliveAfterTransaction.short_description"));
 			properties[6].setExpert(true);
 		}
 		catch(Exception e) {

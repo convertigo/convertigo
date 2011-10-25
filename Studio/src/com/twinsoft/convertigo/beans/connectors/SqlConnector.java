@@ -83,7 +83,7 @@ public class SqlConnector extends Connector {
 	/** Holds value of property maxConnection. */
 	private int jdbcMaxConnection = 10;
 	
-	private boolean usePool = true;
+	private boolean keepConnectionAliveAfterTransaction = true;
 	
 	public SqlConnector() {
 		super();
@@ -234,7 +234,7 @@ public class SqlConnector extends Connector {
 				if(!connection.isClosed())
 					connection.close();
 				
-				if (!usePool) {
+				if (!keepConnectionAliveAfterTransaction) {
 					Engine.theApp.sqlConnectionManager.removeDatabasePool(this);
 				}
 				
@@ -410,12 +410,12 @@ public class SqlConnector extends Connector {
 		return systemTablesQuery;
 	}
 
-	public boolean isUsePool() {
-		return usePool;
+	public boolean isKeepConnectionAliveAfterTransaction() {
+		return keepConnectionAliveAfterTransaction;
 	}
 
-	public void setUsePool(boolean usePool) {
-		this.usePool = usePool;
+	public void setKeepConnectionAliveAfterTransaction(boolean keepConnectionAliveAfterTransaction) {
+		this.keepConnectionAliveAfterTransaction = keepConnectionAliveAfterTransaction;
 	}
 
 	@Override
