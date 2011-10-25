@@ -30,8 +30,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.Map.Entry;
+import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -59,13 +59,13 @@ import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
 import com.twinsoft.convertigo.beans.statements.ContextAddTextNodeStatement;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
+import com.twinsoft.convertigo.engine.AttachmentManager.Status;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.IdToXpathManager;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
-import com.twinsoft.convertigo.engine.AttachmentManager.Status;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.parsers.IDownloader;
 import com.twinsoft.convertigo.engine.parsers.events.AbstractEvent;
@@ -1249,41 +1249,59 @@ public class HtmlTransaction extends HttpTransaction {
 	}
 	
 	private transient int handlerExecutionCounter = 0;
-	private transient long handlerFirstCallTime = 0;
 	private transient String latestCalledHandler = null;
-    
+	private transient long[] handlersCallTimeWindow;
+	private transient int handlerExecutionCountLimit;
+	private transient long handlerExecutionMaxTime;
+	
 	public void testLoop(HandlerStatement handler) throws EngineException {
 		if (handler != null) {
 			handlerName = handler.getName();
 			if (handler.preventFromLoops) {
 				if (!handlerName.equals(latestCalledHandler)) {
-					Engine.logEngine.trace("first loop for " + handlerName);
-					handlerFirstCallTime = System.currentTimeMillis();
+					Engine.logBeans.trace("first loop for " + handlerName);
+					
 					handlerExecutionCounter = 1;
 					latestCalledHandler = handlerName;
-				} else {
-					Engine.logEngine.trace("loop call for " + handlerName + " loop=" + handlerExecutionCounter);
-					long lastCallTime = System.currentTimeMillis();
-					handlerExecutionCounter++;
 					
-					int handlerExecutionCountLimit = 15;
-					long handlerExecutionMaxTime = 500;
+					handlerExecutionCountLimit = 3;
+					handlerExecutionMaxTime = 150;
 					
 					if (handlerName.endsWith("Exit")) {
 						handlerExecutionCountLimit = 7;
 						handlerExecutionMaxTime = 2000;
 					}
 					
-					Engine.logEngine.trace("deltaTime=" + (lastCallTime - handlerFirstCallTime));
+					Engine.logBeans.trace("handlerExecutionCountLimit=" + handlerExecutionCountLimit);
+					Engine.logBeans.trace("handlerExecutionMaxTime=" + handlerExecutionMaxTime);
+
+					handlersCallTimeWindow = new long[handlerExecutionCountLimit];
+					Arrays.fill(handlersCallTimeWindow, System.currentTimeMillis());
+				} else {
+					Engine.logEngine.trace("loop call for " + handlerName + " loop=" + handlerExecutionCounter);
+					
+					handlerExecutionCounter++;
+					
+					long handlerCurrentCallTime = System.currentTimeMillis();
+					handlersCallTimeWindow[(handlerExecutionCounter - 1) % handlerExecutionCountLimit] = handlerCurrentCallTime;
+					
+					long handlerFirstCallInWindowTime = handlersCallTimeWindow[handlerExecutionCounter % handlerExecutionCountLimit];
+
+					long deltaTime = handlerCurrentCallTime - handlerFirstCallInWindowTime;
+					
+					Engine.logBeans.trace("handlerCurrentCallTime      =" + handlerCurrentCallTime);
+					Engine.logBeans.trace("handlerFirstCallInWindowTime=" + handlerFirstCallInWindowTime);
+					Engine.logBeans.trace("deltaTime=" + deltaTime);
+					
 					if ((handlerExecutionCounter > handlerExecutionCountLimit) &&
-							(lastCallTime - handlerFirstCallTime < handlerExecutionMaxTime)) {
+							(deltaTime < handlerExecutionMaxTime)) {
 						throw new EngineException(
 								"An unexpected handler loop has been detected: "
 										+ handlerName
 										+ " has been called "
 										+ handlerExecutionCounter
 										+ " times in "
-										+ (lastCallTime - handlerFirstCallTime)
+										+ deltaTime
 										+ " ms; you can authorize this behaviour by setting the \"Infinite loop protection\" handler's property to \"false\"");
 					}
 				}
