@@ -22,11 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.dialogs;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
+import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
@@ -46,14 +44,11 @@ import org.eclipse.swt.widgets.Tree;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.DeploymentConfiguration;
-import com.twinsoft.convertigo.eclipse.DeploymentInformation;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 
 	//private TWSKey twsKey;
-	public DeploymentInformation deploymentInformation;
-
+	
 	public Tree tree = null;
 	public Label label = null;
 	public Button delButton = null;
@@ -78,57 +73,53 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 	public List list = null;
 	public ObjectOutputStream objectOutputStream = null;
 	
-	public static String listMessage = "-- No deployment configuration saved --";
+	public static String messageList = "-- No deployment configuration saved --";
 	
 	public ProjectDeployDialogComposite(Composite parent, int style) {
 		super(parent, style);
 	}
-
-    private void getDeploymentInformation() {
-        ObjectInputStream objectInputStream = null;
-        try {
-            objectInputStream = new ObjectInputStream(new FileInputStream(Engine.PROJECTS_PATH + "/" + ConvertigoPlugin.projectManager.currentProject.getName() + "/_private/deploy.ser"));
-            deploymentInformation = (DeploymentInformation) objectInputStream.readObject();
-        }
-        catch(Exception e) {
-            deploymentInformation = new DeploymentInformation();
-        }
-        
-        try {
-            objectInputStream = new ObjectInputStream(new FileInputStream(Engine.USER_WORKSPACE_PATH + "/studio/trial_deploy.ser"));
-            DeploymentConfiguration deploymentConfiguration = (DeploymentConfiguration) objectInputStream.readObject();
-            deploymentInformation.deploymentConfigurations.put(deploymentConfiguration.getServer(), deploymentConfiguration);
-        }
-        catch(Exception e) {
-            // Ignore
-        }
-    }
-    
+	
     private void fillList() {
         list.removeAll();
         
-        for (DeploymentConfiguration deploymentConfiguration : deploymentInformation.deploymentConfigurations.values()) {
-        	list.add(deploymentConfiguration.toString());
+        Set<String> deploymentConfigurationNames = new HashSet<String>();        
+        deploymentConfigurationNames = ConvertigoPlugin.deploymentConfigurationManager.getAllDeploymentConfigurationNames();
+        
+        for (String deploymentConfigurationName: deploymentConfigurationNames) {
+        	list.add(ConvertigoPlugin.deploymentConfigurationManager.get(deploymentConfigurationName).toString());
+        }
+
+        String currentProjectName = ConvertigoPlugin.projectManager.currentProjectName;
+        
+        DeploymentConfiguration defaultDeploymentConfiguration = null;
+        
+        try {
+        	defaultDeploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.getDefault(currentProjectName);
+        }
+        catch (NullPointerException e) {
+        	// No default configuration
         }
         
         if (list.getItemCount() > 0) {
         	String [] items = list.getItems();
         	boolean found = false;
         	for (int i=0; i < list.getItemCount(); i++) {
-        		if (items[i].equals(deploymentInformation.defaultDeploymentConfigurationName)) {
-        			list.select(i);
-        			DeploymentConfiguration dc = getDeployementConfiguration(list.getSelection()[0]);
-        			fillDialog(dc);
-        			found = true;
+        		if (defaultDeploymentConfiguration != null) {
+            		if (items[i].equals(defaultDeploymentConfiguration.getServer())) {
+            			list.select(i);
+            			DeploymentConfiguration dc = ConvertigoPlugin.deploymentConfigurationManager.get(list.getSelection()[0]);
+            			fillDialog(dc);
+            			found = true;
+            		}
         		}
         	}
         	if (!found) {
         		list.select(0);
-        		DeploymentConfiguration dc = getDeployementConfiguration(list.getSelection()[0]);
+        		DeploymentConfiguration dc = ConvertigoPlugin. deploymentConfigurationManager.get(list.getSelection()[0]); 
     			fillDialog(dc);
         	}
         } else {
-        	list.add(listMessage);
+        	list.add(messageList);
         }
         
         if (list.getSelectionIndex() == -1) {
@@ -145,6 +136,16 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
         convertigoServer.setText(dc.getServer());
         assembleXsl.setSelection(dc.isBAssembleXsl());
         convertigoServer.setText(dc.getServer());
+    }
+    
+    private void clearDialog() {
+    	convertigoAdmin.setText("");
+        convertigoPassword.setText("");
+        checkBox.setSelection(false);
+        checkTrustAllCertificates.setSelection(false);
+        convertigoServer.setText("");
+        assembleXsl.setSelection(false);
+        convertigoServer.setText("");
     }
     
 	/**
@@ -196,8 +197,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		gridData4.grabExcessHorizontalSpace = true;
         progressBar = new ProgressBar(this, SWT.NONE);
         progressBar.setLayoutData(gridData4);
-        
-        getDeploymentInformation();
+
         fillList();
 	}
 
@@ -243,7 +243,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		
 		list.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent evt) {
-	            DeploymentConfiguration dc = getDeployementConfiguration(list.getSelection()[0]);
+	            DeploymentConfiguration dc = ConvertigoPlugin.deploymentConfigurationManager.get(list.getSelection()[0]);
 	            convertigoAdmin.setText(dc.getUsername());
 	            convertigoPassword.setText(dc.getUserpassword());
 	            checkBox.setSelection(dc.isBHttps());
@@ -264,24 +264,31 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 				int index = list.getSelectionIndex();
 				String item = list.getItem(index);
 				int response = 0;
-				if (!item.equals(listMessage)) {
+				if (!item.equals(messageList)) {
 					messageBox = new MessageBox(parentDialog.getShell(), SWT.YES | SWT.NO);
 				    messageBox.setMessage("Do you really want to delete this configuration? \n\n\t" + item);
 				    messageBox.setText("Deleting configuration");
 				    response = messageBox.open();
 				}				    
-			    if (response == SWT.YES) {
-					removeDeploymentConfiguration(item);
+			    if (response == SWT.YES) {			    	
+			    	try {
+			    		ConvertigoPlugin.deploymentConfigurationManager.remove(ConvertigoPlugin.deploymentConfigurationManager.get(item));
+					} catch (IOException e1) {
+						ConvertigoPlugin.logException(e1, "Unable to remove the deployment configurations");
+					}
 					list.remove(index);
 					
 					if (list.getItemCount() > 0) {
 						list.select(0);
 						
-						if (!item.equals(listMessage)) {
-							DeploymentConfiguration dc = getDeployementConfiguration(list.getItem(0));
+						if (!item.equals(messageList)) {
+							DeploymentConfiguration dc = ConvertigoPlugin.deploymentConfigurationManager.get((list.getItem(0)));
 							fillDialog(dc);
 						}
-					}					
+					}			
+					else {
+						clearDialog();
+					}
 					list.setRedraw(true);
 					list.redraw();
 			    }				  
@@ -352,42 +359,6 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		convertigoAdminPassword.setText("Password");
 		convertigoPassword = new Text(convertigoGroup, SWT.BORDER | SWT.PASSWORD);
 		convertigoPassword.setLayoutData(gridData5);
-	}
-	
-
-	private DeploymentConfiguration getDeployementConfiguration(String name) {
-		DeploymentConfiguration dc = null;
-
-		for (DeploymentConfiguration deploymentConfiguration : deploymentInformation.deploymentConfigurations.values()) {
-            if  (deploymentConfiguration.getServer().equals(name))
-            	return dc = deploymentConfiguration;
-        }
-
-        return dc;
-	}
-	
-	private void removeDeploymentConfiguration(String name) {
-		Set<String> keys = deploymentInformation.deploymentConfigurations.keySet();
-		Iterator<String> it = keys.iterator();
-		Object removedKey = null;
-		while (it.hasNext() && removedKey == null){
-		   Object key = it.next();
-		    if (key.equals(name)) {
-		    	removedKey = key;
-		    }
-		}
-		
-		try {		
-	    	deploymentInformation.deploymentConfigurations.remove(removedKey);
-			
-            objectOutputStream = new ObjectOutputStream(new FileOutputStream(Engine.PROJECTS_PATH + "/" + ConvertigoPlugin.projectManager.currentProject.getName() + "/_private/deploy.ser"));
-            objectOutputStream.writeObject(deploymentInformation);
-            objectOutputStream.flush();
-            objectOutputStream.close();
-        }
-        catch(Exception e) {
-        	ConvertigoPlugin.logException(e, "Unable to save the deployment information.");
-        }
 	}
 	
 }  //  @jve:decl-index=0:visual-constraint="10,10"

@@ -23,11 +23,12 @@
 package com.twinsoft.convertigo.eclipse.dialogs;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.widgets.Button;
@@ -42,7 +43,6 @@ import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.DeploymentConfiguration;
-import com.twinsoft.convertigo.eclipse.DeploymentInformation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.CarUtils;
@@ -51,7 +51,6 @@ import com.twinsoft.convertigo.engine.util.RemoteAdminException;
 
 public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 
-	private DeploymentInformation deploymentInformation = null;
 	private ProgressBar progressBar = null;
 	private Label labelProgression = null;
 	private Button checkBox = null;
@@ -80,11 +79,20 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 		getButton(IDialogConstants.OK_ID).setText("Deploy");
 		return buttonBar;
 	}
-	
+
+	@Override
+	protected void cancelPressed() {		
+		try {
+			ConvertigoPlugin.deploymentConfigurationManager.save();
+		} catch (IOException e) {
+			ConvertigoPlugin.logException(e, "Unable to save the deployment configurations");
+		}	
+		super.cancelPressed();
+	}
+
 	protected void okPressed() {
 		try {
 			getButton(IDialogConstants.OK_ID).setEnabled(false);
-			deploymentInformation = ((ProjectDeployDialogComposite)dialogComposite).deploymentInformation;
 			progressBar = ((ProjectDeployDialogComposite)dialogComposite).progressBar;
 			labelProgression = ((ProjectDeployDialogComposite)dialogComposite).labelProgress;
 			checkBox = ((ProjectDeployDialogComposite)dialogComposite).checkBox;
@@ -109,32 +117,41 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	        bAssembleXsl = assembleXsl.getSelection();
         
 	        boolean doubleFound = false;
-	        for (DeploymentConfiguration deploymentConfiguration : deploymentInformation.deploymentConfigurations.values()) {
-	        	if (convertigoServer.equals(deploymentConfiguration.getServer())) {
-	        		deploymentConfiguration.setBAssembleXsl(bAssembleXsl);
-	        		deploymentConfiguration.setBHttps(isHttps);
-	        		deploymentConfiguration.setUsername(convertigoUserName);
-	        		deploymentConfiguration.setUserpassword(convertigoUserPassword);
-	        		deploymentConfiguration.setBTrustAllCertificates(trustAllCertificates);
-	        		doubleFound = true;
-	        		deploymentInformation.defaultDeploymentConfigurationName = convertigoServer;
+	        
+	        Set<String> deploymentConfigurationNames = new HashSet<String>();  
+	        deploymentConfigurationNames = ConvertigoPlugin.deploymentConfigurationManager.getAllDeploymentConfigurationNames();
+	        String currentProjectName = ConvertigoPlugin.projectManager.currentProjectName;
+	        
+	        for (String deploymentConfigurationName: deploymentConfigurationNames) {
+	        	DeploymentConfiguration deploymentConfiguration = null;
+	        	if (convertigoServer.equals(deploymentConfigurationName)) {
+	        		deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get(deploymentConfigurationName);
+	        		if (deploymentConfiguration != null) {
+		        		deploymentConfiguration.setBAssembleXsl(bAssembleXsl);
+		        		deploymentConfiguration.setBHttps(isHttps);
+		        		deploymentConfiguration.setUsername(convertigoUserName);
+		        		deploymentConfiguration.setUserpassword(convertigoUserPassword);
+		        		deploymentConfiguration.setBTrustAllCertificates(trustAllCertificates);
+		        		doubleFound = true;
+		        		ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, deploymentConfiguration);
+	        		}
 	        	}
 	        }
 	        
-	        DeploymentConfiguration dc = new DeploymentConfiguration(
-		            convertigoServer,
-		            convertigoUserName,
-		            convertigoUserPassword,
-		            isHttps,
-		            trustAllCertificates,
-		            bAssembleXsl
-		        );
-	        
-	        if (!doubleFound) {
+	        if (!doubleFound) {	        	
+		        DeploymentConfiguration dc = new DeploymentConfiguration(
+			            convertigoServer,
+			            convertigoUserName,
+			            convertigoUserPassword,
+			            isHttps,
+			            trustAllCertificates,
+			            bAssembleXsl
+			        );
+	        	
 	            list.add(convertigoServer);
-		        deploymentInformation.deploymentConfigurations.put(convertigoServer, dc);
-		        deploymentInformation.defaultDeploymentConfigurationName = convertigoServer;
-		        if (list.getItem(0).equals(ProjectDeployDialogComposite.listMessage)) {
+	            ConvertigoPlugin.deploymentConfigurationManager.add(dc);
+	            ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, dc);
+		        if (list.getItem(0).equals(ProjectDeployDialogComposite.messageList)) {
 		        	list.remove(0);
 		        }
 	        }
@@ -154,16 +171,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	            }
 	        }
 
-	        ObjectOutputStream objectOutputStream = null;
-	        try {
-	            objectOutputStream = new ObjectOutputStream(new FileOutputStream(Engine.PROJECTS_PATH + "/" + ConvertigoPlugin.projectManager.currentProject.getName() + "/_private/deploy.ser"));
-	            objectOutputStream.writeObject(deploymentInformation);
-	            objectOutputStream.flush();
-	            objectOutputStream.close();
-	        }
-	        catch(Exception e) {
-	        	ConvertigoPlugin.logException(e, "Unable to save the deployment information.");
-	        }		
+	        ConvertigoPlugin.deploymentConfigurationManager.save();
 	        
 			Thread thread = new Thread(this);
 			thread.start();
@@ -172,7 +180,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 			ConvertigoPlugin.logException(e, "Unable to deploy project!");
 		}
 	}
-	
+
 	public void run() {
 		final Display display = getParentShell().getDisplay();
 		Thread progressBarThread = new Thread("Progress Bar thread") {

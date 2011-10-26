@@ -27,14 +27,11 @@ import java.beans.Introspector;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,7 +47,6 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -75,34 +71,22 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTError;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.ProgressAdapter;
-import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
@@ -119,7 +103,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.IProgressService;
-import org.osgi.framework.Bundle;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -162,7 +145,6 @@ import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
 import com.twinsoft.convertigo.beans.variables.HttpStatementVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.DeploymentConfiguration;
 import com.twinsoft.convertigo.eclipse.actions.ProjectExplorerSaveAllAction;
 import com.twinsoft.convertigo.eclipse.dnd.StepSourceTransfer;
 import com.twinsoft.convertigo.eclipse.dnd.TreeDragListener;
@@ -286,8 +268,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	
 	private ViewContentProvider viewContentProvider = null;
 	
-	private Button checkBox, closeButton;
-	private Boolean pageLoaded = false;
 	/**
 	 * The constructor.
 	 */
@@ -341,165 +321,20 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	
 		getSite().setSelectionProvider(viewer);
 		
-		// The Convertigo engine has been normally automatically started on Tomcat startup.
-		// Just wait for a few seconds for its start to be finished if needed.
-		if (!Engine.isStarted) {
-			final Display display = Display.getDefault();
+		int nbRetry = 0;
+		while (!Engine.isStartFailed && !Engine.isStarted) {
+			try {
+				Thread.sleep(500);
+				nbRetry++;
+			} catch (InterruptedException e) {
+				// Ignore
+			}
 			
-			display.asyncExec(new Runnable() {
-				public void run() {
-					
-					try {
-						
-						final Shell shell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
-						
-						GridLayout gridLayout = new GridLayout();
-						gridLayout.numColumns = 1;
-						gridLayout.horizontalSpacing = 0;
-						gridLayout.verticalSpacing = 0;
-						gridLayout.marginHeight = 0;
-						gridLayout.marginWidth = 0;
-						shell.setLayout(gridLayout);
-						
-						shell.setText("Convertigo Studio");
-						
-						Bundle bundle = ConvertigoPlugin.getDefault().getBundle();
-						Path path = new Path("icons/splash_wait_rss.jpg");
-						URL fileURL = FileLocator.find(bundle, path, null);
-						Image image = new Image(Display.getCurrent(), fileURL.openStream());
-						
-						Composite compositeHeader = new Composite(shell, SWT.NONE);
-						compositeHeader.setBackgroundImage(image);
-						compositeHeader.setLayout(new GridLayout());
-						
-						GridData gridData = new GridData ();
-						gridData.horizontalAlignment = GridData.FILL;
-						gridData.verticalAlignment = GridData.VERTICAL_ALIGN_FILL;
-						gridData.heightHint = image.getBounds().height;
-						compositeHeader.setLayoutData(gridData);
-						
-						Composite compositeBar = new Composite(compositeHeader, SWT.NONE);
-						FillLayout fillLayout = new FillLayout();
-						fillLayout.marginHeight = 0;
-						fillLayout.marginWidth = 0;
-						compositeBar.setLayout(fillLayout);
-	
-						gridData = new GridData();
-						gridData.horizontalIndent = 172;
-						gridData.verticalIndent = 65;
-						gridData.widthHint = 300;
-						compositeBar.setLayoutData(gridData);
-							
-						ProgressBar progressBar = new ProgressBar(compositeBar, SWT.INDETERMINATE);
-						
-						//initialize browser
-						initializeBrowser(shell);
-					
-						Composite toolComposite = new Composite(shell, SWT.NONE);
-						gridLayout = new GridLayout();
-						gridLayout.numColumns = 2;
-						gridLayout.marginHeight = 3;
-						gridLayout.marginWidth = 10;
-						toolComposite.setLayout(gridLayout);
-						
-						gridData = new GridData();
-						gridData.horizontalAlignment = GridData.FILL;
-						gridData.grabExcessHorizontalSpace = true;
-						toolComposite.setLayoutData(gridData);
-						
-						checkBox = new Button(toolComposite, SWT.CHECK);
-						checkBox.setText("Dismiss automatically");		
-						if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS).equalsIgnoreCase("true")) {
-							checkBox.setSelection(true);
-						}
-			
-						path = new Path("icons/studio/unloadable_project.gif");
-						fileURL = FileLocator.find(bundle, path, null);
-						image = new Image(Display.getCurrent(), fileURL.openStream());
-						
-						closeButton = new Button(toolComposite, SWT.PUSH);
-						closeButton.setText("Wait..");
-						closeButton.setImage(image);
-						
-						gridData = new GridData();
-						gridData.grabExcessHorizontalSpace = true;
-						gridData.horizontalAlignment = GridData.END;
-						closeButton.setLayoutData(gridData);
-						
+			// Aborting if too many retries
+			if (nbRetry > 360) return;
+		}
 
-						int w = 664;
-						int h = 400;
-						try {
-							Rectangle clientArea = display.getActiveShell().getClientArea();
-							int x = (clientArea.width - w) / 2;
-							int y = (clientArea.height - h) / 2;
-							shell.setBounds(x, y, w, h);
-						}
-						catch (Exception e) {
-							shell.setBounds(100, 100, w, h);
-						}
-						shell.open();
-						
-						while (!shell.isDisposed() && !Engine.isStartFailed && !(Engine.isStarted && pageLoaded)) {
-							if (!display.readAndDispatch()) {
-								closeButton.setEnabled(false);
-								display.sleep();
-							}
-						}
-						
-						progressBar.dispose();
-						compositeBar.dispose();
-						
-						path = new Path("icons/splash_ready_rss.jpg");
-						fileURL = FileLocator.find(bundle, path, null);
-						image = new Image(Display.getCurrent(), fileURL.openStream());
-						compositeHeader.setBackgroundImage(image);
-						
-						gridData = new GridData ();
-						gridData.horizontalAlignment = GridData.FILL;
-						gridData.verticalAlignment = GridData.VERTICAL_ALIGN_FILL;
-						gridData.heightHint = 75;
-						compositeHeader.setLayoutData(gridData);
-						
-						closeButton.setText("Close");
-						closeButton.setEnabled(true);
-						
-						shell.layout();
-						
-						closeButton.addSelectionListener(new SelectionListener() {
-							public void widgetDefaultSelected(SelectionEvent e) {
-								// TODO Auto-generated method stub		
-							}
-							public void widgetSelected(SelectionEvent e) {
-								if (checkBox.getSelection()) {
-									ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "true");
-								}
-								else {
-									ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "false");
-								}
-								shell.close();
-							}
-						});
-						
-						if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS).equalsIgnoreCase("true")) {
-							shell.close();
-						}
-						
-						// !Initialize view!
-						initialize();
-					}
-					catch (Exception e) {
-						ConvertigoPlugin.logException(e, "Error during splash wait screen");
-					} finally {
-						getSite().getShell().setCursor(null);
-					}
-				};
-			});
-		}
-		// Else engine is started : initialize view
-		else {
-			initialize();
-		}
+		if (Engine.isStarted) initialize();
 	}
 
 	private void initialize() {
@@ -519,44 +354,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 	
-	private void initializeBrowser(Composite parent) throws IOException {
-		
-		final Browser browser;
-		try {
-			browser = new Browser(parent, Engine.isLinux() ? SWT.MOZILLA : SWT.NONE);
-		} catch (SWTError e) {
-			System.out.println("Could not instantiate Browser: " + e.getMessage());
-			return;
-		}
-		
-		GridData gridData = new GridData();
-		gridData = new GridData();
-		gridData.horizontalAlignment = GridData.FILL;
-		gridData.verticalAlignment = GridData.FILL;
-		gridData.grabExcessHorizontalSpace = true;
-		gridData.grabExcessVerticalSpace = true;
-		browser.setLayoutData(gridData);
-
-		DeploymentConfiguration deploymentConfiguration = null;
-		try {
-	        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(Engine.USER_WORKSPACE_PATH + "/studio/trial_deploy.ser"));
-			deploymentConfiguration = (DeploymentConfiguration)ois.readObject();
-		} catch (Exception e) {
-			;
-		}
-		String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
-		url += 	deploymentConfiguration == null ? "":"&user=" + deploymentConfiguration.getUsername();
-		
-		browser.addProgressListener (new ProgressAdapter () {
-			public void completed (ProgressEvent event) {
-				pageLoaded = true;
-			}
-		});
-		
-		browser.setUrl(url);
-	}
-	
-
 	private void hookContextMenu() {
 		MenuManager menuMgr = new MenuManager("#PopupMenu");
 		menuMgr.setRemoveAllWhenShown(true);

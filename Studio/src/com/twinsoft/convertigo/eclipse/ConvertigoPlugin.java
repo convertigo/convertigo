@@ -26,9 +26,8 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.Hashtable;
 import java.util.Map;
@@ -52,11 +51,22 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTError;
+import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
@@ -79,6 +89,7 @@ import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.views.properties.PropertySheet;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 import com.twinsoft.convertigo.beans.core.BlockFactory;
@@ -116,6 +127,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public static ProjectManager projectManager = null;
 	
 	public static ClipboardManager2 clipboardManager2 = null;
+	
+	public static DeploymentConfigurationManager deploymentConfigurationManager = null;
 	
     public static final String SYSTEM_PROP_PREFIX = "convertigo.studio.";
     
@@ -299,11 +312,188 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		
 		log = getLog();
 		projectManager = new ProjectManager();
-		clipboardManager2 = new ClipboardManager2();
+		clipboardManager2 = new ClipboardManager2();		
 		//learnProxy = new LearnProxy();
 	}
 
 	private EmbeddedTomcat embeddedTomcat = null;
+	
+	private Button checkBox, closeButton;
+
+	private void displayWaitScreen() {
+		final Display display = Display.getDefault();
+		
+		display.asyncExec(new Runnable() {
+			public void run() {
+				
+				try {
+					
+					final Shell shell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
+					
+					GridLayout gridLayout = new GridLayout();
+					gridLayout.numColumns = 1;
+					gridLayout.horizontalSpacing = 0;
+					gridLayout.verticalSpacing = 0;
+					gridLayout.marginHeight = 0;
+					gridLayout.marginWidth = 0;
+					shell.setLayout(gridLayout);
+					
+					shell.setText("Convertigo Studio");
+					
+					Bundle bundle = ConvertigoPlugin.getDefault().getBundle();
+					Path path = new Path("icons/splash_wait_rss.jpg");
+					URL fileURL = FileLocator.find(bundle, path, null);
+					Image image = new Image(Display.getCurrent(), fileURL.openStream());
+					
+					Composite compositeHeader = new Composite(shell, SWT.NONE);
+					compositeHeader.setBackgroundImage(image);
+					compositeHeader.setLayout(new GridLayout());
+					
+					GridData gridData = new GridData ();
+					gridData.horizontalAlignment = GridData.FILL;
+					gridData.verticalAlignment = GridData.VERTICAL_ALIGN_FILL;
+					gridData.heightHint = image.getBounds().height;
+					compositeHeader.setLayoutData(gridData);
+					
+					Composite compositeBar = new Composite(compositeHeader, SWT.NONE);
+					FillLayout fillLayout = new FillLayout();
+					fillLayout.marginHeight = 0;
+					fillLayout.marginWidth = 0;
+					compositeBar.setLayout(fillLayout);
+
+					gridData = new GridData();
+					gridData.horizontalIndent = 172;
+					gridData.verticalIndent = 65;
+					gridData.widthHint = 300;
+					compositeBar.setLayoutData(gridData);
+						
+					ProgressBar progressBar = new ProgressBar(compositeBar, SWT.INDETERMINATE);
+					
+					//initialize browser
+					initializeBrowser(shell);
+				
+					Composite toolComposite = new Composite(shell, SWT.NONE);
+					gridLayout = new GridLayout();
+					gridLayout.numColumns = 2;
+					gridLayout.marginHeight = 3;
+					gridLayout.marginWidth = 10;
+					toolComposite.setLayout(gridLayout);
+					
+					gridData = new GridData();
+					gridData.horizontalAlignment = GridData.FILL;
+					gridData.grabExcessHorizontalSpace = true;
+					toolComposite.setLayoutData(gridData);
+					
+					checkBox = new Button(toolComposite, SWT.CHECK);
+					checkBox.setText("Dismiss automatically");		
+					if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS).equalsIgnoreCase("true")) {
+						checkBox.setSelection(true);
+					}
+		
+					path = new Path("icons/studio/unloadable_project.gif");
+					fileURL = FileLocator.find(bundle, path, null);
+					image = new Image(Display.getCurrent(), fileURL.openStream());
+					
+					closeButton = new Button(toolComposite, SWT.PUSH);
+					closeButton.setText("Wait..");
+					closeButton.setImage(image);
+					
+					gridData = new GridData();
+					gridData.grabExcessHorizontalSpace = true;
+					gridData.horizontalAlignment = GridData.END;
+					closeButton.setLayoutData(gridData);
+					
+
+					int w = 664;
+					int h = 400;
+					try {
+						Rectangle clientArea = display.getActiveShell().getClientArea();
+						int x = (clientArea.width - w) / 2;
+						int y = (clientArea.height - h) / 2;
+						shell.setBounds(x, y, w, h);
+					}
+					catch (Exception e) {
+						shell.setBounds(100, 100, w, h);
+					}
+					shell.open();
+					
+					while (!shell.isDisposed() && !Engine.isStartFailed && !Engine.isStarted) {
+						if (!display.readAndDispatch()) {
+							closeButton.setEnabled(false);
+							display.sleep();
+						}
+					}
+					
+					progressBar.dispose();
+					compositeBar.dispose();
+					
+					path = new Path("icons/splash_ready_rss.jpg");
+					fileURL = FileLocator.find(bundle, path, null);
+					image = new Image(Display.getCurrent(), fileURL.openStream());
+					compositeHeader.setBackgroundImage(image);
+					
+					gridData = new GridData ();
+					gridData.horizontalAlignment = GridData.FILL;
+					gridData.verticalAlignment = GridData.VERTICAL_ALIGN_FILL;
+					gridData.heightHint = 75;
+					compositeHeader.setLayoutData(gridData);
+					
+					closeButton.setText("Close");
+					closeButton.setEnabled(true);
+					
+					shell.layout();
+					
+					closeButton.addSelectionListener(new SelectionListener() {
+						public void widgetDefaultSelected(SelectionEvent e) {
+							// TODO Auto-generated method stub		
+						}
+						public void widgetSelected(SelectionEvent e) {
+							if (checkBox.getSelection()) {
+								ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "true");
+							}
+							else {
+								ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "false");
+							}
+							shell.close();
+						}
+					});
+					
+					if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS).equalsIgnoreCase("true")) {
+						shell.close();
+					}
+				}
+				catch (Exception e) {
+					ConvertigoPlugin.logException(e, "Error during splash wait screen");
+				}
+			};
+		});
+	}
+
+	private void initializeBrowser(Composite parent) throws IOException {
+		
+		final Browser browser;
+		try {
+			browser = new Browser(parent, Engine.isLinux() ? SWT.MOZILLA : SWT.NONE);
+		} catch (SWTError e) {
+			System.out.println("Could not instantiate Browser: " + e.getMessage());
+			return;
+		}
+		
+		GridData gridData = new GridData();
+		gridData = new GridData();
+		gridData.horizontalAlignment = GridData.FILL;
+		gridData.verticalAlignment = GridData.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.grabExcessVerticalSpace = true;
+		browser.setLayoutData(gridData);
+		
+		DeploymentConfiguration deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get("trial.convertigo.net");
+
+		String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
+		url += 	deploymentConfiguration == null ? "":"&user=" + deploymentConfiguration.getUsername();
+		
+		browser.setUrl(url);
+	}
 	
 	/**
 	 * This method is called upon plug-in activation
@@ -372,12 +562,51 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
         embeddedTomcat = new EmbeddedTomcat(tomcatHome);
         
+        // The embedded Tomcat has been created, so all engine paths have been computed.
+        deploymentConfigurationManager = new DeploymentConfigurationManager();
+		try {
+			deploymentConfigurationManager.load();
+		} catch (Exception e) {
+			logException(e, "Unable to load deployment configurations");
+		}
+
+		displayWaitScreen();
+				
         Thread embeddedTomcatThread = new Thread(embeddedTomcat, "Embedded Tomcat");
         embeddedTomcatThread.start();
         
-		// The console threads must be started AFTER the engine
-		consolePipes.startConsoleThreads();
-		
+        Thread engineStartWaitThread = new Thread(new Runnable() {
+			public void run() {
+				int nbRetry = 0;
+				while (!Engine.isStartFailed && !Engine.isStarted) {
+					try {
+						Thread.sleep(500);
+						nbRetry++;
+					} catch (InterruptedException e) {
+						// Ignore
+					}
+					
+					// Aborting if too many retries
+					if (nbRetry > 360) return;
+				}
+				
+				if (Engine.isStartFailed) {
+					logError("Unable to start engine; see console for more details");
+					return;
+				}
+				
+				// The console threads must be started AFTER the engine
+				consolePipes.startConsoleThreads();
+				
+				try {
+					deploymentConfigurationManager.doMigration();
+				} catch (Exception e) {
+					logException(e, "Unable to migrate deployment configurations");
+				}
+			}
+		});
+        engineStartWaitThread.start();
+        
 		studioLog.message("Convertigo studio started");
 	}
 
@@ -456,15 +685,10 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 									trialRegistrationDialog.open();
 									int returnCode = trialRegistrationDialog.getReturnCode();
 									if (returnCode == Window.OK) {
-										ObjectOutputStream objectOutputStream = null;
 								        try {
-								            objectOutputStream = new ObjectOutputStream(new FileOutputStream(Engine.USER_WORKSPACE_PATH + "/studio/trial_deploy.ser"));
-								            objectOutputStream.writeObject(trialRegistrationDialog.deploymentConfiguration);
-								            objectOutputStream.flush();
-								            objectOutputStream.close();
-
+											deploymentConfigurationManager.add(trialRegistrationDialog.deploymentConfiguration);
+											deploymentConfigurationManager.save();
 								            ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_TRIAL_IGNORE_USER_REGISTRATION, "true");
-											
 											ConvertigoPlugin.infoMessageBox("You have successfully registered your trial studio!");
 								        }
 								        catch(Exception e) {
