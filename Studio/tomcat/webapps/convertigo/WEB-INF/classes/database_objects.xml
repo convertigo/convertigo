@@ -509,7 +509,7 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.SqlConnector">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SqlConnector"/>
 				</bean>
 			</beans>
