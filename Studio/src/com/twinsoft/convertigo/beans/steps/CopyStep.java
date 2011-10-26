@@ -43,23 +43,23 @@ public class CopyStep extends Step {
 				try {
 					
 					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
-
 					String destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(javascriptContext, scope));
-					
+
 					File sourcefile = new File(sourceFilePath);
 					File destinationFile = new File(destinationFilePath);
-										
+					
 					if (destinationFile.isDirectory()) {
 						if (destinationFile.exists()) {
 							if (sourcefile.isFile()) {
 								String fileName = "";
-								int index = sourceFilePath.lastIndexOf("/");
+								String tmpSourceFilePath = sourceFilePath.replaceAll("\\\\", "/");
+
+								int index = tmpSourceFilePath.lastIndexOf("/");
 								if (index != -1) {
-									fileName = sourceFilePath.substring(index+1);
+									fileName = tmpSourceFilePath.substring(index+1);
 								}
-								
 								destinationFile = new File(destinationFilePath + "/" + fileName);
-							}	
+							}
 						}
 						else {
 							throw new Exception("Destination directory does not exist.");

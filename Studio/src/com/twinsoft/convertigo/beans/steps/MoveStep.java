@@ -52,9 +52,10 @@ public class MoveStep extends Step {
 						if (destinationFile.exists()) {
 							if (sourcefile.isFile()) {
 								String fileName = "";
-								int index = sourceFilePath.lastIndexOf("/");
+								String tmpSourceFilePath = sourceFilePath.replaceAll("\\\\", "/");
+								int index = tmpSourceFilePath.lastIndexOf("/");
 								if (index != -1) {
-									fileName = sourceFilePath.substring(index+1);
+									fileName = tmpSourceFilePath.substring(index+1);
 								}
 								destinationFile = new File(destinationFilePath + "/" + fileName);
 							}

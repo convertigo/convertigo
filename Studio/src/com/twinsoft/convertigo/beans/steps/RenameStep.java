@@ -43,8 +43,10 @@ public class RenameStep extends Step {
 				try {
 					
 					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
+					
+					String tmpSourceFilePath = sourceFilePath.replaceAll("\\\\", "/");
 
-					String destinationPath = sourceFilePath.substring(0, sourceFilePath.lastIndexOf("/"));
+					String destinationPath = sourceFilePath.substring(0, tmpSourceFilePath.lastIndexOf("/"));
 					
 					File sourceFile = new File(sourceFilePath);
 					
