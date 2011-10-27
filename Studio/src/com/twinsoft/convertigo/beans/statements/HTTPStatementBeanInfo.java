@@ -37,7 +37,7 @@ public class HTTPStatementBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/http_16x16.gif";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/http_32x32.gif";
 			
-			properties = new PropertyDescriptor[10];
+			properties = new PropertyDescriptor[9];
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/HTTPStatement");
 			
@@ -85,15 +85,11 @@ public class HTTPStatementBeanInfo extends MySimpleBeanInfo {
 			//properties[7].setExpert(true);
 			properties[7].setHidden(true);
 			
-			properties[8] = new PropertyDescriptor("formName", beanClass, "getFormName", "setFormName");
-			properties[8].setDisplayName(getExternalizedString("property.form.display_name"));
-			properties[8].setShortDescription(getExternalizedString("property.form.short_description"));
-			
-			properties[9] = new PropertyDescriptor("trigger", beanClass, "getTrigger", "setTrigger");
-			properties[9].setDisplayName(getExternalizedString("property.trigger.display_name"));
-			properties[9].setShortDescription(getExternalizedString("property.trigger.short_description"));
-			properties[9].setExpert(true);
-			properties[9].setPropertyEditorClass(getEditorClass("HttpTriggerEditor"));
+			properties[8] = new PropertyDescriptor("trigger", beanClass, "getTrigger", "setTrigger");
+			properties[8].setDisplayName(getExternalizedString("property.trigger.display_name"));
+			properties[8].setShortDescription(getExternalizedString("property.trigger.short_description"));
+			properties[8].setExpert(true);
+			properties[8].setPropertyEditorClass(getEditorClass("HttpTriggerEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
