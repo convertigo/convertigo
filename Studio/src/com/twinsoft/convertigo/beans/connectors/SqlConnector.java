@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -278,7 +279,21 @@ public class SqlConnector extends Connector {
 	}
 
 	public void prepareForTransaction(Context context) throws EngineException {
-		Engine.logBeans.debug("(SqlConnector) Query on database " + jdbcURL);
+		SqlTransaction sqlTransaction = null;
+		try {
+			sqlTransaction = (SqlTransaction) context.requestedObject;
+		} catch (ClassCastException e) {
+			throw new EngineException("Requested object is not a SQL transaction", e);
+		}
+
+		// Overwrites JDBC url if needed
+		String variableValue = (String) sqlTransaction.variables.get(Parameter.ConnectorConnectionString.getName());
+		if (variableValue != null) {
+			setJdbcURL(variableValue);
+			Engine.logBeans.debug("(SqlConnector) Connection string overriden!");
+		}
+
+		Engine.logBeans.debug("(SqlConnector) JDBC URL: " + jdbcURL);
 	}
 
 	public void setData(List<List<String>> data, List<String> columnHeaders) {
