@@ -381,7 +381,7 @@
             class="com.twinsoft.convertigo.eclipse.wizards.NewJQueryMobileWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewJQueryMobileWizard"
-            name="jQueryMobile based project"
+            name="jQuery Mobile based project"
             preferredPerspectives="convertigo"
             project="true">
             <description>Creates a Mobile project based on jQueryMobile frameworks</description> 
