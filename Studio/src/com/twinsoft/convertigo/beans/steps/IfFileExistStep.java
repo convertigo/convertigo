@@ -66,8 +66,9 @@ public class IfFileExistStep extends BlockStep {
 	@Override
 	protected boolean evaluateStep(Context javascriptContext, Scriptable scope) throws EngineException {
 		try {	
+			condition = condition.replaceAll("\\\\", "/");
+			
 			String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
-
 			File sourcefile = new File(sourceFilePath);
 			
 			if (sourcefile.exists()) {

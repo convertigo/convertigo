@@ -8,6 +8,7 @@ import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -41,15 +42,12 @@ public class RenameStep extends Step {
 		if (isEnable) {
 			if (super.stepExcecute(javascriptContext, scope)) {
 				try {
-					
-					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
-					
+					sourcePath = sourcePath.replaceAll("\\\\", "/");
+		
+					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));				
 					String tmpSourceFilePath = sourceFilePath.replaceAll("\\\\", "/");
-
-					String destinationPath = sourceFilePath.substring(0, tmpSourceFilePath.lastIndexOf("/"));
-					
-					File sourceFile = new File(sourceFilePath);
-					
+					String destinationPath = sourceFilePath.substring(0, tmpSourceFilePath.lastIndexOf("/"));				
+					File sourceFile = new File(sourceFilePath);					
 					String newFileName = evaluateNewName(javascriptContext, scope); 
 					
 					if (newFileName.length() == 0) {
@@ -78,7 +76,8 @@ public class RenameStep extends Step {
 				} catch (Exception e) {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while renaming the file or directory.", e);
-				}		       
+				}		  
+				ConvertigoPlugin.logInfo("File " + sourcePath + " renamed to " + newName +".");
 		        return true;
 			}
 		}

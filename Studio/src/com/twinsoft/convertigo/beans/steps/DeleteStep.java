@@ -8,6 +8,7 @@ import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -36,9 +37,9 @@ public class DeleteStep extends Step {
 		if (isEnable) {
 			if (super.stepExcecute(javascriptContext, scope)) {
 				try {
+					sourcePath = sourcePath.replaceAll("\\\\", "/");
 					
 					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
-
 					File sourceFile = new File(sourceFilePath);
 					
 					if (sourceFile.exists()) {
@@ -61,7 +62,8 @@ public class DeleteStep extends Step {
 				} catch (Exception e) {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while deleting the file or directory.", e);
-				}		       
+				}		  
+				ConvertigoPlugin.logInfo("File deleted from " + sourcePath +".");
 		        return true;
 			}
 		}
