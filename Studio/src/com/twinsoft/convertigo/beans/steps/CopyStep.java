@@ -20,7 +20,11 @@ public class CopyStep extends Step {
 	private static final long serialVersionUID = -2873578590344942963L;
 
 	private String sourcePath = "";		
-	private String destinationPath = "";	
+	private String destinationPath = "";
+
+	private String sourceFilePath;
+
+	private String destinationFilePath;	
 	
 	public CopyStep() {
 		super();
@@ -44,8 +48,11 @@ public class CopyStep extends Step {
 					sourcePath = sourcePath.replaceAll("\\\\", "/");
 					destinationPath = destinationPath.replaceAll("\\\\", "/");
 					
-					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
-					String destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(javascriptContext, scope));
+					sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
+					destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(javascriptContext, scope));
+					
+					sourceFilePath = sourceFilePath.replaceAll("\\\\", "/");
+					destinationFilePath = destinationFilePath.replaceAll("\\\\", "/");
 
 					File sourcefile = new File(sourceFilePath);
 					File destinationFile = new File(destinationFilePath);
@@ -89,7 +96,7 @@ public class CopyStep extends Step {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while copying the file or directory.", e);
 				}		
-				Engine.logBeans.info("File copied from " + sourcePath + " to " + destinationPath +".");
+				Engine.logBeans.info("File copied from " + sourceFilePath + " to " + destinationFilePath +".");
 		        return true;
 			}
 		}

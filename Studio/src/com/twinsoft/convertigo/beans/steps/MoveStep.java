@@ -20,7 +20,11 @@ public class MoveStep extends Step {
 	private static final long serialVersionUID = -2873578590344942963L;
 
 	private String sourcePath = "";		
-	private String destinationPath = "";	
+	private String destinationPath = "";
+	private boolean overwrite = false;
+
+	private String sourceFilePath;
+	private String destinationFilePath;
 	
 	public MoveStep() {
 		super();
@@ -43,8 +47,11 @@ public class MoveStep extends Step {
 					sourcePath = sourcePath.replaceAll("\\\\", "/");
 					destinationPath = destinationPath.replaceAll("\\\\", "/");
 					
-					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
-					String destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(javascriptContext, scope));
+					sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
+					destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(javascriptContext, scope));
+					
+					sourceFilePath = sourceFilePath.replaceAll("\\\\", "/");
+					destinationFilePath = destinationFilePath.replaceAll("\\\\", "/");
 
 					File sourcefile = new File(sourceFilePath);
 					File destinationFile = new File(destinationFilePath);
@@ -68,10 +75,28 @@ public class MoveStep extends Step {
 					
 					if (sourcefile.exists()) {
 						if (sourcefile.isDirectory()) {
-							FileUtils.moveDirectory(sourcefile, destinationFile);
+							if (destinationFile.exists() && !overwrite) {
+								throw new Exception("The destination directory " + destinationFile.getAbsolutePath() + " already exists.\n" +
+										" Please set the \"Overwrite\" property to true if you want to overwrite it.");
+							} else if (destinationFile.exists() && overwrite) {
+								FileUtils.deleteDirectory(destinationFile);
+								FileUtils.moveDirectory(sourcefile, destinationFile);
+							}
+							else if (!destinationFile.exists()) {
+								FileUtils.moveDirectory(sourcefile, destinationFile);
+							}	
 						}
 						else if (sourcefile.isFile()) {
-							FileUtils.moveFile(sourcefile, destinationFile);							
+							if (destinationFile.exists() && !overwrite) {
+								throw new Exception("The destination file " + destinationFile.getAbsolutePath() + " already exists.\n" +
+										" Please set the \"Overwrite\" property to true if you want to overwrite it.");
+							} else if (destinationFile.exists() && overwrite) {
+								destinationFile.delete();
+								FileUtils.moveFile(sourcefile, destinationFile);
+							}
+							else if (!destinationFile.exists()) {
+								FileUtils.moveFile(sourcefile, destinationFile);
+							}
 						}						
 					}
 					else {
@@ -86,8 +111,8 @@ public class MoveStep extends Step {
 				} catch (Exception e) {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while moving the file or directory.", e);
-				}		 
-				Engine.logBeans.info("File moved from " + sourcePath + " to " + destinationPath +".");
+				}		    
+				Engine.logBeans.info("File moved from " + sourceFilePath + " to " + destinationFilePath +".");
 		        return true;
 			}
 		}
@@ -137,5 +162,13 @@ public class MoveStep extends Step {
 
 	public void setDestinationPath(String destinationPath) {
 		this.destinationPath = destinationPath;
+	}
+
+	public void setOverwrite(boolean overwrite) {
+		this.overwrite = overwrite;
+	}
+
+	public boolean isOverwrite() {
+		return overwrite;
 	}
 }

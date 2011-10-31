@@ -19,7 +19,9 @@ public class DeleteStep extends Step {
 	 */
 	private static final long serialVersionUID = -2873578590344942963L;
 
-	private String sourcePath = "";		
+	private String sourcePath = "";
+
+	private String sourceFilePath;		
 	
 	public DeleteStep() {
 		super();
@@ -37,7 +39,9 @@ public class DeleteStep extends Step {
 				try {
 					sourcePath = sourcePath.replaceAll("\\\\", "/");
 					
-					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
+					sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
+					sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
+
 					File sourceFile = new File(sourceFilePath);
 					
 					if (sourceFile.exists()) {
@@ -61,7 +65,7 @@ public class DeleteStep extends Step {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while deleting the file or directory.", e);
 				}		  
-				Engine.logBeans.info("File " + sourcePath + " has been deleted.");
+				Engine.logBeans.info("File " + sourceFilePath + " has been deleted.");
 		        return true;
 			}
 		}

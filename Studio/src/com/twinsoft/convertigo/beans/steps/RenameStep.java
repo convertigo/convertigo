@@ -21,6 +21,11 @@ public class RenameStep extends Step {
 
 	private String sourcePath = "";		
 	private String newName = "";	
+	private boolean overwrite = false;
+
+	private String sourceFilePath;
+
+	private String newFileName;
 	
 	public RenameStep() {
 		super();
@@ -42,11 +47,12 @@ public class RenameStep extends Step {
 				try {
 					sourcePath = sourcePath.replaceAll("\\\\", "/");
 		
-					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));				
+					sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));	
+					sourceFilePath = sourceFilePath.replaceAll("\\\\", "/");
 					String tmpSourceFilePath = sourceFilePath.replaceAll("\\\\", "/");
 					String destinationPath = sourceFilePath.substring(0, tmpSourceFilePath.lastIndexOf("/"));				
-					File sourceFile = new File(sourceFilePath);					
-					String newFileName = evaluateNewName(javascriptContext, scope); 
+					File sourcefile = new File(sourceFilePath);					
+					newFileName = evaluateNewName(javascriptContext, scope); 
 					
 					if (newFileName.length() == 0) {
 						throw new Exception("Please fill the New name property field.");
@@ -54,12 +60,30 @@ public class RenameStep extends Step {
 					
 					File destinationFile = new File(destinationPath + "/" + newFileName);
 					
-					if (sourceFile.exists()) {
-						if (sourceFile.isDirectory()) {
-							FileUtils.moveDirectory(sourceFile, destinationFile);
+					if (sourcefile.exists()) {
+						if (sourcefile.isDirectory()) {
+							if (destinationFile.exists() && !overwrite) {
+								throw new Exception("The destination directory " + destinationFile.getAbsolutePath() + " already exists.\n" +
+										" Please set the \"Overwrite\" property to true if you want to overwrite it.");
+							} else if (destinationFile.exists() && overwrite) {
+								FileUtils.deleteDirectory(destinationFile);
+								FileUtils.moveDirectory(sourcefile, destinationFile);
+							}
+							else if (!destinationFile.exists()) {
+								FileUtils.moveDirectory(sourcefile, destinationFile);
+							}							
 						}
-						else if (sourceFile.isFile()) {
-							FileUtils.moveFile(sourceFile, destinationFile);
+						else if (sourcefile.isFile()) {
+							if (destinationFile.exists() && !overwrite) {
+								throw new Exception("The destination file " + destinationFile.getAbsolutePath() + " already exists.\n" +
+										" Please set the \"Overwrite\" property to true if you want to overwrite it.");
+							} else if (destinationFile.exists() && overwrite) {
+								destinationFile.delete();
+								FileUtils.moveFile(sourcefile, destinationFile);
+							}
+							else if (!destinationFile.exists()) {
+								FileUtils.moveFile(sourcefile, destinationFile);
+							}
 						}						
 					}
 					else {
@@ -75,7 +99,7 @@ public class RenameStep extends Step {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while renaming the file or directory.", e);
 				}		  
-				Engine.logBeans.info("File " + sourcePath + " renamed to " + newName +".");
+				Engine.logBeans.info("File " + sourceFilePath + " renamed to " + newFileName +".");
 		        return true;
 			}
 		}
@@ -124,4 +148,13 @@ public class RenameStep extends Step {
 	public void setNewName(String newName) {
 		this.newName = newName;
 	}
+
+	public boolean isOverwrite() {
+		return overwrite;
+	}
+
+	public void setOverwrite(boolean overwrite) {
+		this.overwrite = overwrite;
+	}
+	
 }
