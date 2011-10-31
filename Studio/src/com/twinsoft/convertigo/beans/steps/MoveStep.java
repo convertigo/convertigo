@@ -3,16 +3,14 @@ package com.twinsoft.convertigo.beans.steps;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-
-import org.apache.commons.io.FileUtils;
 
 public class MoveStep extends Step {
 
@@ -89,7 +87,6 @@ public class MoveStep extends Step {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while moving the file or directory.", e);
 				}		    
-				ConvertigoPlugin.logInfo("File moved from " + sourcePath + " to " + destinationPath +".");
 		        return true;
 			}
 		}
