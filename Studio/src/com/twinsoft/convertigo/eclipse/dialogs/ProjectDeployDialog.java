@@ -133,7 +133,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 		        		deploymentConfiguration.setUserpassword(convertigoUserPassword);
 		        		deploymentConfiguration.setBTrustAllCertificates(trustAllCertificates);
 		        		doubleFound = true;
-		        		ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, deploymentConfiguration);
+		        		ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, deploymentConfiguration.getServer());
 	        		}
 	        	}
 	        }
@@ -150,7 +150,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	        	
 	            list.add(convertigoServer);
 	            ConvertigoPlugin.deploymentConfigurationManager.add(dc);
-	            ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, dc);
+	            ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, dc.getServer());
 		        if (list.getItem(0).equals(ProjectDeployDialogComposite.messageList)) {
 		        	list.remove(0);
 		        }

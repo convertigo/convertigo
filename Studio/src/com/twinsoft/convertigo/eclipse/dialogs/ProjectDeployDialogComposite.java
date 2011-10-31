@@ -115,7 +115,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
         	}
         	if (!found) {
         		list.select(0);
-        		DeploymentConfiguration dc = ConvertigoPlugin. deploymentConfigurationManager.get(list.getSelection()[0]); 
+        		DeploymentConfiguration dc = ConvertigoPlugin.deploymentConfigurationManager.get(list.getSelection()[0]); 
     			fillDialog(dc);
         	}
         } else {

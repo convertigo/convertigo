@@ -29,20 +29,21 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 public class DeploymentConfigurationManager {
 
     private static final String DEPLOYMENT_CONFIGURATION_DB = Engine.USER_WORKSPACE_PATH + "/studio/deployment_configurations.db";
-    
     private static final String OLD_TRIAL_REGISTRATION_DB = Engine.USER_WORKSPACE_PATH + "/studio/trial_deploy.ser";
     
 	private Map<String, DeploymentConfiguration> deploymentConfigurations;
+	public Map<String, String> defaultDeploymentConfigurations;
 	
-	public Map<String, DeploymentConfiguration> defaultDeploymentConfigurations;
-	
+	private Object [] objectsToSerialize = new Object[2];
+	private Object [] deserializedObjects = new Object[2];
+
 	private SecretKey secretKey;
 	private DESKeySpec desKeySpec;
 	private SecretKeyFactory secretKeyFactory;
 	
 	public DeploymentConfigurationManager() {
 		deploymentConfigurations = new HashMap<String, DeploymentConfiguration>();
-		defaultDeploymentConfigurations = new HashMap<String, DeploymentConfiguration>();
+		defaultDeploymentConfigurations = new HashMap<String, String>();
 
 		try {
 			byte key[] = DESKeySpec.class.getCanonicalName().toString().getBytes();
@@ -61,6 +62,8 @@ public class DeploymentConfigurationManager {
 		DeploymentInformation deploymentInformation = null;
 		
 		load();
+		
+		ConvertigoPlugin.logDebug("Projects deployment configurations migration starting...");
 
 		for (String projectName: projectsNames) {			
 			String filePath = Engine.PROJECTS_PATH + "/" + projectName + "/_private/deploy.ser";			
@@ -102,20 +105,22 @@ public class DeploymentConfigurationManager {
 			}
 			
 			save();
-		}
+		}		
+		ConvertigoPlugin.logDebug("Projects deployment configurations migration finished");
 	}
 	
 	public DeploymentConfiguration getDefault(String projectName) {		
 		for (String defaultProjectName: defaultDeploymentConfigurations.keySet()) {			
 			if (projectName.equals(defaultProjectName)) {
-				return defaultDeploymentConfigurations.get(defaultProjectName);
+				String key = defaultDeploymentConfigurations.get(defaultProjectName);
+				return deploymentConfigurations.get(key);
 			}
 		}
 		return null;
 	}
 	
-	public void setDefault(String projectName, DeploymentConfiguration deploymentConfiguration) {		
-		defaultDeploymentConfigurations.put(projectName, deploymentConfiguration);
+	public void setDefault(String projectName, String deploymentConfigurationName) {		
+		defaultDeploymentConfigurations.put(projectName, deploymentConfigurationName);
 	}
 	
 	public Set<String> getAllDeploymentConfigurationNames() {
@@ -135,6 +140,9 @@ public class DeploymentConfigurationManager {
 	}
 
 	public void save() throws IOException {
+		objectsToSerialize[0] = deploymentConfigurations;
+		objectsToSerialize[1] = defaultDeploymentConfigurations;
+		
 		ObjectOutputStream objectOutputStream = null;
 		CipherOutputStream encrypt = null;
 		try {	
@@ -142,7 +150,7 @@ public class DeploymentConfigurationManager {
 			cipher.init(Cipher.ENCRYPT_MODE, secretKey);
 			encrypt = new CipherOutputStream(new FileOutputStream(DEPLOYMENT_CONFIGURATION_DB), cipher);
 			objectOutputStream = new ObjectOutputStream(encrypt);
-            objectOutputStream.writeObject(deploymentConfigurations);
+            objectOutputStream.writeObject(objectsToSerialize);
         }
         catch(IOException e) {
         	ConvertigoPlugin.logException(e, "Unable to save the deployment configurations.");
@@ -155,6 +163,7 @@ public class DeploymentConfigurationManager {
 		}
         finally {
         	if (objectOutputStream != null) objectOutputStream.close();
+        	ConvertigoPlugin.logDebug("Projects deployment configurations saved");
         }
 	}
 	
@@ -166,7 +175,9 @@ public class DeploymentConfigurationManager {
        		cipher.init(Cipher.DECRYPT_MODE, secretKey);
        		decode = new CipherInputStream(new FileInputStream(DEPLOYMENT_CONFIGURATION_DB), cipher); 
        		objectInputStream = new ObjectInputStream(decode);
-       		deploymentConfigurations = GenericUtils.cast(objectInputStream.readObject());
+       		deserializedObjects = GenericUtils.cast(objectInputStream.readObject());       		
+       		deploymentConfigurations = GenericUtils.cast(deserializedObjects[0]);
+       		defaultDeploymentConfigurations = GenericUtils.cast(deserializedObjects[1]);
         } catch (NoSuchAlgorithmException e) {
         	// Use the default empty database
         	ConvertigoPlugin.logException(e, "Unable to find the encryption algorithm: " + e.getMessage());	
@@ -184,6 +195,7 @@ public class DeploymentConfigurationManager {
 		}
         finally {
         	if (objectInputStream != null) objectInputStream.close();
+        	ConvertigoPlugin.logDebug("Projects deployment configurations loaded");
         }
 	}
 }
