@@ -61,6 +61,7 @@ public class DeleteStep extends Step {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while deleting the file or directory.", e);
 				}		  
+				Engine.logBeans.info("File " + sourcePath + " has been deleted.");
 		        return true;
 			}
 		}

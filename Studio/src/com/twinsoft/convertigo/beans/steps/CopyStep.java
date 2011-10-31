@@ -89,6 +89,7 @@ public class CopyStep extends Step {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while copying the file or directory.", e);
 				}		
+				Engine.logBeans.info("File copied from " + sourcePath + " to " + destinationPath +".");
 		        return true;
 			}
 		}

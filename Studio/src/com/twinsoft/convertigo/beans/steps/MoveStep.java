@@ -86,7 +86,8 @@ public class MoveStep extends Step {
 				} catch (Exception e) {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while moving the file or directory.", e);
-				}		    
+				}		 
+				Engine.logBeans.info("File moved from " + sourcePath + " to " + destinationPath +".");
 		        return true;
 			}
 		}

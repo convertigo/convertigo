@@ -74,7 +74,8 @@ public class RenameStep extends Step {
 				} catch (Exception e) {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while renaming the file or directory.", e);
-				}		  				
+				}		  
+				Engine.logBeans.info("File " + sourcePath + " renamed to " + newName +".");
 		        return true;
 			}
 		}
