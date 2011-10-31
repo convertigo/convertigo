@@ -78,9 +78,11 @@ public class CopyStep extends Step {
 					if (sourcefile.exists()) {
 						if (sourcefile.isDirectory()) {
 							FileUtils.copyDirectory(sourcefile, destinationFile);
+							Engine.logBeans.info("Directory copied from \"" + sourceFilePath + "\" to \"" + destinationFilePath +"\".");
 						}
 						else if (sourcefile.isFile()) {
 							FileUtils.copyFile(sourcefile, destinationFile);
+							Engine.logBeans.info("File copied from \"" + sourceFilePath + "\" to \"" + destinationFilePath +"\".");
 						}						
 					}
 					else {
@@ -95,8 +97,7 @@ public class CopyStep extends Step {
 				} catch (Exception e) {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while copying the file or directory.", e);
-				}		
-				Engine.logBeans.info("File copied from " + sourceFilePath + " to " + destinationFilePath +".");
+				}						
 		        return true;
 			}
 		}

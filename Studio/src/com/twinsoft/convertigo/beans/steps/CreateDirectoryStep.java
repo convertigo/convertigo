@@ -46,9 +46,11 @@ public class CreateDirectoryStep extends Step {
 					
 					if (isCreateNonExistentParentDirectories()) {
 						directoryCreated = destinationFile.mkdirs();
+						Engine.logBeans.info("Directory \"" + destinationFilePath + "\" has been created.");
 					}
 					else {
 						directoryCreated = destinationFile.mkdir();
+						Engine.logBeans.info("Directory \"" + destinationFilePath + "\" has been created.");
 					}
 
 					if (!directoryCreated) {
@@ -60,8 +62,7 @@ public class CreateDirectoryStep extends Step {
 				} catch (Exception e) {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while creating the directory.", e);
-				}	
-				Engine.logBeans.info("Directory " + destinationFilePath + " created.");
+				}					
 		        return true;
 			}
 		}

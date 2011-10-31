@@ -41,15 +41,17 @@ public class DeleteStep extends Step {
 					
 					sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
 					sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
-
+					
 					File sourceFile = new File(sourceFilePath);
 					
 					if (sourceFile.exists()) {
 						if (sourceFile.isDirectory()) {
 							FileUtils.deleteDirectory(sourceFile);
+							Engine.logBeans.info("Directory \"" + sourceFilePath + "\" has been deleted.");
 						}
 						else if (sourceFile.isFile()) {
 							sourceFile.delete();
+							Engine.logBeans.info("File \"" + sourceFilePath + "\" has been deleted.");
 						}						
 					}
 					else {
@@ -64,8 +66,7 @@ public class DeleteStep extends Step {
 				} catch (Exception e) {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while deleting the file or directory.", e);
-				}		  
-				Engine.logBeans.info("File " + sourceFilePath + " has been deleted.");
+				}		  				
 		        return true;
 			}
 		}

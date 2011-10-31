@@ -68,9 +68,11 @@ public class RenameStep extends Step {
 							} else if (destinationFile.exists() && overwrite) {
 								FileUtils.deleteDirectory(destinationFile);
 								FileUtils.moveDirectory(sourcefile, destinationFile);
+								Engine.logBeans.info("Directory \"" + sourceFilePath + "\" renamed to \"" + newFileName +"\".");
 							}
 							else if (!destinationFile.exists()) {
 								FileUtils.moveDirectory(sourcefile, destinationFile);
+								Engine.logBeans.info("Directory \"" + sourceFilePath + "\" renamed to \"" + newFileName +"\".");
 							}							
 						}
 						else if (sourcefile.isFile()) {
@@ -80,9 +82,11 @@ public class RenameStep extends Step {
 							} else if (destinationFile.exists() && overwrite) {
 								destinationFile.delete();
 								FileUtils.moveFile(sourcefile, destinationFile);
+								Engine.logBeans.info("File \"" + sourceFilePath + "\" renamed to \"" + newFileName +"\".");
 							}
 							else if (!destinationFile.exists()) {
 								FileUtils.moveFile(sourcefile, destinationFile);
+								Engine.logBeans.info("File \"" + sourceFilePath + "\" renamed to \"" + newFileName +"\".");
 							}
 						}						
 					}
@@ -98,8 +102,7 @@ public class RenameStep extends Step {
 				} catch (Exception e) {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while renaming the file or directory.", e);
-				}		  
-				Engine.logBeans.info("File " + sourceFilePath + " renamed to " + newFileName +".");
+				}		  				
 		        return true;
 			}
 		}

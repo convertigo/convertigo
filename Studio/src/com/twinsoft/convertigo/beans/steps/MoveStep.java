@@ -81,9 +81,11 @@ public class MoveStep extends Step {
 							} else if (destinationFile.exists() && overwrite) {
 								FileUtils.deleteDirectory(destinationFile);
 								FileUtils.moveDirectory(sourcefile, destinationFile);
+								Engine.logBeans.info("Directory moved from \"" + sourceFilePath + "\" to \"" + destinationFilePath +"\".");
 							}
 							else if (!destinationFile.exists()) {
 								FileUtils.moveDirectory(sourcefile, destinationFile);
+								Engine.logBeans.info("Directory moved from \"" + sourceFilePath + "\" to \"" + destinationFilePath +"\".");
 							}	
 						}
 						else if (sourcefile.isFile()) {
@@ -93,9 +95,11 @@ public class MoveStep extends Step {
 							} else if (destinationFile.exists() && overwrite) {
 								destinationFile.delete();
 								FileUtils.moveFile(sourcefile, destinationFile);
+								Engine.logBeans.info("File moved from \"" + sourceFilePath + "\" to \"" + destinationFilePath +"\".");
 							}
 							else if (!destinationFile.exists()) {
 								FileUtils.moveFile(sourcefile, destinationFile);
+								Engine.logBeans.info("File moved from \"" + sourceFilePath + "\" to \"" + destinationFilePath +"\".");
 							}
 						}						
 					}
@@ -112,7 +116,6 @@ public class MoveStep extends Step {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while moving the file or directory.", e);
 				}		    
-				Engine.logBeans.info("File moved from " + sourceFilePath + " to " + destinationFilePath +".");
 		        return true;
 			}
 		}
