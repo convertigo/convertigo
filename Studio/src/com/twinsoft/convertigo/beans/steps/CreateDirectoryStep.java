@@ -20,6 +20,8 @@ public class CreateDirectoryStep extends Step {
 	private String destinationPath = "";
 	
 	private boolean createNonExistentParentDirectories = true;
+
+	private String destinationFilePath;
 	
 	public CreateDirectoryStep() {
 		super();
@@ -35,8 +37,9 @@ public class CreateDirectoryStep extends Step {
 		if (isEnable) {
 			if (super.stepExcecute(javascriptContext, scope)) {
 				try {
-					String destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(javascriptContext, scope));
-
+					destinationPath = destinationPath.replaceAll("\\\\", "/");					
+					destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(javascriptContext, scope));
+					destinationFilePath = destinationFilePath.replaceAll("\\\\", "/");
 					File destinationFile = new File(destinationFilePath);
 					
 					boolean directoryCreated = false;
@@ -57,7 +60,8 @@ public class CreateDirectoryStep extends Step {
 				} catch (Exception e) {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while creating the directory.", e);
-				}		       
+				}	
+				Engine.logBeans.info("Directory " + destinationFilePath + " created.");
 		        return true;
 			}
 		}
