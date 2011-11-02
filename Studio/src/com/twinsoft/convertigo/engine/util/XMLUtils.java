@@ -690,7 +690,8 @@ public class XMLUtils {
 	
 	public static void saveXml(Document dom, String filePath)  throws IOException {
 		try {
-			TransformerFactory.newInstance().newTransformer().transform(new DOMSource(dom), new StreamResult(new File(filePath)));
+			File file = new File(filePath);
+			TransformerFactory.newInstance().newTransformer().transform(new DOMSource(dom), new StreamResult(file.toURI().getPath()));
 		} catch (Exception e) {
 			throw new IOException("saveXml failed because : " + e.getMessage());
 		}
