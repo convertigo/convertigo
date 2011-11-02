@@ -150,7 +150,7 @@ public class ProxyManager {
 		hostConfiguration.setProxyHost(null);
 	}
 
-	public void setProxy(HostConfiguration hostConfiguration, HttpState httpState, URL url) {
+	public void setProxy(HostConfiguration hostConfiguration, HttpState httpState, URL url) throws Exception {
 		// Proxy configuration
 		Boolean needProxy = true;
 		String[] bpDomains = getBypassDomains();
@@ -195,7 +195,13 @@ public class ProxyManager {
 					setBasicAuth(httpState);
 				}
 				else if (proxyMethod.equals(ProxyMethod.ntlm.name())) {
-					setNtlmAuth(httpState);
+					int indexSlash = this.proxyUser.indexOf("\\");	
+					if (indexSlash != -1) {
+						setNtlmAuth(httpState);
+					}
+					else {
+						throw new Exception("Wrong username, please indicate the domain name for ntlm authentication. (eg: domain\\user)");
+					}
 				}
 				else {
 					setAnonymAuth(httpState);
