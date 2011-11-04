@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!--
  * Copyright (c) 2001-2011 Convertigo SA.
@@ -62,7 +62,7 @@
 		</html>
 		<xsl:if test="@back-attempt='true'">
 			<script language="javascript">
-				alert("L'utilisation des fonctions \"Page pr�c�dente\" et\n\"Page suivante\" de votre navigateur n'est pas permise.");
+				alert("L'utilisation des fonctions \"Page précédente\" et\n\"Page suivante\" de votre navigateur n'est pas permise.");
 			</script>
 		</xsl:if>
 	</xsl:template>

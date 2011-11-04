@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!--
  * Copyright (c) 2001-2011 Convertigo SA.
@@ -59,9 +59,9 @@
 										</tr>
 										<tr>
 											<td colspan="2">
-												Une erreur inattendue s'est produite alors que Convertigo essayait d'ex�cuter la transaction.<br/>
-												Essayez � nouveau votre requ�te.<br/>
-												Si le probl�me persiste, veuillez contacter votre administrateur Convertigo, en lui fournissant les informations suivantes.
+												Une erreur inattendue s'est produite alors que Convertigo essayait d'exécuter la transaction.<br/>
+												Essayez à nouveau votre requête.<br/>
+												Si le problème persiste, veuillez contacter votre administrateur Convertigo, en lui fournissant les informations suivantes.
 											</td>
 										</tr>
 									</table>
@@ -72,7 +72,7 @@
 				</blockquote>
 				<p>
 					<img src="../../images/arrow-right-triple.gif"/>
-					<a href="javascript:showErrorDetails()">D�tails</a>
+					<a href="javascript:showErrorDetails()">Détails</a>
 				</p>
 				<div id="details" style="display: none">
 					<h3>Exception principale</h3>
@@ -80,11 +80,11 @@
 						<b>[<xsl:value-of select="exception"/>]</b><br/>
 						<xsl:value-of select="message"/>
 					</p>
-					<h3>Pile d'�x�cution</h3>
+					<h3>Pile d'éxécution</h3>
 					<pre>
 						<xsl:value-of select="stacktrace"/>
 					</pre>
-					<p class="small">Copyright � 2001-2011 Convertigo SA. Tous droits r�serv�s.</p>
+					<p class="small">Copyright @ 2001-2011 Convertigo SA. Tous droits réservés.</p>
 				</div>
 			</body>
 		</html>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!--
  * Copyright (c) 2001-2011 Convertigo SA.
@@ -50,7 +50,7 @@
 						<img border="0" src="../../images/convertigo.gif"/>
 					</a>
 					<br/>
-					<font size="-1">Copyright � 2001-2011 Convertigo SA. All rights reserved.</font>
+					<font size="-1">Copyright © 2001-2011 Convertigo SA. All rights reserved.</font>
 				</p>
 			</body>
 		</html>
@@ -58,7 +58,7 @@
 	<xsl:template match="job">
 		<p>
 			<b>La transaction (job #<xsl:value-of select="@id"/>) est en cours 
-				d'�x�cution ; veuillez patienter...</b>
+				d'éxécution ; veuillez patienter...</b>
 		</p>
 		<p>
 			<xsl:apply-templates/>

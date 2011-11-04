@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!--
  * Copyright (c) 2001-2011 Convertigo SA.
@@ -50,7 +50,7 @@
 					<input id="__transaction" name="__transaction" type="hidden"/>
 					<hr/>
 					<input onclick="doAction('KEY_ENTER')" type="button" value="Valider"/>
-					<input onclick="doAction('convertigo_refresh')" type="button" value="R�actualiser"/>
+					<input onclick="doAction('convertigo_refresh')" type="button" value="Réactualiser"/>
 					<xsl:for-each select="/document/blocks//block[@type='keyword']">
 						<input href="#" onclick="doAction('{@action}')" type="button" value="{.}"/>
 					</xsl:for-each>

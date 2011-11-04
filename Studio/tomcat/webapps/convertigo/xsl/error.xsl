@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!--
  * Copyright (c) 2001-2011 Convertigo SA.
@@ -84,7 +84,7 @@
 					<pre>
 						<xsl:value-of select="stacktrace"/>
 					</pre>
-					<p class="small">Copyright � 2001-2011 Convertigo SA. All rights reserved.</p>
+					<p class="small">Copyright © 2001-2011 Convertigo SA. All rights reserved.</p>
 				</div>
 			</body>
 		</html>
