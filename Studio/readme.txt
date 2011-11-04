@@ -15,16 +15,35 @@ The following Eclipse components should have been installed:
 * org.eclipse.wst.jsdt.ui
 * org.eclipse.wst.jsdt.core
 
-You will find these components in following EClipse plugins:
+You will find these components in following Eclipse plugins:
 
-* Eclipse Web Platform (WTP)
-* Java Server Tool UI
+* Eclipse Web Developer Tools
 * JST Server UI
 * JST Server Adapters Extensions
 
 Optionaly, you can consider installing following plugins:
 
-* Source control plugins (such as SVNkit)
-* XML developer tools
-* XSL developer tools
-* Java Web Developer Tools
+* Subversive SVN Team ProviderSource control plugins (and choose the latest SVNkit connector at the first run)
+* Eclipse XML Editors and Tools
+* Eclipse XSL Developer Tools
+* Eclipse Java Web Developer Tools
+
+After plugins installation and reboot, add the SVN repository and extract the Studio folder as CEMS Eclipse project.
+
+The project should compile without error.
+
+Before launch, open "Run configuration...":
+ * Eclipse Application > New
+ * Set name "CEMS" to the configuration name
+ * click "File System..." in "Workspace data" part
+ * go to your current user home folder (like "Documents and Setting" or "Users")
+ * create a "convertigo" folder if not exist
+ * create a "projects" folder inside the previous "convertigo" folder if not exist
+ * select the 'projects' folder and validate
+ * goto the "Argument" tab
+ * edit "VM arguments" part to put "-Xmx1G -XX:MaxPermSize=256m"
+ * press "Run" and the Studio should run
+ 
+/!\ Warning /!\
+There is no templates projects for project creation wizard, but you can import .car or retrieve project from SVN.
+To use connector, you have to rename "convertigo/minime/Java/keys_studio.txt" to "convertigo/minime/Java/keys.txt" and restart the studio. 
