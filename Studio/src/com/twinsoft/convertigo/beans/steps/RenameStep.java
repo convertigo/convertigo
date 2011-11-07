@@ -23,12 +23,23 @@ public class RenameStep extends Step {
 	private String newName = "";	
 	private boolean overwrite = false;
 
-	private String sourceFilePath;
-
-	private String newFileName;
+	private transient String sourceFilePath = null;
+	private transient String newFileName = null;
 	
 	public RenameStep() {
 		super();
+	}
+	
+    public Object clone() throws CloneNotSupportedException {
+    	RenameStep clonedObject = (RenameStep) super.clone();
+    	clonedObject.sourceFilePath = null;
+    	clonedObject.newFileName = null;
+        return clonedObject;
+    }
+	
+	public Object copy() throws CloneNotSupportedException {
+		RenameStep copiedObject = (RenameStep)super.copy();
+		return copiedObject;
 	}
 	
 	private String evaluateSourcePath(Context javascriptContext, Scriptable scope) throws EngineException {

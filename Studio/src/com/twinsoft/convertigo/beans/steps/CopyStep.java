@@ -22,12 +22,23 @@ public class CopyStep extends Step {
 	private String sourcePath = "";		
 	private String destinationPath = "";
 
-	private String sourceFilePath;
-
-	private String destinationFilePath;	
+	private transient String sourceFilePath = null;
+	private transient String destinationFilePath = null;	
 	
 	public CopyStep() {
 		super();
+	}
+	
+    public Object clone() throws CloneNotSupportedException {
+    	CopyStep clonedObject = (CopyStep) super.clone();
+    	clonedObject.sourceFilePath = null;
+    	clonedObject.destinationFilePath = null;
+        return clonedObject;
+    }
+	
+	public Object copy() throws CloneNotSupportedException {
+		CopyStep copiedObject = (CopyStep)super.copy();
+		return copiedObject;
 	}
 	
 	private String evaluateSourcePath(Context javascriptContext, Scriptable scope) throws EngineException {

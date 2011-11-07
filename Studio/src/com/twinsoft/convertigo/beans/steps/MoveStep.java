@@ -23,11 +23,23 @@ public class MoveStep extends Step {
 	private String destinationPath = "";
 	private boolean overwrite = false;
 
-	private String sourceFilePath;
-	private String destinationFilePath;
+	private transient String sourceFilePath = null;
+	private transient String destinationFilePath = null;
 	
 	public MoveStep() {
 		super();
+	}
+	
+    public Object clone() throws CloneNotSupportedException {
+    	MoveStep clonedObject = (MoveStep) super.clone();
+    	clonedObject.sourceFilePath = null;
+    	clonedObject.destinationFilePath = null;
+        return clonedObject;
+    }
+	
+	public Object copy() throws CloneNotSupportedException {
+		MoveStep copiedObject = (MoveStep)super.copy();
+		return copiedObject;
 	}
 	
 	private String evaluateSourcePath(Context javascriptContext, Scriptable scope) throws EngineException {

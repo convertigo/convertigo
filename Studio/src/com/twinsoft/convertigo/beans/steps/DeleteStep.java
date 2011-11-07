@@ -21,10 +21,21 @@ public class DeleteStep extends Step {
 
 	private String sourcePath = "";
 
-	private String sourceFilePath;		
+	private transient String sourceFilePath = null;		
 	
 	public DeleteStep() {
 		super();
+	}
+	
+    public Object clone() throws CloneNotSupportedException {
+    	DeleteStep clonedObject = (DeleteStep) super.clone();
+    	clonedObject.sourceFilePath = null;
+        return clonedObject;
+    }
+	
+	public Object copy() throws CloneNotSupportedException {
+		DeleteStep copiedObject = (DeleteStep)super.copy();
+		return copiedObject;
 	}
 	
 	private String evaluateSourcePath(Context javascriptContext, Scriptable scope) throws EngineException {

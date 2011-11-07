@@ -17,14 +17,24 @@ public class CreateDirectoryStep extends Step {
 	 */
 	private static final long serialVersionUID = -2873578590344942963L;
 	
-	private String destinationPath = "";
-	
+	private String destinationPath = "";	
 	private boolean createNonExistentParentDirectories = true;
 
-	private String destinationFilePath;
+	private transient String destinationFilePath = null;
 	
 	public CreateDirectoryStep() {
 		super();
+	}
+	
+    public Object clone() throws CloneNotSupportedException {
+    	CreateDirectoryStep clonedObject = (CreateDirectoryStep) super.clone();
+    	clonedObject.destinationFilePath = null;
+        return clonedObject;
+    }
+	
+	public Object copy() throws CloneNotSupportedException {
+		CreateDirectoryStep copiedObject = (CreateDirectoryStep)super.copy();
+		return copiedObject;
 	}
 
 	private String evaluateDestinationPath(Context javascriptContext, Scriptable scope) throws EngineException {

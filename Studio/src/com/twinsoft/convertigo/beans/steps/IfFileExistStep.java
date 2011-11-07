@@ -23,6 +23,16 @@ public class IfFileExistStep extends BlockStep {
 	public IfFileExistStep(String sourcePath) {
 		super(sourcePath);
 	}
+	
+    public Object clone() throws CloneNotSupportedException {
+    	IfFileExistStep clonedObject = (IfFileExistStep) super.clone();
+        return clonedObject;
+    }
+	
+	public Object copy() throws CloneNotSupportedException {
+		IfFileExistStep copiedObject = (IfFileExistStep)super.copy();
+		return copiedObject;
+	}
 
 	public String toString() {
 		String text = this.getComment();
