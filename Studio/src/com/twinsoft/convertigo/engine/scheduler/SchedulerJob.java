@@ -57,7 +57,7 @@ public class SchedulerJob implements Job {
 		ScheduledJob scheduledJob = (ScheduledJob) jd.getJobDataMap().get("scheduledJob");
 		SchedulerManager schedulerManager = (SchedulerManager) jd.getJobDataMap().get("schedulerManager");
 		AbstractJob job = scheduledJob.getJob();
-		
+
 		if (schedulerManager.getRunningScheduledJobs().contains(scheduledJob)) {
 			Engine.logScheduler.warn("No start " + jd.getName() + " because another still running.");
 		} else {
@@ -65,27 +65,27 @@ public class SchedulerJob implements Job {
 			executeJob(job, jd.getName());
 		}
 	}
-	
+
 	public void executeJob(AbstractJob job, String jdName) {
 		if (job.isEnable()) {
 			long start = System.currentTimeMillis();
 			if (job instanceof AbstractConvertigoJob) {
 				AbstractConvertigoJob convertigoJob = (AbstractConvertigoJob) job;
-				
+
 				String targetUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
 				if (targetUrl.endsWith("/")) {
 					targetUrl = targetUrl.substring(targetUrl.length() - 1, targetUrl.length());
 				}
 				targetUrl += convertigoJob.getConvertigoURL();
-				
+
 				Engine.logScheduler.info("Prepare job " + jdName + " for " + targetUrl);
-	
+
 				PostMethod method = new PostMethod(targetUrl);
 				method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-	
+
 				// Tells the method to automatically handle authentication.
 				method.setDoAuthentication(true);
-	
+
 				// Tells the method to automatically handle redirection.
 				method.setFollowRedirects(false);
 				try {
@@ -115,12 +115,13 @@ public class SchedulerJob implements Job {
 				} finally {
 					method.releaseConnection();
 				}
+			} else if (job instanceof JobGroupJob) {
 				JobGroupJob jobGroupJob = (JobGroupJob) job;
-				
+
 				SortedSet<AbstractJob> jobs = jobGroupJob.getJobGroup();
-				
+
 				Engine.logScheduler.info("Prepare job " + jdName + " for " + jobs.size() + " jobs. Serial ? " + jobGroupJob.isSerial());
-				
+
 				if (jobGroupJob.isSerial()) {
 					for (AbstractJob abstractJob : jobs) {
 						executeJob(abstractJob, jdName + "[" + abstractJob.getName() + "]");
