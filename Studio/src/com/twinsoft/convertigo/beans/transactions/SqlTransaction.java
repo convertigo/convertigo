@@ -626,7 +626,6 @@ public class SqlTransaction extends TransactionWithVariables {
 			// Force connector to be closed. 
 			if (connector != null) {
 	    		connector = ((SqlConnector) parent);
-			
 				if (!connector.isKeepConnectionAliveAfterTransaction()) {
 					cleanup();
 				}
