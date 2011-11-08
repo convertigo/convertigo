@@ -923,14 +923,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 			
 			URL requestUrl = new URL(shuttle.getRequestUrl());
-			try {
-				Engine.theApp.proxyManager.setProxy(hostConfiguration, context.httpState, requestUrl);
-			} catch (Exception e) {
-				Engine.logBeans.warn("Unable to find domain for the proxy user.");
-				throw new EngineException(
-				"An unexpected error occured while retrieving the user domain: \n", e);
-			}	
 			
+			Engine.theApp.proxyManager.setProxy(hostConfiguration, context.httpState, requestUrl);
 		}
 		return hostConfiguration;
 	}

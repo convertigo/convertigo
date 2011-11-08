@@ -150,7 +150,7 @@ public class ProxyManager {
 		hostConfiguration.setProxyHost(null);
 	}
 
-	public void setProxy(HostConfiguration hostConfiguration, HttpState httpState, URL url) throws Exception {
+	public void setProxy(HostConfiguration hostConfiguration, HttpState httpState, URL url) throws EngineException {
 		// Proxy configuration
 		Boolean needProxy = true;
 		String[] bpDomains = getBypassDomains();
@@ -200,7 +200,7 @@ public class ProxyManager {
 						setNtlmAuth(httpState);
 					}
 					else {
-						throw new Exception("Wrong username, please indicate the domain name for ntlm authentication. (eg: domain\\user)");
+						throw new EngineException("\nWrong username, please indicate the domain name for ntlm authentication. (eg: domain\\user)\n");
 					}
 				}
 				else {
