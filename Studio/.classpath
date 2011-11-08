@@ -28,13 +28,13 @@
 	<classpathentry kind="lib" path="lib/apache/commons/commons-lang-2.5.jar"/>
 	<classpathentry kind="lib" path="lib/apache/xmlgraphics/xmlgraphics-commons-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/internal/bull-v24323.jar"/>
-	<classpathentry kind="lib" path="lib/internal/aviva-110113.jar"/>
 	<classpathentry kind="lib" path="lib/internal/phaos.jar"/>
 	<classpathentry kind="lib" path="lib/internal/tas-v25667.jar"/>
 	<classpathentry kind="lib" path="lib/internal/api-v25978.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry kind="lib" path="lib/internal/ibm-v28353.jar"/>
 	<classpathentry kind="lib" path="lib/internal/twinj-v28353.jar"/>
 	<classpathentry kind="lib" path="lib/internal/html_parsers-v28594.jar"/>
+	<classpathentry kind="lib" path="lib/internal/aviva-111024.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry exported="true" kind="lib" path="lib/cos.jar"/>
