@@ -622,14 +622,6 @@ public class SqlTransaction extends TransactionWithVariables {
 			}
 			catch(SQLException e) {;}
 			preparedStatement = null;
-			
-			// Force connector to be closed. 
-			if (connector != null) {
-	    		connector = ((SqlConnector) parent);
-				if (!connector.isKeepConnectionAliveAfterTransaction()) {
-					cleanup();
-				}
-			}
 		}
 	
 		if (studioMode) {
