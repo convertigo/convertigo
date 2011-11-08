@@ -110,7 +110,7 @@ public class RemoveContextStep extends Step {
 
 	@Override
 	public String toJsString() {
-		return null;
+		return "";
 	}
 
 	@Override
