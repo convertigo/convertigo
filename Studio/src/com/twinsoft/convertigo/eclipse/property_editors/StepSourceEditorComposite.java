@@ -58,7 +58,6 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.steps.IteratorStep;
-import com.twinsoft.convertigo.beans.steps.InputVariablesStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -449,22 +448,6 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 				Element root = (Element)doc.importNode(stepDoc.getDocumentElement(), true);
 				doc.replaceChild(root, doc.getDocumentElement());
 				removeSchemaTypeNodes(doc.getDocumentElement());
-				
-				if (step instanceof InputVariablesStep) {
-			        Vector<Variable> variables = new Vector<Variable>();
-					List<DatabaseObject> childrens = step.getSequence().getAllChildren();
-	
-					for (DatabaseObject child: childrens) {
-						if (child instanceof Variable) {
-							variables.add((Variable) child);
-						}
-					}
-					Element elemVars;
-					for (Variable variable: variables) {	
-						elemVars = doc.createElement(variable.getName());
-						root.getFirstChild().appendChild(elemVars);
-					}
-				}
 				
 				boolean shouldDisplayDom = (!(!step.isXml() && (step instanceof StepWithExpressions) && !(step instanceof IteratorStep)));
 				if ((doc != null) && (shouldDisplayDom)) {
