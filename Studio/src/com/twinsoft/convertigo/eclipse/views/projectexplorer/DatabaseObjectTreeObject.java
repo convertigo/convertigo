@@ -70,7 +70,9 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.ArrayOrNullEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.DataOrNullPropertyDescriptor;
+import com.twinsoft.convertigo.eclipse.property_editors.DynamicComboBoxPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.EmulatorTechnologyEditor;
+import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithDynamicTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditorAdvance;
 import com.twinsoft.convertigo.eclipse.property_editors.StringOrNullEditor;
@@ -283,7 +285,12 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     private java.beans.PropertyDescriptor[] databaseObjectPropertyDescriptors;
 
     protected void getDescriptors() {
-		DatabaseObject databaseObject = getObject();
+    	if (propertyDescriptors != null && databaseObjectBeanDescriptor != null &&
+    			databaseObjectPropertyDescriptors != null) {
+    		return;
+    	}
+    	
+    	DatabaseObject databaseObject = getObject();
 		if ((!(databaseObject instanceof Project)) && (databaseObject.getParent() == null))
 			return; // No needs for removed object
 		
@@ -519,16 +526,20 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         else {
         	if (PropertyWithTagsEditor.class.isAssignableFrom(pec)) {	    		
     			String[] tags;
-    			if(PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)){
+    			if (PropertyWithDynamicTagsEditor.class.isAssignableFrom(pec)){
+    				Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
+    				tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
+    				propertyDescriptor = new DynamicComboBoxPropertyDescriptor(name, displayName, getTags, this, name);
+    			} else if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)){
     				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
     				tags = (String[]) getTags.invoke(null, new Object[] { this, name } );
-    			}else{
+    				propertyDescriptor = new ComboBoxPropertyDescriptor(name, displayName, tags);
+    			} else {
     				Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class});
     				tags = (String[]) getTags.invoke(null, new Object[] { this } );
+    				propertyDescriptor = new ComboBoxPropertyDescriptor(name, displayName, tags);
     			}
-	    		
-				propertyDescriptor = new ComboBoxPropertyDescriptor(name, displayName, tags);
-	        }
+   	        }
 	        else if (AbstractDialogCellEditor.class.isAssignableFrom(pec)) {
 	        	final DatabaseObjectTreeObject dbotoThis = this;
 				propertyDescriptor = new PropertyDescriptor(name, displayName) {
@@ -711,8 +722,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	            	value = ((Boolean) value).booleanValue() ? new Integer(0) : new Integer(1); 
 	            }
 	            else if ((pec != null) && PropertyWithTagsEditor.class.isAssignableFrom(pec)) {
-	        		if (PropertyWithTagsEditorAdvance.class.equals(pec)) {      			
-	        			Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
+	        		if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)) {      			
+	        			Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
 	        			String[] tags = (String[]) getTags.invoke(null, new Object[] { this, propertyName } );
 	        			
 		        		int i;
@@ -812,8 +823,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			Class<?> propertyClass = databaseObjectPropertyDescriptor.getPropertyType();
 			Class<?> pec = databaseObjectPropertyDescriptor.getPropertyEditorClass();
 			
-    		if (PropertyWithTagsEditorAdvance.class.equals(pec)) {
-        			Method getTags = pec.getDeclaredMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
+    		if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)) {
+        			Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
         			String[] tags = (String[]) getTags.invoke(null, new Object[] { this, propertyName } );
             		
             		try {

@@ -49,7 +49,7 @@ public class ScHandlerStatementBeanInfo extends MySimpleBeanInfo {
 			properties[1] = new PropertyDescriptor("normalizedScreenClassName", beanClass, "getNormalizedScreenClassName", "setNormalizedScreenClassName");
 			properties[1].setDisplayName(getExternalizedString("property.normalizedScreenClassName.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.normalizedScreenClassName.short_description"));
-			properties[1].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[1].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

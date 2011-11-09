@@ -46,13 +46,13 @@ public class SequenceStepBeanInfo extends MySimpleBeanInfo {
             properties[0] = new PropertyDescriptor("projectName", beanClass, "getProjectName", "setProjectName");
 			properties[0].setDisplayName(getExternalizedString("property.projectName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.projectName.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));	
+			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));	
 			properties[0].setValue(BLACK_LIST_NAME, Boolean.TRUE);
 			
             properties[1] = new PropertyDescriptor("sequenceName", beanClass, "getSequenceName", "setSequenceName");
 			properties[1].setDisplayName(getExternalizedString("property.sequenceName.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.sequenceName.short_description"));
-			properties[1].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[1].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
 			
             properties[2] = new PropertyDescriptor("inheritTransactionCtx", beanClass, "isInheritTransactionCtx", "setInheritTransactionCtx");
 			properties[2].setDisplayName(getExternalizedString("property.inheritTransactionCtx.display_name"));

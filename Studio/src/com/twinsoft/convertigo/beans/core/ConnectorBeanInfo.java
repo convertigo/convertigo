@@ -38,7 +38,7 @@ public class ConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("endTransactionName", Connector.class, "getEndTransactionName", "setEndTransactionName");
 			properties[0].setDisplayName(getExternalizedString("property.endTransactionName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.endTransactionName.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
 			properties[0].setExpert(true);
 			
 			properties[1] = new PropertyDescriptor("isTasAuthenticationRequired", Connector.class, "isTasAuthenticationRequired", "setTasAuthenticationRequired");

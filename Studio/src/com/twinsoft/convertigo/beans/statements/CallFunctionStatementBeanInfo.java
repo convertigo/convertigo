@@ -46,7 +46,7 @@ public class CallFunctionStatementBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("functionName", beanClass, "getFunctionName", "setFunctionName");
 			properties[0].setDisplayName(getExternalizedString("property.functionname.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.functionname.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

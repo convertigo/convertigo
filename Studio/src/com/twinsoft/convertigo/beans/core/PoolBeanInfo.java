@@ -44,7 +44,7 @@ public class PoolBeanInfo extends MySimpleBeanInfo {
             properties[0] = new PropertyDescriptor("startTransaction", Pool.class, "getStartTransaction", "setStartTransaction");
             properties[0].setDisplayName(getExternalizedString("property.startTransaction.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.startTransaction.short_description"));
-            properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+            properties[0].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
 
             properties[1] = new PropertyDescriptor("startTransactionVariables", Pool.class, "getStartTransactionVariables", "setStartTransactionVariables");
             properties[1].setDisplayName(getExternalizedString("property.startTransactionVariables.display_name"));

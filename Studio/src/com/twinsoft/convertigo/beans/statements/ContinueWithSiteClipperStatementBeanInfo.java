@@ -46,7 +46,7 @@ public class ContinueWithSiteClipperStatementBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("siteClipperConnectorName", beanClass, "getSiteClipperConnectorName", "setSiteClipperConnectorName");
 	        properties[0].setDisplayName(getExternalizedString("property.siteClipperConnectorName.display_name"));
 	        properties[0].setShortDescription(getExternalizedString("property.siteClipperConnectorName.short_description"));
-	    	properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+	    	properties[0].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
 	        
 	    	          
 		}
