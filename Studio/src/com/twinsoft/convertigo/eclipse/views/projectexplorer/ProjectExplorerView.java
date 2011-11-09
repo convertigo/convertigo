@@ -32,6 +32,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -589,6 +590,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 	
+	protected List<TreeObject> addedTreeObjects = new ArrayList<TreeObject>();
+	
 	public void fireTreeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		// Guaranteed to return a non-null array
 		Object[] listeners = treeObjectListeners.getListenerList();
@@ -1093,6 +1096,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				Display.getDefault().syncExec(new Runnable() {
 					public void run() {
 						if (parentTreeObject != null) {
+							
+							// Reload is complete, notify now for newly added objects
+							for (TreeObject ob: addedTreeObjects) {
+								fireTreeObjectAdded(new TreeObjectEvent(ob));
+							}
+							addedTreeObjects.clear();
 							
 							// if DynamicSchemaUpdate has been disabled (for load performances)
 							// update project's xsd and wsdl files now
@@ -1803,6 +1812,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public void close() {
+		addedTreeObjects.clear();
+		
 		//close all opened editors
 		closeAllProjects();
 		

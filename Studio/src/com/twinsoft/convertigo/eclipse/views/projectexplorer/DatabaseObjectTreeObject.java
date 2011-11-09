@@ -159,11 +159,15 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		else {
 			ConvertigoPlugin.projectManager.getProjectExplorerView().addTreeObjectListener(this);
 			
-			// Notify here new bean has been added (Fix ticket #20)
 			Object object = getObject();
 			if (object instanceof DatabaseObject) {
 				if (((DatabaseObject)object).bNew) {
-					ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectAdded(new TreeObjectEvent(this));
+					// Notify here new bean has been added (Fix ticket #20)
+					//ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectAdded(new TreeObjectEvent(this));
+					
+					// Fix issue on notification while reloading (Ticket #2496)
+					// Notification is done after reload is complete (see ProjectExplorerView:ReloadWithProgress)
+					ConvertigoPlugin.projectManager.getProjectExplorerView().addedTreeObjects.add(this);
 				}
 			}
 		}
