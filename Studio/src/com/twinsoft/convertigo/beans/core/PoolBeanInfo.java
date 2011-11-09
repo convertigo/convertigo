@@ -65,7 +65,7 @@ public class PoolBeanInfo extends MySimpleBeanInfo {
             properties[4] = new PropertyDescriptor("initialScreenClass", Pool.class, "getInitialScreenClass", "setInitialScreenClass");
             properties[4].setDisplayName(getExternalizedString("property.initialScreenClass.display_name"));
             properties[4].setShortDescription(getExternalizedString("property.initialScreenClass.short_description"));
-            properties[4].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+            properties[4].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
 
             properties[5] = new PropertyDescriptor("serviceCode", Pool.class, "getServiceCode", "setServiceCode");
 			properties[5].setDisplayName(getExternalizedString("property.serviceCode.display_name"));
