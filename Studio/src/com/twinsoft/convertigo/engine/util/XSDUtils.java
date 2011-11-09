@@ -67,6 +67,22 @@ import com.twinsoft.util.StringEx;
 
 public class XSDUtils {
 
+	private static DocumentBuilder documentBuilderDefault = null;
+	
+	static {
+		try {
+			DocumentBuilderFactory documentBuilderFactoryDefault = DocumentBuilderFactory.newInstance();
+			
+			documentBuilderFactoryDefault.setNamespaceAware(true);
+			documentBuilderFactoryDefault.setCoalescing(true);
+			documentBuilderFactoryDefault.setFeature("http://apache.org/xml/features/validation/schema/normalized-value", false);
+			
+			documentBuilderDefault = documentBuilderFactoryDefault.newDocumentBuilder();
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	protected XSDUtils() {
 		
 	}
@@ -83,26 +99,12 @@ public class XSDUtils {
 	}
 	
 	public static Document parseDOM(String filePath) throws ParserConfigurationException, SAXException, IOException {
-		DocumentBuilderFactory dbf =  DocumentBuilderFactory.newInstance();
-		dbf.setNamespaceAware(true);
-		dbf.setCoalescing(true);
-		dbf.setFeature("http://apache.org/xml/features/validation/schema/normalized-value", false);
-		
-		DocumentBuilder db = dbf.newDocumentBuilder();
-		
-		Document doc = db.parse(new File(filePath));
+		Document doc = documentBuilderDefault.parse(new File(filePath));
 		return doc;
 	}
 
 	public static Document parseDOM(InputStream is) throws ParserConfigurationException, SAXException, IOException {
-		DocumentBuilderFactory dbf =  DocumentBuilderFactory.newInstance();
-		dbf.setNamespaceAware(true);
-		dbf.setCoalescing(true);
-		dbf.setFeature("http://apache.org/xml/features/validation/schema/normalized-value", false);
-		
-		DocumentBuilder db = dbf.newDocumentBuilder();
-		
-		Document doc = db.parse(is);
+		Document doc = documentBuilderDefault.parse(is);
 		return doc;
 	}
 	
