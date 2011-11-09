@@ -827,7 +827,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			Class<?> propertyClass = databaseObjectPropertyDescriptor.getPropertyType();
 			Class<?> pec = databaseObjectPropertyDescriptor.getPropertyEditorClass();
 			
-    		if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)) {
+    		if ((pec != null) && (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec))) {
         			Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
         			String[] tags = (String[]) getTags.invoke(null, new Object[] { this, propertyName } );
             		
