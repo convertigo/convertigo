@@ -694,6 +694,11 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
                 </bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+				</bean>
             </beans>
             <beans groupname="Javascript statements">
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.SimpleStatement">
