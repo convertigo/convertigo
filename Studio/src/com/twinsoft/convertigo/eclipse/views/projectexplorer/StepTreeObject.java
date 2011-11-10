@@ -234,8 +234,18 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 					}
 				}
 			}
-			
 		}
+		
+		if (getObject() instanceof InputVariablesStep) {
+			// Case of variable rename
+			if (databaseObject instanceof RequestableVariable) {
+				InputVariablesStep ivs = (InputVariablesStep)getObject();
+				if (ivs.getSequence().equals(databaseObject.getParent())) {
+					ivs.setWsdlDomDirty(); // set dirty flag in order to regenerate dom
+				}
+			}
+		}
+		
 	}
 	
 	@Override
