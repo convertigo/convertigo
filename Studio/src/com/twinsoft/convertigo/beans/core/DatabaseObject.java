@@ -429,13 +429,14 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
     }
 
     synchronized public long getNewOrderValue() {
-    	long now;
-		do {
-			now = System.currentTimeMillis();
+    	long now = System.currentTimeMillis();
+    	if (lastTime < now) {
+    		lastTime = now;
+		} else {
+			lastTime++;
 		}
-		while (lastTime == now);
-		lastTime = now;
-		return now;
+		
+		return lastTime;
     }
     
     /**
