@@ -133,7 +133,7 @@ public class CarUtils {
     
     private static Document exportProject(Project project) throws EngineException {
         try {
-            Document document = XMLUtils.documentBuilderDefault.newDocument();
+            Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
             
             ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"ISO-8859-1\"");
             document.appendChild(pi);

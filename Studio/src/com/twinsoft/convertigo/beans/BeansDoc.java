@@ -56,7 +56,7 @@ public class BeansDoc {
 		Engine.logBeans = Logger.getLogger(BeansDoc.class);
 		// Engine.logBeans.setLevel(Level.TRACE);
 
-		Document documentBeansDoc = XMLUtils.documentBuilderDefault.newDocument();
+		Document documentBeansDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 		ProcessingInstruction pi = documentBeansDoc.createProcessingInstruction("xml",
 				"version=\"1.0\" encoding=\"UTF-8\"");
 		documentBeansDoc.appendChild(pi);

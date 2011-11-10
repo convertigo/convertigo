@@ -1181,7 +1181,7 @@ public class HtmlTransaction extends HttpTransaction {
 	}
 
 	protected Document makeBlob(byte[] data){
-		Document document = XMLUtils.documentBuilderDefault.newDocument();
+		Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
 		Element blob = document.createElement("blob");
 		document.appendChild(blob);
 

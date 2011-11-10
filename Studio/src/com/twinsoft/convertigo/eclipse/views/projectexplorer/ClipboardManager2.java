@@ -99,7 +99,7 @@ public class ClipboardManager2 {
 	public String copy(TreePath[] treePaths) throws EngineException {
 		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		
-		clipboardDocument = XMLUtils.documentBuilderDefault.newDocument();
+		clipboardDocument = XMLUtils.getDefaultDocumentBuilder().newDocument();
 
 		ProcessingInstruction pi = clipboardDocument.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"ISO-8859-1\"");
 		clipboardDocument.appendChild(pi);
@@ -341,7 +341,7 @@ public class ClipboardManager2 {
 	public List<Object> read(String xmlData) throws SAXException, IOException {
 		List<Object> objectList = new ArrayList<Object>();
 		if (xmlData != null) {
-			Document document = XMLUtils.documentBuilderDefault.parse(new InputSource(new StringReader(xmlData)));
+			Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
 
 			Element rootElement = document.getDocumentElement();
 			NodeList nodeList = rootElement.getChildNodes();
@@ -364,7 +364,7 @@ public class ClipboardManager2 {
 	}
 	
 	public void paste(String xmlData, Object parentObject, boolean bChangeName) throws EngineException, SAXException, IOException {
-		Document document = XMLUtils.documentBuilderDefault.parse(new InputSource(new StringReader(xmlData)));
+		Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
 
 		Element rootElement = document.getDocumentElement();
 		NodeList nodeList = rootElement.getChildNodes();

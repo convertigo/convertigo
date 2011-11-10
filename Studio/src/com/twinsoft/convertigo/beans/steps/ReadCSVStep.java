@@ -151,7 +151,7 @@ public class ReadCSVStep extends ReadFileStep {
 			}
 			
 			//construction of the DOM's root
-			csvDoc = XMLUtils.documentBuilderDefault.newDocument();				
+			csvDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();				
 			Element root = csvDoc.createElement("document");
 			csvDoc.appendChild(root);
 			
@@ -309,7 +309,7 @@ public class ReadCSVStep extends ReadFileStep {
 				throw new EngineException("The CSV file \""+ dataFile +"\" does not exist.");
 			
 			//construction of the DOM's root
-			csvDoc = XMLUtils.documentBuilderDefault.newDocument();				
+			csvDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();				
 			Element root = csvDoc.createElement("document");
 			csvDoc.appendChild(root);
 			

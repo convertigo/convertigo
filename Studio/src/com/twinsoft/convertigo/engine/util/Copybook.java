@@ -303,7 +303,7 @@ public class Copybook {
 				
 		if (doc == null) {
 			try {
-				doc = XMLUtils.documentBuilderDefault.newDocument();
+				doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			}
 			catch (Exception e) {
 				Engine.logEngine.error("Unexpected exception", e);

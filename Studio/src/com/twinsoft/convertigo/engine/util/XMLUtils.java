@@ -61,19 +61,25 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.util.StringEx;
 
 public class XMLUtils {
-	public static DocumentBuilder documentBuilderDefault = null;
-	
-	static {
-		try {
-			DocumentBuilderFactory documentBuilderFactoryDefault = DocumentBuilderFactory.newInstance();
-			documentBuilderDefault = documentBuilderFactoryDefault.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
+	private static ThreadLocal<DocumentBuilderFactory> defaultDocumentBuilderFactory = new ThreadLocal<DocumentBuilderFactory>() {
+		protected DocumentBuilderFactory initialValue() {
+			return DocumentBuilderFactory.newInstance();
 		}
-	}
+	};
+    
+	private static ThreadLocal<DocumentBuilder> defaultDocumentBuilder = new ThreadLocal<DocumentBuilder>() {
+		protected DocumentBuilder initialValue() {
+			try {
+				return defaultDocumentBuilderFactory.get().newDocumentBuilder();
+			} catch (ParserConfigurationException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+	};
 	
-	public static DocumentBuilder getDocumentBuilderDefault() {
-		return documentBuilderDefault;
+	public static DocumentBuilder getDefaultDocumentBuilder() {
+		return defaultDocumentBuilder.get();
 	}
 	
 	public static String simplePrettyPrintDOM(String sDocument) {
@@ -83,14 +89,14 @@ public class XMLUtils {
 	}
     
 	public static String prettyPrintDOM(String sDocument) throws ParserConfigurationException, SAXException, IOException {
-		Document document = getDocumentBuilderDefault().parse(new InputSource(new StringReader(sDocument)));
+		Document document = getDefaultDocumentBuilder().parse(new InputSource(new StringReader(sDocument)));
 		return XMLUtils.prettyPrintDOM(document);
 	}
     
 	public static String prettyPrintDOM(String sDocument, String relativeUriResolver) throws ParserConfigurationException, SAXException, IOException {
         InputSource inputSource = new InputSource(new StringReader(sDocument));
         inputSource.setSystemId(relativeUriResolver);
-        Document document = getDocumentBuilderDefault().parse(inputSource);
+        Document document = getDefaultDocumentBuilder().parse(inputSource);
         return XMLUtils.prettyPrintDOM(document);
     }
 
@@ -651,7 +657,7 @@ public class XMLUtils {
 	}
 	
 	public static Document loadXml(String filePath) throws ParserConfigurationException, SAXException, IOException {
-        Document document = getDocumentBuilderDefault().parse(new File(filePath));
+        Document document = getDefaultDocumentBuilder().parse(new File(filePath));
         return document;
 	}
 	
@@ -660,7 +666,7 @@ public class XMLUtils {
         
         // Java default XML engine
         if (xmlEngine.equals("java")) {
-            document = getDocumentBuilderDefault().newDocument();
+            document = getDefaultDocumentBuilder().newDocument();
         }
         // MSXML document
         else if (xmlEngine.equals("msxml")) {
@@ -675,7 +681,7 @@ public class XMLUtils {
         
         // Java default XML engine
         if (xmlEngine.equals("java")) {
-    		document = getDocumentBuilderDefault().parse(new InputSource(new StringReader(xml)));
+    		document = getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xml)));
         }
         // MSXML engine
         else if (xmlEngine.equals("msxml")) {

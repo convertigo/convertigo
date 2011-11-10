@@ -208,7 +208,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					try {
 						// Try to parse text data into an XML document
 						String source = data.toString();
-						document = XMLUtils.documentBuilderDefault.parse(new InputSource(new StringReader(source)));
+						document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(source)));
 						
 						ClipboardAction.paste(source, shell, explorerView, targetTreeObject, true);
 			            return true;

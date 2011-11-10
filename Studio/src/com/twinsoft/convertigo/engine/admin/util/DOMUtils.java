@@ -37,7 +37,7 @@ import com.twinsoft.util.Log;
 public class DOMUtils {
 
 	public static Document createDocument() throws ParserConfigurationException {
-		Document document = XMLUtils.documentBuilderDefault.newDocument();
+		Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
         return document;
 	}
 

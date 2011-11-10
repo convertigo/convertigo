@@ -685,7 +685,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 			return null;
 
 		try {
-			Document doc = XMLUtils.documentBuilderDefault.newDocument();
+			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			Element root =  (Element) doc.createElement("root"); 
 			doc.appendChild(root);
 			

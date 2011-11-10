@@ -94,7 +94,7 @@ public class TwsCachedXPathAPI{
 			case XObject.CLASS_NUMBER:
 			case XObject.CLASS_STRING:
 				try {
-					Document doc = XMLUtils.documentBuilderDefault.newDocument();
+					Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 					Element root =  (Element) doc.createElement("root"); 
 					doc.appendChild(root);
 					root.appendChild(doc.createTextNode(Xobj.str()));

@@ -94,7 +94,7 @@ public class ClipboardManager {
 	public String copy(TreePath[] treePaths) throws EngineException, ParserConfigurationException {
 		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		
-		clipboardDocument = XMLUtils.documentBuilderDefault.newDocument();
+		clipboardDocument = XMLUtils.getDefaultDocumentBuilder().newDocument();
 
 		ProcessingInstruction pi = clipboardDocument.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"ISO-8859-1\"");
 		clipboardDocument.appendChild(pi);
@@ -270,7 +270,7 @@ public class ClipboardManager {
 	public Map<String, DatabaseObject> pastedSteps = null;
 	
 	public void paste(String xmlData, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException, SAXException, IOException {
-		Document document = XMLUtils.documentBuilderDefault.parse(new InputSource(new StringReader(xmlData)));
+		Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xmlData)));
 
 		Element rootElement = document.getDocumentElement();
 		NodeList nodeList = rootElement.getChildNodes();

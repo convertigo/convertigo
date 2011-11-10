@@ -96,7 +96,7 @@ public class WidgetsServlet extends HttpServlet {
     		
     		switch (widget_type) {
     		case gadget :
-        	   	Document document = XMLUtils.getDocumentBuilderDefault().newDocument();
+        	   	Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
             	Element e_module = document.createElement("Module");
             	
             	Element e_module_prefs = document.createElement("ModulePrefs");

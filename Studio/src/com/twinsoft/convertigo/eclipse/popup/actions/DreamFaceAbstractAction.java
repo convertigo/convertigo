@@ -589,7 +589,7 @@ public class DreamFaceAbstractAction extends MyAbstractAction {
 	private void createResponseTemplate(String dataviewName) throws ParserConfigurationException, IOException {
 		String templatePath = Engine.USER_WORKSPACE_PATH + DreamFaceAbstractAction.MASHUP_TEMPLATE_SUBPATH + "/" + dataviewName.trim() + ".xml";
 
-		Document document = XMLUtils.documentBuilderDefault.newDocument();
+		Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
 		
         Element template = document.createElement("template");
         

@@ -130,7 +130,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		if (dir.exists()) {
 			File file = new File(wsdlBackupDir + "/" + name + ".xml");
 			if (file.exists()) {
-                DocumentBuilder documentBuilder = XMLUtils.documentBuilderDefault;
+                DocumentBuilder documentBuilder = XMLUtils.getDefaultDocumentBuilder();
                 Document document = documentBuilder.parse(file);
 				Element fake = document.getDocumentElement();
 				StringEx sx = new StringEx(XMLUtils.prettyPrintElement(fake, true, true));
@@ -190,7 +190,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		sx.replaceAll("<cdata>","<![CDATA[");
 		sx.replaceAll("</cdata>","]]>");
 		String sDom = "<"+fake_root+">\n" + sx.toString() + "</"+fake_root+">";
-		DocumentBuilder documentBuilder = XMLUtils.documentBuilderDefault;
+		DocumentBuilder documentBuilder = XMLUtils.getDefaultDocumentBuilder();
 		Document document = documentBuilder.parse(new InputSource(new StringReader(sDom)));
 		
 		String wsdlBackupDir = getWsdlBackupDir(element);

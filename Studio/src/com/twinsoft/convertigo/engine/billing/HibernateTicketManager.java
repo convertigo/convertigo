@@ -50,7 +50,7 @@ public class HibernateTicketManager implements ITicketManager {
 		
 		cfg.addAnnotatedClass(com.twinsoft.convertigo.engine.billing.Ticket.class);
 
-		Document doc = XMLUtils.documentBuilderDefault.newDocument();
+		Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 		Element session_factory = doc.createElement("session-factory");
 		for (Entry<Object, Object> entry : configuration.entrySet()) {
 			Element property = doc.createElement("property");

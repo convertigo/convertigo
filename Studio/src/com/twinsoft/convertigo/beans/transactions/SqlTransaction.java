@@ -923,7 +923,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	public Document createDOM(String encodingCharSet) {
 		Engine.logBeans.debug("(SqlTransaction) XalanServlet: creating DOM");
 
-		Document document = XMLUtils.documentBuilderDefault.newDocument();
+		Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
         
 		Engine.logBeans.debug("(SqlTransaction) XML class: " + document.getClass().getName());
 

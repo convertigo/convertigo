@@ -930,7 +930,7 @@ public class Pobi {
 		try {
 			if (args.length != 0) {
 				String sDocument = args[0];
-				Document document = XMLUtils.documentBuilderDefault.parse(new FileInputStream(sDocument));
+				Document document = XMLUtils.getDefaultDocumentBuilder().parse(new FileInputStream(sDocument));
 				
 				//Pobi.globalePersonnePhysique(document);
 				Pobi.detaillePersonnePhysique(document);

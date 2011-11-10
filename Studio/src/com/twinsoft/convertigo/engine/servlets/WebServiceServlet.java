@@ -549,7 +549,7 @@ public class WebServiceServlet extends GenericServlet {
 				NodeList complexTypes;
 				Element element;
 
-				Document document = XMLUtils.documentBuilderDefault.parse(new InputSource(new StringReader(wsdl)));
+				Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(wsdl)));
 
 	    		complexTypes = document.getElementsByTagName("xsd:complexType");
 

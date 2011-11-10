@@ -110,7 +110,7 @@ public abstract class GenericRequester extends Requester {
 
     	// Java default XML engine
     	if (xmlEngine.equals("java")) {         	
-    		document = XMLUtils.getDocumentBuilderDefault().newDocument();
+    		document = XMLUtils.getDefaultDocumentBuilder().newDocument();
     	}
     	// MSXML document
     	else if (xmlEngine.equals("msxml")) {
@@ -135,7 +135,7 @@ public abstract class GenericRequester extends Requester {
         
         // Java default XML engine
         if (xmlEngine.equals("java")) {
-            document = XMLUtils.getDocumentBuilderDefault().newDocument();
+            document = XMLUtils.getDefaultDocumentBuilder().newDocument();
         }
         // MSXML document
         else if (xmlEngine.equals("msxml")) {
@@ -160,7 +160,7 @@ public abstract class GenericRequester extends Requester {
             
             // Java default XML engine
             if (xmlEngine.equals("java")) {
-        		document = XMLUtils.getDocumentBuilderDefault().parse(new InputSource(new StringReader(xml)));
+        		document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xml)));
             }
             // MSXML engine
             else if (xmlEngine.equals("msxml")) {
@@ -705,7 +705,7 @@ public abstract class GenericRequester extends Requester {
 				Engine.logContext.debug("Relative URI resolver: " + relativeUriResolver);
 				is.setSystemId(relativeUriResolver);*/
 
-				Document document = XMLUtils.documentBuilderDefault.parse(inputSource);
+				Document document = XMLUtils.getDefaultDocumentBuilder().parse(inputSource);
 				NodeList nodeList = document.getElementsByTagName("xsl:output");
 				String contentType = "text/html";
 				if (nodeList.getLength() != 0) {

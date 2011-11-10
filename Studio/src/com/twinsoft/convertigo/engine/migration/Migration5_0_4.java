@@ -276,7 +276,7 @@ public class Migration5_0_4 {
     	if ((projectXmlFilePath != null) && (!projectXmlFilePath.equals(""))) {
     		File f = new File(projectXmlFilePath);
     		if (f.exists()) {
-                Document document = XMLUtils.documentBuilderDefault.parse(new File(projectXmlFilePath));
+                Document document = XMLUtils.getDefaultDocumentBuilder().parse(new File(projectXmlFilePath));
         		
                 Element rootElement = document.getDocumentElement();
 

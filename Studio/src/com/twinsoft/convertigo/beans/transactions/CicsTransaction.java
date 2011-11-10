@@ -778,7 +778,7 @@ public class CicsTransaction extends Transaction {
 	public Document createDOM(String encodingCharSet) {
 		Engine.logBeans.debug("(CicsTransaction) XalanServlet: creating DOM");
 
-		Document document = XMLUtils.documentBuilderDefault.newDocument();
+		Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
         
 		Engine.logBeans.debug("(CicsTransaction) XML class: " + document.getClass().getName());
 
@@ -791,7 +791,7 @@ public class CicsTransaction extends Transaction {
 	
 	public Document loadXML(File xmlFile) {
 		try {
-			Document document = XMLUtils.documentBuilderDefault.parse(xmlFile);
+			Document document = XMLUtils.getDefaultDocumentBuilder().parse(xmlFile);
 			return document;
 		}
 		catch(Exception e) {

@@ -455,7 +455,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
     public transient long newPriority = 0;
     
     public String toXml() throws EngineException {
-    	Document document = XMLUtils.getDocumentBuilderDefault().newDocument();
+    	Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
 
     	ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"ISO-8859-1\"");
     	document.appendChild(pi);
@@ -648,7 +648,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
             ByteBuffer bb =  cs.encode(serializationData);
 			byte[] xmlSerializationData = bb.array();
 			
-            Document document = XMLUtils.documentBuilderDefault.parse(new ByteArrayInputStream(xmlSerializationData));
+            Document document = XMLUtils.getDefaultDocumentBuilder().parse(new ByteArrayInputStream(xmlSerializationData));
             
             rootElement = document.getDocumentElement();
         }
@@ -1013,7 +1013,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
         try {
             Engine.logBeans.trace("[DatabaseObject.reload()] serializationData:\n" + serializationData);
             
-            DocumentBuilder documentBuilder = XMLUtils.documentBuilderDefault;
+            DocumentBuilder documentBuilder = XMLUtils.getDefaultDocumentBuilder();
             Document document = documentBuilder.parse(new ByteArrayInputStream(serializationData.getBytes()));
             
             rootElement = document.getDocumentElement();

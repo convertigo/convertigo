@@ -1594,7 +1594,7 @@ public class DatabaseObjectsManager implements AbstractManager {
         	File projectXmlFile = new File(projectFileName);
         	if (projectXmlFile.exists()) {
             	try {
-    	            Document document = XMLUtils.documentBuilderDefault.parse(new File(projectFileName));
+    	            Document document = XMLUtils.getDefaultDocumentBuilder().parse(new File(projectFileName));
     	            Element rootElement = document.getDocumentElement();
     	            Element projectNode = (Element) XMLUtils.findChildNode(rootElement, Node.ELEMENT_NODE);
     	            
@@ -1619,7 +1619,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	    	Engine.logDatabaseObjectManager.info("Importing project ...");
         	
             if (importFileName != null) {
-                document = XMLUtils.documentBuilderDefault.parse(new File(importFileName));
+                document = XMLUtils.getDefaultDocumentBuilder().parse(new File(importFileName));
             }
 
             // Performs necessary XML migration

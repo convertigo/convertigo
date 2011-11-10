@@ -46,7 +46,7 @@ public class DboExplorerManager {
 			ParserConfigurationException {
 		InputStream dbInputstream = getClass().getResourceAsStream(
 				"/database_objects.xml");
-		documentBeansXmlDatabase = XMLUtils.documentBuilderDefault.parse(dbInputstream);
+		documentBeansXmlDatabase = XMLUtils.getDefaultDocumentBuilder().parse(dbInputstream);
 
 		NodeList nodeListGroups = documentBeansXmlDatabase.getDocumentElement()
 				.getElementsByTagName("group");

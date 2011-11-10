@@ -984,7 +984,7 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 //	private Document parseXslFile(IFile file) throws Exception
 //	{
 //		Document doc;
-//		doc = XMLUtils.documentBuilderDefault.parse(new InputSource(file.getContents()));
+//		doc = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(file.getContents()));
 //		return doc;
 //	}
 

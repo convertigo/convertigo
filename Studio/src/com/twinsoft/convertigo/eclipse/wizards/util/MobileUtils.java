@@ -64,7 +64,7 @@ public class MobileUtils {
 	public MobileUtils(String path, Boolean isStructured) throws SAXException, IOException {
 		if (isStructured == true) {
 			MobileUtils.pathDom = path;
-			document = XMLUtils.documentBuilderDefault.parse(new InputSource(path));
+			document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(path));
 		}
 		else {
 			MobileUtils.path = path;

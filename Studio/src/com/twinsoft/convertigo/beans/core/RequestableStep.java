@@ -283,7 +283,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		sx.replaceAll("</cdata>","]]>");
 		sx.replaceAll("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>", "");
 		String sDom = sx.toString();
-		DocumentBuilder documentBuilder = XMLUtils.documentBuilderDefault;
+		DocumentBuilder documentBuilder = XMLUtils.getDefaultDocumentBuilder();
 		Document document = documentBuilder.parse(new InputSource(new StringReader(sDom)));
 		
 		String wsdlBackupDir = getWsdlBackupDir(element);
