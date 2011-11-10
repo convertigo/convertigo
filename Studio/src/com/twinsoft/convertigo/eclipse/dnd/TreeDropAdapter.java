@@ -27,9 +27,6 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerDropAdapter;
@@ -89,6 +86,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.wizards.NewObjectWizard;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class TreeDropAdapter extends ViewerDropAdapter {
 	private int detail = DND.DROP_NONE;
@@ -210,8 +208,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					try {
 						// Try to parse text data into an XML document
 						String source = data.toString();
-						DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-						document = documentBuilder.parse(new InputSource(new StringReader(source)));
+						document = XMLUtils.documentBuilderDefault.parse(new InputSource(new StringReader(source)));
 						
 						ClipboardAction.paste(source, shell, explorerView, targetTreeObject, true);
 			            return true;

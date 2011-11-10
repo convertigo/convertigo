@@ -35,12 +35,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import java.util.Set;
 
 import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.UniqueTag;
@@ -925,24 +921,16 @@ public class SqlTransaction extends TransactionWithVariables {
 	}
 
 	public Document createDOM(String encodingCharSet) {
-		try {
-			Engine.logBeans.debug("(SqlTransaction) XalanServlet: creating DOM");
+		Engine.logBeans.debug("(SqlTransaction) XalanServlet: creating DOM");
 
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-			Document document = documentBuilder.newDocument();
-            
-			Engine.logBeans.debug("(SqlTransaction) XML class: " + document.getClass().getName());
+		Document document = XMLUtils.documentBuilderDefault.newDocument();
+        
+		Engine.logBeans.debug("(SqlTransaction) XML class: " + document.getClass().getName());
 
-			ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + encodingCharSet + "\"");
-			document.appendChild(pi);
+		ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + encodingCharSet + "\"");
+		document.appendChild(pi);
 
-			return document;
-		}
-		catch(ParserConfigurationException e) {
-			Engine.logBeans.error("Unable to build the XML document.", e);
-			return null;
-		}
+		return document;
 	}
 
 	/**

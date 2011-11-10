@@ -36,8 +36,6 @@ import java.util.Hashtable;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -591,9 +589,7 @@ public class DreamFaceAbstractAction extends MyAbstractAction {
 	private void createResponseTemplate(String dataviewName) throws ParserConfigurationException, IOException {
 		String templatePath = Engine.USER_WORKSPACE_PATH + DreamFaceAbstractAction.MASHUP_TEMPLATE_SUBPATH + "/" + dataviewName.trim() + ".xml";
 
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-		Document document = documentBuilder.newDocument();
+		Document document = XMLUtils.documentBuilderDefault.newDocument();
 		
         Element template = document.createElement("template");
         

@@ -29,9 +29,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -688,9 +685,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 			return null;
 
 		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-			Document doc = documentBuilder.newDocument();
+			Document doc = XMLUtils.documentBuilderDefault.newDocument();
 			Element root =  (Element) doc.createElement("root"); 
 			doc.appendChild(root);
 			
@@ -711,9 +706,6 @@ abstract public class XpathEvaluatorComposite extends Composite {
 			return (doc);
 		} catch (TransformerException e) {
 			ConvertigoPlugin.logWarning("Error for xpath : '" + xPath + "'\r "+e.getMessage());
-			return null;
-		} catch (ParserConfigurationException ee) {
-			//log.exception(ee, "Parser configuration exception");
 			return null;
 		}
 	}

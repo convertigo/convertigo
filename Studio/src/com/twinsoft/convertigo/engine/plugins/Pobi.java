@@ -22,12 +22,15 @@
 
 package com.twinsoft.convertigo.engine.plugins;
 
-import java.io.*;
-import org.w3c.dom.*;
+import java.io.FileInputStream;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.Engine;
-
-import javax.xml.parsers.*;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 /**
  * @author nathalieh
@@ -927,9 +930,7 @@ public class Pobi {
 		try {
 			if (args.length != 0) {
 				String sDocument = args[0];
-				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-				DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-				Document document = documentBuilder.parse(new FileInputStream(sDocument));
+				Document document = XMLUtils.documentBuilderDefault.parse(new FileInputStream(sDocument));
 				
 				//Pobi.globalePersonnePhysique(document);
 				Pobi.detaillePersonnePhysique(document);

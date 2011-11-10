@@ -40,8 +40,6 @@ import java.util.List;
 import javax.swing.event.EventListenerList;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -184,6 +182,7 @@ import com.twinsoft.convertigo.engine.MigrationListener;
 import com.twinsoft.convertigo.engine.MigrationManager;
 import com.twinsoft.convertigo.engine.ObjectsProvider;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ProjectExplorerView extends ViewPart implements ObjectsProvider, CompositeListener, EngineListener, MigrationListener {
 	
@@ -1736,9 +1735,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	private Document parseXslFile(IFile file) throws Exception
 	{
 		Document doc;
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-		doc = documentBuilder.parse(new InputSource(file.getContents()));
+		doc = XMLUtils.documentBuilderDefault.parse(new InputSource(file.getContents()));
 		return doc;
 	}
 	

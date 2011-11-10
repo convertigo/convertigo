@@ -49,7 +49,6 @@ import java.util.Vector;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -645,12 +644,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
     public static DatabaseObject read(String serializationData) throws EngineException {
         Element rootElement = null;
         try {
-            DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             Charset cs = Charset.forName("ISO-8859-1");
             ByteBuffer bb =  cs.encode(serializationData);
 			byte[] xmlSerializationData = bb.array();
 			
-            Document document = documentBuilder.parse(new ByteArrayInputStream(xmlSerializationData));
+            Document document = XMLUtils.documentBuilderDefault.parse(new ByteArrayInputStream(xmlSerializationData));
             
             rootElement = document.getDocumentElement();
         }
@@ -1015,7 +1013,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
         try {
             Engine.logBeans.trace("[DatabaseObject.reload()] serializationData:\n" + serializationData);
             
-            DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            DocumentBuilder documentBuilder = XMLUtils.documentBuilderDefault;
             Document document = documentBuilder.parse(new ByteArrayInputStream(serializationData.getBytes()));
             
             rootElement = document.getDocumentElement();

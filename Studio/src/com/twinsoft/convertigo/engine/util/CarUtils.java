@@ -34,9 +34,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.ProcessingInstruction;
@@ -136,9 +133,7 @@ public class CarUtils {
     
     private static Document exportProject(Project project) throws EngineException {
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-            Document document = documentBuilder.newDocument();
+            Document document = XMLUtils.documentBuilderDefault.newDocument();
             
             ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"ISO-8859-1\"");
             document.appendChild(pi);

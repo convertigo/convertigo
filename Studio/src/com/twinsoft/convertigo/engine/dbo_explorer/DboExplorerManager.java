@@ -27,14 +27,14 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class DboExplorerManager {
 
@@ -44,11 +44,9 @@ public class DboExplorerManager {
 
 	public DboExplorerManager() throws SAXException, IOException,
 			ParserConfigurationException {
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder documentBuilder = factory.newDocumentBuilder();
 		InputStream dbInputstream = getClass().getResourceAsStream(
 				"/database_objects.xml");
-		documentBeansXmlDatabase = documentBuilder.parse(dbInputstream);
+		documentBeansXmlDatabase = XMLUtils.documentBuilderDefault.parse(dbInputstream);
 
 		NodeList nodeListGroups = documentBeansXmlDatabase.getDocumentElement()
 				.getElementsByTagName("group");

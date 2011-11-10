@@ -34,8 +34,6 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.Vector;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -701,15 +699,13 @@ public abstract class GenericRequester extends Requester {
 
 				Engine.logContext.debug("Retrieving content type from the XSL...");
 
-				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-				DocumentBuilder documentBuilder = factory.newDocumentBuilder();
 				inputSource = new InputSource(new FileInputStream(context.absoluteSheetUrl));
 
 				/*String relativeUriResolver = "file://" + Engine.PROJECTS_DIRECTORY + "/" + project.getName() + "/";
 				Engine.logContext.debug("Relative URI resolver: " + relativeUriResolver);
 				is.setSystemId(relativeUriResolver);*/
 
-				Document document = documentBuilder.parse(inputSource);
+				Document document = XMLUtils.documentBuilderDefault.parse(inputSource);
 				NodeList nodeList = document.getElementsByTagName("xsl:output");
 				String contentType = "text/html";
 				if (nodeList.getLength() != 0) {

@@ -32,10 +32,6 @@ import java.io.Reader;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.xpath.XPathAPI;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -780,31 +776,22 @@ public class CicsTransaction extends Transaction {
 	}
 	
 	public Document createDOM(String encodingCharSet) {
-		try {
-			Engine.logBeans.debug("(CicsTransaction) XalanServlet: creating DOM");
+		Engine.logBeans.debug("(CicsTransaction) XalanServlet: creating DOM");
 
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-			Document document = documentBuilder.newDocument();
-            
-			Engine.logBeans.debug("(CicsTransaction) XML class: " + document.getClass().getName());
+		Document document = XMLUtils.documentBuilderDefault.newDocument();
+        
+		Engine.logBeans.debug("(CicsTransaction) XML class: " + document.getClass().getName());
 
-			ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + encodingCharSet + "\"");
-			document.appendChild(pi);
+		ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + encodingCharSet + "\"");
+		document.appendChild(pi);
 
-			return document;
-		}
-		catch(ParserConfigurationException e) {
-			Engine.logBeans.error("Unable to build the XML document.", e);
-			return null;
-		}
+		return document;
+
 	}
 	
 	public Document loadXML(File xmlFile) {
 		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-			Document document = documentBuilder.parse(xmlFile);
+			Document document = XMLUtils.documentBuilderDefault.parse(xmlFile);
 			return document;
 		}
 		catch(Exception e) {

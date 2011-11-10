@@ -34,7 +34,6 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -56,8 +55,8 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.ThreadUtils;
@@ -131,7 +130,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		if (dir.exists()) {
 			File file = new File(wsdlBackupDir + "/" + name + ".xml");
 			if (file.exists()) {
-                DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                DocumentBuilder documentBuilder = XMLUtils.documentBuilderDefault;
                 Document document = documentBuilder.parse(file);
 				Element fake = document.getDocumentElement();
 				StringEx sx = new StringEx(XMLUtils.prettyPrintElement(fake, true, true));
@@ -191,8 +190,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		sx.replaceAll("<cdata>","<![CDATA[");
 		sx.replaceAll("</cdata>","]]>");
 		String sDom = "<"+fake_root+">\n" + sx.toString() + "</"+fake_root+">";
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder documentBuilder = factory.newDocumentBuilder();
+		DocumentBuilder documentBuilder = XMLUtils.documentBuilderDefault;
 		Document document = documentBuilder.parse(new InputSource(new StringReader(sDom)));
 		
 		String wsdlBackupDir = getWsdlBackupDir(element);

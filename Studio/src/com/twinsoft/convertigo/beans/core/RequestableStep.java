@@ -36,7 +36,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -284,8 +283,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		sx.replaceAll("</cdata>","]]>");
 		sx.replaceAll("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>", "");
 		String sDom = sx.toString();
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder documentBuilder = factory.newDocumentBuilder();
+		DocumentBuilder documentBuilder = XMLUtils.documentBuilderDefault;
 		Document document = documentBuilder.parse(new InputSource(new StringReader(sDom)));
 		
 		String wsdlBackupDir = getWsdlBackupDir(element);

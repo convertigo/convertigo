@@ -42,8 +42,6 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import javax.swing.event.EventListenerList;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
@@ -1596,8 +1594,7 @@ public class DatabaseObjectsManager implements AbstractManager {
         	File projectXmlFile = new File(projectFileName);
         	if (projectXmlFile.exists()) {
             	try {
-    	            DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-    	            Document document = documentBuilder.parse(new File(projectFileName));
+    	            Document document = XMLUtils.documentBuilderDefault.parse(new File(projectFileName));
     	            Element rootElement = document.getDocumentElement();
     	            Element projectNode = (Element) XMLUtils.findChildNode(rootElement, Node.ELEMENT_NODE);
     	            
@@ -1622,8 +1619,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	    	Engine.logDatabaseObjectManager.info("Importing project ...");
         	
             if (importFileName != null) {
-                DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-                document = documentBuilder.parse(new File(importFileName));
+                document = XMLUtils.documentBuilderDefault.parse(new File(importFileName));
             }
 
             // Performs necessary XML migration

@@ -37,8 +37,6 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
@@ -56,17 +54,17 @@ import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.eclipse.wizards.enums.MobileFeature;
 import com.twinsoft.convertigo.eclipse.wizards.enums.MobileLook;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class MobileUtils {
 	private static String pathDom;
 	private static String path;
 	private static Document document;
 	
-	public MobileUtils(String path, Boolean isStructured) throws ParserConfigurationException, SAXException, IOException {
+	public MobileUtils(String path, Boolean isStructured) throws SAXException, IOException {
 		if (isStructured == true) {
 			MobileUtils.pathDom = path;
-			DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-			document = parser.parse(new InputSource(path));
+			document = XMLUtils.documentBuilderDefault.parse(new InputSource(path));
 		}
 		else {
 			MobileUtils.path = path;

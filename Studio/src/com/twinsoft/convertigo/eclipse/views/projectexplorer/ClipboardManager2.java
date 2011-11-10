@@ -22,14 +22,45 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.StringReader;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.List;
 
-import javax.xml.parsers.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.ProcessingInstruction;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
-import com.twinsoft.convertigo.beans.core.*;
+import com.twinsoft.convertigo.beans.core.BlockFactory;
+import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.Criteria;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.ExtractionRule;
+import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
+import com.twinsoft.convertigo.beans.core.MobileDevice;
+import com.twinsoft.convertigo.beans.core.Pool;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.RequestableStep;
+import com.twinsoft.convertigo.beans.core.ScreenClass;
+import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Sheet;
+import com.twinsoft.convertigo.beans.core.Statement;
+import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
+import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.StepEvent;
+import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.core.TestCase;
+import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
@@ -37,11 +68,11 @@ import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.engine.*;
-import com.twinsoft.convertigo.engine.util.*;
-
-import org.w3c.dom.*;
-import org.xml.sax.*;
+import com.twinsoft.convertigo.engine.ConvertigoException;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ClipboardManager2 {
 
@@ -65,12 +96,10 @@ public class ClipboardManager2 {
 		isCopy = false;
 	}
 
-	public String copy(TreePath[] treePaths) throws EngineException, ParserConfigurationException {
+	public String copy(TreePath[] treePaths) throws EngineException {
 		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-		clipboardDocument = documentBuilder.newDocument();
+		clipboardDocument = XMLUtils.documentBuilderDefault.newDocument();
 
 		ProcessingInstruction pi = clipboardDocument.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"ISO-8859-1\"");
 		clipboardDocument.appendChild(pi);
@@ -309,11 +338,10 @@ public class ClipboardManager2 {
 	public Object[] pastedObjects = null;
 	public Hashtable<String,Step> pastedSteps = null;
 	
-	public List<Object> read(String xmlData) throws ParserConfigurationException, SAXException, IOException {
+	public List<Object> read(String xmlData) throws SAXException, IOException {
 		List<Object> objectList = new ArrayList<Object>();
 		if (xmlData != null) {
-			DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-			Document document = documentBuilder.parse(new InputSource(new StringReader(xmlData)));
+			Document document = XMLUtils.documentBuilderDefault.parse(new InputSource(new StringReader(xmlData)));
 
 			Element rootElement = document.getDocumentElement();
 			NodeList nodeList = rootElement.getChildNodes();
@@ -335,9 +363,8 @@ public class ClipboardManager2 {
 		return objectList;
 	}
 	
-	public void paste(String xmlData, Object parentObject, boolean bChangeName) throws EngineException, ParserConfigurationException, SAXException, IOException {
-		DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		Document document = documentBuilder.parse(new InputSource(new StringReader(xmlData)));
+	public void paste(String xmlData, Object parentObject, boolean bChangeName) throws EngineException, SAXException, IOException {
+		Document document = XMLUtils.documentBuilderDefault.parse(new InputSource(new StringReader(xmlData)));
 
 		Element rootElement = document.getDocumentElement();
 		NodeList nodeList = rootElement.getChildNodes();

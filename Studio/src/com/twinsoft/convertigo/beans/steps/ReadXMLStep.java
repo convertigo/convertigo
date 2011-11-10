@@ -24,8 +24,6 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -75,7 +73,7 @@ public class ReadXMLStep extends ReadFileStep {
 				//throw new EngineException("The XML file \""+ dataFile +"\" does not exist.");
 				Engine.logBeans.warn("(ReadXML) XML File '" + filePath + "' does not exist.");
 				
-				xmlDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+				xmlDoc = XMLUtils.documentBuilderDefault.newDocument();
 				xmlDoc.appendChild(xmlDoc.createElement("readxml_error"));
 				Element myEl = xmlDoc.createElement("message");
 				myEl.appendChild(xmlDoc.createTextNode("File '" + filePath + "' not found." ));
@@ -91,7 +89,7 @@ public class ReadXMLStep extends ReadFileStep {
 		} catch (Exception e1) {
 			Engine.logBeans.warn("(ReadXML) Error while trying to parse XML file : " + e1.toString());
 			try {
-				xmlDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+				xmlDoc = XMLUtils.documentBuilderDefault.newDocument();
 				xmlDoc.appendChild(xmlDoc.createElement("document"));
 				Element myEl = xmlDoc.createElement("message");
 				myEl.appendChild(xmlDoc.createTextNode("Unable to parse file '" + filePath + "'." ));

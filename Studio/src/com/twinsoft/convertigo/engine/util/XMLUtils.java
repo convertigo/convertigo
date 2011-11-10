@@ -61,7 +61,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.util.StringEx;
 
 public class XMLUtils {
-	private static DocumentBuilder documentBuilderDefault = null;
+	public static DocumentBuilder documentBuilderDefault = null;
 	
 	static {
 		try {

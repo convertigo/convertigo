@@ -32,8 +32,6 @@ import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -551,9 +549,7 @@ public class WebServiceServlet extends GenericServlet {
 				NodeList complexTypes;
 				Element element;
 
-				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-				DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-	    		Document document = documentBuilder.parse(new InputSource(new StringReader(wsdl)));
+				Document document = XMLUtils.documentBuilderDefault.parse(new InputSource(new StringReader(wsdl)));
 
 	    		complexTypes = document.getElementsByTagName("xsd:complexType");
 

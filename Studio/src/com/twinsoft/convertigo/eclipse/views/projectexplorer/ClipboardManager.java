@@ -22,24 +22,54 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 
-import javax.xml.parsers.*;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.ProcessingInstruction;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
-import com.twinsoft.convertigo.beans.connectors.*;
-import com.twinsoft.convertigo.beans.core.*;
+import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
+import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
+import com.twinsoft.convertigo.beans.core.BlockFactory;
+import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.Criteria;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.ExtractionRule;
+import com.twinsoft.convertigo.beans.core.Pool;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.RequestableStep;
+import com.twinsoft.convertigo.beans.core.ScreenClass;
+import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Sheet;
+import com.twinsoft.convertigo.beans.core.Statement;
+import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
+import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.StepEvent;
+import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.engine.*;
-import com.twinsoft.convertigo.engine.util.*;
-
-import org.w3c.dom.*;
-import org.xml.sax.*;
+import com.twinsoft.convertigo.engine.ConvertigoException;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ClipboardManager {
 
@@ -64,9 +94,7 @@ public class ClipboardManager {
 	public String copy(TreePath[] treePaths) throws EngineException, ParserConfigurationException {
 		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-		clipboardDocument = documentBuilder.newDocument();
+		clipboardDocument = XMLUtils.documentBuilderDefault.newDocument();
 
 		ProcessingInstruction pi = clipboardDocument.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"ISO-8859-1\"");
 		clipboardDocument.appendChild(pi);
@@ -241,9 +269,8 @@ public class ClipboardManager {
 	public DatabaseObject[] pastedObjects = null;
 	public Map<String, DatabaseObject> pastedSteps = null;
 	
-	public void paste(String xmlData, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException, ParserConfigurationException, SAXException, IOException {
-		DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		Document document = documentBuilder.parse(new InputSource(new StringReader(xmlData)));
+	public void paste(String xmlData, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException, SAXException, IOException {
+		Document document = XMLUtils.documentBuilderDefault.parse(new InputSource(new StringReader(xmlData)));
 
 		Element rootElement = document.getDocumentElement();
 		NodeList nodeList = rootElement.getChildNodes();

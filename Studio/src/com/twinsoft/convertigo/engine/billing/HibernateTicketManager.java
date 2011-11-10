@@ -25,9 +25,6 @@ package com.twinsoft.convertigo.engine.billing;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.SessionFactory;
@@ -35,6 +32,8 @@ import org.hibernate.StatelessSession;
 import org.hibernate.cfg.Configuration;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class HibernateTicketManager implements ITicketManager {
 	
@@ -51,20 +50,16 @@ public class HibernateTicketManager implements ITicketManager {
 		
 		cfg.addAnnotatedClass(com.twinsoft.convertigo.engine.billing.Ticket.class);
 
-		try {
-			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-			Element session_factory = doc.createElement("session-factory");
-			for (Entry<Object, Object> entry : configuration.entrySet()) {
-				Element property = doc.createElement("property");
-				property.setAttribute("name", entry.getKey().toString());
-				property.setTextContent(entry.getValue().toString());
-				session_factory.appendChild(property);
-			};
-			doc.appendChild(doc.createElement("hibernate-configuration")).appendChild(session_factory);
-			cfg.configure(doc);
-		} catch (ParserConfigurationException e) {
-			throw new BillingException("Configuration Document creation failed", e);
-		}
+		Document doc = XMLUtils.documentBuilderDefault.newDocument();
+		Element session_factory = doc.createElement("session-factory");
+		for (Entry<Object, Object> entry : configuration.entrySet()) {
+			Element property = doc.createElement("property");
+			property.setAttribute("name", entry.getKey().toString());
+			property.setTextContent(entry.getValue().toString());
+			session_factory.appendChild(property);
+		};
+		doc.appendChild(doc.createElement("hibernate-configuration")).appendChild(session_factory);
+		cfg.configure(doc);
 		
 		try {
 			sessionFactory = cfg.buildSessionFactory();

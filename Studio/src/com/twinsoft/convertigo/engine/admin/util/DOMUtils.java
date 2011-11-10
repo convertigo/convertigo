@@ -22,14 +22,13 @@
 
 package com.twinsoft.convertigo.engine.admin.util;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.Log;
 
 /**
@@ -38,10 +37,7 @@ import com.twinsoft.util.Log;
 public class DOMUtils {
 
 	public static Document createDocument() throws ParserConfigurationException {
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder documentBuilder;
-		documentBuilder = factory.newDocumentBuilder();
-        Document document = documentBuilder.newDocument();
+		Document document = XMLUtils.documentBuilderDefault.newDocument();
         return document;
 	}
 

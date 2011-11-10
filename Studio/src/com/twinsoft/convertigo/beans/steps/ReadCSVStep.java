@@ -30,13 +30,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
 
 public class ReadCSVStep extends ReadFileStep {
@@ -152,7 +151,7 @@ public class ReadCSVStep extends ReadFileStep {
 			}
 			
 			//construction of the DOM's root
-			csvDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();				
+			csvDoc = XMLUtils.documentBuilderDefault.newDocument();				
 			Element root = csvDoc.createElement("document");
 			csvDoc.appendChild(root);
 			
@@ -310,7 +309,7 @@ public class ReadCSVStep extends ReadFileStep {
 				throw new EngineException("The CSV file \""+ dataFile +"\" does not exist.");
 			
 			//construction of the DOM's root
-			csvDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();				
+			csvDoc = XMLUtils.documentBuilderDefault.newDocument();				
 			Element root = csvDoc.createElement("document");
 			csvDoc.appendChild(root);
 			

@@ -22,12 +22,20 @@
 
 package com.twinsoft.convertigo.engine.util;
 
-import org.w3c.dom.*;
-import javax.xml.parsers.*;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.Reader;
+import java.util.Enumeration;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import java.io.*;
-import java.util.*;
-import java.util.regex.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.engine.Engine;
 
@@ -291,15 +299,11 @@ public class Copybook {
 	}
 
 	public Element addLeveledXMLVector(Document doc, Element root, XMLVector<XMLVector<Object>> v) {
-		DocumentBuilderFactory factory = null;
-		DocumentBuilder builder = null;
 		Element parent = null, node = null, last = null;
 				
 		if (doc == null) {
 			try {
-				factory = DocumentBuilderFactory.newInstance();
-				builder = factory.newDocumentBuilder();
-				doc = builder.newDocument();
+				doc = XMLUtils.documentBuilderDefault.newDocument();
 			}
 			catch (Exception e) {
 				Engine.logEngine.error("Unexpected exception", e);

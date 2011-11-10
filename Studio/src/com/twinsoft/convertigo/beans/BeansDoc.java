@@ -32,9 +32,6 @@ import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -45,8 +42,12 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.convertigo.engine.dbo_explorer.*;
 
 public class BeansDoc {
 
@@ -55,9 +56,7 @@ public class BeansDoc {
 		Engine.logBeans = Logger.getLogger(BeansDoc.class);
 		// Engine.logBeans.setLevel(Level.TRACE);
 
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-		Document documentBeansDoc = documentBuilder.newDocument();
+		Document documentBeansDoc = XMLUtils.documentBuilderDefault.newDocument();
 		ProcessingInstruction pi = documentBeansDoc.createProcessingInstruction("xml",
 				"version=\"1.0\" encoding=\"UTF-8\"");
 		documentBeansDoc.appendChild(pi);

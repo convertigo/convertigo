@@ -33,10 +33,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
 import org.mozilla.javascript.Context;
@@ -1185,17 +1181,7 @@ public class HtmlTransaction extends HttpTransaction {
 	}
 
 	protected Document makeBlob(byte[] data){
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder documentBuilder;
-
-		try {
-			documentBuilder = factory.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			Engine.logBeans.error("Error while makeBlob", e);
-			return null;
-		}
-
-		Document document = documentBuilder.newDocument();
+		Document document = XMLUtils.documentBuilderDefault.newDocument();
 		Element blob = document.createElement("blob");
 		document.appendChild(blob);
 

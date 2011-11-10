@@ -22,8 +22,6 @@
 
 package com.twinsoft.convertigo.engine.util;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerException;
 
 import org.apache.xml.utils.PrefixResolver;
@@ -96,9 +94,7 @@ public class TwsCachedXPathAPI{
 			case XObject.CLASS_NUMBER:
 			case XObject.CLASS_STRING:
 				try {
-					DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-					DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-					Document doc = documentBuilder.newDocument();
+					Document doc = XMLUtils.documentBuilderDefault.newDocument();
 					Element root =  (Element) doc.createElement("root"); 
 					doc.appendChild(root);
 					root.appendChild(doc.createTextNode(Xobj.str()));
