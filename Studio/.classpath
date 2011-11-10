@@ -15,7 +15,7 @@
 	<classpathentry exported="true" kind="lib" path="bin/" sourcepath="src"/>
 	<classpathentry kind="lib" path="lib/internal/crysec-090918.jar"/>
 	<classpathentry kind="lib" path="lib/internal/ui-090918.jar"/>
-	<classpathentry kind="lib" path="lib/internal/util-090918.jar" sourcepath="/ConvertigoLibs/src"/>
+	<classpathentry kind="lib" path="lib/internal/util-v28876.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry kind="lib" path="lib/internal/vdx-090918.jar"/>
 	<classpathentry kind="lib" path="lib/internal/vt220-090918.jar"/>
 	<classpathentry kind="lib" path="lib/internal/ms.jar"/>
