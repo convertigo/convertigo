@@ -67,20 +67,35 @@ import com.twinsoft.util.StringEx;
 
 public class XSDUtils {
 
-	private static DocumentBuilder documentBuilderDefault = null;
-	
-	static {
-		try {
-			DocumentBuilderFactory documentBuilderFactoryDefault = DocumentBuilderFactory.newInstance();
-			
-			documentBuilderFactoryDefault.setNamespaceAware(true);
-			documentBuilderFactoryDefault.setCoalescing(true);
-			documentBuilderFactoryDefault.setFeature("http://apache.org/xml/features/validation/schema/normalized-value", false);
-			
-			documentBuilderDefault = documentBuilderFactoryDefault.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
+	private static ThreadLocal<DocumentBuilderFactory> defaultDocumentBuilderFactory = new ThreadLocal<DocumentBuilderFactory>() {
+		protected DocumentBuilderFactory initialValue() {
+			try {
+				DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+				documentBuilderFactory.setNamespaceAware(true);
+				documentBuilderFactory.setCoalescing(true);
+				documentBuilderFactory.setFeature("http://apache.org/xml/features/validation/schema/normalized-value", false);
+				
+				return documentBuilderFactory;
+			} catch (ParserConfigurationException e) {
+				e.printStackTrace();
+				return null;
+			}
 		}
+	};
+    
+	private static ThreadLocal<DocumentBuilder> defaultDocumentBuilder = new ThreadLocal<DocumentBuilder>() {
+		protected DocumentBuilder initialValue() {
+			try {
+				return defaultDocumentBuilderFactory.get().newDocumentBuilder();
+			} catch (ParserConfigurationException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+	};
+	
+	public static DocumentBuilder getDefaultDocumentBuilder() {
+		return defaultDocumentBuilder.get();
 	}
 	
 	protected XSDUtils() {
@@ -99,12 +114,12 @@ public class XSDUtils {
 	}
 	
 	public static Document parseDOM(String filePath) throws ParserConfigurationException, SAXException, IOException {
-		Document doc = documentBuilderDefault.parse(new File(filePath));
+		Document doc = XSDUtils.getDefaultDocumentBuilder().parse(new File(filePath));
 		return doc;
 	}
 
 	public static Document parseDOM(InputStream is) throws ParserConfigurationException, SAXException, IOException {
-		Document doc = documentBuilderDefault.parse(is);
+		Document doc = XSDUtils.getDefaultDocumentBuilder().parse(is);
 		return doc;
 	}
 	
