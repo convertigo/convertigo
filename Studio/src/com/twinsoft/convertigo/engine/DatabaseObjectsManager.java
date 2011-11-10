@@ -27,6 +27,7 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -208,7 +209,13 @@ public class DatabaseObjectsManager implements AbstractManager {
             Engine.logDatabaseObjectManager.trace("Retrieving all project names from \"" + Engine.PROJECTS_PATH + "\"");
             File projectsDir = new File(Engine.PROJECTS_PATH);
             SortedSet<String> projectNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-            for(File pathname : projectsDir.listFiles())
+            File[] projectsDirList = projectsDir.listFiles(new FilenameFilter() {
+				public boolean accept(File dir, String name) {
+					// Project names cannot contain dots ("."); filtered for performances issue
+					return name.indexOf('.') == -1;
+				}
+			});
+            for(File pathname : projectsDirList)
                 if(pathname.isDirectory() && new File(pathname.getAbsolutePath()+File.separator+"_data"+File.separator+"project.xml").exists())
                 	projectNames.add(pathname.getName());
 
