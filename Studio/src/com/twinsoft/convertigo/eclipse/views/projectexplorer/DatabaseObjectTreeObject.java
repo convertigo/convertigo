@@ -303,11 +303,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         java.beans.PropertyDescriptor databaseObjectPropertyDescriptor;
         
         try {
-    		String beanInfoClassName = databaseObject.getClass().getName() + "BeanInfo";
-    		Class<?> beanInfoClass = Class.forName(beanInfoClassName);
-    		databaseObjectBeanInfo = (BeanInfo) beanInfoClass.newInstance();
-        	
-        	BeanInfo bi = Introspector.getBeanInfo(databaseObject.getClass());
+        	BeanInfo bi = databaseObjectBeanInfo = Introspector.getBeanInfo(databaseObject.getClass());
             databaseObjectBeanDescriptor = bi.getBeanDescriptor();
             databaseObjectPropertyDescriptors = bi.getPropertyDescriptors();
             len = databaseObjectPropertyDescriptors.length;

@@ -138,8 +138,6 @@ public class BeansDoc {
 
 		Class<?> databaseObjectClass = databaseObject.getClass();
 		BeanInfo beanInfo = Introspector.getBeanInfo(databaseObjectClass);
-		MySimpleBeanInfo mySimpleBeanInfo = (MySimpleBeanInfo) Class.forName(
-				databaseObjectClassName.toString() + "BeanInfo").newInstance();
 		BeanDescriptor databaseObjectBeanDescriptor = beanInfo
 				.getBeanDescriptor();
 		PropertyDescriptor[] propertyDescriptors = beanInfo
@@ -159,7 +157,7 @@ public class BeansDoc {
 		elementBean.appendChild(elementSub);
 
 		elementSub = document.createElement("icon");
-		elementText = document.createTextNode(mySimpleBeanInfo.iconNameC32);
+		elementText = document.createTextNode(MySimpleBeanInfo.getIconName(beanInfo, BeanInfo.ICON_COLOR_32x32));
 		elementSub.appendChild(elementText);
 		elementBean.appendChild(elementSub);
 

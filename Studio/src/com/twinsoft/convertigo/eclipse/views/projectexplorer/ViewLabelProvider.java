@@ -138,10 +138,8 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 			else if (obj instanceof DatabaseObjectTreeObject) {
 				DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) obj;
 				
-				BeanInfo databaseObjectBeanInfo = (BeanInfo) databaseObjectTreeObject.databaseObjectBeanInfo;
-				if (databaseObjectBeanInfo instanceof MySimpleBeanInfo) {
-					iconName = ((MySimpleBeanInfo) databaseObjectBeanInfo).iconNameC16;
-				} else {
+				iconName = MySimpleBeanInfo.getIconName(databaseObjectTreeObject.databaseObjectBeanInfo, BeanInfo.ICON_COLOR_16x16);
+				if (iconName == null) {
 					iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.gif";
 				}
 				

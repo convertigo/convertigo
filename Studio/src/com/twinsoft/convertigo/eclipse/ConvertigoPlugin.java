@@ -846,13 +846,10 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
         if (beanIcon == null) {
         	ConvertigoPlugin.studioLog.debug("Getting icon:" + beanClassName + iconKind);
 
-        	String iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_32x32.gif";
-			if (bi instanceof MySimpleBeanInfo) {
-				if (iconKind == BeanInfo.ICON_COLOR_32x32)
-					iconName = ((MySimpleBeanInfo) bi).iconNameC32;
-				else
-					iconName = ((MySimpleBeanInfo) bi).iconNameC16;
-			}
+        	String iconName = MySimpleBeanInfo.getIconName(bi, iconKind);
+        	if (iconName == null) {
+        		iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_32x32.gif";
+        	}
         	
 			Device device = Display.getCurrent();
 			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);

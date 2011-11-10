@@ -35,7 +35,6 @@ import java.util.ResourceBundle;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class MySimpleBeanInfo extends SimpleBeanInfo {
-	
 	public static final String BLACK_LIST_NAME = "blackListedFromAdmin";
 	
 	protected Class<? extends DatabaseObject> beanClass = null;
@@ -48,10 +47,10 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 	
 	protected PropertyDescriptor[] properties = new PropertyDescriptor[0];
 
-	public String iconNameC16 = null;
-	public String iconNameC32 = null;
-	public String iconNameM16 = null;
-	public String iconNameM32 = null;
+	protected String iconNameC16 = null;
+	protected String iconNameC32 = null;
+	protected String iconNameM16 = null;
+	protected String iconNameM32 = null;
 	
 	private java.awt.Image iconColor16 = null;
 	private java.awt.Image iconColor32 = null;
@@ -72,6 +71,18 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 		BeanDescriptor beanDescriptor = new BeanDescriptor(beanClass, null);
 		beanDescriptor.setDisplayName(displayName);
 		beanDescriptor.setShortDescription(shortDescription);
+		if (iconNameC16 != null) {
+			beanDescriptor.setValue("icon" + BeanInfo.ICON_COLOR_16x16, iconNameC16);
+		}
+		if (iconNameC32 != null) {
+			beanDescriptor.setValue("icon" + BeanInfo.ICON_COLOR_32x32, iconNameC32);
+		}
+		if (iconNameM16 != null) {
+			beanDescriptor.setValue("icon" + BeanInfo.ICON_MONO_16x16, iconNameM16);
+		}
+		if (iconNameM32 != null) {
+			beanDescriptor.setValue("icon" + BeanInfo.ICON_MONO_32x32, iconNameM32);
+		}
 		return beanDescriptor;
 	}
     
@@ -200,5 +211,8 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 		}
     	return beanInfos;
     }
+    
+    public static String getIconName(BeanInfo bean, int iconType) {
+    	return (String) bean.getBeanDescriptor().getValue("icon" + iconType);
+    }
 }
-

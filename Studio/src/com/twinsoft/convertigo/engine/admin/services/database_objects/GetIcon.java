@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.engine.admin.services.database_objects;
 
+import java.beans.BeanInfo;
+import java.beans.Introspector;
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -49,8 +51,8 @@ public class GetIcon extends DownloadService {
 			throw new ServiceException("Must provide className parameter", null);
 
 		try {
-			MySimpleBeanInfo bi = (MySimpleBeanInfo) Class.forName(className + "BeanInfo").newInstance();
-			IOUtils.copy(bi.getClass().getResourceAsStream(bi.iconNameC16), response.getOutputStream());
+			BeanInfo bi = Introspector.getBeanInfo(Class.forName(className));
+			IOUtils.copy(bi.getClass().getResourceAsStream(MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_16x16)), response.getOutputStream());
 		} catch (Exception e) {
 			throw new ServiceException("Icon unreachable", e);
 		}
