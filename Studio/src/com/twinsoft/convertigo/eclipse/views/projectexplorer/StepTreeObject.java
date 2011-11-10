@@ -306,8 +306,8 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 			InputVariablesStep ivs = (InputVariablesStep)object;
 			if (treeObject.getObject() instanceof RequestableVariable) {
 				try {
-					Sequence sequence = (Sequence)treeObject.getParent().getParent().getObject();
-					if (sequence.equals(ivs.getSequence())) {
+					DatabaseObject dbo = (DatabaseObject)treeObject.getParent().getParent().getObject();
+					if (dbo.equals(ivs.getSequence())) {
 						ivs.setWsdlDomDirty(); // set dirty flag in order to regenerate dom
 					}
 				} catch (Exception e) {
