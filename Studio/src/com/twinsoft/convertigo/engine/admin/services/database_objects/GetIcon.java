@@ -52,7 +52,7 @@ public class GetIcon extends DownloadService {
 
 		try {
 			BeanInfo bi = Introspector.getBeanInfo(Class.forName(className));
-			IOUtils.copy(bi.getClass().getResourceAsStream(MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_16x16)), response.getOutputStream());
+			IOUtils.copy(bi.getBeanDescriptor().getBeanClass().getResourceAsStream(MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_16x16)), response.getOutputStream());
 		} catch (Exception e) {
 			throw new ServiceException("Icon unreachable", e);
 		}
