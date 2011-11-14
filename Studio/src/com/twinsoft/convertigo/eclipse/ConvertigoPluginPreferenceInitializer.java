@@ -34,6 +34,7 @@ public class ConvertigoPluginPreferenceInitializer extends AbstractPreferenceIni
 	private static final String REMOTE_HELP_HOST = "help.convertigo.com";
 	private static final String REMOTE_HELP_PATH = "/" + ProductVersion.helpVersion + "/";
 	private static final String REMOTE_HELP_NAME = "Convertigo help " + ProductVersion.helpVersion;
+	private static final int REMOTE_HELP_PORT = 80;
 	
 	@Override
 	public void initializeDefaultPreferences() {
@@ -52,12 +53,13 @@ public class ConvertigoPluginPreferenceInitializer extends AbstractPreferenceIni
 		IEclipsePreferences rootNode = new InstanceScope().getNode("org.eclipse.help.base");
 		rootNode.putBoolean("remoteHelpOn", true);
 		rootNode.getBoolean("remoteHelpPreferred", false);	
-		rootNode.putInt("remoteHelpPort", 80);
 		
 		if (rootNode.get("remoteHelpPath", "").equals("")) {
 			rootNode.put("remoteHelpName", rootNode.get("remoteHelpName", "") + REMOTE_HELP_NAME);
 			rootNode.put("remoteHelpHost", rootNode.get("remoteHelpHost", "") + REMOTE_HELP_HOST);
 			rootNode.put("remoteHelpPath", rootNode.get("remoteHelpPath", "") + REMOTE_HELP_PATH);
+			rootNode.put("remoteHelpPort", rootNode.get("remoteHelpPort", "") + REMOTE_HELP_PORT);
+			rootNode.put("remoteHelpICEnabled", rootNode.get("remoteHelpICEnabled", "") + "true");
 		}
 		else {
 			remoteHelpPaths = rootNode.get("remoteHelpPath", "").split(",");	
@@ -70,6 +72,8 @@ public class ConvertigoPluginPreferenceInitializer extends AbstractPreferenceIni
 				rootNode.put("remoteHelpName", rootNode.get("remoteHelpName", "") + "," + REMOTE_HELP_NAME);
 				rootNode.put("remoteHelpHost", rootNode.get("remoteHelpHost", "") + "," + REMOTE_HELP_HOST);
 				rootNode.put("remoteHelpPath", rootNode.get("remoteHelpPath", "") + "," + REMOTE_HELP_PATH);
+				rootNode.put("remoteHelpPort", rootNode.get("remoteHelpPort", "") + "," + REMOTE_HELP_PORT);
+				rootNode.put("remoteHelpICEnabled", rootNode.get("remoteHelpICEnabled", "") + "," +  "true");
 			}
 		}
 	}
