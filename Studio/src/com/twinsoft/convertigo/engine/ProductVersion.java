@@ -36,6 +36,8 @@ public class ProductVersion {
     	ProductVersion.minorProductVersion + "." +
     	ProductVersion.servicePack;
     
+    public static String helpVersion = productVersion;
+    
     public static String fullProductVersion =
     	ProductVersion.productVersion +
     	(ProductVersion.tag == null ? "" : "_" + ProductVersion.tag) +
