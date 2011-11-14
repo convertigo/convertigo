@@ -53,16 +53,23 @@ public class ConvertigoPluginPreferenceInitializer extends AbstractPreferenceIni
 		rootNode.putBoolean("remoteHelpOn", true);
 		rootNode.getBoolean("remoteHelpPreferred", false);	
 		
-		remoteHelpPaths = rootNode.get("remoteHelpPath", null).split(",");	
-		for (String remoteHelpPath: remoteHelpPaths) {
-			if (remoteHelpPath.equals(REMOTE_HELP_PATH)) {
-				found = true;
-			}			
+		if (rootNode.get("remoteHelpPath", "").equals("")) {
+			rootNode.put("remoteHelpName", rootNode.get("remoteHelpName", "") + REMOTE_HELP_NAME);
+			rootNode.put("remoteHelpHost", rootNode.get("remoteHelpHost", "") + REMOTE_HELP_HOST);
+			rootNode.put("remoteHelpPath", rootNode.get("remoteHelpPath", "") + REMOTE_HELP_PATH);
 		}
-		if (!found) {
-			rootNode.put("remoteHelpName", rootNode.get("remoteHelpName", null) + "," + REMOTE_HELP_NAME);
-			rootNode.put("remoteHelpHost", rootNode.get("remoteHelpHost", null) + "," + REMOTE_HELP_HOST);
-			rootNode.put("remoteHelpPath", rootNode.get("remoteHelpPath", null) + "," + REMOTE_HELP_PATH);
+		else {
+			remoteHelpPaths = rootNode.get("remoteHelpPath", "").split(",");	
+			for (String remoteHelpPath: remoteHelpPaths) {
+				if (remoteHelpPath.equals(REMOTE_HELP_PATH)) {
+					found = true;
+				}			
+			}
+			if (!found) {
+				rootNode.put("remoteHelpName", rootNode.get("remoteHelpName", "") + "," + REMOTE_HELP_NAME);
+				rootNode.put("remoteHelpHost", rootNode.get("remoteHelpHost", "") + "," + REMOTE_HELP_HOST);
+				rootNode.put("remoteHelpPath", rootNode.get("remoteHelpPath", "") + "," + REMOTE_HELP_PATH);
+			}
 		}
 	}
 }
