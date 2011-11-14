@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
-import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
@@ -56,15 +55,11 @@ public class XMLActionStepBeanInfo extends MySimpleBeanInfo {
 			properties[1].setPropertyEditorClass(getEditorClass("ActionStepSourcesEditor"));
 			properties[1].setExpert(true);
 			properties[1].setValue(BLACK_LIST_NAME, Boolean.TRUE);
+			
+			getPropertyDescriptor("schemaDataType").setHidden(false);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
 		}
-	}
-
-	@Override
-	public BeanInfo[] getAdditionalBeanInfo() {
-		return setPropertyHidden(super.getAdditionalBeanInfo(),"schemaDataType","false");
-	}
-	
+	}	
 }

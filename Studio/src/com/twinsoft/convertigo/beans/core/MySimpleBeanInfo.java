@@ -32,6 +32,8 @@ import java.beans.PropertyDescriptor;
 import java.beans.SimpleBeanInfo;
 import java.util.ResourceBundle;
 
+import org.apache.commons.lang.ArrayUtils;
+
 import com.twinsoft.convertigo.engine.Engine;
 
 public class MySimpleBeanInfo extends SimpleBeanInfo {
@@ -56,6 +58,8 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 	private java.awt.Image iconColor32 = null;
 	private java.awt.Image iconMono16 = null;
 	private java.awt.Image iconMono32 = null;
+	
+	private boolean additionalPropertiesLoaded = false;
 	
 	public String getExternalizedString(String key){
 		try {
@@ -87,19 +91,8 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 	}
     
 	@Override
-	public BeanInfo[] getAdditionalBeanInfo() {
-		if (additionalBeanClass == null) return null;
-		
-		try {
-			BeanInfo[] beanInfos = { Introspector.getBeanInfo(additionalBeanClass) };
-			return beanInfos;
-		} catch (IntrospectionException e) {
-			return null;
-		}
-	}
-    
-	@Override
 	public PropertyDescriptor[] getPropertyDescriptors() {
+		checkAdditionalProperties();
 		return properties;
 	}
 
@@ -195,24 +188,39 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
         }
     }
     
-    protected BeanInfo[] setPropertyHidden(BeanInfo[] beanInfos, String propertyName, String propertyValue) {
-		PropertyDescriptor[] propertyDescriptors = null;
-		PropertyDescriptor pd = null;
-		for (int i=0; i<beanInfos.length; i++) {
-			propertyDescriptors = beanInfos[i].getPropertyDescriptors();
-			for (int j=0; j<propertyDescriptors.length; j++) {
-				pd = propertyDescriptors[j];
-				if (pd.getName().equals(propertyName)) {
-					pd.setHidden(Boolean.getBoolean(propertyValue));
-					Introspector.flushCaches();
-					return beanInfos;
-				}
-			}
-		}
-    	return beanInfos;
-    }
-    
     public static String getIconName(BeanInfo bean, int iconType) {
     	return (String) bean.getBeanDescriptor().getValue("icon" + iconType);
+    }
+    
+    protected PropertyDescriptor getPropertyDescriptor(String name) throws IntrospectionException {
+    	checkAdditionalProperties();
+    	for (int i = 0 ; i < properties.length ; i++) {
+    		PropertyDescriptor property = properties[i];
+    		if (name.equals(property.getName())) {
+    			PropertyDescriptor clone = new PropertyDescriptor(name, property.getReadMethod(), property.getWriteMethod());
+    			clone.setDisplayName(property.getDisplayName());
+    			clone.setShortDescription(property.getShortDescription());
+    			clone.setPropertyEditorClass(property.getPropertyEditorClass());
+    			clone.setBound(property.isBound());
+    			clone.setConstrained(property.isConstrained());
+    			clone.setExpert(property.isExpert());
+    			clone.setHidden(property.isHidden());
+    			clone.setPreferred(property.isPreferred());
+    			return properties[i] = clone;
+    		}
+    	}
+    	return null;
+    }
+    
+    private void checkAdditionalProperties() {
+    	if (!additionalPropertiesLoaded) {
+    		if (additionalBeanClass != null) {
+    			try {
+					properties = (PropertyDescriptor[]) ArrayUtils.addAll(properties, Introspector.getBeanInfo(additionalBeanClass).getPropertyDescriptors());
+				} catch (IntrospectionException e) {
+				}
+    		}
+    		additionalPropertiesLoaded = true;
+    	}
     }
 }

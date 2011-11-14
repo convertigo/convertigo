@@ -22,8 +22,6 @@
 
 package com.twinsoft.convertigo.beans.extractionrules.siteclipper;
 
-import java.beans.BeanInfo;
-
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class AddHeaderBeanInfo extends MySimpleBeanInfo {
@@ -41,14 +39,10 @@ public class AddHeaderBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
+			getPropertyDescriptor("headerValue").setHidden(false);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
 		}
-	}
-	
-	@Override
-	public BeanInfo[] getAdditionalBeanInfo() {
-		return setPropertyHidden(super.getAdditionalBeanInfo(),"headerValue","false");
 	}
 }
