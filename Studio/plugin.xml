@@ -158,7 +158,7 @@
       <library name="lib/qrcode.jar"/>
       <library name="lib/mysql-connector.jar"/>
       <library name="lib/internal/html_parsers-v28594.jar"/>
-      <library name="lib/internal/util-v28876.jar"/>
+      <library name="lib/internal/util-v28883.jar"/>
    </runtime>
 
    <requires>
