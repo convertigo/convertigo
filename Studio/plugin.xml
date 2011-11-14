@@ -128,7 +128,7 @@
       <library name="tomcat/lib/tomcat-i18n-fr.jar"/>
       <library name="tomcat/lib/tomcat-i18n-ja.jar"/>
       <library name="tomcat/lib/tomcat-juli.jar"/>
-      <library name="lib/internal/aviva-111024.jar"/>
+      <library name="lib/internal/aviva-111114.jar"/>
       <library name="lib/internal/bull-v24323.jar"/>
       <library name="lib/internal/comm.jar"/>
       <library name="lib/internal/crysec-090918.jar"/>
