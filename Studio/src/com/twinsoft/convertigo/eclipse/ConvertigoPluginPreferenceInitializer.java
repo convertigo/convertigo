@@ -52,6 +52,7 @@ public class ConvertigoPluginPreferenceInitializer extends AbstractPreferenceIni
 		IEclipsePreferences rootNode = new InstanceScope().getNode("org.eclipse.help.base");
 		rootNode.putBoolean("remoteHelpOn", true);
 		rootNode.getBoolean("remoteHelpPreferred", false);	
+		rootNode.putInt("remoteHelpPort", 80);
 		
 		if (rootNode.get("remoteHelpPath", "").equals("")) {
 			rootNode.put("remoteHelpName", rootNode.get("remoteHelpName", "") + REMOTE_HELP_NAME);
