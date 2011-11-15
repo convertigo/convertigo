@@ -167,9 +167,9 @@ public class EnginePropertiesManager {
 	}
 	
 	enum ProxyMode implements ComboEnum {
-    	off ("Disabled"),
-    	auto ("Automatic"),
-    	manu ("Manual");
+    	off ("disabled"),
+    	auto ("automatic"),
+    	manu ("manual");
 
 		final String display;
 		final String value;
@@ -189,8 +189,8 @@ public class EnginePropertiesManager {
 	}
 	
 	enum ProxyMethod implements ComboEnum {
-		anonym ("Anonym"),
-		basic ("Basic"),
+		anonym ("anonym"),
+		basic ("basic"),
 		ntlm ("NTLM");
 		
 		final String display;
@@ -220,7 +220,7 @@ public class EnginePropertiesManager {
     	XmlGeneration ("XML generation parameters"),
     	XulRunner ("HTML parser configuration"),
     	Network ("Network configuration"),
-    	HtmlProxy ("HTML proxy settings"),
+    	Proxy ("Proxy settings"),
     	Ssl ("SSL configuration"),
     	Cache ("Cache management"),
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
@@ -380,16 +380,16 @@ public class EnginePropertiesManager {
 
 		/** PROXY SETTINGS */
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = ProxyMode.class)
-		PROXY_SETTINGS_MODE ("htmlProxy.mode", "off", "Proxy mode", PropertyCategory.HtmlProxy),
-		PROXY_SETTINGS_PORT ("htmlProxy.port", "8080", "Proxy port", PropertyCategory.HtmlProxy),
-		PROXY_SETTINGS_HOST ("htmlProxy.host", "localhost", "Proxy host", PropertyCategory.HtmlProxy),
-		PROXY_SETTINGS_BY_PASS_DOMAINS ("htmlProxy.bpdomains", "localhost,127.0.0.1", "Do not apply proxy settings on", PropertyCategory.HtmlProxy),
-		PROXY_SETTINGS_AUTO ("htmlProxy.auto", "", "Autoconfiguration proxy url", PropertyCategory.HtmlProxy),
+		PROXY_SETTINGS_MODE ("htmlProxy.mode", "off", "Proxy mode", PropertyCategory.Proxy),
+		PROXY_SETTINGS_PORT ("htmlProxy.port", "8080", "Proxy port", PropertyCategory.Proxy),
+		PROXY_SETTINGS_HOST ("htmlProxy.host", "localhost", "Proxy host", PropertyCategory.Proxy),
+		PROXY_SETTINGS_BY_PASS_DOMAINS ("htmlProxy.bpdomains", "localhost,127.0.0.1", "Do not apply proxy settings on", PropertyCategory.Proxy),
+		PROXY_SETTINGS_AUTO ("htmlProxy.auto", "", "Autoconfiguration proxy url", PropertyCategory.Proxy),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = ProxyMethod.class)
-		PROXY_SETTINGS_METHOD ("htmlProxy.method", "anonym", "Proxy authentication method", PropertyCategory.HtmlProxy),
-		PROXY_SETTINGS_USER ("htmlProxy.user", "", "Username", PropertyCategory.HtmlProxy),
+		PROXY_SETTINGS_METHOD ("htmlProxy.method", "anonym", "Proxy authentication method", PropertyCategory.Proxy),
+		PROXY_SETTINGS_USER ("htmlProxy.user", "", "Username", PropertyCategory.Proxy),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
-		PROXY_SETTINGS_PASSWORD ("htmlProxy.password", "", "Password", PropertyCategory.HtmlProxy),
+		PROXY_SETTINGS_PASSWORD ("htmlProxy.password", "", "Password", PropertyCategory.Proxy),
 
 		/** XULRUNNER */
 		XULRUNNER_MAX_CONNECTIONS ("xulrunner.max-connections", "65535", "Max connections", PropertyCategory.XulRunner),
@@ -397,7 +397,6 @@ public class EnginePropertiesManager {
 		XULRUNNER_MAX_PERSISTENT_CONNECTIONS_PER_SERVER ("xulrunner.max-persistent-connections-per-server", "10", "Max persistent connections per server", PropertyCategory.XulRunner),
 		XULRUNNER_USERAGENT ("xulrunner.useragent", "", "Override UserAgent", PropertyCategory.XulRunner),
 		
-
 		/** XULRUNNER ADVANCE */
 		@PropertyOptions(advance = true)
 		XULRUNNER_ACCEPT_LANGUAGES ("xulrunner.accept_languages", "", "HTTP_ACCEPT_LANGUAGE header value", PropertyCategory.XulRunner),
