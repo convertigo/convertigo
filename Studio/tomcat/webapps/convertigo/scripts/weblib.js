@@ -466,6 +466,10 @@ C8O = {
 				C8O._getScript("../../scripts/weblib_plugins/gatein.js", function () {
 					C8O._init_gatein(params);
 				});
+			} else if (value=="sharepoint") {
+				C8O._getScript("../../scripts/weblib_plugins/sharepoint.js", function () {
+					C8O._init_sharepoint(params);
+				});
 			} else if (value=="standalone") {
 				C8O._getScript("../../scripts/weblib_plugins/standalone.js", function () {
 					C8O._init_standalone(params);
