@@ -49,15 +49,15 @@
 /* *** iPhone4 640x960 *** */
 
 .iPhone4_mask {
-	width:741px;
-	height:1455px;
-	background-image: url(../images/mobile/iPhone4_mask_640x960.png);
+	width:371px;
+	height:728px;
+	background-image: url(../images/mobile/iPhone4_mask_320x480.png);
 }
 .iPhone4_contenu {
-	top:260px;
-	left:52px;
-	width:640px;
-	height:960px;
+	top:130px;
+	left:26px;
+	width:320px;
+	height:480px;
 }
 
 /* *** iPhone3 320x480 *** */
@@ -74,102 +74,17 @@
 	height:480px;
 }
 
-/* *** HtcDesire 480x800 *** */
-
+/* *** HtcDesire 320x533 *** */
 .HtcDesire_mask {
-	width:584px;
-	height:1161px;
-	background-image: url(../images/mobile/HtcDesire_mask_480x800.png);
+	width:389px;
+	height:774px;
+	background-image: url(../images/mobile/HtcDesire_mask_320x533.png);
 }
 .HtcDesire_contenu {
-	top:125px;
-	left:49px;
-	width:480px;
-	height:800px;
-}
-
-/* *** SamsungGalaxyS 480x800 *** */
-
-.SamsungGalaxyS_mask {
-	width:583px;
-	height:1120px;
-	background-image: url(../images/mobile/SamsungGalaxyS_mask_480x800.png);
-}
-.SamsungGalaxyS_contenu {
-	top:164px;
-	left:50px;
-	width:480px;
-	height:800px;
-}
-
-/* *** SamsungGalaxyAce 320x480 *** */
-
-.SamsungGalaxyAce_mask {
-	width:475px;
-	height:925px;
-	background-image: url(../images/mobile/SamsungGalaxyAce_mask_320x480.png);
-}
-.SamsungGalaxyAce_contenu {
-	top:125px;
-	left:40px;
+	top:83px;
+	left:33px;
 	width:320px;
-	height:480px;
-}
-
-/* *** sony ericsson 480x854 *** */
-
-.SonyXperiaPro_mask {
-	width:568px;
-	height:1131px;
-	background-image: url(../images/mobile/SonyXperiaPro_mask_480x854.png);
-}
-.SonyXperiaPro_contenu {
-	top:164px;
-	left:44px;
-	width:480px;
-	height:854px;
-}
-
-/* *** nokia 320x240 *** */
-
-.NokiaE5_mask {
-	width:384px;
-	height:768px;
-	background-image: url(../images/mobile/NokiaE5_mask_320x240.png);
-}
-.NokiaE5_contenu {
-	top:112px;
-	left:30px;
-	width:320px;
-	height:240px;
-}
-
-/* *** nokiaN8 360x640 *** */
-
-.NokiaN8_mask {
-	width:475px;
-	height:925px;
-	background-image: url(../images/mobile/NokiaN8_mask_360x640.png);
-}
-.NokiaN8_contenu {
-	top:141px;
-	left:60px;
-	width:360px;
-	height:640px;
-}
-
-/* *** nokiaX7 360x640 *** */
-
-.NokiaX7_mask {
-	width:475px;
-	height:925px;
-	background-image: url(../images/mobile/NokiaX7_mask_360x640.png);
-}
-.NokiaX7_contenu {
-	top:115px;
-	left:45px;
-	width:360px;
-	height:640px;
+	height:533px;
 }
 
 /* *** Blackberry 360x480 *** */

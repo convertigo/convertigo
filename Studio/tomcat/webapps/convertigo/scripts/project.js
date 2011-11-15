@@ -31,15 +31,9 @@ var vars, defs = {
 	},
 	phones : {
 		iPad1 : { name : "iPad 1", dpi : 132, os: "ios", install: "IPA", useragent: "iphone" },
-		iPhone4 : { name : "iPhone 4", dpi : 326, os: "ios", install: "IPA", useragent: "iphone" },
+		iPhone4 : { name : "iPhone 4", dpi : 163, os: "ios", install: "IPA", useragent: "iphone" },
 		iPhone3 : { name : "iPhone 3", dpi : 163, os: "ios", install: "IPA", useragent: "iphone" },
-		HtcDesire : { name : "HTC Desire", dpi : 240, os: "android", install: "APK", useragent: "android" },
-    	SamsungGalaxyS : { name : "Samsung Galaxy S", dpi : 233, os: "android", install: "APK", useragent: "android" },
-    	SamsungGalaxyAce : { name : "Samsung Galaxy Ace", dpi : 164, os: "android", install: "APK", useragent: "android" },
-    	SonyXperiaPro : { name : "Sony Xperia Pro", dpi : 264, os: "android", install: "APK", useragent: "android" },
-    	NokiaE5 : { name : "Nokia E5", dpi : 169, os: "symbian", install: "WQZ", useragent: "symbian" },
-    	NokiaN8 : { name : "Nokia N8", dpi : 210, os: "symbian", install: "WQZ", useragent: "symbian" },
-    	NokiaX7 : { name : "Nokia X7", dpi : 183, os: "symbian", install: "WQZ", useragent: "symbian" },
+		HtcDesire : { name : "HTC Desire", dpi : 169, os: "android", install: "APK", useragent: "android" },
     	BlackBerryTorch : { name : "BlackBerry Torch", dpi : 187.5, os: "blackberry", install: "JAD", useragent: "blackberry" }
 	}
 };
@@ -187,9 +181,6 @@ function setMobileScale(scale) {
 	
 	vars.last_scale = scale = (scale === "auto") ? (defs.dpi / defs.phones[vars.last_layout].dpi) : (scale * 1.0);
 	$phone.css("-webkit-transform", "scale(" + scale + ")").css("-webkit-transform-origin", "top left");
-	if (scale < 1.0 && !RegExp(" Version/.*(Safari)/").test(navigator.userAgent)) {
-		$iframe.css("-webkit-transform", "scale(" + Math.sqrt(1 / scale) + ")").css("-webkit-transform-origin", "top left");
-	}
 }
 
 function setLink($a, params) {
