@@ -83,6 +83,9 @@ public class DeploymentConfigurationManager {
 				} catch (ClassNotFoundException e) {
 					ConvertigoPlugin.logError("Unable to migrate the deployment configurations for project " + projectName+ ": " 
 							+ e.getMessage());
+				} catch (Exception e) {
+					ConvertigoPlugin.logError("Unable to migrate the deployment configurations for project " + projectName+ ": " 
+							+ e.getMessage());
 				}
 		        finally {
 		        	if (objectInputStream != null) objectInputStream.close();
@@ -160,6 +163,8 @@ public class DeploymentConfigurationManager {
 			ConvertigoPlugin.logException(e, "Unable to find the padding mechanism from your environment: " + e.getMessage());
 		} catch (InvalidKeyException e) {
 			ConvertigoPlugin.logException(e, "Invalid encryption key: " + e.getMessage());
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "An error occured saving deployment configurations: " + e.getMessage());
 		}
         finally {
         	if (objectOutputStream != null) objectOutputStream.close();
@@ -192,7 +197,11 @@ public class DeploymentConfigurationManager {
         } catch (IOException e) {
         	ConvertigoPlugin.logError("Unable to load the deployment configurations: " + e.getMessage() + "\n. A new empty list will be created.");
         	// Use the default empty database
+		} catch (Exception e) {
+			ConvertigoPlugin.logError("Unable to load the deployment configurations: " + e.getMessage() + "\n. A new empty list will be created.");
+        	// Use the default empty database
 		}
+        
         finally {
         	if (objectInputStream != null) objectInputStream.close();
         	ConvertigoPlugin.logDebug("Projects deployment configurations loaded");
