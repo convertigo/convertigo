@@ -155,7 +155,7 @@ public class ReadCSVStep extends ReadFileStep {
 			Element root = csvDoc.createElement("document");
 			csvDoc.appendChild(root);
 			
-			List<String> vCol = new ArrayList<String>();
+			
 			List<List<String>> vLines = new ArrayList<List<String>>();
 			int lines = 0, cols = 0, tokens = 0;
 			String str, data, value = "";
@@ -183,7 +183,7 @@ public class ReadCSVStep extends ReadFileStep {
 				st = new StringTokenizer(str, separator, true);
 				tokens = st.countTokens();
 				if (tokens > 0) {
-					vCol.clear();
+					List<String> vCol = new ArrayList<String>();
 					while (st.hasMoreTokens()) {
 						data = st.nextToken();
 						if (!start && data.equals(separator)) {
@@ -221,7 +221,7 @@ public class ReadCSVStep extends ReadFileStep {
 			// Constructs array
 			String[][] table = new String[lines][cols];
 			for (int i = 0; i < lines; i++) {
-				vCol = vLines.get(i);
+				List<String> vCol  = vLines.get(i);
 				for (int j = 0; j < cols; j++) {
 					try {
 						data = vCol.get(j);
