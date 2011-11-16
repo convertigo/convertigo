@@ -26,10 +26,14 @@ import javax.xml.transform.TransformerException;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
+import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.IXPathable;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 
 public class IfXpathExistsStatement extends BlockStatement implements IXPathable {
 
@@ -56,12 +60,21 @@ public class IfXpathExistsStatement extends BlockStatement implements IXPathable
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.execute(javascriptContext, scope)) {
-				evaluate(javascriptContext, scope, condition, "xpath", false);
-				String jsXpath 				= evaluated.toString();
-				NodeList nodeList 			= null;
+				HtmlConnector htmlConnector = getConnector();
+				Document xmlDocument = htmlConnector.getCurrentXmlDocument();
+				TwsCachedXPathAPI xpathApi = htmlConnector.context.getXpathApi();
 				
+				if ((xmlDocument == null) || (xpathApi == null)) {
+					Engine.logBeans.warn((xmlDocument == null) ? "(XPath) Current DOM of HtmlConnector is Null!":"TwsCachedXPathAPI of HtmlConnector is Null!");
+					return false;
+				}
+
+				evaluate(javascriptContext, scope, condition, "xpath", false);
+				String jsXpath = evaluated.toString();
+				
+				NodeList nodeList = null;
 				try {
-					nodeList = getParentTransaction().context.getXpathApi().selectNodeList(getConnector().getCurrentXmlDocument(), jsXpath);
+					nodeList = xpathApi.selectNodeList(xmlDocument, jsXpath);
 				} catch (TransformerException e) {
 					return false;
 				} catch (ClassCastException e) {
