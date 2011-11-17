@@ -30,6 +30,7 @@ import java.beans.Introspector;
 import java.beans.MethodDescriptor;
 import java.beans.PropertyDescriptor;
 import java.beans.SimpleBeanInfo;
+import java.util.Collections;
 import java.util.ResourceBundle;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -206,6 +207,9 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     			clone.setExpert(property.isExpert());
     			clone.setHidden(property.isHidden());
     			clone.setPreferred(property.isPreferred());
+    			for (String attributeName : Collections.list(property.attributeNames())) {
+    				clone.setValue(attributeName, property.getValue(attributeName));
+    			}
     			return properties[i] = clone;
     		}
     	}
