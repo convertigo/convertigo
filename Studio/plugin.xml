@@ -673,16 +673,6 @@
           <description>Imports a Sencha based sample project which makes search on the US Directory web site</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerVacationWizard"
-             icon="icons/studio/mobile_HighEnd_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerVacationWizard"
-             name="jQuery Mobile based Vacation sample"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports a jQuery Mobile based sample project which simulate Vacation validation for managers</description>
-       </wizard>
-       <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservice"
              class="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceReferenceWizard"
              icon="icons/studio/httpconnector_color_32x32.gif"
