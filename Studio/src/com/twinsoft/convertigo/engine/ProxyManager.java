@@ -109,7 +109,7 @@ public class ProxyManager {
 	public enum ProxyMode {
     	off,
     	auto,
-    	manu;
+    	manual;
 
 		final String value;
 		
@@ -127,7 +127,7 @@ public class ProxyManager {
 	}
 	
 	public enum ProxyMethod {
-		anonym,
+		anonymous,
 		basic,
 		ntlm;
 		
@@ -166,7 +166,7 @@ public class ProxyManager {
 		
 		if (!proxyMode.equals(ProxyMode.off.name())) {
 			if (needProxy) {
-				if (proxyMode.equals(ProxyMode.manu.name())) {
+				if (proxyMode.equals(ProxyMode.manual.name())) {
 					if (!proxyServer.equals("")) {
 						hostConfiguration.setProxy(proxyServer, proxyPort);
 						Engine.logProxyManager.debug("(ProxyManager) Using proxy: " + proxyServer + ":" + proxyPort);

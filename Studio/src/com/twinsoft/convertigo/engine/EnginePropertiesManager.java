@@ -169,7 +169,7 @@ public class EnginePropertiesManager {
 	enum ProxyMode implements ComboEnum {
     	off ("disabled"),
     	auto ("automatic"),
-    	manu ("manual");
+    	manual ("manual");
 
 		final String display;
 		final String value;
@@ -189,7 +189,7 @@ public class EnginePropertiesManager {
 	}
 	
 	enum ProxyMethod implements ComboEnum {
-		anonym ("anonym"),
+		anonymous ("anonymous"),
 		basic ("basic"),
 		ntlm ("NTLM");
 		
@@ -291,7 +291,7 @@ public class EnginePropertiesManager {
 		ADMIN_USERNAME ("admin.username", "admin", "Admin username", PropertyCategory.Account),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
 		ADMIN_PASSWORD ("admin.password", ""+"admin".hashCode(), "Admin password", PropertyCategory.Account),
-		TEST_PLATFORM_USERNAME ("testplatform.username", "", "TestPlatform username (blank for anonymous access)", PropertyCategory.Account),
+		TEST_PLATFORM_USERNAME ("testplatform.username", "", "TestPlatform username (leave it blank for anonymous access)", PropertyCategory.Account),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
 		TEST_PLATFORM_PASSWORD ("testplatform.password", ""+"".hashCode(), "TestPlatform password", PropertyCategory.Account),
 		
@@ -386,7 +386,7 @@ public class EnginePropertiesManager {
 		PROXY_SETTINGS_BY_PASS_DOMAINS ("htmlProxy.bpdomains", "localhost,127.0.0.1", "Do not apply proxy settings on", PropertyCategory.Proxy),
 		PROXY_SETTINGS_AUTO ("htmlProxy.auto", "", "Autoconfiguration proxy url", PropertyCategory.Proxy),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = ProxyMethod.class)
-		PROXY_SETTINGS_METHOD ("htmlProxy.method", "anonym", "Proxy authentication method", PropertyCategory.Proxy),
+		PROXY_SETTINGS_METHOD ("htmlProxy.method", "anonymous", "Proxy authentication method", PropertyCategory.Proxy),
 		PROXY_SETTINGS_USER ("htmlProxy.user", "", "Username", PropertyCategory.Proxy),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
 		PROXY_SETTINGS_PASSWORD ("htmlProxy.password", "", "Password", PropertyCategory.Proxy),
