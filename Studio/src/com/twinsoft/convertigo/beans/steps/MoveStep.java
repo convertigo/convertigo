@@ -1,7 +1,6 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.mozilla.javascript.Context;
