@@ -54,8 +54,8 @@ public class CopyStep extends Step {
 					String destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(
 							javascriptContext, scope));
 					File destinationFile = new File(destinationFilePath);
-					if (destinationFile.exists()) {
-						throw new Exception("Destination directory already exists: " + destinationFilePath);
+					if (!destinationFile.exists()) {
+						throw new Exception("Destination directory does not exist: " + destinationFilePath);
 					}
 
 					if (sourceFile.isDirectory()) {

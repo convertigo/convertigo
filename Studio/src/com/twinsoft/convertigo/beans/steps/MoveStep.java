@@ -58,27 +58,37 @@ public class MoveStep extends Step {
 					if (!destinationFile.isDirectory()) {
 						throw new Exception("Destination is not a directory.");
 					}
-					
-					if (destinationFile.exists() && !overwrite) {
-						throw new Exception(
-								"The destination \""
-										+ destinationFile.getAbsolutePath()
-										+ "\" already exists.\n"
-										+ " Please set the \"Overwrite\" property to true if you want to overwrite it.");
-					}
 
 					if (sourceFile.isDirectory()) {
-						if (destinationFile.exists() && overwrite) {
-							FileUtils.deleteDirectory(destinationFile);
+						File testFile = new File(destinationFile, sourceFile.getName());
+						if (testFile.exists()) {
+							if (overwrite) {
+								FileUtils.deleteDirectory(testFile);
+							} else {
+								throw new Exception(
+										"The destination \""
+												+ destinationFile.getAbsolutePath()
+												+ "\" already exists.\n"
+												+ " Please set the \"Overwrite\" property to true if you want to overwrite it.");
+							}
 						}
-						FileUtils.moveDirectory(sourceFile, destinationFile);
+						FileUtils.moveDirectory(sourceFile, testFile);
 						Engine.logBeans.info("Directory moved from \"" + sourceFilePath + "\" to \""
 								+ destinationFilePath + "\".");
 					} else if (sourceFile.isFile()) {
-						if (destinationFile.exists() && overwrite) {
-							destinationFile.delete();
+						File testFile = new File(destinationFile, sourceFile.getName());
+						if (testFile.exists()) {
+							if (overwrite) {
+								testFile.delete();
+							} else {
+								throw new Exception(
+										"The destination \""
+												+ destinationFile.getAbsolutePath()
+												+ "\" already exists.\n"
+												+ " Please set the \"Overwrite\" property to true if you want to overwrite it.");
+							}
 						}
-						FileUtils.moveFile(sourceFile, destinationFile);
+						FileUtils.moveFile(sourceFile, testFile);
 						Engine.logBeans.info("File moved from \"" + sourceFilePath + "\" to \""
 								+ destinationFilePath + "\".");
 					}
