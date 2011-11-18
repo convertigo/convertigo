@@ -41,13 +41,9 @@ public class IfFileExistStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[1];
-			
-            properties[0] = new PropertyDescriptor("condition", beanClass, "getCondition", "setCondition");
-            properties[0].setDisplayName(getExternalizedString("property.condition.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.condition.short_description"));
-            properties[0].setValue("scriptable", Boolean.TRUE);
-            properties[0].setValue(BLACK_LIST_NAME, Boolean.TRUE);
+			PropertyDescriptor property = getPropertyDescriptor("condition");
+			property.setDisplayName(getExternalizedString("property.condition.display_name"));
+			property.setShortDescription(getExternalizedString("property.condition.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

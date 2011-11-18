@@ -1,7 +1,6 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.mozilla.javascript.Context;
@@ -14,22 +13,16 @@ import com.twinsoft.convertigo.engine.EngineException;
 
 public class DeleteStep extends Step {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -2873578590344942963L;
 
 	private String sourcePath = "";
 
-	private transient String sourceFilePath = null;		
-	
 	public DeleteStep() {
 		super();
 	}
 	
     public Object clone() throws CloneNotSupportedException {
     	DeleteStep clonedObject = (DeleteStep) super.clone();
-    	clonedObject.sourceFilePath = null;
         return clonedObject;
     }
 	
@@ -44,36 +37,23 @@ public class DeleteStep extends Step {
 
 	@Override
 	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		// TODO Auto-generated method stub
 		if (isEnable) {
 			if (super.stepExcecute(javascriptContext, scope)) {
 				try {
-					sourcePath = sourcePath.replaceAll("\\\\", "/");
-					
-					sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
-					sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
-					
+					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
 					File sourceFile = new File(sourceFilePath);
-					
-					if (sourceFile.exists()) {
-						if (sourceFile.isDirectory()) {
-							FileUtils.deleteDirectory(sourceFile);
-							Engine.logBeans.info("Directory \"" + sourceFilePath + "\" has been deleted.");
-						}
-						else if (sourceFile.isFile()) {
-							sourceFile.delete();
-							Engine.logBeans.info("File \"" + sourceFilePath + "\" has been deleted.");
-						}						
+					if (!sourceFile.exists()) {
+						throw new Exception("Source file or directory does not exist: " + sourceFilePath);
 					}
-					else {
-						throw new Exception("Source file or directory does not exist.");
+
+					if (sourceFile.isDirectory()) {
+						FileUtils.deleteDirectory(sourceFile);
+						Engine.logBeans.info("Directory \"" + sourceFilePath + "\" has been deleted.");
 					}
-		        } catch (IOException e) {
-		        	setErrorStatus(true);
-		            Engine.logBeans.error("An error occured while deleting the file or directory.", e);
-				} catch (NullPointerException e) {
-					setErrorStatus(true);
-		            Engine.logBeans.error("An error occured while deleting the file.", e);
+					else if (sourceFile.isFile()) {
+						sourceFile.delete();
+						Engine.logBeans.info("File \"" + sourceFilePath + "\" has been deleted.");
+					}						
 				} catch (Exception e) {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while deleting the file or directory.", e);

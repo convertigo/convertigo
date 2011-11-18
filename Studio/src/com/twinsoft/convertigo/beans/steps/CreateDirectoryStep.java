@@ -12,23 +12,17 @@ import com.twinsoft.convertigo.engine.EngineException;
 
 public class CreateDirectoryStep extends Step {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -2873578590344942963L;
 	
 	private String destinationPath = "";	
 	private boolean createNonExistentParentDirectories = true;
 
-	private transient String destinationFilePath = null;
-	
 	public CreateDirectoryStep() {
 		super();
 	}
 	
     public Object clone() throws CloneNotSupportedException {
     	CreateDirectoryStep clonedObject = (CreateDirectoryStep) super.clone();
-    	clonedObject.destinationFilePath = null;
         return clonedObject;
     }
 	
@@ -43,20 +37,20 @@ public class CreateDirectoryStep extends Step {
 
 	@Override
 	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		// TODO Auto-generated method stub
 		if (isEnable) {
 			if (super.stepExcecute(javascriptContext, scope)) {
 				try {
-					destinationPath = destinationPath.replaceAll("\\\\", "/");					
-					destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(javascriptContext, scope));
-					destinationFilePath = destinationFilePath.replaceAll("\\\\", "/");
+					String destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(javascriptContext, scope));
 					File destinationFile = new File(destinationFilePath);
+					if (destinationFile.exists() && destinationFile.isFile()) {
+						throw new Exception("Destination already exists and is a file: " + destinationFilePath);
+					}
 					
 					boolean directoryCreated = false;
 					
 					if (isCreateNonExistentParentDirectories()) {
 						directoryCreated = destinationFile.mkdirs();
-						Engine.logBeans.info("Directory \"" + destinationFilePath + "\" has been created.");
+						Engine.logBeans.info("Directory \"" + destinationFilePath + "\" has been created with parent directories.");
 					}
 					else {
 						directoryCreated = destinationFile.mkdir();
@@ -66,10 +60,7 @@ public class CreateDirectoryStep extends Step {
 					if (!directoryCreated) {
 						throw new Exception("An error occured while creating the directory.");
 					}
-		        } catch (NullPointerException e) {
-					setErrorStatus(true);
-		            Engine.logBeans.error("An error occured while creating the directory.", e);
-				} catch (Exception e) {
+		        } catch (Exception e) {
 					setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while creating the directory.", e);
 				}					
