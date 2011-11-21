@@ -1,6 +1,7 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.mozilla.javascript.Context;
@@ -54,16 +55,30 @@ public class CopyStep extends Step {
 					String destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(
 							javascriptContext, scope));
 					File destinationFile = new File(destinationFilePath);
-					if (!destinationFile.exists()) {
-						throw new Exception("Destination directory does not exist: " + destinationFilePath);
-					}
 
 					if (sourceFile.isDirectory()) {
+						if (destinationFile.exists()) {
+							// If the destination is an existing file, unable to
+							// perform the copy.
+							if (destinationFile.isFile()) {
+								throw new EngineException("Unable to copy the directory \"" + sourceFilePath
+										+ "\" inside the destination (\"" + destinationFilePath
+										+ "\": it is an existing file.");
+							}
+						}
 						FileUtils.copyDirectory(sourceFile, destinationFile);
 						Engine.logBeans.info("Directory copied from \"" + sourceFilePath + "\" to \""
 								+ destinationFilePath + "\".");
 					} else if (sourceFile.isFile()) {
-						destinationFile = new File(destinationFilePath + "/" + sourceFile.getName());
+						if (destinationFile.exists()) {
+							// If the destination is an existing directory, then
+							// we will copy the source file inside the
+							// destination directory with the same name.
+							if (destinationFile.isDirectory()) {
+								destinationFile = new File(destinationFilePath + "/" + sourceFile.getName());
+							}
+						}
+
 						FileUtils.copyFile(sourceFile, destinationFile);
 						Engine.logBeans.info("File copied from \"" + sourceFilePath + "\" to \""
 								+ destinationFilePath + "\".");
@@ -76,6 +91,16 @@ public class CopyStep extends Step {
 			}
 		}
 		return false;
+	}
+
+	public static void main(String[] args) {
+		try {
+			File f = new File("/toto/");
+			System.out.println(f.getCanonicalPath() + " is directory: " + f.isDirectory());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	protected String getAbsoluteFilePath(String entry) throws EngineException {
