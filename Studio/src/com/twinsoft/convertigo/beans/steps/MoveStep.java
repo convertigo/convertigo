@@ -55,12 +55,15 @@ public class MoveStep extends Step {
 					String destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(
 							javascriptContext, scope));
 					File destinationFile = new File(destinationFilePath);
-					if (!destinationFile.isDirectory()) {
-						throw new Exception("Destination is not a directory.");
-					}
 
 					if (sourceFile.isDirectory()) {
-						File testFile = new File(destinationFile, sourceFile.getName());
+						File testFile = destinationFile;
+						if (destinationFile.exists()) {
+							if (destinationFile.isFile()) {
+								throw new Exception("Destination is not a directory: " + destinationFilePath);
+							}
+						}
+
 						if (testFile.exists()) {
 							if (overwrite) {
 								FileUtils.deleteDirectory(testFile);
@@ -76,7 +79,13 @@ public class MoveStep extends Step {
 						Engine.logBeans.info("Directory moved from \"" + sourceFilePath + "\" to \""
 								+ destinationFilePath + "\".");
 					} else if (sourceFile.isFile()) {
-						File testFile = new File(destinationFile, sourceFile.getName());
+						File testFile = destinationFile;
+						if (destinationFile.exists()) {
+							if (destinationFile.isDirectory()) {
+								testFile = new File(destinationFile, sourceFile.getName());
+							}
+						}
+
 						if (testFile.exists()) {
 							if (overwrite) {
 								testFile.delete();
