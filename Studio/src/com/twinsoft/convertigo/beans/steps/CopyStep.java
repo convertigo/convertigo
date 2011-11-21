@@ -1,7 +1,6 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.mozilla.javascript.Context;
@@ -91,16 +90,6 @@ public class CopyStep extends Step {
 			}
 		}
 		return false;
-	}
-
-	public static void main(String[] args) {
-		try {
-			File f = new File("/toto/");
-			System.out.println(f.getCanonicalPath() + " is directory: " + f.isDirectory());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	protected String getAbsoluteFilePath(String entry) throws EngineException {
