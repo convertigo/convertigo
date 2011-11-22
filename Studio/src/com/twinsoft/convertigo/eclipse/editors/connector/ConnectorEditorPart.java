@@ -36,14 +36,9 @@ import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -71,6 +66,7 @@ import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.eclipse.AnimatedGif;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.xmlscanner.ColorManager;
 import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLConfiguration;
@@ -83,9 +79,9 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineListener;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -141,6 +137,9 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	private Image imageNewWaitAt = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.gif"));
 	private Image imageDisableNewWaitAt = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.d.gif"));
 	
+    private Canvas canvas = null;
+	private AnimatedGif animatedWait;
+	
 	public ConnectorEditorPart(IEditorPart editor, Connector connector, Composite parent, int style) {
 		super(parent, style);
 		this.editor = editor;
@@ -154,6 +153,8 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		// Registering as Engine listener
 		Engine.theApp.addEngineListener(this);
 		
+	    animatedWait = new AnimatedGif(getDisplay(), canvas, "/com/twinsoft/convertigo/eclipse/editors/images/wait-ani.gif");
+	    canvas.setSize(100, 32);
 	}
 
 	private Context getStudioContext() {
@@ -1118,19 +1119,10 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
         }*/
     }
 
-    private Transaction runningTransaction;
-    private ImageLoader loader = new ImageLoader();
-    private Thread animateThread = null;
-    private Canvas canvas = null;
-	private Image image = null;
-	private int imageNumber;
-	private GC gc;
-	
     public void transactionStarted(EngineEvent engineEvent) {
 		if (!checkEventSource(engineEvent))
 			return;
     	
-		runningTransaction = (Transaction) engineEvent.getSource();
 		getDisplay().syncExec(new Runnable() {
 			public void run() {
 				try {
@@ -1139,31 +1131,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			        toolItemGenerateXsl.setEnabled(false);
 				} catch (Exception e) {}
 				
-				animateThread = new Thread() {
-					public void run() {
-						while (runningTransaction != null) {
-							int delayTime = loader.data[imageNumber].delayTime;
-							try {
-								Thread.sleep(delayTime * 10);
-							} catch (InterruptedException e) {}
-							
-							getDisplay().asyncExec(new Runnable(){
-								public void run(){
-									// Increase the variable holding the frame number
-									imageNumber = imageNumber == loader.data.length-1 ? 0 : imageNumber+1;
-									
-									// Draw the new data onto the image
-									ImageData nextFrameData = loader.data[imageNumber];
-									Image frameImage = new Image(getDisplay(),nextFrameData);
-									gc.drawImage(frameImage,nextFrameData.x,nextFrameData.y);
-									frameImage.dispose();
-									canvas.redraw();
-								}
-							});
-						}
-					}
-				};
-				animateThread.start();
+		        animatedWait.start();
 			}
 		});
     }
@@ -1172,17 +1140,10 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		if (!checkEventSource(engineEvent))
 			return;
     	
-    	runningTransaction = null;
-    	
     	getDisplay().syncExec(new Runnable() {
 			public void run() {
-				imageNumber = 0;
-				ImageData nextFrameData = loader.data[imageNumber];
-				Image frameImage = new Image(getDisplay(),nextFrameData);
-				gc.drawImage(frameImage,nextFrameData.x,nextFrameData.y);
-				frameImage.dispose();
-				canvas.redraw();
-				
+				animatedWait.stop();
+
 				try {
 			    	toolItemStopTransaction.setEnabled(false);
 			    	toolItemGenerateXml.setEnabled(true);
@@ -1376,22 +1337,13 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 
 		GridData gridData6 = new org.eclipse.swt.layout.GridData();
 		gridData6.horizontalAlignment = org.eclipse.swt.layout.GridData.END;
-		gridData6.heightHint = 32;
-		gridData6.widthHint = 32;
+		gridData6.heightHint = 16;
+		gridData6.widthHint = 104;
 		gridData6.verticalAlignment = org.eclipse.swt.layout.GridData.BEGINNING;
-		
-	    imageNumber = 0;
-	    loader.load(getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/wait-ani.gif"));
-	    image = new Image(getDisplay(),loader.data[imageNumber]);
-	    
+
 	    canvas = new Canvas(compositeOutputHeader, SWT.NONE);
 	    canvas.setLayoutData(gridData6);
-	    gc = new GC(image);
-	    canvas.addPaintListener(new PaintListener() {
-	    	public void paintControl(PaintEvent event){
-	    		event.gc.drawImage(image,0,0);
-	    	}
-	    }); 
+	    canvas.setVisible(true);
 	}
 
 	/**
