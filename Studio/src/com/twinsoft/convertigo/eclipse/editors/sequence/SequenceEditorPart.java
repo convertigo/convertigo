@@ -33,13 +33,8 @@ import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -58,6 +53,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
+import com.twinsoft.convertigo.eclipse.AnimatedGif;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.xmlscanner.ColorManager;
 import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLConfiguration;
@@ -98,6 +94,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 
 	public org.w3c.dom.Document lastGeneratedDocument;
 	
+	private AnimatedGif animatedWait;
 	
 	public SequenceEditorPart(IEditorPart editor, Sequence sequence, Composite parent, int style) {
 		super(parent, style);
@@ -111,7 +108,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		
 		// Registering as Engine listener
 		Engine.theApp.addEngineListener(this);
-		
+	    
+	    animatedWait = new AnimatedGif(getDisplay(), canvas, "/com/twinsoft/convertigo/eclipse/editors/images/wait-ani.gif");
 	}
 
 	public void close() {
@@ -254,12 +252,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	private Composite compositeXml = null;
 	private Composite compositeOutputHeader = null;
 	private Composite compositeOutputFooter = null;
-    private ImageLoader loader = new ImageLoader();
-    private Thread animateThread = null;
     private Canvas canvas = null;
-	private Image image = null;
-	private int imageNumber;
-	private GC gc;
 	
 	private void createCompositeOutputHeader() {
 		final Color background = getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
@@ -280,22 +273,13 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 
 		GridData gridData6 = new org.eclipse.swt.layout.GridData();
 		gridData6.horizontalAlignment = org.eclipse.swt.layout.GridData.END;
-		gridData6.heightHint = 32;
-		gridData6.widthHint = 32;
+		gridData6.heightHint = 16;
+		gridData6.widthHint = 104;
 		gridData6.verticalAlignment = org.eclipse.swt.layout.GridData.BEGINNING;
-		
-	    imageNumber = 0;
-	    loader.load(getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/wait-ani.gif"));
-	    image = new Image(getDisplay(),loader.data[imageNumber]);
 	    
 	    canvas = new Canvas(compositeOutputHeader, SWT.NONE);
 	    canvas.setLayoutData(gridData6);
-	    gc = new GC(image);
-	    canvas.addPaintListener(new PaintListener() {
-	    	public void paintControl(PaintEvent event){
-	    		event.gc.drawImage(image,0,0);
-	    	}
-	    }); 
+	    canvas.setVisible(false);
 	}
 	
 	/**
@@ -732,44 +716,17 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		});*/
 	}
 
-	private Sequence runningSequence;
-	
 	public void sequenceStarted(EngineEvent engineEvent) {
 		if (!checkEventSource(engineEvent))
 			return;
     	
-		runningSequence = (Sequence) engineEvent.getSource();
 		getDisplay().syncExec(new Runnable() {
 			public void run() {
 		        toolItemStopSequence.setEnabled(true);
 		        toolItemGenerateXml.setEnabled(false);
 		        toolItemGenerateXsl.setEnabled(false);
 		        
-				animateThread = new Thread() {
-					public void run() {
-						while (runningSequence != null) {
-							int delayTime = loader.data[imageNumber].delayTime;
-							try {
-								Thread.sleep(delayTime * 10);
-							} catch (InterruptedException e) {}
-							
-							getDisplay().asyncExec(new Runnable(){
-								public void run(){
-									// Increase the variable holding the frame number
-									imageNumber = imageNumber == loader.data.length-1 ? 0 : imageNumber+1;
-									
-									// Draw the new data onto the image
-									ImageData nextFrameData = loader.data[imageNumber];
-									Image frameImage = new Image(getDisplay(),nextFrameData);
-									gc.drawImage(frameImage,nextFrameData.x,nextFrameData.y);
-									frameImage.dispose();
-									canvas.redraw();
-								}
-							});
-						}
-					}
-				};
-				animateThread.start();
+		        animatedWait.start();
 			}
 		});
 	}
@@ -778,16 +735,9 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		if (!checkEventSource(engineEvent))
 			return;
     	
-		runningSequence = null;
-    	
     	getDisplay().syncExec(new Runnable() {
 			public void run() {
-				imageNumber = 0;
-				ImageData nextFrameData = loader.data[imageNumber];
-				Image frameImage = new Image(getDisplay(),nextFrameData);
-				gc.drawImage(frameImage,nextFrameData.x,nextFrameData.y);
-				frameImage.dispose();
-				canvas.redraw();
+				animatedWait.stop();
 				
 				toolItemStopSequence.setEnabled(false);
 		    	toolItemGenerateXml.setEnabled(true);
