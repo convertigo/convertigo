@@ -41,18 +41,17 @@ public class IteratorStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[1];
 			
-            properties[0] = new PropertyDescriptor("condition", beanClass, "getCondition", "setCondition");
-            properties[0].setDisplayName(getExternalizedString("property.condition.display_name"));
-            properties[0].setShortDescription(getExternalizedString("property.condition.short_description"));
-			
-			properties[1] = new PropertyDescriptor("sourceDefinition", beanClass, "getSourceDefinition", "setSourceDefinition");
-			properties[1].setExpert(true);
-			properties[1].setDisplayName(getExternalizedString("property.sourceDefinition.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.sourceDefinition.short_description"));
-			properties[1].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
+            properties[0] = new PropertyDescriptor("sourceDefinition", beanClass, "getSourceDefinition", "setSourceDefinition");
+			properties[0].setExpert(true);
+			properties[0].setDisplayName(getExternalizedString("property.sourceDefinition.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.sourceDefinition.short_description"));
+			properties[0].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
 
+			PropertyDescriptor property = getPropertyDescriptor("condition");
+			property.setDisplayName(getExternalizedString("property.condition.display_name"));
+			property.setShortDescription(getExternalizedString("property.condition.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
