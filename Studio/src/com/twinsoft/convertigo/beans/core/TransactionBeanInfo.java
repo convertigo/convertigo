@@ -36,16 +36,15 @@ public class TransactionBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/Transaction");
 			
-			properties = new PropertyDescriptor[2];
-			
-			properties[0] = new PropertyDescriptor("sheetLocation", beanClass, "getSheetLocation", "setSheetLocation");
-			properties[0].setPropertyEditorClass(getEditorClass("TransactionSheetLocationEditor"));
+			properties = new PropertyDescriptor[1];
 
-			properties[1] = new PropertyDescriptor("includedTagAttributes", beanClass, "getIncludedTagAttributes", "setIncludedTagAttributes");
-			properties[1].setDisplayName(getExternalizedString("property.includedTagAttributes.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.includedTagAttributes.short_description"));
-			properties[1].setPropertyEditorClass(getEditorClass("IncludedTagAttributesEditor"));
+			properties[0] = new PropertyDescriptor("includedTagAttributes", beanClass, "getIncludedTagAttributes", "setIncludedTagAttributes");
+			properties[0].setDisplayName(getExternalizedString("property.includedTagAttributes.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.includedTagAttributes.short_description"));
+			properties[0].setPropertyEditorClass(getEditorClass("IncludedTagAttributesEditor"));
 
+			PropertyDescriptor property = getPropertyDescriptor("sheetLocation");
+			property.setPropertyEditorClass(getEditorClass("TransactionSheetLocationEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

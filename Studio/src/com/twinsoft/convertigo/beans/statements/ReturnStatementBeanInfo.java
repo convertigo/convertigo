@@ -41,11 +41,8 @@ public class ReturnStatementBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[1];
-
-            properties[0] = new PropertyDescriptor("expression", beanClass, "getExpression", "setExpression");
-            properties[0].setPropertyEditorClass(getEditorClass("ScriptCellEditor"));
-			
+            PropertyDescriptor property = getPropertyDescriptor("expression");
+			property.setPropertyEditorClass(getEditorClass("ScriptCellEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

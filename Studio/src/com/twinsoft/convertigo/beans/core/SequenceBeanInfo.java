@@ -39,7 +39,7 @@ public class SequenceBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[2];
 			
 			properties[0] = new PropertyDescriptor("orderedVariables", beanClass, "getOrderedVariables", "setOrderedVariables");
 			properties[0].setDisplayName(getExternalizedString("property.orderedVariables.display_name"));
@@ -48,14 +48,14 @@ public class SequenceBeanInfo extends MySimpleBeanInfo {
 			//properties[0].setExpert(true);
 			properties[0].setHidden(true);
 
-			properties[1] = new PropertyDescriptor("sheetLocation", beanClass, "getSheetLocation", "setSheetLocation");
-			properties[1].setPropertyEditorClass(getEditorClass("SequenceSheetLocationEditor"));
-			
-            properties[2] = new PropertyDescriptor("orderedSteps", beanClass, "getOrderedSteps", "setOrderedSteps");
-            properties[2].setDisplayName(getExternalizedString("property.orderedSteps.display_name"));
-            properties[2].setShortDescription(getExternalizedString("property.orderedSteps.short_description"));
-            properties[2].setHidden(true);
+            properties[1] = new PropertyDescriptor("orderedSteps", beanClass, "getOrderedSteps", "setOrderedSteps");
+            properties[1].setDisplayName(getExternalizedString("property.orderedSteps.display_name"));
+            properties[1].setShortDescription(getExternalizedString("property.orderedSteps.short_description"));
+            properties[1].setHidden(true);
             
+            PropertyDescriptor property = getPropertyDescriptor("sheetLocation");
+			property.setPropertyEditorClass(getEditorClass("SequenceSheetLocationEditor"));
+			
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

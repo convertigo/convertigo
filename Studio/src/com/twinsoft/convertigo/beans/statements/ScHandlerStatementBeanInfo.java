@@ -41,15 +41,15 @@ public class ScHandlerStatementBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[1];
 			
-			properties[0] = new PropertyDescriptor("handlerType", HandlerStatement.class, "getHandlerType", "setHandlerType");
-			properties[0].setHidden(true);
+			properties[0] = new PropertyDescriptor("normalizedScreenClassName", beanClass, "getNormalizedScreenClassName", "setNormalizedScreenClassName");
+			properties[0].setDisplayName(getExternalizedString("property.normalizedScreenClassName.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.normalizedScreenClassName.short_description"));
+			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
 			
-			properties[1] = new PropertyDescriptor("normalizedScreenClassName", beanClass, "getNormalizedScreenClassName", "setNormalizedScreenClassName");
-			properties[1].setDisplayName(getExternalizedString("property.normalizedScreenClassName.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.normalizedScreenClassName.short_description"));
-			properties[1].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
+			PropertyDescriptor property = getPropertyDescriptor("handlerType");
+			property.setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

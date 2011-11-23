@@ -25,7 +25,6 @@ package com.twinsoft.convertigo.beans.common;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
-import com.twinsoft.convertigo.beans.extractionrules.HtmlExtractionRule;
 
 public class XMLHttpHeadersBeanInfo extends MySimpleBeanInfo {
     
@@ -42,11 +41,8 @@ public class XMLHttpHeadersBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
-			properties = new PropertyDescriptor[1];
-			
-			properties[0] = new PropertyDescriptor("xpath", HtmlExtractionRule.class, "getXpath", "setXpath");
-			properties[0].setHidden(true);
-			
+			PropertyDescriptor property = getPropertyDescriptor("xpath");
+			property.setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
