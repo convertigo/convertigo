@@ -34,8 +34,9 @@ public class JavelinScreenClassBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/screenclass_color_16x16.gif";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/screenclass_color_32x32.gif";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/ScreenClass");
-
+//			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/ScreenClass");
+			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/screenclasses/res/JavelinScreenClass");
+			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 		}
