@@ -54,7 +54,7 @@ public class ProcessExecStepBeanInfo extends MySimpleBeanInfo {
 	        properties[2] = new PropertyDescriptor("envParameters", beanClass, "getEnvParameters", "setEnvParameters");
 			properties[2].setDisplayName(getExternalizedString("property.envParameters.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.envParameters.short_description"));
-			//properties[2].setPropertyEditorClass(getEditorClass("EnvParametersEditor"));
+			properties[2].setPropertyEditorClass(getEditorClass("EnvParametersEditor"));
 			
 	        properties[3] = new PropertyDescriptor("waitForProcessEnd", beanClass, "isWaitForProcessEnd", "setWaitForProcessEnd");
 	        properties[3].setDisplayName(getExternalizedString("property.waitForProcessEnd.display_name"));
