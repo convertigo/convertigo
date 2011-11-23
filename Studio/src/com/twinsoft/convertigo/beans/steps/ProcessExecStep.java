@@ -25,7 +25,9 @@ package com.twinsoft.convertigo.beans.steps;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -133,18 +135,19 @@ public class ProcessExecStep extends Step {
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		try {
-			// Environment parameters (key/value pairs)
-			String key, value;
+			// Environment parameters (name/value pairs)
 			String[] envp = null;
-			int size = envParameters.size();
-			if (size > 0) {
-				int i = 0;
-				envp = new String[size];
-				for (List<String> parameter : envParameters) {
-					key = parameter.get(0);
-					value = parameter.get(1);
-					envp[i++] = key+"="+value;
-				}
+			int i = 0;
+			if (envParameters.size() > 0) {
+				// Retrieve current environment parameters and overrides
+				Map<String, String> envmap = new HashMap<String, String>();
+				envmap.putAll(System.getenv());
+				for (List<String> parameter : envParameters)
+					envmap.put(parameter.get(0), parameter.get(1));
+				// Fill parameters array
+				envp = new String[envmap.size()];
+				for (Map.Entry<String, String> entry : envmap.entrySet()) 
+					envp[i++] = entry.getKey()+"="+entry.getValue();
 			}
 			
 			// Execution directory
