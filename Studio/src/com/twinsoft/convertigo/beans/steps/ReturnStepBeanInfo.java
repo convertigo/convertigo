@@ -41,10 +41,8 @@ public class ReturnStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
-
-            properties[0] = new PropertyDescriptor("expression", beanClass, "getExpression", "setExpression");
-            properties[0].setHidden(true);
+            PropertyDescriptor property = getPropertyDescriptor("expression");
+            property.setHidden(true) ;
 
 		}
 		catch(Exception e) {

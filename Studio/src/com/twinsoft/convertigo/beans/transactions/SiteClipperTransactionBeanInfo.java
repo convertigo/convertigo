@@ -41,26 +41,27 @@ public class SiteClipperTransactionBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
-			properties = new PropertyDescriptor[6];
+			properties = new PropertyDescriptor[1];
 			
-			properties[0] = new PropertyDescriptor("publicMethod", beanClass, "isPublicMethod", "setPublicMethod");
-			properties[0].setHidden(true);
+			properties[0] = new PropertyDescriptor("targetURL", beanClass, "getTargetURL", "setTargetURL");
+			properties[0].setDisplayName(getExternalizedString("property.targetURL.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.targetURL.short_description"));
 			
-			properties[1] = new PropertyDescriptor("sheetLocation", beanClass, "getSheetLocation", "setSheetLocation");
-			properties[1].setHidden(true);
-
-			properties[2] = new PropertyDescriptor("includedTagAttributes", beanClass, "getIncludedTagAttributes", "setIncludedTagAttributes");
-			properties[2].setHidden(true);
+			PropertyDescriptor property = getPropertyDescriptor("clientCachable");
+			property.setHidden(true);
 			
-			properties[3] = new PropertyDescriptor("responseExpiryDate", beanClass, "getResponseExpiryDate", "setResponseExpiryDate");
-			properties[3].setHidden(true);
+			property = getPropertyDescriptor("includedTagAttributes");
+			property.setHidden(true);
 			
-			properties[4] = new PropertyDescriptor("clientCachable", beanClass, "isClientCachable", "setClientCachable");
-			properties[4].setHidden(true);
+			property = getPropertyDescriptor("publicMethod");
+			property.setHidden(true);
 			
-			properties[5] = new PropertyDescriptor("targetURL", beanClass, "getTargetURL", "setTargetURL");
-			properties[5].setDisplayName(getExternalizedString("property.targetURL.display_name"));
-			properties[5].setShortDescription(getExternalizedString("property.targetURL.short_description"));			
+			property = getPropertyDescriptor("responseExpiryDate");
+			property.setHidden(true);
+			
+			property = getPropertyDescriptor("sheetLocation");
+			property.setHidden(true);
+			
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

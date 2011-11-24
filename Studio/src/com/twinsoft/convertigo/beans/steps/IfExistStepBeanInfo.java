@@ -41,10 +41,8 @@ public class IfExistStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-            properties = new PropertyDescriptor[1];
-
-            properties[0] = new PropertyDescriptor("condition", beanClass, "getCondition", "setCondition");
-            properties[0].setHidden(true) ;
+            PropertyDescriptor property = getPropertyDescriptor("condition");
+            property.setHidden(true) ;
 
 		}
 		catch(Exception e) {

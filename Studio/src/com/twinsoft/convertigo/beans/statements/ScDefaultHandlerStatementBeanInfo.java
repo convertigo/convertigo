@@ -41,10 +41,8 @@ public class ScDefaultHandlerStatementBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
-			
-			properties[0] = new PropertyDescriptor("handlerType", HandlerStatement.class, "getHandlerType", "setHandlerType");
-			properties[0].setHidden(true);
+			PropertyDescriptor property = getPropertyDescriptor("handlerType");
+			property.setHidden(true);
 			
 		}
 		catch(Exception e) {

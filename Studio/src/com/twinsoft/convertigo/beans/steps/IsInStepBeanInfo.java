@@ -41,7 +41,7 @@ public class IsInStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[1];
 
 			properties[0] = new PropertyDescriptor("testDefinition", beanClass, "getTestDefinition", "setTestDefinition");
 			properties[0].setExpert(true);
@@ -49,8 +49,8 @@ public class IsInStepBeanInfo extends MySimpleBeanInfo {
 			properties[0].setShortDescription(getExternalizedString("property.testDefinition.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("IsInStepTestEditor"));
 			
-            properties[1] = new PropertyDescriptor("condition", beanClass, "getCondition", "setCondition");
-            properties[1].setHidden(true) ;
+			PropertyDescriptor property = getPropertyDescriptor("condition");
+            property.setHidden(true) ;
 
 		}
 		catch(Exception e) {
