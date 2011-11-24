@@ -250,5 +250,10 @@ public class CicsConnector extends Connector {
 	 */
 	public void setUserPassword(String userPassword) {
 		this.userPassword = userPassword;
-	}    
+	}
+	
+	@Override
+	public CicsTransaction newTransaction() {
+		return new CicsTransaction();
+	}
 }

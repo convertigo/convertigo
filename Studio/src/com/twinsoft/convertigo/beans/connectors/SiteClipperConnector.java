@@ -81,6 +81,7 @@ import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.extractionrules.siteclipper.IRequestRule;
 import com.twinsoft.convertigo.beans.extractionrules.siteclipper.IResponseRule;
 import com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass;
+import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -1006,5 +1007,14 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 
 	public void setTrustAllServerCertificates(boolean trustAllServerCertificates) {
 		this.trustAllServerCertificates = trustAllServerCertificates;
+	}
+	
+	@Override
+	public SiteClipperTransaction newTransaction() {
+		return new SiteClipperTransaction();
+	}
+	
+	public SiteClipperScreenClass newScreenClass() {
+		return new SiteClipperScreenClass();
 	}
 }

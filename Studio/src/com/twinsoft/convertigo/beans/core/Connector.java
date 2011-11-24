@@ -426,4 +426,6 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 		}		
 		return rep;
 	}
+	
+	public abstract Transaction newTransaction();
 }

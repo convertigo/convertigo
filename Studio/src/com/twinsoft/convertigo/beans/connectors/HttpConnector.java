@@ -86,11 +86,11 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.HttpStateEvent;
 import com.twinsoft.convertigo.engine.HttpStateListener;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.Version;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.plugins.VicApi;
@@ -1510,5 +1510,10 @@ public class HttpConnector extends Connector {
 			httpHeaderForwardMap = Collections.unmodifiableMap(httpHeaderForwardMap);
 		}
 		return httpHeaderForwardMap;
+	}
+
+	@Override
+	public HttpTransaction newTransaction() {
+		return new HttpTransaction();
 	}
 }

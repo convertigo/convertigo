@@ -55,6 +55,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.wst.sse.ui.internal.StructuredTextViewer;
 
 import com.twinsoft.convertigo.beans.connectors.CicsConnector;
+import com.twinsoft.convertigo.beans.connectors.ExternalBrowserConnector;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
@@ -850,6 +851,9 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		}
 		else if (connector instanceof SiteClipperConnector) {
 			compositeConnectorClass = SiteClipperConnectorComposite.class;
+		}
+		else if (connector instanceof ExternalBrowserConnector) {
+			compositeConnectorClass = ExternalBrowserConnectorComposite.class;
 		}
 		else {
 			throw new IllegalArgumentException("The connector class is not handled: " + connector.getClass().getName());

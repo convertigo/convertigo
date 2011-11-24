@@ -451,4 +451,9 @@ public class SqlConnector extends Connector {
 		}
 		return super.getTagsForProperty(propertyName);
 	}
+	
+	@Override
+	public SqlTransaction newTransaction() {
+		return new SqlTransaction();
+	}
 }

@@ -39,4 +39,6 @@ public interface IScreenClassContainer<SC extends ScreenClass> {
 	public SC getCurrentScreenClass();
 	
 	public SC getScreenClassByName(String screenClassName);
+	
+	public SC newScreenClass();
 }

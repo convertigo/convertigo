@@ -53,8 +53,8 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.plugins.VicApi;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.tas.Authentication;
@@ -895,5 +895,14 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 	public XMLRectangle getSelectionZone() {
 		Rectangle rTmp = javelin.getSelectionZone();
 		return (new XMLRectangle(rTmp.x, rTmp.y, rTmp.width, rTmp.height));
+	}
+
+	@Override
+	public JavelinTransaction newTransaction() {
+		return new JavelinTransaction();
+	}
+	
+	public JavelinScreenClass newScreenClass() {
+		return new JavelinScreenClass();
 	}
 }

@@ -363,4 +363,13 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 		rep.add(0, getDefaultScreenClass());
 		return rep;
 	}
+	
+	@Override
+	public HtmlTransaction newTransaction() {
+		return new HtmlTransaction();
+	}
+	
+	public HtmlScreenClass newScreenClass() {
+		return new HtmlScreenClass();
+	}
 }
