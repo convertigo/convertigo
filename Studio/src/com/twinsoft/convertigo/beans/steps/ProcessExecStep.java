@@ -60,7 +60,6 @@ public class ProcessExecStep extends Step {
     
 	public ProcessExecStep() {
 		super();
-		output = true;
 		xml = true;
 	}
 
