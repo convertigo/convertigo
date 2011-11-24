@@ -103,7 +103,7 @@ public class ListDirStep extends Step {
 			// Command line string
 			if (evaluated instanceof org.mozilla.javascript.Undefined)
 				throw new EngineException("Source directory path is empty.");
-			String path = evaluated.toString();
+			String path = Engine.theApp.filePropertyManager.getFilepathFromProperty(evaluated.toString(), getProject().getName());
 			
 	        File fDir = new File(path);
 	        File[] files = fDir.listFiles();
