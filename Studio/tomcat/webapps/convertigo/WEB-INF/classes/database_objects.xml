@@ -376,15 +376,6 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                 </bean>
-                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.ProcessExecStep">
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
-                </bean>
             </beans>
             <beans groupname="Convertigo request steps">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.TransactionStep">
@@ -509,6 +500,15 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.RemoveContextStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.ProcessExecStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
