@@ -170,7 +170,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	private static Map<String, IProject> cacheIProject = new Hashtable<String, IProject>();
 	
 	public static void logException(Throwable e, String message) {
-		logException(e, message, Boolean.TRUE);
+		logException(e, message, true);
 	}
 	
 	public static void logDeployException(Throwable e, String errorMessage, String stackTrace) {
@@ -178,40 +178,40 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		projectDeployErrorDialog(errorMessage, stackTrace);
 	}
 	
-	public static void logException(Throwable e, String message, Boolean dialog) {
+	public static void logException(Throwable e, String message, boolean dialog) {
 		log.log(new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
-		if (dialog.booleanValue()) errorMessageBox(message + "\n" + e.getMessage());
+		if (dialog) errorMessageBox(message + "\n" + e.getMessage());
 	}
 
 	public static void logError(String message) {
 		logError(message, false);
 	}
 
-	public static void logError(String message, Boolean dialog) {
+	public static void logError(String message, boolean dialog) {
 		log.log(new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, null));
-		if (dialog.booleanValue()) errorMessageBox(message);
+		if (dialog) errorMessageBox(message);
 	}
 
 	public static void logWarning(String message) {
-		logWarning(null, message, Boolean.TRUE);
+		logWarning(null, message, true);
 	}
 	
 	public static void logWarning(Throwable e, String message) {
-		logWarning(e, message + ((e!=null)? "\n" + e.getMessage():""), Boolean.TRUE);
+		logWarning(e, message + ((e!=null)? "\n" + e.getMessage():""), true);
 	}
 
-	public static void logWarning(Throwable e, String message, Boolean dialog) {
+	public static void logWarning(Throwable e, String message, boolean dialog) {
 		log.log(new Status(Status.WARNING, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, e));
-		if (dialog.booleanValue()) warningMessageBox(message);
+		if (dialog) warningMessageBox(message);
 	}
 	
 	public static void logInfo(String message) {
 		logInfo(message, false);
 	}
 	
-	public static void logInfo(String message, Boolean dialog) {
+	public static void logInfo(String message, boolean dialog) {
 		log.log(new Status(Status.INFO, ConvertigoPlugin.PLUGIN_UNIQUE_ID, Status.OK, message, null));
-		if (dialog.booleanValue()) infoMessageBox(message);
+		if (dialog) infoMessageBox(message);
 	}
 	
 	public static void logDebug(String message) {
