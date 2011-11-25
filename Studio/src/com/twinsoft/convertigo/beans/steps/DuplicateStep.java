@@ -51,12 +51,23 @@ public class DuplicateStep extends Step {
 				try {
 					String sSourcePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
 					File sourceFile = new File(sSourcePath);
-					File destinationFile = new File(sourceFile.getParentFile(), evaluateCopyName(javascriptContext, scope));
-					String sDestinationFile = destinationFile.getAbsolutePath();
+					String sCopyName = evaluateCopyName(javascriptContext, scope);
 					
 					Engine.logBeans.info("Duplicating file or directory \"" + sSourcePath + "\" to \""
-							+ sDestinationFile + "\"...");
+							+ sCopyName + "\"...");
 
+					// Copy name must not contain path element (i.e. must be a single file name)
+					if (sCopyName.contains("/") || sCopyName.contains("\\")) {
+						throw new EngineException("Copy name must not contain path elements (i.e. must be a single file name): " + sCopyName);
+					}
+					
+					File destinationFile = new File(sourceFile.getParentFile(), sCopyName);
+					String sDestinationFile = destinationFile.getAbsolutePath();
+
+					if (sourceFile.equals(destinationFile)) {
+						throw new EngineException("Unable to duplicate with the same name: " + sCopyName);
+					}
+					
 					if (!sourceFile.exists()) {
 						throw new EngineException("Source file or directory does not exist: " + sSourcePath);
 					}
