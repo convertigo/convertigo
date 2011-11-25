@@ -59,6 +59,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.util.QuickSort;
@@ -1087,7 +1088,7 @@ public class XSDUtils {
 				this.xsdURI = xsdURI;
 				this.baseURI = xsdURI.substring(0, xsdURI.lastIndexOf("/")+1);
 				
-				String targetNamespace = "http://www.convertigo.com/convertigo/projects/"+projectName;
+				String targetNamespace = Project.getProjectTargetNamespace(projectName);
 				Map<String, String> nameSpacesMap = GenericUtils.cast(new NamespaceMap());
 				
 				schemaCol = new XmlSchemaCollection();
@@ -1131,7 +1132,7 @@ public class XSDUtils {
 				String sTypes = sx.toString();
 				
 				// Create a new XmlSchema
-				String targetNamespace = "http://www.convertigo.com/convertigo/projects/"+projectName;
+				String targetNamespace = Project.getProjectTargetNamespace(projectName);
 				XmlSchemaCollection newSchemaCol = new XmlSchemaCollection();
 				newSchemaCol.setBaseUri(baseURI);
 				XmlSchema newSchema = new XmlSchema(targetNamespace, newSchemaCol);
@@ -1200,87 +1201,4 @@ public class XSDUtils {
 		}
 
 	}
-	
-/*
-	private static void test() {
-		try {
-			//String xsdPath = "C:\\Development\\Documentation\\projects\\BnppInfogreffe\\xsd\\v2_current\\Convertigo_encoded_ISO-8859-1\\";
-			//String xsdName = "Actes.xsd";
-			//XSD xsd = getXSD(xsdPath + xsdName);
-			
-			//String[] schemaTypes = xsd.getTypes();
-			//System.out.println(Arrays.asList(schemaTypes));
-			
-			//String xsdURI = "C:/Development/SVN/Convertigo4.4.3/tomcat/webapps/convertigo/projects/statsDB/statsDB_new.xsd";
-			//String projectName = "statsDB";
-			//XSD xsd = createXSD(projectName, xsdURI);
-			
-			//String xsdURI = "C:/Development/SVN/Convertigo4.4.3/tomcat/webapps/convertigo/projects/statsDB/statsDB.xsd";
-			String xsdURI = "C:/Development/SVN/Convertigo4.4.3/tomcat/webapps/convertigo/projects/HTTPTemplate/HTTPTemplate.xsd";
-			XSD xsd = getXSD(xsdURI);
-			Document xmlDom = xsd.generateDocumentXmlStructure();
-			String s = XMLUtils.prettyPrintDOM(xmlDom);
-			System.out.println(s);
-			
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
-	}
-	
-	private static void testAddNs() {
-		try {
-			String xsdURI = "C:/Development/SVN/Convertigo4/tomcat/webapps/convertigo/projects/SalesforceWS/SalesforceWS2.xsd";
-			XSD xsd = getXSD(xsdURI);
-			
-			HashMap<String, String> nsmap = new HashMap<String, String>();
-			nsmap.put("tns","urn:enterprise.soap.sforce.com");
-			nsmap.put("ens","urn:sobject.enterprise.soap.sforce.com");
-			nsmap.put("fns","urn:fault.enterprise.soap.sforce.com");
-			xsd.addNamespaces(nsmap);
-			xsd.save();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
-	}
-	
-	private static void testAddImports() {
-		try {
-			String xsdURI = "C:/Development/SVN/Convertigo4/tomcat/webapps/convertigo/projects/SalesforceWS/SalesforceWS2.xsd";
-			XSD xsd = getXSD(xsdURI);
-			
-			HashMap<String, String> immap = new HashMap<String, String>();
-			immap.put("urn:enterprise.soap.sforce.com", StringUtils.normalize("urn:enterprise.soap.sforce.com")+ ".xsd");
-			immap.put("urn:sobject.enterprise.soap.sforce.com",StringUtils.normalize("urn:sobject.enterprise.soap.sforce.com")+ ".xsd");
-			immap.put("urn:fault.enterprise.soap.sforce.com",StringUtils.normalize("urn:fault.enterprise.soap.sforce.com")+ ".xsd");
-			xsd.addImportObjects(immap);
-			xsd.save();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
-	}
-
-	private static void testLoadXSDwCDATA() {
-		try {
-			String xsdURI = "C:/Development/SVN/Cems/tomcat/webapps/convertigo/projects/ticket1101/cdata.xsd";
-			XSD xsd = getXSD(xsdURI);
-			xsd.writeTo("C:/Development/SVN/Cems/tomcat/webapps/convertigo/projects/ticket1101/cdata.bis.xsd");
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
-		
-	}
-	
-	public static void main(String[] args) {
-		//test();
-		//testAddNs();
-		//testAddImports();
-		//testLoadXSDwCDATA();
-	}
-*/
 }

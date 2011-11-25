@@ -398,7 +398,7 @@ public class WebServiceTranslator implements Translator {
 
             sb.setEncodingStyle("http://schemas.xmlsoap.org/soap/encoding/");
 
-        	String targetNameSpace = "http://www.convertigo.com/convertigo/projects/" + context.projectName;
+        	String targetNameSpace = context.project.getTargetNamespace();
 
         	se.addNamespaceDeclaration(context.projectName+"_ns", targetNameSpace);
             se.addNamespaceDeclaration("soapenc", "http://schemas.xmlsoap.org/soap/encoding/");

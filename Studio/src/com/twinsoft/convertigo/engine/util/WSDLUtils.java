@@ -76,6 +76,7 @@ import com.ibm.wsdl.extensions.soap.SOAPOperationImpl;
 import com.ibm.wsdl.util.xml.DOM2Writer;
 import com.ibm.wsdl.xml.WSDLReaderImpl;
 import com.ibm.wsdl.xml.WSDLWriterImpl;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 
@@ -122,7 +123,7 @@ public class WSDLUtils {
 			this.definition = new WSDLReaderImpl().readWSDL(wsdlURI);
 			
 			String targetNamespace = definition.getTargetNamespace();
-			String projectName = targetNamespace.replaceFirst("http://www.convertigo.com/convertigo/projects/", "");
+			String projectName = wsdlURI.substring(wsdlURI.lastIndexOf("/")+1,wsdlURI.indexOf("."));
 			Service service = definition.getService(new QName(targetNamespace, projectName));
 			if (service != null) {
 				try {
@@ -396,7 +397,7 @@ public class WSDLUtils {
 		 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		 */
 		private void create(String projectName, String wsdlURI, String wsdlStyle) throws Exception {
-			String targetNamespace = "http://www.convertigo.com/convertigo/projects/"+projectName;
+			String targetNamespace = Project.getProjectTargetNamespace(projectName);
 			this.wsdlURI = wsdlURI;
 			this.definition = new DefinitionImpl();
 			this.wsdlStyle = wsdlStyle.equals("") ? WSDL_STYLE_DOC:wsdlStyle;
@@ -1118,135 +1119,4 @@ public class WSDLUtils {
 			return nsmap;
 		}
 	}
-	
-/*
-	private static void testCreateWSDL() {
-		String projectName = "statsDB";
-		String operationName = "Stats01";
-		try {
-			WSDL wsdl = createWSDL(projectName, "C:/Development/SVN/Convertigo4.4.3/tomcat/webapps/convertigo/projects/statsDB/statsDB.wsdl");
-			
-			//WSDL wsdl = getWSDL("C:/Development/SVN/Convertigo4.4.3/tomcat/webapps/convertigo/projects/statsDB/statsDB.wsdl");
-			wsdl.addOperation(projectName, operationName);
-			wsdl.save();
-			
-		} catch (Exception e) {
-			Engine.logEngine.error("Unexpected exception", e);
-		}
-	}
-	
-	private static void testImportWSDL() {
-		try {
-			WSDL wsdl = getWSDL("http://localhost:18080/convertigo/projects/statsDB/.wsl?WSDL");
-			Definition definition = wsdl.getDefinition();
-			if (definition != null) {
-				System.out.println("--------------------------------------------------");
-				// Get types
-				Types types = definition.getTypes();
-				Iterator exs = types.getExtensibilityElements().iterator();
-				while (exs.hasNext()) {
-					ExtensibilityElement ee = (ExtensibilityElement)exs.next();
-					if (ee instanceof Schema) {
-						Schema schema = (Schema)ee;
-						
-						XmlSchemaCollection schemaCol = new XmlSchemaCollection();
-						schemaCol.setBaseUri(definition.getDocumentBaseURI());
-						schemaCol.read(schema.getElement());
-						
-						HashMap options = new HashMap();
-						options.put(OutputKeys.OMIT_XML_DECLARATION, "no");
-						options.put(OutputKeys.INDENT, "yes");
-
-						XmlSchema[] schemas = schemaCol.getXmlSchemas();
-						for (int i=0; i<schemas.length; i++) {
-							XmlSchema xmlSchema = schemas[i];
-							try {
-								String uri = xmlSchema.getSourceURI();
-								System.out.println("\nDebug XMLSchema ("+ xmlSchema.toString() + ") " + uri +":");
-								//xmlSchema.write(System.out, options);
-								if (uri != null) {
-									SchemaTypeLoader loader = XmlBeans.loadXsd(new XmlObject[] { XmlObject.Factory.parse(new URL(uri))}, new XmlOptions());
-									SchemaType t = loader.findDocumentType(new QName("http://www.convertigo.com/convertigo/projects/statsDB", "Stats01"));
-									System.out.println("Type=" + t.toString());
-								}
-							}
-							catch (Exception e) {
-								Engine.logEngine.error("Unexpected exception", e);
-							}
-						}
-					}
-				}
-				
-				System.out.println("--------------------------------------------------");
-				// Get service
-				Service service = (Service)definition.getServices().values().iterator().next();
-				System.out.println("Service: " + service.getQName().getLocalPart());
-				
-				// Get service ports
-				Iterator ports = service.getPorts().values().iterator();
-				while (ports.hasNext()) {
-					System.out.println("--------------------------------------------------");
-					
-					Port port = (Port)ports.next();
-					System.out.println("Port: " + port.getName());
-					
-					Binding binding = port.getBinding();
-					System.out.println("Binding: " + binding.getQName().getLocalPart());
-					
-					PortType portType = binding.getPortType();
-					System.out.println("PortType: " + portType.getQName().getLocalPart());
-					
-					//Iterator operations = binding.getBindingOperations().iterator();
-					//while (operations.hasNext()) {
-					//	BindingOperation bindingOperation = (BindingOperation)operations.next();
-					//	System.out.println("Operation: " + bindingOperation.getName());
-					//}
-
-					Iterator operations = portType.getOperations().iterator();
-					while (operations.hasNext()) {
-						Operation operation = (Operation)operations.next();
-						String opname = operation.getName();
-						System.out.println("Operation: " + opname);
-						
-						BindingOperation bindingOperation = binding.getBindingOperation(opname, null, null);
-						Iterator exelems = bindingOperation.getExtensibilityElements().iterator();
-						while (exelems.hasNext()) {
-							ExtensibilityElement ee = (ExtensibilityElement)exelems.next();
-							if (ee instanceof SOAPOperation)
-								System.out.println("SOAP action: " + ((SOAPOperation)ee).getSoapActionURI());
-						}
-						
-						Input input = operation.getInput();
-						Message message = input.getMessage();
-						System.out.println("Input: " + message.getQName().getLocalPart());
-
-						Iterator parts = message.getParts().values().iterator();
-						while (parts.hasNext()) {
-							Part part = (Part)parts.next();
-							System.out.println("Part: " + part.getName() + ":" + part.getElementName() + ":" + part.getTypeName());
-						}
-					}
-				}
-			}
-			
-		} catch (Exception e) {
-			Engine.logEngine.error("Unexpected exception", e);
-		}
-	}
-
-	private static void testDumpSchemas(String wsdlUri, String schemasDir) {
-		try {
-			WSDL wsdl = getWSDL(wsdlUri);
-			wsdl.dumpSchemas(schemasDir);
-		} catch (Exception e) {
-			Engine.logEngine.error("Unexpected exception", e);
-		}
-	}
-
-	public static void main(String[] args) {
-		// testCreateWSDL();
-		//testImportWSDL();
-		//testDumpSchemas("http://localhost:18080/convertigo/enterprise.wsdl","C:/Temp/Schemas");
-	}
-*/
 }
