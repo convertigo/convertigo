@@ -622,12 +622,13 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			if (databaseObject instanceof Project) {
 				makeProjectReplacements(true, (String)oldValue, (String)newValue);
 			}
+			else if (databaseObject instanceof Connector) {
+				String projectName = databaseObject.getProject().getName();
+				makeConnectorReplacements(true, projectName, (String)oldValue, (String)newValue);
+				makeConnectorReplacements(false, projectName, (String)oldValue, (String)newValue);
+			}
 			if (databaseObject.getProject().getName().equals(getName())) {
-				if (databaseObject instanceof Connector) {
-					makeConnectorReplacements(true, (String)oldValue, (String)newValue);
-					makeConnectorReplacements(false, (String)oldValue, (String)newValue);
-				}
-				else if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
+				if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
 					makeRequestableObjectReplacements(true, (RequestableObject)databaseObject, (String)oldValue, (String)newValue);
 					makeRequestableObjectReplacements(false, (RequestableObject)databaseObject, (String)oldValue, (String)newValue);
 				}
@@ -710,9 +711,8 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		}
 	}
 
-	private void makeConnectorReplacements(boolean inXsd, String oldValue, String newValue) {
-		String projectName = getName();
-		String filePath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + (inXsd ? ".temp.xsd":".temp.wsdl");
+	private void makeConnectorReplacements(boolean inXsd, String projectName, String oldValue, String newValue) {
+		String filePath = Engine.PROJECTS_PATH + "/" + getName() + "/" + getName() + (inXsd ? ".temp.xsd":".temp.wsdl");
 		File file = new File(filePath);
 		if (file.exists()) {
 			try {
@@ -738,7 +738,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					hasBeenModified(true);
 			}
 			catch (IOException e) {
-				ConvertigoPlugin.logInfo("Error updating "+ (inXsd ? "xsd":"wsdl") +" file for project '" + projectName + "'");
+				ConvertigoPlugin.logInfo("Error updating "+ (inXsd ? "xsd":"wsdl") +" file for project '" + getName() + "'");
 			}
 		}
 	}
