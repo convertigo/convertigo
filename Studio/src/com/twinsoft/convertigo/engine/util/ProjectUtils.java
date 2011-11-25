@@ -494,7 +494,7 @@ public class ProjectUtils {
 	
 	public static void addXSDFileImport(XSD xsd, String projectName, String targetProjectName) throws Exception {
 		String projectNamespace = targetProjectName+"_ns";
-		String projectTargetNamespace = "http://www.convertigo.com/convertigo/projects/"+targetProjectName;
+		String projectTargetNamespace = Project.getProjectTargetNamespace(targetProjectName);
 		String projectLocation = "../"+targetProjectName+"/"+targetProjectName+".xsd";
 		
 		HashMap<String, String> nsmap = new HashMap<String, String>();

@@ -52,6 +52,17 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	public static final String WSDL_STYLE_DOC = WSDLUtils.WSDL_STYLE_DOC;
 	public static final String WSDL_STYLE_RPC = WSDLUtils.WSDL_STYLE_RPC;
 	
+	public final static String CONVERTIGO_PROJECTS_NAMESPACEURI = "http://www.convertigo.com/convertigo/projects/";
+	
+	public static String getProjectTargetNamespace(String projectName) {
+		try {
+			Project p = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+			return p.getTargetNamespace();
+		} catch (EngineException e) {
+			return CONVERTIGO_PROJECTS_NAMESPACEURI + projectName;
+		}
+	}
+	
     /**
      * Construct a new Project object.
      */
@@ -128,6 +139,12 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	 */
 	private boolean schemaInline = true;
 	
+	/** 
+	 * The namespace URI
+	 */
+	private String namespaceUri = "";
+	
+	
     public int getHttpSessionTimeout() {
         return httpSessionTimeout;
     }
@@ -166,6 +183,27 @@ public class Project extends DatabaseObject implements ITagsProperty {
 		this.schemaInline = schemaInline;
 	}
 
+	/**
+	 * @return the namespaceUri
+	 */
+	public String getNamespaceUri() {
+		return namespaceUri;
+	}
+
+	/**
+	 * @param namespaceUri the namespaceUri to set
+	 */
+	public void setNamespaceUri(String namespaceUri) {
+		this.namespaceUri = namespaceUri;
+	}
+
+	public String getTargetNamespace() {
+		String targetNamespace = getNamespaceUri();
+		if (targetNamespace.equals(""))
+			targetNamespace = CONVERTIGO_PROJECTS_NAMESPACEURI + name;
+		return targetNamespace;
+	}
+	
 	@Override
     public void add(DatabaseObject databaseObject) throws EngineException {
 		if (databaseObject instanceof Connector)

@@ -39,7 +39,7 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[4];
+			properties = new PropertyDescriptor[5];
 			
 			properties[0] = new PropertyDescriptor("browserDefinitions", beanClass, "getBrowserDefinitions", "setBrowserDefinitions");
 			properties[0].setExpert(true);
@@ -64,6 +64,10 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			properties[3].setExpert(true);
 			properties[3].setValue(BLACK_LIST_NAME,true);
 			
+			properties[4] = new PropertyDescriptor("namespaceUri", beanClass, "getNamespaceUri", "setNamespaceUri");
+			properties[4].setDisplayName(getExternalizedString("property.namespaceUri.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.namespaceUri.short_description"));
+			properties[4].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

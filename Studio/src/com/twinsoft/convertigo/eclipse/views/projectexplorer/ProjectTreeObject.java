@@ -519,6 +519,17 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					updateWebServiceStyle();
 				}
 			}
+			// Case namespaceUri of a project has changed
+			else if (propertyName.equals("namespaceUri")) {
+				// Makes replacements in XSD and WSDL files
+				Object oldValue = treeObjectEvent.oldValue;
+				Object newValue = treeObjectEvent.newValue;
+				if (oldValue.equals("")) oldValue = Project.CONVERTIGO_PROJECTS_NAMESPACEURI + databaseObject.getName();
+				if (newValue.equals("")) newValue = Project.CONVERTIGO_PROJECTS_NAMESPACEURI + databaseObject.getName();
+				
+				makeTargetNamespaceReplacements(true, (String)oldValue, (String)newValue);
+				makeTargetNamespaceReplacements(false, (String)oldValue, (String)newValue);
+			}
 			// Case of a requestable changed its WS exposition
 			else if (propertyName.equals("publicMethod")) {
 				if (databaseObject.getProject().getName().equals(getName())) {
@@ -613,19 +624,10 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			}
 			if (databaseObject.getProject().getName().equals(getName())) {
 				if (databaseObject instanceof Connector) {
-					//makeReplacements(true, null, (String)oldValue, (String)newValue);
-					//makeReplacements(false, null, (String)oldValue, (String)newValue);
 					makeConnectorReplacements(true, (String)oldValue, (String)newValue);
 					makeConnectorReplacements(false, (String)oldValue, (String)newValue);
 				}
 				else if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
-					//String connectorName = "";
-					//if (databaseObject instanceof Transaction) {
-					//	Connector connector = ((Transaction)databaseObject).getConnector();
-					//	connectorName = connector.getName();
-					//}
-					//makeReplacements(true, connectorName, (String)oldValue, (String)newValue);
-					//makeReplacements(false, connectorName, (String)oldValue, (String)newValue);
 					makeRequestableObjectReplacements(true, (RequestableObject)databaseObject, (String)oldValue, (String)newValue);
 					makeRequestableObjectReplacements(false, (RequestableObject)databaseObject, (String)oldValue, (String)newValue);
 				}
@@ -641,6 +643,38 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		}
 	}
 	
+	private void makeTargetNamespaceReplacements(boolean inXsd, String oldValue, String newValue) {
+		String projectName = getName();
+		String filePath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + (inXsd ? ".temp.xsd":".temp.wsdl");
+		File file = new File(filePath);
+		if (file.exists()) {
+			try {
+				String line;
+				StringBuffer sb = new StringBuffer();
+				boolean bFound = false;
+				
+				BufferedReader br = new BufferedReader(new FileReader(filePath));
+				while((line = br.readLine()) != null) {
+					if (!bFound) bFound = line.indexOf(oldValue) != -1;
+					line = line.replaceAll("targetNamespace=\""+oldValue+"\"", "targetNamespace=\""+newValue+"\"");
+					line = line.replaceAll("_ns=\""+oldValue+"\"", "_ns=\""+newValue+"\"");
+					sb.append(line+"\n");
+				}
+				br.close();
+				
+				BufferedWriter out= new BufferedWriter(new FileWriter(filePath));
+				out.write(sb.toString());
+				out.close();
+				
+				if (bFound && !getModified())
+					hasBeenModified(true);
+			}
+			catch (IOException e) {
+				ConvertigoPlugin.logInfo("Error updating "+ (inXsd ? "xsd":"wsdl") +" file for project '" + projectName + "'");
+			}
+		}
+	}
+	
 	private void makeProjectReplacements(boolean inXsd, String oldValue, String newValue) {
 		String projectName = getName();
 		String filePath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + (inXsd ? ".temp.xsd":".temp.wsdl");
@@ -649,10 +683,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			try {
 				String line;
 				StringBuffer sb = new StringBuffer();
+				boolean bFound = false;
 				
 				BufferedReader br = new BufferedReader(new FileReader(filePath));
 				while((line = br.readLine()) != null) {
-					//line = line.replaceAll("=\""+oldValue+".temp.xsd", "=\""+newValue+".temp.xsd");
+					if (!bFound) bFound = line.indexOf(oldValue) != -1;
 					line = line.replaceAll("/"+oldValue, "/"+newValue);
 					line = line.replaceAll("xmlns:"+oldValue+"_ns=\"", "xmlns:"+newValue+"_ns=\"");
 					line = line.replaceAll("=\""+oldValue+"_ns:", "=\""+newValue+"_ns:");
@@ -663,6 +698,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				BufferedWriter out= new BufferedWriter(new FileWriter(filePath));
 				out.write(sb.toString());
 				out.close();
+				
+				if (bFound && !getModified())
+					hasBeenModified(true);
 			}
 			catch (IOException e) {
 				ConvertigoPlugin.logInfo("Error updating "+ (inXsd ? "xsd":"wsdl") +" file for project '" + projectName + "'");
@@ -678,9 +716,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			try {
 				String line;
 				StringBuffer sb = new StringBuffer();
+				boolean bFound = false;
 				
 				BufferedReader br = new BufferedReader(new FileReader(filePath));
 				while((line = br.readLine()) != null) {
+					if (!bFound) bFound = line.indexOf(oldValue) != -1;
 					line = line.replaceAll("=\""+oldValue+"__", "=\""+newValue+"__");
 					line = line.replaceAll("=\""+projectName+"?"+oldValue+"__", "=\""+projectName+"?"+newValue+"__");
 					line = line.replaceAll("=\""+projectName+"_ns:"+oldValue+"__", "=\""+projectName+"_ns:"+newValue+"__");
@@ -691,6 +731,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				BufferedWriter out= new BufferedWriter(new FileWriter(filePath));
 				out.write(sb.toString());
 				out.close();
+				
+				if (bFound && !getModified())
+					hasBeenModified(true);
 			}
 			catch (IOException e) {
 				ConvertigoPlugin.logInfo("Error updating "+ (inXsd ? "xsd":"wsdl") +" file for project '" + projectName + "'");
@@ -706,10 +749,12 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			try {
 				String line;
 				StringBuffer sb = new StringBuffer();
+				boolean bFound = false;
 				
 				BufferedReader br = new BufferedReader(new FileReader(filePath));
 				while((line = br.readLine()) != null) {
 					String prefix = (requestable instanceof Sequence ? "":((Transaction)requestable).getConnector().getName() + "__");
+					if (!bFound) bFound = line.indexOf(prefix + oldValue) != -1;
 					line = line.replaceAll("=\""+ prefix + oldValue, "=\""+ prefix + newValue);
 					line = line.replaceAll("=\""+projectName+"?"+ prefix + oldValue, "=\""+projectName+"?"+ prefix + newValue);
 					line = line.replaceAll("=\""+projectName+"_ns:"+ prefix + oldValue, "=\""+projectName+"_ns:"+ prefix + newValue);
@@ -719,7 +764,10 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				
 				BufferedWriter out= new BufferedWriter(new FileWriter(filePath));
 				out.write(sb.toString());
-				out.close();				
+				out.close();
+				
+				if (bFound && !getModified())
+					hasBeenModified(true);
 			}
 			catch (IOException e) {
 				ConvertigoPlugin.logInfo("Error updating "+ (inXsd ? "xsd":"wsdl") +" file for project '" + projectName + "'");

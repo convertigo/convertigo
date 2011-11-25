@@ -236,7 +236,8 @@ public class WebServiceServlet extends GenericServlet {
 											}
 										}
 										
-										if (schema.indexOf("targetNamespace=\"http://www.convertigo.com/convertigo/projects/"+projectName+"\"")!=-1) {
+										String projectTargetNamespace = project.getTargetNamespace();
+										if (schema.indexOf("targetNamespace=\""+projectTargetNamespace+"\"")!=-1) {
 											z = schema.indexOf("<"+prefix+"complexType ");
 											if (z != -1) {
 												schema = schema.substring(0,z) + types + schema.substring(z);
@@ -269,7 +270,7 @@ public class WebServiceServlet extends GenericServlet {
     	
     	String encoding = "UTF-8";
     	String projectName = project.getName();
-    	String targetNameSpace = "http://www.convertigo.com/convertigo/projects/" + projectName;
+    	String targetNameSpace = project.getTargetNamespace();
     	
         String wsdl = "";
 		try {
