@@ -627,12 +627,13 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				makeConnectorReplacements(true, projectName, (String)oldValue, (String)newValue);
 				makeConnectorReplacements(false, projectName, (String)oldValue, (String)newValue);
 			}
+			else if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
+				String projectName = databaseObject.getProject().getName();
+				makeRequestableObjectReplacements(true, projectName, (RequestableObject)databaseObject, (String)oldValue, (String)newValue);
+				makeRequestableObjectReplacements(false, projectName, (RequestableObject)databaseObject, (String)oldValue, (String)newValue);
+			}
 			if (databaseObject.getProject().getName().equals(getName())) {
-				if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
-					makeRequestableObjectReplacements(true, (RequestableObject)databaseObject, (String)oldValue, (String)newValue);
-					makeRequestableObjectReplacements(false, (RequestableObject)databaseObject, (String)oldValue, (String)newValue);
-				}
-				else if (databaseObject instanceof RequestableVariable) {
+				if (databaseObject instanceof RequestableVariable) {
 					RequestableObject requestable = (RequestableObject)((RequestableVariable)databaseObject).getParent();
 					try {
 						String xsdTypes = requestable.generateXsdTypes(null, false);
@@ -742,9 +743,8 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		}
 	}
 	
-	private void makeRequestableObjectReplacements(boolean inXsd, RequestableObject requestable, String oldValue, String newValue) {
-		String projectName = getName();
-		String filePath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + (inXsd ? ".temp.xsd":".temp.wsdl");
+	private void makeRequestableObjectReplacements(boolean inXsd, String projectName, RequestableObject requestable, String oldValue, String newValue) {
+		String filePath = Engine.PROJECTS_PATH + "/" + getName() + "/" + getName() + (inXsd ? ".temp.xsd":".temp.wsdl");
 		File file = new File(filePath);
 		if (file.exists()) {
 			try {
@@ -771,7 +771,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					hasBeenModified(true);
 			}
 			catch (IOException e) {
-				ConvertigoPlugin.logInfo("Error updating "+ (inXsd ? "xsd":"wsdl") +" file for project '" + projectName + "'");
+				ConvertigoPlugin.logInfo("Error updating "+ (inXsd ? "xsd":"wsdl") +" file for project '" + getName() + "'");
 			}
 		}
 	}
