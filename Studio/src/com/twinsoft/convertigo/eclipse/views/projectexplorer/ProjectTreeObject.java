@@ -657,6 +657,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				while((line = br.readLine()) != null) {
 					if (!bFound) bFound = line.indexOf(oldValue) != -1;
 					line = line.replaceAll("targetNamespace=\""+oldValue+"\"", "targetNamespace=\""+newValue+"\"");
+					line = line.replaceAll("namespace=\""+oldValue+"\"", "namespace=\""+newValue+"\"");
 					line = line.replaceAll("_ns=\""+oldValue+"\"", "_ns=\""+newValue+"\"");
 					sb.append(line+"\n");
 				}
