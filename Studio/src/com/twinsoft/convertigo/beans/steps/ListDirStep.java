@@ -48,7 +48,7 @@ public class ListDirStep extends Step {
 
 	public ListDirStep() {
 		super();
-		output = true;
+		output = false;
 		xml = true;
 	}
 
