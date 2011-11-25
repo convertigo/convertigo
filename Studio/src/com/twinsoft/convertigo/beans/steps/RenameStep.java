@@ -14,9 +14,6 @@ import com.twinsoft.convertigo.engine.EngineException;
 
 public class RenameStep extends Step {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -2873578590344942963L;
 
 	private String sourcePath = "";
@@ -51,62 +48,66 @@ public class RenameStep extends Step {
 			if (super.stepExcecute(javascriptContext, scope)) {
 				try {
 					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
+					String newFileName = evaluateNewName(javascriptContext, scope);
+					
+					Engine.logBeans.info("Renaming file or directory \"" + sourceFilePath + "\" to \""
+							+ newFileName + "\"...");
+
 					File sourceFile = new File(sourceFilePath);
 					if (!sourceFile.exists()) {
-						throw new Exception("Source file or directory does not exist: " + sourceFilePath);
+						throw new EngineException("Source file or directory does not exist: " + sourceFilePath);
 					}
 
-					String newFileName = evaluateNewName(javascriptContext, scope);
 					if (newFileName.length() == 0) {
-						throw new Exception("Please fill the New name property field.");
+						throw new EngineException("Please fill the New name property field.");
 					}
 
-					File destinationFile = new File(sourceFile.getParentFile().getCanonicalPath() + "/" + newFileName);
+					try {
+						File destinationFile = new File(sourceFile.getParentFile().getCanonicalPath() + "/"
+								+ newFileName);
 
-					if (sourceFile.isDirectory()) {
-						if (destinationFile.exists() && !overwrite) {
-							throw new Exception(
-									"The destination directory "
-											+ destinationFile.getAbsolutePath()
-											+ " already exists.\n"
-											+ " Please set the \"Overwrite\" property to true if you want to overwrite it.");
-						} else if (destinationFile.exists() && overwrite) {
-							FileUtils.deleteDirectory(destinationFile);
-							FileUtils.moveDirectory(sourceFile, destinationFile);
-							Engine.logBeans.info("Directory \"" + sourceFilePath + "\" renamed to \""
-									+ newFileName + "\".");
-						} else if (!destinationFile.exists()) {
-							FileUtils.moveDirectory(sourceFile, destinationFile);
-							Engine.logBeans.info("Directory \"" + sourceFilePath + "\" renamed to \""
-									+ newFileName + "\".");
+						if (sourceFile.isDirectory()) {
+							if (destinationFile.exists() && !overwrite) {
+								throw new EngineException(
+										"The destination directory "
+												+ destinationFile.getAbsolutePath()
+												+ " already exists.\n"
+												+ " Please set the \"Overwrite\" property to true if you want to overwrite it.");
+							} else if (destinationFile.exists() && overwrite) {
+								FileUtils.deleteDirectory(destinationFile);
+								FileUtils.moveDirectory(sourceFile, destinationFile);
+								Engine.logBeans.info("Directory \"" + sourceFilePath + "\" renamed to \""
+										+ newFileName + "\".");
+							} else if (!destinationFile.exists()) {
+								FileUtils.moveDirectory(sourceFile, destinationFile);
+								Engine.logBeans.info("Directory \"" + sourceFilePath + "\" renamed to \""
+										+ newFileName + "\".");
+							}
+						} else if (sourceFile.isFile()) {
+							if (destinationFile.exists() && !overwrite) {
+								throw new EngineException(
+										"The destination file "
+												+ destinationFile.getAbsolutePath()
+												+ " already exists.\n"
+												+ " Please set the \"Overwrite\" property to true if you want to overwrite it.");
+							} else if (destinationFile.exists() && overwrite) {
+								destinationFile.delete();
+								FileUtils.moveFile(sourceFile, destinationFile);
+								Engine.logBeans.info("File \"" + sourceFilePath + "\" renamed to \""
+										+ newFileName + "\".");
+							} else if (!destinationFile.exists()) {
+								FileUtils.moveFile(sourceFile, destinationFile);
+								Engine.logBeans.info("File \"" + sourceFilePath + "\" renamed to \""
+										+ newFileName + "\".");
+							}
 						}
-					} else if (sourceFile.isFile()) {
-						if (destinationFile.exists() && !overwrite) {
-							throw new Exception(
-									"The destination file "
-											+ destinationFile.getAbsolutePath()
-											+ " already exists.\n"
-											+ " Please set the \"Overwrite\" property to true if you want to overwrite it.");
-						} else if (destinationFile.exists() && overwrite) {
-							destinationFile.delete();
-							FileUtils.moveFile(sourceFile, destinationFile);
-							Engine.logBeans.info("File \"" + sourceFilePath + "\" renamed to \"" + newFileName
-									+ "\".");
-						} else if (!destinationFile.exists()) {
-							FileUtils.moveFile(sourceFile, destinationFile);
-							Engine.logBeans.info("File \"" + sourceFilePath + "\" renamed to \"" + newFileName
-									+ "\".");
-						}
+					} catch (IOException e) {
+						throw new EngineException("Unablie to rename the file or directory \""
+								+ sourceFilePath + "\" renamed to \"" + newFileName + "\".", e);
 					}
-				} catch (IOException e) {
+				} catch (EngineException e) {
 					setErrorStatus(true);
-					Engine.logBeans.error("An error occured while renaming the file or directory.", e);
-				} catch (NullPointerException e) {
-					setErrorStatus(true);
-					Engine.logBeans.error("An error occured while creating the file.", e);
-				} catch (Exception e) {
-					setErrorStatus(true);
-					Engine.logBeans.error("An error occured while renaming the file or directory.", e);
+					throw e;
 				}
 				return true;
 			}

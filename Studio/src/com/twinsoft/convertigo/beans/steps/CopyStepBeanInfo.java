@@ -19,7 +19,7 @@ public class CopyStepBeanInfo extends MySimpleBeanInfo{
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");	          
 		
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[3];
 			
 			properties[0] = new PropertyDescriptor("sourcePath", beanClass, "getSourcePath", "setSourcePath");
 			properties[0].setExpert(true);
@@ -32,6 +32,11 @@ public class CopyStepBeanInfo extends MySimpleBeanInfo{
 			properties[1].setDisplayName(getExternalizedString("property.destinationPath.display_name"));
 	        properties[1].setShortDescription(getExternalizedString("property.destinationPath.short_description"));    
 	        properties[1].setValue("scriptable", Boolean.TRUE);
+	        
+	        properties[2] = new PropertyDescriptor("overwrite", beanClass, "isOverwrite", "setOverwrite");
+			properties[2].setExpert(true);
+			properties[2].setDisplayName(getExternalizedString("property.overwrite.display_name"));
+	        properties[2].setShortDescription(getExternalizedString("property.overwrite.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

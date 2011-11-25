@@ -40,33 +40,43 @@ public class CreateDirectoryStep extends Step {
 		if (isEnable) {
 			if (super.stepExcecute(javascriptContext, scope)) {
 				try {
+					boolean directoryCreated = false;
+					
 					String destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(javascriptContext, scope));
 					File destinationFile = new File(destinationFilePath);
 					if (destinationFile.exists() && destinationFile.isFile()) {
-						throw new Exception("Destination already exists and is a file: " + destinationFilePath);
+						throw new EngineException("Destination already exists and is a file: " + destinationFilePath);
 					}
-					
-					boolean directoryCreated = false;
 					
 					if (isCreateNonExistentParentDirectories()) {
 						directoryCreated = destinationFile.mkdirs();
-						Engine.logBeans.info("Directory \"" + destinationFilePath + "\" has been created with parent directories.");
+
+						if (!destinationFile.exists()) {
+							throw new EngineException("Unable to create the directory or one of its parents: " + destinationFilePath);
+						}
+
+						if (directoryCreated) Engine.logBeans.info("Directory \"" + destinationFilePath + "\" has been created with parent directories.");
+						else Engine.logBeans.info("Directory \"" + destinationFilePath + "\" already exists.");
 					}
 					else {
 						directoryCreated = destinationFile.mkdir();
-						Engine.logBeans.info("Directory \"" + destinationFilePath + "\" has been created.");
+						
+						if (!destinationFile.exists()) {
+							throw new EngineException("Unable to create the directory: " + destinationFilePath);
+						}
+
+						if (directoryCreated) Engine.logBeans.info("Directory \"" + destinationFilePath + "\" has been created.");
+						else Engine.logBeans.info("Directory \"" + destinationFilePath + "\" already exists.");
 					}
 
-					if (!directoryCreated) {
-						throw new Exception("An error occured while creating the directory.");
-					}
-		        } catch (Exception e) {
+					return true;
+				} catch (EngineException e) {
 					setErrorStatus(true);
-		            Engine.logBeans.error("An error occured while creating the directory.", e);
-				}					
-		        return true;
+					throw e;
+				}
 			}
 		}
+		
 		return false;
 	}
 
