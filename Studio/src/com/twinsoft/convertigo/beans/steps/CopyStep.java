@@ -1,6 +1,7 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.mozilla.javascript.Context;
@@ -17,6 +18,7 @@ public class CopyStep extends Step {
 
 	private String sourcePath = "";
 	private String destinationPath = "";
+	private boolean overwrite = false;
 
 	public CopyStep() {
 		super();
@@ -45,51 +47,82 @@ public class CopyStep extends Step {
 		if (isEnable) {
 			if (super.stepExcecute(javascriptContext, scope)) {
 				try {
-					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
-					File sourceFile = new File(sourceFilePath);
+					// Check source
+					String sSourcePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
+					File sourceFile = new File(sSourcePath);
+
+					String sDestinationPath = getAbsoluteFilePath(evaluateDestinationPath(javascriptContext,
+							scope));
+					
+					Engine.logBeans.info("File I/O step: " + getAction() + " file or directory \"" + sSourcePath
+							+ "\" to \"" + sDestinationPath + "\"...");
+
 					if (!sourceFile.exists()) {
-						throw new Exception("Source file or directory does not exist: " + sourceFilePath);
+						throw new EngineException("Source file or directory does not exist: " + sSourcePath);
 					}
 
-					String destinationFilePath = getAbsoluteFilePath(evaluateDestinationPath(
-							javascriptContext, scope));
-					File destinationFile = new File(destinationFilePath);
-
-					if (sourceFile.isDirectory()) {
-						if (destinationFile.exists()) {
-							// If the destination is an existing file, unable to
-							// perform the copy.
-							if (destinationFile.isFile()) {
-								throw new EngineException("Unable to copy the directory \"" + sourceFilePath
-										+ "\" inside the destination (\"" + destinationFilePath
-										+ "\": it is an existing file.");
-							}
+					// Check destination
+					File destinationPath = new File(sDestinationPath);
+					if (!destinationPath.exists()) {
+						throw new EngineException("Destination directory does not exist: " + sDestinationPath);
+					} else {
+						// The destination path must be a directory
+						if (!destinationPath.isDirectory()) {
+							throw new EngineException("Destination path is not a directory: "
+									+ sDestinationPath);
 						}
-						FileUtils.copyDirectory(sourceFile, destinationFile);
-						Engine.logBeans.info("Directory copied from \"" + sourceFilePath + "\" to \""
-								+ destinationFilePath + "\".");
-					} else if (sourceFile.isFile()) {
-						if (destinationFile.exists()) {
-							// If the destination is an existing directory, then
-							// we will copy the source file inside the
-							// destination directory with the same name.
-							if (destinationFile.isDirectory()) {
-								destinationFile = new File(destinationFilePath + "/" + sourceFile.getName());
-							}
-						}
-
-						FileUtils.copyFile(sourceFile, destinationFile);
-						Engine.logBeans.info("File copied from \"" + sourceFilePath + "\" to \""
-								+ destinationFilePath + "\".");
 					}
-				} catch (Exception e) {
+
+					destinationPath = new File(destinationPath, sourceFile.getName());
+
+					// Check the existence of the destination element to be
+					// created
+					if (destinationPath.exists()) {
+						if (overwrite) {
+							destinationPath.delete();
+						} else {
+							throw new EngineException(
+									"The destination \""
+											+ destinationPath.getAbsolutePath()
+											+ "\" already exists.\n"
+											+ " Please set the \"Overwrite\" property to true if you want to overwrite it.");
+						}
+					}
+
+					try {
+						if (sourceFile.isDirectory()) {
+							doActionForSourceDirectory(sourceFile, destinationPath);
+							Engine.logBeans.info("Directory copied from \"" + sSourcePath + "\" to \""
+									+ sDestinationPath + "\".");
+						} else if (sourceFile.isFile()) {
+							doActionForSourceFile(sourceFile, destinationPath);
+							Engine.logBeans.info("File copied from \"" + sSourcePath + "\" to \""
+									+ sDestinationPath + "\".");
+						}
+					} catch (IOException e) {
+						throw new EngineException("Unable to " + getAction() + "\"" + sSourcePath + "\" to \""
+								+ sDestinationPath + "\"", e);
+					}
+				} catch (EngineException e) {
 					setErrorStatus(true);
-					Engine.logBeans.error("An error occured while copying the file or directory.", e);
+					throw e;
 				}
 				return true;
 			}
 		}
 		return false;
+	}
+
+	protected String getAction() {
+		return "copy";
+	}
+
+	protected void doActionForSourceFile(File sourceFile, File destinationFile) throws IOException {
+		FileUtils.copyFile(sourceFile, destinationFile);
+	}
+
+	protected void doActionForSourceDirectory(File sourceFile, File destinationFile) throws IOException {
+		FileUtils.copyDirectory(sourceFile, destinationFile);
 	}
 
 	protected String getAbsoluteFilePath(String entry) throws EngineException {
@@ -131,5 +164,13 @@ public class CopyStep extends Step {
 
 	public void setDestinationPath(String destinationPath) {
 		this.destinationPath = destinationPath;
+	}
+
+	public void setOverwrite(boolean overwrite) {
+		this.overwrite = overwrite;
+	}
+
+	public boolean isOverwrite() {
+		return overwrite;
 	}
 }
