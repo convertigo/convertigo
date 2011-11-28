@@ -47,10 +47,6 @@ public class ConvertigoWorkbenchListener implements IWorkbenchListener {
 	public boolean preShutdown(IWorkbench workbench, boolean forced) {
 		ConvertigoPlugin.logDebug2("Workbench preShutdown");
 		ConvertigoPlugin.getDefault().setShuttingDown(true);
-		try {
-			ConvertigoPlugin.getDefault().getProjectExplorerView().closeAllProjects();
-		}
-		catch (ClassCastException e) {}
 		return true;
 	}
 	
