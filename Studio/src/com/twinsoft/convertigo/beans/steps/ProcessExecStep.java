@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
@@ -134,10 +135,14 @@ public class ProcessExecStep extends Step {
 
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
+		// Create step child nodes
+		final Node errorNode = stepNode.appendChild(doc.createElement("error"));
+		final Node outputNode = stepNode.appendChild(doc.createElement("output"));
+		final Node exitNode = stepNode.appendChild(doc.createElement("exit"));
+		
 		try {
 			// Environment parameters (name/value pairs)
 			String[] envp = null;
-			int i = 0;
 			if (envParameters.size() > 0) {
 				// Retrieve current environment parameters and overrides
 				Map<String, String> envmap = new HashMap<String, String>();
@@ -145,6 +150,7 @@ public class ProcessExecStep extends Step {
 				for (List<String> parameter : envParameters)
 					envmap.put(parameter.get(0), parameter.get(1));
 				// Fill parameters array
+				int i = 0;
 				envp = new String[envmap.size()];
 				for (Map.Entry<String, String> entry : envmap.entrySet()) 
 					envp[i++] = entry.getKey()+"="+entry.getValue();
@@ -161,12 +167,7 @@ public class ProcessExecStep extends Step {
 			String command = evaluated.toString();
 			
 			// Status exit code
-			String status = "";
-			
-			// Create step child nodes
-			final Node errorNode = stepNode.appendChild(doc.createElement("error"));
-			final Node outputNode = stepNode.appendChild(doc.createElement("output"));
-			final Node exitNode = stepNode.appendChild(doc.createElement("exit"));
+			String status = "-1";
 			
 			// Launch the process :
 			// if envp is null, current environment parameters are used
@@ -176,20 +177,24 @@ public class ProcessExecStep extends Step {
 			// Launch the stdout consumer thread
 			new Thread() {
 				public void run() {
+					BufferedReader reader = null;
+					String line, cdata = "";
 					try {
-						BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-						String line, cdata = "";
-						try {
-							while((line = reader.readLine()) != null) {
-								cdata += line + "\n";
-							}
-						} finally {
-							reader.close();
-							// Append data to the 'ouput' child node
-							outputNode.appendChild(outputNode.getOwnerDocument().createCDATASection(cdata));
+						reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+						while((line = reader.readLine()) != null) {
+							cdata += line + "\n";
 						}
-					} catch(Exception e) {
-						Engine.logBeans.warn("An error occured while executing process.", e);
+					}
+					catch(Exception e) {
+						//Engine.logBeans.warn("An error occured while executing process.", e);
+						errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(e.getMessage()));
+					}
+					finally {
+						try {
+							reader.close();
+						} catch (IOException e) {}
+						// Append data to the 'ouput' child node
+						outputNode.appendChild(outputNode.getOwnerDocument().createCDATASection(cdata));
 					}
 				}
 			}.start();
@@ -197,20 +202,24 @@ public class ProcessExecStep extends Step {
 			// Launch the stderr consumer thread
 			new Thread() {
 				public void run() {
+					BufferedReader reader = null;
+					String line, cdata = "";
 					try {
-						BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-						String line, cdata = "";
-						try {
-							while((line = reader.readLine()) != null) {
-								cdata += line + "\n";
-							}
-						} finally {
-							reader.close();
-							// Append data to the 'error' child node
-							errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(cdata));
+						reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+						while((line = reader.readLine()) != null) {
+							cdata += line + "\n";
 						}
-					} catch(Exception e) {
-						Engine.logBeans.warn("An error occured while executing process.", e);
+					}
+					catch(Exception e) {
+						//Engine.logBeans.warn("An error occured while executing process.", e);
+						errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(e.getMessage()));
+					}
+					finally {
+						try {
+							reader.close();
+						} catch (Exception e) {}
+						// Append data to the 'error' child node
+						errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(cdata));
 					}
 				}
 			}.start();
@@ -242,7 +251,8 @@ public class ProcessExecStep extends Step {
 		}
 		catch (Throwable t) {
 			setErrorStatus(true);
-			Engine.logBeans.error("An error occured while executing process.", t);
+			//Engine.logBeans.error("An error occured while executing process.", t);
+			errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(t.getMessage()));
 		}
 	}
 
