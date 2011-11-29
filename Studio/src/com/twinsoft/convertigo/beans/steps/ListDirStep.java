@@ -23,10 +23,7 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
-import java.text.DateFormat;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -118,7 +115,7 @@ public class ListDirStep extends Step {
 	            if (file.isFile() && !file.isHidden()) {
 	            	fileName = file.getName();
 	            	fileSize = String.valueOf(file.length());
-	            	fileLastModified = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault()).format(new Date(file.lastModified()));
+	            	fileLastModified = String.valueOf(file.lastModified());
 	            	
 	            	element = doc.createElement("file");
 	            	element.appendChild(doc.createTextNode(fileName));
@@ -160,7 +157,7 @@ public class ListDirStep extends Step {
 		stepTypeSchema += "\t\t\t\t<xsd:complexType>\n";
 		stepTypeSchema += "\t\t\t\t\t<xsd:simpleContent>\n";
 		stepTypeSchema += "\t\t\t\t\t\t<xsd:extension base=\"xsd:string\">\n";
-		stepTypeSchema += "\t\t\t\t\t\t\t<xsd:attribute name=\"lastModified\" type=\"xsd:string\" />\n";
+		stepTypeSchema += "\t\t\t\t\t\t\t<xsd:attribute name=\"lastModified\" type=\"xsd:long\" />\n";
 		stepTypeSchema += "\t\t\t\t\t\t\t<xsd:attribute name=\"size\" type=\"xsd:long\" />\n";
 		stepTypeSchema += "\t\t\t\t\t\t</xsd:extension>\n";
 		stepTypeSchema += "\t\t\t\t\t</xsd:simpleContent>\n";
