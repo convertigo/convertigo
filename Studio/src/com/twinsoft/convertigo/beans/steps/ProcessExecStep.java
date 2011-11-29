@@ -59,6 +59,9 @@ public class ProcessExecStep extends Step {
     /** Holds value for wait of process end */
     private boolean waitForProcessEnd = true;
     
+    /** Holds value of command line output charset */
+    private String commandCharset = "UTF-8";
+    
 	public ProcessExecStep() {
 		super();
 		xml = true;
@@ -106,6 +109,14 @@ public class ProcessExecStep extends Step {
 
 	public boolean isWaitForProcessEnd() {
 		return waitForProcessEnd;
+	}
+
+	public String getCommandCharset() {
+		return commandCharset;
+	}
+
+	public void setCommandCharset(String commandCharset) {
+		this.commandCharset = commandCharset;
 	}
 
 	@Override
@@ -274,7 +285,7 @@ public class ProcessExecStep extends Step {
 			String line, serror = "", sdata = "";
 			try {
 				InputStream in = bStdErr ? process.getErrorStream() : process.getInputStream();
-				reader = new BufferedReader(new InputStreamReader(in));
+				reader = new BufferedReader(commandCharset.equals("") ? new InputStreamReader(in) : new InputStreamReader(in,commandCharset));
 				while (bContinue && (line = reader.readLine()) != null) {
 					sdata += line + "\n";
 				}
