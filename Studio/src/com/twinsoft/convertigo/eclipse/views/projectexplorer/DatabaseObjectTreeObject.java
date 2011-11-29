@@ -29,6 +29,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.Vector;
 
 import org.eclipse.core.runtime.CoreException;
@@ -893,6 +894,14 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				if (propertyName.equals("handlerType")) {
 					if (!this.rename("on"+ (String)value, Boolean.FALSE))
 						return;
+				}
+			}
+			// Must check project's namespaceUri
+			else if (databaseObject instanceof Project) {
+				if (propertyName.equals("namespaceUri")) {
+					if (!"".equals(value)) {
+						new URL((String)value); // Check value is well formed
+					}
 				}
 			}
 			
