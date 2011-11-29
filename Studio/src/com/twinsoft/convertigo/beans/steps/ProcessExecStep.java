@@ -24,7 +24,7 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
@@ -135,6 +135,8 @@ public class ProcessExecStep extends Step {
 
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
+		ProcessStreamReaderThread stderrThread = null, stdoutThread = null;
+		
 		// Create step child nodes
 		final Node errorNode = stepNode.appendChild(doc.createElement("error"));
 		final Node outputNode = stepNode.appendChild(doc.createElement("output"));
@@ -174,55 +176,11 @@ public class ProcessExecStep extends Step {
 			// if dir is null, current execution directory is used
 			final Process process = Runtime.getRuntime().exec(command, envp, dir);
 			
-			// Launch the stdout consumer thread
-			new Thread() {
-				public void run() {
-					BufferedReader reader = null;
-					String line, cdata = "";
-					try {
-						reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-						while((line = reader.readLine()) != null) {
-							cdata += line + "\n";
-						}
-					}
-					catch(Exception e) {
-						//Engine.logBeans.warn("An error occured while executing process.", e);
-						errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(e.getMessage()));
-					}
-					finally {
-						try {
-							reader.close();
-						} catch (IOException e) {}
-						// Append data to the 'ouput' child node
-						outputNode.appendChild(outputNode.getOwnerDocument().createCDATASection(cdata));
-					}
-				}
-			}.start();
-
-			// Launch the stderr consumer thread
-			new Thread() {
-				public void run() {
-					BufferedReader reader = null;
-					String line, cdata = "";
-					try {
-						reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-						while((line = reader.readLine()) != null) {
-							cdata += line + "\n";
-						}
-					}
-					catch(Exception e) {
-						//Engine.logBeans.warn("An error occured while executing process.", e);
-						errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(e.getMessage()));
-					}
-					finally {
-						try {
-							reader.close();
-						} catch (Exception e) {}
-						// Append data to the 'error' child node
-						errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(cdata));
-					}
-				}
-			}.start();
+			// Create and launch process stream reader threads
+			stderrThread = new ProcessStreamReaderThread(process, errorNode, outputNode, true);
+			stdoutThread = new ProcessStreamReaderThread(process, errorNode, outputNode, false);
+			stderrThread.start();
+			stdoutThread.start();
 			
 			if (isWaitForProcessEnd()) {
 				// Launch a thread to handle sequence abortion
@@ -251,8 +209,14 @@ public class ProcessExecStep extends Step {
 		}
 		catch (Throwable t) {
 			setErrorStatus(true);
-			//Engine.logBeans.error("An error occured while executing process.", t);
 			errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(t.getMessage()));
+		}
+		finally {
+			try {
+				stderrThread.bContinue = false;
+				stdoutThread.bContinue = false;
+			}
+			catch (Exception e) {}
 		}
 	}
 
@@ -293,5 +257,47 @@ public class ProcessExecStep extends Step {
 		element.appendChild(wsdlDom.createElement("output"));
 		element.appendChild(wsdlDom.createElement("exit"));
 		return element;
+	}
+	
+	class ProcessStreamReaderThread extends Thread {
+		boolean bStdErr = false, bContinue = true;
+		Node errorNode, outputNode;
+		Process process;
+		public ProcessStreamReaderThread(final Process process, final Node errorNode, final Node outputNode, boolean bStdErr) {
+			this.process = process;
+			this.errorNode = errorNode;
+			this.outputNode = outputNode;
+			this.bStdErr = bStdErr;
+		}
+		public void run() {
+			BufferedReader reader = null;
+			String line, serror = "", sdata = "";
+			try {
+				InputStream in = bStdErr ? process.getErrorStream() : process.getInputStream();
+				reader = new BufferedReader(new InputStreamReader(in));
+				while (bContinue && (line = reader.readLine()) != null) {
+					sdata += line + "\n";
+				}
+			}
+			catch(Exception e) {
+				serror += e.getMessage();
+			}
+			finally {
+				try {
+					// Close reader
+					reader.close();
+					
+					// Append exception (if any) to the step's child node
+					errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(serror));
+					
+					// Append read data to the step's child node
+					if (bStdErr)
+						errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(sdata));
+					else
+						outputNode.appendChild(outputNode.getOwnerDocument().createCDATASection(sdata));
+				}
+				catch (Exception e) {}
+			}
+		}
 	}
 }
