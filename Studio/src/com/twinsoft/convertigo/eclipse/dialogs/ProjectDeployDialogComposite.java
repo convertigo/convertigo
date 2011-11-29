@@ -28,6 +28,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -71,8 +73,9 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 	public Label labelProgress = null;
 	public MessageBox messageBox = null;
 	public List list = null;
-	public ObjectOutputStream objectOutputStream = null;
-	
+	public ObjectOutputStream objectOutputStream = null;	
+	public Button okButton = null;
+
 	public static String messageList = "-- No deployment configuration saved --";
 	
 	public ProjectDeployDialogComposite(Composite parent, int style) {
@@ -92,7 +95,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
         String currentProjectName = ConvertigoPlugin.projectManager.currentProjectName;
         
         DeploymentConfiguration defaultDeploymentConfiguration = null;
-        
+
         try {
         	defaultDeploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.getDefault(currentProjectName);
         }
@@ -166,6 +169,12 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
         gridData1.grabExcessHorizontalSpace = true;
         convertigoServer = new Text(this, SWT.BORDER);
         convertigoServer.setLayoutData(gridData1);
+        
+        convertigoServer.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent e) {
+            	changeOkButtonState();
+            }
+          });
 
         createList(); 
         createConvertigoGroup();
@@ -197,7 +206,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		gridData4.grabExcessHorizontalSpace = true;
         progressBar = new ProgressBar(this, SWT.NONE);
         progressBar.setLayoutData(gridData4);
-
+        
         fillList();
 	}
 
@@ -251,6 +260,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 	            convertigoServer.setText(dc.getServer());
 	            assembleXsl.setSelection(dc.isBAssembleXsl());
 	            delButton.setEnabled(true);
+	            changeOkButtonState();
 			}
 		});
 		
@@ -288,6 +298,9 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 					}			
 					else {
 						clearDialog();
+			        	list.add(messageList);
+			        	delButton.setEnabled(false);
+			        	changeOkButtonState();
 					}
 					list.setRedraw(true);
 					list.redraw();
@@ -359,6 +372,23 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		convertigoAdminPassword.setText("Password");
 		convertigoPassword = new Text(convertigoGroup, SWT.BORDER | SWT.PASSWORD);
 		convertigoPassword.setLayoutData(gridData5);
+	}
+	
+	private void changeOkButtonState() {
+		if (okButton != null) {
+			okButton.setEnabled(false);
+			if (list.getSelectionIndex() != -1) {
+				okButton.setEnabled(true);
+			}
+			if (!("").equals(convertigoServer.getText())) {
+				okButton.setEnabled(true);
+			}
+		}
+	}
+
+	public void setOkButton(Button okButton) {
+		this.okButton = okButton;
+		changeOkButtonState();
 	}
 	
 }  //  @jve:decl-index=0:visual-constraint="10,10"
