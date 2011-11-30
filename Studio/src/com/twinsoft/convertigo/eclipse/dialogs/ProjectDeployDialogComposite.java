@@ -252,15 +252,17 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		
 		list.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent evt) {
-	            DeploymentConfiguration dc = ConvertigoPlugin.deploymentConfigurationManager.get(list.getSelection()[0]);
-	            convertigoAdmin.setText(dc.getUsername());
-	            convertigoPassword.setText(dc.getUserpassword());
-	            checkBox.setSelection(dc.isBHttps());
-	            checkTrustAllCertificates.setSelection(dc.isBTrustAllCertificates());
-	            convertigoServer.setText(dc.getServer());
-	            assembleXsl.setSelection(dc.isBAssembleXsl());
-	            delButton.setEnabled(true);
-	            changeOkButtonState();
+				if (list.getSelectionIndex() != -1 && !list.getItem(list.getSelectionIndex()).equals(messageList)) {
+		            DeploymentConfiguration dc = ConvertigoPlugin.deploymentConfigurationManager.get(list.getSelection()[0]);
+		            convertigoAdmin.setText(dc.getUsername());
+		            convertigoPassword.setText(dc.getUserpassword());
+		            checkBox.setSelection(dc.isBHttps());
+		            checkTrustAllCertificates.setSelection(dc.isBTrustAllCertificates());
+		            convertigoServer.setText(dc.getServer());
+		            assembleXsl.setSelection(dc.isBAssembleXsl());
+		            delButton.setEnabled(true);
+		            changeOkButtonState();
+				}
 			}
 		});
 		
