@@ -72,7 +72,13 @@ public class ScriptCellEditor extends TextCellEditor {
 	
 	private Font getFont() {
 		if (font == null) {
-			font = new Font(Display.getCurrent(), "lucida console", 12, SWT.NONE);
+			int fontSize;
+			try {
+				fontSize = Display.getCurrent().getSystemFont().getFontData()[0].getHeight();
+			} catch (Exception e) {
+				fontSize = 10;
+			}
+			font = new Font(Display.getCurrent(), "lucida console", fontSize, SWT.NONE);
 		}
 		return font;
 	}
