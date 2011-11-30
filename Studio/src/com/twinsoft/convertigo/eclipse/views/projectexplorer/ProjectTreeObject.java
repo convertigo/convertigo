@@ -236,7 +236,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	
 	            	int response = SWT.YES;
 	                if (bDialog) {
-	                	MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
+	                	MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
 	                	messageBox.setMessage("The project \""+ projectName +"\" has not been saved. Do you want to save your work now?");
 	                	response = messageBox.open();
 	                }
@@ -257,9 +257,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	                else if (response == SWT.NO) {
 	                	Engine.theApp.databaseObjectsManager.cacheRemoveObjects("/" + projectName);;
 	                    ret = true;
-	                }
-	                else if (response == SWT.CANCEL) {
-	                    ret = false;
 	                }
 	
 	            }
