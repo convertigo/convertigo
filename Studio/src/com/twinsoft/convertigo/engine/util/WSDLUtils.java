@@ -125,7 +125,7 @@ public class WSDLUtils {
 			String targetNamespace = definition.getTargetNamespace();
 			
 			int idx = wsdlURI.lastIndexOf(".temp.wsdl");
-			if (idx == 1) wsdlURI.lastIndexOf(".wsdl");
+			if (idx == -1) idx = wsdlURI.lastIndexOf(".wsdl");
 			String projectName = wsdlURI.substring(wsdlURI.lastIndexOf("/")+1, idx);
 			Service service = definition.getService(new QName(targetNamespace, projectName));
 			if (service != null) {
