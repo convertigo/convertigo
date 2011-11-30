@@ -100,6 +100,15 @@ public class RemoteAdmin {
 				httpClient.setHostConfiguration(hostConfiguration);	
 			} 
 				
+			if (("").equals(username) || username == null) {
+				throw new RemoteAdminException(
+				"Unable to connect to the Convertigo server: \"Server administrator\" field is empty.");
+			}
+			if (("").equals(password) || password == null) {
+				throw new RemoteAdminException(
+						"Unable to connect to the Convertigo server: \"Password\" field is empty.");
+			}
+			
 			loginMethod = new PostMethod(loginServiceURL);
 			loginMethod.addParameter("authType", "login");
 			loginMethod.addParameter("authUserName", username);

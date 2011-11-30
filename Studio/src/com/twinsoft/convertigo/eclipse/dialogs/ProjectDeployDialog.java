@@ -77,6 +77,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	protected Control createButtonBar(Composite parent) {
 		Control buttonBar =  super.createButtonBar(parent);
 		getButton(IDialogConstants.OK_ID).setText("Deploy");
+		((ProjectDeployDialogComposite)dialogComposite).setOkButton(getButton(IDialogConstants.OK_ID));
 		return buttonBar;
 	}
 
