@@ -113,6 +113,13 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	}
 
 	public void close() {
+		// Must stop the GIF animation before closing the sequence editor
+    	getDisplay().syncExec(new Runnable() {
+			public void run() {
+				animatedWait.stop();
+			}
+		});
+
 		compositeSequence.close();
 		
 		// Remove Studio context

@@ -133,7 +133,7 @@ public class AnimatedGif {
 							if (imageDataIndex == imageDataArray.length - 1)
 								repeatCount--;
 						}
-					} catch (SWTException ex) {
+					} catch (Exception ex) {
 						ConvertigoPlugin.logException(ex, "There was an error animating the GIF", false);
 					} finally {
 						if (offScreenImage != null && !offScreenImage.isDisposed())

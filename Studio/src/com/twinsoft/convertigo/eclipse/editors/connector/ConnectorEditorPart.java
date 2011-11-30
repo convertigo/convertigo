@@ -982,6 +982,13 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	}
 
 	public void close() {
+		// Must stop the GIF animation before closing the connector editor
+    	getDisplay().syncExec(new Runnable() {
+			public void run() {
+				animatedWait.stop();
+			}
+		});
+
 		connector.markAsDebugging(false);
 		
 		compositeConnector.close();
@@ -1029,7 +1036,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		imageAccumulate.dispose();
 		imageNewWaitAt.dispose();
 		imageDisableNewWaitAt.dispose();
-		
+
 		canvas.dispose();
 		colorManager.dispose();
 		super.dispose();
