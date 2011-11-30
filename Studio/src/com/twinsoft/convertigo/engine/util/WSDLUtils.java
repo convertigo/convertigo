@@ -124,17 +124,24 @@ public class WSDLUtils {
 			
 			String targetNamespace = definition.getTargetNamespace();
 			
-			int idx = wsdlURI.lastIndexOf(".temp.wsdl");
-			if (idx == -1) idx = wsdlURI.lastIndexOf(".wsdl");
-			String projectName = wsdlURI.substring(wsdlURI.lastIndexOf("/")+1, idx);
-			Service service = definition.getService(new QName(targetNamespace, projectName));
-			if (service != null) {
-				try {
-					Port portDoc = getPort(service, projectName + "SOAP");
-					Port portRpc = getPort(service, projectName + "SOAP_RPC");
-					if ((portDoc != null) && (portRpc == null)) this.wsdlStyle = WSDL_STYLE_DOC;
-					if ((portDoc == null) && (portRpc != null)) this.wsdlStyle = WSDL_STYLE_RPC;
-				} catch (Exception e) {
+			String projectName = null;
+			try {
+				int idx = wsdlURI.lastIndexOf(".temp.wsdl");
+				if (idx == -1) idx = wsdlURI.lastIndexOf(".wsdl");
+				projectName = wsdlURI.substring(wsdlURI.lastIndexOf("/")+1, idx);
+			}
+			catch (Exception e) {}
+			
+			if (projectName != null) {
+				Service service = definition.getService(new QName(targetNamespace, projectName));
+				if (service != null) {
+					try {
+						Port portDoc = getPort(service, projectName + "SOAP");
+						Port portRpc = getPort(service, projectName + "SOAP_RPC");
+						if ((portDoc != null) && (portRpc == null)) this.wsdlStyle = WSDL_STYLE_DOC;
+						if ((portDoc == null) && (portRpc != null)) this.wsdlStyle = WSDL_STYLE_RPC;
+					} catch (Exception e) {
+					}
 				}
 			}
 		}
