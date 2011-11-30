@@ -59,9 +59,14 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 		Device device = Display.getCurrent();
 
 		fontSystem = device.getSystemFont();
+
 		FontData fontData = fontSystem.getFontData()[0];
-		fontData.setStyle(SWT.BOLD);
-		fontModifiedDatabaseObject = new Font(device, fontData);
+		
+		fontDetectedDatabaseObject = new Font(device, fontData);
+		
+		FontData fontDataModified = fontSystem.getFontData()[0];
+		fontDataModified.setStyle(SWT.BOLD);
+		fontModifiedDatabaseObject = new Font(device, fontDataModified);
 
 		colorUnloadedProject = new Color(device, 12, 116, 176);
 		colorDisabledDatabaseObject = new Color(device, 255, 0, 0);
