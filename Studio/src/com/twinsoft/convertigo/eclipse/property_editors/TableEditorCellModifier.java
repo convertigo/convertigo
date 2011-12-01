@@ -29,6 +29,7 @@ import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.jface.viewers.ICellModifier;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.widgets.Item;
 
 public class TableEditorCellModifier implements ICellModifier {
@@ -51,6 +52,7 @@ public class TableEditorCellModifier implements ICellModifier {
 		CellEditor[] cellEditors = tableViewer.getCellEditors();
 		CellEditor cellEditor = cellEditors[columnIndex];
 		boolean isComboBoxEditor = cellEditor instanceof ComboBoxCellEditor;
+		boolean isTextCellEditor = cellEditor instanceof TextCellEditor;
 		
 		if (element instanceof Item) {
 			element = ((Item) element).getData();
@@ -63,6 +65,10 @@ public class TableEditorCellModifier implements ICellModifier {
 			object = new Integer(index);
 		}
 		
+		if (isTextCellEditor && (!(object instanceof String))) {
+			object  = object.toString();
+		}
+		
 		return object;
 	}
 
@@ -72,22 +78,33 @@ public class TableEditorCellModifier implements ICellModifier {
 		CellEditor[] cellEditors = tableViewer.getCellEditors();
 		CellEditor cellEditor = cellEditors[columnIndex];
 		boolean isComboBoxEditor = cellEditor instanceof ComboBoxCellEditor;
-
+		boolean isTextCellEditor = cellEditor instanceof TextCellEditor;
+		
 		if (element instanceof Item) {
 			element = ((Item) element).getData();
 		}
 		
 		TableEditorRow row = (TableEditorRow) element;
 		Object object = row.getValue(columnIndex);
-		
+
+		Class<?> objectClass = object.getClass();
+
 		if (isComboBoxEditor) {
 			String text = ((ComboBoxCellEditor)cellEditor).getItems()[((Integer)value).intValue()];
-			Class<?> objectClass = object.getClass();
 			try {
 				Constructor<?> constructor = objectClass.getConstructor(new Class[]{String.class});
 				value = constructor.newInstance(new Object[]{text});
 			} catch (Exception e) {
 				value = new String(text);
+			}
+		}
+		
+		if (isTextCellEditor && (!(object instanceof String))) {
+			try {
+				Constructor<?> constructor = objectClass.getConstructor(new Class[]{String.class});
+				value = constructor.newInstance(new Object[]{value});
+			} catch (Exception e) {
+				value = object;
 			}
 		}
 		
