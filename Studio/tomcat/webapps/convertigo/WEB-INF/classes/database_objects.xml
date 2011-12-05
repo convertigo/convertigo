@@ -267,9 +267,13 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.ExceptionStep">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
 				</bean>
             </beans>
             <beans groupname="XML steps">
