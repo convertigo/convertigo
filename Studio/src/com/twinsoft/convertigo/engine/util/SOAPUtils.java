@@ -22,10 +22,9 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.util.Properties;
 
 import javax.xml.soap.Detail;
 import javax.xml.soap.DetailEntry;
@@ -44,13 +43,9 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.apache.log4j.Logger;
 import org.dom4j.io.DocumentSource;
-import org.dom4j.io.OutputFormat;
-import org.dom4j.io.XMLWriter;
 import org.w3c.dom.Document;
 
 import com.twinsoft.util.Log;
@@ -85,48 +80,13 @@ public class SOAPUtils {
 		return ob;
 	}
 	
-    
-	/**
-	 * DOM to String transformer.
-	 * @throws SOAPException 
-	 * @throws IOException 
-	 */
-	public static String toString(SOAPPart soapPart, String encoding) throws TransformerConfigurationException, TransformerException, SOAPException, IOException {
-		String s = null;
+	public static String toString(SOAPMessage soapMessage, String encoding) throws TransformerConfigurationException, TransformerException, SOAPException, IOException {		
 		
-		Object ob = SOAPUtils.getDOM(soapPart);
-		
-		if (ob instanceof Document) {
-			Document doc = (Document)ob;
-			
-		    TransformerFactory tfactory = TransformerFactory.newInstance();
-		    StringWriter writer = null;
-		
-		    Transformer serializer = tfactory.newTransformer();
-		    Properties oprops = new Properties();
-		    oprops.put("method", "xml");
-		    oprops.put("indent", "yes");
-		    serializer.setOutputProperties(oprops);
-		    writer = new StringWriter();
-		    serializer.transform(new DOMSource(doc), new StreamResult(writer));
-		
-		    s = writer.toString();
-		}
-		else {
-			OutputFormat format = new OutputFormat();
-			format.setIndent(true);
-			format.setIndentSize(4);
-			format.setNewlines(true);
-			format.setTrimText(true);
-			format.setEncoding(encoding);
-			
-			StringWriter sw = new StringWriter();
-			XMLWriter writer = new XMLWriter(sw, format);
-			writer.write(ob);
-			writer.close();
-			s = sw.toString();
-		}
-		
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		soapMessage.writeTo(out);
+        
+        String s = new String(out.toByteArray(), "UTF-8"); 
+        
 		return s;
     }
     
@@ -142,16 +102,16 @@ public class SOAPUtils {
 			log.error("Unable to analyze or execute the web service.", e);
 			faultString = "Unable to analyze or execute the web service.";
 		}
-
+		
 		try {
 			MessageFactory messageFactory = MessageFactory.newInstance();
 			SOAPMessage faultMessage = messageFactory.createMessage();
-
+		
 			SOAPPart sp = faultMessage.getSOAPPart();
 			SOAPEnvelope se = sp.getEnvelope();
 			SOAPBody sb = se.getBody();
 			SOAPFault fault = sb.addFault();
-
+	
 			fault.setFaultString(faultString);
 			if (System.getProperty("java.specification.version").compareTo("1.6") < 0) {
 				fault.setFaultCode("server");
@@ -167,13 +127,13 @@ public class SOAPUtils {
 			
 			Detail detail = fault.addDetail();
 			SOAPFactory soapFactory = SOAPFactory.newInstance();
-
+	
 			Name name;
 			DetailEntry detailEntry;
 			
 			String faultDetail = e.getMessage();
 			if (faultDetail == null) faultDetail = "";
-
+	
 			name = soapFactory.createName(e.getClass().getName());
 			detailEntry = detail.addDetailEntry(name);
 			detailEntry.addTextNode(faultDetail == null ? "(no more information)" : faultDetail);
@@ -187,18 +147,19 @@ public class SOAPUtils {
 					detailEntry.addTextNode(faultDetail == null ? "(no more information)" : faultDetail);
 				}
 			}
-
+	
 			name = soapFactory.createName("moreinfo");
 			detailEntry = detail.addDetailEntry(name);
 			detailEntry.addTextNode("See the Convertigo engine log files for more details...");
-
-			String sResponseMessage = SOAPUtils.toString(sp,"ISO-8859-1");
+			
+			String sResponseMessage = SOAPUtils.toString(faultMessage,"UTF-8");
 			
 			if (log.isDebugEnabled()) {
 				log.debug("SOAP response:\n" + sResponseMessage);
 			}
-
+			
 			return sResponseMessage;
+
 		}
 		catch(Throwable ee) {
 			log.error("Unable to send the SOAP FAULT message.", ee);
@@ -217,3 +178,47 @@ public class SOAPUtils {
 	}
 	
 }
+
+///**
+//* DOM to String transformer.
+//* @throws SOAPException 
+//* @throws IOException 
+//*/
+//public static String toString(SOAPPart soapPart, String encoding) throws TransformerConfigurationException, TransformerException, SOAPException, IOException {
+//	String s = null;
+//	
+//	Object ob = SOAPUtils.getDOM(soapPart);
+//	
+//	if (ob instanceof Document) {
+//		Document doc = (Document)ob;
+//		
+//	    TransformerFactory tfactory = TransformerFactory.newInstance();
+//	    StringWriter writer = null;
+//	
+//	    Transformer serializer = tfactory.newTransformer();
+//	    Properties oprops = new Properties();
+//	    oprops.put("method", "xml");
+//	    oprops.put("indent", "yes");
+//	    serializer.setOutputProperties(oprops);
+//	    writer = new StringWriter();
+//	    serializer.transform(new DOMSource(doc), new StreamResult(writer));
+//	
+//	    s = writer.toString();
+//	}
+//	else {
+//		OutputFormat format = new OutputFormat();
+//		format.setIndent(true);
+//		format.setIndentSize(4);
+//		format.setNewlines(true);
+//		format.setTrimText(true);
+//		format.setEncoding(encoding);
+//		
+//		StringWriter sw = new StringWriter();
+//		XMLWriter writer = new XMLWriter(sw, format);
+//		writer.write(ob);
+//		writer.close();
+//		s = sw.toString();
+//	}
+//	
+//	return s;
+//}
