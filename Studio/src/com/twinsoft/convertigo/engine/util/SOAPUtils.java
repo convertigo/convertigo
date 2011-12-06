@@ -24,8 +24,13 @@ package com.twinsoft.convertigo.engine.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.lang.reflect.Method;
+import java.util.Iterator;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.soap.Detail;
 import javax.xml.soap.DetailEntry;
 import javax.xml.soap.MessageFactory;
@@ -47,6 +52,9 @@ import javax.xml.transform.dom.DOMResult;
 import org.apache.log4j.Logger;
 import org.dom4j.io.DocumentSource;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import com.twinsoft.util.Log;
 
@@ -80,12 +88,37 @@ public class SOAPUtils {
 		return ob;
 	}
 	
-	public static String toString(SOAPMessage soapMessage, String encoding) throws TransformerConfigurationException, TransformerException, SOAPException, IOException {		
+	public static String toString(SOAPMessage soapMessage, String encoding) throws TransformerConfigurationException, TransformerException, SOAPException, IOException, ParserConfigurationException, SAXException {	
+		soapMessage.saveChanges();
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		soapMessage.writeTo(out);
-        
         String s = new String(out.toByteArray(), "UTF-8"); 
+                
+        if (soapMessage.getSOAPBody().getFault() != null) {
+	        DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+	        Document document = parser.parse(new InputSource(new StringReader(s)));
+	        
+	        Detail detail = soapMessage.getSOAPBody().getFault().getDetail();
+	        Element detailElem = (Element) document.getElementsByTagName("detail").item(0);
+
+	        if (detailElem.hasChildNodes()) {
+	            while (detailElem.hasChildNodes()) {
+	            	detailElem.removeChild(detailElem.getFirstChild());       
+	            } 
+	        }
+	        
+	        Element entryElem = null;
+	        if (detail != null) {
+	        	for (Iterator<DetailEntry> entries = GenericUtils.cast(detail.getDetailEntries()) ; entries.hasNext();) {
+	        		DetailEntry entry = entries.next();
+	        		entryElem = document.createElement(entry.getLocalName());
+	        		entryElem.setTextContent(entry.getValue());
+	        		detailElem.appendChild(entryElem);
+	        	}
+	        }  
+	        s = XMLUtils.prettyPrintDOM(document);
+        }
         
 		return s;
     }
@@ -124,13 +157,13 @@ public class SOAPUtils {
 		            m.invoke(fault, new Object[]{qname});
 				} catch (Exception ex) {}
 			}
-			
+
 			Detail detail = fault.addDetail();
 			SOAPFactory soapFactory = SOAPFactory.newInstance();
-	
+
 			Name name;
 			DetailEntry detailEntry;
-			
+
 			String faultDetail = e.getMessage();
 			if (faultDetail == null) faultDetail = "";
 	
@@ -145,13 +178,15 @@ public class SOAPUtils {
 					name = soapFactory.createName(eCause.getClass().getName());
 					detailEntry = detail.addDetailEntry(name);
 					detailEntry.addTextNode(faultDetail == null ? "(no more information)" : faultDetail);
-				}
+				}				
 			}
-	
+
 			name = soapFactory.createName("moreinfo");
 			detailEntry = detail.addDetailEntry(name);
 			detailEntry.addTextNode("See the Convertigo engine log files for more details...");
 			
+			faultMessage.saveChanges();
+
 			String sResponseMessage = SOAPUtils.toString(faultMessage,"UTF-8");
 			
 			if (log.isDebugEnabled()) {
