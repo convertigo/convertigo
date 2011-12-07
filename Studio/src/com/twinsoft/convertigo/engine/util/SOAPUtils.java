@@ -28,6 +28,7 @@ import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -36,6 +37,7 @@ import javax.xml.soap.DetailEntry;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.Name;
 import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPConstants;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPFactory;
@@ -96,10 +98,11 @@ public class SOAPUtils {
         String s = new String(out.toByteArray(), "UTF-8"); 
                 
         if (soapMessage.getSOAPBody().getFault() != null) {
+        	SOAPFault fault = soapMessage.getSOAPBody().getFault();
 	        DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 	        Document document = parser.parse(new InputSource(new StringReader(s)));
 	        
-	        Detail detail = soapMessage.getSOAPBody().getFault().getDetail();
+	        Detail detail = fault.getDetail();
 	        Element detailElem = (Element) document.getElementsByTagName("detail").item(0);
 
 	        if (detailElem.hasChildNodes()) {
@@ -107,6 +110,9 @@ public class SOAPUtils {
 	            	detailElem.removeChild(detailElem.getFirstChild());       
 	            } 
 	        }
+	        
+	        Element faultCode = (Element) document.getElementsByTagName("faultcode").item(0);
+	        faultCode.removeAttribute("xmlns");
 	        
 	        Element entryElem = null;
 	        if (detail != null) {
@@ -146,15 +152,17 @@ public class SOAPUtils {
 			SOAPFault fault = sb.addFault();
 	
 			fault.setFaultString(faultString);
+			
 			if (System.getProperty("java.specification.version").compareTo("1.6") < 0) {
 				fault.setFaultCode("server");
 			}
 			else {
-				Name qname = se.createName("Server", null,javax.xml.soap.SOAPConstants.URI_NS_SOAP_ENVELOPE);			
+				QName faultName = new QName(SOAPConstants.URI_NS_SOAP_ENVELOPE, "Server");
+	                fault.setFaultCode(faultName);		
 	            Method m;
 				try {
 					m = fault.getClass().getMethod("setFaultCode", new Class[] {Name.class});
-		            m.invoke(fault, new Object[]{qname});
+		            m.invoke(fault, new Object[]{faultName});
 				} catch (Exception ex) {}
 			}
 
@@ -180,7 +188,7 @@ public class SOAPUtils {
 					detailEntry.addTextNode(faultDetail == null ? "(no more information)" : faultDetail);
 				}				
 			}
-
+			
 			name = soapFactory.createName("moreinfo");
 			detailEntry = detail.addDetailEntry(name);
 			detailEntry.addTextNode("See the Convertigo engine log files for more details...");
@@ -195,8 +203,7 @@ public class SOAPUtils {
 			
 			return sResponseMessage;
 
-		}
-		catch(Throwable ee) {
+		} catch(Throwable ee) {
 			log.error("Unable to send the SOAP FAULT message.", ee);
 			String response = "";
 			response += Log.getStackTrace(ee);
@@ -213,47 +220,3 @@ public class SOAPUtils {
 	}
 	
 }
-
-///**
-//* DOM to String transformer.
-//* @throws SOAPException 
-//* @throws IOException 
-//*/
-//public static String toString(SOAPPart soapPart, String encoding) throws TransformerConfigurationException, TransformerException, SOAPException, IOException {
-//	String s = null;
-//	
-//	Object ob = SOAPUtils.getDOM(soapPart);
-//	
-//	if (ob instanceof Document) {
-//		Document doc = (Document)ob;
-//		
-//	    TransformerFactory tfactory = TransformerFactory.newInstance();
-//	    StringWriter writer = null;
-//	
-//	    Transformer serializer = tfactory.newTransformer();
-//	    Properties oprops = new Properties();
-//	    oprops.put("method", "xml");
-//	    oprops.put("indent", "yes");
-//	    serializer.setOutputProperties(oprops);
-//	    writer = new StringWriter();
-//	    serializer.transform(new DOMSource(doc), new StreamResult(writer));
-//	
-//	    s = writer.toString();
-//	}
-//	else {
-//		OutputFormat format = new OutputFormat();
-//		format.setIndent(true);
-//		format.setIndentSize(4);
-//		format.setNewlines(true);
-//		format.setTrimText(true);
-//		format.setEncoding(encoding);
-//		
-//		StringWriter sw = new StringWriter();
-//		XMLWriter writer = new XMLWriter(sw, format);
-//		writer.write(ob);
-//		writer.close();
-//		s = sw.toString();
-//	}
-//	
-//	return s;
-//}
