@@ -201,6 +201,15 @@
         <servlet-name>QRCodeServlet</servlet-name>
         <url-pattern>/qrcode</url-pattern>
     </servlet-mapping>
+    
+    <servlet>
+		<servlet-name>ExternalBrowserServlet</servlet-name>
+		<servlet-class>com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserServlet</servlet-class>
+	</servlet>
+    <servlet-mapping>
+        <servlet-name>ExternalBrowserServlet</servlet-name>
+        <url-pattern>/ebs</url-pattern>
+    </servlet-mapping>
 	
     <!-- HTTP print entry point -->
 	<!--  Disabled in this version

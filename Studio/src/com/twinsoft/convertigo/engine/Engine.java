@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserManager;
 import com.twinsoft.convertigo.engine.plugins.AbstractBiller;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
@@ -153,6 +154,11 @@ public class Engine {
 	 * The proxy manager
 	 */
 	public ProxyManager proxyManager;
+	
+	/**
+	 * The external browser manager
+	 */
+	public ExternalBrowserManager externalBrowserManager;
 
 	/**
 	 * Loggers
@@ -372,7 +378,10 @@ public class Engine {
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to run the trace player.", e);
 				}
-
+				
+				Engine.theApp.externalBrowserManager = new ExternalBrowserManager();
+				Engine.theApp.externalBrowserManager.init();
+				
 				Engine.logEngine
 						.info("Current working directory is '" + System.getProperty("user.dir") + "'.");
 
@@ -642,27 +651,37 @@ public class Engine {
 				Engine.theApp.usageMonitor.destroy();
 
 				Engine.logEngine.info("Removing the SQL connections manager");
-				if (Engine.theApp.sqlConnectionManager != null)
+				if (Engine.theApp.sqlConnectionManager != null) {
 					Engine.theApp.sqlConnectionManager.destroy();
+				}
 
 				Engine.logEngine.info("Removing the file property manager");
-				if (Engine.theApp.filePropertyManager != null)
+				if (Engine.theApp.filePropertyManager != null) {
 					Engine.theApp.filePropertyManager.destroy();
+				}
 
 				Engine.logEngine.info("Removing the billing manager");
-				if (Engine.theApp.billingManager != null)
+				if (Engine.theApp.billingManager != null) {
 					Engine.theApp.billingManager.destroy();
+				}
 
 				Engine.logEngine.info("Removing the TracePlayer manager");
-				if (Engine.theApp.tracePlayerManager != null)
+				if (Engine.theApp.tracePlayerManager != null) {
 					Engine.theApp.tracePlayerManager.destroy();
+				}
 
 				Engine.logEngine.info("Removing the cache");
-				if (Engine.theApp.cacheManager != null)
+				if (Engine.theApp.cacheManager != null) {
 					Engine.theApp.cacheManager.destroy();
+				}
 
-				if (Engine.theApp.rsaManager != null)
+				if (Engine.theApp.rsaManager != null) {
 					Engine.theApp.rsaManager.destroy();
+				}
+				
+				if (Engine.theApp.externalBrowserManager != null) {
+					Engine.theApp.externalBrowserManager.destroy();
+				}
 
 				// Closing the session manager
 				if (Engine.theApp.sessionManager != null) {

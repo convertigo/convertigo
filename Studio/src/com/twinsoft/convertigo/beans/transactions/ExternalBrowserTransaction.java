@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.transactions;
 
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class ExternalBrowserTransaction extends TransactionWithVariables {
@@ -40,6 +41,20 @@ public class ExternalBrowserTransaction extends TransactionWithVariables {
 //		context.outputDocument.getDocumentElement().setAttribute("redirect_location", location);
 //		
 //		context.setSharedScope(RhinoUtils.copyScope(((RequestableThread) Thread.currentThread()).javascriptContext, scope));
+//		Engine.logEngine.info("bench begin");
+		
+//		ExternalBrowser externalBrowser = ExtBroLauncher.getInstance().launch(BrowserVersion.firefox3);
+//		Engine.logEngine.info("bench start");
+//		Document doc = null;
+//		for (String url : Arrays.asList("http://www.google.fr", "http://finus", "http://demo.convertigo.net/cems/", "http://www.google.fr", "http://finus", "http://demo.convertigo.net/cems/", "about:blank")) {
+//			doc = externalBrowser.gotoUrl(url);
+//			Engine.logEngine.info("bench goto " + url);
+//		}
+//		externalBrowser.terminate();
+//		Engine.logEngine.info("bench term");
+//		context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
+		
+		Engine.theApp.externalBrowserManager.startEBI();
 	}
 
 	@Override
