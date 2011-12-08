@@ -434,6 +434,19 @@ public class XSDUtils {
 			removeSchemaObjects(typesSchema);
 		}
 		
+		public void removeSchemaObjectsNotIn(List<String> list) {
+			List<QName> qnames = new ArrayList<QName>();
+			for (String s : list) {
+				String typePrefix = s.substring(0, s.indexOf(":"));
+				String typeName = s.substring(s.indexOf(":")+1);
+				String ns = loadedSchema.getNamespaceContext().getNamespaceURI(typePrefix);
+				QName qname = new QName(ns,typeName,typePrefix);
+				qnames.add(qname);
+			}
+			
+			removeSchemaObjectsExcept(qnames);
+		}
+		
 		public List<QName> getSchemaElementNames() {
 			ArrayList<QName> names = new ArrayList<QName>();
 			XmlSchemaObjectTable elementsTable = loadedSchema.getElements();
@@ -1053,6 +1066,68 @@ public class XSDUtils {
 					
 				}
 			}
+		}
+		
+		private void removeSchemaObjectsExcept(List<QName> qnames) {
+			if (qnames == null)
+				return;
+			
+			String message = "\nqnames: "+qnames.toString();
+			boolean bFound = false;
+			QName qname;
+			
+			do {
+				bFound = false;
+				for (int i=0;i<loadedSchema.getItems().getCount(); i++) {
+					XmlSchemaObject ob = loadedSchema.getItems().getItem(i);
+					if (ob instanceof XmlSchemaType) {
+						qname = ((XmlSchemaType)ob).getQName();
+						if (!qnames.contains(qname)) {
+							message += "\nremove at "+i+": "+qname.toString();
+							loadedSchema.getItems().removeAt(i);
+							bFound = true;
+							break;
+						}
+						else message += "\nkeep at "+i+": "+qname.toString();
+					}
+					else if (ob instanceof XmlSchemaElement) {
+						qname = ((XmlSchemaElement)ob).getQName();
+						if (!qnames.contains(qname)) {
+							message += "\nremove at "+i+": "+qname.toString();
+							loadedSchema.getItems().removeAt(i);
+							bFound = true;
+							break;
+						}
+						else message += "\nkeep at "+i+": "+qname.toString();
+					}
+					else if (ob instanceof XmlSchemaGroup) {
+						qname = ((XmlSchemaGroup)ob).getName();
+						if (!qnames.contains(qname)) {
+							message += "\nremove at "+i+": "+qname.toString();
+							loadedSchema.getItems().removeAt(i);
+							bFound = true;
+							break;
+						}
+						else message += "\nkeep at "+i+": "+qname.toString();
+					}
+					else if (ob instanceof XmlSchemaAttribute) {
+						qname = ((XmlSchemaAttribute)ob).getQName();
+						if (!qnames.contains(qname)) {
+							message += "\nremove at "+i+": "+qname.toString();
+							loadedSchema.getItems().removeAt(i);
+							bFound = true;
+							break;
+						}
+						else message += "\nkeep at "+i+": "+qname.toString();
+					}
+					else {
+						message += "\nfound at "+i+": "+ob.toString();
+					}
+				}
+			} while (bFound);
+			
+			//System.out.println(message);
+			//loadedSchema.write(System.out, options);
 		}
 		
 		private Vector<QuickSortItem> getTypes(XmlSchema schema, String prefix) {

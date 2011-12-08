@@ -175,6 +175,30 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 	}
 
 	@Override
+	public String getSchemaType(String tns) {
+		if  (!getSource().isEmpty()) {
+			try {
+				if (isOutput()) {
+					String schema = getTargetSchema(null);
+					int j1 = schema.indexOf(">");
+					int j2 = schema.indexOf("/>");
+					if ((j1 != -1) && (j2 != -1) && (j2+1 == j1)) {
+						int index = schema.indexOf("type=");
+						if ((index != -1) && (index < j2)) {
+							char c = schema.charAt(index+5);
+							int i1 = index+6;
+							int i2 = schema.indexOf(c,i1);
+							String type = schema.substring(i1, i2);
+							return type;
+						}
+					}
+				}
+			} catch (EngineException e) {}
+		}
+		return "";
+	}
+	
+	@Override
 	public String getSchema(String tns, String occurs) throws EngineException {
 		String schema = "";
 		if (isOutput())
