@@ -45,5 +45,13 @@ Before launch, open "Run configuration...":
  * press "Run" and the Studio should run
  
 /!\ Warning /!\
-There is no templates projects for project creation wizard, but you can import .car or retrieve project from SVN.
-To use connector, you have to rename "convertigo/minime/Java/keys_studio.txt" to "convertigo/minime/Java/keys.txt" and restart the studio. 
+
+* There is no templates projects for project creation wizard, but you can build them
+  thanks to the provided Ant build procedure: build-template.xml
+  This Ant build needs ant-contrib add-on in order to be executed. Just download this
+  Ant plugin from https://sourceforge.net/projects/ant-contrib/files/, and add the
+  ant-contrib JAR into eclipse's Ant classpath: Preferences -> Ant -> Runtime -> Add
+  External Jar in Global Entries.
+
+* To use connectors, you have to rename "convertigo/minime/Java/keys_studio.txt" to
+  "convertigo/minime/Java/keys.txt" and restart the studio. 
