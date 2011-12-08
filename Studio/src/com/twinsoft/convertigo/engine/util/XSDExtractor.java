@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.io.InputStream;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -199,6 +200,7 @@ public class XSDExtractor {
 			
 			// uri
 			try {
+				new URL(value);
 				return "xsd:anyURI";
 			}
 			catch (Exception e) {
