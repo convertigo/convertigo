@@ -45,10 +45,10 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.AttachmentManager;
+import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
@@ -64,9 +64,8 @@ public class WebServiceTranslator implements Translator {
 
 		SOAPMessage requestMessage = (SOAPMessage) request.getAttribute(WebServiceServletRequester.REQUEST_MESSAGE_ATTRIBUTE);
 		
-		
 		if (Engine.logBeans.isDebugEnabled()) {
-			String soapMessage = SOAPUtils.toString(requestMessage.getSOAPPart(),"ISO-8859-1");
+			String soapMessage = SOAPUtils.toString(requestMessage, "UTF-8");
 			Engine.logBeans.debug("[WebServiceTranslator] SOAP message received:\n" + soapMessage);
 		}
 		
@@ -433,7 +432,7 @@ public class WebServiceTranslator implements Translator {
             }
 
             //TODO: correct missing "xmlns" (Bug AXA POC client .NET)
-    		sResponseMessage = SOAPUtils.toString(sp,encodingCharSet);
+    		sResponseMessage = SOAPUtils.toString(responseMessage, encodingCharSet);
     		sResponseMessage = sResponseMessage.replaceAll("<soapenv:Envelope", "<soapenv:Envelope xmlns=\""+targetNameSpace+"\"");
     		
             if (Engine.logBeans.isDebugEnabled()) {
