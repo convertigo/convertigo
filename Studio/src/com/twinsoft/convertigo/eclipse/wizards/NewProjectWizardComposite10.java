@@ -57,7 +57,6 @@ public class NewProjectWizardComposite10 extends Composite {
 		combo.add("http://aspalliance.com/quickstart/aspplus/samples/services/MathService/VB/MathService.asmx?wsdl");
 		combo.add("http://demo.convertigo.net/cems/projects/globalCompany_HR_WS/.wsl?wsdl");
 		combo.add("http://demo.convertigo.net/cems/projects/globalCompany_accounting_WS/.wsl?wsdl");
-		combo.select(0);
 		if (modifyListener != null)
 			combo.addModifyListener(modifyListener);
 		GridData data0 = new GridData ();
