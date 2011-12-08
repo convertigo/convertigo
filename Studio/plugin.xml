@@ -327,8 +327,8 @@
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo">
       </category>
       <category
-            id="com.twinsoft.convertigo.eclipse.convertigowebservice"
-            name="Web service"
+            id="com.twinsoft.convertigo.eclipse.convertigowebservices"
+            name="Web services consumption"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigolibraries"
@@ -483,14 +483,14 @@
             <description>Creates an UNIX VTxxx Screen based WebService connector project</description> 
             </wizard>
       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebintegration"
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservices"
             class="com.twinsoft.convertigo.eclipse.wizards.NewHttpConnectorWizard"
             icon="icons/studio/httpconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewHttpConnectorWizard"
-            name="HTTP Connector"
+            name="REST Web service"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an HTTP based WebService connector project</description> 
+            <description>Creates an HTTP based Web Service connector project to invoke a remote REST web service.</description> 
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
@@ -673,14 +673,14 @@
           <description>Imports a Sencha based sample project which makes search on the US Directory web site</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservice"
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservices"
              class="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceReferenceWizard"
              icon="icons/studio/httpconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceReferenceWizard"
-             name="Web service"
+             name="SOAP Web service"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Creates a convertigo project to invoke a remote web service</description>
+          <description>Creates an HTTP based Web Service connector project to invoke a remote SOAP web service, by importing its WSDL description file.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
