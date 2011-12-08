@@ -46,7 +46,7 @@ public class NewProjectWizardComposite10 extends Composite {
 
 	protected void initialize() {
 		Label description = new Label(this, SWT.NONE);
-		description.setText("Please enter a valid WSDL url :");
+		description.setText("Please enter a valid WSDL url:");
 		GridData data = new GridData ();
 		data.horizontalAlignment = GridData.FILL;
 		data.grabExcessHorizontalSpace = true;
@@ -55,6 +55,8 @@ public class NewProjectWizardComposite10 extends Composite {
 		combo = new Combo(this, SWT.NONE);
 		combo.add("http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL");
 		combo.add("http://aspalliance.com/quickstart/aspplus/samples/services/MathService/VB/MathService.asmx?wsdl");
+		combo.add("http://demo.convertigo.net/cems/projects/globalCompany_HR_WS/.wsl?wsdl");
+		combo.add("http://demo.convertigo.net/cems/projects/globalCompany_accounting_WS/.wsl?wsdl");
 		combo.select(0);
 		if (modifyListener != null)
 			combo.addModifyListener(modifyListener);
