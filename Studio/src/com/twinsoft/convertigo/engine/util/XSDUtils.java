@@ -1050,38 +1050,40 @@ public class XSDUtils {
 			if (object == null)
 				return;
 			
-			for (int i=0;i<loadedSchema.getItems().getCount(); i++) {
-				XmlSchemaObject ob = loadedSchema.getItems().getItem(i);
+			XmlSchemaObject ob = null;
+			boolean found = false;
+			
+			Iterator<XmlSchemaObject> it = GenericUtils.cast(loadedSchema.getItems().getIterator());
+			while (it.hasNext()) {
+				ob = it.next();
 				if ((ob instanceof XmlSchemaType) && (object instanceof XmlSchemaType)) {
 					if (((XmlSchemaType)ob).getQName().toString().equals(((XmlSchemaType)object).getQName().toString())) {
-						loadedSchema.getItems().removeAt(i);
-						bModified = true;
-						return;
+						found = true;
 					}
 				}
 				else if ((ob instanceof XmlSchemaElement) && (object instanceof XmlSchemaElement)) {
 					if (((XmlSchemaElement)ob).getQName().toString().equals(((XmlSchemaElement)object).getQName().toString())) {
-						loadedSchema.getItems().removeAt(i);
-						bModified = true;
-						return;
+						found = true;
 					}
 				}
 				else if ((ob instanceof XmlSchemaGroup) && (object instanceof XmlSchemaGroup)) {
 					if (((XmlSchemaGroup)ob).getName().toString().equals(((XmlSchemaGroup)object).getName().toString())) {
-						loadedSchema.getItems().removeAt(i);
-						bModified = true;
-						return;
+						found = true;
 					}
 				}
 				else if ((ob instanceof XmlSchemaAttribute) && (object instanceof XmlSchemaAttribute)) {
 					if (((XmlSchemaAttribute)ob).getQName().toString().equals(((XmlSchemaAttribute)object).getQName().toString())) {
-						loadedSchema.getItems().removeAt(i);
-						bModified = true;
-						return;
+						found = true;
 					}
 				}
 				else {
 					
+				}
+				
+				if (found) {
+					it.remove();
+					bModified = true;
+					found = false;
 				}
 			}
 		}
@@ -1090,59 +1092,40 @@ public class XSDUtils {
 			if (qnames == null)
 				return;
 			
-			String message = "\nqnames: "+qnames.toString();
-			boolean bFound = false;
-			QName qname;
+			String message = "\nqnames["+qnames.size()+"]: "+qnames.toString();
+			XmlSchemaObject ob = null;
+			QName qname = null;
 			
-			do {
-				bFound = false;
-				for (int i=0;i<loadedSchema.getItems().getCount(); i++) {
-					XmlSchemaObject ob = loadedSchema.getItems().getItem(i);
-					if (ob instanceof XmlSchemaType) {
-						qname = ((XmlSchemaType)ob).getQName();
-						if (!qnames.contains(qname)) {
-							message += "\nremove at "+i+": "+qname.toString();
-							loadedSchema.getItems().removeAt(i);
-							bFound = true;
-							break;
-						}
-						else message += "\nkeep at "+i+": "+qname.toString();
-					}
-					else if (ob instanceof XmlSchemaElement) {
-						qname = ((XmlSchemaElement)ob).getQName();
-						if (!qnames.contains(qname)) {
-							message += "\nremove at "+i+": "+qname.toString();
-							loadedSchema.getItems().removeAt(i);
-							bFound = true;
-							break;
-						}
-						else message += "\nkeep at "+i+": "+qname.toString();
-					}
-					else if (ob instanceof XmlSchemaGroup) {
-						qname = ((XmlSchemaGroup)ob).getName();
-						if (!qnames.contains(qname)) {
-							message += "\nremove at "+i+": "+qname.toString();
-							loadedSchema.getItems().removeAt(i);
-							bFound = true;
-							break;
-						}
-						else message += "\nkeep at "+i+": "+qname.toString();
-					}
-					else if (ob instanceof XmlSchemaAttribute) {
-						qname = ((XmlSchemaAttribute)ob).getQName();
-						if (!qnames.contains(qname)) {
-							message += "\nremove at "+i+": "+qname.toString();
-							loadedSchema.getItems().removeAt(i);
-							bFound = true;
-							break;
-						}
-						else message += "\nkeep at "+i+": "+qname.toString();
-					}
-					else {
-						message += "\nfound at "+i+": "+ob.toString();
-					}
+			Iterator<XmlSchemaObject> it = GenericUtils.cast(loadedSchema.getItems().getIterator());
+			while (it.hasNext()) {
+				ob = it.next();
+				if (ob instanceof XmlSchemaType) {
+					qname = ((XmlSchemaType)ob).getQName();
 				}
-			} while (bFound);
+				else if (ob instanceof XmlSchemaElement) {
+					qname = ((XmlSchemaElement)ob).getQName();
+				}
+				else if (ob instanceof XmlSchemaGroup) {
+					qname = ((XmlSchemaGroup)ob).getName();
+				}
+				else if (ob instanceof XmlSchemaAttribute) {
+					qname = ((XmlSchemaAttribute)ob).getQName();
+				}
+				else {
+					qname = null;
+				}
+				
+				if (qname!=null) {
+					if (!qnames.contains(qname)) {
+						it.remove();
+						bModified = true;
+						message += "\nremoved: "+qname.toString();
+					}
+					else message += "\nkept: "+qname.toString();
+				}
+				else
+					message += "\nfound: "+ob.toString();
+			}
 			
 			//System.out.println(message);
 			//loadedSchema.write(System.out, options);
