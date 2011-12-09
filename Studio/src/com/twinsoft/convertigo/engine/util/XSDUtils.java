@@ -815,8 +815,9 @@ public class XSDUtils {
 							String prefix = prefixes[i];
 							String ns = namespacePrefixList.getNamespaceURI(prefix);
 							xsdSchema = xsdSchema.replaceAll("\\{"+ns+"\\}", prefix+":");
-							xsdSchema = xsdSchema.replaceAll("\"minOccurs=", "\" minOccurs=");
 						}
+						xsdSchema = xsdSchema.replaceAll("\"minOccurs=", "\" minOccurs="); 	// fix
+						xsdSchema = removeEmptySimpleType(0,xsdSchema); 					// fix
 						
 		                CDATASection cDATASection = xmlDom.createCDATASection(xsdSchema);
 		                schemaType.appendChild(cDATASection);
@@ -855,6 +856,23 @@ public class XSDUtils {
 					}
 				}
 			}
+		}
+
+		private String removeEmptySimpleType(int index, String xsdSchema) {
+			int z1,z2,z3,z4;
+			if ((z1 = xsdSchema.indexOf("<xsd:simpleType>",index))!=-1) {
+				if ((z2 = xsdSchema.indexOf("</xsd:simpleType>",z1))!=-1) {
+					z3 = z1+"<xsd:simpleType>".length();
+					z4 = z2+"</xsd:simpleType>".length();
+					if (xsdSchema.substring(z3, z2).trim().equals("")) {
+						xsdSchema = xsdSchema.substring(0, z1) + xsdSchema.substring(z4);
+						return removeEmptySimpleType(z1, xsdSchema);
+					}
+					else
+						return removeEmptySimpleType(z4, xsdSchema);
+				}
+			}
+			return xsdSchema.replaceAll("<xsd:simpleType/>", "");
 		}
 
 		private void schemaGroupBaseToXml(Document xmlDom, Node parentNode, XmlSchemaGroupBase xmlSchemaGroup) {
