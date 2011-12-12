@@ -26,6 +26,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -178,7 +180,17 @@ public class ProcessExecStep extends Step {
 			if (evaluated instanceof org.mozilla.javascript.Undefined)
 				throw new EngineException("Process command line argument is empty.");
 			String command = evaluated.toString();
-			
+		
+			// Check if encoding is supported
+			try {
+				if (!Charset.isSupported(commandCharset)) {
+					throw new EngineException("Wrong encoding for \"Process execute\" step, please enter a valid one.");
+				}
+			}
+			catch (IllegalCharsetNameException e) {
+				throw new EngineException("Wrong encoding for \"Process execute\" step, please enter a valid one.");
+			}
+	
 			// Status exit code
 			String status = "-1";
 			
