@@ -65,7 +65,7 @@ public class WebServiceTranslator implements Translator {
 		SOAPMessage requestMessage = (SOAPMessage) request.getAttribute(WebServiceServletRequester.REQUEST_MESSAGE_ATTRIBUTE);
 		
 		if (Engine.logBeans.isDebugEnabled()) {
-			String soapMessage = SOAPUtils.toString(requestMessage, "UTF-8");
+			String soapMessage = SOAPUtils.toString(requestMessage, "UTF-8", false);
 			Engine.logBeans.debug("[WebServiceTranslator] SOAP message received:\n" + soapMessage);
 		}
 		
@@ -432,7 +432,7 @@ public class WebServiceTranslator implements Translator {
             }
 
             //TODO: correct missing "xmlns" (Bug AXA POC client .NET)
-    		sResponseMessage = SOAPUtils.toString(responseMessage, encodingCharSet);
+    		sResponseMessage = SOAPUtils.toString(responseMessage, encodingCharSet, false);
     		sResponseMessage = sResponseMessage.replaceAll("<soapenv:Envelope", "<soapenv:Envelope xmlns=\""+targetNameSpace+"\"");
     		
             if (Engine.logBeans.isDebugEnabled()) {

@@ -25,44 +25,40 @@ package com.twinsoft.convertigo.beans.steps;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
+import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 
 /**
  * @author nathalieh
  *
  */
-public class ExceptionStep extends SimpleStep {
+public class ExceptionStep extends Step {
 
 	private static final long serialVersionUID = 7505194897465946697L;
 
+	private String message = "\"humanly readable message\"";
+	private String details = "\"details\"";
+	
 	public ExceptionStep() {
-		super("");
+		super();
 	}
 
-	public ExceptionStep(String expression) {
-		super(expression);
-	}
-	
-    public Object clone() throws CloneNotSupportedException {
-    	ExceptionStep clonedObject = (ExceptionStep) super.clone();
-        return clonedObject;
-    }
-	
-    public Object copy() throws CloneNotSupportedException {
-    	ExceptionStep copiedObject = (ExceptionStep) super.copy();
-        return copiedObject;
-    }
-	
 	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.stepExcecute(javascriptContext, scope)) {
-				if (evaluated != null) {
-					String message = "A step exception has been raised";
-					Throwable t = new Throwable(evaluated.toString());
-					EngineException ee = new EngineException(message,t);
-					throw ee;
+				evaluate(javascriptContext, scope, getMessage(), "message", true);
+				Object evMessage = evaluated;
+				
+				if (evMessage instanceof org.mozilla.javascript.Undefined) {
+					throw new EngineException("Please fill the \"Message\" property field with a humanly readable message.");
 				}
-				return true;
+				
+				evaluate(javascriptContext, scope, getDetails(), "details", true);
+				Object evDetails = evaluated;
+				
+				StepException stepException = new StepException(evMessage.toString(), evDetails.toString());
+				throw stepException;
 			}
 		}
 		return false;
@@ -71,6 +67,40 @@ public class ExceptionStep extends SimpleStep {
 	public String toString() {
 		String text = this.getComment();
 		return "throw Exception; "+ (!text.equals("") ? " // "+text:"");
+	}
+
+	@Override
+	protected boolean workOnSource() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	protected StepSource getSource() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String toJsString() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	public String getDetails() {
+		return details;
+	}
+
+	public void setDetails(String details) {
+		this.details = details;
 	}	
 
 }
