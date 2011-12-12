@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
@@ -38,6 +39,7 @@ import javax.xml.soap.MessageFactory;
 import javax.xml.soap.Name;
 import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPConstants;
+import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPFactory;
@@ -55,9 +57,12 @@ import org.apache.log4j.Logger;
 import org.dom4j.io.DocumentSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.twinsoft.convertigo.beans.steps.StepException;
 import com.twinsoft.util.Log;
 
 public class SOAPUtils {
@@ -90,7 +95,7 @@ public class SOAPUtils {
 		return ob;
 	}
 	
-	public static String toString(SOAPMessage soapMessage, String encoding) throws TransformerConfigurationException, TransformerException, SOAPException, IOException, ParserConfigurationException, SAXException {	
+	public static String toString(SOAPMessage soapMessage, String encoding, boolean isStepException) throws TransformerConfigurationException, TransformerException, SOAPException, IOException, ParserConfigurationException, SAXException {	
 		soapMessage.saveChanges();
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -101,36 +106,41 @@ public class SOAPUtils {
         	SOAPFault fault = soapMessage.getSOAPBody().getFault();
 	        DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 	        Document document = parser.parse(new InputSource(new StringReader(s)));
-	        
-	        Detail detail = fault.getDetail();
-	        Element detailElem = (Element) document.getElementsByTagName("detail").item(0);
 
-	        if (detailElem.hasChildNodes()) {
-	            while (detailElem.hasChildNodes()) {
-	            	detailElem.removeChild(detailElem.getFirstChild());       
-	            } 
-	        }
-	        
 	        Element faultCode = (Element) document.getElementsByTagName("faultcode").item(0);
 	        faultCode.removeAttribute("xmlns");
 	        
-	        Element entryElem = null;
-	        if (detail != null) {
-	        	for (Iterator<DetailEntry> entries = GenericUtils.cast(detail.getDetailEntries()) ; entries.hasNext();) {
-	        		DetailEntry entry = entries.next();
-	        		entryElem = document.createElement(entry.getLocalName());
-	        		entryElem.setTextContent(entry.getValue());
-	        		detailElem.appendChild(entryElem);
-	        	}
-	        }  
+	        if (!isStepException) {	        
+		        Detail detail = fault.getDetail();
+		        Element detailElem = (Element) document.getElementsByTagName("detail").item(0);        
+		        
+		        if (detailElem.hasChildNodes()) {
+		            while (detailElem.hasChildNodes()) {
+		            	detailElem.removeChild(detailElem.getFirstChild());       
+		            } 
+		        }
+		        
+		        Element entryElem = null;
+		        if (detail != null) {
+		        	for (Iterator<DetailEntry> entries = GenericUtils.cast(detail.getDetailEntries()) ; entries.hasNext();) {
+		        		DetailEntry entry = entries.next();
+		        		entryElem = document.createElement(entry.getLocalName());
+		        		entryElem.setTextContent(entry.getValue());
+		        		detailElem.appendChild(entryElem);
+		        	}
+		        }  
+	        }
+	        
 	        s = XMLUtils.prettyPrintDOM(document);
-        }
+        }        
         
 		return s;
     }
     
     public static String writeSoapFault(Throwable e, Logger log) throws IOException {
-		String faultString;
+		String faultString = null;
+		StepException stepException = null;
+		
 		if (e instanceof SOAPException) {
 			Throwable cause = ((SOAPException) e).getCause();
 			log.error("A SOAP error has occured while processing the web service request.", e);
@@ -138,8 +148,20 @@ public class SOAPUtils {
 			faultString = "A SOAP error has occured while processing the web service request: " + cause.getMessage();
 		}
 		else {
-			log.error("Unable to analyze or execute the web service.", e);
-			faultString = "Unable to analyze or execute the web service.";
+			if (System.getProperty("java.specification.version").compareTo("1.4") >= 0) {
+				Throwable eCause = e;
+				while ((eCause = eCause.getCause()) != null)  {
+					if (eCause instanceof StepException) {
+						stepException = (StepException) eCause;
+						break;
+					}
+				}				
+			}
+		
+			if (stepException == null) {
+				log.error("Unable to analyze or execute the web service.", e);
+				faultString = "Unable to analyze or execute the web service.";
+			}
 		}
 		
 		try {
@@ -151,14 +173,14 @@ public class SOAPUtils {
 			SOAPBody sb = se.getBody();
 			SOAPFault fault = sb.addFault();
 	
-			fault.setFaultString(faultString);
+			fault.setFaultString(stepException == null ? faultString : stepException.message);
 			
 			if (System.getProperty("java.specification.version").compareTo("1.6") < 0) {
-				fault.setFaultCode("server");
+				fault.setFaultCode("Server");
 			}
 			else {
 				QName faultName = new QName(SOAPConstants.URI_NS_SOAP_ENVELOPE, "Server");
-	                fault.setFaultCode(faultName);		
+				fault.setFaultCode(faultName);		
 	            Method m;
 				try {
 					m = fault.getClass().getMethod("setFaultCode", new Class[] {Name.class});
@@ -166,36 +188,66 @@ public class SOAPUtils {
 				} catch (Exception ex) {}
 			}
 
-			Detail detail = fault.addDetail();
 			SOAPFactory soapFactory = SOAPFactory.newInstance();
-
 			Name name;
 			DetailEntry detailEntry;
 
-			String faultDetail = e.getMessage();
-			if (faultDetail == null) faultDetail = "";
-	
-			name = soapFactory.createName(e.getClass().getName());
-			detailEntry = detail.addDetailEntry(name);
-			detailEntry.addTextNode(faultDetail == null ? "(no more information)" : faultDetail);
-			
-			if (System.getProperty("java.specification.version").compareTo("1.4") >= 0) {
-				Throwable eCause = e;
-				while ((eCause = eCause.getCause()) != null)  {
-					faultDetail = eCause.getMessage();
-					name = soapFactory.createName(eCause.getClass().getName());
-					detailEntry = detail.addDetailEntry(name);
-					detailEntry.addTextNode(faultDetail == null ? "(no more information)" : faultDetail);
-				}				
+			if (stepException == null) {
+				Detail detail = fault.addDetail();
+				String faultDetail = e.getMessage();
+				if (faultDetail == null) faultDetail = "";
+		
+				name = soapFactory.createName(e.getClass().getName());
+				detailEntry = detail.addDetailEntry(name);
+				detailEntry.addTextNode(faultDetail == null ? "(no more information)" : faultDetail);
+				
+				if (System.getProperty("java.specification.version").compareTo("1.4") >= 0) {
+					Throwable eCause = e;
+					while ((eCause = eCause.getCause()) != null)  {
+						faultDetail = eCause.getMessage();
+						name = soapFactory.createName(eCause.getClass().getName());
+						detailEntry = detail.addDetailEntry(name);
+						detailEntry.addTextNode(faultDetail == null ? "(no more information)" : faultDetail);
+					}				
+				}
+				
+	 			name = soapFactory.createName("moreinfo");
+				detailEntry = detail.addDetailEntry(name);
+				detailEntry.addTextNode("See the Convertigo engine log files for more details...");
+				
+			}
+			else {
+				// Details property of ExceptionStep is not empty
+				if (!(("").equals(stepException.details) || stepException.details.startsWith("org.mozilla.javascript.Undefined"))) {
+					Detail detail = fault.addDetail();
+					// If step's exception detail is an XML document, insert it in the detail SOAP part
+					try {
+						Document dom = XMLUtils.parseDOM(new ByteArrayInputStream(stepException.details.getBytes("UTF-8")));
+						NodeList children = dom.getChildNodes();
+						for (int i = 0 ; i < children.getLength(); i++) {
+							Node node = children.item(i);
+							name = soapFactory.createName(node.getNodeName());
+							detailEntry = detail.addDetailEntry(name);
+							detailEntry.addTextNode(node.getNodeValue());
+							getSubDetails(soapFactory, detailEntry, node);
+						}
+					} catch (Exception ee) {
+						// Probably not an XML DOM, insert as CDATA
+						name = soapFactory.createName("content");
+						detailEntry = detail.addDetailEntry(name);
+						detailEntry.addTextNode(stepException.details);
+					}
+				}
 			}
 			
-			name = soapFactory.createName("moreinfo");
-			detailEntry = detail.addDetailEntry(name);
-			detailEntry.addTextNode("See the Convertigo engine log files for more details...");
-			
 			faultMessage.saveChanges();
-
-			String sResponseMessage = SOAPUtils.toString(faultMessage,"UTF-8");
+			
+			String sResponseMessage = "";
+			if (stepException != null) {
+				sResponseMessage = SOAPUtils.toString(faultMessage,"UTF-8", true);
+			} else {
+				sResponseMessage = SOAPUtils.toString(faultMessage,"UTF-8",false);
+			}
 			
 			if (log.isDebugEnabled()) {
 				log.debug("SOAP response:\n" + sResponseMessage);
@@ -218,5 +270,17 @@ public class SOAPUtils {
 			return response;
 		}
 	}
-	
+    
+    private static void getSubDetails(SOAPFactory soapFactory, SOAPElement parentDetailEntry, Node parentNode) throws SOAPException {
+		NodeList children = parentNode.getChildNodes();
+		for (int i = 0 ; i < children.getLength(); i++) {
+			Node node = children.item(i);
+			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				Name name = soapFactory.createName(node.getNodeName());
+				SOAPElement detailEntry = parentDetailEntry.addChildElement(name);
+				detailEntry.addTextNode(node.getTextContent());
+				getSubDetails(soapFactory, detailEntry, node);
+			}
+		}
+    }
 }

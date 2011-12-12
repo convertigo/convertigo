@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class ExceptionStepBeanInfo extends MySimpleBeanInfo {
@@ -29,7 +31,7 @@ public class ExceptionStepBeanInfo extends MySimpleBeanInfo {
 	public ExceptionStepBeanInfo() {
 		try {
 			beanClass = ExceptionStep.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.steps.SimpleStep.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/exception_16x16.gif";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/exception_32x32.gif";
@@ -39,6 +41,17 @@ public class ExceptionStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
+			properties = new PropertyDescriptor[2];
+			
+	        properties[0] = new PropertyDescriptor("message", beanClass, "getMessage", "setMessage");
+	        properties[0].setDisplayName(getExternalizedString("property.message.display_name"));
+	        properties[0].setShortDescription(getExternalizedString("property.message.short_description"));
+	        properties[0].setValue("scriptable", Boolean.TRUE);
+			
+	        properties[1] = new PropertyDescriptor("details", beanClass, "getDetails", "setDetails");
+	        properties[1].setDisplayName(getExternalizedString("property.details.display_name"));
+	        properties[1].setShortDescription(getExternalizedString("property.details.short_description"));
+	        properties[1].setValue("scriptable", Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
