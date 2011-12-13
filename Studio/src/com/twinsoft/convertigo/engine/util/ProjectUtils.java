@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.wsdl.WSDLException;
+import javax.xml.namespace.QName;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -62,7 +63,6 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
@@ -75,61 +75,48 @@ import com.twinsoft.convertigo.engine.util.XSDUtils.XSDException;
 public class ProjectUtils {
 
 	public static void RemoveUselessObjects(XSD xsd, Project project) {
-		Map<String, Step> map = new HashMap<String, Step>(50);
-		for (Sequence s : project.getSequencesList()) {
-			getStepQNames(map, s.getSteps(),s.getProject().getName()+ "_ns");
+		String projectName = project.getName();
+		String project_ns = projectName+ "_ns";
+		
+		List<QName> qnames = new ArrayList<QName>();
+		
+		for (Connector c : project.getConnectorsList()) {
+			String connectorName = c.getName();
+			for (Transaction t: c.getTransactionsList()) {
+				if (t.isPublicMethod()) {
+					try {
+						for (QName qname: xsd.getElementQNameList(project_ns, connectorName + "__" + t.getName()))
+							addQNameInList(qnames, qname);
+						for (QName qname: xsd.getElementQNameList(project_ns, connectorName + "__" + t.getName()+ "Response"))
+							addQNameInList(qnames, qname);
+					}
+					catch (Exception e) {}
+				}
+			}
 		}
 		
-		List<String> qnames = new ArrayList<String>();
 		for (Sequence s : project.getSequencesList()) {
-			getNeededQNames(map, qnames, s);
+			if (s.isPublicMethod()) {
+				try {
+					for (QName qname: xsd.getElementQNameList(project_ns, s.getName()))
+						addQNameInList(qnames, qname);
+					for (QName qname: xsd.getElementQNameList(project_ns, s.getName()+ "Response"))
+						addQNameInList(qnames, qname);
+				}
+				catch (Exception e) {}
+			}
 		}
 		
 		xsd.removeSchemaObjectsNotIn(qnames);
 	}
 
-	private static void getStepQNames(Map<String, Step> map, List<Step> steps, String project_ns) {
-		for (Step step: steps) {
-			String typeQName = step.getSchemaType(project_ns);
-			if (typeQName.startsWith(project_ns) && !map.containsKey(typeQName))
-				map.put(typeQName, step);
-			if (step instanceof StepWithExpressions)
-				getStepQNames(map, ((StepWithExpressions)step).getSteps(), project_ns);
-		}
-	}
-
-	private static void getNeededQNames(Map<String, Step> map, List<String> qnames, Sequence s) {
-		String project_ns = s.getProject().getName()+ "_ns";
-		if (s.isPublicMethod()) {
-			qnames.add(project_ns + ":" + s.getName());
-			qnames.add(project_ns + ":" + s.getName() + "RequestData");
-			qnames.add(project_ns + ":" + s.getName() + "Response");
-			qnames.add(project_ns + ":" + s.getName() + "ResponseData");
-			
-			getNeededQNames(map, qnames, s.getSteps(), project_ns);
-		}
-	}
-	
-	private static void getNeededQNames(Map<String, Step> map, List<String> qnames, List<Step> steps, String project_ns) {
-		for (Step step: steps) {
-			if (step.isEnable() && step.isOutput()) {
-				String typeQName = step.getSchemaType(project_ns);
-				Step stepM = map.get(typeQName);
-				if ((stepM != null) && !step.equals(stepM)) {
-					List<Step> ls = new ArrayList<Step>();
-					ls.add(stepM);
-					getNeededQNames(map, qnames, ls, project_ns);
-				}
-				else {
-					if (typeQName.startsWith(project_ns) && !qnames.contains(typeQName))
-						qnames.add(typeQName);
-					if (step instanceof StepWithExpressions)
-						getNeededQNames(map, qnames, ((StepWithExpressions)step).getSteps(), project_ns);
-				}
+	private static void addQNameInList(List<QName> qnames, QName qname) {
+		if (qname!=null) {
+			if (!qnames.contains(qname)) {
+				qnames.add(qname);
 			}
 		}
 	}
-	
 	/*********************************************************************************************************/
 	
 

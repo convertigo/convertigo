@@ -331,6 +331,10 @@ public class XSDUtils {
 			return types;
 		}
 		
+		public String getPrefix(String namespaceURI) {
+			return loadedSchema.getNamespaceContext().getPrefix(namespaceURI);
+		}
+		
 		public void addNamespaces(Map<String, String> map) {
 			NamespaceMap namespacesMap = addNamespaces(loadedSchema, map);
 			loadedSchema.setNamespaceContext(namespacesMap);
@@ -434,19 +438,23 @@ public class XSDUtils {
 			removeSchemaObjects(typesSchema);
 		}
 		
-		public void removeSchemaObjectsNotIn(List<String> list) {
-			List<QName> qnames = new ArrayList<QName>();
-			for (String s : list) {
-				String typePrefix = s.substring(0, s.indexOf(":"));
-				String typeName = s.substring(s.indexOf(":")+1);
-				String ns = loadedSchema.getNamespaceContext().getNamespaceURI(typePrefix);
-				QName qname = new QName(ns,typeName,typePrefix);
-				qnames.add(qname);
-			}
-			
-			removeSchemaObjectsExcept(qnames);
+		public String getNamespacePrefix(String namespaceURI) {
+			return loadedSchema.getNamespaceContext().getPrefix(namespaceURI);
 		}
 		
+		public void removeSchemaObjectsNotIn(List<QName> qnames) {
+			XmlSchema[] xmlSchemas = schemaCol.getXmlSchemas();
+			for (int i=0; i<xmlSchemas.length; i++) {
+				XmlSchema xmlSchema = xmlSchemas[i];
+				try {
+					if (xmlSchema.getTargetNamespace().equals(Constants.URI_2001_SCHEMA_XSD))
+						continue;
+					removeSchemaObjectsExcept(xmlSchema, qnames);
+				}
+				catch (Exception e) {}
+			}
+		}
+
 		public List<QName> getSchemaElementNames() {
 			ArrayList<QName> names = new ArrayList<QName>();
 			XmlSchemaObjectTable elementsTable = loadedSchema.getElements();
@@ -474,36 +482,75 @@ public class XSDUtils {
 		
 		public Document generateDocumentXmlStructure() throws ParserConfigurationException {
 			Document xmlDom = getXsdToXmlDocument();
+			List<QName> qnames = new ArrayList<QName>();
 			XmlSchemaObjectTable elementsTable = loadedSchema.getElements();
 			Iterator<XmlSchemaObject> it = GenericUtils.cast(elementsTable.getValues());
 			while (it.hasNext()) {
-				schemaObjectToXml(xmlDom, xmlDom.getDocumentElement(), it.next());
+				schemaObjectToXml(xmlDom, xmlDom.getDocumentElement(), it.next(), qnames);
 			}
 			return xmlDom;
 		}
 		
 		public Document generateElementXmlStructure(QName elementQName) throws ParserConfigurationException {
 			Document xmlDom = getXsdToXmlDocument();
+			List<QName> qnames = new ArrayList<QName>();
 			XmlSchemaElement xmlSchemaElement = loadedSchema.getElementByName(elementQName);
 			if (xmlSchemaElement != null) {
-				schemaElementToXml(xmlDom, xmlDom.getDocumentElement(), xmlSchemaElement);
+				qnames.add(elementQName);
+				schemaElementToXml(xmlDom, xmlDom.getDocumentElement(), xmlSchemaElement, qnames);
+			}
+			return xmlDom;
+		}
+
+		public List<QName> getElementQNameList(String nsPrefix, String elementName) throws ParserConfigurationException {
+			String ns = loadedSchema.getNamespaceContext().getNamespaceURI(nsPrefix);
+			QName qname = new QName(ns,elementName,nsPrefix);
+			return getElementQNameList(qname);
+		}
+		
+		private List<QName> getElementQNameList(QName elementQName) throws ParserConfigurationException {
+			Document xmlDom = getXsdToXmlDocument();
+			List<QName> qnames = new ArrayList<QName>();
+			XmlSchemaElement xmlSchemaElement = loadedSchema.getElementByName(elementQName);
+			if (xmlSchemaElement != null) {
+				qnames.add(elementQName);
+				schemaElementToXml(xmlDom, xmlDom.getDocumentElement(), xmlSchemaElement, qnames);
+			}
+			return qnames;
+		}
+		
+		public Document generateTypeXmlStructure(String nsPrefix, String typeName) throws ParserConfigurationException {
+			String ns = loadedSchema.getNamespaceContext().getNamespaceURI(nsPrefix);
+			QName qname = new QName(ns,typeName,nsPrefix);
+			return generateTypeXmlStructure(qname);
+		}
+
+		private Document generateTypeXmlStructure(QName typeQName) throws ParserConfigurationException {
+			Document xmlDom = getXsdToXmlDocument();
+			List<QName> qnames = new ArrayList<QName>();
+			XmlSchemaType xmlSchemaType = loadedSchema.getTypeByName(typeQName);
+			if (xmlSchemaType != null) {
+				qnames.add(typeQName);
+				schemaTypeToXml(xmlDom, xmlDom.getDocumentElement(), xmlSchemaType, qnames);
 			}
 			return xmlDom;
 		}
 		
-		public Document generateTypeXmlStructure(String typePrefix, String typeName) throws ParserConfigurationException {
-			String ns = loadedSchema.getNamespaceContext().getNamespaceURI(typePrefix);
-			QName qname = new QName(ns,typeName,typePrefix);
-			return generateTypeXmlStructure(qname);
+		public List<QName> getTypeQNameList(String nsPrefix, String typeName) throws ParserConfigurationException {
+			String ns = loadedSchema.getNamespaceContext().getNamespaceURI(nsPrefix);
+			QName qname = new QName(ns,typeName,nsPrefix);
+			return getTypeQNameList(qname);
 		}
-
-		public Document generateTypeXmlStructure(QName typeQName) throws ParserConfigurationException {
+		
+		private List<QName> getTypeQNameList(QName typeQName) throws ParserConfigurationException {
 			Document xmlDom = getXsdToXmlDocument();
+			List<QName> qnames = new ArrayList<QName>();
 			XmlSchemaType xmlSchemaType = loadedSchema.getTypeByName(typeQName);
 			if (xmlSchemaType != null) {
-				schemaTypeToXml(xmlDom, xmlDom.getDocumentElement(), xmlSchemaType);
+				qnames.add(typeQName);
+				schemaTypeToXml(xmlDom, xmlDom.getDocumentElement(), xmlSchemaType, qnames);
 			}
-			return xmlDom;
+			return qnames;
 		}
 		
 		public void save() throws XSDException {
@@ -537,55 +584,55 @@ public class XSDUtils {
 			}
 		}
 
-		private void schemaObjectToXml(Document xmlDom, Node parentNode, XmlSchemaObject xmlSchemaObject) {
+		private void schemaObjectToXml(Document xmlDom, Node parentNode, XmlSchemaObject xmlSchemaObject, List<QName> qnames) {
 			if (xmlSchemaObject instanceof XmlSchemaAnnotated) {
-				schemaAnnotatedToXml(xmlDom, parentNode, (XmlSchemaAnnotated)xmlSchemaObject);
+				schemaAnnotatedToXml(xmlDom, parentNode, (XmlSchemaAnnotated)xmlSchemaObject, qnames);
 			}
 			else if (xmlSchemaObject instanceof XmlSchemaAnnotation) {
-				schemaAnnotationToXml(xmlDom, parentNode, (XmlSchemaAnnotation)xmlSchemaObject);
+				schemaAnnotationToXml(xmlDom, parentNode, (XmlSchemaAnnotation)xmlSchemaObject, qnames);
 			}
 			else if (xmlSchemaObject instanceof XmlSchemaAppInfo) {
-				schemaAppInfoToXml(xmlDom, parentNode, (XmlSchemaAppInfo)xmlSchemaObject);
+				schemaAppInfoToXml(xmlDom, parentNode, (XmlSchemaAppInfo)xmlSchemaObject, qnames);
 			}
 			else if (xmlSchemaObject instanceof XmlSchemaDocumentation) {
-				schemaDocumentationToXml(xmlDom, parentNode, (XmlSchemaDocumentation)xmlSchemaObject);
+				schemaDocumentationToXml(xmlDom, parentNode, (XmlSchemaDocumentation)xmlSchemaObject, qnames);
 			}
 		}
 		
-		private void schemaAnnotationToXml(Document xmlDom, Node parentNode, XmlSchemaAnnotation xmlSchemaAnnotation) {
+		private void schemaAnnotationToXml(Document xmlDom, Node parentNode, XmlSchemaAnnotation xmlSchemaAnnotation, List<QName> qnames) {
 			//TODO
 		}
 		
-		private void schemaAppInfoToXml(Document xmlDom, Node parentNode, XmlSchemaAppInfo xmlSchemaAppInfo) {
+		private void schemaAppInfoToXml(Document xmlDom, Node parentNode, XmlSchemaAppInfo xmlSchemaAppInfo, List<QName> qnames) {
 			//TODO
 		}
 		
-		private void schemaDocumentationToXml(Document xmlDom, Node parentNode, XmlSchemaDocumentation xmlSchemaDocumentation) {
+		private void schemaDocumentationToXml(Document xmlDom, Node parentNode, XmlSchemaDocumentation xmlSchemaDocumentation, List<QName> qnames) {
 			//TODO
 		}
 		
-		private void schemaAnnotatedToXml(Document xmlDom, Node parentNode, XmlSchemaAnnotated xmlSchemaAnnotated) {
+		private void schemaAnnotatedToXml(Document xmlDom, Node parentNode, XmlSchemaAnnotated xmlSchemaAnnotated, List<QName> qnames) {
 			if (xmlSchemaAnnotated instanceof XmlSchema) {
 				;
 			}
 			else if (xmlSchemaAnnotated instanceof XmlSchemaAnyAttribute) {
-				schemaAnyAttributeToXml(xmlDom, parentNode, (XmlSchemaAnyAttribute)xmlSchemaAnnotated);
+				schemaAnyAttributeToXml(xmlDom, parentNode, (XmlSchemaAnyAttribute)xmlSchemaAnnotated, qnames);
 			}
 			else if (xmlSchemaAnnotated instanceof XmlSchemaAttribute) {
-				schemaAttributeToXml(xmlDom, parentNode, (XmlSchemaAttribute)xmlSchemaAnnotated);
+				schemaAttributeToXml(xmlDom, parentNode, (XmlSchemaAttribute)xmlSchemaAnnotated, qnames);
 			}
 			else if (xmlSchemaAnnotated instanceof XmlSchemaAttributeGroup) {
-				schemaAttributeGroupToXml(xmlDom, parentNode, (XmlSchemaAttributeGroup)xmlSchemaAnnotated);
+				schemaAttributeGroupToXml(xmlDom, parentNode, (XmlSchemaAttributeGroup)xmlSchemaAnnotated, qnames);
 				
 			}
 			else if (xmlSchemaAnnotated instanceof XmlSchemaAttributeGroupRef) {
-				schemaAttributeGroupRefToXml(xmlDom, parentNode, (XmlSchemaAttributeGroupRef)xmlSchemaAnnotated);
+				schemaAttributeGroupRefToXml(xmlDom, parentNode, (XmlSchemaAttributeGroupRef)xmlSchemaAnnotated, qnames);
 			}
 			else if (xmlSchemaAnnotated instanceof XmlSchemaContent) {
-				schemaContentToXml(xmlDom, parentNode, (XmlSchemaContent)xmlSchemaAnnotated);
+				schemaContentToXml(xmlDom, parentNode, (XmlSchemaContent)xmlSchemaAnnotated, qnames);
 			}
 			else if (xmlSchemaAnnotated instanceof XmlSchemaContentModel) {
-				schemaContentModelToXml(xmlDom, parentNode, (XmlSchemaContentModel)xmlSchemaAnnotated);
+				schemaContentModelToXml(xmlDom, parentNode, (XmlSchemaContentModel)xmlSchemaAnnotated, qnames);
 			}
 			else if (xmlSchemaAnnotated instanceof XmlSchemaExternal) {
 				;
@@ -594,7 +641,7 @@ public class XSDUtils {
 				;
 			}
 			else if (xmlSchemaAnnotated instanceof XmlSchemaGroup) {
-				schemaGroupToXml(xmlDom, parentNode, (XmlSchemaGroup)xmlSchemaAnnotated);
+				schemaGroupToXml(xmlDom, parentNode, (XmlSchemaGroup)xmlSchemaAnnotated, qnames);
 			}
 			else if (xmlSchemaAnnotated instanceof XmlSchemaIdentityConstraint) {
 				;
@@ -603,24 +650,24 @@ public class XSDUtils {
 				;
 			}
 			else if (xmlSchemaAnnotated instanceof XmlSchemaParticle) {
-				schemaParticleToXml(xmlDom, parentNode, (XmlSchemaParticle)xmlSchemaAnnotated);
+				schemaParticleToXml(xmlDom, parentNode, (XmlSchemaParticle)xmlSchemaAnnotated, qnames);
 			}
 			else if (xmlSchemaAnnotated instanceof XmlSchemaSimpleTypeContent) {
-				schemaSimpleTypeContentToXml(xmlDom, parentNode, (XmlSchemaSimpleTypeContent)xmlSchemaAnnotated);
+				schemaSimpleTypeContentToXml(xmlDom, parentNode, (XmlSchemaSimpleTypeContent)xmlSchemaAnnotated, qnames);
 			}
 			else if (xmlSchemaAnnotated instanceof XmlSchemaType) {
-				schemaTypeToXml(xmlDom, parentNode, (XmlSchemaType)xmlSchemaAnnotated);
+				schemaTypeToXml(xmlDom, parentNode, (XmlSchemaType)xmlSchemaAnnotated, qnames);
 			}
 			else if (xmlSchemaAnnotated instanceof XmlSchemaXPath) {
 				;
 			}
 		}
 
-		private void schemaAnyAttributeToXml(Document xmlDom, Node parentNode, XmlSchemaAnyAttribute xmlSchemaAnyAttribute) {
+		private void schemaAnyAttributeToXml(Document xmlDom, Node parentNode, XmlSchemaAnyAttribute xmlSchemaAnyAttribute, List<QName> qnames) {
 			;
 		}
 
-		private void schemaAttributeToXml(Document xmlDom, Node parentNode, XmlSchemaAttribute xmlSchemaAttribute) {
+		private void schemaAttributeToXml(Document xmlDom, Node parentNode, XmlSchemaAttribute xmlSchemaAttribute, List<QName> qnames) {
 			String name = xmlSchemaAttribute.getName();
 			//Object type = xmlSchemaAttribute.getAttributeType();
 			XmlSchemaSimpleType  xmlSchemaSimpleType = xmlSchemaAttribute.getSchemaType();
@@ -641,109 +688,109 @@ public class XSDUtils {
 				}
 			}
 			else {
-				schemaSimpleTypeToXml(xmlDom, attr, xmlSchemaSimpleType);
+				schemaSimpleTypeToXml(xmlDom, attr, xmlSchemaSimpleType, qnames);
 			}
 		}
 
-		private void schemaAttributeGroupToXml(Document xmlDom, Node parentNode, XmlSchemaAttributeGroup xmlSchemaAttributeGroup) {
+		private void schemaAttributeGroupToXml(Document xmlDom, Node parentNode, XmlSchemaAttributeGroup xmlSchemaAttributeGroup, List<QName> qnames) {
 			XmlSchemaObjectCollection collection = xmlSchemaAttributeGroup.getAttributes();
 			Iterator<XmlSchemaAttribute> it = GenericUtils.cast(collection.getIterator());
 			while (it.hasNext()) {
-				schemaAttributeToXml(xmlDom, parentNode, it.next());
+				schemaAttributeToXml(xmlDom, parentNode, it.next(), qnames);
 			}
 		}
 
-		private void schemaAttributeGroupRefToXml(Document xmlDom, Node parentNode, XmlSchemaAttributeGroupRef xmlSchemaAttributeGroupRef) {
+		private void schemaAttributeGroupRefToXml(Document xmlDom, Node parentNode, XmlSchemaAttributeGroupRef xmlSchemaAttributeGroupRef, List<QName> qnames) {
 			XmlSchemaAttributeGroup xmlSchemaAttributeGroup = (XmlSchemaAttributeGroup)loadedSchema.getGroups().getItem(xmlSchemaAttributeGroupRef.getRefName());
-			schemaAttributeGroupToXml(xmlDom, parentNode, xmlSchemaAttributeGroup);
+			schemaAttributeGroupToXml(xmlDom, parentNode, xmlSchemaAttributeGroup, qnames);
 		}
 		
-		private void schemaContentToXml(Document xmlDom, Node parentNode, XmlSchemaContent xmlSchemaContent) {
+		private void schemaContentToXml(Document xmlDom, Node parentNode, XmlSchemaContent xmlSchemaContent, List<QName> qnames) {
 			if (xmlSchemaContent instanceof XmlSchemaComplexContentExtension) {
-				schemaComplexContentExtensionToXml(xmlDom, parentNode, (XmlSchemaComplexContentExtension)xmlSchemaContent);
+				schemaComplexContentExtensionToXml(xmlDom, parentNode, (XmlSchemaComplexContentExtension)xmlSchemaContent, qnames);
 			}
 			else if (xmlSchemaContent instanceof XmlSchemaComplexContentRestriction) {
-				schemaComplexContentRestrictionToXml(xmlDom, parentNode, (XmlSchemaComplexContentRestriction)xmlSchemaContent);
+				schemaComplexContentRestrictionToXml(xmlDom, parentNode, (XmlSchemaComplexContentRestriction)xmlSchemaContent, qnames);
 			}
 			else if (xmlSchemaContent instanceof XmlSchemaSimpleContentExtension) {
-				schemaSimpleContentExtensionToXml(xmlDom, parentNode, (XmlSchemaSimpleContentExtension)xmlSchemaContent);
+				schemaSimpleContentExtensionToXml(xmlDom, parentNode, (XmlSchemaSimpleContentExtension)xmlSchemaContent, qnames);
 			}
 			else if (xmlSchemaContent instanceof XmlSchemaSimpleContentRestriction) {
-				schemaSimpleContentRestrictionToXml(xmlDom, parentNode, (XmlSchemaSimpleContentRestriction)xmlSchemaContent);
+				schemaSimpleContentRestrictionToXml(xmlDom, parentNode, (XmlSchemaSimpleContentRestriction)xmlSchemaContent, qnames);
 			}
 		}
 		
-		private void schemaSimpleContentRestrictionToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleContentRestriction xmlSchemaSimpleContentRestriction) {
-			schemaSimpleTypeToXml(xmlDom, parentNode, xmlSchemaSimpleContentRestriction.getBaseType());
+		private void schemaSimpleContentRestrictionToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleContentRestriction xmlSchemaSimpleContentRestriction, List<QName> qnames) {
+			schemaSimpleTypeToXml(xmlDom, parentNode, xmlSchemaSimpleContentRestriction.getBaseType(), qnames);
 			
 			XmlSchemaObjectCollection collection = xmlSchemaSimpleContentRestriction.getAttributes();
 			Iterator<XmlSchemaAttribute> it = GenericUtils.cast(collection.getIterator());
 			while (it.hasNext()) {
-				schemaAttributeToXml(xmlDom, parentNode, it.next());
+				schemaAttributeToXml(xmlDom, parentNode, it.next(), qnames);
 			}
 		}
 
-		private void schemaSimpleContentExtensionToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleContentExtension xmlSchemaSimpleContentExtension) {
+		private void schemaSimpleContentExtensionToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleContentExtension xmlSchemaSimpleContentExtension, List<QName> qnames) {
 			XmlSchemaObjectCollection collection = xmlSchemaSimpleContentExtension.getAttributes();
 			Iterator<XmlSchemaAttribute> it = GenericUtils.cast(collection.getIterator());
 			while (it.hasNext()) {
-				schemaAttributeToXml(xmlDom, parentNode, it.next());
+				schemaAttributeToXml(xmlDom, parentNode, it.next(), qnames);
 			}
 		}
 
-		private void schemaComplexContentRestrictionToXml(Document xmlDom, Node parentNode, XmlSchemaComplexContentRestriction xmlSchemaComplexContentRestriction) {
-			schemaParticleToXml(xmlDom, parentNode, xmlSchemaComplexContentRestriction.getParticle());
+		private void schemaComplexContentRestrictionToXml(Document xmlDom, Node parentNode, XmlSchemaComplexContentRestriction xmlSchemaComplexContentRestriction, List<QName> qnames) {
+			schemaParticleToXml(xmlDom, parentNode, xmlSchemaComplexContentRestriction.getParticle(), qnames);
 			
 			XmlSchemaObjectCollection collection = xmlSchemaComplexContentRestriction.getAttributes();
 			Iterator<XmlSchemaAttribute> it = GenericUtils.cast(collection.getIterator());
 			while (it.hasNext()) {
-				schemaAttributeToXml(xmlDom, parentNode, it.next());
+				schemaAttributeToXml(xmlDom, parentNode, it.next(), qnames);
 			}
 		}
 
-		private void schemaComplexContentExtensionToXml(Document xmlDom, Node parentNode, XmlSchemaComplexContentExtension xmlSchemaComplexContentExtension) {
-			schemaParticleToXml(xmlDom, parentNode, xmlSchemaComplexContentExtension.getParticle());
+		private void schemaComplexContentExtensionToXml(Document xmlDom, Node parentNode, XmlSchemaComplexContentExtension xmlSchemaComplexContentExtension, List<QName> qnames) {
+			schemaParticleToXml(xmlDom, parentNode, xmlSchemaComplexContentExtension.getParticle(), qnames);
 			
 			XmlSchemaObjectCollection collection = xmlSchemaComplexContentExtension.getAttributes();
 			Iterator<XmlSchemaAttribute> it = GenericUtils.cast(collection.getIterator());
 			while (it.hasNext()) {
-				schemaAttributeToXml(xmlDom, parentNode, it.next());
+				schemaAttributeToXml(xmlDom, parentNode, it.next(), qnames);
 			}
 		}
 
-		private void schemaContentModelToXml(Document xmlDom, Node parentNode, XmlSchemaContentModel xmlSchemaContentModel) {
+		private void schemaContentModelToXml(Document xmlDom, Node parentNode, XmlSchemaContentModel xmlSchemaContentModel, List<QName> qnames) {
 			if (xmlSchemaContentModel instanceof XmlSchemaComplexContent) {
-				schemaComplexContentToXml(xmlDom, parentNode, (XmlSchemaComplexContent)xmlSchemaContentModel);
+				schemaComplexContentToXml(xmlDom, parentNode, (XmlSchemaComplexContent)xmlSchemaContentModel, qnames);
 			}
 			else if (xmlSchemaContentModel instanceof XmlSchemaSimpleContent) {
-				schemaSimpleContentToXml(xmlDom, parentNode, (XmlSchemaSimpleContent)xmlSchemaContentModel);
+				schemaSimpleContentToXml(xmlDom, parentNode, (XmlSchemaSimpleContent)xmlSchemaContentModel, qnames);
 			}
 		}
 		
-		private void schemaSimpleContentToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleContent xmlSchemaSimpleContent) {
-			schemaContentToXml(xmlDom, parentNode, xmlSchemaSimpleContent.getContent());
+		private void schemaSimpleContentToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleContent xmlSchemaSimpleContent, List<QName> qnames) {
+			schemaContentToXml(xmlDom, parentNode, xmlSchemaSimpleContent.getContent(), qnames);
 		}
 
-		private void schemaComplexContentToXml(Document xmlDom, Node parentNode, XmlSchemaComplexContent xmlSchemaComplexContent) {
-			schemaContentToXml(xmlDom, parentNode, xmlSchemaComplexContent.getContent());
+		private void schemaComplexContentToXml(Document xmlDom, Node parentNode, XmlSchemaComplexContent xmlSchemaComplexContent, List<QName> qnames) {
+			schemaContentToXml(xmlDom, parentNode, xmlSchemaComplexContent.getContent(), qnames);
 		}
 
-		private void schemaGroupToXml(Document xmlDom, Node parentNode, XmlSchemaGroup xmlSchemaGroup) {
-			schemaParticleToXml(xmlDom, parentNode, xmlSchemaGroup.getParticle());
+		private void schemaGroupToXml(Document xmlDom, Node parentNode, XmlSchemaGroup xmlSchemaGroup, List<QName> qnames) {
+			schemaParticleToXml(xmlDom, parentNode, xmlSchemaGroup.getParticle(), qnames);
 		}
 
-		private void schemaParticleToXml(Document xmlDom, Node parentNode, XmlSchemaParticle xmlSchemaParticle) {
+		private void schemaParticleToXml(Document xmlDom, Node parentNode, XmlSchemaParticle xmlSchemaParticle, List<QName> qnames) {
 			if (xmlSchemaParticle instanceof XmlSchemaAny) {
 				;
 			}
 			else if (xmlSchemaParticle instanceof XmlSchemaElement) {
-				schemaElementToXml(xmlDom, parentNode, (XmlSchemaElement)xmlSchemaParticle);
+				schemaElementToXml(xmlDom, parentNode, (XmlSchemaElement)xmlSchemaParticle, qnames);
 			}
 			else if (xmlSchemaParticle instanceof XmlSchemaGroupBase) {
-				schemaGroupBaseToXml(xmlDom, parentNode, (XmlSchemaGroupBase)xmlSchemaParticle);
+				schemaGroupBaseToXml(xmlDom, parentNode, (XmlSchemaGroupBase)xmlSchemaParticle, qnames);
 			}
 			else if (xmlSchemaParticle instanceof XmlSchemaGroupRef) {
-				schemaGroupRefToXml(xmlDom, parentNode, (XmlSchemaGroupRef)xmlSchemaParticle);
+				schemaGroupRefToXml(xmlDom, parentNode, (XmlSchemaGroupRef)xmlSchemaParticle, qnames);
 			}
 		}
 		
@@ -782,7 +829,7 @@ public class XSDUtils {
 			return element;
 		}
 		
-		private void schemaElementToXml(Document xmlDom, Node parentNode, XmlSchemaElement xmlSchemaElement) {
+		private void schemaElementToXml(Document xmlDom, Node parentNode, XmlSchemaElement xmlSchemaElement, List<QName> qnames) {
 			boolean outputOccurrences = xmlgenDescription.isOutputOccurences();
 			boolean outputOccursAttribute = xmlgenDescription.isOutputOccursAttribute();
 			boolean outputSchemaTypeCData = xmlgenDescription.isOutputSchemaTypeCData();
@@ -794,6 +841,14 @@ public class XSDUtils {
 			
 			XmlSchemaType xmlSchemaType = xmlSchemaElement.getSchemaType();
 			if (xmlSchemaType != null) {
+				QName xmlSchemaTypeQName = xmlSchemaType.getQName();
+				if ((xmlSchemaTypeQName != null) && !xmlSchemaTypeQName.equals("")) {
+					if (!Constants.URI_2001_SCHEMA_XSD.equals(xmlSchemaTypeQName.getNamespaceURI())) {
+						if (!qnames.contains(xmlSchemaTypeQName))
+							qnames.add(xmlSchemaTypeQName);
+					}
+				}
+				
 				Element element = createElement(xmlDom, parentNode, xmlSchemaElement);
 				if (element != null) {
 					if (outputSchemaTypeCData) {
@@ -827,7 +882,7 @@ public class XSDUtils {
 					if (outputOccursAttribute) element.setAttribute("occurs", ""+maxOccurs);
 					if (outputElementWithNS) element.setAttribute(doneAttr, "false");// to avoid recursion
 	                Node node = ((Element)parentNode).appendChild(element);
-					schemaTypeToXml(xmlDom, element, xmlSchemaType);
+					schemaTypeToXml(xmlDom, element, xmlSchemaType, qnames);
 					if (outputElementWithNS) element.setAttribute(doneAttr, "true");
 					
 					while (--occurs>0) {
@@ -841,7 +896,7 @@ public class XSDUtils {
 				QName refName = xmlSchemaElement.getRefName();
 				if (refName != null) {
 					XmlSchemaElement xmlSchemaElementRef = loadedSchema.getElementByName(refName);
-					schemaElementToXml(xmlDom, parentNode, xmlSchemaElementRef);
+					schemaElementToXml(xmlDom, parentNode, xmlSchemaElementRef, qnames);
 				}
 				else {
 					//Missing type or ref attribute OR type is xsd:anyType
@@ -857,7 +912,7 @@ public class XSDUtils {
 				}
 			}
 		}
-
+		
 		private String removeEmptySimpleType(int index, String xsdSchema) {
 			int z1,z2,z3,z4;
 			if ((z1 = xsdSchema.indexOf("<xsd:simpleType>",index))!=-1) {
@@ -875,98 +930,106 @@ public class XSDUtils {
 			return xsdSchema.replaceAll("<xsd:simpleType/>", "");
 		}
 
-		private void schemaGroupBaseToXml(Document xmlDom, Node parentNode, XmlSchemaGroupBase xmlSchemaGroup) {
+		private void schemaGroupBaseToXml(Document xmlDom, Node parentNode, XmlSchemaGroupBase xmlSchemaGroup, List<QName> qnames) {
 			boolean outputOccurrences = xmlgenDescription.isOutputOccurences();
 			long maxOccurs = xmlSchemaGroup.getMaxOccurs();
 			long occurs = (outputOccurrences ? ((maxOccurs > 2) ? 2:maxOccurs):1);
 			
 			if (xmlSchemaGroup instanceof XmlSchemaAll) {
 				while (occurs-->0)
-					schemaAllToXml(xmlDom, parentNode, (XmlSchemaAll)xmlSchemaGroup);
+					schemaAllToXml(xmlDom, parentNode, (XmlSchemaAll)xmlSchemaGroup, qnames);
 			}
 			else if (xmlSchemaGroup instanceof XmlSchemaChoice) {
 				while (occurs-->0)
-					schemaChoiceToXml(xmlDom, parentNode, (XmlSchemaChoice)xmlSchemaGroup);
+					schemaChoiceToXml(xmlDom, parentNode, (XmlSchemaChoice)xmlSchemaGroup, qnames);
 			}
 			else if (xmlSchemaGroup instanceof XmlSchemaSequence) {
 				while (occurs-->0)
-					schemaSequenceToXml(xmlDom, parentNode, (XmlSchemaSequence)xmlSchemaGroup);
+					schemaSequenceToXml(xmlDom, parentNode, (XmlSchemaSequence)xmlSchemaGroup, qnames);
 			}
 		}
 		
-		private void schemaAllToXml(Document xmlDom, Node parentNode, XmlSchemaAll xmlSchemaAll) {
+		private void schemaAllToXml(Document xmlDom, Node parentNode, XmlSchemaAll xmlSchemaAll, List<QName> qnames) {
 			XmlSchemaObjectCollection collection = xmlSchemaAll.getItems();
 			Iterator<XmlSchemaObject> it = GenericUtils.cast(collection.getIterator());
 			while (it.hasNext()) {
-				schemaObjectToXml(xmlDom, parentNode, it.next());
+				schemaObjectToXml(xmlDom, parentNode, it.next(), qnames);
 			}
 		}
 
-		private void schemaChoiceToXml(Document xmlDom, Node parentNode, XmlSchemaChoice xmlSchemaChoice) {
+		private void schemaChoiceToXml(Document xmlDom, Node parentNode, XmlSchemaChoice xmlSchemaChoice, List<QName> qnames) {
 			XmlSchemaObjectCollection collection = xmlSchemaChoice.getItems();
 			Iterator<XmlSchemaObject> it = GenericUtils.cast(collection.getIterator());
 			while (it.hasNext()) {
-				schemaObjectToXml(xmlDom, parentNode, it.next());
+				schemaObjectToXml(xmlDom, parentNode, it.next(), qnames);
 				//break;// TODO: to optimize for occurrence output in parent
 			}
 		}
 
-		private void schemaSequenceToXml(Document xmlDom, Node parentNode, XmlSchemaSequence xmlSchemaSequence) {
+		private void schemaSequenceToXml(Document xmlDom, Node parentNode, XmlSchemaSequence xmlSchemaSequence, List<QName> qnames) {
 			XmlSchemaObjectCollection collection = xmlSchemaSequence.getItems();
 			Iterator<XmlSchemaObject> it = GenericUtils.cast(collection.getIterator());
 			while (it.hasNext()) {
-				schemaObjectToXml(xmlDom, parentNode, it.next());
+				schemaObjectToXml(xmlDom, parentNode, it.next(), qnames);
 			}
 		}
 
-		private void schemaGroupRefToXml(Document xmlDom, Node parentNode, XmlSchemaGroupRef xmlSchemaGroupRef) {
+		private void schemaGroupRefToXml(Document xmlDom, Node parentNode, XmlSchemaGroupRef xmlSchemaGroupRef, List<QName> qnames) {
 			boolean outputOccurrences = xmlgenDescription.isOutputOccurences();
 			long maxOccurs = xmlSchemaGroupRef.getMaxOccurs();
 			long occurs = (outputOccurrences ? ((maxOccurs > 2) ? 2:maxOccurs):1);
 			
 			XmlSchemaGroup xmlSchemaGroup = (XmlSchemaGroup)loadedSchema.getGroups().getItem(xmlSchemaGroupRef.getRefName());
 			while (occurs-->0)
-				schemaGroupToXml(xmlDom, parentNode, xmlSchemaGroup);
+				schemaGroupToXml(xmlDom, parentNode, xmlSchemaGroup, qnames);
 		}
 		
-		private void schemaSimpleTypeContentToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleTypeContent xmlSchemaSimpleTypeContent) {
+		private void schemaSimpleTypeContentToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleTypeContent xmlSchemaSimpleTypeContent, List<QName> qnames) {
 			if (xmlSchemaSimpleTypeContent instanceof XmlSchemaSimpleTypeList) {
-				schemaSimpleTypeListToXml(xmlDom, parentNode, (XmlSchemaSimpleTypeList)xmlSchemaSimpleTypeContent);
+				schemaSimpleTypeListToXml(xmlDom, parentNode, (XmlSchemaSimpleTypeList)xmlSchemaSimpleTypeContent, qnames);
 			}
 			else if (xmlSchemaSimpleTypeContent instanceof XmlSchemaSimpleTypeRestriction) {
-				schemaSimpleTypeRestrictionToXml(xmlDom, parentNode, (XmlSchemaSimpleTypeRestriction)xmlSchemaSimpleTypeContent);
+				schemaSimpleTypeRestrictionToXml(xmlDom, parentNode, (XmlSchemaSimpleTypeRestriction)xmlSchemaSimpleTypeContent, qnames);
 			}
 			else if (xmlSchemaSimpleTypeContent instanceof XmlSchemaSimpleTypeUnion) {
-				schemaSimpleTypeUnionToXml(xmlDom, parentNode, (XmlSchemaSimpleTypeUnion)xmlSchemaSimpleTypeContent);
+				schemaSimpleTypeUnionToXml(xmlDom, parentNode, (XmlSchemaSimpleTypeUnion)xmlSchemaSimpleTypeContent, qnames);
 			}
 		}
 
-		private void schemaSimpleTypeUnionToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleTypeUnion xmlSchemaSimpleTypeUnion) {
+		private void schemaSimpleTypeUnionToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleTypeUnion xmlSchemaSimpleTypeUnion, List<QName> qnames) {
 			XmlSchemaObjectCollection collection = xmlSchemaSimpleTypeUnion.getBaseTypes();
 			Iterator<XmlSchemaSimpleType> it = GenericUtils.cast(collection.getIterator());
 			while (it.hasNext()) {
-				schemaSimpleTypeToXml(xmlDom, parentNode, it.next());
+				schemaSimpleTypeToXml(xmlDom, parentNode, it.next(), qnames);
 			}
 		}
 
-		private void schemaSimpleTypeRestrictionToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleTypeRestriction xmlSchemaSimpleTypeRestriction) {
-			schemaSimpleTypeToXml(xmlDom, parentNode, xmlSchemaSimpleTypeRestriction.getBaseType());
+		private void schemaSimpleTypeRestrictionToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleTypeRestriction xmlSchemaSimpleTypeRestriction, List<QName> qnames) {
+			schemaSimpleTypeToXml(xmlDom, parentNode, xmlSchemaSimpleTypeRestriction.getBaseType(), qnames);
 		}
 
-		private void schemaSimpleTypeListToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleTypeList xmlSchemaSimpleTypeList) {
-			schemaSimpleTypeToXml(xmlDom, parentNode, xmlSchemaSimpleTypeList.getItemType());
+		private void schemaSimpleTypeListToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleTypeList xmlSchemaSimpleTypeList, List<QName> qnames) {
+			schemaSimpleTypeToXml(xmlDom, parentNode, xmlSchemaSimpleTypeList.getItemType(), qnames);
 		}
 
-		private void schemaTypeToXml(Document xmlDom, Node parentNode, XmlSchemaType xmlSchemaType) {
+		private void schemaTypeToXml(Document xmlDom, Node parentNode, XmlSchemaType xmlSchemaType, List<QName> qnames) {
 			if (xmlSchemaType instanceof XmlSchemaSimpleType) {
-				schemaSimpleTypeToXml(xmlDom, parentNode, (XmlSchemaSimpleType)xmlSchemaType);
+				schemaSimpleTypeToXml(xmlDom, parentNode, (XmlSchemaSimpleType)xmlSchemaType, qnames);
 			}
 			else if (xmlSchemaType instanceof XmlSchemaComplexType) {
-				schemaComplexTypeToXml(xmlDom, parentNode, (XmlSchemaComplexType)xmlSchemaType);
+				schemaComplexTypeToXml(xmlDom, parentNode, (XmlSchemaComplexType)xmlSchemaType, qnames);
 			}
 		}
 		
-		private void schemaSimpleTypeToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleType xmlSchemaSimpleType) {
+		private void schemaSimpleTypeToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleType xmlSchemaSimpleType, List<QName> qnames) {
+			QName xmlSchemaTypeQName = xmlSchemaSimpleType.getQName();
+			if ((xmlSchemaTypeQName != null) && !xmlSchemaTypeQName.equals("")) {
+				if (!Constants.URI_2001_SCHEMA_XSD.equals(xmlSchemaTypeQName.getNamespaceURI())) {
+					if (!qnames.contains(xmlSchemaTypeQName))
+						qnames.add(xmlSchemaTypeQName);
+				}
+			}
+			
 			String value = xmlSchemaSimpleType.getName(); //"value";
 			if (value == null) {
 				value = "";
@@ -988,13 +1051,13 @@ public class XSDUtils {
 			}
 		}
 		
-		private void schemaComplexTypeToXml(Document xmlDom, Node parentNode, XmlSchemaComplexType xmlSchemaComplexType) {
-			schemaParticleToXml(xmlDom, parentNode, xmlSchemaComplexType.getParticle());
+		private void schemaComplexTypeToXml(Document xmlDom, Node parentNode, XmlSchemaComplexType xmlSchemaComplexType, List<QName> qnames) {
+			schemaParticleToXml(xmlDom, parentNode, xmlSchemaComplexType.getParticle(), qnames);
 			
 			XmlSchemaObjectCollection collection = xmlSchemaComplexType.getAttributes();
 			Iterator<XmlSchemaAttribute> it = GenericUtils.cast(collection.getIterator());
 			while (it.hasNext()) {
-				schemaAttributeToXml(xmlDom, parentNode, it.next());
+				schemaAttributeToXml(xmlDom, parentNode, it.next(), qnames);
 			}
 		}
 		
@@ -1088,15 +1151,17 @@ public class XSDUtils {
 			}
 		}
 		
-		private void removeSchemaObjectsExcept(List<QName> qnames) {
+		private void removeSchemaObjectsExcept(XmlSchema xmlSchema, List<QName> qnames) {
 			if (qnames == null)
 				return;
+			if (xmlSchema == null)
+				xmlSchema = loadedSchema;
 			
 			String message = "\nqnames["+qnames.size()+"]: "+qnames.toString();
 			XmlSchemaObject ob = null;
 			QName qname = null;
 			
-			Iterator<XmlSchemaObject> it = GenericUtils.cast(loadedSchema.getItems().getIterator());
+			Iterator<XmlSchemaObject> it = GenericUtils.cast(xmlSchema.getItems().getIterator());
 			while (it.hasNext()) {
 				ob = it.next();
 				if (ob instanceof XmlSchemaType) {
@@ -1128,7 +1193,7 @@ public class XSDUtils {
 			}
 			
 			//System.out.println(message);
-			//loadedSchema.write(System.out, options);
+			//xmlSchema.write(System.out, options);
 		}
 		
 		private Vector<QuickSortItem> getTypes(XmlSchema schema, String prefix) {
