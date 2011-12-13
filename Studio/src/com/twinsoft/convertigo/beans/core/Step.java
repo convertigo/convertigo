@@ -80,6 +80,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	transient private int cloneNumber = 0;
 	
 	transient public IContextMaintainer transactionContextMaintainer = null;
+	transient protected String schema = "";
 	
 	public Step() {
         super();
@@ -110,6 +111,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		clonedObject.vSheets = new LinkedList<Sheet>();
 		clonedObject.newPriority = newPriority;
 		clonedObject.outputDocument = null;
+		clonedObject.schema = "";
 		return clonedObject;
 	}
     
@@ -589,8 +591,13 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		wsdlDom = getSequence().createDOM();
 		Element element = wsdlDom.createElement(getStepNodeName());
 		
+		if (schema.equals("")) {
+			try {
+				getSequence().generateWsdlType(null);
+			} catch (Exception e) {}
+		}
 		Element schemaType = wsdlDom.createElement("schema-type");
-        CDATASection cDATASection = wsdlDom.createCDATASection(getSchema(getProject().getName()+"_ns"));
+		CDATASection cDATASection = wsdlDom.createCDATASection(schema);
         schemaType.appendChild(cDATASection);
         element.appendChild(schemaType);
 		
@@ -960,16 +967,15 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 
 	public String getSchema(String tns, String occurs) throws EngineException {
-		String schema = "";
+		schema = "";
 		String maxOccurs = (occurs == null) ? "":"maxOccurs=\""+occurs+"\"";
-		if (isXml() || (!isXml() && isOutput())) {
-			schema += "\t\t\t<xsd:element minOccurs=\"0\" "+maxOccurs+" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
-			schema += "\t\t\t\t<xsd:annotation>\n";
-			schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-			schema += "\t\t\t\t</xsd:annotation>\n";
-			schema += "\t\t\t</xsd:element>\n";
-		}
-		return schema;
+		schema += "\t\t\t<xsd:element minOccurs=\"0\" "+maxOccurs+" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
+		schema += "\t\t\t\t<xsd:annotation>\n";
+		schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
+		schema += "\t\t\t\t</xsd:annotation>\n";
+		schema += "\t\t\t</xsd:element>\n";
+		
+		return isEnable() && isOutput() ? schema:"";
 	}
 	
 	public void addSchemaType(HashMap<Long, String> stepTypes, String tns) throws EngineException {

@@ -517,23 +517,25 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	@Override
 	public String getSchema(String tns, String occurs) throws EngineException {
 		boolean isLoopStep = this instanceof LoopStep;
+		String maxOccurs = isLoopStep ? "maxOccurs=\"unbounded\"":((occurs == null) ? "":"maxOccurs=\""+occurs+"\"");
+		schema = "";
+		schema += "\t\t\t<xsd:element minOccurs=\"0\" "+maxOccurs+" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
+		schema += "\t\t\t\t<xsd:annotation>\n";
+		schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
+		schema += "\t\t\t\t</xsd:annotation>\n";
+		schema += "\t\t\t</xsd:element>\n";
 		
-		String schema = "";
-		if (isOutput()) {
-			String maxOccurs = isLoopStep ? "maxOccurs=\"unbounded\"":((occurs == null) ? "":"maxOccurs=\""+occurs+"\"");
-			schema += "\t\t\t<xsd:element minOccurs=\"0\" "+maxOccurs+" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
-			schema += "\t\t\t\t<xsd:annotation>\n";
-			schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-			schema += "\t\t\t\t</xsd:annotation>\n";
-			schema += "\t\t\t</xsd:element>\n";
+		String s = "";
+		if (isEnable()) {
+			if (isOutput())
+				s = schema;
+			else {
+				for (Step step: getSteps()) {
+					s += step.getSchema(tns, (isLoopStep ? "unbounded":occurs));
+				}			
+			}
 		}
-		else {
-			for (Step step: getSteps()) {
-				schema += step.getSchema(tns, (isLoopStep ? "unbounded":occurs));
-			}			
-		}
-		return schema;
-		
+		return s;
 	}
 	
 	@Override
@@ -562,7 +564,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     	stepTypeSchema += attrStepsSchema;
 		stepTypeSchema += "\t</xsd:complexType>\n";
 		
-		if (!(!isXml() && !isOutput()))
+		//if (!(!isXml() && !isOutput()))
 			stepTypes.put(new Long(priority), stepTypeSchema);
 		
 	}

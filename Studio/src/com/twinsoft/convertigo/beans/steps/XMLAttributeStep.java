@@ -169,14 +169,13 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 
 	@Override
 	public String getSchema(String tns, String occurs) throws EngineException {
-		String schema = "";
-		if (isOutput()) {
-			schema += "\t\t\t<xsd:attribute use=\"optional\" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
-			schema += "\t\t\t\t<xsd:annotation>\n";
-			schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-			schema += "\t\t\t\t</xsd:annotation>\n";
-			schema += "\t\t\t</xsd:attribute>\n";
-		}
-		return schema;
+		schema = "";
+		schema += "\t\t\t<xsd:attribute use=\"optional\" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
+		schema += "\t\t\t\t<xsd:annotation>\n";
+		schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
+		schema += "\t\t\t\t</xsd:annotation>\n";
+		schema += "\t\t\t</xsd:attribute>\n";
+		
+		return isEnable() && isOutput() ? schema:"";
 	}
 }

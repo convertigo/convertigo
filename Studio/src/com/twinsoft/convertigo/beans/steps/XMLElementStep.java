@@ -154,18 +154,17 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 	
 	@Override
 	public String getSchema(String tns, String occurs) throws EngineException {
-		String schema = "";
-		if (isOutput()) {
-			String maxOccurs = (occurs == null) ? "":"maxOccurs=\""+occurs+"\"";
-			schema += "\t\t\t<xsd:element minOccurs=\"0\" "+maxOccurs+" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
-			schema += "\t\t\t\t<xsd:annotation>\n";
-			schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-			schema += "\t\t\t\t</xsd:annotation>\n";
-			schema += "\t\t\t</xsd:element>\n";
-		}
-		return schema;
+		schema = "";
+		String maxOccurs = (occurs == null) ? "":"maxOccurs=\""+occurs+"\"";
+		schema += "\t\t\t<xsd:element minOccurs=\"0\" "+maxOccurs+" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
+		schema += "\t\t\t\t<xsd:annotation>\n";
+		schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
+		schema += "\t\t\t\t</xsd:annotation>\n";
+		schema += "\t\t\t</xsd:element>\n";
+		
+		return isEnable() && isOutput() ? schema:"";
 	}
-	
+
 	@Override
 	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs) throws EngineException {
 		if (hasSteps()) { // if has attributes
