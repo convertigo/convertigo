@@ -176,10 +176,10 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 
 	@Override
 	public String getSchema(String tns, String occurs) throws EngineException {
-		String schema = "";
-		if (isOutput())
-			schema += getTargetSchema(occurs);
-		return schema;
+		schema = "";
+		schema += getTargetSchema(occurs);
+		
+		return isEnable() && isOutput() ? schema:"";
 	}
 
 	private String getTargetSchema(String occurs) throws EngineException {
