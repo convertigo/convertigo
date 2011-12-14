@@ -51,6 +51,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import com.jacob.com.ComThread;
+import com.twinsoft.convertigo.beans.steps.StepException;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -744,7 +745,12 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
                 handleRequestableEvent(RequestableObject.EVENT_REQUESTABLE_XML_GENERATED, javascriptContext);
             } catch(Throwable e) {
-				Engine.logContext.error("Exception thrown during requested object execution", e);
+            	if (e.getCause() != null && e.getCause() instanceof StepException) {
+            		Engine.logContext.info("An exception was thrown by a jException step: " + e.getCause().getMessage());
+            		Engine.logContext.debug("(RequestableObject) An exception was thrown by a jException step", e.getCause());
+            	} else {
+            		Engine.logContext.error("Exception thrown during requested object execution", e);
+            	}
                 exception = e;
             } finally {
 				Engine.logContext.debug("(RequestableObject) Final stage for requested object thread");

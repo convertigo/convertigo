@@ -46,11 +46,13 @@ public class ExceptionStepBeanInfo extends MySimpleBeanInfo {
 	        properties[0] = new PropertyDescriptor("message", beanClass, "getMessage", "setMessage");
 	        properties[0].setDisplayName(getExternalizedString("property.message.display_name"));
 	        properties[0].setShortDescription(getExternalizedString("property.message.short_description"));
+	        properties[0].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
 	        properties[0].setValue("scriptable", Boolean.TRUE);
-			
+	        
 	        properties[1] = new PropertyDescriptor("details", beanClass, "getDetails", "setDetails");
 	        properties[1].setDisplayName(getExternalizedString("property.details.display_name"));
 	        properties[1].setShortDescription(getExternalizedString("property.details.short_description"));
+	        properties[1].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
 	        properties[1].setValue("scriptable", Boolean.TRUE);
 		}
 		catch(Exception e) {
