@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.wsdl.WSDLException;
+import javax.xml.namespace.QName;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -72,6 +73,52 @@ import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSDException;
 
 public class ProjectUtils {
+	
+	public static void RemoveUselessObjects(XSD xsd, Project project) {
+		String projectName = project.getName();
+		String project_ns = projectName+ "_ns";
+		
+		List<QName> qnames = new ArrayList<QName>();
+		
+		for (Connector c : project.getConnectorsList()) {
+			String connectorName = c.getName();
+			for (Transaction t: c.getTransactionsList()) {
+				if (t.isPublicMethod()) {
+					try {
+						for (QName qname: xsd.getElementQNameList(project_ns, connectorName + "__" + t.getName()))
+							addQNameInList(qnames, qname);
+						for (QName qname: xsd.getElementQNameList(project_ns, connectorName + "__" + t.getName()+ "Response"))
+							addQNameInList(qnames, qname);
+					}
+					catch (Exception e) {}
+				}
+			}
+		}
+		
+		for (Sequence s : project.getSequencesList()) {
+			if (s.isPublicMethod()) {
+				try {
+					for (QName qname: xsd.getElementQNameList(project_ns, s.getName()))
+						addQNameInList(qnames, qname);
+					for (QName qname: xsd.getElementQNameList(project_ns, s.getName()+ "Response"))
+						addQNameInList(qnames, qname);
+				}
+				catch (Exception e) {}
+			}
+		}
+		
+		xsd.removeSchemaObjectsNotIn(qnames);
+	}
+
+	private static void addQNameInList(List<QName> qnames, QName qname) {
+		if (qname!=null) {
+			if (!qnames.contains(qname)) {
+				qnames.add(qname);
+			}
+		}
+	}
+	/*********************************************************************************************************/
+	
 
 	public static boolean createXsdFile(String projectsDir, String projectName) throws Exception {
 		String xsdURI = projectsDir + "/" + projectName + "/" + projectName + ".xsd";

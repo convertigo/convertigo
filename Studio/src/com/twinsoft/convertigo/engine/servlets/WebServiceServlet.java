@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
+import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -187,6 +188,8 @@ public class WebServiceServlet extends GenericServlet {
 			if (project.isSchemaInline()) {
 				try  {
 					XSD xsd = XSDUtils.getXSD(xsdFilePath);
+					ProjectUtils.RemoveUselessObjects(xsd, project);
+					
 					if (xsd != null) {
 						int start = wsdl.indexOf("<xsd:schema ");
 						if (start != -1) {
