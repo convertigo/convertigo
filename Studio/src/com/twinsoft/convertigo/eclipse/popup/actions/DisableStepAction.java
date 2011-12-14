@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeO
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 
 public class DisableStepAction extends MyAbstractAction {
 
@@ -66,6 +67,9 @@ public class DisableStepAction extends MyAbstractAction {
 
 		                // Updating the tree
 		                explorerView.refreshTreeObject(stepTreeObject);
+		                
+		                TreeObjectEvent treeObjectEvent = new TreeObjectEvent(stepTreeObject, "isEnable", true, false);
+		                explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
 					}
 				}
     		}
