@@ -855,7 +855,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				if (value.toString().indexOf("${") == -1)
 					databaseObject.removeCompilablePropertySourceValue(propertyName);
 				else
-					value = DatabaseObject.compileProperty(databaseObject, propertyName, value);
+					value = DatabaseObject.compileProperty(databaseObject, propertyClass, propertyName, value);
 				
 				if ((propertyClass == int.class) || (propertyClass == Integer.class)) {
 					if (!(value instanceof Integer))	value = new Integer(value.toString());
