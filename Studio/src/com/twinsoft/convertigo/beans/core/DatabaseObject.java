@@ -764,7 +764,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
                     try {if ("true".equals(childAttributes.getNamedItem("ciphered").getNodeValue())) propertyObjectValue = decryptPropertyValue(propertyObjectValue);}
                     catch (Exception e) {}
                     
-                    propertyObjectValue = compileProperty(databaseObject, propertyName, propertyObjectValue);
+                    propertyObjectValue = compileProperty(databaseObject, propertyType, propertyName, propertyObjectValue);
                     propertyValue = propertyObjectValue.toString();
             		
                     if ((propertyType == int.class) || (propertyType == Integer.class)){
@@ -858,6 +858,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
     }
     
     public static Object compileProperty(DatabaseObject databaseObject, String propertyName, Object propertyObjectValue) {
+    	return compileProperty(databaseObject, String.class, propertyName, propertyObjectValue);
+    }
+    
+    public static Object compileProperty(DatabaseObject databaseObject, Class<?> propertyType, String propertyName, Object propertyObjectValue) {
 		// This a property that does not need to be compiled; remove source value if any
 		if (!valueIsCompilable(propertyObjectValue)) {
 			databaseObject.removeCompilablePropertySourceValue(propertyName);
@@ -867,7 +871,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		// Update source value and retrieve compiled value
 		databaseObject.setCompilablePropertySourceValue(propertyName, propertyObjectValue);
 		Engine.logBeans.trace("  source value='" + propertyObjectValue.toString() + "'");
-		return getCompiledValue(propertyObjectValue);
+		Object compiledValue = getCompiledValue(propertyObjectValue);
+		if ((compiledValue instanceof String) && (propertyType != String.class)) {
+			compiledValue = "".equals(compiledValue) ? "80":compiledValue;
+		}
+		return compiledValue;
 	}
 
 	private static Object getCompiledValue(Object propertyObjectValue) {
@@ -1112,7 +1120,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
                     propertyType = pd.getPropertyType();
                     propertyObjectValue = XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(childNode, Node.ELEMENT_NODE));
                     Engine.logBeans.trace("  value='" + propertyObjectValue.toString() + "'");
-                    propertyObjectValue = compileProperty(databaseObject, propertyName, propertyObjectValue);
+                    propertyObjectValue = compileProperty(databaseObject, propertyType, propertyName, propertyObjectValue);
                     
                     Method setter = pd.getWriteMethod();
                     Engine.logBeans.trace("  setter='" + setter.getName() + "'");
