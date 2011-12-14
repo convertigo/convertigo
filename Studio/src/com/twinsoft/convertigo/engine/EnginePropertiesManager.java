@@ -229,6 +229,7 @@ public class EnginePropertiesManager {
     	Billing ("Billing system"),
     	Notifications ("Notifications"),
     	MobileBuilder ("Mobile builder"),
+    	ExternalBrowser ("External browser"),
     	;
     	
     	final String displayName;
@@ -469,6 +470,10 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		MOBILE_BUILDER_PLATFORM_URL ("mobile.builder.platform_url", "https://build.convertigo.net/cmb/PhoneGapBuilder", "Mobile builder platform URL", PropertyCategory.MobileBuilder),
 
+		/** EXTERNAL BROWSER */
+		@PropertyOptions(propertyType = PropertyType.Array)
+		EBA_LIST ("externalbrowser.agent.list", "", "External Browser Agent list", PropertyCategory.ExternalBrowser),
+		
 		/* End of configuration keys definition */;
 		
     	final String key;

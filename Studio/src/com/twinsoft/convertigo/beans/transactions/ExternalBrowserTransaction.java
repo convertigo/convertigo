@@ -22,9 +22,13 @@
 
 package com.twinsoft.convertigo.beans.transactions;
 
+import org.w3c.dom.Document;
+
+import com.convertigo.externalbrowser.common.enums.BrowserVersion;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserInterface;
 
 public class ExternalBrowserTransaction extends TransactionWithVariables {
 	private static final long serialVersionUID = -1726228364762123615L;
@@ -54,7 +58,16 @@ public class ExternalBrowserTransaction extends TransactionWithVariables {
 //		Engine.logEngine.info("bench term");
 //		context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
 		
-		Engine.theApp.externalBrowserManager.startEBI();
+		ExternalBrowserInterface ebi = Engine.theApp.externalBrowserManager.getExternalBrowserInstance(BrowserVersion.xulrunnner1_9);
+		ebi.gotoUrl("http://www.google.fr");
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Document doc = ebi.getDom();
+		context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
 	}
 
 	@Override
