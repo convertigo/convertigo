@@ -564,7 +564,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     	stepTypeSchema += attrStepsSchema;
 		stepTypeSchema += "\t</xsd:complexType>\n";
 		
-		//if (!(!isXml() && !isOutput()))
+		if (!(!isXml() && !isOutput()))
 			stepTypes.put(new Long(priority), stepTypeSchema);
 		
 	}
