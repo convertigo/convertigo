@@ -25,20 +25,14 @@ package com.twinsoft.convertigo.beans.steps;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
-import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 
-/**
- * @author nathalieh
- *
- */
-public class ExceptionStep extends Step {
+public class ExceptionStep extends SimpleStep {
 
 	private static final long serialVersionUID = 7505194897465946697L;
 
-	private String message = "\"humanly readable message\"";
-	private String details = "\"details\"";
+	private String details = "\"\"";
 	
 	public ExceptionStep() {
 		super();
@@ -47,7 +41,7 @@ public class ExceptionStep extends Step {
 	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.stepExcecute(javascriptContext, scope)) {
-				evaluate(javascriptContext, scope, getMessage(), "message", true);
+				evaluate(javascriptContext, scope, getExpression(), "message", true);
 				Object evMessage = evaluated;
 				
 				if (evMessage instanceof org.mozilla.javascript.Undefined) {
@@ -85,14 +79,6 @@ public class ExceptionStep extends Step {
 	public String toJsString() {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
 	}
 
 	public String getDetails() {
