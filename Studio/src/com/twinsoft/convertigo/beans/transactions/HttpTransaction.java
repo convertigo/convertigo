@@ -36,8 +36,10 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.AttachmentManager;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -432,4 +434,28 @@ public class HttpTransaction extends TransactionWithVariables {
 	public void setRequestTemplate(String requestTemplate) {
 		this.requestTemplate = requestTemplate;
 	}
+	
+    @Override
+    public void add(DatabaseObject databaseObject) throws EngineException {
+        if (databaseObject instanceof RequestableVariable) {
+        	if (databaseObject instanceof RequestableHttpVariable)
+        		addVariable((RequestableHttpVariable) databaseObject);
+        	else throw new EngineException("You cannot add to an HttpTransaction object a database object of type " + databaseObject.getClass().getName());
+        }
+        else {
+            super.add(databaseObject);
+        }
+    }
+    
+    @Override
+    public void remove(DatabaseObject databaseObject) throws EngineException {
+        if (databaseObject instanceof RequestableVariable) {
+        	if (databaseObject instanceof RequestableHttpVariable)
+        		removeVariable((RequestableHttpVariable) databaseObject);
+        	else throw new EngineException("You cannot remove from an HttpTransaction object a database object of type " + databaseObject.getClass().getName());
+        }
+        else {
+        	super.remove(databaseObject);
+        }
+    }
 }
