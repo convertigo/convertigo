@@ -1157,7 +1157,7 @@ public class XSDUtils {
 			if (xmlSchema == null)
 				xmlSchema = loadedSchema;
 			
-			String message = "\nqnames["+qnames.size()+"]: "+qnames.toString();
+//			String message = "\nqnames["+qnames.size()+"]: "+qnames.toString();
 			XmlSchemaObject ob = null;
 			QName qname = null;
 			
@@ -1184,12 +1184,11 @@ public class XSDUtils {
 					if (!qnames.contains(qname)) {
 						it.remove();
 						bModified = true;
-						message += "\nremoved: "+qname.toString();
+//						message += "\nremoved: "+qname.toString();
 					}
-					else message += "\nkept: "+qname.toString();
+//					else message += "\nkept: "+qname.toString();
 				}
-				else
-					message += "\nfound: "+ob.toString();
+//				else message += "\nfound: "+ob.toString();
 			}
 			
 			//System.out.println(message);
