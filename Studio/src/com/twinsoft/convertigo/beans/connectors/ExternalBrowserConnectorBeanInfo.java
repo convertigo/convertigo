@@ -41,12 +41,12 @@ public class ExternalBrowserConnectorBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[1];
 			
-//			properties[0] = new PropertyDescriptor("ignoreEmptyAttributes", beanClass, "getIgnoreEmptyAttributes", "setIgnoreEmptyAttributes");
-//			properties[0].setDisplayName(getExternalizedString("property.ignoreEmptyAttributes.display_name"));
-//			properties[0].setShortDescription(getExternalizedString("property.ignoreEmptyAttributes.short_description"));
-//			properties[0].setExpert(true);
+			properties[0] = new PropertyDescriptor("browserVersion", beanClass, "getBrowserVersion", "setBrowserVersion");
+			properties[0].setDisplayName(getExternalizedString("property.browserVersion.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.browserVersion.short_description"));
+			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
 			
 		}
 		catch(Exception e) {

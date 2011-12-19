@@ -182,6 +182,7 @@ public class Engine {
 	public static Logger logStatistics;
 	public static Logger logScheduler;
 	public static Logger logSiteClipper;
+	public static Logger logExternalBrowser;
 
 	/**
 	 * The Log object for the application.
@@ -301,6 +302,7 @@ public class Engine {
 			Engine.logStatistics = Logger.getLogger("cems.Statistics");
 			Engine.logScheduler = Logger.getLogger("cems.Scheduler");
 			Engine.logSiteClipper = Logger.getLogger("cems.SiteClipper");
+			Engine.logExternalBrowser = Logger.getLogger("cems.ExternalBrowser");
 
 			// Managers
 			Engine.logContextManager = Logger.getLogger("cems.ContextManager");

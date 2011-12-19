@@ -24,9 +24,8 @@ package com.twinsoft.convertigo.beans.transactions;
 
 import org.w3c.dom.Document;
 
-import com.convertigo.externalbrowser.common.enums.BrowserVersion;
+import com.twinsoft.convertigo.beans.connectors.ExternalBrowserConnector;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserInterface;
 
@@ -58,10 +57,10 @@ public class ExternalBrowserTransaction extends TransactionWithVariables {
 //		Engine.logEngine.info("bench term");
 //		context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
 		
-		ExternalBrowserInterface ebi = Engine.theApp.externalBrowserManager.getExternalBrowserInstance(BrowserVersion.xulrunnner1_9);
+		ExternalBrowserInterface ebi = getConnector().getEBI();
 		ebi.gotoUrl("http://www.google.fr");
 		try {
-			Thread.sleep(5000);
+			Thread.sleep(2000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -74,5 +73,10 @@ public class ExternalBrowserTransaction extends TransactionWithVariables {
 	public void setStatisticsOfRequestFromCache() {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	@Override
+	public ExternalBrowserConnector getConnector() {
+		return (ExternalBrowserConnector) super.getConnector();
 	}
 }
