@@ -67,6 +67,7 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			properties[4] = new PropertyDescriptor("namespaceUri", beanClass, "getNamespaceUri", "setNamespaceUri");
 			properties[4].setDisplayName(getExternalizedString("property.namespaceUri.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.namespaceUri.short_description"));
+			properties[4].setPropertyEditorClass(getEditorClass("PropertyWithValidatorEditor")); 
 			properties[4].setExpert(true);
 		}
 		catch(Exception e) {

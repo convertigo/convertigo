@@ -43,6 +43,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
@@ -83,6 +84,7 @@ import com.twinsoft.convertigo.eclipse.editors.text.TraceFileEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xsl.XslFileEditorInput;
+import com.twinsoft.convertigo.eclipse.property_editors.validators.NamespaceUriValidator;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -1472,5 +1474,13 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	
 	public IFolder getFolder(String name) {
 		return getIProject().getFolder( name);
+	}
+	
+	@Override
+	protected ICellEditorValidator getValidator(String propertyName) {
+		if ("namespaceUri".equals(propertyName))
+			return new NamespaceUriValidator();
+		return super.getValidator(propertyName);
 	} 
+	
 }
