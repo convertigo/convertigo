@@ -77,6 +77,8 @@ import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditorAdvance;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithValidatorEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringOrNullEditor;
+import com.twinsoft.convertigo.eclipse.property_editors.validators.CompilableValueValidator;
+import com.twinsoft.convertigo.eclipse.property_editors.validators.NumberValidator;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -404,7 +406,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         	}
         };
     }
-
+    
     private PropertyDescriptor findPropertyDescriptor(final String name, 
     													String displayName, 
     													java.beans.PropertyDescriptor databaseObjectPropertyDescriptor, 
@@ -423,114 +425,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		    	String[] values = new String[] { "true", "false" };
 				propertyDescriptor = new ComboBoxPropertyDescriptor(name, displayName, values);
 		    }
-		    else if (value instanceof Short) {
-		        propertyDescriptor = new TextPropertyDescriptor(name, displayName);
-		        propertyDescriptor.setValidator(new ICellEditorValidator() {
-		        	public String isValid(Object value) {
-		        		if (((String)value).indexOf("${")== -1)
-	        			{
-			        		try {
-			            		Short.valueOf((String)value);
-			            		return null;
-			        		}
-			        		catch(NumberFormatException e) {
-			            		return "The value \"" + value + "\" is not a valid short number!";
-			        		}
-	        			}
-		        		return null;
-		        	}
-		        });
-		    }
-		    else if (value instanceof Byte) {
-		        propertyDescriptor = new TextPropertyDescriptor(name, displayName);
-		        propertyDescriptor.setValidator(new ICellEditorValidator() {
-		        	public String isValid(Object value) {
-		        		if (((String)value).indexOf("${")== -1)
-	        			{
-			        		try {
-			        			Byte.valueOf((String)value);
-			            		return null;
-			        		}
-			        		catch(NumberFormatException e) {
-			            		return "The value \"" + value + "\" is not a valid byte number!";
-			        		}	
-	        			}
-		        		return null;
-		        	}
-		        });
-		    }
-		    else if (value instanceof Integer) {
-		        propertyDescriptor = new TextPropertyDescriptor(name, displayName);
-		        propertyDescriptor.setValidator(new ICellEditorValidator() {
-		        	public String isValid(Object value) {
-		        		if (((String)value).indexOf("${")== -1)
-	        			{
-			        		try {
-			  		            Integer.valueOf((String)value);
-			            		return null;
-			        		}
-			        		catch(NumberFormatException e) {
-			            		return "The value \"" + value + "\" is not a valid integer number!";
-			        		}
-	        			}
-		        		return null;
-		        	}
-		        });
-		    }
-		    else if (value instanceof Long) {
-		        propertyDescriptor = new TextPropertyDescriptor(name, displayName);
-		        propertyDescriptor.setValidator(new ICellEditorValidator() {
-		        	public String isValid(Object value) {
-		        		if (((String)value).indexOf("${")== -1)
-	        			{
-			        		try {
-			            		Long.valueOf((String)value);
-			            		return null;
-			        		}
-			        		catch(NumberFormatException e) {
-			            		return "The value \"" + value + "\" is not a valid long number!";
-			        		}
-	        			}
-		        		return null;
-		        	}
-		        });
-		    }
-		    else if (value instanceof Float) {
-		        propertyDescriptor = new TextPropertyDescriptor(name, displayName);
-		        propertyDescriptor.setValidator(new ICellEditorValidator() {
-		        	public String isValid(Object value) {
-		        		if (((String)value).indexOf("${")== -1)
-	        			{
-			        		try {
-			            		Float.valueOf((String)value);
-			            		return null;
-			        		}
-			        		catch(NumberFormatException e) {
-			            		return "The value \"" + value + "\" is not a valid float number!";
-			        		}
-	        			}
-		        		return null;
-		        	}
-		        });
-		    }
-		    else if (value instanceof Double) {
-		        propertyDescriptor = new TextPropertyDescriptor(name, displayName);
-		        propertyDescriptor.setValidator(new ICellEditorValidator() {
-		        	public String isValid(Object value) {
-		        		if (((String)value).indexOf("${")== -1)
-	        			{
-			        		try {
-			            		Double.valueOf((String)value);
-			            		return null;
-			        		}
-			        		catch(NumberFormatException e) {
-			            		return "The value \"" + value + "\" is not a valid double number!";
-			        		}
-	        			}
-		        		return null;
-		        	}
-		        });
-		    }
+			else if (value instanceof Number) {
+				propertyDescriptor = new TextPropertyDescriptor(name, displayName);
+				propertyDescriptor.setValidator(new CompilableValueValidator(new NumberValidator(value.getClass())));
+			}
         }
     	// Complex types
         else {
@@ -607,8 +505,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         }
 
     	// Default case
-    	if (propertyDescriptor == null)
+    	if (propertyDescriptor == null) {
     		propertyDescriptor = new TextPropertyDescriptor(name, displayName);
+    		propertyDescriptor.setValidator(new CompilableValueValidator(getValidator(name)));
+    	}
         
     	if (propertyDescriptor != null) {
             String beanDescription =  databaseObjectPropertyDescriptor.getShortDescription();
@@ -799,13 +699,16 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	            
 				// Check for property normalized value if needed
 				if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue("normalizable"))) {
-	        		if (value instanceof String) {
-	        			String normalizedValue = StringUtils.normalize(value.toString());
-	        			if (!value.equals(normalizedValue)) {
-		                    String message = "Property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\" isn't normalized.";
-		                    ConvertigoPlugin.logError(message, Boolean.TRUE);
-	        			}
-	        		}
+					// Ignore compilable property source value
+					if (compilablePropertySourceValue == null) {
+		        		if (value instanceof String) {
+		        			String normalizedValue = StringUtils.normalize(value.toString());
+		        			if (!value.equals(normalizedValue)) {
+			                    String message = "Property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\" isn't normalized.";
+			                    ConvertigoPlugin.logError(message, Boolean.TRUE);
+		        			}
+		        		}
+					}
 				}
 	            
 	            return value;
@@ -864,6 +767,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			}
 			else
 			{
+				// Retrieve old compiled value if any
+				if (oldValue.toString().indexOf("${") != -1)
+					oldValue = DatabaseObject.getCompiledValue(propertyClass, oldValue);
+				
 				// Retrieve compiled value or remove source value if any
 				if (value.toString().indexOf("${") == -1)
 					databaseObject.removeCompilablePropertySourceValue(propertyName);

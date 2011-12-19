@@ -871,13 +871,18 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		// Update source value and retrieve compiled value
 		databaseObject.setCompilablePropertySourceValue(propertyName, propertyObjectValue);
 		Engine.logBeans.trace("  source value='" + propertyObjectValue.toString() + "'");
+		Object compiledValue = getCompiledValue(propertyType, propertyObjectValue);
+		return compiledValue;
+	}
+
+    public static Object getCompiledValue(Class<?> propertyType, Object propertyObjectValue) {
 		Object compiledValue = getCompiledValue(propertyObjectValue);
 		if ((compiledValue instanceof String) && (propertyType != String.class)) {
 			compiledValue = "".equals(compiledValue) ? "80":compiledValue;
 		}
 		return compiledValue;
-	}
-
+    }
+    
 	private static Object getCompiledValue(Object propertyObjectValue) {
     	if (propertyObjectValue instanceof String) {
 			String sPropertyObjectValue = propertyObjectValue.toString();
