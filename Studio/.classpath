@@ -13,28 +13,28 @@
 	<classpathentry exported="true" kind="lib" path="lib/quartz-1.7.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-collections-3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="bin/" sourcepath="src"/>
-	<classpathentry kind="lib" path="lib/internal/crysec-090918.jar"/>
-	<classpathentry kind="lib" path="lib/internal/ui-090918.jar"/>
-	<classpathentry kind="lib" path="lib/internal/util-v28883.jar" sourcepath="/ConvertigoLibs/src"/>
-	<classpathentry kind="lib" path="lib/internal/vdx-090918.jar"/>
-	<classpathentry kind="lib" path="lib/internal/vt220-090918.jar"/>
-	<classpathentry kind="lib" path="lib/internal/ms.jar"/>
-	<classpathentry kind="lib" path="lib/internal/netscape.jar"/>
-	<classpathentry kind="lib" path="lib/internal/comm.jar"/>
-	<classpathentry kind="lib" path="lib/MozillaGlue.jar"/>
-	<classpathentry kind="lib" path="lib/MozillaInterfaces.jar"/>
-	<classpathentry kind="lib" path="lib/jettison-1.2.jar"/>
-	<classpathentry kind="lib" path="lib/ctgclient.jar"/>
-	<classpathentry kind="lib" path="lib/apache/commons/commons-lang-2.5.jar"/>
-	<classpathentry kind="lib" path="lib/apache/xmlgraphics/xmlgraphics-commons-1.4.jar"/>
-	<classpathentry kind="lib" path="lib/internal/bull-v24323.jar"/>
-	<classpathentry kind="lib" path="lib/internal/phaos.jar"/>
-	<classpathentry kind="lib" path="lib/internal/tas-v25667.jar"/>
-	<classpathentry kind="lib" path="lib/internal/api-v25978.jar" sourcepath="/ConvertigoLibs/src"/>
-	<classpathentry kind="lib" path="lib/internal/ibm-v28353.jar"/>
-	<classpathentry kind="lib" path="lib/internal/twinj-v28353.jar"/>
-	<classpathentry kind="lib" path="lib/internal/html_parsers-v28975.jar" sourcepath="/CemsHtmlParsers/src"/>
-	<classpathentry kind="lib" path="lib/internal/aviva-111114.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/crysec-090918.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/ui-090918.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/util-v28883.jar" sourcepath="/ConvertigoLibs/src"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/vdx-090918.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/vt220-090918.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/ms.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/netscape.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/comm.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/MozillaGlue.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/MozillaInterfaces.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jettison-1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ctgclient.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/apache/commons/commons-lang-2.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/apache/xmlgraphics/xmlgraphics-commons-1.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/bull-v24323.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/phaos.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/tas-v25667.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/api-v25978.jar" sourcepath="/ConvertigoLibs/src"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/ibm-v28353.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/twinj-v28353.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/html_parsers-v29269.jar" sourcepath="/CemsHtmlParsers/src"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/aviva-111114.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry exported="true" kind="lib" path="lib/cos.jar"/>
@@ -117,11 +117,11 @@
 	<classpathentry exported="true" kind="lib" path="lib/soapui/commons-cli-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/soapui-3.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/soapui-xmlbeans-3.0.jar"/>
-	<classpathentry kind="lib" path="tomcat/lib/catalina.jar" sourcepath="/ExternalJavaSources/apache-tomcat-6.0.20-src"/>
-	<classpathentry kind="lib" path="tomcat/lib/jsp-api.jar"/>
-	<classpathentry kind="lib" path="tomcat/lib/servlet-api.jar" sourcepath="/ExternalJavaSources/servlet-api"/>
-	<classpathentry kind="lib" path="tomcat/lib/tomcat-coyote.jar"/>
-	<classpathentry kind="lib" path="tomcat/lib/tomcat-dbcp.jar"/>
-	<classpathentry kind="lib" path="lib/rhino-1.7-R2.jar" sourcepath="/ExternalJavaSources/rhino-1.7R3"/>
+	<classpathentry exported="true" kind="lib" path="tomcat/lib/catalina.jar" sourcepath="/ExternalJavaSources/apache-tomcat-6.0.20-src"/>
+	<classpathentry exported="true" kind="lib" path="tomcat/lib/jsp-api.jar"/>
+	<classpathentry exported="true" kind="lib" path="tomcat/lib/servlet-api.jar" sourcepath="/ExternalJavaSources/servlet-api"/>
+	<classpathentry exported="true" kind="lib" path="tomcat/lib/tomcat-coyote.jar"/>
+	<classpathentry exported="true" kind="lib" path="tomcat/lib/tomcat-dbcp.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/rhino-1.7-R2.jar" sourcepath="/ExternalJavaSources/rhino-1.7R3"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

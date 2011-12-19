@@ -31,8 +31,8 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.parsers.events.AbstractEvent;
 import com.twinsoft.convertigo.engine.parsers.events.InvokeBrowserJsEvent;
+import com.twinsoft.convertigo.engine.parsers.triggers.NoWaitTrigger;
 import com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer;
-import com.twinsoft.convertigo.engine.parsers.triggers.WaitTimeTrigger;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 
@@ -44,12 +44,12 @@ public class InvokeBrowserJsStatement extends AbstractEventStatement {
 		
 	public InvokeBrowserJsStatement() {
 		super("'/HTML'");
-		trigger = new TriggerXMLizer(new WaitTimeTrigger(0));
+		trigger = new TriggerXMLizer(new NoWaitTrigger(false));
 	}
 	
 	public InvokeBrowserJsStatement(String xpath) {
 		super(xpath);
-		trigger = new TriggerXMLizer(new WaitTimeTrigger(0));
+		trigger = new TriggerXMLizer(new NoWaitTrigger(false));
 	}
 
 	public InvokeBrowserJsStatement(String codeJS, String xpath) {

@@ -27,4 +27,11 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.jem.beaninfo.BeanInfoNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src/com/twinsoft/convertigo/engine/parsers</name>
+			<type>2</type>
+			<locationURI>WORKSPACE_LOC/CemsHtmlParsers_branch/src/com/twinsoft/convertigo/engine/parsers</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>

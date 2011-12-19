@@ -31,7 +31,7 @@ import org.eclipse.swt.widgets.Label;
 import com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer;
 import com.twinsoft.convertigo.engine.parsers.triggers.WaitTimeTrigger;
 
-public class HttpTriggerWaitTimeEditorComposite extends AbstractHttpTriggerCustomEditorComposite{
+public class HttpTriggerWaitTimeEditorComposite extends AbstractHttpTriggerCustomEditorComposite {
 	private Button check = null; 
 	
 	public HttpTriggerWaitTimeEditorComposite(HttpTriggerEditorComposite parent) {
@@ -40,7 +40,7 @@ public class HttpTriggerWaitTimeEditorComposite extends AbstractHttpTriggerCusto
 	}
 	
 	private void initialize() {
-		WaitTimeTrigger trigger = (parent.getTrigger() instanceof WaitTimeTrigger)?(WaitTimeTrigger)parent.getTrigger():null;
+		WaitTimeTrigger trigger = (parent.getTrigger() instanceof WaitTimeTrigger) ? (WaitTimeTrigger) parent.getTrigger() : null;
         GridData gridData2 = new GridData();
         gridData2.horizontalAlignment = GridData.FILL;
         gridData2.grabExcessHorizontalSpace = true;
@@ -51,14 +51,18 @@ public class HttpTriggerWaitTimeEditorComposite extends AbstractHttpTriggerCusto
         Label label = new Label(this, SWT.CHECK);
         label.setText("Check this to force detection of any DOM changes\nwhile waiting. (Can cause heavy CPU load)");
         check = new Button(this, SWT.CHECK);
-        check.setSelection((trigger!=null)?trigger.isDoDirty():false);
+        check.setSelection((trigger != null) ? trigger.isDoDirty() : false);
 	}	
 
 	public TriggerXMLizer getTriggerXMLizer(){
-		return new TriggerXMLizer(new WaitTimeTrigger(parent.getTimeout(),check.getSelection()));
+		return new TriggerXMLizer(new WaitTimeTrigger(parent.getTimeout(), isDoDirty()));
 	}
 
 	public String getHelp() {
 		return "This synchronizer only waits the timeout.";
+	}
+	
+	protected boolean isDoDirty() {
+		return check.getSelection();
 	}
 }
