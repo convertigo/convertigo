@@ -29,7 +29,6 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.Vector;
 
 import org.eclipse.core.runtime.CoreException;
@@ -76,6 +75,7 @@ import com.twinsoft.convertigo.eclipse.property_editors.EmulatorTechnologyEditor
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithDynamicTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditorAdvance;
+import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithValidatorEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringOrNullEditor;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
@@ -396,6 +396,15 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         propertyDescriptors = (IPropertyDescriptor[]) vPropertyDescriptors.toArray(new IPropertyDescriptor[] {});
 	}
     
+    // A default validator which accept any value
+    protected ICellEditorValidator getValidator(String propertyName) {
+    	return new ICellEditorValidator() {
+        	public String isValid(Object value) {
+        		return null;
+        	}
+        };
+    }
+
     private PropertyDescriptor findPropertyDescriptor(final String name, 
     													String displayName, 
     													java.beans.PropertyDescriptor databaseObjectPropertyDescriptor, 
@@ -525,7 +534,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         }
     	// Complex types
         else {
-        	if (PropertyWithTagsEditor.class.isAssignableFrom(pec)) {	    		
+        	if (PropertyWithValidatorEditor.class.isAssignableFrom(pec)) {
+        		propertyDescriptor = new TextPropertyDescriptor(name, displayName);
+        		propertyDescriptor.setValidator(getValidator(name));
+        	}
+        	else if (PropertyWithTagsEditor.class.isAssignableFrom(pec)) {	    		
     			String[] tags;
     			if (PropertyWithDynamicTagsEditor.class.isAssignableFrom(pec)){
     				Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
@@ -894,14 +907,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				if (propertyName.equals("handlerType")) {
 					if (!this.rename("on"+ (String)value, Boolean.FALSE))
 						return;
-				}
-			}
-			// Must check project's namespaceUri
-			else if (databaseObject instanceof Project) {
-				if (propertyName.equals("namespaceUri")) {
-					if (!"".equals(value)) {
-						new URL((String)value); // Check value is well formed
-					}
 				}
 			}
 			
