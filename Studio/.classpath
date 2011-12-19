@@ -33,7 +33,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/internal/api-v25978.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/ibm-v28353.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/twinj-v28353.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/internal/html_parsers-v28975.jar" sourcepath="/CemsHtmlParsers/src"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/html_parsers-v29322.jar" sourcepath="/CemsHtmlParsers/src"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/aviva-111114.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/externalbrowser.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5"/>

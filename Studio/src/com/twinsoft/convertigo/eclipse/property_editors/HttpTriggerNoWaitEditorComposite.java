@@ -20,38 +20,24 @@
  * $Date$
  */
 
-package com.twinsoft.convertigo.beans.statements;
+package com.twinsoft.convertigo.eclipse.property_editors;
 
 import com.twinsoft.convertigo.engine.parsers.triggers.NoWaitTrigger;
 import com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer;
 
-
-abstract public class AbstractComplexeEventStatement extends AbstractEventStatement {
-	private static final long serialVersionUID = 7966864043544697918L;
+public class HttpTriggerNoWaitEditorComposite extends HttpTriggerWaitTimeEditorComposite { 
 	
-	protected boolean uiEvent = false;
-	
-	public AbstractComplexeEventStatement() {
-		this("");
-	}
-	
-	public AbstractComplexeEventStatement(String xpath) {
-		this(xpath, false);
-	}
-	
-	public AbstractComplexeEventStatement(String xpath, boolean uiEvent) {
-		super(xpath);
-		this.uiEvent = uiEvent;
-
-		trigger = new TriggerXMLizer(new NoWaitTrigger(false));
+	public HttpTriggerNoWaitEditorComposite(HttpTriggerEditorComposite parent) {
+		super(parent);
 	}
 
-	public boolean getUiEvent() {
-		return uiEvent;
+	@Override
+	public TriggerXMLizer getTriggerXMLizer(){
+		return new TriggerXMLizer(new NoWaitTrigger(isDoDirty()));
 	}
 
-	public void setUiEvent(boolean uiEvent) {
-		this.uiEvent = uiEvent;
+	@Override
+	public String getHelp() {
+		return "This synchronizer does nothing.";
 	}
-
 }

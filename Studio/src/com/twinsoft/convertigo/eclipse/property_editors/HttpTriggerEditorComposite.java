@@ -33,6 +33,8 @@ import org.eclipse.swt.widgets.Spinner;
 
 import com.twinsoft.convertigo.engine.parsers.triggers.AbstractTrigger;
 import com.twinsoft.convertigo.engine.parsers.triggers.DocumentCompletedTrigger;
+import com.twinsoft.convertigo.engine.parsers.triggers.DownloadStartedTrigger;
+import com.twinsoft.convertigo.engine.parsers.triggers.NoWaitTrigger;
 import com.twinsoft.convertigo.engine.parsers.triggers.ScreenClassTrigger;
 import com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer;
 import com.twinsoft.convertigo.engine.parsers.triggers.WaitTimeTrigger;
@@ -53,17 +55,18 @@ public class HttpTriggerEditorComposite extends AbstractDialogComposite {
 	private StackLayout stackLayout = new StackLayout();;
 	
 	static private String[] customTriggers = {
-		//TODO:"Wait at screen class",
 		"Document completed",
 		"Xpath",
 		"Wait time",
-		"Screen Class"
+		"Screen Class",
+		"Download started",
+		"No wait"
 	};
 	
 	public HttpTriggerEditorComposite(Composite parent, int style, AbstractDialogCellEditor cellEditor) {
 		super(parent, style, cellEditor);
 		parent.setLayout(new GridLayout());
-		TriggerXMLizer triggerXML = (TriggerXMLizer)cellEditor.getValue();
+		TriggerXMLizer triggerXML = (TriggerXMLizer) cellEditor.getValue();
 		trigger = triggerXML.getTrigger();
 		initialize();		
 	}
@@ -102,21 +105,27 @@ public class HttpTriggerEditorComposite extends AbstractDialogComposite {
         
         custom_trigger.setLayoutData(gridData2);
         
-        custom_triggers = new AbstractHttpTriggerCustomEditorComposite[]{
+        custom_triggers = new AbstractHttpTriggerCustomEditorComposite[] {
         	new HttpTriggerDocumentCompletedEditorComposite(this),
         	new HttpTriggerXpathEditorComposite(this),
         	new HttpTriggerWaitTimeEditorComposite(this),
-        	new HttpTriggerScreenClassEditorComposite(this)
+        	new HttpTriggerScreenClassEditorComposite(this),
+        	new HttpTriggerDownloadStartedEditorComposite(this),
+        	new HttpTriggerNoWaitEditorComposite(this)
         };
         
-        if(trigger instanceof DocumentCompletedTrigger){
+        if (trigger instanceof DocumentCompletedTrigger){
         	type_trigger_combo.select(0);
-        }else if(trigger instanceof XpathTrigger){
+        } else if(trigger instanceof XpathTrigger) {
         	type_trigger_combo.select(1);
-        }else if(trigger instanceof WaitTimeTrigger){
+        } else if(trigger instanceof WaitTimeTrigger) {
         	type_trigger_combo.select(2);
-	    }else if(trigger instanceof ScreenClassTrigger){
+	    } else if(trigger instanceof ScreenClassTrigger) {
 	    	type_trigger_combo.select(3);
+	    } else if(trigger instanceof DownloadStartedTrigger) {
+	    	type_trigger_combo.select(4);
+	    } else if(trigger instanceof NoWaitTrigger) {
+	    	type_trigger_combo.select(5);
 	    }
 	}
 
@@ -173,13 +182,20 @@ public class HttpTriggerEditorComposite extends AbstractDialogComposite {
 				.addModifyListener(new org.eclipse.swt.events.ModifyListener() {
 					public void modifyText(org.eclipse.swt.events.ModifyEvent e) {
 						int index = type_trigger_combo.getSelectionIndex();
-						if(index == -1){
+						if (index == -1) {
 							type_trigger_combo.select(0);
-						}else if(index != last_index && custom_triggers != null){
+						} else if (index != last_index && custom_triggers != null) {
 							help_label.setText(custom_triggers[index].getHelp());
 					        stackLayout.topControl = custom_triggers[index];
 					        custom_trigger.layout();
 							last_index = index;
+							if (index == 5) { // NoWait case
+								timeout_label.setVisible(false);
+								timeout_spin.setVisible(false);
+							} else {
+								timeout_label.setVisible(true);
+								timeout_spin.setVisible(true);
+							}
 						}
 					}
 				});
@@ -187,7 +203,7 @@ public class HttpTriggerEditorComposite extends AbstractDialogComposite {
 	}
 
 	public long getTimeout(){
-		return (long)timeout_spin.getSelection();
+		return (long) timeout_spin.getSelection();
 	}
 	
 	public Object getValue() {
