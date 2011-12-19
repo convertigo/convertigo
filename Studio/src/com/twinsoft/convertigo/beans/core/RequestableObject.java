@@ -745,8 +745,16 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
                 handleRequestableEvent(RequestableObject.EVENT_REQUESTABLE_XML_GENERATED, javascriptContext);
             } catch(Throwable e) {
-            	if (e.getCause() != null && e.getCause() instanceof StepException) {
-            		Engine.logContext.info("An exception was thrown by a jException step: " + e.getCause().getMessage());
+				Throwable eCause = e;
+				boolean found = false;
+				while ((eCause = eCause.getCause()) != null)  {
+					if (eCause instanceof StepException) {
+						found = true;
+						break;
+					}
+				}	
+            	if (found) {
+            		Engine.logContext.info("An exception was thrown by a jException step: " + eCause.getMessage());
             		Engine.logContext.debug("(RequestableObject) An exception was thrown by a jException step", e.getCause());
             	} else {
             		Engine.logContext.error("Exception thrown during requested object execution", e);

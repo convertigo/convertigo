@@ -45,7 +45,7 @@ public class ExceptionStep extends SimpleStep {
 				Object evMessage = evaluated;
 				
 				if (evMessage instanceof org.mozilla.javascript.Undefined) {
-					throw new EngineException("Please fill the \"Message\" property field with a humanly readable message.");
+					throw new EngineException("Please fill the \"Message\" property field with a humanly readable message as a javascript expression.");
 				}
 				
 				evaluate(javascriptContext, scope, getDetails(), "details", true);

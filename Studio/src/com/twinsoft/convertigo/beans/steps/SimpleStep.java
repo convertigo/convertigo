@@ -37,7 +37,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 
 	private static final long serialVersionUID = -3775791876054667383L;
 
-	private String expression = "//todo";
+	private String expression = "\"//todo\"";
 	
 	public SimpleStep() {
 		super();
