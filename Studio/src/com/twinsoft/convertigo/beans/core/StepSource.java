@@ -107,7 +107,7 @@ public class StepSource {
 					if (sourceExecuteTimeID != null) Engine.logBeans.warn("Did not find source copy ("+getPriority()+") for step \""+ owner.getName()+"\". Retrieving original source.", null);
 					step = (Step)owner.getSequence().loadedSteps.get(key);
 					if (step == null)
-						throw new EngineException("Did not find source ("+getPriority()+") for step \""+ owner.getName()+"\"");
+						throw new SourceNotFoundException("Did not find source ("+getPriority()+") for step \""+ owner.getName()+"\"");
 				}
 				Engine.logBeans.trace("(ISourceContainer) "+ owner+" ["+owner.hashCode()+"] using source "+step+" ["+step.hashCode()+"]");
 				
@@ -189,8 +189,14 @@ public class StepSource {
 	}
 	
 	public boolean inError() throws EngineException {
-		if (definition.size() > 0)
-			return getStep().inError();
+		if (definition.size() > 0) {
+			try {
+				return getStep().inError();
+			} catch (SourceNotFoundException e) {
+				Engine.logBeans.debug("StepSource inError because a SourceNotFoundException : " + e.getMessage());
+				return true;
+			}
+		}
 		return false;
 	}
 	

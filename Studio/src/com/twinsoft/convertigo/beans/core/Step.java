@@ -482,8 +482,10 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			if (workOnSource())
 				return getSource().getContextNode();
 		}
-		if (isXml())
-			return getOutputDocument().getDocumentElement().getFirstChild();
+		if (isXml()) {
+			Document outputDocument = getOutputDocument();
+			return (outputDocument != null) ? outputDocument.getDocumentElement().getFirstChild() : null;
+		}
 		
 		return outputDocument.getDocumentElement();
 	}
@@ -549,9 +551,12 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		try {
 			contextXpath = getContextXpath(xpath);
 			Node contextNode = getContextNode(loop);
-			Engine.logBeans.trace("Source for step is : " + this.getName() + " , contextXPath is : " +contextXpath);
-			list = getXPathAPI().selectNodeList(contextNode, contextXpath);
-			
+			Engine.logBeans.trace("Source for step is : " + this.getName() + " , contextXPath is : " + contextXpath);
+			if (contextNode != null) {
+				list = getXPathAPI().selectNodeList(contextNode, contextXpath);
+			} else {
+				Engine.logBeans.debug("No context node ! Source for step is : " + this.getName() + " , contextXPath is : " + contextXpath);
+			}
 		} catch (Exception e) {
 			Engine.logBeans.warn("Error in XPath '" + contextXpath + "' applied to data from Step '" + this.getName()+"' : " +e.getMessage());
 		}
