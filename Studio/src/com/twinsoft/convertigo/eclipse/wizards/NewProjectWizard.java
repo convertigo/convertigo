@@ -103,52 +103,56 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public String theme = "default";
 	
 	// Default project templates
-	public static final int TEMPLATE_MISC_EMPTY_PROJECT 		= 0;
-	public static final int TEMPLATE_WEB_HTML_IBM_3270 			= 100;
-	public static final int TEMPLATE_WEB_HTML_IBM_5250 			= 101;
-	public static final int TEMPLATE_WEB_HTML_BULL_DKU_7107 	= 102;
-	public static final int TEMPLATE_WEB_GREENSCREEN_IBM_3270 	= 150;
-	public static final int TEMPLATE_WEB_GREENSCREEN_IBM_5250 	= 151;
-	public static final int TEMPLATE_FLEX_IBM_3270 				= 110;
-	public static final int TEMPLATE_FLEX_IBM_5250 				= 111;
-	public static final int TEMPLATE_MOBILE_IBM_3270 			= 200;
-	public static final int TEMPLATE_MOBILE_IBM_5250 			= 201;
-	public static final int TEMPLATE_EAI_IBM_3270 				= 300;
-	public static final int TEMPLATE_EAI_IBM_5250 				= 301;
-	public static final int TEMPLATE_EAI_BULL_DKU_7107 			= 302;
-	public static final int TEMPLATE_EAI_MINITEL 				= 303;
-	public static final int TEMPLATE_EAI_UNIX_VT220 			= 304;
-	public static final int TEMPLATE_EAI_HTTP 					= 305;
-	public static final int TEMPLATE_EAI_CICS_COMMEAREA 		= 306;
-	public static final int TEMPLATE_EAI_HTML_WEB_SITE 			= 307;
-	public static final int TEMPLATE_WEB_CLIPPING_CONNECTOR 	= 400;
-	public static final int TEMPLATE_SEQUENCE_SQL_CONNECTOR 	= 500;
-	public static final int SAMPLE_DOCUMENTATION_CLI 			= 600;
-	public static final int SAMPLE_DOCUMENTATION_CLP 			= 601;
-	public static final int SAMPLE_DOCUMENTATION_CWI 			= 602;
-	public static final int SAMPLE_DOCUMENTATION_CWC 			= 603;
-	public static final int SAMPLE_DOCUMENTATION_CMS 			= 604;
-	public static final int SAMPLE_DOCUMENTATION_CMC 			= 605;
-	public static final int SAMPLE_DOCUMENTATION_MOBILIZER      = 606;
-	public static final int SAMPLE_DOCUMENTATION_SITECLIPPER    = 607;
-	public static final int TEMPLATE_WEB_SERVICE_REFERENCE 		= 700;
-	public static final int LIBRARY_GOOGLE_MAPS 				= 800;
-	public static final int LIBRARY_GOOGLE_SPREADSHEETS 		= 801;
-	public static final int LIBRARY_GOOGLE_DOCS 				= 802;
-	public static final int DEMOS_SALESFORCE 					= 900;
-	public static final int DEMOS_USDIRECTORY 					= 901;
-	public static final int DEMOS_LEGACYCRM 					= 902;
-	public static final int DEMOS_MASHUP 						= 903;
-	public static final int TEMPLATE_INTERACTION_HUB 			= 1000;
-	public static final int TEMPLATE_SITE_CLIPPER 				= 1100;
-	public static final int TEMPLATE_MOBILE_SENCHA				= 1200;
-	public static final int SAMPLE_MOBILE_SENCHA_PDF			= 1201;
-	public static final int SAMPLE_MOBILE_SENCHA_WEBTOPDF		= 1202;
-	public static final int SAMPLE_MOBILE_SENCHA_RSSNYTIMES		= 1203;
-	public static final int SAMPLE_MOBILE_SENCHA_SIEBEL			= 1204;
-	public static final int SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO= 1205;
-	public static final int TEMPLATE_MOBILE_JQUERYMOBILE				= 1300;
-	public static final int SAMPLE_MOBILE_JQUERYMOBILE_VACATION				= 1301;
+	public static final int TEMPLATE_MISC_EMPTY_PROJECT 			= 0;
+	public static final int TEMPLATE_WEB_HTML_IBM_3270 				= 100;
+	public static final int TEMPLATE_WEB_HTML_IBM_5250 				= 101;
+	public static final int TEMPLATE_WEB_HTML_BULL_DKU_7107 		= 102;
+	public static final int TEMPLATE_WEB_GREENSCREEN_IBM_3270 		= 150;
+	public static final int TEMPLATE_WEB_GREENSCREEN_IBM_5250 		= 151;
+	public static final int TEMPLATE_FLEX_IBM_3270 					= 110;
+	public static final int TEMPLATE_FLEX_IBM_5250 					= 111;
+	public static final int TEMPLATE_MOBILE_IBM_3270 				= 200;
+	public static final int TEMPLATE_MOBILE_IBM_5250 				= 201;
+	public static final int TEMPLATE_EAI_IBM_3270 					= 300;
+	public static final int TEMPLATE_EAI_IBM_5250 					= 301;
+	public static final int TEMPLATE_EAI_BULL_DKU_7107 				= 302;
+	public static final int TEMPLATE_EAI_MINITEL 					= 303;
+	public static final int TEMPLATE_EAI_UNIX_VT220 				= 304;
+	public static final int TEMPLATE_EAI_HTTP 						= 305;
+	public static final int TEMPLATE_EAI_CICS_COMMEAREA 			= 306;
+	public static final int TEMPLATE_EAI_HTML_WEB_SITE 				= 307;
+	public static final int TEMPLATE_WEB_CLIPPING_CONNECTOR 		= 400;
+	public static final int TEMPLATE_SEQUENCE_SQL_CONNECTOR 		= 500;
+	public static final int SAMPLE_DOCUMENTATION_CLI 				= 600;
+	public static final int SAMPLE_DOCUMENTATION_CLP 				= 601;
+	public static final int SAMPLE_DOCUMENTATION_CWI 				= 602;
+	public static final int SAMPLE_DOCUMENTATION_CWC 				= 603;
+	public static final int SAMPLE_DOCUMENTATION_CMS 				= 604;
+	public static final int SAMPLE_DOCUMENTATION_CMC 				= 605;
+	public static final int SAMPLE_DOCUMENTATION_MOBILIZER      	= 606;
+	public static final int SAMPLE_DOCUMENTATION_SITECLIPPER    	= 607;
+	public static final int SAMPLE_REFMANUAL_SITECLIPPER 			= 650;
+	public static final int SAMPLE_REFMANUAL_STATEMENTS 			= 651;
+	public static final int SAMPLE_REFMANUAL_STEPS 					= 652;
+	public static final int SAMPLE_REFMANUAL_VARIABLES 				= 653;
+	public static final int TEMPLATE_WEB_SERVICE_REFERENCE 			= 700;
+	public static final int LIBRARY_GOOGLE_MAPS 					= 800;
+	public static final int LIBRARY_GOOGLE_SPREADSHEETS 			= 801;
+	public static final int LIBRARY_GOOGLE_DOCS 					= 802;
+	public static final int DEMOS_SALESFORCE 						= 900;
+	public static final int DEMOS_USDIRECTORY 						= 901;
+	public static final int DEMOS_LEGACYCRM 						= 902;
+	public static final int DEMOS_MASHUP 							= 903;
+	public static final int TEMPLATE_INTERACTION_HUB 				= 1000;
+	public static final int TEMPLATE_SITE_CLIPPER 					= 1100;
+	public static final int TEMPLATE_MOBILE_SENCHA					= 1200;
+	public static final int SAMPLE_MOBILE_SENCHA_PDF				= 1201;
+	public static final int SAMPLE_MOBILE_SENCHA_WEBTOPDF			= 1202;
+	public static final int SAMPLE_MOBILE_SENCHA_RSSNYTIMES			= 1203;
+	public static final int SAMPLE_MOBILE_SENCHA_SIEBEL				= 1204;
+	public static final int SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO	= 1205;
+	public static final int TEMPLATE_MOBILE_JQUERYMOBILE			= 1300;
+	public static final int SAMPLE_MOBILE_JQUERYMOBILE_VACATION		= 1301;
 	
 	// to import blank project
 	public static final String JAVELIN_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME 	= "template_javelin.car";
@@ -185,6 +189,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String USDIRECTORY_DEMO_PROJECT_FILE_NAME 				= "demo_usDirectory.car";
 	public static final String LEGACYCRM_DEMO_PROJECT_FILE_NAME 				= "demo_legacyCRM.car";
 	public static final String MASHUP_DEMO_PROJECT_FILE_NAME 					= "demo_mashup.car";
+	public static final String REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME 			= "sample_refManual_siteClipper.car";
+	public static final String REFMANUAL_STATEMENTS_PROJECT_FILE_NAME 			= "sample_refManual_statements.car";
+	public static final String REFMANUAL_STEPS_PROJECT_FILE_NAME 				= "sample_refManual_steps.car";
+	public static final String REFMANUAL_VARIABLES_PROJECT_FILE_NAME 			= "sample_refManual_variables.car";
+	
 	
 	/**
 	 * Constructor for SampleNewWizard.
@@ -204,6 +213,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	 */
 	public void addPages() {
 		switch (templateId) {
+			case SAMPLE_REFMANUAL_SITECLIPPER:
+			case SAMPLE_REFMANUAL_STATEMENTS:
+			case SAMPLE_REFMANUAL_STEPS:
+			case SAMPLE_REFMANUAL_VARIABLES:
 			case SAMPLE_DOCUMENTATION_CLI:
 			case SAMPLE_DOCUMENTATION_CLP:
 			case SAMPLE_DOCUMENTATION_CMC:

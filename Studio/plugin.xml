@@ -358,11 +358,16 @@
       <category
             id="com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
             name="Documentation samples"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples"/>            
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigorefmanualsamples"
+            name="Reference Manual samples"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples"/>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigomobilesamples"
             name="Mobile samples"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples"/>            
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples"/>
+<!-- Mobilizer projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
             class="com.twinsoft.convertigo.eclipse.wizards.NewSenchaMobileWizard"
@@ -371,7 +376,7 @@
             name="Sencha/PhoneGap based project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a Mobile project based on Sencha/PhoneGap frameworks</description> 
+            <description>Creates a Mobile project based on Sencha/PhoneGap frameworks.</description> 
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
@@ -381,8 +386,9 @@
             name="jQuery Mobile based project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a Mobile project based on jQueryMobile frameworks</description> 
+            <description>Creates a Mobile project based on jQueryMobile frameworks.</description> 
             </wizard>
+<!-- Legacy publishing projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
             class="com.twinsoft.convertigo.eclipse.wizards.New3270WebWizard"
@@ -391,7 +397,7 @@
             name="3270 Web Style"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an IBM 3270 Web style webization project</description> 
+            <description>Creates an IBM 3270 Web style webization project.</description> 
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
@@ -401,7 +407,7 @@
             name="5250 Web Style"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an IBM 5250 Web style webization project</description> 
+            <description>Creates an IBM 5250 Web style webization project.</description> 
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
@@ -411,7 +417,7 @@
             name="DKU7xxx Web Style"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a BULL DKUxxx Web style webization project</description> 
+            <description>Creates a BULL DKUxxx Web style webization project.</description> 
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
@@ -421,7 +427,7 @@
             name="3270 Flex Style"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an IBM 3270 Flex webization project</description> 
+            <description>Creates an IBM 3270 Flex webization project.</description> 
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
@@ -431,8 +437,9 @@
             name="5250 Flex Style"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an IBM 5250 Flex webization project</description> 
+            <description>Creates an IBM 5250 Flex webization project.</description> 
             </wizard>
+<!-- Legacy integration projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
             class="com.twinsoft.convertigo.eclipse.wizards.New3270ConnectorWizard"
@@ -441,7 +448,7 @@
             name="3270 Screen"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an IBM 3270 Screen based WebService connector project</description> 
+            <description>Creates an IBM 3270 Screen based WebService connector project.</description> 
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
@@ -451,7 +458,7 @@
             name="5250 Screen"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an IBM 5250 Screen based WebService connector project</description> 
+            <description>Creates an IBM 5250 Screen based WebService connector project.</description> 
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
@@ -461,7 +468,7 @@
             name="Bull DKUxxx Screen"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a BULL DKU7xx Screen based WebService connector project</description> 
+            <description>Creates a BULL DKU7xx Screen based WebService connector project.</description> 
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
@@ -471,7 +478,7 @@
             name="Minitel Screen"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a Minitel Screen based WebService connector project</description> 
+            <description>Creates a Minitel Screen based WebService connector project.</description> 
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
@@ -481,17 +488,7 @@
             name="Unix VTxxx Screen"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an UNIX VTxxx Screen based WebService connector project</description> 
-            </wizard>
-      <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservices"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewHttpConnectorWizard"
-            icon="icons/studio/httpconnector_color_32x32.gif"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewHttpConnectorWizard"
-            name="REST Web service"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates an HTTP based Web Service connector project to invoke a remote REST web service.</description> 
+            <description>Creates an UNIX VTxxx Screen based WebService connector project.</description> 
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
@@ -501,8 +498,9 @@
             name="CICS COMMAREA"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an IBM CICS COMMAREA based WebService connector project</description> 
+            <description>Creates an IBM CICS COMMAREA based WebService connector project.</description> 
             </wizard>
+<!-- Web integration projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebintegration"
             class="com.twinsoft.convertigo.eclipse.wizards.NewHtmlConnectorWizard"
@@ -511,8 +509,9 @@
             name="HTML Web Site"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an HTML Web Site based WebService connector project</description> 
+            <description>Creates an HTML Web Site based WebService connector project.</description> 
             </wizard>
+<!-- Web clipping projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebclipping"
             class="com.twinsoft.convertigo.eclipse.wizards.NewWebClippingConnectorWizard"
@@ -521,8 +520,9 @@
             name="Web Clipping"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an HTML Web Clipping connector project</description> 
+            <description>Creates an HTML Web Clipping connector project.</description> 
             </wizard>
+<!-- Sequencer projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosequencer"
              class="com.twinsoft.convertigo.eclipse.wizards.NewSequencerWizard"
@@ -531,8 +531,9 @@
              name="Sequencer project"
              preferredPerspectives="convertigo"
              project="true">
-             <description>Creates a SQL based sequencer project</description>
+             <description>Creates a SQL based sequencer project.</description>
              </wizard>
+<!-- Site Clipper connector projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigositeclipper"
             class="com.twinsoft.convertigo.eclipse.wizards.NewSiteClipperProjectWizard"
@@ -541,8 +542,9 @@
             name="Site Clipper project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a Site Clipper connector project</description> 
+            <description>Creates a Site Clipper connector project.</description> 
             </wizard>
+<!-- Tutorials sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCLIWizard"
@@ -551,7 +553,7 @@
              name="Legacy integration"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the legacy integration sample project to use with Convertigo Legacy Integrator Quick Guide documentation</description>
+          <description>Imports the legacy integration sample project to use with Convertigo Legacy Integrator Quick Guide documentation.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -561,7 +563,7 @@
              name="Legacy publishing"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the legacy publishing sample project to use with Convertigo Legacy Publisher Quick Guide documentation</description>
+          <description>Imports the legacy publishing sample project to use with Convertigo Legacy Publisher Quick Guide documentation.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -571,7 +573,7 @@
              name="Mashup composition"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the interaction hub sample project to use with Convertigo Mashup Composer Quick Guide documentation</description>
+          <description>Imports the interaction hub sample project to use with Convertigo Mashup Composer Quick Guide documentation.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -581,7 +583,7 @@
              name="Mashup sequencing"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the mashup sequencer sample project to use with Convertigo Mashup Sequencer Quick Guide documentation</description>
+          <description>Imports the mashup sequencer sample project to use with Convertigo Mashup Sequencer Quick Guide documentation.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -591,7 +593,7 @@
              name="Web clipping"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the web clipping sample project to use with Convertigo Web Clipper Quick Guide documentation</description>
+          <description>Imports the web clipping sample project to use with Convertigo Web Clipper Quick Guide documentation.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -601,7 +603,7 @@
              name="Web integration"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the web integration sample project to use with Convertigo Web Integrator Quick Guide documentation</description>
+          <description>Imports the web integration sample project to use with Convertigo Web Integrator Quick Guide documentation.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -611,7 +613,7 @@
              name="Mobile Sencha-based"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the Mobilizer sample project to use with "My first Convertigo Mobilizer project" tutorial</description>
+          <description>Imports the Mobilizer sample project to use with "My first Convertigo Mobilizer project" tutorial.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -621,8 +623,50 @@
              name="Site clipping"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the Site clipper sample project to use with "My first Convertigo Site Clipper project" tutorial</description>
+          <description>Imports the Site clipper sample project to use with "My first Convertigo Site Clipper project" tutorial.</description>
        </wizard>
+<!-- Reference Manual sample projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleSiteClipperWizard"
+             icon="icons/studio/siteclipperconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleSiteClipperWizard"
+             name="Site Clipper objects examples"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the sample project containing Site Clipper objects examples described in the Reference Manual.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStatementsWizard"
+             icon="icons/studio/htmlconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStatementsWizard"
+             name="HTML connector statements examples"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the sample project containing HTML connector statements examples described in the Reference Manual.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
+             icon="icons/studio/sequence_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
+             name="Sequencer steps examples"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the sample project containing Sequencer steps examples described in the Reference Manual.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleVariablesWizard"
+             icon="icons/studio/variable_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleVariablesWizard"
+             name="Variables examples"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the sample project containing variables examples described in the Reference Manual.</description>
+       </wizard>
+<!-- Mobile sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerPdfWizard"
@@ -631,7 +675,7 @@
              name="Sencha based Pdf sample"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports a Sencha based sample project which downloads a PDF file from Convertigo web site</description>
+          <description>Imports a Sencha based sample project which downloads a PDF file from Convertigo web site.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
@@ -641,7 +685,7 @@
              name="Sencha based WebToPdf sample"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports a Sencha based sample project which downloads any HTML page as a PDF file</description>
+          <description>Imports a Sencha based sample project which downloads any HTML page as a PDF file.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
@@ -651,7 +695,7 @@
              name="Sencha based NYTimes sample"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports a Sencha based sample project which reads New York Times RSS feeds</description>
+          <description>Imports a Sencha based sample project which reads New York Times RSS feeds.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
@@ -661,7 +705,7 @@
              name="Sencha based Siebel sample"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports a Sencha based sample project which connects to a Siebel application</description>
+          <description>Imports a Sencha based sample project which connects to a Siebel application.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
@@ -671,7 +715,18 @@
              name="Sencha based US Directory sample"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports a Sencha based sample project which makes search on the US Directory web site</description>
+          <description>Imports a Sencha based sample project which makes search on the US Directory web site.</description>
+       </wizard>
+<!-- Web services projects -->
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservices"
+            class="com.twinsoft.convertigo.eclipse.wizards.NewHttpConnectorWizard"
+            icon="icons/studio/httpconnector_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewHttpConnectorWizard"
+            name="REST Web service"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an HTTP based Web Service connector project to invoke a remote REST web service.</description> 
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservices"
@@ -683,6 +738,7 @@
              project="true">
           <description>Creates an HTTP based Web Service connector project to invoke a remote SOAP web service, by importing its WSDL description file.</description>
        </wizard>
+<!-- Librairies projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleMapsWizard"
@@ -691,7 +747,7 @@
              name="Google Maps"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the convertigo Google Maps library project</description>
+          <description>Imports the convertigo Google Maps library project.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
@@ -701,7 +757,7 @@
              name="Google Spreadsheets"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the convertigo Google Spreadsheets library project</description>
+          <description>Imports the convertigo Google Spreadsheets library project.</description>
        </wizard>
        <!--<wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
@@ -713,6 +769,7 @@
              project="true">
           <description>Imports the convertigo Google Docs library project</description>
        </wizard>-->
+<!-- Mashup demo projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigodemos"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDemoSalesForceWizard"
@@ -721,7 +778,7 @@
              name="SalesForce"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the convertigo SalesForce demo project</description>
+          <description>Imports the convertigo SalesForce demo project.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigodemos"
@@ -731,7 +788,7 @@
              name="US Directory"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the convertigo US Directory demo project</description>
+          <description>Imports the convertigo US Directory demo project.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigodemos"
@@ -741,7 +798,7 @@
              name="Legacy CRM"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the convertigo Legacy CRM demo project</description>
+          <description>Imports the convertigo Legacy CRM demo project.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigodemos"
@@ -751,8 +808,9 @@
              name="Mashup demo"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the convertigo mashup demo project</description>
+          <description>Imports the convertigo mashup demo project.</description>
        </wizard>
+<!-- Interaction hub projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigohubs"
              class="com.twinsoft.convertigo.eclipse.wizards.NewInteractionHubWizard"
@@ -761,7 +819,7 @@
              name="Interaction hub"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Creates an interaction hub project</description>
+          <description>Creates an interaction hub project.</description>
        </wizard>
    </extension>
    <extension
