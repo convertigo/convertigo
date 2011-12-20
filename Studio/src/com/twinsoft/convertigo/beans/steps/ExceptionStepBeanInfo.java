@@ -31,7 +31,7 @@ public class ExceptionStepBeanInfo extends MySimpleBeanInfo {
 	public ExceptionStepBeanInfo() {
 		try {
 			beanClass = ExceptionStep.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.steps.SimpleStep.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/exception_16x16.gif";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/exception_32x32.gif";
