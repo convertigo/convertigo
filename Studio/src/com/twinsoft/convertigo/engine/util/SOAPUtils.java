@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.Iterator;
@@ -222,13 +223,25 @@ public class SOAPUtils {
 					Detail detail = fault.addDetail();
 					// If step's exception detail is an XML document, insert it in the detail SOAP part
 					try {
-						Document dom = XMLUtils.parseDOM(new ByteArrayInputStream(stepException.details.getBytes("UTF-8")));
+						InputStream inputStream = (InputStream)new ByteArrayInputStream(stepException.details.getBytes("UTF-8"));
+						DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+						documentBuilderFactory.setNamespaceAware(true);
+						documentBuilderFactory.setValidating(true);
+						DocumentBuilder docbuilder = documentBuilderFactory.newDocumentBuilder();
+						Document dom = docbuilder.parse(inputStream);
+						QName qname;
 						NodeList children = dom.getChildNodes();
 						for (int i = 0 ; i < children.getLength(); i++) {
 							Node node = children.item(i);
-							name = soapFactory.createName(node.getNodeName());
-							detailEntry = detail.addDetailEntry(name);
+							String prefix = node.getPrefix();
+							String namespace = node.getNamespaceURI();		
+							qname = new QName(node.getNodeName());
+							detailEntry = detail.addDetailEntry(qname);
 							detailEntry.addTextNode(node.getNodeValue());
+							if (prefix != null && namespace != null) {
+								detailEntry.addNamespaceDeclaration(prefix, namespace);
+								detailEntry.setElementQName(qname);
+							} 
 							getSubDetails(soapFactory, detailEntry, node);
 						}
 					} catch (Exception ee) {
