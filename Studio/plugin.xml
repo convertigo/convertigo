@@ -359,8 +359,8 @@
             name="Documentation samples"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples"/>
       <category
-            id="com.twinsoft.convertigo.eclipse.convertigorefmanualsamples"
-            name="Reference Manual samples"
+            id="com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+            name="Reference Manual examples"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples"/>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigomobilesamples"
@@ -626,7 +626,7 @@
        </wizard>
 <!-- Reference Manual sample projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleSiteClipperWizard"
              icon="icons/studio/siteclipperconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleSiteClipperWizard"
@@ -636,7 +636,7 @@
           <description>Imports the sample project containing Site Clipper objects examples described in the Reference Manual.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStatementsWizard"
              icon="icons/studio/htmlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStatementsWizard"
@@ -646,7 +646,7 @@
           <description>Imports the sample project containing HTML connector statements examples described in the Reference Manual.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
              icon="icons/studio/sequence_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
@@ -656,7 +656,7 @@
           <description>Imports the sample project containing Sequencer steps examples described in the Reference Manual.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleVariablesWizard"
              icon="icons/studio/variable_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleVariablesWizard"

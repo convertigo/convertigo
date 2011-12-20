@@ -431,6 +431,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 					createFromBlankProject(monitor);
 					return;
 					
+				case SAMPLE_REFMANUAL_SITECLIPPER:
+				case SAMPLE_REFMANUAL_STATEMENTS:
+				case SAMPLE_REFMANUAL_STEPS:
+				case SAMPLE_REFMANUAL_VARIABLES:
 				case SAMPLE_DOCUMENTATION_CLI:
 				case SAMPLE_DOCUMENTATION_CLP:
 				case SAMPLE_DOCUMENTATION_CMC:
@@ -1037,7 +1041,23 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         	
 
         switch (templateId) {
-	        case SAMPLE_DOCUMENTATION_CLI:
+	        case SAMPLE_REFMANUAL_SITECLIPPER:
+	        	projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME;
+				projectName = REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME.substring(0, REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME.indexOf(".car"));
+				break;
+			case SAMPLE_REFMANUAL_STATEMENTS:
+				projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_STATEMENTS_PROJECT_FILE_NAME;
+				projectName = REFMANUAL_STATEMENTS_PROJECT_FILE_NAME.substring(0, REFMANUAL_STATEMENTS_PROJECT_FILE_NAME.indexOf(".car"));
+				break;
+			case SAMPLE_REFMANUAL_STEPS:
+				projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_STEPS_PROJECT_FILE_NAME;
+				projectName = REFMANUAL_STEPS_PROJECT_FILE_NAME.substring(0, REFMANUAL_STEPS_PROJECT_FILE_NAME.indexOf(".car"));
+				break;
+			case SAMPLE_REFMANUAL_VARIABLES:
+				projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_VARIABLES_PROJECT_FILE_NAME;
+				projectName = REFMANUAL_VARIABLES_PROJECT_FILE_NAME.substring(0, REFMANUAL_VARIABLES_PROJECT_FILE_NAME.indexOf(".car"));
+				break;
+        	case SAMPLE_DOCUMENTATION_CLI:
 	        	projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + CLI_DOC_PROJECT_FILE_NAME;
 				projectName = CLI_DOC_PROJECT_FILE_NAME.substring(0, CLI_DOC_PROJECT_FILE_NAME.indexOf(".car"));
 				break;
