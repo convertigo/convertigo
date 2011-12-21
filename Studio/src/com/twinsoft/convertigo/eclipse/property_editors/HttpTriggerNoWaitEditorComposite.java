@@ -33,7 +33,7 @@ public class HttpTriggerNoWaitEditorComposite extends HttpTriggerWaitTimeEditorC
 
 	@Override
 	public TriggerXMLizer getTriggerXMLizer(){
-		return new TriggerXMLizer(new NoWaitTrigger(isDoDirty()));
+		return new TriggerXMLizer(new NoWaitTrigger(parent.getTimeout(), isDoDirty()));
 	}
 
 	@Override
