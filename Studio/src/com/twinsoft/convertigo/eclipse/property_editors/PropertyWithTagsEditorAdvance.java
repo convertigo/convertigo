@@ -43,20 +43,6 @@ public class PropertyWithTagsEditorAdvance extends PropertyWithTagsEditor {
 		}
 
 		String[] sResults = tagsProperty.getTagsForProperty(propertyName);
-
-		// If the results already contains empty string in first item, return it
-		if (sResults.length > 0) {
-			if ("".equals(sResults[0])) return sResults;
-		}
-		
-		// else add an empty value in first item
-		String[] sResults2 = new String[sResults.length + 1];
-		
-		sResults2[0] = "";
-		for (int i = 0 ; i < sResults.length ; i++) {
-			sResults2[i + 1] = sResults[i];
-		}
-
-		return sResults2;
+		return sResults;
     }
 }

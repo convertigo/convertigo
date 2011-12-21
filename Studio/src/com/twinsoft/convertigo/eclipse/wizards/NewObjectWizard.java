@@ -34,8 +34,12 @@ import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.beans.common.DefaultBlockFactory;
 import com.twinsoft.convertigo.beans.common.EmulatorTechnology;
+import com.twinsoft.convertigo.beans.connectors.CicsConnector;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
+import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
+import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
+import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -51,7 +55,9 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
+import com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass;
 import com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
@@ -59,6 +65,12 @@ import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.transactions.CicsTransaction;
+import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
+import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
+import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
+import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -266,11 +278,17 @@ public class NewObjectWizard extends Wizard {
 						
 						if (newBean instanceof Connector) {
 							Project project = (Project)parentObject;
-							Connector connector = (Connector) newBean;
 							if (project.getDefaultConnector() == null)
-								project.setDefaultConnector(connector);
+								project.setDefaultConnector((Connector)newBean);
 							
-							this.setupConnector(connector);
+							this.setupConnector(newBean);
+						}
+						
+						if (newBean instanceof SequenceStep) {
+							Project project = newBean.getProject();
+							
+							((SequenceStep) newBean).setSourceSequence(project.getName() + TransactionStep.SOURCE_SEPARATOR +
+									project.getSequencesList().get(0));
 						}
 						
 						if (newBean instanceof TransactionStep) {
@@ -278,22 +296,10 @@ public class NewObjectWizard extends Wizard {
 							Connector connector = project.getDefaultConnector();
 							Transaction transaction = connector.getDefaultTransaction();
 							
-							if (project != null) {
-								((TransactionStep)newBean).setProjectName(project.getName());
-								if (connector != null) {
-									((TransactionStep)newBean).setConnectorName(connector.getName());
-									if (transaction != null) {
-										((TransactionStep)newBean).setTransactionName(transaction.getName());
-									}
-								}
-							}
-						}
-						
-						if (newBean instanceof SequenceStep) {
-							Project project = newBean.getProject();
-							if (project != null) {
-								((SequenceStep)newBean).setProjectName(project.getName());
-							}
+							((TransactionStep) newBean).setSourceTransaction(
+									project.getName() + TransactionStep.SOURCE_SEPARATOR +
+									connector.getName() + TransactionStep.SOURCE_SEPARATOR +
+									transaction.getName());
 						}
 						
 						if (newBean instanceof IThenElseContainer) {
@@ -345,31 +351,21 @@ public class NewObjectWizard extends Wizard {
 		return true;
 	}
 
-    private void setupConnector(Connector connector) throws EngineException {
-    	Transaction transaction = connector.newTransaction();
-		transaction.hasChanged = true;
-		transaction.bNew = true;
-		transaction.setName("Default_transaction");
-		connector.add(transaction);
-		connector.setDefaultTransaction(transaction);
+    private void setupConnector(DatabaseObject connector) throws EngineException {
 		
-		if (connector instanceof IScreenClassContainer) {
-			IScreenClassContainer<?> scc = (IScreenClassContainer<?>) connector;
-			ScreenClass defaultScreenClass = scc.newScreenClass();
+    	if (connector instanceof JavelinConnector) {
+			JavelinConnector javelinConnector = (JavelinConnector) connector;
+			
+			JavelinScreenClass defaultScreenClass = new JavelinScreenClass();
 			defaultScreenClass.setName("Default_screen_class");
 			defaultScreenClass.hasChanged = true;
 			defaultScreenClass.bNew = true;
-			scc.setDefaultScreenClass(defaultScreenClass);
-		}
-		if (connector instanceof JavelinConnector) {
-			JavelinConnector javelinConnector = (JavelinConnector) connector;
-			JavelinScreenClass defaultScreenClass = javelinConnector.getDefaultScreenClass();
+			javelinConnector.setDefaultScreenClass(defaultScreenClass);
 
 			DefaultBlockFactory blockFactory = new DefaultBlockFactory();
 			blockFactory.setName("Block_factory");
 			blockFactory.hasChanged = true;
 			blockFactory.bNew = true;
-			
 			defaultScreenClass.setBlockFactory(blockFactory);
 
 			EmulatorTechnology emulatorTechnology = new EmulatorTechnology();
@@ -377,10 +373,77 @@ public class NewObjectWizard extends Wizard {
 			emulatorTechnology.bNew = true;
 			emulatorTechnology.setName("Emulator_technology");
 			defaultScreenClass.add(emulatorTechnology);
+			
+			JavelinTransaction transaction = new JavelinTransaction();
+			transaction.hasChanged = true;
+			transaction.bNew = true;
+			transaction.setName("Default_transaction");
+			javelinConnector.add(transaction);
+			javelinConnector.setDefaultTransaction(transaction);
 		}
 		else if (connector instanceof HtmlConnector) {
 			HtmlConnector htmlConnector = (HtmlConnector) connector;
 			htmlConnector.setServer("www.convertigo.com");
+			
+			HtmlScreenClass defaultScreenClass = new HtmlScreenClass();
+			defaultScreenClass.setName("Default_screen_class");
+			defaultScreenClass.hasChanged = true;
+			defaultScreenClass.bNew = true;
+			htmlConnector.setDefaultScreenClass(defaultScreenClass);
+			
+			HtmlTransaction transaction = new HtmlTransaction();
+			transaction.hasChanged = true;
+			transaction.bNew = true;
+			transaction.setName("Default_transaction");
+			htmlConnector.add(transaction);
+			htmlConnector.setDefaultTransaction(transaction);
+		}
+		else if (connector instanceof HttpConnector) {
+			HttpConnector httpConnector = (HttpConnector) connector;
+			
+			HttpTransaction transaction = new HttpTransaction();
+			transaction.hasChanged = true;
+			transaction.bNew = true;
+			transaction.setName("Default_transaction");
+			httpConnector.add(transaction);
+			httpConnector.setDefaultTransaction(transaction);
+		}
+		else if (connector instanceof SqlConnector) {
+			SqlConnector sqlConnector = (SqlConnector)connector;
+			
+			SqlTransaction transaction = new SqlTransaction();
+			transaction.hasChanged = true;
+			transaction.bNew = true;
+			transaction.setName("Default_transaction");
+			sqlConnector.add(transaction);
+			sqlConnector.setDefaultTransaction(transaction);
+		}
+		else if (connector instanceof CicsConnector) {
+			CicsConnector cicsConnector = (CicsConnector) connector;
+			
+			CicsTransaction transaction = new CicsTransaction();
+			transaction.hasChanged = true;
+			transaction.bNew = true;
+			transaction.setName("Default_transaction");
+			cicsConnector.add(transaction);
+			cicsConnector.setDefaultTransaction(transaction);
+		}
+		else if (connector instanceof SiteClipperConnector) {
+			SiteClipperConnector siteClipperConnector = (SiteClipperConnector) connector;
+			
+			SiteClipperScreenClass defaultScreenClass = new SiteClipperScreenClass();
+			defaultScreenClass.setName("Default_screen_class");
+			defaultScreenClass.hasChanged = true;
+			defaultScreenClass.bNew = true;
+			siteClipperConnector.setDefaultScreenClass(defaultScreenClass);
+			
+			SiteClipperTransaction transaction = new SiteClipperTransaction();
+			transaction.hasChanged = true;
+			transaction.bNew = true;
+			transaction.setName("Default_transaction");
+			siteClipperConnector.add(transaction);
+			siteClipperConnector.setDefaultTransaction(transaction);
 		}
     }
+
 }

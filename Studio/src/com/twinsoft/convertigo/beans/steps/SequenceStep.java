@@ -29,9 +29,12 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.URIException;
@@ -53,11 +56,12 @@ import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XSDUtils;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
@@ -66,8 +70,12 @@ import com.twinsoft.util.StringEx;
 public class SequenceStep extends RequestableStep implements ITagsProperty{
 	private static final long serialVersionUID = -8066934224685627694L;
 	
-	protected String projectName = "";
-	protected String sequenceName = "";
+	public static final String SOURCE_SEPARATOR = ".";
+	
+	private transient String projectName;
+	private transient String sequenceName;
+	
+	private String sourceSequence = "";
 	
 	// Specify if transaction's context should be inherited from mother sequence's one
 	protected boolean inheritTransactionCtx = false;
@@ -82,11 +90,13 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 
 	public Object clone() throws CloneNotSupportedException {
 		SequenceStep clonedObject = (SequenceStep) super.clone();
+		clonedObject.setSourceSequence(sourceSequence);
 		return clonedObject;
 	}
 	
 	public Object copy() throws CloneNotSupportedException {
 		SequenceStep copiedObject = (SequenceStep)super.copy();
+		copiedObject.setSourceSequence(sourceSequence);
 		return copiedObject;
 	}
 	
@@ -98,19 +108,10 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		return projectName;
 	}
 
-	public void setProjectName(String projectName) {
-		this.projectName = projectName;
-	}
-
-
 	public String getSequenceName() {
 		return sequenceName;
 	}
 
-	public void setSequenceName(String sequenceName) {
-		this.sequenceName = sequenceName;
-	}
-	
 	public boolean isInheritTransactionCtx() {
 		return inheritTransactionCtx;
 	}
@@ -263,19 +264,6 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		}
 	}
 	
-	public String[] getSequenceNames() {
-		try {
-			if (!projectName.equals("")) {
-				Project p = getTargetProject(projectName);
-				List<Sequence> sequences = sort(p.getSequencesList());
-				sequences.add(0, null);
-				return getNames(sequences);
-			}
-		} catch (EngineException e) {
-		}
-		return new String[] {};
-	}
-
 	public void importVariableDefinition() throws EngineException {
 		Project p = getTargetProject(projectName);
 		List<Sequence> v = p.getSequencesList();
@@ -440,6 +428,29 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
     
 	public void configure(Element element) throws Exception {
         super.configure(element);
+        
+		String version = element.getAttribute("version");
+        
+		if (version == null) {
+			String s = XMLUtils.prettyPrintDOM(element);
+			EngineException ee = new EngineException("Unable to find version number for the database object \"" + getName() + "\".\nXML data: " + s);
+			throw ee;
+		}
+
+        try {
+            if (VersionUtils.compare(version, "6.0.3") < 0) {
+                String projectName = (String) XMLUtils.findPropertyValue(element, "projectName");
+                String sequenceName = (String) XMLUtils.findPropertyValue(element, "sequenceName");
+                String sourceSequence = projectName + SequenceStep.SOURCE_SEPARATOR + sequenceName;
+                
+                setSourceSequence(sourceSequence);
+                
+                hasChanged = true;
+                Engine.logBeans.warn("[SequenceStpe] The object \"" + getName() + "\" has been updated to version 6.0.3; source sequence: " + sourceSequence);
+            }
+        } catch(Exception e) {
+            throw new EngineException("Unable to migrate the source definition for CallSequence step \"" + getName() + "\".", e);
+        }
 	}
 	
 	public Element toXml(Document document) throws EngineException {
@@ -462,10 +473,26 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 	}
 
 	public String[] getTagsForProperty(String propertyName) {
-		if(propertyName.equals("projectName")){
-			return Engine.theApp.databaseObjectsManager.getAllProjectNamesArray();
-		}else if(propertyName.equals("sequenceName")){
-			return getSequenceNames();
+		if (propertyName.equals("sourceSequence")) {
+			List<String> sequencesList = new ArrayList<String>();
+			
+			try {
+				Enumeration<String> projects = getSequence().getLoadedProjectNames();
+				while (projects.hasMoreElements()) {
+					String projectName = projects.nextElement();
+					
+					Project project = getTargetProject(projectName);
+					List<Sequence> sequences = project.getSequencesList();
+					
+					for (Sequence sequence : sequences) {
+						sequencesList.add(projectName + SOURCE_SEPARATOR + sequence.getName());
+					}
+				}
+			} catch (EngineException e) {
+				// Just ignore, should never happen
+			}
+			
+			return sequencesList.toArray(new String[] {});
 		}
 		return super.getTagsForProperty(propertyName);
 	}
@@ -538,5 +565,16 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		}
 		stepTypeSchema += "\t</xsd:complexType>\n";
 		stepTypes.put(new Long(priority), stepTypeSchema);
+	}
+
+	public String getSourceSequence() {
+		return sourceSequence;
+	}
+
+	public void setSourceSequence(String sourceSequence) {
+		this.sourceSequence = sourceSequence;
+		StringTokenizer st = new StringTokenizer(sourceSequence, SequenceStep.SOURCE_SEPARATOR);
+		projectName = st.nextToken();
+		sequenceName = st.nextToken();
 	}	
 }

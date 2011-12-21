@@ -408,8 +408,9 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 	}
 	
 	public String[] getTagsForProperty(String propertyName) {
-		if (propertyName.equals("endTransactionName"))
-			return getNames(sort(vTransactions));
+		if (propertyName.equals("endTransactionName")) {
+			return getNamesWithFirstEmptyItem(sort(vTransactions));
+		}
 		return new String[0];
 	}
 	

@@ -881,8 +881,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			compiledValue = "".equals(compiledValue) ? "80":compiledValue;
 		}
 		return compiledValue;
-    }
-    
+	}
+
 	private static Object getCompiledValue(Object propertyObjectValue) {
     	if (propertyObjectValue instanceof String) {
 			String sPropertyObjectValue = propertyObjectValue.toString();
@@ -1299,6 +1299,15 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		int i = 0;
 		String[] res = new String[dbos.size()];
 		for(DatabaseObject dbo : dbos) res[i++] = dbo!=null?dbo.getName():"";
+		return res;
+	}
+	
+	public String[] getNamesWithFirstEmptyItem(Collection<? extends DatabaseObject> dbos){
+		String[] res = new String[dbos.size() + 1];
+		res[0] = "";
+		int i = 1;
+		for (DatabaseObject dbo : dbos)
+			res[i++] = dbo != null ? dbo.getName() : "";
 		return res;
 	}
 	

@@ -24,8 +24,9 @@ package com.twinsoft.convertigo.beans.statements;
 
 import java.util.List;
 
-import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
+import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
+import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class ScHandlerStatement extends HandlerStatement{
@@ -79,7 +80,6 @@ public class ScHandlerStatement extends HandlerStatement{
 		return new String[] { EVENT_ENTRY_HANDLER, EVENT_EXIT_HANDLER };
 	}
 	
-	@Override
 	public String[] getResultStrings() {
 		if (handlerType.equals(EVENT_ENTRY_HANDLER))
 			return new String[] { RETURN_CONTINUE, RETURN_REDETECT, RETURN_SKIP };
@@ -87,14 +87,15 @@ public class ScHandlerStatement extends HandlerStatement{
 			return new String[] { RETURN_ACCUMULATE };
 	}
 	
-	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if(propertyName.equals("normalizedScreenClassName")){
-			IScreenClassContainer<?> connector = (IScreenClassContainer<?>) getParent().getParent();
-	    	List<? extends ScreenClass> v = connector.getAllScreenClasses();
-			String[] sNames = new String[v.size()];
-			for (int i = 0 ; i < v.size() ; i++) {
-				String normalizedScreenClassName = StringUtils.normalize(v.get(i).getName());
+	    	HtmlConnector connector = (HtmlConnector) getParent().getParent();
+	    	List<HtmlScreenClass> v = connector.getAllScreenClasses();
+			String[] sNames = new String[v.size() + 1];
+			sNames[0] = "";
+			for (int i = 1 ; i <= v.size() ; i++) {
+				ScreenClass screenClass = (ScreenClass)v.get(i);
+				String normalizedScreenClassName = StringUtils.normalize(screenClass.getName());
 				sNames[i] = normalizedScreenClassName;
 			}
 			return sNames;

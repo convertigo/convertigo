@@ -100,29 +100,7 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 				handlesBeanNameChanged(treeObjectEvent);
 			}
 			
-			// If changed bean is this bean
-			if (databaseObject.equals(getObject())) {
-				if (databaseObject instanceof SequenceStep) {
-					SequenceStep sequenceStep = (SequenceStep)databaseObject;
-					if (propertyName.equals("projectName")) {
-						sequenceStep.setSequenceName("");
-						hasBeenModified(true);
-					}
-				}
-				if (databaseObject instanceof TransactionStep) {
-					TransactionStep transactionStep = (TransactionStep)databaseObject;
-					if (propertyName.equals("projectName")) {
-						transactionStep.setConnectorName("");
-						transactionStep.setTransactionName("");
-						hasBeenModified(true);
-					}
-					else if (propertyName.equals("connectorName")) {
-						transactionStep.setTransactionName("");
-						hasBeenModified(true);
-					}
-				}
-			}
-			else if (databaseObject instanceof Project) {
+			if (databaseObject instanceof Project) {
 				if (propertyName.equals("xsdFile")) {
 					if (getObject() instanceof SequenceStep) {
 						SequenceStep sequenceStep = (SequenceStep)getObject();
@@ -163,7 +141,8 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 					isSameValue = step.getProjectName().equals(oldValue);
 					shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
 					if (isSameValue && shouldUpdate) {
-						step.setProjectName((String)newValue);
+						step.setSourceTransaction((String)newValue + TransactionStep.SOURCE_SEPARATOR + step.getConnectorName() +
+								TransactionStep.SOURCE_SEPARATOR + step.getTransactionName());
 						hasBeenModified(true);
 						viewer.refresh();
 						
@@ -179,7 +158,8 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 					if (databaseObject instanceof Connector) {
 						isSameValue = step.getConnectorName().equals(oldValue);
 						if (isSameValue && shouldUpdate) {
-							step.setConnectorName((String)newValue);
+							step.setSourceTransaction(step.getProjectName() + TransactionStep.SOURCE_SEPARATOR + (String) newValue +
+									TransactionStep.SOURCE_SEPARATOR + step.getTransactionName());
 							hasBeenModified(true);
 							viewer.refresh();
 							
@@ -190,7 +170,8 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 					else if (databaseObject instanceof Transaction) {
 						isSameValue = step.getTransactionName().equals(oldValue);
 						if (isSameValue && shouldUpdate) {
-							step.setTransactionName((String)newValue);
+							step.setSourceTransaction(step.getProjectName() + TransactionStep.SOURCE_SEPARATOR + step.getConnectorName() +
+									TransactionStep.SOURCE_SEPARATOR + (String) newValue);
 							hasBeenModified(true);
 							viewer.refresh();
 							
@@ -209,7 +190,7 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 					isSameValue = step.getProjectName().equals(oldValue);
 					shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
 					if (isSameValue && shouldUpdate) {
-						step.setProjectName((String)newValue);
+						step.setSourceSequence((String) newValue + SequenceStep.SOURCE_SEPARATOR + step.getSequenceName());
 						hasBeenModified(true);
 						viewer.refresh();
 						
@@ -225,7 +206,7 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 					if (databaseObject instanceof Sequence) {
 						isSameValue = step.getSequenceName().equals(oldValue);
 						if (isSameValue && shouldUpdate) {
-							step.setSequenceName((String)newValue);
+							step.setSourceSequence(step.getProjectName() + SequenceStep.SOURCE_SEPARATOR + (String) newValue);
 							hasBeenModified(true);
 							viewer.refresh();
 							

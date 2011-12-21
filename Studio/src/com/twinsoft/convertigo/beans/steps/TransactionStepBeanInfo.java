@@ -41,29 +41,18 @@ public class TransactionStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[4];
+			properties = new PropertyDescriptor[2];
 			
-			properties[0] = new PropertyDescriptor("projectName", beanClass, "getProjectName", "setProjectName");
-			properties[0].setDisplayName(getExternalizedString("property.projectName.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.projectName.short_description"));
+			properties[0] = new PropertyDescriptor("sourceTransaction", beanClass, "getSourceTransaction", "setSourceTransaction");
+			properties[0].setDisplayName(getExternalizedString("property.sourceTransaction.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.sourceTransaction.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
-			properties[0].setValue(BLACK_LIST_NAME, Boolean.TRUE);
 			
-            properties[1] = new PropertyDescriptor("connectorName", beanClass, "getConnectorName", "setConnectorName");
-			properties[1].setDisplayName(getExternalizedString("property.connectorName.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.connectorName.short_description"));
-			properties[1].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
-			
-            properties[2] = new PropertyDescriptor("transactionName", beanClass, "getTransactionName", "setTransactionName");
-			properties[2].setDisplayName(getExternalizedString("property.transactionName.display_name"));
-			properties[2].setShortDescription(getExternalizedString("property.transactionName.short_description"));
-			properties[2].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
-			
-            properties[3] = new PropertyDescriptor("connectionStringDefinition", beanClass, "getConnectionStringDefinition", "setConnectionStringDefinition");
-			properties[3].setDisplayName(getExternalizedString("property.connectionStringDefinition.display_name"));
-			properties[3].setShortDescription(getExternalizedString("property.connectionStringDefinition.short_description"));
-			properties[3].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
-			properties[3].setExpert(true);
+            properties[1] = new PropertyDescriptor("connectionStringDefinition", beanClass, "getConnectionStringDefinition", "setConnectionStringDefinition");
+			properties[1].setDisplayName(getExternalizedString("property.connectionStringDefinition.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.connectionStringDefinition.short_description"));
+			properties[1].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
+			properties[1].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

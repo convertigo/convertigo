@@ -41,22 +41,16 @@ public class SequenceStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[2];
 			
-            properties[0] = new PropertyDescriptor("projectName", beanClass, "getProjectName", "setProjectName");
-			properties[0].setDisplayName(getExternalizedString("property.projectName.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.projectName.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));	
-			properties[0].setValue(BLACK_LIST_NAME, Boolean.TRUE);
-			
-            properties[1] = new PropertyDescriptor("sequenceName", beanClass, "getSequenceName", "setSequenceName");
-			properties[1].setDisplayName(getExternalizedString("property.sequenceName.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.sequenceName.short_description"));
+            properties[0] = new PropertyDescriptor("inheritTransactionCtx", beanClass, "isInheritTransactionCtx", "setInheritTransactionCtx");
+			properties[0].setDisplayName(getExternalizedString("property.inheritTransactionCtx.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.inheritTransactionCtx.short_description"));
+
+            properties[1] = new PropertyDescriptor("sourceSequence", beanClass, "getSourceSequence", "setSourceSequence");
+			properties[1].setDisplayName(getExternalizedString("property.sourceSequence.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.sourceSequence.short_description"));
 			properties[1].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
-			
-            properties[2] = new PropertyDescriptor("inheritTransactionCtx", beanClass, "isInheritTransactionCtx", "setInheritTransactionCtx");
-			properties[2].setDisplayName(getExternalizedString("property.inheritTransactionCtx.display_name"));
-			properties[2].setShortDescription(getExternalizedString("property.inheritTransactionCtx.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

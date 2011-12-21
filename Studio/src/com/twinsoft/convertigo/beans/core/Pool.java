@@ -143,11 +143,11 @@ public class Pool extends DatabaseObject implements ITagsProperty{
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("startTransaction")){
 			Connector connector = (Connector) getParent();
-			return getNames(connector.getTransactionsList());
+			return getNamesWithFirstEmptyItem(connector.getTransactionsList());
 		} else if(propertyName.equals("initialScreenClass")){
 			Connector connector = (Connector) getParent();
 			if (connector instanceof IScreenClassContainer<?>) {
-				String[] sNames = getNames(((IScreenClassContainer<?>)connector).getAllScreenClasses());
+				String[] sNames = getNamesWithFirstEmptyItem(((IScreenClassContainer<?>)connector).getAllScreenClasses());
 				for (int i = 0 ; i < sNames.length ; i++) sNames[i] = StringUtils.normalize(sNames[i]);
 				return sNames;
 			}

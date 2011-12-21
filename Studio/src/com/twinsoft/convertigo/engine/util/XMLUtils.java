@@ -490,6 +490,24 @@ public class XMLUtils {
         return null;
     }
     
+    public static Object findPropertyValue(Element databaseObjectNode, String propertyName) throws Exception {
+        NodeList properties = databaseObjectNode.getElementsByTagName("property");
+
+        Element projectNameElement = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", propertyName);
+
+        Node xmlNode = null;
+        NodeList nl = projectNameElement.getChildNodes();
+        int len_nl = nl.getLength();
+        for (int j = 0 ; j < len_nl ; j++) {
+            xmlNode = nl.item(j);
+            if (xmlNode.getNodeType() == Node.ELEMENT_NODE) {
+                return XMLUtils.readObjectFromXml((Element) xmlNode);
+            }
+        }
+        
+        throw new EngineException("No such property ('" + propertyName + "')");
+    }
+    
     public static String findXslHref(Node node) {
         int type = node.getNodeType();
         
