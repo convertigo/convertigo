@@ -96,7 +96,7 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		return iterator.getNode(loop);
 	}
 		
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			try {
 				iterator.init();
@@ -111,7 +111,7 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 				}
 				if (bContinue && sequence.isRunning()) {
 					iterator.nextElement();
-					if (!super.stepExcecute(javascriptContext, scope))
+					if (!super.stepExecute(javascriptContext, scope))
 						break;
 				}
 				else break;

@@ -582,10 +582,10 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     }
     
 	@Override
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (bContinue && sequence.isRunning()) {
-				if (super.stepExcecute(javascriptContext, scope)) {
+				if (super.stepExecute(javascriptContext, scope)) {
 					return executeNextStep(javascriptContext, scope);
 				}
 			}

@@ -135,9 +135,9 @@ public class MoveFileStep extends Step {
 		return evaluateToString(javascriptContext, scope, newFilename, "newFilename", true);
 	}
 
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExcecute(javascriptContext, scope)) {
+			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					String inputFilePath = getAbsoluteFilePath(evaluateDataFileName(javascriptContext, scope));
 					String outputFilePath = getAbsoluteFilePath(evaluateNewFileName(javascriptContext, scope));

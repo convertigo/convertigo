@@ -119,9 +119,9 @@ public abstract class ReadFileStep extends Step {
     	return wsdlDom;
     }
 	
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExcecute(javascriptContext, scope)) {
+			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					String filePath = evaluateDataFileName(javascriptContext, scope);
 					Document xmlDoc = read(filePath, false);

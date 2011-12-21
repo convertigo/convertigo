@@ -333,7 +333,10 @@ public class EnginePropertiesManager {
 		LOG4J_LOGGER_CEMS_USAGEMONITOR ("log4j.logger.cems.UsageMonitor", "WARN", "Log4J usage monitor logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_USER ("log4j.logger.cems.User", "INFO", "Log4J user output logger", PropertyCategory.Logs),
-
+		@PropertyOptions(propertyType = PropertyType.Text)
+		LOG4J_LOGGER_CEMS_CONTEXT_AUDIT ("log4j.logger.cems.Context.Audit", "INFO, AuditAppender", "Log4J audit context logger", PropertyCategory.Logs),
+		
+		
 		/** LOG ADVANCE */
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		LOG_EXPLICIT_VARIABLES ("log.explicit_variables", "contextid,project,sequence,connector,transaction,user,clientip,clienthostname", "Explicit variables", PropertyCategory.Logs),
@@ -353,6 +356,19 @@ public class EnginePropertiesManager {
 		LOG4J_APPENDER_CEMSAPPENDER_MAXFILESIZE ("log4j.appender.CemsAppender.MaxFileSize", "10MB", "Log4J default appender max file size", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
 		LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX ("log4j.appender.CemsAppender.MaxBackupIndex", "100", "Log4J default appender max backup index", PropertyCategory.Logs),
+		// New appender for the Audit logger.
+		LOG4J_APPENDER_AUDITAPPENDER ("log4j.appender.AuditAppender", "org.apache.log4j.RollingFileAppender", "Log4J audit appender", PropertyCategory.Logs),
+		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
+		LOG4J_APPENDER_AUDITAPPENDER_FILE ("log4j.appender.AuditAppender.File","${log.directory}/audit.log", "Log4J audit appender file", PropertyCategory.Logs),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
+		LOG4J_APPENDER_AUDITAPPENDER_LAYOUT ("log4j.appender.AuditAppender.layout","org.apache.log4j.PatternLayout", "Log4J audit appender layout", PropertyCategory.Logs),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
+		LOG4J_APPENDER_AUDITAPPENDER_LAYOUT_CONVERSIONPATTERN ("log4j.appender.AuditAppender.layout.ConversionPattern", "!%c{1} | %m%n", "Log4J audit appender layout conversion pattern", PropertyCategory.Logs),
+		@PropertyOptions(advance = true)
+		LOG4J_APPENDER_AUDITAPPENDER_MAXFILESIZE ("log4j.appender.AuditAppender.MaxFileSize", "10MB", "Log4J audit appender max file size", PropertyCategory.Logs),
+		@PropertyOptions(advance = true)
+		LOG4J_APPENDER_AUDITAPPENDER_MAXBACKUPINDEX ("log4j.appender.AuditAppender.MaxBackupIndex", "100", "Log4J audit appender max backup index", PropertyCategory.Logs),
+		
 
 		/** NETWORK */
 		@PropertyOptions(propertyType = PropertyType.Boolean)

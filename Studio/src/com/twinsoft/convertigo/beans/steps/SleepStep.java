@@ -64,9 +64,9 @@ public class SleepStep extends Step {
 	}
 
 	@Override
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExcecute(javascriptContext, scope)) {
+			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					long t = (getSequence().getResponseTimeout() * 1000) - 500;
 					long l = (delay<=0) ? 0:(delay>t ? t:delay);

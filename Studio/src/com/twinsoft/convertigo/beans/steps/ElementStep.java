@@ -148,7 +148,7 @@ public class ElementStep extends Step {
 		stepNode.appendChild(text);
 	}
 	
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			try {
 				evaluate(javascriptContext, scope, getExpression(), "expression", true);
@@ -162,7 +162,7 @@ public class ElementStep extends Step {
 				Engine.logBeans.warn(e.getMessage());
 			}
 			
-			return super.stepExcecute(javascriptContext, scope);
+			return super.stepExecute(javascriptContext, scope);
 		}
 		return false;
 	}

@@ -730,7 +730,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 
 		try {
 			stepInit();
-			if (stepExcecute(javascriptContext, scope))
+			if (stepExecute(javascriptContext, scope))
 				return true;
 			return false;
 		}
@@ -749,7 +749,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		reset();
 	}
 	
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable && sequence.isRunning()) {
 			Engine.logBeans.debug("Executing step named '"+ this +"' ("+ this.name +")");
 			

@@ -77,10 +77,10 @@ public class WhileStep extends LoopStep {
 		return true;
 	}
 
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			do {
-				if (!super.stepExcecute(javascriptContext, scope)) {
+				if (!super.stepExecute(javascriptContext, scope)) {
 					break;
 				}
 			}

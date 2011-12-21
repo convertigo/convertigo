@@ -78,9 +78,9 @@ import com.twinsoft.convertigo.engine.EngineException;
 		this.expression = expression;
 	}
 	
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExcecute(javascriptContext, scope)) {
+			if (super.stepExecute(javascriptContext, scope)) {
 				evaluate(javascriptContext, scope, getExpression(), "expression", true);
 				return true;
 			}
