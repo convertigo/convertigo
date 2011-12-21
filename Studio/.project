@@ -31,17 +31,17 @@
 		<link>
 			<name>src/com/convertigo/externalbrowser/common</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/ExternalBrowser/src/java/com/convertigo/externalbrowser/common</locationURI>
+			<locationURI>WORKSPACE_LOC/CemsExternalBrowser/src/java/com/convertigo/externalbrowser/common</locationURI>
 		</link>
 		<link>
 			<name>src/com/convertigo/externalbrowser/agent/stub</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/ExternalBrowser/src/java/com/convertigo/externalbrowser/agent/stub</locationURI>
+			<locationURI>WORKSPACE_LOC/CemsExternalBrowser/src/java/com/convertigo/externalbrowser/agent/stub</locationURI>
 		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/externalbrowser</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/ExternalBrowser/src/java/com/twinsoft/convertigo/engine/externalbrowser</locationURI>
+			<locationURI>WORKSPACE_LOC/CemsExternalBrowser/src/java/com/twinsoft/convertigo/engine/externalbrowser</locationURI>
 		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/parsers</name>
