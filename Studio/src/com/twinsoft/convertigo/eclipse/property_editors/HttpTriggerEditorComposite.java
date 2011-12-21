@@ -114,17 +114,18 @@ public class HttpTriggerEditorComposite extends AbstractDialogComposite {
         	new HttpTriggerNoWaitEditorComposite(this)
         };
         
-        if (trigger instanceof DocumentCompletedTrigger){
+        Class<?> cl = trigger.getClass();
+        if (cl.equals(DocumentCompletedTrigger.class)){
         	type_trigger_combo.select(0);
-        } else if(trigger instanceof XpathTrigger) {
+        } else if (cl.equals(XpathTrigger.class)) {
         	type_trigger_combo.select(1);
-        } else if(trigger instanceof WaitTimeTrigger) {
+        } else if (cl.equals(WaitTimeTrigger.class)) {
         	type_trigger_combo.select(2);
-	    } else if(trigger instanceof ScreenClassTrigger) {
+	    } else if (cl.equals(ScreenClassTrigger.class)) {
 	    	type_trigger_combo.select(3);
-	    } else if(trigger instanceof DownloadStartedTrigger) {
+	    } else if (cl.equals(DownloadStartedTrigger.class)) {
 	    	type_trigger_combo.select(4);
-	    } else if(trigger instanceof NoWaitTrigger) {
+	    } else if (cl.equals(NoWaitTrigger.class)) {
 	    	type_trigger_combo.select(5);
 	    }
 	}
@@ -158,7 +159,7 @@ public class HttpTriggerEditorComposite extends AbstractDialogComposite {
 		timeout_spin = new Spinner(commun_trigger, SWT.BORDER);
 		timeout_spin.setMinimum(0);
 		timeout_spin.setMaximum(Integer.MAX_VALUE);
-		timeout_spin.setSelection((int)trigger.getTimeout());
+		timeout_spin.setSelection((int) trigger.getTimeout());
 		
 		GridData gridData = new GridData();
 		gridData.horizontalAlignment = GridData.FILL;
