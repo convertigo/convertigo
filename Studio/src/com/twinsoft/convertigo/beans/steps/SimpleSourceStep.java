@@ -40,9 +40,9 @@ public class SimpleSourceStep extends SourceStep {
 	}
 	
 	@Override
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExcecute(javascriptContext, scope)) {
+			if (super.stepExecute(javascriptContext, scope)) {
 				NodeList list = (NodeList) scope.get(variableName, scope);
 				
 				Object string = null;

@@ -735,9 +735,9 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	abstract protected void prepareForRequestable(Context javascriptContext, Scriptable scope) throws MalformedURLException, EngineException;
 	
 	@Override
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExcecute(javascriptContext, scope)) {
+			if (super.stepExecute(javascriptContext, scope)) {
 	            try {
 	            	request = new Hashtable<String, String[]>();
 	    			prepareForRequestable(javascriptContext, scope);

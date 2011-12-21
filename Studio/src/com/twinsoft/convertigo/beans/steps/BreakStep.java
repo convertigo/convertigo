@@ -54,9 +54,9 @@ public class BreakStep extends SimpleStep {
         return copiedObject;
     }
 	
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExcecute(javascriptContext, scope)) {
+			if (super.stepExecute(javascriptContext, scope)) {
 				List<StepWithExpressions> parents = new ArrayList<StepWithExpressions>();
 				DatabaseObject parentStep = this.parent;
 				while (parentStep != null) {

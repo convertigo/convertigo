@@ -43,9 +43,9 @@ public class RenameStep extends Step {
 	}
 
 	@Override
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExcecute(javascriptContext, scope)) {
+			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					String sourceFilePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));
 					String newFileName = evaluateNewName(javascriptContext, scope);

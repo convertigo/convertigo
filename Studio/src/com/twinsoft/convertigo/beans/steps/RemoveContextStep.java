@@ -66,9 +66,9 @@ public class RemoveContextStep extends Step {
 		this.contextName = contextName;
 	}
 
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExcecute(javascriptContext, scope)) {
+			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					evaluate(javascriptContext, scope, getContextName(), "contextName", true);
 					if (evaluated instanceof org.mozilla.javascript.Undefined) {

@@ -124,7 +124,7 @@ public class InputVariablesStep extends Step {
 	}
 	
 	@Override
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		variables.clear();
 
 		if (isEnable) {
@@ -152,7 +152,7 @@ public class InputVariablesStep extends Step {
 					Engine.logBeans.warn(e.getMessage());
 				}
 			}
-			return super.stepExcecute(javascriptContext, scope);
+			return super.stepExecute(javascriptContext, scope);
 		}
 		return false;
 	}

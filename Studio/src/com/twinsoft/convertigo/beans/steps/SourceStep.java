@@ -92,9 +92,9 @@ public class SourceStep extends Step implements IStepSourceContainer {
 		this.variableName = variableName;
 	}
 	
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExcecute(javascriptContext, scope)) {
+			if (super.stepExecute(javascriptContext, scope)) {
 				NodeList list = getSource().getContextValues();
 				if (list != null) {
 					scope.put(variableName, scope, list);

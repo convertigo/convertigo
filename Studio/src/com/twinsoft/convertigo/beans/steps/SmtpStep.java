@@ -179,9 +179,9 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 		return result;
 	}
 	
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExcecute(javascriptContext, scope)) {
+			if (super.stepExecute(javascriptContext, scope)) {
 				sendMess();
 				return true;
 			}

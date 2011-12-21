@@ -43,9 +43,9 @@ public class CopyStep extends Step {
 	}
 
 	@Override
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExcecute(javascriptContext, scope)) {
+			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					// Check source
 					String sSourcePath = getAbsoluteFilePath(evaluateSourcePath(javascriptContext, scope));

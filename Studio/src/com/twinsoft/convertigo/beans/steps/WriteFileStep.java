@@ -158,9 +158,9 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	}
 
 	@Override
-	protected boolean stepExcecute(Context javascriptContext, Scriptable scope) throws EngineException {
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExcecute(javascriptContext, scope)) {
+			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					StepSource stepSource = getSource();
 					if (!stepSource.inError()) {
