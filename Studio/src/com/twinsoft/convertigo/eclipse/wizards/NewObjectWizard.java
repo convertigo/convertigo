@@ -284,27 +284,22 @@ public class NewObjectWizard extends Wizard {
 							this.setupConnector(newBean);
 						}
 						
+						if (newBean instanceof SequenceStep) {
+							Project project = newBean.getProject();
+							
+							((SequenceStep) newBean).setSourceSequence(project.getName() + TransactionStep.SOURCE_SEPARATOR +
+									project.getSequencesList().get(0));
+						}
+						
 						if (newBean instanceof TransactionStep) {
 							Project project = newBean.getProject();
 							Connector connector = project.getDefaultConnector();
 							Transaction transaction = connector.getDefaultTransaction();
 							
-							if (project != null) {
-								((TransactionStep)newBean).setProjectName(project.getName());
-								if (connector != null) {
-									((TransactionStep)newBean).setConnectorName(connector.getName());
-									if (transaction != null) {
-										((TransactionStep)newBean).setTransactionName(transaction.getName());
-									}
-								}
-							}
-						}
-						
-						if (newBean instanceof SequenceStep) {
-							Project project = newBean.getProject();
-							if (project != null) {
-								((SequenceStep)newBean).setProjectName(project.getName());
-							}
+							((TransactionStep) newBean).setSourceTransaction(
+									project.getName() + TransactionStep.SOURCE_SEPARATOR +
+									connector.getName() + TransactionStep.SOURCE_SEPARATOR +
+									transaction.getName());
 						}
 						
 						if (newBean instanceof IThenElseContainer) {

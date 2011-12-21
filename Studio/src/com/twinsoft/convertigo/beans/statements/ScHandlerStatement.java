@@ -91,8 +91,9 @@ public class ScHandlerStatement extends HandlerStatement{
 		if(propertyName.equals("normalizedScreenClassName")){
 	    	HtmlConnector connector = (HtmlConnector) getParent().getParent();
 	    	List<HtmlScreenClass> v = connector.getAllScreenClasses();
-			String[] sNames = new String[v.size()];
-			for (int i = 0 ; i < v.size() ; i++) {
+			String[] sNames = new String[v.size() + 1];
+			sNames[0] = "";
+			for (int i = 1 ; i <= v.size() ; i++) {
 				ScreenClass screenClass = (ScreenClass)v.get(i);
 				String normalizedScreenClassName = StringUtils.normalize(screenClass.getName());
 				sNames[i] = normalizedScreenClassName;

@@ -91,12 +91,12 @@ public class HandlerStatement extends FunctionStatement implements ITagsProperty
 	}
 	
 	public String[] getResultStrings() {
-		return new String[] { RETURN_CANCEL };
+		return new String[] { "", RETURN_CANCEL };
 	}
 	
 	public String[] getTagsForProperty(String propertyName) {
 		if(propertyName.equals("handlerType")){
-			return new String[] { EVENT_TRANSACTION_STARTED, EVENT_XML_GENERATED };
+			return new String[] { "", EVENT_TRANSACTION_STARTED, EVENT_XML_GENERATED };
 		}else if(propertyName.equals("handlerResult")){
 			return getResultStrings();
 		}
