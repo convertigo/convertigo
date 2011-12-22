@@ -23,6 +23,5 @@
 package com.twinsoft.convertigo.engine.events;
 
 public interface PropertyChangeEventListener extends BaseEventListener {
-	public final Class<? extends BaseEvent> c = PropertyChangeEvent.class;
 	public void onEvent(PropertyChangeEvent event);
 }

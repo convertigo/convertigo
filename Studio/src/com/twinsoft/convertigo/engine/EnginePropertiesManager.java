@@ -43,6 +43,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.helpers.OptionConverter;
 
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
+import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.util.Crypto;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -669,7 +670,7 @@ public class EnginePropertiesManager {
     		exvalue = (String) properties.put(property.getKey(), value);
     	}
     	if(!value.equals(exvalue)) {
-    		Engine.theApp.eventManager.dispatchEvent(new PropertyChangeEvent(property, value));
+    		Engine.theApp.eventManager.dispatchEvent(new PropertyChangeEvent(property, value), PropertyChangeEventListener.class);
     	}
     }
 

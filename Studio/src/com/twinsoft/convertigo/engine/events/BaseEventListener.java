@@ -23,5 +23,4 @@
 package com.twinsoft.convertigo.engine.events;
 
 public interface BaseEventListener {
-	public final Class<? extends BaseEvent> c = BaseEvent.class;
 }

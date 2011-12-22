@@ -28,6 +28,7 @@ import com.twinsoft.convertigo.beans.connectors.ExternalBrowserConnector;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserInterface;
+import com.twinsoft.convertigo.engine.externalbrowser.events.DocumentCompletedListener;
 
 public class ExternalBrowserTransaction extends TransactionWithVariables {
 	private static final long serialVersionUID = -1726228364762123615L;
@@ -57,16 +58,27 @@ public class ExternalBrowserTransaction extends TransactionWithVariables {
 //		Engine.logEngine.info("bench term");
 //		context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
 		
-		ExternalBrowserInterface ebi = getConnector().getEBI();
-		ebi.gotoUrl("http://www.google.fr");
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		final ExternalBrowserInterface ebi = getConnector().getEBI();
+		ebi.addDocumentCompledListener(new DocumentCompletedListener() {
+			
+			@Override
+			public void onDocumentCompleted() {
+				synchronized (ebi) {
+					ebi.notify();
+				}
+			}
+		});
+		synchronized (ebi) {
+			ebi.gotoUrl("http://www.google.fr");
+			try {
+				ebi.wait(30000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			Document doc = ebi.getDom();
+			context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
 		}
-		Document doc = ebi.getDom();
-		context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
 	}
 
 	@Override

@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -197,5 +198,44 @@ public class GenericUtils {
 				}
 			}
 		};
+	}
+	
+	public static <E> boolean contains(Collection<WeakReference<E>> collection, E object) {
+		for (Iterator<WeakReference<E>> i = collection.iterator(); i.hasNext();) {
+			E item = i.next().get();
+			if (item == null) {
+				i.remove();
+			} else if (item.equals(object)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static <E> void remove(Collection<WeakReference<E>> collection, E object, boolean removeAll) {
+		for (Iterator<WeakReference<E>> i = collection.iterator(); i.hasNext();) {
+			E item = i.next().get();
+			if (item == null) {
+				i.remove();
+			} else if (item.equals(object)) {
+				i.remove();
+				if (!removeAll) {
+					return;
+				}
+			}
+		}
+	}
+	
+	public static <E> Collection<E> unWeak(Collection<WeakReference<E>> collection) {
+		Collection<E> result = new ArrayList<E>(collection.size());
+		for (Iterator<WeakReference<E>> i = collection.iterator(); i.hasNext();) {
+			E item = i.next().get();
+			if (item == null) {
+				i.remove();
+			} else {
+				result.add(item);
+			}
+		}
+		return result;
 	}
 }

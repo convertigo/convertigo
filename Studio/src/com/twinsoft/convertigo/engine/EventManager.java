@@ -22,78 +22,40 @@
 
 package com.twinsoft.convertigo.engine;
 
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import com.twinsoft.convertigo.engine.events.BaseEvent;
 import com.twinsoft.convertigo.engine.events.BaseEventListener;
+import com.twinsoft.convertigo.engine.util.EventHelper;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class EventManager implements AbstractManager{
-	private Map<Class<? extends BaseEvent>, Collection<WeakReference<? extends BaseEventListener>>> listeners;
+public class EventManager implements AbstractManager {
+	private EventHelper eventHelper;
 	
 	synchronized public void addListener(BaseEventListener listener, Class<? extends BaseEventListener> cl) {
-		try {
-			Class<? extends BaseEvent> key = GenericUtils.cast(cl.getField("c").get(null));
-			Collection<WeakReference<? extends BaseEventListener>> lst = listeners.get(key);
-			if (lst == null) {
-				listeners.put(key, lst = new HashSet<WeakReference<? extends BaseEventListener>>());
-			}
-			lst.add(new WeakReference<BaseEventListener>(listener));
-		} catch (Exception e) {
-			Engine.logEngine.error("Unexpected exception", e);
-		}
+		eventHelper.addListener(GenericUtils.<Class<BaseEventListener>>cast(cl), listener);
 	}
 
-	synchronized public void dispatchEvent(BaseEvent event) {
-		for (Entry<Class<? extends BaseEvent>, Collection<WeakReference<? extends BaseEventListener>>> entry : listeners.entrySet()) {
-			if (entry.getKey().isAssignableFrom(event.getClass())) {
-				GenericUtils.removeWeak(entry.getValue());
-				for (WeakReference<? extends BaseEventListener> wlistener : new ArrayList<WeakReference<? extends BaseEventListener>>(entry.getValue())) {
-					try {
-						BaseEventListener listener = wlistener.get();
-						Method m = listener.getClass().getMethod("onEvent", entry.getKey());
-						m.invoke(listener, event);
-					} catch (Exception e) {
-						Engine.logEngine.error("Unexpected exception", e);
-					}
-				}
+	synchronized public void dispatchEvent(BaseEvent event, Class<? extends BaseEventListener> cl) {
+		for (BaseEventListener listener : eventHelper.getListeners(cl)) {
+			try {
+				Method m = listener.getClass().getMethod("onEvent", event.getClass());
+				m.invoke(listener, event);
+			} catch (Exception e) {
+				Engine.logEngine.error("(EventManager) Unexpected exception", e);
 			}
 		}
 	}
 
 	synchronized public void removeListener(BaseEventListener listener, Class<? extends BaseEventListener> cl) {
-		try {
-			Class<? extends BaseEvent> key = GenericUtils.cast(cl.getField("c").get(null));
-			Collection<WeakReference<? extends BaseEventListener>> lst = listeners.get(key);
-			if (lst != null) {
-				WeakReference<? extends BaseEventListener> wo = null;
-				for (WeakReference<? extends BaseEventListener> iwo : lst) {
-					if(listener.equals(iwo.get())) {
-						wo = iwo;
-						break;
-					}
-				}
-				if(wo != null) {
-					lst.remove(wo);
-				}
-			}
-		} catch (Exception e) {
-			Engine.logEngine.error("Unexpected exception", e);
-		}
+		eventHelper.removeListener(GenericUtils.<Class<BaseEventListener>>cast(cl), listener);
 	}
 
-	public void destroy() throws EngineException {
-		listeners = null;
+	synchronized public void destroy() throws EngineException {
+		eventHelper = null;
 	}
 
-	public void init() throws EngineException {
-		listeners = new HashMap<Class<? extends BaseEvent>, Collection<WeakReference<? extends BaseEventListener>>>();
+	synchronized public void init() throws EngineException {
+		eventHelper = new EventHelper();
 	}
 }

@@ -42,7 +42,7 @@ public class ExternalBrowserConnector extends Connector {
 	}
 	
 	public ExternalBrowserInterface getEBI() throws EngineException {
-		if (ebi == null) {
+		if (ebi == null || ebi.isDead()) {
 			ebi = Engine.theApp.externalBrowserManager.getEbi(BrowserVersion.valueOf(browserVersion));
 		}
 		return ebi;
