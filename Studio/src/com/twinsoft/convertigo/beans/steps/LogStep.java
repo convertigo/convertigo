@@ -45,15 +45,21 @@ public class LogStep extends Step implements ITagsProperty {
 	 */
 	private static final long serialVersionUID = -700241502764617513L;
 	private String level = Level.INFO.toString();
-	private String logger = Engine.logContext.getName();
+	private String logger = null;
 	private String expression = "//todo";
 	
 	public LogStep() {
 		super();
+		if (this.logger == null) {
+			this.logger = Engine.logContext.getName();
+		}
 	}
 
 	public LogStep(String logger, String mode, String expression) {
 		super();
+		if (this.logger == null) {
+			this.logger = Engine.logContext.getName();
+		}
 		this.logger = logger;
 		this.level = mode;
 		this.expression = expression;
