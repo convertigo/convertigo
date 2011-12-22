@@ -34,6 +34,7 @@ public abstract class JSonService implements Service {
 
 	public void run(String serviceName, HttpServletRequest request, HttpServletResponse response) throws ServiceException {
         try {
+        	response.setContentType("text/javascript");
         	response.setCharacterEncoding("UTF-8");
         	
 			JSONObject json = new JSONObject();
