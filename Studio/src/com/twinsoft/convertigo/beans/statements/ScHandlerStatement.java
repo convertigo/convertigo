@@ -94,7 +94,7 @@ public class ScHandlerStatement extends HandlerStatement{
 			String[] sNames = new String[v.size() + 1];
 			sNames[0] = "";
 			for (int i = 1 ; i <= v.size() ; i++) {
-				ScreenClass screenClass = (ScreenClass)v.get(i);
+				ScreenClass screenClass = (ScreenClass)v.get(i-1);
 				String normalizedScreenClassName = StringUtils.normalize(screenClass.getName());
 				sNames[i] = normalizedScreenClassName;
 			}
