@@ -41,7 +41,7 @@ public class LogStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[4];
+			properties = new PropertyDescriptor[3];
 
             properties[0] = new PropertyDescriptor("level", beanClass, "getLevel", "setLevel");
             properties[0].setDisplayName(getExternalizedString("property.level.display_name"));
@@ -53,15 +53,11 @@ public class LogStepBeanInfo extends MySimpleBeanInfo {
             properties[1].setShortDescription(getExternalizedString("property.expression.short_description"));
             properties[1].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
             properties[1].setValue("scriptable", Boolean.TRUE);
-            
-            properties[2] = new PropertyDescriptor("engine", beanClass, "getEngine", "setEngine");
-            properties[2].setDisplayName(getExternalizedString("property.engine.display_name"));
-            properties[2].setShortDescription(getExternalizedString("property.engine.short_description"));
-            
-            properties[3] = new PropertyDescriptor("logger", beanClass, "getLogger", "setLogger");
-            properties[3].setDisplayName(getExternalizedString("property.logger.display_name"));
-            properties[3].setShortDescription(getExternalizedString("property.logger.short_description"));
-            properties[3].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+
+            properties[2] = new PropertyDescriptor("logger", beanClass, "getLogger", "setLogger");
+            properties[2].setDisplayName(getExternalizedString("property.logger.display_name"));
+            properties[2].setShortDescription(getExternalizedString("property.logger.short_description"));
+            properties[2].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
