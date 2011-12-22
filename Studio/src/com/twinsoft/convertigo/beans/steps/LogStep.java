@@ -47,7 +47,6 @@ public class LogStep extends Step implements ITagsProperty {
 	private String level = Level.INFO.toString();
 	private String logger = Engine.logContext.getName();
 	private String expression = "//todo";
-	private boolean engine = false;
 	
 	public LogStep() {
 		super();
@@ -190,14 +189,6 @@ public class LogStep extends Step implements ITagsProperty {
 
 	public void setExpression(String expression) {
 		this.expression = expression;
-	}
-
-	public boolean getEngine() {
-		return engine;
-	}
-
-	public void setEngine(boolean engine) {
-		this.engine = engine;
 	}
 
 	public String getLogger() {
