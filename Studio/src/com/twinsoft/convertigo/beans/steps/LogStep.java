@@ -50,14 +50,14 @@ public class LogStep extends Step implements ITagsProperty {
 	
 	public LogStep() {
 		super();
-		if (this.logger == null) {
+		if (Engine.logContext != null) {
 			this.logger = Engine.logContext.getName();
 		}
 	}
 
 	public LogStep(String logger, String mode, String expression) {
 		super();
-		if (this.logger == null) {
+		if (Engine.logContext != null) {
 			this.logger = Engine.logContext.getName();
 		}
 		this.logger = logger;
