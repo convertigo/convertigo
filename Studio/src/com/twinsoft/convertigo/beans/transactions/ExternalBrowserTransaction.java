@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.engine.externalbrowser.events.DocumentCompletedLi
 
 public class ExternalBrowserTransaction extends TransactionWithVariables {
 	private static final long serialVersionUID = -1726228364762123615L;
-	
+
 
 	public ExternalBrowserTransaction() {
 		super();
@@ -40,53 +40,67 @@ public class ExternalBrowserTransaction extends TransactionWithVariables {
 
 	@Override
 	public void runCore() throws EngineException {
-//		String location = SiteClipperConnector.constructSiteLocation(context, getConnector(), targetURL);		
-//		Engine.logBeans.debug("(SiteClipperTransaction) Computed location for SiteClipper : " + location);
-//		context.outputDocument.getDocumentElement().setAttribute("redirect_location", location);
-//		
-//		context.setSharedScope(RhinoUtils.copyScope(((RequestableThread) Thread.currentThread()).javascriptContext, scope));
-//		Engine.logEngine.info("bench begin");
-		
-//		ExternalBrowser externalBrowser = ExtBroLauncher.getInstance().launch(BrowserVersion.firefox3);
-//		Engine.logEngine.info("bench start");
-//		Document doc = null;
-//		for (String url : Arrays.asList("http://www.google.fr", "http://finus", "http://demo.convertigo.net/cems/", "http://www.google.fr", "http://finus", "http://demo.convertigo.net/cems/", "about:blank")) {
-//			doc = externalBrowser.gotoUrl(url);
-//			Engine.logEngine.info("bench goto " + url);
-//		}
-//		externalBrowser.terminate();
-//		Engine.logEngine.info("bench term");
-//		context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
-		
+		//		String location = SiteClipperConnector.constructSiteLocation(context, getConnector(), targetURL);		
+		//		Engine.logBeans.debug("(SiteClipperTransaction) Computed location for SiteClipper : " + location);
+		//		context.outputDocument.getDocumentElement().setAttribute("redirect_location", location);
+		//		
+		//		context.setSharedScope(RhinoUtils.copyScope(((RequestableThread) Thread.currentThread()).javascriptContext, scope));
+		//		Engine.logEngine.info("bench begin");
+
+		//		ExternalBrowser externalBrowser = ExtBroLauncher.getInstance().launch(BrowserVersion.firefox3);
+		//		Engine.logEngine.info("bench start");
+		//		Document doc = null;
+		//		for (String url : Arrays.asList("http://www.google.fr", "http://finus", "http://demo.convertigo.net/cems/", "http://www.google.fr", "http://finus", "http://demo.convertigo.net/cems/", "about:blank")) {
+		//			doc = externalBrowser.gotoUrl(url);
+		//			Engine.logEngine.info("bench goto " + url);
+		//		}
+		//		externalBrowser.terminate();
+		//		Engine.logEngine.info("bench term");
+		//		context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
+		String url = context.httpServletRequest.getParameter("url");
+		if (url == null) {
+			url = "http://www.google.fr";
+		}
+
 		final ExternalBrowserInterface ebi = getConnector().getEBI();
-		ebi.addDocumentCompledListener(new DocumentCompletedListener() {
-			
-			@Override
+		ebi.setContext(context);
+		final boolean [] done = { false };
+		DocumentCompletedListener listener = new DocumentCompletedListener() {
 			public void onDocumentCompleted() {
-				synchronized (ebi) {
-					ebi.notify();
+				synchronized (this) {
+					done[0] = true;
+					this.notify();
 				}
 			}
-		});
-		synchronized (ebi) {
-			ebi.gotoUrl("http://www.google.fr");
-			try {
-				ebi.wait(30000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		};
+		try {
+			ebi.addDocumentCompledListener(listener);
+			synchronized (listener) {
+				ebi.gotoUrl(url);
+				try {
+					listener.wait(30000);
+					if (!done[0]) {
+						throw new EngineException("(ExternalBrowserTransaction) Wait document completed timeout !");
+					}
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			Document doc = ebi.getDom();
 			context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
+		} finally {
+			ebi.removeDocumentCompledListener(listener);
+			//			ebi.setContext(null);
 		}
 	}
 
 	@Override
 	public void setStatisticsOfRequestFromCache() {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
+
 	@Override
 	public ExternalBrowserConnector getConnector() {
 		return (ExternalBrowserConnector) super.getConnector();
