@@ -583,15 +583,52 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		try {
 			if (VersionUtils.compare(version, "6.0.3") < 0) {
 				String projectName = (String) XMLUtils.findPropertyValue(element, "projectName");
+				// Handle wrong project name
+				if (projectName.equals("")) {
+					projectName = "unknown_project";
+				}
+				
 				String connectorName = (String) XMLUtils.findPropertyValue(element, "connectorName");
+				// If the default connector has been set, find the explicit default connector name
+				if (connectorName.equals("")) {
+					NodeList connectorsNodeList = element.getOwnerDocument().getElementsByTagName("connector");
+					Node connectorNode = XMLUtils.findNodeByAttributeValue(connectorsNodeList, "default", "true");
+					if (connectorNode != null) {
+						connectorName = (String) XMLUtils.findPropertyValue((Element) connectorNode, "name");
+					}
+					else {
+						throw new EngineException("Unable to find the default connector for the project '" + projectName + "'");
+					}
+				}
+				
 				String transactionName = (String) XMLUtils.findPropertyValue(element, "transactionName");
+				// If the default transaction has been set, find the explicit default transaction name
+				if (transactionName.equals("")) {
+					NodeList connectorsNodeList = element.getOwnerDocument().getElementsByTagName("connector");
+					int nlLen = connectorsNodeList.getLength();
+					for (int i = 0; i < nlLen; i++) {
+						Element connectorElement = (Element) connectorsNodeList.item(i);
+						String connectorNameElement = (String) XMLUtils.findPropertyValue(connectorElement, "name");
+						if (connectorName.equals(connectorNameElement)) {
+							NodeList transactionsNodeList = connectorElement.getElementsByTagName("transaction");
+							Node transactionNode = XMLUtils.findNodeByAttributeValue(transactionsNodeList, "default", "true");
+							if (transactionNode != null) {
+								transactionName = (String) XMLUtils.findPropertyValue((Element) transactionNode, "name");
+								break;
+							}
+							throw new EngineException("Unable to find the default transaction for the connector '" +
+									connectorName + "' from project '" + projectName + "'");
+						}
+					}
+				}
+				
 				String sourceTransaction = projectName + SequenceStep.SOURCE_SEPARATOR + connectorName
 						+ SequenceStep.SOURCE_SEPARATOR + transactionName;
 
 				setSourceTransaction(sourceTransaction);
 
 				hasChanged = true;
-				Engine.logBeans.warn("[SequenceStpe] The object \"" + getName()
+				Engine.logBeans.warn("[SequenceStep] The object \"" + getName()
 						+ "\" has been updated to version 6.0.3; source transaction: " + sourceTransaction);
 			}
 		} catch (Exception e) {
