@@ -439,8 +439,18 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 
         try {
             if (VersionUtils.compare(version, "6.0.3") < 0) {
-                String projectName = (String) XMLUtils.findPropertyValue(element, "projectName");
+				String projectName = (String) XMLUtils.findPropertyValue(element, "projectName");
+				// Handle wrong project name
+				if (projectName.equals("")) {
+					projectName = "unknown_project";
+				}
+				
                 String sequenceName = (String) XMLUtils.findPropertyValue(element, "sequenceName");
+				// Handle wrong sequence name
+				if (sequenceName.equals("")) {
+					sequenceName = "unknown_sequence";
+				}
+				
                 String sourceSequence = projectName + SequenceStep.SOURCE_SEPARATOR + sequenceName;
                 
                 setSourceSequence(sourceSequence);
