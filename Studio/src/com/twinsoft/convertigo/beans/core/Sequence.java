@@ -263,7 +263,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		for (int i = 0 ; i < len ; i++) {
 			variableNode = (Element) variableNodes.item(i);
 			variableName = variableNode.getAttribute("name");
-			variableValue = variableNode.getAttribute("value");
+			variableValue = (variableNode.hasAttribute("value") ? variableNode.getAttribute("value") : null);
 			valueAttrNode = variableNode.getAttributeNode("value");
 			
 			// Test case for sequence
@@ -303,7 +303,13 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 				}
 			}
 			else {
-				variables.put(variableName, variableValue);
+				// Structured value?
+				if (variableValue == null) {
+					variables.put(variableName, variableNode.getChildNodes());
+				}
+				else {
+					variables.put(variableName, variableValue);
+				}
 			}
 		}
 		
