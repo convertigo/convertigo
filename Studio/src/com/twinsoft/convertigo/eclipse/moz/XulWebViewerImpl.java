@@ -146,19 +146,20 @@ public class XulWebViewerImpl extends AbstractXulWebViewer implements nsIHttpHea
 	public XulWebViewerImpl(Context context, Composite parent, int style) throws MaxCvsExceededException, KeyExpiredException {
 		super(context);
 		
-		addMozillaSession();
-
 		tabManager = new WebViewerTabManager(parent, style);
 		tabManager.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
 		initialize();
 		ConvertigoPlugin.logDebug("=== Mozilla XulWebViewerImpl initialized for context "+ context.contextID + " ===");
-		ConvertigoPlugin.logDebug("=== Mozilla available cvs: "+ getAvailableCVS() + " ===");
 	}
 	
 	public XulWebViewerImpl(Context context, WebViewerTabManager tabManager){
 		super(context, tabManager);
 		initialize();
+	}
+	
+	@Override
+	protected void removeMozillaSession() {
 	}
 	
 	/**
