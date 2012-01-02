@@ -146,8 +146,6 @@ public class XulWebViewerImpl extends AbstractXulWebViewer implements nsIHttpHea
 	public XulWebViewerImpl(Context context, Composite parent, int style) throws MaxCvsExceededException, KeyExpiredException {
 		super(context);
 		
-		addMozillaSession();
-
 		tabManager = new WebViewerTabManager(parent, style);
 		tabManager.setLayoutData(new GridData(GridData.FILL_BOTH));
 		
@@ -159,6 +157,10 @@ public class XulWebViewerImpl extends AbstractXulWebViewer implements nsIHttpHea
 	public XulWebViewerImpl(Context context, WebViewerTabManager tabManager){
 		super(context, tabManager);
 		initialize();
+	}
+	
+	@Override
+	protected void removeMozillaSession() {
 	}
 	
 	/**
