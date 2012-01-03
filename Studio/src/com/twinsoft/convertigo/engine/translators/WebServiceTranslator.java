@@ -38,10 +38,13 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
+import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.AttachmentManager;
@@ -347,8 +350,16 @@ public class WebServiceTranslator implements Translator {
 							else {
 								item = context.inputDocument.createElement("variable");
 								item.setAttribute("name", parameterName);
-								item.setAttribute("value", parameterValue);
-								Engine.logBeans.debug("   Adding requestable variable '" + parameterName + "' = '" + Visibility.maskValue(parameterValue) +"'");
+								
+								// Structured value?
+								if (parameter.hasChildNodes() && parameter.getChildNodes().getLength() > 1) {
+									appendNodes(parameter.getChildNodes(), item);
+									Engine.logBeans.debug("   Adding structured requestable variable '" + parameterName + "'");
+								}
+								else {
+									item.setAttribute("value", parameterValue);
+									Engine.logBeans.debug("   Adding requestable variable '" + parameterName + "' = '" + Visibility.maskValue(parameterValue) +"'");
+								}
 								transactionVariablesElement.appendChild(item);
 							}
 						}
@@ -363,7 +374,49 @@ public class WebServiceTranslator implements Translator {
 
 		Engine.logBeans.debug("[WebServiceTranslator] Input document created");
     }
-    
+
+	private void appendNodes(NodeList nodes, Node destination) {
+		int nodesLen = nodes.getLength();
+		
+		for (int i = 0; i < nodesLen; i++) {
+			Node node = nodes.item(i);
+			copyNode(node, destination);
+		}
+	}
+	
+	private void copyNode(Node sourceNode, Node destinationNode) {
+		Document destinationDoc = destinationNode.getOwnerDocument();
+
+		switch (sourceNode.getNodeType()) {
+		case Node.TEXT_NODE:
+			Text text = destinationDoc.createTextNode(sourceNode.getNodeValue());
+			destinationNode.appendChild(text);
+			break;
+		case Node.ELEMENT_NODE:
+			Element element = destinationDoc.createElement(sourceNode.getNodeName());
+			destinationNode.appendChild(element);
+			
+			element.setTextContent(sourceNode.getNodeValue());
+			
+			// Copy attributes
+			NamedNodeMap attributes = sourceNode.getAttributes();
+			int nbAttributes = attributes.getLength();
+			
+			for (int i = 0; i < nbAttributes; i++) {
+				Node attribute = attributes.item(i);
+				element.setAttribute(attribute.getNodeName(), attribute.getNodeValue());
+			}
+			
+			// Copy children nodes
+			NodeList children = sourceNode.getChildNodes();
+			int nbChildren = children.getLength();
+			for (int i = 0; i < nbChildren; i++) {
+				Node child = children.item(i);
+				copyNode(child, element);
+			}
+		}
+	}
+	
     private boolean isMultivaluedParameter(IVariableContainer requestable, String parameterName) {
 		int len = requestable.numberOfVariables();
 		RequestableVariable variable;
@@ -409,15 +462,27 @@ public class WebServiceTranslator implements Translator {
             se.getHeader().detachNode();
             
             SOAPElement soapElement = null;
-            if (context.sequenceName != null)
+            SOAPElement soapElementResponse;
+            if (context.sequenceName != null) {
             	soapElement = sb.addChildElement(context.sequenceName + "Response");
-            else
-            	soapElement = sb.addChildElement(context.connectorName+ "__" +context.transactionName + "Response");
+            	
+            	Sequence sequence = (Sequence) context.requestedObject;
+            	if (sequence.isIncludeResponseElement()) {
+                    soapElementResponse = soapElement.addChildElement("response");
+            	}
+            	else {
+                    soapElementResponse = soapElement;
+            	}
+            }
+            else {
+            	soapElement = sb.addChildElement(context.connectorName + "__" +context.transactionName + "Response");
+            	soapElementResponse = soapElement.addChildElement("response");
+            }
             
             if (context.httpServletRequest.getServletPath().endsWith(".wsl")) {
             	soapElement.addAttribute(se.createName("xmlns"), targetNameSpace);// don't work! TODO: correct
             }
-            SOAPElement soapElementResponse = soapElement.addChildElement("response");
+            
             /*if (!context.httpServletRequest.getServletPath().endsWith(".wsl")) {
             	soapElementResponse.addAttribute(se.createName("xsi:type"), "xsd:string");
             }*/
@@ -569,86 +634,6 @@ public class WebServiceTranslator implements Translator {
 			}*/
 		}
     } 
-
-//    private void addElement(SOAPEnvelope soapEnvelope, Context context, Element elementToAdd, SOAPElement soapElement) throws SOAPException {
-//    	String nodeType = elementToAdd.getAttribute("type");
-//		SOAPElement childSoapElement;
-//		SOAPElement arrayTypeElement = null;
-//
-//		if (nodeType.equals("table")) {
-//			index++;
-//			tableName = elementToAdd.getNodeName();
-//			childSoapElement = soapElement.addChildElement("ArrayOf" + context.transactionName + "_" + tableName + "_Row", "");
-//			childSoapElement.addAttribute(soapEnvelope.createName("href"), "#id" + index);
-//			arrayTypeElement = soapElement.getParentElement().getParentElement().addChildElement("soapenc:Array", "");
-//			arrayTypeElement.addAttribute(soapEnvelope.createName("id"), "id" + index);
-//		}
-//		else if (nodeType.equals("row")) {
-//			String elementName = "tns:" + context.transactionName + "_" + tableName + "_Row";
-//			childSoapElement = soapElement.getParentElement().getParentElement().addChildElement(elementName, "");
-//			childSoapElement.addAttribute(soapEnvelope.createName("id"), "id" + index);
-//			childSoapElement.addAttribute(soapEnvelope.createName("xsi:type"), elementName);
-//		}
-//		else {
-//			childSoapElement = soapElement.addChildElement(elementToAdd.getNodeName());
-//			childSoapElement.addAttribute(soapEnvelope.createName("xsi:type"), "xsd:string");
-//		}
-//		
-////		if (elementToAdd.hasAttributes()) {
-////			NamedNodeMap attributes = elementToAdd.getAttributes();
-////			int len = attributes.getLength();
-////			Attr attribute;
-////			for (int i = 0 ; i < len ; i++) {
-////				attribute = (Attr) attributes.item(i);
-////				childSoapElement.addAttribute(soapEnvelope.createName(attribute.getNodeName()), attribute.getNodeValue());
-////			}
-////		}
-//
-//		if (elementToAdd.hasChildNodes()) {
-//			NodeList childNodes = elementToAdd.getChildNodes();
-//			int len = childNodes.getLength();
-//			
-//			if (arrayTypeElement != null) {
-//				arrayTypeElement.addAttribute(soapEnvelope.createName("soapenc:arrayType"), "tns:" + context.transactionName + "_" + elementToAdd.getNodeName() + "_Row[" + (len - 1) + "]");
-//			}
-//
-//			org.w3c.dom.Node node;
-//			Element childElement;
-//			for (int i = 0 ; i < len ; i++) {
-//				node = childNodes.item(i);
-//				if (node instanceof Element) {
-//					childElement = (Element) node;
-//					if (arrayTypeElement == null) {
-//						addElement(soapEnvelope, context, childElement, childSoapElement);
-//					}
-//					else {
-//						index++;
-//						childSoapElement = arrayTypeElement.addChildElement("Item", "");
-//						childSoapElement.addAttribute(soapEnvelope.createName("href"), "#id" + index);
-//						addElement(soapEnvelope, context, childElement, soapElement);
-//					}
-//				}
-//				else if (node instanceof CDATASection) {
-//					Node textNode = XMLUtils.findChildNode(elementToAdd, org.w3c.dom.Node.CDATA_SECTION_NODE);
-//					String text = textNode.getNodeValue();
-//					if (text == null) {
-//						text = "";
-//					}
-//					childSoapElement.addTextNode(text);
-//				}
-//				else {
-//					Node textNode = XMLUtils.findChildNode(elementToAdd, org.w3c.dom.Node.TEXT_NODE);
-//					if (textNode != null) {
-//						String text = textNode.getNodeValue();
-//						if (text == null) {
-//							text = "";
-//						}
-//						childSoapElement.addTextNode(text);
-//					}
-//				}
-//			}
-//		}
-//    } 
 
 	public String getContextName(byte[] data) throws Exception {
 		throw new EngineException("The WebServiceTranslator translator does not support the getContextName() method");

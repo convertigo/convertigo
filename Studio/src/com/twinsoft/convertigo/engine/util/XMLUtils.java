@@ -744,13 +744,9 @@ public class XMLUtils {
 	}
 	
 	static public Document parseDOM(InputStream is) throws SAXException, IOException, EngineException{
-		try {
-			Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
-			doc.normalizeDocument();
-			return doc;
-		} catch (ParserConfigurationException e1) {
-			throw new EngineException("Unable create document builder", e1);
-		}
+		Document doc = getDefaultDocumentBuilder().parse(is);
+		doc.normalizeDocument();
+		return doc;
 		
 	}
 	
@@ -760,6 +756,11 @@ public class XMLUtils {
 	
 	static public Document parseDOM(String filename) throws SAXException, IOException, EngineException{
 		return parseDOM(new File(filename)); 
+	}
+	
+	static public Document parseDOMFromString(String sDom) throws SAXException, IOException {
+		Document dom = getDefaultDocumentBuilder().parse(new InputSource(new StringReader(sDom)));
+		return dom;
 	}
 	
 	public static String getCDataText(String s) {
