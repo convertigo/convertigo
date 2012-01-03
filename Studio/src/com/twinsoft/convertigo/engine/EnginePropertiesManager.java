@@ -274,6 +274,10 @@ public class EnginePropertiesManager {
 		DOCUMENT_THREADING_USE_STOP_METHOD ("document.threading.use_stop_method", "false", "Use the Java Thread.stop() method in order to finish threads", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
 		LINUX_LAUNCH_XVNC ("linux.xvnc.launch", "true", "(Linux only) Launch Xvnc server using DISPLAY environment variable at startup", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
+		LINUX_XVNC_DEPTH ("linux.xvnc.depth", "16", "(Linux only) Depth parameter for the Xvnc, default is 16", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN_CLOUD)
+		LINUX_XVNC_GEOMETRY ("linux.xvnc.geometry", "320x240", "(Linux only) Geometry parameter for Xvnc, default is 320x240", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
 		MIGRATION_3_0_0 ("migration.3.0.0", "false", "Migration 3.0.0", PropertyCategory.Main),
 		@PropertyOptions(advance = true)
@@ -492,6 +496,8 @@ public class EnginePropertiesManager {
 		/** EXTERNAL BROWSER */
 		@PropertyOptions(propertyType = PropertyType.Array)
 		EBA_LIST ("externalbrowser.agent.list", "", "External Browser Agent list", PropertyCategory.ExternalBrowser),
+		@PropertyOptions(propertyType = PropertyType.Array)
+		EBM_POOL ("externalbrowser.manager.pool", "", "External Browser Manager pool", PropertyCategory.ExternalBrowser),
 		
 		/* End of configuration keys definition */;
 		

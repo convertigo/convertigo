@@ -383,9 +383,6 @@ public class Engine {
 					Engine.logEngine.error("Unable to run the trace player.", e);
 				}
 				
-				Engine.theApp.externalBrowserManager = new ExternalBrowserManager();
-				Engine.theApp.externalBrowserManager.init();
-				
 				Engine.logEngine
 						.info("Current working directory is '" + System.getProperty("user.dir") + "'.");
 
@@ -566,6 +563,10 @@ public class Engine {
 				Engine.theApp.rsaManager = new RsaManager();
 				Engine.theApp.rsaManager.init();
 
+				// Initialization of the External Browser manager
+				Engine.theApp.externalBrowserManager = new ExternalBrowserManager();
+				Engine.theApp.externalBrowserManager.init();
+				
 				// XUL initialization
 				String xulrunner_url = System.getProperty("org.eclipse.swt.browser.XULRunnerPath");
 				if (xulrunner_url == null || xulrunner_url.equals(""))
@@ -591,11 +592,14 @@ public class Engine {
 							File fonts = new File(vncDir, "/fonts");
 							File wm = new File(vncDir, "/matchbox-window-manager");
 							if (vncDir.exists() && Xvnc.exists() && fonts.exists() && wm.exists()) {
-								for (File file : GenericUtils.<File> asList(Xvnc, wm))
-									new ProcessBuilder("/bin/chmod", "u+x", file.getAbsolutePath()).start()
-											.waitFor();
+								for (File file : GenericUtils.<File> asList(Xvnc, wm)) {
+									new ProcessBuilder("/bin/chmod", "u+x", file.getAbsolutePath()).start().waitFor();
+								}
+								String depth = EnginePropertiesManager.getProperty(PropertyName.LINUX_XVNC_DEPTH);
+								String geometry = EnginePropertiesManager.getProperty(PropertyName.LINUX_XVNC_GEOMETRY);
+								Engine.logEngine.debug("Xvnc will use depth " + depth + " and geometry " + geometry);
 								Process pr_xvnc = new ProcessBuilder(Xvnc.getAbsolutePath(), display, "-fp",
-										fonts.getAbsolutePath(), "-depth", "24", "-geometry", "1024x780")
+										fonts.getAbsolutePath(), "-depth", depth, "-geometry", geometry)
 										.start();
 								Thread.sleep(500);
 								try {
