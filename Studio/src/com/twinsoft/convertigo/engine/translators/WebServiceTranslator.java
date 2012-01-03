@@ -44,6 +44,7 @@ import org.w3c.dom.Text;
 
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
+import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.AttachmentManager;
@@ -460,15 +461,27 @@ public class WebServiceTranslator implements Translator {
             se.getHeader().detachNode();
             
             SOAPElement soapElement = null;
-            if (context.sequenceName != null)
+            SOAPElement soapElementResponse;
+            if (context.sequenceName != null) {
             	soapElement = sb.addChildElement(context.sequenceName + "Response");
-            else
-            	soapElement = sb.addChildElement(context.connectorName+ "__" +context.transactionName + "Response");
+            	
+            	Sequence sequence = (Sequence) context.requestedObject;
+            	if (sequence.isIncludeResponseElement()) {
+                    soapElementResponse = soapElement.addChildElement("response");
+            	}
+            	else {
+                    soapElementResponse = soapElement;
+            	}
+            }
+            else {
+            	soapElement = sb.addChildElement(context.connectorName + "__" +context.transactionName + "Response");
+            	soapElementResponse = soapElement.addChildElement("response");
+            }
             
             if (context.httpServletRequest.getServletPath().endsWith(".wsl")) {
             	soapElement.addAttribute(se.createName("xmlns"), targetNameSpace);// don't work! TODO: correct
             }
-            SOAPElement soapElementResponse = soapElement.addChildElement("response");
+            
             /*if (!context.httpServletRequest.getServletPath().endsWith(".wsl")) {
             	soapElementResponse.addAttribute(se.createName("xsi:type"), "xsd:string");
             }*/

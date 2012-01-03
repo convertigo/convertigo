@@ -39,7 +39,7 @@ public class SequenceBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[3];
 			
 			properties[0] = new PropertyDescriptor("orderedVariables", beanClass, "getOrderedVariables", "setOrderedVariables");
 			properties[0].setDisplayName(getExternalizedString("property.orderedVariables.display_name"));
@@ -53,6 +53,11 @@ public class SequenceBeanInfo extends MySimpleBeanInfo {
             properties[1].setShortDescription(getExternalizedString("property.orderedSteps.short_description"));
             properties[1].setHidden(true);
             
+            properties[2] = new PropertyDescriptor("includeResponseElement", beanClass, "isIncludeResponseElement", "setIncludeResponseElement");
+            properties[2].setDisplayName(getExternalizedString("property.includeResponseElement.display_name"));
+            properties[2].setShortDescription(getExternalizedString("property.includeResponseElement.short_description"));
+            properties[2].setExpert(true);
+           
             PropertyDescriptor property = getPropertyDescriptor("sheetLocation");
 			property.setPropertyEditorClass(getEditorClass("SequenceSheetLocationEditor"));
 			

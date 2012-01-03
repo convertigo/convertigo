@@ -123,6 +123,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	/** The vector of ordered variables objects of Sequence. */
 	protected XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
+	private boolean includeResponseElement = true;
+	
 	public Sequence() {
         super();
 		orderedSteps = new XMLVector<XMLVector<Long>>();
@@ -1674,5 +1676,13 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			rep.add(testCase);
 		}	
 		return rep;
+	}
+
+	public boolean isIncludeResponseElement() {
+		return includeResponseElement;
+	}
+
+	public void setIncludeResponseElement(boolean includeResponseElement) {
+		this.includeResponseElement = includeResponseElement;
 	}
 }
