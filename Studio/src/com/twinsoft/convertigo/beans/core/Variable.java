@@ -42,6 +42,7 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 	protected Object value;
 	private int visibility = 0;
 	private String description = "new variable";
+	private boolean bSoapArray = true;
 	
 	transient private Set<String> nullProps = new HashSet<String>();
 	
@@ -65,6 +66,16 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 
 	public Boolean isMultiValued() {
 		return Boolean.FALSE;
+	}
+	
+	public boolean isSoapArray() {
+		return isMultiValued() && bSoapArray;
+	}
+	
+	public void setSoapArray(boolean bSoapArray) {
+		if (isMultiValued()) {
+			this.bSoapArray = bSoapArray;
+		}
 	}
 	
 	protected Object getNewValue() {
