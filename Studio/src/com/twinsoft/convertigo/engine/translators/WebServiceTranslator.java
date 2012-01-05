@@ -322,7 +322,7 @@ public class WebServiceTranslator implements Translator {
 							}
 							// If the node has children nodes, we assume it is an array.
 							else if (parameter.getChildElements().hasNext()) {
-								if (isMultivaluedParameter((IVariableContainer) requestable, parameterName)) {
+								if (isSoapArray((IVariableContainer) requestable, parameterName)) {
 									Engine.logBeans.debug("Deserializing array");
 									soapArrayElement = parameter;
 								}
@@ -337,29 +337,13 @@ public class WebServiceTranslator implements Translator {
 										soapArrayElement = (SOAPElement) element;
 										parameterValue = soapArrayElement.getValue();
 										if (parameterValue == null) parameterValue = "";
-										item = context.inputDocument.createElement("variable");
-										item.setAttribute("name", parameterName);
-										item.setAttribute("value", parameterValue);
-										Engine.logBeans.debug("   Adding requestable variable '" + parameterName + "' = '" + Visibility.maskValue(parameterValue) +"'");
-										transactionVariablesElement.appendChild(item);
+										handleSimpleVariable(context.inputDocument, soapArrayElement, parameterName, parameterValue, transactionVariablesElement);
 									}
 								}
 							}
 							// Deserializing simple variable
 							else {
-								item = context.inputDocument.createElement("variable");
-								item.setAttribute("name", parameterName);
-								
-								// Structured value?
-								if (parameter.hasChildNodes() && parameter.getChildNodes().getLength() > 1) {
-									appendNodes(parameter.getChildNodes(), item);
-									Engine.logBeans.debug("   Adding structured requestable variable '" + parameterName + "'");
-								}
-								else {
-									item.setAttribute("value", parameterValue);
-									Engine.logBeans.debug("   Adding requestable variable '" + parameterName + "' = '" + Visibility.maskValue(parameterValue) +"'");
-								}
-								transactionVariablesElement.appendChild(item);
+								handleSimpleVariable(context.inputDocument, parameter, parameterName, parameterValue, transactionVariablesElement);
 							}
 						}
 					}
@@ -373,7 +357,23 @@ public class WebServiceTranslator implements Translator {
 
 		Engine.logBeans.debug("[WebServiceTranslator] Input document created");
     }
-
+    
+	private void handleSimpleVariable(Document inputDocument, SOAPElement parameter, String parameterName, String parameterValue, Element transactionVariablesElement) {	
+		Element item = inputDocument.createElement("variable");
+		item.setAttribute("name", parameterName);
+		
+		// Structured value?
+		if (parameter.hasChildNodes() && parameter.getChildNodes().getLength() > 1) {
+			appendNodes(parameter.getChildNodes(), item);
+			Engine.logBeans.debug("   Adding structured requestable variable '" + parameterName + "'");
+		}
+		else {
+			item.setAttribute("value", parameterValue);
+			Engine.logBeans.debug("   Adding requestable variable '" + parameterName + "' = '" + Visibility.maskValue(parameterValue) +"'");
+		}
+		transactionVariablesElement.appendChild(item);
+	}
+	
 	private void appendNodes(NodeList nodes, Node destination) {
 		int nodesLen = nodes.getLength();
 		
@@ -416,13 +416,12 @@ public class WebServiceTranslator implements Translator {
 		}
 	}
 	
-    private boolean isMultivaluedParameter(IVariableContainer requestable, String parameterName) {
+    private boolean isSoapArray(IVariableContainer requestable, String parameterName) {
 		int len = requestable.numberOfVariables();
-		RequestableVariable variable;
 		for (int j = 0 ; j < len ; j++) {
-			variable = (RequestableVariable)requestable.getVariable(parameterName);
+			RequestableVariable variable = (RequestableVariable) requestable.getVariable(parameterName);
 			if (variable != null) {
-				return variable.isMultiValued();
+				return variable.isSoapArray();
 			}
 		}
 		return false;

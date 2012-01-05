@@ -28,6 +28,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -231,8 +232,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			}
 		}
 
-		if ((value != null) && (value instanceof Vector)) {
-			value = ((Vector<?>) value).toArray(new String[] {});
+		if ((value != null) && (value instanceof List)) {
+			List<?> lst = GenericUtils.cast(value);
+			value = lst.toArray(new Object[lst.size()]);
 		}
 		return value;
 	}
@@ -244,7 +246,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		return 0;
 	}
 	
-	public transient Map<String, Object> variables = new Hashtable<String, Object>(16);
+	public transient Map<String, Object> variables = new HashMap<String, Object>();
 
 	@Override
 	public void parseInputDocument(Context context) {
@@ -255,18 +257,15 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		}
 		
 		NodeList variableNodes = context.inputDocument.getElementsByTagName("variable");
-		Element variableNode;
-		Attr valueAttrNode;
 		int len = variableNodes.getLength();
-		String variableName, variableValue;
 		
-		variables = new Hashtable<String, Object>(16);
+		variables.clear();
 		
 		for (int i = 0 ; i < len ; i++) {
-			variableNode = (Element) variableNodes.item(i);
-			variableName = variableNode.getAttribute("name");
-			variableValue = (variableNode.hasAttribute("value") ? variableNode.getAttribute("value") : null);
-			valueAttrNode = variableNode.getAttributeNode("value");
+			Element variableNode = (Element) variableNodes.item(i);
+			String variableName = variableNode.getAttribute("name");
+			String variableValue = (variableNode.hasAttribute("value") ? variableNode.getAttribute("value") : null);
+			Attr valueAttrNode = variableNode.getAttributeNode("value");
 			
 			// Test case for sequence
 			if (variableName.indexOf(Parameter.Testcase.getName()) == 0) {
@@ -284,34 +283,29 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 					}
 				}
 				else {
-					Engine.logBeans.warn("Sequence: there's no testcase named '"+variableValue+"' for '"+ name +"' sequence");
+					Engine.logBeans.warn("Sequence: there's no testcase named '" + variableValue + "' for '" +  name + "' sequence");
 				}
 				continue;
 			}
 			
 			// Standard variable case
-			RequestableVariable variable = (RequestableVariable)getVariable(variableName);
+			RequestableVariable variable = (RequestableVariable) getVariable(variableName);
+			
+			// Structured value?
+			Object scopeValue = (variableValue != null) ? variableValue : variableNode.getChildNodes();
+			
 			// Multivalued variable ?
 			if ((variable != null) && (variable.isMultiValued())) {
-				Object current = variables.get(variableName);
+				List<Object> current = GenericUtils.cast(variables.get(variableName));
 				if (current == null) {
-					Vector<String> vCurrent = new Vector<String>();
-					if (valueAttrNode != null) vCurrent.add(variableValue);
-					variables.put(variableName, vCurrent);
+					current = new LinkedList<Object>();
+					variables.put(variableName, current);
 				}
-				else {
-					Vector<String> vCurrent = GenericUtils.cast(current);
-					vCurrent.add(variableValue);
+				if (variableValue == null || valueAttrNode != null) {
+					current.add(scopeValue);
 				}
-			}
-			else {
-				// Structured value?
-				if (variableValue == null) {
-					variables.put(variableName, variableNode.getChildNodes());
-				}
-				else {
-					variables.put(variableName, variableValue);
-				}
+			} else {
+				variables.put(variableName, scopeValue);
 			}
 		}
 		

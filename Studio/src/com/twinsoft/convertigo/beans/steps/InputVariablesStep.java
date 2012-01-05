@@ -1,10 +1,10 @@
 package com.twinsoft.convertigo.beans.steps;
 
+import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.mozilla.javascript.Context;
-import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
@@ -12,7 +12,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -37,16 +36,19 @@ public class InputVariablesStep extends Step {
 		this.xml = true;
 	}
 
+	@Override
 	public Object clone() throws CloneNotSupportedException {
 		InputVariablesStep clonedObject = (InputVariablesStep) super.clone();
 		return clonedObject;
 	}
 
+	@Override
 	public Object copy() throws CloneNotSupportedException {
 		InputVariablesStep copiedObject = (InputVariablesStep) super.copy();
 		return copiedObject;
 	}
 
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String tag = "<" + nodeName + ">";
@@ -69,6 +71,7 @@ public class InputVariablesStep extends Step {
 		this.nodeName = nodeName;
 	}
 
+	@Override
 	public String getStepNodeName() {
 		return getNodeName();
 	}
@@ -139,18 +142,7 @@ public class InputVariablesStep extends Step {
 				try {
 					evaluate(javascriptContext, scope, var.getName(), "expression", true);
 					if (evaluated != null && !(evaluated instanceof Undefined)) {
-
-						if (evaluated instanceof NativeJavaArray) {
-							NativeJavaArray jsArray = (NativeJavaArray) evaluated;
-							Object javaArray = jsArray.unwrap();
-
-							if (javaArray.getClass().isArray()) {
-								String[] objects = (String[]) javaArray;
-								variables.put(var.getName(), objects);
-							}
-						} else {
-							variables.put(var.getName(), evaluated);
-						}
+						variables.put(var.getName(), evaluated);
 					}
 				} catch (Exception e) {
 					evaluated = null;
@@ -162,50 +154,44 @@ public class InputVariablesStep extends Step {
 		return false;
 	}
 
+	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		for (Map.Entry<String, Object> entry : variables.entrySet()) {
-			String key = entry.getKey();
-			Object value = entry.getValue();
+			createStepNodeSingleValue(doc, stepNode, entry.getKey(), entry.getValue());
+		}
+	}
+	
+	private void createStepNodeSingleValue(Document doc, Element stepNode, String key, Object value) {
+		if (value instanceof NativeJavaObject) {
+			value = ((NativeJavaObject) value).unwrap();
+		}
+		if (value instanceof XMLVector) {
+			XMLVector<Object> nodeValues = GenericUtils.cast(value);
+			for (Object object : nodeValues) {
+				createStepNodeSingleValue(doc, stepNode, key, object);
+			}
+		} else if (value.getClass().isArray()) {
+			int len = Array.getLength(value);
+			for (int i = 0; i < len ; i++) {
+				createStepNodeSingleValue(doc, stepNode, key, Array.get(value, i));
+			}
+		} else {
+			Element var = doc.createElement(key.toString());
+			stepNode.appendChild(var);
 
-			if (value instanceof XMLVector) {
-				XMLVector<Object> nodeValues = GenericUtils.cast(value);
-
-				for (Object object : nodeValues) {
-					Element var = doc.createElement(key.toString());
-					Node text = doc.createTextNode(object.toString());
-					var.appendChild(text);
-					stepNode.appendChild(var);
-				}
-			} else if (value instanceof NativeJavaObject) {
-				Element var = doc.createElement(key.toString());
-				stepNode.appendChild(var);
-
-				Object object = ((NativeJavaObject) value).unwrap();
-
-				// Structured variable
-				if (object instanceof NodeList) {
-					NodeList valueNodeList = (NodeList) object;
-					int nlLen = valueNodeList.getLength();
-					Document document = stepNode.getOwnerDocument();
-					for (int i = 0; i < nlLen; i++) {
-						Node nodeVarPart = document.importNode((Node) valueNodeList.item(i), true);
-						var.appendChild(nodeVarPart);
-					}
-				}
-			} else if (value instanceof String[]) {
-				String[] sNodevalues = GenericUtils.cast(value);
-				for (Object object : sNodevalues) {
-					Element var = doc.createElement(key.toString());
-					Text text = doc.createTextNode(object.toString());
-					var.appendChild(text);
-					stepNode.appendChild(var);
+			// Structured variable
+			if (value instanceof NodeList) {
+				NodeList valueNodeList = (NodeList) value;
+				int nlLen = valueNodeList.getLength();
+				Document document = stepNode.getOwnerDocument();
+				for (int i = 0; i < nlLen; i++) {
+					Node nodeVarPart = document.importNode((Node) valueNodeList.item(i), true);
+					var.appendChild(nodeVarPart);
 				}
 			} else {
 				String nodeValue = value.toString();
-				Element var = doc.createElement(key.toString());
 				Node text = doc.createTextNode(nodeValue);
 				var.appendChild(text);
-				stepNode.appendChild(var);
 			}
 		}
 	}

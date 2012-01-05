@@ -38,7 +38,8 @@ public class TestCaseMultiValuedVariableBeanInfo extends MySimpleBeanInfo {
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
-
+			
+			getPropertyDescriptor("bSoapArray").setHidden(false);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

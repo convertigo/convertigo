@@ -24,4 +24,5 @@ package com.twinsoft.convertigo.beans.core;
 
 public interface IMultiValued {
 	public Boolean isMultiValued();
+	public boolean isSoapArray();
 }
