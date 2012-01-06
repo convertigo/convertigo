@@ -34,6 +34,7 @@ public class ExternalBrowserConnector extends Connector {
 		this.browserVersion = browserVersion;
 	}
 	
+	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("browserVersion")) {
 			return BrowserVersion.names();
@@ -46,5 +47,15 @@ public class ExternalBrowserConnector extends Connector {
 			ebi = Engine.theApp.externalBrowserManager.getEbi(BrowserVersion.valueOf(browserVersion));
 		}
 		return ebi;
+	}
+
+	@Override
+	public void release() {
+		super.release();
+		
+		if (ebi != null) {
+			ebi.terminate();
+			ebi = null;
+		}
 	}
 }
