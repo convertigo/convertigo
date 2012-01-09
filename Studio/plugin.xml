@@ -665,6 +665,16 @@
              project="true">
           <description>Imports the sample project containing variables examples described in the Reference Manual.</description>
        </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleHTTPWizard"
+             icon="icons/studio/httpconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleHTTPWizard"
+             name="HTTP connector examples"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the sample project containing HTTP connectors objects examples described in the Reference Manual.</description>
+       </wizard>
 <!-- Mobile sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
