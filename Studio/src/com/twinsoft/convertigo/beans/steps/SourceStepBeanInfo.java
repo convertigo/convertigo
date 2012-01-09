@@ -33,8 +33,8 @@ public class SourceStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = SourceStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/simple_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/simple_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/jsource_16x16.gif";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/jsource_32x32.gif";
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/SourceStep");
 			
