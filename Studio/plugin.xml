@@ -675,6 +675,16 @@
              project="true">
           <description>Imports the sample project containing HTTP connector objects examples described in the Reference Manual.</description>
        </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleWebClipperWizard"
+             icon="icons/studio/htmlconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleWebClipperWizard"
+             name="Web Clipper objects examples"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the sample project containing Web Clipper objects examples described in the Reference Manual.</description>
+       </wizard>
 <!-- Mobile sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
