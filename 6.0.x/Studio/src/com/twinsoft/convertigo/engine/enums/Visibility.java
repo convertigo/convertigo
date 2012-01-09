@@ -1,0 +1,185 @@
+/*
+ * Copyright (c) 2001-2011 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
+ */
+
+package com.twinsoft.convertigo.engine.enums;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
+
+public enum Visibility {
+	Logs(0x01),		// for log files
+	Studio(0x02),	// for Studio UI
+	Platform(0x04),	// for Platform UI
+	XmlFile(0x08);	// for project's XML files
+	
+	int mask;
+	Visibility(int mask) {
+		this.mask = mask;
+	}
+	
+	public static final String STRING_MASK = "******";
+	
+	public int getMask() {
+		return mask;
+	}
+	
+	public boolean isMasked(int visibility) {
+		return (visibility & mask) != 0 ? true : false;
+	}
+	
+	public String printValue(int visibility, Object value) {
+		if (value == null) return null;
+		return (visibility & mask) == 0 ? value.toString() : maskValue(value);
+	}
+	
+	public Object replaceValues(List<String> hiddenValues, Object object) {
+		if (object == null) return null;
+		if (hiddenValues == null) return object;
+		if (hiddenValues.isEmpty()) return object;
+		
+		try {
+			// Case of postQuery from XML requestTemplate
+			if (object instanceof String) {
+				String toPrint = String.valueOf(object);
+				for (String value: hiddenValues) {
+					if (value != null && !value.equals(""))
+						toPrint = toPrint.replaceAll(value, STRING_MASK);
+				}
+				return toPrint;
+			}
+		}
+		catch (Exception e) {}
+		return object;
+	}
+	
+	public Object replaceVariables(List<? extends Variable> variableList, Object object) {
+		if (object == null) return null;
+		if (variableList == null) return object;
+		if (variableList.isEmpty()) return object;
+		
+		try {
+			// Case of queryString | postQuery : variable_name=variable_value&variable_name=variable_value
+			if (object instanceof String) {
+				String toPrint = String.valueOf(object);
+				for (Variable variable: variableList) {
+					if (variable != null && isMasked(variable.getVisibility())) {
+						for (String key : getVariableKeyNames(variable))
+							toPrint = toPrint.replaceAll(key+"=[^\\&]*", key+"="+STRING_MASK);
+					}
+				}
+				return toPrint;
+			}
+			// Case of variables Map : {variable_name,variable_value}
+			if (object instanceof Hashtable<?, ?>) {
+				Hashtable<String, Object> toPrint = GenericUtils.cast(GenericUtils.clone(object));
+				for (Variable variable: variableList) {
+					if (variable != null && isMasked(variable.getVisibility())) {
+						for (String key : getVariableKeyNames(variable)) {
+							if (toPrint.get(key) != null)
+								toPrint.put(key, STRING_MASK);
+						}
+					}
+				}
+				return toPrint;
+			}
+			// Case of Document : inputDocument | XSL requestTemplate
+			if (object instanceof Document) {
+				Document toPrint = XMLUtils.createDom("java");
+				toPrint.appendChild(toPrint.importNode(((Document)object).getDocumentElement(),true));
+				NodeList variableNodeList = toPrint.getElementsByTagName("variable");
+				
+				Element variableElement;
+				NodeList valueNodeList;
+				Attr valueAttrNode;
+				String variableName;
+				Node node;
+				for (int i=0; i<variableNodeList.getLength(); i++) {
+					variableElement = (Element) variableNodeList.item(i);
+					variableName = variableElement.getAttribute("name");
+					valueAttrNode = variableElement.getAttributeNode("value");
+					valueNodeList = variableElement.getChildNodes();
+					for (Variable variable: variableList) {
+						if (variable != null && isMasked(variable.getVisibility())) {
+							for (String key : getVariableKeyNames(variable)) {
+								if (variableName.equals(key)) {
+									// inputDocument
+									if (valueAttrNode != null) {
+										valueAttrNode.setNodeValue(STRING_MASK);
+									}
+									// XSL requestTemplate
+									else if (valueNodeList != null) {
+										for (int j=0; j<valueNodeList.getLength(); j++) {
+											node = valueNodeList.item(j);
+											if (node.getNodeType() == Node.ELEMENT_NODE && 
+												((Element)node).getNodeName().equals("value")) {
+													((Element)node).setNodeValue(STRING_MASK);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				return toPrint;
+			}
+		}
+		catch (Exception e) {}
+		return object;
+	}
+	
+	public static String maskValue(Object value) {
+		if (value == null) return null;
+		if (value.equals("")) return "";
+		String regexp = value instanceof String ? ".":"[^\\[\\]\\,]";
+		try {
+			return value.toString().replaceAll(regexp, "*");
+		} catch (Exception e) {}
+		return STRING_MASK;
+	}
+	
+	private static List<String> getVariableKeyNames(Variable variable) {
+		List<String> keys = new ArrayList<String>();
+		try {
+			keys.add(variable.getName());
+			Class<?> c = variable.getClass();
+			if (c.getName().indexOf(".RequestableHttp") != -1) {
+				Method method = c.getMethod("getHttpName");
+				String key = (String)method.invoke(c);
+				if (!keys.contains(key)) keys.add(key);
+			}
+		} catch (Exception e) {}
+		return keys;
+	}
+}

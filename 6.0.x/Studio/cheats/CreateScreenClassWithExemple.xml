@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet title="Créer des Screen classes">
+   <intro href="/com.twinsoft.convertigo/help/Screens.html">
+      <description>
+         Une <b>Screen Class</b> permet d&apos;identifier une page (ou écran) d&apos;une application Web. Convertigo utilise les <b>Screen Class</b> pour déterminer quelles règles d&apos;extractions il doit utiliser pour une page donnée. Une <b>Screen Class</b> est identifiée de manière unique par un ou plusieurs <b>Critères</b> basé sur des epressions <b>Xpath</b><br/><br/>
+
+Repérez dans le site web  tous les types de pages contenant des données ainsi que celles traversées pour y parvenir. Ces pages doivent être « marqués » comme Screen Class  pour que Convertigo sache à tout moment dans quel page il se trouve.
+<br/><br/>
+Le vocabulaire en gras dans cette aide est disponible dans (?).
+      </description>
+   </intro>
+   <item title="First project (2)" dialog="true" skip="false">
+      <description>
+         Le projet exemple aura pour but de:
+<br/><br/>
+ *Recuperer le nombre de résultats retourné par une recherche google donnée. <br/><br/>
+ *Faire un tableau récapitulatif des resultats de la première page
+ <br/> <br/>
+Vous aurez donc besoin de la page d&apos;acceuil de google: &quot;http://www.google.com/intl/en/&quot;<br/>
+Et d&apos;une page de resultats ex:
+ &quot;http://www.google.com/search?hl=en&amp;q=convertigo&quot;
+      </description>
+   </item>
+   <item title="Placez le navigateur" dialog="true" skip="false">
+      <description>
+         Placez  la <b>navigator area</b>(dans la <b>Connector view</b>) sur une des pages repérée précédemment.
+      </description>
+   </item>
+   <item title="First project (3)" dialog="true" skip="false">
+      <description>
+         &gt;Placez donc le navigateur sur la première de vos pages: http://www.google.com/intl/en/
+      </description>
+   </item>
+   <item title="Trouvez un element caracteristique" dialog="true" skip="false">
+      <description>
+         Faites un clic droit sur un élément de la <b>navigator area</b> qui vous parait être un élément caractéristique de la page ou du type de page(exemple: un nom, une image,  un bouton).
+<br/><br/>Dans la <b>DOM Area</b> (qui contient le code HTML sous forme d&apos;une arborescence), un élement devient surligné en vert
+      </description>
+   </item>
+   <item title="First project (4)" dialog="true" skip="false">
+      <description>
+         &gt;Faites un clic droit sur le bouton &quot;I&apos;m Feeling Lucky&quot; car ce bouton n&apos;est présent que dans la page d&apos;acceuil.
+      </description>
+   </item>
+   <item title="Définissez l&apos;element caractéritique" dialog="true" skip="false">
+      <description>
+         Dans la <b>DOM Area</b>, appuyez sur le &quot;+&quot; de l’élément en vert. Dans la liste deployée trouvez un <b>attribut</b> ou un <b>tag</b> qui caractérise le type d’écran actuel
+(exemple : <b>attribute</b> « id »,<b>attribute</b> « name »). Faites un clic droit sur ce denier et appuyez sur « Generate selection Xpath ».<br/><br/> Dans la zone <b>Xpath Area</b> , une requête Xpath apparaît.  L’espace <b>XPath&apos;s result Area</b> montre les résultats de la requête Xpath pour la page actuelle.
+<br/>
+Dans un cas idéal la requête XPAth ne doit renvoyer qu&apos;un seul résultat
+<br/>
+<br/>
+(Vous pouvez appuyer sur l&apos;icône <b>parent node icon</b> pour remonter dans la hiérarchie de la <b>DOM Area</b> afin de trouver un meilleur élement pour caractériser la page web)
+      </description>
+   </item>
+   <item title="First project (5)" dialog="true" skip="false">
+      <description>
+         &gt;Cliquez sur le bouton &quot;+&quot; du &quot;INPUT&quot; surligné<br/><br/>
+&gt;Cliquez ensuite sur le &quot;+&quot; de &quot;attributes&quot;<br/><br/>
+&gt;Faites un clic droit sur &quot;name=&quot;btnI&quot;&quot;<br/><br/>
+&gt;Appuyez enfin sur &quot;Generate selection Xpath&quot;
+      </description>
+   </item>
+   <item title="Vérifiez l&apos;exclusivité de votre requête" dialog="true" skip="false">
+      <description>
+         Vérifiez bien que la requête Xpath de la <b>Xpath area</b> ne retourne des résultats que pour cet écran. <br/><br/>Pour cela, testez la requête Xpath sur tous les autres pages web qui sont ou vont devenir des Screen class. Confirmez qu’elles ne renvoient rien (root seul dans <b>XPath&apos;s result Area</b>). <br/><br/>Si c’est bien le cas retournez  sur la page web à définir et passez à l’étape suivante. Sinon trouvez une autre requête Xpath par clic droit --&gt;« Generate selection Xpath » ou par modification manuelle de la requête dans la zone <b>Xpath Area</b>.
+      </description>
+   </item>
+   <item title="First project (6)" dialog="true" skip="false">
+      <description>
+         Si vous le désirez, vous pouvez tester la requête dans la page  http://www.google.com/search?hl=en&amp;q=convertigo.<br/><br/>
+Pour cela il suffit de placer le navigateur sur la bonne page, de cliquer dans la <b>Xpath Area</b> pour que le curseur clignote dans la zone et depresser sur la touche &quot;entrée&quot;  pour valider(ou sur la fleche vertes &quot;haut&quot; puis la fleche verte &quot;droite&quot;)
+<br/><br/>
+Le résultat est bien root seul, votre critère est donc spécifique à la page d&apos;acceuil donc à la screen class.
+<br/><br/>
+ ATTENTION: Revenez à la page &quot;http://www.google.com/intl/en/&quot; car c&apos;est elle que nous traitons actuellement!
+      </description>
+   </item>
+   <item title="Exécutez la création" dialog="true" skip="false">
+      <description>
+         Dans la vue <b>Projects view</b>, cliquez  sur la <b>Screen class</b> « Default Screen class ». <br/> Cliquez ensuite sur l’icône <b>new screen class icon</b> . Sélectionnez  &quot;Classe d’écran&quot;, appuyez sur next puis donnez un nom évocateur à votre screen class.
+<br/>
+<br/>
+(Vous pouvez aussi cliquer sur l’icône <b>new criteria icon</b> pour enrichir une screen class déjà existante d’un nouveau critère. La <b>screen class</b> sélectionné dans l’onglet  <b>Projects view</b>  doit être la screen class à enrichir. S’il existe plusieurs critères à une class d’écran, tous doivent être satisfaits)
+      </description>
+   </item>
+   <item title="First project (7)" dialog="true" skip="false">
+      <description>
+         &gt;Après avoir cliquer sur entrée dans la <b>Xpath Area</b> pour revalider la requette XPath, cliquez sur la <b>Screen class</b> « Default Screen class » puis sur  l&apos;icone <b>new Screen class icon</b>. <br/><br/>&gt;Appellez votre Screnn class &quot;WelcomePage&quot;
+      </description>
+   </item>
+   <item title="Conclusion" dialog="true" skip="false">
+      <description>
+         Votre <b>screen class</b> est alors créée et apparait dans l’onglet <b>Projects view</b>. Vous pouvez maintenant créer les autres <b>screen classes</b>.
+      </description>
+   </item>
+   <item title="First project (8)" dialog="true" skip="false">
+      <description>
+         Realisez maintenant votre deuxième screen class de telle sorte que tous les écrans web de résultats google y soit associés <br/><br/>
+&gt;Placez vous sur la page: http://www.google.com/search?hl=en&amp;q=convertigo<br/><br/>
+&gt;Faites un clic droit sur la ligne en bleu ciel sous la barre de recherche qui indique le nombre de résultats. Cette barre sera présente quelquesoit la recherche effectué et seulement dans des pages de résultats.<br/><br/>
+&gt;Cliquez une fois sur l&apos;icône <b>parent node icon</b>(car il porte un attribut interessant) et faites un clic droit suivi de &quot;Generate selection Xpath&quot;sur  l&apos;attribut id=&quot;ssb&quot;<br/>
+L&apos;interêt de cette étape est d&apos;avoir un élement vraiment caractéristique qui définit la classe d&apos;écran de façon unique
+<br/><br/>
+&gt;Cliquez enfin sur la <b>Screen class</b> « Default Screen class » et sur l&apos;icone <b>new screen class icon</b> pour créer la screen class. Appellez-la &quot;dataPages&quot;
+      </description>
+   </item>
+</cheatsheet>

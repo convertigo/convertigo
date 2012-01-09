@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet title="Create a new project">
+   <intro href="/com.twinsoft.convertigo/help/Screens.html">
+      <description>
+         To realise a Convertigo project, you have to start with creating an empty project.<br/><br/>
+The bold text in this help file is availabe in (?).
+      </description>
+   </intro>
+   <item title="Start the creation form " dialog="true" skip="true">
+      <description>
+         Then click succesively on:<br/><br/>
+&gt;Menu « File »<br/><br/>
+&gt;On « New »<br/><br/>
+&gt;On « Project »<br/><br/>
+&gt;On file  « Convertigo Project »<br/><br/>
+&gt;On file  « Web clipping »<br/><br/>
+&gt;On file «  Web Clipping »<br/><br/>
+&gt;On &quot;Next&quot;<br/><br/>
+You can realize this instructions manually (Click on &quot;Click to skip&quot;)
+or automatically (Click on &quot;Click to perform&quot;).
+      </description>
+      <command serialization="org.eclipse.ui.newWizard(newWizardId=com.twinsoft.convertigo.eclipse.wizards.NewWebClippingConnectorWizard)" confirm="false">
+      </command>
+   </item>
+   <item title="Follow the instructions of the form " dialog="true" skip="false">
+      <description>
+         &gt;Give a name to your project<br/><br/>
+&gt;Press on &quot;Next&quot;<br/><br/>
+&gt;Press on &quot;Next&quot;<br/><br/>
+&gt;Put the address of the web site server (addresse until &quot;/&quot;) to be treated in the field &quot;HTTP Server&quot;. This address has to start with www<br/><br/>
+To evenually complete the address of the web site, go to the tab <b>Projects view</b>, click on the sign &quot;+&quot; of the project then on &quot;+&quot; of file &quot;connector&quot;. Click on the connector which has appeared.<br/>
+In the tab <b>properties view</b> change the propriaty &quot;Root Path&quot; and put the rest of et mettez le reste of the address of the site by starting with a &quot;/&quot;<br/>
+      </description>
+   </item>
+   <item title="First project (1)" dialog="true" skip="true">
+      <description>
+         &gt; Call your project &quot;test&quot;<br/><br/>
+ &gt; Take site www.google.com<br/><br/>
+ &gt; Put &quot;/intl/en/&quot; in the propriaty&quot;Root Path&quot;<br/> <br/>     
+  &gt; Remove the <b>screen classes</b> &quot;GenericWebPages&quot; and &quot;ClippedWebPages&quot; of file Connectors/testConnector/Screens classes/Default Screen class/Inherited screen classes
+      </description>
+   </item>
+</cheatsheet>

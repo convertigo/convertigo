@@ -1,0 +1,63 @@
+/*
+ * Copyright (c) 2001-2011 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
+ */
+
+/* CSS Document */
+.skin1 {
+	cursor:default;
+	font:10px/18px Verdana, Arial, Helvetica, sans-serif;
+	position:absolute;
+	text-align:left;
+	background-color:#FFFFFF;
+	visibility:hidden;
+	border-top: 1px solid #ACA899;
+	border-right: 1px solid #ACA899;
+	border-bottom: 1px solid #ACA899;
+	border-left: 1px solid #ACA899;
+	height: 18px;
+	z-index: 5;
+}
+.ombre {
+	cursor:default;
+	font:10px/18px Verdana, Arial, Helvetica, sans-serif;
+	position:absolute;
+	text-align:left;
+	background-color: #A6A69A;
+	visibility:hidden;
+	border-top: 1px solid #CDCDBE;
+	border-right: 2px solid #CDCDBE;
+	border-bottom: 2px solid #CDCDBE;
+	border-left: 1px solid #CDCDBE;
+	height: 18px;
+	z-index: 4;
+}
+.menuitems {
+   font:10px/18px Verdana, Arial, Helvetica, sans-serif;
+	padding-left:15px;
+	padding-right:10px;
+	height: 18px;
+	white-space: nowrap;
+}
+.separator{
+	padding-left:2px;
+	padding-right:2px;
+	height: 5px;
+}

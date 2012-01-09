@@ -1,0 +1,71 @@
+BODY
+{
+    BACKGROUND-COLOR: #ffffff;
+    BACKGROUND-IMAGE: url(fond.gif);
+    FONT-FAMILY: 'Tahoma'
+}
+.TableHeadingColor
+{
+    BACKGROUND: url(fond-saumon.gif) #ccccff;
+    COLOR: indianred
+}
+.TableSubHeadingColor
+{
+    BACKGROUND: #eeeeff
+}
+.TableRowColor
+{
+    BACKGROUND-COLOR: #ffffff;
+    BACKGROUND-IMAGE: url(fond-gris.gif);
+    BACKGROUND-REPEAT: repeat
+}
+.FrameTitleFont
+{
+    COLOR: navy;
+    FONT-FAMILY: normal
+}
+.FrameHeadingFont
+{
+    COLOR: steelblue;
+    FONT-FAMILY: normal
+}
+.FrameItemFont
+{
+    FONT-FAMILY: normal
+}
+.NavBarCell1
+{
+    BACKGROUND-COLOR: #eeeeff
+}
+.NavBarCell1Rev
+{
+    BACKGROUND-COLOR: #00008b
+}
+.NavBarFont1
+{
+    COLOR: #000000;
+    FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+.NavBarFont1Rev
+{
+    COLOR: #ffffff;
+    FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+.NavBarCell2
+{
+    BACKGROUND-COLOR: #ffffff;
+    FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+.NavBarCell3
+{
+    BACKGROUND-COLOR: #ffffff;
+    FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+H3
+{
+    COLOR: navy
+}
+H2
+{
+    COLOR: steelblue
+}

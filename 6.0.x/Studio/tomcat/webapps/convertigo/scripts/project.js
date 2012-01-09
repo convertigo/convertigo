@@ -1,0 +1,554 @@
+/*
+ * Copyright (c) 2001-2011 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
+ */
+
+var vars, defs = {
+	dpi : 96,
+	classnames : {
+		Android : "HtcDesire",
+		BlackBerry6 : "BlackBerryTorch",
+		IPad : "iPad1",
+		IPhone3 : "iPhone3",
+		IPhone4 : "iPhone4"
+	},
+	phones : {
+		iPad1 : { name : "iPad 1", dpi : 132, os: "ios", install: "IPA", useragent: "iphone" },
+		iPhone4 : { name : "iPhone 4", dpi : 163, os: "ios", install: "IPA", useragent: "iphone" },
+		iPhone3 : { name : "iPhone 3", dpi : 163, os: "ios", install: "IPA", useragent: "iphone" },
+		HtcDesire : { name : "HTC Desire", dpi : 169, os: "android", install: "APK", useragent: "android" },
+    	BlackBerryTorch : { name : "BlackBerry Torch", dpi : 187.5, os: "blackberry", install: "JAD", useragent: "blackberry" }
+	}
+};
+
+function addMobileDevice($device, $parent) {
+	var $device_div = $("#templates .device").clone();
+	setName($device_div.find(".device_name"), $device);
+	
+	var layout = defs.classnames[$device.attr("classname")];
+	if (typeof(layout) === "undefined") {
+		layout = "none";
+	}
+	$device_div.find(".device_layout").attr("value", layout);
+	$parent.append($device_div);
+}
+
+function addRequestable($requestable, $parent) {
+	var $requestable_div = $("#templates .requestable").clone();
+	setName($requestable_div.find(".requestable_name"), $requestable);
+	
+	// Add variables
+	$requestable.find(">variable").each( function () {
+		var $variable = $(this);
+		var isMasked = $variable.attr("isMasked") === "true";
+		var isMultiValued = $variable.attr("isMultivalued") === "true";
+		
+		var $variable_div = $("#templates .variable").clone();
+		setName($variable_div.find(".variable_name"), $variable);
+		
+		var $variable_type = $variable_div.find(".variable_type").data("isMasked", isMasked);
+		
+		// Handle multi-valued variable
+		if (isMultiValued) {
+			var value = $variable.attr("value");
+			var values_array = (value.length == 0) ? [] : $.parseJSON($variable.attr("value"));
+			
+			$variable_type.append($("#templates .multi_valued").clone());
+			for (var i = 0; i < values_array.length; i++) {
+				$variable_value_type = $("#templates .new_multi_valued").filter(isMasked ? ".value_password" : ".value_text").clone();
+				$variable_value_type.find(".variable_value").val(values_array[i]);
+				$variable_type.append($variable_value_type);
+			}
+		} else {
+			var $variable_value_type = $("#templates .single_valued").filter(isMasked ? ".value_password" : ".value_text").clone();
+			$variable_value_type.find(".variable_value").val($variable.attr("value"));
+			$variable_type.append($variable_value_type);
+		}
+		
+		$variable_div.find(".variable_description").text($variable.attr("description"));
+		$requestable_div.find(".requestable_variables_footer").before($variable_div);
+	});
+	
+	// Add Test cases
+	var $testcases = $requestable.find(">testcase");
+	if ($testcases.length === 0) {
+		$requestable_div.find(".requestable_testcase_div").remove();
+	} else  {
+		$testcases.each( function () {
+			var $testcase = $(this);
+			var $testcase_div = $("#templates .testcase").clone();
+			setName($testcase_div.find(".testcase_name"), $testcase);
+			
+			// Add Test case variables
+			$testcase.find(">variable").each( function () {
+				var $variable = $(this);
+				var $variable_value = $variable.attr("value");
+				var isMasked = $variable.attr("isMasked") === "true";
+				var isMultiValued = $variable.attr("isMultivalued") === "true";
+				var $variable_div = $("#templates .testcase_variable").clone();
+				setName($variable_div.find(".testcase_variable_name"), $variable);
+				$variable_div.find(".testcase_variable_value").text(isMasked ? "******":$variable_value);
+				$testcase_div.find(".testcase_variables").append($variable_div);
+			});
+			$requestable_div.find(".requestable_testcase").append($testcase_div.children());
+		});
+	}
+		
+	$requestable_div.find("hr:last").remove();
+	
+	$parent.append($requestable_div);
+}
+
+function addRequestableData(params, $requestable_name) {
+	var connectorName = $requestable_name.parents(".connector").find(".connector_name").text();
+	if (connectorName.length > 0) {
+		params.__connector = connectorName;
+		params.__transaction = $requestable_name.text();
+	} else {
+		params.__sequence = $requestable_name.text();
+	}
+	return params;
+}
+
+function alignPusher() {
+	if (!$("#window_exe_pin").hasClass("window_exe_pinned")) {
+	    var windowpos = $(window).scrollTop();
+	    var finaldestination = windowpos-vars.pusher_original_pos;
+	    $("#pusher").stop().animate({"height" : finaldestination}, 500);
+	}
+}
+
+function showQRCode() {
+	var $td = $(this);
+	
+	var base_url = window.location.href;
+	base_url = base_url.substring(0, base_url.indexOf("project.html"));
+	
+	var href = "projects/" + vars.projectName + "/DisplayObjects/mobile/index.html";
+	var build_url = $td.find(".build_url").attr("value");
+	var target_url = (build_url === "") ? base_url + href : build_url;
+	if (build_url != "") href = build_url;
+	
+	var img_url = base_url + "qrcode?" + $.param({
+		o : "image/png",
+		e : "L",
+		s : 4,
+		d : target_url
+	});
+	
+	$td.find("> a").empty().attr("href", href).append($("<img/>").attr("src", img_url).attr("title", "qrcode").attr("alt", "error, maybe too long url"));
+}
+
+function launchCliplet(url, mobile_layout, scale) {
+	vars.last_url = url;
+	vars.last_layout = mobile_layout;
+	if (mobile_layout === "none") {
+		var $iframe = $("#cliplet_div_iframe");
+		if ($iframe.length === 0 || typeof($iframe[0].contentWindow.C8O) === "undefined") {
+			$("#window_exe_content").empty().append("<iframe id='cliplet_div_iframe' frameborder='0' src='"+url+"'></iframe>");
+			$iframe.slideDown(500);
+		} else {
+			$iframe[0].contentWindow.C8O.call(url.substring(url.indexOf("?") + 1));
+		}
+	} else {
+		var $phone = $("<div/>").addClass(mobile_layout + "_mask").addClass("common_mask").appendTo($("#window_exe_content").empty());
+		$("<iframe frameborder='0' src='"+url+"'></iframe>").addClass(mobile_layout + "_contenu").addClass("common_contenu").appendTo($phone)[0].useragent = defs.phones[mobile_layout].useragent;
+		setMobileScale(scale);
+	}
+	fixWidth();
+}
+
+function setMobileScale(scale) {
+	var $phone = $("#window_exe_content > div");
+	var $iframe = $phone.find("> iframe");
+	
+	vars.last_scale = scale = (scale === "auto") ? (defs.dpi / defs.phones[vars.last_layout].dpi) : (scale * 1.0);
+	$phone.css("-webkit-transform", "scale(" + scale + ")").css("-webkit-transform-origin", "top left");
+}
+
+function setLink($a, params) {
+	if ($a.hasClass("btn_gen_gadget")) {
+		$a.attr("href", "widgets/" + vars.projectName + "?__widget_type=gadget&__widget_name=" + vars.projectName + '&' + toUrl(params));
+	} else {
+		$a.attr("href", "projects/" + vars.projectName + "/index.html?" + toUrl(params));
+	}
+}
+
+function setLinkForMobileDevice(a) {
+	var $a = $(this);
+	$a.attr("href", "projects/" + vars.projectName + "/DisplayObjects/mobile/index.html");
+}
+
+function setLinkForRequestable(a) {
+	var $a = $(this);
+	var params = addRequestableData({}, $a.parents(".requestable:first").find(".requestable_name:first"));
+	$a.parents(".requestable").find(".variable .variable_value:enabled").each(function () {
+		var variable_name = $(this).parents(".variable").find(".variable_name").text();
+		if ($.isArray(params[variable_name])) {
+			params[variable_name].push($(this).val());
+		} else {
+			params[variable_name] = [$(this).val()];
+		}
+	});
+	setLink($a, params);
+}
+
+function setLinkForTestCase(a) {
+	var $a = $(this);
+	var params = addRequestableData({}, $a.parents(".requestable:first").find(".requestable_name:first"));
+	params.__testcase = $a.parents("li:first").prev(".testcase_name").text();
+	setLink($a, params);
+}
+
+function setName($elt, $xml) {
+	$elt.text($xml.attr("name")).attr("title", $xml.attr("comment"));	
+}
+
+function setMobileDeviceLayout($elt, $xml) {
+	var layout = "none";
+	var classname = $xml.attr("classname");
+	if (classname === "Android") layout = "HtcDesire";
+	else if (classname === "BlackBerry6") layout = "BlackBerryTorch";
+	else if (classname === "IPad") layout = "iPad1";
+	else if (classname === "IPhone3") layout = "iPhone3";
+	else if (classname === "IPhone4") layout = "iPhone4";
+	$elt.attr("value", layout);
+}
+
+function toUrl(params) {
+	var parts = [];
+	$.each(params, function (key, value) {
+		if ($.isArray(value)) {
+			$.each(value, function(index, val) { 
+				parts.push(encodeURIComponent(key) + "=" + encodeURIComponent(val));
+			});
+		} else {
+			parts.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
+		}
+	});
+	return parts.join("&");
+}
+
+function getLoadingImageUrl() {
+	var base_url = window.location.href;
+	base_url = base_url.substring(0, base_url.indexOf("project.html"));
+	return base_url+"images/loading.gif";
+}
+
+function launchPhoneGapBuild() {
+	var endpoint = $("#build_endpoint").val();
+	var applicationID = $("#build_application_id").val();
+
+	$("body").css("cursor", "progress");
+	
+	$.ajax({
+		type : "POST",
+		url : "admin/services/mobiles.LaunchBuild",
+		data : { "application" : vars.projectName, "endpoint" : endpoint, "applicationID" : applicationID },
+		dataType : "xml",
+		success : function(xml) {
+			$("body").css("cursor", "auto");
+			$("#main .install.qrcode_content").each(function() {
+				$(this).find(".build_status").attr("value","starting");
+				$(this).find("> a").empty().append($("<img/>").attr("src", getLoadingImageUrl()));
+			});
+			setTimeout(function() {$("#main .install.qrcode_content").each(getPhoneGapBuildStatus);}, 1000);
+		},
+		error : function(xml) {
+			$("body").css("cursor", "auto");
+			var $message = $(xml.responseXML).find("message").text();
+			alert("Build Error:\n" + $message);
+		}
+	});
+}
+
+function getPhoneGapBuildUrl() {
+	var $td = $(this);
+	var device_layout = $td.parents("li:first").find(".device_layout").attr("value");
+	var device_platform = defs.phones[device_layout].os;
+
+	var base_url = window.location.href;
+	base_url = base_url.substring(0, base_url.indexOf("project.html"));
+	var url = base_url + "admin/services/mobiles.GetPackage?application=" + vars.projectName + "&platform=" + device_platform;
+	$td.find(".build_url").attr("value",url);
+	showQRCode.call($td);
+}
+
+function getPhoneGapBuildStatus() {
+	var $td = $(this);
+	var device_layout = $td.parents("li:first").find(".device_layout").attr("value");
+	var device_platform = defs.phones[device_layout].os;
+	var device_install = defs.phones[device_layout].install;
+	
+	$td.parents("table:first").find(".qrcode_platform:first").empty().text(device_platform.toUpperCase());
+	$td.parents("table:first").find(".qrcode_install:first").empty().text(device_install);
+	
+	$.ajax({
+		type : "POST",
+		url : "admin/services/mobiles.GetBuildStatus",
+		data : { "application" : vars.projectName, "platform" : device_platform },
+		dataType : "xml",
+		success : function(xml) {
+			var $build = $(xml).find("build:first");
+			if ($build.length > 0) {
+				var status = $build.attr("status");
+				if (status === "none") {
+					$td.parents("li:first").find(".device_status").attr("title","not built").empty().append("<img src=\"images/new/build_none.png\" />");
+					$td.find(".build_status").attr("value","none");
+					$td.find("> a").empty().append("NOT BUILT");
+				}
+				else if (status === "error") {
+					$td.parents("li:first").find(".device_status").attr("title","build in error").empty().append("<img src=\"images/new/build_none.png\" />");
+					$td.find(".build_status").attr("value","error");
+					$td.find("> a").empty().append("BUILD ERROR:<br/>" + $build.attr("error"));
+				}
+				else if (status === "pending") {
+					$td.parents("li:first").find(".device_status").attr("title","build pending").empty().append("<img src=\"images/new/build_pending.png\" />");
+					$td.find(".build_status").attr("value","pending");
+					$td.find("> a").empty().append($("<img/>").attr("src", getLoadingImageUrl()));
+					setTimeout(function() { getPhoneGapBuildStatus.call($td); }, 10000);
+				}
+				else if (status === "complete") {
+					$td.parents("li:first").find(".device_status").attr("title","build complete").empty().append("<img src=\"images/new/build_complete.png\" />");
+					$td.find(".build_status").attr("value","complete");
+					getPhoneGapBuildUrl.call($td);
+				}
+			}
+		},
+		error : function(xml) {
+			var $message = $(xml.responseXML).find("message").text();
+			$td.parents("li:first").find(".device_status").attr("title","build in error").empty().append("<img src=\"images/new/build_none.png\" />");
+			$td.find(".build_status").attr("value","error");
+			$td.find("> a").empty().append("BUILD ERROR:<br/>"+$message);
+
+		}
+	});
+}
+
+function fixWidth() {
+	$("#window_exe_content").css("max-width", $("#column_right").width() - 32 + "px");
+}
+
+$(document).ready(function() {
+	if (window.location.hash.length === 0) {
+		return;
+	}
+	
+	vars = {
+		projectName : window.location.hash.substring(1),
+		pusher_original_pos : $("#pusher").offset().top
+	};
+	$(".project_name").text(vars.projectName);
+	
+	window.document.title = vars.projectName + " project";
+
+	// Compute endpoint
+	var endpoint = window.location.href;
+	endpoint = endpoint.substring(0, endpoint.indexOf("project.html"));
+	endpoint += "projects/" + vars.projectName;
+	$("#build_endpoint").val(endpoint);
+
+	// Compute application ID
+	var applicationID = vars.projectName.replace(new RegExp("[^a-zA-Z0-9]", "g"), "");
+	applicationID = applicationID.replace(new RegExp("_", "g"), "");
+	var applicationID = "com.convertigo.mobile." + applicationID;
+	$("#build_application_id").val(applicationID);
+	
+	$("#cliplet_div_bar img").click(function () {
+		$("#cliplet_div").slideUp(250, function () {
+			$("#window_exe_content").empty();
+		});
+	});
+	
+	$(window).resize(function () {
+		fixWidth();
+	});
+	
+	initCommon(function () {
+		call("projects.GetRequestables", {projectName : vars.projectName}, function (xml) {
+			var $project = $(xml).find("project:first");
+			$(".project_comment").text($project.attr("comment"));
+			$project.find(">connector").each(function (i) {
+				var $connector = $(this);
+				var $connector_div = $("#templates .connector").clone();
+				setName($connector_div.find(".connector_name"), $connector);
+				$(".sequences:first").before($connector_div);
+	
+				var $requestables_div = $connector_div.find(".requestables:first");
+				$requestables_div.attr("id", "nested_" + i);
+				
+				$connector.find(">transaction").each(function () {
+					addRequestable($(this), $requestables_div);
+				});
+			});
+			var $sequences = $project.find(">sequence");
+			if ($sequences.length > 0) {
+				$(".sequences:first").removeClass("hidden");
+				$sequences.each(function () {
+					addRequestable($(this), $(".sequences:first .requestables:first"));
+				});
+			}
+			var $devices = $project.find(">mobiledevice");
+			if ($devices.length > 0) {
+				$(".mobiles:first").removeClass("hidden");
+				$devices.each(function () {
+					addMobileDevice($(this), $(".mobiles:first .requestables:first"));
+				});
+			}
+			
+			$("#main a.device_link").each(setLinkForMobileDevice);
+			
+			$("#main a.requestable_link").each(setLinkForRequestable);
+			
+			$("#main a.requestable_testcase_link").each(setLinkForTestCase);
+			
+			$("#main .variable_value").change(function () {
+				$(this).parents(".requestable").find("a.requestable_link").each(setLinkForRequestable);
+			});
+			
+			$("#column_left").append($(".accordion_options:first").clone());
+			
+			$("#main .btn_exe").click(function () {
+				var layout = $(this).parent().find(".device_layout").attr("value");
+				var href = $(this).parent().find("> a").attr("href");
+				launchCliplet(href, layout, "auto");
+				return false;
+			});
+			
+			$("#main .btn_build").click(function () {
+				launchPhoneGapBuild();
+			});
+			
+			$("#main .variable_enable").click(function () {
+				if (this.checked) {
+					$(this).parent().prev().find(".variable_value").removeAttr("disabled");
+				} else {
+					$(this).parent().prev().find(".variable_value").attr("disabled", "disabled");
+				}
+				$(this).parents(".requestable").find("a.requestable_link").each(setLinkForRequestable);
+			});
+			
+			$("#main .link_value_remove").live("click", function () {
+				var $requestable = $(this).parents(".requestable");
+				$(this).parents(".new_multi_valued").remove();
+				$requestable.find("a.requestable_link").each(setLinkForRequestable);
+				return false;
+			});
+			$("#main .link_value_add").live("click", function () {
+				var $variable_type = $(this).parents(".variable_type");
+				var $variable_multi_new = $("#templates .new_multi_valued").filter($variable_type.data("isMasked") ? ".value_password" : ".value_text").clone();
+				$variable_multi_new.find(".variable_value").val("").change(function () {
+					$(this).parents(".requestable").find("a.requestable_link").each(setLinkForRequestable);
+				}).change();
+				$variable_type.append($variable_multi_new);
+				return false;
+			});
+			
+			var el = $('#pusher');
+			var elpos_original = el.offset().top;
+			$(window).scroll(alignPusher);
+			
+			$("#window_exe_pin").click(function () {
+				$(this).toggleClass("window_exe_pinned");
+				alignPusher();
+			});
+			
+			$("#window_exe_close").click(function () {
+				$("#window_exe_content").empty();
+			});
+			
+			if ($.browser.webkit && ($devices.length > 0)) {
+				$("#window_exe_increase").removeClass("hidden");
+				$("#window_exe_decrease").removeClass("hidden");
+			}
+			
+			$("#window_exe_increase").click(function () {
+				if (vars.last_url) {
+					var scale = vars.last_scale * 1.0 + 0.05;
+					setMobileScale(scale <= 2 ? scale : 2);
+				}
+			});
+	
+			$("#window_exe_decrease").click(function () {
+				if (vars.last_url) {
+					var scale = vars.last_scale * 1.0 - 0.05;
+					setMobileScale(scale >= 0.25 ? scale : 0.25);
+				}
+			});
+	
+			$(".acc>li>h6").click(function () {
+				 $(this).toggleClass("acc-selected");
+				 $(this).next().find(".acc>li>h6").add(this).each(function () {
+					 if ($(this).hasClass("acc-selected")) {
+						 $(this).next().slideDown("fast");
+					 } else {
+						 $(this).next().slideUp("fast");
+					 }
+				 });
+			}).next().hide();
+			
+			if ($devices.length > 0) {
+				$("h6:first").click();
+			}
+			else {
+				$(".connector_name").each(function(){
+					if ($(this).text() == $project.attr("defaultConnector")) {
+						$(this).click();
+						return false;
+					}
+				});
+				
+				$(".requestable_name").each(function(){
+					if ($(this).text() == $project.attr("defaultTransaction")) {
+						$(this).click();
+						return false;
+					}
+				});
+			}
+			
+			$(".accordion_deploy").click(function () {
+				$(".acc>li>h6").not(".acc-selected").click();
+			});
+			
+			$(".accordion_colapse").click(function () {
+				$(".acc>li>h6.acc-selected").click();
+			});
+			
+			$("a.btn_gen_gadget").click(function () {
+				var url = window.location.href.replace(new RegExp("(.*/).*$"), "$1") + $(this).attr("href");
+				var $message = $("#templates .gadget_message").clone();
+				$message.find(".gadget_url").text(url);
+				$("#window_exe_content").empty().append($message);
+				$.ajax({
+					dataType : "text",
+					url : url,
+					success: function (data) {
+						$message.find(".gadget_xml").text(data);
+					}
+				});
+	
+				return false;
+			});
+	
+			$("#main .install.qrcode_content").each(getPhoneGapBuildStatus);
+			$("#main .webapp.qrcode_content").each(showQRCode);
+		});
+	});
+});

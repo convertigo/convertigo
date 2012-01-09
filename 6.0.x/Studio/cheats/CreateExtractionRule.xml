@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet title="Créer des Extractions rules">
+   <intro href="/com.twinsoft.convertigo/help/Screens.html">
+      <description>
+         Les Extraction rules ou règles d’extractions sont des outils qui servent à transformer le code HTML (langage d’un site web) en code XML. Les « extraction rules » sont présentes dans toutes les screen classes qui portent de l’information à extraire.
+<br/><br/>
+Le vocabulaire en gras dans cette aide est disponible dans (?).
+      </description>
+   </intro>
+   <item title="Placez le navigateur" dialog="true" skip="false">
+      <description>
+         Placez la <b>navigator area</b> sur un écran portant de l’information à extraire.
+      </description>
+   </item>
+   <item title="Verifiez que la page web correspond à sa screen class" dialog="true" skip="false">
+      <description>
+         Verifiez que la page web de la <b>navigator area</b> est bien associé à la screen class voulue. Pour cela appuyez sur l’icône <b>Synchronize icon</b>.<br/><br/> Dans l’onglet <b>Project view</b>, une <b>screen class</b> à été automatiquement sélectionnée : c’est la screen class détectée par Convertigo pour la page web actuelle.
+      </description>
+   </item>
+   <item title="Encadrez une information à extraire dans un cadre vert" dialog="true" skip="false">
+      <description>
+         Pour cela, faites un clic droit dans la <b>Navigator area</b> sur un des éléments à extraire  puis agrandissez éventuellement le cadre à l’aide de l’icône <b>parent node icon</b> .
+      </description>
+   </item>
+   <item title="Identifiez l&apos;information par un Xpath" dialog="true" skip="false">
+      <description>
+         Trouvez dans la <b>DOM area</b> à l’aide de clic droit--&gt;« Generate selection Xpath » une requête  XPATH identifiant le cadre vert.
+<br/><br/>
+Le résultat peut être un ou plusieurs éléments en fonction des besoins.
+      </description>
+   </item>
+   <item title="Choisissez une règle d&apos;extraction" dialog="true" skip="false" href="http://doc.convertigo.com/JSPWiki/Wiki.jsp?page=CWICWCExtractionRules">
+      <description>
+         En fonction du type d’information à extraire plusieurs règles peuvent être choisies.<br/> <br/> 
+Cliquez sur (?) pour en voir la liste.<br/> <br/> 
+  La suite de cette aide décrit deux des plus courantes règles d’extraction.
+      </description>
+   </item>
+   <item title="L&apos;exemple de la règle Text" dialog="true" skip="true">
+      <description>
+         L’Extraction rule « Text » permet de récupérer le <b>Text</b> d’une balise HTML .<br/><br/> Pour ajouter cette règle à un projet, sélectionnez la <b>screen class</b> voulue dans l’onglet <b>Projet view</b> et appuyez sur l’icône  <b>new Extraction rules icon</b>(L’ Xpath de la <b>Xpath area</b> doit être valide).
+      </description>
+   </item>
+   <item title="L&apos;exemple de la règle Record" dialog="true" skip="true">
+      <description>
+         L’extraction rule « Record » permet d’extraire les informations contenues dans une liste (plusieurs élements retournés par la requête Xpath). 
+<br/>
+<br/>Pour ajouter cette règle à un projet, sélectionnez la <b>screen class</b> voulue dans l’onglet <b>Projet view</b> et appuyez sur l’icône  <b>new Extraction rules icon</b>(L’ Xpath de la <b>Xpath area</b> doit être valide).
+<br/><br/> 
+Dans l’onglet <b>Properties view</b> vous voyez une ligne &quot;Xpath&quot; qui contient la requête qui permet d’accéder aux informations à extraire(doit retourner une liste). Un traitement va être effectué sur chacun des résultats  de cette requête. 
+<br/>&gt;Cliquez sur la ligne « Description» qui se trouve juste au dessus puis sur le bouton « … ». <br/>&gt;Cliquez sur l’icône bleue pour chaque information élémentaire contenu dans un élement de la liste.
+<br/>&gt; Donnez des noms correspondant à l’information dans la colonne « name » et dans la colonne Xpath entrez une requête Xpath relative à la premiere qui  amène à l’information voulue.
+      </description>
+   </item>
+   <item title="Vérifiez la bonne marche de vos Extraction rules" dialog="true" skip="false">
+      <description>
+         Pour vérifier que vos règles d’extraction fonctionnent bien, cliquez  sur l’icône <b>XMLize icon</b> puis voyez le résultat dans l’onglet <b> Output Tab</b> du navigateur.<br/><br/> Attention l’icône <b>XMLize icon</b>  de cet onglet ne donne pas le bon résultat !!!
+      </description>
+   </item>
+</cheatsheet>

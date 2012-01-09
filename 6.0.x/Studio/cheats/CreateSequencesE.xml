@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet title="Create sequences">
+   <intro href="/com.twinsoft.convertigo/help/Screens.html">
+      <description>
+         The goal of a sequence is to organise information to realise the final XML. It is namely this one which will call the transactions.<br/><br/>
+The bold text in this help file is available in (?).
+      </description>
+   </intro>
+   <item title="Create a new sequence" dialog="true" skip="false">
+      <description>
+         In the tab <b>Projects  view</b> right click on your project then press on:<br/><br/>
+ &gt;New<br/><br/>
+ &gt;Sequence<br/><br/>
+ &gt;Generic sequence<br/><br/>
+ &gt;Next<br/><br/>
+ &gt;Finish
+      </description>
+   </item>
+   <item title="Create steps" dialog="true" skip="false" href="http://doc.convertigo.com/JSPWiki/Wiki.jsp?page=Steps">
+      <description>
+         Multiple instructions are available in the sequences: they are <b>steps</b> (available in (?)).
+ <br/><br/>
+To add a <b>step</b>to a <b>sequence</b> right click on the <b>sequence</b> then press on &quot;new&quot; then on &quot;Step&quot;
+      </description>
+   </item>
+   <item title="Test your sequences" dialog="true" skip="false">
+      <description>
+         To test a <b>sequence</b>, double click on the sequence (a new window <b>connector view</b> is launched).<br/>
+ Faites un clic droit sur la <b>séquence</b> puis appuyez sur &quot;Execute&quot;.
+  <br/><br/>The result is in the tab <b>Output Tag</b> of the <b>browser area</b>
+      </description>
+   </item>
+   <item title="add a style sheet (optional)" dialog="true" skip="false">
+      <description>
+         You can transform your XML exit to HTML code thanks to the XSL sheet<br/><br/>&gt;Put the propriaty &quot;Style sheet&quot; of the sequence to the value &quot;from sequence&quot; <br/><br/>&gt; Right click on the <b>séquence</b>,press on &quot;New&quot; puis sur &quot;Sheet&quot; and finally on &quot;XSL style sheet&quot;.<br/><br/>&gt;In the propriaty &quot;URL&quot; of this sheet write a file name followed by the l&apos;extension &quot;.xsl&quot;<br/><br/> &gt;In the view &quot;Project Explorer view &quot;, right click on the directory of your project, click on &quot;New&quot;, on &quot;File&quot; and name the entry in &quot;URL&quot;.<br/> <br/>&gt;Then write your XSL code in the file
+<br/> <br/>Le résultat sera dans l&apos;onglet &quot;Browser&quot; de la <b>Connector view</b>
+      </description>
+   </item>
+</cheatsheet>

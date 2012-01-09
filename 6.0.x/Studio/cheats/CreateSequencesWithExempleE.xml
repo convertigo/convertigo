@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet title="Create sequences">
+   <intro href="/com.twinsoft.convertigo/help/Screens.html">
+      <description>
+         A sequence organizes information in order to realize the final XML. It is namely this which will call the transactions.<br/><br/>
+The text in bold in this help file is available in (?).
+      </description>
+   </intro>
+   <item title="First project (22)" dialog="true" skip="false">
+      <description>
+         In this part you will create a sequence which will construct the final XML and compare multiple word searches.
+      </description>
+   </item>
+   <item title="Create a new sequence" dialog="true" skip="false">
+      <description>
+         In the tab <b>Projects  view</b> right click your project next press on :<br/><br/>
+ &gt;New<br/><br/>
+ &gt;Sequence<br/><br/>
+ &gt;Generic sequence<br/><br/>
+ &gt;Next<br/><br/>
+ &gt;Finish
+      </description>
+   </item>
+   <item title="First project (23)" dialog="true" skip="false">
+      <description>
+         &gt;Call your sequence &quot;constructXML&quot;.
+<br/><br/>
+Your sequence will have as argument two phrases which will be handled by google and compared by Convertigo.
+<br/> <br/> 
+&gt;To create them, click on <b>sequence</b> then on the propriaty &quot;Variables&quot; next on &quot;...&quot;. 
+<br/> <br/> 
+&gt;Press two times on the blue icon of the pop-up which appears name the first variable &quot;word1&quot; and the second &quot;word2&quot; and assign default values for them.
+      </description>
+   </item>
+   <item title="Create steps" dialog="true" skip="false" href="http://doc.convertigo.com/JSPWiki/Wiki.jsp?page=Steps">
+      <description>
+         Multiple instructions are available for the sequences: these are <b>steps</b> (available in (?)).
+ <br/><br/>
+To add a <b>step</b>to a <b>sequence</b> right click on the <b>sequence</b> next press on &quot;new&quot; next on &quot;Step&quot;
+      </description>
+   </item>
+   <item title="First project (24)" dialog="true" skip="false">
+      <description>
+         Start by transforming your Javascript variables to XML variables.<br/> &gt;To do this you have to create two steps &quot;jElement&quot; in which you will place &quot;word1&quot; and &quot;word2&quot; in the propriaty &quot;Expression&quot;<br/><br/>
+Ces variables sont des valeurs auxiliaires que l&apos;on ne veut pas retrouver dans le résultat final.<br/>&gt; Pour que ce soit le cas cliquez sur chacun de ces <b>steps</b> et mettez leur proprieté &quot;Output&quot; à la valeur false.
+      </description>
+   </item>
+   <item title="First project (25)" dialog="true" skip="false">
+      <description>
+         Now call the transaction &quot;getData&quot; for each of the phrases to be treated.<br/><br/>
+&gt;Create two steps &quot;Call Transaction&quot;.<br/><br/>
+&gt;Choose the transaction &quot;getData&quot; in the propriaty &quot;Transaction&quot; of each of the steps.
+<br/><br/>
+&gt;Right click on the steps &quot;call transaction&quot; and click on &quot;Import WSDL from traject transaction&quot; (If this does not work reverify l&apos; step 21 )
+<br/><br/>
+&gt;Right click on the steps &quot;call transaction&quot; and click on &quot;Import variables from traject transaction&quot;
+<br/><br/>
+&gt;Click on the &quot;...&quot;  of the propriaties &quot;variables&quot; of the steps call transaction (wordToAnalyse is present). Click on &quot;...&quot; of the propriaty &quot;Source&quot;, next on the button &quot;New Source&quot; next on one of the steps &quot;jElement&quot; created in step 24 (different by transaction).
+      </description>
+   </item>
+   <item title="First project (26)" dialog="true" skip="false">
+      <description>
+         &gt;Create a step&quot;Complex&quot; englobing the results of a google search.<br/><br/>
+&gt;Faites un clic droit sur ce step &quot;Complex&quot; et faite &quot;new&quot; --&gt; &quot;Step&quot; --&gt; &quot;Element&quot;
+<br/><br/>
+&gt;Assign the propriaty &quot;Node name&quot; to the value &quot;wordSearch&quot;
+<br/><br/>
+&gt;Click on &quot;...&quot; of the propriaty &quot;Source&quot;,next on &quot;New Source&quot; and choose the step &quot;jelement&quot; containing &quot;word1&quot;
+      </description>
+   </item>
+   <item title="First project (27)" dialog="true" skip="false" href="http://www.regular-expressions.info/reference.html">
+      <description>
+         &gt;Right click on the step of type &quot;Complex&quot; and do &quot;new&quot; --&gt; &quot;Step&quot; --&gt; &quot;Transform&quot;: this step transforms a chain of characters<br/><br/>
+&gt;Put the propriaty &quot;Node name&quot;(of the Transform step) to the value &quot;nbAnswers&quot;
+<br/><br/>
+&gt;Click on &quot;...&quot; of the propriaty &quot;Source&quot;,then on &quot;New Source&quot;. Click on step &quot;Call Transactiont&quot; which treats the first word and choose on the right screen the value &quot;XMLText&quot; which is appearing.
+<br/><br/>
+&gt;Click on &quot;...&quot; of the propriaty &quot;Replacement&quot;. Create two lines in this form with the blue button.<br/>
+ The column &quot;Regular exp&quot; corresponds to a chain of characters present in the source which we will replace with the value &quot;Replacement&quot;. &quot;Regular exp&quot; can be written thans to the regular expressions of which the semantic is present in (?).
+ <br/><br/>
+ &gt;Put &quot;(.*)about &quot; in the column  &quot;Replacement&quot; of one of the lines and &quot; for(.*)&quot; in l&apos; another.
+      </description>
+   </item>
+   <item title="First project (28)" dialog="true" skip="false">
+      <description>
+         &gt;Right click on the step of type &quot;Complex&quot; and do &quot;new&quot; --&gt; &quot;Step&quot; --&gt; &quot;Iterator&quot;: this step will execute all of the instructions which it contains once for each element in the parameter &quot;Source&quot;,<br/><br/>
+&gt;Click on &quot;...&quot; of the propriaty &quot;Source&quot;,then on &quot;New Source&quot; then click on the step &quot;Call Transaction&quot; which will treat the first word and choose on the right screen the value &quot;XMLRecord&quot; which appears.
+      </description>
+   </item>
+   <item title="First project (29)" dialog="true" skip="false">
+      <description>
+         &gt;Right click on the step of type &quot;<b>Iterator</b>&quot; and do &quot;new&quot; --&gt; &quot;Step&quot; --&gt; &quot;Element&quot;<br/><br/>
+&gt;Put the propriaty &quot;Node name&quot;(of the Element step) to the value &quot;title&quot;
+<br/><br/>
+&gt;Click on &quot;...&quot; of the propriaty &quot;Source&quot;, then on &quot;New Source&quot; then click on step &quot;Iterator&quot;  choose on the right the value &quot;title&quot; under  &quot;XMLRecord&quot;.
+      </description>
+   </item>
+   <item title="First project (30)" dialog="true" skip="false">
+      <description>
+         &gt;Right click on the step of type &quot;Iterator&quot; and do &quot;new&quot; --&gt; &quot;Step&quot; --&gt; &quot;Element&quot;<br/><br/>
+&gt;Put the propriaty &quot;Node name&quot;(of step Element) to the value &quot;adress&quot;
+<br/><br/>
+&gt;Click on &quot;...&quot; of the propriaty &quot;Source&quot;,on &quot;New Source&quot; then click on step &quot;Iterator&quot;  choose on the right screen the value &quot;adress&quot; under the &quot;XMLRecord&quot;.
+      </description>
+   </item>
+   <item title="First project (31)" dialog="true" skip="false">
+      <description>
+         Restart from step 26 for the second word.
+      </description>
+   </item>
+   <item title="Test your sequences" dialog="true" skip="false">
+      <description>
+         To test a <b>sequence</b>, double click on the sequence (a new window <b>connector view</b> appears).<br/>
+ Right click on <b>séquence</b> then press on &quot;Execute&quot;.
+  <br/><br/>The result is in the tab <b>Output Tag</b> of the <b>browser area</b>
+      </description>
+   </item>
+   <item title="add a style sheet (optional)" dialog="true" skip="false">
+      <description>
+         You can transform your XML into HTML code Thanks to the XSL sheet <br/><br/>&gt;Put the propriaty &quot;Style sheet&quot; of the sequence to the value &quot;from sequence&quot; <br/><br/>&gt; Right click on <b>sequence</b>,press on &quot;New&quot; then on &quot;Sheet&quot; and finally on &quot;XSL style sheet&quot;.<br/><br/>&gt;In the propriaty &quot;URL&quot; of this sheet write a file name followed by the extension &quot;.xsl&quot;<br/><br/> &gt;In the view &quot;Project Explorer view &quot;, right click on on the directory of your project, click on &quot;New&quot;, on &quot;File&quot; and put the name there entered in &quot;URL&quot;.<br/> <br/>&gt;Finally writhe your XSL code in the file
+<br/> <br/>Le résultat sera dans l&apos;onglet &quot;Browser&quot; de la <b>Connector view</b>
+      </description>
+   </item>
+   <item title="First project (32)" dialog="true" skip="false">
+      <description>
+         There are a lot of possibilities for a project and this first example only shows a small part.
+<br/><br/>
+copy and paste the following text in your XSL file to have an example of content:
+<br/><br/>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;xsl:stylesheet version=&quot;1.0&quot; xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot; xmlns:lxslt=&quot;http://xml.apache.org/xslt&quot;&gt;
+	&lt;xsl:output encoding=&quot;UTF-8&quot; media-type=&quot;text/html&quot; method=&quot;html&quot;/&gt;
+
+
+	&lt;xsl:template match=&quot;/document&quot;&gt;
+	
+	
+		&lt;HTML&gt;
+
+		&lt;HEAD&gt;
+
+		  &lt;TITLE&gt;Titre de la page&lt;/TITLE&gt;		  
+		  
+	&lt;style&gt;
+
+
+
+	
+a {
+color:#0A6EB1;
+text-decoration:underline;
+font-family:verdana,lucida,arial,helvetica;
+font-size:10pt;
+}
+
+.main-table {
+border-color:papayawhip darkgray darkgray papayawhip;
+border-style:solid;
+border-width:2px;
+
+}
+
+td {
+
+border-width:1px;
+border-spacing: 1px;
+}
+
+.table-row0 {
+background-color:#E6E8F0;
+}
+.table-row1 {
+background-color:ghostwhite;
+}
+.title {
+background-color:#0A6EB1;
+color:white;
+font-family:tahoma,verdana,lucida,arial,helvetica;
+font-size:11pt;
+height:30pt;
+
+}
+
+
+	&lt;/style&gt;
+		&lt;/HEAD&gt;
+
+		&lt;BODY &gt;
+
+		&lt;table   class=&quot;main-table&quot;&gt;
+			&lt;tbody&gt;				
+				&lt;tr class=&quot;title&quot;&gt;
+				
+				&lt;xsl:for-each select=&quot;element&quot;&gt;
+					&lt;!--   &lt;xsl:sort select=&quot;stock&quot; /&gt;   --&gt;
+					&lt;xsl:call-template name=&quot;doTitle&quot; /&gt;		
+					
+				&lt;/xsl:for-each&gt;
+	
+				&lt;/tr&gt;	
+				
+				&lt;tr class=&quot;table-row1&quot;&gt;
+					&lt;xsl:for-each select=&quot;element&quot;&gt;
+					
+					&lt;!--   &lt;xsl:sort select=&quot;stock&quot; /&gt;   --&gt;
+					&lt;xsl:call-template name=&quot;doLines&quot; /&gt;		
+					
+				&lt;/xsl:for-each&gt;
+				&lt;/tr&gt;	
+		
+				
+			&lt;/tbody&gt;
+		&lt;/table&gt;
+		
+
+		
+
+		&lt;/BODY&gt;
+
+		&lt;/HTML&gt;
+
+	&lt;/xsl:template &gt;
+
+
+	
+ &lt;xsl:template name=&quot;doTitle&quot;&gt; 
+	&lt;th&gt;&quot;&lt;xsl:value-of select=&quot;wordSearch&quot; /&gt;&quot; was find about &lt;xsl:value-of select=&quot;nbAnsewrs&quot; /&gt; times&lt;/th&gt;
+&lt;/xsl:template&gt;
+
+
+ &lt;xsl:template name=&quot;doLines&quot;&gt;  
+	&lt;td&gt;
+	&lt;xsl:for-each select=&quot;title&quot;&gt;
+					
+					&lt;!--   &lt;xsl:sort select=&quot;stock&quot; /&gt;   --&gt;
+					&lt;xsl:call-template name=&quot;doLine&quot; /&gt;		
+					
+				&lt;/xsl:for-each&gt;
+	&lt;/td&gt;	
+&lt;/xsl:template&gt;
+
+
+ &lt;xsl:template name=&quot;doLine&quot;&gt; 
+	&lt;div&gt;		
+		&lt;a href=&quot;{./following-sibling::adress[1]}&quot;&gt;&lt;xsl:value-of select=&quot;.&quot; /&gt;&lt;/a&gt;<br/><br/>
+	&lt;/div&gt;	
+&lt;/xsl:template&gt;
+
+
+&lt;/xsl:stylesheet&gt;
+      </description>
+   </item>
+   <item title="problème with first project" dialog="true" skip="false">
+      <description>
+         If your project does not work, then you can press button <b>import project icon</b> then choose projet workspace/Convertigo4/help/testCorr.car to import the example project. Then look at your errors.
+      </description>
+   </item>
+</cheatsheet>

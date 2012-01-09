@@ -1,0 +1,227 @@
+<!--
+ * Copyright (c) 2001-2011 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+    <title>Convertigo Enterprise Mashup Server - Administration Console</title>
+	
+    <meta http-equiv="X-UA-Compatible" content="IE=IE8" />
+	<link rel="stylesheet" type="text/css" href="styles/admin.css" />
+	
+	<!-- jquery resources -->
+	<script src="js/jquery/jquery.min.js" type="text/javascript"></script>
+	<script src="js/jquery/jqgrid/i18n/grid.locale-en.js" type="text/javascript"></script>		
+	<script src="js/jquery/jquery-ui.min.js" type="text/javascript"></script>
+    <script src="js/jquery/jqgrid/jquery.jqGrid.min.js" type="text/javascript"></script>
+    <script src="js/jquery/jquery.contextMenu.js" type="text/javascript"></script>
+    <script src="js/jquery/jquery.mousewheel.min.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="styles/jquery/ui.jqgrid.css" />
+	<link rel="stylesheet" type="text/css" href="styles/jquery/redmond/jquery-ui.css" />
+    <link rel="stylesheet" href="styles/jquery/jquery.treeview.css" type="text/css" />
+    <link rel="stylesheet" href="styles/jquery/jquery.contextMenu.css" type="text/css" />
+			
+	<!-- template resources -->	
+    <script src="js/admin.js" type="text/javascript"></script>    
+	<script src='js/jquery/jquery.flot.js' type="text/javascript"></script>
+	<script src='js/jquery/excanvas.min.js' type="text/javascript"></script>
+	<script src='js/staticlogo.js' type="text/javascript"></script>
+	<script src='js/dateFormat.js' type="text/javascript"></script>	
+	<script src='js/ajaxupload.js' type="text/javascript"></script>
+	<script src='js/cronpicker.js' type="text/javascript"></script>
+	
+</head>
+
+<body>
+
+    <div id="mainglobal">
+    	
+        <!-- Content --> 
+        <div id="maincontainer">
+            <div class="maincontent_bgleft">
+                <div class="maincontent_bgright">
+                    
+                    <!-- Header -->       
+                    <div id="mainheader">
+                    	
+                    	<div id="logOut" >                    		
+	                        <a ><div class="main_picto_close"></div></a>
+	                        <div class="main_top">	                        	 
+	                            <div class="main_top_info"><a>Log out</a></div>		  
+	                        </div>
+	                        <span id="mainDate"></span>
+                        </div>
+                        <div id="mainlogo"></div>
+                        <div class="main_separator"></div>
+                        <h1>Administration Console</h1>                       
+                        <hr>
+                    </div>
+                    
+                    <table id="maincontent">
+                    	<tr valign="top">
+                            <td width="175">
+                                <!-- Menu -->
+                                <div id="mainmenu">
+                                    <table border="0" class="mainmenu_tab">
+                                        <tbody>
+                                            <tr valign="top">
+                                                <td>
+                                                <div class="mainmenu_mb_menuV">
+                                                    <ul class="mainmenu_ulG">
+                                                        <li class="mainmenu_nolist">
+                                                        	<a href="#Home"><img title="Home" alt="Home" id="widgetButtonHome" src="images/menu/01.png" class="loadWidgetsButton">
+                                                            <span class="mainmenu_text">Home</span></a>
+                                                        </li>
+                                                        <li class="mainmenu_nolist">
+                                                            <a href="#Connections"><img title="Connections" alt="Connections" src="images/menu/04.png" id="widgetButtonConnections" class="loadWidgetsButton">
+                                                        	<span class="mainmenu_text">Connections</span></a>
+                                                        </li>
+                                                        <li class="mainmenu_nolist">
+                                                            <a href="#Certificates"><img title="Certificates" alt="Certificates" src="images/menu/09.png" id="widgetButtonCertificates" class="loadWidgetsButton">
+                                                        	<span class="mainmenu_text">Certificates</span></a>
+                                                        </li>                                                        
+                                                        <li class="mainmenu_nolist">
+                                                            <a href="#TracePlayer"><img title="Trace player" alt="Trace player" src="images/menu/06.png" id="widgetButtonTracePlayer" class="loadWidgetsButton">
+                                                        	<span class="mainmenu_text">Trace player</span></a>
+                                                        </li>                                                        
+                                                        <li class="mainmenu_nolist">
+                                                            <a href="#Schedulers"><img title="Schedulers" alt="Schedulers" src="images/menu/05.png" id="widgetButtonSchedulers" class="loadWidgetsButton">
+                                                        	<span class="mainmenu_text">Schedulers</span></a>
+                                                        </li>                                                        
+                                                    </ul>
+                                                </div>
+                                                </td>
+                                                <td>
+                                                <div class="mainmenu_mb_menuV">
+                                                    <ul class="mainmenu_ulD">
+                                                        <li class="mainmenu_nolist">
+                                                            <a href="#Configuration"><img title="Configuration" alt="Configuration" src="images/menu/08.png" id="widgetButtonConfiguration" class="loadWidgetsButton">
+                                                            <span class="mainmenu_text">Configuration</span></a>
+                                                        </li>
+                                                        <li class="mainmenu_nolist">
+                                                            <a href="#Projects"><img title="Projects" alt="Projects" src="images/menu/03.png" id="widgetButtonProjects" class="loadWidgetsButton">
+                                                        	<span class="mainmenu_text">Projects</span></a>
+                                                        </li>                                                        
+                                                        <li class="mainmenu_nolist">
+                                                            <a href="#Logs"><img title="Logs" alt="Logs" src="images/menu/07.png" id="widgetButtonLogs" class="loadWidgetsButton">
+                                                        	<span class="mainmenu_text">Logs</span></a>
+                                                        </li>                                                        
+                                                        <li class="mainmenu_nolist">
+                                                            <a href="#Cache"><img title="Cache" alt="Cache" src="images/menu/10.png" id="widgetButtonCache" class="loadWidgetsButton">
+                                                        	<span class="mainmenu_text">Cache</span></a>
+                                                        </li>                                                       
+                                                        <li class="mainmenu_nolist main-display-none">
+                                                            <a href="#Keys"><img title="Keys" alt="Keys" src="images/menu/11.png" id="widgetButtonKeys" class="loadWidgetsButton">
+                                                        	<span class="mainmenu_text">Keys</span></a>
+                                                        </li>                                                        
+                                                    </ul>
+                                                </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <hr id="sperationOfMenus" />                                   
+                                    <table class="navigatemenu_tab">
+                                        <tbody>
+                                            <tr valign="top">
+                                                <td>
+                                                <div class="mainmenu_mb_menuV">
+                                                    <ul class="mainmenu_ulG">
+                                                        <li class="mainmenu_nolist">
+                                                        	<a href="../index.html"><img title="Test Platform" alt="Test Platform" src="images/navigationImages/55x55_picto_test.png">
+                                                            <span class="mainmenu_text">Test Platform</span></a>
+                                                        </li>
+                                                        <li class="mainmenu_nolist">
+                                                            <!-- <a href="http://www.convertigo.com/en/itcenter.html" target="_blank"> -->
+                                                            <a href="http://www.convertigo.com/documentations" target="_blank"><img title="Documentation" alt="Documentation" src="images/navigationImages/55x55_picto_doc.png">
+                                                        	<span class="mainmenu_text">Documentation</span></a>
+                                                        </li>                                                                                                            
+                                                    </ul>
+                                                </div>
+                                                </td>
+                                                <td>
+                                                <div class="mainmenu_mb_menuV">
+                                                    <ul class="mainmenu_ulD">
+                                                        <li class="mainmenu_nolist">
+                                                            <a href="http://www.convertigo.com" target="_blank"><img title="Convertigo web site" alt="Convertigo web site" src="images/navigationImages/55x55_picto_site.png">
+                                                            <span class="mainmenu_text">Convertigo.com</span></a>
+                                                        </li>
+                                                        <li class="mainmenu_nolist">
+                                                            <a href="http://www.convertigo.com/developernetwork" target="_blank"><img title="Developer network" alt="Developer network" src="images/navigationImages/55x55_picto_itcenter.png">
+                                                        	<span class="mainmenu_text">Developer network</span></a>
+                                                        </li>
+                                                	</ul>
+                                                </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>                                    
+                                </div>
+                            </td>
+                            <td>
+                                <!-- Widgets content -->
+                                <div id="body"/>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <div id="dlgConfirm" class="main-display-none">
+                    	<p id="dlgConfirmMessage" class="dlgInfoMessage"/>
+                    </div>  
+                                   
+                    <div id="dlgInfo" class="main-display-none">
+                    	<p id="dlgInfoMessage" class="dlgInfoMessage"/>
+                    </div>
+                    
+                    <div id="dlgError" class="main-display-none">
+                        <p id="dlgErrorMessage" class="dlgInfoMessage"/>
+                        <p class="dlgInfoMessage"><a id="dlgErrorJavaStackTraceTitle">Click to toggle Java stack trace</a></p>
+                        <pre class="dlgInfoMessage" id="dlgErrorJavaStackTrace"></pre>
+                    </div>
+                    <div id="progressBarDialog"></div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div id="mainfooter">
+                <div class="mainfooter_bgleft"></div>
+                <div class="mainfooter_bgcenter"></div>
+                <div class="mainfooter_bgright"></div>      
+                <div class="mainfooter_copyright">
+                    <a href="http://www.convertigo.com">www.convertigo.com</a>
+                    <br/>
+                    Copyright &copy; 2001-2011 Convertigo SA. All rights reserved.
+                    <br/>
+                    <a href="../licenses/index.html">Third party components</a>
+                </div>
+            </div>
+            
+            <!-- Ajax wait div -->
+            <div id="ajax_wait" title="Current server jobs"></div>
+        <!-- End Content --> 
+        </div>
+
+    </div>
+</body>
+</html>

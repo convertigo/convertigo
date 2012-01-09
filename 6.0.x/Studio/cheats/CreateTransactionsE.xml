@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet title="Créer des transactions">
+   <intro href="/com.twinsoft.convertigo/help/Screens.html">
+      <description>
+         The goal of a transaction is to create an automatic navigation in the website of a projec and to execute certain instructions. Each time Convertigo detects a screen class with extractions rules, it adds on exit the extraction results of these classes.
+<br/><br/>
+The bold text in this help file are available in (?).
+      </description>
+   </intro>
+   <item title="Create a new transaction" dialog="true" skip="false">
+      <description>
+         In the tab <b>Projects view</b>, right click on the file <b>Transactions</b> of your project then press on <br/><br/>
+ &gt;New
+<br/><br/> 
+&gt;Transaction<br/><br/>
+&gt;Transaction HTML<br/><br/>
+&gt;Next<br/><br/>
+&gt;Finish<br/><br/>
+To add variables to the entry of your transaction, press on the propriaty &quot;Variables&quot; (in <b>properties view</b>) of your transaction then on &quot;...&quot;. Finalyy name your variables as you think is right. From now on these variables are javascript variables and are accessible anywhere in the transaction.
+      </description>
+   </item>
+   <item title="Create a Handler" dialog="true" skip="false" href="/com.twinsoft.convertigo/help/AlgoHandlers.html">
+      <description>
+         During the execution of a transaction, Convertigo will execute succesively the instructions contained in the <b>handlers</b> based on the schema of the handlers algorithm (available in (?)).
+<br/>
+<br/>
+To create a <b>handler</b>, right click on the transaction in the tab <b>Projects view</b>, press on &quot;new&quot; then on &quot;Handler&quot;. <br/>Finally select the one(s) you wish
+      </description>
+   </item>
+   <item title="Create a statement" dialog="true" skip="false" href="http://doc.convertigo.com/JSPWiki/Wiki.jsp?page=CWICWCStatements">
+      <description>
+         For each handler, there are several instructions (<b>Statement</b>) that can be executed. The list is in (?) .
+<br/><br/>
+ To add a <b>Statement</b> to a <b>handler</b>,  create an Xpath request which sends back the element or action which has to be made.<br/>
+ Select the <b>handler</b> desired in the tab <b> Projects view</b> and press on the icon <b>new Statement icon</b>.<br/> Then choose the adapted Statement.<br/><br/> (You can also create a Statement by richt clicking on the <b>handler</b> --&gt; new --&gt; Statement)
+      </description>
+   </item>
+   <item title="Make your transactions communicatove" dialog="true" skip="false">
+      <description>
+         In the tab <b>Projects view</b>  click on <b>transaction</b>.<br/> In the tab <b>properties view</b>, put the propriaty « public  Method » to the value true.<br/> Right click on the <b>transaction</b> and click on « Extract WSDL Type » then on « yes ».<br/>  Now the key « Ctrl » is selected in the list of all the used elements by your transaction (choose them all if you do not know which ones are used).
+<br/><br/>
+Repeate this for all of your transactions.
+      </description>
+   </item>
+   <item title="Test your transactions" dialog="true" skip="false">
+      <description>
+         To test a transaction, right click on the desired <b>transaction</b>  and then press on &quot;Execute&quot;. <br/><br/>The result is in the tab <b>Output Tag</b> of the <b>browser area</b>
+      </description>
+   </item>
+</cheatsheet>
