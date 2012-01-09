@@ -633,27 +633,27 @@
              name="Site Clipper objects examples"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the sample project containing Site Clipper objects examples described in the Reference Manual.</description>
+          <description>Imports the sample project containing Site Clipper objects (connector, screen class, extraction rules, etc.) examples described in the Reference Manual.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStatementsWizard"
              icon="icons/studio/htmlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStatementsWizard"
-             name="HTML connector statements examples"
+             name="HTML connector objects examples"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the sample project containing HTML connector statements examples described in the Reference Manual.</description>
+          <description>Imports the sample project containing HTML connector objects (connector, screen class, statements, etc.) examples described in the Reference Manual.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
              icon="icons/studio/sequence_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
-             name="Sequencer steps examples"
+             name="Sequencer objects examples"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the sample project containing Sequencer steps examples described in the Reference Manual.</description>
+          <description>Imports the sample project containing Sequencer objects (sequence, steps, etc.) examples described in the Reference Manual.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
@@ -670,10 +670,10 @@
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleHTTPWizard"
              icon="icons/studio/httpconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleHTTPWizard"
-             name="HTTP connector examples"
+             name="HTTP connector objects examples"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the sample project containing HTTP connectors objects examples described in the Reference Manual.</description>
+          <description>Imports the sample project containing HTTP connector objects  (connector, transactions, etc.) examples described in the Reference Manual.</description>
        </wizard>
 <!-- Mobile sample projects -->
        <wizard
