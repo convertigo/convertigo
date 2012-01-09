@@ -136,6 +136,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int SAMPLE_REFMANUAL_STEPS 					= 652;
 	public static final int SAMPLE_REFMANUAL_VARIABLES 				= 653;
 	public static final int SAMPLE_REFMANUAL_HTTP 					= 654;
+	public static final int SAMPLE_REFMANUAL_WEBCLIPPER 			= 655;
 	public static final int TEMPLATE_WEB_SERVICE_REFERENCE 			= 700;
 	public static final int LIBRARY_GOOGLE_MAPS 					= 800;
 	public static final int LIBRARY_GOOGLE_SPREADSHEETS 			= 801;
@@ -195,7 +196,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String REFMANUAL_STEPS_PROJECT_FILE_NAME 				= "sample_refManual_steps.car";
 	public static final String REFMANUAL_VARIABLES_PROJECT_FILE_NAME 			= "sample_refManual_variables.car";
 	public static final String REFMANUAL_HTTP_PROJECT_FILE_NAME 				= "sample_refManual_http.car";
-	
+	public static final String REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME 			= "sample_refManual_webClipper.car";
 	
 	/**
 	 * Constructor for SampleNewWizard.
@@ -220,6 +221,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_REFMANUAL_STEPS:
 			case SAMPLE_REFMANUAL_VARIABLES:
 			case SAMPLE_REFMANUAL_HTTP:
+			case SAMPLE_REFMANUAL_WEBCLIPPER:
 			case SAMPLE_DOCUMENTATION_CLI:
 			case SAMPLE_DOCUMENTATION_CLP:
 			case SAMPLE_DOCUMENTATION_CMC:
@@ -439,6 +441,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				case SAMPLE_REFMANUAL_STEPS:
 				case SAMPLE_REFMANUAL_VARIABLES:
 				case SAMPLE_REFMANUAL_HTTP:
+				case SAMPLE_REFMANUAL_WEBCLIPPER:
 				case SAMPLE_DOCUMENTATION_CLI:
 				case SAMPLE_DOCUMENTATION_CLP:
 				case SAMPLE_DOCUMENTATION_CMC:
@@ -1060,6 +1063,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_REFMANUAL_VARIABLES:
 				projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_VARIABLES_PROJECT_FILE_NAME;
 				projectName = REFMANUAL_VARIABLES_PROJECT_FILE_NAME.substring(0, REFMANUAL_VARIABLES_PROJECT_FILE_NAME.indexOf(".car"));
+				break;
+			case SAMPLE_REFMANUAL_WEBCLIPPER:
+				projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME;
+				projectName = REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME.substring(0, REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME.indexOf(".car"));
 				break;
 			case SAMPLE_REFMANUAL_HTTP:
 	        	projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_HTTP_PROJECT_FILE_NAME;
