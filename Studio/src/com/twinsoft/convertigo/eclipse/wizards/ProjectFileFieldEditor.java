@@ -148,8 +148,13 @@ public class ProjectFileFieldEditor extends StringButtonFieldEditor {
         dialog.setText("Select a project file");
         dialog.setFilterExtensions(filterExtensions);
         dialog.setFilterNames(filterNames);
-        dialog.setFilterPath(Engine.PROJECTS_PATH);
         
+        if (!getTextControl().getText().isEmpty()) {
+        	dialog.setFilterPath(getTextControl().getText());
+        } else {
+        	dialog.setFilterPath(Engine.PROJECTS_PATH);
+        }
+
         if (startingDirectory != null) {
 			dialog.setFileName(startingDirectory.getPath());
 		}
