@@ -149,7 +149,7 @@ public class ProjectFileFieldEditor extends StringButtonFieldEditor {
         dialog.setFilterExtensions(filterExtensions);
         dialog.setFilterNames(filterNames);
         
-        if (!getTextControl().getText().isEmpty()) {
+        if (!getTextControl().getText().equals("")) {
         	dialog.setFilterPath(getTextControl().getText());
         } else {
         	dialog.setFilterPath(Engine.PROJECTS_PATH);
