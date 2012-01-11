@@ -44,8 +44,9 @@ public class DboExplorerManager {
 
 	public DboExplorerManager() throws SAXException, IOException,
 			ParserConfigurationException {
-		InputStream dbInputstream = getClass().getResourceAsStream(
-				"/database_objects.xml");
+		
+		InputStream dbInputstream = getClass().getClassLoader().getResourceAsStream(
+				"/com/twinsoft/convertigo/beans/database_objects.xml");
 		documentBeansXmlDatabase = XMLUtils.getDefaultDocumentBuilder().parse(dbInputstream);
 
 		NodeList nodeListGroups = documentBeansXmlDatabase.getDocumentElement()
@@ -105,6 +106,7 @@ public class DboExplorerManager {
 		String className = elementBean.getAttribute("classname");
 		String sEnable = elementBean.getAttribute("enable");
 		String sDocumented = elementBean.getAttribute("documented");
+		String sDefault = elementBean.getAttribute("default");
 		Boolean bEnable;
 		if ("true".equals(sEnable)) {
 			bEnable = true;
@@ -118,6 +120,13 @@ public class DboExplorerManager {
 		}
 		else {
 			bDocumented = false;
+		}
+		Boolean bDefault;
+		if ("true".equals(sDefault)) {
+			bDefault = true;
+		} 
+		else {
+			bDefault = false;
 		}
 		List<DboParent> parents = new ArrayList<DboParent>();
 		NodeList nodeListParents = elementBean.getElementsByTagName("parent");
@@ -144,7 +153,7 @@ public class DboExplorerManager {
 			EmulatorTechnologies.add(emulatorTechnology);
 		}
 
-		DboBean bean = new DboBean(className, bEnable ,bDocumented, parents, EmulatorTechnologies);
+		DboBean bean = new DboBean(className, bEnable, bDocumented, bDefault, parents, EmulatorTechnologies);
 		return bean;
 	}
 

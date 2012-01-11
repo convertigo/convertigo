@@ -91,12 +91,12 @@ public class ObjectsExplorerComposite extends Composite {
 
 	private String technology = null;
 	private Class<? extends DatabaseObject> databaseObjectClass = null;
-
 	protected CLabel currentSelectedObject = null;
 
 	private DatabaseObject parentObject = null;
 	protected Cursor handCursor = null;
 	protected Map<CLabel, Object> objectsMap = null;
+	
 	protected WizardPage wizardPage = null;
 	private Composite compositeObjects;
 	private Browser helpBrowser = null;
@@ -128,13 +128,13 @@ public class ObjectsExplorerComposite extends Composite {
 				Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
 
 				Map<BeanInfo, DboBeans> beanMap = new HashMap<BeanInfo, DboBeans>();
+				List<String> defaultDboList = new ArrayList<String>();
 				
 				// Enumeration of the beans
 				ConvertigoPlugin.logDebug2("Exploring Convertigo database objects list...");
 
 				DboExplorerManager manager = new DboExplorerManager();
 				List<DboGroup> groups = manager.getGroups();
-
 				Set<DboBeans> beansCategorySet = new LinkedHashSet<DboBeans>();
 				for (DboGroup group : groups) {
 					List<DboCategory> categories = group.getCategories();
@@ -146,7 +146,10 @@ public class ObjectsExplorerComposite extends Composite {
 								if (!bean.isEnable()) continue;
 								
 								String className = bean.getClassName();
-
+								if (bean.isDefault()) {
+									defaultDboList.add(className);
+								}
+								
 								try {
 									Class<DatabaseObject> beanClass = GenericUtils.cast(Class.forName(className));
 									ConvertigoPlugin.logDebug2("Bean class: "
@@ -254,8 +257,7 @@ public class ObjectsExplorerComposite extends Composite {
 					items[i].setControl(composites[i]);
 					items[i].setExpanded(true);
 					items[i].setText("Connectors");
-				}
-				else {
+				} else {
 					composites = new Composite[beansCategorySet.size()];
 					items = new ExpandItem[beansCategorySet.size()];
 					while(iterator.hasNext())
@@ -280,9 +282,11 @@ public class ObjectsExplorerComposite extends Composite {
 				
 				handCursor = new Cursor(Display.getDefault(), SWT.CURSOR_HAND);
 
-				boolean bSelected = true;
-			
+				boolean bSelected = false;
+				boolean defaultDboFound = false;
 				Iterator<BeanInfo> it = beanInfoList.iterator();
+				
+				
 				while(it.hasNext()) {
 					BeanInfo beanInfo = it.next();
 					DboBeans beanCategory = beanMap.get(beanInfo);
@@ -295,10 +299,27 @@ public class ObjectsExplorerComposite extends Composite {
 					String beanShortDescription = cleanDescription(beanDescriptions[0],false);
 
 					Image beanImage = ConvertigoPlugin.getDefault().getBeanIcon(beanInfo, BeanInfo.ICON_COLOR_32x32);
+
+					if (defaultDboList.contains(beanClass.getName())) {
+						bSelected = true;
+						defaultDboFound = true;
+					}
 					
 					addLabelEx(beanImage, beanClass, beanName, beanShortDescription, bSelected, beanInfo, beanCategory);
-
+					
 					bSelected = false;
+				}
+				
+				// We select by default the first item if no default dbo found.
+				if (!defaultDboFound && currentSelectedObject == null) {
+					currentSelectedObject = (CLabel) composites[0].getChildren()[0];
+					currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
+					currentSelectedObject.setBackground(BACKGROUND_SELECTED_COLOR);
+		
+					BeanInfo currentSelectedObjectBeanInfo = getCurrentSelectedBeanInfo();
+					if (currentSelectedObjectBeanInfo != null) {
+						updateHelpText(currentSelectedObjectBeanInfo);
+					}
 				}
 				
 			} catch (Exception e) {
@@ -619,8 +640,7 @@ public class ObjectsExplorerComposite extends Composite {
 		label.setLayoutData(new RowData());
 		objectsMap.put(label, object);
 		
-		// We select by default the first item
-		if ((currentSelectedObject == null) && (composite.equals(composites[0]))) {
+		if (selected) {
 			currentSelectedObject = label;
 
 			currentSelectedObject.setForeground(FOREGROUND_SELECTED_COLOR);
@@ -669,5 +689,6 @@ public class ObjectsExplorerComposite extends Composite {
 
 		ConvertigoPlugin.logDebug("Loaded '" + beanName + "'.");
 	}
+	
 
 } // @jve:decl-index=0:visual-constraint="10,10"

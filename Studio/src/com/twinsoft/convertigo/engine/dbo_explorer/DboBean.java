@@ -30,14 +30,16 @@ public class DboBean {
 	private final String className;
 	private final boolean bEnable;
 	private final boolean bDocumented;
+	private final boolean bDefault;
 	private final Collection<DboParent> parents;
 	private final Collection<String> emulatorTechnologies;
 
-	public DboBean(String className, boolean bEnable, boolean bDocumented,
+	public DboBean(String className, boolean bEnable, boolean bDocumented, boolean bDefault,
 			Collection<DboParent> parents, Collection<String> emulatorTechnologies) {
 		this.className = className;
 		this.bEnable = bEnable;
 		this.bDocumented = bDocumented;
+		this.bDefault = bDefault;
 		this.parents = Collections.unmodifiableCollection(parents);
 		this.emulatorTechnologies = Collections.unmodifiableCollection(emulatorTechnologies);
 	}
@@ -52,6 +54,10 @@ public class DboBean {
 	
 	public Boolean isDocumented() {
 		return bDocumented;
+	}
+	
+	public Boolean isDefault() {
+		return bDefault;
 	}
 
 	public Collection<DboParent> getParents() {
