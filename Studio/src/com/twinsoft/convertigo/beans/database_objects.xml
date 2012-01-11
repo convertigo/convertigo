@@ -34,7 +34,7 @@
 		</category>
 		<category name="Variables">
 			<beans groupname="Requestable variables">
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.RequestableVariable">
+				<bean enable="true" documented="true" default="true" classname="com.twinsoft.convertigo.beans.variables.RequestableVariable">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction"/>
@@ -46,7 +46,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction"/>
 				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.RequestableHttpVariable">
+				<bean enable="true" documented="true" default="true" classname="com.twinsoft.convertigo.beans.variables.RequestableHttpVariable">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction"/>
