@@ -47,6 +47,9 @@ public class XMLHttpUrlBeanInfo extends MySimpleBeanInfo {
 			properties[0].setDisplayName(getExternalizedString("property.tagName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.tagName.short_description"));
 			properties[0].setValue("normalizable", Boolean.TRUE);
+			
+			PropertyDescriptor property = getPropertyDescriptor("xpath");
+			property.setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
