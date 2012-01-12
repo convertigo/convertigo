@@ -45,7 +45,7 @@ public class DboExplorerManager {
 	public DboExplorerManager() throws SAXException, IOException,
 			ParserConfigurationException {
 		
-		InputStream dbInputstream = getClass().getClassLoader().getResourceAsStream(
+		InputStream dbInputstream = getClass().getResourceAsStream(
 				"/com/twinsoft/convertigo/beans/database_objects.xml");
 		documentBeansXmlDatabase = XMLUtils.getDefaultDocumentBuilder().parse(dbInputstream);
 
