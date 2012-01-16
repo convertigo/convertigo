@@ -135,6 +135,9 @@ public class SOAPUtils {
 	        s = XMLUtils.prettyPrintDOM(document);
         }        
         
+		// Ticket #2678: fix empty "xmlns"
+		s = s.replaceAll("\\sxmlns=\"\"", "");
+        
 		return s;
     }
     
