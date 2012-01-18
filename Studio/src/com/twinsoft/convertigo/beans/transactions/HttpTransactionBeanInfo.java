@@ -37,7 +37,7 @@ public class HttpTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.gif";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_32x32.gif";
 
-			properties = new PropertyDescriptor[5];
+			properties = new PropertyDescriptor[6];
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/HttpTransaction");
 
@@ -72,6 +72,11 @@ public class HttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[4].setDisplayName(getExternalizedString("property.httpVerb.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.httpVerb.short_description"));
 			properties[4].setPropertyEditorClass(getEditorClass("HttpVerbEditor"));
+
+			properties[5] = new PropertyDescriptor("dataEncoding", HttpTransaction.class, "getDataEncoding", "setDataEncoding");
+			properties[5].setDisplayName(getExternalizedString("property.dataEncoding.display_name"));
+			properties[5].setShortDescription(getExternalizedString("property.dataEncoding.short_description"));
+			properties[5].setPropertyEditorClass(getEditorClass("HttpDataEncodingEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
