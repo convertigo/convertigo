@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.util.Base64;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -63,7 +64,20 @@ public class HttpTransaction extends TransactionWithVariables {
     /** Holds value of property handleCookie. */
     private boolean handleCookie = true;
     
-    public static String[] HTTP_VERBS = { "GET", "POST", "PUT", "DELETE" };
+    private static int HTTP_DATA_ENCODING_STRING = 0;
+    private static int HTTP_DATA_ENCODING_BASE64 = 1;
+    
+    private int dataEncoding = HTTP_DATA_ENCODING_STRING;
+    
+    public int getDataEncoding() {
+		return dataEncoding;
+	}
+
+	public void setDataEncoding(int dataEncoding) {
+		this.dataEncoding = dataEncoding;
+	}
+
+	public static String[] HTTP_VERBS = { "GET", "POST", "PUT", "DELETE" };
     public static int HTTP_VERB_GET = 0;
     public static int HTTP_VERB_POST = 1;
     public static int HTTP_VERB_PUT = 2;
@@ -340,17 +354,26 @@ public class HttpTransaction extends TransactionWithVariables {
         String t = context.statistics.start(EngineStatistics.GENERATE_DOM);
 
         try {
-        	String charset  = ((HttpConnector) parent).getCharset();
-        	String stringData = null;
+        	String stringData = "";
+        	
+        	if (dataEncoding == HTTP_DATA_ENCODING_STRING) {
+            	String charset  = ((HttpConnector) parent).getCharset();
 
-        	if(charset==null) charset = "ascii";
-        	try{
-        		stringData = new String(httpData, charset);
-        	}catch (UnsupportedEncodingException e) {
-        		stringData = new String(httpData,"ascii");
+            	if(charset==null) charset = "ascii";
+            	try{
+            		stringData = new String(httpData, charset);
+            	}catch (UnsupportedEncodingException e) {
+            		stringData = new String(httpData,"ascii");
+            	}
         	}
-
-        	CDATASection cdata = context.outputDocument.createCDATASection( stringData ); // remove TextCodec.UTF8Encode for #453
+        	else if (dataEncoding == HTTP_DATA_ENCODING_BASE64) {
+        		stringData = Base64.encodeBytes(httpData);
+        	}
+        	else {
+        		throw new IllegalArgumentException("Unknown data encoding: " + dataEncoding);
+        	}
+    		
+        	CDATASection cdata = context.outputDocument.createCDATASection(stringData); // remove TextCodec.UTF8Encode for #453
         	Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
         	outputDocumentRootElement.appendChild(cdata);
         }
