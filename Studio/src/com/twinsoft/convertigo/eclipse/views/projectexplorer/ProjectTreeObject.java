@@ -546,7 +546,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					}
 				}
 			}
-			else if (propertyName.equals("projectName")) {
+			else if (propertyName.equals("sourceTransaction")) {
 				if (databaseObject instanceof TransactionStep) {
 					TransactionStep transactionStep = (TransactionStep)databaseObject;
 					if (transactionStep.getProject().getName().equals(getName())) {
@@ -555,7 +555,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						}
 					}
 				}
-				else if (databaseObject instanceof SequenceStep) {
+			}
+			else if (propertyName.equals("sourceSequence")) {
+				if (databaseObject instanceof SequenceStep) {
 					SequenceStep sequenceStep = (SequenceStep)databaseObject;
 					if (sequenceStep.getProject().getName().equals(getName())) {
 						if (!sequenceStep.getProjectName().equals(getName())) {
