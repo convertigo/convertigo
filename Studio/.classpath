@@ -73,7 +73,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-kernel-1.4.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-metadata-1.4.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-mtompolicy-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-saaj-1.4.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-saaj-1.4.1.jar" sourcepath="/ExternalJavaSources/axis2-1.4.1-src.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-saaj-api-1.4.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-spring-1.4.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-xmlbeans-1.4.1.jar"/>
