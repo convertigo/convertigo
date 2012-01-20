@@ -443,6 +443,8 @@ public class WebServiceTranslator implements Translator {
     		//MessageFactory messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL);
             MessageFactory messageFactory = MessageFactory.newInstance();
             SOAPMessage responseMessage = messageFactory.createMessage();
+            
+            responseMessage.setProperty(SOAPMessage.CHARACTER_SET_ENCODING, encodingCharSet);
 
             SOAPPart sp = responseMessage.getSOAPPart();
             SOAPEnvelope se = sp.getEnvelope();
@@ -452,7 +454,7 @@ public class WebServiceTranslator implements Translator {
 
         	String targetNameSpace = context.project.getTargetNamespace();
 
-        	se.addNamespaceDeclaration(context.projectName+"_ns", targetNameSpace);
+        	se.addNamespaceDeclaration(context.projectName + "_ns", targetNameSpace);
             se.addNamespaceDeclaration("soapenc", "http://schemas.xmlsoap.org/soap/encoding/");
             se.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
             se.addNamespaceDeclaration("xsd", "http://www.w3.org/2001/XMLSchema");
@@ -497,16 +499,16 @@ public class WebServiceTranslator implements Translator {
             }
 
             //TODO: correct missing "xmlns" (Bug AXA POC client .NET)
-    		sResponseMessage = SOAPUtils.toString(responseMessage, encodingCharSet, false);
+    		sResponseMessage = SOAPUtils.toString(responseMessage, encodingCharSet);
     		sResponseMessage = sResponseMessage.replaceAll("<soapenv:Envelope", "<soapenv:Envelope xmlns=\""+targetNameSpace+"\"");
-    		
-            if (Engine.logBeans.isDebugEnabled()) {
-    			Engine.logBeans.debug("[WebServiceTranslator] SOAP response:\n" + sResponseMessage);
-            }
         }
         else {
 			Engine.logBeans.debug("[WebServiceTranslator] The Convertigo response is not a XML document.");
         	sResponseMessage = convertigoResponse.toString();
+        }
+        
+        if (Engine.logBeans.isDebugEnabled()) {
+			Engine.logBeans.debug("[WebServiceTranslator] SOAP response:\n" + sResponseMessage);
         }
         
         return sResponseMessage.getBytes(encodingCharSet);

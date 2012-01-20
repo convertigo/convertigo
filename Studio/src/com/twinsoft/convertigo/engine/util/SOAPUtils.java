@@ -26,9 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.lang.reflect.Method;
-import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -54,16 +52,14 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 
-import org.apache.log4j.Logger;
 import org.dom4j.io.DocumentSource;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.steps.StepException;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.util.Log;
 
 public class SOAPUtils {
@@ -96,44 +92,14 @@ public class SOAPUtils {
 		return ob;
 	}
 	
-	public static String toString(SOAPMessage soapMessage, String encoding, boolean isStepException) throws TransformerConfigurationException, TransformerException, SOAPException, IOException, ParserConfigurationException, SAXException {	
+	public static String toString(SOAPMessage soapMessage, String encoding) throws TransformerConfigurationException, TransformerException, SOAPException, IOException, ParserConfigurationException, SAXException {	
 		soapMessage.saveChanges();
 		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		soapMessage.writeTo(out);
-        String s = new String(out.toByteArray(), "UTF-8"); 
-                
-        if (soapMessage.getSOAPBody().getFault() != null) {
-        	SOAPFault fault = soapMessage.getSOAPBody().getFault();
-	        DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-	        Document document = parser.parse(new InputSource(new StringReader(s)));
+        String s = new String(out.toByteArray(), encoding); 
 
-	        Element faultCode = (Element) document.getElementsByTagName("faultcode").item(0);
-	        faultCode.removeAttribute("xmlns");
-	        
-	        if (!isStepException) {	        
-		        Detail detail = fault.getDetail();
-		        Element detailElem = (Element) document.getElementsByTagName("detail").item(0);        
-		        
-		        if (detailElem.hasChildNodes()) {
-		            while (detailElem.hasChildNodes()) {
-		            	detailElem.removeChild(detailElem.getFirstChild());       
-		            } 
-		        }
-		        
-		        Element entryElem = null;
-		        if (detail != null) {
-		        	for (Iterator<DetailEntry> entries = GenericUtils.cast(detail.getDetailEntries()) ; entries.hasNext();) {
-		        		DetailEntry entry = entries.next();
-		        		entryElem = document.createElement(entry.getLocalName());
-		        		entryElem.setTextContent(entry.getValue());
-		        		detailElem.appendChild(entryElem);
-		        	}
-		        }  
-	        }
-	        
-	        s = XMLUtils.prettyPrintDOM(document);
-        }        
+        s = XMLUtils.prettyPrintDOMWithEncoding(s, encoding);
         
 		// Ticket #2678: fix empty "xmlns"
 		s = s.replaceAll("\\sxmlns=\"\"", "");
@@ -141,14 +107,14 @@ public class SOAPUtils {
 		return s;
     }
     
-    public static String writeSoapFault(Throwable e, Logger log) throws IOException {
+    public static String writeSoapFault(Throwable e, String encoding) throws IOException {
 		String faultString = null;
 		StepException stepException = null;
 		
 		if (e instanceof SOAPException) {
 			Throwable cause = ((SOAPException) e).getCause();
-			log.error("A SOAP error has occured while processing the web service request.", e);
-			log.error("Cause:", cause);
+			Engine.logEngine.error("A SOAP error has occured while processing the web service request.", e);
+			Engine.logEngine.error("Cause:", cause);
 			faultString = "A SOAP error has occured while processing the web service request: " + cause.getMessage();
 		}
 		else {
@@ -163,7 +129,7 @@ public class SOAPUtils {
 			}
 		
 			if (stepException == null) {
-				log.error("Unable to analyze or execute the web service.", e);
+				Engine.logEngine.error("Unable to analyze or execute the web service.", e);
 				faultString = "Unable to analyze or execute the web service.";
 			}
 		}
@@ -259,20 +225,16 @@ public class SOAPUtils {
 			faultMessage.saveChanges();
 			
 			String sResponseMessage = "";
-			if (stepException != null) {
-				sResponseMessage = SOAPUtils.toString(faultMessage,"UTF-8", true);
-			} else {
-				sResponseMessage = SOAPUtils.toString(faultMessage,"UTF-8",false);
-			}
+			sResponseMessage = SOAPUtils.toString(faultMessage, encoding);
 			
-			if (log.isDebugEnabled()) {
-				log.debug("SOAP response:\n" + sResponseMessage);
+			if (Engine.logEngine.isDebugEnabled()) {
+				Engine.logEngine.debug("SOAP response:\n" + sResponseMessage);
 			}
 			
 			return sResponseMessage;
 
 		} catch(Throwable ee) {
-			log.error("Unable to send the SOAP FAULT message.", ee);
+			Engine.logEngine.error("Unable to send the SOAP FAULT message.", ee);
 			String response = "";
 			response += Log.getStackTrace(ee);
 			response += "SOAP error: " + faultString + "\n";
