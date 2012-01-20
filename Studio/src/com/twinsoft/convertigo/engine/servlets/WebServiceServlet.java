@@ -96,8 +96,9 @@ public class WebServiceServlet extends GenericServlet {
 	@Override
     public void processException(HttpServletRequest request, HttpServletResponse response, Exception e) throws ServletException {
 		try {
-			String soapFault = SOAPUtils.writeSoapFault(e, Engine.logEngine);
+			String soapFault = SOAPUtils.writeSoapFault(e, "UTF-8");
 			response.getWriter().print(soapFault);
+			Engine.logEngine.debug("(WebServiceServlet) SOAP fault response:\n"+ soapFault);
 		} catch (IOException e1) {
 			throw new ServletException(e);
 		}

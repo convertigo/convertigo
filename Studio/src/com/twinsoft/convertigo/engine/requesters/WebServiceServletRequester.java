@@ -199,8 +199,7 @@ public class WebServiceServletRequester extends ServletRequester {
             result = postGetDocument(document);
 		}
 		catch(Throwable e) {
-			//result = writeSoapFault(e);
-			result = SOAPUtils.writeSoapFault(e, Engine.logEngine);
+			result = SOAPUtils.writeSoapFault(e, context.requestedObject.getEncodingCharSet());
 		}
 		
 		return result;

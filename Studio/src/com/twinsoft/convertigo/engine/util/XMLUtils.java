@@ -114,6 +114,11 @@ public class XMLUtils {
     	return writer.getBuffer().toString();
     }
     
+	public static String prettyPrintDOMWithEncoding(String sDocument, String encoding) throws ParserConfigurationException, SAXException, IOException {
+		Document document = getDefaultDocumentBuilder().parse(new InputSource(new StringReader(sDocument)));
+		return XMLUtils.prettyPrintDOMWithEncoding(document, encoding);
+	}
+    
     public static void prettyPrintDOM(Document doc, Writer writer) {
     	prettyPrintDOMWithEncoding(doc, "UTF-8", writer);
     }
