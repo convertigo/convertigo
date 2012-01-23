@@ -69,7 +69,7 @@ public class WebServiceTranslator implements Translator {
 		
 		
 		if (Engine.logBeans.isDebugEnabled()) {
-			String soapMessage = SOAPUtils.toString(requestMessage,"UTF-8", false);
+			String soapMessage = SOAPUtils.toString(requestMessage,"UTF-8");
 			Engine.logBeans.debug("[WebServiceTranslator] SOAP message received:\n" + soapMessage);
 		}
 		
