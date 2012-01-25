@@ -587,27 +587,34 @@
 		</category>
 	</group>
 	
+	<group name="Web services">
+        <category>
+            <beans>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction">
+                    <parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction">
+                    <parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector"/>
+                </bean>
+            </beans>
+        </category>
+	</group>
+	
 	<group name="Web">
 		<category>
 			<beans>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.HtmlConnector">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
                 </bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector">
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
-                </bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector">
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
-                </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction">
-					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector"/>
-				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction">
-					<parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector"/>
-				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.HtmlConnector"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass">
