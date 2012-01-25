@@ -58,6 +58,16 @@ public class HtmlTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[1].setExpert(true);
 			properties[1].setPropertyEditorClass(getEditorClass("HttpTriggerEditor"));            
 			
+			PropertyDescriptor property = getPropertyDescriptor("subDir");
+            property.setDisplayName(getExternalizedString("property.subDir.display_name"));
+            property.setShortDescription(getExternalizedString("property.subDir.short_description"));
+            
+            property = getPropertyDescriptor("httpParameters");
+            property.setDisplayName(getExternalizedString("property.httpParameters.display_name"));
+            property.setShortDescription(getExternalizedString("property.httpParameters.short_description"));
+            
+            property = getPropertyDescriptor("dataEncoding");
+            property.setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

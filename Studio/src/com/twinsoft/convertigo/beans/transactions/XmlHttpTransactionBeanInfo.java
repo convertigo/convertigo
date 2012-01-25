@@ -57,6 +57,8 @@ public class XmlHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[2].setShortDescription(getExternalizedString("property.ignoreSoapEnveloppe.short_description"));
 			properties[2].setExpert(true);
 			
+			PropertyDescriptor property = getPropertyDescriptor("dataEncoding");
+            property.setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
