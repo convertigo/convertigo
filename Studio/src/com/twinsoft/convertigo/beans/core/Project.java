@@ -52,6 +52,9 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	public static final String WSDL_STYLE_DOC = WSDLUtils.WSDL_STYLE_DOC;
 	public static final String WSDL_STYLE_RPC = WSDLUtils.WSDL_STYLE_RPC;
 	
+	public static final String XSD_FORM_QUALIFIED = "qualified";
+	public static final String XSD_FORM_UNQUALIFIED = "unqualified";
+	
 	public final static String CONVERTIGO_PROJECTS_NAMESPACEURI = "http://www.convertigo.com/convertigo/projects/";
 	
 	public static String getProjectTargetNamespace(String projectName) {
@@ -144,6 +147,10 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	 */
 	private String namespaceUri = "";
 	
+	/**
+	 * The schema element form
+	 */
+	private String schemaElementForm = XSD_FORM_QUALIFIED;
 	
     public int getHttpSessionTimeout() {
         return httpSessionTimeout;
@@ -202,6 +209,20 @@ public class Project extends DatabaseObject implements ITagsProperty {
 		if (targetNamespace.equals(""))
 			targetNamespace = CONVERTIGO_PROJECTS_NAMESPACEURI + name;
 		return targetNamespace;
+	}
+	
+	/**
+	 * @return the schemaElementForm
+	 */
+	public String getSchemaElementForm() {
+		return schemaElementForm;
+	}
+
+	/**
+	 * @param schemaElementForm the schemaElementForm to set
+	 */
+	public void setSchemaElementForm(String schemaElementForm) {
+		this.schemaElementForm = schemaElementForm;
 	}
 	
 	@Override
@@ -441,6 +462,9 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("wsdlStyle")) {
 			return new String[]{WSDL_STYLE_ALL, WSDL_STYLE_DOC, WSDL_STYLE_RPC};
+		}
+		else if (propertyName.equals("schemaElementForm")) {
+			return new String[]{XSD_FORM_QUALIFIED, XSD_FORM_UNQUALIFIED};
 		}
 		return new String[0];
 	}

@@ -518,6 +518,12 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					updateWebServiceStyle();
 				}
 			}
+			// Case schemaElementForm of this project has changed
+			else if (propertyName.equals("schemaElementForm")) {
+				if (databaseObject.equals(getObject())) {
+					setXSDDefaultForms();
+				}
+			}
 			// Case namespaceUri of a project has changed
 			else if (propertyName.equals("namespaceUri")) {
 				// Makes replacements in XSD and WSDL files
@@ -966,6 +972,16 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					}
 				}
 			}
+		}
+	}
+	
+	private synchronized void setXSDDefaultForms() {
+		String projectName = getName();
+		try {
+			Project p = getObject();
+			ProjectUtils.setXSDDefaultForms(projectName, p.getSchemaElementForm(), true);
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Error while updating schema forms for project '" + projectName + "'");
 		}
 	}
 	

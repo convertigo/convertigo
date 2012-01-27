@@ -273,7 +273,13 @@ public class XSDUtils {
 		public String getBaseURI() {
 			return baseURI;
 		}
-
+		
+		public void setDefaultForms(String projectDefaultForms) {
+			loadedSchema.setAttributeFormDefault(new XmlSchemaForm(projectDefaultForms));
+			loadedSchema.setElementFormDefault(new XmlSchemaForm(projectDefaultForms));
+			bModified = true;
+		}
+		
 		public XmlGenerationDescription getXmlGenerationDescription() {
 			return xmlgenDescription;
 		}

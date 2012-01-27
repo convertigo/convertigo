@@ -533,6 +533,13 @@ public class ProjectUtils {
         fos.close();
 	}
 	
+	public static void setXSDDefaultForms(String projectName, String schemaDefaultForms, boolean bTempFile) throws Exception {
+		String filePath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + (bTempFile ? ".temp":"") + ".xsd";
+		XSD xsd = XSDUtils.getXSD(filePath);
+		xsd.setDefaultForms(schemaDefaultForms);
+		xsd.save();
+	}
+	
 	public static void addXSDFileImport(String projectName, String targetProjectName, boolean bTempFile) throws Exception {
 		String filePath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + (bTempFile ? ".temp":"") + ".xsd";
 		XSD xsd = XSDUtils.getXSD(filePath);
