@@ -43,6 +43,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
@@ -453,39 +454,41 @@ public class WebServiceTranslator implements Translator {
 
         	String targetNameSpace = context.project.getTargetNamespace();
 
-        	se.addNamespaceDeclaration(context.projectName + "_ns", targetNameSpace);
+        	//se.addNamespaceDeclaration(context.projectName + "_ns", targetNameSpace);
             se.addNamespaceDeclaration("soapenc", "http://schemas.xmlsoap.org/soap/encoding/");
             se.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
             se.addNamespaceDeclaration("xsd", "http://www.w3.org/2001/XMLSchema");
             
-            // remove header as it not used. Seems that empty headers causes the WS client of Flex 4 to fail 
+            // Remove header as it not used. Seems that empty headers causes the WS client of Flex 4 to fail 
             se.getHeader().detachNode();
             
-            SOAPElement soapElement = null;
-            SOAPElement soapElementResponse;
+            // Add the method response element
+            SOAPElement soapMethodResponseElement = null;
+            String soapElementName = context.sequenceName != null ? context.sequenceName:context.connectorName + "__" +context.transactionName;
+            soapElementName += "Response";
+            
+            if (Project.XSD_FORM_QUALIFIED.equals(context.project.getSchemaElementForm())) {
+            	soapMethodResponseElement = sb.addChildElement(soapElementName);
+            	soapMethodResponseElement.addAttribute(se.createName("xmlns"), targetNameSpace);
+            }
+            else {
+            	soapMethodResponseElement = sb.addChildElement(se.createName(soapElementName,context.projectName + "_ns",targetNameSpace));
+            }
+            
+            // Add a 'response' root child element or not
+            SOAPElement soapResponseElement;
             if (context.sequenceName != null) {
-            	soapElement = sb.addChildElement(context.sequenceName + "Response");
-            	
             	Sequence sequence = (Sequence) context.requestedObject;
             	if (sequence.isIncludeResponseElement()) {
-                    soapElementResponse = soapElement.addChildElement("response");
+                    soapResponseElement = soapMethodResponseElement.addChildElement("response");
             	}
             	else {
-                    soapElementResponse = soapElement;
+                    soapResponseElement = soapMethodResponseElement;
             	}
             }
             else {
-            	soapElement = sb.addChildElement(context.connectorName + "__" +context.transactionName + "Response");
-            	soapElementResponse = soapElement.addChildElement("response");
+            	soapResponseElement = soapMethodResponseElement.addChildElement("response");
             }
-            
-            if (context.httpServletRequest.getServletPath().endsWith(".wsl")) {
-            	soapElement.addAttribute(se.createName("xmlns"), targetNameSpace);// don't work! TODO: correct
-            }
-            
-            /*if (!context.httpServletRequest.getServletPath().endsWith(".wsl")) {
-            	soapElementResponse.addAttribute(se.createName("xsi:type"), "xsd:string");
-            }*/
             
             NodeList childNodes = document.getDocumentElement().getChildNodes();
             int len = childNodes.getLength();
@@ -493,13 +496,14 @@ public class WebServiceTranslator implements Translator {
             for (int i = 0 ; i < len ; i++) {
             	node = childNodes.item(i);
             	if (node instanceof Element) {
-    				addElement(responseMessage, se, context, (Element) node, soapElementResponse);
+    				addElement(responseMessage, se, context, (Element) node, soapResponseElement);
             	}
             }
 
-            //TODO: correct missing "xmlns" (Bug AXA POC client .NET)
     		sResponseMessage = SOAPUtils.toString(responseMessage, encodingCharSet);
-    		sResponseMessage = sResponseMessage.replaceAll("<soapenv:Envelope", "<soapenv:Envelope xmlns=\""+targetNameSpace+"\"");
+
+            // Correct missing "xmlns" (Bug AXA POC client .NET)
+    		//sResponseMessage = sResponseMessage.replaceAll("<soapenv:Envelope", "<soapenv:Envelope xmlns=\""+targetNameSpace+"\"");
         }
         else {
 			Engine.logBeans.debug("[WebServiceTranslator] The Convertigo response is not a XML document.");
