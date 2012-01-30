@@ -26,7 +26,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -37,7 +36,6 @@ import javax.xml.soap.DetailEntry;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.Name;
 import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPConstants;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
@@ -149,13 +147,7 @@ public class SOAPUtils {
 				fault.setFaultCode("Server");
 			}
 			else {
-				QName faultName = new QName(SOAPConstants.URI_NS_SOAP_ENVELOPE, "Server");
-				fault.setFaultCode(faultName);		
-	            Method m;
-				try {
-					m = fault.getClass().getMethod("setFaultCode", new Class[] {Name.class});
-		            m.invoke(fault, new Object[]{faultName});
-				} catch (Exception ex) {}
+				fault.setFaultCode("soapenv:Server");
 			}
 
 			SOAPFactory soapFactory = SOAPFactory.newInstance();
