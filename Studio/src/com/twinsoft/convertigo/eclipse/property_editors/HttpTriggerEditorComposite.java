@@ -68,7 +68,8 @@ public class HttpTriggerEditorComposite extends AbstractDialogComposite {
 		parent.setLayout(new GridLayout());
 		TriggerXMLizer triggerXML = (TriggerXMLizer) cellEditor.getValue();
 		trigger = triggerXML.getTrigger();
-		initialize();		
+		initialize();	
+		setSize(500, 400);
 	}
 
 	/**
@@ -92,18 +93,19 @@ public class HttpTriggerEditorComposite extends AbstractDialogComposite {
         gridData3.verticalAlignment = GridData.CENTER;
         gridData3.grabExcessHorizontalSpace = true;
         
-        help_label = new Label(this,SWT.BORDER);
+        help_label = new Label(this, SWT.BORDER | SWT.WRAP);
         help_label.setLayoutData(gridData3);
         
         custom_trigger = new Composite(this,SWT.NONE);
         custom_trigger.setLayout(stackLayout);
 
-        GridData gridData2 = new GridData();
-        gridData2.horizontalAlignment = GridData.FILL;
-        gridData2.verticalAlignment = GridData.CENTER;
-        gridData2.grabExcessHorizontalSpace = true;
-        
-        custom_trigger.setLayoutData(gridData2);
+//        GridData gridData2 = new GridData();
+//        gridData2.horizontalAlignment = GridData.FILL;
+//        gridData2.verticalAlignment = GridData.FILL;
+//        gridData2.grabExcessVerticalSpace = true;
+//        gridData2.grabExcessHorizontalSpace = true;
+//        
+//        custom_trigger.setLayoutData(gridData2);
         
         custom_triggers = new AbstractHttpTriggerCustomEditorComposite[] {
         	new HttpTriggerDocumentCompletedEditorComposite(this),
