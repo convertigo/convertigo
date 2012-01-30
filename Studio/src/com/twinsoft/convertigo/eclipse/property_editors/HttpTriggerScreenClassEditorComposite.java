@@ -26,7 +26,6 @@ import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 
@@ -54,16 +53,10 @@ public class HttpTriggerScreenClassEditorComposite extends AbstractHttpTriggerCu
 	private void initialize() {
 		ScreenClassTrigger trigger = (parent.getTrigger() instanceof ScreenClassTrigger) ? (ScreenClassTrigger) parent
 				.getTrigger() : null;
-		GridData gridData2 = new GridData();
-		gridData2.horizontalAlignment = GridData.FILL;
-		gridData2.grabExcessHorizontalSpace = true;
-		gridData2.verticalAlignment = GridData.CENTER;
-		GridLayout gridLayout = new GridLayout();
-		gridLayout.numColumns = 2;
-		this.setLayout(gridLayout);
+
 		scrClass_label = new Label(this, SWT.NONE);
-		scrClass_label.setText("Waiting for Screen Classes");
-		scrClass_list = new List(this, SWT.BORDER | SWT.MULTI);
+		scrClass_label.setText("Screen classes");
+		scrClass_list = new List(this, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 
 		java.util.List<HtmlScreenClass> scList = getScreenClassList();
 
@@ -80,8 +73,12 @@ public class HttpTriggerScreenClassEditorComposite extends AbstractHttpTriggerCu
 		}
 
 		scrClass_list.setSelection(items.toArray(new String[items.size()]));
+		GridData gridData2 = new GridData();
+		gridData2.horizontalAlignment = GridData.FILL;
+		gridData2.verticalAlignment = GridData.FILL;
+		gridData2.grabExcessHorizontalSpace = true;
 		scrClass_list.setLayoutData(gridData2);
-		scrClass_list.setSize(600, 500);
+		scrClass_list.setSize(400, 250);
 	}
 
 	public TriggerXMLizer getTriggerXMLizer() {
@@ -94,7 +91,9 @@ public class HttpTriggerScreenClassEditorComposite extends AbstractHttpTriggerCu
 	}
 
 	public String getHelp() {
-		return "This synchronizer waits for one of the selected ScreenClasses\ndefined here to be detected. You can select multiple screen classes by\nholding the Ctrl key while selecting the screen class with the mouse";
+		return "This synchronizer waits for one of the selected ScreenClasses defined here to be detected.\n"
+				+ "You can select multiple screen classes by holding the Ctrl key while selecting the screen "
+				+ "class with the mouse.";
 	}
 
 	private java.util.List<HtmlScreenClass> getScreenClassList() {
