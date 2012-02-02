@@ -341,7 +341,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					
 					Transaction transaction = (Transaction)databaseObject;
 					TransactionStep transactionStep = new TransactionStep();
-					transactionStep.setName("Call_"+transaction.getName());
+					transactionStep.setName("Call_" + projectName + "_" + connectorName + "_" + transaction.getName());
 					transactionStep.setSourceTransaction(projectName + TransactionStep.SOURCE_SEPARATOR + connectorName +
 							TransactionStep.SOURCE_SEPARATOR + transaction.getName());
 					transactionStep.bNew = true;
@@ -366,7 +366,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					
 					Sequence seq = (Sequence)databaseObject;
 					SequenceStep sequenceStep = new SequenceStep();
-					sequenceStep.setName("Call_"+seq.getName());
+					sequenceStep.setName("Call_" + projectName + "_" + seq.getName());
 					sequenceStep.setSourceSequence(projectName + SequenceStep.SOURCE_SEPARATOR + seq.getName());
 					sequenceStep.bNew = true;
 					parent.add(sequenceStep);
