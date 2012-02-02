@@ -31,7 +31,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -487,11 +486,9 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 			List<String> sequencesList = new ArrayList<String>();
 			
 			try {
-				Enumeration<String> projects = getSequence().getLoadedProjectNames();
-				while (projects.hasMoreElements()) {
-					String projectName = projects.nextElement();
-					
-					Project project = getTargetProject(projectName);
+				List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+				for (String projectName : projectNames) {
+					Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
 					List<Sequence> sequences = project.getSequencesList();
 					
 					for (Sequence sequence : sequences) {
