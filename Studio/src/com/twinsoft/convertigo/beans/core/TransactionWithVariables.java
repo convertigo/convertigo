@@ -451,8 +451,8 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	public void parseInputDocument(Context context) {
 		super.parseInputDocument(context);
 		if (context.inputDocument != null && Engine.logContext.isInfoEnabled()) {
-			Document printDoc = (Document)Visibility.Logs.replaceVariables(getVariablesList(), context.inputDocument);
-			Engine.logContext.info("Input document:\n" + XMLUtils.prettyPrintDOM(printDoc));
+			Document printDoc = (Document) Visibility.Logs.replaceVariables(getVariablesList(), context.inputDocument);
+			XMLUtils.logXml(printDoc, Engine.logContext, "Input document");
 		}
 		
 		NodeList variableNodes = context.inputDocument.getElementsByTagName("variable");

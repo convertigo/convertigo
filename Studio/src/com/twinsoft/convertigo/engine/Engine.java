@@ -73,7 +73,7 @@ import com.twinsoft.util.Log;
 import com.twinsoft.util.TWSKey;
 
 public class Engine {
-
+	
 	public static String USER_WORKSPACE_PATH = "";
 	public static String PROJECTS_PATH = "";
 	public static String CERTIFICATES_PATH = "";
@@ -1119,10 +1119,7 @@ public class Engine {
 			Engine.logContext.trace("Engine.getDocument: finished");
 		}
 
-		if (Engine.logContext.isInfoEnabled()) {
-			String xml = XMLUtils.prettyPrintDOM(outputDom);
-			Engine.logContext.info("Generated XML:\n" + xml);
-		}
+		XMLUtils.logXml(outputDom, Engine.logContext, "Generated XML");
 
 		return outputDom;
 	}
