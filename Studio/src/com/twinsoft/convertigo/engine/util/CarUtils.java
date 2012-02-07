@@ -23,20 +23,26 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Vector;
 
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.ProcessingInstruction;
 
 import com.twinsoft.convertigo.beans.core.BlockFactory;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -73,33 +79,30 @@ public class CarUtils {
 		Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
 		makeArchive(project);
 	}
-		
-	
+
 	public static void makeArchive(Project project) throws EngineException {
 		makeArchive(Engine.PROJECTS_PATH, project);
-	}		
-		
-	public static void makeArchive(String dir, Project project) throws EngineException {		
-		 List<File> undeployedFiles=getUndeployedFiles(project.getName());		
-		
+	}
+
+	public static void makeArchive(String dir, Project project) throws EngineException {
+		List<File> undeployedFiles=getUndeployedFiles(project.getName());	
 		String projectName = project.getName();
 		try {
 			// Export the project
 			String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
 			exportProject(project, exportedProjectFileName);
-
+			
 			// Create Convertigo archive
 			String projectArchiveFilename = dir + "/" + projectName + ".car";
 			ZipUtils.makeZip(projectArchiveFilename, Engine.PROJECTS_PATH + "/" + projectName, projectName, undeployedFiles);
-		}
-		catch(Exception e) {
+		} catch(Exception e) {
 			throw new EngineException("Unable to make the archive file for the project \"" + projectName + "\".", e);
 		}
 	}
-	
-	private static List<File> getUndeployedFiles(String projectName){
-		Vector<File> undeployedFiles = new Vector<File>();
 
+	private static List<File> getUndeployedFiles(String projectName){
+		List<File> undeployedFiles = new LinkedList<File>();
+		
 		File privateDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/_private");
 		undeployedFiles.add(privateDir);
 		File dataDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/_data");
@@ -117,132 +120,140 @@ public class CarUtils {
 		
 		return undeployedFiles;
 	}
-	
+
 	public static void exportProject(Project project, String fileName) throws EngineException {
-        Document document = exportProject(project);
-        try {
-            FileOutputStream fos = new FileOutputStream(fileName);
-            String s = XMLUtils.prettyPrintDOM(document);
-            fos.write(s.getBytes("ISO-8859-1"));
-            fos.close();
-        }
-        catch(IOException e) {
-            throw new EngineException("Unable to write the exported file for the project \"" + project.getName() + "\".", e);
-        }
-    }
-    
-    private static Document exportProject(Project project) throws EngineException {
-        try {
-            Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
-            
-            ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"ISO-8859-1\"");
-            document.appendChild(pi);
+		Document document = exportProject(project);
+		try {
+			Transformer transformer = TransformerFactory.newInstance().newTransformer();
+			transformer.transform(new DOMSource(document), new StreamResult(new File(fileName)));
+			//            FileOutputStream fos = new FileOutputStream(fileName);
+			//            String s = XMLUtils.prettyPrintDOM(document);
+			//            fos.write(s.getBytes("UTF-8"));
+			//            fos.close();
+			//        } catch(IOException e) {
+			//            throw new EngineException("Unable to write the exported file for the project \"" + project.getName() + "\".", e);
+		} catch (TransformerConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerFactoryConfigurationError e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
-            Element rootElement = document.createElement("convertigo");
-
+	private static Document exportProject(Project project) throws EngineException {
+		try {
+			Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
+			//            ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"");
+			//            document.appendChild(pi);
+			Element rootElement = document.createElement("convertigo");
 			DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT, Locale.getDefault());
 			String exportDate = df.format(Calendar.getInstance().getTime());
-            rootElement.setAttribute("exported", exportDate);
+			rootElement.setAttribute("exported", exportDate);
+			rootElement.setAttribute("version", com.twinsoft.convertigo.engine.Version.fullProductVersion);
+			rootElement.setAttribute("engine", com.twinsoft.convertigo.engine.Version.version);
+			rootElement.setAttribute("beans", com.twinsoft.convertigo.beans.Version.version);
+			String studioVersion = "";
+			try {
+				Class<?> c = Class.forName("com.twinsoft.convertigo.eclipse.Version");
+				studioVersion = (String)c.getDeclaredField("version").get(null);
+			} catch (Exception e) {
+			} catch (Throwable th) {
+			}
+			
+			rootElement.setAttribute("studio", studioVersion);
+			document.appendChild(rootElement);
+			exportDatabaseObject(document, rootElement, project);
+			
+			return document;
+		} catch(Exception e) {
+			throw new EngineException("Unable to export the project \"" + project.getName() + "\".", e);
+		}
+	}
 
-            rootElement.setAttribute("version", com.twinsoft.convertigo.engine.Version.fullProductVersion);
-
-            rootElement.setAttribute("engine", com.twinsoft.convertigo.engine.Version.version);
-            rootElement.setAttribute("beans", com.twinsoft.convertigo.beans.Version.version);
-            
-            String studioVersion = "";
-            try {
-	            Class<?> c = Class.forName("com.twinsoft.convertigo.eclipse.Version");
-	            studioVersion = (String)c.getDeclaredField("version").get(null);
-            }
-            catch (Exception e) {}
-            catch (Throwable th) {}
-            
-            rootElement.setAttribute("studio", studioVersion);
-
-            document.appendChild(rootElement);
-            exportDatabaseObject(document, rootElement, project);
-            
-            return document;
-        }
-        catch(Exception e) {
-            throw new EngineException("Unable to export the project \"" + project.getName() + "\".", e);
-        }
-    }
-    
-    private static void exportDatabaseObject(Document document, Element parentElement, DatabaseObject databaseObject) throws EngineException {
-        Element element = parentElement;
-        element = databaseObject.toXml(document);
-        parentElement.appendChild(element);
-        
-        if (databaseObject instanceof Project) {
-        	Project project = (Project) databaseObject;
-        	
-        	for (Connector connector : project.getConnectorsList()) {
+	private static void exportDatabaseObject(Document document, Element parentElement, DatabaseObject databaseObject) throws EngineException {
+		Element element = parentElement;
+		element = databaseObject.toXml(document);
+		String name =  "(" + databaseObject.getClass().getSimpleName() + ") " + databaseObject.getName();
+		Integer depth = (Integer) document.getUserData("depth");
+		if (depth == null) {
+			depth = 0;
+		}
+		String openpad = StringUtils.repeat("  ", depth);
+		String closepad = StringUtils.repeat("  ", depth);
+		parentElement.appendChild(document.createTextNode("\n"));
+		parentElement.appendChild(document.createComment(StringUtils.rightPad(openpad + "\\ "+ name , 150)));
+		parentElement.appendChild(element);
+		
+		document.setUserData("depth", depth + 1, null);
+		
+		if (databaseObject instanceof Project) {
+			Project project = (Project) databaseObject;
+			
+			for (Connector connector : project.getConnectorsList()) {
 				exportDatabaseObject(document, element, connector);
 			}
 			
-        	for (Sequence sequence : project.getSequencesList()) {
+			for (Sequence sequence : project.getSequencesList()) {
 				exportDatabaseObject(document, element, sequence);
 			}
-        	
-        	for (MobileDevice device : project.getMobileDeviceList()) {
+			
+			for (MobileDevice device : project.getMobileDeviceList()) {
 				exportDatabaseObject(document, element, device);
 			}
-        }
-		else if (databaseObject instanceof Sequence) {
+		} else if (databaseObject instanceof Sequence) {
 			Sequence sequence = (Sequence) databaseObject;
-
-			for (TestCase testCase : sequence.getTestCasesList()) {
-				exportDatabaseObject(document, element, testCase);
-			}
 			
 			for (Step step : sequence.getSteps()) {
 				exportDatabaseObject(document, element, step);
 			}
-
+			
 			for (Sheet sheet : sequence.getSheetsList()) {
 				exportDatabaseObject(document, element, sheet);
 			}
-
+			
 			for (RequestableVariable variable : sequence.getVariablesList()) {
 				exportDatabaseObject(document, element, variable);
 			}
-		}
-		else if (databaseObject instanceof Connector) {
+			
+			for (TestCase testCase : sequence.getTestCasesList()) {
+				exportDatabaseObject(document, element, testCase);
+			}
+		} else if (databaseObject instanceof Connector) {
 			Connector connector = (Connector) databaseObject;
 			
-			for (Transaction transaction : connector.getTransactionsList()) {
-				exportDatabaseObject(document, element, transaction);
-			}
-
-			for (Pool pool : connector.getPoolsList()) {
-				exportDatabaseObject(document, element, pool);
-			}
-
 			if (databaseObject instanceof IScreenClassContainer<?>) {
 				ScreenClass defaultScreenClass = ((IScreenClassContainer<?>) databaseObject).getDefaultScreenClass();
 				if (defaultScreenClass != null) {
 					exportDatabaseObject(document, element, defaultScreenClass);
 				}
-			}			
-		}
-		else if (databaseObject instanceof Transaction) {
-			Transaction transaction = (Transaction) databaseObject;
+			}
 			
-
+			for (Transaction transaction : connector.getTransactionsList()) {
+				exportDatabaseObject(document, element, transaction);
+			}
+			
+			for (Pool pool : connector.getPoolsList()) {
+				exportDatabaseObject(document, element, pool);
+			}
+		} else if (databaseObject instanceof Transaction) {
+			Transaction transaction = (Transaction) databaseObject;
 			for (Sheet sheet : transaction.getSheetsList()) {
 				exportDatabaseObject(document, element, sheet);
 			}
 			
-	        if (transaction instanceof HtmlTransaction) {
-	        	HtmlTransaction htmlTransaction = (HtmlTransaction) transaction;
-	        	
+			if (transaction instanceof HtmlTransaction) {
+				HtmlTransaction htmlTransaction = (HtmlTransaction) transaction;
+				
 				for (Statement statement : htmlTransaction.getStatements()) {
 					exportDatabaseObject(document, element, statement);
 				}
-	        }
-	        
-	        if (databaseObject instanceof TransactionWithVariables) {
+			}
+			
+			if (databaseObject instanceof TransactionWithVariables) {
 				for (TestCase testCase : ((TransactionWithVariables) databaseObject).getTestCasesList()) {
 					exportDatabaseObject(document, element, testCase);
 				}
@@ -250,56 +261,56 @@ public class CarUtils {
 				for (RequestableVariable variable : ((TransactionWithVariables) databaseObject).getVariablesList()) {
 					exportDatabaseObject(document, element, variable);
 				}
-	        }
-		}
-		else if (databaseObject instanceof StatementWithExpressions) {
+			}
+		} else if (databaseObject instanceof StatementWithExpressions) {
 			for (Statement statement : ((StatementWithExpressions) databaseObject).getStatements()) {
 				exportDatabaseObject(document, element, statement);
 			}
-		}
-		else if (databaseObject instanceof HTTPStatement) {
+		} else if (databaseObject instanceof HTTPStatement) {
 			for (HttpStatementVariable variable : ((HTTPStatement) databaseObject).getVariables()) {
 				exportDatabaseObject(document, element, variable);
 			}
-        }
-		else if (databaseObject instanceof StepWithExpressions) {
+		} else if (databaseObject instanceof StepWithExpressions) {
 			for (Step step : ((StepWithExpressions) databaseObject).getSteps()) {
 				exportDatabaseObject(document, element, step);
 			}
-        }
-		else if (databaseObject instanceof RequestableStep) {
+		} else if (databaseObject instanceof RequestableStep) {
 			for (Variable variable : ((RequestableStep) databaseObject).getVariables()) {
 				exportDatabaseObject(document, element, variable);
 			}
-	    }
-		else if (databaseObject instanceof TestCase) {
+		} else if (databaseObject instanceof TestCase) {
 			for (Variable variable : ((TestCase) databaseObject).getVariables()) {
 				exportDatabaseObject(document, element, variable);
 			}
-	    }
-        else if (databaseObject instanceof ScreenClass) {
-        	if (databaseObject instanceof JavelinScreenClass) {
-	            BlockFactory blockFactory = ((JavelinScreenClass) databaseObject).getLocalBlockFactory();
-	            if (blockFactory != null) exportDatabaseObject(document, element, blockFactory);
-        	}
-        	
-            for (Criteria criteria : ((ScreenClass) databaseObject).getLocalCriterias()) {
-                exportDatabaseObject(document, element, criteria);
-            }
-
-            for (ExtractionRule extractionRule : ((ScreenClass) databaseObject).getLocalExtractionRules()) {
-                exportDatabaseObject(document, element, extractionRule);
-            }
-
-            for (Sheet sheet : ((ScreenClass) databaseObject).getLocalSheets()) {
-                exportDatabaseObject(document, element, sheet);
-            }
-
-            for (ScreenClass screenClass : ((ScreenClass) databaseObject).getInheritedScreenClasses()) {
-                exportDatabaseObject(document, element, screenClass);
-            }
-        }
-    }
+		} else if (databaseObject instanceof ScreenClass) {
+			if (databaseObject instanceof JavelinScreenClass) {
+				BlockFactory blockFactory = ((JavelinScreenClass) databaseObject).getLocalBlockFactory();
+				if (blockFactory != null) {
+					exportDatabaseObject(document, element, blockFactory);
+				}
+			}
+			
+			for (Criteria criteria : ((ScreenClass) databaseObject).getLocalCriterias()) {
+				exportDatabaseObject(document, element, criteria);
+			}
+			
+			for (ExtractionRule extractionRule : ((ScreenClass) databaseObject).getLocalExtractionRules()) {
+				exportDatabaseObject(document, element, extractionRule);
+			}
+			
+			for (Sheet sheet : ((ScreenClass) databaseObject).getLocalSheets()) {
+				exportDatabaseObject(document, element, sheet);
+			}
+			
+			for (ScreenClass screenClass : ((ScreenClass) databaseObject).getInheritedScreenClasses()) {
+				exportDatabaseObject(document, element, screenClass);
+			}
+		}
+		
+		element.appendChild(document.createTextNode("\n"));
+		element.appendChild(document.createComment(StringUtils.rightPad(closepad + "/ " + name, 150)));
+		document.setUserData("depth", depth, null);
+	}
 
 	/*
 	 * Returns an ArrayList of abstract pathnames denoting the files and directories
@@ -323,20 +334,22 @@ public class CarUtils {
 		});
 		
 		ArrayList<File> list = null, deep = null;
-		if (files != null)
+		if (files != null) {
 			list = new ArrayList<File>(Arrays.asList(files));
+		}
 		
 		if ((list != null) && (all != null)) {
 			for (int i=0; i<all.length; i++) {
 				f = all[i];
 				if (f.isDirectory() && !list.contains(f)) {
 					deep = deepListFiles(f.getAbsolutePath(), suffix);
-					if (deep != null)
+					if (deep != null) {
 						list.addAll(deep);
+					}
 				}
 			}
 		}
 		
 		return list;
-	}    
+	}
 }
