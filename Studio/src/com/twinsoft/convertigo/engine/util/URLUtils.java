@@ -129,10 +129,10 @@ public class URLUtils {
 		return f;
 	}
 	
-	public static Map<String, String[]> queryToMap(String query) {
+	public static Map<String, String[]> queryToMap(String query, Pattern andPattern, Pattern equalPattern) {
 		Map<String, String[]> parameters = new HashMap<String, String[]>();
-		for (String part : splitAnd.split(query)) {
-			String[] pair = splitEqual.split(part, 2);
+		for (String part : andPattern.split(query)) {
+			String[] pair = equalPattern.split(part, 2);
 			try {
 				String key = URLDecoder.decode(pair[0], "UTF-8");
 				String value = pair.length > 1 ? URLDecoder.decode(pair[1], "UTF-8") : ""; 
@@ -151,7 +151,11 @@ public class URLUtils {
 		return parameters;
 	}
 	
-	public static String mapToQuery(Map<String, String[]> map) {
+	public static Map<String, String[]> queryToMap(String query) {
+		return queryToMap(query, splitAnd, splitEqual);
+	}
+	
+	public static String mapToQuery(Map<String, String[]> map, String andString, String equalString) {
 		StringBuffer sb = new StringBuffer();
 		for (Entry<String, String[]> entry : map.entrySet()) {
 			try {
@@ -159,10 +163,10 @@ public class URLUtils {
 				String[] values = entry.getValue();
 				if (values != null && values.length > 0) {
 					for (String value : values) {
-						sb.append(key).append('=').append(URLEncoder.encode(value, "UTF-8")).append('&');
+						sb.append(key).append(equalString).append(URLEncoder.encode(value, "UTF-8")).append(andString);
 					}
 				} else {
-					sb.append(key).append('&');
+					sb.append(key).append(andString);
 				}
 			} catch (UnsupportedEncodingException e) {
 				Engine.logEngine.info("(URLUtils) mapToQuery failed to encode '" + entry.getKey() +"' = '" + entry.getValue() + "'", e);
@@ -173,6 +177,10 @@ public class URLUtils {
 		} else {
 			return "";
 		}
+	}
+	
+	public static String mapToQuery(Map<String, String[]> map) {
+		return mapToQuery(map, "&", "=");
 	}
 	
 	public static String getSchemeAndHost(String url) {
