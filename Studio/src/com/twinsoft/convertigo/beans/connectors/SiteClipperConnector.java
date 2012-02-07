@@ -146,6 +146,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		// PATTERN only used by Shuttle
 		private final static Pattern variables_pattern = Pattern.compile("\\$(" + StringUtils.join(DynamicVariable.values(), '|') + ")\\$");		
 		private final static Pattern charset_pattern = Pattern.compile("(.*?)( ?; ?charset=(.*)|$)", Pattern.CASE_INSENSITIVE);
+		private final static Pattern and_pattern = Pattern.compile(",");
+		private final static Pattern equal_pattern = Pattern.compile("=");
 		
 		private final Map<String, String> requestCustomHeaders = new CaseInsensitiveLinkedMap<String>();
 		private final Map<String, String> responseCustomHeaders = new CaseInsensitiveLinkedMap<String>();
@@ -197,7 +199,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				String siteclipperQuery = getRequest(QueryPart.siteclipperQuery);
 				Engine.logSiteClipper.trace("(SiteClipperConnector) find siteclipperQuery : " + siteclipperQuery);
 				
-				parameters = Collections.unmodifiableMap(GenericUtils.uniqueMap(URLUtils.queryToMap(siteclipperQuery)));
+				parameters = Collections.unmodifiableMap(GenericUtils.uniqueMap(URLUtils.queryToMap(siteclipperQuery, and_pattern, equal_pattern)));
 				
 				String connectorName = getRequest(QueryKey.connector);
 				Engine.logSiteClipper.debug("(SiteClipperConnector) find connectorName : " + connectorName);
@@ -270,6 +272,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			String part = queryPart.value(url_matcher);
 			if (part == null) {
 				part = "";
+			} else if (queryPart.equals(QueryPart.port)) {
+				part = part.replace(',', ':');
 			}
 			return part;
 		}
@@ -474,10 +478,10 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		
 		public String makeAbsoluteURL(String url, boolean withHost) {
 			if (url != null && url.length() != 0) {
-				Matcher matcher_scheme = url_scheme.matcher(url);
-				if (matcher_scheme.find()) {
+				Matcher scheme_host_matcher = scheme_host_pattern.matcher(url);
+				if (scheme_host_matcher.find()) {
 					// url of type scheme://url is replaced by ...siteclipper/scheme/url
-					url = getRequest(QueryPart.full_siteclipper_path) + '/' + matcher_scheme.replaceFirst("/");
+					url = getRequest(QueryPart.full_siteclipper_path) + '/' + SchemeHost.convert(scheme_host_matcher);
 				} else if (url.startsWith("/")) {
 					// url of type /uri is replaced by ...siteclipper/current_scheme/current_host/uri
 					url = getRequest(DynamicVariable.host_path) + url;
@@ -535,10 +539,10 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	// END OF Shuttle START OF SiteClipperConnector
 	
 	/**
-	 * /convertigo/projects/my_project/connector=my_connector&context=my_context.siteclipper/http/remote_host:18080/remote_path/remote_resource
-	 * 1 : /convertigo/projects/my_project/connector=my_connector&context=my_context.siteclipper/http/remote_host:18080
+	 * /convertigo/projects/my_project/connector=my_connector&context=my_context.siteclipper/http/remote_host,18080/remote_path/remote_resource
+	 * 1 : /convertigo/projects/my_project/connector=my_connector&context=my_context.siteclipper/http/remote_host,18080
 	 * 2 : /convertigo/projects/my_project/connector=my_connector&context=my_context.siteclipper | 3 : /convertigo/projects/my_project | 4 : /convertigo
-	 * 5 : my_project   | 6 : connector=my_connector&context=my_context   | 7 : http   | 8 : remote_host   | 9 : :18080   | 10 : 18080   | 11 : /remote_path/remote_resource
+	 * 5 : my_project   | 6 : connector=my_connector&context=my_context   | 7 : http   | 8 : remote_host   | 9 : ,18080   | 10 : 18080   | 11 : /remote_path/remote_resource
 	*/
 	private enum QueryPart {
 		full_host_path(1),
@@ -563,6 +567,37 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			return url_matcher.group(order);
 		}
 	}
+	
+	private enum SchemeHost {
+		scheme(1),
+		host(2),
+		port(3),
+		uri(4);
+		
+		int order;
+		
+		SchemeHost(int order) {
+			this.order = order;
+		}
+		
+		String value(Matcher scheme_host_matcher) {
+			return scheme_host_matcher.group(order);
+		}
+
+		static String convert(Matcher scheme_host_matcher) {
+			String port = SchemeHost.port.value(scheme_host_matcher);
+			port = port == null ? "" : "," + port;
+			return SchemeHost.scheme.value(scheme_host_matcher) + "/" + SchemeHost.host.value(scheme_host_matcher) + port + SchemeHost.uri.value(scheme_host_matcher);
+		}
+		
+		static String convert(String targetURL) {
+			Matcher scheme_host_matcher = scheme_host_pattern.matcher(targetURL);
+			if (scheme_host_matcher.matches()) {
+				return convert(scheme_host_matcher);
+			}
+			return targetURL;
+		}
+	}
 
 	public enum Scheme {
 		http,
@@ -574,8 +609,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		response;
 	}
 	
-	private final static Pattern url_pattern = Pattern.compile("((((.*?)/projects/(.*?))/(.*?)\\.siteclipper)/(.*?)/(.*?)(:([\\d]*))?)($|/.*)");
-	private final static Pattern url_scheme = Pattern.compile("://");
+	private final static Pattern url_pattern = Pattern.compile("((((.*?)/projects/(.*?))/(.*?)\\.siteclipper)/(.*?)/(.*?)(,([\\d]*))?)($|/.*)");
+	private final static Pattern scheme_host_pattern = Pattern.compile("(.*?)://(.*?)(?::([\\d]*))?(/.*)");
 	private final static Pattern url_tail = Pattern.compile("(.*)/.*?$");
 
 	// Use of HashSet to speedup Collection.contains because hash checking seams speeder than list walking
@@ -624,7 +659,9 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		String requestURL = HttpUtils.originalRequestURL(context.httpServletRequest);
 		Engine.logSiteClipper.debug("(SiteClipperConnector) Retrieve requestURL to modify : " + requestURL);
 		
-		String tail_url = URLUtils.mapToQuery(query) + ".siteclipper/" + url_scheme.matcher(targetURL).replaceFirst("/");
+		targetURL = SchemeHost.convert(targetURL);
+		
+		String tail_url = URLUtils.mapToQuery(query, ",", "=") + ".siteclipper/" + targetURL;
 		Matcher matcher_tail = url_tail.matcher(requestURL);
 		if (matcher_tail.matches()) {
 			requestURL = matcher_tail.group(1);
