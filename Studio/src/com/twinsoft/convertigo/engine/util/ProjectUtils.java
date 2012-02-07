@@ -33,9 +33,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +55,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -639,29 +638,25 @@ public class ProjectUtils {
     	}
 	}
 	
-	public static void renameStepsInXsd(String projectsDir, String projectName, Hashtable<String, Step> pastedSteps) throws Exception {
+	public static void renameStepsInXsd(String projectsDir, String projectName, Map<String, Step> pastedSteps) throws Exception {
 		String xsdURI = projectsDir + "/" + projectName + "/" + projectName + ".xsd";
 		File file = new File(xsdURI);
 		if (file.exists()) {
-			String oldPriority, newPriority;
-			Enumeration<String> e = pastedSteps.keys();
-			if (!e.hasMoreElements())
+			if (pastedSteps.size() == 0) {
 				return;
+			}
 			
 			String line;
 			StringBuffer sb = new StringBuffer();
 			BufferedReader br = new BufferedReader(new FileReader(xsdURI));
 			while((line = br.readLine()) != null) {
-				e = pastedSteps.keys();
-				while (e.hasMoreElements()) {
+				for (String oldPriority : pastedSteps.keySet()) {
 					try {
-						oldPriority = e.nextElement();
-						newPriority = String.valueOf(pastedSteps.get(oldPriority).priority);
-						if (line.indexOf("step"+oldPriority+"Type") != -1) {
-							line = line.replaceAll("step"+oldPriority+"Type", "step"+newPriority+"Type");
+						String newPriority = String.valueOf(pastedSteps.get(oldPriority).priority);
+						if (line.indexOf("step" + oldPriority + "Type") != -1) {
+							line = line.replaceAll("step" + oldPriority + "Type", "step" + newPriority + "Type");
 						}
-					}
-					catch (Exception e2){
+					} catch (Exception e2){
 						Engine.logEngine.error("Unexpected exception", e2);
 					}
 				}
@@ -825,70 +820,52 @@ public class ProjectUtils {
 		line = line.replaceAll("definitions name=\""+sourceProjectName+"\"", "definitions name=\""+targetProjectName+"\"");
 		line = line.replaceAll("service name=\""+sourceProjectName+"\"", "service name=\""+targetProjectName+"\"");
 		return line;
-	}
+	}	
 	
-	
-	public static void getFullProjectDOM(Document document,String projectName) throws TransformerFactoryConfigurationError, EngineException, TransformerException{
-		getFullProjectDOM(document,projectName,false, false, false,false,false) ;			
-	}
-	
-	public static void getFullProjectDOM(Document document,String projectName,StreamSource xslFilter) throws TransformerFactoryConfigurationError, EngineException, TransformerException{
-		getFullProjectDOM(document,projectName,false, false, false,false,false,xslFilter) ;			
-	}
-		
-	
-	public static void getFullProjectDOM(Document document,String projectName,boolean bIncludeDisplayName, boolean bIncludeCompiledValue, boolean bIncludeShortDescription,boolean bIncludeEditorClass,boolean bIncludeBlackListedElements,StreamSource xslFilter) throws TransformerFactoryConfigurationError, EngineException, TransformerException{
+	public static void getFullProjectDOM(Document document,String projectName, StreamSource xslFilter) throws TransformerFactoryConfigurationError, EngineException, TransformerException{
 		Element root = document.getDocumentElement();
-		getFullProjectDOM(document,projectName,bIncludeDisplayName, bIncludeCompiledValue, bIncludeShortDescription,bIncludeEditorClass,bIncludeBlackListedElements);
+		getFullProjectDOM(document,projectName);
 		
 		// transformation du dom
 		Transformer xslt = TransformerFactory.newInstance().newTransformer(xslFilter);				
 		Element xsl = document.createElement("xsl");
 		xslt.transform(new DOMSource(document), new DOMResult(xsl));
 		root.replaceChild(xsl.getFirstChild(), root.getFirstChild());
-		
 	}
 	
-	public static void getFullProjectDOM(Document document,String projectName,boolean bIncludeDisplayName, boolean bIncludeCompiledValue, boolean bIncludeShortDescription,boolean bIncludeEditorClass,boolean bIncludeBlackListedElements) throws TransformerFactoryConfigurationError, EngineException, TransformerException{
+	public static void getFullProjectDOM(Document document, String projectName, ExportOption... exportOptions) throws TransformerFactoryConfigurationError, EngineException, TransformerException{
 		Element root = document.getDocumentElement();
 				
 		Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-		Element projectTag = project.toXml(document);
+		Element projectTag = project.toXml(document, exportOptions);
 		projectTag.setAttribute("qname", project.getQName());
 		root.appendChild(projectTag);
 
-		constructDom(document, projectTag, project, bIncludeDisplayName,  bIncludeCompiledValue, bIncludeShortDescription,bIncludeEditorClass,bIncludeBlackListedElements);		
-		
+		constructDom(document, projectTag, project);
 	}
 	
 	
 	
-	private static void constructDom(Document document, Element root, DatabaseObject father,boolean bIncludeDisplayName, boolean bIncludeCompiledValue, boolean bIncludeShortDescription, boolean bIncludeEditorClass, boolean bIncludeBlackListedElements) throws EngineException {
-		
+	private static void constructDom(Document document, Element root, DatabaseObject father, ExportOption... exportOptions) throws EngineException {		
 		if (father instanceof HtmlTransaction) {
 			Collection<Statement> statements = ((HtmlTransaction) father).getStatements();
-			addElement(statements, document, root, bIncludeDisplayName, bIncludeCompiledValue,  bIncludeShortDescription, bIncludeEditorClass, bIncludeBlackListedElements);			
+			addElement(statements, document, root, exportOptions);			
 		} else {
 			if (father instanceof StatementWithExpressions) {
 				Collection<Statement> statements = ((StatementWithExpressions) father).getStatements();
-				addElement(statements, document, root,bIncludeDisplayName, bIncludeCompiledValue, bIncludeShortDescription, bIncludeEditorClass, bIncludeBlackListedElements);
+				addElement(statements, document, root, exportOptions);
 			} 
 		}
 		List<DatabaseObject> dbos = father.getAllChildren();
-		addElement(dbos, document, root,bIncludeDisplayName,bIncludeCompiledValue,bIncludeShortDescription,bIncludeEditorClass, bIncludeBlackListedElements);
-		
-		
+		addElement(dbos, document, root, exportOptions);
 	}
 
-	private static <E extends DatabaseObject> void addElement(Collection<E> collection,
-			Document document, Element root,boolean bIncludeDisplayName, boolean bIncludeCompiledValue, boolean bIncludeShortDescription, boolean bIncludeEditorClass, boolean bIncludeBlackListedElements) throws EngineException {
+	private static <E extends DatabaseObject> void addElement(Collection<E> collection, Document document, Element root, ExportOption... exportOptions) throws EngineException {
 		for (E dbo : collection) {
-			Element tag = dbo.toXml(document,bIncludeDisplayName,bIncludeCompiledValue,bIncludeShortDescription,bIncludeEditorClass,bIncludeBlackListedElements);
+			Element tag = dbo.toXml(document, exportOptions);
 			tag.setAttribute("qname", dbo.getQName());
 			root.appendChild(tag);
-			constructDom(document, tag, dbo,bIncludeDisplayName, bIncludeCompiledValue, bIncludeShortDescription,bIncludeEditorClass,bIncludeBlackListedElements);
+			constructDom(document, tag, dbo, exportOptions);
 		}
-
 	}
-	
 }

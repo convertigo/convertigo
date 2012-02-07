@@ -50,6 +50,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.engine.print.PrintStatus;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -57,9 +58,8 @@ import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 
-
 public abstract class ConvertigoPrint {
-	
+
 	protected String outputMime;
 	protected String projectName;
 	protected String extension;
@@ -70,93 +70,89 @@ public abstract class ConvertigoPrint {
 	protected String outputFolder;
 	protected PrintStatus status=null;
 	private String product="";
-	
-	
-	public ConvertigoPrint(String projectName){
-		this.projectName=projectName;
+
+
+	public ConvertigoPrint(String projectName) {
+		this.projectName = projectName;
 	}
-	
-	public ConvertigoPrint(String projectName,PrintStatus status){
+
+	public ConvertigoPrint(String projectName, PrintStatus status) {
 		this(projectName);
-		this.status=status;
+		this.status = status;
 	}
-	
-		
-	protected void updateStatus(String message,int value){
-		if(status!=null){
+
+
+	protected void updateStatus(String message, int value) {
+		if (status != null) {
 			status.set(value, message);
 		}
 	}
-	
-	protected void updateStatus(int value){
-		if(status!=null){
+
+	protected void updateStatus(int value) {
+		if (status!=null) {
 			status.setStatus(value);
 		}
 	}
-	
-	public void setProduct(String product){
-		this.product=product;
+
+	public void setProduct(String product) {
+		this.product = product;
 	}
-	
-	public String print(String location) throws IOException, EngineException, SAXException, TransformerConfigurationException, TransformerFactoryConfigurationError, TransformerException, ParserConfigurationException{				
-		
+
+	public String print(String location) throws IOException, EngineException, SAXException, TransformerConfigurationException, TransformerFactoryConfigurationError, TransformerException, ParserConfigurationException {
 		try {	
-			
-			//create the result repository					
-			outputFolder=location+"/ConvertigoPrint";
-			File repository=new File(outputFolder);
-			if(!repository.exists()){
+			//create the result repository
+			outputFolder = location + "/ConvertigoPrint";
+			File repository = new File(outputFolder);
+			if (!repository.exists()) {
 				repository.mkdir();
-			}	
+			}
 			
-			outputFileName = outputFolder
-			+ "\\" + projectName + extension;			
-			outputFile = new File(outputFileName);	
-			
+			outputFileName = outputFolder + "\\" + projectName + extension;
+			outputFile = new File(outputFileName);
 			updateStatus("Setting up printing",20);
 			
 			// Construct/Configure a FopFactory
 			FopFactory fopFactory = FopFactory.newInstance();
-			fopFactory.setBaseURL(Engine.TEMPLATES_PATH+"/doc/");					
-			fopFactory.setStrictValidation(false);				
-										
-        	// Configure foUserAgent as desired
-        	FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
-        	foUserAgent.setBaseURL(Engine.TEMPLATES_PATH + "/doc/");		   
-        	foUserAgent.setAuthor("Convertigo EMS");
-        		        					
+			fopFactory.setBaseURL(Engine.TEMPLATES_PATH + "/doc/");
+			fopFactory.setStrictValidation(false);
+			
+			// Configure foUserAgent as desired
+			FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
+			foUserAgent.setBaseURL(Engine.TEMPLATES_PATH + "/doc/");
+			foUserAgent.setAuthor("Convertigo EMS");
+			
 			// Setup output
 			out = new FileOutputStream(outputFile);
 			out = new java.io.BufferedOutputStream(out);
-
+			
 			// Construct fop with desired output format
-			Fop fop = fopFactory.newFop(outputMime, foUserAgent, out);							
+			Fop fop = fopFactory.newFop(outputMime, foUserAgent, out);
 			
 			updateStatus("Analysing project",40);
 			
 			//Transform the project into a source
-			Document document=XMLUtils.createDom("java");				
-			Element convertigoElement = document.createElement("convertigo");			
-			convertigoElement.setAttribute("exported", new Date().toString());				
-			convertigoElement.setAttribute("studio",  product);
+			Document document = XMLUtils.createDom("java");
+			Element convertigoElement = document.createElement("convertigo");
+			convertigoElement.setAttribute("exported", new Date().toString());
+			convertigoElement.setAttribute("studio", product);
 			convertigoElement.setAttribute("engine", com.twinsoft.convertigo.engine.Version.version);
-			convertigoElement.setAttribute("beans", com.twinsoft.convertigo.beans.Version.version);					
+			convertigoElement.setAttribute("beans", com.twinsoft.convertigo.beans.Version.version);
 			//work around to let the external-graphics tag to read relative path
 			//TODO configure fopFactory or/and foUserAgent
-			convertigoElement.setAttribute("path", Engine.TEMPLATES_PATH+"/doc/");	
-		    document.appendChild(convertigoElement); 				
-		    ProjectUtils.getFullProjectDOM(document, projectName,true,true,false,false,false);
-		    Source src=new DOMSource(document);		
-		    
-		    updateStatus("Printing in progress",60);
-						
+			convertigoElement.setAttribute("path", Engine.TEMPLATES_PATH+"/doc/");
+			document.appendChild(convertigoElement);
+			ProjectUtils.getFullProjectDOM(document, projectName, ExportOption.bIncludeDisplayName, ExportOption.bIncludeCompiledValue);
+			Source src=new DOMSource(document);
+			
+			updateStatus("Printing in progress",60);
+			
 			// Setup XSLT
 			String templateFileName = Engine.TEMPLATES_PATH + "/doc/doc.fo.xml";
-			File foFile = new File(templateFileName);				
+			File foFile = new File(templateFileName);
 			localizedDir = Engine.TEMPLATES_PATH+ "/doc/";
-			Source xsltSrc = new StreamSource(new FileInputStream(foFile), localizedDir);			
+			Source xsltSrc = new StreamSource(new FileInputStream(foFile), localizedDir);
 			TransformerFactory transformerFactory = TransformerFactory.newInstance();
-			Transformer transformer = transformerFactory.newTransformer(xsltSrc);		
+			Transformer transformer = transformerFactory.newTransformer(xsltSrc);
 			
 			updateStatus(70);
 			
@@ -165,15 +161,13 @@ public abstract class ConvertigoPrint {
 			Result res = new SAXResult(fopHandler);
 			
 			// Start XSLT transformation and FOP processing
-			transformer.transform(src,res);	
-			
-			
-		
+			transformer.transform(src,res);
 			
 			return outputFileName;		
 		} finally {							
-			if (out != null)
+			if (out != null) {
 				out.close();
+			}
 		}		
 	}
 }
