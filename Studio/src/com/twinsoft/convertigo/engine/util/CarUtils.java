@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.engine.util;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,13 +35,11 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -125,22 +125,21 @@ public class CarUtils {
 		Document document = exportProject(project);
 		try {
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
-			transformer.transform(new DOMSource(document), new StreamResult(new File(fileName)));
-			//            FileOutputStream fos = new FileOutputStream(fileName);
-			//            String s = XMLUtils.prettyPrintDOM(document);
-			//            fos.write(s.getBytes("UTF-8"));
-			//            fos.close();
-			//        } catch(IOException e) {
-			//            throw new EngineException("Unable to write the exported file for the project \"" + project.getName() + "\".", e);
-		} catch (TransformerConfigurationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (TransformerFactoryConfigurationError e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
+			boolean isCR = System.getProperty("line.separator").contains("\\r");
+			
+			Writer writer = isCR ? new StringWriter() : new FileWriterWithEncoding(fileName, "UTF-8");
+			transformer.transform(new DOMSource(document), new StreamResult(writer));
+			
+			if (isCR) {
+				String content = writer.toString().replaceAll("\\r\\n", "\\n");
+				writer = new FileWriterWithEncoding(fileName, "UTF-8");
+				writer.write(content);
+			}
+			
+			writer.close();
+		} catch (Exception e) {
+			throw new EngineException("(CarUtils) exportProject failed", e);
 		}
 	}
 
