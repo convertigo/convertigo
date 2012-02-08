@@ -126,7 +126,7 @@ public class CarUtils {
 		try {
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			
-			boolean isCR = System.getProperty("line.separator").contains("\\r");
+			boolean isCR = System.getProperty("line.separator").contains("\r");
 			
 			Writer writer = isCR ? new StringWriter() : new FileWriterWithEncoding(fileName, "UTF-8");
 			transformer.transform(new DOMSource(document), new StreamResult(writer));
