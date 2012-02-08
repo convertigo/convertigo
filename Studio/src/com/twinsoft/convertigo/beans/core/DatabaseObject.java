@@ -430,8 +430,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 					if (newDatabaseObjectName.equals(databaseObject.getName())) {
 						throw new ObjectWithSameNameException("Unable to add the object \"" + newDatabaseObjectName + "\" because an object with the same name already exists.");
 					}
-					bContinue = false;
 				}
+				bContinue = false;
 			} catch (ObjectWithSameNameException e) {
 				index++;
 			}
