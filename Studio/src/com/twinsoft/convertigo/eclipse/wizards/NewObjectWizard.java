@@ -218,7 +218,7 @@ public class NewObjectWizard extends Wizard {
 	}
 	
 	public boolean canFinish() {
-		return getContainer().getCurrentPage().getNextPage() == null;
+		return (getContainer().getCurrentPage().getNextPage() == null && getContainer().getCurrentPage().isPageComplete());
 	}
 
 	public boolean performFinish() {
@@ -456,5 +456,4 @@ public class NewObjectWizard extends Wizard {
 			siteClipperConnector.setDefaultTransaction(transaction);
 		}
     }
-
 }
