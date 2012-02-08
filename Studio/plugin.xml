@@ -1337,34 +1337,75 @@
                label="Statement"
                menubarPath="convertigo.menu.new/content"/>
       </objectContribution>
-            <objectContribution
-                  id="convertigo.statementContribution"
+		<objectContribution
+		      id="convertigo.statementContribution"
+		      objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject">
+		   <action
+		         class="com.twinsoft.convertigo.eclipse.popup.actions.EnableStatementAction"
+		         enablesFor="+"
+		         id="convertigo.action.enableStatement"
+		         label="Enable"
+		         menubarPath="enable">
+		      <enablement>
+		         <objectState
+		               name="isEnable"
+		               value="false"/>
+		      </enablement>
+		   </action>
+		   <action
+		         class="com.twinsoft.convertigo.eclipse.popup.actions.DisableStatementAction"
+		         enablesFor="+"
+		         id="convertigo.action.disableStatement"
+		         label="Disable"
+		         menubarPath="enable">
+		      <enablement>
+		         <objectState
+		               name="isEnable"
+		               value="true"/>
+		      </enablement>
+		   </action>
+		</objectContribution>
+		<objectContribution
+                  id="convertigo.statementChangeToContribution"
                   objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject">
+               <visibility>
+                  <objectState
+                        name="canChangeTo"
+                        value="true">
+                  </objectState>
+               </visibility>
+               <menu
+                     id="convertigo.menu.statement.changeTo"
+                     label="Change to"
+                     path="changeTo">
+               </menu>
                <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.EnableStatementAction"
-                     enablesFor="+"
-                     id="convertigo.action.enableStatement"
-                     label="Enable"
-                     menubarPath="enable">
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfStatementAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIf"
+                     label="If"
+                     menubarPath="convertigo.menu.statement.changeTo/content">
                   <enablement>
                      <objectState
-                           name="isEnable"
-                           value="false"/>
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.statements.IfThenElseStatement">
+                     </objectState>
                   </enablement>
                </action>
                <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.DisableStatementAction"
-                     enablesFor="+"
-                     id="convertigo.action.disableStatement"
-                     label="Disable"
-                     menubarPath="enable">
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfThenElseStatementAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIfThenElse"
+                     label="IfThenElse"
+                     menubarPath="convertigo.menu.statement.changeTo/content">
                   <enablement>
                      <objectState
-                           name="isEnable"
-                           value="true"/>
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.statements.IfStatement">
+                     </objectState>
                   </enablement>
                </action>
-            </objectContribution>
+    		</objectContribution>
       <objectContribution
             id="convertigo.statementWEContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject">
@@ -1931,7 +1972,7 @@
                      id="convertigo.menu.step.changeTo"
                      label="Change to"
                      path="changeTo">
-               </menu>
+               </menu> 
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfStepAction"
                      enablesFor="1"

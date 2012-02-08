@@ -64,8 +64,10 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
+import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
+import com.twinsoft.convertigo.beans.statements.ThenStatement;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
@@ -678,14 +680,21 @@ public class ClipboardManager2 {
 				throw new EngineException(message);
 			}
 		}
-		if (object instanceof Step) {
-			if (object instanceof ThenStep) {
-				throw new EngineException("You cannot cut the \"Then\" step");
-			}
-			if (object instanceof ElseStep) {
-				throw new EngineException("You cannot cut the \"Else\" step");
-			}
-		}
+
+        if (object instanceof Step) {
+        	if (object instanceof ThenStep)
+        		throw new EngineException("You cannot cut the \"Then\" step");
+        	if (object instanceof ElseStep)
+        		throw new EngineException("You cannot cut the \"Else\" step");
+        }
+        
+        if (object instanceof Statement) {
+        	if (object instanceof ThenStatement)
+        		throw new EngineException("You cannot cut the \"Then\" statement");
+        	if (object instanceof ElseStatement)
+        		throw new EngineException("You cannot cut the \"Else\" statement");
+        }
+        
 		// Verifying if a child object with same name exist
 		List<? extends DatabaseObject> lDatabaseObjects = null;
 		if (parentDatabaseObject instanceof Project) {
