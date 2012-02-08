@@ -39,6 +39,8 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.statements.ElseStatement;
+import com.twinsoft.convertigo.beans.statements.ThenStatement;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
@@ -326,6 +328,12 @@ public class ClipboardAction extends MyAbstractAction {
 					return null;
 				// Can not paste a ElseStep
 				if (ob instanceof ElseStep)
+					return null;
+				// Can not paste a ThenStatement
+				if (ob instanceof ThenStatement)
+					return null;
+				// Can not paste a ElseStatement
+				if (ob instanceof ElseStatement)
 					return null;
 				// Special case of XMLElementStep
 				if (targetObject instanceof XMLElementStep) {

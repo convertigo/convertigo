@@ -59,7 +59,10 @@ import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass;
 import com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement;
+import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
+import com.twinsoft.convertigo.beans.statements.IThenElseStatementContainer;
+import com.twinsoft.convertigo.beans.statements.ThenStatement;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
@@ -308,6 +311,14 @@ public class NewObjectWizard extends Wizard {
 							
 							ElseStep elseStep = new ElseStep();
 							((IThenElseContainer)newBean).addStep(elseStep);
+						}						
+						
+						if (newBean instanceof IThenElseStatementContainer) {
+							ThenStatement thenStatement = new ThenStatement();
+							((IThenElseStatementContainer)newBean).addStatement(thenStatement);
+							
+							ElseStatement elseStatement = new ElseStatement();
+							((IThenElseStatementContainer)newBean).addStatement(elseStatement);
 						}
 						
 						if (newBean instanceof Sheet) {

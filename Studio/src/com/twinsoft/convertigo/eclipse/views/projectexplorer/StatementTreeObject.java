@@ -41,6 +41,8 @@ import com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
+import com.twinsoft.convertigo.beans.statements.IfStatement;
+import com.twinsoft.convertigo.beans.statements.IfThenElseStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.SimpleStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -236,6 +238,11 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 		if (name.equals("isHttpStatement")) {
 			Boolean bool = Boolean.valueOf(value);
 			return bool.equals(Boolean.valueOf(getObject() instanceof HTTPStatement));
+		}
+		if (name.equals("canChangeTo")) {
+			Boolean bool = Boolean.valueOf(value);
+			return 	bool.equals(Boolean.valueOf(getObject() instanceof IfStatement)) ||
+					bool.equals(Boolean.valueOf(getObject() instanceof IfThenElseStatement));
 		}
 		return super.testAttribute(target, name, value);
 	}
