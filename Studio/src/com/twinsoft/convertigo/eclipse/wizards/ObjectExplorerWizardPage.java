@@ -42,10 +42,8 @@ import com.twinsoft.convertigo.beans.common.XPath;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.extractionrules.HtmlExtractionRule;
-import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.XpathableStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class ObjectExplorerWizardPage extends WizardPage {
 	private Class<DatabaseObject> beanClass = null;
@@ -185,9 +183,6 @@ public class ObjectExplorerWizardPage extends WizardPage {
 		if (newBean != null) {
 			try {
 				String name = newBean.getName();
-				if (!(newBean instanceof HandlerStatement))
-					name = "New " + name;
-				name = StringUtils.normalize(name);
 				((ObjectInfoWizardPage)getWizard().getPage("ObjectInfoWizardPage")).setBeanName(name);
 			} catch (Exception e) {}
 		}
