@@ -158,7 +158,8 @@ C8O = {
 		hooks : {},
 		last_call_params : {},
 		navigation_var_actions : ["backward", "forward", "stop", "refresh"],
-		recall_params : {__context : "", __connector : ""}
+		recall_params : {__context : "", __connector : ""},
+		re_plus : new RegExp("\\+", "g")
 	},
 	
 	_addField : function (params, twsid, value) {
@@ -401,12 +402,16 @@ C8O = {
 				key = (id > 0)?vars[i].substring(0, id):vars[i];
 				value = "";
 				if (id > 0) {
-					try {
-						value = decodeURIComponent(vars[i].substring(id + 1));
-					}catch (err1) {
+					value = vars[i].substring(id + 1);
+					if (value.length) {
+						value = value.replace(C8O._define.re_plus, " ");
 						try {
-							value = unescape(vars[i].substring(id + 1));
-						}catch (err2) {}
+							value = decodeURIComponent(value);
+						} catch (err1) {
+							try {
+								value = unescape(value);
+							} catch (err2) {}
+						}
 					}
 				}
 				if (C8O.isUndefined(data[key])) {
