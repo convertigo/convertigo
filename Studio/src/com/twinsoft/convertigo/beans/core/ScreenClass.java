@@ -196,7 +196,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer {
     
     public List<Criteria> getLocalCriterias() {
     	checkSubLoaded();
-        return GenericUtils.clone(vCriterias);
+        return sort(vCriterias);
     }
     
     public List<Criteria> getUnsortedCriterias() {
@@ -324,7 +324,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer {
     
     public List<ExtractionRule> getLocalExtractionRules() {
     	checkSubLoaded();
-        return GenericUtils.clone(vExtractionRules);
+        return sort(vExtractionRules);
     }
     
     public List<ExtractionRule> getUnsortedExtractionRules() {
@@ -440,7 +440,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer {
     
     public List<Sheet> getLocalSheets() {
     	checkSubLoaded();
-    	return GenericUtils.clone(vSheets);
+    	return sort(vSheets);
     }
     
     public List<Sheet> getSheets() {
