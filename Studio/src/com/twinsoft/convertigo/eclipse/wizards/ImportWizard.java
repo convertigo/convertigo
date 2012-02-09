@@ -22,29 +22,21 @@
 
 package com.twinsoft.convertigo.eclipse.wizards;
 
-import java.io.File;
-
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.IImportWizard;
 import org.eclipse.ui.IWorkbench;
 
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
-import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class ImportWizard extends Wizard implements IImportWizard {
-	
+
 	private IStructuredSelection selection;
 	private ImportWizardPage fileChooserPage;
 	private ImportWizardPage1 projectNameChooserPage;
-	
+
 	public ImportWizard() {
 		super();
 	}
@@ -53,66 +45,20 @@ public class ImportWizard extends Wizard implements IImportWizard {
 	 * @see org.eclipse.jface.wizard.Wizard#performFinish()
 	 */
 	public boolean performFinish() {
-		TreeObject projectRootObject = null;
 		ProjectExplorerView explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		String filePath = fileChooserPage.getFilePath();
 		try {
 			if (explorerView != null) {
-		    	if (filePath != null) {
-		            String choosenFilePath = filePath;
-		            String targetProjectName = getTargetProjectName();
-					if (targetProjectName != null) {
-						projectRootObject = explorerView.getProjectRootObject(targetProjectName);
-						
-						// if project already exists, backup it and delete it after
-						if (projectRootObject != null) {
-							if (choosenFilePath.endsWith(".xml")) {
-								DatabaseObjectsManager.deleteDir(new File(Engine.PROJECTS_PATH  + "/" + targetProjectName + "/_data"));
-								DatabaseObjectsManager.deleteDir(new File(Engine.PROJECTS_PATH  + "/" + targetProjectName + "/_private"));
-							}
-							// delete project resource (but not content)
-							ConvertigoPlugin.getDefault().deleteProjectPluginResource(false,targetProjectName);
-						}
-					}
-					
-		            ConvertigoPlugin.logInfo("Import project from file \"" + choosenFilePath + "\"");
-		            
-		            Project importedProject = null;
-		            if (choosenFilePath.endsWith(".xml")) {
-		            	importedProject = Engine.theApp.databaseObjectsManager.importProject(choosenFilePath);
-		            }
-		            else if (choosenFilePath.endsWith(".car") && (targetProjectName != null)) {
-		            	importedProject = Engine.theApp.databaseObjectsManager.deployProject(choosenFilePath, targetProjectName, true);
-		            }
-		            
-		            if (importedProject != null) {
-		            	// project's name may have been changed because of non-normalized name (fix ticket #788 : Can not import project 213.car)
-		            	targetProjectName = importedProject.getName();
-		            	
-		            	TreeViewer viewer = explorerView.viewer;
-		            	ViewContentProvider viewContentProvider = (ViewContentProvider) viewer.getContentProvider();
-		            	
-		            	// loads project into tree view
-		    			if (projectRootObject == null)
-		    				explorerView.importProjectTreeObject(targetProjectName);
-		    			else {
-							// recreate project resource
-							ConvertigoPlugin.getDefault().getProjectPluginResource(targetProjectName);
-		    				viewContentProvider.reloadProject(projectRootObject);
-		    			}
-		    			
-		    			viewer.refresh();
-		    			return true;
-		            }
-		    	}
+				if (filePath != null) {
+					return explorerView.importProject(filePath, getTargetProjectName());
+				}
 			}
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to import project !");
 		}
-        catch (Exception e) {
-        	ConvertigoPlugin.logException(e, "Unable to import project !");
-        }
-        return false;
+		return false;
 	}
-	 
+
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.IWorkbenchWizard#init(org.eclipse.ui.IWorkbench, org.eclipse.jface.viewers.IStructuredSelection)
 	 */
@@ -121,18 +67,18 @@ public class ImportWizard extends Wizard implements IImportWizard {
 		setNeedsProgressMonitor(true);
 		this.selection = selection;
 	}
-	
+
 	/* (non-Javadoc)
-     * @see org.eclipse.jface.wizard.IWizard#addPages()
-     */
+	 * @see org.eclipse.jface.wizard.IWizard#addPages()
+	 */
 	@Override
-    public void addPages() {
+	public void addPages() {
 		fileChooserPage = new ImportWizardPage();
-        addPage(fileChooserPage);
-        
+		addPage(fileChooserPage);
+		
 		projectNameChooserPage = new ImportWizardPage1(selection);
-        addPage(projectNameChooserPage);
-    }
+		addPage(projectNameChooserPage);
+	}
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.wizard.Wizard#getNextPage(org.eclipse.jface.wizard.IWizardPage)
@@ -140,9 +86,10 @@ public class ImportWizard extends Wizard implements IImportWizard {
 	@Override
 	public IWizardPage getNextPage(IWizardPage page) {
 		if (fileChooserPage.equals(page)) {
-            String defaultProjectName = getDefaultProjectName();
-			if (defaultProjectName != null)
+			String defaultProjectName = getDefaultProjectName();
+			if (defaultProjectName != null) {
 				projectNameChooserPage.setProjectTextValue(defaultProjectName);
+			}
 		}
 		return super.getNextPage(page);
 	}
@@ -156,21 +103,24 @@ public class ImportWizard extends Wizard implements IImportWizard {
 	}
 
 	private String getDefaultProjectName() {
-        String projectName = null;
+		String projectName = null;
 		String filePath = fileChooserPage.getFilePath();
-    	if (filePath != null) {
-            int index = filePath.lastIndexOf("/");
-            String choosenFileName = filePath.substring(index+1);
+		if (filePath != null) {
+			int index = filePath.lastIndexOf("/");
+			String choosenFileName = filePath.substring(index+1);
 			int idx = choosenFileName.lastIndexOf('.');
-			if (idx != -1) projectName = choosenFileName.substring(0, idx);
-    	}
-    	return projectName;
+			if (idx != -1) {
+				projectName = choosenFileName.substring(0, idx);
+			}
+		}
+		return projectName;
 	}
-	
+
 	private String getTargetProjectName() {
 		String projectName = projectNameChooserPage.getProjectName();
-		if ((projectName == null) || projectName.equals(""))
+		if ((projectName == null) || projectName.equals("")) {
 			projectName = getDefaultProjectName();
+		}
 		return projectName;
 	}
 }

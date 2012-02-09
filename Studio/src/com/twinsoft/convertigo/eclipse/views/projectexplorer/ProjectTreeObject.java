@@ -96,7 +96,7 @@ import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
 public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject, IResourceChangeListener {
 	private IProject iProject = null;
 	private boolean bModified = false;
-	
+
 	public ProjectTreeObject(Viewer viewer, Project object) {
 		this(viewer, object, false);
 	}
@@ -110,7 +110,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	public Project getObject(){
 		return (Project) super.getObject();
 	}
-	
+
 	public boolean getModified() {
 		return bModified;
 	}
@@ -119,47 +119,45 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	public void update() {
 		// does nothing
 	}
-	
+
 	/**
      * Means one or more of the project items has been modified.
      */
 	@Override
-    public void hasBeenModified(boolean bModified) {
-        
-        if (bModified) {
-            nModifications++;
-        }
-        else {
-            nModifications--;
-            if (nModifications <= 0) {
-                nModifications = 0;
-            }
-        }
-        ConvertigoPlugin.logDebug("Project modified "+ nModifications +" times.");
-        this.bModified = (nModifications != 0);
-    }
-	
-    /**
-     * Closes a project.
-     * 
-     * @return <code>false</code> if the close process has been canceled by user.
-     */
-    public boolean close() {
-    	// save project and copy temporary files to project files
-    	boolean bRet = save(true);
-    	if (bRet) {
-        	ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
-        	// close opened editors
-        	closeAllEditors();
-        	// remove temporary files
-        	removeTempFiles();
-        	// clear Source picker view if needed
-        	clearSourcePickerView();
-    	}
-    	return bRet;
-    }
-    
-    private void clearSourcePickerView() {
+	public void hasBeenModified(boolean bModified) {
+		if (bModified) {
+			nModifications++;
+		} else {
+			nModifications--;
+			if (nModifications <= 0) {
+				nModifications = 0;
+			}
+		}
+		ConvertigoPlugin.logDebug("Project modified "+ nModifications + " times.");
+		this.bModified = (nModifications != 0);
+	}
+
+	/**
+	 * Closes a project.
+	 * 
+	 * @return <code>false</code> if the close process has been canceled by user.
+	 */
+	public boolean close() {
+		// save project and copy temporary files to project files
+		boolean bRet = save(true);
+		if (bRet) {
+			ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
+			// close opened editors
+			closeAllEditors();
+			// remove temporary files
+			removeTempFiles();
+			// clear Source picker view if needed
+			clearSourcePickerView();
+		}
+		return bRet;
+	}
+
+	private void clearSourcePickerView() {
 		IWorkbenchPage activePage = PlatformUI
 				.getWorkbench()
 				.getActiveWorkbenchWindow()
@@ -171,42 +169,43 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				SourcePickerView spv = (SourcePickerView)viewPart;
 				DatabaseObject dbo = (DatabaseObject)spv.getObject();
 				boolean bClose = true;
-				try {bClose = dbo.getProject().equals(getObject());}
-				catch (Exception e) {}
-				if (bClose) spv.close();
+				try {
+					bClose = dbo.getProject().equals(getObject());
+				} catch (Exception e) {}
+				if (bClose) {
+					spv.close();
+				}
 			}
 		}
 	}
 
 	private void removeTempFiles() {
 		String projectName = getName();
-    	try {
-    		deleteFile(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.xsd");
-    		deleteFile(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.wsdl");
-    	}
-    	catch (EngineException e) {
-    		ConvertigoPlugin.logException(e, "Unable to remove temporary file for project '"+ projectName +"'", Boolean.FALSE);
-    	}
-    }
-    
-    private void deleteFile(String filePath) throws EngineException {
-    	File file = new File(filePath);
-    	if (file.exists()) {
-    		try {
-    			file.delete();
-    		}
-    		catch (Exception e) {
-    			throw new EngineException("Unable to delete file '"+ filePath +"'");
-    		}
-    	}
-    }
-    
-    private transient boolean isRenaming = false;
-    
-    /* (non-Javadoc)
+		try {
+			deleteFile(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.xsd");
+			deleteFile(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.wsdl");
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e, "Unable to remove temporary file for project '"+ projectName +"'", Boolean.FALSE);
+		}
+	}
+
+	private void deleteFile(String filePath) throws EngineException {
+		File file = new File(filePath);
+		if (file.exists()) {
+			try {
+				file.delete();
+			} catch (Exception e) {
+				throw new EngineException("Unable to delete file '"+ filePath +"'");
+			}
+		}
+	}
+
+	private transient boolean isRenaming = false;
+
+	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject#rename(java.lang.String, java.lang.Boolean)
 	 */
-    @Override
+	@Override
 	public boolean rename(String newName, Boolean bDialog) {
 		closeAllEditors();
 		isRenaming = true;
@@ -214,92 +213,89 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	}
 
 	/**
-     * Saves a project.
-     *
-     * @return <code>false</code> if the save process has been canceled by user.
-     */
-    @Override
-    public boolean save(boolean bDialog) {
+	 * Saves a project.
+	 *
+	 * @return <code>false</code> if the save process has been canceled by user.
+	 */
+	@Override
+	public boolean save(boolean bDialog) {
 		boolean ret = true;
-
+		
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-
+		
 		Shell shell = display.getActiveShell();
 		if (shell != null) {
 			shell.setCursor(waitCursor);
-	        
-	        try {
-	            //TODO: saveTreeState();
-	            
-	            if (bModified) {
-	            	Project project = getObject();
-	            	String projectName = project.getName();
-	
-	            	int response = SWT.YES;
-	                if (bDialog) {
-	                	MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-	                	messageBox.setMessage("The project \""+ projectName +"\" has not been saved. Do you want to save your work now?");
-	                	response = messageBox.open();
-	                }
-	            	
-	                if (response == SWT.YES) {
-	                	ConvertigoPlugin.logInfo("Saving the project '"+ projectName +"'");
-	                	ConvertigoPlugin.projectManager.save(project, true);
-	                    nModifications = 0;
-	                    hasBeenModified(false);
-	                    ConvertigoPlugin.logInfo("Project '"+ projectName +"' saved!");
-	                    
-	                	saveFiles(projectName);
-	
-	                    ConvertigoPlugin.logInfo("Project's XML automatically built");
-	                    //ConvertigoPlugin.projectManager.exportProject(project, Engine.PROJECTS_DIRECTORY + "/" + projectName + "/" + projectName + ".xml");
-	                    CarUtils.exportProject(project, Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
-	                }
-	                else if (response == SWT.NO) {
-	                	Engine.theApp.databaseObjectsManager.cacheRemoveObjects("/" + projectName);;
-	                    ret = true;
-	                }
-	
-	            }
-	        }
-	        catch (Exception e) {
-	        	ConvertigoPlugin.logException(e, "Unable to save the project!");
-	            ConvertigoPlugin.logInfo("Project NOT saved!");
-	        }
-	        finally {
+			
+			try {
+				//TODO: saveTreeState();
+				
+				if (bModified) {
+					Project project = getObject();
+					String projectName = project.getName();
+					
+					int response = SWT.YES;
+					if (bDialog) {
+						MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
+						messageBox.setMessage("The project \"" + projectName + "\" has not been saved. Do you want to save your work now?");
+						response = messageBox.open();
+					}
+					
+					if (response == SWT.YES) {
+						ConvertigoPlugin.logInfo("Saving the project '" + projectName + "'");
+						ConvertigoPlugin.projectManager.save(project, true);
+						nModifications = 0;
+						hasBeenModified(false);
+						ConvertigoPlugin.logInfo("Project '" + projectName + "' saved!");
+						
+						saveFiles(projectName);
+						
+						ConvertigoPlugin.logInfo("Project's XML automatically built");
+						//ConvertigoPlugin.projectManager.exportProject(project, Engine.PROJECTS_DIRECTORY + "/" + projectName + "/" + projectName + ".xml");
+						CarUtils.exportProject(project, Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
+						getIProject().refreshLocal(IResource.DEPTH_ONE, null);
+					} else if (response == SWT.NO) {
+						Engine.theApp.databaseObjectsManager.cacheRemoveObjects("/" + projectName);
+						ret = true;
+					}
+				}
+			} catch (Exception e) {
+				ConvertigoPlugin.logException(e, "Unable to save the project!");
+				ConvertigoPlugin.logInfo("Project NOT saved!");
+			} finally {
 				shell.setCursor(null);
 				waitCursor.dispose();
-	        }
+			}
 		}
 		
-        isRenaming = false;
-        return ret;
-    }
-    
-    private void saveFiles(String projectName) {
-    	try {
+		isRenaming = false;
+		return ret;
+	}
+
+	private void saveFiles(String projectName) {
+		try {
 			saveXsdFile(projectName);
 			ConvertigoPlugin.logInfo("Project xsd file '"+ projectName +".xsd' saved!");
-	    	saveWsdlFile(projectName);
-	    	ConvertigoPlugin.logInfo("Project wsdl file '"+ projectName +".wsdl' saved!");
+			saveWsdlFile(projectName);
+			ConvertigoPlugin.logInfo("Project wsdl file '"+ projectName +".wsdl' saved!");
 		} catch (EngineException e) {
 			ConvertigoPlugin.logException(e, "Unable to save project files!");
 		}
-    }
-    
+	}
+
 	private void saveXsdFile(String projectName) throws EngineException {
 		String tempPath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.xsd";
 		String xsdPath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xsd";
 		copyToFile(projectName,tempPath, xsdPath);
 	}
-	
+
 	private void saveWsdlFile(String projectName) throws EngineException {
 		String tempPath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.wsdl";
 		String wsdlPath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".wsdl";
 		copyToFile(projectName,tempPath, wsdlPath);
 	}
-    
+
 	private void copyToFile(String projectName, String sourceFilePath, String targetFilePath) throws EngineException {
 		try {
 			File sourceFile = new File(sourceFilePath);
@@ -310,64 +306,70 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					BufferedReader br = new BufferedReader(new FileReader(sourceFilePath));
 					BufferedWriter bw = new BufferedWriter(new FileWriter(targetFilePath));
 					while((line = br.readLine()) != null) {
-						line = line.replaceAll(projectName+".temp.xsd", projectName+".xsd");
-					    bw.write(line);
-					    bw.newLine();
+						line = line.replaceAll(projectName + ".temp.xsd", projectName + ".xsd");
+						bw.write(line + '\n');
 					}
 					bw.close();
 					br.close();
+				} else {
+					throw new EngineException("'" + targetFilePath + "' does not exist");
 				}
-				else {
-					throw new EngineException("'"+targetFilePath+"' does not exist");
+			} else {
+				if (!isRenaming) {
+					throw new EngineException("'" + sourceFilePath + "' does not exist");
 				}
 			}
-			else {
-				if (!isRenaming) throw new EngineException("'"+sourceFilePath+"' does not exist");
-			}
-		}
-		catch (Exception e) {
-			throw new EngineException("Unable to copy '"+sourceFilePath+"' to '"+targetFilePath+"'",e);
+		} catch (Exception e) {
+			throw new EngineException("Unable to copy '" + sourceFilePath + "' to '" + targetFilePath + "'", e);
 		}
 	}
 
 	public void resourceChanged(IResourceChangeEvent event) {
 		//we are only interested in POST_CHANGE events
-        if (event.getType() != IResourceChangeEvent.POST_CHANGE) return;
-        
-        final ProjectTreeObject projectTreeObject = this;
-        final String projectName = getName(); 
-        IPath path = new Path(projectName);
-        IResourceDelta projectDelta = event.getDelta().findMember(path);
-        if (projectDelta == null) return;
-        
-        IResourceDeltaVisitor visitor = new IResourceDeltaVisitor() {
-        	public boolean visit(IResourceDelta delta) {
-        		//only interested in changed resources (not added or removed)
-        		if (delta.getKind() != IResourceDelta.CHANGED) return true;
-        		//only interested in content changes
-        		if ((delta.getFlags() & IResourceDelta.CONTENT) == 0) return true;
-        		
-        		IResource resource = delta.getResource();
-        		
-        		//only interested in files
-        		if (resource.getType() == IResource.FILE) {
+		if (event.getType() != IResourceChangeEvent.POST_CHANGE) {
+			return;
+		}
+		
+		final ProjectTreeObject projectTreeObject = this;
+		final String projectName = getName();
+		IPath path = new Path(projectName);
+		IResourceDelta projectDelta = event.getDelta().findMember(path);
+		if (projectDelta == null) {
+			return;
+		}
+		
+		IResourceDeltaVisitor visitor = new IResourceDeltaVisitor() {
+			public boolean visit(IResourceDelta delta) {
+				//only interested in changed resources (not added or removed)
+				if (delta.getKind() != IResourceDelta.CHANGED) {
+					return true;
+				}
+				//only interested in content changes
+				if ((delta.getFlags() & IResourceDelta.CONTENT) == 0) {
+					return true;
+				}
+				
+				IResource resource = delta.getResource();
+				
+				//only interested in files
+				if (resource.getType() == IResource.FILE) {
 					if ("xsd".equalsIgnoreCase(resource.getFileExtension())) {
 						Project project = getObject();
 						project.setXsdDirty(true);
-	        			TreeObjectEvent treeObjectEvent1 = new TreeObjectEvent(projectTreeObject, "schemaType", null, null, 0);
-				        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent1);
+						TreeObjectEvent treeObjectEvent1 = new TreeObjectEvent(projectTreeObject, "schemaType", null, null, 0);
+						ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent1);
 						TreeObjectEvent treeObjectEvent2 = new TreeObjectEvent(projectTreeObject, "xsdFile", null, null, 0);
-				        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent2);
+						ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent2);
 					}
-        		}
-        		return true;
-            }
-         };
-         try {
-        	 projectDelta.accept(visitor);
-         } catch (CoreException e) {
-            
-         }
+				}
+				return true;
+			}
+		};
+		try {
+			projectDelta.accept(visitor);
+		} catch (CoreException e) {
+			
+		}
 	}
 
 	protected boolean dymamicSchemaUpdate = true;

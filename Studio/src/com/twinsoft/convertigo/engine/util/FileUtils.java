@@ -24,17 +24,18 @@ package com.twinsoft.convertigo.engine.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.engine.Engine;
 
 public class FileUtils extends org.apache.commons.io.FileUtils {
+	private static Pattern CrlfPattern = Pattern.compile("\\r\\n");
 
 	public static void mergeDirectories(File srcDir, File destDir) throws IOException {
 		mergeDirectories(srcDir, destDir, true);
 	}
 
-	public static void mergeDirectories(File srcDir, File destDir, boolean preserveFileDate)
-			throws IOException {
+	public static void mergeDirectories(File srcDir, File destDir, boolean preserveFileDate) throws IOException {
 		File[] files = srcDir.listFiles();
 		if (files == null) { // null if security restricted
 			throw new IOException("Failed to list contents of " + srcDir);
@@ -48,10 +49,11 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 				throw new IOException("Destination '" + destDir + "' directory cannot be created");
 			}
 			String message = "> Directory '" + destDir + "' created";
-			if (Engine.logEngine != null)
+			if (Engine.logEngine != null) {
 				Engine.logEngine.info(message);
-			else
+			} else {
 				System.out.println(message);
+			}
 		}
 		if (destDir.canWrite() == false) {
 			throw new IOException("Destination '" + destDir + "' cannot be written to");
@@ -64,13 +66,21 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 				if (!copiedFile.exists()) {
 					FileUtils.copyFile(file, copiedFile, preserveFileDate);
 					String message = "+ File '" + file + "' copied from " + srcDir;
-					if (Engine.logEngine != null)
+					if (Engine.logEngine != null) {
 						Engine.logEngine.info(message);
-					else
+					} else {
 						System.out.println(message);
+					}
 				}
 			}
 		}
 	}
 
+	public static boolean isCRLF() {
+		return System.getProperty("line.separator").contains("\r\n");
+	}
+	
+	public static String CrlfToLf(String content) {
+		return CrlfPattern.matcher(content).replaceAll("\n");
+	}
 }

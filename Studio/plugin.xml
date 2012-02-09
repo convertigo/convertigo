@@ -1231,6 +1231,13 @@
                menubarPath="edit">
          </action>
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectReloadXmlAction"
+               enablesFor="1"
+               icon="icons/studio/project_import.gif"
+               id="convertigo.action.reloadXmlProject"
+               label="Reload from XML"
+               menubarPath="project"/>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectExportAction"
                enablesFor="1"
                icon="icons/studio/project_export.gif"
