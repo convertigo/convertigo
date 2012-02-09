@@ -696,7 +696,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 		String version = element.getAttribute("version");
 		if ("".equals(version)) {
-			version = node.getOwnerDocument().getDocumentElement().getAttribute("version");
+			version = node.getOwnerDocument().getDocumentElement().getAttribute("beans");
 			if (!"".equals(version)) {
 				element.setAttribute("version", version);
 			}
@@ -1298,17 +1298,17 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	}
 
 	protected <E extends Object> List<E> sort(List<E> list, boolean ascending){
-		List<E> res = new ArrayList<E>(list);
-		Collections.sort(res, new Comparator<Object>() {
+		Collections.sort(list, new Comparator<Object>() {
 			@SuppressWarnings("unchecked")
 			public int compare(Object o1, Object o2) {
 				try {
-					return ((Comparable<Object>)getOrder(o1)).compareTo(getOrder(o2));
+					return ((Comparable<Object>) getOrder(o1)).compareTo(getOrder(o2));
 				} catch (EngineException e) {
 					return 0;
 				}
 			}
 		});
+		List<E> res = new ArrayList<E>(list);
 		if (!ascending) {
 			Collections.reverse(res);
 		}

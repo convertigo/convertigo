@@ -25,13 +25,14 @@ package com.twinsoft.convertigo.beans.transactions;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Vector;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
@@ -115,7 +116,7 @@ public class HtmlTransaction extends HttpTransaction {
 
 	transient private Document currentXmlDocument = null;
 
-	transient private List<Statement> vStatements = new Vector<Statement>();
+	transient private List<Statement> vStatements = new LinkedList<Statement>();
 
 	transient public Statement currentStatement = null;
 
@@ -137,7 +138,7 @@ public class HtmlTransaction extends HttpTransaction {
     @Override
 	public Object clone() throws CloneNotSupportedException {
 		HtmlTransaction clonedObject = (HtmlTransaction) super.clone();
-		clonedObject.vStatements = new Vector<Statement>();
+		clonedObject.vStatements = new LinkedList<Statement>();
 		clonedObject.alreadyConnected = false;
 		clonedObject.handlePriorities = handlePriorities;
 		return clonedObject;
@@ -188,9 +189,7 @@ public class HtmlTransaction extends HttpTransaction {
 
 	public List<Statement> getStatements() {
 		checkSubLoaded();
-		
-		List<Statement> v = new Vector<Statement>(vStatements);
-		return v;
+		return sort(vStatements);
 	}
 
 	public boolean hasStatements() {
@@ -280,11 +279,10 @@ public class HtmlTransaction extends HttpTransaction {
 		if (stateNodes.getLength() == 1 && stateNodes.item(0).getChildNodes().getLength() > 0) {
 			Element webviewerAction = (Element)stateNodes.item(0);
 			IdToXpathManager idToXpathManager = context.getIdToXpathManager();
+			NodeList fieldNodes = context.inputDocument.getElementsByTagName("field");
 			wcEvent = null;
 			wcTrigger = null;
-			wcFields = new Vector<AbstractEvent>();
-
-			NodeList fieldNodes = context.inputDocument.getElementsByTagName("field");
+			wcFields = new ArrayList<AbstractEvent>(fieldNodes.getLength());
 			for (int i=0;i < fieldNodes.getLength(); i++) {
 				Element field = (Element)fieldNodes.item(i);
 				String id = field.getAttribute("name");
@@ -390,10 +388,9 @@ public class HtmlTransaction extends HttpTransaction {
     
     @Override
 	public void runCore() throws EngineException {
-    	
 		try {
 			HtmlConnector connector = (HtmlConnector)parent;
-			vExtractionRulesInited = new Vector<String>(32);
+			vExtractionRulesInited = new LinkedList<String>();
 
 			if (!runningThread.bContinue) {
 				return;
@@ -977,7 +974,7 @@ public class HtmlTransaction extends HttpTransaction {
 		Hashtable<String, String> names = new Hashtable<String, String>();
 		Hashtable<String, String> types = new Hashtable<String, String>();
 		
-		Vector<String> schemas = new Vector<String>();
+		List<String> schemas = new LinkedList<String>();
 		screenClass = connector.getDefaultScreenClass();
 		if (screenClass != null) {
 			addExtractionRuleShemas(names, types, schemas, screenClass);
@@ -997,7 +994,7 @@ public class HtmlTransaction extends HttpTransaction {
 		String all, obSchema;
 		all = "<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"error\" type=\"p_ns:ConvertigoError\"/>\n";
 		for (i=0; i<schemas.size(); i++) {
-			obSchema = (String)schemas.elementAt(i);
+			obSchema = schemas.get(i);
 			all += obSchema;
 		}
 		
@@ -1040,23 +1037,23 @@ public class HtmlTransaction extends HttpTransaction {
 		return prettyPrintedText;
 	}
 
-    private void addStatementSchemas(Vector<String> schemas, Statement statement) {
+    private void addStatementSchemas(List<String> schemas, Statement statement) {
 		if (statement.isEnable()) {
 			if (statement instanceof ContextAddTextNodeStatement) {
 				String eltName = ((ContextAddTextNodeStatement)statement).getTagName();
 				String stSchema = "<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\""+eltName+"\" type=\"xsd:string\"/>\n";
-				if (!schemas.contains(stSchema))
-					schemas.addElement(stSchema);
-			}
-			else if (statement instanceof StatementWithExpressions) {
-		        for (Statement st: ((StatementWithExpressions)statement).getStatements()) {
-		        	addStatementSchemas(schemas, st);
-		        }
+				if (!schemas.contains(stSchema)) {
+					schemas.add(stSchema);
+				}
+			} else if (statement instanceof StatementWithExpressions) {
+				for (Statement st: ((StatementWithExpressions)statement).getStatements()) {
+					addStatementSchemas(schemas, st);
+				}
 			}
 		}
-    }
-    
-	private void addExtractionRuleShemas(Map<String, String> names, Map<String, String> types, Vector<String> schemas, HtmlScreenClass screenClass) throws Exception {
+	}
+
+	private void addExtractionRuleShemas(Map<String, String> names, Map<String, String> types, List<String> schemas, HtmlScreenClass screenClass) throws Exception {
 		HtmlExtractionRule htmlExtractionRule = null;
 		String typeSchema, typeName;
 		String erSchema, erSchemaEltName, erSchemaEltNSType;
@@ -1064,13 +1061,13 @@ public class HtmlTransaction extends HttpTransaction {
 		
 		if (screenClass != null) {
 			for (ExtractionRule extractionRule: screenClass.getExtractionRules()) {
-				htmlExtractionRule = (HtmlExtractionRule)extractionRule;
+				htmlExtractionRule = (HtmlExtractionRule) extractionRule;
 				if (htmlExtractionRule.isEnabled()) {
 					erSchemaEltName = htmlExtractionRule.getSchemaElementName();
 					erSchemaEltNSType = htmlExtractionRule.getSchemaElementNSType("p_ns");
-					if (!names.containsKey(erSchemaEltName))
+					if (!names.containsKey(erSchemaEltName)) {
 						names.put(erSchemaEltName, erSchemaEltNSType);
-					else {
+					} else {
 						typeSchema = (String)names.get(erSchemaEltName);
 						if (!typeSchema.equals(erSchemaEltNSType)) {
 							throw new Exception("Transaction may generate at least two extraction rules named '"+erSchemaEltName+"' with different type : '"+typeSchema+"' and '"+erSchemaEltNSType+"'.\nPlease correct by changing tagname or name if tagname is empty");
@@ -1078,8 +1075,9 @@ public class HtmlTransaction extends HttpTransaction {
 					}
 
 					erSchema = htmlExtractionRule.getSchema("p_ns");
-					if (!schemas.contains(erSchema))
-						schemas.addElement(erSchema);
+					if (!schemas.contains(erSchema)) {
+						schemas.add(erSchema);
+					}
 					type = htmlExtractionRule.getSchemaTypes();
 					for (Entry<String, String> entry : type.entrySet()) {
 						typeName = entry.getKey();

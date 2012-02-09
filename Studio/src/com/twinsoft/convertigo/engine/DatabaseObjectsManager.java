@@ -30,8 +30,10 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -269,23 +271,40 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
+	private final static Comparator<? super File> listFileComparator = new Comparator<File>() {
+		public int compare(File o1, File o2) {
+			return o1.getName().compareTo(o2.getName());
+		}
+	};
+
+	private final static FileFilter listDirectoriesFileFilter = new FileFilter() {
+		public boolean accept(File pathname) {
+			Engine.logDatabaseObjectManager.trace("   path name: " + pathname);
+			return pathname.isDirectory() && !pathname.getName().equals(".svn");
+		}
+	};
+	
 	private File[] listDirectories(File fDatabaseObjectPath) {
-		return fDatabaseObjectPath.listFiles(new FileFilter() {
-			public boolean accept(File pathname) {
-				Engine.logDatabaseObjectManager.trace("   path name: " + pathname);
-				return pathname.isDirectory() && !pathname.getName().equals(".svn");
-				//return pathname.isDirectory();
-			}
-		});
+		File[] files = fDatabaseObjectPath.listFiles(listDirectoriesFileFilter);
+		if (files != null) {
+			Arrays.sort(files, listFileComparator);
+		}
+		return files;
 	}
 
+	private final static FileFilter listXmlFilesFileFilter = new FileFilter() {
+		public boolean accept(File pathname) {
+			Engine.logDatabaseObjectManager.trace("   path name: " + pathname);
+			return pathname.getName().endsWith(".xml");
+		}
+	};
+
 	private File[] listXmlFiles(File fDatabaseObjectPath) {
-		return fDatabaseObjectPath.listFiles(new FileFilter() {
-			public boolean accept(File pathname) {
-				Engine.logDatabaseObjectManager.trace("   path name: " + pathname);
-				return pathname.getName().endsWith(".xml");
-			}
-		});
+		File[] files = fDatabaseObjectPath.listFiles(listXmlFilesFileFilter);
+		if (files != null) {
+			Arrays.sort(files, listFileComparator);
+		}
+		return files;
 	}
 
 	public void getSubDatabaseObjects(DatabaseObject databaseObject) throws EngineException, DatabaseObjectNotFoundException {

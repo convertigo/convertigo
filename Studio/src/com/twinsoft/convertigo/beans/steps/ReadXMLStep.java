@@ -39,16 +39,19 @@ public class ReadXMLStep extends ReadFileStep {
 		super();
 	}
 
+	@Override
     public Object clone() throws CloneNotSupportedException {
     	ReadXMLStep clonedObject = (ReadXMLStep) super.clone();
         return clonedObject;
     }
 	
+	@Override
     public Object copy() throws CloneNotSupportedException {
     	ReadXMLStep copiedObject = (ReadXMLStep) super.copy();
         return copiedObject;
     }			
 	
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -80,11 +83,11 @@ public class ReadXMLStep extends ReadFileStep {
 				xmlDoc.getDocumentElement().appendChild(myEl);
 				
 				//Engine.logBeans.debug("(ReadXML) XML File content '" + com.twinsoft.convertigo.engine.util.XMLUtils.prettyPrintDOM(xmlDoc) + "'", sequence.context.log);
-			}
-			else {
+			} else {
 				xmlDoc = XMLUtils.parseDOM(xmlFile);
-				if (Engine.logBeans.isDebugEnabled())
+				if (Engine.logBeans.isDebugEnabled()) {
 					Engine.logBeans.debug("(ReadXML) XML File content '" + com.twinsoft.convertigo.engine.util.XMLUtils.prettyPrintDOM(xmlDoc) + "'");
+				}
 			}
 		} catch (Exception e1) {
 			Engine.logBeans.warn("(ReadXML) Error while trying to parse XML file : " + e1.toString());
