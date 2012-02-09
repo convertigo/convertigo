@@ -174,6 +174,7 @@ import com.twinsoft.convertigo.eclipse.trace.TracePlayerThread;
 import com.twinsoft.convertigo.engine.DatabaseObjectImportedEvent;
 import com.twinsoft.convertigo.engine.DatabaseObjectListener;
 import com.twinsoft.convertigo.engine.DatabaseObjectLoadedEvent;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -185,7 +186,7 @@ import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ProjectExplorerView extends ViewPart implements ObjectsProvider, CompositeListener, EngineListener, MigrationListener {
-	
+
 	public static final int TREE_OBJECT_TYPE_UNKNOWN = 0;
 
 	public static final int TREE_OBJECT_TYPE_DBO = 0x100;						// 0000 0001 0000 0000
@@ -207,15 +208,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_DBO_SEQUENCE = 0x10F;
 	public static final int TREE_OBJECT_TYPE_DBO_TESTCASE = 0x110;
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILEDEVICE = 0x111;
-	
+
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE = 0x300;
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_ROW = 0x301;
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_COLUMN = 0x302;
-	
+
 	public static final int TREE_OBJECT_TYPE_DBO_INHERITED = 0x400;				// 0000 0100 0000 0000
 
 	public static final int TREE_OBJECT_TYPE_FOLDER = 0x200;					// 0000 0010 0000 0000
-	
+
 	public static final int TREE_OBJECT_TYPE_FOLDER_POOLS = 0x201;				// 0000 0010 0000 0001
 	public static final int TREE_OBJECT_TYPE_FOLDER_TRANSACTIONS = 0x202;		// 0000 0010 0000 0010
 	public static final int TREE_OBJECT_TYPE_FOLDER_SHEETS = 0x203;				// 0000 0010 0000 0011
@@ -228,18 +229,18 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_FOLDER_VARIABLES = 0x20A;
 	public static final int TREE_OBJECT_TYPE_FOLDER_TESTCASES = 0x20B;
 	public static final int TREE_OBJECT_TYPE_FOLDER_MOBILEDEVICES = 0x20C;
-	
+
 	public static final int TREE_OBJECT_TYPE_MISC = 0x8000;						// 1000 0000 0000 0000
-	
+
 	public static final int TREE_OBJECT_TYPE_HANDLERS_DECLARATION = 0x8001;		// 1000 0000 0000 0001
 	public static final int TREE_OBJECT_TYPE_VARIABLE = 0x8002;					// 1000 0000 0000 0010
 	public static final int TREE_OBJECT_TYPE_FUNCTION = 0x8003;
-	
-	
+
+
 	public TreeViewer viewer;
-	
+
 //	private DrillDownAdapter drillDownAdapter;
-	
+
 	private UndoManager undoManager;
 
 	private Action doubleClickAction;
@@ -262,12 +263,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	private Action projectValidateXSDAction;
 	private Action showStepInPickerAction;
 	//private Action projectCleanXSDAction;
-	
+
 	public Action saveAction;
 	public Action projectExplorerSaveAllAction;
-	
+
 	private ViewContentProvider viewContentProvider = null;
-	
+
 	/**
 	 * The constructor.
 	 */
@@ -318,7 +319,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		hookGlobalActions();
 		hookKeyboardActions();
 		contributeToActionBars();
-	
+		
 		getSite().setSelectionProvider(viewer);
 		
 		int nbRetry = 0;
@@ -331,10 +332,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			
 			// Aborting if too many retries
-			if (nbRetry > 360) return;
+			if (nbRetry > 360) {
+				return;
+			}
 		}
 
-		if (Engine.isStarted) initialize();
+		if (Engine.isStarted) {
+			initialize();
+		}
 	}
 
 	private void initialize() {
@@ -353,7 +358,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			Engine.theApp.addMigrationListener(this);
 		}
 	}
-	
+
 	private void hookContextMenu() {
 		MenuManager menuMgr = new MenuManager("#PopupMenu");
 		menuMgr.setRemoveAllWhenShown(true);
@@ -375,7 +380,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 		});
 	}
-	
+
 	private void handleKeyReleased(KeyEvent event) {
 		boolean bCtrl = (((event.stateMask & SWT.CONTROL) != 0) || ((event.stateMask & SWT.CTRL) != 0));
 		boolean bShift = (event.stateMask & SWT.SHIFT) != 0;
@@ -383,9 +388,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		int stateMask = event.stateMask;
 		int keyCode = event.keyCode;
 		char c = event.character;
-
-		if (stateMask == 0)
-		{
+		
+		if (stateMask == 0) {
 			// F2 for renaming
 			if (keyCode == SWT.F2) {
 				renameSelectedTreeObject();
@@ -394,26 +398,28 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			if (keyCode == SWT.F5) {
 				refreshTree();
 				Object object = getFirstSelectedDatabaseObject();
-				if (object instanceof Transaction)
+				if (object instanceof Transaction) {
 					executeTransaction.run();
-				else if (object instanceof Sequence)
+				} else if (object instanceof Sequence) {
 					executeSequence.run();
-				else if (object instanceof TestCase)
+				} else if (object instanceof TestCase) {
 					executeTestCase.run();
+				}
 			}
 			
 			// DEL for deleting
 			if (c == SWT.DEL) {
 				Object object = getFirstSelectedTreeObject();
-				if (object instanceof DatabaseObjectTreeObject)
+				if (object instanceof DatabaseObjectTreeObject) {
 					deleteDatabaseObjectAction.run();
-				else if (object instanceof PropertyTableRowTreeObject)
+				} else if (object instanceof PropertyTableRowTreeObject) {
 					deletePropertyTableRowAction.run();
-				else if (object instanceof PropertyTableColumnTreeObject)
+				} else if (object instanceof PropertyTableColumnTreeObject) {
 					deletePropertyTableColumnAction.run();
+				}
 			}
 		}
-	
+		
 		if (bAlt) {
 			// Schema validation
 			if (c == 'j') {
@@ -421,8 +427,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 		}
 		
-		if (bCtrl)
-		{
+		if (bCtrl) {
 			// Copy/Cut/Paste
 			if (c == 'c') {
 				copyAction.run();
@@ -439,9 +444,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			// Saving
 			if ((c == 's') || (keyCode == 115)) {
-				if (bShift)
+				if (bShift) {
 					saveAction.run();
-				else {
+				} else {
 					projectExplorerSaveAllAction.run();
 				}
 			}
@@ -460,7 +465,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			decreasePriorityAction.run();
 		}
 	}
-	
+
 	private void contributeToActionBars() {
 		IActionBars bars = getViewSite().getActionBars();
 		fillLocalPullDown(bars.getMenuManager());
@@ -480,7 +485,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		//statusLine.setMessage("Convertigo Studio "+ com.twinsoft.convertigo.engine.Version.fullProductVersion + " - " + analyzeKey());
 		statusLine.setMessage("Convertigo EMS Studio "+ com.twinsoft.convertigo.engine.Version.fullProductVersion);
 	}
-	
+
 //    private String analyzeKey() {
 //    	String message = "";
 //		Object[] args;
@@ -501,40 +506,35 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		// Other plug-ins can contribute there actions here
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 	}
-	
+
 	public TracePlayerThread tracePlayerThread = null;
-	
+
 	private void makeActions() {
 		tracePlayAction = new TracePlayAction();
 		doubleClickAction = new Action() {
+			@Override
 			public void run() {
 				IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
 				TreeObject treeObject = (TreeObject) selection.getFirstElement();
-
+				
 				if (treeObject instanceof UnloadedProjectTreeObject) {
 					loadProject((UnloadedProjectTreeObject) treeObject);
-				}
-				else if (treeObject instanceof ConnectorTreeObject) {
+				} else if (treeObject instanceof ConnectorTreeObject) {
 					((ConnectorTreeObject) treeObject).launchEditor();
-				}
-				else if (treeObject instanceof SequenceTreeObject) {
+				} else if (treeObject instanceof SequenceTreeObject) {
 					((SequenceTreeObject) treeObject).launchEditor();
-				}
-				else if (treeObject instanceof StepTreeObject) {
+				} else if (treeObject instanceof StepTreeObject) {
 					showStepInPickerAction.run();
 					if (treeObject instanceof IEditableTreeObject) {
 						((IEditableTreeObject) treeObject).launchEditor(null);
 					}
-				}
-				else if (treeObject instanceof VariableTreeObject2) {
+				} else if (treeObject instanceof VariableTreeObject2) {
 					if (treeObject.getObject() instanceof StepVariable) {
 						showStepInPickerAction.run();
 					}
-				}
-				else if (treeObject instanceof IEditableTreeObject) {
+				} else if (treeObject instanceof IEditableTreeObject) {
 					((IEditableTreeObject) treeObject).launchEditor(null);
-				}
-				else if (treeObject instanceof TraceTreeObject) {
+				} else if (treeObject instanceof TraceTreeObject) {
 					tracePlayAction.run();
 				}
 			}
@@ -582,15 +582,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				try {
 					((TreeObjectListener) listeners[i+1]).treeObjectPropertyChanged(treeObjectEvent);
 				} catch (Exception e){
-					String message = "fireTreeObjectPropertyChanged failed for treeObject: "+((TreeObject)listeners[i+1]).getName();
+					String message = "fireTreeObjectPropertyChanged failed for treeObject: " + ((TreeObject) listeners[i+1]).getName();
 					ConvertigoPlugin.logException(e, message);
 				};
 			}
 		}
 	}
-	
+
 	protected List<TreeObject> addedTreeObjects = new ArrayList<TreeObject>();
-	
+
 	public void fireTreeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		// Guaranteed to return a non-null array
 		Object[] listeners = treeObjectListeners.getListenerList();
@@ -601,27 +601,27 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				try {
 					((TreeObjectListener) listeners[i+1]).treeObjectAdded(treeObjectEvent);
 				} catch (Exception e){
-					String message = "fireTreeObjectAdded failed for treeObject: "+((TreeObject)listeners[i+1]).getName();
+					String message = "fireTreeObjectAdded failed for treeObject: " + ((TreeObject) listeners[i+1]).getName();
 					ConvertigoPlugin.logException(e, message);
 				};
 			}
 		}
-		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
-		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
-
+		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) treeObjectEvent.getSource();
+		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
+		
 		// Case of Project added
 		if (databaseObject instanceof Project) {
 			// Case of project copy : update references in steps if needed
 			if (treeObjectEvent.oldValue != null) {
-				String oldName = (String)treeObjectEvent.oldValue;
-				String newName = (String)treeObjectEvent.newValue;
+				String oldName = (String) treeObjectEvent.oldValue;
+				String newName = (String) treeObjectEvent.newValue;
 				boolean updateReferences = false;
 				int update = 0;
 				if (loadedProjectsContainsSequence()) {
 					Shell shell = Display.getDefault().getActiveShell();
-		        	MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-		        	messageBox.setMessage("Do you want to update project references in steps ?\n- click Yes to replace '"+oldName+"' by '"+newName+"' in all loaded projects.\n- click No to replace '"+oldName+"' by '"+newName+"' in current project only.\n- click Cancel for none update.");
-		        	int response = messageBox.open();
+					MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
+					messageBox.setMessage("Do you want to update project references in steps ?\n- click Yes to replace '" + oldName + "' by '" + newName + "' in all loaded projects.\n- click No to replace '" + oldName + "' by '" + newName + "' in current project only.\n- click Cancel for none update.");
+					int response = messageBox.open();
 					if (response == SWT.YES) {
 						updateReferences = true;
 						update = TreeObjectEvent.UPDATE_ALL;
@@ -635,15 +635,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				if (updateReferences) {
 					treeObjectEvent.update = update;
 					fireTreeObjectPropertyChanged(treeObjectEvent);
-					((ProjectTreeObject)treeObject).save(false);
+					((ProjectTreeObject) treeObject).save(false);
 				}
-			}
-			else {
-				List<String> list = ((ProjectTreeObject)treeObject).getMissingTargetProjectList();
+			} else {
+				List<String> list = ((ProjectTreeObject) treeObject).getMissingTargetProjectList();
 				if (!list.isEmpty()) {
 					String message = "Some target project(s) are missing :\n";
-					for (String s: list)
-						message += "   > \""+s+"\" project\n";
+					for (String s: list) {
+						message += "   > \"" + s + "\" project\n";
+					}
 					message += "Please import missing project(s),\nor correct your sequence(s) before clean.";
 					ConvertigoPlugin.logError(message, true);
 				}
@@ -666,13 +666,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				}*/
 			}
 		}
-		
 	}
 
 	public void fireTreeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 		// Prevents removed object to receive events
-		if (treeObjectEvent.getSource() instanceof TreeObjectListener)
-			removeTreeObjectListener((TreeObjectListener)treeObjectEvent.getSource());
+		if (treeObjectEvent.getSource() instanceof TreeObjectListener) {
+			removeTreeObjectListener((TreeObjectListener) treeObjectEvent.getSource());
+		}
 		
 		// Guaranteed to return a non-null array
 		Object[] listeners = treeObjectListeners.getListenerList();
@@ -681,15 +681,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
 			if (listeners[i] == TreeObjectListener.class) {
 				try {
-					((TreeObjectListener) listeners[i+1]).treeObjectRemoved(treeObjectEvent);
+					((TreeObjectListener) listeners[i + 1]).treeObjectRemoved(treeObjectEvent);
 				} catch (Exception e){
-					String message = "fireTreeObjectRemoved failed for treeObject: "+((TreeObject)listeners[i+1]).getName();
+					String message = "fireTreeObjectRemoved failed for treeObject: " + ((TreeObject)listeners[i + 1]).getName();
 					ConvertigoPlugin.logException(e, message);
 				};
 			}
 		}
 	}
-	
+
 	public IEditorPart getConnectorEditor(Connector connector) {
 		IEditorPart editorPart = null;
 		IWorkbenchPage activePage = PlatformUI
@@ -700,12 +700,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (activePage != null) {
 			if (connector != null) {
 				IEditorReference[] editorRefs = activePage.getEditorReferences();
-				for (int i=0;i<editorRefs.length;i++) {
-					IEditorReference editorRef = (IEditorReference)editorRefs[i];
+				for (int i = 0; i < editorRefs.length; i++) {
+					IEditorReference editorRef = (IEditorReference) editorRefs[i];
 					try {
 						IEditorInput editorInput = editorRef.getEditorInput();
 						if ((editorInput != null) && (editorInput instanceof ConnectorEditorInput)) {
-							if (((ConnectorEditorInput)editorInput).connector.equals(connector)) {
+							if (((ConnectorEditorInput) editorInput).connector.equals(connector)) {
 								editorPart = editorRef.getEditor(false);
 								break;
 							}
@@ -740,26 +740,26 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				if (treeObject != null) {
 					// remember current project
 					ProjectTreeObject projectTreeObject = null;
-					if (treeObject instanceof ProjectTreeObject)
-						projectTreeObject = (ProjectTreeObject)treeObject;
-					else
+					if (treeObject instanceof ProjectTreeObject) {
+						projectTreeObject = (ProjectTreeObject) treeObject;
+					} else {
 						projectTreeObject = treeObject.getProjectTreeObject();
-					
+					}
 					if (projectTreeObject != null) {
 						ConvertigoPlugin.projectManager.setCurrentProject(projectTreeObject);
 					}
 					
 					//oldSelection = treeObject;
 					TreeItem[] items = viewer.getTree().getSelection();
-					if (items.length>0)
+					if (items.length>0) {
 						lastItem[0] = items[0];
+					}
 				}
 			}
 		});	
 	}
-	
+
 	private void hookGlobalActions() {
-	
 	 	IActionBars bars = getViewSite().getActionBars();
 		
 		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), copyAction);
@@ -780,16 +780,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		String projectName = unloadedProjectTreeObject.toString();
 		if (!MigrationManager.isProjectMigrated(projectName)) {
 			String message = "Could not load the project \"" + projectName + "\" while it is still migrating.";
-			ConvertigoPlugin.logDebug("[ProjectExplorerView] loadProject : "+ message);
+			ConvertigoPlugin.logDebug("[ProjectExplorerView] loadProject : " + message);
 			ConvertigoPlugin.logError(message, Boolean.TRUE);
-		}
-		else {
+		} else {
 			try {
 				ProjectLoadingJob job = new ProjectLoadingJob(viewer, unloadedProjectTreeObject, isCopy, originalName);
 				job.setUser(true);
 				job.schedule();
-			}
-			catch(Exception e) {
+			} catch(Exception e) {
 				String message = "Error while loading the project \"" + projectName + "\".\n" + e.getMessage(); 
 				ConvertigoPlugin.logException(e, message);
 			}
@@ -797,18 +795,18 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	private Text editingTextCtrl = null;
-	
+
 	public boolean isEditing() {
 		return editingTextCtrl != null;
 	}
-	
+
 	public String getEditingText() {
 		if (editingTextCtrl != null) {
 			return editingTextCtrl.getText();
 		}
 		return null;
 	}
-	
+
 	public void setEditingText(String text) {
 		if ((editingTextCtrl != null) && (text != null)) {
 			String selection = editingTextCtrl.getSelectionText();
@@ -818,15 +816,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			
 			if (selection.equals(oldText)) {
 				editingTextCtrl.setText(text);
-			}
-			else {
+			} else {
 				if (caret == 0) {
-					newText = text+oldText;
-				} 
-				else if (caret == oldText.length()) {
+					newText = text + oldText;
+				} else if (caret == oldText.length()) {
 					newText = oldText + text;
-				}
-				else {
+				} else {
 					String part1 = oldText.substring(0, caret);
 					String part2 = oldText.substring(caret, oldText.length());
 					newText = part1 + text + part2;
@@ -835,7 +830,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 		}
 	}
-	
+
 	private void edit(TreeObject treeObject) {
 		final Tree tree = viewer.getTree();
 		final TreeEditor editor = new TreeEditor (tree);
@@ -847,19 +842,21 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			final TreeObject theTreeObject = treeObject;
 			
 			if (treeObject instanceof ProjectTreeObject) {
-				if (((ProjectTreeObject)treeObject).getModified()) {
+				if (((ProjectTreeObject) treeObject).getModified()) {
 					// Project need to be saved to avoid xsd/wsdl modification errors - Fix ticket #2265
 					ConvertigoPlugin.warningMessageBox("Please save project before renaming it.");
 					return;
 				}
 			}
-			if (treeObject.getObject() instanceof HandlerStatement)
+			if (treeObject.getObject() instanceof HandlerStatement) {
 				return;
-			
+			}
 			if ((item != null) && (item == lastItem[0])) {
 				boolean isCarbon = SWT.getPlatform().equals("carbon");
 				final Composite composite = new Composite (tree, SWT.NONE);
-				if (!isCarbon)composite.setBackground(black);
+				if (!isCarbon) {
+					composite.setBackground(black);
+				}
 				final Text text = new Text(composite, SWT.NONE);
 				final int inset = isCarbon ? 0 : 1;
 				composite.addListener (SWT.Resize, new Listener() {
@@ -876,10 +873,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						boolean needProjectReload = false;
 						
 						if (theTreeObject instanceof DatabaseObjectTreeObject) {
-							oldName = ((DatabaseObject)((DatabaseObjectTreeObject)theTreeObject).getObject()).getName();
-						}
-						else if (theTreeObject instanceof TraceTreeObject) {
-							oldName = ((TraceTreeObject)theTreeObject).getName();
+							oldName = ((DatabaseObject) ((DatabaseObjectTreeObject) theTreeObject).getObject()).getName();
+						} else if (theTreeObject instanceof TraceTreeObject) {
+							oldName = ((TraceTreeObject) theTreeObject).getName();
 						}
 						
 						switch (e.type) {
@@ -908,16 +904,16 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									case SWT.TRAVERSE_RETURN:
 										newName = text.getText();
 										if (theTreeObject instanceof DatabaseObjectTreeObject) {
-											DatabaseObjectTreeObject dbObjectTreeObject = (DatabaseObjectTreeObject)theTreeObject;
+											DatabaseObjectTreeObject dbObjectTreeObject = (DatabaseObjectTreeObject) theTreeObject;
 											if (dbObjectTreeObject.rename(newName, Boolean.TRUE)) {
 												item.setText(newName);
 												needRefresh = true;
-												if (theTreeObject instanceof ProjectTreeObject)
+												if (theTreeObject instanceof ProjectTreeObject) {
 													needProjectReload = true;
+												}
 											}
-										}
-										else if (theTreeObject instanceof TraceTreeObject) {
-											TraceTreeObject traceTreeObject = (TraceTreeObject)theTreeObject;
+										} else if (theTreeObject instanceof TraceTreeObject) {
+											TraceTreeObject traceTreeObject = (TraceTreeObject) theTreeObject;
 											traceTreeObject.rename(newName);
 											if (traceTreeObject.hasChanged) {
 												item.setText(newName);
@@ -940,20 +936,21 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							// Updates references in SequenceStep/TransactionStep if needed
 							if ((theTreeObject instanceof ProjectTreeObject) || (theTreeObject instanceof SequenceTreeObject) || (theTreeObject instanceof ConnectorTreeObject) || (theTreeObject instanceof TransactionTreeObject)) {
 								String objectType = "";
-								if (theTreeObject instanceof ProjectTreeObject)
+								if (theTreeObject instanceof ProjectTreeObject) {
 									objectType = "project";
-								if (theTreeObject instanceof SequenceTreeObject)
+								} else if (theTreeObject instanceof SequenceTreeObject) {
 									objectType = "sequence";
-								else if (theTreeObject instanceof ConnectorTreeObject)
+								} else if (theTreeObject instanceof ConnectorTreeObject) {
 									objectType = "connector";
-								else if (theTreeObject instanceof TransactionTreeObject)
+								} else if (theTreeObject instanceof TransactionTreeObject) {
 									objectType = "transaction";
+								}
 								
 								if (loadedProjectsContainsSequence()) {
 									Shell shell = Display.getDefault().getActiveShell();
-						        	MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-						        	messageBox.setMessage("Do you want to update "+ objectType +" references in steps ?\n- click Yes to replace '"+oldName+"' by '"+newName+"' in all loaded projects.\n- click No to replace '"+oldName+"' by '"+newName+"' in current project only.\n- click Cancel for none update.");
-						        	int response = messageBox.open();
+									MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
+									messageBox.setMessage("Do you want to update "+ objectType +" references in steps ?\n- click Yes to replace '"+oldName+"' by '"+newName+"' in all loaded projects.\n- click No to replace '"+oldName+"' by '"+newName+"' in current project only.\n- click Cancel for none update.");
+									int response = messageBox.open();
 									if (response == SWT.YES) {
 										updateReferences = true;
 										update = TreeObjectEvent.UPDATE_ALL;
@@ -966,18 +963,19 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							}
 							
 							TreeObjectEvent treeObjectEvent = null;
-							if (updateReferences)
+							if (updateReferences) {
 								treeObjectEvent = new TreeObjectEvent(theTreeObject, "name", oldName, newName, update);
-							else
+							} else {
 								treeObjectEvent = new TreeObjectEvent(theTreeObject, "name", oldName, newName);
+							}
 							
 							ProjectExplorerView.this.refreshTree();
 							ProjectExplorerView.this.setSelectedTreeObject(theTreeObject);
-					        ProjectExplorerView.this.fireTreeObjectPropertyChanged(treeObjectEvent);
-					        if (updateReferences && needProjectReload) {
-					        	((ProjectTreeObject)theTreeObject).save(false);
-					        }
-					        
+							ProjectExplorerView.this.fireTreeObjectPropertyChanged(treeObjectEvent);
+							if (updateReferences && needProjectReload) {
+								((ProjectTreeObject) theTreeObject).save(false);
+							}
+							
 							StructuredSelection structuredSelection = new StructuredSelection(theTreeObject);
 							ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)ProjectExplorerView.this, structuredSelection);
 						}
@@ -994,8 +992,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				editor.setEditor(composite, item);
 				if (theTreeObject instanceof DatabaseObjectTreeObject) {
 					text.setText(((DatabaseObjectTreeObject)theTreeObject).getName());
-				}
-				else if (theTreeObject instanceof TraceTreeObject) {
+				} else if (theTreeObject instanceof TraceTreeObject) {
 					text.setText(((TraceTreeObject)theTreeObject).getName());
 				}
 				text.selectAll();
@@ -2378,8 +2375,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		return project;
 	}
 
-	public TreeObject getProjectRootObject(String projectName) throws EngineException {
-		TreeObject project = ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(projectName);
+	public ProjectTreeObject getProjectRootObject(String projectName) throws EngineException {
+		ProjectTreeObject project = (ProjectTreeObject) ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(projectName);
 		return project;
 	}
 
@@ -2577,5 +2574,63 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				catch (Throwable t) {t.printStackTrace();}
 			}
 		});
+	}
+
+	public boolean reloadProject(ProjectTreeObject projectTreeObject) throws EngineException, IOException, CoreException {
+		if (projectTreeObject != null) {
+			String targetProjectName = projectTreeObject.getName();
+			return importProject(Engine.PROJECTS_PATH  + "/" + targetProjectName + "/" + targetProjectName + ".xml", targetProjectName);
+		}
+		return false;
+	}
+
+	public boolean importProject(String filePath, ProjectTreeObject projectTreeObject) throws EngineException, IOException, CoreException {
+		return importProject(filePath, projectTreeObject.getName());
+	}
+
+	public boolean importProject(String filePath, String targetProjectName) throws EngineException, IOException, CoreException {
+		ProjectTreeObject projectTreeObject = null;
+		if (targetProjectName != null) {
+			projectTreeObject = getProjectRootObject(targetProjectName);
+		} 
+		
+		// if project already exists, backup it and delete it after
+		if (projectTreeObject != null) {
+			if (filePath.endsWith(".xml")) {
+				DatabaseObjectsManager.deleteDir(new File(Engine.PROJECTS_PATH + "/" + targetProjectName + "/_data"));
+				DatabaseObjectsManager.deleteDir(new File(Engine.PROJECTS_PATH + "/" + targetProjectName + "/_private"));
+			}
+			// delete project resource (but not content)
+			ConvertigoPlugin.getDefault().deleteProjectPluginResource(false,targetProjectName);
+		}
+		
+		ConvertigoPlugin.logInfo("Import project from file \"" + filePath + "\"");
+		
+		Project importedProject = null;
+		if (filePath.endsWith(".xml")) {
+			importedProject = Engine.theApp.databaseObjectsManager.importProject(filePath);
+		} else if (filePath.endsWith(".car") && (targetProjectName != null)) {
+			importedProject = Engine.theApp.databaseObjectsManager.deployProject(filePath, targetProjectName, true);
+		}
+		
+		if (importedProject != null) {
+			// project's name may have been changed because of non-normalized name (fix ticket #788 : Can not import project 213.car)
+			targetProjectName = importedProject.getName();
+			
+			ViewContentProvider viewContentProvider = (ViewContentProvider) viewer.getContentProvider();
+			
+			// loads project into tree view
+			if (projectTreeObject == null) {
+				importProjectTreeObject(targetProjectName);
+			} else {
+				// recreate project resource
+				ConvertigoPlugin.getDefault().getProjectPluginResource(targetProjectName);
+				viewContentProvider.reloadProject(projectTreeObject);
+			}
+			
+			viewer.refresh();
+			return true;
+		}
+		return false;
 	}
 }

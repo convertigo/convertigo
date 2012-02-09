@@ -126,13 +126,13 @@ public class CarUtils {
 		try {
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			
-			boolean isCR = System.getProperty("line.separator").contains("\r");
+			boolean isCR = FileUtils.isCRLF();
 			
 			Writer writer = isCR ? new StringWriter() : new FileWriterWithEncoding(fileName, "UTF-8");
 			transformer.transform(new DOMSource(document), new StreamResult(writer));
 			
 			if (isCR) {
-				String content = writer.toString().replaceAll("\\r\\n", "\\n");
+				String content = FileUtils.CrlfToLf(writer.toString());
 				writer = new FileWriterWithEncoding(fileName, "UTF-8");
 				writer.write(content);
 			}
