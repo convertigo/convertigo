@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.StringWriter;
@@ -176,15 +178,21 @@ public class CarUtils {
 	private static void exportDatabaseObject(Document document, Element parentElement, DatabaseObject databaseObject) throws EngineException {
 		Element element = parentElement;
 		element = databaseObject.toXml(document);
-		String name =  "(" + databaseObject.getClass().getSimpleName() + ") " + databaseObject.getName();
+		String name = " : " + databaseObject.getName();
+		try {
+			name = Introspector.getBeanInfo(databaseObject.getClass()).getBeanDescriptor().getDisplayName() + name;
+		} catch (IntrospectionException e) {
+			name = databaseObject.getClass().getSimpleName() + name;
+		}
 		Integer depth = (Integer) document.getUserData("depth");
 		if (depth == null) {
 			depth = 0;
 		}
-		String openpad = StringUtils.repeat("  ", depth);
-		String closepad = StringUtils.repeat("  ", depth);
+		
+		String openpad = StringUtils.repeat("   ", depth);
+		String closepad = StringUtils.repeat("   ", depth);
 		parentElement.appendChild(document.createTextNode("\n"));
-		parentElement.appendChild(document.createComment(StringUtils.rightPad(openpad + "\\ "+ name , 150)));
+		parentElement.appendChild(document.createComment(StringUtils.rightPad(openpad + "<" + name + ">", 150)));
 		parentElement.appendChild(element);
 		
 		document.setUserData("depth", depth + 1, null);
@@ -307,7 +315,7 @@ public class CarUtils {
 		}
 		
 		element.appendChild(document.createTextNode("\n"));
-		element.appendChild(document.createComment(StringUtils.rightPad(closepad + "/ " + name, 150)));
+		element.appendChild(document.createComment(StringUtils.rightPad(closepad + "</" + name + ">", 150)));
 		document.setUserData("depth", depth, null);
 	}
 
