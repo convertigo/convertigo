@@ -67,6 +67,7 @@ import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
@@ -177,7 +178,7 @@ public class CarUtils {
 
 	private static void exportDatabaseObject(Document document, Element parentElement, DatabaseObject databaseObject) throws EngineException {
 		Element element = parentElement;
-		element = databaseObject.toXml(document);
+		element = databaseObject.toXml(document, ExportOption.bIncludeVersion);
 		String name = " : " + databaseObject.getName();
 		try {
 			name = Introspector.getBeanInfo(databaseObject.getClass()).getBeanDescriptor().getDisplayName() + name;

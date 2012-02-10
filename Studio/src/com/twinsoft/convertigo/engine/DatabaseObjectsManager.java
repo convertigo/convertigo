@@ -1576,7 +1576,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Element projectElement = (Element) XMLUtils.findChildNode(rootElement, Node.ELEMENT_NODE);
 
 			// Retrieve project version
-			String version = projectElement.getAttribute("version");
+			String version = rootElement.getAttribute("beans");
+			projectElement.setAttribute("version", version);
 
 			// Retrieve project name
 			NodeList properties = projectElement.getElementsByTagName("property");
