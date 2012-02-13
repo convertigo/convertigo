@@ -480,7 +480,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"ISO-8859-1\"");
 		document.appendChild(pi);
 		
-		Element rootElement = toXml(document);
+		Element rootElement = toXml(document, ExportOption.bIncludeVersion);
 		document.appendChild(rootElement);
 		
 		return XMLUtils.prettyPrintDOM(document);
