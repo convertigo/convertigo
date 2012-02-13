@@ -710,64 +710,46 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.IfStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.WhileStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.DoWhileStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ReturnStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.BreakStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.CallFunctionStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
             </beans>
             <beans groupname="Javascript statements">
@@ -775,8 +757,6 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
             </beans>
             <beans groupname="User input control statement">
@@ -784,50 +764,36 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetValueStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetSelectedStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetCheckedStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.MouseStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.MouseAdvanceStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.CreateEventStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
             </beans>
             <beans groupname="Browser control statements">
@@ -835,71 +801,51 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.BrowserPropertyChangeStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.NavigationBarStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.TabManagementStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.CookiesGetStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.CookiesAddStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.AdoptClientCookies">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.InvokeBrowserJsStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.GetUrlStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.GetAttachmentStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
             </beans>
             <beans groupname="Others">
@@ -907,71 +853,51 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ExceptionStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.GetNodesStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ContextGetStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ContextSetStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ContextAddTextNodeStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.LogStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.WaitTriggerStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.RecordForSiteClipperStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement"/>
 				</bean>
 			</beans>
 		</category>
