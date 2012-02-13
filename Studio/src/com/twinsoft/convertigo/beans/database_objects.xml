@@ -716,7 +716,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
