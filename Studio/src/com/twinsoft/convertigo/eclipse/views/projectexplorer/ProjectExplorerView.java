@@ -2589,9 +2589,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public boolean importProject(String filePath, String targetProjectName) throws EngineException, IOException, CoreException {
-		ProjectTreeObject projectTreeObject = null;
+		TreeObject projectTreeObject = null;
 		if (targetProjectName != null) {
-			projectTreeObject = getProjectRootObject(targetProjectName);
+			projectTreeObject = ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(targetProjectName);
 		} 
 		
 		// if project already exists, backup it and delete it after
