@@ -581,12 +581,16 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		}
 		
 		String value(Matcher scheme_host_matcher) {
-			return scheme_host_matcher.group(order);
+			String value = scheme_host_matcher.group(order); 
+			return value == null ? "" : value;
 		}
 
 		static String convert(Matcher scheme_host_matcher) {
 			String port = SchemeHost.port.value(scheme_host_matcher);
-			port = port == null ? "" : "," + port;
+			if (port.length() != 0) {
+				port = "," + port;
+			}
+			
 			return SchemeHost.scheme.value(scheme_host_matcher) + "/" + SchemeHost.host.value(scheme_host_matcher) + port + SchemeHost.uri.value(scheme_host_matcher);
 		}
 		
@@ -610,7 +614,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	}
 	
 	private final static Pattern url_pattern = Pattern.compile("((((.*?)/projects/(.*?))/(.*?)\\.siteclipper)/(.*?)/(.*?)(,([\\d]*))?)($|/.*)");
-	private final static Pattern scheme_host_pattern = Pattern.compile("(.*?)://(.*?)(?::([\\d]*))?(/.*)");
+	private final static Pattern scheme_host_pattern = Pattern.compile("(.*?)://(.*?)(?::([\\d]*))?(/.*)?");
 	private final static Pattern url_tail = Pattern.compile("(.*)/.*?$");
 
 	// Use of HashSet to speedup Collection.contains because hash checking seams speeder than list walking
