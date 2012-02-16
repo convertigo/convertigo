@@ -26,6 +26,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.parsers.events.AbstractEvent;
 import com.twinsoft.convertigo.engine.parsers.events.SimpleEvent;
 
@@ -63,12 +64,13 @@ abstract public class SimpleEventStatement extends AbstractEventStatement implem
 		this.action = action;
 	}
 	
-	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) {
+	@Override
+	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope)  throws EngineException {
 		return new SimpleEvent(xpath, action);
 	}
 
 	public String[] getTagsForProperty(String propertyName) {
-		if(propertyName.equals("action")){
+		if (propertyName.equals("action")) {
 			return getActionStrings();
 		}
 		return new String[0];

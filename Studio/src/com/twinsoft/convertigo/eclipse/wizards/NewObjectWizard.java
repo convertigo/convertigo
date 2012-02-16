@@ -260,7 +260,7 @@ public class NewObjectWizard extends Wizard {
 						if (newBean instanceof HTTPStatement) {
 							HTTPStatement httpStatement = (HTTPStatement)newBean;
 							HtmlConnector connector = (HtmlConnector)httpStatement.getParentTransaction().getParent();
-							httpStatement.setMethodType(HTTPStatement.HTTP_GET);
+							httpStatement.setMethod("GET");
 							httpStatement.setHost(connector.getServer());
 							httpStatement.setPort(connector.getPort());
 							httpStatement.setHttps(connector.isHttps());

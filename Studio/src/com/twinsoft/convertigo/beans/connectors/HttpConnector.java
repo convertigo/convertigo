@@ -1144,8 +1144,7 @@ public class HttpConnector extends Connector {
 		return result;
 	}
 
-	private int doExecuteMethod(final HttpMethod method, Context context) throws ConnectionException,
-			URIException, MalformedURLException {
+	protected int doExecuteMethod(final HttpMethod method, Context context) throws ConnectionException, URIException, MalformedURLException {
 		int statuscode = -1;
 
 		// Tells the method to automatically handle authentication.

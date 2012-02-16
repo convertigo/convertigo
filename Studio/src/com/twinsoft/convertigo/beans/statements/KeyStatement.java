@@ -52,18 +52,20 @@ public class KeyStatement extends SimpleEventStatement {
 		super(action, xpath);
 	}
 	
+	@Override
 	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) {
 		return new KeyEvent(xpath, action, keyCode, charCode, ctrlKey, altKey, shiftKey, metKey);
 	}
 	
+	@Override
 	public String toString() {
 		return action +
-				(ctrlKey?" + ctrl":"")+
-				(altKey?" + alt":"")+
-				(shiftKey?" + shift":"")+
-				(metKey?" + meta":"")+
-				(keyCode!=0?" keyCode("+keyCode+")":"")+
-				(charCode!=0?" charCode("+charCode+")":"")+
+				(ctrlKey ? " + ctrl":"") +
+				(altKey ? " + alt":"") +
+				(shiftKey ? " + shift":"") +
+				(metKey ? " + meta":"") +
+				(keyCode != 0 ? " keyCode(" + keyCode + ")":"") +
+				(charCode != 0 ? " charCode(" + charCode + ")":"") +
 				super.toString();
 	}
 

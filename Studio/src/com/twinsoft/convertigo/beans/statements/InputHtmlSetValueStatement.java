@@ -42,20 +42,22 @@ public class InputHtmlSetValueStatement extends AbstractComplexeEventStatement {
 	
 	private String expression = "//todo";
 	
-	public InputHtmlSetValueStatement(){
+	public InputHtmlSetValueStatement() {
 		super();
 	}
 	
-	public InputHtmlSetValueStatement(String xpath, String expression){
+	public InputHtmlSetValueStatement(String xpath, String expression) {
 		super(xpath);
 		this.expression = expression;
 	}
 
+	@Override
 	public String toString(){
 		return "set value of " + expression + super.toString();
 	}
 	
-	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) {
+	@Override
+	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) throws EngineException {
 		try {
 			evaluate(javascriptContext, scope, expression, "expression", true);
 		} catch (EngineException e) {
@@ -72,11 +74,11 @@ public class InputHtmlSetValueStatement extends AbstractComplexeEventStatement {
 					value += item.toString() + ",";
 				}
 			} else if (evaluated instanceof NativeJavaObject) {
-				NativeJavaObject nativeJavaObject = (NativeJavaObject)evaluated;
+				NativeJavaObject nativeJavaObject = (NativeJavaObject) evaluated;
 				Object javaObject = nativeJavaObject.unwrap();
 				if (javaObject instanceof Vector) {
 					Vector<String> v = GenericUtils.cast(javaObject);
-					for (int j=0; j<v.size(); j++) {
+					for (int j = 0; j < v.size(); j++) {
 						value += v.get(j) + ",";
 					}
 				} else {
@@ -85,13 +87,13 @@ public class InputHtmlSetValueStatement extends AbstractComplexeEventStatement {
 				
 			} else if (evaluated instanceof NativeArray) {
 				NativeArray array = (NativeArray)evaluated;
-				for (int j=0; j<array.getLength(); j++) {
+				for (int j = 0; j < array.getLength(); j++) {
 					Object item = array.get(j,array);
 					value += item.toString() + ",";
 				}
 			} else if (evaluated instanceof Vector) {
 				Vector<String> v = GenericUtils.cast(evaluated);
-				for (int j=0; j<v.size(); j++) {
+				for (int j = 0; j < v.size(); j++) {
 					value += v.get(j) + ",";
 				}
 			} else {
@@ -110,6 +112,7 @@ public class InputHtmlSetValueStatement extends AbstractComplexeEventStatement {
 		this.expression = expression;
 	}
 	
+	@Override
 	public String toJsString() {
 		return expression;
 	}

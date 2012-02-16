@@ -53,18 +53,20 @@ public class MouseAdvanceStatement extends MouseStatement {
 		super(action, xpath);
 	}
 
+	@Override
 	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) {
 		return new MouseEvent(xpath, action, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metKey, button);
 	}
 	
-	public String toString(){
-		return 	(ctrlKey?" + ctrl":"")+
-				(altKey?" + alt":"")+
-				(shiftKey?" + shift":"")+
-				(metKey?" + meta":"")+
-				(screenX!=-1 || screenY!=-1?" + screen("+screenX+","+screenY+")":"")+
-				(clientX!=-1 || clientY!=-1?" + client("+clientX+","+clientY+")":"")+
-				" button("+button+")"+
+	@Override
+	public String toString() {
+		return 	(ctrlKey ? " + ctrl" : "") +
+				(altKey ? " + alt" : "") +
+				(shiftKey ? " + shift" : "") +
+				(metKey ? " + meta" : "") +
+				(screenX != -1 || screenY != -1 ? " + screen(" + screenX + "," + screenY + ")" : "") +
+				(clientX != -1 || clientY !=- 1 ?" + client(" + clientX + "," + clientY + ")" : "") +
+				" button(" + button + ")" +
 				super.toString();
 	}
 	

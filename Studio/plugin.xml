@@ -158,7 +158,7 @@
       <library name="lib/internal/ibm-v28353.jar"/>
       <library name="lib/qrcode.jar"/>
       <library name="lib/mysql-connector.jar"/>
-      <library name="lib/internal/html_parsers-v29322.jar"/>
+      <library name="lib/internal/html_parsers-v29707.jar"/>
       <library name="lib/internal/util-v28883.jar"/>
    </runtime>
 

@@ -49,7 +49,7 @@ abstract public class AbstractEventStatement extends XpathableStatement implemen
 		super(xpath);
 	}
 	
-	abstract public AbstractEvent getEvent(Context javascriptContext, Scriptable scope);
+	abstract public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) throws EngineException;
 	
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {

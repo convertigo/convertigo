@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.statements;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.parsers.events.AbstractEvent;
 import com.twinsoft.convertigo.engine.parsers.events.InputCheckEvent;
 
@@ -33,17 +34,18 @@ public class InputHtmlSetCheckedStatement extends AbstractComplexeEventStatement
 
 	private boolean checked = true;
 	
-	public InputHtmlSetCheckedStatement(){
+	public InputHtmlSetCheckedStatement() {
 		super();
 	}
 		
-	public InputHtmlSetCheckedStatement(String xpath, boolean checked){
+	public InputHtmlSetCheckedStatement(String xpath, boolean checked) {
 		super(xpath);
 		this.checked = checked;
 	}
 
-	public String toString(){
-		return ((checked)?"check":"uncheck") + super.toString();
+	@Override
+	public String toString() {
+		return (checked ? "check" : "uncheck") + super.toString();
 	}
 	
 	public boolean getChecked() {
@@ -54,7 +56,8 @@ public class InputHtmlSetCheckedStatement extends AbstractComplexeEventStatement
 		this.checked = checked;
 	}
 
-	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) {
+	@Override
+	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) throws EngineException {
 		return new InputCheckEvent(xpath, uiEvent, checked);
 	}
 }
