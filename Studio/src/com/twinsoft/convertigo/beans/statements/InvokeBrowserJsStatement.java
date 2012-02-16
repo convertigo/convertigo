@@ -29,6 +29,7 @@ import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.parsers.events.AbstractEvent;
 import com.twinsoft.convertigo.engine.parsers.events.InvokeBrowserJsEvent;
 import com.twinsoft.convertigo.engine.parsers.triggers.NoWaitTrigger;
@@ -76,23 +77,25 @@ public class InvokeBrowserJsStatement extends AbstractEventStatement {
 		this.codeJS = codeJS;
 	}
 	
-	public XMLVector<XMLVector<String>> getVariables(){
+	public XMLVector<XMLVector<String>> getVariables() {
 		return variables;
 	}
 	
-	public void setVariables(XMLVector<XMLVector<String>> variables){
+	public void setVariables(XMLVector<XMLVector<String>> variables) {
 		this.variables = variables;
 	}
 	
+	@Override
 	public String toString(){
 		return "invoke "+((codeJS.length()<12)?codeJS:(codeJS.substring(0, 12)+"..."));
 	}
 	
-	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) {
+	@Override
+	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) throws EngineException {
 		String jsCode = "";
-		for(Iterator<XMLVector<String>> i=variables.iterator();i.hasNext();){
+		for (Iterator<XMLVector<String>> i = variables.iterator(); i.hasNext();) {
 			String varName = null;
-			try{
+			try {
 				XMLVector<String> line = GenericUtils.cast(i.next());
 				varName = line.get(0);
 				String description = line.get(1);
@@ -100,12 +103,12 @@ public class InvokeBrowserJsStatement extends AbstractEventStatement {
 				evaluate(javascriptContext, scope, jsValue, "jsValue", false);
 				jsValue = evaluated.toString();
 				jsCode += "var " + varName + "='" + jsValue + "';//" + description + "\n";
-			}catch (Exception e) {
-				Engine.logBeans.error("Invoke Browser Js failed to set "+varName, e);
+			} catch (Exception e) {
+				Engine.logBeans.error("Invoke Browser Js failed to set " + varName, e);
 			}
 		}
 		jsCode += codeJS;
-		Engine.logBeans.trace("InvokeBrowserJsStatement prepare this jsCode for invokation :\n"+jsCode);
+		Engine.logBeans.trace("InvokeBrowserJsStatement prepare this jsCode for invokation :\n" + jsCode);
 		return new InvokeBrowserJsEvent(xpath, jsCode);
 	}
 }

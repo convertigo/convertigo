@@ -22,11 +22,12 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
+import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
 
 public class HttpVerbEditor extends PropertyWithTagsEditor {
 
     public static String[] getTags(DatabaseObjectTreeObject databaseObjectTreeObject) {
-        return new String[] { "GET", "POST", "PUT", "DELETE" };
+        return HttpTransaction.HTTP_VERBS;
     }
 }

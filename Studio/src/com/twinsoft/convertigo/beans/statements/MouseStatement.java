@@ -40,10 +40,12 @@ public class MouseStatement extends SimpleEventStatement {
 		super(action, xpath);
 	}
 	
+	@Override
 	public String toString() {
 		return action + super.toString();
 	}
 
+	@Override
 	public String[] getActionStrings() {
 		return SimpleEvent.getMouseActions();
 	}

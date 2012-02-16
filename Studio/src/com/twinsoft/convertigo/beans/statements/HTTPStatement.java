@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
+import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.variables.HttpStatementMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.HttpStatementVariable;
 import com.twinsoft.convertigo.engine.Engine;
@@ -68,18 +69,18 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 
 	private static final long serialVersionUID = 6762922098877290999L;
 	
-	public static final int HTTP_NONE		= 0;
-	public static final int HTTP_GET		= 1;
-	public static final int HTTP_POST 		= 2;
-	public static final int HTTP_HEAD 		= 3;
-	public static final int HTTP_PUT 		= 4;
-	public static final int HTTP_TRACE 		= 5;
-	public static final int HTTP_OPTIONS 	= 6;
-	public static final int HTTP_CONNECT 	= 7;
-	public static final int HTTP_DELETE 	= 8;
+//	public static final int HTTP_NONE		= 0;
+//	public static final int HTTP_GET		= 1;
+//	public static final int HTTP_POST 		= 2;
+//	public static final int HTTP_HEAD 		= 3;
+//	public static final int HTTP_PUT 		= 4;
+//	public static final int HTTP_TRACE 		= 5;
+//	public static final int HTTP_OPTIONS 	= 6;
+//	public static final int HTTP_CONNECT 	= 7;
+//	public static final int HTTP_DELETE 	= 8;
 	
 	/** Holds value of property method. */
-	private int methodType = 0;
+//	private int methodType = 0;
 	
 	/** Holds value of property https. */
 	private boolean https = false;
@@ -105,16 +106,19 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 	/** Holds the value of property form. */
 	private String formName = "";
 	
+    /** Holds value of property httpVerb. */
+    private int httpVerb = 0;
+	
     /** The result of statement execution. */
     private transient byte[] result = new byte[]{};
     
 //    public transient Hashtable variables = new Hashtable(16);
     
-    private transient Context javascriptContext = null;
+    protected transient Context javascriptContext = null;
     
-    private transient Scriptable scope = null;
+    protected transient Scriptable scope = null;
     
-    private TriggerXMLizer trigger = new TriggerXMLizer(new DocumentCompletedTrigger(1,60000));
+    protected TriggerXMLizer trigger = new TriggerXMLizer(new DocumentCompletedTrigger(1,60000));
     
     private transient List<HttpStatementVariable> vVariables = new Vector<HttpStatementVariable>();
     transient private List<HttpStatementVariable> vAllVariables = null;
@@ -410,33 +414,33 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 		this.httpVersion = httpVersion;
 	}
 
-	public String getMethod() {
-		switch (methodType) {
-			case 8: return "DELETE";
-			case 7: return "CONNECT";
-			case 6: return "OPTIONS";
-			case 5: return "TRACE";
-			case 4: return "PUT";
-			case 3: return "HEAD";
-			case 2: return "POST";
-			case 1: return "GET";
-			default: return "";
-		}
-	}
+//	public String getMethod() {
+//		switch (methodType) {
+//			case 8: return "DELETE";
+//			case 7: return "CONNECT";
+//			case 6: return "OPTIONS";
+//			case 5: return "TRACE";
+//			case 4: return "PUT";
+//			case 3: return "HEAD";
+//			case 2: return "POST";
+//			case 1: return "GET";
+//			default: return "";
+//		}
+//	}
 	
 	/**
 	 * @return Returns the method.
 	 */
-	public int getMethodType() {
-		return methodType;
-	}
+//	public int getMethodType() {
+//		return methodType;
+//	}
 
 	/**
 	 * @param method The method to set.
 	 */
-	public void setMethodType(int method) {
-		this.methodType = method;
-	}
+//	public void setMethodType(int method) {
+//		this.methodType = method;
+//	}
 
 	/**
 	 * @return Returns the host.
@@ -604,32 +608,32 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 	}
 
 	public boolean isHandleCookie() {
-		HtmlTransaction htmlTransaction = (HtmlTransaction)getParentTransaction();
+		HtmlTransaction htmlTransaction = getParentTransaction();
 		return htmlTransaction.isHandleCookie();
 	}
 
-	public void setMethodType(String method) {
-		int type = HTTP_NONE;
-		if (method != null) {
-			if (method.equalsIgnoreCase("GET"))
-				type = HTTP_GET;
-			if (method.equalsIgnoreCase("POST"))
-				type = HTTP_POST;
-			if (method.equalsIgnoreCase("HEAD"))
-				type = HTTP_HEAD;
-			if (method.equalsIgnoreCase("PUT"))
-				type = HTTP_PUT;
-			if (method.equalsIgnoreCase("TRACE"))
-				type = HTTP_TRACE;
-			if (method.equalsIgnoreCase("OPTIONS"))
-				type = HTTP_OPTIONS;
-			if (method.equalsIgnoreCase("CONNECT"))
-				type = HTTP_CONNECT;
-			if (method.equalsIgnoreCase("DELETE"))
-				type = HTTP_DELETE;
-		}
-		setMethodType(type);
-	}
+//	public void setMethodType(String method) {
+//		int type = HTTP_NONE;
+//		if (method != null) {
+//			if (method.equalsIgnoreCase("GET"))
+//				type = HTTP_GET;
+//			if (method.equalsIgnoreCase("POST"))
+//				type = HTTP_POST;
+//			if (method.equalsIgnoreCase("HEAD"))
+//				type = HTTP_HEAD;
+//			if (method.equalsIgnoreCase("PUT"))
+//				type = HTTP_PUT;
+//			if (method.equalsIgnoreCase("TRACE"))
+//				type = HTTP_TRACE;
+//			if (method.equalsIgnoreCase("OPTIONS"))
+//				type = HTTP_OPTIONS;
+//			if (method.equalsIgnoreCase("CONNECT"))
+//				type = HTTP_CONNECT;
+//			if (method.equalsIgnoreCase("DELETE"))
+//				type = HTTP_DELETE;
+//		}
+//		setMethodType(type);
+//	}
 	
 	public XMLVector<XMLVector<String>> getHttpParameters() {
 		XMLVector<XMLVector<String>> v = new XMLVector<XMLVector<String>>();
@@ -699,10 +703,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 		return makeQuery(context, "GET");
 	}
 
-	public String getPostQuery(com.twinsoft.convertigo.engine.Context context) throws EngineException {
-		if (methodType != HTTP_POST)
-			return "";
-		
+	public String getPostQuery(com.twinsoft.convertigo.engine.Context context) throws EngineException {		
 		// Posting all input variables marked as POST
 		return makeQuery(context, "POST");
 	}
@@ -839,9 +840,15 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 				this.javascriptContext = javascriptContext;
 				this.scope = scope;
 				
-				HtmlTransaction htmlTransaction = (HtmlTransaction)getParentTransaction();
-				htmlTransaction.applyUserRequest(this);
+				HtmlTransaction htmlTransaction = getParentTransaction();
+				int exVerb = htmlTransaction.getHttpVerb();
+				try {
+					htmlTransaction.setHttpVerb(getHttpVerb());
+					htmlTransaction.applyUserRequest(this);
 				return true;
+				} finally {
+					htmlTransaction.setHttpVerb(exVerb);
+				}
 			}
 		}
 		return false;
@@ -853,5 +860,26 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 
 	public void setTrigger(TriggerXMLizer trigger) {
 		this.trigger = trigger;
+	}
+	
+    public int getHttpVerb() {
+		return httpVerb;
+	}
+
+	public void setHttpVerb(int httpVerb) {
+		this.httpVerb = httpVerb;
+	}
+	
+	public String getMethod() {
+		return HttpTransaction.HTTP_VERBS[httpVerb];
+	}
+	
+	public void setMethod(String method) {
+		for (int i = 0 ; i < HttpTransaction.HTTP_VERBS.length ; i++) {
+			if (method.toUpperCase().equals(HttpTransaction.HTTP_VERBS[i])) {
+				httpVerb = i;
+				return;
+			}
+		}
 	}
 }

@@ -922,7 +922,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 							token = stk.nextToken();
 							if (i == 0) {
 								method = token;
-								httpStatement.setMethodType(method);
+								httpStatement.setMethod(method);
 							}
 							if (i == 1) {
 								uri = token;

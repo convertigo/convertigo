@@ -31,7 +31,8 @@ public class CreateEventStatement extends SimpleEventStatement {
 		return SimpleEvent.getActions();
 	}
 	
-	public String toString(){
-		return action+super.toString();
+	@Override
+	public String toString() {
+		return action + super.toString();
 	}
 }

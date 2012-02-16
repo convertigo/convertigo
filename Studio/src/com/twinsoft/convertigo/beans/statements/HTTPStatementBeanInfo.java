@@ -44,11 +44,15 @@ public class HTTPStatementBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
-			properties[0] = new PropertyDescriptor("methodType", beanClass, "getMethodType", "setMethodType");
-			properties[0].setDisplayName(getExternalizedString("property.methodType.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.methodType.short_description"));
-			//properties[0].setPropertyEditorClass(getEditorClass("HttpMethodEditor")); //since #169 Bug with http statement
-			properties[0].setHidden(true);
+//			properties[0] = new PropertyDescriptor("methodType", beanClass, "getMethodType", "setMethodType");
+//			properties[0].setDisplayName(getExternalizedString("property.methodType.display_name"));
+//			properties[0].setShortDescription(getExternalizedString("property.methodType.short_description"));
+//			//properties[0].setPropertyEditorClass(getEditorClass("HttpMethodEditor")); //since #169 Bug with http statement
+//			properties[0].setHidden(true);
+			properties[0] = new PropertyDescriptor("httpVerb", beanClass, "getHttpVerb", "setHttpVerb");
+			properties[0].setDisplayName(getExternalizedString("property.httpVerb.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.httpVerb.short_description"));
+			properties[0].setPropertyEditorClass(getEditorClass("HttpVerbEditor"));
 
 			properties[1] = new PropertyDescriptor("https", beanClass, "isHttps", "setHttps");
 			properties[1].setDisplayName(getExternalizedString("property.https.display_name"));

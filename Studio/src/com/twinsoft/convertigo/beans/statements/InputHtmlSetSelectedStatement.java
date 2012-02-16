@@ -37,21 +37,22 @@ public class InputHtmlSetSelectedStatement extends AbstractComplexeEventStatemen
 	private String mode = InputSelectEvent.MOD_INDEX;
 	private String expression = "//todo";
 	
-	public InputHtmlSetSelectedStatement(){
+	public InputHtmlSetSelectedStatement() {
 		super();
 	}
 	
-	public InputHtmlSetSelectedStatement(String xpath){
+	public InputHtmlSetSelectedStatement(String xpath) {
 		super(xpath);
 	}
 
-	public InputHtmlSetSelectedStatement(String xpath, String expression, String mode){
+	public InputHtmlSetSelectedStatement(String xpath, String expression, String mode) {
 		super(xpath);
 		this.expression = expression;
 		this.mode = mode;
 	}
 	
-	public String toString(){
+	@Override
+	public String toString() {
 		return "select " + expression + super.toString();
 	}
 
@@ -63,37 +64,34 @@ public class InputHtmlSetSelectedStatement extends AbstractComplexeEventStatemen
 		this.mode = mode;
 	}
 
-	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) {
-		try {
-			evaluate(javascriptContext, scope, expression, "expression", true);
-		} catch (EngineException e) {
-			//TODO:
-		}
-		
-		String [] values = null;
-				
-		if(evaluated != null){
-			if(evaluated instanceof NativeArray){
-				NativeArray nativeArray = (NativeArray)evaluated;
-				values = new String[(int)nativeArray.getLength()];
-				for(int i=0;i<values.length;i++){
+	@Override
+	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) throws EngineException {
+		evaluate(javascriptContext, scope, expression, "expression", true);
+		String [] values = null;		
+		if (evaluated != null){
+			if (evaluated instanceof NativeArray) {
+				NativeArray nativeArray = (NativeArray) evaluated;
+				values = new String[(int) nativeArray.getLength()];
+				for (int i = 0; i < values.length; i++) {
 					Object item = nativeArray.get(i, scope);
 					values[i] = convertValue(item);
 				}
+			} else {
+				values = new String[] {
+					convertValue(evaluated)
+				};
 			}
-			else {
-				values = new String[]{convertValue(evaluated)};
-			}
-			
 		}
-		
 		return new InputSelectEvent(xpath, uiEvent, mode, values);
 	}
 	
-	protected String convertValue(Object obj){
-		if(mode.equals(InputSelectEvent.MOD_INDEX)){
-			if(obj instanceof Double) return ""+((Double)obj).intValue();
-			else if(obj instanceof Float) return ""+((Float)obj).intValue();
+	protected String convertValue(Object obj) {
+		if (mode.equals(InputSelectEvent.MOD_INDEX)) {
+			if (obj instanceof Double) {
+				return "" + ((Double) obj).intValue();
+			} else if(obj instanceof Float) {
+				return "" + ((Float) obj).intValue();
+			}
 		}
 		return obj.toString();
 	}
@@ -106,12 +104,13 @@ public class InputHtmlSetSelectedStatement extends AbstractComplexeEventStatemen
 		this.expression = expression;
 	}
 	
+	@Override
 	public String toJsString() {
 		return expression;
 	}
 
-	public String[] getTagsForProperty(String propertyName) {
-		if(propertyName.equals("mode")){
+	public String[] getTagsForProperty(String propertyName){
+		if(propertyName.equals("mode")) {
 			return new String[] {
 					InputSelectEvent.MOD_INDEX,
 					InputSelectEvent.MOD_CONTENT,

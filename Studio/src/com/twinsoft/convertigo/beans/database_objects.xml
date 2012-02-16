@@ -795,6 +795,11 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
                 </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetFileStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
             </beans>
             <beans groupname="Browser control statements">
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.CredentialsStatement">
@@ -849,6 +854,11 @@
                 </bean>
             </beans>
             <beans groupname="Others">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.HTTPUploadStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.HTTPStatement">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>

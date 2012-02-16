@@ -77,11 +77,15 @@ public class HttpTransaction extends TransactionWithVariables {
 		this.dataEncoding = dataEncoding;
 	}
 
-	public static String[] HTTP_VERBS = { "GET", "POST", "PUT", "DELETE" };
+	public static final String[] HTTP_VERBS = { "GET", "POST", "PUT", "DELETE", "HEAD", "TRACE", "OPTIONS", "CONNECT"};
     public static int HTTP_VERB_GET = 0;
     public static int HTTP_VERB_POST = 1;
     public static int HTTP_VERB_PUT = 2;
     public static int HTTP_VERB_DELETE = 3;
+    public static int HTTP_VERB_HEAD = 4;
+	public static int HTTP_VERB_TRACE = 5;
+	public static int HTTP_VERB_OPTIONS = 6;
+	public static int HTTP_VERB_CONNECT = 7;
     
     /** Holds value of property httpVerb. */
     private int httpVerb = 0;

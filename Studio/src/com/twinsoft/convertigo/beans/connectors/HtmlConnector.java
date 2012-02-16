@@ -23,10 +23,13 @@
 package com.twinsoft.convertigo.beans.connectors;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.httpclient.Cookie;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.URIException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -37,6 +40,7 @@ import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
+import com.twinsoft.convertigo.beans.statements.HTTPUploadStatement;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -96,6 +100,19 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 		return super.getData(context);
 	}
 
+	@Override
+	protected int doExecuteMethod(final HttpMethod method, Context context) throws ConnectionException, URIException, MalformedURLException {
+		try {
+			HtmlTransaction htmlTransaction = getCurrentHtmlTransaction(context);
+			if (htmlTransaction.currentStatement instanceof HTTPUploadStatement) {
+				((HTTPUploadStatement) htmlTransaction.currentStatement).handleUpload(method, context);
+			}
+		} catch (EngineException e) {
+			Engine.logBeans.error("(HtmlConnector) unexpected error", e);
+		}
+		return super.doExecuteMethod(method, context);
+	}
+	
 	public HtmlParser getHtmlParser() {
 		return htmlParser;
 	}
@@ -237,13 +254,7 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 		Engine.logBeans.debug("(HtmlConnector) Preparing for http statement");
 
 		// Retrieve current executing transaction
-		HtmlTransaction htmlTransaction = null;
-		try {
-			htmlTransaction = (HtmlTransaction) context.requestedObject;
-		}
-		catch (ClassCastException e) {
-			throw new EngineException("Requested object is not a transaction",e);
-		}
+		HtmlTransaction htmlTransaction = getCurrentHtmlTransaction(context);
 		
 		if ((htmlTransaction == null) || (!htmlTransaction.runningThread.bContinue))
 			return;
@@ -269,7 +280,6 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 		
 		// Getting all input variables marked as GET
 		Engine.logBeans.trace("(HtmlConnector) Loading all GET input variables");
-		httpStatement.setMethodType(HTTPStatement.HTTP_GET);
 		String queryString = httpStatement.getQueryString(context);
 		if (Engine.logBeans.isDebugEnabled())
 			Engine.logBeans.debug("(HtmlConnector) GET query: " + Visibility.Logs.replaceVariables(httpStatement.getVariables(), queryString));
@@ -281,10 +291,10 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 
 		// Posting all input variables marked as POST
 		Engine.logBeans.trace("(HtmlConnector) Loading all POST input variables");
-		httpStatement.setMethodType(HTTPStatement.HTTP_POST);
 		postQuery = httpStatement.getPostQuery(context);
-		if (Engine.logBeans.isDebugEnabled())
+		if (Engine.logBeans.isDebugEnabled()) {
 			Engine.logBeans.debug("(HtmlConnector) POST query: " + Visibility.Logs.replaceVariables(httpStatement.getVariables(), postQuery));
+		}
 		
 		// Setup the SSL properties if needed
 		if (isHttps() || httpStatement.isHttps()) {
@@ -362,5 +372,17 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 		List<DatabaseObject> rep = super.getAllChildren();
 		rep.add(0, getDefaultScreenClass());
 		return rep;
+	}
+	
+	protected HtmlTransaction getCurrentHtmlTransaction(Context context) throws EngineException {
+		// Retrieve current executing transaction
+		HtmlTransaction htmlTransaction = null;
+		try {
+			htmlTransaction = (HtmlTransaction) context.requestedObject;
+		}
+		catch (ClassCastException e) {
+			throw new EngineException("Requested object is not a transaction",e);
+		}
+		return htmlTransaction;
 	}
 }
