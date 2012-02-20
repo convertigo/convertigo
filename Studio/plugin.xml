@@ -373,20 +373,30 @@
             class="com.twinsoft.convertigo.eclipse.wizards.NewSenchaMobileWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSenchaMobileWizard"
-            name="Sencha/PhoneGap based project"
+            name="Sencha/PhoneGap based configurable project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a Mobile project based on Sencha/PhoneGap frameworks.</description> 
+            <description>Creates a Mobile project based on Sencha/PhoneGap frameworks, which features are configurable thanks to the following wizard.</description> 
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewJQueryMobileWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.NewEmptyJQueryMobileWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewJQueryMobileWizard"
-            name="jQuery Mobile based project"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewEmptyJQueryMobileWizard"
+            name="jQuery Mobile based empty project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a Mobile project based on jQueryMobile frameworks.</description> 
+            <description>Creates an empty of features Mobile project based on jQueryMobile framework.</description> 
+            </wizard>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
+            class="com.twinsoft.convertigo.eclipse.wizards.NewFullFeaturedJQueryMobileWizard"
+            icon="icons/studio/mobile_HighEnd_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewFullFeaturedJQueryMobileWizard"
+            name="jQuery Mobile based full-featured project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates a full-featured Mobile project based on jQueryMobile framework.</description> 
             </wizard>
 <!-- Legacy publishing projects -->
       <wizard
