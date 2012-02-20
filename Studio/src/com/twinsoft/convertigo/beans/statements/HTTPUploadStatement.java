@@ -1,12 +1,17 @@
 package com.twinsoft.convertigo.beans.statements;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.multipart.FilePart;
 import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
+import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
@@ -18,8 +23,9 @@ public class HTTPUploadStatement extends HTTPStatement {
 	private static final long serialVersionUID = 3095426964527946257L;
 	
 	private String filename =  "\"filename\"";
+	private String httpFilename = "";
 	
-	transient File fileupload;
+	transient List<Part> parts = new LinkedList<Part>();
 
 	public HTTPUploadStatement() {
 		super();
@@ -34,40 +40,69 @@ public class HTTPUploadStatement extends HTTPStatement {
 	public void setFilename(String filename) {
 		this.filename = filename;
 	}
+
+	public String getHttpFilename() {
+		return httpFilename;
+	}
+
+	public void setHttpFilename(String httpFilename) {
+		this.httpFilename = httpFilename;
+	}
 	
     @Override
 	public boolean execute(org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			fileupload = null;
+			parts.clear();
 			evaluate(javascriptContext, scope, filename, "filename", true);
 			
 			if (evaluated != null) {
 				String filepath = Engine.theApp.filePropertyManager.getFilepathFromProperty(evaluated.toString(), getProject().getName());
-				fileupload = new File(filepath);
+				File fileupload = new File(filepath);
 				if (!fileupload.exists()) {
 					throw new EngineException("(HTTPUploadStatement) The file '" + fileupload.getAbsolutePath() + "' doesn't exist.");
 				}
 				if (!fileupload.isFile()) {
 					throw new EngineException("(HTTPUploadStatement) The file '" + fileupload.getAbsolutePath() + "' isn't a file.");
 				}
+				
+				String sHttpFilename = fileupload.getName();
+				if (httpFilename.length() > 0) {
+					evaluate(javascriptContext, scope, httpFilename, "httpFilename", true);
+					if (evaluated != null) {
+						sHttpFilename = evaluated.toString();
+					}
+				}
+				
+				try {
+					parts.add(new FilePart(sHttpFilename, fileupload));
+				} catch (FileNotFoundException e) {
+					throw new EngineException("(HTTPUploadStatement) The file is not found.", e);
+				}
 			} else {
 				throw new EngineException("(HTTPUploadStatement) The filename expresion must return the file path in string.");
 			}
 			
+			setHttpVerb(HttpTransaction.HTTP_VERB_POST);
 			return super.execute(javascriptContext, scope);
 		}
 		return false;
+	}
+	
+	@Override
+	protected String addVariableToQuery(String methodToAnalyse, String httpVariable, String httpVariableValue, String query, boolean firstParam) throws UnsupportedEncodingException {
+		if (methodToAnalyse.equalsIgnoreCase("POST")) {
+			parts.add(new StringPart(httpVariable, httpVariableValue));
+			return "";
+		} else {
+			return super.addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, firstParam);
+		}
 	}
 	
 	public void handleUpload(HttpMethod method, Context context) throws EngineException {
 		if (method instanceof PostMethod) {
 			try {
 				PostMethod uploadMethod = (PostMethod) method;
-				
-				Part[] parts = {
-					new FilePart(fileupload.getName(), fileupload)
-				};
-				uploadMethod.setRequestEntity(new MultipartRequestEntity(parts, uploadMethod.getParams()));
+				uploadMethod.setRequestEntity(new MultipartRequestEntity(parts.toArray(new Part[parts.size()]), uploadMethod.getParams()));
 			} catch (Exception e) {
 				throw new EngineException("(HTTPUploadStatement) failed to handleUpload", e);
 			}

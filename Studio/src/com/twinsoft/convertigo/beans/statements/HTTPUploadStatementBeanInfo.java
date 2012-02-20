@@ -36,7 +36,7 @@ public class HTTPUploadStatementBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/httpupload_16x16.gif";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/httpupload_32x32.gif";
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/HTTPUploadStatement");
 			
@@ -47,6 +47,11 @@ public class HTTPUploadStatementBeanInfo extends MySimpleBeanInfo {
 			properties[0].setDisplayName(getExternalizedString("property.filename.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.filename.short_description"));
             properties[0].setValue("scriptable", Boolean.TRUE);
+			
+			properties[1] = new PropertyDescriptor("httpFilename", beanClass, "getHttpFilename", "setHttpFilename");
+			properties[1].setDisplayName(getExternalizedString("property.httpfilename.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.httpfilename.short_description"));
+            properties[1].setValue("scriptable", Boolean.TRUE);
             
             PropertyDescriptor property = getPropertyDescriptor("httpVerb");
             property.setHidden(true);            

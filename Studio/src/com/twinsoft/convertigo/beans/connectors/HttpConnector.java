@@ -62,9 +62,12 @@ import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.HeadMethod;
+import org.apache.commons.httpclient.methods.OptionsMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
+import org.apache.commons.httpclient.methods.TraceMethod;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.w3c.dom.Document;
@@ -887,14 +890,21 @@ public class HttpConnector extends Connector {
 			int httpVerb = ((HttpTransaction) context.transaction).getHttpVerb();
 			String sHttpVerb = HttpTransaction.HTTP_VERBS[httpVerb];
 			Engine.logBeans.debug("(HttpConnector) HTTP verb: " + sHttpVerb);
-			if (httpVerb == HttpTransaction.HTTP_VERB_GET)
+			if (httpVerb == HttpTransaction.HTTP_VERB_GET) {
 				method = new GetMethod(sUrl);
-			else if (httpVerb == HttpTransaction.HTTP_VERB_POST)
+			} else if (httpVerb == HttpTransaction.HTTP_VERB_POST) {
 				method = new PostMethod(sUrl);
-			else if (httpVerb == HttpTransaction.HTTP_VERB_PUT)
+			} else if (httpVerb == HttpTransaction.HTTP_VERB_PUT) {
 				method = new PutMethod(sUrl);
-			else if (httpVerb == HttpTransaction.HTTP_VERB_DELETE)
+			} else if (httpVerb == HttpTransaction.HTTP_VERB_DELETE) {
 				method = new DeleteMethod(sUrl);
+			} else if (httpVerb == HttpTransaction.HTTP_VERB_HEAD) {
+				method = new HeadMethod(sUrl);
+			} else if (httpVerb == HttpTransaction.HTTP_VERB_OPTIONS) {
+				method = new OptionsMethod(sUrl);
+			} else if (httpVerb == HttpTransaction.HTTP_VERB_TRACE) {
+				method = new TraceMethod(sUrl);
+			}
 
 			// Setting HTTP parameters
 			boolean hasUserAgent = false;

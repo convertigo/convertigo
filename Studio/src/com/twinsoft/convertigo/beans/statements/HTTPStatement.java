@@ -807,7 +807,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 	}
 
 	
-	private String addVariableToQuery(String methodToAnalyse, String httpVariable, String httpVariableValue, String query, boolean firstParam) throws UnsupportedEncodingException {
+	protected String addVariableToQuery(String methodToAnalyse, String httpVariable, String httpVariableValue, String query, boolean firstParam) throws UnsupportedEncodingException {
 		// if the variable name is in the form __header_<header name>, extract the header name and set it's value in the headers
 		
 		if (httpVariable.startsWith(Parameter.HttpHeader.getName())) {
