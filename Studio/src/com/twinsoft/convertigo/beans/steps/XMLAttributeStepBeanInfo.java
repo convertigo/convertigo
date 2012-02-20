@@ -41,7 +41,7 @@ public class XMLAttributeStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[5];
 
             properties[0] = new PropertyDescriptor("nodeName", beanClass, "getNodeName", "setNodeName");
             properties[0].setDisplayName(getExternalizedString("property.nodeName.display_name"));
@@ -61,6 +61,16 @@ public class XMLAttributeStepBeanInfo extends MySimpleBeanInfo {
 			properties[2].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
 			properties[2].setValue(BLACK_LIST_NAME, Boolean.TRUE);
 			
+            properties[3] = new PropertyDescriptor("nodeNameSpace", beanClass, "getNodeNameSpace", "setNodeNameSpace");
+            properties[3].setDisplayName(getExternalizedString("property.nodeNameSpace.display_name"));
+            properties[3].setShortDescription(getExternalizedString("property.nodeNameSpace.short_description")); 
+            properties[3].setValue(BLACK_LIST_NAME, Boolean.FALSE);
+			
+            properties[4] = new PropertyDescriptor("nodeNameSpaceURI", beanClass, "getNodeNameSpaceURI", "setNodeNameSpaceURI");
+            properties[4].setDisplayName(getExternalizedString("property.nodeNameSpaceURI.display_name"));
+            properties[4].setShortDescription(getExternalizedString("property.nodeNameSpaceURI.short_description")); 
+            properties[4].setValue(BLACK_LIST_NAME, Boolean.FALSE);
+
 			getPropertyDescriptor("schemaDataType").setHidden(false);
 		}
 		catch(Exception e) {

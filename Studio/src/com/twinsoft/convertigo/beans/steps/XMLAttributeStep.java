@@ -40,6 +40,25 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 
 	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
 	protected String nodeName = "attribute";
+
+	private String nodeNameSpace = "";
+	public String getNodeNameSpace() {
+		return nodeNameSpace;
+	}
+
+	public void setNodeNameSpace(String nodeNameSpace) {
+		this.nodeNameSpace = nodeNameSpace;
+	}
+
+	private String nodeNameSpaceURI = "";
+	public String getNodeNameSpaceURI() {
+		return nodeNameSpaceURI;
+	}
+
+	public void setNodeNameSpaceURI(String nodeNameSpaceURI) {
+		this.nodeNameSpaceURI = nodeNameSpaceURI;
+	}
+
 	protected String nodeText = "";
 	
 	private transient StepSource source = null;
@@ -152,15 +171,50 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 					if (node != null) {
 						String snodeName = ((len==1) ? getStepNodeName():node.getNodeName());
 						String snodeValue = getNodeValue(node);
-						doc.getDocumentElement().setAttribute(snodeName, (snodeValue == null) ? getNodeText():snodeValue);
-						stepNode = doc.getDocumentElement().getAttributeNode(snodeName);
+						
+						String namespace = getNodeNameSpace();
+						if (namespace.equals("")) {
+							doc.getDocumentElement().setAttribute(snodeName, (snodeValue == null) ? getNodeText():snodeValue);
+							stepNode = doc.getDocumentElement().getAttributeNode(snodeName);
+						}
+						else {
+							String namespaceURI = getNodeNameSpaceURI();
+							if (namespaceURI.equals(""))
+								throw new EngineException("Blank namespace URI is not allowed (using namespace '"
+										+ namespace + "' in XMLAttribute step '" + getName() + "')");
+
+							doc.getDocumentElement().setAttributeNS(
+									namespaceURI,
+									namespace + ":" + snodeName,
+									(snodeValue == null) ? getNodeText() : snodeValue);
+							stepNode = doc.getDocumentElement().getAttributeNode(namespace + ":" + snodeName);
+						}
+						
 						((Step)parent).appendChildNode(stepNode);
 					}
 				}
 			}
 			else {
-				doc.getDocumentElement().setAttribute(getStepNodeName(), getNodeText());
-				stepNode = doc.getDocumentElement().getAttributeNode(getStepNodeName());
+				String namespace = getNodeNameSpace();
+				if (namespace.equals("")) {
+					doc.getDocumentElement().setAttribute(getStepNodeName(), getNodeText());
+					stepNode = doc.getDocumentElement().getAttributeNode(getStepNodeName());
+					((Step)parent).appendChildNode(stepNode);
+				}
+				else {
+					String namespaceURI = getNodeNameSpaceURI();
+					if (namespaceURI.equals(""))
+						throw new EngineException("Blank namespace URI is not allowed (using namespace '"
+								+ namespace + "' in XMLAttribute step '" + getName() + "')");
+
+					doc.getDocumentElement().setAttributeNS(
+							namespaceURI,
+							namespace + ":" + getStepNodeName(),
+							getNodeText());
+					doc.getDocumentElement().setAttribute(namespace + ":" + getStepNodeName(), getNodeText());
+					stepNode = doc.getDocumentElement().getAttributeNode(namespace + ":" + getStepNodeName());
+				}
+
 				((Step)parent).appendChildNode(stepNode);
 			}
 		}
