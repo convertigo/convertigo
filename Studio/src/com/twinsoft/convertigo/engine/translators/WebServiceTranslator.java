@@ -574,8 +574,21 @@ public class WebServiceTranslator implements Translator {
 			Attr attribute;
 			for (int i = 0 ; i < len ; i++) {
 				attribute = (Attr) attributes.item(i);
+				String namespace = attribute.getPrefix();
+				String attributeValue = attribute.getNodeValue();
+						
 				// TODO: delete attributes for InfoPath
-				childSoapElement.addAttribute(soapEnvelope.createName(attribute.getNodeName()), attribute.getNodeValue());
+				if (namespace == null) {
+					String attributeName = attribute.getNodeName();
+					childSoapElement.addAttribute(soapEnvelope.createName(attributeName),
+							attributeValue);
+				} else {
+					String attributeName = attribute.getLocalName();
+					String namespaceURI = attribute.getNamespaceURI();
+					childSoapElement.addAttribute(
+							soapEnvelope.createName(attributeName, namespace, namespaceURI),
+							attributeValue);
+				}
 			}
 		}
 
