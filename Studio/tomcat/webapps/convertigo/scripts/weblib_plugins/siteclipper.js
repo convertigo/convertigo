@@ -22,46 +22,40 @@
 
 C8O._init_siteclipper = function (params) {
 	if (params.redirect_location) {
-		if (window.frameElement) {
-			$("body:first").css("overflow-y", "hidden");
-		}
-		var $siteclipped = $("<iframe id=\"siteclipped\" src=\"" + params.redirect_location + "\" width=\"100%\" frameborder=\"0\"></iframe>");
-		var exHeight = 0;
+		var $siteclipped = $("<iframe id=\"siteclipped\" src=\"" + params.redirect_location + "\" height=\"100%\" width=\"100%\" frameborder=\"0\"></iframe>");
+		
 		C8O.vars.resize_offset = "0";
 		C8O._fillBody($siteclipped, false);
-//		$siteclipped.after(
-//			$("<div/>").css({marginTop : "-30px", textAlign : "right"}).append(
-//				$("<span/>")
-//					.html("&nbsp;&#8597;&nbsp;")
-//					.css({backgroundColor : "black", color : "white", cursor : "pointer"})
-//					.click(function () {
-//						exHeight = 0;
-//					})
-//			)
-//		);
 
 		$siteclipped.load(function () {
-			var $doc = $(this.contentWindow.document);
-			$doc.find("body:first").css("overflow-y", "hidden");
-			exHeight = 0;
-			var reHeight = function () {
-				if (exHeight !== $doc.height()) {
-					var curHeight = 0;
-					$doc.find("*:not(html, body)").each(function () {
-						curHeight = Math.max(curHeight, this.offsetTop + this.offsetHeight);
-					});
-					$siteclipped.attr("height", (curHeight + 25) + "px");
-					exHeight = $doc.height();
-					C8O.doResize();
+			var timer = false;
+			
+			if (C8O._define.iframe && C8O.vars.auto_resize === "true") {
+				var $doc = $(this.contentWindow.document);
+				var exHeight = 0;
+				var reHeight = function () {
+					if (exHeight !== $doc.height()) {
+						var curHeight = 0;
+						$doc.find("*:not(html, body)").each(function () {
+							curHeight = Math.max(curHeight, this.offsetTop + this.offsetHeight);
+						});
+						C8O.doResize(curHeight + 25, {
+							complete : function () {
+								exHeight = $doc.height();
+							}
+						});
+					}
 				}
+				
+				timer = window.setInterval(reHeight, 250);
+				reHeight();
 			}
-			
-			var timer = window.setInterval(reHeight, 250);
-			
 			var onunload = function () {
-				window.clearInterval(timer);
+				if (timer) {
+					window.clearInterval(timer);
+				}
 				if (C8O._hook("siteclipper_page_unloaded", $siteclipped)) {
-					$siteclipped.attr("height", "50px");
+					C8O.doResize(50);
 				};
 			}
 			
@@ -70,8 +64,6 @@ C8O._init_siteclipper = function (params) {
 			} else {
 				$(this.contentWindow).bind("unload", onunload);
 			}
-			
-			reHeight();
 			
 			C8O._hook("siteclipper_page_loaded", this.contentWindow.document);
 		});

@@ -123,15 +123,18 @@ C8O = {
 		window.location.reload(false);
 	},
 	
-	doResize : function (height) {
+	doResize : function (height, options) {
 		if (typeof(height) === "number") {
-			try {
-				$(window.frameElement).animate({height : height});
-			} catch (e) {
+			if (C8O.isUndefined(options)) {
+				options = {};
+			}
+			if (C8O._define.iframe) {
+				$(window.frameElement).animate({height : height}, options);
+			} else {
 				C8O._postMessage({type : "resize", height : height});
 			}
 		} else {
-			C8O._resize();
+			C8O._resize(options);
 		}
 	},
 	
@@ -141,6 +144,10 @@ C8O = {
 		} else {
 			return C8O._define.last_call_params[key];
 		}
+	},
+	
+	isDefined : function (obj) {
+		return typeof(obj) !== "undefined";
 	},
 	
 	isUndefined : function (obj) {
@@ -156,6 +163,7 @@ C8O = {
 			$(["altKey", "ctrlKey", "metaKey", "shiftKey", "clientX", "clientY", "screenX", "screenY", "layerX", "layerY", "pageX", "pageY", "button"]),
 		dirty_timer : {},
 		hooks : {},
+		iframe : false,
 		last_call_params : {},
 		navigation_var_actions : ["backward", "forward", "stop", "refresh"],
 		recall_params : {__context : "", __connector : ""},
@@ -260,7 +268,7 @@ C8O = {
 		}
 	},
 	
-	_resize : function () {
+	_resize : function (options) {
 		var lowest = C8O._hook("resize_calculation");
 		if (lowest !== false) {
 			if (typeof(lowest) !== "number") {
@@ -270,7 +278,7 @@ C8O = {
 				});
 				lowest += parseInt(C8O.vars.resize_offset);
 			}
-			C8O.doResize(lowest);
+			C8O.doResize(lowest, options);
 		}
 	},
 	
@@ -496,6 +504,14 @@ $.ajaxSetup({
 	type : C8O.vars.ajax_method,
 	dataType : "xml"
 });
+
+try {
+	if (window.frameElement.src) {
+		C8O._define.iframe = true;
+	}
+} catch(e){
+	
+}
 
 $(document).ready(function () {
 	/** No XSLT engine (see #1336) : switch to server mode */
