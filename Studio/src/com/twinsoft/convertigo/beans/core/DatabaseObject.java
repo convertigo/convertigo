@@ -929,10 +929,14 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 						if (symbolDefaultValue == null) {
 							if (System.getProperties().containsKey("convertigo_global_symbols")) {
 								if (symbolCompiledValue == null){
-									Engine.logBeans.warn("No symbol " + symbolName + " has been defined in " + System.getProperty("convertigo_global_symbols"));
+									Engine.logBeans.warn("Symbol '" + symbolName
+											+ "' not found in the global symbols file ('"
+											+ System.getProperty("convertigo_global_symbols") + "')'");
 								}
 							} else {
-								Engine.logBeans.error("No file has been defined in JVM argument for the property \"convertigo_global_symbols\"");
+								Engine.logBeans.warn("Symbol '" + symbolName
+										+ "' not found because the global symbols file has not been defined "
+										+ "(use the JVM parameter \"-Dconvertigo_global_symbols=<path of your global symbols file>\"");
 							}
 						}
 						
