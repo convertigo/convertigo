@@ -124,8 +124,10 @@ $.extend(true, C8O, {
  * and calculate automatically the height if not provided
  * height (optional) : number of the iframe height in pixel
  *                          automatically calculed if empty
+ * options (optional) : options parameter for the jquery animate() function
+ *                          see http://api.jquery.com/animate/ for more details
  */
-//C8O.doResize(height);
+//C8O.doResize(height, options);
 
 /**
  * getLastCallParameter function
@@ -136,6 +138,15 @@ $.extend(true, C8O, {
  *             or retrieve object with key/value of all parameters
  */
 //C8O.getLastCallParameter(key);
+
+/**
+ * isDefined function
+ * just check the existence of the argument
+ * obj : something to test
+ * return : true > obj exist
+ *            false > obj doesn't exist
+ */
+//C8O.isDefined(obj);
 
 /**
  * isUndefined function
