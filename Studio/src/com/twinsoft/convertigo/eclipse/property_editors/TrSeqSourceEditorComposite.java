@@ -223,9 +223,10 @@ public class TrSeqSourceEditorComposite extends AbstractDialogComposite implemen
 				}
 
 				TVProject tvProject = new TVProject(projectName);
-				tvRoot.addProject(tvProject);
 
 				if (requestableType == RequestableType.TRANSACTION) {
+					tvRoot.addProject(tvProject);
+
 					List<Connector> connectors = project.getConnectorsList();
 					for (Connector connector : connectors) {
 						String connectorName = connector.getName();
@@ -247,13 +248,16 @@ public class TrSeqSourceEditorComposite extends AbstractDialogComposite implemen
 					}
 				} else {
 					List<Sequence> sequences = project.getSequencesList();
-					for (Sequence sequence : sequences) {
-						String sequenceName = sequence.getName();
-						TVSequence tvSequence = new TVSequence(sequenceName);
-						tvProject.addSequence(tvSequence);
-						if (projectName.equals(requestableSourceProject)
-								&& sequenceName.equals(requestableSourceSequence)) {
-							selectedTVObject = tvSequence;
+					if (!sequences.isEmpty()) {
+						tvRoot.addProject(tvProject);
+						for (Sequence sequence : sequences) {
+							String sequenceName = sequence.getName();
+							TVSequence tvSequence = new TVSequence(sequenceName);
+							tvProject.addSequence(tvSequence);
+							if (projectName.equals(requestableSourceProject)
+									&& sequenceName.equals(requestableSourceSequence)) {
+								selectedTVObject = tvSequence;
+							}
 						}
 					}
 				}
