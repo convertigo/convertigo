@@ -59,6 +59,10 @@ C8O = {
 		}
 	},
 	
+	isDefined : function (obj) {
+		return typeof(obj) !== "undefined";
+	},
+	
 	isUndefined : function (obj) {
 		return typeof(obj) === "undefined";
 	},

@@ -22,7 +22,8 @@
 
 C8O = {
 	init_vars : {
-		enc : "false" /** enable rsa encoding */
+		enc : "false", /** enable rsa encoding */
+		testplatform : "auto"
 	},
 	
 	ro_vars : {
@@ -530,7 +531,11 @@ $(document).ready(function () {
 		if (match.length>1) {
 			var params = C8O._parseQuery();
 			C8O._define.project = match[1];
-			if (!$.isEmptyObject(params)) {
+			
+			var testplatform = C8O._remove(params, "__testplatform");
+			testplatform = (testplatform == null) ? C8O.init_vars.testplatform : (C8O.init_vars.testplatform = testplatform);
+			
+			if ("false" === testplatform || ("auto" === testplatform && !$.isEmptyObject(params))) {
 				C8O._init(params);
 			} else {
 				loc.href = base + "/project.html#" + C8O._define.project;
