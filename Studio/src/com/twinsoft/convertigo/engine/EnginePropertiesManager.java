@@ -371,7 +371,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
 		LOG4J_APPENDER_AUDITAPPENDER_LAYOUT ("log4j.appender.AuditAppender.layout","org.apache.log4j.PatternLayout", "Log4J audit appender layout", PropertyCategory.Logs),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
-		LOG4J_APPENDER_AUDITAPPENDER_LAYOUT_CONVERSIONPATTERN ("log4j.appender.AuditAppender.layout.ConversionPattern", "!%c{1} | %m%n", "Log4J audit appender layout conversion pattern", PropertyCategory.Logs),
+		LOG4J_APPENDER_AUDITAPPENDER_LAYOUT_CONVERSIONPATTERN ("log4j.appender.AuditAppender.layout.ConversionPattern", "!%c{1} | %d | %-5p | %m%n", "Log4J audit appender layout conversion pattern", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
 		LOG4J_APPENDER_AUDITAPPENDER_MAXFILESIZE ("log4j.appender.AuditAppender.MaxFileSize", "10MB", "Log4J audit appender max file size", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
