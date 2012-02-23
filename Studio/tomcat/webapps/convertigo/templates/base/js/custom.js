@@ -20,7 +20,8 @@ $.extend(true, C8O, {
 	 * for example: ?__enc=true&...
 	 */
 	init_vars : {
-//		enc : "false" /** enables rsa encoding */
+//		enc : "false", /** enables rsa encoding */
+//		testplatform : "auto" /** auto/true/false : automatically redirect to the testplatform if no parameter is set, force testplaform if true or just call C8O if false */
 	},
 	/**
 	 * vars variables values can be set at any time, 
@@ -143,7 +144,7 @@ $.extend(true, C8O, {
  * isDefined function
  * just check the existence of the argument
  * obj : something to test
- * return : true > obj exist
+ * return : true > obj exists
  *            false > obj doesn't exist
  */
 //C8O.isDefined(obj);
@@ -153,7 +154,7 @@ $.extend(true, C8O, {
  * just check the existence of the argument
  * obj : something to test
  * return : true > obj doesn't exist
- *            false > obj exist
+ *            false > obj exists
  */
 //C8O.isUndefined(obj);
 

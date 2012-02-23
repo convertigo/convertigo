@@ -60,8 +60,11 @@ public abstract class ServletRequester extends GenericRequester {
 		int slashIndex = requestURI.indexOf("/", projectNameStartIndex);
 
 		// Find the project name
+		projectName = request.getParameter(Parameter.Project.getName());
 		try {
-			projectName = requestURI.substring(projectNameStartIndex, slashIndex);
+			if (projectName == null) {
+				projectName = requestURI.substring(projectNameStartIndex, slashIndex);
+			}
 			Engine.logContext.debug("(ServletRequester) project name: " + projectName);
 		}
 		catch(StringIndexOutOfBoundsException e) {
