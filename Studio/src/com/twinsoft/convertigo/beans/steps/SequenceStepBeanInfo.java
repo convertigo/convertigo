@@ -50,7 +50,7 @@ public class SequenceStepBeanInfo extends MySimpleBeanInfo {
             properties[1] = new PropertyDescriptor("sourceSequence", beanClass, "getSourceSequence", "setSourceSequence");
 			properties[1].setDisplayName(getExternalizedString("property.sourceSequence.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.sourceSequence.short_description"));
-			properties[1].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
+			properties[1].setPropertyEditorClass(getEditorClass("TrSeqSourceEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

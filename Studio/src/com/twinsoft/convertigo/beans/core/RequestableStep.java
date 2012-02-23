@@ -79,6 +79,8 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	
 	private static final long serialVersionUID = 3948128175718822695L;
 
+	public static final String SOURCE_SEPARATOR = ".";
+
 	protected XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
 	transient private List<StepVariable> vVariables = new LinkedList<StepVariable>();

@@ -69,8 +69,6 @@ import com.twinsoft.util.StringEx;
 public class SequenceStep extends RequestableStep implements ITagsProperty{
 	private static final long serialVersionUID = -8066934224685627694L;
 	
-	public static final String SOURCE_SEPARATOR = ".";
-	
 	private transient String projectName;
 	private transient String sequenceName;
 	
