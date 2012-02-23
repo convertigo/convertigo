@@ -152,22 +152,22 @@ public class ContextManager extends AbstractRunnableManager {
 
 		// Studio mode?
 		if (Engine.isStudioMode()) {
-			if (connectorName != null && contextName.startsWith("default")) {
-				contextName = "studio_" + projectName + ":" + connectorName;
-				Engine.logContextManager.info("Dynamic studio context name computed: " + contextName);
-			} else if ((contextName != null) && (contextName.startsWith("studio_"))) {
+			if ((contextName != null) && (contextName.startsWith("studio_"))) {
 				// do nothing
 				Engine.logContextManager.info("Using studio given context name : " + contextName);
 			} else {
-				try {
-					if ((sequenceName != null) && !(sequenceName.equals(""))) {
-						contextName = "studio_" + projectName + ":" + sequenceName + ":null";
-					} else {
+				if ((sequenceName != null) && !(sequenceName.equals(""))) {
+					contextName = "studio_" + projectName + ":" + sequenceName + ":null";
+				} else if(connectorName != null && !(connectorName.equals(""))) {
+					contextName = "studio_" + projectName + ":" + connectorName;
+					Engine.logContextManager.info("Dynamic studio context name computed: " + contextName);
+				} else {
+					try {
 						Project project = Engine.objectsProvider.getProject(projectName);
-						contextName = "studio_" + projectName + ":" + (connectorName != null?project.getConnectorByName(connectorName):project.getDefaultConnector().getName());
+						contextName = "studio_" + projectName + ":" + project.getDefaultConnector().getName();
+					} catch (EngineException ee) { // project not opened in studio
+						contextName = "studio_" + projectName + ":null";
 					}
-				} catch (EngineException ee) { // project not opened in studio
-					contextName = "studio_" + projectName + ":null";
 				}
 			}
 		}
