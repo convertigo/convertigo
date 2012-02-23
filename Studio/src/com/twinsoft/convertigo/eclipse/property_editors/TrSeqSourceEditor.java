@@ -14,32 +14,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * $URL: http://sourceus.twinsoft.fr/svn/CEMS_opensource/branches/6.0.x/Studio/src/com/twinsoft/convertigo/eclipse/property_editors/CariocaServiceCodeEditor.java $
+ * $Author: fabienb $
+ * $Revision: 28379 $
+ * $Date: 2011-09-27 11:38:59 +0200 (mar., 27 sept. 2011) $
  */
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
 import org.eclipse.swt.widgets.Composite;
 
-public abstract class AbstractDialogComposite extends Composite {
+public class TrSeqSourceEditor extends AbstractDialogCellEditor {
 
-	protected AbstractDialogCellEditor cellEditor;
-	protected EditorFrameworkDialog parentDialog;
+    public TrSeqSourceEditor(Composite parent) {
+        super(parent);
 
-	public AbstractDialogComposite(Composite parent, int style, AbstractDialogCellEditor cellEditor) {
-		super(parent, style);
-		this.cellEditor = cellEditor;
-	}
-    
-	public abstract Object getValue();
-	
-	protected void setParentDialog(EditorFrameworkDialog parentDialog) {
-		this.parentDialog = parentDialog;
-	}
+        dialogTitle = "Requestable source";
+        dialogCompositeClass = TrSeqSourceEditorComposite.class;
+    }
 
-	public void performPostDialogCreation() {
-	}
 }

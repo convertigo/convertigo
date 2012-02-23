@@ -78,8 +78,6 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 
 	private static final long serialVersionUID = -8658842486320491604L;
 
-	public static final String SOURCE_SEPARATOR = ".";
-
 	protected transient String projectName = "";
 	protected transient String connectorName = "";
 	protected transient String transactionName = "";

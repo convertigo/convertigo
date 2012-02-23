@@ -39,8 +39,9 @@ public class EditorFrameworkDialog extends Dialog {
 	private Class<? extends Composite> dialogAreaClass;
 	private AbstractDialogCellEditor cellEditor;
 	public Object newValue;
-	
-	protected EditorFrameworkDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, AbstractDialogCellEditor cellEditor) {
+
+	protected EditorFrameworkDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass,
+			AbstractDialogCellEditor cellEditor) {
 		super(parentShell);
 		this.dialogAreaClass = dialogAreaClass;
 		this.cellEditor = cellEditor;
@@ -48,48 +49,58 @@ public class EditorFrameworkDialog extends Dialog {
 	}
 
 	private AbstractDialogComposite dialogComposite = null;
-	
+
 	@Override
 	protected Control createDialogArea(Composite parent) {
 		Composite composite = (Composite) super.createDialogArea(parent);
-		
-		try {
-			Constructor<? extends Composite> constructor = dialogAreaClass.getConstructor(new Class[] { Composite.class, int.class, AbstractDialogCellEditor.class });
 
-			GridData gridData = new GridData (GridData.HORIZONTAL_ALIGN_FILL | GridData.FILL_BOTH);
-			
-			dialogComposite = (AbstractDialogComposite) constructor.newInstance(new Object[] { composite, new Integer(SWT.NONE), cellEditor });
+		try {
+			Constructor<? extends Composite> constructor = dialogAreaClass.getConstructor(new Class[] {
+					Composite.class, int.class, AbstractDialogCellEditor.class });
+
+			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.FILL_BOTH);
+
+			dialogComposite = (AbstractDialogComposite) constructor.newInstance(new Object[] { composite,
+					new Integer(SWT.NONE), cellEditor });
 			dialogComposite.setLayoutData(gridData);
 			dialogComposite.setParentDialog(this);
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unexpected exception");
 		}
+
 		
 		return composite;
 	}
 
+	@Override
+	protected Control createContents(Composite parent) {
+		Control composite = super.createContents(parent);
+		dialogComposite.performPostDialogCreation();
+		return composite;
+	}
+	
 	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 
 		newShell.setText(cellEditor.dialogTitle);
 
-		/*Rectangle pDisplayBounds = newShell.getDisplay().getBounds();
-
-		int nWidth = 500;
-		int nHeight = 400;
-
-		int nLeft = (pDisplayBounds.width - nWidth) / 2;
-		int nTop = (pDisplayBounds.height - nHeight) / 2;
-
-		newShell.setBounds(nLeft, nTop, nWidth, nHeight);*/
+		/*
+		 * Rectangle pDisplayBounds = newShell.getDisplay().getBounds();
+		 * 
+		 * int nWidth = 500; int nHeight = 400;
+		 * 
+		 * int nLeft = (pDisplayBounds.width - nWidth) / 2; int nTop =
+		 * (pDisplayBounds.height - nHeight) / 2;
+		 * 
+		 * newShell.setBounds(nLeft, nTop, nWidth, nHeight);
+		 */
 	}
 
 	protected void enableOK(boolean enabled) {
 		getButton(IDialogConstants.OK_ID).setEnabled(enabled);
 	}
-	
+
 	@Override
 	protected int getShellStyle() {
 		return SWT.TITLE | SWT.BORDER | SWT.RESIZE | SWT.APPLICATION_MODAL;
@@ -97,7 +108,7 @@ public class EditorFrameworkDialog extends Dialog {
 
 	@Override
 	protected void okPressed() {
-    	newValue = (dialogComposite == null ? null : dialogComposite.getValue());
-    	super.okPressed();
-    }
+		newValue = (dialogComposite == null ? null : dialogComposite.getValue());
+		super.okPressed();
+	}
 }
