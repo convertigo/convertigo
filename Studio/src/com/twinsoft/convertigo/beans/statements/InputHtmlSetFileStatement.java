@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.parsers.events.AbstractEvent;
 import com.twinsoft.convertigo.engine.parsers.events.InputFileEvent;
 
-public class InputHtmlSetFileStatement extends AbstractComplexeEventStatement {
+public class InputHtmlSetFileStatement extends AbstractEventStatement {
 	private static final long serialVersionUID = 5711783044654871254L;
 	
 	private String filename = "\"filename\"";
@@ -61,7 +61,7 @@ public class InputHtmlSetFileStatement extends AbstractComplexeEventStatement {
 				throw new EngineException("(HTTPUploadStatement) The file '" + fileupload.getAbsolutePath() + "' isn't a file.");
 			}
 			
-			return new InputFileEvent(xpath, uiEvent, fileupload);
+			return new InputFileEvent(xpath, fileupload);
 		} else {
 			throw new EngineException("(HTTPUploadStatement) The filename expresion must return the file path in string.");
 		}

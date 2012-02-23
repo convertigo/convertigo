@@ -31,7 +31,7 @@ public class InputHtmlSetFileStatementBeanInfo extends MySimpleBeanInfo {
 	public InputHtmlSetFileStatementBeanInfo() {
 		try {
 			beanClass = InputHtmlSetFileStatement.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.statements.AbstractComplexeEventStatement.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.statements.AbstractEventStatement.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/inputhtmlsetfile_16x16.gif";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/inputhtmlsetfile_32x32.gif";
