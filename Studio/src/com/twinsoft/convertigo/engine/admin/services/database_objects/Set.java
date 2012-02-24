@@ -35,6 +35,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.CompilablePropertyException;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -50,7 +51,7 @@ public class Set extends XmlService {
 	private Node postElt;
 
 	private Object getPropertyValue(DatabaseObject object, String propertyName)
-			throws TransformerException {
+			throws TransformerException, CompilablePropertyException {
 		Node nodetmp = xpath.selectSingleNode(postElt, "./property[@name=\"" + propertyName
 				+ "\"]/*[1]/@value");
 		String propertyValue = null;
