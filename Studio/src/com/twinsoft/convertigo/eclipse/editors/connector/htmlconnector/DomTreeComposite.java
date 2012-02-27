@@ -58,7 +58,7 @@ public class DomTreeComposite extends Composite {
 	private Image imageNextNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/next_node.gif"));
 	private Document currentDom;
 	
-	public DomTreeComposite(Composite parent, int style, HtmlConnectorDesignComposite htmlDesign){
+	public DomTreeComposite(Composite parent, int style, HtmlConnectorDesignComposite htmlDesign) {
 		super(parent, style);
 		this.htmlDesign = htmlDesign;
 
@@ -66,23 +66,24 @@ public class DomTreeComposite extends Composite {
 		gridLayout.marginHeight = gridLayout.marginWidth = 0;
 		gridLayout.verticalSpacing = gridLayout.marginRight = 5;
 		
-		//setBackground(new Color(Display.getDefault(),255,0,121));
-		
 		setLayout(gridLayout);
 		createToolBar();
 		createXhtmlTree();
 	}
 
 	
-	protected void createToolBar(){
+	protected void createToolBar() {
 		treeToolBar = new ToolBar(this, SWT.NONE);
 
 		ToolItem toolSync = new ToolItem(treeToolBar, SWT.PUSH);
 		toolSync.setToolTipText("SyncTree");
 		toolSync.setImage(imageSyncTree);
 		toolSync.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+			
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
 				Thread th = new Thread() {
+					
+					@Override
 					public void run() {
 						this.setName("Document completed Update");
 						htmlDesign.getWebViewer().setDomDirty();
@@ -94,15 +95,14 @@ public class DomTreeComposite extends Composite {
 							}
 						});
 					}
+					
 				};
 				th.start();
-				/*
-				htmlDesign.getWebViewer().setDomDirty();
-				displayXhtml(htmlDesign.getWebViewer().getDom());
-				*/
 			}
+			
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
+			
 		});
 		
 		// Tree toolbar
@@ -112,37 +112,46 @@ public class DomTreeComposite extends Composite {
 		tbChild.setToolTipText("Parent node");
 		tbChild.setImage(imageParentNode);
 		tbChild.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+			
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
 				htmlDesign.getWebViewer().selectParent();
 			}
 
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
+			
 		});
 
 		ToolItem tbPrevious = new ToolItem(treeToolBar, SWT.PUSH);
 		tbPrevious.setToolTipText("Previous node");
 		tbPrevious.setImage(imagePreviewNode);
 		tbPrevious.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+			
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
 				htmlDesign.getWebViewer().selectPreviousSibling();
 			}
+			
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
+			
 		});
 
 		ToolItem tbNext = new ToolItem(treeToolBar, SWT.PUSH);
 		tbNext.setToolTipText("Next node");
 		tbNext.setImage(imageNextNode);
 		tbNext.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+			
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
 				htmlDesign.getWebViewer().selectNextSibling();
 			}
+			
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
+			
 		});
 	}
 	
+	@Override
 	public void dispose(){
 		imageParentNode.dispose();
 		imageNextNode.dispose();
@@ -156,84 +165,90 @@ public class DomTreeComposite extends Composite {
 	 *
 	 */
 	private void createXhtmlTree() {
-		
 		twsDomTree = new TwsDomTree(this, SWT.MULTI);
-		
-		twsDomTree.getTree().setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
-
+		twsDomTree.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		twsDomTree.getTree().addSelectionListener(
-				new org.eclipse.swt.events.SelectionListener() {
-					public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
-						//ConvertigoPlugin.logDebug(e.item.toString());
-						Node node = (Node)e.item.getData();
-						if (node != null) {
-							String actualXpath = XMLUtils.calcXpath(node);
-							htmlDesign.setCurrentAbsoluteXpath(actualXpath);
-							htmlDesign.getWebViewer().setSelectedXpath(actualXpath, false);
-							twsDomTree.selectTreeItem((TreeItem)e.item);
-						}
-					}
-					public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+			new org.eclipse.swt.events.SelectionListener() {
+				
+				public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+					//ConvertigoPlugin.logDebug(e.item.toString());
+					Node node = (Node) e.item.getData();
+					if (node != null) {
+						String actualXpath = XMLUtils.calcXpath(node);
+						htmlDesign.setCurrentAbsoluteXpath(actualXpath);
+						htmlDesign.getWebViewer().setSelectedXpath(actualXpath, false);
+						twsDomTree.selectTreeItem((TreeItem) e.item);
 					}
 				}
+				
+				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+				}
+				
+			}
 		);
-		
+
 		// DND support
 		int ops = DND.DROP_COPY | DND.DROP_MOVE;
 		Transfer[] transfers = new Transfer[] {TextTransfer.getInstance()};
-		
+
 		DragSource source = new DragSource(twsDomTree.getTree(), ops);
 		source.setTransfer(transfers);
-		source.addDragListener(new DragSourceAdapter() {	 	   	
+		source.addDragListener(new DragSourceAdapter() {
+			
+			@Override
 			public void dragSetData(DragSourceEvent event) {
-		 	    // Provide the data of the requested type.
+				// Provide the data of the requested type.
 				if (TextTransfer.getInstance().isSupportedType(event.dataType)) {
-		 	    	XpathEvaluatorComposite xpathEvaluator = htmlDesign.getXpathEvaluator();
-		 	    	String anchor = xpathEvaluator.getAnchor();
-		 	        String XPath;
-		 	        if (anchor == null) {
-		 	        	xpathEvaluator.generateSelectionXpath(true, twsDomTree);
-		 	        	XPath = xpathEvaluator.getXpath().getText();
-		 	        }
-		 	        else {
-		 	        	xpathEvaluator.generateAbsoluteXpath(true, (Node)twsDomTree.getSelection()[0].getData());
-		 	        	XPath = xpathEvaluator.getXpath().getText().substring(anchor.length());
-		 	        }
-	 	        	event.data = XPath;
-		 	    }
-		 	}
+					XpathEvaluatorComposite xpathEvaluator = htmlDesign.getXpathEvaluator();
+					String anchor = xpathEvaluator.getAnchor();
+					String XPath;
+					if (anchor == null) {
+						xpathEvaluator.generateSelectionXpath(true, twsDomTree);
+						XPath = xpathEvaluator.getXpath().getText();
+					} else {
+						xpathEvaluator.generateAbsoluteXpath(true, (Node) twsDomTree.getSelection()[0].getData());
+						XPath = xpathEvaluator.getXpath().getText().substring(anchor.length());
+					}
+					event.data = XPath;
+				}
+			}
+			
 		});
 	}
 
-	public void displayXhtml(Document dom){
-		try {
-			ConvertigoPlugin.logDebug3("Display Html : fill DomTree start");
-			htmlDesign.getHtmlConnector().setCurrentXmlDocument(dom);
-			currentDom = dom;
-			twsDomTree.fillDomTree(dom);
-			ConvertigoPlugin.logDebug3("Display Html : fill DomTree stop");
-		}
-		catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Error while filling DOM tree");
+	public void displayXhtml(Document dom) {
+		if (dom != null) {
+			try {
+				ConvertigoPlugin.logDebug3("Display Html : fill DomTree start");
+				htmlDesign.getHtmlConnector().setCurrentXmlDocument(dom);
+				currentDom = dom;
+				twsDomTree.fillDomTree(dom);
+				ConvertigoPlugin.logDebug3("Display Html : fill DomTree stop");
+			}
+			catch (Exception e) {
+				ConvertigoPlugin.logException(e, "Error while filling DOM tree");
+			}
 		}
 	}
 	
-	public TwsDomTree getTwsDomTree(){
+	public TwsDomTree getTwsDomTree() {
 		return twsDomTree;
 	}
 
 	
-	public Document getCurrentDom(){
+	public Document getCurrentDom() {
 		return currentDom;
 	}
 
 	/**
 	 * @param xpath
 	 */
-	public void selectElementInTree(String xpath){
+	public void selectElementInTree(String xpath) {
 		try {
 			NodeList nl = htmlDesign.getXpathApi().selectNodeList(currentDom, xpath);
-			if(nl.getLength()>0) twsDomTree.selectElementInTree(nl.item(0));
+			if (nl.getLength() > 0) {
+				twsDomTree.selectElementInTree(nl.item(0));
+			}
 		} catch (TransformerException e) {
 			ConvertigoPlugin.logException(e, "Error while select tree item");
 		}

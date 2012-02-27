@@ -144,14 +144,15 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 	private ProjectExplorerView projectExplorerView = null;
 	
 	private SelectionChangedListener selectionChangedListener = new SelectionChangedListener() {
+		
 		public void changed() {
 			getWebViewer().setFocus();
-
 			Thread th = new Thread(new Runnable() {
+				
 				public void run() {					
 					final Document dom = domTreeComp.getCurrentDom();
-
 					Display.getDefault().asyncExec(new Runnable() {
+						
 						public void run () {
 							try {
 								String selectedXpath = getWebViewer().getSelectedXpath();
@@ -192,25 +193,36 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 			toolShowScreenclass.setEnabled(!htmlConnector.isLearning());
 			toolGenerateXml.setEnabled(!htmlConnector.isLearning());
 
-			if(toggleAutoRefresh.getSelection()){
+			if (toggleAutoRefresh.getSelection()) {
 				Thread th = new Thread(new Runnable() {
+					
 					public void run() {
-						final Document dom = getWebViewer().getDom();
-
-						Display.getDefault().asyncExec(new Runnable() {
-							public void run () {
-								domTreeComp.displayXhtml(dom);
+						Document dom = getWebViewer().getDom();
+						for (int i = 0 ; i < 10 && dom == null; i++) {
+							try {
+								Thread.sleep(500);
+							} catch (InterruptedException e) { }
+							dom = getWebViewer().getDom();
+						}
+						
+						if (dom != null) {
+							final Document finalDom = dom;
+							Display.getDefault().asyncExec(new Runnable() {
+								public void run () {
+									domTreeComp.displayXhtml(finalDom);
+								}
+							});
+	
+							if (htmlConnector.isLearning()) {
+								HtmlTransaction htmlTransaction = (HtmlTransaction) htmlConnector.getLearningTransaction();
+								htmlTransaction.setCurrentXmlDocument(dom);
+								detectedScreenClass = htmlConnector.getCurrentScreenClass();
+								Engine.theApp.fireObjectDetected(new EngineEvent(detectedScreenClass));
+								ConvertigoPlugin.logDebug2("(HtmlConnectorDesignComposite) detected screen class '" + detectedScreenClass.getName() + "'");
 							}
-						});
-
-						if (htmlConnector.isLearning()) {
-							HtmlTransaction htmlTransaction = (HtmlTransaction)htmlConnector.getLearningTransaction();
-							htmlTransaction.setCurrentXmlDocument(dom);
-							detectedScreenClass = htmlConnector.getCurrentScreenClass();
-							Engine.theApp.fireObjectDetected(new EngineEvent(detectedScreenClass));
-							ConvertigoPlugin.logDebug2("(HtmlConnectorDesignComposite) detected screen class '"+ detectedScreenClass.getName() +"'");
 						}
 					}
+					
 				});
 				th.setName("Document completed Update");
 				th.start();
@@ -238,12 +250,13 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 
 		try {
 			initialize();
-			if(htmlConnector.context.httpState==null)htmlConnector.resetHttpState(htmlConnector.context);
+			if (htmlConnector.context.httpState == null) {
+				htmlConnector.resetHttpState(htmlConnector.context);
+			}
 			domTreeComp.getTwsDomTree().addMenuMaker(xpathEvaluator.makeXPathMenuMaker(true));
 			domTreeComp.getTwsDomTree().addMenuMaker(xpathEvaluator.makeStatementGeneratorsMenuMaker(true));
 			domTreeComp.getTwsDomTree().addKeyAccelerator(xpathEvaluator.makeXPathKeyAccelerator(true));
-		}
-		catch (MaxCvsExceededException e) {
+		} catch (MaxCvsExceededException e) {
 			// Remove ProjectExplorerView from listeners current composite view
 			if (projectExplorerView != null) {
 				projectExplorerView.removeSelectionChangedListener(this);
@@ -259,8 +272,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 			dispose();
 			
 			throw e;
-		}
-		catch (KeyExpiredException e) {
+		} catch (KeyExpiredException e) {
 			// Remove ProjectExplorerView from listeners current composite view
 			if (projectExplorerView != null) {
 				projectExplorerView.removeSelectionChangedListener(this);
@@ -287,17 +299,17 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 	}
 
 	private void initialize() throws MaxCvsExceededException, KeyExpiredException {
-		setSize(new org.eclipse.swt.graphics.Point(435,336));
-		GridLayout gl = new GridLayout(1,false);
-		gl.horizontalSpacing=gl.verticalSpacing=gl.marginWidth=gl.marginHeight=0;
+		setSize(new org.eclipse.swt.graphics.Point(435, 336));
+		GridLayout gl = new GridLayout(1, false);
+		gl.horizontalSpacing = gl.verticalSpacing = gl.marginWidth = gl.marginHeight = 0;
 		
 		setLayout(gl);
 		setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 		
 		Composite absoluteXpathPan = new Composite(this, SWT.BORDER);
-		absoluteXpathPan.setLayoutData(new GridData(SWT.FILL,SWT.DEFAULT,true,false));
+		absoluteXpathPan.setLayoutData(new GridData(SWT.FILL, SWT.DEFAULT, true, false));
 		gl = new GridLayout(10, false);
-		gl.horizontalSpacing=gl.verticalSpacing=gl.marginWidth=gl.marginHeight=0;
+		gl.horizontalSpacing = gl.verticalSpacing = gl.marginWidth = gl.marginHeight = 0;
 		absoluteXpathPan.setLayout(gl);
 		
 		createToolBars(absoluteXpathPan);
@@ -311,7 +323,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		createSashForm();
 	}
 
-	public void setCurrentAbsoluteXpath(String absoluteXpath){
+	public void setCurrentAbsoluteXpath(String absoluteXpath) {
 		currentAbsoluteXpath.setText(absoluteXpath);
 	}
 
@@ -340,7 +352,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 	}
 
 	@Override
-	public void dispose(){
+	public void dispose() {
 		//TODO:imageAttrib.dispose();
 		//TODO:imageNode.dispose();
 		imageLearn.dispose();
@@ -365,7 +377,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		Object[] listeners = compositeListeners.getListenerList();
 		// Process the listeners last to first, notifying
 		// those that are interested in this event
-		for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
+		for (int i = listeners.length - 2 ; i >= 0 ; i -= 2) {
 			if (listeners[i] == CompositeListener.class) {
 				((CompositeListener) listeners[i+1]).objectSelected(compositeEvent);
 			}
@@ -377,7 +389,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		Object[] listeners = compositeListeners.getListenerList();
 		// Process the listeners last to first, notifying
 		// those that are interested in this event
-		for (int i = listeners.length - 2 ; i >= 0 ; i-=2) {
+		for (int i = listeners.length - 2 ; i >= 0 ; i -= 2) {
 			if (listeners[i] == CompositeListener.class) {
 				((CompositeListener) listeners[i+1]).objectChanged(compositeEvent);
 			}
@@ -409,11 +421,14 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		toolShowScreenclass.setToolTipText("Show current screen class");
 		toolShowScreenclass.setImage(imageShowScreenclass);
 		toolShowScreenclass.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+			
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
 				showCurrentScreenClass();
 			}
+			
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
+			
 		});
 		toolShowScreenclass.setEnabled(false);
 
@@ -421,12 +436,14 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		toolGenerateXml.setImage(imageGenerateXml);
 		toolGenerateXml.setToolTipText("Generate XML");
 		toolGenerateXml.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+			
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
 				generateXml();
 			}
 
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
+			
 		});
 		toolGenerateXml.setEnabled(false);
 
@@ -436,6 +453,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		toolStopTransaction.setImage(imageDisableStop);
 		toolStopTransaction.setEnabled(false);
 		toolStopTransaction.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+			
 					public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
 						try {
 		                	/*if (Engine.getProperty(EngineProperties.ConfigurationProperties.DOCUMENT_THREADING_USE_STOP_METHOD).equalsIgnoreCase("true")) {
@@ -451,8 +469,10 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 							// because of normal transaction termination... 
 						}
 					}
+					
 					public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 					}
+					
 				});
 
 		// Learn toolbar
@@ -462,19 +482,21 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		toolLearn.setToolTipText("Learn");
 		toolLearn.setImage(imageLearn);
 		toolLearn.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+			
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
 				if (toolLearn.getSelection()) {
 					startLearn();
 					toolAccumulate.setEnabled(true);
-				}
-				else {
+				} else {
 					stopLearn();
 					toolAccumulate.setSelection(false);
 					toolAccumulate.setEnabled(false);
 				}
 			}
+			
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
+			
 		});
 		toolLearn.setEnabled(false);
 
@@ -482,14 +504,18 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		toolAccumulate.setToolTipText("Accumulate learning mode");
 		toolAccumulate.setImage(imageAccumulate);
 		toolAccumulate.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+			
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
-				if (toolAccumulate.getSelection())
+				if (toolAccumulate.getSelection()) {
 					htmlConnector.setAccumulate(true);
-				else
+				} else {
 					htmlConnector.setAccumulate(false);
+				}
 			}
+			
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
+			
 		});
 		toolAccumulate.setEnabled(false);
 		
@@ -505,10 +531,10 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 	private void createSashForm() throws MaxCvsExceededException, KeyExpiredException {
 		sashForm = new SashForm(this, SWT.BORDER);
 		sashForm.setOrientation(org.eclipse.swt.SWT.VERTICAL);
-		sashForm.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.FILL,SWT.FILL,true,true));
+		sashForm.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.FILL, true, true));
 		createComposite1();
 		xpathEvaluator = new HtmlXpathEvaluatorComposite(sashForm, SWT.NONE, this);
-		sashForm.setWeights(new int[]{80,20});
+		sashForm.setWeights(new int[]{80, 20});
 		//sashForm.setSashWidth(3);
 	}
 
@@ -554,18 +580,20 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		// Retrieve Basic credentials of connector
 		String user = htmlConnector.getBasicUser();
 		String password = htmlConnector.getBasicPassword();
-		user = (user.equals("") ? null:user);
+		user = user.equals("") ? null : user;
 
 		IWebViewerStudio webViewer = new XulWebViewerImpl(htmlConnector.context,lowerSashForm, SWT.NONE);
 		tabManager = webViewer.getTabManager();
-		tabManager.addChangeListener(new SelectionChangedListener(){
+		tabManager.addChangeListener(new SelectionChangedListener() {
+			
 			public void changed() {
 				documentCompletedListener.completed();
 			}
+			
 		});
-		webViewer.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
+		webViewer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		webViewer.setCredentials(user,password);
-		ConvertigoPlugin.logDebug2("(HtmlConnectorDesignComposite) Connector credentials has been set: "+ user +","+ password);
+		ConvertigoPlugin.logDebug2("(HtmlConnectorDesignComposite) Connector credentials has been set: " + user + "," + password);
 
 		// Set webViewer as viewer for connector html parser
 		htmlConnector.getHtmlParser().setWebViewer(webViewer);
@@ -576,14 +604,14 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 	}
 
 	public HtmlScreenClass getParentHtmlScreenClass() {
-
 		HtmlScreenClass parentObject = null;
 
 		// Case of Learning mode
 		if (htmlConnector.isLearning()) {
 			// In case of ScreenClass was deleted
-			if ((detectedScreenClass != null) && (detectedScreenClass.getParent() == null))
+			if ((detectedScreenClass != null) && (detectedScreenClass.getParent() == null)) {
 				detectedScreenClass = null;
+			}
 
 			// Set parent ScreenClass to last detected ScreenClass
 			parentObject = detectedScreenClass;
@@ -592,10 +620,11 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		if (parentObject == null) {
 			// Set parent ScreenClass to current selected ScreenClass
 			Object object = projectExplorerView.getFirstSelectedDatabaseObject();
-			if ((object != null) && (object instanceof HtmlScreenClass)) {
-				parentObject = (HtmlScreenClass)object;
-				if (!parentObject.getProject().equals(htmlConnector.getProject()))
+			if (object != null && object instanceof HtmlScreenClass) {
+				parentObject = (HtmlScreenClass) object;
+				if (!parentObject.getProject().equals(htmlConnector.getProject())) {
 					parentObject = null;
+				}
 			}
 			// Set parent ScreenClass to current ScreenClass
 			if (parentObject == null) {
@@ -606,7 +635,6 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 	}
 
 	public StatementWithExpressions getParentStatement() {
-
 		StatementWithExpressions parentObject = null;
 
 		// TODO Case of Learning mode
@@ -617,10 +645,11 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 
 		// Set parent statement to current selected StatementWithExpressions in properties view
 		Object object = projectExplorerView.getFirstSelectedDatabaseObject();
-		if ((object != null) && (object instanceof StatementWithExpressions)) {
-			parentObject = (StatementWithExpressions)object;
-			if (!parentObject.getProject().equals(htmlConnector.getProject()))
+		if (object != null && object instanceof StatementWithExpressions) {
+			parentObject = (StatementWithExpressions) object;
+			if (!parentObject.getProject().equals(htmlConnector.getProject())) {
 				parentObject = null;
+			}
 		}
 		
 		return parentObject;
@@ -652,8 +681,9 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 	}
 
 	protected void startLearn() {
-		if (htmlConnector.isLearning())
+		if (htmlConnector.isLearning()) {
 			stopLearn();
+		}
 
 		// add current composite view to the HTTP proxy listeners
 		getWebViewer().addHttpProxyEventListener(this);
@@ -664,11 +694,11 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		HtmlTransaction htmlTransaction = (HtmlTransaction)htmlConnector.getLearningTransaction();
 		if (htmlTransaction == null) {
 			Object object = projectExplorerView.getFirstSelectedDatabaseObject();
-			if ((object != null) && (object instanceof HtmlTransaction)) {
+			if (object != null && object instanceof HtmlTransaction) {
 				try {
-					htmlTransaction = ((HtmlTransaction)object);
+					htmlTransaction = (HtmlTransaction) object;
 					htmlTransaction.markAsLearning(true);
-					ConvertigoPlugin.logDebug2("(HtmlConnector) learning transaction named '"+ htmlTransaction.getName() +"'");
+					ConvertigoPlugin.logDebug2("(HtmlConnector) learning transaction named '" + htmlTransaction.getName() + "'");
 				}
 				catch (Exception e) {}
 			}
@@ -684,15 +714,18 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		th.setName("Document completed Update");
 		th.start();
 
-		if (!toolLearn.isEnabled())
+		if (!toolLearn.isEnabled()) {
 			toolLearn.setEnabled(true);
-		if (!toolLearn.getSelection())
+		}
+		if (!toolLearn.getSelection()) {
 			toolLearn.setSelection(true);
+		}
 	}
 
 	protected void stopLearn() {
-		if (!htmlConnector.isLearning())
+		if (!htmlConnector.isLearning()) {
 			return;
+		}
 
 		// remove current composite view from HTTP proxy listeners
 		getWebViewer().removeHttpProxyEventListener(this);
@@ -702,16 +735,18 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 
 		// unset learning flag
 		htmlConnector.markAsLearning(false);
-		ConvertigoPlugin.logDebug2("(HtmlConnector) stop learning transaction named '"+ htmlTransaction.getName() +"'");
+		ConvertigoPlugin.logDebug2("(HtmlConnector) stop learning transaction named '" + htmlTransaction.getName() + "'");
 
 		try {
 			htmlTransaction.markAsLearning(false);
 		} catch (EngineException e) {}
 
-		if (toolLearn.isEnabled())
+		if (toolLearn.isEnabled()) {
 			toolLearn.setEnabled(false);
-		if (toolLearn.getSelection())
+		}
+		if (toolLearn.getSelection()) {
 			toolLearn.setSelection(false);
+		}
 	}
 
 	public void operationChanged(String operation) {
@@ -719,8 +754,9 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 	}
 
 	public void modelChanged(HttpProxyEvent event) {
-		if (!checkProxySource(event))
+		if (!checkProxySource(event)) {
 			return;
+		}
 
 		String requestString = event.getRequest();
 		String responseString = event.getResponse();
@@ -730,7 +766,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		// do not record client redirection
 		if ((status == HttpStatus.SC_MOVED_TEMPORARILY) ||
 				(status == HttpStatus.SC_MOVED_PERMANENTLY) ||
-				(status == HttpStatus.SC_SEE_OTHER) 		||
+				(status == HttpStatus.SC_SEE_OTHER) ||
 				(status == HttpStatus.SC_TEMPORARY_REDIRECT)) {
 			return;
 		}
