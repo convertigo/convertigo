@@ -159,6 +159,18 @@ public abstract class GenericServlet extends HttpServlet {
 					}
 
 					if (result != null) {
+
+						Boolean b = (Boolean) request.getAttribute("convertigo.isErrorDocument");
+						if (b.booleanValue()) {
+							boolean bThrowHTTP500 = Boolean.parseBoolean(EnginePropertiesManager
+									.getProperty(EnginePropertiesManager.PropertyName.THROW_HTTP_500));
+
+							if (bThrowHTTP500) {
+								response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+								Engine.logEngine.debug("(GenericServlet) Requested HTTP 500 status code");
+							}
+						}
+
 						if (result instanceof AttachmentDetails) {
 							AttachmentDetails attachment = (AttachmentDetails) result;
 							byte[] data = attachment.getData();
@@ -212,13 +224,9 @@ public abstract class GenericServlet extends HttpServlet {
 							os.write(sResult.getBytes());
 							os.flush();
 						}
-
-						Boolean b = (Boolean) request.getAttribute("convertigo.isErrorDocument");
-						if (b.booleanValue()) {
-							response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-						}
-					} else
+					} else {
 						response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+					}
 				} catch (IOException e) {
 					// The connection has probably been reset by peer
 					Engine.logContext
