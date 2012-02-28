@@ -49,6 +49,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableColumn
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableRowTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -98,11 +99,15 @@ public class DatabaseObjectIncreasePriorityAction extends MyAbstractAction imple
     				}
     				
     				// Restore selection
+    	    		TreeObjectEvent treeObjectEvent;
     	        	for (int i=0; i<selectedPaths.length; i++) {
     	        		String previousPath = selectedPaths[i];
     	        		treeObject = explorerView.findTreeObjectByPath(parentTreeObject, previousPath);
-    	        		if (treeObject != null)
+    	        		if (treeObject != null) {
     	        			treeObjects[i] = treeObject;
+    		                treeObjectEvent = new TreeObjectEvent(treeObject);
+    		                explorerView.fireTreeObjectPropertyChanged(treeObjectEvent);
+    	        		}
     	        	}
     				explorerView.setSelectedTreeObjects(treeObjects);
     			}
