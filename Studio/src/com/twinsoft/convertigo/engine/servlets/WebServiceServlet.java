@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
@@ -95,6 +96,13 @@ public class WebServiceServlet extends GenericServlet {
 
 	@Override
     public void processException(HttpServletRequest request, HttpServletResponse response, Exception e) throws ServletException {
+		boolean bThrowHTTP500 = Boolean.parseBoolean(EnginePropertiesManager
+				.getProperty(EnginePropertiesManager.PropertyName.THROW_HTTP_500));
+
+		if (bThrowHTTP500) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			Engine.logEngine.debug("(WebServiceServlet) Requested HTTP 500 status code");
+		}
 		try {
 			String soapFault = SOAPUtils.writeSoapFault(e, "UTF-8");
 			response.getWriter().print(soapFault);
