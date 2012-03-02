@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
@@ -338,6 +339,11 @@ public class NewObjectWizard extends Wizard {
 									catch (IOException e) {}
 								}
 							}
+						}
+						
+						if (newBean instanceof TestCase) {
+							TestCase testCase = (TestCase)newBean;
+		    				testCase.importRequestableVariables((RequestableObject)testCase.getParent());
 						}
 						
 						ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");
