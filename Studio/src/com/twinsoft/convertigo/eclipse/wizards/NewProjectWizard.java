@@ -154,51 +154,51 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int SAMPLE_MOBILE_SENCHA_SIEBEL					= 1213;
 	public static final int SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO		= 1214;
 	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE			= 1300;
-	public static final int TEMPLATE_MOBILE_FULLFEATURED_JQUERYMOBILE	= 1301;
 	public static final int SAMPLE_MOBILE_JQUERYMOBILE_VACATION			= 1310;
+	public static final int SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED		= 1311;
 	
 	// to import blank project
-	public static final String JAVELIN_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME 				= "template_javelin.car";
-	public static final String DKU_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME 					= "template_javelinDKU.car";
-	public static final String JAVELIN_FLEX_TEMPLATE_PROJECT_FILE_NAME 						= "template_FLEX.car";
-	public static final String WEB_CLIPPING_TEMPLATE_PROJECT_FILE_NAME 						= "template_webClipping.car";
-	public static final String JAVELIN_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME 				= "template_javelinIntegration.car";
-	public static final String WEB_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME 					= "template_webIntegration.car";
-	public static final String HTTP_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME 					= "template_HTTP.car";
-	public static final String CICS_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME 					= "template_CICS.car";
-	public static final String SEQUENCE_TEMPLATE_PROJECT_FILE_NAME 							= "template_sequence.car";
-	public static final String INTERACTION_HUB_TEMPLATE_PROJECT_FILE_NAME 					= "template_interactionHub.car";
-	public static final String SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME 						= "template_siteClipper.car";
-	public static final String SENCHA_MOBILE_TEMPLATE_PROJECT_FILE_NAME						= "template_mobileSencha.car";
-	public static final String JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME			= "template_mobileJQueryMobile.car";
-	public static final String JQUERYMOBILE_MOBILE_FULLFEATURED_TEMPLATE_PROJECT_FILE_NAME	= "sampleMobileJQuery.car";
-	public static final String CLI_DOC_PROJECT_FILE_NAME 									= "sample_documentation_CLI.car";
-	public static final String CWI_DOC_PROJECT_FILE_NAME 									= "sample_documentation_CWI.car";
-	public static final String CLP_DOC_PROJECT_FILE_NAME 									= "sample_documentation_CLP.car";
-	public static final String CWC_DOC_PROJECT_FILE_NAME 									= "sample_documentation_CWC.car";
-	public static final String CMS_DOC_PROJECT_FILE_NAME 									= "sample_documentation_CMS.car";
-	public static final String CMC_DOC_PROJECT_FILE_NAME 									= "sample_documentation_CMC.car";
-	public static final String MOBILIZER_DOC_PROJECT_FILE_NAME								= "sampleDocumentationMobilizerSencha.car";
-	public static final String MOBILE_SENCHA_PDF_PROJECT_FILE_NAME							= "sampleMobilePdf.car";
-	public static final String MOBILE_SENCHA_WEBTOPDF_PROJECT_FILE_NAME						= "sampleMobileWebToPdf.car";
-	public static final String MOBILE_SENCHA_RSSNYTIMES_PROJECT_FILE_NAME					= "sampleMobileRssNYTimes.car";
-	public static final String MOBILE_SENCHA_SIEBEL_PROJECT_FILE_NAME						= "sampleMobileSiebel.car";
-	public static final String MOBILE_SENCHA_USDIRECTORYDEMO_PROJECT_FILE_NAME				= "sampleMobileUsDirectoryDemo.car";
-	public static final String MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME				= "sampleMobileVacation.car";
-	public static final String SITECLIPPER_DOC_PROJECT_FILE_NAME							= "sampleDocumentationSiteClipper.car";
-	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME 						= "lib_GoogleMaps.car";
-	public static final String GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME 				= "lib_GoogleSpreadsheets.car";
-	public static final String GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME 						= "lib_GoogleDocs.car";
-	public static final String SALESFORCE_DEMO_PROJECT_FILE_NAME 							= "demo_SalesForce.car";
-	public static final String USDIRECTORY_DEMO_PROJECT_FILE_NAME 							= "demo_usDirectory.car";
-	public static final String LEGACYCRM_DEMO_PROJECT_FILE_NAME 							= "demo_legacyCRM.car";
-	public static final String MASHUP_DEMO_PROJECT_FILE_NAME 								= "demo_mashup.car";
-	public static final String REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME 						= "sample_refManual_siteClipper.car";
-	public static final String REFMANUAL_STATEMENTS_PROJECT_FILE_NAME 						= "sample_refManual_statements.car";
-	public static final String REFMANUAL_STEPS_PROJECT_FILE_NAME 							= "sample_refManual_steps.car";
-	public static final String REFMANUAL_VARIABLES_PROJECT_FILE_NAME 						= "sample_refManual_variables.car";
-	public static final String REFMANUAL_HTTP_PROJECT_FILE_NAME 							= "sample_refManual_http.car";
-	public static final String REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME 						= "sample_refManual_webClipper.car";
+	public static final String JAVELIN_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME 		= "template_javelin.car";
+	public static final String DKU_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME 			= "template_javelinDKU.car";
+	public static final String JAVELIN_FLEX_TEMPLATE_PROJECT_FILE_NAME 				= "template_FLEX.car";
+	public static final String WEB_CLIPPING_TEMPLATE_PROJECT_FILE_NAME 				= "template_webClipping.car";
+	public static final String JAVELIN_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME 		= "template_javelinIntegration.car";
+	public static final String WEB_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME 			= "template_webIntegration.car";
+	public static final String HTTP_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME 			= "template_HTTP.car";
+	public static final String CICS_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME 			= "template_CICS.car";
+	public static final String SEQUENCE_TEMPLATE_PROJECT_FILE_NAME 					= "template_sequence.car";
+	public static final String INTERACTION_HUB_TEMPLATE_PROJECT_FILE_NAME 			= "template_interactionHub.car";
+	public static final String SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME 				= "template_siteClipper.car";
+	public static final String SENCHA_MOBILE_TEMPLATE_PROJECT_FILE_NAME				= "template_mobileSencha.car";
+	public static final String JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME	= "template_mobileJQueryMobile.car";
+	public static final String CLI_DOC_PROJECT_FILE_NAME 							= "sample_documentation_CLI.car";
+	public static final String CWI_DOC_PROJECT_FILE_NAME 							= "sample_documentation_CWI.car";
+	public static final String CLP_DOC_PROJECT_FILE_NAME 							= "sample_documentation_CLP.car";
+	public static final String CWC_DOC_PROJECT_FILE_NAME 							= "sample_documentation_CWC.car";
+	public static final String CMS_DOC_PROJECT_FILE_NAME 							= "sample_documentation_CMS.car";
+	public static final String CMC_DOC_PROJECT_FILE_NAME 							= "sample_documentation_CMC.car";
+	public static final String MOBILIZER_DOC_PROJECT_FILE_NAME						= "sampleDocumentationMobilizerSencha.car";
+	public static final String MOBILE_SENCHA_PDF_PROJECT_FILE_NAME					= "sampleMobilePdf.car";
+	public static final String MOBILE_SENCHA_WEBTOPDF_PROJECT_FILE_NAME				= "sampleMobileWebToPdf.car";
+	public static final String MOBILE_SENCHA_RSSNYTIMES_PROJECT_FILE_NAME			= "sampleMobileRssNYTimes.car";
+	public static final String MOBILE_SENCHA_SIEBEL_PROJECT_FILE_NAME				= "sampleMobileSiebel.car";
+	public static final String MOBILE_SENCHA_USDIRECTORYDEMO_PROJECT_FILE_NAME		= "sampleMobileUsDirectoryDemo.car";
+	public static final String MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME		= "sampleMobileVacation.car";
+	public static final String MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME	= "sampleMobileJQuery.car";
+	public static final String SITECLIPPER_DOC_PROJECT_FILE_NAME					= "sampleDocumentationSiteClipper.car";
+	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME 				= "lib_GoogleMaps.car";
+	public static final String GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME 		= "lib_GoogleSpreadsheets.car";
+	public static final String GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME 				= "lib_GoogleDocs.car";
+	public static final String SALESFORCE_DEMO_PROJECT_FILE_NAME 					= "demo_SalesForce.car";
+	public static final String USDIRECTORY_DEMO_PROJECT_FILE_NAME 					= "demo_usDirectory.car";
+	public static final String LEGACYCRM_DEMO_PROJECT_FILE_NAME 					= "demo_legacyCRM.car";
+	public static final String MASHUP_DEMO_PROJECT_FILE_NAME 						= "demo_mashup.car";
+	public static final String REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME 				= "sample_refManual_siteClipper.car";
+	public static final String REFMANUAL_STATEMENTS_PROJECT_FILE_NAME 				= "sample_refManual_statements.car";
+	public static final String REFMANUAL_STEPS_PROJECT_FILE_NAME 					= "sample_refManual_steps.car";
+	public static final String REFMANUAL_VARIABLES_PROJECT_FILE_NAME 				= "sample_refManual_variables.car";
+	public static final String REFMANUAL_HTTP_PROJECT_FILE_NAME 					= "sample_refManual_http.car";
+	public static final String REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME 				= "sample_refManual_webClipper.car";
 	
 	/**
 	 * Constructor for SampleNewWizard.
@@ -232,6 +232,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_DOCUMENTATION_CWI:
 			case SAMPLE_DOCUMENTATION_SITECLIPPER:
 			case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
+			case SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED:
 			case LIBRARY_GOOGLE_MAPS:
 			case LIBRARY_GOOGLE_SPREADSHEETS:
 			case LIBRARY_GOOGLE_DOCS:
@@ -289,7 +290,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				
 			case TEMPLATE_SEQUENCE_SQL_CONNECTOR:
 			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
-			case TEMPLATE_MOBILE_FULLFEATURED_JQUERYMOBILE:
 				page1 = new NewProjectWizardPage1(selection);
 				page2 = new NewProjectWizardPage2(selection);
 				addPage(page1);
@@ -434,7 +434,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				case TEMPLATE_INTERACTION_HUB:
 				case TEMPLATE_SITE_CLIPPER:
 				case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
-				case TEMPLATE_MOBILE_FULLFEATURED_JQUERYMOBILE:
 					projectName = page1.getProjectName();
 					monitor.beginTask("Creating project " + projectName, 7);
 					createFromBlankProject(monitor);
@@ -460,6 +459,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				case SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO:
 				case SAMPLE_DOCUMENTATION_SITECLIPPER:
 				case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
+				case SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED:
 				case LIBRARY_GOOGLE_MAPS:
 				case LIBRARY_GOOGLE_SPREADSHEETS:
 				case LIBRARY_GOOGLE_DOCS:
@@ -590,10 +590,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	        	projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME;
 				oldProjectName = JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME.substring(0, JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
 				break;	        
-			case TEMPLATE_MOBILE_FULLFEATURED_JQUERYMOBILE:
-				projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + JQUERYMOBILE_MOBILE_FULLFEATURED_TEMPLATE_PROJECT_FILE_NAME;
-				oldProjectName = JQUERYMOBILE_MOBILE_FULLFEATURED_TEMPLATE_PROJECT_FILE_NAME.substring(0, JQUERYMOBILE_MOBILE_FULLFEATURED_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
-				break;
 			default:
 				return null;
 		}
@@ -1132,6 +1128,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
 				projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME;
 				projectName = MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME.substring(0, MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME.indexOf(".car"));
+				newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
+				break;
+			case SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED:
+				projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME;
+				projectName = MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME.substring(0, MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME.indexOf(".car"));
 				newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
 				break;
 			case SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO:

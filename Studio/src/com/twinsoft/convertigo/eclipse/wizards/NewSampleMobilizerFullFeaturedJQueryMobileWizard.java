@@ -22,11 +22,11 @@
 
 package com.twinsoft.convertigo.eclipse.wizards;
 
-public class NewFullFeaturedJQueryMobileWizard extends NewProjectWizard {
+public class NewSampleMobilizerFullFeaturedJQueryMobileWizard extends NewProjectWizard {
 
-	public NewFullFeaturedJQueryMobileWizard() {
+	public NewSampleMobilizerFullFeaturedJQueryMobileWizard() {
 		super();
-		this.templateId = NewProjectWizard.TEMPLATE_MOBILE_FULLFEATURED_JQUERYMOBILE;
+		this.templateId = NewProjectWizard.SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED;
 	}
 
 }

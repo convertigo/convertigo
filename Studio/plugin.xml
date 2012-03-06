@@ -388,16 +388,6 @@
             project="true">
             <description>Creates an empty of features Mobile project based on jQueryMobile framework.</description> 
             </wizard>
-      <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewFullFeaturedJQueryMobileWizard"
-            icon="icons/studio/mobile_HighEnd_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewFullFeaturedJQueryMobileWizard"
-            name="jQuery Mobile based full-featured project"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates a full-featured Mobile project based on jQueryMobile framework.</description> 
-            </wizard>
 <!-- Legacy publishing projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
@@ -697,6 +687,16 @@
           <description>Imports the sample project containing Web Clipper objects examples described in the Reference Manual.</description>
        </wizard>
 <!-- Mobile sample projects -->
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+            class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerFullFeaturedJQueryMobileWizard"
+            icon="icons/studio/mobile_HighEnd_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerFullFeaturedJQueryMobileWizard"
+            name="jQuery Mobile based full-featured sample project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Imports a full-featured Mobile sample project based on jQueryMobile framework.</description> 
+       </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerPdfWizard"
