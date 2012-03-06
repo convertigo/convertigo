@@ -97,7 +97,7 @@ public class WebServiceServlet extends GenericServlet {
 	@Override
     public void processException(HttpServletRequest request, HttpServletResponse response, Exception e) throws ServletException {
 		boolean bThrowHTTP500 = Boolean.parseBoolean(EnginePropertiesManager
-				.getProperty(EnginePropertiesManager.PropertyName.THROW_HTTP_500));
+				.getProperty(EnginePropertiesManager.PropertyName.THROW_HTTP_500_SOAP_FAULT));
 
 		if (bThrowHTTP500) {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

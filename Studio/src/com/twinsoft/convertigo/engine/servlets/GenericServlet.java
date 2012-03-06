@@ -41,6 +41,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.requesters.Requester;
+import com.twinsoft.convertigo.engine.requesters.ServletRequester;
+import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -162,8 +164,17 @@ public abstract class GenericServlet extends HttpServlet {
 
 						Boolean b = (Boolean) request.getAttribute("convertigo.isErrorDocument");
 						if (b.booleanValue()) {
-							boolean bThrowHTTP500 = Boolean.parseBoolean(EnginePropertiesManager
-									.getProperty(EnginePropertiesManager.PropertyName.THROW_HTTP_500));
+							Requester requester = getRequester();
+							boolean bThrowHTTP500 = false;
+							
+							if (requester instanceof WebServiceServletRequester) {
+								bThrowHTTP500 = Boolean.parseBoolean(EnginePropertiesManager
+										.getProperty(EnginePropertiesManager.PropertyName.THROW_HTTP_500_SOAP_FAULT));
+							}
+							else if (requester instanceof ServletRequester) {
+								bThrowHTTP500 = Boolean.parseBoolean(EnginePropertiesManager
+										.getProperty(EnginePropertiesManager.PropertyName.THROW_HTTP_500));
+							}
 
 							if (bThrowHTTP500) {
 								response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

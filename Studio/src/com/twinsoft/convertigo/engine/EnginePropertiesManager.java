@@ -289,7 +289,9 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		SOAP_REQUEST_ADD_XML_ENCODING_CHARSET ("soap.request.add_xml_encoding_charset", "false", "Add XML encoding charset for SOAP requests", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		THROW_HTTP_500 ("throw_http_500", "true", "Throw HTTP 500 in case of uncoverable servlet error or SOAP fault", PropertyCategory.Main),
+		THROW_HTTP_500 ("throw_http_500", "true", "Throw HTTP 500 in case of uncoverable servlet error", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		THROW_HTTP_500_SOAP_FAULT ("throw_http_500.soap_fault", "true", "Throw HTTP 500 in case of SOAP fault", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
 		UPDATE_STEPS ("update.steps", "false", "Update steps", PropertyCategory.Main),
 
