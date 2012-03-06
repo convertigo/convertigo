@@ -22,22 +22,27 @@ public class IfThenElseStatement extends BlockStatement implements IThenElseStat
 	}
 	
 	public boolean hasThenElseStatements() {
+		checkSubLoaded();
 		return true;
 	}
 	
 	public void setThenStatement(ThenStatement thenStatement) {
+		checkSubLoaded();
 		this.thenStatement = thenStatement;
 	}
 
 	public ThenStatement getThenStatement() {
+		checkSubLoaded();
 		return thenStatement;
 	}
 
 	public void setElseStatement(ElseStatement elseStatement) {
+		checkSubLoaded();
 		this.elseStatement = elseStatement;
 	}
 
 	public ElseStatement getElseStatement() {
+		checkSubLoaded();
 		return elseStatement;
 	}
 	
