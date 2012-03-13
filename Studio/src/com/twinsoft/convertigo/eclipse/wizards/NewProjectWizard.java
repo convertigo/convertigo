@@ -288,7 +288,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				addPage(page8);
 				break;
 				
-			case TEMPLATE_SEQUENCE_SQL_CONNECTOR:
 			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 				page1 = new NewProjectWizardPage1(selection);
 				page2 = new NewProjectWizardPage2(selection);
@@ -303,6 +302,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				addPage(page10);
 				break;
 				
+			case TEMPLATE_SEQUENCE_SQL_CONNECTOR:
 			case TEMPLATE_INTERACTION_HUB:
 				page1 = new NewProjectWizardPage1(selection);
 				addPage(page1);
@@ -316,6 +316,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				addPage(page2);
 				addPage(page11);
 				break;
+
 			case TEMPLATE_MOBILE_SENCHA:
 				page12 = new NewProjectWizardPage12(selection);
 				page13 = new NewProjectWizardPage13(selection);
