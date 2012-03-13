@@ -32,7 +32,7 @@ public class InputVariablesStep extends Step {
 
 	public InputVariablesStep() throws EngineException {
 		super();
-		this.output = true;
+		this.output = false;
 		this.xml = true;
 	}
 
