@@ -59,7 +59,7 @@ public class NewProjectWizardComposite14 extends Composite {
 	private SelectionListener selectionListener;
 	private Combo comboSencha;
 	private Boolean frameworkSelected = false;
-	private String senchaUrl = "http://www.sencha.com/products/touch/download";
+	private String senchaUrl = "http://www.sencha.com/products/touch/download/1.1.0/";
 	private List<String> senchaPaths;
 	
 	public NewProjectWizardComposite14(Composite parent, int style, ModifyListener ml, SelectionListener sl, NewProjectWizard wizard) {
