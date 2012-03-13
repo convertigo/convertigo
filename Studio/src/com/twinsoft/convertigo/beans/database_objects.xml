@@ -7,9 +7,9 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.ExternalBrowserTransaction"/>
                 </bean>				
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.core.Sheet">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
@@ -17,14 +17,13 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.CicsTransaction"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.ExternalBrowserTransaction"/>
                 </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.core.Pool">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.JavelinConnector"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.HtmlConnector"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SqlConnector"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CicsConnector"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SiteClipperConnector"/>
@@ -39,22 +38,20 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.ExternalBrowserTransaction"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.RequestableMultiValuedVariable">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction"/>
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.ExternalBrowserTransaction"/>
 				</bean>
 				<bean enable="true" documented="true" default="true" classname="com.twinsoft.convertigo.beans.variables.RequestableHttpVariable">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction"/>
 				</bean>
 			</beans>
 			<beans groupname="Statement variables">
@@ -67,12 +64,10 @@
 			</beans>
 			<beans groupname="Step variables">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.StepVariable">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.TransactionStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.SequenceStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.RequestableStep"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.StepMultiValuedVariable">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.TransactionStep"/>
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.SequenceStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.RequestableStep"/>
 				</bean>
 			</beans>
 			<beans groupname="Test Case variables">
@@ -611,6 +606,12 @@
 	<group name="Web">
 		<category>
 			<beans>
+				<bean enable="false" documented="false" classname="com.twinsoft.convertigo.beans.connectors.ExternalBrowserConnector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+				<bean enable="false" documented="false" classname="com.twinsoft.convertigo.beans.transactions.ExternalBrowserTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ExternalBrowserConnector"/>
+				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.HtmlConnector">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
                 </bean>

@@ -230,7 +230,8 @@ public class EnginePropertiesManager {
     	Billing ("Billing system"),
     	Notifications ("Notifications"),
     	MobileBuilder ("Mobile builder"),
-    	ExternalBrowser ("External browser"),
+    	@CategoryOptions(visibility = Visibility.HIDDEN)
+    	ExternalBrowser ("External browser")
     	;
     	
     	final String displayName;
