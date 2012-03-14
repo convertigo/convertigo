@@ -103,6 +103,9 @@ function addRequestable($requestable, $parent) {
 				var isMultiValued = $variable.attr("isMultivalued") === "true";
 				var $variable_div = $("#templates .testcase_variable").clone();
 				setName($variable_div.find(".testcase_variable_name"), $variable);
+				if (isMultiValued) {
+					$variable_div.find(".testcase_variable_value").attr("isMultivalued", "true");
+				}
 				$variable_div.find(".testcase_variable_value").text(isMasked ? "******":$variable_value);
 				$testcase_div.find(".testcase_variables").append($variable_div);
 			});
@@ -375,19 +378,45 @@ function fixWidth() {
 	$("#window_exe_content").css("max-width", $("#column_right").width() - 32 + "px");
 }
 
-//function copyVariables(testCaseValues, parentInputs) {
-//	var $testCaseValues = $(testCaseValues);
-//	var $parentInputs = $(parentInputs);
-//	
-//	$testCaseValues.each(function($parentInputs) {
-//		$value = $(this)
-//		$(parentInputs[])
-//	});
-	
-//	for (var i=0; i < testCaseValues.length; i++) {
-//		$(parentInputs)[i].val($(testCaseValues)[i].text());
-//	}
-//}
+function copyVariables(testCaseValues, parentInputs) {
+	var $testCaseValues = $(testCaseValues);
+	var $parentInputs = $(parentInputs);
+	var $parent = $(testCaseValues[0]).parents(".requestable:first");
+
+	$testCaseValues.each(function(i) {
+		$value = $(this);
+		$parentInputs = $(parentInputs);
+		var containsMultiValued = ($parent.find(".multi_valued").length>0)?true:false;
+		var isMultiValued = $value.attr('ismultivalued') === "true";
+		var newInputs = 0;
+		
+		if (isMultiValued) {
+			var value = $value.text();
+			var values_array = (value.length == 0) ? [] : $.parseJSON($value.text());	
+			
+			var inputs = $parent.find(".new_multi_valued").find(".variable_value");
+			if (inputs.length < values_array.length) {
+				for (var i=0; i < (values_array.length - inputs.length); i++) {
+					$("#main .link_value_add").trigger('click');
+					newInputs++;
+				}
+			}
+			inputs = $parent.find(".new_multi_valued").find(".variable_value");
+			for (var j=0; j < values_array.length; j++) {
+				$(inputs[j]).val(values_array[j]);
+				$(inputs[j]).trigger('change');
+			}
+		} else {
+			if (containsMultiValued) {
+				$(parentInputs[i+newInputs -1]).val($value.text());
+				$(parentInputs[i+newInputs -1]).trigger('change');
+			} else {
+				$(parentInputs[i]).val($value.text());
+				$(parentInputs[i]).trigger('change');
+			}
+		}
+	});
+}
 
 $(document).ready(function() {
 	if (window.location.hash.length === 0) {
@@ -496,7 +525,6 @@ $(document).ready(function() {
 				var $parent = $a.parents(".requestable:first");
 				var $parentVariablesInputs = $parent.find(".requestable_variables").find(".variable_value");
 				copyVariables($testCaseValues, $parentVariablesInputs);
-				setLinkForRequestable();
 				return false;
 			});
 			
