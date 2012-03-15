@@ -1729,7 +1729,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 					Element rootElement = document.getDocumentElement();
 					Element projectNode = (Element) XMLUtils.findChildNode(rootElement, Node.ELEMENT_NODE);
 
-					String version = ((Element) projectNode).getAttribute("version");
+					String version; // Beans version
+					// before 6.0.6
+					version = projectNode.getAttribute("version");
+					// since 6.0.6 (fix #2804)
+					if (version.equals(""))
+						version = rootElement.getAttribute("beans");
 
 					String currentVersion = com.twinsoft.convertigo.beans.Version.version;
 					if (VersionUtils.compare(version, currentVersion) < 0) {
