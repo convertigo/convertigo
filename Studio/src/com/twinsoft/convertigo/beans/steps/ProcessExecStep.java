@@ -211,7 +211,6 @@ public class ProcessExecStep extends Step {
 				// Launch a thread to handle sequence abortion
 				final Sequence s = sequence;
 				new Thread(new Runnable() {
-					@Override
 					public void run() {
 						try {
 							while (s.isRunning()) {
@@ -288,14 +287,24 @@ public class ProcessExecStep extends Step {
 		return element;
 	}
 
-	class ProcessStreamReaderThread extends Thread {
+	class ProcessStreamReaderThread implements Runnable {
 		boolean bContinue = true;
 		Node outputNode;
 		InputStream processStream;
+		Thread thread;
 
 		public ProcessStreamReaderThread(final InputStream processStream, final Node outputNode) {
 			this.processStream = processStream;
 			this.outputNode = outputNode;
+			thread = new Thread(this);
+		}
+
+		public void join() throws InterruptedException {
+			thread.join();
+		}
+
+		public void start() {
+			thread.start();
 		}
 
 		public void run() {
