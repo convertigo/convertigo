@@ -68,7 +68,7 @@ function addRequestable($requestable, $parent) {
 		// Handle multi-valued variable
 		if (isMultiValued) {
 			var value = $variable.attr("value");
-			var values_array = (value.length == 0) ? [] : $.parseJSON($variable.attr("value"));
+			var values_array = (value.length) ? $.parseJSON(value) : [];
 			
 			$variable_type.append($("#templates .multi_valued").clone());
 			for (var i = 0; i < values_array.length; i++) {
@@ -146,7 +146,9 @@ function showQRCode(isBlackberry) {
 	var href = "projects/" + vars.projectName + "/DisplayObjects/mobile/index.html";
 	var build_url = $td.find(".build_url").attr("value");
 	var target_url = (build_url === "") ? base_url + href : build_url;
-	if (build_url != "") href = build_url;
+	if (build_url != "") {
+		href = build_url;
+	}
 	
 	var img_url = "images/new/logo_c8o_bgQRcode.png";
 	if (!isBlackberry) {
@@ -157,15 +159,14 @@ function showQRCode(isBlackberry) {
 			d : target_url
 		});
 		
-		$td.find("> a").empty().attr("href", href).append($("<img/>").attr("src", img_url).attr("title", "qrcode").attr("alt", "error, maybe too long url"));
+		$td.find(">a").empty().attr("href", href).append($("<img/>").attr("src", img_url).attr("title", "qrcode").attr("alt", "error, maybe too long url"));
 	} else {
-		$td.find("> a").empty().attr("href", href).append($("<img/>").attr("src", img_url).attr("title", "qrcode").attr("alt", "error, maybe too long url"));
-		
-		if ($td.find("div.qrcode_platform").length > 0) {
-			$td.find("div.qrcode_platform").empty().attr("class", "qrcode_platform").append("Please find the generated application in your PhoneGap build platform.");
-		} else {
-			$td.append($("<div/>").attr("class", "qrcode_platform").append("Please find the generated application in your PhoneGap build platform."));
+		$td.find(">a").empty().attr("href", href).append($("<img/>").attr("src", img_url));
+		var $qrcode_platform = $td.find(".qrcode_platform");
+		if ($qrcode_platform.length == 0) {
+			$qrcode_platform =	$("<div/>").attr("class", "qrcode_platform").appendTo($td);
 		}
+		$qrcode_platform.text("Please find the generated application in your PhoneGap build platform.");
 	}
 }
 
@@ -174,13 +175,8 @@ function launchCliplet(url, mobile_layout, scale) {
 	vars.last_layout = mobile_layout;
 	if (mobile_layout === "none") {
 		var $iframe = $("#cliplet_div_iframe");
-		if ($('#check_mode_c8o_call').attr('checked')) {
-			if ($iframe.length === 0 || typeof($iframe[0].contentWindow.C8O) === "undefined") {
-				$("#window_exe_content").empty().append("<iframe id='cliplet_div_iframe' frameborder='0' src='"+url+"'></iframe>");
-				$iframe.slideDown(500);
-			} else {
-				$iframe[0].contentWindow.C8O.call(url.substring(url.indexOf("?") + 1));
-			}
+		if ($("#check_mode_c8o_call").attr("checked") && $iframe.length && typeof($iframe[0].contentWindow.C8O) !== "undefined") {
+			$iframe[0].contentWindow.C8O.call(url.substring(url.indexOf("?") + 1));
 		} else {
 			$("#window_exe_content").empty().append("<iframe id='cliplet_div_iframe' frameborder='0' src='"+url+"'></iframe>");
 			$iframe.slideDown(500);
@@ -271,14 +267,9 @@ function getLoadingImageUrl() {
 }
 
 function launchPhoneGapBuild() {
-	var projectName = window.location.hash.substring(1);
 	var endpoint = $("#build_endpoint").val();
 	
-	if (endpoint.substring(endpoint.length, endpoint.length-1) === "/") {
-		endpoint += "projects/" + vars.projectName;
-	} else {
-		endpoint += "/projects/" + vars.projectName;
-	}
+	endpoint += (endpoint.match(/\/$/) ? "" : "/") + "projects/" + vars.projectName;
 		
 	var applicationID = $("#build_application_id").val();
 
@@ -309,18 +300,13 @@ function getPhoneGapBuildUrl() {
 	var $td = $(this);
 	var device_layout = $td.parents("li:first").find(".device_layout").attr("value");
 	var device_platform = defs.phones[device_layout].os;
-	var isBlackberry = (device_platform ===  defs.phones.BlackBerryTorch.os)?true:false;
+	var isBlackberry = (device_platform ===  defs.phones.BlackBerryTorch.os);
 	
 	var base_url = window.location.href;
 	base_url = base_url.substring(0, base_url.indexOf("project.html"));
 	var url = base_url + "admin/services/mobiles.GetPackage?application=" + vars.projectName + "&platform=" + device_platform;
 	$td.find(".build_url").attr("value",url);
 	showQRCode.call($td, isBlackberry);
-}
-
-function getWebappUrl() {
-	var $td = $(this);
-	showQRCode.call($td, false)
 }
 
 function getPhoneGapBuildStatus() {
@@ -378,42 +364,33 @@ function fixWidth() {
 	$("#window_exe_content").css("max-width", $("#column_right").width() - 32 + "px");
 }
 
-function copyVariables(testCaseValues, parentInputs) {
-	var $testCaseValues = $(testCaseValues);
-	var $parentInputs = $(parentInputs);
-	var $parent = $(testCaseValues[0]).parents(".requestable:first");
+function copyVariables($testcase) {
+	var $requestable = $testcase.parents(".requestable:first");
+	$requestable.find(".variable").each(function () {
+		var $variable = $(this);
 
-	$testCaseValues.each(function(i) {
-		$value = $(this);
-		$parentInputs = $(parentInputs);
-		var containsMultiValued = ($parent.find(".multi_valued").length>0)?true:false;
-		var isMultiValued = $value.attr('ismultivalued') === "true";
-		var newInputs = 0;
+		$variable.find(".new_multi_valued").remove();
+		$variable.find(".variable_value").val("");
 		
-		if (isMultiValued) {
+		var variable_name = $variable.find(".variable_name").text();
+		var $testCase = $testcase.find(".testcase_variable").filter(function () {
+			return $(this).find(".testcase_variable_name").text() == variable_name;
+		});
+		if ($testCase.length) {
+			var $value = $testCase.find(".testcase_variable_value");
 			var value = $value.text();
-			var values_array = (value.length == 0) ? [] : $.parseJSON($value.text());	
-			
-			var inputs = $parent.find(".new_multi_valued").find(".variable_value");
-			if (inputs.length < values_array.length) {
-				for (var i=0; i < (values_array.length - inputs.length); i++) {
-					$("#main .link_value_add").trigger('click');
-					newInputs++;
+			if ($value.attr("ismultivalued") === "true") {
+				var values_array = (value.length == 0) ? [] : $.parseJSON(value);
+				for (j in values_array) {
+					$variable.find(".link_value_add").click();
+					$variable.find(".variable_value").last().val(values_array[j]);
 				}
-			}
-			inputs = $parent.find(".new_multi_valued").find(".variable_value");
-			for (var j=0; j < values_array.length; j++) {
-				$(inputs[j]).val(values_array[j]);
-				$(inputs[j]).trigger('change');
-			}
-		} else {
-			if (containsMultiValued) {
-				$(parentInputs[i+newInputs -1]).val($value.text());
-				$(parentInputs[i+newInputs -1]).trigger('change');
 			} else {
-				$(parentInputs[i]).val($value.text());
-				$(parentInputs[i]).trigger('change');
+				$variable.find(".variable_value").val(value);
 			}
+			$variable.find(".variable_enable").attr("checked", "checked");
+		} else {
+			$variable.find(".variable_enable").removeAttr("checked");
 		}
 	});
 }
@@ -489,7 +466,7 @@ $(document).ready(function() {
 			$("#main a.requestable_link").each(setLinkForRequestable);
 			
 			$("#main a.requestable_testcase_link").each(setLinkForTestCase);
-
+			
 			$("#main .variable_value").change(function () {
 				$(this).parents(".requestable").find("a.requestable_link").each(setLinkForRequestable);
 			});
@@ -520,22 +497,17 @@ $(document).ready(function() {
 			}) 
 			
 			$("#main .btn_edit_testcase").click(function() {
-				var $a = $(this);
-				var $testCaseValues = $a.parent().find(".testcase_variable_value");
-				var $parent = $a.parents(".requestable:first");
-				var $parentVariablesInputs = $parent.find(".requestable_variables").find(".variable_value");
-				copyVariables($testCaseValues, $parentVariablesInputs);
+				copyVariables($(this).parent());
 				return false;
 			});
 			
 			$("#main .btn_exe_link").click(function () {
 				var layout = $(this).parent().find(".device_layout").attr("value");
-				var parent = $(this).parent();
-				var href = $(this).parent().find("a")[0].href;
+				var href = $(this).parent().find("a").attr("href");
 
 				var selected_mode = $('input[type=radio][name=form_execution_mode]:checked').val();
-				var bXml = (selected_mode === "xml")?true:false;
-				var bJson = (selected_mode === "json")?true:false;
+				var bXml = (selected_mode === "xml");
+				var bJson = (selected_mode === "json");
 				
 				if (bXml) {
 					href = href.replace("index.html?", ".pxml?");
@@ -610,7 +582,7 @@ $(document).ready(function() {
 					setMobileScale(scale >= 0.25 ? scale : 0.25);
 				}
 			});
-
+			
 			$(".acc>li>h6").click(function () {
 				 $(this).toggleClass("acc-selected");
 				 $(this).next().find(".acc>li>h6").add(this).each(function () {
@@ -622,10 +594,9 @@ $(document).ready(function() {
 				 });
 			}).next().hide();
 			
-			if ($devices.length > 0) {
+			if ($devices.length) {
 				$("h6:first").click();
-			}
-			else {
+			} else {
 				$(".connector_name").each(function(){
 					if ($(this).text() == $project.attr("defaultConnector")) {
 						$(this).click();
@@ -667,7 +638,9 @@ $(document).ready(function() {
 			});
 	
 			$("#main .install.qrcode_content").each(getPhoneGapBuildStatus);
-			$("#main .webapp.qrcode_content").each(getWebappUrl);
+			$("#main .webapp.qrcode_content").each(function () {
+				showQRCode.call($(this), false)
+			});
 		});
 	});
 });

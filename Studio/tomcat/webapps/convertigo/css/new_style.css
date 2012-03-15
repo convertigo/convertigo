@@ -784,6 +784,7 @@ ul.connectors .acc {
 
 .btn_edit_testcase {
 	float: right;	
+	margin-left: 5px;	
 }
 
 .logo_c8o {
