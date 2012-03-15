@@ -51,19 +51,19 @@ public class ProcessExecStep extends Step {
 
 	/** Holds the value for command line */
 	private String commandLine = "";
-	
+
 	/** Holds the value for the execution directory */
 	private String executionDirectory = "";
 
 	/** Holds value for the environment parameters */
-    private XMLVector<XMLVector<String>> envParameters = new XMLVector<XMLVector<String>>();
-	
-    /** Holds value for wait of process end */
-    private boolean waitForProcessEnd = true;
-    
-    /** Holds value of command line output charset */
-    private String commandCharset = "UTF-8";
-    
+	private XMLVector<XMLVector<String>> envParameters = new XMLVector<XMLVector<String>>();
+
+	/** Holds value for wait of process end */
+	private boolean waitForProcessEnd = true;
+
+	/** Holds value of command line output charset */
+	private String commandCharset = "UTF-8";
+
 	public ProcessExecStep() {
 		super();
 		xml = true;
@@ -71,16 +71,16 @@ public class ProcessExecStep extends Step {
 
 	@Override
 	public Object clone() throws CloneNotSupportedException {
-		ProcessExecStep clonedObject = (ProcessExecStep)super.clone();
+		ProcessExecStep clonedObject = (ProcessExecStep) super.clone();
 		return clonedObject;
 	}
-	
+
 	@Override
 	public Object copy() throws CloneNotSupportedException {
-		ProcessExecStep clopiedObject = (ProcessExecStep)super.copy();
+		ProcessExecStep clopiedObject = (ProcessExecStep) super.copy();
 		return clopiedObject;
 	}
-	
+
 	public void setCommandLine(String commandLine) {
 		this.commandLine = commandLine;
 	}
@@ -88,7 +88,7 @@ public class ProcessExecStep extends Step {
 	public String getCommandLine() {
 		return commandLine;
 	}
-	
+
 	public void setExecutionDirectory(String executionDirectory) {
 		this.executionDirectory = executionDirectory;
 	}
@@ -128,7 +128,7 @@ public class ProcessExecStep extends Step {
 
 	@Override
 	public String toString() {
-		return "Exec "+ commandLine;
+		return "Exec " + commandLine;
 	}
 
 	@Override
@@ -149,12 +149,12 @@ public class ProcessExecStep extends Step {
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		ProcessStreamReaderThread stderrThread = null, stdoutThread = null;
-		
+
 		// Create step child nodes
 		final Node errorNode = stepNode.appendChild(doc.createElement("error"));
 		final Node outputNode = stepNode.appendChild(doc.createElement("output"));
 		final Node exitNode = stepNode.appendChild(doc.createElement("exit"));
-		
+
 		try {
 			// Environment parameters (name/value pairs)
 			String[] envp = null;
@@ -167,79 +167,84 @@ public class ProcessExecStep extends Step {
 				// Fill parameters array
 				int i = 0;
 				envp = new String[envmap.size()];
-				for (Map.Entry<String, String> entry : envmap.entrySet()) 
-					envp[i++] = entry.getKey()+"="+entry.getValue();
+				for (Map.Entry<String, String> entry : envmap.entrySet())
+					envp[i++] = entry.getKey() + "=" + entry.getValue();
 			}
-			
+
 			// Execution directory
 			File dir = null;
 			if (!executionDirectory.equals(""))
-				dir = Engine.theApp.filePropertyManager.getFileFromProperty(executionDirectory, getProject().getName());
-			
+				dir = Engine.theApp.filePropertyManager.getFileFromProperty(executionDirectory, getProject()
+						.getName());
+
 			// Command line string
 			if (evaluated instanceof org.mozilla.javascript.Undefined)
 				throw new EngineException("Process command line argument is empty.");
 			String command = evaluated.toString();
-		
+
 			// Check if encoding is supported
 			try {
 				if (!Charset.isSupported(commandCharset)) {
-					throw new EngineException("Wrong encoding for \"Process execute\" step, please enter a valid one.");
+					throw new EngineException(
+							"Wrong encoding for \"Process execute\" step, please enter a valid one.");
 				}
+			} catch (IllegalCharsetNameException e) {
+				throw new EngineException(
+						"Wrong encoding for \"Process execute\" step, please enter a valid one.");
 			}
-			catch (IllegalCharsetNameException e) {
-				throw new EngineException("Wrong encoding for \"Process execute\" step, please enter a valid one.");
-			}
-	
+
 			// Status exit code
 			String status = "-1";
-			
+
 			// Launch the process :
 			// if envp is null, current environment parameters are used
 			// if dir is null, current execution directory is used
 			final Process process = Runtime.getRuntime().exec(command, envp, dir);
-			
+
 			// Create and launch process stream reader threads
-			stderrThread = new ProcessStreamReaderThread(process, errorNode, outputNode, true);
-			stdoutThread = new ProcessStreamReaderThread(process, errorNode, outputNode, false);
+			stderrThread = new ProcessStreamReaderThread(process.getErrorStream(), errorNode);
+			stdoutThread = new ProcessStreamReaderThread(process.getInputStream(), outputNode);
 			stderrThread.start();
 			stdoutThread.start();
-			
+
 			if (isWaitForProcessEnd()) {
 				// Launch a thread to handle sequence abortion
 				final Sequence s = sequence;
-				new Thread() {
+				new Thread(new Runnable() {
+					@Override
 					public void run() {
 						try {
 							while (s.isRunning()) {
 								Thread.sleep(500);
 							}
 							process.destroy();
-						} catch(Exception e) {
+						} catch (Exception e) {
 							Engine.logBeans.warn("An error occured while executing process.", e);
 						}
 					}
-				}.start();
+				}).start();
 
 				// Wait for process end
 				process.waitFor();
+				stdoutThread.join();
+				stderrThread.join();
 			}
-			
+
 			// Append process exit status to the 'exit' child node
-			try {status = ""+process.exitValue();}
-			catch (IllegalThreadStateException e) {}
+			try {
+				status = "" + process.exitValue();
+			} catch (IllegalThreadStateException e) {
+			}
 			exitNode.appendChild(doc.createTextNode(status));
-		}
-		catch (Throwable t) {
+		} catch (Throwable t) {
 			setErrorStatus(true);
 			errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(t.getMessage()));
-		}
-		finally {
+		} finally {
 			try {
 				stderrThread.bContinue = false;
 				stdoutThread.bContinue = false;
+			} catch (Exception e) {
 			}
-			catch (Exception e) {}
 		}
 	}
 
@@ -256,23 +261,24 @@ public class ProcessExecStep extends Step {
 
 	@Override
 	public String getSchemaType(String tns) {
-		return tns +":"+ getStepNodeName() + priority +"StepType";
+		return tns + ":" + getStepNodeName() + priority + "StepType";
 	}
-	
+
 	@Override
-	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs) throws EngineException {
+	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs)
+			throws EngineException {
 		String stepTypeSchema = "";
-		stepTypeSchema += "\t<xsd:complexType name=\""+ getSchemaTypeName(tns) +"\">\n";
+		stepTypeSchema += "\t<xsd:complexType name=\"" + getSchemaTypeName(tns) + "\">\n";
 		stepTypeSchema += "\t\t<xsd:sequence>\n";
 		stepTypeSchema += "\t\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"error\" type=\"xsd:string\" />\n";
 		stepTypeSchema += "\t\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"output\" type=\"xsd:string\" />\n";
 		stepTypeSchema += "\t\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"exit\" type=\"xsd:int\" />\n";
 		stepTypeSchema += "\t\t</xsd:sequence>\n";
 		stepTypeSchema += "\t</xsd:complexType>\n";
-		
+
 		stepTypes.put(new Long(priority), stepTypeSchema);
 	}
-	
+
 	@Override
 	protected Node createWsdlDom() throws EngineException {
 		Element element = (Element) super.createWsdlDom();
@@ -281,45 +287,41 @@ public class ProcessExecStep extends Step {
 		element.appendChild(wsdlDom.createElement("exit"));
 		return element;
 	}
-	
+
 	class ProcessStreamReaderThread extends Thread {
-		boolean bStdErr = false, bContinue = true;
-		Node errorNode, outputNode;
-		Process process;
-		public ProcessStreamReaderThread(final Process process, final Node errorNode, final Node outputNode, boolean bStdErr) {
-			this.process = process;
-			this.errorNode = errorNode;
+		boolean bContinue = true;
+		Node outputNode;
+		InputStream processStream;
+
+		public ProcessStreamReaderThread(final InputStream processStream, final Node outputNode) {
+			this.processStream = processStream;
 			this.outputNode = outputNode;
-			this.bStdErr = bStdErr;
 		}
+
 		public void run() {
 			BufferedReader reader = null;
-			String line, serror = "", sdata = "";
+			String line, serror = "";
+			StringBuffer sb = new StringBuffer();
 			try {
-				InputStream in = bStdErr ? process.getErrorStream() : process.getInputStream();
-				reader = new BufferedReader(commandCharset.equals("") ? new InputStreamReader(in) : new InputStreamReader(in,commandCharset));
+				reader = new BufferedReader(commandCharset.equals("") ? new InputStreamReader(processStream)
+						: new InputStreamReader(processStream, commandCharset));
 				while (bContinue && (line = reader.readLine()) != null) {
-					sdata += line + "\n";
+					sb.append(line + "\n");
 				}
-			}
-			catch(Exception e) {
+			} catch (Exception e) {
 				serror += e.getMessage();
-			}
-			finally {
+			} finally {
 				try {
 					// Close reader
 					reader.close();
-					
+
 					// Append exception (if any) to the step's child node
-					errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(serror));
-					
+					outputNode.appendChild(outputNode.getOwnerDocument().createCDATASection(serror));
+
 					// Append read data to the step's child node
-					if (bStdErr)
-						errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(sdata));
-					else
-						outputNode.appendChild(outputNode.getOwnerDocument().createCDATASection(sdata));
+					outputNode.appendChild(outputNode.getOwnerDocument().createCDATASection(sb.toString()));
+				} catch (Exception e) {
 				}
-				catch (Exception e) {}
 			}
 		}
 	}
