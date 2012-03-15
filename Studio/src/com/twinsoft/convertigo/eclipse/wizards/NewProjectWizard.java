@@ -726,7 +726,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
             String newConnectorName = "NewConnector"; 
             // interactionHub project connector name is by default set to "Void"
             switch (templateId) {
-            	case TEMPLATE_INTERACTION_HUB:
+        		case TEMPLATE_SEQUENCE_SQL_CONNECTOR:
+        		case TEMPLATE_INTERACTION_HUB:
             		newConnectorName = "Void";
             		break;	
             	default:
