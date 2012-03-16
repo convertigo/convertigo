@@ -771,13 +771,13 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			// rename connector in .xml file for all projects
 			String oldConnectorName = "unknown";
 			String newConnectorName = "NewConnector";
-			// interactionHub project connector name is by default set to "Void"
+			// interactionHub project connector name is by default set to "void"
 			switch (templateId) {
 			case TEMPLATE_MOBILE_SENCHA:
 			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 			case TEMPLATE_SEQUENCE_CONNECTOR:
 			case TEMPLATE_INTERACTION_HUB:
-				newConnectorName = "Void";
+				newConnectorName = "void";
 				break;
 			default:
 				newConnectorName = (page2 == null) ? "NewConnector" : page2.getConnectorName();
