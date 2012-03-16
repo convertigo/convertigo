@@ -264,7 +264,7 @@ public class EnginePropertiesManager {
 		/** MAIN */
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		APPLICATION_SERVER_CONVERTIGO_URL ("application_server.convertigo.url", "http://localhost:18080/convertigo", "Convertigo server application URL", PropertyCategory.Main),
-		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
+		@PropertyOptions(visibility = Visibility.HIDDEN)
 		APPLICATION_SERVER_MASHUP_URL ("application_server.mashup.url", "http://localhost:18080/convertigo", "Mashup composer server base URL", PropertyCategory.Main),
 		DOCUMENT_THREADING_MAX_WORKER_THREADS ("document.threading.max_worker_threads", "100", "Maximal number of worker threads", PropertyCategory.Main),
 
