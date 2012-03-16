@@ -487,7 +487,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		gridData.grabExcessVerticalSpace = true;
 		browser.setLayoutData(gridData);
 		
-		DeploymentConfiguration deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get("trial.convertigo.net");
+		DeploymentConfiguration deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get("trial.convertigo.net/cems");
 
 		String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
 		url += 	deploymentConfiguration == null ? "":"&user=" + deploymentConfiguration.getUsername();
