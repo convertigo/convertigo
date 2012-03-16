@@ -288,13 +288,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				addPage(page8);
 				break;
 				
-			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
-				page1 = new NewProjectWizardPage1(selection);
-				page2 = new NewProjectWizardPage2(selection);
-				addPage(page1);
-				addPage(page2);
-				break;
-				
 			case TEMPLATE_WEB_SERVICE_REFERENCE:
 				page1 = new NewProjectWizardPage1(selection);
 				page10 = new NewProjectWizardPage10(selection);
@@ -302,6 +295,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				addPage(page10);
 				break;
 				
+			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 			case TEMPLATE_SEQUENCE_SQL_CONNECTOR:
 			case TEMPLATE_INTERACTION_HUB:
 				page1 = new NewProjectWizardPage1(selection);
@@ -726,6 +720,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
             String newConnectorName = "NewConnector"; 
             // interactionHub project connector name is by default set to "Void"
             switch (templateId) {
+            	case TEMPLATE_MOBILE_SENCHA:
+            	case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
         		case TEMPLATE_SEQUENCE_SQL_CONNECTOR:
         		case TEMPLATE_INTERACTION_HUB:
             		newConnectorName = "Void";

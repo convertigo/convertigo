@@ -286,12 +286,6 @@
                id="com.twinsoft.convertigo.PrintProject"
                label="&amp;Print project"
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
-         <!--action
-               class="com.twinsoft.convertigo.eclipse.actions.DreamfaceAction"
-               icon="icons/convertigo_16x16.gif"
-               id="com.twinsoft.convertigo.Dreamface"
-               label="&amp;Mashup composer"
-               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/-->
          <action
                class="com.twinsoft.convertigo.eclipse.actions.AdministrationAction"
                icon="icons/convertigo_16x16.gif"
@@ -386,7 +380,7 @@
             name="jQuery Mobile based empty project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an empty of features Mobile project based on jQueryMobile framework.</description> 
+            <description>Creates a Mobile project based on jQueryMobile framework, which features are configurable (simply uncomment them inside code).</description> 
             </wizard>
 <!-- Legacy publishing projects -->
       <wizard
