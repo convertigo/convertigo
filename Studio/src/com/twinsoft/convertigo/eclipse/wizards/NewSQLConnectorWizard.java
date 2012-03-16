@@ -14,17 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * $URL: http://sourceus.twinsoft.fr/svn/CEMS/trunk/Studio/src/com/twinsoft/convertigo/eclipse/wizards/NewCicsConnectorWizard.java $
+ * $Author: fabienb $
+ * $Revision: 28379 $
+ * $Date: 2011-09-27 11:38:59 +0200 (mar., 27 sept. 2011) $
  */
 
 package com.twinsoft.convertigo.eclipse.wizards;
 
-public class NewSequencerWizard extends NewProjectWizard {
-	public NewSequencerWizard() {
-			super();
-			this.templateId = NewProjectWizard.TEMPLATE_SEQUENCE_CONNECTOR;
+public class NewSQLConnectorWizard extends NewProjectWizard {
+
+	public NewSQLConnectorWizard() {
+		super();
+		this.templateId = NewProjectWizard.TEMPLATE_SQL_CONNECTOR;
 	}
+
 }

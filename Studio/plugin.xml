@@ -292,6 +292,12 @@
                id="com.twinsoft.convertigo.Administration"
                label="&amp;Administration"
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
+         <!--action
+               class="com.twinsoft.convertigo.eclipse.actions.SetupAction"
+               icon="icons/convertigo_16x16.gif"
+               id="com.twinsoft.convertigo.Setup"
+               label="&amp;Setup"
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/-->
       </actionSet>
    </extension>
    <extension
@@ -340,6 +346,10 @@
       <category
             id="com.twinsoft.convertigo.eclipse.convertigositeclipper"
             name="Site clipping"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigosql"
+            name="SQL"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigomobile"
@@ -525,7 +535,18 @@
              name="Sequencer project"
              preferredPerspectives="convertigo"
              project="true">
-             <description>Creates a SQL based sequencer project.</description>
+             <description>Creates a sequencer project.</description>
+             </wizard>
+<!-- SQL projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosql"
+             class="com.twinsoft.convertigo.eclipse.wizards.NewSQLConnectorWizard"
+             icon="icons/studio/sqlconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSQLConnectorWizard"
+             name="SQL project"
+             preferredPerspectives="convertigo"
+             project="true">
+             <description>Creates a SQL project.</description>
              </wizard>
 <!-- Site Clipper connector projects -->
        <wizard
