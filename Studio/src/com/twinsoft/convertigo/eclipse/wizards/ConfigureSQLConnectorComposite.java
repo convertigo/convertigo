@@ -122,7 +122,6 @@ public class ConfigureSQLConnectorComposite extends Composite {
 		jdbcDriver.addModifyListener(modifyListener);
 		jdbcDriver.addSelectionListener(new SelectionListener() {
 			
-			@Override
 			public void widgetSelected(SelectionEvent e) {
 				Display.getDefault().asyncExec(new Runnable() {
 					public void run() {
@@ -131,7 +130,6 @@ public class ConfigureSQLConnectorComposite extends Composite {
 				});
 			}
 			
-			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				
