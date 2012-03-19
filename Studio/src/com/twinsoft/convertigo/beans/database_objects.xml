@@ -283,6 +283,7 @@
             <beans groupname="XML steps">
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.XMLAttributeStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLElementStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElementStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.XMLCopyStep">

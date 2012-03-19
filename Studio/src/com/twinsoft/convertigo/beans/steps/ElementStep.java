@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 import org.mozilla.javascript.Context;
@@ -37,11 +38,13 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
+import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class ElementStep extends Step {
+public class ElementStep extends StepWithExpressions {
 
 	private static final long serialVersionUID = 3276050659362959159L;
 	
@@ -169,5 +172,43 @@ public class ElementStep extends Step {
 	
 	public String toJsString() {
 		return expression;
+	}
+	
+	@Override
+	public String getSchemaType(String tns) {
+		return hasSteps() ? tns +":"+ getStepNodeName() + priority +"StepType":getSchemaDataType(tns);
+	}
+	
+	@Override
+	public String getSchema(String tns, String occurs) throws EngineException {
+		schema = "";
+		String maxOccurs = (occurs == null) ? "":"maxOccurs=\""+occurs+"\"";
+		schema += "\t\t\t<xsd:element minOccurs=\"0\" "+maxOccurs+" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
+		schema += "\t\t\t\t<xsd:annotation>\n";
+		schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
+		schema += "\t\t\t\t</xsd:annotation>\n";
+		schema += "\t\t\t</xsd:element>\n";
+		
+		return isEnable() && isOutput() ? schema:"";
+	}
+
+	@Override
+	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs) throws EngineException {
+		if (hasSteps()) { // if has attributes
+			String stepTypeSchema = "";
+			stepTypeSchema += "\t<xsd:complexType name=\""+ getSchemaTypeName(tns) +"\">\n";
+			stepTypeSchema += "\t\t<xsd:simpleContent>\n";
+			stepTypeSchema += "\t\t\t\t<xsd:extension base=\""+ getSchemaDataType(tns) +"\">\n";
+			// Adds attributes
+			for (Step step: getSteps()) {
+				step.addSchemaType(stepTypes, "p_ns");
+				stepTypeSchema += step.getSchema(tns);
+			}
+			stepTypeSchema += "\t\t\t\t</xsd:extension>\n";
+			stepTypeSchema += "\t\t</xsd:simpleContent>\n";
+			stepTypeSchema += "\t</xsd:complexType>\n";
+			
+			stepTypes.put(new Long(priority), stepTypeSchema);
+		}
 	}
 }

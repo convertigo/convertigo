@@ -41,6 +41,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.ThenStatement;
+import com.twinsoft.convertigo.beans.steps.ElementStep;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
@@ -335,10 +336,10 @@ public class ClipboardAction extends MyAbstractAction {
 				// Can not paste a ElseStatement
 				if (ob instanceof ElseStatement)
 					return null;
-				// Special case of XMLElementStep
-				if (targetObject instanceof XMLElementStep) {
+				// Special case of XMLElementStep, ElementStep
+				if ((targetObject instanceof XMLElementStep) || (targetObject instanceof ElementStep)) {
 					// Case paste on itself -> target is changed to parent
-					if ((size==1) && (ob instanceof XMLElementStep)) {
+					if ((size==1) && ((ob instanceof XMLElementStep) || (ob instanceof ElementStep))) {
 						if (((Step)ob).getName().equals(targetObject.getName())) {
 							return targetObject.getParent();
 						}
