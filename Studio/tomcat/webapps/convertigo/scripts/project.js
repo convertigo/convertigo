@@ -388,11 +388,20 @@ function copyVariables($testcase) {
 			} else {
 				$variable.find(".variable_value").val(value);
 			}
-			$variable.find(".variable_enable").attr("checked", "checked");
+			variableEnableCheck($variable.find(".variable_enable").attr("checked", "checked"));
 		} else {
-			$variable.find(".variable_enable").removeAttr("checked");
+			variableEnableCheck($variable.find(".variable_enable").removeAttr("checked"));
 		}
 	});
+	$requestable.find("a.requestable_link").each(setLinkForRequestable);
+}
+
+function variableEnableCheck($check) {
+	if ($check.attr("checked")) {
+		$check.parent().prev().find(".variable_value").removeAttr("disabled");
+	} else {
+		$check.parent().prev().find(".variable_value").attr("disabled", "disabled");
+	}
 }
 
 $(document).ready(function() {
@@ -527,12 +536,9 @@ $(document).ready(function() {
 			});
 			
 			$("#main .variable_enable").click(function () {
-				if (this.checked) {
-					$(this).parent().prev().find(".variable_value").removeAttr("disabled");
-				} else {
-					$(this).parent().prev().find(".variable_value").attr("disabled", "disabled");
-				}
-				$(this).parents(".requestable").find("a.requestable_link").each(setLinkForRequestable);
+				var $check = $(this);
+				variableEnableCheck($check);
+				$check.parents(".requestable").find("a.requestable_link").each(setLinkForRequestable);
 			});
 			
 			$("#main .link_value_remove").live("click", function () {
