@@ -220,6 +220,7 @@ public class EnginePropertiesManager {
     	Context ("Real-time activity monitoring parameters"),
     	XmlGeneration ("XML generation parameters"),
     	XulRunner ("HTML parser configuration"),
+    	HttpClient ("HTTP client configuration"),
     	Network ("Network configuration"),
     	Proxy ("Proxy settings"),
     	Ssl ("SSL configuration"),
@@ -384,10 +385,10 @@ public class EnginePropertiesManager {
 		/** NETWORK */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		NET_REVERSE_DNS ("net.reverse_dns", "false", "Use DNS reverse search for finding host names", PropertyCategory.Network),
-		@PropertyOptions(advance = true)
-		HTTP_CLIENT_MAX_TOTAL_CONNECTIONS ("http_client.max_total_connections", "100", "Maximal number of HTTP connections (from 1 to 65535)", PropertyCategory.Network),
-		@PropertyOptions(advance = true)
-		HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST ("http_client.max_connections_per_host", "50", "Maximal number of HTTP connections per host (from 1 to 255)", PropertyCategory.Network),
+		
+		/** HTTPCLIENT */
+		HTTP_CLIENT_MAX_TOTAL_CONNECTIONS ("http_client.max_total_connections", "100", "Maximal number of HTTP connections (from 1 to 65535)", PropertyCategory.HttpClient),
+		HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST ("http_client.max_connections_per_host", "50", "Maximal number of HTTP connections per host (from 1 to 255)", PropertyCategory.HttpClient),
 
 		/** CONTEXT */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
@@ -419,21 +420,21 @@ public class EnginePropertiesManager {
 		PROXY_SETTINGS_PASSWORD ("htmlProxy.password", "", "Password", PropertyCategory.Proxy),
 
 		/** XULRUNNER */
-		XULRUNNER_MAX_CONNECTIONS ("xulrunner.max-connections", "65535", "Max connections", PropertyCategory.XulRunner),
-		XULRUNNER_MAX_CONNECTIONS_PER_SERVER ("xulrunner.max-connections-per-server", "255", "Max connections per server", PropertyCategory.XulRunner),
-		XULRUNNER_MAX_PERSISTENT_CONNECTIONS_PER_SERVER ("xulrunner.max-persistent-connections-per-server", "10", "Max persistent connections per server", PropertyCategory.XulRunner),
+		XULRUNNER_MAX_CONNECTIONS ("xulrunner.max-connections", "65535", "Max connections (from 1 to 65535)", PropertyCategory.XulRunner),
+		XULRUNNER_MAX_CONNECTIONS_PER_SERVER ("xulrunner.max-connections-per-server", "255", "Max connections per server (from 1 to 255)", PropertyCategory.XulRunner),
+		XULRUNNER_MAX_PERSISTENT_CONNECTIONS_PER_SERVER ("xulrunner.max-persistent-connections-per-server", "10", "Max persistent connections per server (from 1 to 10)", PropertyCategory.XulRunner),
 		XULRUNNER_USERAGENT ("xulrunner.useragent", "", "Override UserAgent", PropertyCategory.XulRunner),
 		
 		/** XULRUNNER ADVANCE */
 		@PropertyOptions(advance = true)
 		XULRUNNER_ACCEPT_LANGUAGES ("xulrunner.accept_languages", "", "HTTP_ACCEPT_LANGUAGE header value", PropertyCategory.XulRunner),
-		@PropertyOptions(advance = true)
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		XULRUNNER_ALLOW_IMAGE ("xulrunner.allow.image", "true", "Allow image", PropertyCategory.XulRunner),
-		@PropertyOptions(advance = true)
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		XULRUNNER_ALLOW_PLUGIN ("xulrunner.allow.plugin", "false", "Allow plugin", PropertyCategory.XulRunner),
-		@PropertyOptions(advance = true)
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		XULRUNNER_CHECK_CACHE ("xulrunner.check-cache", "true", "Check cache validity (false could increase latency)", PropertyCategory.XulRunner),
-		@PropertyOptions(advance = true)
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		XULRUNNER_INTERRUPT_PARSING ("xulrunner.interrupt-parsing", "false", "Enable screen rendering during parse (should be disabled)", PropertyCategory.XulRunner),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
 		XULRUNNER_URL ("xulrunner.url", "${convertigo.webapp_path}/WEB-INF/xulrunner", "XulRunner path", PropertyCategory.XulRunner),
@@ -462,7 +463,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		BILLING_ENABLED ("billing.enabled", "false", "Enable billing system", PropertyCategory.Billing),
 
-		/* BILLING */
+		/** BILLING */
 		@PropertyOptions(advance = true)
 		BILLING_PERSISTENCE_DIALECT ("billing.persistence.dialect", "org.hibernate.dialect.HSQLDialect", "Persistence Dialect", PropertyCategory.Billing),
 		@PropertyOptions(advance = true)
@@ -474,7 +475,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		BILLING_PERSISTENCE_JDBC_USERNAME ("billing.persistence.jdbc.username", "sa", "Persistence JDBC Username", PropertyCategory.Billing),
 
-		/* NOTIFICATIONS */
+		/** NOTIFICATIONS */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		NOTIFICATIONS_NOTIFY_PROJECT_DEPLOYMENT ("notifications.notify.project_deployment", "false", "Notify project deployment", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true)
