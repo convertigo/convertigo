@@ -50,6 +50,17 @@ function addMobileDevice($device, $parent) {
 	$parent.append($device_div);
 }
 
+function parseJSONarray(value) {
+	if (value.length) {
+		try {
+			return $.parseJSON(value);
+		} catch (e) {
+			
+		}
+	}
+	return [];
+}
+
 function addRequestable($requestable, $parent) {
 	var $requestable_div = $("#templates .requestable").clone();
 	setName($requestable_div.find(".requestable_name"), $requestable);
@@ -67,8 +78,7 @@ function addRequestable($requestable, $parent) {
 		
 		// Handle multi-valued variable
 		if (isMultiValued) {
-			var value = $variable.attr("value");
-			var values_array = (value.length) ? $.parseJSON(value) : [];
+			var values_array = parseJSONarray($variable.attr("value"));
 			
 			$variable_type.append($("#templates .multi_valued").clone());
 			for (var i = 0; i < values_array.length; i++) {
@@ -380,7 +390,7 @@ function copyVariables($testcase) {
 			var $value = $testCase.find(".testcase_variable_value");
 			var value = $value.text();
 			if ($value.attr("ismultivalued") === "true") {
-				var values_array = (value.length == 0) ? [] : $.parseJSON(value);
+				var values_array = parseJSONarray(value);
 				for (j in values_array) {
 					$variable.find(".link_value_add").click();
 					$variable.find(".variable_value").last().val(values_array[j]);
