@@ -54,7 +54,7 @@ public class BeansDoc {
 	public static void main(String[] args) throws Exception {
 
 		Engine.logBeans = Logger.getLogger(BeansDoc.class);
-		// Engine.logBeans.setLevel(Level.TRACE);
+		Engine.logContext = Logger.getLogger(BeansDoc.class);
 
 		Document documentBeansDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 		ProcessingInstruction pi = documentBeansDoc.createProcessingInstruction("xml",
