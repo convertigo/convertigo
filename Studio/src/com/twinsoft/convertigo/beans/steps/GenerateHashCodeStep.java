@@ -1,11 +1,13 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
+import java.util.HashMap;
 
 import org.apache.commons.io.FileUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
@@ -25,68 +27,88 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty {
 	private String sourcePath = "";
 	private String hashAlgorithm = "MD5";
 
+	private transient String sourceFilePath = "";
+		
 	public GenerateHashCodeStep() {
 		super();
+		this.xml = true;
 	}
 
 	@Override
 	public Object clone() throws CloneNotSupportedException {
 		GenerateHashCodeStep clonedObject = (GenerateHashCodeStep) super.clone();
+		clonedObject.sourceFilePath = "";
 		return clonedObject;
 	}
 
 	@Override
 	public Object copy() throws CloneNotSupportedException {
 		GenerateHashCodeStep copiedObject = (GenerateHashCodeStep) super.copy();
+		copiedObject.sourceFilePath = "";
 		return copiedObject;
 	}
 
 	@Override
+	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
+		if (isEnable) {
+			try {
+				Engine.logBeans.info("Hashing file \"" + sourceFilePath + "\"");
+
+				File sourceFile = new File(sourceFilePath);
+				if (!sourceFile.exists()) {
+					throw new EngineException("Source file does not exist: " + sourceFilePath);
+				}
+
+				if (!sourceFile.isFile()) {
+					throw new EngineException("Source file is not a file: " + sourceFilePath);
+				}
+
+				byte[] path = null;
+				path = FileUtils.readFileToByteArray(sourceFile);
+				
+				String hash = null;
+				if (MD5.equals(hashAlgorithm)) {
+					hash = org.apache.commons.codec.digest.DigestUtils.md5Hex(path);
+				} else if (SHA1.equals(hashAlgorithm)) {
+					hash = org.apache.commons.codec.digest.DigestUtils.shaHex(path);
+				}
+				Engine.logBeans.info("File \"" + sourceFilePath	+ "\" has been hashed.");
+				
+				Node hashNode = doc.createElement("hash");
+				hashNode.appendChild(doc.createTextNode(hash));
+				stepNode.appendChild(hashNode);
+				
+			} catch (Exception e) {
+				setErrorStatus(true);
+				throw new EngineException("Unable to compute hash code", e);
+			}
+		}
+	}
+	
+	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.stepExecute(javascriptContext, scope)) {
-				try {
-					String sourceFilePath = getAbsoluteFilePath(evaluateToString(javascriptContext, scope, sourcePath, "sourcePath", false));
+			try {
+				sourceFilePath = getAbsoluteFilePath(evaluateToString(javascriptContext, scope, sourcePath, "sourcePath", false));
 
-					Engine.logBeans.info("Hashing file \"" + sourceFilePath + "\"");
+				Engine.logBeans.info("Hashing file \"" + sourceFilePath + "\"");
 
-					File sourceFile = new File(sourceFilePath);
-					if (!sourceFile.exists()) {
-						throw new EngineException("Source file does not exist: " + sourceFilePath);
-					}
-
-					if (!sourceFile.isFile()) {
-						throw new EngineException("Source file is not a file: " + sourceFilePath);
-					}
-
-					byte[] path = null;
-					path = FileUtils.readFileToByteArray(sourceFile);
-					
-					String hash = null;
-					if (MD5.equals(hashAlgorithm)) {
-						hash = org.apache.commons.codec.digest.DigestUtils.md5Hex(path);
-					} else if (SHA1.equals(hashAlgorithm)) {
-						hash = org.apache.commons.codec.digest.DigestUtils.shaHex(path);
-					}
-
-					Document xmlDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
-					Node hashNode = xmlDoc.createElement("hash");
-					hashNode.appendChild(xmlDoc.createTextNode(hash));
-					xmlDoc.appendChild(hashNode);
-
-					if (isOutput()) {
-						sequence.flushStepDocument(executeTimeID, xmlDoc);
-					}
-					Node rootNode = outputDocument.getDocumentElement();
-					Node newChild = outputDocument.importNode(xmlDoc.getDocumentElement(), true);
-					outputDocument.replaceChild(newChild, rootNode);
-
-					Engine.logBeans.info("File \"" + sourceFilePath	+ "\" has been hashed.");
-				} catch (Exception e) {
-					setErrorStatus(true);
-					throw new EngineException("Unable to compute hash code", e);
+				File sourceFile = new File(sourceFilePath);
+				if (!sourceFile.exists()) {
+					throw new EngineException("Source file does not exist: " + sourceFilePath);
 				}
-				return true;
+
+				if (!sourceFile.isFile()) {
+					throw new EngineException("Source file is not a file: " + sourceFilePath);
+				}
+				
+				if (super.stepExecute(javascriptContext, scope)) {
+					return true;
+				}
+				
+			} catch (Exception e) {
+				setErrorStatus(true);
+				throw new EngineException("Unable to compute hash code", e);
 			}
 		}
 		return false;
@@ -141,4 +163,42 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty {
 	public void setHashAlgorithm(String hashAlgorithm) {
 		this.hashAlgorithm = hashAlgorithm;
 	}
+	
+	@Override
+	protected Node createWsdlDom() throws EngineException {
+		Element element = (Element) super.createWsdlDom();
+		element.appendChild(wsdlDom.createElement("hash"));
+		return element;
+	}
+	
+	@Override
+	public String getSchemaType(String tns) {
+		return tns +":"+ getStepNodeName() + priority +"StepType";
+	}
+	
+	@Override
+	public String getSchema(String tns, String occurs) throws EngineException {
+		schema = "";
+		String maxOccurs = (occurs == null) ? "":"maxOccurs=\""+occurs+"\"";
+		schema += "\t\t\t<xsd:element minOccurs=\"0\" "+maxOccurs+" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
+		schema += "\t\t\t\t<xsd:annotation>\n";
+		schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
+		schema += "\t\t\t\t</xsd:annotation>\n";
+		schema += "\t\t\t</xsd:element>\n";
+		
+		return isEnable() && isOutput() ? schema:"";
+	}
+
+	@Override
+	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs) throws EngineException {
+		String stepTypeSchema = "";
+		stepTypeSchema += "\t<xsd:complexType name=\""+ getSchemaTypeName(tns) +"\">\n";
+		stepTypeSchema += "\t\t<xsd:sequence>\n";
+		stepTypeSchema += "\t\t\t\t<xsd:element minOccurs=\"0\" name=\"hash\" type=\"xsd:string\"/>\n";
+		stepTypeSchema += "\t\t</xsd:sequence>\n";
+		stepTypeSchema += "\t</xsd:complexType>\n";
+		
+		stepTypes.put(new Long(priority), stepTypeSchema);
+	}
+	
 }
