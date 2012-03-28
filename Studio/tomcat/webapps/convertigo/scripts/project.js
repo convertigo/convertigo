@@ -534,7 +534,11 @@ $(document).ready(function() {
 					href = href.replace("index.html?", ".json?");
 				}
 				
-				$("#main .gen_url").html(href);
+				var genUrl = window.location.href;
+				genUrl = genUrl.substring(0, genUrl.indexOf("convertigo/"));
+				genUrl = genUrl + "convertigo/" + href;
+				
+				$("#main .gen_url").html(genUrl);
 				$("#main .window_exe_generated_url").css("display", "block");
 
 				if ($('#check_mode_fullscreen').attr('checked')) {
