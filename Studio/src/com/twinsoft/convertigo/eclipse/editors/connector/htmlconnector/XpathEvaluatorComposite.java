@@ -537,7 +537,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 					else if (parentTreeItem.equals(lastParentTreeItem)) {
 						selectionXpath += bFirstText && bFirstAttr ? "[":" and ";
 					}
-					selectionXpath  += "contains(text(),\""+ node.getNodeValue().trim() + "\")";
+					selectionXpath  += "contains(text()," + XMLUtils.xpathGenerateConcat(node.getNodeValue().trim()) + ")";
 					bFirstText = false;
 				} else if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
 					parentTreeItem = treeItem.getParentItem().getParentItem();

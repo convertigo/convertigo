@@ -657,6 +657,36 @@ public class XMLUtils {
 			return "*[name()=\"" + nameToEscape + "\"]";
 		return nameToEscape;
 	}
+	
+	public static String xpathGenerateConcat(String queryString) {
+		String returnString = "";
+		String searchString = queryString;
+	    
+	    int quotePosition = (searchString.indexOf("'") != -1)?searchString.indexOf("'"):searchString.indexOf("\"");
+	    if (quotePosition == -1) {
+	    	returnString = "'" + searchString + "'";
+	    } else {
+	        returnString = "concat(";
+	        while (quotePosition != -1)
+	        {
+	            String subString = searchString.substring(0, quotePosition);
+	            returnString += "'" + subString + "', ";
+	            if (("'").equals(searchString.substring(quotePosition, quotePosition + 1)))
+	            {
+	                returnString += "\"'\", ";
+	            }
+	            else
+	            {
+	                //must be a double quote
+	                returnString += "'\"', ";
+	            }
+	            searchString = searchString.substring(quotePosition + 1,searchString.length());
+	            quotePosition = (searchString.indexOf("'") != -1)?searchString.indexOf("'"):searchString.indexOf("\"");
+	        }
+	        returnString += "'" + searchString + "')";
+	    }
+	    return returnString;
+	}
 
 	public static Document loadXml(String filePath) throws ParserConfigurationException, SAXException,
 			IOException {
