@@ -436,7 +436,7 @@ public class SqlTransaction extends TransactionWithVariables {
 					for (int i=1; i <= numberOfColumns; i++) {
 						List<List<Object>> columns = null;
 						Integer columnIndex = new Integer(i);
-						String columnName = rsmd.getColumnName(i);
+						String columnName = rsmd.getColumnLabel(i);
 						String columnClassName = rsmd.getColumnClassName(i);
 						String tableName = rsmd.getTableName(i);
 						tableNameToUse = (tableName.equals("") ? tableNameToUse:tableName);
