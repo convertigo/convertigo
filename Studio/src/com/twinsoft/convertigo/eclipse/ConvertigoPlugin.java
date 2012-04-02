@@ -300,20 +300,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	 */
 	public ConvertigoPlugin() {
 		super();
-		
-		Engine.setStudioMode();
-		
-		plugin = this;
-		try {
-			resourceBundle = ResourceBundle.getBundle("com.twinsoft.convertigo.eclipse.ConvertigoPluginResources");
-		} catch (MissingResourceException x) {
-			resourceBundle = null;
-		}
-		
-		log = getLog();
-		projectManager = new ProjectManager();
-		clipboardManager2 = new ClipboardManager2();		
-		//learnProxy = new LearnProxy();
 	}
 
 	private EmbeddedTomcat embeddedTomcat = null;
@@ -511,7 +497,23 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			throw new Exception(
 					"The product version numbers of Eclipse Plugin and Engine libraries are differents.");
 		}
-
+		
+		Engine.setStudioMode();
+		
+		//SetupAction.runSetup();
+		
+		plugin = this;
+		try {
+			resourceBundle = ResourceBundle.getBundle("com.twinsoft.convertigo.eclipse.ConvertigoPluginResources");
+		} catch (MissingResourceException x) {
+			resourceBundle = null;
+		}
+		
+		log = getLog();
+		projectManager = new ProjectManager();
+		clipboardManager2 = new ClipboardManager2();		
+		//learnProxy = new LearnProxy();
+		
 		// Create consoles
         createConsoles();
 		
