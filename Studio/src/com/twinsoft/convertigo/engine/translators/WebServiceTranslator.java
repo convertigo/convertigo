@@ -55,7 +55,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
-import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
+import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 import com.twinsoft.convertigo.engine.util.Base64v21;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 
@@ -66,7 +66,7 @@ public class WebServiceTranslator implements Translator {
 
         HttpServletRequest request = (HttpServletRequest) inputData;
 
-		SOAPMessage requestMessage = (SOAPMessage) request.getAttribute(WebServiceServletRequester.REQUEST_MESSAGE_ATTRIBUTE);
+		SOAPMessage requestMessage = (SOAPMessage) request.getAttribute(WebServiceServlet.REQUEST_MESSAGE_ATTRIBUTE);
 		
 		if (Engine.logBeans.isDebugEnabled()) {
 			String soapMessage = SOAPUtils.toString(requestMessage, request.getCharacterEncoding());

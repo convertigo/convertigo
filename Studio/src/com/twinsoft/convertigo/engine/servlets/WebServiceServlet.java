@@ -22,17 +22,34 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.MimeHeaders;
+import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
+import javax.xml.soap.SOAPPart;
 
+import org.apache.axiom.om.OMNode;
+import org.apache.axiom.om.impl.dom.TextImpl;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -47,6 +64,8 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
@@ -59,12 +78,22 @@ import com.twinsoft.util.StringEx;
 
 public class WebServiceServlet extends GenericServlet {
 
+	public static final String REQUEST_MESSAGE_ATTRIBUTE = "com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester.requestMessage";
+	
 	private static final long serialVersionUID = -3070056458702585103L;
 
 	public String getName() {
     	return "WebServiceServlet";
     }
     
+	@Override
+	public Object processRequest(HttpServletRequest request) throws Exception {
+		getSOAPMessage(request);
+		return super.processRequest(request);
+	}
+	
+
+
 	@Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
         if (Engine.theApp == null) throw new ServletException("Unable to process the request: the Convertigo engine is not started!");
@@ -646,4 +675,106 @@ public class WebServiceServlet extends GenericServlet {
 
     	return wsdlType;
     }
+    
+	private SOAPMessage getSOAPMessage(HttpServletRequest request) throws SOAPException, IOException {
+		
+		SOAPMessage requestMessage = (SOAPMessage) request.getAttribute(REQUEST_MESSAGE_ATTRIBUTE);
+		if (requestMessage == null) {
+			boolean bAddXmlEncodingCharSet = new Boolean(EnginePropertiesManager.getProperty(PropertyName.SOAP_REQUEST_ADD_XML_ENCODING_CHARSET)).booleanValue();
+
+			String contentType = request.getContentType();
+			
+			boolean isMultipart = contentType.toLowerCase().indexOf("multipart/related") >= 0;
+			boolean isXOP = contentType.toLowerCase().indexOf("application/xop+xml") >= 0;
+			boolean isMTOM = isMultipart && isXOP;
+			
+			MessageFactory messageFactory = MessageFactory.newInstance();
+			MimeHeaders mimeHeaders = new MimeHeaders();
+			mimeHeaders.setHeader("Content-Type", isMTOM ? contentType:"text/xml; charset=\"UTF-8\"");
+			
+			InputStream is = null;
+			if (isMTOM) {
+				is = request.getInputStream();
+			}
+			else {
+				StringBuffer requestAsString = new StringBuffer("");
+				if (bAddXmlEncodingCharSet)
+					requestAsString.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+				
+				BufferedReader br = new BufferedReader(request.getReader());
+				String line;
+				while ((line = br.readLine()) != null) {
+					requestAsString.append(line + "\n");
+				}
+		
+				String sRequest = requestAsString.toString();
+				Engine.logEngine.trace("(WebServiceServlet) input:\n" + sRequest);
+				
+				is = new ByteArrayInputStream(sRequest.getBytes("UTF-8"));
+			}
+			
+			// Create the SOAP request message
+			requestMessage = messageFactory.createMessage(mimeHeaders, is);
+
+			// Handle MTOM uploads
+			if (isMTOM)
+				handleMTOMUploads(requestMessage);
+			
+			// Store the request message for later use
+			request.setAttribute(REQUEST_MESSAGE_ATTRIBUTE, requestMessage);
+		}
+		return requestMessage;
+	}
+	
+	private void handleMTOMUploads(SOAPMessage requestMessage) throws SOAPException, FileNotFoundException, IOException {
+		SOAPPart sp = requestMessage.getSOAPPart();
+		SOAPEnvelope se = sp.getEnvelope();
+		SOAPBody sb = se.getBody();
+		handleMTOMUploads(sb.getChildElements());
+		requestMessage.saveChanges();
+	}
+	
+	private void handleMTOMUploads(Iterator<?> iterator) throws FileNotFoundException, IOException, SOAPException {
+		while (iterator.hasNext()) {
+			Object element = iterator.next();
+			if (element instanceof SOAPElement) {
+				handleMTOMUploads((SOAPElement)element);
+				handleMTOMUploads(((SOAPElement)element).getChildElements());
+			}
+		}
+	}
+	
+	private void handleMTOMUploads(SOAPElement soapElement) throws FileNotFoundException, IOException, SOAPException {
+		if (soapElement instanceof org.apache.axis2.saaj.SOAPElementImpl) {
+			org.apache.axis2.saaj.SOAPElementImpl el = (org.apache.axis2.saaj.SOAPElementImpl)soapElement;
+			final OMNode firstOMChild = el.getElement().getFirstOMChild();
+			if (firstOMChild instanceof TextImpl) {
+	        	TextImpl ti = ((TextImpl)firstOMChild);
+	        	boolean isBinary = ti.isBinary();
+	        	boolean isOptimized = ti.isOptimized();
+	            String contentID = ti.getContentID();
+	            if (isBinary && isOptimized && contentID != null) {
+	            	// Write file
+	            	javax.activation.DataHandler dh = (javax.activation.DataHandler)ti.getDataHandler();
+	            	String filePath = getUploadFilePath(el.getLocalName(), dh.getContentType());
+	            	dh.writeTo(new FileOutputStream(new File(filePath)));
+					
+	            	// Modify value in soap envelope (replace the base64 encoded value with the filepath value)
+	            	ti.detach();
+					el.addTextNode(filePath);
+					
+					Engine.logEngine.trace("(WebServiceServlet) File successfully uploaded :"+ filePath);
+	            }
+			}
+		}
+	}
+	
+	private String getUploadFilePath(String fileName, String mimeType) throws IOException {
+    	File dirPath = new File(Engine.USER_WORKSPACE_PATH + "/uploads");
+    	if (!dirPath.exists()) dirPath.mkdir();
+    	String fileExt = MimeType.parse(mimeType).getExtensions()[0];
+    	if (fileExt.equals("")) fileExt = "xxx";
+    	String filePath = dirPath.getCanonicalPath() + File.separator + fileName +"."+fileExt;
+    	return filePath;
+	}
 }
