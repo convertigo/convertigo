@@ -143,15 +143,24 @@ public class EmbeddedTomcat implements Runnable {
 				int j = convertigoServer.indexOf("/convertigo");
 				httpConnectorPort = Integer.parseInt(convertigoServer.substring(i+1, j));
 			}
+
 			System.out.println("(EmbeddedTomcat) Installing the embedded HTTP connector listening on port " + httpConnectorPort);
-
 			Connector connector = embedded.createConnector((java.net.InetAddress) null, httpConnectorPort, false);
-
+			embedded.addConnector(connector);
+		
+			int httpsConnectorPort = httpConnectorPort + 1;
+			System.out.println("(EmbeddedTomcat) Installing the embedded HTTPS connector listening on port " + httpsConnectorPort);
+			connector = embedded.createConnector((java.net.InetAddress) null, httpsConnectorPort, true);
+			connector.setProtocol ("TLS"); 
+			connector.setSecure(true); 
+			connector.setEnableLookups(false); 
+			connector.setAttribute("keypass", "password"); 
+			connector.setAttribute("keystore", tomcatHome + "/conf/.keystore"); 
+			connector.setAttribute("ClientAuth", false);
 			embedded.addConnector(connector);
 		
 			// Start the embedded server
 			System.out.println("(EmbeddedTomcat) Starting the server");
-
 			embedded.start();
 
 			System.out.println("(EmbeddedTomcat) Server successfully started!");
