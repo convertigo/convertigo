@@ -772,11 +772,18 @@ public class WebServiceServlet extends GenericServlet {
 	private String getUploadFilePath(String fileName, String mimeType) throws IOException {
     	File dirPath = new File(Engine.USER_WORKSPACE_PATH + "/uploads");
     	if (!dirPath.exists()) dirPath.mkdir();
-    	int index = mimeType.indexOf(";");
-    	String mt = index != -1 ? mimeType.substring(0, index):mimeType;
-    	String fileExt = MimeType.parse(mt).getExtensions()[0];
+    	String[] mtArray = mimeType.split(";");
+    	String fileExt = MimeType.parse(mtArray[0]).getExtensions()[0];
     	if (fileExt.equals("")) fileExt = "xxx";
-    	String filePath = dirPath.getCanonicalPath() + File.separator + fileName +"."+fileExt;
+    	String fullFileName = fileName +"."+fileExt;
+    	for (int i=0;i<mtArray.length;i++) {
+    		if (mtArray[i].trim().startsWith("name=")) {
+    			fullFileName = mtArray[i].trim().substring("name=".length()+1);
+    			break;
+    		}
+    	}
+    	
+    	String filePath = dirPath.getCanonicalPath() + File.separator + fullFileName;
     	return filePath;
 	}
 }
