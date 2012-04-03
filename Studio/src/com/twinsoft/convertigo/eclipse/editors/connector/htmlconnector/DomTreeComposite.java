@@ -39,12 +39,15 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.TreeItem;
+import org.mozilla.interfaces.nsIDOMDocument;
+import org.mozilla.interfaces.nsIDOMNodeList;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.HtmlConnectorDesignComposite;
+import com.twinsoft.convertigo.engine.parsers.AbstractXulWebViewer;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class DomTreeComposite extends Composite {
@@ -56,6 +59,7 @@ public class DomTreeComposite extends Composite {
 	private Image imageParentNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/parent_node.gif"));
 	private Image imagePreviewNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/preview_node.gif"));
 	private Image imageNextNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/next_node.gif"));
+	private Image imageRemoveAlerts = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/remove_alerts.gif"));
 	private Document currentDom;
 	
 	public DomTreeComposite(Composite parent, int style, HtmlConnectorDesignComposite htmlDesign) {
@@ -71,6 +75,24 @@ public class DomTreeComposite extends Composite {
 		createXhtmlTree();
 	}
 
+	private void refreshDOMDisplay() {
+		Thread th = new Thread() {
+			
+			@Override
+			public void run() {
+				this.setName("Document completed Update");
+				htmlDesign.getWebViewer().setDomDirty();
+				final Document dom = htmlDesign.getWebViewer().getDom();
+
+				Display.getDefault().asyncExec(new Runnable() {
+					public void run () {
+						displayXhtml(dom);
+					}
+				});
+			}
+		};
+		th.start();
+	}
 	
 	protected void createToolBar() {
 		treeToolBar = new ToolBar(this, SWT.NONE);
@@ -81,23 +103,7 @@ public class DomTreeComposite extends Composite {
 		toolSync.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
 			
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
-				Thread th = new Thread() {
-					
-					@Override
-					public void run() {
-						this.setName("Document completed Update");
-						htmlDesign.getWebViewer().setDomDirty();
-						final Document dom = htmlDesign.getWebViewer().getDom();
-
-						Display.getDefault().asyncExec(new Runnable() {
-							public void run () {
-								displayXhtml(dom);
-							}
-						});
-					}
-					
-				};
-				th.start();
+				refreshDOMDisplay();
 			}
 			
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
@@ -148,6 +154,26 @@ public class DomTreeComposite extends Composite {
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
 			}
 			
+		});
+		
+		ToolItem tbRemoveAlertNodes = new ToolItem(treeToolBar, SWT.PUSH);
+		tbRemoveAlertNodes.setToolTipText("Remove all \"ALERT\" nodes");
+		tbRemoveAlertNodes.setImage(imageRemoveAlerts);
+		tbRemoveAlertNodes.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+			
+			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+				 nsIDOMDocument document = ((AbstractXulWebViewer) htmlDesign.getWebViewer()).getNsDom();
+				 nsIDOMNodeList nl = document.getElementsByTagName("ALERT");
+				 while (nl.getLength() != 0) {
+					if (nl.item(0).getNodeType() == Node.ELEMENT_NODE) {
+						 document.getDocumentElement().removeChild(nl.item(0));
+					}
+				 }
+				 refreshDOMDisplay();
+			}
+			
+			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+			}
 		});
 	}
 	
