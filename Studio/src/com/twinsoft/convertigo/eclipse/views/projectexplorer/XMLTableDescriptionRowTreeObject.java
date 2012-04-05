@@ -77,7 +77,7 @@ public class XMLTableDescriptionRowTreeObject extends PropertyTableRowTreeObject
 		XMLVector<Object> col = new XMLVector<Object>();
 		col.add(name);
 		col.add("./TD");
-		col.add(Boolean.TRUE);
+		col.add(Boolean.FALSE);
 		return col;
 	}
 

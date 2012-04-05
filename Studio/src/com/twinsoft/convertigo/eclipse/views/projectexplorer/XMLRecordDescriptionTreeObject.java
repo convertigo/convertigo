@@ -57,7 +57,7 @@ public class XMLRecordDescriptionTreeObject extends PropertyTableTreeObject {
 		XMLVector<Object> row = new XMLVector<Object>();
 		row.add(name);
 		row.add(".//TR");
-		row.add(Boolean.TRUE);
+		row.add(Boolean.FALSE);
 		return row;
 	}
 
