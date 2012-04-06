@@ -31,9 +31,10 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.Result;
@@ -95,7 +96,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	
 	protected boolean bInternalInvoke = true;
 	
-	protected Hashtable<String, String[]> request;
+	protected Map<String, Object> request;
 	
 	public String wsdlType = "";
 	
@@ -617,54 +618,54 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 					Engine.logBeans.trace("(RequestableStep)  Did not find any value for \""+variableName+"\", ignore it");
 				}
 				else {
-					String parameterValue;
-					if (variableValue instanceof NodeList) {
-						NodeList list = (NodeList)variableValue;
-						if (list != null) {
-							if (list.getLength()==0) { // Specifies here empty multivalued variable (HTTP invoque only)
-								if (!bInternalInvoke) postQuery = addParamToPostQuery(variableName, "_empty_array_", postQuery);
+					if (bInternalInvoke) {
+						request.put(variableName, variableValue);
+					} else {
+						String parameterValue;
+						if (variableValue instanceof NodeList) {
+							NodeList list = (NodeList)variableValue;
+							if (list != null) {
+								if (list.getLength()==0) { // Specifies here empty multivalued variable (HTTP invoque only)
+									postQuery = addParamToPostQuery(variableName, "_empty_array_", postQuery);
+								}
+								else {
+									for (int j=0; j<list.getLength();j++) {
+										parameterValue = getNodeValue(list.item(j));
+										postQuery = addParamToPostQuery(variableName, parameterValue, postQuery);
+									}
+								}
+							}
+						}
+						else if (variableValue instanceof NativeJavaArray) {
+							Object object = ((NativeJavaArray)variableValue).unwrap();
+							List<String> list = GenericUtils.toString(Arrays.asList((Object[])object));
+							if (list.size()==0) { // Specifies here empty multivalued variable (HTTP invoque only)
+								postQuery = addParamToPostQuery(variableName, "_empty_array_", postQuery);
+							} else {
+								for (String value : list) {
+									postQuery = addParamToPostQuery(variableName, value, postQuery);
+								}
+							}
+						}
+						else if (variableValue instanceof Collection<?>) {
+							List<String> list = GenericUtils.toString((Collection<?>)variableValue);
+							if (list.size()==0) { // Specifies here empty multivalued variable (HTTP invoque only)
+								postQuery = addParamToPostQuery(variableName, "_empty_array_", postQuery);
 							}
 							else {
-								String[] parameterValues = new String[list.getLength()];
-								for (int j=0; j<list.getLength();j++) {
-									parameterValue = getNodeValue(list.item(j));
-									if (bInternalInvoke) parameterValues[j] = parameterValue;
-									else postQuery = addParamToPostQuery(variableName, parameterValue, postQuery);
+								for (String value : list) {
+									postQuery = addParamToPostQuery(variableName, value, postQuery);
 								}
-								if (bInternalInvoke) request.put(variableName, parameterValues);
 							}
 						}
-					}
-					else if (variableValue instanceof NativeJavaArray) {
-						Object object = ((NativeJavaArray)variableValue).unwrap();
-						List<String> list = GenericUtils.toString(Arrays.asList((Object[])object));
-						if (list.size()==0) { // Specifies here empty multivalued variable (HTTP invoque only)
-							if (!bInternalInvoke) postQuery = addParamToPostQuery(variableName, "_empty_array_", postQuery);
+						else if (variableValue instanceof String) {
+							parameterValue = variableValue.toString();
+							postQuery = addParamToPostQuery(variableName, parameterValue, postQuery);
 						}
 						else {
-							if (bInternalInvoke) request.put(variableName, list.toArray(new String[list.size()]));
-							else for(String value : list) postQuery = addParamToPostQuery(variableName, value, postQuery);
+							parameterValue = variableValue.toString();
+							postQuery = addParamToPostQuery(variableName, parameterValue, postQuery);
 						}
-					}
-					else if (variableValue instanceof Collection<?>) {
-						List<String> list = GenericUtils.toString((Collection<?>)variableValue);
-						if (list.size()==0) { // Specifies here empty multivalued variable (HTTP invoque only)
-							if (!bInternalInvoke) postQuery = addParamToPostQuery(variableName, "_empty_array_", postQuery);
-						}
-						else {
-							if (bInternalInvoke) request.put(variableName, list.toArray(new String[list.size()]));
-							else for(String value : list) postQuery = addParamToPostQuery(variableName, value, postQuery);
-						}
-					}
-					else if (variableValue instanceof String) {
-						parameterValue = variableValue.toString();
-						if (bInternalInvoke ) request.put(variableName, new String[] { parameterValue });
-						else postQuery = addParamToPostQuery(variableName, parameterValue, postQuery);
-					}
-					else {
-						parameterValue = variableValue.toString();
-						if (bInternalInvoke ) request.put(variableName, new String[] { parameterValue });
-						else postQuery = addParamToPostQuery(variableName, parameterValue, postQuery);
 					}
 				}
 			}
@@ -741,7 +742,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		if (isEnable) {
 			if (super.stepExecute(javascriptContext, scope)) {
 	            try {
-	            	request = new Hashtable<String, String[]>();
+	            	request = new HashMap<String, Object>();
 	    			prepareForRequestable(javascriptContext, scope);
 	    			
 	            	if (bInternalInvoke) {

@@ -364,7 +364,7 @@ public class WebServiceTranslator implements Translator {
 		item.setAttribute("name", parameterName);
 		
 		// Structured value?
-		if (parameter.hasChildNodes() && parameter.getChildNodes().getLength() > 1) {
+		if (parameter.hasChildNodes() && (parameter.getChildNodes().getLength() > 1 || parameter.getFirstChild().getNodeType() == Node.ELEMENT_NODE)) {
 			appendNodes(parameter.getChildNodes(), item);
 			Engine.logBeans.debug("   Adding structured requestable variable '" + parameterName + "'");
 		}

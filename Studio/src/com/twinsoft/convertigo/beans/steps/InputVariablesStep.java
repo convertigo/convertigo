@@ -2,6 +2,7 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.lang.reflect.Array;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.mozilla.javascript.Context;
@@ -28,7 +29,7 @@ public class InputVariablesStep extends Step {
 
 	protected String nodeName = "inputVars";
 
-	transient Map<String, Object> variables = new HashMap<String, Object>();
+	transient Map<String, Object> variables = new LinkedHashMap<String, Object>();
 
 	public InputVariablesStep() throws EngineException {
 		super();

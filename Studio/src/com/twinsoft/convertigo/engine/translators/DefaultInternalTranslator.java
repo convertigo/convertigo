@@ -22,10 +22,15 @@
 
 package com.twinsoft.convertigo.engine.translators;
 
+import java.lang.reflect.Array;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.mozilla.javascript.NativeJavaObject;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -39,7 +44,7 @@ public class DefaultInternalTranslator implements Translator {
 	public void buildInputDocument(Context context, Object inputData) throws Exception {
         Engine.logContext.debug("Making input document");
 
-		Map<String, String[]> request = GenericUtils.cast(inputData);
+		Map<String, Object> request = GenericUtils.cast(inputData);
 		
 		Element root = context.inputDocument.createElement("input");
 		Element transactionVariablesElement = context.inputDocument.createElement("transaction-variables");
@@ -56,10 +61,17 @@ public class DefaultInternalTranslator implements Translator {
 		// We transform the HTTP post data into XML data.
 		Element item;
 
-		for (Entry<String, String[]> entry : request.entrySet()) {
+		for (Entry<String, Object> entry : request.entrySet()) {
 			String parameterName = entry.getKey();
-			String[] parameterValues = entry.getValue();
-			String parameterValue = parameterValues.length == 0 ? null : parameterValues[0];
+			Object parameterObject = entry.getValue();
+			String[] parameterValues = null; 
+			String parameterValue = null;
+			if (parameterObject instanceof String[]) {
+				parameterValues = (String[]) parameterObject;
+				if (parameterValues.length > 0) {
+					parameterValue = parameterValues[0];
+				}
+			}
 			
 			Element parentItem = javelinActionElement;
             
@@ -165,22 +177,27 @@ public class DefaultInternalTranslator implements Translator {
 			// This is a variable, eventually multi-valued.
 			else {
 				parentItem = transactionVariablesElement;
-				// Handles multivalued parameters
-				for (int i = 0 ; i < parameterValues.length ; i++) {
-					parameterValue = parameterValues[i];
-					item = context.inputDocument.createElement("variable");
-					item.setAttribute("name", parameterName);
-					item.setAttribute("value", parameterValue);
-					Engine.logContext.info("Added requestable variable '" + parameterName + "' = '" + Visibility.maskValue(parameterValue) +"'");
-					parentItem.appendChild(item);
-				}
 				
-				// For empty multivalued parameters do not set 'value' attribute (Sequencer only)
-				if (parameterValues.length == 0) {
-					item = context.inputDocument.createElement("variable");
-					item.setAttribute("name", parameterName);
-					Engine.logContext.info("Added requestable variable '" + parameterName + "' as an empty array");
-					parentItem.appendChild(item);
+				if (parameterValues != null) {				
+						// Handles multivalued parameters
+						for (int i = 0 ; i < parameterValues.length ; i++) {
+							parameterValue = parameterValues[i];
+							item = context.inputDocument.createElement("variable");
+							item.setAttribute("name", parameterName);
+							item.setAttribute("value", parameterValue);
+							Engine.logContext.info("Added requestable variable '" + parameterName + "' = '" + Visibility.maskValue(parameterValue) +"'");
+							parentItem.appendChild(item);
+						}
+						
+						// For empty multivalued parameters do not set 'value' attribute (Sequencer only)
+						if (parameterValues.length == 0) {
+							item = context.inputDocument.createElement("variable");
+							item.setAttribute("name", parameterName);
+							Engine.logContext.info("Added requestable variable '" + parameterName + "' as an empty array");
+							parentItem.appendChild(item);
+						}
+				} else {
+					addParameterObject(context.inputDocument, parentItem, parameterName, parameterObject);
 				}
 				
 				continue;
@@ -191,6 +208,40 @@ public class DefaultInternalTranslator implements Translator {
 
 		Engine.logContext.info("Input document created");
     }
+	
+	private void addParameterObject(Document doc, Node parentItem, String parameterName, Object parameterObject) {
+		if (parameterObject instanceof NativeJavaObject) {
+			parameterObject = ((NativeJavaObject) parameterObject).unwrap();
+		}
+		if (parameterObject.getClass().isArray()) {
+			int len = Array.getLength(parameterObject);
+			for (int i = 0 ; i < len ; i++) {
+				Object o = Array.get(parameterObject, i);
+				if (o != null) {
+					addParameterObject(doc, parentItem, parameterName, o);
+				}
+			}
+		} else if (parameterObject instanceof Element) {
+			Element elt = (Element) doc.importNode((Element) parameterObject, true);
+			Element item = doc.createElement("variable");
+			item.setAttribute("name", parameterName);
+			NodeList nl = elt.getChildNodes();
+			while (nl.getLength() > 0) {
+				item.appendChild(elt.removeChild(nl.item(0)));
+			}
+			parentItem.appendChild(item);
+		} else if (parameterObject instanceof NodeList) {
+			NodeList nl = (NodeList) parameterObject;
+			for (int i = 0 ; i < nl.getLength() ; i++) {
+				addParameterObject(doc, parentItem, parameterName, nl.item(i));
+			}
+		} else {
+			Element item = doc.createElement("variable");
+			item.setAttribute("name", parameterName);
+			item.setAttribute("value", parameterObject.toString());
+			parentItem.appendChild(item);
+		}
+	}
 
 	public Object buildOutputData(Context context, Object convertigoResponse) throws Exception {
 		if (convertigoResponse instanceof String) {
