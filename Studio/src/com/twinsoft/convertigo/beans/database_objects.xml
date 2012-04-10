@@ -376,6 +376,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                 </bean>
+            </beans>
             <beans groupname="Convertigo request steps">
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.TransactionStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
@@ -561,7 +562,6 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                 </bean>
-            </beans>
             </beans>
 		</category>
 	</group>
