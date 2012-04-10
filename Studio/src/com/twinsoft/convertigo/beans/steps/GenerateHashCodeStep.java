@@ -28,11 +28,15 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty {
 	private String hashAlgorithm = "MD5";
 
 	private transient String sourceFilePath = "";
+	
+	protected String nodeName = "hash";
+
 		
 	public GenerateHashCodeStep() {
 		super();
 		this.xml = true;
 	}
+	
 
 	@Override
 	public Object clone() throws CloneNotSupportedException {
@@ -48,6 +52,11 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty {
 		return copiedObject;
 	}
 
+	public String toString() {
+		String text = this.getComment();
+		return "<"+ nodeName +">" + getName()+ (!text.equals("") ? " // "+text:"");
+	}
+	
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		if (isEnable) {
@@ -74,9 +83,12 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty {
 				}
 				Engine.logBeans.info("File \"" + sourceFilePath	+ "\" has been hashed.");
 				
-				Node hashNode = doc.createElement("hash");
-				hashNode.appendChild(doc.createTextNode(hash));
-				stepNode.appendChild(hashNode);
+//				Node hashNode = doc.createElement("hash");
+//				hashNode.appendChild(doc.createTextNode(hash));
+//				stepNode.appendChild(hashNode);
+				
+				Node text = doc.createTextNode(hash);
+				stepNode.appendChild(text);
 				
 			} catch (Exception e) {
 				setErrorStatus(true);
@@ -164,12 +176,24 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty {
 		this.hashAlgorithm = hashAlgorithm;
 	}
 	
-	@Override
-	protected Node createWsdlDom() throws EngineException {
-		Element element = (Element) super.createWsdlDom();
-		element.appendChild(wsdlDom.createElement("hash"));
-		return element;
+	public String getNodeName() {
+		return nodeName;
 	}
+
+	public void setNodeName(String nodeName) {
+		this.nodeName = nodeName;
+	}
+	
+	public String getStepNodeName() {
+		return getNodeName();
+	}
+	
+//	@Override
+//	protected Node createWsdlDom() throws EngineException {
+//		Element element = (Element) super.createWsdlDom();
+//		element.appendChild(wsdlDom.createElement("hash"));
+//		return element;
+//	}
 	
 	@Override
 	public String getSchemaType(String tns) {

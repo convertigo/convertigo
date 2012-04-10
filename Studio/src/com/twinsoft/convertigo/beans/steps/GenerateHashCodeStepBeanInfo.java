@@ -19,7 +19,7 @@ public class GenerateHashCodeStepBeanInfo extends MySimpleBeanInfo{
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");	          
 		
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[3];
 			
 			properties[0] = new PropertyDescriptor("sourcePath", beanClass, "getSourcePath", "setSourcePath");
 			properties[0].setDisplayName(getExternalizedString("property.sourcePath.display_name"));
@@ -30,6 +30,12 @@ public class GenerateHashCodeStepBeanInfo extends MySimpleBeanInfo{
 			properties[1].setDisplayName(getExternalizedString("property.hashAlgorithm.display_name"));
 	        properties[1].setShortDescription(getExternalizedString("property.hashAlgorithm.short_description"));
 	        properties[1].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+	        
+	        properties[2] = new PropertyDescriptor("nodeName", beanClass, "getNodeName", "setNodeName");
+            properties[2].setDisplayName(getExternalizedString("property.nodeName.display_name"));
+            properties[2].setShortDescription(getExternalizedString("property.nodeName.short_description"));
+            properties[2].setValue("normalizable", Boolean.TRUE);
+            properties[2].setValue(BLACK_LIST_NAME, Boolean.TRUE); 
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
