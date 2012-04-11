@@ -2504,6 +2504,14 @@
             id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
             name="Source Picker">
       </view>
+      <view
+            category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
+            icon="src/com/twinsoft/convertigo/eclipse/views/references/images/references_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
+            name="References"
+            restorable="true">
+      </view>
       <!--view
             category="convertigo"
             class="com.twinsoft.convertigo.eclipse.views.propertysheet.PropertySheetView"
