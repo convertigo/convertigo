@@ -221,13 +221,21 @@ public class DefaultInternalTranslator implements Translator {
 					addParameterObject(doc, parentItem, parameterName, o);
 				}
 			}
-		} else if (parameterObject instanceof Element) {
-			Element elt = (Element) doc.importNode((Element) parameterObject, true);
+		} else if (parameterObject instanceof Node) {
+			Node node = doc.importNode((Node) parameterObject, true);
 			Element item = doc.createElement("variable");
 			item.setAttribute("name", parameterName);
-			NodeList nl = elt.getChildNodes();
-			while (nl.getLength() > 0) {
-				item.appendChild(elt.removeChild(nl.item(0)));
+			if (node.getNodeType() == Node.TEXT_NODE) {
+				item.setAttribute("value", node.getNodeValue());
+			} else {
+				NodeList nl = node.getChildNodes();
+				if (nl.getLength() == 1 && nl.item(0).getNodeType() == Node.TEXT_NODE) {
+					item.setAttribute("value", nl.item(0).getNodeValue());
+				} else {
+					while (nl.getLength() > 0) {
+						item.appendChild(node.removeChild(nl.item(0)));
+					}
+				}
 			}
 			parentItem.appendChild(item);
 		} else if (parameterObject instanceof NodeList) {

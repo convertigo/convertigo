@@ -166,7 +166,7 @@ public class WebServiceServletRequester extends ServletRequester {
 		}
 		catch(Throwable e) {
 			context.isErrorDocument = true;
-			result = SOAPUtils.writeSoapFault(e, context.requestedObject.getEncodingCharSet());
+			result = SOAPUtils.writeSoapFault(e, context.requestedObject != null ? context.requestedObject.getEncodingCharSet() : "UTF-8");
 		}
 		
 		return result;
