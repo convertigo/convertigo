@@ -452,8 +452,8 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				TreeObject selectedTreeObject = projectExplorerView.findTreeObjectByUserObject(selectedDatabaseObject);
 				if (selectedTreeObject != null) {
 					projectExplorerView.setSelectedTreeObject(selectedTreeObject);
-				} 
-//				else {
+				} else {
+					ConvertigoPlugin.infoMessageBox("This project is close. Please open the project.");
 //					try {
 //						Project project = selectedDatabaseObject.getProject();
 //						UnloadedProjectTreeObject projectTreeObject = (UnloadedProjectTreeObject) ((ViewContentProvider) projectExplorerView.viewer
@@ -467,8 +467,8 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 //					} catch (EngineException e) {
 //						ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);
 //					}
-//					
-//				}
+					
+				}
 			}
 		}
 	}
