@@ -778,7 +778,7 @@ public class WebServiceServlet extends GenericServlet {
     	String fullFileName = fileName +"."+fileExt;
     	for (int i=0;i<mtArray.length;i++) {
     		if (mtArray[i].trim().startsWith("name=")) {
-    			fullFileName = mtArray[i].trim().substring("name=".length()+1);
+    			fullFileName = mtArray[i].trim().substring("name=".length());
     			break;
     		}
     	}
