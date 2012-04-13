@@ -2584,12 +2584,6 @@
                style="push"
                toolbarPath="additions"
                tooltip="Save all">
-            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject"/>
-            <enablement>
-               <objectState
-                     name="isProjectModified"
-                     value="true"/>
-            </enablement>
          </action>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction"

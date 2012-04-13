@@ -87,8 +87,6 @@ public class ProjectExplorerSaveAllAction extends MyAbstractAction implements IV
     				if (parentObjectTreeObject != null)
     					explorerView.setSelectedTreeObject(parentObjectTreeObject);
     				explorerView.setSelectedTreeObject(databaseObjectTreeObject);
-
-    				this.action.setEnabled(false);
     			}
     		}
         }
