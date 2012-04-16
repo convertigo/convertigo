@@ -114,6 +114,8 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 					handleTransactionSelection(firstElement);
 				} else if (firstElement instanceof ProjectTreeObject) {
 					handleProjectSelection(firstElement);
+				} else if (firstElement instanceof UnloadedProjectTreeObject) {
+					handleProjectSelection(firstElement);
 				} else if (firstElement instanceof SequenceTreeObject) {
 					handleSequenceSelection(firstElement);
 				} else if (firstElement instanceof ConnectorTreeObject) {
@@ -132,13 +134,24 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 	}
 	
 	private void handleProjectSelection(Object firstElement) {
-		ProjectTreeObject projectTreeObjectSelected = (ProjectTreeObject) firstElement;
-		Project projectSelected = projectTreeObjectSelected.getObject();
-		String projectNameSelected = projectSelected.getName();
-		
 		try {
 			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
 			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+			
+			Project projectSelected = null;
+			ProjectTreeObject projectTreeObjectSelected = null;
+			UnloadedProjectTreeObject unloadedProjectTreeObjectSelected = null;
+			
+			if (firstElement instanceof ProjectTreeObject) {
+				projectTreeObjectSelected = (ProjectTreeObject) firstElement;
+				projectSelected = projectTreeObjectSelected.getObject();
+			} else if (firstElement instanceof UnloadedProjectTreeObject) {
+				unloadedProjectTreeObjectSelected = (UnloadedProjectTreeObject) firstElement;
+				String projectNameSelected =unloadedProjectTreeObjectSelected.getName();
+				projectSelected = getProject(projectNameSelected, projectExplorerView);
+			}
+			
+			String projectNameSelected = projectSelected.getName();
 			
 			treeViewer.setInput(null);
 			
