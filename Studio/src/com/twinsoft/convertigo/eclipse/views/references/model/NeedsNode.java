@@ -25,9 +25,9 @@ package com.twinsoft.convertigo.eclipse.views.references.model;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 
 
-public class EntryHandlerFolder extends AbstractParentNode {
+public class NeedsNode extends AbstractParentNode {
 
-	public EntryHandlerFolder(AbstractParentNode parent, String name, DatabaseObject refDatabaseObject) {
+	public NeedsNode(AbstractParentNode parent, String name, DatabaseObject refDatabaseObject) {
 		super(parent, name, refDatabaseObject);
 	}
 

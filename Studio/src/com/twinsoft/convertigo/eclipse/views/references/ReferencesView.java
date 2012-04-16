@@ -2,8 +2,6 @@ package com.twinsoft.convertigo.eclipse.views.references;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -13,8 +11,13 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.ViewPart;
 
+import com.twinsoft.convertigo.beans.connectors.CicsConnector;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
+import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
+import com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector;
+import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
+import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -32,22 +35,37 @@ import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ConnectorTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ScreenClassTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.SequenceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
 import com.twinsoft.convertigo.eclipse.views.references.model.AbstractNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.EntryHandlerFolder;
-import com.twinsoft.convertigo.eclipse.views.references.model.ExitHandlerFolder;
+import com.twinsoft.convertigo.eclipse.views.references.model.AbstractParentNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.CicsConnectorNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.ConnectorNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.EntryHandlerNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.ExitHandlerNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.Folder;
+import com.twinsoft.convertigo.eclipse.views.references.model.HtmlConnectorNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.HttpConnectorNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.IsUsedByNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.JavelinConnectorNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.NeedsNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.ProjectNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.ProxyHttpConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.RootNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.ScreenClassNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.SequenceNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.SequenceStepNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.SiteClipperConnectorNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.SqlConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.TransactionNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.TransactionStepNode;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -86,202 +104,142 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		if (part != ReferencesView.this	&& selection instanceof IStructuredSelection) {
-			System.out.println(((IStructuredSelection) selection).toList());
-			Object firstElement = ((IStructuredSelection) selection).getFirstElement();
-			
-			if (firstElement instanceof ScreenClassTreeObject) {
-				selectionScreenClass(firstElement);
-			} else if (firstElement instanceof TransactionTreeObject) {
-				selectionTransaction(firstElement);
-			} else if (firstElement instanceof ProjectTreeObject) {
-				selectionProject(firstElement);
-			} else {
-				Folder root = new Folder(null, "root");
-				root.addChild(new Folder(root, "This object is not referenced"));
-				treeViewer.setInput(root);
+		if (selection instanceof IStructuredSelection) {
+			if (part != ReferencesView.this) {
+				Object firstElement = ((IStructuredSelection) selection).getFirstElement();
+				
+				if (firstElement instanceof ScreenClassTreeObject) {
+					handleScreenClassSelection(firstElement);
+				} else if (firstElement instanceof TransactionTreeObject) {
+					handleTransactionSelection(firstElement);
+				} else if (firstElement instanceof ProjectTreeObject) {
+					handleProjectSelection(firstElement);
+				} else if (firstElement instanceof SequenceTreeObject) {
+					handleSequenceSelection(firstElement);
+				} else if (firstElement instanceof ConnectorTreeObject) {
+					handleConnectorSelection(firstElement);
+				} else {
+					Folder root = new Folder(null, "root");
+					root.addChild(new Folder(root, "References are not handled for this object"));
+					treeViewer.setInput(root);
+				}
 			}
-		}
-		if (part == ReferencesView.this	&& selection instanceof IStructuredSelection) {
-			System.out.println(((IStructuredSelection) selection).toList());
-			Object firstElement = ((IStructuredSelection) selection).getFirstElement();
-			selectionChangedEvent(firstElement);
+			else {
+				Object firstElement = ((IStructuredSelection) selection).getFirstElement();
+				handleSelectedObjectInRefView(firstElement);
+			}
 		}
 	}
 	
-	private void selectionProject (Object firstElement) {
+	private void handleProjectSelection(Object firstElement) {
 		ProjectTreeObject projectTreeObjectSelected = (ProjectTreeObject) firstElement;
 		Project projectSelected = projectTreeObjectSelected.getObject();
 		String projectNameSelected = projectSelected.getName();
 		
 		try {
-			Project project = null;
 			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
 			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 			
 			treeViewer.setInput(null);
 			
-			// Get the referencing sequence
-			List<String> referencingSequence = new ArrayList<String>();
-			List<String> referencingTransaction = new ArrayList<String>();
-			List<Connector> connectors = projectSelected.getConnectorsList();
+			// Get the referencing sequences and transactions
 			List<Sequence> sequences = projectSelected.getSequencesList();
 			
 			RootNode root = new RootNode();
 			ProjectNode projectNode = new ProjectNode(root, projectNameSelected, projectSelected);
 			root.addChild(projectNode);
-			EntryHandlerFolder entryHandlerFolder = new EntryHandlerFolder(root, "Reference objects used by the project", null);
-			ExitHandlerFolder exitHandlerFolder = new ExitHandlerFolder(root, "Reference objects that use the project", null);
 			
+			// Get all the projects needed to successfully execute the selected project
+			// i.e. get all CallTransaction and CallSequence steps from the selected project
+			// that refer to other projects
+			NeedsNode needsNode = new NeedsNode(root, "Needs", null);
 			
+			// Search for external sequences/transaction referenced by CallSequence/CallTransaction
+			// from the selected project
 			for (Sequence sequence : sequences) {
 				List<Step> steps = sequence.getSteps();
 				for (Step step : steps) {
 					if (step instanceof SequenceStep) {
 						SequenceStep sequenceStep = (SequenceStep) step;
-						String sourceSequence = sequenceStep.getSourceSequence();
-						for (Sequence seq : sequences) {
-							if (sourceSequence.startsWith(projectNameSelected)) {
-								if (sourceSequence.endsWith(seq.getName())) {
-									if (isNotExist(referencingSequence, seq.getName())) {
-										referencingSequence.add(seq.getName());
-										projectNode.addChild(new SequenceNode(projectNode, seq.getName(), seq));
-									}
-								}
-							}
+						String projectName = sequenceStep.getProjectName();
+						if (!projectName.equals(projectNameSelected)) {
+							Project project = getProject(projectName, projectExplorerView);
+							ProjectNode projectFolderImports = new ProjectNode(root, projectName, project);
+							projectFolderImports.addChild(new SequenceNode(projectFolderImports, sequenceStep.getSequenceName(),
+									project.getSequenceByName(sequenceStep.getSequenceName())));							
+							needsNode.addChild(projectFolderImports);
 						}
-					} else if (step instanceof TransactionStep) {
+					}
+					else if (step instanceof TransactionStep) {
 						TransactionStep transactionStep = (TransactionStep) step;
-						String sourceTransaction = transactionStep.getSourceTransaction();
-						for (Connector connector : connectors) {
-							List<Transaction> transactionList = connector.getTransactionsList();
-							for (Transaction transaction : transactionList) {
-								if (sourceTransaction.startsWith(projectNameSelected)) {
-									if (sourceTransaction.endsWith(transaction.getName())) {
-										if (isNotExist(referencingTransaction, transaction.getName())) {
-											referencingTransaction.add(transaction.getName());
-											projectNode.addChild(new TransactionNode(projectNode, transaction.getName(), transaction));
-										}
-									}
-								} 
-							}
+						String projectName = transactionStep.getProjectName();
+						if (!projectName.equals(projectNameSelected)) {
+							Project project = getProject(projectName, projectExplorerView);
+							ProjectNode projectFolderImports = new ProjectNode(root, projectName, project);
+
+							Connector connector = project.getConnectorByName(transactionStep.getConnectorName());
+							ConnectorNode connectorNode = null;
+							
+							connectorNode = getConnectorNode(projectFolderImports, connector);
+					
+							projectFolderImports.addChild(connectorNode);
+							
+							Transaction transaction = connector.getTransactionByName(transactionStep.getTransactionName());
+							
+							connectorNode.addChild(new TransactionNode(connectorNode, transaction.getName(), transaction));							
+							
+							needsNode.addChild(projectFolderImports);
 						}
 					}
 				}
 			}
 			
+			if (needsNode.hasChildren()){
+				projectNode.addChild(needsNode);
+			}
+			
+			// Get all the projects using the selected project
+			// i.e. get all CallTransaction and CallSequence steps that refer to transactions
+			// or sequences from the selected project
+			IsUsedByNode isUsedByNode = new IsUsedByNode(root, "Is used by", null);
 			
 			for (String projectName : projectNames) {
-				TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer
-						.getContentProvider()).getProjectRootObject(projectName);
-				if (projectTreeObject instanceof UnloadedProjectTreeObject) {
-					project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-				} else {
-					project = projectExplorerView.getProject(projectName);
-				}
+				Project project = getProject(projectName, projectExplorerView);
+				
 				if (!(projectName.equals(projectNameSelected))) {
+					ProjectNode projectFolderExports = new ProjectNode(root, projectName, project);
+					
 					List<Sequence> sequenceList = project.getSequencesList();
-					List<Connector> connectorList = project.getConnectorsList();
-					
-					ProjectNode projectFolderExit = new ProjectNode(root, projectName, project);
-					ProjectNode projectFolderEntry = new ProjectNode(root, projectName, project);
-					referencingSequence.clear();
-					
 					for (Sequence sequence : sequenceList) {
+						// Search for CallTransaction and CallSequence referencing a transaction or sequence
+						// from the selected project
 						List<Step> stepList = sequence.getSteps();
+						SequenceNode sequenceNode = new SequenceNode(root, sequence.getName(), sequence);
 						for (Step step : stepList) {
 							if (step instanceof SequenceStep) {
 								String sourceSequence = ((SequenceStep) step).getSourceSequence();
 								if (sourceSequence.startsWith(projectNameSelected)) {
-									for (Sequence seq : sequences) {
-										String sequenceName = seq.getName();
-										if (sourceSequence.endsWith(sequenceName)) {
-											if (isNotExist(referencingSequence, sequence.getName())) {
-												referencingSequence.add(sequence.getName());
-												SequenceNode sequenceNode = new SequenceNode(root, sequence.getName(), sequence);
-												sequenceNode.addChild(new SequenceNode(sequenceNode, sequenceName, seq));
-												projectFolderExit.addChild(sequenceNode);
-											}
-										}
-									}
+									sequenceNode.addChild(new SequenceStepNode(sequenceNode,"Call of " + sourceSequence, step));
 								}
 							} else if (step instanceof TransactionStep) {
 								String sourceTransaction = ((TransactionStep)step).getSourceTransaction();
 								if (sourceTransaction.startsWith(projectNameSelected)) {
-									for (Connector connector : connectors) {
-										List<Transaction> transactions = connector.getTransactionsList();
-										for (Transaction transaction : transactions) {
-											String transactionName = transaction.getName();
-											if (sourceTransaction.endsWith(transactionName)) {
-												if (isNotExist(referencingSequence, sequence.getName())) {
-													referencingSequence.add(sequence.getName());
-													SequenceNode sequenceNode = new SequenceNode(root, sequence.getName(), sequence);
-													sequenceNode.addChild(new TransactionNode(sequenceNode, transactionName, transaction));
-													projectFolderExit.addChild(sequenceNode);
-													
-												}
-											}
-										}
-									}
+									sequenceNode.addChild(new TransactionStepNode(sequenceNode,"Call of " + sourceTransaction, step));
 								}
 							}
 						}
+						if (sequenceNode.hasChildren()){
+							projectFolderExports.addChild(sequenceNode);
+						}
+					}
 
-						String sequenceName = sequence.getName();
-						for (Sequence seq : sequences) {
-							List<Step> steps = seq.getSteps();
-							for (Step step_seq : steps) {
-								if (step_seq instanceof SequenceStep) {
-									String sourceSequence = ((SequenceStep) step_seq).getSourceSequence();
-									if (sourceSequence.startsWith(projectName)) {
-										if (sourceSequence.endsWith(sequenceName)) {
-											if (isNotExist(referencingSequence, sequenceName)) {
-												referencingSequence.add(sequenceName);
-												projectFolderEntry.addChild(new SequenceNode(projectFolderEntry, sequenceName, sequence));
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-					
-					for (Connector connector : connectorList) {
-						List<Transaction> transactionList = connector.getTransactionsList();
-						for (Transaction transaction : transactionList) {
-							String TransactionName = transaction.getName();
-							for (Sequence sequence : sequences) {
-								List<Step> stepList = sequence.getSteps();
-								for (Step step : stepList) {
-									if (step instanceof TransactionStep) {
-										String sourceTransaction = ((TransactionStep)step).getSourceTransaction();
-										if (sourceTransaction.startsWith(projectName)) {
-											if (sourceTransaction.endsWith(TransactionName)) {
-												if (isNotExist(referencingTransaction, TransactionName)) {
-													referencingTransaction.add(TransactionName);
-													projectFolderEntry.addChild(new TransactionNode(projectFolderEntry, TransactionName, transaction));
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-					if (projectFolderEntry.hasChildren()){
-						entryHandlerFolder.addChild(projectFolderEntry);
-					}
-					if (projectFolderExit.hasChildren()){
-						exitHandlerFolder.addChild(projectFolderExit);
+					if (projectFolderExports.hasChildren()){
+						isUsedByNode.addChild(projectFolderExports);
 					}
 				}
 			}
-			if (entryHandlerFolder.hasChildren()){
-				projectNode.addChild(entryHandlerFolder);
-			}
-			
-			if (exitHandlerFolder.hasChildren()){
-				projectNode.addChild(exitHandlerFolder);
+			if (isUsedByNode.hasChildren()){
+				projectNode.addChild(isUsedByNode);
 			}	
 			
 			if (!projectNode.hasChildren()) {
@@ -297,14 +255,13 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 		}
 	}
 	
-	private void selectionScreenClass(Object firstElement) {
+	private void handleScreenClassSelection(Object firstElement) {
 		
 		ScreenClassTreeObject screenClassTreeObject = (ScreenClassTreeObject) firstElement;
 		ScreenClass screenClass = screenClassTreeObject.getObject();
 		String screenClassName = screenClassTreeObject.getName();
 		
 		// Get the referencing transactions
-		List<String> referencingTransactions = new ArrayList<String>();
 		Connector connector = screenClass.getConnector();
 		List<Transaction> transactions = connector.getTransactionsList();
 		
@@ -312,8 +269,11 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 		
 		ScreenClassNode screenClassFolder = new ScreenClassNode(root, screenClassName, screenClass);
 		root.addChild(screenClassFolder);
-		EntryHandlerFolder entryFolder = new EntryHandlerFolder(root, "Handlers ScreenClass entry", null);
-		ExitHandlerFolder exitFolder = new ExitHandlerFolder(root, "Handlers ScreenClass Exit", null);
+		
+		IsUsedByNode isUsedByNode = new IsUsedByNode(screenClassFolder, "Is used by", null);
+
+		EntryHandlerNode entryFolder = new EntryHandlerNode(isUsedByNode, "Entry handlers", null);
+		ExitHandlerNode exitFolder = new ExitHandlerNode(isUsedByNode, "Exit handlers", null);
 		
 		if (connector instanceof HtmlConnector) {
 			for (Transaction transaction : transactions) {
@@ -326,32 +286,37 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 							if (scHandlerStatement.getName().endsWith("Entry")) {
 								entryFolder.addChild(new TransactionNode(entryFolder, transaction.getName(), scHandlerStatement));
 							} else {
-								exitFolder.addChild(new TransactionNode(entryFolder, transaction.getName(), scHandlerStatement));
+								exitFolder.addChild(new TransactionNode(exitFolder, transaction.getName(), scHandlerStatement));
 							}
 						}
 					}
 				}
 			}
-			if (entryFolder.hasChildren()) {
-				screenClassFolder.addChild(entryFolder);
-			}
-			if (exitFolder.hasChildren()) {
-				screenClassFolder.addChild(exitFolder);
-			}
 		} else if (connector instanceof JavelinConnector) {
 			for (Transaction transaction : transactions) {
 				JavelinTransaction javelinTransaction = (JavelinTransaction) transaction; 
-				String blocks = javelinTransaction.handlers;
-				Matcher matcher = Pattern.compile(screenClassName).matcher(blocks);
-				if (matcher.find()) {
-					referencingTransactions.add(transaction.getName());
+				if (javelinTransaction.handlers.indexOf("function on" + screenClassName + "Entry()") != -1) {
+					entryFolder.addChild(new TransactionNode(entryFolder, transaction.getName(), transaction));
+				}
+				if (javelinTransaction.handlers.indexOf("function on" + screenClassName + "Exit()") != -1) {
+					exitFolder.addChild(new TransactionNode(exitFolder, transaction.getName(), transaction));
 				}
 			}
 		}
 		
-		if (!screenClassFolder.hasChildren()){
-			screenClassFolder.addChild(new Folder(screenClassFolder, "This screen class is not used in any transaction"));
+		if (entryFolder.hasChildren()) {
+			isUsedByNode.addChild(entryFolder);
 		}
+		if (exitFolder.hasChildren()) {
+			isUsedByNode.addChild(exitFolder);
+		}
+		
+		if (!isUsedByNode.hasChildren()){
+			screenClassFolder.addChild(new Folder(screenClassFolder, "This screen class is not used in any transaction"));
+		} else {
+			screenClassFolder.addChild(isUsedByNode);
+		}
+		
 		// Build the treeviewer model				
 		treeViewer.setInput(null);
 		treeViewer.setInput(root);
@@ -359,15 +324,13 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 
 	}
 	
-	private void selectionTransaction(Object firstElement) {
+	private void handleTransactionSelection(Object firstElement) {
 		
 		TransactionTreeObject transactionTreeObject = (TransactionTreeObject) firstElement;
 		Transaction transaction = transactionTreeObject.getObject();
 		String transactionName = transactionTreeObject.getName();
 		
-		// Get the referencing sequence
-		List<String> referencingSequence = new ArrayList<String>();
-
+		// Get the referencing sequence steps
 		String transactionProjectName = transaction.getProject().getName();
 		String transactionConnectorName = transaction.getParent().getName();
 		
@@ -382,47 +345,46 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			
 			TransactionNode transactionFolder = new TransactionNode(root, transactionName, transaction);
 			root.addChild(transactionFolder);
+			
+			IsUsedByNode isUsedByNode = new IsUsedByNode(transactionFolder, "Is used by", null);
+
 			ProjectNode projectFolder = null;
 			
 			for (String projectName : projectNames) {
-				TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer
-						.getContentProvider()).getProjectRootObject(projectName);
-				if (projectTreeObject instanceof UnloadedProjectTreeObject) {
-					project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-				} else {
-					project = projectExplorerView.getProject(projectName);
-				}
+				project = getProject(projectName, projectExplorerView);
 
-				projectFolder = new ProjectNode(transactionFolder, project.getName(), project);
+				projectFolder = new ProjectNode(isUsedByNode, project.getName(), project);
 				List<Sequence> sequences = project.getSequencesList();
-				referencingSequence.clear();
 				
 				for (Sequence sequence : sequences) {
 					List<Step> stepList = sequence.getAllSteps();
+					SequenceNode sequenceNode = null;
 					for (Step step : stepList) {
 						if (step instanceof TransactionStep) {
 							String sourceTransactionName = ((TransactionStep) step).getSourceTransaction();
 							if (sourceTransactionName.equals(transactionProjectName + RequestableStep.SOURCE_SEPARATOR +
 									transactionConnectorName + RequestableStep.SOURCE_SEPARATOR +
 									transactionName)) {
-								if (isNotExist(referencingSequence, sequence.getName())) {
-									referencingSequence.add(sequence.getName());
-									projectFolder.addChild(new SequenceNode(projectFolder, sequence.getName(), sequence));
+								if (sequenceNode == null) {
+									sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
+									projectFolder.addChild(sequenceNode);
 								}
+								sequenceNode.addChild(new TransactionStepNode(sequenceNode, step.getName(), step));
 							}
 						}
 					}
 				}
 				if (projectFolder.hasChildren()) {
-					transactionFolder.addChild(projectFolder);
+					isUsedByNode.addChild(projectFolder);
 				} 
 			}
 			
-			
-			if (!transactionFolder.hasChildren()) {
+			if (!isUsedByNode.hasChildren()) {
 				transactionFolder.addChild(new Folder(projectFolder, "This transaction is not used in any sequence"));
+			} else {
+				transactionFolder.addChild(isUsedByNode);
 			}
-
+			
 			treeViewer.setInput(root);
 			treeViewer.expandAll();
 				
@@ -431,19 +393,237 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 		}
 	}
 	
-	//Fonction qui permet de vérifier si un élément exist déja dans une liste
-	public boolean isNotExist(List<String> list, String source) {
-		int tmp = -1;
-		for (String var : list) {
-			if (var.equals(source)) {
-				tmp = 1;
+	private void handleSequenceSelection(Object firstElement) {
+		SequenceTreeObject sequenceTreeObject = (SequenceTreeObject) firstElement;
+		Sequence sequenceSelected = sequenceTreeObject.getObject();
+		String sequenceSelectedName = sequenceSelected.getName();
+		
+		String sequenceProjectName = sequenceSelected.getProject().getName();
+		
+		try {
+			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+			
+			treeViewer.setInput(null);
+			
+			// Get the referencing sequence steps
+			List<String> referencingSequence = new ArrayList<String>();
+			
+			RootNode root = new RootNode();
+			
+			SequenceNode sequenceFolder = new SequenceNode(root, sequenceSelectedName, sequenceSelected);
+			root.addChild(sequenceFolder);
+			
+			IsUsedByNode isUsedByNode = new IsUsedByNode(sequenceFolder, "Is used by", null);
+			
+			// Searching all objects that reference the selected sequence
+			for (String projectName : projectNames) {
+				Project project = getProject(projectName, projectExplorerView);
+				
+				ProjectNode projectFolder = null;
+				projectFolder = new ProjectNode(isUsedByNode, project.getName(), project);
+				List<Sequence> sequences = project.getSequencesList();
+				referencingSequence.clear();
+				
+				for (Sequence sequence : sequences) {
+					List<Step> steps = sequence.getSteps();
+					SequenceNode sequenceNode = null;
+					for (Step step : steps) {
+						if (step instanceof SequenceStep) {
+							String sourceSequence = ((SequenceStep) step).getSourceSequence();
+							if (sourceSequence.equals(sequenceProjectName + RequestableStep.SOURCE_SEPARATOR +
+									sequenceSelectedName)) {	
+								if (sequenceNode == null) {
+									sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
+									projectFolder.addChild(sequenceNode);
+								}
+								sequenceNode.addChild(new SequenceStepNode(projectFolder, step.getName(), step));
+							}
+						}
+					}
+				}
+				if (projectFolder.hasChildren()) {
+					isUsedByNode.addChild(projectFolder);
+				}
 			}
+			
+			List<Step> steps = sequenceSelected.getSteps();
+			
+			NeedsNode needsNode = new NeedsNode(root, "Needs", null);			
+			
+			// Searching all objects that are referenced by the selected sequence
+			for (Step step : steps) {
+				if (step instanceof SequenceStep) {
+					SequenceStep sequenceStep = (SequenceStep)step;
+					String projectName = sequenceStep.getProjectName();
+					Project project = getProject(projectName, projectExplorerView);
+					SequenceNode sequenceNode = null;
+					ProjectNode projectFolder = null;					
+					projectFolder = new ProjectNode(needsNode, project.getName(), project);
+				
+					if (sequenceNode == null) {
+						sequenceNode = new SequenceNode(projectFolder, sequenceStep.getSequenceName(), project.getSequenceByName(sequenceStep.getSequenceName()));
+					}
+					sequenceNode = new SequenceNode(projectFolder, sequenceStep.getSequenceName(), project.getSequenceByName(sequenceStep.getSequenceName()));
+					projectFolder.addChild(sequenceNode);
+					
+					if (projectFolder.hasChildren()) {
+						needsNode.addChild(projectFolder);
+					}
+				} else if (step instanceof TransactionStep) {
+					TransactionStep transactionStep = (TransactionStep) step;
+					String projectName = transactionStep.getProjectName();
+					Project project = getProject(projectName, projectExplorerView);
+					
+
+					String connectorName = transactionStep.getConnectorName();
+					Connector connector = project.getConnectorByName(connectorName);
+					
+					ProjectNode projectFolder = new ProjectNode(needsNode, projectName, project);
+					
+					TransactionNode transactionNode = null;
+					ConnectorNode connectorNode = null;
+					
+					connectorNode = getConnectorNode(projectFolder, connector);
+							
+					if (transactionNode == null) {
+						transactionNode = new TransactionNode(projectFolder, transactionStep.getTransactionName(), project.getConnectorByName(connectorName).getTransactionByName(transactionStep.getTransactionName()));
+					}
+					transactionNode = new TransactionNode(projectFolder, transactionStep.getTransactionName(), project.getConnectorByName(connectorName).getTransactionByName(transactionStep.getTransactionName()));
+					projectFolder.addChild(connectorNode);
+					connectorNode.addChild(transactionNode);
+					
+					needsNode.addChild(projectFolder);
+				}
+			}
+			
+			if (needsNode.hasChildren()) {
+				sequenceFolder.addChild(needsNode);
+			}
+			if (isUsedByNode.hasChildren()) {
+				sequenceFolder.addChild(isUsedByNode);
+			}
+			if (!sequenceFolder.hasChildren()) {
+				sequenceFolder.addChild(new Folder(sequenceFolder, "This sequence is not used in any sequence"));
+			}
+
+			treeViewer.setInput(root);
+			treeViewer.expandAll();
+			
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);
 		}
-		if (tmp < 0) return true;
-		return false;
 	}
 
-	private void selectionChangedEvent(Object firstElement) {
+	private void handleConnectorSelection(Object firstElement) {
+		ConnectorTreeObject connectorTreeObject = (ConnectorTreeObject) firstElement;
+		Connector connectorSelected = connectorTreeObject.getObject();
+		String connectorSelectedName = connectorSelected.getName();
+		
+		String connectorProjectName = connectorSelected.getProject().getName();
+		List<Transaction> transactions = connectorSelected.getTransactionsList();
+		
+		try {
+			Project project = null;
+			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+			
+			treeViewer.setInput(null);
+			
+			RootNode root = new RootNode();
+			ConnectorNode connectorNode = null;
+			connectorNode = getConnectorNode(root, connectorSelected);
+		
+			root.addChild(connectorNode);
+			
+			IsUsedByNode isUsedByNode = new IsUsedByNode(connectorNode, "Is used by", null);
+
+			ProjectNode projectFolder = null;
+			
+			for (String projectName : projectNames) {
+				project = getProject(projectName, projectExplorerView);
+				
+				projectFolder = new ProjectNode(isUsedByNode, projectName, project);
+				List<Sequence> sequences = project.getSequencesList();
+				
+				for (Sequence sequence : sequences) {
+					List<Step> steps = sequence.getSteps();
+					SequenceNode sequenceNode = null;
+					for (Step step : steps) {
+						if (step instanceof TransactionStep) {
+							String sourceTransactions = ((TransactionStep)step).getSourceTransaction();
+							for (Transaction transaction : transactions) {
+								if (sourceTransactions.equals(connectorProjectName + RequestableStep.SOURCE_SEPARATOR +
+									connectorSelectedName + RequestableStep.SOURCE_SEPARATOR +
+									transaction.getName())) {
+									if (sequenceNode == null) {
+										sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
+										projectFolder.addChild(sequenceNode);
+									}
+									sequenceNode.addChild(new TransactionStepNode(sequenceNode, step.getName(), step));
+								}
+							}
+						}
+					}
+				}
+				if (projectFolder.hasChildren()) {
+					isUsedByNode.addChild(projectFolder);
+				}
+			}
+			if (!isUsedByNode.hasChildren()) {
+				connectorNode.addChild(new Folder(projectFolder, "This connector is not referenced in any sequence"));
+			} else {
+				connectorNode.addChild(isUsedByNode);
+			}
+
+			treeViewer.setInput(root);
+			treeViewer.expandAll();
+			
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);
+		}
+	}
+	
+	private ConnectorNode getConnectorNode (AbstractParentNode root, Connector connector) {
+		ConnectorNode connectorNode = null;
+		String connectorName = connector.getName();
+		
+		if (connector instanceof HtmlConnector) {
+			connectorNode = new HtmlConnectorNode(root, connectorName, connector);
+		} else if (connector instanceof ProxyHttpConnector) {
+			connectorNode = new ProxyHttpConnectorNode(root, connectorName, connector);
+		} else if (connector instanceof JavelinConnector) {
+			connectorNode = new JavelinConnectorNode(root, connectorName, connector);
+		} else if (connector instanceof HttpConnector) {
+			connectorNode = new HttpConnectorNode(root, connectorName, connector);
+		} else if (connector instanceof SiteClipperConnector) {
+			connectorNode = new SiteClipperConnectorNode(root, connectorName, connector);
+		} else if (connector instanceof SqlConnector) {
+			connectorNode = new SqlConnectorNode(root, connectorName, connector);
+		} else if (connector instanceof CicsConnector) {
+			connectorNode = new CicsConnectorNode(root, connectorName, connector);
+		} else {
+			connectorNode = new ConnectorNode(root, connectorName, connector);
+		}
+		
+		return connectorNode;
+	}
+	
+	//Function to retrieve the object "project" whose name is passed as a parameter
+	private Project getProject (String projectName, ProjectExplorerView projectExplorerView) throws EngineException {
+		Project project = null;
+		TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer
+				.getContentProvider()).getProjectRootObject(projectName);
+		if (projectTreeObject instanceof UnloadedProjectTreeObject) {
+			project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+		} else {
+			project = projectExplorerView.getProject(projectName);
+		}
+		
+		return project;
+	}
+	
+	private void handleSelectedObjectInRefView(Object firstElement) {
 		if (firstElement != null) {
 			if (firstElement instanceof AbstractNode) {
 				AbstractNode abstractNode = (AbstractNode) firstElement;
@@ -453,25 +633,17 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				if (selectedTreeObject != null) {
 					projectExplorerView.setSelectedTreeObject(selectedTreeObject);
 				} else {
-					if (!(firstElement instanceof EntryHandlerFolder)) {
-						if (!(firstElement instanceof ExitHandlerFolder)) {
-							ConvertigoPlugin.infoMessageBox("This project is closed. Please open the project.");
+					if (!(firstElement instanceof NeedsNode)) {
+						if (!(firstElement instanceof IsUsedByNode)) {
+							if (!(firstElement instanceof Folder)) {
+								if (!(firstElement instanceof EntryHandlerNode)) {
+									if (!(firstElement instanceof ExitHandlerNode)) {
+										ConvertigoPlugin.infoMessageBox("This project is closed. Please open the project first.");
+									}
+								}
+							}
 						}
-					}
-//					try {
-//						Project project = selectedDatabaseObject.getProject();
-//						UnloadedProjectTreeObject projectTreeObject = (UnloadedProjectTreeObject) ((ViewContentProvider) projectExplorerView.viewer
-//								.getContentProvider()).getProjectRootObject(project.getName());
-//						projectExplorerView.loadProject(projectTreeObject);
-//						ConvertigoPlugin.infoMessageBox("This project is close.\n ");
-//						TreeObject selectedTreeObj = projectExplorerView.findTreeObjectByUserObject(selectedDatabaseObject);
-//						if (selectedTreeObj != null) {
-//							projectExplorerView.setSelectedTreeObject(selectedTreeObject);
-//						}
-//					} catch (EngineException e) {
-//						ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);
-//					}
-					
+					}					
 				}
 			}
 		}
