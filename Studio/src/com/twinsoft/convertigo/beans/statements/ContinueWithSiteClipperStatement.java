@@ -67,6 +67,7 @@ public class ContinueWithSiteClipperStatement extends Statement implements ITags
 
 	public static String[] getSiteClippersConnectorNames(Project projectLoaded) {
 		List<String> connectorList = new ArrayList<String>();
+		connectorList.add("");
 		for (Connector connector : projectLoaded.getConnectorsList()) {
 			if (connector instanceof SiteClipperConnector) {
 				connectorList.add(connector.getName());
@@ -95,5 +96,10 @@ public class ContinueWithSiteClipperStatement extends Statement implements ITags
 		}
 
 		return isEnable;
+	}
+	
+	@Override
+	public String toString() {
+		return (siteClipperConnectorName.equals("") ? "! no connector selected ! " : "") + super.toString();
 	}
 }
