@@ -544,7 +544,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	 * 2 : /convertigo/projects/my_project/connector=my_connector&context=my_context.siteclipper | 3 : /convertigo/projects/my_project | 4 : /convertigo
 	 * 5 : my_project   | 6 : connector=my_connector&context=my_context   | 7 : http   | 8 : remote_host   | 9 : ,18080   | 10 : 18080   | 11 : /remote_path/remote_resource
 	*/
-	private enum QueryPart {
+	public enum QueryPart {
 		full_host_path(1),
 		full_siteclipper_path(2),
 		full_project_path(3),

@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector.QueryPart;
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector.Shuttle;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.MimeType;
@@ -59,7 +60,7 @@ public class RewriteAbsoluteUrl extends BaseRule implements IResponseRule {
 		String html_keywords = "href|src|background|action|codebase|longdesc|usemap|cite|data|classid|profile";
 		String html_start = "(?i:" + html_keywords +")\\s*=\\s*[\"']?";
 		String css_start = "url\\s*\\(\\s*[\"']?";
-		String common = "((?:/|(https?://)).*?)([^\\w:\\.])";
+		String common = "((?:((?:https?:)?//)|/).*?)([^\\w:\\.])";
 		
 		htmlPattern = Pattern.compile("(" + html_start + ")" + common);
 		cssPattern = Pattern.compile("(" + css_start + ")" + common);
@@ -113,8 +114,12 @@ public class RewriteAbsoluteUrl extends BaseRule implements IResponseRule {
 			Matcher m = pattern.matcher(content);
 			while (m.find()) {
 				String domain = m.group(2);
+				String scheme = m.group(3);
 				boolean rewrite = true;
-				if (m.group(3) != null) {
+				if (scheme != null) {
+					if ("//".equals(scheme)) {
+						domain = shuttle.getRequest(QueryPart.scheme) + ":" + domain;
+					}
 					rewrite = getConnector().shouldRewrite(domain);
 				}
 				if (rewrite) {
