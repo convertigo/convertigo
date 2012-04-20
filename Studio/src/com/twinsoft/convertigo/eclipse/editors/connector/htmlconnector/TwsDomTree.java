@@ -47,16 +47,10 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-public class TwsDomTree extends TreeWrapper{
-	public interface MenuMaker{
-		void makeMenu(TwsDomTree tree, TreeItem treeItem, MouseEvent e, Menu menu);
-	}
-	
-	public interface KeyAccelerator{
-		boolean doAction(TwsDomTree tree, KeyEvent e);
-	}
+import com.twinsoft.convertigo.engine.util.XMLUtils;
+
+public class TwsDomTree extends TreeWrapper {
 	
 	private	TreeItem selectedTreeItem = null;
 	private Image imageAttrib = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/attrib.gif"));
@@ -65,7 +59,15 @@ public class TwsDomTree extends TreeWrapper{
 	private List<MenuMaker> menuMakers = new ArrayList<MenuMaker>();
 	private List<KeyAccelerator> keyAccelerators =  new ArrayList<KeyAccelerator>();
 	
-	public TwsDomTree(Composite parent, int style){
+	public interface MenuMaker {
+		void makeMenu(TwsDomTree tree, TreeItem treeItem, MouseEvent e, Menu menu);
+	}
+	
+	public interface KeyAccelerator {
+		boolean doAction(TwsDomTree tree, KeyEvent e);
+	}
+	
+	public TwsDomTree(Composite parent, int style) {
 		super(parent, style|SWT.VIRTUAL);
 		addMouseListener(new MouseAdapter() {
 			
@@ -81,7 +83,7 @@ public class TwsDomTree extends TreeWrapper{
 				doKeyAction(e);
 			}
 			
-			public void keyReleased(KeyEvent e){	
+			public void keyReleased(KeyEvent e) {	
 			}
 			
 		});
@@ -113,7 +115,7 @@ public class TwsDomTree extends TreeWrapper{
 					} else {
 						node = nodes[event.index - d];
 					}
-					addNodeInTree(item,node,null);
+					addNodeInTree(item, node, null);
 					if (parent == null) {
 						item.setExpanded(true);
 					}
@@ -142,9 +144,9 @@ public class TwsDomTree extends TreeWrapper{
 		removeAll();
 		if (document != null) {
 			Tree t = getTree();
-			Node[] childs = removeEmptyTextNode(document.getChildNodes());
+			Node[] childs = XMLUtils.toNodeArray(document.getChildNodes());
 			t.setData(document);
-			t.setData("childs",childs);
+			t.setData("childs", childs);
 			t.setItemCount(childs.length);
 		}
 	}
@@ -164,11 +166,11 @@ public class TwsDomTree extends TreeWrapper{
 		case Node.ELEMENT_NODE :
 			int dec = 0;
 			if (node.hasAttributes()) {// add a fake first node for 'Attributes' item
-				tItem.setData("dec",new Integer(dec = 1));
+				tItem.setData("dec", new Integer(dec = 1));
 			}
-			Node[] childs = removeEmptyTextNode(node.getChildNodes());
-			tItem.setData("childs",childs);
-			tItem.setItemCount(childs.length+dec);
+			Node[] childs = XMLUtils.toNodeArray(node.getChildNodes());
+			tItem.setData("childs", childs);
+			tItem.setItemCount(childs.length + dec);
 			
 			values[0] = node.getNodeName();
 			values[1] = getTextValue(node);
@@ -364,25 +366,9 @@ public class TwsDomTree extends TreeWrapper{
 	private void doKeyAction(KeyEvent e) {
 		boolean run = true;
 		Iterator<KeyAccelerator> i = keyAccelerators.iterator();
-		while(i.hasNext() && run) run = i.next().doAction(this, e);
-	}
-	
-	private Node[] removeEmptyTextNode(NodeList nl) {
-		int len = nl.getLength();
-		List<Node> nodes = new ArrayList<Node>(len);
-		Node node;
-		for (int i = 0; i < len; i++) {
-			node = nl.item(i);
-			switch(node.getNodeType()) {
-				case Node.TEXT_NODE :
-					if (node.getNodeValue().trim().length() == 0) {
-						break;
-					}
-				default :
-					nodes.add(node);
-			}
+		while(i.hasNext() && run) {
+			run = i.next().doAction(this, e);
 		}
-		return nodes.toArray(new Node[nodes.size()]);
 	}
 	
 	private Node getTreeItemData(TreeItem ti) {

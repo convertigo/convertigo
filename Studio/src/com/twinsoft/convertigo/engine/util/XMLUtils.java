@@ -63,12 +63,14 @@ import com.twinsoft.util.StringEx;
 
 public class XMLUtils {
 	private static ThreadLocal<DocumentBuilderFactory> defaultDocumentBuilderFactory = new ThreadLocal<DocumentBuilderFactory>() {
+		@Override
 		protected DocumentBuilderFactory initialValue() {
 			return DocumentBuilderFactory.newInstance();
 		}
 	};
 
 	private static ThreadLocal<DocumentBuilder> defaultDocumentBuilder = new ThreadLocal<DocumentBuilder>() {
+		@Override
 		protected DocumentBuilder initialValue() {
 			try {
 				return defaultDocumentBuilderFactory.get().newDocumentBuilder();
@@ -829,5 +831,13 @@ public class XMLUtils {
 				log.info(message + ":\n" + xml);
 			}
 		}
+	}
+	
+	public static Node[] toNodeArray(NodeList nl) {
+		Node[] res = new Node[nl.getLength()];
+		for (int i = 0 ; i < res.length ; i++) {
+			res[i] = nl.item(i);
+		}
+		return res;
 	}
 }
