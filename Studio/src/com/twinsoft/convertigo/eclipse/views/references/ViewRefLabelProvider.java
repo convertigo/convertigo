@@ -33,15 +33,14 @@ import org.eclipse.swt.widgets.Display;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.references.model.AbstractNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.CicsConnectorNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.ConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.EntryHandlerNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.ExitHandlerNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.IsUsedByNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.Folder;
 import com.twinsoft.convertigo.eclipse.views.references.model.HtmlConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.HttpConnectorNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.NeedsNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.IsUsedByNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.JavelinConnectorNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.RequiresNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.ProjectNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.ProxyHttpConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.ScreenClassNode;
@@ -79,43 +78,41 @@ class ViewRefLabelProvider implements ILabelProvider {
 		Image image = null;
 
 		if (element instanceof TransactionNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/transaction_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.gif";
 		} else if (element instanceof ScreenClassNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/screenclass_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/core/images/screenclass_color_16x16.gif";
 		} else if (element instanceof Folder) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/comment_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/information_color_16x16.gif";
 		} else if (element instanceof ProjectNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/project_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/core/images/project_color_16x16.gif";
 		} else if (element instanceof EntryHandlerNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/handlers_sc_exit.gif";
+			iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_exit_16x16.gif";
 		} else if (element instanceof ExitHandlerNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/handlers_sc_entry.gif";
+			iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_entry_16x16.gif";
 		} else if (element instanceof SequenceNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/sequence_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.gif";
 		} else if (element instanceof TransactionStepNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/transactionstep_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/steps/images/transactionstep_16x16.gif";
 		} else if (element instanceof SequenceStepNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/sequencestep_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/steps/images/sequencestep_16x16.gif";
 		} else if (element instanceof IsUsedByNode) {
 			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/isusedby_16x16.gif";
-		} else if (element instanceof NeedsNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/need_16x16.gif";
+		} else if (element instanceof RequiresNode) {
+			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/requires_16x16.gif";
 		} else if (element instanceof HtmlConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/htmlconnector_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/connectors/images/htmlconnector_color_16x16.gif";
 		} else if (element instanceof HttpConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/httpconnector_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/connectors/images/httpconnector_color_16x16.gif";
 		} else if (element instanceof JavelinConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/javelinconnector_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/connectors/images/javelinconnector_color_16x16.gif";
 		} else if (element instanceof ProxyHttpConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/proxyhttpconnector_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigobeans/connectors/images/proxyhttpconnector_color_16x16.gif";
 		} else if (element instanceof SiteClipperConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/siteclipper_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/connectors/images/siteclipper_color_16x16.gif";
 		} else if (element instanceof SqlConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/sqlconnector_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/connectors/images/sqlconnector_color_16x16.gif";
 		} else if (element instanceof CicsConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/cicsconnector_color_16x16.gif";
-		} else if (element instanceof ConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/connector_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/connectors/images/cicsconnector_color_16x16.gif";
 		}
 		else {
 			return null;

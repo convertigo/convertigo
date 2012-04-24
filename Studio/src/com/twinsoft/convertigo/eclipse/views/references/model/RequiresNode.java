@@ -25,9 +25,9 @@ package com.twinsoft.convertigo.eclipse.views.references.model;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 
 
-public class NeedsNode extends AbstractParentNode {
+public class RequiresNode extends AbstractParentNode {
 
-	public NeedsNode(AbstractParentNode parent, String name, DatabaseObject refDatabaseObject) {
+	public RequiresNode(AbstractParentNode parent, String name, DatabaseObject refDatabaseObject) {
 		super(parent, name, refDatabaseObject);
 	}
 
