@@ -217,7 +217,7 @@ public class EnginePropertiesManager {
     	Main ("Main configuration parameters"),
     	Account ("Account management"),
     	Logs ("Log management"),
-    	Context ("Real-time activity monitoring parameters"),
+    	Context ("Real-time activity monitoring"),
     	XmlGeneration ("XML generation parameters"),
     	XulRunner ("HTML parser configuration"),
     	HttpClient ("HTTP client configuration"),
@@ -392,9 +392,9 @@ public class EnginePropertiesManager {
 
 		/** CONTEXT */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
-		CONNECTORS_MONITORING ("connectors.monitoring", "false", "Display the connectors monitor", PropertyCategory.Context),
+		CONNECTORS_MONITORING ("connectors.monitoring", "false", "Display running connectors in monitor of Legacy connectors", PropertyCategory.Context),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
-		DOCUMENT_LOG_SCREEN_DUMPS ("document.log.screen_dumps", "false", "Dump screens in the context trace file (available for legacy connectors)", PropertyCategory.Context),
+		DOCUMENT_LOG_SCREEN_DUMPS ("document.log.screen_dumps", "false", "Trace in logs the screen dumps of the running Legacy connectors", PropertyCategory.Context),
 
 		/** XMLGENERATION */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
