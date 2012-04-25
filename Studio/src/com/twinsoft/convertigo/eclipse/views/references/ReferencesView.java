@@ -413,7 +413,9 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 						}
 					}
 				}
-				requiresNode.addChild(projectNode);
+				if(projectNode.hasChildren()) {
+					requiresNode.addChild(projectNode);
+				}
 			} else if (connector instanceof JavelinConnector) {
 				
 				JavelinTransaction javelinTransaction = (JavelinTransaction) transaction;
