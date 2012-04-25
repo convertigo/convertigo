@@ -396,19 +396,26 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 							screenClassList.add(screenClass);
 							requiresNode.addChild(new ScreenClassNode(requiresNode, screenClassName, screenClass));
 						}
+					} 
+					ScHandlerStatement scHandlerStatement = null;
+					ScDefaultHandlerStatement scDefaultHandlerStatement = null;
+					List<Statement> statementList = new ArrayList<Statement>();
+					if (statement instanceof ScHandlerStatement) {
+						scHandlerStatement = (ScHandlerStatement) statement;
+						statementList = scHandlerStatement.getStatements();
 					} else if (statement instanceof ScDefaultHandlerStatement) {
-						ScDefaultHandlerStatement scDefaultHandlerStatement = (ScDefaultHandlerStatement) statement;
-						List<Statement> statementList = scDefaultHandlerStatement.getStatements();
-						for (Statement st : statementList) {
-							if (st instanceof ContinueWithSiteClipperStatement) {
-								ContinueWithSiteClipperStatement continueWithSiteClipperStatement = (ContinueWithSiteClipperStatement) st;
-								String siteClipperconnectorName = continueWithSiteClipperStatement.getSiteClipperConnectorName();
-								Connector siteClipperConnector = proj.getConnectorByName(siteClipperconnectorName);
-					
-								ConnectorNode connectorSiteClipperNode = new SiteClipperConnectorNode(projectNode, siteClipperconnectorName, siteClipperConnector);
-								projectNode.addChild(connectorSiteClipperNode);
-								requiresNode.addChild(projectNode);
-							}
+						scDefaultHandlerStatement = (ScDefaultHandlerStatement) statement;
+						statementList = scDefaultHandlerStatement.getStatements();
+					}
+					for (Statement st : statementList) {
+						if (st instanceof ContinueWithSiteClipperStatement) {
+							ContinueWithSiteClipperStatement continueWithSiteClipperStatement = (ContinueWithSiteClipperStatement) st;
+							String siteClipperconnectorName = continueWithSiteClipperStatement.getSiteClipperConnectorName();
+							Connector siteClipperConnector = proj.getConnectorByName(siteClipperconnectorName);
+				
+							ConnectorNode connectorSiteClipperNode = new SiteClipperConnectorNode(projectNode, siteClipperconnectorName, siteClipperConnector);
+							projectNode.addChild(connectorSiteClipperNode);
+							requiresNode.addChild(projectNode);
 						}
 					}
 				}
@@ -647,18 +654,24 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				for (Transaction transaction : transactions) {
 					List<Statement> statements = ((HtmlTransaction)transaction).getStatements();
 					for (Statement statement : statements) {
-						if (statement instanceof ScDefaultHandlerStatement) {
-							ScDefaultHandlerStatement scHandlerStatement = (ScDefaultHandlerStatement) statement;
-							List<Statement> statementList = scHandlerStatement.getStatements();
-							for (Statement st : statementList) {
-								if (st instanceof ContinueWithSiteClipperStatement) {
-									ContinueWithSiteClipperStatement continueWithSiteClipperStatement = (ContinueWithSiteClipperStatement) st;
-									String siteClipperconnectorName = continueWithSiteClipperStatement.getSiteClipperConnectorName();
-									Connector siteClipperConnector = projectConnectorSelected.getConnectorByName(siteClipperconnectorName);
-									
-									ConnectorNode connectorSiteClipperNode = new SiteClipperConnectorNode(projectNode, siteClipperconnectorName, siteClipperConnector);
-									projectNode.addChild(connectorSiteClipperNode);
-								}
+						ScHandlerStatement scHandlerStatement = null;
+						ScDefaultHandlerStatement scDefaultHandlerStatement = null;
+						List<Statement> statementList = new ArrayList<Statement>();
+						if (statement instanceof ScHandlerStatement) {
+							scHandlerStatement = (ScHandlerStatement) statement;
+							statementList = scHandlerStatement.getStatements();
+						} else if (statement instanceof ScDefaultHandlerStatement) {
+							scDefaultHandlerStatement = (ScDefaultHandlerStatement) statement;
+							statementList = scDefaultHandlerStatement.getStatements();
+						}
+						for (Statement st : statementList) {
+							if (st instanceof ContinueWithSiteClipperStatement) {
+								ContinueWithSiteClipperStatement continueWithSiteClipperStatement = (ContinueWithSiteClipperStatement) st;
+								String siteClipperconnectorName = continueWithSiteClipperStatement.getSiteClipperConnectorName();
+								Connector siteClipperConnector = projectConnectorSelected.getConnectorByName(siteClipperconnectorName);
+								
+								ConnectorNode connectorSiteClipperNode = new SiteClipperConnectorNode(projectNode, siteClipperconnectorName, siteClipperConnector);
+								projectNode.addChild(connectorSiteClipperNode);
 							}
 						}
 					}
@@ -676,19 +689,25 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 						for (Transaction transaction : transactionList) {
 							List<Statement> statements = ((HtmlTransaction)transaction).getStatements();
 							for (Statement statement : statements) {
-								if (statement instanceof ScDefaultHandlerStatement) {
-									ScDefaultHandlerStatement scHandlerStatement = (ScDefaultHandlerStatement) statement;
-									List<Statement> statementList = scHandlerStatement.getStatements();
-									for (Statement st : statementList) {
-										if (st instanceof ContinueWithSiteClipperStatement) {
-											String sourceSiteClipperConnectorName = ((ContinueWithSiteClipperStatement)st).getSiteClipperConnectorName();
-											if (sourceSiteClipperConnectorName.equals(connectorSelectedName)) {
-												ContinueWithSiteClipperStatement continueWithSiteClipperStatement = (ContinueWithSiteClipperStatement) st;
-												HtmlConnectorNode htmlConnectorNode = new HtmlConnectorNode(projectNode, connector.getName(), connector);
-												projectNode.addChild(htmlConnectorNode);
-												TransactionNode transactionNode = new TransactionNode(htmlConnectorNode, transaction.getName(), continueWithSiteClipperStatement);
-												htmlConnectorNode.addChild(transactionNode);
-											}
+								ScHandlerStatement scHandlerStatement = null;
+								ScDefaultHandlerStatement scDefaultHandlerStatement = null;
+								List<Statement> statementList = new ArrayList<Statement>();
+								if (statement instanceof ScHandlerStatement) {
+									scHandlerStatement = (ScHandlerStatement) statement;
+									statementList = scHandlerStatement.getStatements();
+								} else if (statement instanceof ScDefaultHandlerStatement) {
+									scDefaultHandlerStatement = (ScDefaultHandlerStatement) statement;
+									statementList = scDefaultHandlerStatement.getStatements();
+								}
+								for (Statement st : statementList) {
+									if (st instanceof ContinueWithSiteClipperStatement) {
+										String sourceSiteClipperConnectorName = ((ContinueWithSiteClipperStatement)st).getSiteClipperConnectorName();
+										if (sourceSiteClipperConnectorName.equals(connectorSelectedName)) {
+											ContinueWithSiteClipperStatement continueWithSiteClipperStatement = (ContinueWithSiteClipperStatement) st;
+											HtmlConnectorNode htmlConnectorNode = new HtmlConnectorNode(projectNode, connector.getName(), connector);
+											projectNode.addChild(htmlConnectorNode);
+											TransactionNode transactionNode = new TransactionNode(htmlConnectorNode, transaction.getName(), continueWithSiteClipperStatement);
+											htmlConnectorNode.addChild(transactionNode);
 										}
 									}
 								}
