@@ -823,8 +823,9 @@ public class XMLUtils {
 
 			if (xml.length() > XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO * 1000) {
 				if (!log.isDebugEnabled()) {
-					log.info(message + ": [XML size is > " + XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO
-							+ "KB, enable DEBUG log level for this logger to see it!]");
+					log.info(message + ":\n" + xml.substring(0, XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO * 1000) + "...\n"
+							+ "[XML size is > " + XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO
+							+ "KB, enable DEBUG log level for this logger to see it completly!]");
 				}
 				log.debug(message + ":\n" + xml);
 			} else {
