@@ -923,6 +923,13 @@
                relationship="stack"
                relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView">
          </view>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
+               minimized="false"
+               ratio="0.8"
+               relationship="right"
+               relative="org.eclipse.ui.editorss">
+         </view>
       </perspectiveExtension>
    </extension>
    <extension
