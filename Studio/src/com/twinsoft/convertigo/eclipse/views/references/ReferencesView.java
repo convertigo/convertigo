@@ -81,12 +81,10 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 
 	private TreeViewer treeViewer;
 
-	@Override
 	public void objectSelected(CompositeEvent compositeEvent) {
 
 	}
 
-	@Override
 	public void objectChanged(CompositeEvent compositeEvent) {
 
 	}
@@ -109,7 +107,6 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 
 	}
 
-	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
 			if (part != ReferencesView.this) {
