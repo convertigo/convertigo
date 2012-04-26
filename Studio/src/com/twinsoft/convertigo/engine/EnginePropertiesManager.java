@@ -423,11 +423,11 @@ public class EnginePropertiesManager {
 		XULRUNNER_MAX_CONNECTIONS ("xulrunner.max-connections", "65535", "Max connections (from 1 to 65535)", PropertyCategory.XulRunner),
 		XULRUNNER_MAX_CONNECTIONS_PER_SERVER ("xulrunner.max-connections-per-server", "255", "Max connections per server (from 1 to 255)", PropertyCategory.XulRunner),
 		XULRUNNER_MAX_PERSISTENT_CONNECTIONS_PER_SERVER ("xulrunner.max-persistent-connections-per-server", "10", "Max persistent connections per server (from 1 to 10)", PropertyCategory.XulRunner),
-		XULRUNNER_USERAGENT ("xulrunner.useragent", "", "Override UserAgent", PropertyCategory.XulRunner),
+		XULRUNNER_USERAGENT ("xulrunner.useragent", "", "Override User-Agent", PropertyCategory.XulRunner),
 		
 		/** XULRUNNER ADVANCE */
 		@PropertyOptions(advance = true)
-		XULRUNNER_ACCEPT_LANGUAGES ("xulrunner.accept_languages", "", "HTTP_ACCEPT_LANGUAGE header value", PropertyCategory.XulRunner),
+		XULRUNNER_ACCEPT_LANGUAGES ("xulrunner.accept_languages", "", "Override Accept-Language header", PropertyCategory.XulRunner),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		XULRUNNER_ALLOW_IMAGE ("xulrunner.allow.image", "true", "Allow image", PropertyCategory.XulRunner),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
