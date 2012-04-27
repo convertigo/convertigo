@@ -308,6 +308,8 @@ public abstract class AbstractContext {
 	 * @see #decodeFromHexString
 	 */
 	public abstract String encodeToHexString(String s);
+
+	public abstract String encodeToHexString(String passphrase, String s);
 	
 	/**
 	 * Decrypts a string using the DES algorithm.
@@ -323,4 +325,6 @@ public abstract class AbstractContext {
 	 */
 	public abstract String decodeFromHexString(String s);
 	
+	public abstract String decodeFromHexString(String passphrase, String s);
+
 }

@@ -74,7 +74,7 @@ import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.engine.cache.CacheEntry;
 import com.twinsoft.convertigo.engine.parsers.HtmlParser;
 import com.twinsoft.convertigo.engine.parsers.XulRecorder;
-import com.twinsoft.convertigo.engine.util.Crypto;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.URLrewriter;
@@ -548,14 +548,20 @@ public class Context extends AbstractContext {
 		return logFilename;
 	}
 
-	@Override
 	public String decodeFromHexString(String s) {
-		return Crypto.decodeFromHexString(s);
+		return Crypto2.decodeFromHexString(s);
 	}
 
-	@Override
 	public String encodeToHexString(String s) {
-		return Crypto.encodeToHexString(s);
+		return Crypto2.encodeToHexString(s);
+	}
+	
+	public String decodeFromHexString(String passphrase, String s) {
+		return Crypto2.decodeFromHexString(passphrase, s);
+	}
+
+	public String encodeToHexString(String passphrase, String s) {
+		return Crypto2.encodeToHexString(passphrase, s);
 	}
 	
 	public Map<String, List<String>> getRequestHeaders(){
