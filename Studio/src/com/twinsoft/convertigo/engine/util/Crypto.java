@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.engine.util;
 
 import com.twinsoft.util.UnsignedLong;
 
+@Deprecated
 public class Crypto {
 	
 	private static final byte DES_ENCRYPT = 1;
