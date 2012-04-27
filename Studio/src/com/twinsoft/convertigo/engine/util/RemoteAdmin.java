@@ -314,8 +314,8 @@ public class RemoteAdmin {
 
 				throw new RemoteAdminException(
 						errorMessage.getTextContent(),
-						exceptionName.getTextContent(),
-						stackTrace.getTextContent());
+						exceptionName == null ? "" : exceptionName.getTextContent(),
+						stackTrace == null ? "" : stackTrace.getTextContent());
 			}		
 		} catch (ParserConfigurationException e) {
 			throw new RemoteAdminException(
