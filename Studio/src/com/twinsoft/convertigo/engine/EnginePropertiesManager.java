@@ -44,7 +44,7 @@ import org.apache.log4j.helpers.OptionConverter;
 
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
-import com.twinsoft.convertigo.engine.util.Crypto;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class EnginePropertiesManager {
@@ -296,6 +296,8 @@ public class EnginePropertiesManager {
 		THROW_HTTP_500_SOAP_FAULT ("throw_http_500.soap_fault", "true", "Throw HTTP 500 in case of SOAP fault", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
 		UPDATE_STEPS ("update.steps", "false", "Update steps", PropertyCategory.Main),
+		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
+		CRYPTO_PASSPHRASE ("crypto.passphrase", "A8dkLmsdfkKze0e34FGh", "Cryptographic services passphrase", PropertyCategory.Main),
 
 		/** ACCOUNT */
 		ADMIN_USERNAME ("admin.username", "admin", "Admin username", PropertyCategory.Account),
@@ -720,16 +722,21 @@ public class EnginePropertiesManager {
                 else System.out.println(message);
             }
             
+    		// Decipher the ciphered properties
             for (PropertyName property : PropertyName.values()) {
             	String key = property.getKey();
+
+            	// Ciphered property?
             	if (property.isCiphered() && properties.containsKey(key)) {
             		String value = properties.getProperty(key);
-            		if (value != null) {
-            			value = Crypto.decodeFromHexString3(value);
-            			if (value != null) {
-            				properties.setProperty(key, value);
-            			}
+            		
+            		String decipheredValue = Crypto2.decodeFromHexString3(value);
+            		if (decipheredValue == null) {
+            			Engine.logEngine.error("Unable to decode value for property '" + key + "'");
+            			continue;
             		}
+
+            		properties.setProperty(key, decipheredValue);
             	}
             }
             
@@ -810,7 +817,7 @@ public class EnginePropertiesManager {
     		String propertyValue = getOriginalProperty(property);
     		if (!property.getDefaultValue().equals(propertyValue)) {
     			if (property.isCiphered()) {
-    				propertyValue = Crypto.encodeToHexString3(propertyValue);
+    				propertyValue = Crypto2.encodeToHexString(propertyValue);
     			}
     			modifiedProperties.put(property.getKey(), propertyValue);
     		}

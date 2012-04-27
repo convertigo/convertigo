@@ -67,7 +67,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
-import com.twinsoft.convertigo.engine.util.Crypto;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -1058,7 +1058,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 		Object encryptedValue = null;
 		if (propertyValue instanceof String) {
-			encryptedValue = Crypto.encodeToHexString3((String) propertyValue);
+			encryptedValue = Crypto2.encodeToHexString((String) propertyValue);
 		} else if (propertyValue instanceof XMLVector<?>) {
 			try {
 				XMLVector<Object> xmlv = new XMLVector<Object>(
@@ -1085,7 +1085,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 		Object propertyValue = null;
 		if (encryptedValue instanceof String) {
-			propertyValue = Crypto.decodeFromHexString3((String) encryptedValue);
+			propertyValue = Crypto2.decodeFromHexString3((String) encryptedValue);
 		} else if (encryptedValue instanceof XMLVector<?>) {
 			try {
 				XMLVector<Object> xmlv = new XMLVector<Object>(
