@@ -152,7 +152,6 @@ public class Crypto2 {
 				data);
 	}
 
-	@SuppressWarnings("deprecation")
 	private static String decodeFromHexString(String ciphered, boolean bTripleDES) {
 		logDebug("Decoding: '" + ciphered + "'; bTripleDES (for old crypto): " + bTripleDES);
 		// New crypto lib
