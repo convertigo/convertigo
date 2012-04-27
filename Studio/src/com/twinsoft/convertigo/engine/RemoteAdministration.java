@@ -39,9 +39,8 @@ import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-
-import org.apache.axis2.transport.mail.server.MailAddress;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -174,7 +173,7 @@ public class RemoteAdministration {
 						});
 						MimeMessage message = new MimeMessage(mailSession);
 
-						message.addRecipient(Message.RecipientType.TO, new MailAddress(EnginePropertiesManager
+						message.addRecipient(Message.RecipientType.TO, new InternetAddress(EnginePropertiesManager
 								.getProperty(PropertyName.NOTIFICATIONS_TARGET_EMAIL)));
 						message.setSubject("[trial] deployment of " + projectName + " by " + trial_username);
 						message.setText(message.getSubject() + "\n"

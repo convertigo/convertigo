@@ -689,6 +689,10 @@ public class WebServiceServlet extends GenericServlet {
 			boolean isMTOM = isMultipart && isXOP;
 			
 			MessageFactory messageFactory = MessageFactory.newInstance();
+			if (messageFactory instanceof org.apache.axis2.saaj.MessageFactoryImpl) {
+				((org.apache.axis2.saaj.MessageFactoryImpl)messageFactory).setProcessMTOM(true);
+			}
+			
 			MimeHeaders mimeHeaders = new MimeHeaders();
 			mimeHeaders.setHeader("Content-Type", isMTOM ? contentType:"text/xml; charset=\"UTF-8\"");
 			
@@ -715,10 +719,14 @@ public class WebServiceServlet extends GenericServlet {
 			
 			// Create the SOAP request message
 			requestMessage = messageFactory.createMessage(mimeHeaders, is);
-
+			
 			// Handle MTOM uploads
 			if (isMTOM)
 				handleMTOMUploads(requestMessage);
+			
+			// Remove all attachments
+			requestMessage.removeAllAttachments();
+			requestMessage.saveChanges();
 			
 			// Store the request message for later use
 			request.setAttribute(REQUEST_MESSAGE_ATTRIBUTE, requestMessage);
@@ -731,7 +739,6 @@ public class WebServiceServlet extends GenericServlet {
 		SOAPEnvelope se = sp.getEnvelope();
 		SOAPBody sb = se.getBody();
 		handleMTOMUploads(sb.getChildElements());
-		requestMessage.saveChanges();
 	}
 	
 	private void handleMTOMUploads(Iterator<?> iterator) throws FileNotFoundException, IOException, SOAPException {
