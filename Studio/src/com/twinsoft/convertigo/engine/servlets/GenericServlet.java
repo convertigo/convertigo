@@ -125,7 +125,8 @@ public abstract class GenericServlet extends HttpServlet {
 				response.addHeader("Expires", "-1");
 
 				if (getCacheControl(request).equals("false"))
-					response.addHeader("Pragma", "no-cache");
+					response.addHeader("Cache-Control",
+							"no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
 
 				/**
 				 * Disabled since #253 : Too much HTML Connector cookies in
@@ -208,28 +209,16 @@ public abstract class GenericServlet extends HttpServlet {
 							response.setCharacterEncoding((String) request.getAttribute("convertigo.charset"));
 							response.addHeader("Content-Length", "" + ((byte[]) result).length);
 
-							if (getCacheControl(request).equals("false"))
-								response.addHeader("Cache-Control",
-										"no-store, no-cache, must-revalidate, post-check=0, pre-check=0");
-
 							OutputStream out = response.getOutputStream();
 							out.write((byte[]) result);
 							out.flush();
 						} else {
-							if (getCacheControl(request).equals("false"))
-								response.addHeader("Cache-control", "no-cache");
-
 							String sResult = "";
 							if (result instanceof String) {
 								sResult = (String) result;
 							} else if (result instanceof Document) {
 								sResult = XMLUtils.prettyPrintDOM((Document) result);
 							}
-
-							/*
-							 * PrintWriter writer = response.getWriter();
-							 * writer.write(sResult); writer.flush();
-							 */
 
 							OutputStream os = response.getOutputStream();
 							os.write(sResult.getBytes());
