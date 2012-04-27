@@ -20,6 +20,7 @@
 <%@ page contentType="text/html; charset=iso-8859-1" language="java" import="org.apache.axis2.Constants,
                                                                              org.apache.axis2.description.AxisModule,
                                                                              org.apache.axis2.description.AxisOperation,
+                                                                             org.apache.axis2.util.Utils,
                                                                              java.util.Collection,
                                                                              java.util.HashMap,
                                                                              java.util.Iterator"%>
@@ -117,7 +118,7 @@
                             style="display:none"
                             <%
                         } %>
-                    ><%=status%></textarea>
+                    ><%=Utils.sanitizeWebOutput(status)%></textarea>
               </td>
            </tr>
       </table>

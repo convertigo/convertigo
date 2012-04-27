@@ -22,6 +22,7 @@
                  java.util.Collection,
                  java.util.HashMap,
                  java.util.Iterator" %>
+<%@ page import="org.apache.axis2.util.Utils" %>
 <html>
 <jsp:include page="include/adminheader.jsp"/>
 <%
@@ -40,13 +41,15 @@
             <td width="75%" align="left">
                 <select name="modules">
                     <%
-                        HashMap moduels = (HashMap) request.getSession().getAttribute(Constants.MODULE_MAP);
+                        HashMap modules = (HashMap) request.getSession().getAttribute(Constants.MODULE_MAP);
                         request.getSession().setAttribute(Constants.MODULE_MAP,null);
-                        Collection moduleCol = moduels.values();
+                        Collection moduleCol = modules.values();
                         for (Iterator iterator = moduleCol.iterator(); iterator.hasNext();) {
                             AxisModule axisOperation = (AxisModule) iterator.next();
                             String modulename = axisOperation.getName();
-                    %> <option align="left" value="<%=modulename%>"><%=modulename%></option>
+                    %>
+                    <option align="left" value="<%=modulename%>"><%=modulename%>
+                    </option>
                     <%
                         }
                     %>
@@ -63,7 +66,7 @@
 <%
     if (status != null) {
 %>
-<p><font color="blue"><%=status%></font></p>
+<p style="color:blue"><%=Utils.sanitizeWebOutput(status)%></p>
 <%
     } %>
 <jsp:include page="include/adminfooter.inc"/>

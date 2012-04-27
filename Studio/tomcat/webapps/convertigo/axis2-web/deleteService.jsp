@@ -1,4 +1,4 @@
-<!--
+<%--
   ~ Licensed to the Apache Software Foundation (ASF) under one
   ~ or more contributor license agreements. See the NOTICE file
   ~ distributed with this work for additional information
@@ -15,23 +15,9 @@
   ~ KIND, either express or implied. See the License for the
   ~ specific language governing permissions and limitations
   ~ under the License.
-  -->
-</td>
-</tr>
-<tr height="20px">
-	<td>
-	<table width="100%">
-		<tr><td>
-			<table width="950px">
-				<tr><td><hr size="1" noshade="" /></td></tr>
-				<tr>
-					<td align="center">Copyright &#169; 1999-2006, The Apache Software Foundation<br />Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>.</td>
-				</tr>
-			</table>
-		</td>
-		<td>&nbsp;</td>
-		</tr>
-	</table>
-	</td>
-</tr>
-</table>
+  --%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<jsp:include page="include/adminheader.jsp"/>
+<p><%=request.getSession().getAttribute("status")%></p>
+<p>Click <a href="services/listServices">here</a> to go to the service list page</p>
+<jsp:include page="include/adminfooter.inc" />

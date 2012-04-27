@@ -49,7 +49,6 @@
             operations = axisService.getOperations();
             serviceName = axisService.getName();
 %><h2><font color="blue"><a href="<%=prefix + axisService.getName()%>?wsdl"><%=serviceName%></a></font></h2>
-<font color="blue">Service EPR : </font><font color="black"><%=prefix + axisService.getName()%></font><br>
 <%
     // do we need to enable REST in the main servlet so that it handles both REST and SOAP messages
     boolean disableREST = false;
@@ -76,8 +75,10 @@
         serviceDescription = "No description available for this service";
     }
 %>
-        <h4>Service Description : <font color="black"><%=serviceDescription%></font></h4>
-<i><font color="blue">Service Status : <%=axisService.isActive() ? "Active" : "InActive"%></font></i><br>
+<p>Service Description : <%=serviceDescription%><br/>
+Service EPR : <%=prefix + axisService.getName()%><br/>
+Service Status : <%=axisService.isActive() ? "Active" : "InActive"%>
+Actions : <a href="axis2-admin/deleteService?serviceName=<%=serviceName%>">Remove Service</a></p><br>
 <%
     Collection engagedModules = axisService.getEngagedModules();
     String moduleName;

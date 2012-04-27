@@ -33,27 +33,25 @@
 </head>
 
 <body>
-<jsp:include page="include/adminheader.jsp">
-</jsp:include>
+<jsp:include page="include/adminheader.jsp"/>
 <h1>Available services</h1>
 <%
-  String prifix = request.getAttribute("frontendHostUrl") + (String)request.getSession().getAttribute(Constants.SERVICE_PATH) +"/";
+  String prefix = request.getAttribute("frontendHostUrl") + (String)request.getSession().getAttribute(Constants.SERVICE_PATH) +"/";
 %>
 <%
-  HashMap serviceMap = (HashMap) request.getSession().getAttribute(Constants.SERVICE_MAP);
-  request.getSession().setAttribute(Constants.SERVICE_MAP,null);
-  String servicName = request.getParameter("serviceName");
-  AxisService axisService = (AxisService) serviceMap.get(servicName);
-  if (axisService != null) {
-    Iterator operations;
-    String serviceName;
-    operations = axisService.getOperations();
-    serviceName = axisService.getName();
+    HashMap serviceMap = (HashMap) request.getSession().getAttribute(Constants.SERVICE_MAP);
+    request.getSession().setAttribute(Constants.SERVICE_MAP,null);
+    AxisService axisService = (AxisService) serviceMap.get(request.getParameter("serviceName"));
+    if (axisService != null) {
+        Iterator operations;
+        String serviceName;
+        operations = axisService.getOperations();
+        serviceName = axisService.getName();
 %><hr>
 
-<h2><font color="blue"><a href="<%=prifix + axisService.getName()%>?wsdl"><%=serviceName%></a>
+<h2><font color="blue"><a href="<%=prefix + axisService.getName()%>?wsdl"><%=serviceName%></a>
 </font></h2>
-<font color="blue">Service EPR :</font><font color="black"><%=prifix + axisService.getName()%></font>
+<font color="blue">Service EPR :</font><font color="black"><%=prefix + axisService.getName()%></font>
 <h4>Service Description : <font color="black"><%=axisService.getServiceDescription()%></font></h4>
 <i><font color="blue">Service Status : <%=axisService.isActive() ? "Active" : "InActive"%></font></i><br/>
 <%
@@ -101,7 +99,6 @@
 <%
   }
 %>
-<jsp:include page="include/adminfooter.inc">
-</jsp:include>
+<jsp:include page="include/adminfooter.inc"/>
 </body>
 </html>

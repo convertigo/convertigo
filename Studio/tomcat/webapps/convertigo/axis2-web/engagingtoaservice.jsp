@@ -24,6 +24,7 @@
                                                                              java.util.HashMap,
                                                                              java.util.Iterator"
          %>
+<%@ page import="org.apache.axis2.util.Utils" %>
 <jsp:include page="include/adminheader.jsp"></jsp:include>
 <%
     String status = (String) request.getSession().getAttribute(Constants.ENGAGE_STATUS);
@@ -133,7 +134,7 @@
                           style="display:none"
                         <%
                             } %>
-                        ><%=status%>
+                        ><%=Utils.sanitizeWebOutput(status)%>
                 </textarea>
             </td>
         </tr>

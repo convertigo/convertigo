@@ -58,7 +58,6 @@
             //operationsList = operations.values();
             serviceName = axisService.getName();
 %><h2><font color="blue"><a href="<%=prefix + axisService.getName()%>?wsdl"><%=serviceName%></a></font></h2>
-<font color="blue">Service EPR : </font><font color="black"><%=prefix + axisService.getName()%></font><br>
 <%
     boolean disableREST = false;
     AxisConfiguration axisConfiguration = axisService.getAxisConfiguration();
@@ -83,8 +82,9 @@
         serviceDescription = "No description available for this service";
     }
 %>
-<h4>Service Description : <font color="black"><%=serviceDescription%></font></h4>
-<i><font color="blue">Service Status : <%=axisService.isActive() ? "Active" : "InActive"%></font></i><br>
+<h5>Service Description : <font color="black"><%=serviceDescription%></font></h5>
+<h5>Service EPR : <%=prefix + axisService.getName()%></h5>
+<h5>Service Status : <%=axisService.isActive() ? "Active" : "InActive"%></h5><br>
 <%
     if (opItr.hasNext()) {
 %><i>Available Operations</i><%

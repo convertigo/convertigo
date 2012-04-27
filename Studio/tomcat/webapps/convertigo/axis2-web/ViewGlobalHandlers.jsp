@@ -21,7 +21,7 @@
                  org.apache.axis2.engine.AxisConfiguration,
                  org.apache.axis2.engine.Handler,
                  org.apache.axis2.engine.Phase,
-                 java.util.ArrayList"%>
+                 java.util.List"%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <jsp:include page="include/adminheader.jsp"></jsp:include>
 <h1>View Global Execution Chains</h1>
@@ -29,8 +29,8 @@
             AxisConfiguration axisConfig = (AxisConfiguration)request.getSession().
                     getAttribute(Constants.GLOBAL_HANDLERS);
              if(axisConfig != null ){
-                 java.util.List handlers ;
-                 ArrayList phases = axisConfig.getInFlowPhases();
+                 List handlers ;
+                 List phases = axisConfig.getInFlowPhases();
                  %>
                  <h3> In Flow Up To and Including Dispatcher </h3>
                  <ul>

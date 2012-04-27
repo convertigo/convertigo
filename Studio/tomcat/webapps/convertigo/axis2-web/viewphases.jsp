@@ -18,14 +18,14 @@
   --%> <%@ page import="org.apache.axis2.Constants,
                  org.apache.axis2.deployment.util.PhasesInfo,
                  org.apache.axis2.engine.Phase"%>
- <%@ page import="java.util.ArrayList"%>
+ <%@ page import="java.util.List"%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <jsp:include page="include/adminheader.jsp"></jsp:include>
 <h1>Available Phases</h1>
      <%
          PhasesInfo phases = (PhasesInfo)request.getSession().getAttribute(Constants.PHASE_LIST);
          request.getSession().setAttribute(Constants.PHASE_LIST,null);
-         ArrayList tempList = phases.getGlobalInflow();
+         List tempList = phases.getGlobalInflow();
      %><h2><font color="blue">System Pre-defined Phases</font></h2>
      <b>InFlow Up to Dispatcher</b>
      <blockquote>
