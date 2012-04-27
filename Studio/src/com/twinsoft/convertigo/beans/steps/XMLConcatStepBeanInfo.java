@@ -33,8 +33,8 @@ public class XMLConcatStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = XMLConcatStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.steps.XMLActionStep.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/transactionstep_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/transactionstep_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/concatstep_16x16.gif";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/concatstep_32x32.gif";
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/XMLConcatStep");
 			
