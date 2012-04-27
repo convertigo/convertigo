@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.beans.steps.ElseStep;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.steps.XMLComplexStep;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -207,7 +208,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 							
 							requiresNode.addChild(projectFolderImports);
 						}
-					} else if (step instanceof BlockStep|| step instanceof BranchStep || step instanceof ThenStep || step instanceof ElseStep) {
+					} else if (isStepContainer(step)) {
 						getProjectReferencingRequires(step, projectSelected, projectExplorerView, requiresNode);
 					}
 				}
@@ -247,7 +248,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 								if (sourceProjectName.equals(projectNameSelected)) {
 									sequenceNode.addChild(new TransactionStepNode(sequenceNode,"Call of " + sourceTransaction, step));
 								}
-							} else if (step instanceof BlockStep|| step instanceof BranchStep || step instanceof ThenStep || step instanceof ElseStep) {
+							} else if (isStepContainer(step)) {
 								getProjectReferencingIsUsedBy(step, projectSelected, sequenceNode);	
 							}
 						}
@@ -452,7 +453,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 								}
 								sequenceNode.addChild(new TransactionStepNode(sequenceNode, step.getName(), step));
 							}
-						} else if (step instanceof BlockStep || step instanceof BranchStep || step instanceof ThenStep || step instanceof ElseStep) {
+						} else if (isStepContainer(step)) {
 							if (sequenceNode == null) {
 								sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
 							}
@@ -532,7 +533,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 								projectFolder.addChild(sequenceNode);
 								sequenceNode.addChild(new SequenceStepNode(projectFolder, step.getName(), step));
 							}
-						} else if (step instanceof BlockStep || step instanceof BranchStep || step instanceof ThenStep || step instanceof ElseStep) {
+						} else if (isStepContainer(step)) {
 							SequenceNode sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
 							getSequenceReferencingIsUsedBy(step, sequenceSelected, sequenceNode);
 							if (sequenceNode.hasChildren()) {
@@ -593,7 +594,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 					connectorNode.addChild(transactionNode);
 					
 					requiresNode.addChild(projectFolder);
-				} else if (step instanceof BlockStep || step instanceof BranchStep || step instanceof ThenStep || step instanceof ElseStep) {
+				} else if (isStepContainer(step)) {
 					getSequenceReferencingRequires(step, sequenceSelected, projectExplorerView, requiresNode);
 				}
 			}
@@ -725,7 +726,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 									sequenceNode.addChild(new TransactionStepNode(sequenceNode, step.getName(), step));
 								}
 							}
-						} else if (step instanceof BlockStep || step instanceof BranchStep || step instanceof ThenStep || step instanceof ElseStep) {
+						} else if (isStepContainer(step)) {
 							if (sequenceNode == null) {
 								sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
 							}
@@ -812,6 +813,8 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			steps = ((ThenStep) step).getAllSteps();
 		} else if (step instanceof ElseStep) {
 			steps = ((ElseStep) step).getAllSteps();
+		} else if (step instanceof XMLComplexStep) {
+			steps = ((XMLComplexStep) step).getAllSteps();
 		}
 		
 		return steps;
@@ -1006,6 +1009,6 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 	}
 	
 	private boolean isStepContainer(Step step) {
-		return (step instanceof BlockStep || step instanceof BranchStep || step instanceof ThenStep || step instanceof ElseStep);
+		return (step instanceof BlockStep || step instanceof BranchStep || step instanceof ThenStep || step instanceof ElseStep || step instanceof XMLComplexStep);
 	}
 }
