@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.engine.util;
 
 import com.twinsoft.util.UnsignedLong;
 
-@Deprecated
 public class Crypto {
 	
 	private static final byte DES_ENCRYPT = 1;
@@ -48,12 +47,9 @@ public class Crypto {
 	private static final String skey1 = "0606f60909f60606";
 	private static final String skey2 = "f6f606090906f6f6";
 	private static final String skey3 = "0606f60909f60606";
-	private static final byte[] key1 = fromHexString(skey1);
-	private static final byte[] key2 = fromHexString(skey2);
-	private static final byte[] key3 = fromHexString(skey3);
-
-	/** The hexadecimal digits "0" through "f". */
-	private static char[] NIBBLE = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', };
+	private static final byte[] key1 = HexUtils.fromHexString(skey1);
+	private static final byte[] key2 = HexUtils.fromHexString(skey2);
+	private static final byte[] key3 = HexUtils.fromHexString(skey3);
 
 	private static final int[] shifts2 = { 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0 };
 	private static final byte[][] weakKeys = {
@@ -305,7 +301,7 @@ public class Crypto {
 				System.arraycopy(data, i, in, 0, 8);
 				crypto.des_ecb_encrypt(in, out, signedKey, Crypto.DES_ENCRYPT);
 				//encrypted += Crypto.hexString(out).substring(0, 16).toUpperCase();
-				encrypted += Crypto.hexString(out);
+				encrypted += HexUtils.toHexString(out);
 			}
 
 			return encrypted;
@@ -348,7 +344,7 @@ public class Crypto {
 				System.arraycopy(data, i, data2, 0, 16);
 
 				String tmp = new String(data2);
-				in = Crypto.fromHexString(tmp);
+				in = HexUtils.fromHexString(tmp);
 				crypto.des_ecb_encrypt(in, out, signedKey, Crypto.DES_DECRYPT);
 				decrypted += new String(out);
 			}
@@ -410,7 +406,7 @@ public class Crypto {
 				System.arraycopy(data, i, in, 0, 8);
 				crypto.des_ecb3_encrypt(in, out, ulkey1, ulkey2, ulkey3, Crypto.DES_ENCRYPT);
 				//encrypted += Crypto.hexString(out).substring(0, 16).toUpperCase();
-				encrypted += Crypto.hexString(out);
+				encrypted += HexUtils.toHexString(out);
 			}
 
 			return encrypted;
@@ -459,7 +455,7 @@ public class Crypto {
 				System.arraycopy(data, i, data2, 0, 16);
 
 				String tmp = new String(data2);
-				in = Crypto.fromHexString(tmp);
+				in = HexUtils.fromHexString(tmp);
 				crypto.des_ecb3_encrypt(in, out, ulkey1, ulkey2, ulkey3, Crypto.DES_DECRYPT);
 				decrypted += new String(out);
 			}
@@ -476,54 +472,6 @@ public class Crypto {
 
 			return null;
 		}
-	}
-
-	/**
-	 * Convert a byte array to a string of hexadecimal digits.
-	 */
-	private static final String hexString(byte[] buf) {
-		StringBuffer sb = new StringBuffer(buf.length * 2);
-
-		for (int i = 0; i < buf.length; i++) {
-			sb.append(NIBBLE[(buf[i] >>> 4) & 15]);
-			sb.append(NIBBLE[buf[i] & 15]);
-		}
-
-		return sb.toString();
-	}
-
-	/**
-	 * Convert a hexadecimal digit to a byte.
-	 */
-	private static byte fromHexNibble(char n) {
-		if (n <= '9')
-			return (byte)(n - '0');
-
-		if (n <= 'G')
-			return (byte)(n - ('A' - 10));
-
-		return (byte)(n - ('a' - 10));
-	}
-
-	/**
-	 * Convert a string of hexadecimal digits to a byte array.
-	 */
-	private static byte[] fromHexString(String hex) {
-		int l = (hex.length() + 1) / 2;
-		byte[] r = new byte[l];
-		int i = 0;
-		int j = 0;
-
-		if ((hex.length() & 1) == 1) {
-			// Odd number of characters: must handle half byte first.
-			r[0] = fromHexNibble(hex.charAt(0));
-			i = j = 1;
-		}
-
-		while (i < l)
-			r[i++] = (byte)((fromHexNibble(hex.charAt(j++)) << 4) | fromHexNibble(hex.charAt(j++)));
-
-		return r;
 	}
 
 	private void D_ENCRYPT(UnsignedLong Q, UnsignedLong R, int S, UnsignedLong[] ks) {
