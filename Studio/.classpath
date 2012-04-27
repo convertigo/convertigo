@@ -52,72 +52,83 @@
 	<classpathentry exported="true" kind="lib" path="lib/msxml.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jacob.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jtds-1.2.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/activation-1.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/annogen-0.1.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axiom-api-1.2.7.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axiom-dom-1.2.7.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axiom-impl-1.2.7.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-adb-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-adb-codegen-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-ant-plugin-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-clustering-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-codegen-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-corba-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-fastinfoset-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-java2wsdl-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-jaxbri-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-jaxws-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-jaxws-api-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-jibx-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-json-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-jws-api-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-kernel-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-metadata-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-mtompolicy-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-saaj-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-saaj-api-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-spring-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/axis2-xmlbeans-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/backport-util-concurrent-3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/commons-codec-1.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/commons-fileupload-1.2.jar" sourcepath="/ExternalJavaSources/commons-fileupload-1.2.1-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/commons-httpclient-3.1.jar" sourcepath="/ExternalJavaSources/commons-httpclient-3.1-src.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/commons-io-1.4.jar" sourcepath="/ExternalJavaSources/commons-io-2.0.1-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/commons-logging-1.1.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/geronimo-annotation_1.0_spec-1.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/geronimo-stax-api_1.0_spec-1.0.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/httpcore-4.0-beta1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/httpcore-nio-4.0-beta1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/jalopy-1.5rc3.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/jaxb-api-2.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/jaxb-impl-2.1.6.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/jaxb-xjc-2.1.6.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/jaxen-1.1.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/jibx-bind-1.1.5.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/jibx-run-1.1.5.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/log4j-1.2.15.jar" sourcepath="/ExternalJavaSources/apache-log4j-1.2.15-src.zip"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/mail-1.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/mex-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/neethi-2.0.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/soapmonitor-1.4.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/woden-api-1.0M8.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/woden-impl-dom-1.0M8.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/wsdl4j-1.6.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/wstx-asl-3.2.4.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/xalan-2.7.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/xercesImpl-2.8.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/xml-apis-1.3.04.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/xmlbeans-2.3.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/xml-resolver-1.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.4.1/lib/XmlSchema-1.4.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/activation-1.1.jar" sourcepath="C:/Development/Libs/Axis2/axis2-1.6.1-src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/antlr-2.7.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axiom-api-1.2.12.jar" sourcepath="C:/Development/Libs/Axis2/axiom-1.2.12-source-release.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axiom-dom-1.2.12.jar" sourcepath="C:/Development/Libs/Axis2/axiom-1.2.12-source-release.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axiom-impl-1.2.12.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-adb-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-adb-codegen-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-ant-plugin-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-clustering-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-codegen-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-corba-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-fastinfoset-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-java2wsdl-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-jaxbri-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-jaxws-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-jibx-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-json-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-kernel-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-metadata-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-mtompolicy-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-saaj-1.6.1.jar" sourcepath="C:/Development/Libs/Axis2/axis2-1.6.1-src.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-soapmonitor-servlet-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-spring-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-transport-http-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-transport-local-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/axis2-xmlbeans-1.6.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/bcel-5.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-cli-1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-codec-1.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-fileupload-1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-httpclient-3.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-io-1.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-logging-1.1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/geronimo-annotation_1.0_spec-1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/geronimo-jaxws_2.2_spec-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/geronimo-jta_1.1_spec-1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/geronimo-saaj_1.3_spec-1.0.1.jar" sourcepath="C:/Development/Libs/Axis2/geronimo-saaj_1.3_spec-1.0.1-sources.zip"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/geronimo-stax-api_1.0_spec-1.0.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/geronimo-ws-metadata_2.0_spec-1.1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/httpcore-4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/jalopy-1.5rc3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/jaxb-api-2.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/jaxb-impl-2.1.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/jaxb-xjc-2.1.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/jaxen-1.1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/jaxws-tools-2.1.3.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/jettison-1.0-RC2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/jibx-bind-1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/jibx-run-1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/jsr311-api-1.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/juli-6.0.16.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/log4j-1.2.15.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/mail-1.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/mex-1.6.1-impl.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/neethi-3.0.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/regexp-1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/tribes-6.0.16.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/woden-api-1.0M9.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/woden-impl-commons-1.0M9.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/woden-impl-dom-1.0M9.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/wsdl4j-1.6.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/wstx-asl-3.2.9.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/xalan-2.7.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/xml-resolver-1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/xmlbeans-2.3.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/XmlSchema-1.4.7.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/apache/batik/batik.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/apache/bcel/bcel-5.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/backport/backport-util-concurrent-3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/bcprov-jdk15-141.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/not-yet-commons-ssl-0.3.10.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/commons-beanutils-1.7.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/commons-cli-1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/soapui-3.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/soapui-xmlbeans-3.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xerces-2_11_0/xercesImpl.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/xerces-2_11_0/xml-apis.jar"/>
 	<classpathentry exported="true" kind="lib" path="tomcat/lib/catalina.jar" sourcepath="/ExternalJavaSources/apache-tomcat-6.0.20-src"/>
 	<classpathentry exported="true" kind="lib" path="tomcat/lib/jsp-api.jar"/>
 	<classpathentry exported="true" kind="lib" path="tomcat/lib/servlet-api.jar" sourcepath="/ExternalJavaSources/servlet-api"/>
