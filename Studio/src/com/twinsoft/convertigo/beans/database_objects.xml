@@ -137,7 +137,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                 </bean>
-                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep">
+                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
