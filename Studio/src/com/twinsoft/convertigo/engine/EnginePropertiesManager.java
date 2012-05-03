@@ -303,9 +303,9 @@ public class EnginePropertiesManager {
 		ADMIN_USERNAME ("admin.username", "admin", "Admin username", PropertyCategory.Account),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
 		ADMIN_PASSWORD ("admin.password", ""+"admin".hashCode(), "Admin password", PropertyCategory.Account),
-		TEST_PLATFORM_USERNAME ("testplatform.username", "", "TestPlatform username (leave it blank for anonymous access)", PropertyCategory.Account),
+		TEST_PLATFORM_USERNAME ("testplatform.username", "", "Test Platform username (leave it blank for anonymous access)", PropertyCategory.Account),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
-		TEST_PLATFORM_PASSWORD ("testplatform.password", ""+"".hashCode(), "TestPlatform password", PropertyCategory.Account),
+		TEST_PLATFORM_PASSWORD ("testplatform.password", ""+"".hashCode(), "Test Platform password", PropertyCategory.Account),
 		
 		/** LOG */
 		LOG4J_LOGGER_CEMS ("log4j.logger.cems", "INFO, CemsAppender", "Log4J root logger", PropertyCategory.Logs),
