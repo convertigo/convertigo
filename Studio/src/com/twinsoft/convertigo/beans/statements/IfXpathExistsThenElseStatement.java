@@ -52,16 +52,17 @@ public class IfXpathExistsThenElseStatement extends IfXpathExistsStatement imple
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.execute(javascriptContext, scope)) {
-				
 				thenStatement = getThenStatement();
 				if (thenStatement != null) {
 					thenStatement.execute(javascriptContext, scope);
 				}
+				return false;
 			} else {
 				elseStatement = getElseStatement();
 				if (elseStatement != null) {
 					elseStatement.execute(javascriptContext, scope);
 				}
+				return false;
 			}
 			
 		}
