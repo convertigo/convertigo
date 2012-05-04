@@ -1,20 +1,13 @@
 package com.twinsoft.convertigo.beans.statements;
 
-import javax.xml.transform.TransformerException;
-
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
 
-import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.IXPathable;
 import com.twinsoft.convertigo.beans.core.Statement;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 
-public class IfXpathExistsThenElseStatement extends BlockStatement implements IThenElseStatementContainer, IXPathable {
+public class IfXpathExistsThenElseStatement extends IfXpathExistsStatement implements IThenElseStatementContainer, IXPathable {
 
 	private static final long serialVersionUID = 8091155349126369180L;
 	private transient ThenStatement thenStatement = null;
@@ -59,46 +52,18 @@ public class IfXpathExistsThenElseStatement extends BlockStatement implements IT
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.execute(javascriptContext, scope)) {
-				HtmlConnector htmlConnector = getConnector();
-				Document xmlDocument = htmlConnector.getCurrentXmlDocument();
-				TwsCachedXPathAPI xpathApi = htmlConnector.context.getXpathApi();
 				
-				if ((xmlDocument == null) || (xpathApi == null)) {
-					Engine.logBeans.warn((xmlDocument == null) ? "(XPath) Current DOM of HtmlConnector is Null!":"TwsCachedXPathAPI of HtmlConnector is Null!");
-					return false;
-				}
-
-				
-				evaluate(javascriptContext, scope, condition, "xpath", false);
-				String jsXpath = evaluated.toString();
-					
-				NodeList nodeList = null;
-				try {
-					nodeList = xpathApi.selectNodeList(xmlDocument, jsXpath);
-				} catch (TransformerException e) {
-					return false;
-				} catch (ClassCastException e) {
-					return false;
-				}
-				
-				if (nodeList == null){
-					return false;
-				}
-				if (nodeList.getLength() == 0) {
-					elseStatement = getElseStatement();
-					if (elseStatement != null) {
-						elseStatement.execute(javascriptContext, scope);
-					}
-					return false;
-				}
-					
 				thenStatement = getThenStatement();
 				if (thenStatement != null) {
 					thenStatement.execute(javascriptContext, scope);
-					return true;
 				}
-				return false;
+			} else {
+				elseStatement = getElseStatement();
+				if (elseStatement != null) {
+					elseStatement.execute(javascriptContext, scope);
+				}
 			}
+			
 		}
 		return false;
 	}
