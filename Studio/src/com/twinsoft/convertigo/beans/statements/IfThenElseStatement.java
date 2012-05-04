@@ -7,7 +7,7 @@ import org.mozilla.javascript.Scriptable;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class IfThenElseStatement extends IfStatement implements IThenElseStatementContainer {
+public class IfThenElseStatement extends BlockStatement implements IThenElseStatementContainer {
 
 	private static final long serialVersionUID = -2253911307425225516L;
 	private transient ThenStatement thenStatement = null;
