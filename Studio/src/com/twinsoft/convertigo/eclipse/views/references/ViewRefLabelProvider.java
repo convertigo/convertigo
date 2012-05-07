@@ -52,7 +52,7 @@ import com.twinsoft.convertigo.eclipse.views.references.model.TransactionNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.TransactionStepNode;
 
 
-class ViewRefLabelProvider implements ILabelProvider {
+public class ViewRefLabelProvider implements ILabelProvider {
 
 	public void addListener(ILabelProviderListener listener) {
 	}
