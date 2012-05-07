@@ -30,7 +30,6 @@ public class IfXpathExistsThenElseStatement extends BlockStatement implements IT
 		setXpath(condition);
 	}
 	
-	@Override
 	public boolean hasThenElseStatements() {
 		checkSubLoaded();
 		return true;
@@ -171,12 +170,10 @@ public class IfXpathExistsThenElseStatement extends BlockStatement implements IT
 		return code;
 	}
 
-	@Override
 	public String getXpath() {
 		return getCondition();
 	}
 
-	@Override
 	public void setXpath(String xpath) {
 		xpath = "'"+xpath.replace("\\", "\\\\").replace("'", "\\'")+"'";
 		setCondition(xpath);
