@@ -40,6 +40,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -84,7 +85,18 @@ public class XMLUtils {
 	public static DocumentBuilder getDefaultDocumentBuilder() {
 		return defaultDocumentBuilder.get();
 	}
+	
+	private static ThreadLocal<TransformerFactory> defaultTransformerFactory = new ThreadLocal<TransformerFactory>() {
+		@Override
+		protected TransformerFactory initialValue() {
+			return TransformerFactory.newInstance();
+		}
+	};
 
+	public static Transformer getNewTransformer() throws TransformerConfigurationException {
+		return defaultTransformerFactory.get().newTransformer();
+	}
+	
 	public static String simplePrettyPrintDOM(String sDocument) {
 		StringEx sxDocument = new StringEx(sDocument);
 		sxDocument.replaceAll(">", ">\n");
@@ -152,9 +164,8 @@ public class XMLUtils {
 			}
 		}
 
-		TransformerFactory tfac = TransformerFactory.newInstance();
 		try {
-			Transformer t = tfac.newTransformer();
+			Transformer t = getNewTransformer();
 			t.setOutputProperty(OutputKeys.ENCODING, encoding);
 			t.setOutputProperty(OutputKeys.INDENT, "yes");
 			t.setOutputProperty(OutputKeys.METHOD, "xml"); // xml, html, text
@@ -188,9 +199,8 @@ public class XMLUtils {
 			}
 		}
 		StringWriter strWtr = new StringWriter();
-		TransformerFactory tfac = TransformerFactory.newInstance();
 		try {
-			Transformer t = tfac.newTransformer();
+			Transformer t = getNewTransformer();
 			t.setOutputProperty(OutputKeys.ENCODING, encoding);
 			t.setOutputProperty(OutputKeys.INDENT, bIndent ? "yes" : "no");
 			t.setOutputProperty(OutputKeys.METHOD, "xml"); // xml, html, text
@@ -731,10 +741,18 @@ public class XMLUtils {
 	}
 
 	public static void saveXml(Document dom, String filePath) throws IOException {
+		saveXml(dom, filePath, false);
+	}
+	
+	public static void saveXml(Document dom, String filePath, boolean omitXmlDeclaration) throws IOException {
 		try {
 			File file = new File(filePath);
-			TransformerFactory.newInstance().newTransformer()
-					.transform(new DOMSource(dom), new StreamResult(file.toURI().getPath()));
+			Transformer transformer = getNewTransformer();
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, omitXmlDeclaration ? "yes" : "no");
+			transformer.transform(new DOMSource(dom.getDocumentElement()), new StreamResult(file.toURI().getPath()));
 		} catch (Exception e) {
 			throw new IOException("saveXml failed because : " + e.getMessage());
 		}

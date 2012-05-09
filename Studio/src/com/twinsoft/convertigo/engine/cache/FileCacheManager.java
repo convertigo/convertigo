@@ -29,8 +29,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 
 import org.w3c.dom.Document;
 
@@ -85,16 +83,7 @@ public class FileCacheManager extends MemoryCacheManager {
 		try {
 			makeDirectory();
 
-			File file = new File(fileName);
-			
-			FileOutputStream fos = new FileOutputStream(file);
-			
-			String xmlSerializationData = XMLUtils.prettyPrintDOM(response);
-            Engine.logCacheManager.trace("Response data:\n" + xmlSerializationData);
-            Charset cs = Charset.forName("ISO-8859-1");
-            ByteBuffer bb = cs.encode(xmlSerializationData);
-			fos.write(bb.array());
-			fos.close();
+			XMLUtils.saveXml(response, fileName, true);
 			
 			FileCacheEntry cacheEntry = new FileCacheEntry();
 			cacheEntry.requestString = requestString;
@@ -103,7 +92,7 @@ public class FileCacheManager extends MemoryCacheManager {
 
 			Engine.logCacheManager.debug("The response has been stored: [" + cacheEntry + "]");
 
-			return (CacheEntry) cacheEntry;
+			return cacheEntry;
 		}
 		catch(IOException e) {
 			throw new EngineException("Unable to store the response! (requestString: " + requestString + ", file: " + fileName + ")", e);
@@ -118,17 +107,7 @@ public class FileCacheManager extends MemoryCacheManager {
 		try {
 			File file = new File(fileCacheEntry.fileName);
 			
-            FileInputStream fis = new FileInputStream(file);		
-			StringBuffer serializationData = new StringBuffer(1024);
-
-			byte[] buffer = new byte[4096];
-	        int nbReadBytes = 0;
-	        while ((nbReadBytes = fis.read(buffer)) != -1) {
-	            serializationData.append(new String(buffer,0,nbReadBytes,"ISO-8859-1"));
-	        }
-	        fis.close();
-
-			Document document = requester.parseDOM(serializationData.toString());
+			Document document = XMLUtils.parseDOM(file);
 
 			Engine.logCacheManager.debug("Response built from the cache");
 			
