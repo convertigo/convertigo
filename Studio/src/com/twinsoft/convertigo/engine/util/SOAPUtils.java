@@ -27,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.management.AttributeNotFoundException;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -51,9 +52,12 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 
 import org.dom4j.io.DocumentSource;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.steps.StepException;
@@ -61,6 +65,18 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.util.Log;
 
 public class SOAPUtils {
+
+	private static ThreadLocal<SOAPFactory> defaultSOAPFactory = new ThreadLocal<SOAPFactory>() {
+		@Override
+		protected SOAPFactory initialValue() {
+			try {
+				return SOAPFactory.newInstance();
+			} catch (SOAPException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+	};
 
 	/**
 	 * SOAP to DOM transformer.
@@ -150,10 +166,11 @@ public class SOAPUtils {
 				fault.setFaultCode("soapenv:Server");
 			}
 
-			SOAPFactory soapFactory = SOAPFactory.newInstance();
+			SOAPFactory soapFactory = defaultSOAPFactory.get();
 			Name name;
 			DetailEntry detailEntry;
 
+			System.out.println(XMLUtils.prettyPrintDOM(fault));
 			if (stepException == null) {
 				Detail detail = fault.addDetail();
 				String faultDetail = e.getMessage();
@@ -176,7 +193,6 @@ public class SOAPUtils {
 	 			name = soapFactory.createName("moreinfo");
 				detailEntry = detail.addDetailEntry(name);
 				detailEntry.addTextNode("See the Convertigo engine log files for more details...");
-				
 			}
 			else {
 				// Details property of ExceptionStep is not empty
@@ -184,27 +200,14 @@ public class SOAPUtils {
 					Detail detail = fault.addDetail();
 					// If step's exception detail is an XML document, insert it in the detail SOAP part
 					try {
-						InputStream inputStream = (InputStream)new ByteArrayInputStream(stepException.details.getBytes("UTF-8"));
+						InputStream inputStream = (InputStream) new ByteArrayInputStream(stepException.details.getBytes("UTF-8"));
 						DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 						documentBuilderFactory.setNamespaceAware(true);
 						documentBuilderFactory.setValidating(true);
 						DocumentBuilder docbuilder = documentBuilderFactory.newDocumentBuilder();
-						Document dom = docbuilder.parse(inputStream);
-						QName qname;
-						NodeList children = dom.getChildNodes();
-						for (int i = 0 ; i < children.getLength(); i++) {
-							Node node = children.item(i);
-							String prefix = node.getPrefix();
-							String namespace = node.getNamespaceURI();		
-							qname = new QName(node.getNodeName());
-							detailEntry = detail.addDetailEntry(qname);
-							detailEntry.addTextNode(node.getNodeValue());
-							if (prefix != null && namespace != null) {
-								detailEntry.addNamespaceDeclaration(prefix, namespace);
-								detailEntry.setElementQName(qname);
-							} 
-							getSubDetails(soapFactory, detailEntry, node);
-						}
+						Document domDetails = docbuilder.parse(inputStream);
+//						Document domDetails = XMLUtils.parseDOMFromString(stepException.details);
+						addDetails(detail, domDetails.getDocumentElement());
 					} catch (Exception ee) {
 						// Probably not an XML DOM, insert as CDATA
 						name = soapFactory.createName("content");
@@ -214,10 +217,13 @@ public class SOAPUtils {
 				}
 			}
 			
+			System.out.println("+before saveChanges\n" + XMLUtils.prettyPrintDOM(fault));
 			faultMessage.saveChanges();
+			System.out.println("+after saveChanges\n" + XMLUtils.prettyPrintDOM(fault));
 			
 			String sResponseMessage = "";
 			sResponseMessage = SOAPUtils.toString(faultMessage, encoding);
+			System.out.println("sResponseMessage\n" + sResponseMessage);
 			
 			if (Engine.logEngine.isDebugEnabled()) {
 				Engine.logEngine.debug("SOAP response:\n" + sResponseMessage);
@@ -241,16 +247,92 @@ public class SOAPUtils {
 		}
 	}
     
-    private static void getSubDetails(SOAPFactory soapFactory, SOAPElement parentDetailEntry, Node parentNode) throws SOAPException {
-		NodeList children = parentNode.getChildNodes();
-		for (int i = 0 ; i < children.getLength(); i++) {
-			Node node = children.item(i);
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				Name name = soapFactory.createName(node.getNodeName());
-				SOAPElement detailEntry = parentDetailEntry.addChildElement(name);
-				detailEntry.addTextNode(node.getTextContent());
-				getSubDetails(soapFactory, detailEntry, node);
+    private static void addDetails(SOAPElement detailEntry, Node node) throws SOAPException {
+    	System.out.println("addDetails\n" + XMLUtils.prettyPrintDOM(detailEntry.getOwnerDocument()));
+		
+    	String prefix = node.getPrefix();
+		String namespace = node.getNamespaceURI();
+		String localname = node.getLocalName();
+		
+		QName qname = (prefix == null ? new QName(localname) : new QName(namespace, localname, prefix));
+		SOAPElement childEntry = detailEntry.addChildElement(qname);
+
+    	System.out.println("addChildElement\n" + XMLUtils.prettyPrintDOM(detailEntry.getOwnerDocument()));
+
+		// Add the attributes
+		NamedNodeMap attributes =  node.getAttributes();
+		int nAttributes = attributes.getLength();
+		for (int i = 0; i < nAttributes; i++) {
+			Attr attribute = (Attr) attributes.item(i);
+			localname = attribute.getLocalName();
+			prefix = attribute.getPrefix();
+			namespace = attribute.getNamespaceURI();
+			if (prefix == null) qname = new QName(localname);
+			else qname = new QName(namespace, localname, prefix);
+			String value = attribute.getNodeValue();
+			childEntry.addAttribute(qname, value);
+			System.out.println("+attr\n" + XMLUtils.prettyPrintDOM(detailEntry.getOwnerDocument()));
+		}
+		
+		// Add sub nodes
+		NodeList childNodes = node.getChildNodes();
+		int nChildNodes = childNodes.getLength();
+		for (int i = 0 ; i < nChildNodes; i++) {
+			Node childNode = childNodes.item(i);
+			if (childNode instanceof Text) {
+				// Add the text content
+				childEntry.addTextNode(childNode.getTextContent());
 			}
+			else {
+				addDetails(childEntry, childNode);
+			}
+			System.out.println("+childnode\n" + XMLUtils.prettyPrintDOM(detailEntry.getOwnerDocument()));
 		}
     }
+    
+//    private static void getSubDetails(SOAPFactory soapFactory, SOAPElement parentDetailEntry, Node parentNode) throws SOAPException {
+//		QName qname;
+//		DetailEntry detailEntry;
+//
+//		String prefix = parentNode.getPrefix();
+//		String namespace = parentNode.getNamespaceURI();
+//		String localname = parentNode.getLocalName();
+//		
+//		qname = new QName(namespace, localname, prefix);
+//		detailEntry = parentDetailEntry.addDetailEntry(qname);
+//		detailEntry.addTextNode(node.getNodeValue());
+//		if (prefix != null && namespace != null) {
+//			detailEntry.addNamespaceDeclaration(prefix, namespace);
+//			detailEntry.setElementQName(qname);
+//		} 
+//
+//		NodeList children = parentNode.getChildNodes();
+//		int nChildren = children.getLength();
+//		for (int i = 0 ; i < nChildren; i++) {
+//			Node node = children.item(i);
+//			String prefix = node.getPrefix();
+//			String namespace = node.getNamespaceURI();
+//			String localname = node.getLocalName();
+//			
+//			qname = new QName(namespace, localname, prefix);
+//			detailEntry = detail.addDetailEntry(qname);
+//			detailEntry.addTextNode(node.getNodeValue());
+//			if (prefix != null && namespace != null) {
+//				detailEntry.addNamespaceDeclaration(prefix, namespace);
+//				detailEntry.setElementQName(qname);
+//			} 
+//			getSubDetails(soapFactory, detailEntry, node);
+//		}
+//
+//		NodeList children = parentNode.getChildNodes();
+//		for (int i = 0 ; i < children.getLength(); i++) {
+//			Node node = children.item(i);
+//			if (node.getNodeType() == Node.ELEMENT_NODE) {
+//				Name name = soapFactory.createName(node.getNodeName());
+//				SOAPElement detailEntry = parentDetailEntry.addChildElement(name);
+//				detailEntry.addTextNode(node.getTextContent());
+//				getSubDetails(soapFactory, detailEntry, node);
+//			}
+//		}
+//    }
 }
