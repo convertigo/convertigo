@@ -149,4 +149,8 @@ public class SqlConnectorComposite extends AbstractConnectorComposite implements
 	public void monitor(ToolItem ti) {
 		// TODO gérer le monitoring du connecteur pour l'affichage du bouton
 	}
+
+	protected void clearContent() {
+		setData(null);
+	}
 }

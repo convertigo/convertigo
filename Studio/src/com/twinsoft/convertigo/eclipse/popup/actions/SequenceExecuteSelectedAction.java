@@ -62,6 +62,7 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
     				SequenceEditor sequenceEditor = projectTreeObject.getSequenceEditor(sequence);
     				if (sequenceEditor != null) {
     					getActivePage().activate(sequenceEditor);
+    					sequenceEditor.getSequenceEditorPart().clearBrowser();
     					sequenceEditor.getDocument(sequence.getName(), withXslt);
     				}
     			}

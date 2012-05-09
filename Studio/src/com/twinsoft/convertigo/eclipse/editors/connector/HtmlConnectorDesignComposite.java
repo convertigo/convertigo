@@ -1193,6 +1193,11 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 			}
 		});
 	}
+	
+	public void clearEditor(EngineEvent engineEvent) {
+		if (!checkEventSource(engineEvent))
+			return;
+	}
 
 	public void sequenceFinished(EngineEvent engineEvent) {
 		if (!checkEventSource(engineEvent))

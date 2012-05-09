@@ -89,6 +89,8 @@ public abstract class AbstractSequenceComposite extends Composite implements ISe
 	protected abstract void initialize();
 	
 	public abstract void initSequence(Sequence sequence);
+	
+	protected abstract void clearContent();
 
 	/**
 	 * Called when editor part is about to be closed.

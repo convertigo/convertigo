@@ -71,6 +71,10 @@ public class HttpConnectorComposite extends AbstractConnectorComposite implement
 		this.setLayout(new GridLayout());
 		setSize(new Point(300, 200));
 	}
+	
+	protected void clearContent() {
+		httpData.setText("");
+	}
 
 	public void dataChanged(ConnectorEvent connectorEvent) {
 		if (!checkEventSource(connectorEvent))

@@ -1389,4 +1389,8 @@ public class JavelinConnectorComposite extends AbstractConnectorComposite implem
 			break;
 		}
 	}
+
+	protected void clearContent() {
+		initialize();
+	}
 }

@@ -2547,6 +2547,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public void sequenceStarted(EngineEvent engineEvent) {
 	}
 
+	public void clearEditor(EngineEvent engineEvent) {
+	}
+
 	public void projectMigrated(EngineEvent engineEvent) {
 		final String projectName = (String)engineEvent.getSource();
 		if (projectName != null) {

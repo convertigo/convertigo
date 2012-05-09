@@ -108,4 +108,8 @@ public class ExternalBrowserConnectorComposite extends AbstractConnectorComposit
 	public void monitor(ToolItem ti) {
 		// TODO gérer le monitoring du connecteur pour l'affichage du bouton
 	}
+	
+	protected void clearContent() {
+		setTextData("");
+	}
 }

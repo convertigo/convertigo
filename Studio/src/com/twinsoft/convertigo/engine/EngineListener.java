@@ -39,4 +39,6 @@ public interface EngineListener extends java.util.EventListener {
     public void sequenceStarted(EngineEvent engineEvent);
     
     public void sequenceFinished(EngineEvent engineEvent);
+    
+    public void clearEditor(EngineEvent engineEvent);
 }

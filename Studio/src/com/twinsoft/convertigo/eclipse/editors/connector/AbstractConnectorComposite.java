@@ -92,6 +92,8 @@ public abstract class AbstractConnectorComposite extends Composite implements IS
 		return isSourceFromConnector;
 	}
 	
+	protected abstract void clearContent();
+	
 	protected abstract void initialize();
 	
 	public abstract void initConnector(Transaction transaction);

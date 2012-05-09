@@ -98,6 +98,10 @@ public class CicsConnectorComposite extends AbstractConnectorComposite implement
 			return;
 		setTextData((byte[]) connectorEvent.data);
 	}
+	
+	protected void clearContent() {
+		cicsData.setText("");
+	}
 
 	private void setTextData(byte[] data) {
 		if (data != null) {

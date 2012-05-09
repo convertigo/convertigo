@@ -71,6 +71,10 @@ public class SequenceComposite extends AbstractSequenceComposite implements Sequ
 		this.setLayout(new GridLayout());
 		setSize(new Point(300, 200));
 	}
+	
+	protected void clearContent() {
+		setTextData("");
+	}
 
 	public void dataChanged(SequenceEvent sequenceEvent) {
 		if (!checkEventSource(sequenceEvent))
@@ -119,5 +123,4 @@ public class SequenceComposite extends AbstractSequenceComposite implements Sequ
 		// TODO Auto-generated method stub
 		
 	}
-
 }
