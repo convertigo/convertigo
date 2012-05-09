@@ -1292,14 +1292,15 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			} catch (IOException e) {
 			}
 		}
-
 		lastGeneratedDocument = (org.w3c.dom.Document) engineEvent.getSource();
-		final String strXML = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
-		getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				xmlView.getDocument().set(strXML);
-			}
-		});
+		if (lastGeneratedDocument.getDocumentElement().getAttribute("project").equals(projectName)) {
+			final String strXML = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
+			getDisplay().asyncExec(new Runnable() {
+				public void run() {
+					xmlView.getDocument().set(strXML);
+				}
+			});
+		}
 	}
 
 	public void blocksChanged(EngineEvent engineEvent) {
