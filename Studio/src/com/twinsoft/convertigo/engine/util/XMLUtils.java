@@ -833,7 +833,7 @@ public class XMLUtils {
 		return StringEscapeUtils.escapeXml(getCDataText(s));
 	}
 
-	public static int MAX_XML_SIZE_FOR_LOG_INFO = 10;
+	public static int MAX_XML_SIZE_FOR_LOG_INFO = 5;
 
 	public static void logXml(Document document, Logger log, String message) {
 		if (document != null && log.isInfoEnabled()) {
@@ -841,9 +841,9 @@ public class XMLUtils {
 
 			if (xml.length() > XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO * 1000) {
 				if (!log.isDebugEnabled()) {
-					log.info(message + ":\n" + xml.substring(0, XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO * 1000) + "...\n"
-							+ "[XML size is > " + XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO
-							+ "KB, enable DEBUG log level for this logger to see it completly!]");
+					log.info("[XML size is > " + XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO
+							+ "KB, enable DEBUG log level for this logger to see it completly!]\n"
+							+ message + ":\n" + xml.substring(0, XMLUtils.MAX_XML_SIZE_FOR_LOG_INFO * 1000) + "... (see the complete message in DEBUG log level)");
 				}
 				log.debug(message + ":\n" + xml);
 			} else {
