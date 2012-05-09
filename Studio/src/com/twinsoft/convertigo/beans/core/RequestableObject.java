@@ -78,7 +78,11 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     public static final int SHEET_LOCATION_NONE = 0;
     public static final int SHEET_LOCATION_FROM_REQUESTABLE = 1;
     public static final int SHEET_LOCATION_FROM_LAST_DETECTED_OBJECT_OF_REQUESTABLE = 2;
-		
+
+    public static final int ACCESSIBILITY_PUBLIC = 0;
+    public static final int ACCESSIBILITY_HIDDEN = 1;
+    public static final int ACCESSIBILITY_PRIVATE = 2;
+    
     protected final static String fake_root = "document";
     
     /**
@@ -495,21 +499,25 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         this.encodingCharSet = encodingCharSet;
     }
 	
-	/** Holds value of property publicMethod. */
-	private boolean publicMethod = false;
+	/** Holds value of property accessibility. */
+	private int accessibility = 0;
 
-    /** Getter for property publicMethod.
-     * @return Value of property publicMethod.
+    /** Getter for property accessibility.
+     * @return Value of property accessibility.
      */
-    public boolean isPublicMethod() {
-        return this.publicMethod;
+    public int getAccessibility() {
+        return this.accessibility;
     }
     
-    /** Setter for property publicMethod.
-     * @param publicMethod New value of property publicMethod.
+    /** Setter for property accessibility.
+     * @param accessibility New value of property accessibility.
      */
-    public void setPublicMethod(boolean publicMethod) {
-        this.publicMethod = publicMethod;
+    public void setAccessibility(int accessibility) {
+        this.accessibility = accessibility;
+    }
+    
+    public boolean isPublicMethod() {
+    	return accessibility == ACCESSIBILITY_PUBLIC;
     }
 	
 	/** Holds value of property responseTimeout. */
@@ -817,6 +825,19 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             throw new EngineException("Unable to configure the WSDL types of the requestable \"" + getName() + "\".", e);
         }
         
+        try {
+        	// Convert the publicMethod property to new semantic (accessibility)
+            if (VersionUtils.compare(version, "6.1.2") < 0) {
+				boolean publicMethod = (Boolean) XMLUtils.findPropertyValue(element, "publicMethod");
+				if (publicMethod) setAccessibility(ACCESSIBILITY_PUBLIC);
+				else setAccessibility(ACCESSIBILITY_HIDDEN);
+				
+                hasChanged = true;
+                Engine.logBeans.warn("[RequestableObject] The object \"" + getName() + "\" has been updated to version 6.1.2; publicMethod=" + publicMethod + "; accessibility=" + accessibility);
+            }
+        } catch(Exception e) {
+            throw new EngineException("Unable to migrate the accessibility for requestable \"" + getName() + "\".", e);
+        }
         if (VersionUtils.compare(version, "4.6.0") < 0) {
 			// Backup wsdlTypes to file
 			try {
