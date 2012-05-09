@@ -37,7 +37,7 @@ import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition.Role;
 import com.twinsoft.convertigo.engine.cache.DatabaseCacheManager;
-import com.twinsoft.util.DESKey;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 
 @ServiceDefinition(
 		name = "Clear",
@@ -94,7 +94,7 @@ public class ShowProperties extends XmlService {
 			root.appendChild(name);
 			
 			Element password= document.createElement("userPassword");					
-			password.setTextContent(DESKey.decodeFromHexString(dbCacheProp.getProperty("jdbc.user.password")));
+			password.setTextContent(Crypto2.decodeFromHexString(dbCacheProp.getProperty("jdbc.user.password")));
 			root.appendChild(password);		
 			
 		}

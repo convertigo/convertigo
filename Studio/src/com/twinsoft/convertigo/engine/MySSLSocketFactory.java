@@ -51,7 +51,7 @@ import org.apache.commons.httpclient.ConnectTimeoutException;
 import org.apache.commons.httpclient.params.HttpConnectionParams;
 import org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory;
 
-import com.twinsoft.util.DESKey;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 
 public class MySSLSocketFactory implements SecureProtocolSocketFactory {
 
@@ -115,10 +115,10 @@ public class MySSLSocketFactory implements SecureProtocolSocketFactory {
 				
 				String pinCode;
 				if (i == -1) {
-					pinCode = DESKey.decodeFromHexString(p);
+					pinCode = Crypto2.decodeFromHexString(p);
 				}
 				else {
-					pinCode = DESKey.decodeFromHexString(p.substring(0, i));
+					pinCode = Crypto2.decodeFromHexString(p.substring(0, i));
 				}
 	
 				Engine.logCertificateManager.debug("(MySSLSocketFactory) PIN code: " + pinCode);

@@ -41,8 +41,8 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition.Role;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.util.DESKey;
 import com.twinsoft.util.QuickSort;
 
 @ServiceDefinition(
@@ -95,7 +95,7 @@ public class List extends XmlService {
     	while (storesKeysEnum.hasMoreElements()) {
     		certificateName  = (String) storesKeysEnum.nextElement();
     		certificateType  = (String) storesProperties.getProperty(certificateName + ".type");
-    		certificatePwd   = DESKey.decodeFromHexString((String) storesProperties.getProperty(certificateName));
+    		certificatePwd   = Crypto2.decodeFromHexString((String) storesProperties.getProperty(certificateName));
     		certificateGroup = (String) storesProperties.getProperty(certificateName + ".group");
 
     		

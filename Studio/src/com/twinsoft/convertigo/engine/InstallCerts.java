@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import com.twinsoft.util.DESKey;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 
 public class InstallCerts {
 
@@ -125,7 +125,7 @@ public class InstallCerts {
 			File propertiesFile = new File(propertiesFileName);
 			Properties properties = new Properties();
 			properties.load(new FileInputStream(propertiesFile));
-			properties.setProperty(fileName, DESKey.encodeToHexString(password));
+			properties.setProperty(fileName, Crypto2.encodeToHexString(password));
 			properties.setProperty(fileName + ".type", "client");
 			properties.store(new FileOutputStream(propertiesFile), null);
 		}

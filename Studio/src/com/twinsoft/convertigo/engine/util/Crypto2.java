@@ -40,6 +40,7 @@ import javax.crypto.spec.PBEParameterSpec;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.util.DESKey;
 
 public class Crypto2 {
 
@@ -165,12 +166,34 @@ public class Crypto2 {
 			logDebug("Old crypto lib detected");
 			
 			String decipheredValue;
+			String recipheredValue;
 
-			if (bTripleDES)
+			// Crypto v1 from C8O?
+			if (bTripleDES) {
 				decipheredValue = com.twinsoft.convertigo.engine.util.Crypto.decodeFromHexString3(ciphered);
-			else
+				recipheredValue = com.twinsoft.convertigo.engine.util.Crypto.encodeToHexString3(decipheredValue);
+			}
+			else {
 				decipheredValue = com.twinsoft.convertigo.engine.util.Crypto.decodeFromHexString(ciphered);
+				recipheredValue = com.twinsoft.convertigo.engine.util.Crypto.encodeToHexString(decipheredValue);
+			}
 
+			// Crypto from TWS lib (DESKey)?
+			if (!ciphered.equals(recipheredValue)) {
+				if (bTripleDES) {
+					decipheredValue = DESKey.decodeFromHexString3(ciphered);
+					recipheredValue = DESKey.encodeToHexString3(decipheredValue);
+				}
+				else {
+					decipheredValue = DESKey.decodeFromHexString(ciphered);
+					recipheredValue = DESKey.encodeToHexString(decipheredValue);
+				}
+				
+				if (!ciphered.equals(recipheredValue)) {
+					throw new IllegalArgumentException("Unable to decode value '" + ciphered + "' with any known ciphering methods");
+				}
+			}
+			
 			if (decipheredValue == null) {
 				throw new IllegalArgumentException("Unable to decode value '" + ciphered + "'");
 			}

@@ -6,6 +6,14 @@ public class HexUtils {
 	private static char[] NIBBLE = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',
 			'e', 'f', };
 
+	public static final String toHexString(byte a) {
+		StringBuffer sb = new StringBuffer(2);
+		sb.append(NIBBLE[(a >>> 4) & 0xf]);
+		sb.append(NIBBLE[a & 0xf]);
+
+		return sb.toString();
+	}
+
 	/**
 	 * Convert a byte array to a string of hexadecimal digits.
 	 */

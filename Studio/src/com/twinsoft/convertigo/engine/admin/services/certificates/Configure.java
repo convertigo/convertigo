@@ -40,11 +40,11 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition.Role;
+import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.util.DESKey;
 import com.twinsoft.util.QuickSort;
 
 @ServiceDefinition(
@@ -115,7 +115,7 @@ public class Configure extends XmlService {
 		while ( ((certifName=(String)request.getParameter("name_"+i)) != null)
 			  &&((certifPwd =(String)request.getParameter("pwd_"+i))  != null) ) {
 			if (possibleCertificates.contains(certifName)) {
-				storesProperties.setProperty(certifName, DESKey.encodeToHexString(certifPwd));
+				storesProperties.setProperty(certifName, Crypto2.encodeToHexString(certifPwd));
 				storesProperties.setProperty(certifName+".type", (String) request.getParameter("type_"+i));
 
 				group = (String) request.getParameter("group_"+i);

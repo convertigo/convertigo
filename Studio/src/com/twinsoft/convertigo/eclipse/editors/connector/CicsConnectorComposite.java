@@ -39,7 +39,7 @@ import com.twinsoft.convertigo.beans.core.ConnectorListener;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.util.COBOLUtils;
-import com.twinsoft.util.DESKey;
+import com.twinsoft.convertigo.engine.util.HexUtils;
 
 public class CicsConnectorComposite extends AbstractConnectorComposite implements ConnectorListener {
 
@@ -124,7 +124,7 @@ public class CicsConnectorComposite extends AbstractConnectorComposite implement
 								nLine++;
 							}
 							b = buf[i];
-							text.append(DESKey.hexString(b) + " ");
+							text.append(HexUtils.toHexString(b) + " ");
 						}
 
 						// Last line

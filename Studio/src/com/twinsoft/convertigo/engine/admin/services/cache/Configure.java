@@ -39,13 +39,13 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition.Role;
+import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.cache.DatabaseCacheManager;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.SqlRequester;
-import com.twinsoft.util.DESKey;
 
 @ServiceDefinition(
 		name = "Configure",
@@ -229,7 +229,7 @@ public class Configure extends XmlService {
 
 			dbCacheProp.setProperty("jdbc.url", databaseUrl);			
 			dbCacheProp.setProperty("jdbc.user.name", request.getParameter("user"));
-			dbCacheProp.setProperty("jdbc.user.password", DESKey.encodeToHexString(request.getParameter("password")));
+			dbCacheProp.setProperty("jdbc.user.password", Crypto2.encodeToHexString(request.getParameter("password")));
 
 			FileOutputStream fos = new FileOutputStream(dbCachePropFileName.toString());
 			dbCacheProp.store(fos, "");

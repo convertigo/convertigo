@@ -30,7 +30,6 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.util.DESKey;
 
 public class SqlRequester {
 	
@@ -104,7 +103,7 @@ public class SqlRequester {
 		// Now attempt to create a database connection
 		String jdbcURL = getProperty(SqlRequester.PROPERTIES_JDBC_URL);
 		String jdbcUserName = getProperty(SqlRequester.PROPERTIES_JDBC_USER_NAME);
-		String jdbcUserPassword = DESKey.decodeFromHexString(getProperty(SqlRequester.PROPERTIES_JDBC_USER_PASSWORD));
+		String jdbcUserPassword = Crypto2.decodeFromHexString(getProperty(SqlRequester.PROPERTIES_JDBC_USER_PASSWORD));
 
 		Engine.logEngine.debug("[SqlRequester] JDBC URL: " + jdbcURL);
 		Engine.logEngine.debug("[SqlRequester] User name: " + jdbcUserName);

@@ -34,7 +34,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Properties;
 
-import com.twinsoft.util.DESKey;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 
 public class CertificateManager {
 	
@@ -259,7 +259,7 @@ public class CertificateManager {
 		String s = storesProperties.getProperty(clientStore);
 		int i = s.indexOf('/');
 		if (i != -1) s = s.substring(0, i);
-		keyStorePassword = DESKey.decodeFromHexString(s);
+		keyStorePassword = Crypto2.decodeFromHexString(s);
 		keyStoreGroup = storesProperties.getProperty(clientStore + ".group");
 		keyStoreName = clientStore;
 		
@@ -277,7 +277,7 @@ public class CertificateManager {
 				String s = storesProperties.getProperty(clientStore);
 				int i = s.indexOf('/');
 				if (i != -1) s = s.substring(0, i);
-				String cryptKey = DESKey.decodeFromHexString(s);
+				String cryptKey = Crypto2.decodeFromHexString(s);
 				
 				byte[] buf = PseudoCertificate.decrypt(Engine.CERTIFICATES_PATH + "/" + clientStore, cryptKey);
 				if (buf != null) {
@@ -381,7 +381,7 @@ public class CertificateManager {
 		String s = storesProperties.getProperty(serverStore);
 		int i = s.indexOf('/');
 		if (i != -1) s = s.substring(0, i);
-		trustStorePassword = DESKey.decodeFromHexString(s);
+		trustStorePassword = Crypto2.decodeFromHexString(s);
 	}
 	
 	private String getExistingKey(String key) {

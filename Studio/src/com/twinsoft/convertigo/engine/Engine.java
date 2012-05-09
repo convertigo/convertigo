@@ -60,6 +60,7 @@ import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserManager;
 import com.twinsoft.convertigo.engine.plugins.AbstractBiller;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
@@ -68,7 +69,6 @@ import com.twinsoft.tas.ApplicationException;
 import com.twinsoft.tas.Authentication;
 import com.twinsoft.tas.KeyManager;
 import com.twinsoft.tas.ParsingException;
-import com.twinsoft.util.DESKey;
 import com.twinsoft.util.Log;
 import com.twinsoft.util.TWSKey;
 
@@ -954,7 +954,7 @@ public class Engine {
 						if (context.isRequestFromVic) {
 							Engine.logContext.debug("[Engine.getDocument()] Checking VIC session key");
 
-							String s = DESKey.decodeFromHexString(context.tasSessionKey);
+							String s = Crypto2.decodeFromHexString(context.tasSessionKey);
 							int i = s.indexOf(',');
 							if (i == -1)
 								throw new EngineException(
@@ -1131,7 +1131,7 @@ public class Engine {
 		if (sKey == null)
 			return "Carioca session key is null!";
 
-		sSplit = DESKey.decodeFromHexString(sKey);
+		sSplit = Crypto2.decodeFromHexString(sKey);
 		if (sSplit == null)
 			return "Unable to decode the Carioca session key!";
 
