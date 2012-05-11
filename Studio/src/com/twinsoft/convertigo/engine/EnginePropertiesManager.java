@@ -214,21 +214,21 @@ public class EnginePropertiesManager {
     public enum PropertyType { Text, PasswordHash, PasswordPlain, Boolean, Combo, Array };
     
     public enum PropertyCategory {
-    	Main ("Main configuration parameters"),
-    	Account ("Account management"),
-    	Logs ("Log management"),
+    	Main ("Main parameters"),
+    	Account ("Accounts"),
+    	Logs ("Logs"),
     	Context ("Real-time activity monitoring"),
-    	XmlGeneration ("XML generation parameters"),
-    	XulRunner ("HTML parser configuration"),
-    	HttpClient ("HTTP client configuration"),
-    	Network ("Network configuration"),
-    	Proxy ("Proxy settings"),
-    	Ssl ("SSL configuration"),
-    	Cache ("Cache management"),
+    	XmlGeneration ("XML generation"),
+    	XulRunner ("HTML parser"),
+    	HttpClient ("HTTP client"),
+    	Network ("Network"),
+    	Proxy ("Proxy"),
+    	Ssl ("SSL"),
+    	Cache ("Cache"),
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
-    	Carioca ("Legacy Carioca portal management"),
+    	Carioca ("Legacy Carioca portal"),
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
-    	Billing ("Billing system"),
+    	Billing ("Supervision"),
     	Notifications ("Notifications"),
     	MobileBuilder ("Mobile builder"),
     	@CategoryOptions(visibility = Visibility.HIDDEN)
@@ -299,7 +299,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		CRYPTO_PASSPHRASE ("crypto.passphrase", "A8dkLmsdfkKze0e34FGh", "Cryptographic services passphrase", PropertyCategory.Main),
 
-		/** ACCOUNT */
+		/** ACCOUNTS */
 		ADMIN_USERNAME ("admin.username", "admin", "Admin username", PropertyCategory.Account),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
 		ADMIN_PASSWORD ("admin.password", ""+"admin".hashCode(), "Admin password", PropertyCategory.Account),
@@ -307,7 +307,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
 		TEST_PLATFORM_PASSWORD ("testplatform.password", ""+"".hashCode(), "Test Platform password", PropertyCategory.Account),
 		
-		/** LOG */
+		/** LOGS */
 		LOG4J_LOGGER_CEMS ("log4j.logger.cems", "INFO, CemsAppender", "Log4J root logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_ADMIN ("log4j.logger.cems.Admin", "WARN", "Log4J admin logger", PropertyCategory.Logs),
@@ -351,7 +351,7 @@ public class EnginePropertiesManager {
 		LOG4J_LOGGER_CEMS_CONTEXT_AUDIT ("log4j.logger.cems.Context.Audit", "INFO, AuditAppender", "Log4J audit context logger", PropertyCategory.Logs),
 		
 		
-		/** LOG ADVANCE */
+		/** LOGS ADVANCE */
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		LOG_EXPLICIT_VARIABLES ("log.explicit_variables", "contextid,project,sequence,connector,transaction,user,clientip,clienthostname", "Explicit variables", PropertyCategory.Logs),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
@@ -392,23 +392,23 @@ public class EnginePropertiesManager {
 		HTTP_CLIENT_MAX_TOTAL_CONNECTIONS ("http_client.max_total_connections", "100", "Maximal number of HTTP connections (from 1 to 65535)", PropertyCategory.HttpClient),
 		HTTP_CLIENT_MAX_CONNECTIONS_PER_HOST ("http_client.max_connections_per_host", "50", "Maximal number of HTTP connections per host (from 1 to 255)", PropertyCategory.HttpClient),
 
-		/** CONTEXT */
+		/** CONNECTORS MONITORING */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		CONNECTORS_MONITORING ("connectors.monitoring", "false", "Display running connectors in monitor of Legacy connectors", PropertyCategory.Context),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		DOCUMENT_LOG_SCREEN_DUMPS ("document.log.screen_dumps", "false", "Trace in logs the screen dumps of the running Legacy connectors", PropertyCategory.Context),
 
-		/** XMLGENERATION */
+		/** XML GENERATION */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		DOCUMENT_INCLUDE_STATISTICS ("document.include_statistics", "false", "Insert statistics in the generated document", PropertyCategory.XmlGeneration),
 
-		/** XMLGENERATION ADVANCE */
+		/** XML GENERATION ADVANCE */
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = XmlEngine.class)
 		DOCUMENT_XML_ENGINE ("document.xml_engine", "java", "XML engine", PropertyCategory.XmlGeneration),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = XsltEngine.class)
 		DOCUMENT_XSLT_ENGINE ("document.xslt_engine", "xalan/xsltc", "XSLT engine", PropertyCategory.XmlGeneration),
 
-		/** PROXY SETTINGS */
+		/** PROXY */
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = ProxyMode.class)
 		PROXY_SETTINGS_MODE ("htmlProxy.mode", "off", "Proxy mode", PropertyCategory.Proxy),
 		PROXY_SETTINGS_PORT ("htmlProxy.port", "8080", "Proxy port", PropertyCategory.Proxy),
@@ -462,20 +462,21 @@ public class EnginePropertiesManager {
 		CARIOCA_SESSION_KEY_LIFE_TIME ("carioca.session_key.life_time", "60", "Default session key life time (in seconds)", PropertyCategory.Carioca),
 		CARIOCA_URL ("carioca.url", "${user.workspace}/minime", "Carioca access URL", PropertyCategory.Carioca),
 
+		/** SUPERVISION */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
-		BILLING_ENABLED ("billing.enabled", "false", "Enable billing system", PropertyCategory.Billing),
+		BILLING_ENABLED ("billing.enabled", "false", "Enable supervision", PropertyCategory.Billing),
 
-		/** BILLING */
+		/** SUPERVISION ADVANCE */
 		@PropertyOptions(advance = true)
 		BILLING_PERSISTENCE_DIALECT ("billing.persistence.dialect", "org.hibernate.dialect.HSQLDialect", "Persistence Dialect", PropertyCategory.Billing),
 		@PropertyOptions(advance = true)
-		BILLING_PERSISTENCE_JDBC_DRIVER ("billing.persistence.jdbc.driver", "org.hsqldb.jdbcDriver", "Persistence JDBC Driver", PropertyCategory.Billing),
+		BILLING_PERSISTENCE_JDBC_DRIVER ("billing.persistence.jdbc.driver", "org.hsqldb.jdbcDriver", "JDBC Driver", PropertyCategory.Billing),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
-		BILLING_PERSISTENCE_JDBC_PASSWORD ("billing.persistence.jdbc.password", "", "Persistence JDBC Password", PropertyCategory.Billing),
+		BILLING_PERSISTENCE_JDBC_PASSWORD ("billing.persistence.jdbc.password", "", "JDBC Password", PropertyCategory.Billing),
 		@PropertyOptions(advance = true)
-		BILLING_PERSISTENCE_JDBC_URL ("billing.persistence.jdbc.url", "jdbc:hsqldb:file:${user.workspace}/databases/hsqldb_billing", "Persistence JDBC URL", PropertyCategory.Billing),
+		BILLING_PERSISTENCE_JDBC_URL ("billing.persistence.jdbc.url", "jdbc:hsqldb:file:${user.workspace}/databases/hsqldb_billing", "JDBC URL", PropertyCategory.Billing),
 		@PropertyOptions(advance = true)
-		BILLING_PERSISTENCE_JDBC_USERNAME ("billing.persistence.jdbc.username", "sa", "Persistence JDBC Username", PropertyCategory.Billing),
+		BILLING_PERSISTENCE_JDBC_USERNAME ("billing.persistence.jdbc.username", "sa", "JDBC Username", PropertyCategory.Billing),
 
 		/** NOTIFICATIONS */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
@@ -491,7 +492,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
 		NOTIFICATIONS_SMTP_PASSWORD ("notifications.smtp.password", "", "STMP password", PropertyCategory.Notifications),
 		
-		/** MOBILE */
+		/** MOBILE BUILDER */
 		MOBILE_BUILDER_USERNAME ("mobile.builder.username", "", "Mobile builder username", PropertyCategory.MobileBuilder),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
 		MOBILE_BUILDER_PASSWORD ("mobile.builder.password", "", "Mobile builder password", PropertyCategory.MobileBuilder),
