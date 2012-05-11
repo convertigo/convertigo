@@ -1309,21 +1309,24 @@ public class HttpConnector extends Connector {
 					String methodProtocol = uri.getScheme();
 					String methodHost = uri.getHost();
 
-					if (hostConfiguration.getProtocol().isSecure())
+					if (hostConfiguration.getProtocol().isSecure()) {
 						return givenUrl.startsWith("/") ? givenUrl : ('/' + givenUrl);
+					}
 
 					int methodPort = uri.getPort();
 					String path = uri.getCurrentHierPath();
 					path = ((path.equals("/") ? "" : path));
 
 					absoluteUrl = methodProtocol + "://" + methodHost;
-					if (methodPort != -1)
+					if (methodPort != -1) {
 						absoluteUrl += ":" + methodPort;
+					}
 
-					if (path.length() == 0 || !givenUrl.contains(path + "/"))
+					if (!givenUrl.startsWith("/") && (path.length() == 0 || !givenUrl.contains(path + "/"))) {
 						absoluteUrl += path + "/" + givenUrl;
-					else
+					} else {
 						absoluteUrl += givenUrl;
+					}
 				}
 			}
 		}
