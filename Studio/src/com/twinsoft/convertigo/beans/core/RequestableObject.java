@@ -516,8 +516,16 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         this.accessibility = accessibility;
     }
     
-    public boolean isPublicMethod() {
+    public boolean isPublicAccessibility() {
     	return accessibility == ACCESSIBILITY_PUBLIC;
+    }
+	
+    public boolean isPrivateAccessibility() {
+    	return accessibility == ACCESSIBILITY_PRIVATE;
+    }
+	
+    public boolean isHiddenAccessibility() {
+    	return accessibility == ACCESSIBILITY_HIDDEN;
     }
 	
 	/** Holds value of property responseTimeout. */

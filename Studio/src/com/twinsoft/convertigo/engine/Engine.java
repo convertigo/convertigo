@@ -211,6 +211,8 @@ public class Engine {
 	 */
 	public EventManager eventManager;
 
+	public AuthenticatedSessionManager authenticatedSessionManager;
+
 	public HttpClient httpClient;
 	public MultiThreadedHttpConnectionManager connectionManager;
 	public RsaManager rsaManager;
@@ -351,6 +353,9 @@ public class Engine {
 
 				Engine.theApp.eventManager = new EventManager();
 				Engine.theApp.eventManager.init();
+
+				Engine.theApp.authenticatedSessionManager = new AuthenticatedSessionManager();
+				Engine.theApp.authenticatedSessionManager.init();
 
 				Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager();
 				Engine.theApp.databaseObjectsManager.init();
@@ -698,6 +703,9 @@ public class Engine {
 					Engine.theApp.sessionManager = null;
 				}
 
+				Engine.logEngine.info("Removing the authenticated sessions manager");
+				Engine.theApp.authenticatedSessionManager.destroy();
+
 				Engine.logEngine.info("Resetting the key manager");
 				KeyManager.reset();
 
@@ -1015,19 +1023,8 @@ public class Engine {
 
 			}
 
-			// String requestableType = ((context.requestedObject instanceof
-			// Sequence) ? "sequence":"transaction");
-			// String connectionString = "[" + context.contextID + "] ";
-			// if (context.requestedObject != null) connectionString +=
-			// "RequestableObject requested, project: " + context.projectName +
-			// ", "+requestableType+": " + context.requestedObject.getName();
-			// if (context.remoteHost != null) connectionString +=
-			// ", remote host: " + context.remoteHost + " (" +
-			// context.remoteAddr + ")";
-			// if (context.userAgent != null) connectionString +=
-			// ", user agent: " + context.userAgent;
-			//
-			// Engine.logContext.info(connectionString);
+			// Check requestable accessibility
+			requester.checkAccessibility(context.requestedObject);
 
 			RequestableObject requestedObject = context.requestedObject;
 

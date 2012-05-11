@@ -82,7 +82,7 @@ public class ProjectUtils {
 		for (Connector c : project.getConnectorsList()) {
 			String connectorName = c.getName();
 			for (Transaction t: c.getTransactionsList()) {
-				if (t.isPublicMethod()) {
+				if (t.isPublicAccessibility()) {
 					try {
 						for (QName qname: xsd.getElementQNameList(project_ns, connectorName + "__" + t.getName()))
 							addQNameInList(qnames, qname);
@@ -95,7 +95,7 @@ public class ProjectUtils {
 		}
 		
 		for (Sequence s : project.getSequencesList()) {
-			if (s.isPublicMethod()) {
+			if (s.isPublicAccessibility()) {
 				try {
 					for (QName qname: xsd.getElementQNameList(project_ns, s.getName()))
 						addQNameInList(qnames, qname);
@@ -414,7 +414,7 @@ public class ProjectUtils {
 			}
 		}
 		
-		if  (!delete && requestable.isPublicMethod())
+		if  (!delete && requestable.isPublicAccessibility())
 			wsdl.addOperation(projectName, operationName, XMLUtils.getCDataText(requestable.getComment()));
 		else
 			wsdl.removeOperation(projectName, operationName);

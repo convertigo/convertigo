@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -73,6 +74,27 @@ public abstract class GenericRequester extends Requester {
     public GenericRequester() {
     }
     
+	public void checkAccessibility(RequestableObject requestable) throws EngineException {
+		// By default, requesters disallow private requestables from being executed
+		if (requestable.isPrivateAccessibility()) {
+			if (Engine.isStudioMode()) {
+				// In studio mode, all requestables can be executed
+				return;
+			}
+
+			if (context.httpServletRequest != null) {
+				String sessionId = context.httpServletRequest.getSession().getId();
+				if (Engine.theApp.authenticatedSessionManager.hasRole(sessionId, Role.WEB_ADMIN)) {
+					// Only admin users can execute private requestables
+					return;
+				}
+			}
+			
+			throw new EngineException("Unable to execute the requestable '" + requestable.getName()
+					+ "' because it is private (check its accessibility property)");
+		}
+	}
+
     private String findBrowserFromUserAgent(Project project, String userAgent) {
         Vector<?> browserDefinitions = project.getBrowserDefinitions();
         if (browserDefinitions != null) {

@@ -23,19 +23,19 @@
 package com.twinsoft.convertigo.engine.admin;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.AuthenticationException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.admin.services.Service;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition.Role;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 
 /**
@@ -81,7 +81,6 @@ public class AdminServlet extends HttpServlet {
 				Class<?> serviceClass = Class.forName(myPackage + ".services." + serviceName);
 				
 				// Check for authentication and roles
-				Role[] roles = (Role[]) request.getSession().getAttribute("roles");
 				ServiceDefinition serviceDefinition = serviceClass.getAnnotation(ServiceDefinition.class);
 				
 				if (serviceDefinition == null)
@@ -95,10 +94,11 @@ public class AdminServlet extends HttpServlet {
 					}
 				}
 				
-				boolean needsAuthentication = !Arrays.asList(serviceDefinition.roles()).contains(Role.ANONYMOUS);
+				boolean needsAuthentication = !AuthenticatedSessionManager.hasRole(serviceDefinition.roles(), Role.ANONYMOUS);
 				Engine.logAdmin.debug("Needs authentication: " + needsAuthentication);
 				if (needsAuthentication) {
-					checkAuthentication(roles, serviceDefinition);
+					String sessionId = request.getSession().getId();
+					Engine.theApp.authenticatedSessionManager.checkRoles(sessionId, serviceDefinition.roles());
 				}
 				
 				Service service = (Service) serviceClass.newInstance();
@@ -131,18 +131,4 @@ public class AdminServlet extends HttpServlet {
 		}
 	}
 
-	private void checkAuthentication(Role[] roles, ServiceDefinition serviceDefinition) throws EngineException {
-		if (roles == null)
-			throw new AuthenticationException("Authentication failure: no defined roles");
-		
-		List<Role> requiredServiceRoles = Arrays.asList(serviceDefinition.roles());
-		Engine.logAdmin.debug("Required service roles: " + Arrays.toString(serviceDefinition.roles()));
-		Engine.logAdmin.debug("User roles: " + Arrays.toString(roles));
-		for(Role role : roles) {
-			if (requiredServiceRoles.contains(role))
-				return;		
-		}
-		
-		throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
-	}
 }

@@ -364,7 +364,7 @@ public class WebServiceServlet extends GenericServlet {
 			String prefix = (connector == null) ? "": connector.getName()+ "__";
 
 			if (StringUtils.normalize(requestable.getName(), true).equals(requestableName)) {
-				if (requestable.isPublicMethod()) {
+				if (requestable.isPublicAccessibility()) {
 					Engine.logEngine.debug("(WebServiceServlet) Generating input type for requestable '" + requestableName + "'");
 					
 					if (!bRPC) {
@@ -452,7 +452,7 @@ public class WebServiceServlet extends GenericServlet {
     	Engine.logEngine.debug("(WebServiceServlet) Generating messages...");
 
 		for (RequestableObject requestable : vRequestables) {			
-			if (requestable.isPublicMethod() && (requestable instanceof IVariableContainer)) {
+			if (requestable.isPublicAccessibility() && (requestable instanceof IVariableContainer)) {
 				requestableName = StringUtils.normalize(requestable.getName(), true);
 				Connector connector = requestable.getConnector();
 				String prefix = (connector == null) ? "": connector.getName()+ "__";
@@ -515,7 +515,7 @@ public class WebServiceServlet extends GenericServlet {
         for (RequestableObject requestable : vRequestables) {
             Connector connector = requestable.getConnector();
             String prefix = (connector == null) ? "": connector.getName()+ "__";
-            if (requestable.isPublicMethod()) {
+            if (requestable.isPublicAccessibility()) {
                 requestableName = StringUtils.normalize(requestable.getName(), true);
                 if (requestableName.equals(requestable.getName())) {
 			    	Engine.logEngine.debug("(WebServiceServlet) Generating operation: '" + prefix + requestableName + "'");
@@ -542,7 +542,7 @@ public class WebServiceServlet extends GenericServlet {
         for (RequestableObject requestable : vRequestables) {
             Connector connector = requestable.getConnector();
             String prefix = (connector == null) ? "": connector.getName()+ "__";
-            if (requestable.isPublicMethod()) {
+            if (requestable.isPublicAccessibility()) {
                 requestableName = StringUtils.normalize(requestable.getName(), true);
 				if (requestableName.equals(requestable.getName())) {
 	                Engine.logEngine.debug("(WebServiceServlet) Generating binding: '" + prefix + requestableName + "'");
@@ -601,7 +601,7 @@ public class WebServiceServlet extends GenericServlet {
 					String prefix = (connector == null) ? "": connector.getName()+ "__";
 
 					if (StringUtils.normalize(requestable.getName(), true).equals(requestableName)) {
-						if (requestable.isPublicMethod()) {
+						if (requestable.isPublicAccessibility()) {
 							Engine.logEngine.debug("(WebServiceServlet) [document/literal mode] Updating input type for requestable '" + requestableName + "'");
 
 							element = (Element) XMLUtils.findNodeByAttributeValue(complexTypes, "name", prefix + requestableName + "Response");

@@ -37,7 +37,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
-import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition.Role;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.util.SimpleCipher;
 
@@ -67,12 +67,15 @@ public class Authenticate extends XmlService {
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		boolean logIn = "login".equals(ServiceUtils.getRequiredParameter(request, "authType"));
 
+		HttpSession httpSession = request.getSession();
+		String sessionId = httpSession.getId();
+		
 		// Login
 		if (logIn) {
-			HttpSession httpSession = request.getSession();
 
 			String user = ServiceUtils.getRequiredParameter(request, "authUserName");
 			String password = ServiceUtils.getRequiredParameter(request, "authPassword");
+
 			httpSession.setAttribute("user", user);
 			Engine.logAdmin.info("User '" + user + "' is trying to login");
 
@@ -111,12 +114,12 @@ public class Authenticate extends XmlService {
 			}
 
 			if (roles == null) {
-				httpSession.removeAttribute("roles");
+				Engine.theApp.authenticatedSessionManager.removeAuthenticatedSession(sessionId);
 				ServiceUtils.addMessage(document, document.getDocumentElement(), "", "error");		
 			} else {
-				httpSession.setAttribute("roles", roles);
-				ServiceUtils.addMessage(document, document.getDocumentElement(), "", "success");
+				Engine.theApp.authenticatedSessionManager.addAuthenticatedSession(sessionId, roles);
 
+				ServiceUtils.addMessage(document, document.getDocumentElement(), "", "success");
 				ServiceUtils.addRoleNodes(document.getDocumentElement(), roles);
 				
 				Engine.logAdmin.info("User '" + user + "' has been successfully authenticated");
@@ -124,7 +127,7 @@ public class Authenticate extends XmlService {
 		}
 		// Logout
 		else {
-			request.getSession().removeAttribute("roles");
+			Engine.theApp.authenticatedSessionManager.removeAuthenticatedSession(sessionId);
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "", "success");
 		}
 	}

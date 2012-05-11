@@ -43,7 +43,7 @@ import com.twinsoft.convertigo.engine.admin.logmanager.LogServiceHelper;
 import com.twinsoft.convertigo.engine.admin.logmanager.LogManager;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition.Role;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 @ServiceDefinition(

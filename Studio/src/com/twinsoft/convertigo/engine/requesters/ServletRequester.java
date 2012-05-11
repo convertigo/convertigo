@@ -167,21 +167,10 @@ public abstract class ServletRequester extends GenericRequester {
 		String[] parameterValues = null;
 		boolean bConnectorGivenByUser = false;
 
-//		Hashtable<String, String[]> reparsedParameters = (Hashtable<String, String[]>) request.getAttribute(ServletRequester.REPARSED_PARAMETERS_ATTRIBUTE);
-//		boolean bReparsedParameters = (reparsedParameters != null); 
-//		if (bReparsedParameters) {
-//			parameterNames = reparsedParameters.keys();
-//		}
-		
 		while (parameterNames.hasMoreElements()) {
 			parameterName = (String) parameterNames.nextElement();
 			
-//			if (bReparsedParameters) {
-//				parameterValues = reparsedParameters.get(parameterName);
-//			}
-//			else {
-				parameterValues = request.getParameterValues(parameterName);
-//			}
+			parameterValues = request.getParameterValues(parameterName);
 
 			parameterValue = parameterValues[0];
 			
@@ -204,43 +193,6 @@ public abstract class ServletRequester extends GenericRequester {
 		
 		Engine.logContext.debug("Context initialized!");
 	}
-
-//	private void decodeHttpParameters(String data, boolean bUrlEncoded, String characterEncoding, Hashtable<String, String[]> reparsedParameters) {
-//		Engine.logContext.debug("decodeHttpParameters() data=" + data);
-//		Engine.logContext.debug("decodeHttpParameters() bUrlEncoded=" + bUrlEncoded);
-//		Engine.logContext.debug("decodeHttpParameters() characterEncoding=" + characterEncoding);
-//		Engine.logContext.debug("decodeHttpParameters() reparsedParameters=" + reparsedParameters);
-//
-//		StringTokenizer st = new StringTokenizer(data, "&");
-//		while (st.hasMoreElements()) {
-//			String parameter = st.nextToken();
-//			StringTokenizer st2 = new StringTokenizer(parameter, "=");
-//			String parameterName = st2.nextToken();
-//			String parameterValue = st2.hasMoreTokens() ? st2.nextToken() : "";
-//
-//			Engine.logContext.debug("decodeHttpParameters() parameterName=" + parameterName);
-//			Engine.logContext.debug("decodeHttpParameters() parameterValue=" + parameterValue);
-//
-//			try {
-//				if (bUrlEncoded) {
-//					parameterValue = URLDecoder.decode(parameterValue, characterEncoding == null ? "UTF-8" : characterEncoding);
-//				}
-//
-//				String[] parameterValues = new String[] { parameterValue };
-//
-//				String[] existingParameterValues = reparsedParameters.get(parameterName);
-//				if (existingParameterValues != null) {
-//					List<String> listExistingParameterValues = Arrays.asList(existingParameterValues);
-//					listExistingParameterValues.add(parameterValue);
-//					parameterValues = listExistingParameterValues.toArray(new String[0]);
-//				}
-//				reparsedParameters.put(parameterName, parameterValues);
-//				Engine.logContext.debug("Parameter '" + parameterName + "'=" + Arrays.toString(parameterValues) + " has been reparsed");
-//			} catch (UnsupportedEncodingException e) {
-//				Engine.logContext.warn("Unable to reparse parameter '" + parameterName + "' (value='" + parameterValue + "')", e);
-//			}
-//		}
-//	}
 
 	public Translator getTranslator() {
 		return new DefaultServletTranslator();

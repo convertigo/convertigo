@@ -14,13 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * $URL: http://sourceus.twinsoft.fr/svn/CEMS/trunk/Studio/src/com/twinsoft/convertigo/engine/admin/AuthenticationException.java $
+ * $Author: fabienb $
+ * $Revision: 28379 $
+ * $Date: 2011-09-27 11:38:59 +0200 (mar., 27 sept. 2011) $
  */
 
-package com.twinsoft.convertigo.engine.admin;
+package com.twinsoft.convertigo.engine;
 
 import com.twinsoft.convertigo.engine.EngineException;
 

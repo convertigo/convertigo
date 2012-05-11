@@ -35,7 +35,7 @@ import org.w3c.dom.Text;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition.Role;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(
 		name = "GetStatus",

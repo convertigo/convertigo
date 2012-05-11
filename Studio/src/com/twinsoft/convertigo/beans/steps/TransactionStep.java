@@ -411,7 +411,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 					: connector.getTransactionByName(transactionName));
 			String prefix = transaction.getXsdTypePrefix();
 
-			if (transaction.isPublicMethod()) {
+			if (transaction.isPublicAccessibility()) {
 				String wsdl = WebServiceServlet.generateWsdl(false, "", p);
 
 				try {

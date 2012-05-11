@@ -286,7 +286,7 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		List<Sequence> v = p.getSequencesList();
 		Sequence seq = (sequenceName.equals("") ? (v.isEmpty() ? null: (Sequence)v.get(0)):p.getSequenceByName(sequenceName));
 		
-		if (seq.isPublicMethod()) {
+		if (seq.isPublicAccessibility()) {
 			String wsdl = WebServiceServlet.generateWsdl(false, "", p);
 			
 			try {

@@ -25,10 +25,10 @@ package com.twinsoft.convertigo.engine.admin.services.at;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ServiceDefinition {
-	public static enum Role { ANONYMOUS, AUTHENTICATED, WEB_ADMIN, TRIAL, MANAGER, MONITOR_AGENT, TEST_PLATFORM };
-
     String name();
     Role[] roles();    
     ServiceParameterDefinition[] parameters();

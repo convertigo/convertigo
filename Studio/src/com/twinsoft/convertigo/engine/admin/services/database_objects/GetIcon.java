@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition.Role;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(name = "GetIcon", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "")
 public class GetIcon extends DownloadService {

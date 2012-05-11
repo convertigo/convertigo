@@ -915,7 +915,7 @@ public class HtmlTransaction extends HttpTransaction {
 	    			/* Generate again : correct bug of ref in group */
 	    			types = generateWsdlType(null);
 	    			
-			    	if (!isPublicMethod()) {
+			    	if (!isPublicAccessibility()) {
 		    			HtmlConnector connector = (HtmlConnector)getParent();
 		    			String prefix = (connector.isDefault ? "":connector.getName() + "__");
 		    			String transactionName = StringUtils.normalize(prefix + name, true) + "Response";

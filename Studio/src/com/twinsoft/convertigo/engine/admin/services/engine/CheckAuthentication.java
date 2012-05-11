@@ -28,14 +28,13 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.Document;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition.Role;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 @ServiceDefinition(
 		name = "Authenticate",
@@ -48,27 +47,26 @@ public class CheckAuthentication extends XmlService {
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
-		Role[] roles = (Role[]) request.getSession().getAttribute("roles");
+		String sessionId = request.getSession().getId();
 		
+		// Handle anonymous access for test platform user
 		if (EnginePropertiesManager.getProperty(PropertyName.TEST_PLATFORM_USERNAME).length() == 0) {
-			if (roles == null) {
-				roles = new Role[0];
-			}
-			if (!Arrays.asList(roles).contains(Role.TEST_PLATFORM)) {
-				roles = GenericUtils.copyOf(roles, roles.length + 1);
-				roles[roles.length - 1] = Role.TEST_PLATFORM;
-				request.getSession().setAttribute("roles", roles);
+			if (!Engine.theApp.authenticatedSessionManager.isAuthenticated(sessionId)) {
+				Engine.theApp.authenticatedSessionManager.addAuthenticatedSession(sessionId, new Role[] { Role.TEST_PLATFORM });
 			}
 		}
 		
-		if (roles == null) {
-			Engine.logAdmin.info("Check authentication failed (no roles defined)");
-			ServiceUtils.addMessage(document, document.getDocumentElement(), "false", "authenticated", false);
-		} else {
+		boolean bAuthenticated = Engine.theApp.authenticatedSessionManager.isAuthenticated(sessionId);
+		
+		if (bAuthenticated) {
+			Role[] roles = Engine.theApp.authenticatedSessionManager.getRoles(sessionId);
 			Engine.logAdmin.info("Check authentication success");
 			Engine.logAdmin.info("Added roles: " + Arrays.toString(roles));
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "true", "authenticated", false);
 			ServiceUtils.addRoleNodes(document.getDocumentElement(), roles);
+		} else {
+			Engine.logAdmin.info("Check authentication failed (no role defined)");
+			ServiceUtils.addMessage(document, document.getDocumentElement(), "false", "authenticated", false);
 		}
 	}
 }
