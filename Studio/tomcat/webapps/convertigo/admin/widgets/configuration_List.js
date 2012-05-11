@@ -122,7 +122,7 @@ function configuration_List_init () {
 			$(this).next().slideToggle("slow");
 		}).first(".config-category-title").click();
 
-		$("input.config-text, input.config-password").keypress(function () {
+		$("input.config-text, input.config-password").keyup(function () {
 			$(".config-update").button("enable");			
 		}).change(function(){						
 			propertyMap[$(this).attr("name")] = $(this).val();
@@ -201,5 +201,7 @@ function updateConfiguration () {
 			propertyMap = {};
 			$(".config-update").button("disable");
 		}, domToString2(xmlDoc), undefined, {contentType : "application/xml"});
+	} else {
+		$(".config-update").button("disable");
 	}
 }
