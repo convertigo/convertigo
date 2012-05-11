@@ -29,14 +29,18 @@ import java.util.Vector;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 
+import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
+import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
@@ -60,9 +64,11 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 	private Button jCheckBoxTransactionDefaultHandlerExit = null;
 	private Button jCheckBoxTransactionScreenClassHandler = null;
 	private Label jLabelChooseScreenClass = null;
-	private Combo jComboBoxScreenClasses = null;
 	private Button jCheckBoxEntry = null;
 	private Button jCheckBoxExit = null;
+	
+	private Tree tree;
+	private String screenClass = null;
 
 	private Transaction transaction = null;
 	private String handlers = null;
@@ -79,19 +85,7 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 		
 		isScreenClassAware = connector instanceof IScreenClassContainer<?>;
 		isDefaultHandlerAware = ((transaction instanceof JavelinTransaction) || (transaction instanceof HtmlTransaction));
-		initialize();
-		
-		if (isScreenClassAware) {
-			List<? extends ScreenClass> vScreenClasses = ((IScreenClassContainer<?>) connector).getAllScreenClasses();
-			for (ScreenClass screenClass : vScreenClasses) {
-				jComboBoxScreenClasses.add(screenClass.getName());
-			}
-			jComboBoxScreenClasses.setText(jComboBoxScreenClasses.getItem(0));
-		}
-		else {
-			jComboBoxScreenClasses.add("");
-			jComboBoxScreenClasses.setText("");
-		}
+		initialize();		
 	}
 
 	protected void initialize() {
@@ -101,15 +95,10 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 		jCheckBoxTransactionScreenClassHandler.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent evt) {
 				boolean isChecked = jCheckBoxTransactionScreenClassHandler.getSelection();
-				if (isChecked) {
-					int index = jComboBoxScreenClasses.getSelectionIndex();
-					index = ((index == -1) ? 0:index);
-					jComboBoxScreenClasses.select(index);
-				}
-				else {
+				if (!isChecked) {
 					jCheckBoxExit.setSelection(false);
 				}
-				jComboBoxScreenClasses.setEnabled(isChecked);
+				tree.setEnabled(isChecked);
 				jCheckBoxEntry.setEnabled(isChecked);
 				jCheckBoxEntry.setSelection(isChecked);
 				jCheckBoxExit.setEnabled(isChecked);
@@ -120,7 +109,8 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 		jLabelChooseScreenClass.setText("ScreenClass : ");
 		jLabelChooseScreenClass.setEnabled(isScreenClassAware);
 		
-		createJComboBoxScreenClasses();
+		createTreeScreenClasses();
+		tree.setEnabled(false);
 		
 		jCheckBoxEntry = new Button(this, SWT.CHECK);
 		jCheckBoxEntry.setText("Entry handler");
@@ -149,8 +139,7 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 		jCheckBoxTransactionDefaultHandlerExit.setEnabled(isDefaultHandlerAware);
 		
 		GridLayout gridLayout = new GridLayout();
-		setLayout(gridLayout);
-		setSize(new Point(408, 251));
+		setLayout(gridLayout);		
 }
 	
 	public Object getValue(String name) {
@@ -161,11 +150,57 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 	 * This method initializes jComboBoxScreenClasses	
 	 *
 	 */
-	private void createJComboBoxScreenClasses() {
-		jComboBoxScreenClasses = new Combo(this, SWT.READ_ONLY);
-		jComboBoxScreenClasses.setEnabled(false);
-	}
+	private void createTreeScreenClasses() {
 
+		tree = new Tree(this, SWT.SINGLE | SWT.BORDER);
+		tree.setHeaderVisible(false);
+		GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+		gridData.verticalSpan = 20;
+		tree.setLayoutData(gridData);		
+	
+		if (isScreenClassAware) {
+			Connector connector = (Connector)transaction.getParent();
+			if (connector instanceof HtmlConnector) {
+				HtmlConnector htmlConnector = (HtmlConnector) connector;
+				ScreenClass defaultScreenClass = htmlConnector.getDefaultScreenClass();
+				TreeItem branch = new TreeItem(tree, SWT.NONE);
+				branch.setText(defaultScreenClass.getName());
+				
+				List<ScreenClass> screenClasses = defaultScreenClass.getInheritedScreenClasses();
+				
+				for (ScreenClass screenClass : screenClasses) {
+					getInHeritedScreenClass(screenClass, branch);				
+				}
+			} else if (connector instanceof JavelinConnector) {
+				JavelinConnector javelinConnector = (JavelinConnector) connector;
+				ScreenClass defaultScreenClass = javelinConnector.getDefaultScreenClass();
+				TreeItem branch = new TreeItem(tree, SWT.NONE);
+				branch.setText(defaultScreenClass.getName());
+				
+				List<ScreenClass> screenClasses = defaultScreenClass.getInheritedScreenClasses();
+				
+				for (ScreenClass screenClass : screenClasses) {
+					getInHeritedScreenClass(screenClass, branch);				
+				}	
+			}
+		}
+		tree.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(final Event event) {
+				TreeItem item = (TreeItem) event.item;
+				screenClass = item.getText();
+			}
+		});
+	}
+	
+	public void getInHeritedScreenClass(ScreenClass screenClass, TreeItem branch) {
+		TreeItem leaf = new TreeItem(branch, SWT.NONE);
+		leaf.setText(screenClass.getName());
+		List<ScreenClass> screenClasses = screenClass.getInheritedScreenClasses();
+		for (ScreenClass sC : screenClasses) {
+			getInHeritedScreenClass(sC, leaf);
+		}
+	}
+	
 	public Vector<Object> generateHandler() {
 		result = null;
 		if (transaction instanceof HtmlTransaction)
@@ -243,7 +278,7 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 		String handlerName, commentEntry, commentExit;
 
 		if (jCheckBoxEntry.getSelection() || jCheckBoxExit.getSelection()) {
-			String selectedScreenClass = jComboBoxScreenClasses.getItem(jComboBoxScreenClasses.getSelectionIndex());
+			String selectedScreenClass = screenClass;
 			handlerName = StringUtils.normalize(selectedScreenClass);
 			commentEntry = "// Entry handler for screen class \"" + selectedScreenClass + "\"\n";
 			commentExit  = "// Exit handler for screen class \"" + selectedScreenClass + "\"\n";
@@ -335,7 +370,7 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 		}
 		
 		if (jCheckBoxEntry.getSelection() || jCheckBoxExit.getSelection()) {
-			String selectedScreenClass = jComboBoxScreenClasses.getItem(jComboBoxScreenClasses.getSelectionIndex());
+			String selectedScreenClass = screenClass;
 			normalizedScreenClassName = StringUtils.normalize(selectedScreenClass);
             	
 			if (jCheckBoxEntry.getSelection()) {

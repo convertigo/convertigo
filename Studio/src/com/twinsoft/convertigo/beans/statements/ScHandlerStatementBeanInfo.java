@@ -46,7 +46,7 @@ public class ScHandlerStatementBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("normalizedScreenClassName", beanClass, "getNormalizedScreenClassName", "setNormalizedScreenClassName");
 			properties[0].setDisplayName(getExternalizedString("property.normalizedScreenClassName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.normalizedScreenClassName.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithDynamicTagsEditor"));
+			properties[0].setPropertyEditorClass(getEditorClass("ScSourceEditor"));
 			
 			PropertyDescriptor property = getPropertyDescriptor("handlerType");
 			property.setHidden(true);
