@@ -185,10 +185,11 @@ function launchCliplet(url, mobile_layout, scale) {
 	vars.last_layout = mobile_layout;
 	if (mobile_layout === "none") {
 		var $iframe = $("#cliplet_div_iframe");
-		if ($("#check_mode_c8o_call").attr("checked") && $iframe.length && typeof($iframe[0].contentWindow.C8O) !== "undefined") {
+		var $c8o_call = $("#check_mode_c8o_call");
+		if (!$c8o_call.attr("disabled") && $c8o_call.attr("checked") && $iframe.length && typeof($iframe[0].contentWindow.C8O) !== "undefined") {
 			$iframe[0].contentWindow.C8O.call(url.substring(url.indexOf("?") + 1));
 		} else {
-			$("#window_exe_content").empty().append("<iframe id='cliplet_div_iframe' frameborder='0' src='"+url+"'></iframe>");
+			$("#window_exe_content").empty().append("<iframe id='cliplet_div_iframe' frameborder='0' src='" + url + "'></iframe>");
 			$iframe.slideDown(500);
 		}
 	} else {
@@ -525,12 +526,10 @@ $(document).ready(function() {
 				var href = $(this).parent().find("a").attr("href");
 
 				var selected_mode = $('input[type=radio][name=form_execution_mode]:checked').val();
-				var bXml = (selected_mode === "xml");
-				var bJson = (selected_mode === "json");
 				
-				if (bXml) {
+				if (selected_mode === "xml") {
 					href = href.replace("index.html?", ".pxml?");
-				} else if (bJson) {
+				} else if (selected_mode === "json") {
 					href = href.replace("index.html?", ".json?");
 				}
 				
@@ -544,6 +543,9 @@ $(document).ready(function() {
 				if ($('#check_mode_fullscreen').attr('checked')) {
 					window.open(href);
 				} else {
+					if (selected_mode === "xml") {
+						href += "&__content_type=text/plain"
+					}
 					launchCliplet(href, layout, "auto");
 				}
 				return false;

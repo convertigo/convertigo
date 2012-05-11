@@ -147,8 +147,15 @@ public abstract class GenericServlet extends HttpServlet {
 				if ((trSessionId != null) && (!trSessionId.equals(""))) {
 					response.setHeader("Transaction-JSessionId", trSessionId);
 				}
-
-				response.setContentType(getContentType(request));
+				
+				String requested_content_type = request.getParameter(Parameter.ContentType.getName());
+				String content_type = getContentType(request);
+				if (requested_content_type != null && !requested_content_type.equals(content_type)) {
+					Engine.logEngine.debug("(GenericServlet) Override Content-Type requested to change : " + content_type + " to " + requested_content_type);
+					content_type = requested_content_type;
+				}
+				
+				response.setContentType(content_type);
 
 				String xmlEngine = EnginePropertiesManager
 						.getProperty(EnginePropertiesManager.PropertyName.DOCUMENT_XML_ENGINE);

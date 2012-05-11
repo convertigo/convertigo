@@ -78,7 +78,9 @@ public enum Parameter {
 	
 	WidgetContainer("__container"),
 	WidgetName("__widget_name"),
-	WidgetType("__widget_type");
+	WidgetType("__widget_type"),
+	
+	ContentType("__content_type");
 	
 	String param_name;
 	
