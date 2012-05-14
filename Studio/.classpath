@@ -36,7 +36,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/internal/html_parsers-v29773.jar" sourcepath="/CemsHtmlParsers/src"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/aviva-111114.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/externalbrowser.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry exported="true" kind="lib" path="lib/cos.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jCharts-0.7.2.jar"/>
@@ -135,5 +134,6 @@
 	<classpathentry exported="true" kind="lib" path="tomcat/lib/tomcat-coyote.jar"/>
 	<classpathentry exported="true" kind="lib" path="tomcat/lib/tomcat-dbcp.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/rhino-1.7-R2.jar" sourcepath="/ExternalJavaSources/rhino-1.7R3"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
