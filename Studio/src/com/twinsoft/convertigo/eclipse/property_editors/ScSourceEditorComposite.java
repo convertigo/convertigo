@@ -191,7 +191,6 @@ public class ScSourceEditorComposite  extends AbstractDialogComposite implements
 		return null;
 	}
 
-	@Override
 	public Object[] getChildren(Object inputElement) {
 		if (inputElement instanceof TVScreenClass) {
 		TVScreenClass tvScreenClass = (TVScreenClass) inputElement;
@@ -205,7 +204,6 @@ public class ScSourceEditorComposite  extends AbstractDialogComposite implements
 	return new Object[0];
 	}
 
-	@Override
 	public Object getParent(Object element) {
 		if (element instanceof TVObject) {
 			return ((TVObject) element).parent;
@@ -213,7 +211,6 @@ public class ScSourceEditorComposite  extends AbstractDialogComposite implements
 		return null;
 	}
 
-	@Override
 	public boolean hasChildren(Object element) {
 		return getChildren(element).length > 0;
 	}
