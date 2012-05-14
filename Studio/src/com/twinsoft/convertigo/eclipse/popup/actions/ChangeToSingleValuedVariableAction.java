@@ -134,8 +134,7 @@ public class ChangeToSingleValuedVariableAction extends MyAbstractAction {
     		   				
 		        			parentTreeObject.hasBeenModified(true);
 			                explorerView.reloadTreeObject(parentTreeObject);
-			                explorerView.setSelectedTreeObject(varTreeObject);
-    						
+			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(simple));
         				}
         			}
         		}

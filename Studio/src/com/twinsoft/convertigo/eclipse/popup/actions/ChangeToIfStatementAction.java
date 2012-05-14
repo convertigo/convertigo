@@ -96,7 +96,7 @@ public class ChangeToIfStatementAction extends MyAbstractAction {
     		   				parentDbo.remove(ifThenElseStatement);
 		        			parentTreeObject.hasBeenModified(true);
 			                explorerView.reloadTreeObject(parentTreeObject);
-			                explorerView.setSelectedTreeObject(statementTreeObject);
+			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(ifStatement));
 		        		}
     				}
     			}

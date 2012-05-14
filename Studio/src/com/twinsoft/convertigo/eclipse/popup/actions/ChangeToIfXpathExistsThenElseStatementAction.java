@@ -130,7 +130,7 @@ public class ChangeToIfXpathExistsThenElseStatementAction extends MyAbstractActi
 
 		   				parentTreeObject.hasBeenModified(true);
 		                explorerView.reloadTreeObject(parentTreeObject);
-		                explorerView.setSelectedTreeObject(statementTreeObject);
+		                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(ifThenElseStatement));
 	        		}
 				}
     		}

@@ -131,7 +131,7 @@ public class ChangeToMultiValuedVariableAction extends MyAbstractAction {
     		   				
 		        			parentTreeObject.hasBeenModified(true);
 			                explorerView.reloadTreeObject(parentTreeObject);
-			                explorerView.setSelectedTreeObject(varTreeObject);
+			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(multi));
     						
         				}
         			}

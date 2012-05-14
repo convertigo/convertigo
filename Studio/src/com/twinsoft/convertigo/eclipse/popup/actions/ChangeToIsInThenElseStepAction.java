@@ -137,7 +137,7 @@ public class ChangeToIsInThenElseStepAction extends MyAbstractAction {
 						
 	        			parentTreeObject.hasBeenModified(true);
 		                explorerView.reloadTreeObject(parentTreeObject);
-		                explorerView.setSelectedTreeObject(stepTreeObject);
+		                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(ifThenElseStep));
 	        		}
 				}
 			}

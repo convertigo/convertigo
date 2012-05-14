@@ -109,7 +109,7 @@ public class ChangeToIfThenElseStatementAction extends MyAbstractAction {
 
 		   				parentTreeObject.hasBeenModified(true);
 		                explorerView.reloadTreeObject(parentTreeObject);
-		                explorerView.setSelectedTreeObject(statementTreeObject);
+		                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(ifThenElseStatement));
 	        		}
 				}
     		}
