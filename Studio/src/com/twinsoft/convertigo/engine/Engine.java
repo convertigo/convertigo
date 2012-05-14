@@ -1026,6 +1026,9 @@ public class Engine {
 			// Check requestable accessibility
 			requester.checkAccessibility(context.requestedObject);
 
+			// Check requestable access policy
+			requester.checkSecuredConnection(context.requestedObject);
+
 			RequestableObject requestedObject = context.requestedObject;
 
 			if (context.isAsync) {

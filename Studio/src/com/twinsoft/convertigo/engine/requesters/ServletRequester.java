@@ -28,10 +28,12 @@ import java.util.Enumeration;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.translators.DefaultServletTranslator;
@@ -48,6 +50,34 @@ public abstract class ServletRequester extends GenericRequester {
     public String getName() {
         return "ServletRequester";
     }
+
+	public void checkSecuredConnection(RequestableObject requestable) throws EngineException {
+		if (requestable.isSecureConnectionRequired()) {
+			if (!context.httpServletRequest.isSecure()) {
+				throw new EngineException("Unable to execute the requestable '" + requestable.getName()
+						+ "' because a secured connection is needed");
+			}
+		}
+	}
+	
+	public void checkAccessibility(RequestableObject requestable) throws EngineException {
+		// By default, requesters disallow private requestables from being executed
+		if (requestable.isPrivateAccessibility()) {
+			if (Engine.isStudioMode()) {
+				// In studio mode, all requestables can be executed
+				return;
+			}
+
+			String sessionId = context.httpServletRequest.getSession().getId();
+			if (Engine.theApp.authenticatedSessionManager.hasRole(sessionId, Role.WEB_ADMIN)) {
+				// Only admin users can execute private requestables
+				return;
+			}
+			
+			throw new EngineException("Unable to execute the requestable '" + requestable.getName()
+					+ "' because it is private (check its accessibility property)");
+		}
+	}
 
     protected String subPath = null;
     

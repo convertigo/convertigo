@@ -33,7 +33,7 @@ public class RequestableObjectBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/RequestableObject");
 			
-			properties = new PropertyDescriptor[7];
+			properties = new PropertyDescriptor[8];
 			
 			properties[0] = new PropertyDescriptor("accessibility", beanClass, "getAccessibility", "setAccessibility");
 			properties[0].setExpert(true);
@@ -69,6 +69,11 @@ public class RequestableObjectBeanInfo extends MySimpleBeanInfo {
 			properties[6].setExpert(true);
 			properties[6].setDisplayName(getExternalizedString("property.clientCachable.display_name"));
 			properties[6].setShortDescription(getExternalizedString("property.clientCachable.short_description"));
+
+			properties[7] = new PropertyDescriptor("secureConnectionRequired", beanClass, "isScureConnectionRequired", "setSecureConnectionRequired");
+			properties[7].setExpert(true);
+			properties[7].setDisplayName(getExternalizedString("property.secureConnectionRequired.display_name"));
+			properties[7].setShortDescription(getExternalizedString("property.secureConnectionRequired.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

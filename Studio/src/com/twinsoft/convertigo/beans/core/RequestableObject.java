@@ -528,6 +528,16 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	return accessibility == ACCESSIBILITY_HIDDEN;
     }
 	
+    private boolean secureConnectionRequired = false;
+
+	public boolean isSecureConnectionRequired() {
+		return secureConnectionRequired;
+	}
+
+	public void setSecureConnectionRequired(boolean secureConnectionRequired) {
+		this.secureConnectionRequired = secureConnectionRequired;
+	}
+
 	/** Holds value of property responseTimeout. */
 	private long responseTimeout = 60;
     

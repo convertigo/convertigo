@@ -27,7 +27,6 @@ import java.util.Set;
 
 import org.w3c.dom.Document;
 
-import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -39,12 +38,6 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 public class InternalRequester extends GenericRequester {
 	
     public InternalRequester() {
-    }
-    
-    @Override
-    public void checkAccessibility(RequestableObject requestable) throws EngineException {
-    	// All requestables are accessible thru internal requester
-    	// Nothing to do
     }
     
     public String getName() {

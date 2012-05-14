@@ -57,4 +57,6 @@ public abstract class Requester {
     public abstract Document getDocument() throws Exception;
     
     public abstract void checkAccessibility(RequestableObject requestable) throws EngineException;
+    
+    public abstract void checkSecuredConnection(RequestableObject requestable) throws EngineException;
 }
