@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -64,7 +65,6 @@ import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XSDExtractor;
-import com.twinsoft.util.QuickSort;
 import com.twinsoft.util.StringEx;
 
 public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer {
@@ -362,7 +362,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		}
     }
 
-	@SuppressWarnings({"unchecked"})
 	@Override
 	public String getRequestString(Context context) {
 		checkSubLoaded();
@@ -374,8 +373,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			}
 		}
 		
-		QuickSort quickSort = new QuickSort((Vector) vVariables);
-		vVariables = GenericUtils.cast(quickSort.perform(true));
+		Collections.sort(vVariables);
 		
 		String requestString = context.projectName + " " + context.sequenceName + " " + vVariables.toString();
 		
