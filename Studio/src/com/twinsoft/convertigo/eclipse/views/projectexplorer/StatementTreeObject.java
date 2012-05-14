@@ -43,6 +43,8 @@ import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.IfStatement;
 import com.twinsoft.convertigo.beans.statements.IfThenElseStatement;
+import com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement;
+import com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.SimpleStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -242,7 +244,9 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 		if (name.equals("canChangeTo")) {
 			Boolean bool = Boolean.valueOf(value);
 			return 	bool.equals(Boolean.valueOf(getObject() instanceof IfStatement)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof IfThenElseStatement));
+					bool.equals(Boolean.valueOf(getObject() instanceof IfThenElseStatement)) ||
+					bool.equals(Boolean.valueOf(getObject() instanceof IfXpathExistsStatement)) ||
+					bool.equals(Boolean.valueOf(getObject() instanceof IfXpathExistsThenElseStatement));
 		}
 		return super.testAttribute(target, name, value);
 	}

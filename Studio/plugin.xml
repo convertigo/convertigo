@@ -1456,6 +1456,32 @@
                      </objectState>
                   </enablement>
                </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfXpathExistsStatementAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIfXpathExists"
+                     label="IfXpathExists"
+                     menubarPath="convertigo.menu.statement.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfXpathExistsThenElseStatementAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIfXpathExistsThenElse"
+                     label="IfXpathExistsThenElse"
+                     menubarPath="convertigo.menu.statement.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement">
+                     </objectState>
+                  </enablement>
+               </action>
     		</objectContribution>
       <objectContribution
             id="convertigo.statementWEContribution"
