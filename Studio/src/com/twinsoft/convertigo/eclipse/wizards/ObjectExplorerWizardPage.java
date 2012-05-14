@@ -38,10 +38,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.Bundle;
 
-import com.twinsoft.convertigo.beans.common.XPath;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.extractionrules.HtmlExtractionRule;
+import com.twinsoft.convertigo.beans.core.IXPathable;
 import com.twinsoft.convertigo.beans.statements.XpathableStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
@@ -150,13 +149,8 @@ public class ObjectExplorerWizardPage extends WizardPage {
 			try {
 				newBean = (DatabaseObject) bi.getBeanDescriptor().getBeanClass().newInstance();
 				if (xpath != null) {
-					// case we create an XPath criteria
-					if (newBean instanceof XPath) {
-						((XPath)newBean).setXpath(xpath);
-					}
-					// case we create an html extraction rule
-					if (newBean instanceof HtmlExtractionRule) {
-						((HtmlExtractionRule)newBean).setXpath(xpath);
+					if (newBean instanceof IXPathable) {
+						((IXPathable)newBean).setXpath(xpath);
 					}
 					// case we create an "javascriptable" statement
 					if (newBean instanceof XpathableStatement) {
