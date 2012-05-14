@@ -70,7 +70,7 @@ public class RequestableObjectBeanInfo extends MySimpleBeanInfo {
 			properties[6].setDisplayName(getExternalizedString("property.clientCachable.display_name"));
 			properties[6].setShortDescription(getExternalizedString("property.clientCachable.short_description"));
 
-			properties[7] = new PropertyDescriptor("secureConnectionRequired", beanClass, "isScureConnectionRequired", "setSecureConnectionRequired");
+			properties[7] = new PropertyDescriptor("secureConnectionRequired", beanClass, "isSecureConnectionRequired", "setSecureConnectionRequired");
 			properties[7].setExpert(true);
 			properties[7].setDisplayName(getExternalizedString("property.secureConnectionRequired.display_name"));
 			properties[7].setShortDescription(getExternalizedString("property.secureConnectionRequired.short_description"));
