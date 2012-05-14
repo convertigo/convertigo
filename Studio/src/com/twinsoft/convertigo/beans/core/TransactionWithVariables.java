@@ -48,8 +48,9 @@ import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.util.QuickSort;
 import com.twinsoft.util.StringEx;
+
+import edu.emory.mathcs.backport.java.util.Collections;
 
 public abstract class TransactionWithVariables extends Transaction implements IVariableContainer, ITestCaseContainer {
     
@@ -588,7 +589,6 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		}
     }
 
-	@SuppressWarnings("unchecked")
 	public String getRequestString(Context context) {
 		checkSubLoaded();
 		
@@ -616,8 +616,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			}
 		}
 		
-		QuickSort quickSort = new QuickSort((Vector) vVariables);
-		vVariables = quickSort.perform(true);
+		Collections.sort(vVariables);
 		
 		String requestString = context.projectName + " " + context.transactionName + " " + vVariables.toString();
 		
@@ -719,7 +718,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		}
 	}
 	
-	@SuppressWarnings({"unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void configure(Element element) throws Exception {
 		super.configure(element);
