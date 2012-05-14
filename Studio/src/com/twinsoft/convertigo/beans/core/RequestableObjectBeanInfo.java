@@ -36,7 +36,6 @@ public class RequestableObjectBeanInfo extends MySimpleBeanInfo {
 			properties = new PropertyDescriptor[8];
 			
 			properties[0] = new PropertyDescriptor("accessibility", beanClass, "getAccessibility", "setAccessibility");
-			properties[0].setExpert(true);
 			properties[0].setDisplayName(getExternalizedString("property.accessibility.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.accessibility.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("RequestableAccessibilityEditor"));
