@@ -427,6 +427,7 @@ public class NewObjectWizard extends Wizard {
 		}
 		else if (connector instanceof SqlConnector) {
 			SqlConnector sqlConnector = (SqlConnector)connector;
+			sqlConnector.setJdbcDriverClassName("org.hsqldb.jdbcDriver");
 			
 			SqlTransaction transaction = new SqlTransaction();
 			transaction.hasChanged = true;
