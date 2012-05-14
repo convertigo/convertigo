@@ -142,6 +142,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	@Override
     public Object clone() throws CloneNotSupportedException {
     	Sequence clonedObject = (Sequence) super.clone();
+    	clonedObject.variables = new HashMap<String, Object>();
     	clonedObject.cloneNumber = ++cloneNumber;
     	clonedObject.vVariables = new Vector<RequestableVariable>();
     	clonedObject.vTestCases = new Vector<TestCase>();
@@ -360,6 +361,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		}
     }
 
+	@SuppressWarnings({"unchecked"})
 	@Override
 	public String getRequestString(Context context) {
 		checkSubLoaded();
@@ -371,7 +373,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			}
 		}
 		
-		@SuppressWarnings("rawtypes")
 		QuickSort quickSort = new QuickSort((Vector) vVariables);
 		vVariables = GenericUtils.cast(quickSort.perform(true));
 		

@@ -728,7 +728,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
                	decreaseAsyncThreadRunning();
                	step.cleanCopy();
                	refSequence.removeCopy(step.executeTimeID, new Long(step.priority));
-               	Engine.logBeans.trace("(AsynchronousStepThread) \""+ AsynchronousStepThread.this.getName() +"\" done");
+               	Engine.logBeans.debug("(AsynchronousStepThread) \""+ AsynchronousStepThread.this.getName() +"\" done");
             }
         }
     	        

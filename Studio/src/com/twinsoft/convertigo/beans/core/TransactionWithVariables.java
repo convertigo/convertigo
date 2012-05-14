@@ -22,7 +22,7 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -76,6 +76,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     @Override
 	public Object clone() throws CloneNotSupportedException {
 		TransactionWithVariables clonedObject = (TransactionWithVariables) super.clone();
+		clonedObject.variables = new HashMap<String, Object>();
 		clonedObject.vVariables = new Vector<RequestableVariable>();
 		clonedObject.vTestCases = new Vector<TestCase>();
 		clonedObject.vAllVariables = null;
@@ -443,7 +444,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		return 0;
 	}
 
-	public transient Map<String, Object> variables = new Hashtable<String, Object>(16);
+	public transient Map<String, Object> variables = new HashMap<String, Object>();
 	
 	protected transient boolean needRestoreVariables = false;
 	
@@ -465,7 +466,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		
 		// TODO: gérer les variables dites persistantes
 
-		variables = new Hashtable<String, Object>(16);
+		variables.clear();
 		
 		for (int i = 0 ; i < len ; i++) {
 			bMulti = false;
@@ -615,7 +616,6 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			}
 		}
 		
-		@SuppressWarnings("rawtypes")
 		QuickSort quickSort = new QuickSort((Vector) vVariables);
 		vVariables = quickSort.perform(true);
 		
@@ -719,7 +719,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		}
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"unchecked" })
 	@Override
 	public void configure(Element element) throws Exception {
 		super.configure(element);
