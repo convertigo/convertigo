@@ -1398,7 +1398,11 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 
 		// Retrieve parent Statement
 		Statement parentObject = getParentStatement();
-
+		if (parentObject == null) {
+			ConvertigoPlugin.errorMessageBox("Unable to create a new statement.\nThe selected handler belongs to a different HTML connector.");
+			return;
+		}
+		
 		// Add statement to parent statement
 		NewObjectWizard newObjectWizard = new NewObjectWizard(parentObject, className, statementXpath, null);
 		WizardDialog wzdlg = new WizardDialog(Display.getCurrent().getActiveShell(), newObjectWizard);
