@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.beans.common.XPath;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Statement;
@@ -1331,7 +1332,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		wzdlg.setPageSize(850, 650);
 		wzdlg.open();
 		if (wzdlg.getReturnCode() != Window.CANCEL) {
-			XPath criteria = (XPath)newObjectWizard.newBean;
+			Criteria criteria = (Criteria)newObjectWizard.newBean;
 
 			// Reload parent ScreenClass in Tree
 			fireObjectChanged(new CompositeEvent(parentObject));
