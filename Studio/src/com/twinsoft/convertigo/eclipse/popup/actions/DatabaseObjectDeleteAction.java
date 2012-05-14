@@ -38,7 +38,13 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Statement;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.statements.ElseStatement;
+import com.twinsoft.convertigo.beans.statements.ThenStatement;
+import com.twinsoft.convertigo.beans.steps.ElseStep;
+import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.MultipleDeletionDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ConnectorTreeObject;
@@ -228,6 +234,18 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		else if (databaseObject instanceof ScreenClass) {
 			if ((databaseObject.getParent()) instanceof Project) {
 				throw new EngineException("Cannot delete the root screen class!");
+			}
+		}
+		else if (databaseObject instanceof Statement) {
+			if ((databaseObject instanceof ThenStatement) ||
+				(databaseObject instanceof ElseStatement)) {
+				throw new EngineException("Cannot delete this statement!");
+			}
+		}
+		else if (databaseObject instanceof Step) {
+			if ((databaseObject instanceof ThenStep) ||
+				(databaseObject instanceof ElseStep)) {
+				throw new EngineException("Cannot delete this step!");
 			}
 		}
 		
