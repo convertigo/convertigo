@@ -41,6 +41,7 @@ import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -1496,6 +1497,18 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	    					}
     	    				}
     	    			}
+						NamedNodeMap map = ((Element)stepNode).getAttributes();
+						if (map != null) {
+							int len = map.getLength();
+							for (int i=0;i<len;i++) {
+								Node child = map.item(i);
+								if ((child != null) && ((child.getNodeType() == Node.ATTRIBUTE_NODE))) {
+									stepParentElement.setAttribute(child.getNodeName(),child.getNodeValue());
+								}
+							}
+						}
+    	    			
+						stepParentElement.removeAttribute("step_copy");
     	    			node = stepParentElement;
 					}
 					else {

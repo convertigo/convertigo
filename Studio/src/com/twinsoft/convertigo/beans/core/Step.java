@@ -40,6 +40,7 @@ import org.mozilla.javascript.Undefined;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -404,6 +405,15 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 								if ((child != null) && ((child.getNodeType() == Node.ELEMENT_NODE) || (child.getNodeType() == Node.TEXT_NODE))) {
 									importedNode = doc.importNode(child, true);
 									element.appendChild(importedNode);
+								}
+							}
+							
+							NamedNodeMap map = ((Element)nodeToImport).getAttributes();
+							len = map.getLength();
+							for (int i=0;i<len;i++) {
+								Node child = map.item(i);
+								if ((child != null) && ((child.getNodeType() == Node.ATTRIBUTE_NODE))) {
+									element.setAttribute(child.getNodeName(),child.getNodeValue());
 								}
 							}
 						}
