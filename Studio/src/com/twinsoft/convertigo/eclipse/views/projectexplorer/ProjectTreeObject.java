@@ -542,7 +542,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				if (databaseObject.getProject().getName().equals(getName())) {
 					if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
 						RequestableObject requestable = (RequestableObject)databaseObject;
-						if (requestable.isPublicMethod()) {
+						if (requestable.isPublicAccessibility()) {
 							try {
 								String xsdTypes = requestable.generateXsdTypes(null, false);
 								updateWebService(requestable.getParent(), requestable, xsdTypes, false);
