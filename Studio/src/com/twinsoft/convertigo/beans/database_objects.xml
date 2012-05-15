@@ -285,6 +285,9 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLElementStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElementStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
                 </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.XMLCopyStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
