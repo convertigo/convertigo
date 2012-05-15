@@ -49,6 +49,7 @@ public class ProjectDeployAction extends MyAbstractAction {
 		shell.setCursor(waitCursor);
 		
         try {
+        	boolean bDeploy = true;
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
     			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
@@ -59,13 +60,16 @@ public class ProjectDeployAction extends MyAbstractAction {
 					if (ret == SWT.OK) {
 	    				projectTreeObject.save(false);
 	       				explorerView.refreshTree();
-						
-	                	ProjectDeployDialog projectDeployDialog = new ProjectDeployDialog(shell, ProjectDeployDialogComposite.class, "Deploy a Convertigo project");
-	                	projectDeployDialog.open();
-	            		if (projectDeployDialog.getReturnCode() != Window.CANCEL) {
-	            			
-	            		}
 					}
+					else
+						bDeploy = false;
+    			}
+    			if (bDeploy) {
+	            	ProjectDeployDialog projectDeployDialog = new ProjectDeployDialog(shell, ProjectDeployDialogComposite.class, "Deploy a Convertigo project");
+	            	projectDeployDialog.open();
+	        		if (projectDeployDialog.getReturnCode() != Window.CANCEL) {
+	        			
+	        		}
     			}
     		}
         }
