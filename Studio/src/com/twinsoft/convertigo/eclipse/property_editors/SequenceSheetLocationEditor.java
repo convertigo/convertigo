@@ -31,7 +31,7 @@ public class SequenceSheetLocationEditor extends PropertyWithTagsEditor {
     public static final String FROM_LAST_DETECTED_STEP = "From last detected step";
     
     public static String[] getTags(DatabaseObjectTreeObject databaseObjectTreeObject) {
-    	return new String[] { NONE, FROM_SEQUENCE, FROM_LAST_DETECTED_STEP };
+    	return new String[] { NONE, FROM_SEQUENCE };
     }
 
 }
