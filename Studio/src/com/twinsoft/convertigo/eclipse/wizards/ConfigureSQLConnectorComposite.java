@@ -82,7 +82,7 @@ public class ConfigureSQLConnectorComposite extends Composite {
 		label = new Label(this, SWT.NONE);
 		label.setText("JDBC driver");
 		label.setLayoutData(gridData);
-		jdbcDriver = new Combo(this, SWT.BORDER);
+		jdbcDriver = new Combo(this, SWT.BORDER | SWT.READ_ONLY);
 		jdbcDriver.setLayoutData(gridData1);
 
 		try {
