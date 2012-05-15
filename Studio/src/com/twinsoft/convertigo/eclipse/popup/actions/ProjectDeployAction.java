@@ -26,11 +26,14 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployDialogComposite;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
 
 public class ProjectDeployAction extends MyAbstractAction {
 
@@ -46,10 +49,24 @@ public class ProjectDeployAction extends MyAbstractAction {
 		shell.setCursor(waitCursor);
 		
         try {
-        	ProjectDeployDialog projectDeployDialog = new ProjectDeployDialog(shell, ProjectDeployDialogComposite.class, "Deploy a Convertigo project");
-        	projectDeployDialog.open();
-    		if (projectDeployDialog.getReturnCode() != Window.CANCEL) {
-    			
+    		ProjectExplorerView explorerView = getProjectExplorerView();
+    		if (explorerView != null) {
+    			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
+    			if (projectTreeObject.getModified()) {
+					MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.CANCEL | SWT.ICON_WARNING | SWT.APPLICATION_MODAL);
+					messageBox.setMessage("The project \"" + projectTreeObject.getName() + "\" has not been saved.\n Do you want to save it before deployment?");
+					int ret = messageBox.open();
+					if (ret == SWT.OK) {
+	    				projectTreeObject.save(false);
+	       				explorerView.refreshTree();
+						
+	                	ProjectDeployDialog projectDeployDialog = new ProjectDeployDialog(shell, ProjectDeployDialogComposite.class, "Deploy a Convertigo project");
+	                	projectDeployDialog.open();
+	            		if (projectDeployDialog.getReturnCode() != Window.CANCEL) {
+	            			
+	            		}
+					}
+    			}
     		}
         }
         catch (Throwable e) {
