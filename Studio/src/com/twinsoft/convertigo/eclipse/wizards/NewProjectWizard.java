@@ -138,6 +138,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int SAMPLE_REFMANUAL_VARIABLES = 653;
 	public static final int SAMPLE_REFMANUAL_HTTP = 654;
 	public static final int SAMPLE_REFMANUAL_WEBCLIPPER = 655;
+	public static final int SAMPLE_SQL_HSQLDB = 660;
+	public static final int SAMPLE_SQL_XLS = 661;
 	public static final int TEMPLATE_WEB_SERVICE_REFERENCE = 700;
 	public static final int TEMPLATE_SQL_CONNECTOR = 701;
 	public static final int LIBRARY_GOOGLE_MAPS = 800;
@@ -202,6 +204,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String REFMANUAL_VARIABLES_PROJECT_FILE_NAME = "sample_refManual_variables.car";
 	public static final String REFMANUAL_HTTP_PROJECT_FILE_NAME = "sample_refManual_http.car";
 	public static final String REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME = "sample_refManual_webClipper.car";
+	public static final String SQL_HSQLDB_PROJECT_FILE_NAME = "sample_database_HSQLDB.car";
+	public static final String SQL_XLS_PROJECT_FILE_NAME = "sample_database_XLS.car";
 
 	/**
 	 * Constructor for SampleNewWizard.
@@ -221,6 +225,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	 */
 	public void addPages() {
 		switch (templateId) {
+		case SAMPLE_SQL_HSQLDB:
+		case SAMPLE_SQL_XLS:
 		case SAMPLE_REFMANUAL_SITECLIPPER:
 		case SAMPLE_REFMANUAL_STATEMENTS:
 		case SAMPLE_REFMANUAL_STEPS:
@@ -451,6 +457,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				createFromBlankProject(monitor);
 				return;
 
+			case SAMPLE_SQL_HSQLDB:
+			case SAMPLE_SQL_XLS:
 			case SAMPLE_REFMANUAL_SITECLIPPER:
 			case SAMPLE_REFMANUAL_STATEMENTS:
 			case SAMPLE_REFMANUAL_STEPS:
@@ -1183,6 +1191,16 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		String newProjectDir = "";
 
 		switch (templateId) {
+		case SAMPLE_SQL_HSQLDB:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SQL_HSQLDB_PROJECT_FILE_NAME;
+			projectName = SQL_HSQLDB_PROJECT_FILE_NAME.substring(0,
+					SQL_HSQLDB_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_SQL_XLS:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SQL_XLS_PROJECT_FILE_NAME;
+			projectName = SQL_XLS_PROJECT_FILE_NAME.substring(0,
+					SQL_XLS_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
 		case SAMPLE_REFMANUAL_SITECLIPPER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME;
 			projectName = REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME.substring(0,
