@@ -1,6 +1,16 @@
 Convertigo Studio
 =================
 
+Convertigo Studio Licence
+=========================
+Convertigo Studio is based on Affero GPL V3 Licence. Some modules such as the HTML Connector and the
+Legacy Connector are included in object code only, and based on the Convertigo Enterprise Licence.
+These modules are provided in Convertigo Studio for demo and development purposes only. See the EULA included
+in Convertigo Studio installer for Convertigo Enteprise Licence Details. 
+
+
+Convertigo Studio Compilation
+==============================
 In order to compile Convertigo Studio project, you must import the whole project from
 our SVN repository inside your Eclipse workspace.
 
