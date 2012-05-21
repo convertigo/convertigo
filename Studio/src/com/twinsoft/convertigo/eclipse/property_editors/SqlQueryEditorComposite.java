@@ -23,9 +23,11 @@
 package com.twinsoft.convertigo.eclipse.property_editors;
 
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.layout.GridData;
@@ -64,6 +66,21 @@ public class SqlQueryEditorComposite extends AbstractDialogComposite {
 	public Object getValue() {
 		String sqlQuery = textAreaSQLQuery.getText();
 		return sqlQuery;
+	}
+
+	@Override
+	public void performPostDialogCreation() {
+		Shell newShell = this.parentDialog.getShell();
+		Rectangle pDisplayBounds = newShell.getDisplay().getBounds();
+		
+		int nWidth = 600;
+		int nHeight = 400;
+		int nLeft = (pDisplayBounds.width - nWidth) / 2;
+		int nTop = (pDisplayBounds.height - nHeight) / 2;
+		 
+		newShell.setBounds(nLeft, nTop, nWidth, nHeight);
+		
+		super.performPostDialogCreation();
 	}
 
 }
