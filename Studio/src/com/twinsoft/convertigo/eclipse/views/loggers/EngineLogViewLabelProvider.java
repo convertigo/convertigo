@@ -22,13 +22,11 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 	FontRegistry registry = new FontRegistry();
 	TableViewer viewer;
 
-	@Override
 	public Color getForeground(Object element, int columnIndex) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 	
-	@Override
 	public Color getBackground(Object element, int columnIndex) {
 		LogLine line = (LogLine) element;
 		String level = line.getLevel();
@@ -60,12 +58,10 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 		return null;
 	}
 
-	@Override
 	public Font getFont(Object element, int columnIndex) {
 		return registry.get(Display.getCurrent().getSystemFont().getFontData()[0].getName());
 	}
 
-	@Override
 	public Image getColumnImage(Object element, int columnIndex) {
 //		LogLine line = (LogLine) element;
 //		if (columnIndex == 6 && (line.getMessage().contains("\n") || line.getExtra().contains("\n"))) {
@@ -74,7 +70,6 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 		return null;
 	}
 
-	@Override
 	public String getColumnText(Object element, int columnIndex) {
 		LogLine line = (LogLine) element;
 		String text = "";

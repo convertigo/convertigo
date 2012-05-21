@@ -220,7 +220,6 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		tableViewer.setContentProvider(new ArrayContentProvider());
 		tableViewer.setInput(logLines);
 		tableViewer.addDoubleClickListener(new IDoubleClickListener() {
-			@Override
 			public void doubleClick(DoubleClickEvent event) {
 				ISelection selection = event.getSelection();
 				if (selection instanceof IStructuredSelection) {
@@ -237,7 +236,6 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		
 		thread = new Thread(new Runnable() {
 			
-			@Override
 			public void run() {
 				try {
 					while (Engine.logConvertigo == null) {
@@ -253,7 +251,6 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 					while (Thread.currentThread() == thread) {
 						updateLogs();
 						Display.getDefault().asyncExec(new Runnable() {
-							@Override
 							public void run() {
 								tableViewer.refresh();
 								if (!scrollLock) {
@@ -340,12 +337,10 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		tableViewer.getControl().setFocus();
 	}
 
-	@Override
 	public void objectSelected(CompositeEvent compositeEvent) {
 		// TODO Auto-generated method stub
 	}
 
-	@Override
 	public void objectChanged(CompositeEvent compositeEvent) {
 		// TODO Auto-generated method stub
 		
