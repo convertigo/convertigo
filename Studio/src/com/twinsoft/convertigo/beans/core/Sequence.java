@@ -457,6 +457,24 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		String ePrefix = getXsdExtractPrefix();
 		Document xsdDom = XSDExtractor.extractXSD(ePrefix, document);
 		
+		// Add the ConvertigoError element
+		NodeList list = xsdDom.getDocumentElement().getElementsByTagName("xsd:complexType");
+		for (int i=0; i<list.getLength(); i++) {
+			Element el = (Element)list.item(i);
+			if (el.getAttribute("name").equals(ePrefix+"documentType")) {
+				NodeList l = el.getElementsByTagName("xsd:sequence");
+				Element se = l.getLength() > 0 ? (Element)l.item(0):(Element)el.insertBefore(xsdDom.createElement("xsd:sequence"),(Element)el.getFirstChild());
+				if (se != null) {
+					Element error = xsdDom.createElement("xsd:element");
+					error.setAttribute("name", "error");
+					error.setAttribute("type", "p_ns:ConvertigoError");
+					error.setAttribute("minOccurs", "0");
+					error.setAttribute("maxOccurs", "1");
+					se.appendChild(error);
+				}
+			}
+		}
+		
 		String tPrefix = getXsdTypePrefix();
 		String prettyPrintedText = XMLUtils.prettyPrintDOM(xsdDom);
 		prettyPrintedText = prettyPrintedText.substring(prettyPrintedText.indexOf("<xsd:schema>") + "<xsd:schema>".length());
@@ -475,6 +493,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		schema += "<xsd:schema>\n";
 		schema += "\t<xsd:complexType name=\""+ name + "Response\">\n";
 		schema += "\t\t<xsd:sequence>\n";
+		schema += "\t\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"error\" type=\"p_ns:ConvertigoError\" />\n";
 		for (Step step: getSteps()) {
 			step.addSchemaType(stepTypes, "p_ns");
 			schema += step.getSchema("p_ns");
