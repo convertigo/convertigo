@@ -34,9 +34,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
@@ -189,32 +190,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		
 		Table table = tableViewer.getTable();
 		table.setHeaderVisible(true);
-		table.setLinesVisible(true);
-		
-		/*
-		 * NOTE: MeasureItem, PaintItem and EraseItem are called repeatedly.
-		 * Therefore, it is critical for performance that these methods be
-		 * as efficient as possible.
-		 */	
-		table.addListener(SWT.EraseItem, new Listener() {
-			public void handleEvent(Event event) {
-				event.detail &= ~SWT.FOREGROUND;
-			}
-		});
-		
-		table.addListener(SWT.PaintItem, new Listener() {
-			public void handleEvent(Event event) {
-				TableItem item = (TableItem)event.item;
-				String text = item.getText(event.index);
-				event.gc.drawText(text, event.x, event.y, true);	
-				Image image = item.getImage(event.index);
-				if (image != null) {
-					event.gc.drawImage(image, event.x, event.y);
-				}
-			}
-		});
 		table.pack();
-		table.setToolTipText("");
 		
 		tableViewer.setLabelProvider(labelProvider);
 		tableViewer.setContentProvider(new ArrayContentProvider());
@@ -275,8 +251,10 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 	}
 
 	private void createColumns(final Composite parent, final TableViewer viewer) {
-		String[] titles = {"Message", "Level", "Category", "Time", "Thread", "Extra", " + "};
-		int[] bounds = {400, 50, 125, 150, 125, 100, 10};
+		String[] titles = {"Message", "Level", "Category", "Time", "Thread", "Extra"};
+		int[] bounds = {400, 50, 125, 150, 125, 100};
+		Menu headerMenu = new Menu(parent.getShell(), SWT.POP_UP);
+		viewer.getTable().setMenu(headerMenu);
 		
 		TableColumnLayout layout = new TableColumnLayout();
 		parent.setLayout(layout);
@@ -286,26 +264,27 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 
 		col = createTableViewerColumn(titles[1], bounds[1], 1);
 		layout.setColumnData(col.getColumn(), new ColumnWeightData(3, ColumnWeightData.MINIMUM_WIDTH, true));
+		createMenuItem(headerMenu, col.getColumn());
 		
 		col = createTableViewerColumn(titles[2], bounds[2], 2);
 		layout.setColumnData(col.getColumn(), new ColumnWeightData(5, ColumnWeightData.MINIMUM_WIDTH, true));
+		createMenuItem(headerMenu, col.getColumn());
 		
 		col = createTableViewerColumn(titles[3], bounds[3], 3);
 		layout.setColumnData(col.getColumn(), new ColumnWeightData(4, ColumnWeightData.MINIMUM_WIDTH, true));
+		createMenuItem(headerMenu, col.getColumn());
 		
 		col = createTableViewerColumn(titles[4], bounds[4], 4);
 		layout.setColumnData(col.getColumn(), new ColumnWeightData(3, ColumnWeightData.MINIMUM_WIDTH, true));
+		createMenuItem(headerMenu, col.getColumn());
 		
 		col = createTableViewerColumn(titles[5], bounds[5], 5);
 		layout.setColumnData(col.getColumn(), new ColumnWeightData(5, ColumnWeightData.MINIMUM_WIDTH, true));
-		
-		col = createTableViewerColumn(titles[6], bounds[6], 6);
-		col.getColumn().setToolTipText("Has more lines");
-		layout.setColumnData(col.getColumn(), new ColumnWeightData(1, true));
+		createMenuItem(headerMenu, col.getColumn());
 	} 
 	
 	private TableViewerColumn createTableViewerColumn(String title, int bound, final int colNumber) {
-		TableViewerColumn viewerColumn = new TableViewerColumn(tableViewer,SWT.NONE);
+		TableViewerColumn viewerColumn = new TableViewerColumn(tableViewer,SWT.VIRTUAL);
 		TableColumn column = viewerColumn.getColumn();
 		column.setText(title);
 		column.setWidth(bound);
@@ -313,6 +292,23 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		column.setMoveable(true);
 		column.addSelectionListener(getSelectionAdapter(column, colNumber));
 		return viewerColumn;
+	}
+	
+	private void createMenuItem(Menu parent, final TableColumn column) {
+		final MenuItem itemName = new MenuItem(parent, SWT.CHECK);
+		itemName.setText(column.getText());
+		itemName.setSelection(column.getResizable());
+		itemName.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				if (itemName.getSelection()) {
+					column.setWidth(150);
+					column.setResizable(true);
+				} else {
+					column.setWidth(0);
+					column.setResizable(false);
+				}
+			}
+		});
 	}
 
 	private SelectionAdapter getSelectionAdapter(final TableColumn column, final int index) {
@@ -338,12 +334,9 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 	}
 
 	public void objectSelected(CompositeEvent compositeEvent) {
-		// TODO Auto-generated method stub
 	}
 
 	public void objectChanged(CompositeEvent compositeEvent) {
-		// TODO Auto-generated method stub
-		
 	}	
 	
 	private void updateLogs() {
@@ -361,15 +354,50 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 	        	logs = logManager.getLines();
 	        }
 			
+	        List<String> extraList = new LinkedList<String>();
+			List<String> messageList = new LinkedList<String>();
 			for (int i=0; i < logs.length(); i++) {
 				JSONArray logLine = (JSONArray) logs.get(i);
 				String extra = "";
+				String fullExtra = "";
+				extraList.clear();
+				messageList.clear();
 				for (int j=5; j < logLine.length(); j++) {
-					extra += logLine.getString(j) + "\n";
+					extra += logLine.getString(j) + "   ";
+					fullExtra += logLine.getString(j) + "\n";
+					extraList.add(logLine.getString(j));
 				}
-				logLines.add(new LogLine(logLine.getString(0), logLine.getString(1), logLine.getString(2), 
-						logLine.getString(3), logLine.getString(4), extra, counter));
-				counter++;
+				String message = logLine.getString(4);
+			    int position = 0;
+			    if (message.contains("\n")) {
+				    messageList.add(message.substring(0, message.indexOf("\n") + "\n".length()));
+					while ((message.contains("\n")) && (!"\n".equals(""))) {
+				    	position = message.indexOf("\n");
+			            message = message.substring(position + "\n".length(), message.length());
+			            messageList.add(message.substring(0, message.indexOf("\n") + "\n".length()));
+					}
+			    }
+			    message = logLine.getString(4);
+			    if (message.contains("\n")) {
+			    	if (messageList.size() > extraList.size()) {
+			    		boolean subLine = false;
+			    		for (int k=0; k < messageList.size(); k++) {
+			    			if (k > 0) subLine = true;
+			    			if (k < extraList.size() && extraList.size() != 0) {
+				    			logLines.add(new LogLine(logLine.getString(0), logLine.getString(1), logLine.getString(2), 
+										logLine.getString(3), messageList.get(k), extraList.get(k), subLine, counter, logLine.getString(4), fullExtra));
+			    			} else {
+			    				logLines.add(new LogLine(logLine.getString(0), logLine.getString(1), logLine.getString(2), 
+										logLine.getString(3), messageList.get(k), " ", subLine, counter, logLine.getString(4), fullExtra));
+			    			}
+				    	}
+			    		counter++;
+			    	}
+			    } else {
+					logLines.add(new LogLine(logLine.getString(0), logLine.getString(1), logLine.getString(2), 
+								logLine.getString(3), logLine.getString(4), extra, false, counter, logLine.getString(4), extra));
+					counter++;
+			    }
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

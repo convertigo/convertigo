@@ -78,24 +78,27 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 				text = line.getMessage();
 				break;
 			case 1:
-				text = line.getLevel();
+				if (!line.isSubLine) {
+					text = line.getLevel();
+				}
 				break;
 			case 2:
-				text = line.getCategory();
+				if (!line.isSubLine) {
+					text = line.getCategory();
+				}
 				break;
 			case 3:
-				text = line.getTime();
+				if (!line.isSubLine) {
+					text = line.getTime();
+				}
 				break;
 			case 4:
-				text = line.getThread();
+				if (!line.isSubLine) {
+					text = line.getThread();
+				}
 				break;
 			case 5:
 				text = line.getExtra();
-				break;
-			case 6:
-				if (columnIndex == 6 && (line.getMessage().contains("\n") || line.getExtra().contains("\n"))) {
-					text = "    +";
-				}
 				break;
 			default:
 				break;

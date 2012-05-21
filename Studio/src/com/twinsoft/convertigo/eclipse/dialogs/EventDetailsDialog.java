@@ -83,8 +83,8 @@ public class EventDetailsDialog extends MyAbstractDialog {
 		logLevel.setBackground(color);
 		logCategory.setText(logLine.getCategory());
 		logThread.setText(logLine.getThread());
-		textMessage.setText(logLine.getMessage());
-		textExtra.setText(logLine.getExtra());
+		textMessage.setText(logLine.getFullMessage());
+		textExtra.setText(logLine.getFullExtra());
 
 		return composite;
 	}
