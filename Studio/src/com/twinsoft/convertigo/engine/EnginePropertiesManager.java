@@ -370,6 +370,8 @@ public class EnginePropertiesManager {
 		LOG4J_APPENDER_CEMSAPPENDER_MAXFILESIZE ("log4j.appender.CemsAppender.MaxFileSize", "10MB", "Log4J default appender max file size", PropertyCategory.Logs),
 		@PropertyOptions(advance = true)
 		LOG4J_APPENDER_CEMSAPPENDER_MAXBACKUPINDEX ("log4j.appender.CemsAppender.MaxBackupIndex", "100", "Log4J default appender max backup index", PropertyCategory.Logs),
+		@PropertyOptions(advance = true)
+		LOG4J_APPENDER_CEMSAPPENDER_ENCODING ("log4j.appender.CemsAppender.Encoding","UTF-8", "Log4J default appender encoding (requires JVM restart)", PropertyCategory.Logs),
 		// New appender for the Audit logger.
 		LOG4J_APPENDER_AUDITAPPENDER ("log4j.appender.AuditAppender", "org.apache.log4j.RollingFileAppender", "Log4J audit appender", PropertyCategory.Logs),
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)

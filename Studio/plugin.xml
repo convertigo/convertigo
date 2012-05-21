@@ -966,6 +966,10 @@
                relationship="right"
                relative="org.eclipse.ui.editorss">
          </view>
+         <view
+               relationship="stack"
+               relative="org.eclipse.ui.editorss"
+               id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"/>
       </perspectiveExtension>
    </extension>
    <extension
@@ -2579,6 +2583,14 @@
             icon="icons/references_16x16.gif"
             id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
             name="References"
+            restorable="true">
+      </view>
+      <view
+            category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
+            icon="icons/convertigo_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
+            name="Engine Log"
             restorable="true">
       </view>
       <!--view

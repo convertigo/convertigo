@@ -42,6 +42,8 @@ import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 
 
@@ -273,7 +275,7 @@ public class LogManager {
 			br.close();
 		}
 		is.reset();
-		br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+		br = new BufferedReader(new InputStreamReader(is, EnginePropertiesManager.getProperty(PropertyName.LOG4J_APPENDER_CEMSAPPENDER_ENCODING)));
 		has_more_results = true;
 		candidate = null;
 		line = null;
