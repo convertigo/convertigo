@@ -118,8 +118,15 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
    			//Engine.logBeans.trace("Try to get the property editor");
 			Class<?> c = Class.forName("com.twinsoft.convertigo.eclipse.property_editors." + className);
 			return c;
+		} catch (ClassNotFoundException e) {
+			// Server mode => no eclipse.jar, so no editor classes as expected
+			// If studio mode: error!
+			if (!Engine.isEngineMode())
+				Engine.logBeans.error("Property editor '" + className + "' can not be found", e);
+			
+			return null;
 		} catch (Throwable e) {
-			// any Throwable will result in a return null (as NoDefClassFound ) 
+			// Any Throwable will result in a return null (as NoDefClassFound) 
    			Engine.logBeans.error("Property editor '" + className + "' can not be found", e);
 			return null;
 		}
