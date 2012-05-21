@@ -14,10 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/beans/steps/XMLAttributeStepBeanInfo.java $
- * $Author: fabienb $
- * $Revision: 29732 $
- * $Date: 2012-02-20 18:05:49 +0100 (lun., 20 févr. 2012) $
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
  */
 
 package com.twinsoft.convertigo.beans.steps;
