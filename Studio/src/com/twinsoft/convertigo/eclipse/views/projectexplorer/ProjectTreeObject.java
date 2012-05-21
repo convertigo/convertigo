@@ -538,7 +538,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 				makeTargetNamespaceReplacements(false, (String)oldValue, (String)newValue);
 			}
 			// Case of a requestable changed its WS exposition
-			else if (propertyName.equals("publicMethod")) {
+			else if (propertyName.equals("accessibility")) {
 				if (databaseObject.getProject().getName().equals(getName())) {
 					if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
 						RequestableObject requestable = (RequestableObject)databaseObject;
