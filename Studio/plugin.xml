@@ -317,6 +317,9 @@
             id="com.twinsoft.convertigo.eclipse.convertigo"
             name="Convertigo Projects"/>
       <category
+            id="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
+            name="Convertigo Samples and Demos"/>
+      <category
             id="com.twinsoft.convertigo.eclipse.convertigolegacyweb"
             name="Legacy publishing (webization)"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo">
@@ -347,10 +350,6 @@
             name="Libraries"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
       <category
-            id="com.twinsoft.convertigo.eclipse.convertigodemos"
-            name="Demo projects"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
-      <category
             id="com.twinsoft.convertigo.eclipse.convertigohubs"
             name="Mashup composition"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
@@ -366,26 +365,27 @@
             id="com.twinsoft.convertigo.eclipse.convertigomobile"
             name="Mobile"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>  
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigosamples"
-            name="Samples"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
+<!-- samples and demos categories -->
       <category
             id="com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
             name="Documentation samples"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples"/>
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
             name="Reference Manual examples"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples"/>
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigomobilesamples"
             name="Mobile samples"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples"/>
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigosqlsamples"
             name="SQL Connector samples"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples"/>
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigodemos"
+            name="Mashup demo projects"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
 <!-- Mobilizer projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
@@ -576,7 +576,7 @@
             </wizard>
 <!-- Tutorials sample projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCLIWizard"
              icon="icons/studio/javelinconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCLIWizard"
@@ -586,7 +586,7 @@
           <description>Imports the legacy integration sample project to use with Convertigo Legacy Integrator Quick Guide documentation.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCLPWizard"
              icon="icons/studio/javelinconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCLPWizard"
@@ -596,7 +596,7 @@
           <description>Imports the legacy publishing sample project to use with Convertigo Legacy Publisher Quick Guide documentation.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCMCWizard"
              icon="icons/studio/interaction_hub_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCMCWizard"
@@ -606,7 +606,7 @@
           <description>Imports the interaction hub sample project to use with Convertigo Mashup Composer Quick Guide documentation.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCMSWizard"
              icon="icons/studio/sequence_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCMSWizard"
@@ -616,7 +616,7 @@
           <description>Imports the mashup sequencer sample project to use with Convertigo Mashup Sequencer Quick Guide documentation.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCWCWizard"
              icon="icons/studio/htmlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCWCWizard"
@@ -626,7 +626,7 @@
           <description>Imports the web clipping sample project to use with Convertigo Web Clipper Quick Guide documentation.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCWIWizard"
              icon="icons/studio/htmlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCWIWizard"
@@ -636,7 +636,7 @@
           <description>Imports the web integration sample project to use with Convertigo Web Integrator Quick Guide documentation.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleMobilizerWizard"
              icon="icons/studio/mobile_HighEnd_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleMobilizerWizard"
@@ -646,7 +646,7 @@
           <description>Imports the Mobilizer sample project to use with "My first Convertigo Mobilizer project" tutorial.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleSiteClipperWizard"
              icon="icons/studio/siteclipperconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleSiteClipperWizard"
@@ -657,7 +657,7 @@
        </wizard>
 <!-- Reference Manual sample projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleSiteClipperWizard"
              icon="icons/studio/siteclipperconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleSiteClipperWizard"
@@ -667,7 +667,7 @@
           <description>Imports the sample project containing Site Clipper objects examples described in the Reference Manual.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStatementsWizard"
              icon="icons/studio/htmlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStatementsWizard"
@@ -677,7 +677,7 @@
           <description>Imports the sample project containing HTML connector statements examples described in the Reference Manual.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
              icon="icons/studio/sequence_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
@@ -687,7 +687,7 @@
           <description>Imports the sample project containing Sequencer steps examples described in the Reference Manual.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleVariablesWizard"
              icon="icons/studio/variable_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleVariablesWizard"
@@ -697,7 +697,7 @@
           <description>Imports the sample project containing variables examples described in the Reference Manual.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleHTTPWizard"
              icon="icons/studio/httpconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleHTTPWizard"
@@ -707,7 +707,7 @@
           <description>Imports the sample project containing HTTP connector objects examples described in the Reference Manual.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleWebClipperWizard"
              icon="icons/studio/htmlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleWebClipperWizard"
@@ -718,7 +718,7 @@
        </wizard>
 <!-- Mobile sample projects -->
        <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
             class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerFullFeaturedJQueryMobileWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerFullFeaturedJQueryMobileWizard"
@@ -728,7 +728,7 @@
             <description>Imports a full-featured Mobile sample project based on jQueryMobile framework.</description> 
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerPdfWizard"
              icon="icons/studio/mobile_HighEnd_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerPdfWizard"
@@ -738,7 +738,7 @@
           <description>Imports a Sencha based sample project which downloads a PDF file from Convertigo web site.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerWebToPdfWizard"
              icon="icons/studio/mobile_HighEnd_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerWebToPdfWizard"
@@ -748,7 +748,7 @@
           <description>Imports a Sencha based sample project which downloads any HTML page as a PDF file.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerRssNYTimesWizard"
              icon="icons/studio/mobile_HighEnd_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerRssNYTimesWizard"
@@ -758,7 +758,7 @@
           <description>Imports a Sencha based sample project which reads New York Times RSS feeds.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerSiebelWizard"
              icon="icons/studio/mobile_HighEnd_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerSiebelWizard"
@@ -768,7 +768,7 @@
           <description>Imports a Sencha based sample project which connects to a Siebel application.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerUsDirectoryDemoWizard"
              icon="icons/studio/mobile_HighEnd_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerUsDirectoryDemoWizard"
@@ -779,7 +779,7 @@
        </wizard>
 <!-- SQL connector sample projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigosqlsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigosqlsamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewSQLSampleHSQLDBWizard"
              icon="icons/studio/sqlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSQLSampleHSQLDBWizard"
@@ -789,7 +789,7 @@
           <description>Imports an HSQLDB database sample project.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosamples/com.twinsoft.convertigo.eclipse.convertigosqlsamples"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigosqlsamples"
              class="com.twinsoft.convertigo.eclipse.wizards.NewSQLSampleXLSWizard"
              icon="icons/studio/excel.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSQLsampleXLSWizard"
@@ -852,7 +852,7 @@
        </wizard>-->
 <!-- Mashup demo projects -->
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigodemos"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDemoSalesForceWizard"
              icon="icons/studio/demo_salesForce_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDemoSalesForceWizard"
@@ -862,7 +862,7 @@
           <description>Imports the convertigo SalesForce demo project.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigodemos"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDemoUsDirectoryWizard"
              icon="icons/studio/demo_usDirectory_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDemoUsDirectoryWizard"
@@ -872,7 +872,7 @@
           <description>Imports the convertigo US Directory demo project.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigodemos"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDemoLegacyCRMWizard"
              icon="icons/studio/demo_legacyCRM_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDemoLegacyCRMWizard"
@@ -882,7 +882,7 @@
           <description>Imports the convertigo Legacy CRM demo project.</description>
        </wizard>
        <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigodemos"
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
              class="com.twinsoft.convertigo.eclipse.wizards.NewDemoMashupWizard"
              icon="icons/studio/demo_mashup_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDemoMashupWizard"
