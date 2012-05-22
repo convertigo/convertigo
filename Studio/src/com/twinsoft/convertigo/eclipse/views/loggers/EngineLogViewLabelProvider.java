@@ -16,14 +16,10 @@ import org.eclipse.swt.widgets.Display;
 public class EngineLogViewLabelProvider extends CellLabelProvider implements
 		ITableLabelProvider, ITableFontProvider, ITableColorProvider {
 
-//	private static int IMAGE_SIZE = 16;
-//	private static final Image IMAGE = new Image(Display.getCurrent(), 
-//			Display.getCurrent().getSystemImage(SWT.ICON_WARNING).getImageData().scaledTo(IMAGE_SIZE, IMAGE_SIZE));
 	FontRegistry registry = new FontRegistry();
 	TableViewer viewer;
 
 	public Color getForeground(Object element, int columnIndex) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 	
@@ -63,10 +59,6 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 	}
 
 	public Image getColumnImage(Object element, int columnIndex) {
-//		LogLine line = (LogLine) element;
-//		if (columnIndex == 6 && (line.getMessage().contains("\n") || line.getExtra().contains("\n"))) {
-//			return IMAGE;
-//		}
 		return null;
 	}
 

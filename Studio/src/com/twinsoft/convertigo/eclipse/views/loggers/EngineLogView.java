@@ -27,6 +27,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -45,6 +47,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.RetargetAction;
 import org.eclipse.ui.part.ViewPart;
 
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.EventDetailsDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.EventDetailsDialogComposite;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
@@ -61,13 +64,18 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 	private Appender appender;
 	private EngineLogViewComparator comparator;
 	private int counter = 0;
-	final int TEXT_MARGIN = 0;
+	
 	private boolean scrollLock = false;
 	private Action clearLogsAction;
 	private RetargetAction scrollLockAction;
 	private EngineLogViewLabelProvider labelProvider;
 	private static final String ENGINE_LOG_VIEW_COL_ORDER = "EngineLogView.COL_ORDER";
+	private static final String ENGINE_LOG_VIEW_COL_HIDE = "EngineLogView.COL_HIDE";
 	private IMemento memento;
+	private Menu headerMenu;
+	private Menu tableMenu;
+	private Text filterText;
+	private int selectedColumnIndex;
 	
 	public EngineLogView() {		
 		labelProvider = new EngineLogViewLabelProvider();
@@ -94,28 +102,24 @@ public class EngineLogView extends ViewPart implements CompositeListener {
    		Engine.logConvertigo.removeAppender(appender);
    		thread = null;
 	}
-	
+
 	@Override
 	public void createPartControl(Composite parent) {
 		GridLayout gridLayout = new GridLayout(2, false);
 		parent.setLayout(gridLayout);
+		
 		Label filterLabel = new Label(parent, SWT.NONE);
 		filterLabel.setText("Filter: ");
-		final Text filterText = new Text(parent, SWT.BORDER | SWT.SEARCH);
+		filterText = new Text(parent, SWT.BORDER | SWT.SEARCH);
 		filterText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
 		
 		createActions();
 		createToolbar();
 		
 		filterText.addListener(SWT.DefaultSelection, new Listener() {
-		      public void handleEvent(Event e) {
-		          try {
-					logManager.setFilter(filterText.getText());
-					logManager.setContinue(true);
-				} catch (ServiceException e1) {
-					e1.printStackTrace();
-				}
-		      }
+			public void handleEvent(Event e) {
+				setLogFilter();
+			}
 		});
 		
 		createViewer(parent);
@@ -127,6 +131,12 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 			for (int i=0; i < tableViewer.getTable().getColumnCount(); i++) {
 				int order = memento.getInteger(ENGINE_LOG_VIEW_COL_ORDER + "_" + i);
 				columnOrder[i] = order;
+				boolean hide = memento.getBoolean(ENGINE_LOG_VIEW_COL_HIDE + "_" + i);
+				if (hide) {
+					tableViewer.getTable().getColumn(i).setWidth(0);
+					tableViewer.getTable().getColumn(i).setResizable(false);
+					headerMenu.getItem(i-1).setSelection(false);
+				}
 			}
 			tableViewer.getTable().setColumnOrder(columnOrder);
 		}
@@ -134,20 +144,19 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 
 	@Override
 	public void init(IViewSite site, IMemento memento) throws PartInitException {
-		// TODO Auto-generated method stub
 		super.init(site, memento);
 		this.memento = memento;
 	}
 
 	@Override
 	public void saveState(IMemento memento) {
-		// TODO Auto-generated method stub
 		super.saveState(memento);
 		Table table = tableViewer.getTable();
 		int[] columnOrder = new int[table.getColumnCount()];
 		columnOrder = table.getColumnOrder();
 		for (int i=0; i < columnOrder.length; i++) {
 			memento.putInteger(ENGINE_LOG_VIEW_COL_ORDER + "_" + i, columnOrder[i]);
+			memento.putBoolean(ENGINE_LOG_VIEW_COL_HIDE + "_" + i, !table.getColumn(i).getResizable());
 		}
 	}
 
@@ -186,12 +195,13 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		compositeTableViewer.setLayoutData(gridData);
 		
 		tableViewer = new TableViewer(compositeTableViewer, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.BORDER);
-		createColumns(compositeTableViewer, tableViewer);
 		
-		Table table = tableViewer.getTable();
+		createColumns(compositeTableViewer, tableViewer);
+		createTableMenu(compositeTableViewer);
+		
+		final Table table = tableViewer.getTable();
 		table.setHeaderVisible(true);
 		table.pack();
-		
 		tableViewer.setLabelProvider(labelProvider);
 		tableViewer.setContentProvider(new ArrayContentProvider());
 		tableViewer.setInput(logLines);
@@ -207,6 +217,24 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 						dialog.open();
 					}
 				}
+			}
+		});
+		
+		table.addListener(SWT.MenuDetect, new Listener() {
+			public void handleEvent(Event event) {
+				Point pt = Display.getCurrent().map(null, table, new Point(event.x, event.y));
+				Rectangle clientArea = table.getClientArea();
+				boolean header = clientArea.y <= pt.y && pt.y < (clientArea.y + table.getHeaderHeight());
+				selectedColumnIndex = tableViewer.getCell(pt).getColumnIndex();
+				table.setMenu(header ? headerMenu : tableMenu);
+			}
+		});
+		
+		/* IMPORTANT: Dispose the menus (only the current menu, set with setMenu(), will be automatically disposed) */
+		table.addListener(SWT.Dispose, new Listener() {
+			public void handleEvent(Event event) {
+				headerMenu.dispose();
+				tableMenu.dispose();
 			}
 		});
 		
@@ -236,11 +264,8 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 						});
 					}
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+					ConvertigoPlugin.logException(e, "The \"StudioLogViewer\" thread has been interrupted");
+				} 
 			}
 		});
 		thread.setDaemon(true);
@@ -249,11 +274,120 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		// Make the selection available to other views
 		getSite().setSelectionProvider(tableViewer);
 	}
+	
+	private void createTableMenu(final Composite parent) {
+		tableMenu = new Menu(parent.getShell(), SWT.POP_UP);
+		MenuItem item = new MenuItem(tableMenu, SWT.PUSH);
+		item.setText("add \"equals\" command");
+		item.setImage(new Image(Display.getDefault(), getClass().getResourceAsStream("images/log_ctx_menu_add_equals.png")));
+		item.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
+				setFilterText(selection, 0);
+			}
+		});
+		
+		item = new MenuItem(tableMenu, SWT.PUSH);
+		item.setText("add \"contains\" command");
+		item.setImage(new Image(Display.getDefault(), getClass().getResourceAsStream("images/log_ctx_menu_add_contains.png")));
+		item.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
+				setFilterText(selection, 1);
+			}
+		});
+		
+		new MenuItem(tableMenu, SWT.SEPARATOR);
+		item = new MenuItem(tableMenu, SWT.PUSH);
+		item.setText("add \"starts with\" command");
+		item.setImage(new Image(Display.getDefault(), getClass().getResourceAsStream("images/log_ctx_menu_add_startswith.png")));
+		item.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
+				setFilterText(selection, 2);
+			}
+		});
+		
+		item = new MenuItem(tableMenu, SWT.PUSH);
+		item.setText("add \"ends with\" command");
+		item.setImage(new Image(Display.getDefault(), getClass().getResourceAsStream("images/log_ctx_menu_add_endswith.png")));
+		item.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
+				setFilterText(selection, 3);
+			}
+		});
+	}
+	
+	private String getSelectedCellText(int columnIndex, LogLine line) {
+		String text = "";
+		switch (columnIndex) {
+			case 0: 
+				text = line.getMessage();
+				break;
+			case 1:
+				text = line.getLevel();
+				break;
+			case 2:
+				text = line.getCategory();
+				break;
+			case 3:
+				text = line.getTime();
+				break;
+			case 4:
+				text = line.getThread();
+				break;
+			case 5:
+				text = line.getExtra();
+				break;
+			default:
+				break;
+		}
+		return text;
+	}
+	
+	private void setFilterText(IStructuredSelection selection, int buttonIndex) {
+		if (!selection.isEmpty()) {
+			LogLine logline = (LogLine) selection.getFirstElement();
+			String cellValue = getSelectedCellText(selectedColumnIndex, logline);
+			String variableName = tableViewer.getTable().getColumn(selectedColumnIndex).getText().toLowerCase();
+			String filter = filterText.getText();
+			if (filter != "") {
+				filter = "(" + filter + ") and ";
+			}
+			switch (buttonIndex) {
+				case 0: 
+					filterText.setText(filter + variableName + " == \"" + cellValue + "\"");
+					break;
+				case 1:
+					filterText.setText(filter + variableName + ".contains(\"" + cellValue + "\")");
+					break;
+				case 2:
+					filterText.setText(filter + variableName + ".startsWith(\"" + cellValue + "\")");
+					break;
+				case 3:
+					filterText.setText(filter + variableName + ".endsWith(\"" + cellValue + "\")");
+					break;
+				default:
+					break;
+			}
+			setLogFilter();
+		}
+	}
+	
+	private void setLogFilter() {
+		try {
+			logManager.setFilter(filterText.getText());
+			logManager.setContinue(true);
+		} catch (ServiceException e) {
+			ConvertigoPlugin.logException(e, "Unable to set logs filter", true);
+		}
+	}
 
 	private void createColumns(final Composite parent, final TableViewer viewer) {
 		String[] titles = {"Message", "Level", "Category", "Time", "Thread", "Extra"};
 		int[] bounds = {400, 50, 125, 150, 125, 100};
-		Menu headerMenu = new Menu(parent.getShell(), SWT.POP_UP);
+		headerMenu = new Menu(parent.getShell(), SWT.POP_UP);
 		viewer.getTable().setMenu(headerMenu);
 		
 		TableColumnLayout layout = new TableColumnLayout();
@@ -400,9 +534,9 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 			    }
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			ConvertigoPlugin.logException(e, "Error while loading the Engine logs", true);
 		} catch (JSONException e) {
-			e.printStackTrace();
+			ConvertigoPlugin.logException(e, "Unable to process received Engine logs", true);
 		}
 	}
 }

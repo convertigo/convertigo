@@ -2588,7 +2588,7 @@
       <view
             category="convertigo"
             class="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
-            icon="icons/convertigo_16x16.gif"
+            icon="icons/consoles/engine.gif"
             id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
             name="Engine Log"
             restorable="true">
