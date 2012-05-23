@@ -158,12 +158,7 @@ public class SOAPUtils {
 	
 			fault.setFaultString(stepException == null ? faultString : stepException.message);
 			
-			if (System.getProperty("java.specification.version").compareTo("1.6") < 0) {
-				fault.setFaultCode("Server");
-			}
-			else {
-				fault.setFaultCode("soapenv:Server");
-			}
+			fault.setFaultCode("soapenv:Server");
 
 			SOAPFactory soapFactory = defaultSOAPFactory.get();
 			Name name;
