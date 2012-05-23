@@ -505,11 +505,16 @@ public class ObjectsExplorerComposite extends Composite {
 		
 		cleanDescription = cleanDescription.replaceAll("\\{\\{Produit/Fonction\\}\\}",(bHtml?"<b>":""));
 		cleanDescription = cleanDescription.replaceAll("\\{\\{-Produit/Fonction\\}\\}",(bHtml?"</b>":""));
+
+		cleanDescription = cleanDescription.replaceAll("\\{\\{Orange Twinsoft\\}\\}",(bHtml?"<font color=\"#FC870A\">":""));
+		cleanDescription = cleanDescription.replaceAll("\\{\\{-Orange Twinsoft\\}\\}",(bHtml?"</font>":""));
 		
 		cleanDescription = cleanDescription.replaceAll("\\{\\{Computer\\}\\}",(bHtml?"<font size=\"2.5\" face=\"lucida Console\">":""));
 		cleanDescription = cleanDescription.replaceAll("\\{\\{-Computer\\}\\}",(bHtml?"</font>":""));
+		
 		// Replace all \s\n
 		cleanDescription = cleanDescription.replaceAll("(\\s\\\n)",(bHtml?"<br/><br/>":""));
+		
 		// Replace all \n\s
 		cleanDescription = cleanDescription.replaceAll("(\\\n\\s)",(bHtml?"<br/><br/>":""));
 
