@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.sequences;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class GenericSequenceBeanInfo extends MySimpleBeanInfo {
@@ -37,6 +39,10 @@ public class GenericSequenceBeanInfo extends MySimpleBeanInfo {
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
+			
+			PropertyDescriptor property = getPropertyDescriptor("sheetLocation");
+            property.setDisplayName(getExternalizedString("property.sheetLocation.display_name"));
+            property.setShortDescription(getExternalizedString("property.sheetLocation.short_description"));
 			
 		}
 		catch(Exception e) {
