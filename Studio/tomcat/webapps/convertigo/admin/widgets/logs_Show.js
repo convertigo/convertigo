@@ -282,7 +282,7 @@ function onLogToggleLevelClick() {
 		$("#widgetButtonConfiguration").click();
 	}else{		
 		if($("#logLevelCopyFromConfigurationButton").html().length == 0){
-			var $configTable=$("div.config-category").has("h2:contains('Log management')").find("table").first().find("tbody");
+			var $configTable=$("div.config-category").has("h2:contains('Logs')").find("table").first().find("tbody");
 			$("#logLevelCopyFromConfiguration").html($configTable);	
 			var $buttonUpdate=$("#configFirstUpdateButtonLocation").find("button");
 			$("#logLevelCopyFromConfigurationButton")
