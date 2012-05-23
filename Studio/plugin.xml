@@ -966,10 +966,6 @@
                relationship="right"
                relative="org.eclipse.ui.editorss">
          </view>
-         <view
-               relationship="stack"
-               relative="org.eclipse.ui.editorss"
-               id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"/>
       </perspectiveExtension>
    </extension>
    <extension
