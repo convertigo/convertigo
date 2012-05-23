@@ -90,6 +90,8 @@ public class Engine {
 	 */
 	public static Engine theApp;
 
+	public static AuthenticatedSessionManager authenticatedSessionManager;
+
 	/**
 	 * Defines if application is started.
 	 */
@@ -211,13 +213,18 @@ public class Engine {
 	 */
 	public EventManager eventManager;
 
-	public AuthenticatedSessionManager authenticatedSessionManager;
-
 	public HttpClient httpClient;
 	public MultiThreadedHttpConnectionManager connectionManager;
 	public RsaManager rsaManager;
 
 	static {
+		try {
+			Engine.authenticatedSessionManager = new AuthenticatedSessionManager();
+			Engine.authenticatedSessionManager.init();
+		} catch (EngineException e) {
+			e.printStackTrace();
+		}
+
 		cloud_customer_name = System.getProperty("convertigo.cloud.customer_name");
 	}
 	
@@ -353,9 +360,6 @@ public class Engine {
 
 				Engine.theApp.eventManager = new EventManager();
 				Engine.theApp.eventManager.init();
-
-				Engine.theApp.authenticatedSessionManager = new AuthenticatedSessionManager();
-				Engine.theApp.authenticatedSessionManager.init();
 
 				Engine.theApp.databaseObjectsManager = new DatabaseObjectsManager();
 				Engine.theApp.databaseObjectsManager.init();
@@ -702,9 +706,6 @@ public class Engine {
 					Engine.theApp.sessionManager.removeAllSessions();
 					Engine.theApp.sessionManager = null;
 				}
-
-				Engine.logEngine.info("Removing the authenticated sessions manager");
-				Engine.theApp.authenticatedSessionManager.destroy();
 
 				Engine.logEngine.info("Resetting the key manager");
 				KeyManager.reset();

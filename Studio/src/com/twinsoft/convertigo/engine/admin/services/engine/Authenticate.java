@@ -114,12 +114,13 @@ public class Authenticate extends XmlService {
 			}
 
 			if (roles == null) {
-				Engine.theApp.authenticatedSessionManager.removeAuthenticatedSession(sessionId);
+				Engine.authenticatedSessionManager.removeAuthenticatedSession(sessionId);
 				ServiceUtils.addMessage(document, document.getDocumentElement(), "", "error");		
 			} else {
-				Engine.theApp.authenticatedSessionManager.addAuthenticatedSession(sessionId, roles);
+				Engine.authenticatedSessionManager.addAuthenticatedSession(sessionId, roles);
 
 				ServiceUtils.addMessage(document, document.getDocumentElement(), "", "success");
+				ServiceUtils.addMessage(document, document.getDocumentElement(), httpSession.getAttribute("user").toString(), "user", false);
 				ServiceUtils.addRoleNodes(document.getDocumentElement(), roles);
 				
 				Engine.logAdmin.info("User '" + user + "' has been successfully authenticated");
@@ -127,7 +128,7 @@ public class Authenticate extends XmlService {
 		}
 		// Logout
 		else {
-			Engine.theApp.authenticatedSessionManager.removeAuthenticatedSession(sessionId);
+			Engine.authenticatedSessionManager.removeAuthenticatedSession(sessionId);
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "", "success");
 		}
 	}

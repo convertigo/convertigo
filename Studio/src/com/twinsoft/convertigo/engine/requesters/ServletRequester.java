@@ -69,7 +69,7 @@ public abstract class ServletRequester extends GenericRequester {
 			}
 
 			String sessionId = context.httpServletRequest.getSession().getId();
-			if (Engine.theApp.authenticatedSessionManager.hasRole(sessionId, Role.WEB_ADMIN)) {
+			if (Engine.authenticatedSessionManager.hasRole(sessionId, Role.WEB_ADMIN)) {
 				// Only admin users can execute private requestables
 				return;
 			}

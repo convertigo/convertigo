@@ -98,7 +98,7 @@ public class AdminServlet extends HttpServlet {
 				Engine.logAdmin.debug("Needs authentication: " + needsAuthentication);
 				if (needsAuthentication) {
 					String sessionId = request.getSession().getId();
-					Engine.theApp.authenticatedSessionManager.checkRoles(sessionId, serviceDefinition.roles());
+					Engine.authenticatedSessionManager.checkRoles(sessionId, serviceDefinition.roles());
 				}
 				
 				Service service = (Service) serviceClass.newInstance();

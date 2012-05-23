@@ -37,12 +37,15 @@ public class AuthenticatedSessionManager implements AbstractManager {
 	}
 	
 	public boolean isAuthenticated(String sessionId) {
-		return authenticatedSessions.get(sessionId) != null;
+		Role[] roles = authenticatedSessions.get(sessionId);
+		if (roles == null) return false;
+		
+		return AuthenticatedSessionManager.hasRole(roles, Role.AUTHENTICATED);
 	}
 	
 	public boolean isAnonymous(String sessionId) {
 		Role[] roles = authenticatedSessions.get(sessionId);
-		return (roles == null);
+		return (roles == null || !AuthenticatedSessionManager.hasRole(roles, Role.AUTHENTICATED));
 	}
 	
 	public static boolean hasRole(Role[] roles, Role role) {
@@ -51,7 +54,7 @@ public class AuthenticatedSessionManager implements AbstractManager {
 
 	public Role[] getRoles(String sessionId) {
 		Role[] roles = authenticatedSessions.get(sessionId);
-		return roles.clone();
+		return (roles == null ? null : roles.clone());
 	}
 	
 	public void checkRoles(String sessionId, Role[] requiredRoles) throws AuthenticationException {

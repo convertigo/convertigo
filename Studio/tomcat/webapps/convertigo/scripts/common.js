@@ -37,9 +37,10 @@ function initCommon(callback) {
 	call("engine.CheckAuthentication", {}, function (xml) {
 		var $xml = $(xml);
 		var $authenticated = $xml.find("authenticated");
-		if ($authenticated.text() == "true" && checkRoleTestPlatform($xml)) {
+		if (checkRoleTestPlatform($xml)) {
 			callback();
-		} else {
+		}
+		if ($authenticated.text() != "true") {
 			$("#loginForm").submit(function() {
 				var $form = $(this);
 				var username = $form.find("input[name='username']").val();
@@ -66,12 +67,17 @@ function initCommon(callback) {
 
 function checkRoleTestPlatform($xml) {
 	if ($xml.find("roles>role[name=\"AUTHENTICATED\"]").length > 0) {
+		var user = $xml.find("user").text();
+		$("#user").text(user);
 		$("#logout").slideDown("slow").click(function () {
 			call("engine.Authenticate", {authType : "logout"}, function () {
 				document.location.reload();
 			});
 			return false;
 		});
+	}
+	else {
+		$("#user").text("<anonymous>");		
 	}
 	
 	return $xml.find("roles>role[name=\"TEST_PLATFORM\"]").length > 0;

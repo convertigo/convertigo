@@ -147,6 +147,16 @@ a img {
 	right: 10px;
 }
 
+.user {
+    font-variant: small-caps;
+    color: #A5A5A5;
+    font-style: italic;
+    font-weight: bold;
+	position: absolute;
+    top: 20px;
+    right: 10px;
+}
+
 #logout {
 	cursor: pointer;
 	vertical-align: top;
