@@ -24,6 +24,7 @@ $(document).ready(function () {
 	initCommon(function () {
 		call("projects.List", {}, function (xml) {
 			var $xml = $(xml);
+			$("#projects").empty();
 			$xml.find("project[name^='demo_mashup']").each(function () {
 				var $project = $(this);
 				var display_name = $project.attr("name").replace(new RegExp("_", "g"), " ");
