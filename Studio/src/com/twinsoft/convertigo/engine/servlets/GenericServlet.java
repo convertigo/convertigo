@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Writer;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -156,6 +157,12 @@ public abstract class GenericServlet extends HttpServlet {
 				}
 				
 				response.setContentType(content_type);
+				if (content_type.startsWith("text")) {
+					String charset = (String) request.getAttribute("convertigo.charset");
+					if (charset != null && charset.length() > 0) {
+						response.setCharacterEncoding(charset);
+					}
+				}
 
 				String xmlEngine = EnginePropertiesManager
 						.getProperty(EnginePropertiesManager.PropertyName.DOCUMENT_XML_ENGINE);
@@ -227,9 +234,9 @@ public abstract class GenericServlet extends HttpServlet {
 								sResult = XMLUtils.prettyPrintDOM((Document) result);
 							}
 
-							OutputStream os = response.getOutputStream();
-							os.write(sResult.getBytes());
-							os.flush();
+							Writer writer = response.getWriter();
+							writer.write(sResult);
+							writer.flush();
 						}
 					} else {
 						response.setStatus(HttpServletResponse.SC_NO_CONTENT);
