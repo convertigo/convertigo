@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2001-2012 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
@@ -25,7 +25,15 @@ package com.twinsoft.convertigo.engine.enums;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPMessage;
+import javax.xml.soap.SOAPPart;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -34,7 +42,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.SOAPUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public enum Visibility {
@@ -100,6 +110,49 @@ public enum Visibility {
 				}
 				return toPrint;
 			}
+			// Case of soapEnvelope (jmc 25/05/2012)
+			if (object instanceof HttpServletRequest) {				
+				SOAPMessage requestMessage = (SOAPMessage)((HttpServletRequest)object).getAttribute(WebServiceServlet.REQUEST_MESSAGE_ATTRIBUTE);				
+				
+				SOAPPart sp = requestMessage.getSOAPPart();
+				SOAPEnvelope se = sp.getEnvelope();
+				SOAPBody sb = se.getBody();
+								
+				SOAPElement method, parameter;
+				Iterator<?> iterator = sb.getChildElements();
+				Object element;
+				
+				while (iterator.hasNext()) {
+					element = iterator.next();
+					if (element instanceof SOAPElement) {
+						method = (SOAPElement) element;
+						Iterator<?> iterator2 = method.getChildElements();
+						String parameterName, parameterValue;
+
+						while (iterator2.hasNext()) {
+							element = iterator2.next();
+							if (element instanceof SOAPElement) {
+								parameter = (SOAPElement) element;
+								parameterName = parameter.getElementName().getLocalName();
+								parameterValue = parameter.getValue();
+								if (parameterValue == null) parameterValue = "";
+								for (Variable variable: variableList) {
+									if (variable != null && isMasked(variable.getVisibility())) {
+										for (String key : getVariableKeyNames(variable)) {
+											if (parameterName.equals(key)) {
+												parameter.setValue(STRING_MASK);
+											}
+										}
+									}
+								}									
+							}
+						}
+					}
+				}
+				
+				return SOAPUtils.toString(requestMessage, ((HttpServletRequest)object).getCharacterEncoding());
+			}
+			
 			// Case of variables Map : {variable_name,variable_value}
 			if (object instanceof Hashtable<?, ?>) {
 				Hashtable<String, Object> toPrint = GenericUtils.cast(GenericUtils.clone(object));
@@ -116,7 +169,7 @@ public enum Visibility {
 			// Case of Document : inputDocument | XSL requestTemplate
 			if (object instanceof Document) {
 				Document toPrint = XMLUtils.createDom("java");
-				toPrint.appendChild(toPrint.importNode(((Document)object).getDocumentElement(),true));
+				toPrint.appendChild(toPrint.importNode(((Document)object).getDocumentElement(), true));
 				NodeList variableNodeList = toPrint.getElementsByTagName("variable");
 				
 				Element variableElement;

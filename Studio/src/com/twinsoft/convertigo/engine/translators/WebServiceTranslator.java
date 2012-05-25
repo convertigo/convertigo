@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2001-2012 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
@@ -46,13 +46,15 @@ import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.AttachmentManager;
-import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
@@ -67,11 +69,6 @@ public class WebServiceTranslator implements Translator {
         HttpServletRequest request = (HttpServletRequest) inputData;
 
 		SOAPMessage requestMessage = (SOAPMessage) request.getAttribute(WebServiceServlet.REQUEST_MESSAGE_ATTRIBUTE);
-		
-		if (Engine.logBeans.isDebugEnabled()) {
-			String soapMessage = SOAPUtils.toString(requestMessage, request.getCharacterEncoding());
-			Engine.logBeans.debug("[WebServiceTranslator] SOAP message received:\n" + soapMessage);
-		}
 		
 		SOAPPart sp = requestMessage.getSOAPPart();
 		SOAPEnvelope se = sp.getEnvelope();
@@ -348,6 +345,18 @@ public class WebServiceTranslator implements Translator {
 							}
 						}
 					}
+				}
+				
+				if (Engine.logBeans.isDebugEnabled()) {
+					String soapMessage = SOAPUtils.toString(requestMessage, request.getCharacterEncoding());
+					
+					if (requestable instanceof TransactionWithVariables)
+						Engine.logBeans.debug("[WebServiceTranslator] SOAP message received:\n" + Visibility.Logs.replaceVariables(((TransactionWithVariables)(requestable)).getVariablesList(), request));
+					else
+					if (requestable instanceof GenericSequence)
+						Engine.logBeans.debug("[WebServiceTranslator] SOAP message received:\n" + Visibility.Logs.replaceVariables(((GenericSequence)(requestable)).getVariablesList(), request));
+					else
+						Engine.logBeans.debug("[WebServiceTranslator] SOAP message received:\n" + soapMessage);
 				}
 				
 				break;
