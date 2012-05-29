@@ -39,7 +39,6 @@ import org.apache.log4j.Logger;
 import org.apache.xpath.XPathAPI;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
 
@@ -285,20 +284,10 @@ public class BeansDoc {
 		try {
 			Element nameElement = (Element) XPathAPI.selectSingleNode(bean, "display_name");
 			String name = nameElement.getTextContent();
-			String groupName = "";
-			Node node = XPathAPI.selectSingleNode(bean, "ancestor::group/name/text()");
-			if (node != null) {
-				groupName += node.getNodeValue() + "/";
-			}
-			node = XPathAPI.selectSingleNode(bean, "ancestor::category/name/text()");
-			if (node != null) {
-				groupName += node.getNodeValue() + "/";
-			}
-			node = XPathAPI.selectSingleNode(bean, "ancestor::beans/name/text()");
-			if (node != null) {
-				groupName += node.getNodeValue();
-			}
-			groupName = groupName.replaceFirst("/$", "");
+			String groupName = (XPathAPI.selectSingleNode(bean, "ancestor::category/name[text()='Variables']") != null) ?
+				XPathAPI.selectSingleNode(bean, "ancestor::beans/name/text()").getNodeValue() : // case of Variables
+				XPathAPI.selectSingleNode(bean, "ancestor::group/name/text()").getNodeValue(); // default case
+			
 			nameElement.setTextContent(name + " (" + groupName + ")");
 		} catch (TransformerException e) {
 			System.err.println("Unexpected exception in changeName of BeansDoc");
