@@ -29,12 +29,17 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.FileWriter;
 import java.lang.reflect.Method;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import javax.xml.transform.TransformerException;
 
 import org.apache.log4j.Logger;
+import org.apache.xpath.XPathAPI;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
 
@@ -50,6 +55,7 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class BeansDoc {
+	private static Map<String, Element> collision = new HashMap<String, Element>();
 
 	public static void main(String[] args) throws Exception {
 
@@ -67,12 +73,7 @@ public class BeansDoc {
 
 		DboExplorerManager manager = new DboExplorerManager();
 		
-		List<DboGroup> groups = new LinkedList<DboGroup>();
-		List<DboCategory> categories = new LinkedList<DboCategory>();
-		List<DboBeans> beansCategories = new LinkedList<DboBeans>();
-		List<DboBean> beans = new LinkedList<DboBean>();
-		
-		groups = manager.getGroups();
+		List<DboGroup> groups = manager.getGroups();
 		
 		for (DboGroup group : groups) {
 			Element dbdGroup = documentBeansDoc.createElement("group");
@@ -81,28 +82,39 @@ public class BeansDoc {
 			Text groupName = documentBeansDoc.createTextNode(group.getName());
 			dbdGroupName.appendChild(groupName);
 			dbdGroup.appendChild(dbdGroupName);
-			categories = group.getCategories();
+			List<DboCategory> categories = group.getCategories();
 			for (DboCategory category : categories) {
+				String categoryName = category.getName();
 				Element dbdCategory = documentBeansDoc.createElement("category");
 				dbdGroup.appendChild(dbdCategory);	
 				Element dbdCategoryName = documentBeansDoc.createElement("name");
-				if( !( ("").equals(category.getName() ) ) ) {
-					Text categoryName = documentBeansDoc.createTextNode(category.getName());
-					dbdCategoryName.appendChild(categoryName);
+				if (!"".equals(categoryName)) {
+					dbdCategoryName.appendChild(documentBeansDoc.createTextNode(categoryName));
 					dbdCategory.appendChild(dbdCategoryName);
 				}
-				beansCategories = category.getBeans(); 
+				List<DboBeans> beansCategories = category.getBeans(); 
 				for (DboBeans beansCategory : beansCategories) {
+					String beansCategoryName = beansCategory.getName();
 					Element dbdBeans = documentBeansDoc.createElement("beans");
 					dbdCategory.appendChild(dbdBeans);	
 					Element dbdBeansName = documentBeansDoc.createElement("name");
-					if( !( ("").equals(beansCategory.getName() ) ) ) {
-						Text beansName = documentBeansDoc.createTextNode(beansCategory.getName());
+					if( !"".equals(beansCategoryName)) {
+						Text beansName = documentBeansDoc.createTextNode(beansCategoryName);
 						dbdBeansName.appendChild(beansName);
 						dbdBeans.appendChild(dbdBeansName);
 					}
-					beans = beansCategory.getBeans();
-					addBean(beans,documentBeansDoc,dbdBeans);
+					List<DboBean> beans = beansCategory.getBeans();
+					for (DboBean bean : beans) {
+						String databaseObjectClassName = bean.getClassName();
+						if(bean.isEnable()) {
+							if(bean.isDocumented()) {
+								createBeanElement(databaseObjectClassName, documentBeansDoc, dbdBeans, true);
+							}
+							else {
+								createBeanElement(databaseObjectClassName, documentBeansDoc, dbdBeans, false);
+							}
+						}
+					}
 				}
 			}
 		}		
@@ -112,25 +124,9 @@ public class BeansDoc {
 		writer.write(sDocument);
 		writer.close();
 	}
-	
-	private static void addBean(List<DboBean> beans, Document documentBeansDoc, Element dbdParentElement) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IntrospectionException {
-		for (DboBean bean : beans) {
-			String databaseObjectClassName = bean.getClassName();
-			if(bean.isEnable()) {
-				if(bean.isDocumented()) {
-					createBeanElement(databaseObjectClassName, documentBeansDoc, dbdParentElement,true);
-				}
-				else {
-					createBeanElement(databaseObjectClassName, documentBeansDoc, dbdParentElement,false);
-				}
-			}
-		}
-	}
 
-	private static void createBeanElement(String databaseObjectClassName,
-			Document document, Element parentElement, Boolean bEnable)
-			throws InstantiationException, IllegalAccessException,
-			ClassNotFoundException, IntrospectionException {
+	private static void createBeanElement(String databaseObjectClassName, Document document, Element parentElement, Boolean bEnable)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, IntrospectionException {
 		DatabaseObject databaseObject = (DatabaseObject) Class.forName(
 				databaseObjectClassName).newInstance();
 
@@ -150,6 +146,7 @@ public class BeansDoc {
 
 		Element elementSub;
 		Text elementText;
+		String displayName = databaseObjectBeanDescriptor.getDisplayName();
 
 		elementSub = document.createElement("class");
 		elementText = document.createTextNode(databaseObjectClassName);
@@ -162,10 +159,22 @@ public class BeansDoc {
 		elementBean.appendChild(elementSub);
 
 		elementSub = document.createElement("display_name");
-		elementText = document.createTextNode(databaseObjectBeanDescriptor
-				.getDisplayName());
+		elementText = document.createTextNode(displayName);
 		elementSub.appendChild(elementText);
 		elementBean.appendChild(elementSub);
+		
+		// Name collision detection
+		if (collision.containsKey(displayName)) {
+			Element otherBean = collision.get(displayName);
+			if (otherBean != null) {
+				changeName(otherBean);
+			}
+			changeName(elementBean);
+			collision.put(displayName, null);
+		} else {
+			collision.put(displayName, elementBean);
+		}
+		
 
 		String description = databaseObjectBeanDescriptor.getShortDescription();
 		int idx = description.indexOf(" | ");
@@ -269,6 +278,31 @@ public class BeansDoc {
 			elementText = document.createTextNode("Not yet documented.\nFor more information, do not hesitate to contact us in the forum in our Developer Network web site: http://www.convertigo.com/itcenter.html");
 			elementSub.appendChild(elementText);
 			elementBean.appendChild(elementSub);
+		}
+	}
+	
+	private static void changeName(Element bean) {
+		try {
+			Element nameElement = (Element) XPathAPI.selectSingleNode(bean, "display_name");
+			String name = nameElement.getTextContent();
+			String groupName = "";
+			Node node = XPathAPI.selectSingleNode(bean, "ancestor::group/name/text()");
+			if (node != null) {
+				groupName += node.getNodeValue() + "/";
+			}
+			node = XPathAPI.selectSingleNode(bean, "ancestor::category/name/text()");
+			if (node != null) {
+				groupName += node.getNodeValue() + "/";
+			}
+			node = XPathAPI.selectSingleNode(bean, "ancestor::beans/name/text()");
+			if (node != null) {
+				groupName += node.getNodeValue();
+			}
+			groupName = groupName.replaceFirst("/$", "");
+			nameElement.setTextContent(name + " (" + groupName + ")");
+		} catch (TransformerException e) {
+			System.err.println("Unexpected exception in changeName of BeansDoc");
+			e.printStackTrace(System.err);
 		}
 	}
 }
