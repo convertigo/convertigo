@@ -254,6 +254,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 					
 					while (Thread.currentThread() == thread) {
 						updateLogs();
+						Thread.sleep(200);
 						Display.getDefault().asyncExec(new Runnable() {
 							public void run() {
 								tableViewer.refresh();
