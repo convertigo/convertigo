@@ -47,7 +47,7 @@ public class ExceptionStatement extends SimpleStatement {
 		if (isEnable) {
 			if (super.execute(javascriptContext, scope)) {
 				if (evaluated != null) {
-					String message = "A statement exception has been raised";
+					String message = "A statement exception has been raised: ";
 					Throwable t = new Throwable(evaluated.toString());
 					EngineException ee = new EngineException(message,t);
 					throw ee;

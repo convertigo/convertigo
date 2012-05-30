@@ -28,6 +28,7 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.internal.console.ConsoleView;
@@ -80,27 +81,29 @@ public class ConvertigoPartListener implements IPartListener {
     		
 			boolean shuttingDown = convertigoPlugin.isShuttingDown();
 			if (shuttingDown) {
-	        	IConsole console = ((ConsoleView)part).getConsole();
-	        	if (console instanceof MessageConsole) {
-	        		String openedConsoles = "";
-	        		
-	        		if ((console.equals(convertigoPlugin.engineConsole)) && (openedConsoles.indexOf("engine") == -1))
-	        			openedConsoles += (openedConsoles.equals("") ? "":",") + "engine";
-	        		else if ((console.equals(convertigoPlugin.studioConsole)) && (openedConsoles.indexOf("studio") == -1))
-	        			openedConsoles += (openedConsoles.equals("") ? "":",") + "studio";
-	        		else if ((console.equals(convertigoPlugin.connectorConsole)) && (openedConsoles.indexOf("connector") == -1))
-	        			openedConsoles += (openedConsoles.equals("") ? "":",") + "connector";
-	        		else if ((console.equals(convertigoPlugin.tomcatConsole)) && (openedConsoles.indexOf("tomcat") == -1))
-	        			openedConsoles += (openedConsoles.equals("") ? "":",") + "tomcat";
-	        		else if ((console.equals(convertigoPlugin.stdoutConsole)) && (openedConsoles.indexOf("stdout") == -1))
-	        			openedConsoles += (openedConsoles.equals("") ? "":",") + "stdout";
-	        		else if ((console.equals(convertigoPlugin.debugConsole)) && (openedConsoles.indexOf("debug") == -1))
-	        			openedConsoles += (openedConsoles.equals("") ? "":",") + "debug";
-	        		else if ((console.equals(convertigoPlugin.traceConsole)) && (openedConsoles.indexOf("trace") == -1))
-	        			openedConsoles += (openedConsoles.equals("") ? "":",") + "trace";
-	        		
-	        		ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_OPENED_CONSOLES, openedConsoles);
-	        	}
+				IConsole[] tabConsoles = ConsolePlugin.getDefault().getConsoleManager().getConsoles();
+        		String openedConsoles = "";
+        		
+				for (IConsole console : tabConsoles) {
+					if (console instanceof MessageConsole) {
+		        		if ((console.equals(convertigoPlugin.engineConsole)) && (openedConsoles.indexOf("engine") == -1))
+		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "engine";
+		        		else if ((console.equals(convertigoPlugin.studioConsole)) && (openedConsoles.indexOf("studio") == -1))
+		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "studio";
+		        		else if ((console.equals(convertigoPlugin.connectorConsole)) && (openedConsoles.indexOf("connector") == -1))
+		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "connector";
+		        		else if ((console.equals(convertigoPlugin.tomcatConsole)) && (openedConsoles.indexOf("tomcat") == -1))
+		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "tomcat";
+		        		else if ((console.equals(convertigoPlugin.stdoutConsole)) && (openedConsoles.indexOf("stdout") == -1))
+		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "stdout";
+		        		else if ((console.equals(convertigoPlugin.debugConsole)) && (openedConsoles.indexOf("debug") == -1))
+		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "debug";
+		        		else if ((console.equals(convertigoPlugin.traceConsole)) && (openedConsoles.indexOf("trace") == -1))
+		        			openedConsoles += (openedConsoles.equals("") ? "":",") + "trace";
+		        	}
+				}
+
+				ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_OPENED_CONSOLES, openedConsoles);
 			}
 		}
 	}
