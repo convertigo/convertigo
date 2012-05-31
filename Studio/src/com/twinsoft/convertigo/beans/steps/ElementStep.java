@@ -28,7 +28,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaArray;
+import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -128,6 +130,7 @@ public class ElementStep extends StepWithExpressions {
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		String nodeValue = nodeText;
 		if (evaluated != null) {
+			nodeValue = "";
 			if (evaluated instanceof NodeList) {
 				NodeList list = (NodeList)evaluated;
 				nodeValue = list.toString();
@@ -140,6 +143,12 @@ public class ElementStep extends StepWithExpressions {
 				Object object = ((NativeJavaArray)evaluated).unwrap();
 				List<String> list = GenericUtils.toString(Arrays.asList((Object[])object));
 				nodeValue = list.toString();
+			}
+			else if (evaluated instanceof NativeArray) {
+				nodeValue = (String)((NativeArray)evaluated).getDefaultValue(String.class);
+			}
+			else if (evaluated instanceof NativeJavaObject) {
+				nodeValue = (String)((NativeJavaObject)evaluated).getDefaultValue(String.class);
 			}
 			else if (evaluated.getClass().isArray()) {
 				nodeValue = Arrays.toString((Object[])evaluated);

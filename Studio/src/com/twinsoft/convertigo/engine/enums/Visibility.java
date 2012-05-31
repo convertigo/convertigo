@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.engine.enums;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +37,9 @@ import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
 
+import org.mozilla.javascript.NativeArray;
+import org.mozilla.javascript.NativeJavaArray;
+import org.mozilla.javascript.NativeJavaObject;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -70,7 +75,38 @@ public enum Visibility {
 	
 	public String printValue(int visibility, Object value) {
 		if (value == null) return null;
-		return (visibility & mask) == 0 ? value.toString() : maskValue(value);
+		return (visibility & mask) == 0 ? toString(value) : maskValue(value);
+	}
+	
+	private String toString(Object object) {
+		String s = null;
+		if (object != null) {
+			if (object instanceof NodeList) {
+				NodeList list = (NodeList)object;
+				s = list.toString();
+			}
+			else if (object instanceof Collection) {
+				List<String> list = GenericUtils.toString((Collection<?>)object);
+				s = list.toString();
+			}
+			else if (object instanceof NativeJavaArray) {
+				Object ob = ((NativeJavaArray)object).unwrap();
+				List<String> list = GenericUtils.toString(Arrays.asList((Object[])ob));
+				s = list.toString();
+			}
+			else if (object instanceof NativeArray) {
+				s = (String)((NativeArray)object).getDefaultValue(String.class);
+			}
+			else if (object instanceof NativeJavaObject) {
+				s = (String)((NativeJavaObject)object).getDefaultValue(String.class);
+			}
+			else if (object.getClass().isArray()) {
+				s = Arrays.toString((Object[])object);
+			}
+			else
+				s = object.toString();
+		}
+		return s;
 	}
 	
 	public Object replaceValues(List<String> hiddenValues, Object object) {

@@ -22,8 +22,12 @@
 
 package com.twinsoft.convertigo.beans.statements;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeArray;
+import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
@@ -69,7 +73,16 @@ public class InputHtmlSetSelectedStatement extends AbstractComplexeEventStatemen
 		evaluate(javascriptContext, scope, expression, "expression", true);
 		String [] values = null;		
 		if (evaluated != null){
-			if (evaluated instanceof NativeArray) {
+			if (evaluated instanceof NativeJavaArray) {
+				Object object = ((NativeJavaArray)evaluated).unwrap();
+				List<Object> list = Arrays.asList((Object[])object);
+				values = new String[(int) list.size()];
+				for (int i = 0; i < values.length; i++) {
+					Object item = list.get(i);
+					values[i] = convertValue(item);
+				}
+			}
+			else if (evaluated instanceof NativeArray) {
 				NativeArray nativeArray = (NativeArray) evaluated;
 				values = new String[(int) nativeArray.getLength()];
 				for (int i = 0; i < values.length; i++) {
