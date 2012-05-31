@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2001-2012 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
@@ -40,7 +40,7 @@ var $empty_element_xml = $("<element/>")
 var setting_order = ["name", "enabled", "description", "jobName", "scheduleName", "serial", "writeOutput", "cron", "context", "project"];
 
 function schedulers_ListTasks_init () {
-	////////////////////////////////////////INITAILISATION OF THE TABLE//////////////////////
+	////////////////////////////////////////INITIALIZATION OF THE TABLE//////////////////////
 	$(".scheduledTableData").jqGrid({
 		datatype : "local",
 		colNames : ["Enabled", "Name", "Description", "Info", "Edit", "Delete"],
@@ -104,7 +104,7 @@ function schedulers_ListTasks_init () {
 		}
 	});	
 	
-	$(".shedulersCreationButton").button({
+	$(".schedulersCreationButton").button({
 		icons : {
 			primary : "ui-icon-clock"
 		}
@@ -113,7 +113,7 @@ function schedulers_ListTasks_init () {
 		
 		fillDialog($empty_element_xml);
 		
-		display_editor(id);
+		display_editor("New Entry", id);
 		$last_element_xml = null;
 		
 		if (id === "schedulersNewScheduledJob") {
@@ -255,7 +255,7 @@ function schedulers_ListTasks_init () {
 	schedulers_ListTasks_update();
 }
 
-function display_editor (id) {
+function display_editor (optTitle, id) {
 	$(".schedulersNewScheduledJob:first").parent().children().add("#schedulersCronWizard").hide();
 	if (id === "schedulersNewScheduledJob") {
 		$("#schedulersDialogNameField").attr("disabled", "disabled");
@@ -263,7 +263,8 @@ function display_editor (id) {
 		$("#schedulersDialogNameField").removeAttr("disabled");
 	}
 	//activate the variable part
-	$("." + id).show();
+	$("." + id).show();	
+	$("#schedulersDialogAddEntry").data("openner", id).dialog({ title: optTitle });
 	$("#schedulersDialogAddEntry").data("openner", id).dialog("open");
 }
 
@@ -297,7 +298,7 @@ function schedulers_ListTasks_update () {
 			$last_element_xml = retrieveElementXml(this);
 			if ($last_element_xml.length === 1) {
 				fillDialog($last_element_xml);
-				display_editor("schedulersNew" + $last_element_xml.attr("type"));
+				display_editor("Edit Entry", "schedulersNew" + $last_element_xml.attr("type"));
 			}
 		});
 		$(".scheduledTableData .schedulersElementDelete").click(function () {

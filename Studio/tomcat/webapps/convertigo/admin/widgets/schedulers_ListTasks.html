@@ -20,40 +20,41 @@
  * $Date$
 -->
 
-<h4>Scheduled Jobs</h4> 
-
-<table id="scheduled_scheduledJobs" class="scheduledTableData"></table>
-<button  type="button" class="shedulersCreationButton" id="schedulersNewScheduledJob">New Scheduled Job</button>
-
-<hr/>
 
 <h4>Jobs</h4> 
 
 <table id="scheduled_jobs" class="scheduledTableData"></table>
-<button type="button" class="shedulersCreationButton" id="schedulersNewTransactionConvertigoJob">New Transaction</button>
-<button type="button" class="shedulersCreationButton" id="schedulersNewSequenceConvertigoJob">New Sequence</button>
-<button type="button" class="shedulersCreationButton" id="schedulersNewJobGroupJob">New Job Group</button>
+<button type="button" class="schedulersCreationButton" id="schedulersNewTransactionConvertigoJob">New Transaction</button>
+<button type="button" class="schedulersCreationButton" id="schedulersNewSequenceConvertigoJob">New Sequence</button>
+<button type="button" class="schedulersCreationButton" id="schedulersNewJobGroupJob">New Job Group</button>
 
 <hr/>
 
 <h4>Schedules</h4> 
 
 <table id="scheduled_schedules" class="scheduledTableData"></table>
-<button type="button" class="shedulersCreationButton" id="schedulersNewScheduleCron">New Cron</button>
-<button type="button" class="shedulersCreationButton" id="schedulersNewScheduleRunNow">New Run Now</button>
+<button type="button" class="schedulersCreationButton" id="schedulersNewScheduleCron">New Cron</button>
+<button type="button" class="schedulersCreationButton" id="schedulersNewScheduleRunNow">New Run Now</button>
+
+<hr/>
+
+<h4>Scheduled Jobs</h4> 
+
+<table id="scheduled_scheduledJobs" class="scheduledTableData"></table>
+<button  type="button" class="schedulersCreationButton" id="schedulersNewScheduledJob">New Scheduled Job</button>
 
 <div id="schedulersDialogAddEntry" class="main-display-none">
 	<table>
 		<tr>
-			<td><label for="schedulersDialogNameField">Name : </label></td>
+			<td><label for="schedulersDialogNameField">Name: </label></td>
 			<td><input name="name" type="text" id="schedulersDialogNameField"/></td>
 		</tr> 
 		<tr>
-			<td><label for="schedulersDialogDescriptionField">Description : </label></td>
+			<td><label for="schedulersDialogDescriptionField">Description: </label></td>
 			<td><input name="description" type="text" id="schedulersDialogDescriptionField"/></td>
 		</tr> 
 		<tr>
-			<td><label for="schedulersDialogEnabledField">Enabled : </label></td>
+			<td><label for="schedulersDialogEnabledField">Enabled: </label></td>
 			<td><input name="enabled" type="checkbox" checked="checked" id="schedulersDialogEnabledField"/></td>
 		</tr>   
 	</table>
@@ -77,31 +78,31 @@
 			</td>
 		</tr>
 		<tr class="schedulersNewTransactionConvertigoJob schedulersNewSequenceConvertigoJob">
-			<td><label for="schedulersDialogContextField">Context : </label></td>
+			<td><label for="schedulersDialogContextField">Context: </label></td>
 			<td><input name="context" type="text" id="schedulersDialogContextField"/></td>
 		</tr>
 		<tr class="schedulersNewTransactionConvertigoJob schedulersNewSequenceConvertigoJob">
-			<td><label for="schedulerDialogWriteOutputField">Write output : </label></td>
+			<td><label for="schedulerDialogWriteOutputField">Write output: </label></td>
 			<td><input name="writeOutput" type="checkbox" id="schedulerDialogWriteOutputField"/></td>
 		</tr>
 		<tr class="schedulersNewTransactionConvertigoJob schedulersNewSequenceConvertigoJob">
-			<td><label for="schedulerProjectSelect">Project : </label></td>
+			<td><label for="schedulerProjectSelect">Project: </label></td>
 			<td><select name="project" id="schedulerProjectSelect"></select></td>
 		</tr>		
 		<tr class="schedulersNewTransactionConvertigoJob">
-			<td><label for="schedulerConnectorSelect">Connector : </label></td>
+			<td><label for="schedulerConnectorSelect">Connector: </label></td>
 			<td><select name="connector" id="schedulerConnectorSelect"></select></td>
 		</tr> 
 		<tr class="schedulersNewTransactionConvertigoJob">
-			<td><label for="schedulerTransactionSelect">Transaction : </label></td>
+			<td><label for="schedulerTransactionSelect">Transaction: </label></td>
 			<td><select name="transaction" id="schedulerTransactionSelect"></select></td>
 		</tr>
 		<tr class="schedulersNewSequenceConvertigoJob">
-			<td><label for="schedulerSequenceSelect">Sequence : </label></td>
+			<td><label for="schedulerSequenceSelect">Sequence: </label></td>
 			<td><select name="sequence" id="schedulerSequenceSelect"></select></td>
 		</tr>   
 		<tr class="schedulersNewTransactionConvertigoJob schedulersNewSequenceConvertigoJob">
-			<td>Parameters : </td>
+			<td>Parameters: </td>
 			<td>
 				<table id="schedulerRequestableParameters">
 					<tr><th>Name</th><th>Value</th><th>Description</th><th>Send</th></tr>
@@ -109,15 +110,15 @@
 			</td>
 		</tr>
 		<tr class="schedulersNewJobGroupJob">
-			<td><label for="schedulerDialogGroupJobField">Group Job : </label></td>
+			<td><label for="schedulerDialogGroupJobField">Group Job: </label></td>
 			<td><select  multiple="multiple" name="jobsname" class="schedulersSelect schedulersSelect_jobs" id="schedulerDialogGroupJobField"></select></td>
 		</tr>
 		<tr class="schedulersNewJobGroupJob">
-			<td><label for="schedulerDialogSerialField">Serial output : </label></td>
+			<td><label for="schedulerDialogSerialField">Serial execution: </label></td>
 			<td><input name="serial" type="checkbox" id="schedulerDialogSerialField"/></td>
 		</tr>
 		<tr class="schedulersNewScheduleCron">
-			<td><label for="schedulersCron">Cron : </label></td>
+			<td><label for="schedulersCron">Cron: </label></td>
 			<td><input name="cron" type="text" id="schedulersCron"/></td>
 		</tr>
 		<tr class="schedulersNewScheduleCron">
