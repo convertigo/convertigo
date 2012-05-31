@@ -407,9 +407,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						RequestableObject requestable = (RequestableObject)((Step)databaseObject).getSequence();
 						if (requestable.getProject().getName().equals(getName())) {
 							try {
-								String xsdTypes = requestable.generateXsdTypes(null, false);
-								updateXSDFile(requestable.getParent(), requestable, xsdTypes, false);
-								
 								if (databaseObject instanceof TransactionStep) {
 									TransactionStep transactionStep = (TransactionStep)databaseObject;
 									if (!transactionStep.getProjectName().equals(getName())) {
@@ -422,6 +419,10 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 										addXSDFileImport(sequenceStep.getProjectName());
 									}
 								}
+								
+								String xsdTypes = requestable.generateXsdTypes(null, false);
+								updateXSDFile(requestable.getParent(), requestable, xsdTypes, false);
+								
 							} catch (Exception e) {
 							}
 						}
