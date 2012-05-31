@@ -2269,6 +2269,13 @@
                      label="Import variables from target transaction"
                      menubarPath="import">
                </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.StepExportVariablesToSequenceAction"
+                     enablesFor="1"
+                     id="convertigo.action.exportVariables"
+                     label="Export variables to main sequence"
+                     menubarPath="export">
+               </action>
             </objectContribution>
             <objectContribution
                   id="convertigo.sequenceStepContribution"
@@ -2293,6 +2300,13 @@
                      id="convertigo.action.seq.importVariables"
                      label="Import variables from target sequence"
                      menubarPath="import">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.StepExportVariablesToSequenceAction"
+                     enablesFor="1"
+                     id="convertigo.action.seq.exportVariables"
+                     label="Export variables to main sequence"
+                     menubarPath="export">
                </action>
             </objectContribution>
             <objectContribution
