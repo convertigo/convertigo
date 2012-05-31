@@ -351,11 +351,15 @@ public class SqlTransaction extends TransactionWithVariables {
 	public void runCore() throws EngineException {
 		Document doc = null;
 		Element sql_output = null;
-		String prettyPrintedText = "";
+		String query = null, prettyPrintedText = "";
 		boolean studioMode = Engine.isStudioMode();
 		String prefix = getXsdTypePrefix();
 		int numberOfResults = 0;
 		int nb = 0;
+		
+		// create an empty list for hidden variable values
+		List<String> logHiddenValues = new ArrayList<String>();
+		
 		try {
 			List<List<String>> lines = null;
 			List<List<Map<String,String>>> rows = null;
@@ -366,11 +370,8 @@ public class SqlTransaction extends TransactionWithVariables {
 			if (!runningThread.bContinue)
 				return;
 			
-			// create an empty list for hidden variable values
-			List<String> logHiddenValues = new ArrayList<String>();
-			
 			// prepare the query and retrieve its type
-			String query = prepareQuery(logHiddenValues);
+			query = prepareQuery(logHiddenValues);
 			if (Engine.logBeans.isDebugEnabled())
 				Engine.logBeans.debug("(SqlTransaction) Executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
 			
@@ -413,8 +414,10 @@ public class SqlTransaction extends TransactionWithVariables {
 				// Retry once (should not happens)
 				catch(Exception e) {
 					if (runningThread.bContinue) {
-						Engine.logBeans.trace("[SqlTransaction] An exception occured :" + e.getMessage());
-						Engine.logBeans.debug("[SqlTransaction] Failure! Try again to execute query...");
+						if (Engine.logBeans.isTraceEnabled())
+							Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
+						if (Engine.logBeans.isDebugEnabled())
+							Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
 						query = prepareQuery(logHiddenValues);
 						rs = preparedStatement.executeQuery();
 					}
@@ -571,7 +574,8 @@ public class SqlTransaction extends TransactionWithVariables {
 				// Retry once (should not happens)
 				catch (Exception e) {
 					if (runningThread.bContinue) {
-						Engine.logBeans.trace("[SqlTransaction] An exception occured :" + e.getMessage());
+						if (Engine.logBeans.isTraceEnabled())
+							Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
 						if (Engine.logBeans.isDebugEnabled())
 							Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
 						query = prepareQuery(logHiddenValues);
@@ -609,7 +613,8 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 		catch (Exception e) {
 			connector.setData(null,null);
-			throw new EngineException("An unexpected error occured while executing transaction",e);
+			String logQuery = (String) Visibility.Logs.replaceValues(logHiddenValues, query==null ? sqlQuery:query);
+			throw new EngineException("An unexpected error occured while executing transaction.\nCould not execute query '" + logQuery + "'.",e);
 		}
 		finally {
 			try {
