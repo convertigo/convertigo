@@ -124,7 +124,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		super.dragOver(event);
 		
 		// Overrides feedback: by default is DND.FEEDBACK_SELECT
-		feedback = DND.FEEDBACK_SELECT;
+		feedback = DND.FEEDBACK_SELECT | DND.FEEDBACK_SCROLL | DND.FEEDBACK_EXPAND;
 		
 		// Handles feedback for objects that can be ordered
 		if (getCurrentOperation() == DND.DROP_MOVE) {
@@ -153,7 +153,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 											break;
 										case LOCATION_ON:
 										default:
-											feedback = DND.FEEDBACK_SELECT;
+											feedback = DND.FEEDBACK_SELECT | DND.FEEDBACK_SCROLL | DND.FEEDBACK_EXPAND;
 											break;
 									}									
 								}
@@ -219,6 +219,9 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						return true;
 				    }
 				} catch (Exception e) {
+					if (e instanceof ObjectWithSameNameException)
+						document = null;
+					
 					// Case of unauthorized databaseObject paste
 					if (document != null) {
 						try {
