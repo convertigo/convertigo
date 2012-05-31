@@ -62,6 +62,7 @@ import org.xml.sax.InputSource;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.connectors.ConnectionException;
+import com.twinsoft.convertigo.beans.variables.RequestableMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.StepMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
@@ -563,6 +564,27 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 				}
 			}
 		}
+    }
+    
+    public void exportVariableDefinition() throws EngineException {
+    	for (StepVariable stepVariable: getVariables()) {
+    		String variableName = stepVariable.getName();
+    		if (sequence.getVariable(variableName) == null) {
+				if (!StringUtils.isNormalized(variableName))
+					throw new EngineException("Variable name is not normalized : \""+variableName+"\".");
+				
+	    		RequestableVariable requestableVariable = stepVariable.isMultiValued() ? new RequestableMultiValuedVariable():new RequestableVariable();
+	    		requestableVariable.setName(variableName);
+	    		requestableVariable.setDescription(stepVariable.getDescription());
+	    		requestableVariable.setValueOrNull(stepVariable.getValueOrNull());
+	    		requestableVariable.setVisibility(stepVariable.getVisibility());
+	    		sequence.addVariable(requestableVariable);
+	    		
+	    		requestableVariable.bNew = true;
+	    		requestableVariable.hasChanged = true;
+				sequence.hasChanged = true;
+    		}
+    	}
     }
     
 	protected String getPostQuery(Scriptable scope) throws EngineException {
