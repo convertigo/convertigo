@@ -26,7 +26,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -85,7 +85,7 @@ public enum Visibility {
 				NodeList list = (NodeList)object;
 				s = list.toString();
 			}
-			else if (object instanceof Collection) {
+			else if (object instanceof Collection<?>) {
 				List<String> list = GenericUtils.toString((Collection<?>)object);
 				s = list.toString();
 			}
@@ -190,8 +190,8 @@ public enum Visibility {
 			}
 			
 			// Case of variables Map : {variable_name,variable_value}
-			if (object instanceof Hashtable<?, ?>) {
-				Hashtable<String, Object> toPrint = GenericUtils.cast(GenericUtils.clone(object));
+			if (object instanceof HashMap<?, ?>) {
+				HashMap<String, Object> toPrint = GenericUtils.cast(GenericUtils.clone(object));
 				for (Variable variable: variableList) {
 					if (variable != null && isMasked(variable.getVisibility())) {
 						for (String key : getVariableKeyNames(variable)) {
