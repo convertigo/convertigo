@@ -866,7 +866,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			
 	        TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
         	viewer.update(this, null);
-	        viewer.setSelection(viewer.getSelection(),true);
+        	// Fix #2528 #2533 : commented next line because of stack overflow on multiselection
+	        //viewer.setSelection(viewer.getSelection(),true);
 	      
 	       //update property view and display the new value for zone editor
 	        if (pec !=null)
