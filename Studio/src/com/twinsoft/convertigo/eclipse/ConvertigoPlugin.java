@@ -501,7 +501,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		
 		Engine.setStudioMode();
 		
-		SetupAction.runSetup();
+		//SetupAction.runSetup();
 		
 		plugin = this;
 		try {
