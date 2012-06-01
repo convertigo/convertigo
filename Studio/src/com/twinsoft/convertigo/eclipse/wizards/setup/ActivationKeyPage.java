@@ -12,7 +12,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-public class ActivationKeyPage extends WizardPage{
+public class ActivationKeyPage extends WizardPage {
 	
 	private Text certificateKey;
 	
@@ -24,7 +24,6 @@ public class ActivationKeyPage extends WizardPage{
 		setDescription("Activation key is used to activate the product.");
 	}
 
-	@Override
 	public void createControl(Composite parent) {
 		container = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
@@ -61,7 +60,7 @@ public class ActivationKeyPage extends WizardPage{
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (!certificateKey.getText().isEmpty()) {
+				if (certificateKey.getText().length() == 0) {
 					String key = certificateKey.getText();
 					if ("azerty".equals(key)) {
 						setErrorMessage(null);
