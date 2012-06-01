@@ -111,6 +111,11 @@ function scheduler_ListTasks_init () {
 	}).click(function () {
 		var id = $(this).attr("id");
 		
+		/*
+		 * jmc 01/06/2012 reset box
+		 */ 
+		$("#schedulerRequestableParameters").empty();		
+		
 		fillDialog($empty_element_xml);
 		
 		display_editor("New Entry", id);
