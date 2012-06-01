@@ -31,7 +31,6 @@ public class RegistrationPage extends WizardPage {
 		setDescription("User registration.");
 	}
 
-	@Override
 	public void createControl(Composite parent) {
 		container = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
@@ -52,7 +51,7 @@ public class RegistrationPage extends WizardPage {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (!userName.getText().isEmpty()) {
+				if (userName.getText().length() > 0) {
 					setMessage(getDescription());;
 //					setPageComplete(true);
 				} else {
@@ -73,7 +72,7 @@ public class RegistrationPage extends WizardPage {
 
 			public void keyReleased(KeyEvent e) {
 				int nbPassword = password.getText().length();
-				if (!password.getText().isEmpty()) {
+				if (password.getText().length() > 0) {
 					if (nbPassword >= 4 && nbPassword <= 18) {
 						setErrorMessage(null);
 						setMessage(getDescription());
@@ -97,7 +96,7 @@ public class RegistrationPage extends WizardPage {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (!passwordAgain.getText().isEmpty()) {
+				if (passwordAgain.getText().length() > 0) {
 					String pass = password.getText();
 					if (pass.equals(passwordAgain.getText())) {
 						setErrorMessage(null);
@@ -136,7 +135,7 @@ public class RegistrationPage extends WizardPage {
 				} else {
 					setErrorMessage("Please enter a valid mail!");
 				}
-				if (!mail.getText().isEmpty()) {
+				if (mail.getText().length() > 0) {
 					setMessage(getDescription());
 //					setPageComplete(true);
 				} else {
@@ -155,7 +154,7 @@ public class RegistrationPage extends WizardPage {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (!mailAgain.getText().isEmpty()) {
+				if (mailAgain.getText().length() > 0) {
 					String pass = mail.getText();
 					if (pass.equals(mailAgain.getText())) {
 						setErrorMessage(null);
@@ -181,7 +180,7 @@ public class RegistrationPage extends WizardPage {
 			public void widgetSelected(SelectionEvent evt) {
 				boolean isChecked = acceptCondition.getSelection();
 				if (isChecked) {
-					if (userName.getText().isEmpty() && password.getText().isEmpty() && mail.getText().isEmpty()) {
+					if (userName.getText().length() == 0 && password.getText().length() == 0 && mail.getText().length() == 0) {
 						setErrorMessage("please complete the fields required");
 						acceptCondition.setSelection(false);
 					} else {

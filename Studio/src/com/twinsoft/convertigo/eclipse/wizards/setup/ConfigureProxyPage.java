@@ -34,7 +34,6 @@ public class ConfigureProxyPage extends WizardPage {
 		setDescription("Configuration proxy.");
 	}
 	
-	@Override
 	public void createControl(Composite parent) {
 		container = new Composite(parent, SWT.FILL);
 		GridLayout layout = new GridLayout();
@@ -57,13 +56,11 @@ public class ConfigureProxyPage extends WizardPage {
 		
 		proxyMode.addSelectionListener(new SelectionListener() {
 			
-			@Override
 			public void widgetSelected(SelectionEvent e) {
 				System.out.println(proxyMode.getText());
 				isEnable(proxyMode.getText());
 			}
 			
-			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				
@@ -82,7 +79,7 @@ public class ConfigureProxyPage extends WizardPage {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (!proxyPort.getText().isEmpty()) {
+				if (proxyPort.getText().length() > 0) {
 					try {
 						Integer.parseInt(proxyPort.getText());
 						setErrorMessage(null);
@@ -106,7 +103,7 @@ public class ConfigureProxyPage extends WizardPage {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (!proxyHost.getText().isEmpty()) {
+				if (proxyHost.getText().length() > 0) {
 						setMessage(getDescription());
 //						setPageComplete(true);
 				} else {
@@ -127,7 +124,7 @@ public class ConfigureProxyPage extends WizardPage {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (!doNotApplyProxy.getText().isEmpty()) {
+				if (doNotApplyProxy.getText().length() > 0) {
 					setMessage(getDescription());
 //					setPageComplete(true);
 				} else {
@@ -147,7 +144,7 @@ public class ConfigureProxyPage extends WizardPage {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (!proxyUrl.getText().isEmpty()) {
+				if (proxyUrl.getText().length() > 0) {
 						setMessage(getDescription());
 //						setPageComplete(true);
 				} else {
@@ -177,12 +174,10 @@ public class ConfigureProxyPage extends WizardPage {
 		
 		proxyMethode.addSelectionListener(new SelectionListener() {
 			
-			@Override
 			public void widgetSelected(SelectionEvent e) {
 				isEnable(proxyMethode.getText());
 			}
 			
-			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				
@@ -198,7 +193,7 @@ public class ConfigureProxyPage extends WizardPage {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (!proxyUser.getText().isEmpty()) {
+				if (proxyUser.getText().length() > 0) {
 						setMessage(getDescription());
 						setPageComplete(true);
 				} else {
@@ -218,7 +213,7 @@ public class ConfigureProxyPage extends WizardPage {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (!proxyPassword.getText().isEmpty()) {
+				if (proxyPassword.getText().length() > 0) {
 						setMessage(getDescription());
 						setPageComplete(true);
 				} else {

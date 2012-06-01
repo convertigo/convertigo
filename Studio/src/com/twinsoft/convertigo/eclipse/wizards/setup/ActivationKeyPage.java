@@ -60,7 +60,7 @@ public class ActivationKeyPage extends WizardPage {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (certificateKey.getText().length() == 0) {
+				if (certificateKey.getText().length() != 0) {
 					String key = certificateKey.getText();
 					if ("azerty".equals(key)) {
 						setErrorMessage(null);

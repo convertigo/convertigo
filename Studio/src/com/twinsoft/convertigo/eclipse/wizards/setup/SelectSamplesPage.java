@@ -36,7 +36,6 @@ public class SelectSamplesPage extends WizardPage {
 		setDescription("Select demos and samples to be installed.");
 	}
 
-	@Override
 	public void createControl(Composite parent) {
 		container = new Composite(parent, SWT.FILL);
 		GridLayout layout = new GridLayout();

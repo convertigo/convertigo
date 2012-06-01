@@ -60,7 +60,7 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (!userWorkspaceLocation.getText().isEmpty()) {
+				if (userWorkspaceLocation.getText().length() != 0) {
 					File directory = new File(userWorkspaceLocation.getText());
 					if (directory.isDirectory() && directory.exists()) {
 						setErrorMessage(null);
@@ -77,7 +77,6 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 		Button browseButton = new Button(container, SWT.NONE);
 		browseButton.setText("Browse...");
 		browseButton.addSelectionListener(new SelectionListener() {
-			@Override
 			public void widgetSelected(SelectionEvent e) {
 				DirectoryDialog directoryChooserDialog = new DirectoryDialog(getShell());
 		        directoryChooserDialog.setFilterPath(null);
@@ -89,7 +88,6 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 		        }
 			}
 			
-			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
 				// TODO Auto-generated method stub
 				
