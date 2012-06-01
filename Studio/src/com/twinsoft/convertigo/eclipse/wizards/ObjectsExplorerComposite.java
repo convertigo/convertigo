@@ -105,7 +105,10 @@ public class ObjectsExplorerComposite extends Composite {
 	protected Composite [] composites = null;
 	protected ExpandItem [] items = null;
 	protected ExpandBar bar;
-
+	
+	protected List<String> defaultDboList = new ArrayList<String>();
+	protected List<String> documentedDboList = new ArrayList<String>();
+	
 	public ObjectsExplorerComposite(WizardPage wizardPage, Composite parent, int style, Object parentObject,
 			Class<? extends DatabaseObject> beanClass) {
 		this(parent, style, parentObject, beanClass);
@@ -128,7 +131,6 @@ public class ObjectsExplorerComposite extends Composite {
 				Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
 
 				Map<BeanInfo, DboBeans> beanMap = new HashMap<BeanInfo, DboBeans>();
-				List<String> defaultDboList = new ArrayList<String>();
 				
 				// Enumeration of the beans
 				ConvertigoPlugin.logDebug2("Exploring Convertigo database objects list...");
@@ -148,6 +150,9 @@ public class ObjectsExplorerComposite extends Composite {
 								String className = bean.getClassName();
 								if (bean.isDefault()) {
 									defaultDboList.add(className);
+								}
+								if (bean.isDocumented()) {
+									documentedDboList.add(className);
 								}
 								
 								try {
@@ -292,15 +297,16 @@ public class ObjectsExplorerComposite extends Composite {
 					DboBeans beanCategory = beanMap.get(beanInfo);
 					
 					Class<DatabaseObject> beanClass = GenericUtils.cast(beanInfo.getBeanDescriptor().getBeanClass());
+					boolean isDefault = defaultDboList.contains(beanClass.getName());
+					boolean isDocumented = documentedDboList.contains(beanClass.getName());
 					String beanName = beanInfo.getBeanDescriptor().getDisplayName();
-
-					String beanDescription = beanInfo.getBeanDescriptor().getShortDescription();
+					String beanDescription = isDocumented ? beanInfo.getBeanDescriptor().getShortDescription():"Not yet documented |";
 					String[] beanDescriptions = beanDescription.split("\\|");
 					String beanShortDescription = cleanDescription(beanDescriptions[0],false);
 
 					Image beanImage = ConvertigoPlugin.getDefault().getBeanIcon(beanInfo, BeanInfo.ICON_COLOR_32x32);
 
-					if (defaultDboList.contains(beanClass.getName())) {
+					if (isDefault) {
 						bSelected = true;
 						defaultDboFound = true;
 					}
@@ -528,7 +534,8 @@ public class ObjectsExplorerComposite extends Composite {
 
 	private void updateHelpText(BeanInfo bi) {
 		BeanDescriptor beanDescriptor = bi.getBeanDescriptor();
-		String beanDescription = beanDescriptor.getShortDescription();
+		boolean isDocumented = documentedDboList.contains(beanDescriptor.getBeanClass().getName());
+		String beanDescription = isDocumented ? beanDescriptor.getShortDescription():"Not yet documented. |";
 		String[] beanDescriptions = beanDescription.split("\\|");
 		String beanDisplayName = beanDescriptor.getDisplayName();
 		String beanShortDescription = beanDescriptions.length >= 1 ? beanDescriptions[0] : "n/a";
