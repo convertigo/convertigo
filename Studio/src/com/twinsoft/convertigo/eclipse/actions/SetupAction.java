@@ -31,7 +31,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.wizards.install.InstallWizard;
+import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard;
 
 public class SetupAction implements IWorkbenchWindowActionDelegate {
 	
@@ -45,7 +45,7 @@ public class SetupAction implements IWorkbenchWindowActionDelegate {
 
 	public static void runSetup() {
 		Display display = Display.getDefault();
-		WizardDialog wizardDialog = new WizardDialog(display.getActiveShell(), new InstallWizard());
+		WizardDialog wizardDialog = new WizardDialog(display.getActiveShell(), new SetupWizard());
 		if (wizardDialog.open() == Window.OK) {
 			System.out.println("Ok pressed");
 		} else {
