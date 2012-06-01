@@ -35,15 +35,15 @@ function generateCron() {
 	var mois = "";
 	var joursdelasemaine = "";
 	
-	minutes = generateCronFragment('schedulersCronWizardMinutes');
+	minutes = generateCronFragment('schedulerCronWizardMinutes');
 	minutes = createRange(minutes);
-	heures = generateCronFragment('schedulersCronWizardHours');
+	heures = generateCronFragment('schedulerCronWizardHours');
 	heures = createRange(heures);
-	joursdumois = generateCronFragment('schedulersCronWizardDaysOfMonth');
+	joursdumois = generateCronFragment('schedulerCronWizardDaysOfMonth');
 	joursdumois = createRange(joursdumois);
-	mois = generateCronFragment('schedulersCronWizardMonths');
+	mois = generateCronFragment('schedulerCronWizardMonths');
 	mois = createRange(mois);
-	joursdelasemaine = generateCronFragment('schedulersCronWizardDayOfWeek');
+	joursdelasemaine = generateCronFragment('schedulerCronWizardDayOfWeek');
 	joursdelasemaine = createRange(joursdelasemaine);
 	
 	if (joursdumois == "?" && joursdelasemaine == "?") {
@@ -52,7 +52,7 @@ function generateCron() {
 	
 	sCronResult = secondes + " " + minutes + " " + heures + " " + joursdumois + " " + mois + " " + joursdelasemaine
 	//alert(sCronResult);
-	getId("schedulersCron").value = sCronResult;
+	getId("schedulerCron").value = sCronResult;
 }
 
 function generateCronFragment(source) {
@@ -86,7 +86,7 @@ function emptyAndSelectList(liste, sel) {
 }
 
 function parseCron() {
-	var sCron = getId("schedulersCron").value;
+	var sCron = getId("schedulerCron").value;
 	var bParseOK = true;
 	var mycron = sCron.split(" ");
 	//minutes
@@ -105,7 +105,7 @@ function parseCron() {
 		}
 	}
 	//alert("minutes='" + minutes.toString() + "'");
-	emptyAndSelectList('schedulersCronWizardMinutes',"," + minutes.toString() + ",");
+	emptyAndSelectList('schedulerCronWizardMinutes',"," + minutes.toString() + ",");
 	//heures
 	var heures = mycron[2].split(",");
 	for (var k=0; k<heures.length; k++) {
@@ -118,7 +118,7 @@ function parseCron() {
 			heures[k] = tmpValue.replace(/,$/, "");
 		}
 	}
-	emptyAndSelectList("schedulersCronWizardHours","," + heures.toString() + ",");
+	emptyAndSelectList("schedulerCronWizardHours","," + heures.toString() + ",");
 	//jours du mois
 	mycron[3] = mycron[3].replace("*", "?");
 	var joursdumois = mycron[3].split(",");
@@ -132,7 +132,7 @@ function parseCron() {
 			joursdumois[k] = tmpValue.replace(/,$/, "");
 		}
 	}
-	emptyAndSelectList("schedulersCronWizardDaysOfMonth","," + joursdumois.toString() + ",");
+	emptyAndSelectList("schedulerCronWizardDaysOfMonth","," + joursdumois.toString() + ",");
 	//mois
 	var mois = mycron[4].split(",");
 	for (var k=0; k<mois.length; k++) {
@@ -145,7 +145,7 @@ function parseCron() {
 			mois[k] = tmpValue.replace(/,$/, "");
 		}
 	}
-	emptyAndSelectList("schedulersCronWizardMonths","," + mois.toString() + ",");
+	emptyAndSelectList("schedulerCronWizardMonths","," + mois.toString() + ",");
 	//jours de la semaine
 	mycron[5] = mycron[5].replace("*", "?");
 	var joursdelasemaine = mycron[5].split(",");
@@ -159,6 +159,6 @@ function parseCron() {
 			joursdelasemaine[k] = tmpValue.replace(/,$/, "");
 		}
 	}
-	emptyAndSelectList("schedulersCronWizardDayOfWeek","," + joursdelasemaine.toString() + ",");
+	emptyAndSelectList("schedulerCronWizardDayOfWeek","," + joursdelasemaine.toString() + ",");
 }
 

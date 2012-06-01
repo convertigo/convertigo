@@ -565,11 +565,11 @@ table {
 	font-weight: bold;
 }
 
-#schedulersDialogAddEntry td {
+#schedulerDialogAddEntry td {
 	text-align: left;
 }
 
-#schedulersDialogAddEntry td:first-child {
+#schedulerDialogAddEntry td:first-child {
 	text-align: right;
 }
 
@@ -1251,7 +1251,7 @@ table.ui-pg-table {
 	width: 400px;
 }
 
-.schedulersElementEdit, .schedulersElementDelete {
+.schedulerElementEdit, .schedulerElementDelete {
 	cursor: pointer;
 }
 

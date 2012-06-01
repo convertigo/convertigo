@@ -20,7 +20,7 @@
  * $Date$
  */
 
-package com.twinsoft.convertigo.engine.admin.services.schedulers;
+package com.twinsoft.convertigo.engine.admin.services.scheduler;
 
 import java.util.Collections;
 import java.util.Enumeration;
@@ -46,11 +46,11 @@ import com.twinsoft.convertigo.beans.scheduler.ScheduledJob;
 import com.twinsoft.convertigo.beans.scheduler.SchedulerXML;
 import com.twinsoft.convertigo.beans.scheduler.SequenceConvertigoJob;
 import com.twinsoft.convertigo.beans.scheduler.TransactionConvertigoJob;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;

@@ -20,7 +20,7 @@
  * $Date$
  */
 
-package com.twinsoft.convertigo.engine.admin.services.schedulers;
+package com.twinsoft.convertigo.engine.admin.services.scheduler;
 
 import java.util.ArrayList;
 import java.util.Map;

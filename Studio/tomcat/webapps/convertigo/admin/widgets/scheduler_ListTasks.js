@@ -24,7 +24,7 @@ var xmlOfTheProjectLoaded;
 //var loadProject = true;
 //var paramsDefined = [];
 var $last_project_xml;
-var $last_schedulers_xml;
+var $last_scheduler_xml;
 var $last_element_xml = null;
 var $empty_element_xml = $("<element/>")
 	.attr("name", "")
@@ -39,7 +39,7 @@ var $empty_element_xml = $("<element/>")
 	.attr("project", "");
 var setting_order = ["name", "enabled", "description", "jobName", "scheduleName", "serial", "writeOutput", "cron", "context", "project"];
 
-function schedulers_ListTasks_init () {
+function scheduler_ListTasks_init () {
 	////////////////////////////////////////INITIALIZATION OF THE TABLE//////////////////////
 	$(".scheduledTableData").jqGrid({
 		datatype : "local",
@@ -90,7 +90,7 @@ function schedulers_ListTasks_init () {
 	});
 	
 	//////////////////////////////////////////////INITIALISATION OF THE DIALOG OF CREATION/EDITION/////////////////////////// 
-	$("#schedulersDialogAddEntry").dialog({
+	$("#schedulerDialogAddEntry").dialog({
 		autoOpen : false,
 		width : 495,		
 		title : "New entry",		
@@ -104,7 +104,7 @@ function schedulers_ListTasks_init () {
 		}
 	});	
 	
-	$(".schedulersCreationButton").button({
+	$(".schedulerCreationButton").button({
 		icons : {
 			primary : "ui-icon-clock"
 		}
@@ -116,13 +116,13 @@ function schedulers_ListTasks_init () {
 		display_editor("New Entry", id);
 		$last_element_xml = null;
 		
-		if (id === "schedulersNewScheduledJob") {
-			$("#schedulersDialogNameField").val("...@...");
+		if (id === "schedulerNewScheduledJob") {
+			$("#schedulerDialogNameField").val("...@...");
 		}
 	});
 	
-	$("#schedulersDialogNewScheduledJobPart").change(function(){	
-		$("#schedulersDialogNameField").val($("#schedulerDialogJobNameField").val()+"@"+$("#schedulerDialogScheduleNameField").val());
+	$("#schedulerDialogNewScheduledJobPart").change(function(){	
+		$("#schedulerDialogNameField").val($("#schedulerDialogJobNameField").val()+"@"+$("#schedulerDialogScheduleNameField").val());
 	});
 	
 	
@@ -135,7 +135,7 @@ function schedulers_ListTasks_init () {
 		var $connectorSelect = $("#schedulerConnectorSelect");
 		var $sequenceSelect = $("#schedulerSequenceSelect");
 		
-		$connectorSelect.add($sequenceSelect).hide().empty().append($("#schedulersTemplate .schedulersEmptyOption").clone());
+		$connectorSelect.add($sequenceSelect).hide().empty().append($("#schedulerTemplate .schedulerEmptyOption").clone());
 		
 		if (projectName != null && projectName.length > 0) {
 			callService("projects.GetRequestables", function (xml) {
@@ -166,7 +166,7 @@ function schedulers_ListTasks_init () {
 		
 		var $transactionSelect = $("#schedulerTransactionSelect");
 		
-		$transactionSelect.hide().empty().append($("#schedulersTemplate .schedulersEmptyOption").clone());
+		$transactionSelect.hide().empty().append($("#schedulerTemplate .schedulerEmptyOption").clone());
 		
 		if (connectorName != null && connectorName.length > 0) {
 			$last_project_xml.find("project > connector[name=" + connectorName + "] > transaction").each(function () {
@@ -195,10 +195,10 @@ function schedulers_ListTasks_init () {
 				
 				$requestable.find("> variable").each(function () {
 					var $variable = $(this);
-					var $row = $("#schedulersTemplate .schedulersRequestableParameterRow").clone();
-					$row.find(".schedulersRequestableParameterName").text($variable.attr("name"));
-					$row.find(".schedulersRequestableParameterDescription").text($variable.attr("description"));
-					$row.find(".schedulersRequestableParameterValue").attr("name", "requestable_parameter_" + $variable.attr("name")).val($variable.attr("value"));
+					var $row = $("#schedulerTemplate .schedulerRequestableParameterRow").clone();
+					$row.find(".schedulerRequestableParameterName").text($variable.attr("name"));
+					$row.find(".schedulerRequestableParameterDescription").text($variable.attr("description"));
+					$row.find(".schedulerRequestableParameterValue").attr("name", "requestable_parameter_" + $variable.attr("name")).val($variable.attr("value"));
 					$requestableParameters.append($row);
 				});
 				
@@ -217,111 +217,111 @@ function schedulers_ListTasks_init () {
 	}).change();
 	
 	//////////////////////////////////////////////////////CRON WIZARD////////////////////////////
-	$("#schedulersCronWizardLink").click(function () {
-		$("#schedulersCronWizard").slideToggle("fast");
+	$("#schedulerCronWizardLink").click(function () {
+		$("#schedulerCronWizard").slideToggle("fast");
 		parseCron();
 	});
 	
-	$("#schedulersCronWizardBtnGenerate").button({
+	$("#schedulerCronWizardBtnGenerate").button({
 		icons : {
 			primary : "ui-icon-gear"
 		}
 	}).click(function () {
 		generateCron();
-		$("#schedulersCronWizard").slideUp("fast");
+		$("#schedulerCronWizard").slideUp("fast");
 	});
 	
-	$("#schedulersCronWizardBtnCancel").button({
+	$("#schedulerCronWizardBtnCancel").button({
 		icons : {
 			primary : "ui-icon-cancel"
 		}
 	}).click(function () {		
-		$("#schedulersCronWizard").slideUp("fast");
+		$("#schedulerCronWizard").slideUp("fast");
 	});
 	
 	//filling cron wizard values
 	for (var i = 0; i < 24; i++) {
-		$("#schedulersCronWizardHours").append($("<option/>").attr("value", i).text(i));
+		$("#schedulerCronWizardHours").append($("<option/>").attr("value", i).text(i));
 	}
 	for (var i = 0; i < 60 ; i++) {
-		$("#schedulersCronWizardMinutes").append($("<option/>").attr("value", i).text(i));
+		$("#schedulerCronWizardMinutes").append($("<option/>").attr("value", i).text(i));
 	}
 	for (var i = 1; i <= 31; i++) {
-		$("#schedulersCronWizardDaysOfMonth").append($("<option/>").attr("value", i).text(i));
+		$("#schedulerCronWizardDaysOfMonth").append($("<option/>").attr("value", i).text(i));
 	}
 	
 	
-	$("#schedulersNewScheduledJob").button("disable");	
-	schedulers_ListTasks_update();
+	$("#schedulerNewScheduledJob").button("disable");	
+	scheduler_ListTasks_update();
 }
 
 function display_editor (optTitle, id) {
-	$(".schedulersNewScheduledJob:first").parent().children().add("#schedulersCronWizard").hide();
-	if (id === "schedulersNewScheduledJob") {
-		$("#schedulersDialogNameField").attr("disabled", "disabled");
+	$(".schedulerNewScheduledJob:first").parent().children().add("#schedulerCronWizard").hide();
+	if (id === "schedulerNewScheduledJob") {
+		$("#schedulerDialogNameField").attr("disabled", "disabled");
 	} else {
-		$("#schedulersDialogNameField").removeAttr("disabled");
+		$("#schedulerDialogNameField").removeAttr("disabled");
 	}
 	//activate the variable part
 	$("." + id).show();	
-	$("#schedulersDialogAddEntry").data("openner", id).dialog({ title: optTitle });
-	$("#schedulersDialogAddEntry").data("openner", id).dialog("open");
+	$("#schedulerDialogAddEntry").data("openner", id).dialog({ title: optTitle });
+	$("#schedulerDialogAddEntry").data("openner", id).dialog("open");
 }
 
-function schedulers_ListTasks_update () {
+function scheduler_ListTasks_update () {
 	$(".scheduledTableData").each(function () {
 		$(this).jqGrid('clearGridData');	
 	});
 	
-	$(".schedulersSelect").empty();
+	$(".schedulerSelect").empty();
 		
-	callService("schedulers.List", function (xml) {
+	callService("scheduler.List", function (xml) {
 		var cpt = 1;
-		$last_schedulers_xml = $(xml);
-		$last_schedulers_xml.find("element").each(function () {
+		$last_scheduler_xml = $(xml);
+		$last_scheduler_xml.find("element").each(function () {
 			var $element = $(this);
 			var category = $element.attr("category");
 			var name = $element.attr("name");
 			var enabled = ("true" === $element.attr("enabled"));
 			var row = {
-				enabled : htmlCode($("#schedulersTemplate .schedulersElement" + (enabled ? "Enabled" : "Disabled"))),
+				enabled : htmlCode($("#schedulerTemplate .schedulerElement" + (enabled ? "Enabled" : "Disabled"))),
 				name : htmlEncode(name),
 				description : $element.attr("description"),
 				info : $element.attr("info"),
-				edit : htmlCode($("#schedulersTemplate .schedulersElementEdit")),
-				remove : htmlCode($("#schedulersTemplate .schedulersElementDelete"))
+				edit : htmlCode($("#schedulerTemplate .schedulerElementEdit")),
+				remove : htmlCode($("#schedulerTemplate .schedulerElementDelete"))
 			}
 			$("#scheduled_" + category).jqGrid("addRowData", cpt++, row);			
-			$(".schedulersSelect_" + category).append($("<option/>").text(name));
+			$(".schedulerSelect_" + category).append($("<option/>").text(name));
 		});
-		$(".scheduledTableData .schedulersElementEdit").click(function () {
+		$(".scheduledTableData .schedulerElementEdit").click(function () {
 			$last_element_xml = retrieveElementXml(this);
 			if ($last_element_xml.length === 1) {
 				fillDialog($last_element_xml);
-				display_editor("Edit Entry", "schedulersNew" + $last_element_xml.attr("type"));
+				display_editor("Edit Entry", "schedulerNew" + $last_element_xml.attr("type"));
 			}
 		});
-		$(".scheduledTableData .schedulersElementDelete").click(function () {
+		$(".scheduledTableData .schedulerElementDelete").click(function () {
 			$last_element_xml = retrieveElementXml(this);
 			showConfirm("Are you sure you want to delete : " + $last_element_xml.attr("name"), function () {
-				callService("schedulers.CreateScheduledElements", function () {		
-					schedulers_ListTasks_update();
+				callService("scheduler.CreateScheduledElements", function () {		
+					scheduler_ListTasks_update();
 				}, {
 					del : true,
 					exname : $last_element_xml.attr("name"),
-					type : "schedulersNew" + $last_element_xml.attr("type")
+					type : "schedulerNew" + $last_element_xml.attr("type")
 				});
 			});
 		});
 		if(jQuery("#scheduled_jobs").getGridParam("records") >0 && jQuery("#scheduled_schedules").getGridParam("records") >0 ){
-			$("#schedulersNewScheduledJob").button("enable");
+			$("#schedulerNewScheduledJob").button("enable");
 		}else{
-			$("#schedulersNewScheduledJob").button("disable");
+			$("#schedulerNewScheduledJob").button("disable");
 		}
 	});
 
 	var $select = $("#schedulerProjectSelect");
-	$select.empty().append($("#schedulersTemplate .schedulersEmptyOption").clone());
+	$select.empty().append($("#schedulerTemplate .schedulerEmptyOption").clone());
 	callService("projects.List", function (xml) {
 		$(xml).find("project").each(function () {
 			$select.append($("<option/>").text($(this).attr("name")));
@@ -332,7 +332,7 @@ function schedulers_ListTasks_update () {
 function retrieveElementXml(item) {
 	var category = $(item).closest("table").attr("id").substring(10); // 10 == "scheduled_".length
 	var name = $(item).closest("tr").find("td[aria-describedby=scheduled_" + category + "_name]").text();
-	return $last_schedulers_xml.find("element[category=" + category + "]").filter(function () {
+	return $last_scheduler_xml.find("element[category=" + category + "]").filter(function () {
 		return $(this).attr("name") === name;
 	}).first();
 }
@@ -342,7 +342,7 @@ function fillDialog ($element_xml) {
 		var key = setting_order[i];
 		var attr = $element_xml.attr(key);
 		if (typeof(attr) !== "undefined") {
-			var $input = $("#schedulersDialogAddEntry *[name=" + key + "]");
+			var $input = $("#schedulerDialogAddEntry *[name=" + key + "]");
 			if ($input.is("[type=checkbox]")) {
 				if ("true" === attr) {
 					$input.attr("checked", "checked");
@@ -362,7 +362,7 @@ function fillDialog ($element_xml) {
 }
 
 function saveElement () {
-	var $form = $("#schedulersDialogAddEntry");
+	var $form = $("#schedulerDialogAddEntry");
 		var params = {
 			type : $form.data("openner")
 		};
@@ -383,7 +383,7 @@ function saveElement () {
 				}
 			}
 		});
-		callService("schedulers.CreateScheduledElements", function (xml) {
+		callService("scheduler.CreateScheduledElements", function (xml) {
 			var $xml = $(xml);
 			var $problems = $("<ul/>");
 			$xml.find("problem").each(function () {
@@ -393,8 +393,8 @@ function saveElement () {
 				showError("There is some issues : " + $("<d/>").append($problems).html());
 			} else {
 				showInfo("The element was correctly saved.");
-				schedulers_ListTasks_update();
-				$("#schedulersDialogAddEntry").dialog('close');
+				scheduler_ListTasks_update();
+				$("#schedulerDialogAddEntry").dialog('close');
 			}
 		}, params);
 }
