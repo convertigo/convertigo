@@ -60,12 +60,12 @@ public class CreateScheduledElements extends XmlService {
 	static private Pattern prefixPattern = Pattern.compile("requestable_parameter_(.*)");
 	
 	enum Type {
-		schedulersNewScheduledJob (ScheduledJob.class),
-		schedulersNewTransactionConvertigoJob (TransactionConvertigoJob.class),
-		schedulersNewSequenceConvertigoJob (SequenceConvertigoJob.class),
-		schedulersNewJobGroupJob (JobGroupJob.class),
-		schedulersNewScheduleCron (ScheduleCron.class),
-		schedulersNewScheduleRunNow (ScheduleRunNow.class);
+		schedulerNewScheduledJob (ScheduledJob.class),
+		schedulerNewTransactionConvertigoJob (TransactionConvertigoJob.class),
+		schedulerNewSequenceConvertigoJob (SequenceConvertigoJob.class),
+		schedulerNewJobGroupJob (JobGroupJob.class),
+		schedulerNewScheduleCron (ScheduleCron.class),
+		schedulerNewScheduleRunNow (ScheduleRunNow.class);
 		
 		Class<? extends AbstractBase> c;
 		
