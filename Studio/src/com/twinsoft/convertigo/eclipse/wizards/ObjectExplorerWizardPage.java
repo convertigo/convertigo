@@ -178,6 +178,7 @@ public class ObjectExplorerWizardPage extends WizardPage {
 			try {
 				String name = newBean.getName();
 				((ObjectInfoWizardPage)getWizard().getPage("ObjectInfoWizardPage")).setBeanName(name);
+				((ObjectInfoWizardPage)getWizard().getPage("ObjectInfoWizardPage")).fillTree(newBean.getClass());
 			} catch (Exception e) {}
 		}
 	}

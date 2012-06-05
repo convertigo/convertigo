@@ -62,6 +62,7 @@ import com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass;
 import com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement;
 import com.twinsoft.convertigo.beans.statements.ElseStatement;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
+import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.IThenElseStatementContainer;
 import com.twinsoft.convertigo.beans.statements.ThenStatement;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
@@ -186,7 +187,7 @@ public class NewObjectWizard extends Wizard {
 		objectExplorerPage.setMessage(objectExplorerPageMessage);
 		this.addPage(objectExplorerPage);
 		
-		objectInfoPage = new ObjectInfoWizardPage();
+		objectInfoPage = new ObjectInfoWizardPage(parentObject);
 		this.addPage(objectInfoPage);
 		
 		if ((xpath != null) && (dom != null)) {
@@ -351,6 +352,9 @@ public class NewObjectWizard extends Wizard {
 						bContinue = false;
 					}
 					catch(com.twinsoft.convertigo.engine.ObjectWithSameNameException owsne) {
+						if (newBean instanceof HandlerStatement) {
+							throw owsne;
+						}
 						index++;
 					}
 				}

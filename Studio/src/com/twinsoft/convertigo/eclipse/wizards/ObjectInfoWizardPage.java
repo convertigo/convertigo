@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.eclipse.wizards;
 
+import java.util.List;
+
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -30,22 +32,39 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 
 import com.twinsoft.convertigo.beans.common.XMLTable;
+import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
+import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
+import com.twinsoft.convertigo.beans.core.ScreenClass;
+import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
+import com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement;
+import com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement;
+import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class ObjectInfoWizardPage extends WizardPage {
-	private Text beanName;
+	private Object parentObject = null;
 	
-	public ObjectInfoWizardPage() {
+	private Text beanName;
+	private Tree tree;
+	private String treeItemName = null;
+	
+	public ObjectInfoWizardPage(Object parentObject) {
 		super("ObjectInfoWizardPage");
+		this.parentObject = parentObject;
 		setTitle("Informations");
 		setDescription("Please enter a name for object.");
 	}
@@ -68,6 +87,27 @@ public class ObjectInfoWizardPage extends WizardPage {
 				dialogChanged();
 			}
 		});
+		
+		tree = new Tree(container, SWT.SINGLE | SWT.BORDER);
+		tree.setHeaderVisible(false);
+		GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+		gridData.verticalSpan = 20;
+		gridData.horizontalSpan = 2;
+		tree.setLayoutData(gridData);		
+		tree.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(final Event event) {
+				TreeItem item = (TreeItem) event.item;
+				treeItemName = item.getText();
+				String suffix = getBeanName().endsWith(ScHandlerStatement.EVENT_ENTRY_HANDLER) ? 
+						ScHandlerStatement.EVENT_ENTRY_HANDLER:
+							getBeanName().endsWith(ScHandlerStatement.EVENT_EXIT_HANDLER) ?
+									ScHandlerStatement.EVENT_EXIT_HANDLER : "";
+				setBeanName("on"+ treeItemName + suffix);
+				dialogChanged();
+			}
+		});
+		tree.setVisible(false);
+		
 		initialize();
 		dialogChanged();
 		setControl(container);
@@ -82,12 +122,72 @@ public class ObjectInfoWizardPage extends WizardPage {
 		beanName.setText("");
 	}
 	
+	public void fillTree(Class<? extends DatabaseObject> beanClass) {
+		treeItemName = null;
+		tree.removeAll();
+		if (parentObject instanceof Transaction) {
+			Connector connector = (Connector) ((Transaction)parentObject).getParent();
+			boolean isScreenClassAware = connector instanceof IScreenClassContainer<?>;
+			if (beanClass.equals(ScEntryHandlerStatement.class) || beanClass.equals(ScExitHandlerStatement.class)) {
+				if (isScreenClassAware) {
+					if (connector instanceof HtmlConnector) {
+						HtmlConnector htmlConnector = (HtmlConnector) connector;
+						ScreenClass defaultScreenClass = htmlConnector.getDefaultScreenClass();
+						TreeItem branch = new TreeItem(tree, SWT.NONE);
+						branch.setText(defaultScreenClass.getName());
+						
+						List<ScreenClass> screenClasses = defaultScreenClass.getInheritedScreenClasses();
+						
+						for (ScreenClass screenClass : screenClasses) {
+							getInHeritedScreenClass(screenClass, branch);				
+						}
+					} else if (connector instanceof JavelinConnector) {
+						JavelinConnector javelinConnector = (JavelinConnector) connector;
+						ScreenClass defaultScreenClass = javelinConnector.getDefaultScreenClass();
+						TreeItem branch = new TreeItem(tree, SWT.NONE);
+						branch.setText(defaultScreenClass.getName());
+						
+						List<ScreenClass> screenClasses = defaultScreenClass.getInheritedScreenClasses();
+						
+						for (ScreenClass screenClass : screenClasses) {
+							getInHeritedScreenClass(screenClass, branch);				
+						}	
+					}
+					tree.setVisible(true);
+				}
+			}
+			else if (beanClass.equals(HandlerStatement.class)) {
+				TreeItem branch;
+				
+				branch = new TreeItem(tree, SWT.NONE);
+				branch.setText(HandlerStatement.EVENT_TRANSACTION_STARTED);				
+
+				branch = new TreeItem(tree, SWT.NONE);
+				branch.setText(HandlerStatement.EVENT_XML_GENERATED);
+				
+				tree.setVisible(true);
+			}
+			else
+				tree.setVisible(false);
+		}
+	}
+	
+	public void getInHeritedScreenClass(ScreenClass screenClass, TreeItem branch) {
+		TreeItem leaf = new TreeItem(branch, SWT.NONE);
+		leaf.setText(screenClass.getName());
+		List<ScreenClass> screenClasses = screenClass.getInheritedScreenClasses();
+		for (ScreenClass sC : screenClasses) {
+			getInHeritedScreenClass(sC, leaf);
+		}
+	}
+	
 	private void dialogChanged() {
 		DatabaseObject dbo = ((ObjectExplorerWizardPage)getWizard().getPage("ObjectExplorerWizardPage")).getCreatedBean();
 		if (dbo instanceof FunctionStatement) {
 			beanName.setEnabled(true);
-			if (dbo instanceof HandlerStatement)
+			if (dbo instanceof HandlerStatement) {
 				beanName.setEnabled(false);
+			}
 		}
 		
 		String name = getBeanName();
@@ -103,6 +203,12 @@ public class ObjectInfoWizardPage extends WizardPage {
 		
 		try {
 			dbo.setName(name);
+			if (treeItemName != null) {
+				if (dbo instanceof ScHandlerStatement)
+					((ScHandlerStatement)dbo).setNormalizedScreenClassName(treeItemName);
+				else if (dbo instanceof HandlerStatement)
+					((HandlerStatement)dbo).setHandlerType(treeItemName);
+			}
 		} catch (EngineException e) {
 			updateStatus("Name could not be set on bean");
 			return;
