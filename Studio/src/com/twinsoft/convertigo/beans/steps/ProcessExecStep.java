@@ -237,7 +237,12 @@ public class ProcessExecStep extends Step {
 			exitNode.appendChild(doc.createTextNode(status));
 		} catch (Throwable t) {
 			setErrorStatus(true);
-			errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(t.getMessage()));
+			if (t instanceof EngineException) {
+				Engine.logBeans.error("An error occured while executing process.", t);
+				errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection("An error occured. See engine logs for more details..."));
+			}
+			else
+				errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(t.getMessage()));
 		} finally {
 			try {
 				stderrThread.bContinue = false;
