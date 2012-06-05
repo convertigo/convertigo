@@ -21,6 +21,12 @@
 	color: white;
 	font-weight: bold;
 }
+.ui-dialog {
+	-webkit-border-radius: 10px !important;
+	-moz-border-radius: 10px !important;
+	border-radius: 10px !important;
+	padding:5px;
+}
 /* Button */
 .ui-button {
 	-moz-box-shadow: 1px 1px 3px rgba(0, 0, 0, .5);
