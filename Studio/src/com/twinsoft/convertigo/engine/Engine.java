@@ -1078,7 +1078,7 @@ public class Engine {
 					+ " - An unexpected error has occured while building the XML document.", e);
 
 			throw new EngineException("An unexpected error has occured while building the XML document."
-					+ "Please contact the TWinSoft support center, providing the following information:", e);
+					+ "Please contact Convertigo support, providing the following information:", e);
 		} finally {
 			if (context.requestedObject != null) {
 				Engine.logContext.debug("Requested object is billable: "
