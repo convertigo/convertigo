@@ -1964,7 +1964,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			
 			for (TreeObject child : invisibleRoot.getChildren()) {
 				if (child.getName().equals(projectName)) {
-					bLoaded = true;
+					bLoaded = child instanceof ProjectTreeObject;
 					break;
 				}
 			}
