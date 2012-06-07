@@ -72,8 +72,8 @@ public class DuplicateStep extends Step {
 						throw new EngineException("Source file or directory does not exist: " + sSourcePath);
 					}
 
-					if (destinationFile.exists()) {
-						throw new EngineException("Destination directory does not exist: " + sDestinationFile);
+					if (destinationFile.exists() && !isOverwrite()) {
+						throw new EngineException("Destination file or directory already exist: " + sDestinationFile);
 					}
 
 					try {
