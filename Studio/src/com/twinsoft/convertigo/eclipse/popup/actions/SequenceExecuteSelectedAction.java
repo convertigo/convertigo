@@ -66,7 +66,6 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
     			if ((treeObject != null) && (treeObject instanceof SequenceTreeObject)) {
     				SequenceTreeObject sequenceTreeObject = (SequenceTreeObject)treeObject;
-    				//sequenceTreeObject.openSequenceEditor();
     				openEditors(explorerView, sequenceTreeObject);
     				
     				Sequence sequence = sequenceTreeObject.getObject();
@@ -89,7 +88,7 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
         }
 	}
 
-	private void openEditors(ProjectExplorerView explorerView, TreeObject treeObject) {
+	protected void openEditors(ProjectExplorerView explorerView, TreeObject treeObject) {
 		if (treeObject instanceof SequenceTreeObject) {
 			SequenceTreeObject sequenceTreeObject = (SequenceTreeObject)treeObject;
 			openEditors(explorerView, sequenceTreeObject.getObject().getSteps());

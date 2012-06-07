@@ -79,7 +79,7 @@ public class TestCaseExecuteSelectedAction extends MyAbstractAction {
     				}
     				if (requestable instanceof Sequence) {
     					SequenceTreeObject sequenceTreeObject = (SequenceTreeObject)treeObject.getParent().getParent();
-    					sequenceTreeObject.openSequenceEditor();
+    					new SequenceExecuteSelectedAction().openEditors(explorerView, sequenceTreeObject);
     					
     					Sequence sequence = (Sequence)testCase.getParent();
     					SequenceEditor sequenceEditor = projectTreeObject.getSequenceEditor(sequence);
