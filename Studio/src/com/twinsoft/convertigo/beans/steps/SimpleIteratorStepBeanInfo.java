@@ -33,8 +33,8 @@ public class SimpleIteratorStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = SimpleIteratorStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.steps.LoopStep.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/while_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/while_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/jiterator_16x16.gif";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/jiterator_32x32.gif";
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/SimpleIteratorStep");
 			
