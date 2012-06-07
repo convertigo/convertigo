@@ -289,8 +289,10 @@ public class SqlConnector extends Connector {
 		// Overwrites JDBC url if needed
 		String variableValue = (String) sqlTransaction.variables.get(Parameter.ConnectorConnectionString.getName());
 		if (variableValue != null) {
-			setJdbcURL(variableValue);
-			Engine.logBeans.debug("(SqlConnector) Connection string overriden!");
+			if (!getJdbcURL().equals(variableValue)) {// Fix #2926
+				setJdbcURL(variableValue);
+				Engine.logBeans.debug("(SqlConnector) Connection string overriden!");
+			}
 		}
 
 		Engine.logBeans.debug("(SqlConnector) JDBC URL: " + jdbcURL);
