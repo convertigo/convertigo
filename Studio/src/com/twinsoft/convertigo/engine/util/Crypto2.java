@@ -25,17 +25,17 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.PBEParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -47,26 +47,30 @@ public class Crypto2 {
 	private Cipher ecipher;
 	private Cipher dcipher;
 
-	// 8-byte salt
-	private static final byte[] SALT = { (byte) 'a', (byte) 'M', (byte) 'f', (byte) 's', (byte) 'B',
-			(byte) 'x', (byte) 'P', (byte) 'L' };
-
-	private static final String CIPHERING_ALGORITHM = "PBEWithMD5AndTripleDES";
-
 	private Crypto2(String passPhrase) throws InvalidKeySpecException, NoSuchAlgorithmException,
-			NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
+			NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, UnsupportedEncodingException {
+		/* Ciphering options:
+			Mode = CipherMode.CBC,-( Cipher-block chaining)
+			Padding = PaddingMode.PKCS7 or PKCS5,
+			KeySize = 128,
+			BlockSize = 128,
+			Key = keyBytes - password,
+			IV = keyBytes  - password
+		*/
+		
 		// Create the key
-		PBEKeySpec pbeKeySpec = new PBEKeySpec(passPhrase.toCharArray());
-		PBEParameterSpec pbeParamSpec = new PBEParameterSpec(SALT, 20);
+		byte[] bytesOfMessage = passPhrase.getBytes("UTF-8");
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		byte[] bytesPassphrase = md.digest(bytesOfMessage);
+		SecretKeySpec key = new SecretKeySpec(bytesPassphrase, "AES");
+		
+	    // Parameter specific algorithm
+	    AlgorithmParameterSpec paramSpec = new IvParameterSpec(bytesPassphrase); 
 
-		SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(CIPHERING_ALGORITHM);
-		SecretKey pbeKey = secretKeyFactory.generateSecret(pbeKeySpec);
-
-		ecipher = Cipher.getInstance(CIPHERING_ALGORITHM);
-		dcipher = Cipher.getInstance(CIPHERING_ALGORITHM);
-
-		ecipher.init(Cipher.ENCRYPT_MODE, pbeKey, pbeParamSpec);
-		dcipher.init(Cipher.DECRYPT_MODE, pbeKey, pbeParamSpec);
+		ecipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		ecipher.init(Cipher.ENCRYPT_MODE, key, paramSpec);
+		dcipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		dcipher.init(Cipher.DECRYPT_MODE, key, paramSpec);
 	}
 
 	private byte[] encrypt(byte[] data) throws IllegalBlockSizeException, BadPaddingException {
@@ -158,7 +162,7 @@ public class Crypto2 {
 		// New crypto lib
 		if (ciphered.charAt(0) == NEW_CRYPTO_MARKER) {
 			return Crypto2
-					.decodeFromHexString(EnginePropertiesManager.getProperty(PropertyName.CRYPTO_PASSPHRASE),
+					.decodeFromHexString("A8dkLmsdfkKze0e34FGh",
 							ciphered);
 		}
 		// Old crypto lib
@@ -230,4 +234,5 @@ public class Crypto2 {
 			System.out.println(message);
 		}
 	}
+
 }
