@@ -30,6 +30,7 @@ public class ProductVersion {
     public static String servicePack = "4";
     public static String tag = "beta";
     public static String revision = null;
+    public static String codeName = "nitrogen";
     
     public static String productVersion =
     	ProductVersion.majorProductVersion + "." +
@@ -38,9 +39,14 @@ public class ProductVersion {
     
     public static String helpVersion = productVersion;
     
+    public static String fullProductVersionID = ProductVersion.productVersion +
+        	(ProductVersion.tag == null ? "" : "_" + ProductVersion.tag) +
+        	(ProductVersion.revision == null ? "" : "-v" + ProductVersion.revision + ")");
+    
     public static String fullProductVersion =
     	ProductVersion.productVersion +
     	(ProductVersion.tag == null ? "" : "_" + ProductVersion.tag) +
+    	" " + codeName +
     	(ProductVersion.revision == null ? "" : " (build " + ProductVersion.revision + ")");
 
     public static void main(String[] args) {

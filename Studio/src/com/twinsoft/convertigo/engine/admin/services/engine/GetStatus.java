@@ -32,10 +32,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(
 		name = "GetStatus",
@@ -60,6 +60,7 @@ public class GetStatus extends XmlService {
 
         Element versionElement = document.createElement("version");
         versionElement.setAttribute("product", com.twinsoft.convertigo.engine.Version.fullProductVersion);
+        versionElement.setAttribute("id", com.twinsoft.convertigo.engine.Version.fullProductVersionID);
         versionElement.setAttribute("beans", com.twinsoft.convertigo.beans.Version.version);
         versionElement.setAttribute("engine", com.twinsoft.convertigo.engine.Version.version);
         versionElement.setAttribute("build", com.twinsoft.convertigo.engine.Version.revision);
