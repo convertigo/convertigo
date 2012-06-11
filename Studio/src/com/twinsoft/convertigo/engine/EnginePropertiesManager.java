@@ -735,7 +735,9 @@ public class EnginePropertiesManager {
             		
             		String decipheredValue = Crypto2.decodeFromHexString3(value);
             		if (decipheredValue == null) {
-            			Engine.logEngine.error("Unable to decode value for property '" + key + "'");
+            			String message = "Unable to decode value for property '" + key + "'";
+                        if (Engine.logEngine != null) Engine.logEngine.warn(message);
+                        else System.out.println(message);
             			continue;
             		}
 
