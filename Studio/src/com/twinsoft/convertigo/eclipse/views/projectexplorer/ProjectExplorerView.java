@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import javax.swing.event.EventListenerList;
 import javax.swing.undo.UndoManager;
@@ -268,6 +270,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public Action projectExplorerSaveAllAction;
 
 	private ViewContentProvider viewContentProvider = null;
+	
+	private Map<DatabaseObject, DatabaseObjectTreeObject> databaseObjectTreeObjectCache = new WeakHashMap<DatabaseObject, DatabaseObjectTreeObject>();
 
 	/**
 	 * The constructor.
@@ -2124,37 +2128,65 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 	
+	private DatabaseObjectTreeObject findTreeObjectByUserObjectFromCache(DatabaseObject databaseObject) {
+		DatabaseObjectTreeObject databaseObjectTreeObject = databaseObjectTreeObjectCache.get(databaseObject);
+		if (databaseObjectTreeObject != null) {
+			if (databaseObjectTreeObject.getObject().equals(databaseObject)) {
+				return databaseObjectTreeObject;
+			} else {
+				databaseObjectTreeObjectCache.remove(databaseObject);
+			}
+		}
+		return null;
+	}
+	
+	private DatabaseObjectTreeObject findTreeObjectByUserObject(DatabaseObject databaseObject, ProjectTreeObject projectTreeObject) {
+		DatabaseObjectTreeObject databaseObjectTreeObject;
+		if (projectTreeObject.getObject().equals(databaseObject)) {
+			databaseObjectTreeObject = projectTreeObject;
+		} else {
+			DatabaseObject parentDatabaseObject = databaseObject.getParent();
+			DatabaseObjectTreeObject parentDatabaseObjectTreeObject = findTreeObjectByUserObjectFromCache(parentDatabaseObject);
+			if (parentDatabaseObjectTreeObject == null) {
+				parentDatabaseObjectTreeObject = findTreeObjectByUserObject(parentDatabaseObject, projectTreeObject);
+			}
+			databaseObjectTreeObject = parentDatabaseObjectTreeObject.findDatabaseObjectTreeObjectChild(databaseObject);
+		}
+		databaseObjectTreeObjectCache.put(databaseObject, databaseObjectTreeObject);
+		return databaseObjectTreeObject;
+	}
+	
 	public DatabaseObjectTreeObject findTreeObjectByUserObject(DatabaseObject databaseObject) {
-		DatabaseObjectTreeObject databaseTreeObject = null;
+		DatabaseObjectTreeObject databaseObjectTreeObject = findTreeObjectByUserObjectFromCache(databaseObject);
+		if (databaseObjectTreeObject != null) {
+			return databaseObjectTreeObject;
+		}
 		boolean isProject = false;
 		if (databaseObject != null) {
 			Project databaseProject = null;
 			if (databaseObject instanceof Project) {
 				isProject = true;
-				databaseProject = (Project)databaseObject;
-			}
-			else
+				databaseProject = (Project) databaseObject;
+			} else {
 				databaseProject = databaseObject.getProject();
+			}
 			
-			ViewContentProvider provider = (ViewContentProvider)viewer.getContentProvider();
+			ViewContentProvider provider = (ViewContentProvider) viewer.getContentProvider();
 			if (provider != null) {
 				Object[] objects = provider.getElements(getViewSite());
-				for (int i=0; i<objects.length; i++) {
-					TreeObject treeObject = (TreeObject)objects[i];
+				for (int i = 0; i < objects.length; i++) {
+					TreeObject treeObject = (TreeObject) objects[i];
 					if (treeObject instanceof ProjectTreeObject) {
-						Project project = (Project)treeObject.getObject();
+						ProjectTreeObject projectTreeObject = (ProjectTreeObject) treeObject;
+						Project project = projectTreeObject.getObject();
 						if (project.getName().equals(databaseProject.getName())) {
-							if (isProject)
-								databaseTreeObject = (ProjectTreeObject)treeObject;
-							else
-								databaseTreeObject = (DatabaseObjectTreeObject)((ProjectTreeObject)treeObject).findTreeObjectByUserObject(databaseObject);
-							break;
+							return isProject ? projectTreeObject : findTreeObjectByUserObject(databaseObject, projectTreeObject);
 						}
 					}
 				}
 			}
 		}
-		return databaseTreeObject;
+		return null;
 	}
 	
 	public DatabaseObjectTreeObject findTreeObjectByUserObjectQName(String databaseObjectQName) {

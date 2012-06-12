@@ -1173,4 +1173,31 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		DatabaseObjectTreeObject parent = getParentDatabaseObjectTreeObject();
 		return parent!=null && ( !parent.isEnabled() || parent.hasAncestorDisabled());
 	}
+	
+	public DatabaseObjectTreeObject findDatabaseObjectTreeObjectChild(DatabaseObject databaseObject) {
+		for (TreeObject treeObject : getChildren()) {
+			DatabaseObjectTreeObject databaseObjectTreeObject = findDatabaseObjectTreeObjectChild(treeObject, databaseObject);
+			if (databaseObjectTreeObject != null) {
+				return databaseObjectTreeObject;
+			}
+		}
+		return null;
+	}
+	
+	private DatabaseObjectTreeObject findDatabaseObjectTreeObjectChild(TreeObject tree, DatabaseObject databaseObject) {
+		if (tree instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) tree;
+			if (databaseObjectTreeObject.getObject().equals(databaseObject)) {
+				return databaseObjectTreeObject;
+			}
+		} else if (tree instanceof TreeParent) {
+			for (TreeObject treeObject : ((TreeParent) tree).getChildren()) {
+				DatabaseObjectTreeObject databaseObjectTreeObject = findDatabaseObjectTreeObjectChild(treeObject, databaseObject);
+				if (databaseObjectTreeObject != null) {
+					return databaseObjectTreeObject;
+				}
+			}
+		}
+		return null;
+	}
 }
