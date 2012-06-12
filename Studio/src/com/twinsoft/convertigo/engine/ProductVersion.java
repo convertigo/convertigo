@@ -46,7 +46,6 @@ public class ProductVersion {
     public static String fullProductVersion =
     	ProductVersion.productVersion +
     	(ProductVersion.tag == null ? "" : "_" + ProductVersion.tag) +
-    	" " + codeName +
     	(ProductVersion.revision == null ? "" : " (build " + ProductVersion.revision + ")");
 
     public static void main(String[] args) {
