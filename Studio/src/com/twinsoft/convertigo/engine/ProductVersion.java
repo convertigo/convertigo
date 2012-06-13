@@ -41,7 +41,7 @@ public class ProductVersion {
     
     public static String fullProductVersionID = ProductVersion.productVersion +
         	(ProductVersion.tag == null ? "" : "_" + ProductVersion.tag) +
-        	(ProductVersion.revision == null ? "" : "-v" + ProductVersion.revision + ")");
+        	(ProductVersion.revision == null ? "" : "-v" + ProductVersion.revision);
     
     public static String fullProductVersion =
     	ProductVersion.productVersion +
