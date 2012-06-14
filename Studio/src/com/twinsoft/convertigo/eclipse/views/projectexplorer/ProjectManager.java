@@ -31,19 +31,12 @@ import java.io.IOException;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PlatformUI;
 
-import com.twinsoft.convertigo.beans.core.BlockFactory;
 import com.twinsoft.convertigo.beans.core.Connector;
-import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.ExtractionRule;
-import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
-import com.twinsoft.convertigo.beans.core.MobileDevice;
-import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -51,19 +44,15 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
-import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.SimpleEventStatement;
-import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
-import com.twinsoft.convertigo.beans.variables.HttpStatementVariable;
-import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 
 public class ProjectManager {
     
@@ -326,228 +315,54 @@ public class ProjectManager {
 		}
     }    
     
-    public void save(DatabaseObject parentDatabaseObject, boolean bForce) throws ConvertigoException {
-    	if (parentDatabaseObject != null) {
-	    	ConvertigoPlugin.logDebug3("Saving the object \"" + parentDatabaseObject.getQName() + "\"");
-	        saveSingleObject(parentDatabaseObject, bForce);
-	
-	        if (parentDatabaseObject instanceof Project) {
-	        	ConvertigoPlugin.logDebug3("   + Project");
-	            Project project = (Project) parentDatabaseObject;
-	            
-				// Connectors
-	            ConvertigoPlugin.logDebug3("   + Connectors");
-				for (Connector connector : project.getConnectorsList()) {
-					ConvertigoPlugin.logDebug3("   - [" + connector.getName() + "]");
-					save(connector, bForce);
-				}
+    public void save(DatabaseObject parentDatabaseObject, final boolean bForce) throws ConvertigoException {
+    	try {
+			new WalkHelper() {
 				
-				// Sequences
-	            ConvertigoPlugin.logDebug3("   + Sequences");
-				for (Sequence sequence : project.getSequencesList()) {
-					ConvertigoPlugin.logDebug3("   - [" + sequence.getName() + "]");
-					save(sequence, bForce);
-				}
-				
-				// Mobile devices
-	            ConvertigoPlugin.logDebug3("   + Mobile devices");
-				for (MobileDevice device : project.getMobileDeviceList()) {
-					ConvertigoPlugin.logDebug3("   - [" + device.getName() + "]");
-					save(device, bForce);
-				}
-	        }
-			else if (parentDatabaseObject instanceof Sequence) {
-				Sequence sequence = (Sequence) parentDatabaseObject;
-				// Test Cases
-				ConvertigoPlugin.logDebug3("   + TestCases");
-				for (TestCase testCase : ((Sequence)parentDatabaseObject).getTestCasesList()) {
-					ConvertigoPlugin.logDebug3("   - [" + testCase.getName() + "]");
-					save(testCase, bForce);
-				}
-				
-				// Steps
-				ConvertigoPlugin.logDebug3("   + Steps");
-				for (Step step : sequence.getSteps()) {
-					ConvertigoPlugin.logDebug3("   - [" + step.getName() + "]");
-					save(step, bForce);
-				}
-				sequence.getSteps(true);
-				
-				// Sheets
-				ConvertigoPlugin.logDebug3("   + Sheets");
-				for (Sheet sheet : sequence.getSheetsList()) {
-					ConvertigoPlugin.logDebug3("   - [" + sheet.getName() + "]");
-					save(sheet, bForce);
+				@Override
+				protected boolean before(DatabaseObject databaseObject, Class<? extends DatabaseObject> dboClass) {
+					ConvertigoPlugin.logDebug3("   + " + dboClass.getSimpleName());
+					return super.before(databaseObject, dboClass);
 				}
 
-				// Variables
-				ConvertigoPlugin.logDebug3("   + Variables");
-				for (RequestableVariable variable : sequence.getVariablesList()) {
-					ConvertigoPlugin.logDebug3("   - [" + variable.getName() + "]");
-					save(variable, bForce);
-				}
-				sequence.getVariables(true);
-			}
-			else if (parentDatabaseObject instanceof Connector) {
-				Connector connector = (Connector) parentDatabaseObject;
-				
-				// Pools
-				ConvertigoPlugin.logDebug3("   + Pools");
-				for (Pool pool : connector.getPoolsList()) {
-					ConvertigoPlugin.logDebug3("   - [" + pool.getName() + "]");
-					save(pool, bForce);
-				}
-	            
-				// Transactions
-				ConvertigoPlugin.logDebug3("   + Transactions");
-				for (Transaction transaction : connector.getTransactionsList()) {
-					ConvertigoPlugin.logDebug3("   - [" + transaction.getName() + "]");
-					save(transaction, bForce);
-				}
-	            
-				if (parentDatabaseObject instanceof IScreenClassContainer<?>) {
-					// Root screen class
-					ConvertigoPlugin.logDebug3("   + Screen classes");
-					ScreenClass defaultScreenClass = ((IScreenClassContainer<?>) parentDatabaseObject).getDefaultScreenClass();
-					ConvertigoPlugin.logDebug3("   - [" + defaultScreenClass.getName() + "]");
-					save(defaultScreenClass, bForce);
-				}			
-			}
-			else if (parentDatabaseObject instanceof Transaction) {
-				Transaction transaction = (Transaction) parentDatabaseObject;
-				
-				// Sheets
-				ConvertigoPlugin.logDebug3("   + Sheets");
-				for (Sheet sheet : transaction.getSheetsList()) {
-					ConvertigoPlugin.logDebug3("   - [" + sheet.getName() + "]");
-					save(sheet, bForce);
+				@Override
+				protected void walk(DatabaseObject databaseObject) throws Exception {
+			    	if (databaseObject != null) {
+			    		ConvertigoPlugin.logDebug3("   - [" + databaseObject.getName() + "]");
+				    	ConvertigoPlugin.logDebug3("Saving the object \"" + databaseObject.getQName() + "\"");
+				        saveSingleObject(databaseObject, bForce);
+						super.walk(databaseObject);
+				        if (databaseObject instanceof Sequence) {
+				        	Sequence sequence = (Sequence) databaseObject;
+				        	sequence.getSteps(true);
+				        	sequence.getVariables(true);
+				        } else if (databaseObject instanceof TransactionWithVariables) {
+							((TransactionWithVariables) databaseObject).getVariables(true);
+						} else if (databaseObject instanceof StatementWithExpressions) {
+							((StatementWithExpressions) databaseObject).getStatements(true);
+						} else if (databaseObject instanceof HTTPStatement) {
+							((HTTPStatement) databaseObject).getVariables(true);
+						} else if (databaseObject instanceof StepWithExpressions) {
+							((StepWithExpressions) databaseObject).getSteps(true);
+						} else if (databaseObject instanceof RequestableStep) {
+							((RequestableStep) databaseObject).getVariables(true);
+						} else if (databaseObject instanceof TestCase) {
+							((TestCase) databaseObject).getVariables(true);
+						} else if (databaseObject instanceof ScreenClass) {
+				        	ScreenClass screenClass = (ScreenClass) databaseObject;
+				            screenClass.getCriterias(true);
+				            screenClass.getExtractionRules(true);
+				        }
+			    	}
 				}
 				
-				if (parentDatabaseObject instanceof HtmlTransaction) {
-					
-					// Statements
-					ConvertigoPlugin.logDebug3("   + Statements");
-					for (Statement statement : ((HtmlTransaction)parentDatabaseObject).getStatements()) {
-						ConvertigoPlugin.logDebug3("   - [" + statement.getName() + "]");
-						save(statement, bForce);
-					}
-				}
-
-				if (parentDatabaseObject instanceof TransactionWithVariables) {
-					// Test Cases
-					ConvertigoPlugin.logDebug3("   + TestCases");
-					for (TestCase testCase : ((TransactionWithVariables)parentDatabaseObject).getTestCasesList()) {
-						ConvertigoPlugin.logDebug3("   - [" + testCase.getName() + "]");
-						save(testCase, bForce);
-					}
-					
-					// Variables
-					ConvertigoPlugin.logDebug3("   + Variables");
-					for (RequestableVariable variable : ((TransactionWithVariables)parentDatabaseObject).getVariablesList()) {
-						ConvertigoPlugin.logDebug3("   - [" + variable.getName() + "]");
-						save(variable, bForce);
-					}
-					((TransactionWithVariables)parentDatabaseObject).getVariables(true);
-				}
-			}
-			else if (parentDatabaseObject instanceof StatementWithExpressions) {
-				StatementWithExpressions statementWE = (StatementWithExpressions)parentDatabaseObject;
-				
-				// Statements
-				ConvertigoPlugin.logDebug3("   + Statements");
-				for (Statement statement : statementWE.getStatements()) {
-					ConvertigoPlugin.logDebug3("   - [" + statement.getName() + "]");
-					save(statement, bForce);
-				}
-				statementWE.getStatements(true);
-			}
-			else if (parentDatabaseObject instanceof HTTPStatement) {
-				HTTPStatement httpStatement = (HTTPStatement)parentDatabaseObject;
-				
-				// Variables
-				ConvertigoPlugin.logDebug3("   + Variables");
-				for (HttpStatementVariable variable : httpStatement.getVariables()) {
-					ConvertigoPlugin.logDebug3("   - [" + variable.getName() + "]");
-					save(variable, bForce);
-				}
-				httpStatement.getVariables(true);
-			}
-			else if (parentDatabaseObject instanceof StepWithExpressions) {
-				StepWithExpressions stepWE = (StepWithExpressions)parentDatabaseObject;
-				
-				// Steps
-				ConvertigoPlugin.logDebug3("   + Steps");
-				for (Step step : stepWE.getSteps()) {
-					ConvertigoPlugin.logDebug3("   - [" + step.getName() + "]");
-					save(step, bForce);
-				}
-				stepWE.getSteps(true);
-			}
-			else if (parentDatabaseObject instanceof RequestableStep) {
-				RequestableStep requestableStep = (RequestableStep)parentDatabaseObject;
-				
-				// Variables
-				ConvertigoPlugin.logDebug3("   + Variables");
-				for (Variable variable : requestableStep.getVariables()) {
-					ConvertigoPlugin.logDebug3("   - [" + variable.getName() + "]");
-					save(variable, bForce);
-				}
-				requestableStep.getVariables(true);
-			}
-			else if (parentDatabaseObject instanceof TestCase) {
-				TestCase testCase = (TestCase)parentDatabaseObject;
-				
-				// Variables
-				ConvertigoPlugin.logDebug3("   + Variables");
-				for (Variable variable : testCase.getVariables()) {
-					ConvertigoPlugin.logDebug3("   - [" + variable.getName() + "]");
-					save(variable, bForce);
-				}
-				testCase.getVariables(true);
-			}
-	        else if (parentDatabaseObject instanceof ScreenClass) {
-	        	ScreenClass screenClass = (ScreenClass)parentDatabaseObject;
-	        	
-	            // Block factory
-	            if (parentDatabaseObject instanceof JavelinScreenClass) {
-	                BlockFactory blockFactory = ((JavelinScreenClass)parentDatabaseObject).getBlockFactory();
-	                save(blockFactory, bForce);
-	                ConvertigoPlugin.logDebug3("   - BlockFactory [" + blockFactory.getName() + "]");
-	            }
-	            
-	            // Criterias
-	            ConvertigoPlugin.logDebug3("   + Criterias");
-	            for (Criteria criteria : screenClass.getLocalCriterias()) {
-	                save(criteria, bForce);
-	                ConvertigoPlugin.logDebug3("   - [" + criteria.getName() + "]");
-	            }
-	            
-	            // Extraction rules
-	            ConvertigoPlugin.logDebug3("   + Extraction rules");
-	            for (ExtractionRule extractionRule : screenClass.getLocalExtractionRules()) {
-	                save(extractionRule, bForce);
-	                ConvertigoPlugin.logDebug3("   - [" + extractionRule.getName() + "]");
-	            }
-	            
-	            // Sheets
-	            ConvertigoPlugin.logDebug3("   + Sheets");
-	            for (Sheet sheet : screenClass.getLocalSheets()) {
-	                save(sheet, bForce);
-	                ConvertigoPlugin.logDebug3("   - [" + sheet.getName() + "]");
-	            }
-	            
-	            // Inherited screen classes
-	            ConvertigoPlugin.logDebug3("   + Inherited screen classes");
-	            for (ScreenClass inheritedScreenClass : screenClass.getInheritedScreenClasses()) {
-	                save(inheritedScreenClass, bForce);
-	                ConvertigoPlugin.logDebug3("   - [" + inheritedScreenClass.getName() + "]");
-	            }
-	            
-	            screenClass.getCriterias(true);
-	            screenClass.getExtractionRules(true);
-	        }
-	        //projectHasBeenModified(false);
-    	}
+			}.init(parentDatabaseObject);
+			
+		} catch (ConvertigoException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new ConvertigoException("Exception in save", e);
+		}
     }
 
     private ProjectExplorerView projectExplorerView = null;

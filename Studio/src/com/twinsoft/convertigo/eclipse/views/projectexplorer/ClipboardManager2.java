@@ -47,8 +47,6 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
-import com.twinsoft.convertigo.beans.core.MobileDevice;
-import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
@@ -76,6 +74,7 @@ import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
+import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ClipboardManager2 {
@@ -84,8 +83,8 @@ public class ClipboardManager2 {
 	public Object[] objects;
 	public TreeObject[] parentTreeNodeOfCutObjects;
 
-	protected ArrayList<TreeObject> treeObjectsList;
-	protected ArrayList<TreeObject> treeParentsList;
+	protected List<TreeObject> treeObjectsList;
+	protected List<TreeObject> treeParentsList;
 	protected Document clipboardDocument;
 	protected Element clipboardRootElement;
 
@@ -142,14 +141,56 @@ public class ClipboardManager2 {
 
 	DatabaseObject currentScreenClassOrTransaction;
 
-	//	private void copy(DatabaseObject databaseObject) throws EngineException {
-	//		currentScreenClassOrTransaction = null;
-	//		copy(clipboardRootElement, databaseObject);
-	//	}
-
 	private void copyDatabaseObject(DatabaseObject databaseObject) throws EngineException {
 		currentScreenClassOrTransaction = null;
-		copy(clipboardRootElement, databaseObject);
+		
+		try {
+			new WalkHelper() {
+				// recursion parameters
+				Element parentElement;
+				
+				public void init(DatabaseObject databaseObject, Element parentElement) throws Exception {
+					this.parentElement = parentElement;
+					super.init(databaseObject);
+				}
+
+				@Override
+				protected void walk(DatabaseObject databaseObject) throws Exception {
+					// retrieve recursion parameters
+					final Element parentElement = this.parentElement;
+					
+					// Remember the current screen class or transaction for detecting inherited objects.
+					if ((databaseObject instanceof ScreenClass) || (databaseObject instanceof Transaction)) {
+						currentScreenClassOrTransaction = databaseObject;
+					}
+					
+					// We should not include inherited objects (only for tree pastes).
+					else if ((databaseObject instanceof Criteria) || (databaseObject instanceof ExtractionRule) ||
+							(databaseObject instanceof Sheet) || (databaseObject instanceof BlockFactory)) {
+						if ((currentScreenClassOrTransaction != null) && (currentScreenClassOrTransaction != databaseObject.getParent())) {
+							return;
+						}
+					}
+					
+					Element element = parentElement;
+					element = databaseObject.toXml(clipboardDocument, ExportOption.bIncludeVersion);
+					appendDndData(element, databaseObject);
+					parentElement.appendChild(element);
+					
+					// new value of recursion parameters
+					this.parentElement = element;
+					super.walk(databaseObject);
+					
+					// restore recursion parameters
+					this.parentElement = parentElement;
+				}
+				
+			}.init(databaseObject, clipboardRootElement);
+		} catch (EngineException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new EngineException("Exception in copyDatabaseObject", e);
+		}
 	}
 
 	private void copyPropertyObject(IPropertyTreeObject propertyObject) throws EngineException {
@@ -158,152 +199,6 @@ public class ClipboardManager2 {
 		}
 		Element element = propertyObject.toXml(clipboardDocument);
 		clipboardRootElement.appendChild(element);
-	}
-
-	private void copy(Element parentElement, DatabaseObject databaseObject) throws EngineException {
-		// Remember the current screen class or transaction for detecting inherited objects.
-		if ((databaseObject instanceof ScreenClass) || (databaseObject instanceof Transaction)) {
-			currentScreenClassOrTransaction = databaseObject;
-		}
-		// We should not include inherited objects (only for tree pastes).
-		else if ((databaseObject instanceof Criteria) || (databaseObject instanceof ExtractionRule) ||
-				(databaseObject instanceof Sheet) || (databaseObject instanceof BlockFactory)) {
-			if ((currentScreenClassOrTransaction != null) && (currentScreenClassOrTransaction != databaseObject.getParent())) {
-				return;
-			}
-		}
-		
-		Element element = parentElement;
-		element = databaseObject.toXml(clipboardDocument, ExportOption.bIncludeVersion);
-		appendDndData(element, databaseObject);
-		parentElement.appendChild(element);
-		List<?extends DatabaseObject> vDatabaseObjects;
-		
-		if (databaseObject instanceof Project) {
-			vDatabaseObjects = ((Project) databaseObject).getConnectorsList();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Connector) dbo);
-			}
-			
-			vDatabaseObjects = ((Project) databaseObject).getSequencesList();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Sequence) dbo);
-			}
-			
-			vDatabaseObjects = ((Project) databaseObject).getMobileDeviceList();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (MobileDevice) dbo);
-			}
-		} else if (databaseObject instanceof Sequence) {
-			vDatabaseObjects = ((Sequence) databaseObject).getTestCasesList();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (TestCase) dbo);
-			}
-			
-			vDatabaseObjects = ((Sequence) databaseObject).getSteps();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Step) dbo);
-			}
-			
-			vDatabaseObjects = ((Sequence) databaseObject).getSheetsList();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Sheet) dbo);
-			}
-			
-			vDatabaseObjects = ((Sequence) databaseObject).getVariablesList();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Variable) dbo);
-			}
-		} else if (databaseObject instanceof Connector) {
-			vDatabaseObjects = ((Connector) databaseObject).getPoolsList();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Pool) dbo);
-			}
-			
-			vDatabaseObjects = ((Connector) databaseObject).getTransactionsList();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Transaction) dbo);
-			}
-			
-			if (databaseObject instanceof IScreenClassContainer<?>) {
-				ScreenClass rootScreenClass = ((IScreenClassContainer<?>) databaseObject).getDefaultScreenClass();
-				if (rootScreenClass != null) {
-					copy(element, rootScreenClass);
-				}
-			}
-		} else if (databaseObject instanceof Transaction) {
-			vDatabaseObjects = ((Transaction) databaseObject).getSheetsList();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Sheet) dbo);
-			}
-			
-			if (databaseObject instanceof HtmlTransaction) {
-				vDatabaseObjects = ((HtmlTransaction) databaseObject).getStatements();
-				for (DatabaseObject dbo : vDatabaseObjects) {
-					copy(element, (Statement) dbo);
-				}
-			}
-			if (databaseObject instanceof TransactionWithVariables) {
-				vDatabaseObjects = ((TransactionWithVariables) databaseObject).getTestCasesList();
-				for (DatabaseObject dbo : vDatabaseObjects) {
-					copy(element, (TestCase) dbo);
-				}
-
-				vDatabaseObjects = ((TransactionWithVariables) databaseObject).getVariablesList();
-				for (DatabaseObject dbo : vDatabaseObjects) {
-					copy(element, (Variable) dbo);
-				}
-			}
-		} else if (databaseObject instanceof StatementWithExpressions) {
-			vDatabaseObjects = ((StatementWithExpressions) databaseObject).getStatements();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Statement) dbo);
-			}
-		} else if (databaseObject instanceof HTTPStatement) {
-			vDatabaseObjects = ((HTTPStatement) databaseObject).getVariables();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Variable) dbo);
-			}
-		} else if (databaseObject instanceof StepWithExpressions) {
-			vDatabaseObjects = ((StepWithExpressions) databaseObject).getSteps();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Step) dbo);
-			}
-		} else if (databaseObject instanceof RequestableStep) {
-			vDatabaseObjects = ((RequestableStep) databaseObject).getVariables();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Variable) dbo);
-			}
-		} else if (databaseObject instanceof TestCase) {
-			vDatabaseObjects = ((TestCase) databaseObject).getVariables();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Variable) dbo);
-			}
-		} else if (databaseObject instanceof ScreenClass) {
-			if (databaseObject instanceof JavelinScreenClass) {
-				BlockFactory blockFactory = ((JavelinScreenClass) databaseObject).getBlockFactory();
-				copy(element, blockFactory);
-			}
-			vDatabaseObjects = ((ScreenClass) databaseObject).getCriterias();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Criteria) dbo);
-			}
-			
-			vDatabaseObjects = ((ScreenClass) databaseObject).getExtractionRules();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (ExtractionRule) dbo);
-			}
-			
-			vDatabaseObjects = ((ScreenClass) databaseObject).getSheets();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (Sheet) dbo);
-			}
-			
-			vDatabaseObjects = ((ScreenClass) databaseObject).getInheritedScreenClasses();
-			for (DatabaseObject dbo : vDatabaseObjects) {
-				copy(element, (ScreenClass) dbo);
-			}
-		}
 	}
 
 	private void appendDndData(Element element, DatabaseObject databaseObject) {
@@ -662,7 +557,7 @@ public class ClipboardManager2 {
 		}
 	}
 
-	public void cutAndPaste(DatabaseObject object, DatabaseObject parentDatabaseObject) throws ConvertigoException {
+	public void cutAndPaste(final DatabaseObject object, DatabaseObject parentDatabaseObject) throws ConvertigoException {
 		// Verifying if a sheet with the same browser does not already exist
 		if (object instanceof Sheet) {
 			String browser = ((Sheet) object).getBrowser();
@@ -697,111 +592,56 @@ public class ClipboardManager2 {
         		throw new EngineException("You cannot cut the \"Else\" statement");
         }
 		
-		// Verifying if a child object with same name exist
-		List<? extends DatabaseObject> lDatabaseObjects = null;
-		if (parentDatabaseObject instanceof Project) {
-			if (object instanceof Connector) {
-				if (((Connector) object).isDefault) {
-					throw new EngineException("You cannot cut the default connector to another project");
+        // Verifying if a child object with same name exist
+        try {
+        	new WalkHelper() {
+        		boolean root = true;
+        		boolean find = false;
+				
+				@Override
+				protected boolean before(DatabaseObject databaseObject, Class<? extends DatabaseObject> dboClass) {
+					boolean isInstance = dboClass.isInstance(object);
+					find |= isInstance;
+					return isInstance;
 				}
-				lDatabaseObjects = ((Project) parentDatabaseObject).getConnectorsList();
-			} else if (object instanceof Sequence) {
-				lDatabaseObjects = ((Project) parentDatabaseObject).getSequencesList();
-			} else if (object instanceof MobileDevice) {
-				lDatabaseObjects = ((Project) parentDatabaseObject).getMobileDeviceList();
-			} else {
-				throw new EngineException("You cannot paste to a project a database object of type " + object.getClass().getName());
-			}
-		} else if (parentDatabaseObject instanceof Sequence){
-			if (object instanceof Sheet) {
-				lDatabaseObjects = ((Sequence) parentDatabaseObject).getSheetsList();
-			} else if (object instanceof Step) {
-				lDatabaseObjects = ((Sequence) parentDatabaseObject).getSteps();
-			} else if (object instanceof TestCase) {
-				lDatabaseObjects = ((Sequence) parentDatabaseObject).getTestCasesList();
-			} else if (object instanceof Variable) {
-				lDatabaseObjects = ((Sequence) parentDatabaseObject).getVariablesList();
-			} else {
-				throw new EngineException("You cannot paste to a sequence a database object of type " + object.getClass().getName());
-			}
-		} else if (parentDatabaseObject instanceof Connector) {
-			if (object instanceof ScreenClass) {
-				throw new EngineException("You cannot cut the default screen class to another connector");
-			} else if (object instanceof Transaction) {
-				if (((Transaction) object).isDefault) {
-					throw new EngineException("You cannot cut the default transaction to another connector");
+				
+				@Override
+				protected void walk(DatabaseObject databaseObject) throws Exception {
+					if (root) {
+						root = false;
+						
+						if (databaseObject instanceof Project) {
+							if (object instanceof Connector && ((Connector) object).isDefault) {
+								throw new EngineException("You cannot cut the default connector to another project");
+							}
+						} else if (databaseObject instanceof Connector) {
+							if (object instanceof ScreenClass) {
+								throw new EngineException("You cannot cut the default screen class to another connector");
+							} else if (object instanceof Transaction && ((Transaction) object).isDefault) {
+								throw new EngineException("You cannot cut the default transaction to another connector");
+							}
+						} else if (databaseObject instanceof ScreenClass) {
+							if (object instanceof Criteria && databaseObject.getParent() instanceof Connector) {
+								throw new EngineException("You cannot cut the criterion of default screen class");
+							}
+						}
+						
+						super.walk(databaseObject);
+						if (!find) {
+							throw new EngineException("You cannot paste to a " + databaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
+						}
+					} else {
+						if (object.getName().equals(databaseObject.getName())) {
+							throw new ObjectWithSameNameException("Unable to cut the object because an object with the same name already exists in target.");
+						}
+					}
 				}
-				lDatabaseObjects = ((Connector) parentDatabaseObject).getTransactionsList();
-			} else if (object instanceof Pool) {
-				lDatabaseObjects = ((Connector) parentDatabaseObject).getPoolsList();
-			} else {
-				throw new EngineException("You cannot paste to a connector a database object of type " + object.getClass().getName());
-			}
-		} else if (parentDatabaseObject instanceof Transaction) {
-			if (object instanceof Sheet) {
-				lDatabaseObjects = ((Transaction) parentDatabaseObject).getSheetsList();
-			} else if ((object instanceof FunctionStatement) && (parentDatabaseObject instanceof HtmlTransaction)) {
-				lDatabaseObjects = ((HtmlTransaction) parentDatabaseObject).getStatements();
-			} else if ((object instanceof TestCase) && (parentDatabaseObject instanceof TransactionWithVariables)) {
-				lDatabaseObjects = ((TransactionWithVariables) parentDatabaseObject).getTestCasesList();
-			} else if ((object instanceof Variable) && (parentDatabaseObject instanceof TransactionWithVariables)) {
-				lDatabaseObjects = ((TransactionWithVariables) parentDatabaseObject).getVariablesList();
-			} else {
-				throw new EngineException("You cannot paste to a transaction a database object of type " + object.getClass().getName());
-			}
-		} else if (parentDatabaseObject instanceof ScreenClass) {
-			if (object instanceof Criteria) {
-				if (parentDatabaseObject.equals(((IScreenClassContainer<?>) parentDatabaseObject.getConnector()).getDefaultScreenClass())) {
-					throw new EngineException("You cannot cut the criterion of default screen class");
-				}
-				lDatabaseObjects = ((ScreenClass) parentDatabaseObject).getLocalCriterias();
-			} else if (object instanceof ExtractionRule) {
-				lDatabaseObjects = ((ScreenClass) parentDatabaseObject).getLocalExtractionRules();
-			} else if (object instanceof Sheet) {
-				lDatabaseObjects = ((ScreenClass) parentDatabaseObject).getLocalSheets();
-			} else if (object instanceof ScreenClass) {
-				lDatabaseObjects = ((ScreenClass) parentDatabaseObject).getInheritedScreenClasses();
-			} else {
-				throw new EngineException("You cannot paste to a screen class a database object of type " + object.getClass().getName());
-			}
-		} else if (parentDatabaseObject instanceof StatementWithExpressions) {
-			if (object instanceof Statement) {
-				lDatabaseObjects = ((StatementWithExpressions) parentDatabaseObject).getStatements();
-			} else {
-				throw new EngineException("You cannot paste to a statement a database object of type " + object.getClass().getName());
-			}
-		} else if (parentDatabaseObject instanceof HTTPStatement) {
-			if (object instanceof Variable) {
-				lDatabaseObjects = ((HTTPStatement) parentDatabaseObject).getVariables();
-			} else {
-				throw new EngineException("You cannot paste to a statement a database object of type " + object.getClass().getName());
-			}
-		} else if (parentDatabaseObject instanceof StepWithExpressions) {
-			if (object instanceof Step) {
-				lDatabaseObjects = ((StepWithExpressions) parentDatabaseObject).getSteps();
-			} else {
-				throw new EngineException("You cannot paste to a step a database object of type " + object.getClass().getName());
-			}
-		} else if (parentDatabaseObject instanceof RequestableStep) {
-			if (object instanceof Variable) {
-				lDatabaseObjects = ((RequestableStep) parentDatabaseObject).getVariables();
-			} else {
-				throw new EngineException("You cannot paste to a step a database object of type " + object.getClass().getName());
-			}
-		} else if (parentDatabaseObject instanceof TestCase) {
-			if (object instanceof Variable) {
-				lDatabaseObjects = ((TestCase) parentDatabaseObject).getVariables();
-			} else {
-				throw new EngineException("You cannot paste to a test case a database object of type " + object.getClass().getName());
-			}
-		} else {
-			throw new EngineException("You cannot paste anything to database object of type " + parentDatabaseObject.getClass().getName());
-		}
-		String newDatabaseObjectName = object.getName();
-		for (DatabaseObject databaseObject : lDatabaseObjects) {
-			if (newDatabaseObjectName.equals(databaseObject.getName())) {
-				throw new ObjectWithSameNameException("Unable to cut the object because an object with the same name already exists in target.");
-			}
+
+        	}.init(parentDatabaseObject);
+        } catch (EngineException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new EngineException("Exception in cutAndPaste", e);
 		}
 		move(object, parentDatabaseObject);
 	}

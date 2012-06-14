@@ -119,13 +119,9 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ITablesProperty;
-import com.twinsoft.convertigo.beans.core.ITestCaseContainer;
-import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.core.RequestableObject;
-import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
@@ -136,14 +132,10 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
-import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.steps.FunctionStep;
-import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
-import com.twinsoft.convertigo.beans.variables.HttpStatementVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.actions.ProjectExplorerSaveAllAction;
@@ -184,6 +176,7 @@ import com.twinsoft.convertigo.engine.EngineListener;
 import com.twinsoft.convertigo.engine.MigrationListener;
 import com.twinsoft.convertigo.engine.MigrationManager;
 import com.twinsoft.convertigo.engine.ObjectsProvider;
+import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -1267,429 +1260,255 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		loadDatabaseObject(parentTreeObject, parentDatabaseObject, projectLoadingJob, projectLoadingJob.getMonitor());
 	}
 	
-	private void loadDatabaseObject(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject, ProjectLoadingJob projectLoadingJob, IProgressMonitor monitor) throws EngineException, IOException {        
+	private void loadDatabaseObject(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject, ProjectLoadingJob projectLoadingJob, final IProgressMonitor monitor) throws EngineException, IOException {        
         // Add load subtask here because of databaseObjectLoaded event no more received since memory improvement
         // (getSubDatabaseObject called only when necessary)
-		
-		String dboName = (parentDatabaseObject instanceof Step) ? ((Step)parentDatabaseObject).getStepNodeName():parentDatabaseObject.getName();
-        monitor.subTask("Loading databaseObject '"+ dboName +"'...");
         
-        if (parentDatabaseObject instanceof Project) {
-            Project project = (Project) parentDatabaseObject;
-            
-            // Creates directories and files
-            createDirsAndFiles(project.getName());
-            
-			// Connectors
-			Collection<Connector> connectors = project.getConnectorsList();
-			if (connectors.size() != 0) {
-				// Set default connector if none
-				if (project.getDefaultConnector() == null) {
-					// Report from 4.5: fix #401
-					ConvertigoPlugin.logWarning(null, "Project \""+ project.getName() +"\" has no default connector. Try to set a default one.");
-					Connector defaultConnector = connectors.iterator().next();
-					try {
-						project.setDefaultConnector(defaultConnector);
-						defaultConnector.hasChanged = true;
-					}catch (Exception e) {
-						ConvertigoPlugin.logWarning(e, "Unable to set a default connector for project \""+ project.getName() +"\"");
-					}
+		try {
+			new WalkHelper() {
+				// recursion parameters
+				TreeParent parentTreeObject;
+				ProjectLoadingJob projectLoadingJob;
+				
+				// sibling parameters
+				ObjectsFolderTreeObject currentTreeFolder = null;
+
+				public void init(DatabaseObject databaseObject, TreeParent parentTreeObject, ProjectLoadingJob projectLoadingJob) throws Exception {
+					this.parentTreeObject = parentTreeObject;
+					this.projectLoadingJob = projectLoadingJob;
+					
+					walkInheritance = true;
+					super.init(databaseObject);
 				}
 				
-				ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_CONNECTORS);
-				parentTreeObject.addChild(objectsFolderTreeObject);
-				
-				for (Connector childDatabaseObject : connectors) {
-					ConnectorTreeObject childTreeObject = new ConnectorTreeObject(viewer, childDatabaseObject, false);
-					objectsFolderTreeObject.addChild(childTreeObject);
-			        monitor.worked(1);
-					loadDatabaseObject(childTreeObject, childDatabaseObject, projectLoadingJob, monitor);
-				}
-				
-				// Refresh Traces folder
-				IFolder ifolder = ((ProjectTreeObject)parentTreeObject).getFolder("Traces");
-				if(ifolder.exists()) {
-					try {
-						ifolder.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-					} catch (CoreException e) {
+				@Override
+				protected void walk(DatabaseObject databaseObject) throws Exception {
+					// retrieve recursion parameters
+					final TreeParent parentTreeObject = this.parentTreeObject;
+					final ProjectLoadingJob projectLoadingJob = this.projectLoadingJob;
+					
+					// retrieve sibling parameters					
+					ObjectsFolderTreeObject currentTreeFolder = this.currentTreeFolder;
+					
+					String dboName = (databaseObject instanceof Step) ? ((Step) databaseObject).getStepNodeName() : databaseObject.getName();
+			        monitor.subTask("Loading databaseObject '"+ dboName +"'...");
+					
+					if (parentTreeObject.getObject() == databaseObject) {
+						if (databaseObject instanceof Project) {
+							Project project = (Project) databaseObject;
+							
+				            // Creates directories and files
+				            createDirsAndFiles(project.getName());
+							
+							// Connectors
+							Collection<Connector> connectors = project.getConnectorsList();
+							if (connectors.size() != 0) {
+								// Set default connector if none
+								if (project.getDefaultConnector() == null) {
+									// Report from 4.5: fix #401
+									ConvertigoPlugin.logWarning(null, "Project \""+ project.getName() +"\" has no default connector. Try to set a default one.");
+									Connector defaultConnector = connectors.iterator().next();
+									try {
+										project.setDefaultConnector(defaultConnector);
+										defaultConnector.hasChanged = true;
+									} catch (Exception e) {
+										ConvertigoPlugin.logWarning(e, "Unable to set a default connector for project \""+ project.getName() +"\"");
+									}
+								}
+								
+								// Refresh Traces folder
+								IFolder ifolder = ((ProjectTreeObject)parentTreeObject).getFolder("Traces");
+								if(ifolder.exists()) {
+									try {
+										ifolder.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+									} catch (CoreException e) {
+									}
+								}
+							}
+						}
+					} else {
+						DatabaseObjectTreeObject databaseObjectTreeObject = null;
+						int folderType = Integer.MIN_VALUE;
+						if (databaseObject instanceof Connector) {
+							Connector connector = (Connector) databaseObject;
+							
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_CONNECTORS;
+							databaseObjectTreeObject = new ConnectorTreeObject(viewer, connector, false);
+							
+							// Open connector editor
+							if (projectLoadingJob != null && connector.isDefault) {
+								projectLoadingJob.setDefaultConnectorTreeObject((ConnectorTreeObject) databaseObjectTreeObject);
+							}
+
+							// Traces
+							if (connector instanceof JavelinConnector) {
+								String projectName = databaseObject.getProject().getName();
+
+								if (projectLoadingJob == null) {
+									if (MigrationManager.isProjectMigrated(projectName)) {
+										UnloadedProjectTreeObject unloadedProjectTreeObject = new UnloadedProjectTreeObject(databaseObjectTreeObject.viewer, projectName);
+										this.projectLoadingJob = new ProjectLoadingJob(databaseObjectTreeObject.viewer, unloadedProjectTreeObject);
+									}
+								}
+								if (projectLoadingJob != null) {
+									projectLoadingJob.loadTrace(databaseObjectTreeObject, new File(Engine.PROJECTS_PATH + "/" + projectName + "/Traces/" + connector.getName()));
+								}
+							}
+							
+						} else if (databaseObject instanceof Sequence) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SEQUENCES;
+							databaseObjectTreeObject = new SequenceTreeObject(viewer, (Sequence) databaseObject, false);
+							
+						} else if (databaseObject instanceof MobileDevice) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_MOBILEDEVICES;
+							databaseObjectTreeObject = new MobileDeviceTreeObject(viewer, (MobileDevice) databaseObject, false);
+							
+						} else if (databaseObject instanceof Pool) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_POOLS;
+							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
+							
+						} else if (databaseObject instanceof Transaction) {
+							Transaction transaction = (Transaction) databaseObject;
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_TRANSACTIONS;
+							databaseObjectTreeObject = new TransactionTreeObject(viewer, transaction, false);
+							
+			    			// Functions
+			    			List<HandlersDeclarationTreeObject> treeObjects = new LinkedList<HandlersDeclarationTreeObject>();
+			    			String line;
+			    			int lineNumber = 0;
+			    			BufferedReader br = new BufferedReader(new StringReader(transaction.handlers));
+			    	 
+			    			while ((line = br.readLine()) != null) {
+			    				line = line.trim();
+			    				lineNumber++;
+			    				if (line.startsWith("function ")) {
+			    					try {
+			    						String functionName = line.substring(9, line.indexOf(')') + 1);
+			    						HandlersDeclarationTreeObject handlersDeclarationTreeObject;
+
+			    						if (functionName.endsWith(JavelinTransaction.EVENT_ENTRY_HANDLER + "()")) {
+			    							handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_FUNCTION_SCREEN_CLASS_ENTRY, lineNumber);
+			    						} else if (functionName.endsWith(JavelinTransaction.EVENT_EXIT_HANDLER + "()")) {
+			    							handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_FUNCTION_SCREEN_CLASS_EXIT, lineNumber);
+			    						} else {
+			    							handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_OTHER, lineNumber);
+			    						}
+			    						treeObjects.add(handlersDeclarationTreeObject);
+			    					} catch(StringIndexOutOfBoundsException e) {
+			    						// Ignore
+			    					}
+			    				}
+			    			}
+
+			    			if (treeObjects.size() != 0) {
+			    				ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_FUNCTIONS);
+			    				databaseObjectTreeObject.addChild(objectsFolderTreeObject);
+
+			    				for (HandlersDeclarationTreeObject handlersDeclarationTreeObject: treeObjects) {
+			    					objectsFolderTreeObject.addChild(handlersDeclarationTreeObject);
+			    				}
+			    			}
+						} else if (databaseObject instanceof ScreenClass) {
+							if (databaseObject.getParent() instanceof IScreenClassContainer<?>) {
+								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SCREEN_CLASSES;
+								databaseObjectTreeObject = new ScreenClassTreeObject(viewer, (ScreenClass) databaseObject, false);
+							} else {
+								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_INHERITED_SCREEN_CLASSES;
+								databaseObjectTreeObject = new ScreenClassTreeObject(viewer, (ScreenClass) databaseObject, false);
+							}
+							
+						} else if (databaseObject instanceof Sheet) {
+							Sheet sheet = (Sheet) databaseObject;
+							
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SHEETS;
+							databaseObjectTreeObject = new SheetTreeObject(viewer, sheet, parentTreeObject.getObject() != databaseObject.getParent());
+							addTemplates(sheet, databaseObjectTreeObject);
+							
+						} else if (databaseObject instanceof TestCase) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_TESTCASES;
+							databaseObjectTreeObject = new TestCaseTreeObject(viewer, (TestCase) databaseObject, false);
+							
+						} else if (databaseObject instanceof Variable) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
+							databaseObjectTreeObject = new VariableTreeObject2(viewer, (Variable) databaseObject, false);
+							
+						} else if (databaseObject instanceof Step) {
+							if (databaseObject.getParent() instanceof Sequence) {
+								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_STEPS;
+							}
+							databaseObjectTreeObject = new StepTreeObject(viewer, (Step) databaseObject, false);
+							
+						} else if (databaseObject instanceof Statement) {
+							if (databaseObject.getParent() instanceof Transaction) {
+								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_FUNCTIONS;
+							}
+							databaseObjectTreeObject = new StatementTreeObject(viewer, (Statement) databaseObject, false);
+							
+						} else if (databaseObject instanceof Criteria) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_CRITERIAS;
+							databaseObjectTreeObject = new CriteriaTreeObject(viewer, (Criteria) databaseObject, parentTreeObject.getObject() != databaseObject.getParent());
+							
+						} else if (databaseObject instanceof ExtractionRule) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_EXTRACTION_RULES;
+							databaseObjectTreeObject = new ExtractionRuleTreeObject(viewer, (ExtractionRule) databaseObject, parentTreeObject.getObject() != databaseObject.getParent());
+							
+						} else if (databaseObject instanceof BlockFactory) {
+							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, parentTreeObject.getObject() != databaseObject.getParent());
+							
+						} else {
+							// unknow DBO case !!!
+							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
+						}
+						
+						if (folderType == Integer.MIN_VALUE) {
+							parentTreeObject.addChild(databaseObjectTreeObject);
+						} else {
+							if (currentTreeFolder == null || currentTreeFolder.folderType != folderType) {
+								currentTreeFolder = new ObjectsFolderTreeObject(viewer, folderType);
+								parentTreeObject.addChild(currentTreeFolder);
+							}
+							currentTreeFolder.addChild(databaseObjectTreeObject);
+						}
+						
+						if (databaseObject instanceof ITablesProperty) {
+							ITablesProperty iTablesProperty = (ITablesProperty) databaseObject;
+				    		String[] tablePropertyNames = iTablesProperty.getTablePropertyNames();
+				    		for (int i = 0; i < tablePropertyNames.length; i++) {
+				    			String tablePropertyName = tablePropertyNames[i];
+				    			String tableRenderer = iTablesProperty.getTableRenderer(tablePropertyName);
+				    			XMLVector<XMLVector<Object>> xmlv = iTablesProperty.getTableData(tablePropertyName);
+				    			if (tableRenderer.equals("XMLTableDescriptionTreeObject")) {
+				        			XMLTableDescriptionTreeObject propertyXMLTableTreeObject = new XMLTableDescriptionTreeObject(viewer, tablePropertyName, xmlv, databaseObjectTreeObject);
+				        			databaseObjectTreeObject.addChild(propertyXMLTableTreeObject);
+				    			} else if (tableRenderer.equals("XMLRecordDescriptionTreeObject")) {
+				    				XMLRecordDescriptionTreeObject propertyXMLRecordTreeObject = new XMLRecordDescriptionTreeObject(viewer, tablePropertyName, xmlv, databaseObjectTreeObject);
+				    				databaseObjectTreeObject.addChild(propertyXMLRecordTreeObject);
+				    			}
+				    		}
+				        }
+						
+						monitor.worked(1);
+						
+						// new value of recursion parameters
+						this.parentTreeObject = databaseObjectTreeObject;
 					}
+					
+					super.walk(databaseObject);
+					
+					// restore recursion parameters
+					this.parentTreeObject = parentTreeObject;
+					this.projectLoadingJob = projectLoadingJob;
+					
+					// restore sibling parameters
+					this.currentTreeFolder = currentTreeFolder;
 				}
-
-			}
-            
-			// Sequences
-			Collection<Sequence> sequences = project.getSequencesList();
-			if(sequences.size() != 0) {
-				ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_SEQUENCES);
-				parentTreeObject.addChild(objectsFolderTreeObject);
-				for (Sequence childDatabaseObject : sequences) {
-					SequenceTreeObject childTreeObject = new SequenceTreeObject(viewer, childDatabaseObject, false);
-					objectsFolderTreeObject.addChild(childTreeObject);
-			        monitor.worked(1);
-					loadDatabaseObject(childTreeObject, childDatabaseObject, projectLoadingJob, monitor);
-				}
-			}
-			
-			// Mobile devices
-			Collection<MobileDevice> devices = project.getMobileDeviceList();
-			if(devices.size() != 0) {
-				ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_MOBILEDEVICES);
-				parentTreeObject.addChild(objectsFolderTreeObject);
-				for (MobileDevice childDatabaseObject : devices) {
-					MobileDeviceTreeObject childTreeObject = new MobileDeviceTreeObject(viewer, childDatabaseObject, false);
-					objectsFolderTreeObject.addChild(childTreeObject);
-			        monitor.worked(1);
-					loadDatabaseObject(childTreeObject, childDatabaseObject, projectLoadingJob, monitor);
-				}
-			}
-		}else if (parentDatabaseObject instanceof Connector) {
-			Connector connector = (Connector) parentDatabaseObject;
-			
-			// Open connector editor
-			if (projectLoadingJob!=null && connector.isDefault)
-				projectLoadingJob.setDefaultConnectorTreeObject((ConnectorTreeObject)parentTreeObject);
-			
-			// Traces
-			if (connector instanceof JavelinConnector) {
-				String projectName = parentDatabaseObject.getProject().getName();
 				
-				if (projectLoadingJob==null) {
-					if (MigrationManager.isProjectMigrated(projectName)) {
-						UnloadedProjectTreeObject unloadedProjectTreeObject = new UnloadedProjectTreeObject(parentTreeObject.viewer, projectName);
-						projectLoadingJob= new ProjectLoadingJob( parentTreeObject.viewer, unloadedProjectTreeObject);
-					}
-				}
-				if (projectLoadingJob!=null)
-					projectLoadingJob.loadTrace(parentTreeObject, new File(Engine.PROJECTS_PATH + "/" + projectName + "/Traces/" + connector.getName()));
-			}
-			
-			// Pools
-			Collection<Pool> pools = connector.getPoolsList();
-			if (pools.size() != 0) {
-				ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_POOLS);
-				parentTreeObject.addChild(objectsFolderTreeObject);
-				for (Pool childDatabaseObject : pools) {
-					objectsFolderTreeObject.addChild(new DatabaseObjectTreeObject(viewer, childDatabaseObject, false));
-			        monitor.worked(1);
-				}
-			}
-            
-			// Transactions
-			Collection<Transaction> transactions = connector.getTransactionsList();
-			if (transactions.size() != 0) {
-				// Set default transaction if none
-				if (connector.getDefaultTransaction() == null) {
-					// Report from 4.5: fix #401
-					ConvertigoPlugin.logWarning(null, "For project \""+ connector.getProject().getName() +"\" :\nConnector \""+ connector.getName() +"\" has no default transaction. Try to set a default one.");
-					Transaction defaultTransaction = transactions.iterator().next();
-					try {
-						connector.setDefaultTransaction(defaultTransaction);
-						defaultTransaction.hasChanged = true;
-					} catch (Exception e) {
-						ConvertigoPlugin.logWarning(e, "For project \""+ connector.getProject().getName() +"\" :\nUnable to set a default transaction for connector \""+ connector.getName() +"\"");
-					}
-				}
-
-				ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_TRANSACTIONS);
-				parentTreeObject.addChild(objectsFolderTreeObject);
-				for (Transaction childDatabaseObject : transactions) {
-					TransactionTreeObject childTreeObject = new TransactionTreeObject(viewer, childDatabaseObject, false);
-					objectsFolderTreeObject.addChild(childTreeObject);
-			        monitor.worked(1);
-					loadDatabaseObject(childTreeObject, childDatabaseObject, projectLoadingJob, monitor);
-				}
-			}
-			
-			if (parentDatabaseObject instanceof IScreenClassContainer<?>) {
-				// Root screen class
-				ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_SCREEN_CLASSES);
-				parentTreeObject.addChild(objectsFolderTreeObject);
-        
-				ScreenClass childDBO = ((IScreenClassContainer<?>) parentDatabaseObject).getDefaultScreenClass();
-				ScreenClassTreeObject childTreeObject = new ScreenClassTreeObject(viewer, childDBO, false);
-				objectsFolderTreeObject.addChild(childTreeObject);
-		        monitor.worked(1);
-				loadDatabaseObject(childTreeObject, childDBO, projectLoadingJob, monitor);
-			}
-		} else if (parentDatabaseObject instanceof RequestableObject) {
-			RequestableObject requestableObject = (RequestableObject) parentDatabaseObject;
-			
-			// Sheets
-            Collection<Sheet> sheets = requestableObject.getSheetsList();
-            if (sheets.size() != 0) {
-            	ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_SHEETS);
-                parentTreeObject.addChild(objectsFolderTreeObject);
-                
-				for (Sheet childDatabaseObject : sheets) {
-					SheetTreeObject childTreeObject = new SheetTreeObject(viewer, childDatabaseObject, (parentDatabaseObject != childDatabaseObject.getParent()));
-                    objectsFolderTreeObject.addChild(childTreeObject);
-                    monitor.worked(1);
-                    loadDatabaseObject(childTreeObject, childDatabaseObject, projectLoadingJob, monitor);
-                }
-            }
-            
-			// Test cases
-            if (requestableObject instanceof ITestCaseContainer){
-	            Collection<? extends TestCase> testCases = ((ITestCaseContainer) requestableObject).getTestCasesList();
-				if (testCases.size() != 0) {
-					ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_TESTCASES);
-					parentTreeObject.addChild(objectsFolderTreeObject);
-	
-					for (TestCase childDatabaseObject : testCases) {
-						TestCaseTreeObject childTreeObject = new TestCaseTreeObject(viewer, childDatabaseObject, false);
-	                    objectsFolderTreeObject.addChild(childTreeObject);
-	                    monitor.worked(1);
-	                    loadDatabaseObject(childTreeObject, childDatabaseObject, projectLoadingJob, monitor);
-	                }
-				}
-            }
-
-            // Variables
-            if(requestableObject instanceof IVariableContainer){
-	            Collection<? extends Variable> variables = ((IVariableContainer) requestableObject).getVariables();
-				if (variables.size() != 0) {
-					ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES);
-					parentTreeObject.addChild(objectsFolderTreeObject);
-	
-					for (Variable childDatabaseObject : variables) {
-						VariableTreeObject2 childTreeObject = new VariableTreeObject2(viewer, childDatabaseObject, false);
-	                    objectsFolderTreeObject.addChild(childTreeObject);
-	                    monitor.worked(1);
-	                }
-				}
-            }
-            
-            if (parentDatabaseObject instanceof Sequence) {
-    			Sequence sequence = (Sequence) parentDatabaseObject;
-    			
-    			// Steps
-    			Collection<Step> steps = sequence.getSteps();
-    			if (steps.size() != 0) {
-    				ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_STEPS);
-    				parentTreeObject.addChild(objectsFolderTreeObject);
-    				for(Step childDatabaseObject : steps) {
-    					StepTreeObject childTreeObject = new StepTreeObject(viewer, childDatabaseObject, false);
-    					objectsFolderTreeObject.addChild(childTreeObject);
-    			        monitor.worked(1);
-    					loadDatabaseObject(childTreeObject, childDatabaseObject, projectLoadingJob, monitor);
-    				}
-    			}
-    		} else if (parentDatabaseObject instanceof Transaction) {
-                Transaction transaction = (Transaction) parentDatabaseObject;
-                
-                // Statements (for HtmlTransaction only)
-                if (parentDatabaseObject instanceof HtmlTransaction) {
-                    Collection<Statement> statements = ((HtmlTransaction)parentDatabaseObject).getStatements();
-                    
-                    if (statements.size() != 0) {
-                    	ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_FUNCTIONS);
-                        parentTreeObject.addChild(objectsFolderTreeObject);
-                        
-        				for (Statement childDatabaseObject : statements) {
-        					StatementTreeObject childTreeObject = new StatementTreeObject(viewer, childDatabaseObject, false);
-                            objectsFolderTreeObject.addChild(childTreeObject);
-                            monitor.worked(1);
-                            loadDatabaseObject(childTreeObject, childDatabaseObject, projectLoadingJob, monitor);
-                        }
-                    }
-                }
-                
-    			// Functions
-    			List<HandlersDeclarationTreeObject> treeObjects = new LinkedList<HandlersDeclarationTreeObject>();
-    			String line;
-    			int lineNumber = 0;
-    			BufferedReader br = new BufferedReader(new StringReader(transaction.handlers));
-    	 
-    			while ((line = br.readLine()) != null) {
-    				line = line.trim();
-    				lineNumber++;
-    				if (line.startsWith("function ")) {
-    					try {
-    						String functionName = line.substring(9, line.indexOf(')') + 1);
-    						HandlersDeclarationTreeObject handlersDeclarationTreeObject;
-
-    						if (functionName.endsWith(JavelinTransaction.EVENT_ENTRY_HANDLER + "()")) {
-    							handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_FUNCTION_SCREEN_CLASS_ENTRY, lineNumber);
-    						} else if (functionName.endsWith(JavelinTransaction.EVENT_EXIT_HANDLER + "()")) {
-    							handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_FUNCTION_SCREEN_CLASS_EXIT, lineNumber);
-    						} else {
-    							handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_OTHER, lineNumber);
-    						}
-    						treeObjects.add(handlersDeclarationTreeObject);
-    					}
-    					catch(StringIndexOutOfBoundsException e) {
-    						// Ignore
-    					}
-    				}
-    			}
-
-    			if (treeObjects.size() != 0) {
-    				ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_FUNCTIONS);
-    				parentTreeObject.addChild(objectsFolderTreeObject);
-
-    				for(HandlersDeclarationTreeObject handlersDeclarationTreeObject: treeObjects)
-    					objectsFolderTreeObject.addChild(handlersDeclarationTreeObject);
-    			}
-            }
-		}else if (parentDatabaseObject instanceof StatementWithExpressions) {
-			StatementWithExpressions statement = (StatementWithExpressions)parentDatabaseObject;
-            
-			// Statements
-			Collection<Statement> statements = statement.getStatements();
-            
-            if (statements.size() != 0) {
-				for (Statement childDatabaseObject : statements) {
-					StatementTreeObject childTreeObject = new StatementTreeObject(viewer, childDatabaseObject, false);
-                    parentTreeObject.addChild(childTreeObject);
-                    monitor.worked(1);
-                    loadDatabaseObject(childTreeObject, childDatabaseObject, projectLoadingJob, monitor);
-                }
-            }
-		} else if (parentDatabaseObject instanceof HTTPStatement) {
-			HTTPStatement httpStatement = (HTTPStatement)parentDatabaseObject;
-			
-			// Variables
-            Collection<HttpStatementVariable> variables = httpStatement.getVariables();
-            
-			if (variables.size() != 0) {
-				ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES);
-				parentTreeObject.addChild(objectsFolderTreeObject);
-
-				for (HttpStatementVariable childDatabaseObject : variables) {
-					VariableTreeObject2 childTreeObject = new VariableTreeObject2(viewer, childDatabaseObject, false);
-                    objectsFolderTreeObject.addChild(childTreeObject);
-                    monitor.worked(1);
-                }
-			}
-		} else if (parentDatabaseObject instanceof StepWithExpressions) {
-			StepWithExpressions step = (StepWithExpressions)parentDatabaseObject;
-            
-			// Steps
-			Collection<Step> steps = step.getSteps();
-            
-            if (steps.size() != 0) {
-				for (Step childDatabaseObject : steps) {
-					StepTreeObject childTreeObject = new StepTreeObject(viewer, childDatabaseObject, false);
-                    parentTreeObject.addChild(childTreeObject);
-                    monitor.worked(1);
-                    loadDatabaseObject(childTreeObject, childDatabaseObject, projectLoadingJob, monitor);
-                }
-            }
-		} else if (parentDatabaseObject instanceof RequestableStep) {
-        	RequestableStep requestableStep = (RequestableStep) parentDatabaseObject;
-			
-			// Variables
-            Collection<? extends Variable> variables = requestableStep.getVariables();
-			if (variables.size() != 0) {
-				ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES);
-				parentTreeObject.addChild(objectsFolderTreeObject);
-
-				for (Variable childDatabaseObject : variables) {
-					VariableTreeObject2 childTreeObject = new VariableTreeObject2(viewer, childDatabaseObject, false);
-                    objectsFolderTreeObject.addChild(childTreeObject);
-                    monitor.worked(1);
-                }
-			}
-		} else if (parentDatabaseObject instanceof TestCase) {
-			TestCase testCase = (TestCase) parentDatabaseObject;
-			
-			// Variables
-            Collection<? extends Variable> variables = testCase.getVariables();
-			if (variables.size() != 0) {
-				ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES);
-				parentTreeObject.addChild(objectsFolderTreeObject);
-
-				for (Variable childDatabaseObject : variables) {
-					VariableTreeObject2 childTreeObject = new VariableTreeObject2(viewer, childDatabaseObject, false);
-                    objectsFolderTreeObject.addChild(childTreeObject);
-                    monitor.worked(1);
-                }
-			}
-		} else if (parentDatabaseObject instanceof ScreenClass) {
-            ScreenClass screenClass = (ScreenClass) parentDatabaseObject;
-            
-            // Block factory
-            if (screenClass instanceof JavelinScreenClass) {
-            	BlockFactory childDBO = ((JavelinScreenClass) screenClass).getBlockFactory();
-            	DatabaseObjectTreeObject childTreeObject = new DatabaseObjectTreeObject(viewer, childDBO, (parentDatabaseObject != childDBO.getParent()));
-                parentTreeObject.addChild(childTreeObject);
-                monitor.worked(1);
-            }
-            
-            // Criterias
-            Collection<Criteria> criterias = screenClass.getCriterias();
-            if (criterias.size() != 0) {
-            	ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_CRITERIAS);
-                parentTreeObject.addChild(objectsFolderTreeObject);
-                
-				for (Criteria childDatabaseObject : criterias) {
-					CriteriaTreeObject childTreeObject = new CriteriaTreeObject(viewer, childDatabaseObject, (parentDatabaseObject != childDatabaseObject.getParent()));
-                    objectsFolderTreeObject.addChild(childTreeObject);
-                    monitor.worked(1);
-                }
-            }
-            
-            // Extraction rules
-            Collection<ExtractionRule> extractionrules = screenClass.getExtractionRules();
-            if (extractionrules.size() != 0) {
-            	ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_EXTRACTION_RULES);
-                parentTreeObject.addChild(objectsFolderTreeObject);
-                
-				for (ExtractionRule childDatabaseObject : extractionrules) {
-					ExtractionRuleTreeObject childTreeObject = new ExtractionRuleTreeObject(viewer, childDatabaseObject, (parentDatabaseObject != childDatabaseObject.getParent()));
-                    objectsFolderTreeObject.addChild(childTreeObject);
-                    monitor.worked(1);
-                    loadDatabaseObject(childTreeObject, childDatabaseObject, projectLoadingJob, monitor);
-                }
-            }
-            
-            // Sheets
-            Collection<Sheet> sheets = screenClass.getSheets();
-            
-            if (sheets.size() != 0) {
-            	ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_SHEETS);
-                parentTreeObject.addChild(objectsFolderTreeObject);
-                
-				for (Sheet childDatabaseObject : sheets) {
-					SheetTreeObject childTreeObject = new SheetTreeObject(viewer, childDatabaseObject, (parentDatabaseObject != childDatabaseObject.getParent()));
-                    objectsFolderTreeObject.addChild(childTreeObject);
-                    monitor.worked(1);
-                    //addTemplates((Sheet)childDatabaseObject, childTreeObject);
-                    loadDatabaseObject(childTreeObject, childDatabaseObject, projectLoadingJob, monitor);
-                }
-            }
-            
-            // Inherited screen classes
-            Collection<ScreenClass> screenclasses = screenClass.getInheritedScreenClasses();
-            
-            if (screenclasses.size() != 0) {
-            	ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_INHERITED_SCREEN_CLASSES);
-                parentTreeObject.addChild(objectsFolderTreeObject);
-                
-				for (ScreenClass childDatabaseObject : screenclasses) {
-					ScreenClassTreeObject childTreeObject = new ScreenClassTreeObject(viewer, childDatabaseObject, (parentDatabaseObject != childDatabaseObject.getParent()));
-                    objectsFolderTreeObject.addChild(childTreeObject);
-                    monitor.worked(1);
-                    loadDatabaseObject(childTreeObject, childDatabaseObject, projectLoadingJob, monitor);
-                }
-            }
-        } else if (parentDatabaseObject instanceof Sheet) {
-        	addTemplates((Sheet)parentDatabaseObject, (DatabaseObjectTreeObject)parentTreeObject);
-        } else if (parentDatabaseObject instanceof ITablesProperty) {
-    		String[] tablePropertyNames = ((ITablesProperty)parentDatabaseObject).getTablePropertyNames();
-    		for (int i=0; i<tablePropertyNames.length; i++) {
-    			String tablePropertyName = tablePropertyNames[i];
-    			String tableRenderer = ((ITablesProperty)parentDatabaseObject).getTableRenderer(tablePropertyName);
-    			XMLVector<XMLVector<Object>> xmlv = ((ITablesProperty)parentDatabaseObject).getTableData(tablePropertyName);
-    			if (tableRenderer.equals("XMLTableDescriptionTreeObject")) {
-        			XMLTableDescriptionTreeObject propertyXMLTableTreeObject = new XMLTableDescriptionTreeObject(viewer,tablePropertyName,xmlv,(DatabaseObjectTreeObject)parentTreeObject);
-        			parentTreeObject.addChild(propertyXMLTableTreeObject);
-    			} else if (tableRenderer.equals("XMLRecordDescriptionTreeObject")) {
-    				XMLRecordDescriptionTreeObject propertyXMLRecordTreeObject = new XMLRecordDescriptionTreeObject(viewer,tablePropertyName,xmlv,(DatabaseObjectTreeObject)parentTreeObject);
-        			parentTreeObject.addChild(propertyXMLRecordTreeObject);
-    			}
-    		}
-        }
+			}.init(parentDatabaseObject, parentTreeObject, projectLoadingJob);
+		} catch (EngineException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new EngineException("Exception in copyDatabaseObject", e);
+		}
 	}
 
 	private void addTemplates(Sheet sheet, DatabaseObjectTreeObject treeObject) {

@@ -46,34 +46,11 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.twinsoft.convertigo.beans.core.BlockFactory;
-import com.twinsoft.convertigo.beans.core.Connector;
-import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.ExtractionRule;
-import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
-import com.twinsoft.convertigo.beans.core.MobileDevice;
-import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.core.RequestableStep;
-import com.twinsoft.convertigo.beans.core.ScreenClass;
-import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Sheet;
-import com.twinsoft.convertigo.beans.core.Statement;
-import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
-import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepWithExpressions;
-import com.twinsoft.convertigo.beans.core.TestCase;
-import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
-import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
-import com.twinsoft.convertigo.beans.statements.HTTPStatement;
-import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
-import com.twinsoft.convertigo.beans.variables.HttpStatementVariable;
-import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 
 public class CarUtils {
 
@@ -147,10 +124,10 @@ public class CarUtils {
 
 	private static Document exportProject(Project project) throws EngineException {
 		try {
-			Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
+			final Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			//            ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"");
 			//            document.appendChild(pi);
-			Element rootElement = document.createElement("convertigo");
+			final Element rootElement = document.createElement("convertigo");
 			DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT, Locale.getDefault());
 			String exportDate = df.format(Calendar.getInstance().getTime());
 			rootElement.setAttribute("exported", exportDate);
@@ -167,7 +144,47 @@ public class CarUtils {
 			
 			rootElement.setAttribute("studio", studioVersion);
 			document.appendChild(rootElement);
-			exportDatabaseObject(document, rootElement, project);
+//			exportDatabaseObject(document, rootElement, project);
+			
+			new WalkHelper() {
+				protected Element parentElement = rootElement;
+				
+				@Override
+				protected void walk(DatabaseObject databaseObject) throws Exception {
+					Element parentElement = this.parentElement;
+					
+					Element element = parentElement;
+					element = databaseObject.toXml(document);
+					String name = " : " + databaseObject.getName();
+					try {
+						name = Introspector.getBeanInfo(databaseObject.getClass()).getBeanDescriptor().getDisplayName() + name;
+					} catch (IntrospectionException e) {
+						name = databaseObject.getClass().getSimpleName() + name;
+					}
+					Integer depth = (Integer) document.getUserData("depth");
+					if (depth == null) {
+						depth = 0;
+					}
+					
+					String openpad = StringUtils.repeat("   ", depth);
+					String closepad = StringUtils.repeat("   ", depth);
+					parentElement.appendChild(document.createTextNode("\n"));
+					parentElement.appendChild(document.createComment(StringUtils.rightPad(openpad + "<" + name + ">", 150)));
+					parentElement.appendChild(element);
+					
+					document.setUserData("depth", depth + 1, null);
+					
+					this.parentElement = element;
+					super.walk(databaseObject);
+					
+					element.appendChild(document.createTextNode("\n"));
+					element.appendChild(document.createComment(StringUtils.rightPad(closepad + "</" + name + ">", 150)));
+					document.setUserData("depth", depth, null);
+					
+					this.parentElement = parentElement;
+				}				
+				
+			}.init(project);
 			
 			return document;
 		} catch(Exception e) {
@@ -175,149 +192,149 @@ public class CarUtils {
 		}
 	}
 
-	private static void exportDatabaseObject(Document document, Element parentElement, DatabaseObject databaseObject) throws EngineException {
-		Element element = parentElement;
-		element = databaseObject.toXml(document);
-		String name = " : " + databaseObject.getName();
-		try {
-			name = Introspector.getBeanInfo(databaseObject.getClass()).getBeanDescriptor().getDisplayName() + name;
-		} catch (IntrospectionException e) {
-			name = databaseObject.getClass().getSimpleName() + name;
-		}
-		Integer depth = (Integer) document.getUserData("depth");
-		if (depth == null) {
-			depth = 0;
-		}
-		
-		String openpad = StringUtils.repeat("   ", depth);
-		String closepad = StringUtils.repeat("   ", depth);
-		parentElement.appendChild(document.createTextNode("\n"));
-		parentElement.appendChild(document.createComment(StringUtils.rightPad(openpad + "<" + name + ">", 150)));
-		parentElement.appendChild(element);
-		
-		document.setUserData("depth", depth + 1, null);
-		
-		if (databaseObject instanceof Project) {
-			Project project = (Project) databaseObject;
-			
-			for (Connector connector : project.getConnectorsList()) {
-				exportDatabaseObject(document, element, connector);
-			}
-			
-			for (Sequence sequence : project.getSequencesList()) {
-				exportDatabaseObject(document, element, sequence);
-			}
-			
-			for (MobileDevice device : project.getMobileDeviceList()) {
-				exportDatabaseObject(document, element, device);
-			}
-		} else if (databaseObject instanceof Sequence) {
-			Sequence sequence = (Sequence) databaseObject;
-			
-			for (Step step : sequence.getSteps()) {
-				exportDatabaseObject(document, element, step);
-			}
-			
-			for (Sheet sheet : sequence.getSheetsList()) {
-				exportDatabaseObject(document, element, sheet);
-			}
-			
-			for (RequestableVariable variable : sequence.getVariablesList()) {
-				exportDatabaseObject(document, element, variable);
-			}
-			
-			for (TestCase testCase : sequence.getTestCasesList()) {
-				exportDatabaseObject(document, element, testCase);
-			}
-		} else if (databaseObject instanceof Connector) {
-			Connector connector = (Connector) databaseObject;
-			
-			if (databaseObject instanceof IScreenClassContainer<?>) {
-				ScreenClass defaultScreenClass = ((IScreenClassContainer<?>) databaseObject).getDefaultScreenClass();
-				if (defaultScreenClass != null) {
-					exportDatabaseObject(document, element, defaultScreenClass);
-				}
-			}
-			
-			for (Transaction transaction : connector.getTransactionsList()) {
-				exportDatabaseObject(document, element, transaction);
-			}
-			
-			for (Pool pool : connector.getPoolsList()) {
-				exportDatabaseObject(document, element, pool);
-			}
-		} else if (databaseObject instanceof Transaction) {
-			Transaction transaction = (Transaction) databaseObject;
-			for (Sheet sheet : transaction.getSheetsList()) {
-				exportDatabaseObject(document, element, sheet);
-			}
-			
-			if (transaction instanceof HtmlTransaction) {
-				HtmlTransaction htmlTransaction = (HtmlTransaction) transaction;
-				
-				for (Statement statement : htmlTransaction.getStatements()) {
-					exportDatabaseObject(document, element, statement);
-				}
-			}
-			
-			if (databaseObject instanceof TransactionWithVariables) {
-				for (TestCase testCase : ((TransactionWithVariables) databaseObject).getTestCasesList()) {
-					exportDatabaseObject(document, element, testCase);
-				}
-				
-				for (RequestableVariable variable : ((TransactionWithVariables) databaseObject).getVariablesList()) {
-					exportDatabaseObject(document, element, variable);
-				}
-			}
-		} else if (databaseObject instanceof StatementWithExpressions) {
-			for (Statement statement : ((StatementWithExpressions) databaseObject).getStatements()) {
-				exportDatabaseObject(document, element, statement);
-			}
-		} else if (databaseObject instanceof HTTPStatement) {
-			for (HttpStatementVariable variable : ((HTTPStatement) databaseObject).getVariables()) {
-				exportDatabaseObject(document, element, variable);
-			}
-		} else if (databaseObject instanceof StepWithExpressions) {
-			for (Step step : ((StepWithExpressions) databaseObject).getSteps()) {
-				exportDatabaseObject(document, element, step);
-			}
-		} else if (databaseObject instanceof RequestableStep) {
-			for (Variable variable : ((RequestableStep) databaseObject).getVariables()) {
-				exportDatabaseObject(document, element, variable);
-			}
-		} else if (databaseObject instanceof TestCase) {
-			for (Variable variable : ((TestCase) databaseObject).getVariables()) {
-				exportDatabaseObject(document, element, variable);
-			}
-		} else if (databaseObject instanceof ScreenClass) {
-			if (databaseObject instanceof JavelinScreenClass) {
-				BlockFactory blockFactory = ((JavelinScreenClass) databaseObject).getLocalBlockFactory();
-				if (blockFactory != null) {
-					exportDatabaseObject(document, element, blockFactory);
-				}
-			}
-			
-			for (Criteria criteria : ((ScreenClass) databaseObject).getLocalCriterias()) {
-				exportDatabaseObject(document, element, criteria);
-			}
-			
-			for (ExtractionRule extractionRule : ((ScreenClass) databaseObject).getLocalExtractionRules()) {
-				exportDatabaseObject(document, element, extractionRule);
-			}
-			
-			for (Sheet sheet : ((ScreenClass) databaseObject).getLocalSheets()) {
-				exportDatabaseObject(document, element, sheet);
-			}
-			
-			for (ScreenClass screenClass : ((ScreenClass) databaseObject).getInheritedScreenClasses()) {
-				exportDatabaseObject(document, element, screenClass);
-			}
-		}
-		
-		element.appendChild(document.createTextNode("\n"));
-		element.appendChild(document.createComment(StringUtils.rightPad(closepad + "</" + name + ">", 150)));
-		document.setUserData("depth", depth, null);
-	}
+//	private static void exportDatabaseObject(Document document, Element parentElement, DatabaseObject databaseObject) throws EngineException {
+//		Element element = parentElement;
+//		element = databaseObject.toXml(document);
+//		String name = " : " + databaseObject.getName();
+//		try {
+//			name = Introspector.getBeanInfo(databaseObject.getClass()).getBeanDescriptor().getDisplayName() + name;
+//		} catch (IntrospectionException e) {
+//			name = databaseObject.getClass().getSimpleName() + name;
+//		}
+//		Integer depth = (Integer) document.getUserData("depth");
+//		if (depth == null) {
+//			depth = 0;
+//		}
+//		
+//		String openpad = StringUtils.repeat("   ", depth);
+//		String closepad = StringUtils.repeat("   ", depth);
+//		parentElement.appendChild(document.createTextNode("\n"));
+//		parentElement.appendChild(document.createComment(StringUtils.rightPad(openpad + "<" + name + ">", 150)));
+//		parentElement.appendChild(element);
+//		
+//		document.setUserData("depth", depth + 1, null);
+//		
+//		if (databaseObject instanceof Project) {
+//			Project project = (Project) databaseObject;
+//			
+//			for (Connector connector : project.getConnectorsList()) {
+//				exportDatabaseObject(document, element, connector);
+//			}
+//			
+//			for (Sequence sequence : project.getSequencesList()) {
+//				exportDatabaseObject(document, element, sequence);
+//			}
+//			
+//			for (MobileDevice device : project.getMobileDeviceList()) {
+//				exportDatabaseObject(document, element, device);
+//			}
+//		} else if (databaseObject instanceof Sequence) {
+//			Sequence sequence = (Sequence) databaseObject;
+//			
+//			for (Step step : sequence.getSteps()) {
+//				exportDatabaseObject(document, element, step);
+//			}
+//			
+//			for (Sheet sheet : sequence.getSheetsList()) {
+//				exportDatabaseObject(document, element, sheet);
+//			}
+//			
+//			for (RequestableVariable variable : sequence.getVariablesList()) {
+//				exportDatabaseObject(document, element, variable);
+//			}
+//			
+//			for (TestCase testCase : sequence.getTestCasesList()) {
+//				exportDatabaseObject(document, element, testCase);
+//			}
+//		} else if (databaseObject instanceof Connector) {
+//			Connector connector = (Connector) databaseObject;
+//			
+//			if (databaseObject instanceof IScreenClassContainer<?>) {
+//				ScreenClass defaultScreenClass = ((IScreenClassContainer<?>) databaseObject).getDefaultScreenClass();
+//				if (defaultScreenClass != null) {
+//					exportDatabaseObject(document, element, defaultScreenClass);
+//				}
+//			}
+//			
+//			for (Transaction transaction : connector.getTransactionsList()) {
+//				exportDatabaseObject(document, element, transaction);
+//			}
+//			
+//			for (Pool pool : connector.getPoolsList()) {
+//				exportDatabaseObject(document, element, pool);
+//			}
+//		} else if (databaseObject instanceof Transaction) {
+//			Transaction transaction = (Transaction) databaseObject;
+//			for (Sheet sheet : transaction.getSheetsList()) {
+//				exportDatabaseObject(document, element, sheet);
+//			}
+//			
+//			if (transaction instanceof HtmlTransaction) {
+//				HtmlTransaction htmlTransaction = (HtmlTransaction) transaction;
+//				
+//				for (Statement statement : htmlTransaction.getStatements()) {
+//					exportDatabaseObject(document, element, statement);
+//				}
+//			}
+//			
+//			if (databaseObject instanceof TransactionWithVariables) {
+//				for (TestCase testCase : ((TransactionWithVariables) databaseObject).getTestCasesList()) {
+//					exportDatabaseObject(document, element, testCase);
+//				}
+//				
+//				for (RequestableVariable variable : ((TransactionWithVariables) databaseObject).getVariablesList()) {
+//					exportDatabaseObject(document, element, variable);
+//				}
+//			}
+//		} else if (databaseObject instanceof StatementWithExpressions) {
+//			for (Statement statement : ((StatementWithExpressions) databaseObject).getStatements()) {
+//				exportDatabaseObject(document, element, statement);
+//			}
+//		} else if (databaseObject instanceof HTTPStatement) {
+//			for (HttpStatementVariable variable : ((HTTPStatement) databaseObject).getVariables()) {
+//				exportDatabaseObject(document, element, variable);
+//			}
+//		} else if (databaseObject instanceof StepWithExpressions) {
+//			for (Step step : ((StepWithExpressions) databaseObject).getSteps()) {
+//				exportDatabaseObject(document, element, step);
+//			}
+//		} else if (databaseObject instanceof RequestableStep) {
+//			for (Variable variable : ((RequestableStep) databaseObject).getVariables()) {
+//				exportDatabaseObject(document, element, variable);
+//			}
+//		} else if (databaseObject instanceof TestCase) {
+//			for (Variable variable : ((TestCase) databaseObject).getVariables()) {
+//				exportDatabaseObject(document, element, variable);
+//			}
+//		} else if (databaseObject instanceof ScreenClass) {
+//			if (databaseObject instanceof JavelinScreenClass) {
+//				BlockFactory blockFactory = ((JavelinScreenClass) databaseObject).getLocalBlockFactory();
+//				if (blockFactory != null) {
+//					exportDatabaseObject(document, element, blockFactory);
+//				}
+//			}
+//			
+//			for (Criteria criteria : ((ScreenClass) databaseObject).getLocalCriterias()) {
+//				exportDatabaseObject(document, element, criteria);
+//			}
+//			
+//			for (ExtractionRule extractionRule : ((ScreenClass) databaseObject).getLocalExtractionRules()) {
+//				exportDatabaseObject(document, element, extractionRule);
+//			}
+//			
+//			for (Sheet sheet : ((ScreenClass) databaseObject).getLocalSheets()) {
+//				exportDatabaseObject(document, element, sheet);
+//			}
+//			
+//			for (ScreenClass screenClass : ((ScreenClass) databaseObject).getInheritedScreenClasses()) {
+//				exportDatabaseObject(document, element, screenClass);
+//			}
+//		}
+//		
+//		element.appendChild(document.createTextNode("\n"));
+//		element.appendChild(document.createComment(StringUtils.rightPad(closepad + "</" + name + ">", 150)));
+//		document.setUserData("depth", depth, null);
+//	}
 
 	/*
 	 * Returns an ArrayList of abstract pathnames denoting the files and directories
