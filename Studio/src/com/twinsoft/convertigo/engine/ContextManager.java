@@ -65,6 +65,11 @@ public class ContextManager extends AbstractRunnableManager {
 	MyPropertyChangeEventListener myPropertyChangeEventListener;
 	
 	public static final String POOL_CONTEXT_ID_PREFIX = "/";
+	public static final String STUDIO_CONTEXT_PREFIX = "studio_";
+	public static final String CONTEXT_TYPE_UNKNOWN		= "";
+	public static final String CONTEXT_TYPE_TRANSACTION	= "C";
+	public static final String CONTEXT_TYPE_SEQUENCE 	= "S";
+	
 	
     private Map<String, Context> contexts;
     private int currentContextNum;
@@ -129,6 +134,10 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 	}
 
+	public String computeStudioContextName(String type, String projectName, String typeName) {
+		return STUDIO_CONTEXT_PREFIX + projectName + ":"+ type +":" + typeName;
+	}
+	
 	public Context get(Requester requester, String contextName, String projectName) throws Exception {
 		return get(requester, contextName, null, null, projectName, null);
 	}
@@ -152,23 +161,25 @@ public class ContextManager extends AbstractRunnableManager {
 
 		// Studio mode?
 		if (Engine.isStudioMode()) {
-			if ((contextName != null) && (contextName.startsWith("studio_"))) {
-				// do nothing
+			// Execution from the Studio : do nothing
+			if ((contextName != null) && (contextName.startsWith(STUDIO_CONTEXT_PREFIX))) {
 				Engine.logContextManager.info("Using studio given context name : " + contextName);
-			} else {
+			}
+			// Execution out of the Studio (e.g: test platform) or call step
+			else {
 				if ((sequenceName != null) && !(sequenceName.equals(""))) {
-					contextName = "studio_" + projectName + ":" + sequenceName + ":null";
+					contextName = computeStudioContextName(CONTEXT_TYPE_SEQUENCE, projectName, sequenceName);
 				} else if(connectorName != null && !(connectorName.equals(""))) {
-					contextName = "studio_" + projectName + ":" + connectorName;
-					Engine.logContextManager.info("Dynamic studio context name computed: " + contextName);
+					contextName = computeStudioContextName(CONTEXT_TYPE_TRANSACTION, projectName, connectorName);
 				} else {
 					try {
 						Project project = Engine.objectsProvider.getProject(projectName);
-						contextName = "studio_" + projectName + ":" + project.getDefaultConnector().getName();
+						contextName = computeStudioContextName(CONTEXT_TYPE_TRANSACTION, projectName, project.getDefaultConnector().getName());
 					} catch (EngineException ee) { // project not opened in studio
-						contextName = "studio_" + projectName + ":null";
+						contextName = computeStudioContextName(CONTEXT_TYPE_UNKNOWN, projectName,"");
 					}
 				}
+				Engine.logContextManager.info("Dynamic studio context name computed: " + contextName);
 			}
 		}
 
@@ -186,7 +197,7 @@ public class ContextManager extends AbstractRunnableManager {
 			context = get(contextID, contextName, projectName);
 		}
 		// Studio context
-		else if (contextName.startsWith("studio_")) {
+		else if (contextName.startsWith(STUDIO_CONTEXT_PREFIX)) {
 			String contextID = contextName;
 			context = get(contextID, contextName, projectName);
 		}
@@ -204,8 +215,21 @@ public class ContextManager extends AbstractRunnableManager {
 		// Create a new context
 		if (context == null) {
 			// Studio mode
-			if (Engine.isStudioMode() && (!contextName.endsWith(":null"))) {
-				throw new EngineException("Context \"" + contextName + "\" not found; Please verify corresponding connector is opened in Studio.");
+//			if (Engine.isStudioMode()) {
+//				// Throws exception if studio context does not exist
+//				if (contextName.indexOf(":"+ CONTEXT_TYPE_SEQUENCE +":")>0) 	// :S:
+//					throw new EngineException("Context \"" + contextName + "\" not found; Please verify that the corresponding sequence exists and check its editor is opened in Studio.");
+//				else
+//				if (contextName.indexOf(":"+ CONTEXT_TYPE_TRANSACTION +":")>0)	// :C:
+//					throw new EngineException("Context \"" + contextName + "\" not found; Please verify that the corresponding connector exists and check its editor is opened in Studio.");
+//				else
+//				if (contextName.indexOf(":"+ CONTEXT_TYPE_UNKNOWN +":")>0)		// ::
+//					throw new EngineException("Context \"" + contextName + "\" not found; Please verify that the corresponding project exists and is opened in Studio.");
+//			}
+			if (Engine.isStudioMode()) {
+				// Allows context creation even in Studio mode
+				// for HTTP call through test platform, ...
+				// for Call steps
 			}
 			synchronized(contexts) {
 				Engine.logContextManager.debug("Context \"" + contextName + "\" not found; creating the execution context");
@@ -427,8 +451,8 @@ public class ContextManager extends AbstractRunnableManager {
 
 			context = null;
             contexts.remove(contextID);
-            Engine.logContextManager.info("Context " + contextID + " has been removed");
-            Engine.logContext.info("[" + contextID + "] Context removed, project: " + projectName);
+            Engine.logContextManager.debug("Context " + contextID + " has been removed");
+            Engine.logContext.debug("[" + contextID + "] Context removed, project: " + projectName);
             Engine.logContextManager.info("Current in-use contexts: " + contexts.size());
         }
     }

@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.eclipse.editors.xmlscanner.ColorManager;
 import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLConfiguration;
 import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLPartitionScanner;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineListener;
@@ -69,8 +70,6 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SequenceEditorPart extends Composite implements EngineListener{
 
-	public static final String CONVERTIGO_STUDIO_SESSION_ID = "studio";
-	
 	private Image imageDebug = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/debug.gif"));
 	private Image imageDisableDebug = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/debug.d.gif"));
 	private Image imageRun = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/run.gif"));
@@ -157,7 +156,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 
 		String projectName = sequence.getParent().getName();
 		String sequenceName = sequence.getName();
-		String contextID = CONVERTIGO_STUDIO_SESSION_ID + "_" + projectName + ":" + sequenceName;
+		String contextType = ContextManager.CONTEXT_TYPE_SEQUENCE;
+		String contextID = Engine.theApp.contextManager.computeStudioContextName(contextType, projectName, sequenceName);
 		
 		Context ctx = Engine.theApp.contextManager.get(contextID);
 		if ((ctx == null) || bForce) {
@@ -669,7 +669,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
         if (sequenceName == null)
         	sequenceName = sequence.getName();
 
-        url += "?"+Parameter.Sequence.getName()+"="+ sequenceName + "&"+Parameter.Context.getName()+"="+ contextID;
+        url += "?"	+ Parameter.Context.getName()+"="+ contextID
+        			+ "&" + Parameter.Sequence.getName()+"="+ sequenceName;
         if (testcaseName != null)
         	url += "&"+Parameter.Testcase.getName()+"="+ testcaseName;
         

@@ -56,7 +56,7 @@ public class ConnectorEditor extends EditorPart {
 		setInput(input);
 
 		ConnectorEditorInput connectorEditorInput = (ConnectorEditorInput) getEditorInput();
-		setPartName(connectorEditorInput.connector.getParent().getName() + " " + connectorEditorInput.connector.getName());
+		setPartName(connectorEditorInput.connector.getParent().getName() + " [C: " + connectorEditorInput.connector.getName()+"]");
 	}
 
 	public boolean isDirty() {

@@ -76,6 +76,7 @@ import com.twinsoft.convertigo.eclipse.popup.actions.CreateScreenClassFromSelect
 import com.twinsoft.convertigo.eclipse.popup.actions.CreateSheetFromXMLAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.CreateTagNameFromSelectionZoneAction;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineListener;
@@ -87,8 +88,6 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ConnectorEditorPart extends Composite implements Runnable, EngineListener {
-
-	public static final String CONVERTIGO_STUDIO_SESSION_ID = "studio";
 
 	protected IEditorPart editor = null;
 	private SashForm sashForm = null;
@@ -201,8 +200,9 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 
 		String projectName = connector.getParent().getName();
 		String connectorName = connector.getName();
-		String contextID = CONVERTIGO_STUDIO_SESSION_ID + "_" + projectName + ":" + connectorName;
-
+		String contextType = ContextManager.CONTEXT_TYPE_TRANSACTION;
+		String contextID = Engine.theApp.contextManager.computeStudioContextName(contextType, projectName, connectorName);
+			
 		Context ctx = Engine.theApp.contextManager.get(contextID);
 		if ((ctx == null) || bForce) {
 			ctx = new Context(contextID);
@@ -1164,8 +1164,8 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			}
 		}
 
-		url += "?" + Parameter.Context.getName() + "=" + contextID + "&" + Parameter.Connector.getName() + "="
-				+ connector.getName();
+		url += "?" 	+ Parameter.Context.getName() + "=" + contextID 
+					+ "&" + Parameter.Connector.getName() + "=" + connector.getName();
 		if (transactionName != null)
 			url += "&" + Parameter.Transaction.getName() + "=" + transactionName;
 		if (testcaseName != null)

@@ -55,7 +55,7 @@ public class SequenceEditor extends EditorPart {
 		setInput(input);
 
 		SequenceEditorInput sequenceEditorInput = (SequenceEditorInput) getEditorInput();
-		setPartName(sequenceEditorInput.sequence.getParent().getName() + " " + sequenceEditorInput.sequence.getName());
+		setPartName(sequenceEditorInput.sequence.getParent().getName() + " [S: " + sequenceEditorInput.sequence.getName()+"]");
 	}
 
 	public boolean isDirty() {

@@ -68,6 +68,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.FolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TraceTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -207,14 +208,16 @@ public class JavelinConnectorComposite extends AbstractConnectorComposite implem
 								.getProperty(PropertyName.CARIOCA_DEFAULT_USER_PASSWORD);
 						auth.login(cariocaUserName, cariocaPassword);
 					}
-
-					sessionId = ConnectorEditorPart.CONVERTIGO_STUDIO_SESSION_ID + "_"
-							+ connector.getParent().getName() + ":" + connector.getName();
-
+					
+					String projectName = javelinConnector.getProject().getName();
+					String connectorName = javelinConnector.getName();
+					String contextType = ContextManager.CONTEXT_TYPE_TRANSACTION;
+					sessionId = Engine.theApp.contextManager.computeStudioContextName(contextType, projectName, connectorName);
+					
 					LogParameters logParameters = new LogParameters();
 					Log4jHelper.mdcSet(logParameters);
-					Log4jHelper.mdcPut("Project", javelinConnector.getProject().getName());
-					Log4jHelper.mdcPut("Connector", javelinConnector.getName());
+					Log4jHelper.mdcPut("Project", projectName);
+					Log4jHelper.mdcPut("Connector", connectorName);
 					Log4jHelper.mdcPut("ContextID", sessionId);
 
 					com.twinsoft.api.Session session = Engine.theApp.sessionManager.addSession(
