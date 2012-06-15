@@ -451,6 +451,9 @@ $(document).ready(function() {
 	
 	initCommon(function () {
 		call("projects.GetRequestables", {projectName : vars.projectName}, function (xml) {
+			$("#acc .connector").remove();
+			$(".acc>li>h6").unbind('click');
+			
 			var $project = $(xml).find("project:first");
 			$(".project_comment").text($project.attr("comment"));
 			$project.find(">connector").each(function (i) {
@@ -491,7 +494,8 @@ $(document).ready(function() {
 				$(this).parents(".requestable").find("a.requestable_link").each(setLinkForRequestable);
 			});
 			
-			$("#column_left").append($(".accordion_options:first").clone());
+			if ($(".accordion_options").length == 1)
+				$("#column_left").append($(".accordion_options:first").clone());
 			
 			$("#main .btn_exe_link").button({ icons : { primary : "ui-icon-play" }});
 			$("#main .btn_gen_gadget").button({ icons : { primary : "ui-icon-gear" }});
