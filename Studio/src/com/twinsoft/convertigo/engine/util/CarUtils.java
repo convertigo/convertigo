@@ -144,7 +144,6 @@ public class CarUtils {
 			
 			rootElement.setAttribute("studio", studioVersion);
 			document.appendChild(rootElement);
-//			exportDatabaseObject(document, rootElement, project);
 			
 			new WalkHelper() {
 				protected Element parentElement = rootElement;

@@ -42,6 +42,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Variable;
@@ -65,7 +66,7 @@ import com.twinsoft.util.StringEx;
 /**
  * This class defines a HTTP statement class.
  */
-public class HTTPStatement extends Statement implements IVariableContainer, ITriggerOwner {
+public class HTTPStatement extends Statement implements IVariableContainer, ITriggerOwner, IContainerOrdered {
 
 	private static final long serialVersionUID = 6762922098877290999L;
 	

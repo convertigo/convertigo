@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public abstract class StatementWithExpressions extends Statement {
+public abstract class StatementWithExpressions extends Statement implements IContainerOrdered {
 	private static final long serialVersionUID = -1354987626710764475L;
 
 	/**

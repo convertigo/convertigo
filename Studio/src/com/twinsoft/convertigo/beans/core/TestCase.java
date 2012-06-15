@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
-public class TestCase extends DatabaseObject implements IVariableContainer {
+public class TestCase extends DatabaseObject implements IVariableContainer, IContainerOrdered {
 
 	private static final long serialVersionUID = 8119436229667565326L;
 

@@ -37,7 +37,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 /**
  * This class defines a screen class.
  */
-public class ScreenClass extends DatabaseObject implements ISheetContainer {
+public class ScreenClass extends DatabaseObject implements ISheetContainer, IContainerOrdered {
 
 	private static final long serialVersionUID = 6886891146000360258L;
 

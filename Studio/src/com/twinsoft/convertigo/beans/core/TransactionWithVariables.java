@@ -52,7 +52,7 @@ import com.twinsoft.util.StringEx;
 
 import edu.emory.mathcs.backport.java.util.Collections;
 
-public abstract class TransactionWithVariables extends Transaction implements IVariableContainer, ITestCaseContainer {
+public abstract class TransactionWithVariables extends Transaction implements IVariableContainer, ITestCaseContainer, IContainerOrdered {
     
 	private static final long serialVersionUID = -7348846395918560818L;
 	

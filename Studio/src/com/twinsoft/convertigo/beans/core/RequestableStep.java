@@ -77,7 +77,7 @@ import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
 
-public abstract class RequestableStep extends Step implements IVariableContainer {
+public abstract class RequestableStep extends Step implements IVariableContainer, IContainerOrdered {
 	
 	private static final long serialVersionUID = 3948128175718822695L;
 

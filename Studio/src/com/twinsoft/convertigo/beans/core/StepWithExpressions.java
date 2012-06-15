@@ -48,7 +48,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public abstract class StepWithExpressions extends Step implements IContextMaintainer {
+public abstract class StepWithExpressions extends Step implements IContextMaintainer, IContainerOrdered {
 	private static final long serialVersionUID = 6835033841635158551L;
 
 	/**

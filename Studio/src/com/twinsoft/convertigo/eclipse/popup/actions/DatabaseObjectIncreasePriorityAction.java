@@ -33,14 +33,7 @@ import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.RequestableStep;
-import com.twinsoft.convertigo.beans.core.ScreenClass;
-import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
-import com.twinsoft.convertigo.beans.core.StepWithExpressions;
-import com.twinsoft.convertigo.beans.core.TestCase;
-import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
-import com.twinsoft.convertigo.beans.statements.HTTPStatement;
+import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.FolderTreeObject;
@@ -129,39 +122,19 @@ public class DatabaseObjectIncreasePriorityAction extends MyAbstractAction imple
 			DatabaseObject parent = databaseObject.getParent();
 			
 			while (count-->0) {
-				if (parent instanceof ScreenClass) {
-					((ScreenClass)parent).increasePriority(databaseObject);
-				}
-				if (parent instanceof Sequence) {
-					((Sequence)parent).increasePriority(databaseObject);
-				}
-				if (parent instanceof TransactionWithVariables) {
-					((TransactionWithVariables)parent).increasePriority(databaseObject);
-				}
-				if (parent instanceof StatementWithExpressions) {
-					((StatementWithExpressions)parent).increasePriority(databaseObject);
-				}
-				if (parent instanceof HTTPStatement) {
-					((HTTPStatement)parent).increasePriority(databaseObject);
-				}
-				if (parent instanceof StepWithExpressions) {
-					((StepWithExpressions)parent).increasePriority(databaseObject);
-				}
-				if (parent instanceof RequestableStep) {
-					((RequestableStep)parent).increasePriority(databaseObject);
-				}
-				if (parent instanceof TestCase) {
-					((TestCase)parent).increasePriority(databaseObject);
+				if (parent instanceof IContainerOrdered) {
+					((IContainerOrdered) parent).increasePriority(databaseObject);
 				}
 			}
 			
 			if (parent.hasChanged) {
 				TreeParent parentTreeObject = null;
 				TreeParent treeParent = treeObject.getParent();
-				if (treeParent instanceof FolderTreeObject)
+				if (treeParent instanceof FolderTreeObject) {
 					parentTreeObject = treeObject.getParent().getParent();
-				else
+				} else {
 					parentTreeObject = treeParent;
+				}
 				
 				if (!treeNodesToUpdate.contains(parentTreeObject)) {
 					treeNodesToUpdate.add(parentTreeObject);
