@@ -22,12 +22,15 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 
 public class VersionUtils {
+	private static Map<String, String> normalizedVersions = new WeakHashMap<String, String>();
     
     public static int compareProductVersion(String version1, String version2) {
 		boolean bProductVersionCheck = new Boolean(EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.CONVERTIGO_PRODUCT_VERSION_CHECK)).booleanValue();
@@ -50,8 +53,12 @@ public class VersionUtils {
 		return cmp;
 	}
 
-	public static String normalizeVersionString(String version) {
-		return VersionUtils.normalizeVersionString(version, ".", 4);
+	public synchronized static String normalizeVersionString(String version) {
+		String normalizedVersion = normalizedVersions.get(version);
+		if (normalizedVersion == null) {
+			normalizedVersions.put(version, normalizedVersion = VersionUtils.normalizeVersionString(version, ".", 4));
+		}
+		return normalizedVersion;
 	}
 
 	public static String normalizeVersionString(String version, String sep, int maxWidth) {

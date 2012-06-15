@@ -51,7 +51,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import com.twinsoft.convertigo.beans.core.BlockFactory;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -1603,26 +1605,40 @@ public class DatabaseObjectsManager implements AbstractManager {
 			File projectXmlFile = new File(projectFileName);
 			if (projectXmlFile.exists()) {
 				try {
-					Document document = XMLUtils.getDefaultDocumentBuilder().parse(new File(projectFileName));
-					Element rootElement = document.getDocumentElement();
-					Element projectNode = (Element) XMLUtils.findChildNode(rootElement, Node.ELEMENT_NODE);
+					final String[] version = { null };
+					try {
+						XMLUtils.saxParse(new File(projectFileName), new DefaultHandler() {
 
-					String version; // Beans version
-					// before 6.0.6
-					version = projectNode.getAttribute("version");
-					// since 6.0.6 (fix #2804)
-					if (version.equals(""))
-						version = rootElement.getAttribute("beans");
+							@Override
+							public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+								if ("convertigo".equals(qName)) {
+									// since 6.0.6 (fix #2804)
+									version[0] = attributes.getValue("beans");
+								} else if ("project".equals(qName)) {
+									String projectVersion = attributes.getValue("version");
+									if (projectVersion != null) {
+										// before 6.0.6
+										version[0] = projectVersion;
+									}
+									throw new SAXException("find");	
+								}
+							}
+
+						});
+						throw new EngineException("Unable to find the project version");
+					} catch (SAXException e) {
+						if (!"find".equals(e.getMessage())) {
+							throw e;
+						}
+					}					
 
 					String currentVersion = com.twinsoft.convertigo.beans.Version.version;
-					if (VersionUtils.compare(version, currentVersion) < 0) {
-						Engine.logDatabaseObjectManager.warn("Project '" + projectName + "': migration to "
-								+ currentVersion + " beans version is required");
+					if (VersionUtils.compare(version[0], currentVersion) < 0) {
+						Engine.logDatabaseObjectManager.warn("Project '" + projectName + "': migration to " + currentVersion + " beans version is required");
 						return true;
 					}
 				} catch (Exception e) {
-					throw new EngineException("Unable to retrieve project's version from \"" + projectFileName
-							+ "\".", e);
+					throw new EngineException("Unable to retrieve project's version from \"" + projectFileName + "\".", e);
 				}
 			}
 		}

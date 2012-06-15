@@ -38,6 +38,8 @@ import java.lang.reflect.Array;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -56,6 +58,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import com.twinsoft.convertigo.beans.common.XMLizable;
 import com.twinsoft.convertigo.engine.Engine;
@@ -95,6 +98,22 @@ public class XMLUtils {
 
 	public static Transformer getNewTransformer() throws TransformerConfigurationException {
 		return defaultTransformerFactory.get().newTransformer();
+	}
+	
+	private static ThreadLocal<SAXParser> defaultSAXParser = new ThreadLocal<SAXParser>() {
+		@Override
+		protected SAXParser initialValue() {
+			try {
+				return SAXParserFactory.newInstance().newSAXParser();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+	};
+	
+	public static void saxParse(File file, DefaultHandler defaultHandler) throws SAXException, IOException {
+		defaultSAXParser.get().parse(file, defaultHandler);
 	}
 	
 	public static String simplePrettyPrintDOM(String sDocument) {
