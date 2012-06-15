@@ -69,6 +69,10 @@ $(window).ready(function() {
 		onLoadWidgetsButtonClick($(this).attr('id'));
 	});
 
+	$(".mainmenu_text").click(function() {
+		onLoadWidgetsButtonClick($(this).prev(".loadWidgetsButton").attr('id'));
+	});
+
 	initCommonDialogs();
 	initWait();
 
