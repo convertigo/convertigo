@@ -1277,14 +1277,14 @@
                label="Sequence"
                menubarPath="convertigo.menu.new/content">
          </action>
-         <action
+         <!--action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileDeviceAction"
                enablesFor="1"
                icon="icons/studio/new.gif"
                id="convertigo.action.newMobileDevice"
                label="Mobile device"
                menubarPath="convertigo.menu.new/content">
-         </action>
+         </action-->
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectEditWSDLAction"
                enablesFor="1"
@@ -1645,7 +1645,7 @@
                </objectState>
             </enablement>
          </action>
-         <action
+         <!--action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileDeviceAction"
                enablesFor="1"
                icon="icons/studio/new.gif"
@@ -1658,7 +1658,7 @@
                      value="14">
                </objectState>
             </enablement>
-         </action>
+         </action-->
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStepAction"
                enablesFor="1"
