@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.engine.util;
 
 import java.beans.IntrospectionException;
-import java.beans.Introspector;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.StringWriter;
@@ -156,7 +155,7 @@ public class CarUtils {
 					element = databaseObject.toXml(document);
 					String name = " : " + databaseObject.getName();
 					try {
-						name = Introspector.getBeanInfo(databaseObject.getClass()).getBeanDescriptor().getDisplayName() + name;
+						name = CachedIntrospector.getBeanInfo(databaseObject.getClass()).getBeanDescriptor().getDisplayName() + name;
 					} catch (IntrospectionException e) {
 						name = databaseObject.getClass().getSimpleName() + name;
 					}

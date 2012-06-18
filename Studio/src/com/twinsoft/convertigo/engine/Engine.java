@@ -60,6 +60,7 @@ import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserManager;
 import com.twinsoft.convertigo.engine.plugins.AbstractBiller;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -326,7 +327,7 @@ public class Engine {
 
 			// Logger for compatibility issues
 			Engine.log = new LogWrapper(Engine.logConvertigo);
-
+			
 			try {
 				Engine.logEngine.info("===========================================================");
 				Engine.logEngine.info("Web app home: " + Engine.WEBAPP_PATH);
@@ -346,6 +347,8 @@ public class Engine {
 
 				// Initializing the engine
 				Engine.theApp = new Engine();
+				
+				CachedIntrospector.prefetchDatabaseObjectsAsync();
 
 				try {
 					Engine.theApp.usageMonitor = new UsageMonitor();

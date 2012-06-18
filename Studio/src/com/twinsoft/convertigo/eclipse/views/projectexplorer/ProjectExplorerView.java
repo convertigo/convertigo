@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.beans.BeanInfo;
-import java.beans.Introspector;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -177,6 +176,8 @@ import com.twinsoft.convertigo.engine.MigrationListener;
 import com.twinsoft.convertigo.engine.MigrationManager;
 import com.twinsoft.convertigo.engine.ObjectsProvider;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -2251,8 +2252,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				
 		try {
 			String beanClassName = databaseObject.getClass().getName();
-			Class<?> beanClass = Class.forName(beanClassName);
-			databaseObjectBeanInfo = Introspector.getBeanInfo(beanClass);
+			Class<? extends DatabaseObject> beanClass = GenericUtils.cast(Class.forName(beanClassName));
+			databaseObjectBeanInfo = CachedIntrospector.getBeanInfo(beanClass);
 			return databaseObjectBeanInfo;
 	    } catch (Exception e) {
 	        String message = "Error while introspecting object " + databaseObject.getName() + " (" + databaseObject.getQName() + ")"; 

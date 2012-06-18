@@ -927,21 +927,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 		try {
 			String fileName = Engine.PROJECTS_PATH + databaseObjectQName;
 
-			FileInputStream fis = new FileInputStream(fileName);
-			StringBuffer serializationData = new StringBuffer(1024);
-
-			byte[] buffer = new byte[4096];
-			int nbReadBytes = 0;
-			while ((nbReadBytes = fis.read(buffer)) != -1) {
-				serializationData.append(new String(buffer, 0, nbReadBytes, "ISO-8859-1"));
-			}
-			fis.close();
-
-			databaseObject = DatabaseObject.read(serializationData.toString());
+			databaseObject = DatabaseObject.read(fileName);
 
 			cacheUpdateObject(databaseObject, databaseObjectQName);
-			Engine.logDatabaseObjectManager.debug(databaseObject.getDatabaseType() + " '"
-					+ databaseObject.getName() + "' has been successfully deserialized.");
+			Engine.logDatabaseObjectManager.debug(databaseObject.getDatabaseType() + " '" + databaseObject.getName() + "' has been successfully deserialized.");
 
 			fireDatabaseObjectLoaded(new DatabaseObjectLoadedEvent(databaseObject));
 

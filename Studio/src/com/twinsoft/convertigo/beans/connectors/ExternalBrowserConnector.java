@@ -11,7 +11,7 @@ import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserInterface;
 public class ExternalBrowserConnector extends Connector {
 	private static final long serialVersionUID = -9120542678913016863L;
 	
-	private String browserVersion = "";
+	private String browserVersion = BrowserVersion.xulrunner1_9.name();
 
 	transient ExternalBrowserInterface ebi = null;
 	
@@ -31,7 +31,13 @@ public class ExternalBrowserConnector extends Connector {
 	}
 
 	public void setBrowserVersion(String browserVersion) {
-		this.browserVersion = browserVersion;
+		try {
+			BrowserVersion.valueOf(browserVersion);
+			this.browserVersion = browserVersion;
+		} catch (Exception e) {
+			// bad browser version
+			browserVersion = BrowserVersion.xulrunner1_9.name();
+		}
 	}
 	
 	@Override

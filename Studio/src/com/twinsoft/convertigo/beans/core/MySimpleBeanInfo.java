@@ -26,7 +26,6 @@ import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
 import java.beans.EventSetDescriptor;
 import java.beans.IntrospectionException;
-import java.beans.Introspector;
 import java.beans.MethodDescriptor;
 import java.beans.PropertyDescriptor;
 import java.beans.SimpleBeanInfo;
@@ -36,6 +35,7 @@ import java.util.ResourceBundle;
 import org.apache.commons.lang.ArrayUtils;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
 public class MySimpleBeanInfo extends SimpleBeanInfo {
 	public static final String BLACK_LIST_NAME = "blackListedFromAdmin";
@@ -223,7 +223,7 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     	if (!additionalPropertiesLoaded) {
     		if (additionalBeanClass != null) {
     			try {
-					properties = (PropertyDescriptor[]) ArrayUtils.addAll(properties, Introspector.getBeanInfo(additionalBeanClass).getPropertyDescriptors());
+					properties = (PropertyDescriptor[]) ArrayUtils.addAll(properties, CachedIntrospector.getBeanInfo(additionalBeanClass).getPropertyDescriptors());
 				} catch (IntrospectionException e) {
 				}
     		}

@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.engine;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
-import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.FileInputStream;
@@ -74,6 +73,7 @@ import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.engine.cache.CacheEntry;
 import com.twinsoft.convertigo.engine.parsers.HtmlParser;
 import com.twinsoft.convertigo.engine.parsers.XulRecorder;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
@@ -432,7 +432,7 @@ public class Context extends AbstractContext {
 			return null;
 		BeanInfo bi;
 		try {
-			bi = Introspector.getBeanInfo(requestedObject.getClass());
+			bi = CachedIntrospector.getBeanInfo(requestedObject.getClass());
 		} catch (IntrospectionException e) {
 			Engine.logContext.error("getTransactionProperty : Exception while finding the bean info for transaction class '" + requestedObject.getClass() + "'", e);
 			return null;

@@ -116,6 +116,10 @@ public class XMLUtils {
 		defaultSAXParser.get().parse(file, defaultHandler);
 	}
 	
+	public static void saxParse(InputStream inputStream, DefaultHandler defaultHandler) throws SAXException, IOException {
+		defaultSAXParser.get().parse(inputStream, defaultHandler);
+	}
+	
 	public static String simplePrettyPrintDOM(String sDocument) {
 		StringEx sxDocument = new StringEx(sDocument);
 		sxDocument.replaceAll(">", ">\n");

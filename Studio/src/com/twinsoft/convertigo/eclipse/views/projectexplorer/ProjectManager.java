@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PlatformUI;
 
@@ -400,28 +401,8 @@ public class ProjectManager {
 	}
 
 	public int getNumberOfObjects(File dir) {
-		File[] xml = dir.listFiles(new FileFilter() {
-			public boolean accept(File pathname) {
-				return pathname.getName().toLowerCase().endsWith(".xml");
-			}
-		});
-		
-		if (xml == null) return 0;
-		
-		File[] subdirs = dir.listFiles(new FileFilter() {
-			public boolean accept(File pathname) {
-				return pathname.isDirectory();
-			}
-		});
-		
-		int sum = 0;
-		if (subdirs != null) {
-			for (int i = 0; i < subdirs.length; i++) {
-				sum += getNumberOfObjects(subdirs[i]);
-			}
-		}
-		
-		return sum + xml.length;
+		int size = FileUtils.listFiles(dir, new String[]{"xml"}, true).size();
+		return size;
 	}
 
     

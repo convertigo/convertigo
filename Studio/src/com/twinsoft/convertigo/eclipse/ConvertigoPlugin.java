@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.eclipse;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
-import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
@@ -113,6 +112,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.util.Log;
 
 /**
@@ -835,7 +835,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
     public synchronized Image getBeanIcon(DatabaseObject bean, int iconKind) throws IntrospectionException {
         Class<? extends DatabaseObject> beanClass = bean.getClass();
-        BeanInfo bi = Introspector.getBeanInfo(beanClass);
+        BeanInfo bi = CachedIntrospector.getBeanInfo(beanClass);
         return getBeanIcon(bi, iconKind);
     }
     

@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.engine.admin.services.database_objects;
 
 import java.beans.BeanInfo;
-import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.lang.reflect.Method;
@@ -37,11 +36,12 @@ import org.w3c.dom.Node;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.CompilablePropertyException;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -130,7 +130,7 @@ public class Set extends XmlService {
 				}
 			}
 
-			BeanInfo bi = Introspector.getBeanInfo(object.getClass());
+			BeanInfo bi = CachedIntrospector.getBeanInfo(object.getClass());
 
 			PropertyDescriptor[] propertyDescriptors = bi.getPropertyDescriptors();
 			int len2 = propertyDescriptors.length;

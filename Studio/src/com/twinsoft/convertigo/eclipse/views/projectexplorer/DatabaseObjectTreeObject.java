@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
-import java.beans.Introspector;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -83,6 +82,7 @@ import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -306,7 +306,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         java.beans.PropertyDescriptor databaseObjectPropertyDescriptor;
         
         try {
-        	BeanInfo bi = databaseObjectBeanInfo = Introspector.getBeanInfo(databaseObject.getClass());
+        	BeanInfo bi = databaseObjectBeanInfo = CachedIntrospector.getBeanInfo(databaseObject.getClass());
             databaseObjectBeanDescriptor = bi.getBeanDescriptor();
             databaseObjectPropertyDescriptors = bi.getPropertyDescriptors();
             len = databaseObjectPropertyDescriptors.length;

@@ -25,11 +25,11 @@ package com.twinsoft.convertigo.beans.core;
 import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
-import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -67,6 +67,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -111,7 +112,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 	public DatabaseObject() {
 		try {
-			BeanInfo bi = Introspector.getBeanInfo(getClass());
+			BeanInfo bi = CachedIntrospector.getBeanInfo(getClass());
 			BeanDescriptor bd = bi.getBeanDescriptor();
 			setBeanName(StringUtils.normalize(bd.getDisplayName())); // normalize
 																		// bean
@@ -134,7 +135,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 	public Icon getIcon(int iconKind) {
 		try {
-			BeanInfo bi = Introspector.getBeanInfo(getClass());
+			BeanInfo bi = CachedIntrospector.getBeanInfo(getClass());
 			return new ImageIcon(bi.getIcon(iconKind));
 		} catch (Exception e) {
 			Engine.logBeans.error("Unable to get the bean icon.", e);
@@ -514,7 +515,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		Element propertyElement;
 
 		try {
-			BeanInfo bi = Introspector.getBeanInfo(getClass());
+			BeanInfo bi = CachedIntrospector.getBeanInfo(getClass());
 			propertyDescriptors = bi.getPropertyDescriptors();
 			len = propertyDescriptors.length;
 			if (exportOptions.contains(ExportOption.bIncludeDisplayName)) {
@@ -678,17 +679,13 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	/**
 	 * Reads the object from XML serialized data.
 	 */
-	public static DatabaseObject read(String serializationData) throws EngineException {
+	public static DatabaseObject read(String filename) throws EngineException, IOException {
 		Element rootElement = null;
 		try {
-			Charset cs = Charset.forName("ISO-8859-1");
-			ByteBuffer bb = cs.encode(serializationData);
-			byte[] xmlSerializationData = bb.array();
-
-			Document document = XMLUtils.getDefaultDocumentBuilder().parse(
-					new ByteArrayInputStream(xmlSerializationData));
-
+			Document document = XMLUtils.parseDOM(filename);
 			rootElement = document.getDocumentElement();
+		} catch (IOException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new EngineException("Unable to create the object from the serialized data.", e);
 		}
@@ -756,8 +753,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			long priority = new Long(element.getAttribute("priority")).longValue();
 			databaseObject.priority = priority;
 
-			Class<?> databaseObjectClass = databaseObject.getClass();
-			BeanInfo bi = Introspector.getBeanInfo(databaseObjectClass);
+			Class<? extends DatabaseObject> databaseObjectClass = databaseObject.getClass();
+			BeanInfo bi = CachedIntrospector.getBeanInfo(databaseObjectClass);
 			PropertyDescriptor[] pds = bi.getPropertyDescriptors();
 
 			NodeList childNodes = element.getChildNodes();
@@ -1170,8 +1167,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			long priority = new Long(element.getAttribute("priority")).longValue();
 			this.priority = priority;
 
-			Class<?> databaseObjectClass = this.getClass();
-			BeanInfo bi = Introspector.getBeanInfo(databaseObjectClass);
+			Class<? extends DatabaseObject> databaseObjectClass = this.getClass();
+			BeanInfo bi = CachedIntrospector.getBeanInfo(databaseObjectClass);
 			PropertyDescriptor[] pds = bi.getPropertyDescriptors();
 
 			NodeList childNodes = element.getChildNodes();

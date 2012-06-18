@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.engine.admin.services.database_objects;
 
 import java.beans.BeanInfo;
-import java.beans.Introspector;
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,12 +30,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 @ServiceDefinition(name = "GetIcon", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "")
 public class GetIcon extends DownloadService {
@@ -51,7 +53,7 @@ public class GetIcon extends DownloadService {
 			throw new ServiceException("Must provide className parameter", null);
 
 		try {
-			BeanInfo bi = Introspector.getBeanInfo(Class.forName(className));
+			BeanInfo bi = CachedIntrospector.getBeanInfo(GenericUtils.<Class<? extends DatabaseObject>>cast(Class.forName(className)));
 			IOUtils.copy(bi.getBeanDescriptor().getBeanClass().getResourceAsStream(MySimpleBeanInfo.getIconName(bi, BeanInfo.ICON_COLOR_16x16)), response.getOutputStream());
 		} catch (Exception e) {
 			throw new ServiceException("Icon unreachable", e);
