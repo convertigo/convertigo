@@ -84,7 +84,7 @@ public class ScHandlerStatement extends HandlerStatement{
 		if (handlerType.equals(EVENT_ENTRY_HANDLER))
 			return new String[] { "", RETURN_CONTINUE, RETURN_REDETECT, RETURN_SKIP };
 		else
-			return new String[] { "", RETURN_ACCUMULATE };
+			return new String[] { "", RETURN_ACCUMULATE, RETURN_CONTINUE };
 	}
 	
 	public String[] getTagsForProperty(String propertyName) {
