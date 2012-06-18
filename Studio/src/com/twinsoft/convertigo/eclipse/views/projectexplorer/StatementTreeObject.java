@@ -34,6 +34,7 @@ import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.statements.CallFunctionStatement;
@@ -95,6 +96,58 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
     	return super.isEnabled();
     }
 	
+	
+	@Override
+	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
+		super.treeObjectRemoved(treeObjectEvent);
+		
+		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
+		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
+		Statement statement = getObject();
+		boolean change = false;
+		
+		// Case this is a screen class
+		if (databaseObject instanceof ScreenClass) {
+			ScreenClassTreeObject sto = (ScreenClassTreeObject)treeObjectEvent.getSource();
+			String screenClassName = StringUtils.normalize(databaseObject.getName());
+			
+			// ScreenClass and Statement must have the same connector!
+			if (statement.getConnector().equals(sto.getConnectorTreeObject().getObject())) {
+				if (statement instanceof ITriggerOwner){
+					ITriggerOwner ito = (ITriggerOwner) statement;
+					AbstractTrigger atrigger = ito.getTrigger().getTrigger();
+					if (atrigger instanceof ScreenClassTrigger){
+						ScreenClassTrigger sct = (ScreenClassTrigger) atrigger;
+						List<String> screenClasses = sct.getScreenClasses();
+						for (int i=0;i<screenClasses.size();i++) {
+							if (screenClasses.get(i).equals(screenClassName)) {
+								screenClasses.remove(i);
+								change=true;
+							}
+						}
+						// Add default root screen class if all have been removed
+						if (screenClasses.isEmpty()) {
+							IScreenClassContainer<?> iscc = (IScreenClassContainer<?>)sto.getConnectorTreeObject().getObject();
+							String defaultScreenClassName = StringUtils.normalize(iscc.getDefaultScreenClass().getName());
+							screenClasses.add(defaultScreenClassName);
+							change=true;
+						}
+							
+						if (change)
+							ito.setTrigger(new TriggerXMLizer(sct));
+					}
+				}
+			}
+		}
+		
+		if (change) try {
+			hasBeenModified(true);
+			ConvertigoPlugin.getDefault().getProjectExplorerView().refreshTreeObject(this);
+		} catch (Exception e) {
+			ConvertigoPlugin.logWarning(e, "Could not refresh in tree ScHandlerStatement \""+statement.getName()+"\" !");
+		}
+	}
+
 	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);
