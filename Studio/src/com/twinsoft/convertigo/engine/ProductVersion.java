@@ -26,11 +26,11 @@ package com.twinsoft.convertigo.engine;
 public class ProductVersion {
 
     public static String majorProductVersion = "6";
-    public static String minorProductVersion = "1";
-    public static String servicePack = "4";
+    public static String minorProductVersion = "2";
+    public static String servicePack = "0";
     public static String tag = "beta";
     public static String revision = null;
-    public static String codeName = "nitrogen";
+    public static String codeName = "argon";
     
     public static String productVersion =
     	ProductVersion.majorProductVersion + "." +
@@ -39,14 +39,15 @@ public class ProductVersion {
     
     public static String helpVersion = productVersion;
     
-    public static String fullProductVersionID = ProductVersion.productVersion +
-        	(ProductVersion.tag == null ? "" : "_" + ProductVersion.tag) +
-        	(ProductVersion.revision == null ? "" : "-v" + ProductVersion.revision);
+    public static String fullProductVersionID =
+    		ProductVersion.productVersion +
+    		(ProductVersion.tag == null ? "" : "_" + ProductVersion.tag) +
+    		(ProductVersion.revision == null ? "" : "-v" + ProductVersion.revision);
     
     public static String fullProductVersion =
-    	ProductVersion.productVersion +
-    	(ProductVersion.tag == null ? "" : "_" + ProductVersion.tag) +
-    	(ProductVersion.revision == null ? "" : " (build " + ProductVersion.revision + ")");
+        	ProductVersion.productVersion +
+        	(ProductVersion.tag == null ? "" : "_" + ProductVersion.tag) +
+        	(ProductVersion.revision == null ? "" : " (build " + ProductVersion.revision + ")");
 
     public static void main(String[] args) {
         System.out.println(ProductVersion.fullProductVersion);
