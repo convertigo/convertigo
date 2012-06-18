@@ -69,7 +69,9 @@ public class Get extends JSonService {
 		        logmanager.setContinue(true);
 		        
 	        	if (session.getAttribute("isRealtime") == null) {
-	        		logmanager.setDateStart(new Date(System.currentTimeMillis() - 600000));
+	        		// fix #2959 - Removed 10 last minutes added to real time mode
+	        		//logmanager.setDateStart(new Date(System.currentTimeMillis() - 600000));
+	        		logmanager.setDateStart(new Date(System.currentTimeMillis()));
 	        		logmanager.setDateEnd(LogManager.date_last);
 	        		session.setAttribute("isRealtime", true);
 	        	}
