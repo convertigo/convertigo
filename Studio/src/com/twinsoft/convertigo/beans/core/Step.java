@@ -370,7 +370,10 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 				NodeList list = element.getChildNodes();
 				for (int i=0; i<list.getLength(); i++) {
 					if (list.item(i).getNodeType() == Node.ELEMENT_NODE) {
-						removeUselessAttributes((Element)list.item(i));
+						Element e = (Element)list.item(i);
+						// Recurse only if child node contains step_id attribute
+						if (e.getAttribute("step_id").length() > 0)
+							removeUselessAttributes(e);
 					}				
 				}
 			}
