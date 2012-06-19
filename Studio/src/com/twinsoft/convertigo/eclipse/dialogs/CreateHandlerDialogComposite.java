@@ -33,9 +33,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
@@ -68,7 +66,6 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 	private Button jCheckBoxExit = null;
 	
 	private Tree tree;
-	private String screenClass = null;
 
 	private Transaction transaction = null;
 	private String handlers = null;
@@ -152,7 +149,7 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 	 */
 	private void createTreeScreenClasses() {
 
-		tree = new Tree(this, SWT.SINGLE | SWT.BORDER);
+		tree = new Tree(this, SWT.MULTI | SWT.BORDER);
 		tree.setHeaderVisible(false);
 		GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		gridData.verticalSpan = 20;
@@ -184,12 +181,6 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 				}	
 			}
 		}
-		tree.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(final Event event) {
-				TreeItem item = (TreeItem) event.item;
-				screenClass = item.getText();
-			}
-		});
 	}
 	
 	public void getInHeritedScreenClass(ScreenClass screenClass, TreeItem branch) {
@@ -278,54 +269,57 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 		String handlerName, commentEntry, commentExit;
 
 		if (jCheckBoxEntry.getSelection() || jCheckBoxExit.getSelection()) {
-			String selectedScreenClass = screenClass;
-			handlerName = StringUtils.normalize(selectedScreenClass);
-			commentEntry = "// Entry handler for screen class \"" + selectedScreenClass + "\"\n";
-			commentExit  = "// Exit handler for screen class \"" + selectedScreenClass + "\"\n";
-	            	
-			if (jCheckBoxEntry.getSelection()) {
-				functionName = "function on" + handlerName + "Entry()";
-				if (handlers.indexOf(functionName) == -1) {
-					handler = "";
-					handler += "\n";
-					handler += commentEntry;
-					handler += "function on" + handlerName + "Entry() {\n";
-					handler += "    // TODO: add your code here\n";
-					handler += "\n";
-					handler += "    // TODO: customize the returned value (if you omit returned value, the \n";
-					handler += "    // algorithm will continue its process).\n";
-					handler += "    // Possible values are:\n";
-					handler += "    //    redetect - means the algorithm detects again the screen class.\n";
-					handler += "    //    skip     - means the algorithm skips the xmlization process and \n";
-					handler += "    //               directly goes to the exit handler for the current\n";
-					handler += "    //               screen class.\n";
-					handler += "\n";
-					handler += "    // return \"redetect\";\n";
-					handler += "}\n";
-					addElement(handler, "");
+			TreeItem[] treeItems = tree.getSelection();
+			for (int i=0; i<treeItems.length; i++) {
+				String selectedScreenClass = treeItems[i].getText();
+				handlerName = StringUtils.normalize(selectedScreenClass);
+				commentEntry = "// Entry handler for screen class \"" + selectedScreenClass + "\"\n";
+				commentExit  = "// Exit handler for screen class \"" + selectedScreenClass + "\"\n";
+		            	
+				if (jCheckBoxEntry.getSelection()) {
+					functionName = "function on" + handlerName + "Entry()";
+					if (handlers.indexOf(functionName) == -1) {
+						handler = "";
+						handler += "\n";
+						handler += commentEntry;
+						handler += "function on" + handlerName + "Entry() {\n";
+						handler += "    // TODO: add your code here\n";
+						handler += "\n";
+						handler += "    // TODO: customize the returned value (if you omit returned value, the \n";
+						handler += "    // algorithm will continue its process).\n";
+						handler += "    // Possible values are:\n";
+						handler += "    //    redetect - means the algorithm detects again the screen class.\n";
+						handler += "    //    skip     - means the algorithm skips the xmlization process and \n";
+						handler += "    //               directly goes to the exit handler for the current\n";
+						handler += "    //               screen class.\n";
+						handler += "\n";
+						handler += "    // return \"redetect\";\n";
+						handler += "}\n";
+						addElement(handler, "");
+					}
+					else Beep();
 				}
-				else Beep();
-			}
-			if (jCheckBoxExit.getSelection()) {
-				functionName = "function on" + handlerName + "Exit()";
-				if (handlers.indexOf(functionName) == -1) {
-					handler = "";
-					handler += "\n";
-					handler += commentExit;
-					handler += "function on" + handlerName + "Exit() {\n";
-					handler += "    // TODO: add your code here\n";
-					handler += "\n";
-					handler += "    // TODO: customize the returned value (if you omit returned value, the \n";
-					handler += "    // algorithm will continue its process).\n";
-					handler += "    // Possible values are:\n";
-					handler += "    //    accumulate - means the algorithm accumulates XML data and go to\n";
-					handler += "    //                 the next detected screen class.\n";
-					handler += "\n";
-					handler += "    // return \"accumulate\";\n";
-					handler += "}\n";
-					addElement(handler, "");
+				if (jCheckBoxExit.getSelection()) {
+					functionName = "function on" + handlerName + "Exit()";
+					if (handlers.indexOf(functionName) == -1) {
+						handler = "";
+						handler += "\n";
+						handler += commentExit;
+						handler += "function on" + handlerName + "Exit() {\n";
+						handler += "    // TODO: add your code here\n";
+						handler += "\n";
+						handler += "    // TODO: customize the returned value (if you omit returned value, the \n";
+						handler += "    // algorithm will continue its process).\n";
+						handler += "    // Possible values are:\n";
+						handler += "    //    accumulate - means the algorithm accumulates XML data and go to\n";
+						handler += "    //                 the next detected screen class.\n";
+						handler += "\n";
+						handler += "    // return \"accumulate\";\n";
+						handler += "}\n";
+						addElement(handler, "");
+					}
+					else Beep();
 				}
-				else Beep();
 			}
 		}
 	}
@@ -370,24 +364,27 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 		}
 		
 		if (jCheckBoxEntry.getSelection() || jCheckBoxExit.getSelection()) {
-			String selectedScreenClass = screenClass;
-			normalizedScreenClassName = StringUtils.normalize(selectedScreenClass);
-            	
-			if (jCheckBoxEntry.getSelection()) {
-				handlerName = "on" + normalizedScreenClassName + "Entry";
-				if (((HtmlTransaction)transaction).getHandlerStatement(handlerName) == null) {
-					ScEntryHandlerStatement statement = new ScEntryHandlerStatement(normalizedScreenClassName);
-					addElement(statement, handlerName);
+			TreeItem[] treeItems = tree.getSelection();
+			for (int i=0; i<treeItems.length; i++) {
+				String selectedScreenClass = treeItems[i].getText();
+				normalizedScreenClassName = StringUtils.normalize(selectedScreenClass);
+	            	
+				if (jCheckBoxEntry.getSelection()) {
+					handlerName = "on" + normalizedScreenClassName + "Entry";
+					if (((HtmlTransaction)transaction).getHandlerStatement(handlerName) == null) {
+						ScEntryHandlerStatement statement = new ScEntryHandlerStatement(normalizedScreenClassName);
+						addElement(statement, handlerName);
+					}
+					else Beep();
 				}
-				else Beep();
-			}
-			if (jCheckBoxExit.getSelection()) {
-				handlerName = "on" + normalizedScreenClassName + "Exit";
-				if (((HtmlTransaction)transaction).getHandlerStatement(handlerName) == null) {
-					ScExitHandlerStatement statement = new ScExitHandlerStatement(normalizedScreenClassName);
-					addElement(statement, handlerName);
+				if (jCheckBoxExit.getSelection()) {
+					handlerName = "on" + normalizedScreenClassName + "Exit";
+					if (((HtmlTransaction)transaction).getHandlerStatement(handlerName) == null) {
+						ScExitHandlerStatement statement = new ScExitHandlerStatement(normalizedScreenClassName);
+						addElement(statement, handlerName);
+					}
+					else Beep();
 				}
-				else Beep();
 			}
 		}
 	}
