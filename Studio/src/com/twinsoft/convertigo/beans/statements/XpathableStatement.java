@@ -29,6 +29,7 @@ abstract public class XpathableStatement extends Statement implements IXPathable
 	private static final long serialVersionUID = -1382597462556957815L;
 	
 	protected String xpath = "";
+	protected long delay = 0;
 	
 	public XpathableStatement() {
 		super();
@@ -36,6 +37,11 @@ abstract public class XpathableStatement extends Statement implements IXPathable
 	
 	public XpathableStatement(String xpath) {
 		this.xpath = xpath;
+	}
+	
+	public XpathableStatement(String xpath, long delay) {
+		this(xpath);
+		this.delay = delay;
 	}
 	
 	/**
@@ -51,6 +57,14 @@ abstract public class XpathableStatement extends Statement implements IXPathable
 	public void setXpath(String xpath) {
 		this.xpath = xpath;
 	}
+
+	public long getDelay() {
+		return delay;
+	}
+
+	public void setDelay(long delay) {
+		this.delay = delay;
+	}	
 	
 	public void setPureXpath(String xpath){
 		xpath = "'"+xpath.replace("\\", "\\\\").replace("'", "\\'")+"'";

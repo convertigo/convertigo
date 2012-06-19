@@ -64,6 +64,7 @@ abstract public class AbstractEventStatement extends XpathableStatement implemen
 				Engine.logBeans.trace("Getting event...");
 				AbstractEvent event = getEvent(javascriptContext, scope);
 				event.setXPath(jsXpath);
+				event.setDelay(delay);
 				
 				Engine.logBeans.trace("Dispatching event...");
 				boolean dispatch = htmlConnector.dispatchEvent(event, htmlTransaction.context, trigger.getTrigger());

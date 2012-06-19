@@ -41,13 +41,17 @@ public class XpathableStatementBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 			
             properties[0] = new PropertyDescriptor("xpath", beanClass, "getXpath", "setXpath");
             properties[0].setDisplayName(getExternalizedString("property.xpath.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.xpath.short_description"));
             //properties[0].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
             properties[0].setValue("scriptable", Boolean.TRUE);
+            
+            properties[1] = new PropertyDescriptor("delay", beanClass, "getDelay", "setDelay");
+            properties[1].setDisplayName(getExternalizedString("property.delay.display_name"));
+            properties[1].setShortDescription(getExternalizedString("property.delay.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
