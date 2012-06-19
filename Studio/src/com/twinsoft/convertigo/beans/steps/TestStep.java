@@ -81,6 +81,14 @@ public abstract class TestStep extends BlockStep implements IStepSourceContainer
 		source = new StepSource(this,sourceDefinition);
 	}
 
+	public boolean hasDefaultValue() {
+		return false;
+	}
+
+	public boolean useDefaultValueWhenNoSource() {
+		return false;
+	}
+	
 	protected abstract boolean executeTest(Context javascriptContext, Scriptable scope) throws EngineException;
 	
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {

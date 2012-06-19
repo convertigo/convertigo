@@ -146,6 +146,7 @@ public class StepSource {
 	}
 	
 	public NodeList getContextValues() throws EngineException {
+		NodeList nodeList = null;
 		if (definition.size() > 0) {
 			Step step = getStep();
 			String xpath = getXpath();
@@ -163,9 +164,15 @@ public class StepSource {
 			
 			Engine.logBeans.trace("(ISourceContainer) "+ owner+" ["+owner.executeTimeID+"] retreiving value from source "+step+" ["+step.executeTimeID+"]");
 			Engine.logBeans.trace("(ISourceContainer) "+ owner+" ["+owner.hashCode()+"] retreiving value from source "+step+" ["+step.hashCode()+"]");
-			return step.getContextValues(xpath, sourceLoop);
+			nodeList = step.getContextValues(xpath, sourceLoop);
+			
+			IStepSourceContainer ssc = (IStepSourceContainer)owner;
+			if (ssc.hasDefaultValue() && (nodeList != null) && (nodeList.getLength()==0)) {
+				if (ssc.useDefaultValueWhenNoSource())
+					nodeList = null;
+			}
 		}
-		return null;
+		return nodeList;
 	}
 	
 	public NodeList getContextOutputNodes() throws EngineException {

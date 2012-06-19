@@ -47,6 +47,7 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
 	protected String nodeName = "element";
 	protected String nodeText = "";
+	protected boolean defaultValueWhenNoSource = false;
 	
 	private transient StepSource source = null;
 	
@@ -115,6 +116,22 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 		source = new StepSource(this,sourceDefinition);
 	}
     
+	public boolean isDefaultValueWhenNoSource() {
+		return defaultValueWhenNoSource;
+	}
+
+	public void setDefaultValueWhenNoSource(boolean defaultValueWhenNoSource) {
+		this.defaultValueWhenNoSource = defaultValueWhenNoSource;
+	}
+	
+	public boolean hasDefaultValue() {
+		return true;
+	}
+
+	public boolean useDefaultValueWhenNoSource() {
+		return isDefaultValueWhenNoSource();
+	}
+
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		NodeList list = getContextValues();
 		if (list != null) {

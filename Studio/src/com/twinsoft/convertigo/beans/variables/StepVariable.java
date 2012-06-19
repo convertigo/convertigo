@@ -53,6 +53,14 @@ public class StepVariable extends Variable implements IStepSourceContainer {
 		this.sourceDefinition = sourceDefinition;
 	}
 	
+	public boolean hasDefaultValue() {
+		return false;
+	}
+
+	public boolean useDefaultValueWhenNoSource() {
+		return false;
+	}
+
 	public Object getSourceValue() throws EngineException {
 		Object value = null;
 		if (sourceDefinition.size() != 0 && parent != null) {
@@ -71,6 +79,6 @@ public class StepVariable extends Variable implements IStepSourceContainer {
 			}
 		}
 		return super.getLabel();
-	}	
+	}
 	
 }

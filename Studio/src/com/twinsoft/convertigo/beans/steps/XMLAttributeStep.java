@@ -131,6 +131,14 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 		source = new StepSource(this,sourceDefinition);
 	}
 	
+	public boolean hasDefaultValue() {
+		return true;
+	}
+
+	public boolean useDefaultValueWhenNoSource() {
+		return false;
+	}
+
 	public String getAnchor() throws EngineException {
 		return "//document/@"+ getStepNodeName();
 	}

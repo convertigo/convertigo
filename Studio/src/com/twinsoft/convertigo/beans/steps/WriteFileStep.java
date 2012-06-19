@@ -133,6 +133,14 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 		source = new StepSource(this,sourceDefinition);
 	}
 
+	public boolean hasDefaultValue() {
+		return false;
+	}
+
+	public boolean useDefaultValueWhenNoSource() {
+		return false;
+	}
+
 	@Override
 	protected String getLabel() throws EngineException {
 		String label = "";

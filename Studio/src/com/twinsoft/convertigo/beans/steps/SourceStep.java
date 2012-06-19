@@ -84,6 +84,14 @@ public class SourceStep extends Step implements IStepSourceContainer {
 		source = new StepSource(this,sourceDefinition);
 	}
 
+	public boolean hasDefaultValue() {
+		return false;
+	}
+
+	public boolean useDefaultValueWhenNoSource() {
+		return false;
+	}
+
 	public String getVariableName() {
 		return variableName;
 	}

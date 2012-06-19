@@ -94,6 +94,14 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 		source = new StepSource(this,sourceDefinition);
 	}
 	
+	public boolean hasDefaultValue() {
+		return false;
+	}
+
+	public boolean useDefaultValueWhenNoSource() {
+		return false;
+	}
+
 	public String getAnchor() throws EngineException {
 		return "//document";
 	}

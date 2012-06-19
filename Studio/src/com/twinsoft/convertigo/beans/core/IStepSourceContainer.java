@@ -27,4 +27,6 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 public interface IStepSourceContainer {
 	public XMLVector<String> getSourceDefinition();
 	public void setSourceDefinition(XMLVector<String> sourceDefinition);
+	public boolean hasDefaultValue();
+	public boolean useDefaultValueWhenNoSource();
 }
