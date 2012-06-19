@@ -103,7 +103,7 @@ public class WalkHelper {
 				}
 			}
 
-			if (before(databaseObject, Connector.class)) {
+			if (before(databaseObject, Pool.class)) {
 				for (Pool pool : connector.getPoolsList()) {
 					walk(pool);
 				}
