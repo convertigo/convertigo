@@ -1508,7 +1508,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					}
 
 					monitor.worked(1);
-
+					
+					// children cannot be added in the current virtual folder 
+					this.currentTreeFolder = null;
+					
 					super.walk(databaseObject);
 
 					// restore recursion parameters
