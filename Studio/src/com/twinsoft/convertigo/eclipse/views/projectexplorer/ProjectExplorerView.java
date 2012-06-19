@@ -1264,151 +1264,65 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	private void loadDatabaseObject(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject, ProjectLoadingJob projectLoadingJob, final IProgressMonitor monitor) throws EngineException, IOException {        
         // Add load subtask here because of databaseObjectLoaded event no more received since memory improvement
         // (getSubDatabaseObject called only when necessary)
-        
+
 		try {
 			new WalkHelper() {
 				// recursion parameters
 				TreeParent parentTreeObject;
 				ProjectLoadingJob projectLoadingJob;
-				
+
 				// sibling parameters
 				ObjectsFolderTreeObject currentTreeFolder = null;
 
 				public void init(DatabaseObject databaseObject, TreeParent parentTreeObject, ProjectLoadingJob projectLoadingJob) throws Exception {
 					this.parentTreeObject = parentTreeObject;
 					this.projectLoadingJob = projectLoadingJob;
-					
+
 					walkInheritance = true;
 					super.init(databaseObject);
 				}
-				
+
 				@Override
 				protected void walk(DatabaseObject databaseObject) throws Exception {
 					// retrieve recursion parameters
 					final TreeParent parentTreeObject = this.parentTreeObject;
 					final ProjectLoadingJob projectLoadingJob = this.projectLoadingJob;
-					
+
 					// retrieve sibling parameters					
 					ObjectsFolderTreeObject currentTreeFolder = this.currentTreeFolder;
-					
+
 					String dboName = (databaseObject instanceof Step) ? ((Step) databaseObject).getStepNodeName() : databaseObject.getName();
-			        monitor.subTask("Loading databaseObject '"+ dboName +"'...");
+					monitor.subTask("Loading databaseObject '"+ dboName +"'...");
+
+					DatabaseObjectTreeObject databaseObjectTreeObject = null;
 					
+					// first call case, the tree object already exists and its content is just refreshed
 					if (parentTreeObject.getObject() == databaseObject) {
-						if (databaseObject instanceof Project) {
-							Project project = (Project) databaseObject;
-							
-				            // Creates directories and files
-				            createDirsAndFiles(project.getName());
-							
-							// Connectors
-							Collection<Connector> connectors = project.getConnectorsList();
-							if (connectors.size() != 0) {
-								// Set default connector if none
-								if (project.getDefaultConnector() == null) {
-									// Report from 4.5: fix #401
-									ConvertigoPlugin.logWarning(null, "Project \""+ project.getName() +"\" has no default connector. Try to set a default one.");
-									Connector defaultConnector = connectors.iterator().next();
-									try {
-										project.setDefaultConnector(defaultConnector);
-										defaultConnector.hasChanged = true;
-									} catch (Exception e) {
-										ConvertigoPlugin.logWarning(e, "Unable to set a default connector for project \""+ project.getName() +"\"");
-									}
-								}
-								
-								// Refresh Traces folder
-								IFolder ifolder = ((ProjectTreeObject)parentTreeObject).getFolder("Traces");
-								if(ifolder.exists()) {
-									try {
-										ifolder.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-									} catch (CoreException e) {
-									}
-								}
-							}
-						}
-					} else {
-						DatabaseObjectTreeObject databaseObjectTreeObject = null;
+						databaseObjectTreeObject = (DatabaseObjectTreeObject) parentTreeObject;
+					}
+					// recurcive call case, the tree object doesn't exist and must be added to the parent tree object
+					else {
 						int folderType = Integer.MIN_VALUE;
 						if (databaseObject instanceof Connector) {
-							Connector connector = (Connector) databaseObject;
-							
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_CONNECTORS;
-							databaseObjectTreeObject = new ConnectorTreeObject(viewer, connector, false);
-							
-							// Open connector editor
-							if (projectLoadingJob != null && connector.isDefault) {
-								projectLoadingJob.setDefaultConnectorTreeObject((ConnectorTreeObject) databaseObjectTreeObject);
-							}
+							databaseObjectTreeObject = new ConnectorTreeObject(viewer, (Connector) databaseObject, false);
 
-							// Traces
-							if (connector instanceof JavelinConnector) {
-								String projectName = databaseObject.getProject().getName();
-
-								if (projectLoadingJob == null) {
-									if (MigrationManager.isProjectMigrated(projectName)) {
-										UnloadedProjectTreeObject unloadedProjectTreeObject = new UnloadedProjectTreeObject(databaseObjectTreeObject.viewer, projectName);
-										this.projectLoadingJob = new ProjectLoadingJob(databaseObjectTreeObject.viewer, unloadedProjectTreeObject);
-									}
-								}
-								if (projectLoadingJob != null) {
-									projectLoadingJob.loadTrace(databaseObjectTreeObject, new File(Engine.PROJECTS_PATH + "/" + projectName + "/Traces/" + connector.getName()));
-								}
-							}
-							
 						} else if (databaseObject instanceof Sequence) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SEQUENCES;
 							databaseObjectTreeObject = new SequenceTreeObject(viewer, (Sequence) databaseObject, false);
-							
+
 						} else if (databaseObject instanceof MobileDevice) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_MOBILEDEVICES;
 							databaseObjectTreeObject = new MobileDeviceTreeObject(viewer, (MobileDevice) databaseObject, false);
-							
+
 						} else if (databaseObject instanceof Pool) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_POOLS;
 							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
-							
+
 						} else if (databaseObject instanceof Transaction) {
-							Transaction transaction = (Transaction) databaseObject;
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_TRANSACTIONS;
-							databaseObjectTreeObject = new TransactionTreeObject(viewer, transaction, false);
-							
-			    			// Functions
-			    			List<HandlersDeclarationTreeObject> treeObjects = new LinkedList<HandlersDeclarationTreeObject>();
-			    			String line;
-			    			int lineNumber = 0;
-			    			BufferedReader br = new BufferedReader(new StringReader(transaction.handlers));
-			    	 
-			    			while ((line = br.readLine()) != null) {
-			    				line = line.trim();
-			    				lineNumber++;
-			    				if (line.startsWith("function ")) {
-			    					try {
-			    						String functionName = line.substring(9, line.indexOf(')') + 1);
-			    						HandlersDeclarationTreeObject handlersDeclarationTreeObject;
+							databaseObjectTreeObject = new TransactionTreeObject(viewer, (Transaction) databaseObject, false);
 
-			    						if (functionName.endsWith(JavelinTransaction.EVENT_ENTRY_HANDLER + "()")) {
-			    							handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_FUNCTION_SCREEN_CLASS_ENTRY, lineNumber);
-			    						} else if (functionName.endsWith(JavelinTransaction.EVENT_EXIT_HANDLER + "()")) {
-			    							handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_FUNCTION_SCREEN_CLASS_EXIT, lineNumber);
-			    						} else {
-			    							handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_OTHER, lineNumber);
-			    						}
-			    						treeObjects.add(handlersDeclarationTreeObject);
-			    					} catch(StringIndexOutOfBoundsException e) {
-			    						// Ignore
-			    					}
-			    				}
-			    			}
-
-			    			if (treeObjects.size() != 0) {
-			    				ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_FUNCTIONS);
-			    				databaseObjectTreeObject.addChild(objectsFolderTreeObject);
-
-			    				for (HandlersDeclarationTreeObject handlersDeclarationTreeObject: treeObjects) {
-			    					objectsFolderTreeObject.addChild(handlersDeclarationTreeObject);
-			    				}
-			    			}
 						} else if (databaseObject instanceof ScreenClass) {
 							if (databaseObject.getParent() instanceof IScreenClassContainer<?>) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SCREEN_CLASSES;
@@ -1417,93 +1331,194 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_INHERITED_SCREEN_CLASSES;
 								databaseObjectTreeObject = new ScreenClassTreeObject(viewer, (ScreenClass) databaseObject, false);
 							}
-							
+
 						} else if (databaseObject instanceof Sheet) {
-							Sheet sheet = (Sheet) databaseObject;
-							
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SHEETS;
-							databaseObjectTreeObject = new SheetTreeObject(viewer, sheet, parentTreeObject.getObject() != databaseObject.getParent());
-							addTemplates(sheet, databaseObjectTreeObject);
-							
+							databaseObjectTreeObject = new SheetTreeObject(viewer,  (Sheet) databaseObject, parentTreeObject.getObject() != databaseObject.getParent());
+
 						} else if (databaseObject instanceof TestCase) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_TESTCASES;
 							databaseObjectTreeObject = new TestCaseTreeObject(viewer, (TestCase) databaseObject, false);
-							
+
 						} else if (databaseObject instanceof Variable) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_VARIABLES;
 							databaseObjectTreeObject = new VariableTreeObject2(viewer, (Variable) databaseObject, false);
-							
+
 						} else if (databaseObject instanceof Step) {
 							if (databaseObject.getParent() instanceof Sequence) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_STEPS;
 							}
 							databaseObjectTreeObject = new StepTreeObject(viewer, (Step) databaseObject, false);
-							
+
 						} else if (databaseObject instanceof Statement) {
 							if (databaseObject.getParent() instanceof Transaction) {
 								folderType = ObjectsFolderTreeObject.FOLDER_TYPE_FUNCTIONS;
 							}
 							databaseObjectTreeObject = new StatementTreeObject(viewer, (Statement) databaseObject, false);
-							
+
 						} else if (databaseObject instanceof Criteria) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_CRITERIAS;
 							databaseObjectTreeObject = new CriteriaTreeObject(viewer, (Criteria) databaseObject, parentTreeObject.getObject() != databaseObject.getParent());
-							
+
 						} else if (databaseObject instanceof ExtractionRule) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_EXTRACTION_RULES;
 							databaseObjectTreeObject = new ExtractionRuleTreeObject(viewer, (ExtractionRule) databaseObject, parentTreeObject.getObject() != databaseObject.getParent());
-							
+
 						} else if (databaseObject instanceof BlockFactory) {
 							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, parentTreeObject.getObject() != databaseObject.getParent());
-							
+
 						} else {
 							// unknow DBO case !!!
 							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
 						}
-						
+
+						// no virtual folder 
 						if (folderType == Integer.MIN_VALUE) {
 							parentTreeObject.addChild(databaseObjectTreeObject);
-						} else {
+						}
+						// virtual folder creation or reuse
+						else {
 							if (currentTreeFolder == null || currentTreeFolder.folderType != folderType) {
 								currentTreeFolder = new ObjectsFolderTreeObject(viewer, folderType);
 								parentTreeObject.addChild(currentTreeFolder);
 							}
 							currentTreeFolder.addChild(databaseObjectTreeObject);
 						}
-						
-						if (databaseObject instanceof ITablesProperty) {
-							ITablesProperty iTablesProperty = (ITablesProperty) databaseObject;
-				    		String[] tablePropertyNames = iTablesProperty.getTablePropertyNames();
-				    		for (int i = 0; i < tablePropertyNames.length; i++) {
-				    			String tablePropertyName = tablePropertyNames[i];
-				    			String tableRenderer = iTablesProperty.getTableRenderer(tablePropertyName);
-				    			XMLVector<XMLVector<Object>> xmlv = iTablesProperty.getTableData(tablePropertyName);
-				    			if (tableRenderer.equals("XMLTableDescriptionTreeObject")) {
-				        			XMLTableDescriptionTreeObject propertyXMLTableTreeObject = new XMLTableDescriptionTreeObject(viewer, tablePropertyName, xmlv, databaseObjectTreeObject);
-				        			databaseObjectTreeObject.addChild(propertyXMLTableTreeObject);
-				    			} else if (tableRenderer.equals("XMLRecordDescriptionTreeObject")) {
-				    				XMLRecordDescriptionTreeObject propertyXMLRecordTreeObject = new XMLRecordDescriptionTreeObject(viewer, tablePropertyName, xmlv, databaseObjectTreeObject);
-				    				databaseObjectTreeObject.addChild(propertyXMLRecordTreeObject);
-				    			}
-				    		}
-				        }
-						
-						monitor.worked(1);
-						
+
 						// new value of recursion parameters
 						this.parentTreeObject = databaseObjectTreeObject;
 					}
 					
+					// special databaseObject cases
+					if (databaseObject instanceof Project) {
+						Project project = (Project) databaseObject;
+
+						// Creates directories and files
+						createDirsAndFiles(project.getName());
+
+						// Connectors
+						Collection<Connector> connectors = project.getConnectorsList();
+						if (connectors.size() != 0) {
+							// Set default connector if none
+							if (project.getDefaultConnector() == null) {
+								// Report from 4.5: fix #401
+								ConvertigoPlugin.logWarning(null, "Project \""+ project.getName() +"\" has no default connector. Try to set a default one.");
+								Connector defaultConnector = connectors.iterator().next();
+								try {
+									project.setDefaultConnector(defaultConnector);
+									defaultConnector.hasChanged = true;
+								} catch (Exception e) {
+									ConvertigoPlugin.logWarning(e, "Unable to set a default connector for project \""+ project.getName() +"\"");
+								}
+							}
+
+							// Refresh Traces folder
+							IFolder ifolder = ((ProjectTreeObject)parentTreeObject).getFolder("Traces");
+							if(ifolder.exists()) {
+								try {
+									ifolder.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+								} catch (CoreException e) {
+								}
+							}
+						}
+						
+					} else if (databaseObject instanceof Connector) {
+						Connector connector = (Connector) databaseObject;
+
+						// Open connector editor
+						if (projectLoadingJob != null && connector.isDefault) {
+							projectLoadingJob.setDefaultConnectorTreeObject((ConnectorTreeObject) databaseObjectTreeObject);
+						}
+
+						// Traces
+						if (connector instanceof JavelinConnector) {
+							String projectName = databaseObject.getProject().getName();
+
+							if (projectLoadingJob == null) {
+								if (MigrationManager.isProjectMigrated(projectName)) {
+									UnloadedProjectTreeObject unloadedProjectTreeObject = new UnloadedProjectTreeObject(databaseObjectTreeObject.viewer, projectName);
+									this.projectLoadingJob = new ProjectLoadingJob(databaseObjectTreeObject.viewer, unloadedProjectTreeObject);
+								}
+							}
+							if (projectLoadingJob != null) {
+								projectLoadingJob.loadTrace(databaseObjectTreeObject, new File(Engine.PROJECTS_PATH + "/" + projectName + "/Traces/" + connector.getName()));
+							}
+						}
+
+					} else if (databaseObject instanceof Transaction) {
+						Transaction transaction = (Transaction) databaseObject;
+
+						// Functions
+						List<HandlersDeclarationTreeObject> treeObjects = new LinkedList<HandlersDeclarationTreeObject>();
+						String line;
+						int lineNumber = 0;
+						BufferedReader br = new BufferedReader(new StringReader(transaction.handlers));
+
+						while ((line = br.readLine()) != null) {
+							line = line.trim();
+							lineNumber++;
+							if (line.startsWith("function ")) {
+								try {
+									String functionName = line.substring(9, line.indexOf(')') + 1);
+									HandlersDeclarationTreeObject handlersDeclarationTreeObject;
+
+									if (functionName.endsWith(JavelinTransaction.EVENT_ENTRY_HANDLER + "()")) {
+										handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_FUNCTION_SCREEN_CLASS_ENTRY, lineNumber);
+									} else if (functionName.endsWith(JavelinTransaction.EVENT_EXIT_HANDLER + "()")) {
+										handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_FUNCTION_SCREEN_CLASS_EXIT, lineNumber);
+									} else {
+										handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_OTHER, lineNumber);
+									}
+									treeObjects.add(handlersDeclarationTreeObject);
+								} catch(StringIndexOutOfBoundsException e) {
+									// Ignore
+								}
+							}
+						}
+
+						if (treeObjects.size() != 0) {
+							ObjectsFolderTreeObject objectsFolderTreeObject = new ObjectsFolderTreeObject(viewer, ObjectsFolderTreeObject.FOLDER_TYPE_FUNCTIONS);
+							databaseObjectTreeObject.addChild(objectsFolderTreeObject);
+
+							for (HandlersDeclarationTreeObject handlersDeclarationTreeObject: treeObjects) {
+								objectsFolderTreeObject.addChild(handlersDeclarationTreeObject);
+							}
+						}
+						
+					} else if (databaseObject instanceof Sheet) {
+						addTemplates((Sheet) databaseObject, databaseObjectTreeObject);
+
+					} else if (databaseObject instanceof ITablesProperty) {
+						ITablesProperty iTablesProperty = (ITablesProperty) databaseObject;
+						String[] tablePropertyNames = iTablesProperty.getTablePropertyNames();
+						
+						for (int i = 0; i < tablePropertyNames.length; i++) {
+							String tablePropertyName = tablePropertyNames[i];
+							String tableRenderer = iTablesProperty.getTableRenderer(tablePropertyName);
+							XMLVector<XMLVector<Object>> xmlv = iTablesProperty.getTableData(tablePropertyName);
+							if (tableRenderer.equals("XMLTableDescriptionTreeObject")) {
+								XMLTableDescriptionTreeObject propertyXMLTableTreeObject = new XMLTableDescriptionTreeObject(viewer, tablePropertyName, xmlv, databaseObjectTreeObject);
+								databaseObjectTreeObject.addChild(propertyXMLTableTreeObject);
+							} else if (tableRenderer.equals("XMLRecordDescriptionTreeObject")) {
+								XMLRecordDescriptionTreeObject propertyXMLRecordTreeObject = new XMLRecordDescriptionTreeObject(viewer, tablePropertyName, xmlv, databaseObjectTreeObject);
+								databaseObjectTreeObject.addChild(propertyXMLRecordTreeObject);
+							}
+						}
+						
+					}
+
+					monitor.worked(1);
+
 					super.walk(databaseObject);
-					
+
 					// restore recursion parameters
 					this.parentTreeObject = parentTreeObject;
 					this.projectLoadingJob = projectLoadingJob;
-					
+
 					// restore sibling parameters
 					this.currentTreeFolder = currentTreeFolder;
 				}
-				
+
 			}.init(parentDatabaseObject, parentTreeObject, projectLoadingJob);
 		} catch (EngineException e) {
 			throw e;
