@@ -406,9 +406,7 @@ public class XMLUtils {
 		} else if (nodeName.equals("java.lang.Short")) {
 			return new Short(nodeValue);
 		} else if (nodeName.equals("java.lang.String")) {
-			StringEx sxValue = new StringEx(nodeValue);
-			sxValue.replaceAll("\\n", "\n");
-			return sxValue.toString();
+			return nodeValue;
 		} else if (nodeName.equals("array")) {
 			String className = node.getAttribute("classname");
 			String length = node.getAttribute("length");
