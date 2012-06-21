@@ -140,14 +140,6 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 		this.defaultValueWhenNoSource = defaultValueWhenNoSource;
 	}
 	
-	public boolean hasDefaultValue() {
-		return true;
-	}
-
-	public boolean useDefaultValueWhenNoSource() {
-		return hasDefaultValue() && isDefaultValueWhenNoSource();
-	}
-
 	public String getAnchor() throws EngineException {
 		return "//document/@"+ getStepNodeName();
 	}
@@ -180,38 +172,42 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 		Attr stepNode = null;
 		Document doc = getOutputDocument();
 		if (!inError()) {
+			boolean useDefaultValue = true;
 			NodeList list = getContextValues();
 			if (list != null) {
 				int len = list.getLength();
-				for (int i=0;i<len;i++) {
-					Node node = list.item(i);
-					if (node != null) {
-						String snodeName = ((len==1) ? getStepNodeName():node.getNodeName());
-						String snodeValue = getNodeValue(node);
-						
-						String namespace = getNodeNameSpace();
-						if (namespace.equals("")) {
-							doc.getDocumentElement().setAttribute(snodeName, (snodeValue == null) ? getNodeText():snodeValue);
-							stepNode = doc.getDocumentElement().getAttributeNode(snodeName);
+				useDefaultValue = (len==0) && isDefaultValueWhenNoSource();
+				if (!useDefaultValue) {
+					for (int i=0;i<len;i++) {
+						Node node = list.item(i);
+						if (node != null) {
+							String snodeName = ((len==1) ? getStepNodeName():node.getNodeName());
+							String snodeValue = getNodeValue(node);
+							
+							String namespace = getNodeNameSpace();
+							if (namespace.equals("")) {
+								doc.getDocumentElement().setAttribute(snodeName, (snodeValue == null) ? getNodeText():snodeValue);
+								stepNode = doc.getDocumentElement().getAttributeNode(snodeName);
+							}
+							else {
+								String namespaceURI = getNodeNameSpaceURI();
+								if (namespaceURI.equals(""))
+									throw new EngineException("Blank namespace URI is not allowed (using namespace '"
+											+ namespace + "' in XMLAttribute step '" + getName() + "')");
+	
+								doc.getDocumentElement().setAttributeNS(
+										namespaceURI,
+										namespace + ":" + snodeName,
+										(snodeValue == null) ? getNodeText() : snodeValue);
+								stepNode = doc.getDocumentElement().getAttributeNode(namespace + ":" + snodeName);
+							}
+							
+							((Step)parent).appendChildNode(stepNode);
 						}
-						else {
-							String namespaceURI = getNodeNameSpaceURI();
-							if (namespaceURI.equals(""))
-								throw new EngineException("Blank namespace URI is not allowed (using namespace '"
-										+ namespace + "' in XMLAttribute step '" + getName() + "')");
-
-							doc.getDocumentElement().setAttributeNS(
-									namespaceURI,
-									namespace + ":" + snodeName,
-									(snodeValue == null) ? getNodeText() : snodeValue);
-							stepNode = doc.getDocumentElement().getAttributeNode(namespace + ":" + snodeName);
-						}
-						
-						((Step)parent).appendChildNode(stepNode);
 					}
 				}
 			}
-			else {
+			if (useDefaultValue) {
 				String namespace = getNodeNameSpace();
 				if (namespace.equals("")) {
 					doc.getDocumentElement().setAttribute(getStepNodeName(), getNodeText());

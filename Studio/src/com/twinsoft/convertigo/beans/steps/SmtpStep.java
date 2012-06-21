@@ -101,14 +101,6 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 		return sourceDefinition;
 	}
 
-	public boolean hasDefaultValue() {
-		return false;
-	}
-
-	public boolean useDefaultValueWhenNoSource() {
-		return false;
-	}
-
 	public void setSourceDefinition(XMLVector<String> sourceDefinition) {
 		this.sourceDefinition = sourceDefinition;
 		source = new StepSource(this,sourceDefinition);

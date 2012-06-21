@@ -90,14 +90,6 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		this.sourceDefinition = sourceDefinition;
 		source = new StepSource(this,sourceDefinition);
 	}
-    
-	public boolean hasDefaultValue() {
-		return false;
-	}
-
-	public boolean useDefaultValueWhenNoSource() {
-		return false;
-	}
 
 	public Node getContextNode(int loop) {
 		Engine.logBeans.trace("(IteratorStep) Retrieve context node for loop :"+ loop);

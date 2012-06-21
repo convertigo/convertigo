@@ -124,30 +124,26 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 		this.defaultValueWhenNoSource = defaultValueWhenNoSource;
 	}
 	
-	public boolean hasDefaultValue() {
-		return true;
-	}
-
-	public boolean useDefaultValueWhenNoSource() {
-		return hasDefaultValue() && isDefaultValueWhenNoSource();
-	}
-
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
+		boolean useDefaultValue = true;
 		NodeList list = getContextValues();
 		if (list != null) {
 			int len = list.getLength();
-			for (int i=0; i<len;i++) {
-				Node node = list.item(i);
-				if (node != null) {
-					String nodeValue = getNodeValue(node);
-					if (nodeValue != null) {
-						Node text = doc.createTextNode(nodeValue);
-						stepNode.appendChild(text);
+			useDefaultValue = (len==0) && isDefaultValueWhenNoSource();
+			if (!useDefaultValue) {
+				for (int i=0; i<len;i++) {
+					Node node = list.item(i);
+					if (node != null) {
+						String nodeValue = getNodeValue(node);
+						if (nodeValue != null) {
+							Node text = doc.createTextNode(nodeValue);
+							stepNode.appendChild(text);
+						}
 					}
 				}
 			}
 		}
-		else {
+		if (useDefaultValue) {
 			Node text = doc.createTextNode(getNodeText());
 			stepNode.appendChild(text);
 		}

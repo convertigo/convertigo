@@ -165,14 +165,6 @@ public class StepSource {
 			Engine.logBeans.trace("(ISourceContainer) "+ owner+" ["+owner.executeTimeID+"] retreiving value from source "+step+" ["+step.executeTimeID+"]");
 			Engine.logBeans.trace("(ISourceContainer) "+ owner+" ["+owner.hashCode()+"] retreiving value from source "+step+" ["+step.hashCode()+"]");
 			nodeList = step.getContextValues(xpath, sourceLoop);
-			
-			if (owner instanceof IStepSourceContainer) {
-				IStepSourceContainer ssc = (IStepSourceContainer)owner;
-				if (ssc.hasDefaultValue() && (nodeList != null) && (nodeList.getLength()==0)) {
-					if (ssc.useDefaultValueWhenNoSource())
-						nodeList = null;
-				}
-			}
 		}
 		return nodeList;
 	}
