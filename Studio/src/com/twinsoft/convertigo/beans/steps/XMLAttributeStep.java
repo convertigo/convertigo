@@ -145,7 +145,7 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 	}
 
 	public boolean useDefaultValueWhenNoSource() {
-		return isDefaultValueWhenNoSource();
+		return hasDefaultValue() && isDefaultValueWhenNoSource();
 	}
 
 	public String getAnchor() throws EngineException {

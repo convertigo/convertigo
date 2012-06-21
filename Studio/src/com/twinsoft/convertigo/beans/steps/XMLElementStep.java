@@ -129,7 +129,7 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 	}
 
 	public boolean useDefaultValueWhenNoSource() {
-		return isDefaultValueWhenNoSource();
+		return hasDefaultValue() && isDefaultValueWhenNoSource();
 	}
 
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
