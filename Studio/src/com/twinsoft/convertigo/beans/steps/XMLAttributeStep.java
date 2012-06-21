@@ -40,7 +40,8 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 
 	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
 	protected String nodeName = "attribute";
-
+	protected boolean defaultValueWhenNoSource = false;
+	
 	private String nodeNameSpace = "";
 	public String getNodeNameSpace() {
 		return nodeNameSpace;
@@ -131,12 +132,20 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 		source = new StepSource(this,sourceDefinition);
 	}
 	
+	public boolean isDefaultValueWhenNoSource() {
+		return defaultValueWhenNoSource;
+	}
+
+	public void setDefaultValueWhenNoSource(boolean defaultValueWhenNoSource) {
+		this.defaultValueWhenNoSource = defaultValueWhenNoSource;
+	}
+	
 	public boolean hasDefaultValue() {
 		return true;
 	}
 
 	public boolean useDefaultValueWhenNoSource() {
-		return false;
+		return isDefaultValueWhenNoSource();
 	}
 
 	public String getAnchor() throws EngineException {
