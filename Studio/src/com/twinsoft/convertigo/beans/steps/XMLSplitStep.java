@@ -44,6 +44,7 @@ public class XMLSplitStep extends XMLElementStep {
 		
 	public XMLSplitStep() {
 		super();
+		defaultValueWhenNoSource = true;
 	}
 
     public Object clone() throws CloneNotSupportedException {
@@ -118,7 +119,7 @@ public class XMLSplitStep extends XMLElementStep {
 			for (int i=0;i<len;i++) {
 				Node node = list.item(i);
 				String nodeValue = getNodeValue(node);
-				String text = ((nodeValue == null) ? getNodeText():nodeValue);
+				String text = ((nodeValue == null) ? (isDefaultValueWhenNoSource() ? getNodeText():""):nodeValue);
 				
 				if (!text.equals("")) {
 					Pattern myPattern = Pattern.compile(regexp);
