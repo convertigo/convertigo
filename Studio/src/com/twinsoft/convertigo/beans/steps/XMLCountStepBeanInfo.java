@@ -39,6 +39,9 @@ public class XMLCountStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
+			getPropertyDescriptor("nodeText").setHidden(true);
+			getPropertyDescriptor("defaultValueWhenNoSource").setHidden(true);
+			
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
