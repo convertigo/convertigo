@@ -22,7 +22,10 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -55,26 +58,58 @@ public class XMLTransformStep extends XMLElementStep {
 		this.replacements = replacements;
 	}
 	
+	@Override
+	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
+		boolean useDefaultValue = isDefaultValueWhenNoSource();
+		NodeList list = getContextValues();
+		if (list != null) {
+			int len = list.getLength();
+			useDefaultValue = (len==0) && isDefaultValueWhenNoSource();
+			if (!useDefaultValue) {
+				for (int i=0; i<len;i++) {
+					Node node = list.item(i);
+					if (node != null) {
+						String nodeValue = getNodeValue(node);
+						if (nodeValue != null) {
+							Node text = doc.createTextNode(nodeValue);
+							stepNode.appendChild(text);
+						}
+					}
+				}
+			}
+		}
+		if (useDefaultValue) {
+			Node text = doc.createTextNode(transform(getNodeText()));
+			stepNode.appendChild(text);
+		}
+	}
+	
+	@Override
 	protected String getNodeValue(Node node) {
 		String nodeValue = super.getNodeValue(node);
-		if (nodeValue != null) {
+		return transform(nodeValue);
+	}
+
+	protected String transform(String nodeValue) {
+		String transformed = nodeValue;
+		if (transformed != null) {
 			for (int i=0; i<replacements.size(); i++) {
 				XMLVector<String> xmlv = replacements.elementAt(i);
 				String regexp = xmlv.elementAt(0);
 				String replacement = xmlv.elementAt(1);
 				if (!regexp.equals(""))
-					nodeValue = nodeValue.replaceAll(regexp, replacement);
+					transformed = transformed.replaceAll(regexp, replacement);
 			}
 		}
-		return nodeValue;
+		return transformed;
 	}
-
+	
 	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
 		try {
-			label += (sourceDefinition.size() > 0) ? "@("+ getLabel()+")":"\""+nodeText+"\"";
+			label += (sourceDefinition.size() > 0) ? "@("+ getLabel()+")":"\""+getNodeText()+"\"";
 		} catch (EngineException e) {
 		}
 		return "<"+ nodeName +">" + "Transform("+ label +")"+ (!text.equals("") ? " // "+text:"");
