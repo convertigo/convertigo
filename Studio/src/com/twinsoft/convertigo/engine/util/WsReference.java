@@ -58,6 +58,7 @@ import com.eviware.soapui.impl.wsdl.WsdlRequest;
 import com.eviware.soapui.impl.wsdl.support.wsdl.WsdlImporter;
 import com.eviware.soapui.model.iface.MessagePart;
 import com.eviware.soapui.model.settings.Settings;
+import com.eviware.soapui.settings.ProxySettings;
 import com.eviware.soapui.settings.WsdlSettings;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
@@ -69,6 +70,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.Version;
+import com.twinsoft.convertigo.engine.ProxyManager.ProxyMode;
 import com.twinsoft.convertigo.engine.util.WSDLUtils.WSDL;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSDException;
@@ -145,6 +147,7 @@ public class WsReference {
 		boolean soapuiSettingsChanged = false;
 		Settings settings = SoapUI.getSettings();
 		if (settings != null) {
+			// WSDL
 			if (!settings.getBoolean(WsdlSettings.XML_GENERATION_ALWAYS_INCLUDE_OPTIONAL_ELEMENTS)) {
 				settings.setBoolean(WsdlSettings.XML_GENERATION_ALWAYS_INCLUDE_OPTIONAL_ELEMENTS, true);
 				soapuiSettingsChanged = true;
@@ -160,6 +163,37 @@ public class WsReference {
 			if (settings.getBoolean(WsdlSettings.XML_GENERATION_SKIP_COMMENTS)) {
 				settings.setBoolean(WsdlSettings.XML_GENERATION_SKIP_COMMENTS, false);
 				soapuiSettingsChanged = true;
+			}
+			
+			// PROXY
+			String proxyMode = Engine.theApp.proxyManager.proxyMode;
+			String proxyExcludes = StringUtils.join(Engine.theApp.proxyManager.getBypassDomains(), ",");
+			String proxyHost = Engine.theApp.proxyManager.getProxyServer();
+			int proxyPort = Engine.theApp.proxyManager.getProxyPort();
+			String proxyUser = Engine.theApp.proxyManager.getProxyUser();
+			String proxyPwd = Engine.theApp.proxyManager.getProxyPassword();
+			
+			if (!proxyMode.equals(ProxyMode.off.name())) {
+				if (!proxyExcludes.equals(settings.getString(ProxySettings.EXCLUDES, null))) {
+					settings.setString(ProxySettings.EXCLUDES, proxyExcludes);
+					soapuiSettingsChanged = true;
+				}
+				if (!proxyHost.equals(settings.getString(ProxySettings.HOST, null))) {
+					settings.setString(ProxySettings.HOST, proxyHost);
+					soapuiSettingsChanged = true;
+				}
+				if (!String.valueOf(proxyPort).equals(settings.getString(ProxySettings.PORT, null))) {
+					settings.setString(ProxySettings.PORT, String.valueOf(proxyPort));
+					soapuiSettingsChanged = true;
+				}
+				if (!proxyUser.equals(settings.getString(ProxySettings.USERNAME, null))) {
+					settings.setString(ProxySettings.USERNAME, proxyUser);
+					soapuiSettingsChanged = true;
+				}
+				if (!proxyPwd.equals(settings.getString(ProxySettings.PASSWORD, null))) {
+					settings.setString(ProxySettings.PASSWORD, proxyPwd);
+					soapuiSettingsChanged = true;
+				}
 			}
 		}
 		if (soapuiSettingsChanged)
