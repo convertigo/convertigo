@@ -56,6 +56,7 @@ import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectMobileCreationSuccessfulDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -505,6 +506,16 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 					Engine.theApp.databaseObjectsManager.delete(defaultConnector);
 					project.removeConnector(defaultConnector);
 					ConvertigoPlugin.projectManager.save(project, true);
+					
+					// Update project xsd/wsdl files
+					for (Transaction transaction: httpConnector.getTransactionsList()) {
+						try {
+							ProjectUtils.updateWebService(projectName, httpConnector, transaction, null, true, false);
+						}
+						catch (Exception e) {
+							ConvertigoPlugin.logWarning("An error ocurred while updating \""+ transaction.getName()+"\" schema for project \""+projectName+"\". Please clean project's schema file after load.");
+						}
+					}
 				}
 				return;
 
