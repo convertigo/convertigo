@@ -52,10 +52,19 @@ public class IfXpathExistsThenElseStatement extends BlockStatement implements IT
 		setXpath(condition);
 	}
 	
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+    	IfXpathExistsThenElseStatement clonedObject = (IfXpathExistsThenElseStatement) super.clone();
+        clonedObject.thenStatement = null;
+        clonedObject.elseStatement = null;
+        return clonedObject;
+    }
+	
 	public boolean hasThenElseStatements() {
 		checkSubLoaded();
 		return true;
 	}
+	
 	public void setThenStatement(ThenStatement thenStatement) {
 		checkSubLoaded();
 		this.thenStatement = thenStatement;

@@ -21,6 +21,14 @@ public class IfThenElseStatement extends BlockStatement implements IThenElseStat
 		super(condition);
 	}
 	
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+    	IfThenElseStatement clonedObject = (IfThenElseStatement) super.clone();
+        clonedObject.thenStatement = null;
+        clonedObject.elseStatement = null;
+        return clonedObject;
+    }
+	
 	public boolean hasThenElseStatements() {
 		checkSubLoaded();
 		return true;
