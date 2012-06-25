@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import javax.wsdl.Definition;
 import javax.wsdl.WSDLException;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -71,7 +72,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.ProxyManager.ProxyMode;
-import com.twinsoft.convertigo.engine.util.WSDLUtils.WSDL;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSDException;
 
@@ -87,7 +87,6 @@ public class WsReference {
 		try {
 			if (project != null) {
 				setTaskLabel("Importing from \""+wsdlURL+"\"...");
-				updateSchema(wsdlURL, project);
 				httpConnector = importReference(wsdlURL, project);
 			}
 		}
@@ -108,14 +107,13 @@ public class WsReference {
 		
 	}
 	
-	private void updateSchema(String wsdlUrl, Project project) throws WSDLException, XSDException {
+	private void updateSchema(String wsdlUrl, Project project, Definition definition) throws WSDLException, XSDException {
 		String projectName = project.getName();
 		String projectDir = Engine.PROJECTS_PATH + "/"+ projectName;
 		
 		// Dump schemas to project directory
 		setTaskLabel("Dumping schemas ...");
-		WSDL wsdl = WSDLUtils.getWSDL(wsdlURL);
-		HashMap<String, String> nsmap = wsdl.dumpSchemas(projectDir);
+		HashMap<String, String> nsmap = WSDLUtils.dumpSchemas(projectDir, definition);
 		
 		// Add namespaces into project's xsd file
 		setTaskLabel("Adding schema namespace ...");
@@ -204,13 +202,15 @@ public class WsReference {
 		
 	   	WsdlProject wsdlProject = new WsdlProject();
 	   	WsdlInterface[] wsdls = WsdlImporter.importWsdl( wsdlProject, wsdlUrl);
-	   	//Definition definition = WsdlUtils.readDefinition( wsdlUrl );
 	   	
 	   	boolean hasDefaultTransaction;
 	   	WsdlInterface iface;
 	   	for (int i=0; i<wsdls.length; i++) {
 		   	iface = wsdls[i];
 		   	if (iface != null) {
+		   		Definition definition = iface.getWsdlContext().getDefinition();
+		   		updateSchema(wsdlUrl, project, definition);
+		   		
 		   		httpConnector = createConnector(iface);
 		   		if (httpConnector != null) {
 		   		   	hasDefaultTransaction = false;

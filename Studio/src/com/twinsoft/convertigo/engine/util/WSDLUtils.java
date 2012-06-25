@@ -107,6 +107,92 @@ public class WSDLUtils {
 		return wsdl;
 	}
 	
+	
+	public static HashMap<String, String> dumpSchemas(String schemasDir, Definition definition) {
+		HashMap<String, String> nsmap = new HashMap<String, String>();
+		if (definition != null) {
+			// Create schemas directory
+			File dir = new File(schemasDir);
+			if (!dir.exists())
+				dir.mkdirs();
+			
+			// Get types
+			Types types = definition.getTypes();
+			Iterator<?> exs = types.getExtensibilityElements().iterator();
+			while (exs.hasNext()) {
+				ExtensibilityElement ee = (ExtensibilityElement)exs.next();
+				if (ee instanceof Schema) {
+					Schema schema = (Schema)ee;
+					
+					XmlSchemaCollection schemaCol = new XmlSchemaCollection();
+					schemaCol.setBaseUri(definition.getDocumentBaseURI());
+					schemaCol.read(schema.getElement());
+					
+					HashMap<String, String> options = new HashMap<String, String>();
+					options.put(OutputKeys.OMIT_XML_DECLARATION, "no");
+					options.put(OutputKeys.INDENT, "yes");
+
+					XmlSchema[] schemas = schemaCol.getXmlSchemas();
+					for (int i=0; i<schemas.length; i++) {
+						// Retrieve schema
+						XmlSchema xmlSchema = schemas[i];
+						
+						// Set new location for imported schema
+						Iterator<?> it = xmlSchema.getItems().getIterator();
+						while (it.hasNext()) {
+							XmlSchemaObject ob = (XmlSchemaObject)it.next();
+							if (ob instanceof XmlSchemaImport) {
+								XmlSchemaImport xmlSchemaImport = ((XmlSchemaImport)ob);
+								String xmlSchemaImportNs = xmlSchemaImport.getNamespace();
+								if (xmlSchemaImportNs != null)
+									xmlSchemaImport.setSchemaLocation(StringUtils.normalize(xmlSchemaImportNs) + ".xsd");
+							}
+						}
+						
+						// Write schema to file
+						String ns = xmlSchema.getTargetNamespace();
+						if ((ns!=null) && !ns.equals("")) {
+							String xsdFileName = StringUtils.normalize(ns) + ".xsd";
+							String xsdFilePath = schemasDir + "/"+ xsdFileName;
+							FileOutputStream fos = null;
+							try {
+								fos = new FileOutputStream(xsdFilePath);
+								xmlSchema.write(fos, options);
+								fos.close();
+								
+								String prefix = xmlSchema.getNamespaceContext().getPrefix(ns);
+								nsmap.put(prefix, ns);
+							}
+							catch (Exception e) {
+								if (fos != null) {
+									try {
+										fos.close();
+									} catch (IOException e1) {}
+								}
+								
+								File file = new File(xsdFilePath);
+								if (file.exists()) {
+									try {
+										//boolean bDeleted = file.delete();
+										//System.out.println("file deleted \""+xsdFilePath+"\"" + (bDeleted ? " OK":" KO"));
+									} catch (Exception e2) {}
+								}
+							}
+							finally {
+								if (fos != null) {
+									try {
+										fos.close();
+									} catch (IOException e1) {}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return nsmap;
+	}
+	
 	public class WSDL {
 		private String wsdlURI = null;
 		private Definition definition = null;
@@ -1044,89 +1130,7 @@ public class WSDLUtils {
 		}
 		
 		public HashMap<String, String> dumpSchemas(String schemasDir) {
-			HashMap<String, String> nsmap = new HashMap<String, String>();
-			Definition definition = getDefinition();
-			if (definition != null) {
-				// Create schemas directory
-				File dir = new File(schemasDir);
-				if (!dir.exists())
-					dir.mkdirs();
-				
-				// Get types
-				Types types = definition.getTypes();
-				Iterator<?> exs = types.getExtensibilityElements().iterator();
-				while (exs.hasNext()) {
-					ExtensibilityElement ee = (ExtensibilityElement)exs.next();
-					if (ee instanceof Schema) {
-						Schema schema = (Schema)ee;
-						
-						XmlSchemaCollection schemaCol = new XmlSchemaCollection();
-						schemaCol.setBaseUri(definition.getDocumentBaseURI());
-						schemaCol.read(schema.getElement());
-						
-						HashMap<String, String> options = new HashMap<String, String>();
-						options.put(OutputKeys.OMIT_XML_DECLARATION, "no");
-						options.put(OutputKeys.INDENT, "yes");
-
-						XmlSchema[] schemas = schemaCol.getXmlSchemas();
-						for (int i=0; i<schemas.length; i++) {
-							// Retrieve schema
-							XmlSchema xmlSchema = schemas[i];
-							
-							// Set new location for imported schema
-							Iterator<?> it = xmlSchema.getItems().getIterator();
-							while (it.hasNext()) {
-								XmlSchemaObject ob = (XmlSchemaObject)it.next();
-								if (ob instanceof XmlSchemaImport) {
-									XmlSchemaImport xmlSchemaImport = ((XmlSchemaImport)ob);
-									String xmlSchemaImportNs = xmlSchemaImport.getNamespace();
-									if (xmlSchemaImportNs != null)
-										xmlSchemaImport.setSchemaLocation(StringUtils.normalize(xmlSchemaImportNs) + ".xsd");
-								}
-							}
-							
-							// Write schema to file
-							String ns = xmlSchema.getTargetNamespace();
-							if ((ns!=null) && !ns.equals("")) {
-								String xsdFileName = StringUtils.normalize(ns) + ".xsd";
-								String xsdFilePath = schemasDir + "/"+ xsdFileName;
-								FileOutputStream fos = null;
-								try {
-									fos = new FileOutputStream(xsdFilePath);
-									xmlSchema.write(fos, options);
-									fos.close();
-									
-									String prefix = xmlSchema.getNamespaceContext().getPrefix(ns);
-									nsmap.put(prefix, ns);
-								}
-								catch (Exception e) {
-									if (fos != null) {
-										try {
-											fos.close();
-										} catch (IOException e1) {}
-									}
-									
-									File file = new File(xsdFilePath);
-									if (file.exists()) {
-										try {
-											//boolean bDeleted = file.delete();
-											//System.out.println("file deleted \""+xsdFilePath+"\"" + (bDeleted ? " OK":" KO"));
-										} catch (Exception e2) {}
-									}
-								}
-								finally {
-									if (fos != null) {
-										try {
-											fos.close();
-										} catch (IOException e1) {}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			return nsmap;
+			return WSDLUtils.dumpSchemas(schemasDir, getDefinition());
 		}
 	}
 }
