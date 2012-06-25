@@ -54,7 +54,6 @@ public class NewProjectWizardComposite10 extends Composite {
 		
 		combo = new Combo(this, SWT.NONE);
 		combo.add("http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL");
-		combo.add("http://aspalliance.com/quickstart/aspplus/samples/services/MathService/VB/MathService.asmx?wsdl");
 		combo.add("http://demo.convertigo.net/cems/projects/globalCompany_HR_WS/.wsl?wsdl");
 		combo.add("http://demo.convertigo.net/cems/projects/globalCompany_accounting_WS/.wsl?wsdl");
 		if (modifyListener != null)

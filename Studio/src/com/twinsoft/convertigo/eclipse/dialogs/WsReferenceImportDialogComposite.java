@@ -58,7 +58,6 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		
 		combo = new Combo(this, SWT.NONE);
 		combo.add("http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL");
-		combo.add("http://aspalliance.com/quickstart/aspplus/samples/services/MathService/VB/MathService.asmx?wsdl");
 		combo.select(0);
 		GridData data0 = new GridData ();
 		data0.horizontalAlignment = GridData.FILL;
