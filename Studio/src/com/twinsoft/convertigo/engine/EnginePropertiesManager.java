@@ -336,6 +336,8 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_JOBMANAGER ("log4j.logger.cems.JobManager", "WARN", "Log4J job manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
+		LOG4J_LOGGER_CEMS_PROXYMANAGER ("log4j.logger.cems.ProxyManager", "INFO", "Log4J proxy manager logger", PropertyCategory.Logs),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_SCHEDULER ("log4j.logger.cems.Scheduler", "INFO", "Log4J scheduler output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_SITECLIPPER ("log4j.logger.cems.SiteClipper", "INFO", "Log4J site clipper output logger", PropertyCategory.Logs),
