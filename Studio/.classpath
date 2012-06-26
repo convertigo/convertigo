@@ -122,11 +122,11 @@
 	<classpathentry exported="true" kind="lib" path="lib/apache/bcel/bcel-5.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/backport/backport-util-concurrent-3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/bcprov-jdk15-141.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/soapui/not-yet-commons-ssl-0.3.10.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/soapui/not-yet-commons-ssl-0.3.11.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/commons-beanutils-1.7.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/commons-cli-1.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/soapui/soapui-3.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/soapui/soapui-xmlbeans-3.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/soapui/soapui-3.5.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/soapui/soapui-xmlbeans-3.5.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/xerces-2_11_0/xercesImpl.jar" sourcepath="/ExternalJavaSources/Xerces-J-src.2.11.0.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/xerces-2_11_0/xml-apis.jar"/>
 	<classpathentry exported="true" kind="lib" path="tomcat/lib/catalina.jar" sourcepath="/ExternalJavaSources/apache-tomcat-6.0.20-src"/>

@@ -117,9 +117,9 @@
       <library name="lib/soapui/bcprov-jdk15-141.jar"/>
       <library name="lib/soapui/commons-beanutils-1.7.0.jar"/>
       <library name="lib/soapui/commons-cli-1.0.jar"/>
-      <library name="lib/soapui/not-yet-commons-ssl-0.3.10.jar"/>
-      <library name="lib/soapui/soapui-3.0.jar"/>
-      <library name="lib/soapui/soapui-xmlbeans-3.0.jar"/>
+      <library name="lib/soapui/not-yet-commons-ssl-0.3.11.jar"/>
+      <library name="lib/soapui/soapui-3.5.1.jar"/>
+      <library name="lib/soapui/soapui-xmlbeans-3.5.1.jar"/>
       <library name="tomcat/lib/annotations-api.jar"/>
       <library name="tomcat/lib/bootstrap.jar"/>
       <library name="tomcat/lib/catalina.jar"/>

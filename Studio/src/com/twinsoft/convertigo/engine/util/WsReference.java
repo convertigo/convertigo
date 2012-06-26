@@ -171,7 +171,12 @@ public class WsReference {
 			String proxyUser = Engine.theApp.proxyManager.getProxyUser();
 			String proxyPwd = Engine.theApp.proxyManager.getProxyPassword();
 			
-			if (!proxyMode.equals(ProxyMode.off.name())) {
+			boolean enableProxy = !proxyMode.equals(ProxyMode.off.name());
+			if (enableProxy) {
+				if (!settings.getBoolean(ProxySettings.ENABLE_PROXY)) {
+					settings.setBoolean(ProxySettings.ENABLE_PROXY, true);
+					soapuiSettingsChanged = true;
+				}
 				if (!proxyExcludes.equals(settings.getString(ProxySettings.EXCLUDES, null))) {
 					settings.setString(ProxySettings.EXCLUDES, proxyExcludes);
 					soapuiSettingsChanged = true;
@@ -190,6 +195,12 @@ public class WsReference {
 				}
 				if (!proxyPwd.equals(settings.getString(ProxySettings.PASSWORD, null))) {
 					settings.setString(ProxySettings.PASSWORD, proxyPwd);
+					soapuiSettingsChanged = true;
+				}
+			}
+			else {
+				if (settings.getBoolean(ProxySettings.ENABLE_PROXY)) {
+					settings.setBoolean(ProxySettings.ENABLE_PROXY, false);
 					soapuiSettingsChanged = true;
 				}
 			}
