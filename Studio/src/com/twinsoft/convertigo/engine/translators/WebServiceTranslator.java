@@ -47,22 +47,20 @@ import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.AttachmentManager;
+import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 import com.twinsoft.convertigo.engine.util.Base64v21;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class WebServiceTranslator implements Translator {
 	
@@ -148,6 +146,9 @@ public class WebServiceTranslator implements Translator {
 				else if (context.connectorName != null) {
 					if (context.transactionName != null) {
 						requestable = context.project.getConnectorByName(context.connectorName).getTransactionByName(context.transactionName);
+						if (requestable instanceof TransactionWithVariables) {
+							variableList = ((TransactionWithVariables) requestable).getVariablesList();
+						}
 					}									
 				}
 				
