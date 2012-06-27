@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.requesters.DefaultRequester;
 import com.twinsoft.convertigo.engine.requesters.GenericRequester;
+import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -1022,7 +1023,25 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public String getSessionId() {
 		String sessionId = null;
 		try {
-			sessionId = context.contextID.substring(0,context.contextID.indexOf("_"));
+			// Case of internal requester
+			if (context.httpSession == null) {
+				try {
+					InternalRequester requester = (InternalRequester) context.requestedObject.requester;
+					Map<String, String[]> request = GenericUtils.cast(requester.inputData);
+					sessionId = request.get(Parameter.SessionId.getName())[0];
+					Engine.logBeans.debug("Sequence session ID (internal requester case): " + sessionId);
+				} catch (Exception e) {
+					// Exception case
+					sessionId = context.contextID.substring(0,context.contextID.indexOf("_"));
+					Engine.logBeans.debug("Sequence session ID (internal requester case, but with exception): " + sessionId);
+					Engine.logBeans.debug(e.getMessage());
+				}				
+			}
+			// Case of servlet requester
+			else {
+				sessionId = context.httpSession.getId();
+				Engine.logBeans.debug("Sequence session ID (servlet requester case): " + sessionId);
+			}
 		}
 		catch (Exception e) {
 			Engine.logBeans.error("Unable to retrieve sessionID of sequence", e);
