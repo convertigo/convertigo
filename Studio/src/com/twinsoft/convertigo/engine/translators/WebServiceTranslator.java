@@ -87,7 +87,7 @@ public class WebServiceTranslator implements Translator {
 		root.appendChild(transactionVariablesElement);
 		
 		Element item;
-		List<RequestableVariable>variableList = null;		// jmc 12/06/26
+		List<RequestableVariable> variableList = null;		// jmc 12/06/26
 
 		while (iterator.hasNext()) {
 			variableList = null;
@@ -141,7 +141,7 @@ public class WebServiceTranslator implements Translator {
 				RequestableObject requestable = null;
 				if (context.sequenceName != null) {
 					requestable = context.project.getSequenceByName(context.sequenceName);
-					variableList = ((Sequence)requestable).getVariablesList();
+					variableList = ((Sequence) requestable).getVariablesList();
 				}
 				else if (context.connectorName != null) {
 					if (context.transactionName != null) {
@@ -164,8 +164,8 @@ public class WebServiceTranslator implements Translator {
 						if (parameterValue == null) parameterValue = "";
 						
 						if (variableList != null) {		// jmc 12/06/26 hide hidden variables in sequences
-							String str = (String)Visibility.Logs.replaceVariables(variableList, "" + parameterName + "=\"" + parameterValue);
-							Engine.logBeans.debug("   Parameter: " + str + "\"");
+							String str = (String) Visibility.Logs.replaceVariables(variableList, "" + parameterName + "=\"" + parameterValue) + "\"";
+							Engine.logBeans.debug("   Parameter: " + str);
 						}
 						else
 							Engine.logBeans.debug("   Parameter: " + parameterName + "=\"" + parameterValue + "\"");
