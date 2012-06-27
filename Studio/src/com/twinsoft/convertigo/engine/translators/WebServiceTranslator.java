@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.engine.translators;
 
 import java.util.Iterator;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.soap.MessageFactory;
@@ -51,10 +52,10 @@ import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.AttachmentManager;
+import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
@@ -86,8 +87,11 @@ public class WebServiceTranslator implements Translator {
 		root.appendChild(transactionVariablesElement);
 		
 		Element item;
+		List<RequestableVariable> variableList = null;		// jmc 12/06/26
 
 		while (iterator.hasNext()) {
+			variableList = null;
+			
 			element = iterator.next();
 			if (element instanceof SOAPElement) {
 				method = (SOAPElement) element;
@@ -137,11 +141,15 @@ public class WebServiceTranslator implements Translator {
 				RequestableObject requestable = null;
 				if (context.sequenceName != null) {
 					requestable = context.project.getSequenceByName(context.sequenceName);
+					variableList = ((Sequence) requestable).getVariablesList();
 				}
 				else if (context.connectorName != null) {
 					if (context.transactionName != null) {
 						requestable = context.project.getConnectorByName(context.connectorName).getTransactionByName(context.transactionName);
-					}
+						if (requestable instanceof TransactionWithVariables) {
+							variableList = ((TransactionWithVariables) requestable).getVariablesList();
+						}
+					}									
 				}
 				
 				Iterator<?> iterator2 = method.getChildElements();
@@ -154,7 +162,13 @@ public class WebServiceTranslator implements Translator {
 						parameterName = parameter.getElementName().getLocalName();
 						parameterValue = parameter.getValue();
 						if (parameterValue == null) parameterValue = "";
-						Engine.logBeans.debug("   Parameter: " + parameterName + "=\"" + parameterValue + "\"");
+						
+						if (variableList != null) {		// jmc 12/06/26 hide hidden variables in sequences
+							String str = (String) Visibility.Logs.replaceVariables(variableList, "" + parameterName + "=\"" + parameterValue) + "\"";
+							Engine.logBeans.debug("   Parameter: " + str);
+						}
+						else
+							Engine.logBeans.debug("   Parameter: " + parameterName + "=\"" + parameterValue + "\"");
 
 						if (Parameter.Context.getName().equalsIgnoreCase(parameterName)) {
 							// Already handled!							
@@ -425,7 +439,7 @@ public class WebServiceTranslator implements Translator {
 			}
 		}
 	}
-	
+
     private boolean isSoapArray(IVariableContainer requestable, String parameterName) {
 		int len = requestable.numberOfVariables();
 		for (int j = 0 ; j < len ; j++) {
