@@ -110,7 +110,14 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 					return true;
 				}
 				if (bContinue && sequence.isRunning()) {
-					iterator.nextElement();
+					Object item = iterator.nextElement();
+					Scriptable jsItem = org.mozilla.javascript.Context.toObject(item, scope);
+					scope.put("item", scope, jsItem);
+					
+					int index = iterator.numberOfIterations();
+					Scriptable jsIndex = org.mozilla.javascript.Context.toObject(index, scope);
+					scope.put("index", scope, jsIndex);
+					
 					if (!super.stepExecute(javascriptContext, scope))
 						break;
 				}

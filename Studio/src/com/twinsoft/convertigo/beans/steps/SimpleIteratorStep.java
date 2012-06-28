@@ -113,8 +113,13 @@ public class SimpleIteratorStep extends LoopStep {
 				}
 				if (bContinue && sequence.isRunning()) {
 					Object item = iterator.nextElement();
-					Scriptable jsObject = org.mozilla.javascript.Context.toObject(item, scope);
-					scope.put("item", scope, jsObject);
+					Scriptable jsItem = org.mozilla.javascript.Context.toObject(item, scope);
+					scope.put("item", scope, jsItem);
+					
+					int index = iterator.numberOfIterations();
+					Scriptable jsIndex = org.mozilla.javascript.Context.toObject(index, scope);
+					scope.put("index", scope, jsIndex);
+					
 					if (!super.stepExecute(javascriptContext, scope))
 						break;
 				}
