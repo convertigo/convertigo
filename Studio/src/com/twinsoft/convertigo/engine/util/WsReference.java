@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -71,6 +72,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.Version;
+import com.twinsoft.convertigo.engine.PacManager.PacInfos;
 import com.twinsoft.convertigo.engine.ProxyManager.ProxyMode;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSDException;
@@ -166,13 +168,25 @@ public class WsReference {
 			// PROXY
 			String proxyMode = Engine.theApp.proxyManager.proxyMode;
 			String proxyExcludes = StringUtils.join(Engine.theApp.proxyManager.getBypassDomains(), ",");
-			String proxyHost = Engine.theApp.proxyManager.getProxyServer();
+			String proxyServer = Engine.theApp.proxyManager.getProxyServer();
 			int proxyPort = Engine.theApp.proxyManager.getProxyPort();
 			String proxyUser = Engine.theApp.proxyManager.getProxyUser();
 			String proxyPwd = Engine.theApp.proxyManager.getProxyPassword();
 			
 			boolean enableProxy = !proxyMode.equals(ProxyMode.off.name());
 			if (enableProxy) {
+				if (proxyMode.equals(ProxyMode.auto.name())) {
+					try {
+						URL url = new URL(wsdlUrl);
+						PacInfos pacInfos = Engine.theApp.proxyManager.getPacInfos(url.toString(), url.getHost());
+						if (pacInfos != null) {
+							proxyServer = pacInfos.getServer();
+							proxyPort = pacInfos.getPort();
+						}
+					}
+					catch (Exception e) {}
+				}
+				
 				if (!settings.getBoolean(ProxySettings.ENABLE_PROXY)) {
 					settings.setBoolean(ProxySettings.ENABLE_PROXY, true);
 					soapuiSettingsChanged = true;
@@ -181,8 +195,8 @@ public class WsReference {
 					settings.setString(ProxySettings.EXCLUDES, proxyExcludes);
 					soapuiSettingsChanged = true;
 				}
-				if (!proxyHost.equals(settings.getString(ProxySettings.HOST, null))) {
-					settings.setString(ProxySettings.HOST, proxyHost);
+				if (!proxyServer.equals(settings.getString(ProxySettings.HOST, null))) {
+					settings.setString(ProxySettings.HOST, proxyServer);
 					soapuiSettingsChanged = true;
 				}
 				if (!String.valueOf(proxyPort).equals(settings.getString(ProxySettings.PORT, null))) {

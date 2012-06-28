@@ -35,6 +35,7 @@ import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.auth.BasicScheme;
 
+import com.twinsoft.convertigo.engine.PacManager.PacInfos;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.parsers.AbstractXulWebViewer;
@@ -171,23 +172,34 @@ public class ProxyManager {
 						hostConfiguration.setProxy(proxyServer, proxyPort);
 						Engine.logProxyManager.debug("(ProxyManager) Using proxy: " + proxyServer + ":" + proxyPort);
 					} else {
-						hostConfiguration.setProxyHost(null);
+						disableProxy(hostConfiguration);
 					}
 				}
 				else if (proxyMode.equals(ProxyMode.auto.name())) {
-					String result = pacUtils.evaluate(url.toString(), url.getHost());
+//					String result = pacUtils.evaluate(url.toString(), url.getHost());
+//					
+//					if (result.startsWith("PROXY")) {
+//						result = result.replaceAll("PROXY\\s*", "");
+//						String pacServer = result.split(":")[0];
+//						int pacPort =  Integer.parseInt(result.split(":")[1]);
+//						this.proxyServer = pacServer;
+//						this.proxyPort = pacPort;
+//						hostConfiguration.setProxy(pacServer, pacPort);
+//						Engine.logProxyManager.debug("(ProxyManager) Using proxy from auto configuration file: " + proxyServer + ":" + proxyPort);
+//					}
+//					else {
+//						hostConfiguration.setProxyHost(null);
+//					}
 					
-					if (result.startsWith("PROXY")) {
-						result = result.replaceAll("PROXY\\s*", "");
-						String pacServer = result.split(":")[0];
-						int pacPort =  Integer.parseInt(result.split(":")[1]);
-						this.proxyServer = pacServer;
-						this.proxyPort = pacPort;
-						hostConfiguration.setProxy(pacServer, pacPort);
+					PacInfos pacInfos = getPacInfos(url.toString(), url.getHost());
+					if (pacInfos != null) {
+						proxyServer = pacInfos.getServer();
+						proxyPort = pacInfos.getPort();
+						hostConfiguration.setProxy(proxyServer, proxyPort);
 						Engine.logProxyManager.debug("(ProxyManager) Using proxy from auto configuration file: " + proxyServer + ":" + proxyPort);
 					}
 					else {
-						hostConfiguration.setProxyHost(null);
+						disableProxy(hostConfiguration);
 					}
 				}
 				
@@ -212,7 +224,11 @@ public class ProxyManager {
 			}
 		}
 	}
-
+	
+	public PacInfos getPacInfos(String url, String host) {
+		return pacUtils.getPacInfos(url, host);
+	}
+	
 	public void setBasicAuth(HttpState httpState) {
 		// Setting basic authentication for proxy
 		if ((!this.proxyServer.equals("")) && (!this.proxyUser.equals(""))) {
@@ -234,8 +250,8 @@ public class ProxyManager {
 		Engine.logProxyManager.debug("(ProxyManager) Using NTLM authentication on domain: " + domain);
 
 		httpState.setProxyCredentials(
-				new AuthScope(this.proxyServer, -1, AuthScope.ANY_REALM), new NTCredentials(
-						username, this.proxyPassword, this.proxyServer, domain));
+				new AuthScope(this.proxyServer, -1, AuthScope.ANY_REALM),
+				new NTCredentials(username, this.proxyPassword, this.proxyServer, domain));
 		
 	}
 	

@@ -122,4 +122,32 @@ public class PacManager {
 		
 		return result.toString();
 	}
+	
+	public PacInfos getPacInfos(String url, String host) {
+		PacInfos pacInfos = null;
+		String result = evaluate(url, host);
+		if (result.startsWith("PROXY")) {
+			result = result.replaceAll("PROXY\\s*", "");
+			pacInfos = new PacInfos();
+			pacInfos.pacServer = result.split(":")[0];
+			pacInfos.pacPort = Integer.parseInt(result.split(":")[1]);
+		}
+		return pacInfos;
+	}
+	
+	public class PacInfos {
+		protected String pacServer;
+		protected int pacPort;
+		
+		protected PacInfos() {
+		}
+		
+		public String getServer() {
+			return pacServer;
+		}
+		
+		public int getPort() {
+			return pacPort;
+		}
+	}
 }
