@@ -41,7 +41,7 @@ public class IteratorStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 			
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 			
             properties[0] = new PropertyDescriptor("sourceDefinition", beanClass, "getSourceDefinition", "setSourceDefinition");
 			properties[0].setExpert(true);
@@ -49,6 +49,10 @@ public class IteratorStepBeanInfo extends MySimpleBeanInfo {
 			properties[0].setShortDescription(getExternalizedString("property.sourceDefinition.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
 
+            properties[1] = new PropertyDescriptor("startIndex", beanClass, "getStartIndex", "setStartIndex");
+			properties[1].setDisplayName(getExternalizedString("property.startIndex.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.startIndex.short_description"));
+			
 			PropertyDescriptor property = getPropertyDescriptor("condition");
 			property.setDisplayName(getExternalizedString("property.condition.display_name"));
 			property.setShortDescription(getExternalizedString("property.condition.short_description"));

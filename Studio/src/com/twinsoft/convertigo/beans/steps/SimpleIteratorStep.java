@@ -42,6 +42,7 @@ public class SimpleIteratorStep extends LoopStep {
 	private static final long serialVersionUID = -9093650239163532022L;
 
 	protected String expression = "";
+	protected int startIndex = 1;
 	
 	private transient Iterator iterator = null;
 	private transient Integer iterations = null;
@@ -72,6 +73,14 @@ public class SimpleIteratorStep extends LoopStep {
 	
 	protected String getSpecificLabel() throws EngineException {
 		return expression.equals("")? "@??":"@"+expression;
+	}
+
+	public int getStartIndex() {
+		return startIndex;
+	}
+
+	public void setStartIndex(int startIndex) {
+		this.startIndex = startIndex;
 	}
 
 	public String toString() {
@@ -119,6 +128,13 @@ public class SimpleIteratorStep extends LoopStep {
 					int index = iterator.numberOfIterations();
 					Scriptable jsIndex = org.mozilla.javascript.Context.toObject(index, scope);
 					scope.put("index", scope, jsIndex);
+					
+					int start = getStartIndex();
+					start = start<1 ? 1:start;
+					if (start > index) {
+						doLoop(javascriptContext, scope);
+						continue;
+					}
 					
 					if (!super.stepExecute(javascriptContext, scope))
 						break;

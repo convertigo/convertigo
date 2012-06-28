@@ -42,6 +42,7 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 	private static final long serialVersionUID = -5108986745479990736L;
 	
 	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
+	protected int startIndex = 1;
 	
 	private transient Iterator iterator = null;
 	private transient StepSource source = null;
@@ -51,7 +52,7 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	public Object clone() throws CloneNotSupportedException {
     	IteratorStep clonedObject = (IteratorStep) super.clone();
     	clonedObject.iterator = null;
     	clonedObject.source = null;
@@ -91,6 +92,14 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		source = new StepSource(this,sourceDefinition);
 	}
 
+	public int getStartIndex() {
+		return startIndex;
+	}
+
+	public void setStartIndex(int startIndex) {
+		this.startIndex = startIndex;
+	}
+
 	public Node getContextNode(int loop) {
 		Engine.logBeans.trace("(IteratorStep) Retrieve context node for loop :"+ loop);
 		return iterator.getNode(loop);
@@ -117,6 +126,13 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 					int index = iterator.numberOfIterations();
 					Scriptable jsIndex = org.mozilla.javascript.Context.toObject(index, scope);
 					scope.put("index", scope, jsIndex);
+					
+					int start = getStartIndex();
+					start = start<1 ? 1:start;
+					if (start > index) {
+						doLoop(javascriptContext, scope);
+						continue;
+					}
 					
 					if (!super.stepExecute(javascriptContext, scope))
 						break;
