@@ -35,6 +35,8 @@ import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
@@ -262,6 +264,20 @@ public class SourcePickerView extends ViewPart implements IStepSourceEditor, Ste
 						xpathEvaluator.generateAbsoluteXpath(true, (Node)object);
 					}
 				}
+			}
+		});
+		twsDomTree.addKeyListener(new KeyAdapter() {
+			public void keyReleased(KeyEvent e) {
+				try {
+					TreeItem treeItem = twsDomTree.getTree().getSelection()[0];
+					if (treeItem!=null) {
+						Object object = treeItem.getData();
+						if ((object != null) && (object instanceof Node)) {
+							xpathEvaluator.generateAbsoluteXpath(true, (Node)object);
+						}
+					}
+				}
+				catch (Exception ex) {}
 			}
 		});
 		

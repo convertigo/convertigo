@@ -31,6 +31,8 @@ import javax.xml.transform.TransformerException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
@@ -135,7 +137,20 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 				}
 			}
 		});
-
+		twsDomTree.addKeyListener(new KeyAdapter() {
+			public void keyReleased(KeyEvent e) {
+				try {
+					TreeItem treeItem = twsDomTree.getTree().getSelection()[0];
+					if (treeItem!=null) {
+						Object object = treeItem.getData();
+						if ((object != null) && (object instanceof Node)) {
+							xpathEvaluator.generateAbsoluteXpath(true, (Node)object);
+						}
+					}
+				}
+				catch (Exception ex) {}
+			}
+		});
 		
 		//setSize(new org.eclipse.swt.graphics.Point(402,289));
 	}
