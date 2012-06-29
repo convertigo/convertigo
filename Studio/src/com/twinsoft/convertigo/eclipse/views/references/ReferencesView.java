@@ -111,7 +111,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
-			if (part != ReferencesView.this) {
+			if (part instanceof ProjectExplorerView) {
 				Object firstElement = ((IStructuredSelection) selection).getFirstElement();
 				
 				if (firstElement instanceof ScreenClassTreeObject) {
@@ -135,8 +135,10 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				}
 			}
 			else {
-				Object firstElement = ((IStructuredSelection) selection).getFirstElement();
-				handleSelectedObjectInRefView(firstElement);
+				if (part == ReferencesView.this) {
+					Object firstElement = ((IStructuredSelection) selection).getFirstElement();
+					handleSelectedObjectInRefView(firstElement);
+				}
 			}
 		}
 	}
