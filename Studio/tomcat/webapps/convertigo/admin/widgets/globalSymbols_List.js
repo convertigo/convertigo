@@ -69,12 +69,11 @@ function globalSymbols_List_init() {
 			rownumbers : false
 		});
 		updateGlobalSymbolsList(xml);
+		
+		$("#symbolsList").change(function() {
+			$("#updateSymbols").button("enable");
+		});
 	});
-	
-	$("#symbolsList").bind("focus" ,function() {
-		$("#updateSymbols").button("enable");
-	});
-
 }
 
 function globalSymbols_List_update() {
