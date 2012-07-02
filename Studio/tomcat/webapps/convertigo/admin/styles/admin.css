@@ -1403,3 +1403,8 @@ a.start {
 #projectsAssembleXsl{
 	margin-left: 30px;
 }
+
+/*************************************************** SYMBOLS WIDGET *******************************************************/
+#dialog-add-symbol {
+	display: none;
+}
