@@ -46,7 +46,7 @@ public class XMLHttpHeaders extends HtmlExtractionRule {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public XMLHttpHeaders clone() throws CloneNotSupportedException {
 		XMLHttpHeaders xmlHttpHeaders = (XMLHttpHeaders)super.clone();
 		return xmlHttpHeaders;
 	}

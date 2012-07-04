@@ -36,7 +36,7 @@ public class RequestableHttpVariable extends RequestableVariable {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public RequestableHttpVariable clone() throws CloneNotSupportedException {
 		RequestableHttpVariable clonedObject = (RequestableHttpVariable)super.clone();
 		return clonedObject;
 	}

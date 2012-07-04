@@ -33,12 +33,14 @@ public class ThenStep extends StepWithExpressions {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public ThenStep clone() throws CloneNotSupportedException {
     	ThenStep clonedObject = (ThenStep) super.clone();
         return clonedObject;
     }
-	
-	public Object copy() throws CloneNotSupportedException {
+
+	@Override
+	public ThenStep copy() throws CloneNotSupportedException {
 		ThenStep copiedObject = (ThenStep)super.copy();
 		return copiedObject;
 	}
@@ -51,6 +53,7 @@ public class ThenStep extends StepWithExpressions {
 		return false;
 	}
 
+	@Override
 	public String toString() {
 		return "Then";
 	}

@@ -38,8 +38,6 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
 public class TestCase extends DatabaseObject implements IVariableContainer, IContainerOrdered {
 
 	private static final long serialVersionUID = 8119436229667565326L;
-
-	public static final String DATA_DIRECTORY = "tc";
 	
 	protected XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
@@ -55,31 +53,11 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 	}
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public TestCase clone() throws CloneNotSupportedException {
     	TestCase clonedObject = (TestCase) super.clone();
 		clonedObject.vVariables = new LinkedList<TestCaseVariable>();
 		clonedObject.vAllVariables = null;
         return clonedObject;
-    }
-	
-	@Override
-    public String getPath() {
-		return parent.getPath() + "/" + DATA_DIRECTORY + "/" + computeFileName();
-    }
-    
-    @Override
-    public String getOldPath() {
-		return parent.getOldPath() + "/" + DATA_DIRECTORY + "/" + computeOldFileName();
-    }
-
-    @Override
-    public String getFileName() {
-        return "testcase.xml";
-    }
-    
-    @Override
-    public String getOldFileName() {
-        return "testcase.xml";
     }
 
 	public XMLVector<XMLVector<Long>> getOrderedVariables() {

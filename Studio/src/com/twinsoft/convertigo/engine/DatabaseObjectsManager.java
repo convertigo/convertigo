@@ -23,20 +23,15 @@
 package com.twinsoft.convertigo.engine;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.ConcurrentModificationException;
 import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -55,40 +50,20 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import com.twinsoft.convertigo.beans.core.BlockFactory;
 import com.twinsoft.convertigo.beans.core.Connector;
-import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.ExtractionRule;
-import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
-import com.twinsoft.convertigo.beans.core.MobileDevice;
-import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
-import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Sheet;
-import com.twinsoft.convertigo.beans.core.Statement;
-import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
-import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
-import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
-import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLActionStep;
 import com.twinsoft.convertigo.beans.steps.XMLGenerateDatesStep;
-import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
-import com.twinsoft.convertigo.beans.variables.HttpStatementVariable;
-import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
-import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
-import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.engine.migration.Migration001;
 import com.twinsoft.convertigo.engine.migration.Migration3_0_0;
 import com.twinsoft.convertigo.engine.migration.Migration5_0_0;
@@ -105,11 +80,7 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
  * repository and restoring them from the Convertigo database repository.
  */
 public class DatabaseObjectsManager implements AbstractManager {
-
-	/**
-	 * The objects cache for database objects.
-	 */
-	private Map<String, DatabaseObject> objects;
+	private Map<String, Project> projects;
 
 	/**
 	 * The symbols repository for compiling text properties.
@@ -127,8 +98,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public void init() throws EngineException {
-		objects = new Hashtable<String, DatabaseObject>(2048);
-		symbolsMap = new Hashtable<String, String>(128);
+		projects = new HashMap<String, Project>();
+		symbolsMap = new HashMap<String, String>(128);
 		symbolsMapInit();
 	}
 
@@ -160,7 +131,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public void destroy() throws EngineException {
-		objects = null;
+		projects = null;
 		symbolsMap = null;
 	}
 
@@ -209,20 +180,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 					+ Engine.PROJECTS_PATH + "\"");
 			File projectsDir = new File(Engine.PROJECTS_PATH);
 			SortedSet<String> projectNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-			File[] projectsDirList = projectsDir.listFiles(new FilenameFilter() {
-				public boolean accept(File dir, String name) {
-					// Project names cannot contain dots ("."); filtered for
-					// performances issue
-					return name.indexOf('.') == -1;
-				}
-			});
-			for (File pathname : projectsDirList) {
-				if (pathname.isDirectory()
-						&& new File(pathname.getAbsolutePath() + File.separator + "_data" + File.separator
-								+ "project.xml").exists()) {
-					projectNames.add(pathname.getName());
+			
+			for (File projectDir : projectsDir.listFiles()) {
+				if (projectDir.isDirectory() && new File(projectDir, projectDir.getName() + ".xml").exists()) {
+					projectNames.add(projectDir.getName());
 				}
 			}
+			
 			Engine.logDatabaseObjectManager.trace("Project names found: " + projectNames.toString());
 			return new ArrayList<String>(projectNames);
 		} catch (Exception e) {
@@ -239,8 +203,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	protected void checkForEngineMigrationProcess(String projectName)
-			throws ProjectInMigrationProcessException {
+	protected void checkForEngineMigrationProcess(String projectName) throws ProjectInMigrationProcessException {
 		if (!(Thread.currentThread() instanceof MigrationJob)) {
 			if (!MigrationManager.isProjectMigrated(projectName)) {
 				throw new ProjectInMigrationProcessException();
@@ -259,6 +222,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	private static ThreadLocal<ProjectLoadingData> projectLoadingDataThreadLocal = new ThreadLocal<ProjectLoadingData>() {
+		@Override
 		protected ProjectLoadingData initialValue() {
 			return new ProjectLoadingData();
 		}
@@ -267,678 +231,55 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public static ProjectLoadingData getProjectLoadingData() {
 		return projectLoadingDataThreadLocal.get();
 	}
+	
+	public Project getOriginalProjectByName(String projectName) throws EngineException {
+		Engine.logDatabaseObjectManager.trace("Requiring loading of project \"" + projectName + "\"");
+		
+		Project project;
+		
+		synchronized (projects) {
+			project = projects.get(projectName);
+		}
+		
+		if (project == null) {		
+			long t0 = Calendar.getInstance().getTime().getTime();
 
-	public Project getProjectByName0(String projectName) throws EngineException {
-		return getProjectByName(projectName);
+			projectLoadingDataThreadLocal.remove();
+			getProjectLoadingData().projectName = projectName;
+
+			try {
+				checkForEngineMigrationProcess(projectName);
+				project = importProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
+			} catch (ClassCastException e) {
+				throw new EngineException("The requested object \"" + projectName + "\" is not a project!", e);
+			} catch (ProjectInMigrationProcessException e) {
+				throw new EngineException("Unable to load the project \"" + projectName
+						+ "\": the project is in migration process.", e);
+			} finally {
+				long t1 = Calendar.getInstance().getTime().getTime();
+				Engine.logDatabaseObjectManager.trace("Project loaded in " + (t1 - t0) + " ms");
+			}
+		} else {
+			Engine.logDatabaseObjectManager.trace("Retrieve from cache project \"" + projectName + "\"");
+		}
+		
+		return project;
 	}
 
 	public Project getProjectByName(String projectName) throws EngineException {
-		Engine.logDatabaseObjectManager.trace("Requiring loading of project \"" + projectName + "\"");
-		long t0 = Calendar.getInstance().getTime().getTime();
-
-		projectLoadingDataThreadLocal.remove();
-		DatabaseObjectsManager.getProjectLoadingData().projectName = projectName;
-
 		try {
-			checkForEngineMigrationProcess(projectName);
-			Project project = (Project) getDatabaseObject("/" + projectName + "/_data/project.xml");
-			return project;
-		} catch (ClassCastException e) {
-			throw new EngineException("The requested object \"" + projectName + "\" is not a project!", e);
-		} catch (DatabaseObjectNotFoundException e) {
-			throw new EngineException("Unable to load the project \"" + projectName + "\": the file \""
-					+ e.getMessage() + "\" is missing.", e);
-		} catch (ProjectInMigrationProcessException e) {
-			throw new EngineException("Unable to load the project \"" + projectName
-					+ "\": the project is in migration process.", e);
-		} finally {
-			long t1 = Calendar.getInstance().getTime().getTime();
-			Engine.logDatabaseObjectManager.trace("Project loaded in " + (t1 - t0) + " ms");
-		}
-	}
-
-	private final static Comparator<? super File> listFileComparator = new Comparator<File>() {
-		public int compare(File o1, File o2) {
-			return o1.getName().compareTo(o2.getName());
-		}
-	};
-
-	private final static FileFilter listDirectoriesFileFilter = new FileFilter() {
-		public boolean accept(File pathname) {
-			Engine.logDatabaseObjectManager.trace("   path name: " + pathname);
-			return pathname.isDirectory() && !pathname.getName().equals(".svn");
-		}
-	};
-
-	private File[] listDirectories(File fDatabaseObjectPath) {
-		File[] files = fDatabaseObjectPath.listFiles(listDirectoriesFileFilter);
-		if (files != null) {
-			Arrays.sort(files, listFileComparator);
-		}
-		return files;
-	}
-
-	private final static FileFilter listXmlFilesFileFilter = new FileFilter() {
-		public boolean accept(File pathname) {
-			Engine.logDatabaseObjectManager.trace("   path name: " + pathname);
-			return pathname.getName().endsWith(".xml");
-		}
-	};
-
-	private File[] listXmlFiles(File fDatabaseObjectPath) {
-		File[] files = fDatabaseObjectPath.listFiles(listXmlFilesFileFilter);
-		if (files != null) {
-			Arrays.sort(files, listFileComparator);
-		}
-		return files;
-	}
-
-	public void getSubDatabaseObjects(DatabaseObject databaseObject) throws EngineException,
-			DatabaseObjectNotFoundException {
-		String databaseObjectPath = Engine.PROJECTS_PATH + databaseObject.getPath();
-		File fDatabaseObjectPath;
-		File[] fDatabaseObjects;
-
-		if (databaseObject instanceof Project) {
-			Project project = (Project) databaseObject;
-
-			// Retrieving the project's connectors
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Connector.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving connectors from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listDirectories(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					Connector connector = (Connector) getDatabaseObject(databaseObject.getPath() + "/"
-							+ Connector.DATA_DIRECTORY + "/" + fDatabaseObject.getName() + "/connector.xml");
-					project.add(connector);
-				}
-			}
-
-			// Retrieving the project's sequences
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Sequence.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving sequences from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listDirectories(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					Sequence sequence = (Sequence) getDatabaseObject(databaseObject.getPath() + "/"
-							+ Sequence.DATA_DIRECTORY + "/" + fDatabaseObject.getName() + "/sequence.xml");
-					project.add(sequence);
-				}
-			}
-
-			// Retrieving the project's mobile devices
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + MobileDevice.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving mobile devices from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listXmlFiles(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					MobileDevice device = (MobileDevice) getDatabaseObject(databaseObject.getPath() + "/"
-							+ MobileDevice.DATA_DIRECTORY + "/" + fDatabaseObject.getName());
-					project.add(device);
-				}
-			}
-		} else if (databaseObject instanceof Sequence) {
-			Sequence sequence = (Sequence) databaseObject;
-			// Retrieving the sequence sheets
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Sheet.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving sheets from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listXmlFiles(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					Sheet sheet = (Sheet) getDatabaseObject(databaseObject.getPath() + "/"
-							+ Sheet.DATA_DIRECTORY + "/" + fDatabaseObject.getName());
-					sequence.addSheet(sheet);
-				}
-			}
-
-			// Retrieving the sequence's test cases
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + TestCase.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving test cases from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listDirectories(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					TestCase testCase = (TestCase) getDatabaseObject(databaseObject.getPath() + "/"
-							+ TestCase.DATA_DIRECTORY + "/" + fDatabaseObject.getName() + "/testcase.xml");
-					sequence.addTestCase(testCase);
-				}
-			}
-
-			// Retrieving the sequence's steps
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Step.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving steps from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listDirectories(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					Step step = (Step) getDatabaseObject(databaseObject.getPath() + "/" + Step.DATA_DIRECTORY
-							+ "/" + fDatabaseObject.getName() + "/step.xml");
-					sequence.addStep(step);
-				}
-				/* No more needed */
-				// Update steps here because could not use
-				// step::configure(Element)
-				// sequence.configureSteps();
-			}
-
-			// Retrieving the sequence's variables
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Variable.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving variables from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listXmlFiles(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					RequestableVariable variable = (RequestableVariable) getDatabaseObject(databaseObject
-							.getPath() + "/" + Variable.DATA_DIRECTORY + "/" + fDatabaseObject.getName());
-					sequence.addVariable(variable);
-				}
-			}
-		} else if (databaseObject instanceof Connector) {
-			Connector connector = (Connector) databaseObject;
-
-			// Retrieving the connector's pools
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Pool.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving pools from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listXmlFiles(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					Pool pool = (Pool) getDatabaseObject(databaseObject.getPath() + "/" + Pool.DATA_DIRECTORY
-							+ "/" + fDatabaseObject.getName());
-					connector.add(pool);
-				}
-			}
-
-			// Retrieving the connector's transactions
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Transaction.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving transactions from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listDirectories(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					Transaction transaction = (Transaction) getDatabaseObject(databaseObject.getPath() + "/"
-							+ Transaction.DATA_DIRECTORY + "/" + fDatabaseObject.getName()
-							+ "/transaction.xml");
-					connector.add(transaction);
-				}
-			}
-
-			// Retrieving the connector's default screenclass for connectors
-			if (databaseObject instanceof IScreenClassContainer<?>) {
-				fDatabaseObjectPath = new File(databaseObjectPath + "/" + ScreenClass.DATA_DIRECTORY);
-				Engine.logDatabaseObjectManager
-						.trace("[getSubDatabaseObjects()] Retrieving default screen class from "
-								+ fDatabaseObjectPath.toString());
-				fDatabaseObjects = listDirectories(fDatabaseObjectPath);
-
-				if (fDatabaseObjects == null) {
-					Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-							+ fDatabaseObjectPath.toString());
-				} else {
-					int len = fDatabaseObjects.length;
-					if (len > 1) {
-						throw new EngineException("There is more than one default screen class!");
-					}
-					ScreenClass screenClass = (ScreenClass) getDatabaseObject(databaseObject.getPath() + "/"
-							+ ScreenClass.DATA_DIRECTORY + "/" + fDatabaseObjects[0].getName()
-							+ "/screenclass.xml");
-					((IScreenClassContainer<?>) databaseObject).setDefaultScreenClass(screenClass);
-				}
-			}
-		} else if (databaseObject instanceof MobileDevice) {
-			// nothing to do for now
-		} else if (databaseObject instanceof Transaction) {
-			Transaction transaction = (Transaction) databaseObject;
-			// Retrieving the transaction's sheets
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Sheet.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving sheets from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listXmlFiles(fDatabaseObjectPath);
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					Sheet sheet = (Sheet) getDatabaseObject(databaseObject.getPath() + "/"
-							+ Sheet.DATA_DIRECTORY + "/" + fDatabaseObject.getName());
-					transaction.addSheet(sheet);
-				}
-			}
-
-			if (databaseObject instanceof HtmlTransaction) {
-				// Retrieving the transaction's statements
-				fDatabaseObjectPath = new File(databaseObjectPath + "/" + Statement.DATA_DIRECTORY);
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving statements from "
-						+ fDatabaseObjectPath.toString());
-				fDatabaseObjects = listDirectories(fDatabaseObjectPath);
-
-				if (fDatabaseObjects == null) {
-					Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-							+ fDatabaseObjectPath.toString());
-				} else if (fDatabaseObjects.length == 0) {
-					Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-							+ fDatabaseObjectPath.toString());
-				} else {
-					for (File fDatabaseObject : fDatabaseObjects) {
-						Statement statement = (Statement) getDatabaseObject(databaseObject.getPath() + "/"
-								+ Statement.DATA_DIRECTORY + "/" + fDatabaseObject.getName()
-								+ "/statement.xml");
-						((HtmlTransaction) databaseObject).addStatement(statement);
-					}
-				}
-			}
-
-			if (databaseObject instanceof TransactionWithVariables) {
-				// Retrieving the transaction's test cases
-				fDatabaseObjectPath = new File(databaseObjectPath + "/" + TestCase.DATA_DIRECTORY);
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving test cases from "
-						+ fDatabaseObjectPath.toString());
-				fDatabaseObjects = listDirectories(fDatabaseObjectPath);
-
-				if (fDatabaseObjects == null) {
-					Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-							+ fDatabaseObjectPath.toString());
-				} else if (fDatabaseObjects.length == 0) {
-					Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-							+ fDatabaseObjectPath.toString());
-				} else {
-					for (File fDatabaseObject : fDatabaseObjects) {
-						TestCase testCase = (TestCase) getDatabaseObject(databaseObject.getPath() + "/"
-								+ TestCase.DATA_DIRECTORY + "/" + fDatabaseObject.getName() + "/testcase.xml");
-						((TransactionWithVariables) databaseObject).addTestCase(testCase);
-					}
-				}
-
-				// Retrieving the transaction's variables
-				fDatabaseObjectPath = new File(databaseObjectPath + "/" + Variable.DATA_DIRECTORY);
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving variables from "
-						+ fDatabaseObjectPath.toString());
-				fDatabaseObjects = listXmlFiles(fDatabaseObjectPath);
-
-				if (fDatabaseObjects == null) {
-					Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-							+ fDatabaseObjectPath.toString());
-				} else if (fDatabaseObjects.length == 0) {
-					Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-							+ fDatabaseObjectPath.toString());
-				} else {
-					if (databaseObject instanceof HtmlTransaction) {
-						for (File fDatabaseObject : fDatabaseObjects) {
-							RequestableHttpVariable variable = (RequestableHttpVariable) getDatabaseObject(databaseObject
-									.getPath()
-									+ "/"
-									+ Variable.DATA_DIRECTORY
-									+ "/"
-									+ fDatabaseObject.getName());
-							((HtmlTransaction) databaseObject).addVariable(variable);
-						}
-					} else {
-						for (File fDatabaseObject : fDatabaseObjects) {
-							RequestableVariable variable = (RequestableVariable) getDatabaseObject(databaseObject
-									.getPath()
-									+ "/"
-									+ Variable.DATA_DIRECTORY
-									+ "/"
-									+ fDatabaseObject.getName());
-							((TransactionWithVariables) databaseObject).addVariable(variable);
-						}
-					}
-				}
-			}
-		} else if (databaseObject instanceof HTTPStatement) {
-			HTTPStatement httpStatement = (HTTPStatement) databaseObject;
-
-			// Retrieving the httpStatement variables
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Variable.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving variables from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listXmlFiles(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					HttpStatementVariable variable = (HttpStatementVariable) getDatabaseObject(databaseObject
-							.getPath() + "/" + Variable.DATA_DIRECTORY + "/" + fDatabaseObject.getName());
-					httpStatement.addVariable(variable);
-				}
-			}
-
-		} else if (databaseObject instanceof StatementWithExpressions) {
-			StatementWithExpressions statementWE = (StatementWithExpressions) databaseObject;
-
-			// Retrieving the statement's statements
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Statement.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving statements from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listDirectories(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					Statement childStatement = (Statement) getDatabaseObject(databaseObject.getPath() + "/"
-							+ Statement.DATA_DIRECTORY + "/" + fDatabaseObject.getName() + "/statement.xml");
-					statementWE.addStatement(childStatement);
-				}
-			}
-		} else if (databaseObject instanceof StepWithExpressions) {
-			StepWithExpressions stepWE = (StepWithExpressions) databaseObject;
-
-			// Retrieving the step's steps
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Step.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving steps from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listDirectories(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					Step childStep = (Step) getDatabaseObject(databaseObject.getPath() + "/"
-							+ Step.DATA_DIRECTORY + "/" + fDatabaseObject.getName() + "/step.xml");
-					stepWE.addStep(childStep);
-				}
-			}
-		} else if (databaseObject instanceof RequestableStep) {
-			RequestableStep requestableStep = (RequestableStep) databaseObject;
-
-			// Retrieving the requestableStep variables
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Variable.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving variables from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listXmlFiles(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					StepVariable variable = (StepVariable) getDatabaseObject(databaseObject.getPath() + "/"
-							+ Variable.DATA_DIRECTORY + "/" + fDatabaseObject.getName());
-					requestableStep.addVariable(variable);
-				}
-			}
-		} else if (databaseObject instanceof TestCase) {
-			TestCase testCase = (TestCase) databaseObject;
-
-			// Retrieving the test case variables
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Variable.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving variables from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listXmlFiles(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					TestCaseVariable variable = (TestCaseVariable) getDatabaseObject(databaseObject.getPath()
-							+ "/" + Variable.DATA_DIRECTORY + "/" + fDatabaseObject.getName());
-					testCase.addVariable(variable);
-				}
-			}
-		} else if (databaseObject instanceof ScreenClass) {
-			ScreenClass screenClass = (ScreenClass) databaseObject;
-
-			// Retrieving the screen class's block factory
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + BlockFactory.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving block factory from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listXmlFiles(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-				if (databaseObject.getParent() instanceof Project)
-					throw new EngineException("Data corrupted: the folder (\"" + databaseObjectPath + "/"
-							+ BlockFactory.DATA_DIRECTORY + "\") does not exist for the root screen class!");
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-				if (databaseObject.getParent() instanceof Project)
-					throw new EngineException("Data corrupted: the folder (\"" + databaseObjectPath + "/"
-							+ BlockFactory.DATA_DIRECTORY + "\") does not exist for the root screen class!");
-			} else if (screenClass instanceof JavelinScreenClass) {
-				if ((databaseObject.getParent() instanceof Project) && (fDatabaseObjects.length == 0))
-					throw new EngineException("Data corrupted: the block factory does not exist!");
-				BlockFactory blockFactory = (BlockFactory) getDatabaseObject(databaseObject.getPath() + "/"
-						+ BlockFactory.DATA_DIRECTORY + "/" + fDatabaseObjects[0].getName());
-				((JavelinScreenClass) screenClass).setBlockFactory(blockFactory);
-			}
-
-			// Retrieving the screen class's criterias
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Criteria.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving criterias from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listXmlFiles(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-				if (databaseObject.getParent() instanceof Project) {
-					throw new EngineException("Data corrupted: the folder (\"" + databaseObjectPath + "/"
-							+ BlockFactory.DATA_DIRECTORY + "\") does not exist for the root screen class!");
-				}
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-				if (databaseObject.getParent() instanceof Project) {
-					throw new EngineException("Data corrupted: the folder (\"" + databaseObjectPath + "/"
-							+ BlockFactory.DATA_DIRECTORY + "\") does not exist for the root screen class!");
-				}
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					Criteria criteria = (Criteria) getDatabaseObject(databaseObject.getPath() + "/"
-							+ Criteria.DATA_DIRECTORY + "/" + fDatabaseObject.getName());
-					screenClass.addCriteria(criteria);
-				}
-			}
-
-			// Retrieving the screen class's extraction rules
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + ExtractionRule.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager
-					.trace("[getSubDatabaseObjects()] Retrieving extraction rules from "
-							+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listXmlFiles(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					ExtractionRule extractionRule = (ExtractionRule) getDatabaseObject(databaseObject
-							.getPath() + "/" + ExtractionRule.DATA_DIRECTORY + "/" + fDatabaseObject.getName());
-					screenClass.addExtractionRule(extractionRule);
-				}
-			}
-
-			// Retrieving the screen class's sheets
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + Sheet.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Retrieving sheets from "
-					+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listXmlFiles(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					Sheet sheet = (Sheet) getDatabaseObject(databaseObject.getPath() + "/"
-							+ Sheet.DATA_DIRECTORY + "/" + fDatabaseObject.getName());
-					screenClass.addSheet(sheet);
-				}
-			}
-
-			// Retrieving the screen class's inherited screen classes
-			fDatabaseObjectPath = new File(databaseObjectPath + "/" + ScreenClass.DATA_DIRECTORY);
-			Engine.logDatabaseObjectManager
-					.trace("[getSubDatabaseObjects()] Retrieving inherited screen classes from "
-							+ fDatabaseObjectPath.toString());
-			fDatabaseObjects = listDirectories(fDatabaseObjectPath);
-
-			if (fDatabaseObjects == null) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] Not a directory: "
-						+ fDatabaseObjectPath.toString());
-			} else if (fDatabaseObjects.length == 0) {
-				Engine.logDatabaseObjectManager.trace("[getSubDatabaseObjects()] No objects found into "
-						+ fDatabaseObjectPath.toString());
-			} else {
-				for (File fDatabaseObject : fDatabaseObjects) {
-					ScreenClass inheritedScreenClass = (ScreenClass) getDatabaseObject(databaseObject
-							.getPath()
-							+ "/"
-							+ ScreenClass.DATA_DIRECTORY
-							+ "/"
-							+ fDatabaseObject.getName()
-							+ "/screenclass.xml");
-					screenClass.addInheritedScreenClass(inheritedScreenClass);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Reads a database object from the projects database repository.
-	 * 
-	 * @param databaseObjectQName
-	 *            the fully qualified name (with path, e.g. /[my project]/tr/[my
-	 *            transaction]).
-	 * 
-	 * @return the corresponding database object if it exists.
-	 * 
-	 * @throw DatabaseObjectNotFoundException if the corresponding database
-	 *        object does not exist.
-	 * @throw EngineException if the corresponding database object can not be
-	 *        returned, or does not exist.
-	 */
-	public DatabaseObject getDatabaseObject(String databaseObjectQName) throws EngineException,
-			DatabaseObjectNotFoundException {
-		Engine.logDatabaseObjectManager.trace("(DatabaseObjectsManager) Requesting object: "
-				+ databaseObjectQName);
-		DatabaseObject databaseObject;
-
-		try {
-			databaseObject = (DatabaseObject) objects.get(databaseObjectQName);
-			if (databaseObject != null) {
-				Engine.logDatabaseObjectManager
-						.trace("(DatabaseObjectsManager) Returning object from the cache objects");
-				fireDatabaseObjectLoaded(new DatabaseObjectLoadedEvent(databaseObject));
-				return (DatabaseObject) databaseObject.clone();
-			}
+			return getOriginalProjectByName(projectName).clone();
 		} catch (CloneNotSupportedException e) {
-			throw new EngineException("Unable to clone the object \"" + databaseObjectQName + "\"", e);
+			throw new EngineException("Exception on getProjectByName", e);
 		}
-
-		try {
-			String fileName = Engine.PROJECTS_PATH + databaseObjectQName;
-
-			databaseObject = DatabaseObject.read(fileName);
-
-			cacheUpdateObject(databaseObject, databaseObjectQName);
-			Engine.logDatabaseObjectManager.debug(databaseObject.getDatabaseType() + " '" + databaseObject.getName() + "' has been successfully deserialized.");
-
-			fireDatabaseObjectLoaded(new DatabaseObjectLoadedEvent(databaseObject));
-
-			return databaseObject;
-		} catch (FileNotFoundException e) {
-			throw new DatabaseObjectNotFoundException(databaseObjectQName);
-		} catch (IOException e) {
-			throw new EngineException("Unable to read the object file \"" + databaseObjectQName + "\".", e);
+	}
+	
+	public void clearCache(Project project) {
+		String name = project.getName();
+		synchronized (projects) {
+			if (projects.get(name) == project) {
+				projects.remove(name);
+			}
 		}
 	}
 
@@ -998,170 +339,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public void delete(DatabaseObject databaseObject) throws EngineException {
 		String databaseObjectQName = databaseObject.getQName();
-		String databaseObjectOldQName = databaseObject.getOldQName();
+		Engine.logDatabaseObjectManager
+					.info("Deleting the object \"" + databaseObjectQName + "\"");
 
-		// Checks if qname has changed
-		// (e.g. ticket#299 When a bean has been moved after one of it's parent
-		// has been renamed)
-		boolean hasQNameChanged = !databaseObjectQName.equals(databaseObjectOldQName) && !databaseObject.bNew;
-		String databaseObjectQNameToDelete = (hasQNameChanged ? databaseObjectOldQName : databaseObjectQName);
 
-		try {
-			Engine.logDatabaseObjectManager
-					.info("Deleting the object \"" + databaseObjectQNameToDelete + "\"");
-
-			// Deleting files...
-			if (databaseObject instanceof Connector) {
-				Connector connector = (Connector) databaseObject;
-
-				// Deleting the pools
-				for (Pool pool : connector.getPoolsList()) {
-					delete(pool);
-				}
-
-				// Deleting the transactions
-				for (Transaction transaction : connector.getTransactionsList()) {
-					delete(transaction);
-				}
-
-				if (connector instanceof IScreenClassContainer) {
-					// Deleting the screen classes
-					ScreenClass defaultScreenClass = ((IScreenClassContainer<?>) connector)
-							.getDefaultScreenClass();
-					delete(defaultScreenClass);
-				}
-
-				deleteDir(new File(Engine.PROJECTS_PATH
-						+ (hasQNameChanged ? connector.getOldPath() : connector.getPath())));
-			} else if (databaseObject instanceof Sequence) {
-				Sequence sequence = (Sequence) databaseObject;
-
-				for (Sheet sheet : sequence.getSheetsList()) {
-					delete(sheet);
-				}
-
-				for (TestCase testCase : sequence.getTestCasesList()) {
-					delete(testCase);
-				}
-
-				for (Step step : sequence.getSteps()) {
-					delete(step);
-				}
-
-				for (RequestableVariable variable : sequence.getVariablesList()) {
-					delete(variable);
-				}
-
-				deleteDir(new File(Engine.PROJECTS_PATH
-						+ (hasQNameChanged ? sequence.getOldPath() : sequence.getPath())));
-			} else if (databaseObject instanceof Transaction) {
-				Transaction transaction = (Transaction) databaseObject;
-
-				for (Sheet sheet : transaction.getSheetsList()) {
-					delete(sheet);
-				}
-
-				if (databaseObject instanceof TransactionWithVariables) {
-					for (TestCase testCase : ((TransactionWithVariables) transaction).getTestCasesList()) {
-						delete(testCase);
-					}
-
-					for (RequestableVariable variable : ((TransactionWithVariables) transaction)
-							.getVariablesList()) {
-						delete(variable);
-					}
-				}
-
-				if (databaseObject instanceof HtmlTransaction) {
-					for (Statement statement : ((HtmlTransaction) transaction).getStatements()) {
-						delete(statement);
-					}
-				}
-
-				deleteDir(new File(Engine.PROJECTS_PATH
-						+ (hasQNameChanged ? transaction.getOldPath() : transaction.getPath())));
-			} else if (databaseObject instanceof ScreenClass) {
-				ScreenClass screenClass = (ScreenClass) databaseObject;
-
-				for (ScreenClass inheritedScreenClass : screenClass.getInheritedScreenClasses()) {
-					delete(inheritedScreenClass);
-				}
-
-				for (Criteria criteria : screenClass.getCriterias()) {
-					if (databaseObject == criteria.getParent())
-						delete(criteria);
-				}
-
-				for (ExtractionRule extractionRule : screenClass.getExtractionRules()) {
-					if (databaseObject == extractionRule.getParent())
-						delete(extractionRule);
-				}
-
-				for (Sheet sheet : screenClass.getSheets()) {
-					if (databaseObject == sheet.getParent())
-						delete(sheet);
-				}
-
-				deleteDir(new File(Engine.PROJECTS_PATH
-						+ (hasQNameChanged ? screenClass.getOldPath() : screenClass.getPath())));
-			} else if (databaseObject instanceof StatementWithExpressions) {
-				StatementWithExpressions statementWithExpressions = (StatementWithExpressions) databaseObject;
-
-				for (Statement statement : statementWithExpressions.getStatements()) {
-					delete(statement);
-				}
-
-				deleteDir(new File(Engine.PROJECTS_PATH
-						+ (hasQNameChanged ? statementWithExpressions.getOldPath()
-								: statementWithExpressions.getPath())));
-			} else if (databaseObject instanceof Statement) {
-				Statement statement = (Statement) databaseObject;
-
-				if (databaseObject instanceof HTTPStatement) {
-					for (HttpStatementVariable variable : ((HTTPStatement) databaseObject).getVariables()) {
-						delete(variable);
-					}
-				}
-
-				deleteDir(new File(Engine.PROJECTS_PATH
-						+ (hasQNameChanged ? statement.getOldPath() : statement.getPath())));
-			} else if (databaseObject instanceof StepWithExpressions) {
-				StepWithExpressions stepWithExpressions = (StepWithExpressions) databaseObject;
-
-				for (Step step : stepWithExpressions.getSteps()) {
-					delete(step);
-				}
-
-				deleteDir(new File(Engine.PROJECTS_PATH
-						+ (hasQNameChanged ? stepWithExpressions.getOldPath() : stepWithExpressions.getPath())));
-			} else if (databaseObject instanceof Step) {
-				Step step = (Step) databaseObject;
-
-				if (databaseObject instanceof RequestableStep) {
-					for (Variable variable : ((RequestableStep) step).getVariables()) {
-						delete(variable);
-					}
-				}
-
-				deleteDir(new File(Engine.PROJECTS_PATH
-						+ (hasQNameChanged ? step.getOldPath() : step.getPath())));
-			} else if (databaseObject instanceof TestCase) {
-				TestCase testCase = (TestCase) databaseObject;
-
-				for (Variable variable : testCase.getVariables()) {
-					delete(variable);
-				}
-
-				deleteDir(new File(Engine.PROJECTS_PATH
-						+ (hasQNameChanged ? testCase.getOldPath() : testCase.getPath())));
-			} else {
-				databaseObject.delete();
-			}
-
-			cacheRemoveObject(databaseObjectQNameToDelete);
-		} catch (Exception e) {
-			throw new EngineException("Unable to delete the object \"" + databaseObjectQName + "\".", e);
-		}
+			databaseObject.delete();
+			cacheRemoveObject(databaseObjectQName);
 	}
 
 	public void deleteProject(String projectName) throws EngineException {
@@ -1336,17 +519,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
-	private Project exportProjectToXml(String projectName) throws EngineException {
-		// Retrieve a !clone! of project to perform export
-		Project project = getProjectByName(projectName);
+	public void exportProject(Project project) throws EngineException {
+		String projectName = project.getName();
 
 		// Export project
 		Engine.logDatabaseObjectManager.debug("Saving project \"" + projectName + "\" to XML file ...");
 		String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
 		CarUtils.exportProject(project, exportedProjectFileName);
 		Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" saved!");
-
-		return project;
 	}
 
 	public Project deployProject(String projectArchiveFilename, boolean bForce) throws EngineException {
@@ -1655,12 +835,17 @@ public class DatabaseObjectsManager implements AbstractManager {
 			// Retrieve project name
 			NodeList properties = projectElement.getElementsByTagName("property");
 			Element pName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
-			String projectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName,
-					Node.ELEMENT_NODE));
+			String projectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
 
+			
+			
 			// Import will perform necessary beans migration (see
 			// deserialisation)
 			Project project = (Project) importDatabaseObject(projectNode, null);
+			
+			synchronized (projects) {
+				projects.put(project.getName(), project);
+			}
 
 			// Creates xsd/wsdl files (Since 4.6.0)
 			performWsMigration(version, projectName);
@@ -1674,7 +859,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				// TODO: Migration to 4.0.1 (parent bean handles children order
 				// (priorities))!!
 				if (VersionUtils.compare(version, "4.0.1") >= 0) {
-					project = exportProjectToXml(projectName);
+					exportProject(project);
 				} else {
 					Engine.logDatabaseObjectManager
 							.error("Project \""
@@ -1969,7 +1154,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			if (parentDatabaseObject != null)
 				parentDatabaseObject.add(databaseObject);
 			databaseObject.isImporting = true;
-			databaseObject.write();
+			
 			cacheUpdateObject(databaseObject); // put a clone of databaseObject
 												// into object's cache
 
@@ -1995,6 +1180,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 
 			databaseObject.isImporting = false;
+			databaseObject.isSubLoaded = true;
 
 			fireDatabaseObjectImported(new DatabaseObjectImportedEvent(databaseObject));
 			return databaseObject;
@@ -2010,70 +1196,64 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public void cacheUpdateObject(DatabaseObject databaseObject) throws EngineException {
-		synchronized (objects) {
-			cacheUpdateObject(databaseObject, databaseObject.getQName());
-		}
+//		synchronized (objects) {
+//			cacheUpdateObject(databaseObject, databaseObject.getQName());
+//		}
 	}
 
 	public void cacheUpdateObject(DatabaseObject databaseObject, String databaseObjectQName)
 			throws EngineException {
-		synchronized (objects) {
-			try {
-				DatabaseObject clonedDatabaseObject = (DatabaseObject) databaseObject.clone();
-				Engine.logDatabaseObjectManager.trace("cacheUpdateObject(): " + databaseObjectQName);
-				objects.put(databaseObjectQName, clonedDatabaseObject);
-			} catch (CloneNotSupportedException e) {
-				throw new EngineException("CloneNotSupportedException on object \"" + databaseObjectQName
-						+ "\": " + e.getMessage());
-			}
-		}
+//		objects.put(databaseObjectQName, databaseObject);
+//		synchronized (objects) {
+//			try {
+//				DatabaseObject clonedDatabaseObject = (DatabaseObject) databaseObject.clone();
+//				Engine.logDatabaseObjectManager.trace("cacheUpdateObject(): " + databaseObjectQName);
+//				objects.put(databaseObjectQName, clonedDatabaseObject);
+//			} catch (CloneNotSupportedException e) {
+//				throw new EngineException("CloneNotSupportedException on object \"" + databaseObjectQName
+//						+ "\": " + e.getMessage());
+//			}
+//		}
 	}
 
 	public void cacheRemoveObject(String databaseObjectQName) {
-		synchronized (objects) {
-			Engine.logDatabaseObjectManager.trace("cacheRemoveObject(): " + databaseObjectQName);
-			objects.remove(databaseObjectQName);
-		}
+//		synchronized (objects) {
+//			Engine.logDatabaseObjectManager.trace("cacheRemoveObject(): " + databaseObjectQName);
+//			objects.remove(databaseObjectQName);
+//		}
 	}
 
 	public void cacheRemoveObjects(String databaseObjectQNamePrefix) {
-		synchronized (objects) {
-
-			Engine.logDatabaseObjectManager.trace("cacheRemoveObjects(): " + databaseObjectQNamePrefix);
-
-			// Nathalieh:
-			// This code throws a ConcurrentModificationException after the
-			// first key is removed
-			/*
-			 * for (String key : objects.keySet()) { if
-			 * (key.startsWith(databaseObjectQNamePrefix)) {
-			 * Engine.logDatabaseObjectManager.trace("   >>> removing " + key);
-			 * objects.remove(key); } }
-			 */
-
-			// Nathalieh:
-			// Until someone writes the right code...
-			boolean bContinue = true;
-			while (bContinue) {
-				try {
-					for (String key : objects.keySet()) {
-						if (key.startsWith(databaseObjectQNamePrefix)) {
-							Engine.logDatabaseObjectManager.trace("   >>> removing " + key);
-							objects.remove(key);
-						}
-					}
-					bContinue = false;
-				} catch (ConcurrentModificationException e) {
-					;// ignore
-				}
-			}
-		}
-	}
-
-	public void cacheRemoveAllObjects() {
-		synchronized (objects) {
-			Engine.logDatabaseObjectManager.trace("cacheRemoveAllObjects()");
-			objects = new Hashtable<String, DatabaseObject>(2048);
-		}
+//		synchronized (objects) {
+//
+//			Engine.logDatabaseObjectManager.trace("cacheRemoveObjects(): " + databaseObjectQNamePrefix);
+//
+//			// Nathalieh:
+//			// This code throws a ConcurrentModificationException after the
+//			// first key is removed
+//			/*
+//			 * for (String key : objects.keySet()) { if
+//			 * (key.startsWith(databaseObjectQNamePrefix)) {
+//			 * Engine.logDatabaseObjectManager.trace("   >>> removing " + key);
+//			 * objects.remove(key); } }
+//			 */
+//
+//			// Nathalieh:
+//			// Until someone writes the right code...
+//			boolean bContinue = true;
+//			while (bContinue) {
+//				try {
+//					for (String key : objects.keySet()) {
+//						if (key.startsWith(databaseObjectQNamePrefix)) {
+//							Engine.logDatabaseObjectManager.trace("   >>> removing " + key);
+//							objects.remove(key);
+//						}
+//					}
+//					bContinue = false;
+//				} catch (ConcurrentModificationException e) {
+//					;// ignore
+//				}
+//			}
+//		}
 	}
 }

@@ -45,13 +45,13 @@ public abstract class ReadFileStep extends Step {
 	}
 
 	@Override
-    public Object clone() throws CloneNotSupportedException {
+    public ReadFileStep clone() throws CloneNotSupportedException {
     	ReadFileStep clonedObject = (ReadFileStep) super.clone();
         return clonedObject;
     }
 	
 	@Override
-    public Object copy() throws CloneNotSupportedException {
+    public ReadFileStep copy() throws CloneNotSupportedException {
     	ReadFileStep copiedObject = (ReadFileStep) super.copy();	    	
         return copiedObject;
     }

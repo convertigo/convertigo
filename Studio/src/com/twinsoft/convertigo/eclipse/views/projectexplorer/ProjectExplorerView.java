@@ -150,7 +150,6 @@ import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDeleteAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction;
-import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectSaveAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableColumnAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableRowAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ProjectValidateXSDAction;
@@ -260,7 +259,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	private Action showStepInPickerAction;
 	//private Action projectCleanXSDAction;
 
-	public Action saveAction;
 	public Action projectExplorerSaveAllAction;
 
 	private ViewContentProvider viewContentProvider = null;
@@ -279,6 +277,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		ConvertigoPlugin.projectManager.setProjectExplorerView(this);
 	}
 
+	@Override
 	public void dispose() {
 		super.dispose();
 	}
@@ -373,15 +372,17 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	private void hookKeyboardActions() {
 		viewer.getControl().addKeyListener(new KeyAdapter() {
+			
+			@Override
 			public void keyReleased(KeyEvent event) {
 				handleKeyReleased(event);
 			}
+			
 		});
 	}
 
 	private void handleKeyReleased(KeyEvent event) {
 		boolean bCtrl = (((event.stateMask & SWT.CONTROL) != 0) || ((event.stateMask & SWT.CTRL) != 0));
-		boolean bShift = (event.stateMask & SWT.SHIFT) != 0;
 		boolean bAlt = (event.stateMask & SWT.ALT) != 0;
 		int stateMask = event.stateMask;
 		int keyCode = event.keyCode;
@@ -442,11 +443,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			// Saving
 			if ((c == 's') || (keyCode == 115)) {
-				if (bShift) {
-					saveAction.run();
-				} else {
-					projectExplorerSaveAllAction.run();
-				}
+				projectExplorerSaveAllAction.run();
 			}
 			
 			// F5 for executing default transaction
@@ -546,7 +543,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		deleteDatabaseObjectAction = new DatabaseObjectDeleteAction();
 		deletePropertyTableRowAction = new DeletePropertyTableRowAction();
 		deletePropertyTableColumnAction = new DeletePropertyTableColumnAction();
-		saveAction = new DatabaseObjectSaveAction();
 		projectExplorerSaveAllAction = new ProjectExplorerSaveAllAction();
 		decreasePriorityAction = new DatabaseObjectDecreasePriorityAction();
 		increasePriorityAction = new DatabaseObjectIncreasePriorityAction();
@@ -1037,13 +1033,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			try {
 				int worksNumber = 10;
 				
-				try {
-					String latestSavedDatabaseObjectQName = ((DatabaseObjectTreeObject)parentTreeObject).latestSavedDatabaseObjectQName;
-					String latestSavedDatabaseObjectPath = latestSavedDatabaseObjectQName.substring(0, latestSavedDatabaseObjectQName.lastIndexOf('/'));
-					File file = new File(Engine.PROJECTS_PATH + latestSavedDatabaseObjectPath);
-					worksNumber = 2 * ConvertigoPlugin.projectManager.getNumberOfObjects(file);
-				}
-				catch (Exception e) {}
+//				try {
+//					String latestSavedDatabaseObjectQName = ((DatabaseObjectTreeObject)parentTreeObject).latestSavedDatabaseObjectQName;
+//					String latestSavedDatabaseObjectPath = latestSavedDatabaseObjectQName.substring(0, latestSavedDatabaseObjectQName.lastIndexOf('/'));
+//					File file = new File(Engine.PROJECTS_PATH + latestSavedDatabaseObjectPath);
+//					worksNumber = 2 * ConvertigoPlugin.projectManager.getNumberOfObjects(file);
+//				}
+//				catch (Exception e) {}
 				
 				monitor.beginTask("Reloading \""+ dboName + "\" object", worksNumber);
 				
@@ -1371,7 +1367,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							// unknow DBO case !!!
 							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
 						}
-
 						// no virtual folder 
 						if (folderType == Integer.MIN_VALUE) {
 							parentTreeObject.addChild(databaseObjectTreeObject);
@@ -2447,14 +2442,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				catch (Throwable t) {t.printStackTrace();}
 			}
 		});
-	}
-
-	public boolean reloadProject(ProjectTreeObject projectTreeObject) throws EngineException, IOException, CoreException {
-		if (projectTreeObject != null) {
-			String targetProjectName = projectTreeObject.getName();
-			return importProject(Engine.PROJECTS_PATH  + "/" + targetProjectName + "/" + targetProjectName + ".xml", targetProjectName, true);
-		}
-		return false;
 	}
 
 	public boolean importProject(String filePath, ProjectTreeObject projectTreeObject) throws EngineException, IOException, CoreException {

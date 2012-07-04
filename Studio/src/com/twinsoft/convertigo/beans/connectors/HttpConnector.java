@@ -195,7 +195,7 @@ public class HttpConnector extends Connector {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public HttpConnector clone() throws CloneNotSupportedException {
 		HttpConnector clonedObject = (HttpConnector) super.clone();
 		clonedObject.httpStateListeners = new EventListenerList();
 		clonedObject.sUrl = "";

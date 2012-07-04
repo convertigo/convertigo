@@ -119,7 +119,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	}
 
 	@Override
-    public Object clone() throws CloneNotSupportedException {
+    public SqlTransaction clone() throws CloneNotSupportedException {
     	SqlTransaction clonedObject = (SqlTransaction) super.clone();
     	clonedObject.connector = null;
     	clonedObject.preparedStatement = null;

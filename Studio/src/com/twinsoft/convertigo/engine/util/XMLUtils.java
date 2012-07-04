@@ -490,7 +490,7 @@ public class XMLUtils {
 		return null;
 	}
 
-	public static Node findNodeByAttributeValue(NodeList nodeList, String attributeName, String attributeValue) {
+	public static Element findNodeByAttributeValue(NodeList nodeList, String attributeName, String attributeValue) {
 		int len = nodeList.getLength();
 		String tmp;
 		Element property;
@@ -498,7 +498,7 @@ public class XMLUtils {
 			property = (Element) nodeList.item(i);
 			tmp = property.getAttribute(attributeName);
 			if (attributeValue.equals(tmp)) {
-				return (Node) property;
+				return property;
 			}
 		}
 		return null;
@@ -507,8 +507,7 @@ public class XMLUtils {
 	public static Object findPropertyValue(Element databaseObjectNode, String propertyName) throws Exception {
 		NodeList properties = databaseObjectNode.getElementsByTagName("property");
 
-		Element projectNameElement = (Element) XMLUtils.findNodeByAttributeValue(properties, "name",
-				propertyName);
+		Element projectNameElement = XMLUtils.findNodeByAttributeValue(properties, "name", propertyName);
 
 		Node xmlNode = null;
 		NodeList nl = projectNameElement.getChildNodes();

@@ -39,12 +39,14 @@ public class IfExistStep extends TestStep {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public IfExistStep clone() throws CloneNotSupportedException {
     	IfExistStep clonedObject = (IfExistStep) super.clone();
         return clonedObject;
     }
-	
-	public Object copy() throws CloneNotSupportedException {
+
+	@Override
+	public IfExistStep copy() throws CloneNotSupportedException {
 		IfExistStep copiedObject = (IfExistStep)super.copy();
 		return copiedObject;
 	}

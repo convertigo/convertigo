@@ -51,14 +51,16 @@ public class SimpleIteratorStep extends LoopStep {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public SimpleIteratorStep clone() throws CloneNotSupportedException {
     	SimpleIteratorStep clonedObject = (SimpleIteratorStep) super.clone();
     	clonedObject.iterator = null;
     	clonedObject.iterations = null;
         return clonedObject;
     }
-	
-	public Object copy() throws CloneNotSupportedException {
+
+	@Override
+	public SimpleIteratorStep copy() throws CloneNotSupportedException {
 		SimpleIteratorStep copiedObject = (SimpleIteratorStep)super.copy();
 		return copiedObject;
 	}
@@ -70,7 +72,8 @@ public class SimpleIteratorStep extends LoopStep {
 	public void setExpression(String expression) {
 		this.expression = expression;
 	}
-	
+
+	@Override
 	protected String getSpecificLabel() throws EngineException {
 		return expression.equals("")? "@??":"@"+expression;
 	}
@@ -83,6 +86,7 @@ public class SimpleIteratorStep extends LoopStep {
 		this.startIndex = startIndex;
 	}
 
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -92,10 +96,12 @@ public class SimpleIteratorStep extends LoopStep {
 		return name + label + (!text.equals("") ? " // "+text:"");
 	}
 
+	@Override
 	protected boolean workOnSource() {
 		return false;
 	}
-	
+
+	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			try {
@@ -145,12 +151,14 @@ public class SimpleIteratorStep extends LoopStep {
 		}
 		return false;
 	}
-	
+
+	@Override
 	protected void stepInit() throws EngineException {
 		super.stepInit();
 		initialize();
 	}
-	
+
+	@Override
 	protected void stepDone() {
 		iterator.reset();
 		super.stepDone();
@@ -161,7 +169,8 @@ public class SimpleIteratorStep extends LoopStep {
 			iterations = evaluateToInteger(javascriptContext, scope, condition, "condition", true);
 		return iterations;
 	}
-	
+
+	@Override
 	protected void doLoop(Context javascriptContext, Scriptable scope) throws EngineException {
 		super.doLoop(javascriptContext, scope);
 		if (iterator.hasMoreElements()) {

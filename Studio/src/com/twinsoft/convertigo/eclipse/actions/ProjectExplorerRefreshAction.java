@@ -35,7 +35,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeO
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class ProjectExplorerRefreshAction extends MyAbstractAction implements IViewActionDelegate {
 	
@@ -43,6 +42,7 @@ public class ProjectExplorerRefreshAction extends MyAbstractAction implements IV
 		super();
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
@@ -64,7 +64,6 @@ public class ProjectExplorerRefreshAction extends MyAbstractAction implements IV
     				DatabaseObjectTreeObject treeObject = null;
     				for (int i = 0 ; i < treeObjects.length ; i++) {
     					treeObject = (DatabaseObjectTreeObject) treeObjects[i];
-    					Engine.theApp.databaseObjectsManager.cacheRemoveObjects("/" + treeObject.getObject().getName());
     					viewContentProvider.reloadProject(treeObject);
     				}
     			}

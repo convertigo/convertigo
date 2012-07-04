@@ -975,7 +975,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	}
 	
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public SiteClipperConnector clone() throws CloneNotSupportedException {
 		SiteClipperConnector siteClipperConnector = (SiteClipperConnector) super.clone();
 		siteClipperConnector.screenClassHelper = new ScreenClassHelper<SiteClipperScreenClass>(siteClipperConnector);
 		siteClipperConnector.domainsFilter = new DomainsFilterHelper(siteClipperConnector);

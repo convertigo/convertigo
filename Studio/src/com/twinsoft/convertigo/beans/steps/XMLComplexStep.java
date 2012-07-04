@@ -42,16 +42,18 @@ public class XMLComplexStep extends StepWithExpressions {
 		this.xml = true;
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+    public XMLComplexStep clone() throws CloneNotSupportedException {
     	XMLComplexStep clonedObject = (XMLComplexStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public XMLComplexStep copy() throws CloneNotSupportedException {
     	XMLComplexStep copiedObject = (XMLComplexStep) super.copy();
         return copiedObject;
     }
-    
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String tag = "<"+ nodeName +">";
@@ -73,11 +75,13 @@ public class XMLComplexStep extends StepWithExpressions {
 	public void setNodeName(String nodeName) {
 		this.nodeName = nodeName;
 	}
-	
+
+	@Override
 	public String getStepNodeName() {
 		return getNodeName();
 	}
-	
+
+	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
     	if (isEnable) {
 			if (inError()) {

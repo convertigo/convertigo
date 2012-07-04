@@ -36,16 +36,19 @@ public class XMLCountStep extends XMLElementStep {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public XMLCountStep clone() throws CloneNotSupportedException {
     	XMLCountStep clonedObject = (XMLCountStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public XMLCountStep copy() throws CloneNotSupportedException {
     	XMLCountStep copiedObject = (XMLCountStep) super.copy();
         return copiedObject;
     }
 
+	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		NodeList list = getContextValues();
 		if (list != null) {

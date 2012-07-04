@@ -49,12 +49,14 @@ public class MoveFileStep extends Step {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public MoveFileStep clone() throws CloneNotSupportedException {
     	MoveFileStep clonedObject = (MoveFileStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public MoveFileStep copy() throws CloneNotSupportedException {
     	MoveFileStep copiedObject = (MoveFileStep) super.copy();
         return copiedObject;
     }
@@ -110,6 +112,7 @@ public class MoveFileStep extends Step {
 		return null;
 	}
 
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -135,6 +138,7 @@ public class MoveFileStep extends Step {
 		return evaluateToString(javascriptContext, scope, newFilename, "newFilename", true);
 	}
 
+	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.stepExecute(javascriptContext, scope)) {

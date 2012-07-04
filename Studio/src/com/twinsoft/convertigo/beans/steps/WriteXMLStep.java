@@ -49,16 +49,19 @@ public class WriteXMLStep extends WriteFileStep {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public WriteXMLStep clone() throws CloneNotSupportedException {
     	WriteXMLStep clonedObject = (WriteXMLStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public WriteXMLStep copy() throws CloneNotSupportedException {
     	WriteXMLStep copiedObject = (WriteXMLStep) super.copy();
         return copiedObject;
     }
 
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";

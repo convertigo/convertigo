@@ -34,16 +34,19 @@ public class IfThenElseStep extends IfStep implements IThenElseContainer {
 		super(condition);
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+    @Override
+    public IfThenElseStep clone() throws CloneNotSupportedException {
     	IfThenElseStep clonedObject = (IfThenElseStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+    @Override
+    public IfThenElseStep copy() throws CloneNotSupportedException {
     	IfThenElseStep copiedObject = (IfThenElseStep) super.copy();
         return copiedObject;
     }
 	
+    @Override
 	public boolean hasThenElseSteps() {
 		return true;
 	}

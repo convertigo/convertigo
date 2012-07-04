@@ -40,21 +40,25 @@ public class IfStep extends BlockStep {
 		super(condition);
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+    @Override
+    public IfStep clone() throws CloneNotSupportedException {
     	IfStep clonedObject = (IfStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+    @Override
+    public IfStep copy() throws CloneNotSupportedException {
     	IfStep copiedObject = (IfStep) super.copy();
         return copiedObject;
     }
-	
+
+    @Override
 	public String toString() {
 		String text = this.getComment();
 		return "if("+ (condition.equals("")?"??":condition) +")" + (!text.equals("") ? " // "+text:"");
 	}
-	
+
+    @Override
 	public String toJsString() {
 		String code = "";
 		if (!condition.equals("")) {
@@ -64,19 +68,23 @@ public class IfStep extends BlockStep {
 		}
 		return code;
 	}
-	
+
+    @Override
 	protected boolean workOnSource() {
 		return false;
 	}
-	
+
+    @Override
 	protected StepSource getSource() {
 		return null;
 	}
-	
+
+    @Override
 	protected boolean hasToEvaluateBeforeNextStep() throws EngineException {
 		return true;
 	}
 
+    @Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			boolean test = evaluateStep(javascriptContext, scope);

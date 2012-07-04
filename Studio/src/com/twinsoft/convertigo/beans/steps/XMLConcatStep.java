@@ -37,12 +37,14 @@ public class XMLConcatStep extends XMLActionStep {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public XMLConcatStep clone() throws CloneNotSupportedException {
     	XMLConcatStep clonedObject = (XMLConcatStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public XMLConcatStep copy() throws CloneNotSupportedException {
     	XMLConcatStep copiedObject = (XMLConcatStep) super.copy();
         return copiedObject;
     }
@@ -58,7 +60,8 @@ public class XMLConcatStep extends XMLActionStep {
 	public void setSeparator(String separator) {
 		this.separator = separator;
 	}
-	
+
+	@Override
 	protected String getActionValue() throws EngineException {
 		String nodeValue = super.getActionValue();
 		if (sourcesDefinition.size() > 0) {

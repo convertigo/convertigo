@@ -40,13 +40,13 @@ public class ReadXMLStep extends ReadFileStep {
 	}
 
 	@Override
-    public Object clone() throws CloneNotSupportedException {
+    public ReadXMLStep clone() throws CloneNotSupportedException {
     	ReadXMLStep clonedObject = (ReadXMLStep) super.clone();
         return clonedObject;
     }
 	
 	@Override
-    public Object copy() throws CloneNotSupportedException {
+    public ReadXMLStep copy() throws CloneNotSupportedException {
     	ReadXMLStep copiedObject = (ReadXMLStep) super.copy();
         return copiedObject;
     }			

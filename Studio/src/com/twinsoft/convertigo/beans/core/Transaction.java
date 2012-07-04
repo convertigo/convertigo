@@ -50,9 +50,7 @@ import com.twinsoft.convertigo.engine.util.XSDExtractor;
 public abstract class Transaction extends RequestableObject {
     
 	private static final long serialVersionUID = 8629312962446057509L;
-
-	public static final String DATA_DIRECTORY = "tr";
-
+	
     public static final String EVENT_TRANSACTION_STARTED = "TransactionStarted";
 	public static final String EVENT_XML_GENERATED = "XmlGenerated";
 
@@ -90,25 +88,6 @@ public abstract class Transaction extends RequestableObject {
         //vPropertiesForAdmin.add("responseExpiryDate");
     }
     
-    public String getPath() {
-		return parent.getPath() + "/" + DATA_DIRECTORY + "/" + computeFileName();
-    }
-    
-    @Override
-    public String getOldPath() {
-		return parent.getOldPath() + "/" + DATA_DIRECTORY + "/" + computeOldFileName();
-    }
-
-    @Override
-    public String getFileName() {
-        return "transaction.xml";
-    }
-    
-    @Override
-    public String getOldFileName() {
-        return "transaction.xml";
-    }
-
     /**
      * The boolean which specify if Transaction is the one
      * for the project which is learned.
@@ -311,7 +290,7 @@ public abstract class Transaction extends RequestableObject {
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public Transaction clone() throws CloneNotSupportedException {
         Transaction clonedObject = (Transaction) super.clone();
         return clonedObject;
     }

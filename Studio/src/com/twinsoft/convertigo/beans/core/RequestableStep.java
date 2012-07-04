@@ -111,7 +111,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public RequestableStep clone() throws CloneNotSupportedException {
 		RequestableStep clonedObject = (RequestableStep) super.clone();
 		clonedObject.vVariables = new LinkedList<StepVariable>();
 		clonedObject.vAllVariables = null;

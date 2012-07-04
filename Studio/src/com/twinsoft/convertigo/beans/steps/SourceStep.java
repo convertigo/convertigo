@@ -46,17 +46,19 @@ public class SourceStep extends Step implements IStepSourceContainer {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+    public SourceStep clone() throws CloneNotSupportedException {
     	SourceStep clonedObject = (SourceStep) super.clone();
     	clonedObject.source = null;
         return clonedObject;
     }
-	
-	public Object copy() throws CloneNotSupportedException {
-		SourceStep copiedObject = (SourceStep)super.copy();
+
+	@Override
+	public SourceStep copy() throws CloneNotSupportedException {
+		SourceStep copiedObject = (SourceStep) super.copy();
 		return copiedObject;
 	}
-    
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -91,7 +93,8 @@ public class SourceStep extends Step implements IStepSourceContainer {
 	public void setVariableName(String variableName) {
 		this.variableName = variableName;
 	}
-	
+
+	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.stepExecute(javascriptContext, scope)) {

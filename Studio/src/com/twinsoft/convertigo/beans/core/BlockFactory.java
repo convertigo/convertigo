@@ -40,16 +40,10 @@ import com.twinsoft.twinj.iJavelin;
 public abstract class BlockFactory extends DatabaseObject {
 
 	private static final long serialVersionUID = -2864266703358537062L;
-
-	public static final String DATA_DIRECTORY = "bf";
     
     public BlockFactory() {
         super();
         databaseType = "BlockFactory";
-    }
-    
-    public String getPath() {
-        return parent.getPath() + "/" + DATA_DIRECTORY;
     }
     
     /**

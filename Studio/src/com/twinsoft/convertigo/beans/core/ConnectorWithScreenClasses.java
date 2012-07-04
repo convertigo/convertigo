@@ -47,7 +47,7 @@ public abstract class ConnectorWithScreenClasses extends Connector implements IS
 	 * @see com.twinsoft.convertigo.beans.core.Connector#clone()
 	 */
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public ConnectorWithScreenClasses clone() throws CloneNotSupportedException {
 		ConnectorWithScreenClasses clonedObject = (ConnectorWithScreenClasses) super.clone();
 		clonedObject.screenClassHelper = new ScreenClassHelper<JavelinScreenClass>(clonedObject);
 		return clonedObject;

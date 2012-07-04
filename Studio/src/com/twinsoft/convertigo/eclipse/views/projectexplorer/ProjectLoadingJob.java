@@ -94,7 +94,7 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 			Engine.theApp.databaseObjectsManager.addDatabaseObjectListener(this);
 			Project project;
 			try {
-				project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+				project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 			}
 			finally {
 				Engine.theApp.databaseObjectsManager.removeDatabaseObjectListener(this);

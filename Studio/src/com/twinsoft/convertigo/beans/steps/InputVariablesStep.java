@@ -38,14 +38,14 @@ public class InputVariablesStep extends Step {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public InputVariablesStep clone() throws CloneNotSupportedException {
 		InputVariablesStep clonedObject = (InputVariablesStep) super.clone();
 		clonedObject.variables = new LinkedHashMap<String, Object>();
 		return clonedObject;
 	}
 
 	@Override
-	public Object copy() throws CloneNotSupportedException {
+	public InputVariablesStep copy() throws CloneNotSupportedException {
 		InputVariablesStep copiedObject = (InputVariablesStep) super.copy();
 		copiedObject.variables = new LinkedHashMap<String, Object>();
 		return copiedObject;

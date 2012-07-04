@@ -47,17 +47,20 @@ import com.twinsoft.convertigo.engine.EngineException;
 		super();
 		this.expression = expression;
 	}
-	
-    public Object clone() throws CloneNotSupportedException {
+
+	@Override
+    public SimpleStep clone() throws CloneNotSupportedException {
     	SimpleStep clonedObject = (SimpleStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public SimpleStep copy() throws CloneNotSupportedException {
     	SimpleStep copiedObject = (SimpleStep) super.copy();
         return copiedObject;
     }
-    
+
+	@Override
 	public String toString() {
 		return this.getName();
 	}
@@ -78,6 +81,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 		this.expression = expression;
 	}
 	
+	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.stepExecute(javascriptContext, scope)) {

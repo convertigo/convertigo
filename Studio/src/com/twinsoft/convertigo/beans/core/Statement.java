@@ -43,8 +43,6 @@ import com.twinsoft.convertigo.engine.EngineException;
  */
 public abstract class Statement extends DatabaseObject {
 	private static final long serialVersionUID = 1113997185686423262L;
-
-	public static final String DATA_DIRECTORY = "st";
     
     public boolean isEnable = true;
     
@@ -62,26 +60,6 @@ public abstract class Statement extends DatabaseObject {
 		databaseType = "Statement";
 	}*/
 	
-    @Override
-    public String getPath() {
-        return parent.getPath() + "/" + DATA_DIRECTORY + "/" + computeFileName();
-    }
-
-    @Override
-    public String getOldPath() {
-        return parent.getOldPath() + "/" + DATA_DIRECTORY + "/" + computeOldFileName();
-    }
-
-    @Override
-    public String getFileName() {
-        return "statement.xml";
-    }
-    
-    @Override
-    public String getOldFileName() {
-        return "statement.xml";
-    }
-
     /**
      * Get order for quick sort.
      */
@@ -236,8 +214,8 @@ public abstract class Statement extends DatabaseObject {
 	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#clone()
 	 */
 	@Override
-	public Object clone() throws CloneNotSupportedException {
-		Statement clonedObject = (Statement)super.clone();
+	public Statement clone() throws CloneNotSupportedException {
+		Statement clonedObject = (Statement) super.clone();
 		clonedObject.newPriority = newPriority;
 		return clonedObject;
 	}

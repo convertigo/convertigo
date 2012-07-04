@@ -24,12 +24,14 @@ public class RenameStep extends Step {
 		super();
 	}
 
-	public Object clone() throws CloneNotSupportedException {
+	@Override
+	public RenameStep clone() throws CloneNotSupportedException {
 		RenameStep clonedObject = (RenameStep) super.clone();
 		return clonedObject;
 	}
 
-	public Object copy() throws CloneNotSupportedException {
+	@Override
+	public RenameStep copy() throws CloneNotSupportedException {
 		RenameStep copiedObject = (RenameStep) super.copy();
 		return copiedObject;
 	}

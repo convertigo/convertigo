@@ -34,16 +34,19 @@ public class IfFileExistThenElseStep extends IfFileExistStep implements IThenEls
 		super(condition);
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+    @Override
+    public IfFileExistThenElseStep clone() throws CloneNotSupportedException {
     	IfFileExistThenElseStep clonedObject = (IfFileExistThenElseStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+    @Override
+    public IfFileExistThenElseStep copy() throws CloneNotSupportedException {
     	IfFileExistThenElseStep copiedObject = (IfFileExistThenElseStep) super.copy();
         return copiedObject;
     }
 	
+    @Override
 	public boolean hasThenElseSteps() {
 		return true;
 	}

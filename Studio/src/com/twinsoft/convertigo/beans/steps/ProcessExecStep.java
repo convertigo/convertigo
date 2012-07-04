@@ -70,13 +70,13 @@ public class ProcessExecStep extends Step {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public ProcessExecStep clone() throws CloneNotSupportedException {
 		ProcessExecStep clonedObject = (ProcessExecStep) super.clone();
 		return clonedObject;
 	}
 
 	@Override
-	public Object copy() throws CloneNotSupportedException {
+	public ProcessExecStep copy() throws CloneNotSupportedException {
 		ProcessExecStep clopiedObject = (ProcessExecStep) super.copy();
 		return clopiedObject;
 	}

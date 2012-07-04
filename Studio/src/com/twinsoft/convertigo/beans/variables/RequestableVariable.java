@@ -39,7 +39,8 @@ public class RequestableVariable extends Variable implements ITagsProperty {
         super();
 	}
 
-	public Object clone() throws CloneNotSupportedException {
+	@Override
+	public RequestableVariable clone() throws CloneNotSupportedException {
 		RequestableVariable clonedObject = (RequestableVariable)super.clone();
 		return clonedObject;
 	}

@@ -48,13 +48,15 @@ public abstract class BranchStep extends StepWithExpressions {
 		this.synchronous = synchronous;
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+    @Override
+    public BranchStep clone() throws CloneNotSupportedException {
     	BranchStep clonedObject = (BranchStep) super.clone();
     	clonedObject.maxNumberOfThreadsInteger = -1;
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+    @Override
+    public BranchStep copy() throws CloneNotSupportedException {
     	BranchStep copiedObject = (BranchStep) super.copy();
         return copiedObject;
     }
@@ -76,6 +78,7 @@ public abstract class BranchStep extends StepWithExpressions {
 		this.maxNumberOfThreads = maxNumberOfThreads;
 	}
 
+    @Override
 	public String toString() {
 		String text = this.getComment();
 		return name + (!text.equals("") ? " // "+text:"");
@@ -93,7 +96,8 @@ public abstract class BranchStep extends StepWithExpressions {
 	private void evaluateMaxNumberOfThreads(Context javascriptContext, Scriptable scope) throws EngineException {
 		maxNumberOfThreadsInteger = evaluateToInteger(javascriptContext, scope, maxNumberOfThreads, "maxNumberOfThreads", true);
 	}
-	
+
+    @Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException
     {
     	if (isEnable) {
@@ -121,7 +125,8 @@ public abstract class BranchStep extends StepWithExpressions {
     	}
     	return false;
     }
-	
+
+    @Override
 	protected void stepDone() {
 		super.stepDone();
 	}

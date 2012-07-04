@@ -69,15 +69,17 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public XMLGenerateDatesStep clone() throws CloneNotSupportedException {
     	XMLGenerateDatesStep clonedObject = (XMLGenerateDatesStep) super.clone();
     	clonedObject.startSource = null;
     	clonedObject.stopSource = null;
     	clonedObject.daysSource = null;
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public XMLGenerateDatesStep copy() throws CloneNotSupportedException {
     	XMLGenerateDatesStep copiedObject = (XMLGenerateDatesStep) super.copy();
         return copiedObject;
     }
@@ -176,6 +178,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 		return daysSource;
 	}
 
+	@Override
 	protected String getSpecificLabel() throws EngineException {
     	StepSource stepSource = null;
     	String startLabel = "";
@@ -207,6 +210,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
     	return label;
     }
 
+	@Override
 	public void stepMoved(StepEvent stepEvent) {
     	StepSource stepSource = null;
     	
@@ -225,7 +229,8 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
     		stepSource.updateTargetStep((Step)stepEvent.getSource(), (String)stepEvent.data);
     	}
 	}
-	
+
+	@Override
 	protected Node createWsdlDom() throws EngineException {
 		Element element = (Element)super.createWsdlDom();
 		if (element != null) {
@@ -240,7 +245,8 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 		}
 		return element;
 	}
-	
+
+	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		boolean bInvalid = false;
 		try {
@@ -416,6 +422,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 		
 	}
 
+	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if(propertyName.equals("inputLocale") ||
 			propertyName.equals("outputLocale")) {

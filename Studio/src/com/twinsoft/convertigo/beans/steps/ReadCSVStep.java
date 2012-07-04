@@ -53,13 +53,13 @@ public class ReadCSVStep extends ReadFileStep {
 	}
 
 	@Override
-    public Object clone() throws CloneNotSupportedException {
+    public ReadCSVStep clone() throws CloneNotSupportedException {
     	ReadCSVStep clonedObject = (ReadCSVStep) super.clone();
         return clonedObject;
     }
 	
 	@Override
-    public Object copy() throws CloneNotSupportedException {
+    public ReadCSVStep copy() throws CloneNotSupportedException {
     	ReadCSVStep copiedObject = (ReadCSVStep) super.copy();
         return copiedObject;
     }

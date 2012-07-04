@@ -136,7 +136,7 @@ public class List extends XmlService{
             connectionElement.setAttribute(attributes[7], DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.creationTime)));
             connectionElement.setAttribute(attributes[8], DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.lastAccessTime)));
             try {
-				connectionElement.setAttribute("contextInactivityTime", formatTime((System.currentTimeMillis() - context.lastAccessTime) / 1000)+" / "+formatTime(Engine.theApp.databaseObjectsManager.getProjectByName0(context.projectName).getHttpSessionTimeout()));
+				connectionElement.setAttribute("contextInactivityTime", formatTime((System.currentTimeMillis() - context.lastAccessTime) / 1000)+" / "+formatTime(Engine.theApp.databaseObjectsManager.getProjectByName(context.projectName).getHttpSessionTimeout()));
 			} catch (Exception e) {
 				// TODO: document = DOMUtils.handleError(e); << USELESS 
 			}

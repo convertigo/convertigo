@@ -94,18 +94,21 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		super();
 	}
 
-	public Object clone() throws CloneNotSupportedException {
+	@Override
+	public TransactionStep clone() throws CloneNotSupportedException {
 		TransactionStep clonedObject = (TransactionStep) super.clone();
 		clonedObject.setSourceTransaction(sourceTransaction);
 		return clonedObject;
 	}
 
-	public Object copy() throws CloneNotSupportedException {
+	@Override
+	public TransactionStep copy() throws CloneNotSupportedException {
 		TransactionStep copiedObject = (TransactionStep) super.copy();
 		copiedObject.setSourceTransaction(sourceTransaction);
 		return copiedObject;
 	}
 
+	@Override
 	public String getStepNodeName() {
 		return "transaction";
 	}
@@ -149,6 +152,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		return connectionStringValue;
 	}
 
+	@Override
 	protected void stepDone() {
 		// Remove transaction's context if needed
 		removeTransactionContext();
@@ -483,6 +487,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		}
 	}
 
+	@Override
 	protected Node generateWsdlDom() throws EngineException {
 		try {
 			return generateXmlFromXsd();
@@ -492,6 +497,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		}
 	}
 
+	@Override
 	public Document getWsdlDom() throws EngineException {
 		if (wsdlDomDirty || (wsdlDom == null))
 			generateWsdlDom();
@@ -564,6 +570,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		return result;
 	}
 
+	@Override
 	public void configure(Element element) throws Exception {
 		super.configure(element);
 
@@ -634,6 +641,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		}
 	}
 
+	@Override
 	public Element toXml(Document document) throws EngineException {
 		Element element = super.toXml(document);
 
@@ -652,6 +660,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		return element;
 	}
 
+	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("sourceTransaction")) {
 			List<String> transactionsList = new ArrayList<String>();

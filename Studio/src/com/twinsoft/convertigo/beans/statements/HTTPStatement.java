@@ -135,7 +135,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 	}
 
     @Override
-	public Object clone() throws CloneNotSupportedException {
+	public HTTPStatement clone() throws CloneNotSupportedException {
 		HTTPStatement clonedObject = (HTTPStatement)super.clone();
 		clonedObject.vVariables = new Vector<HttpStatementVariable>();
 		clonedObject.vAllVariables = null;

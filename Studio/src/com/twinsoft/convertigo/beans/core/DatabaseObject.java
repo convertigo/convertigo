@@ -27,14 +27,10 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,7 +53,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.ProcessingInstruction;
 
 import com.twinsoft.convertigo.beans.Version;
 import com.twinsoft.convertigo.beans.common.XMLVector;
@@ -67,6 +62,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -81,15 +77,49 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public abstract class DatabaseObject implements Serializable, Cloneable {
 	private static final long serialVersionUID = -873065042105207891L;
 
+	private static class SubLoader extends WalkHelper {
+		DatabaseObject databaseObject;
+
+		@Override
+		public void init(DatabaseObject databaseObject) throws Exception {
+			this.databaseObject = databaseObject;
+			super.init(databaseObject);
+		}
+		
+		@Override
+		protected void walk(DatabaseObject subDatabaseObject) throws Exception {
+			if (subDatabaseObject.original != null) {
+				super.walk(subDatabaseObject.original);
+			} else {
+				databaseObject.add(subDatabaseObject.clone());
+			}
+		}
+
+	}
+	
 	public enum ExportOption {
 		bIncludeDisplayName, bIncludeCompiledValue, bIncludeShortDescription, bIncludeEditorClass, bIncludeBlackListedElements, bIncludeVersion;
 	}
 
 	transient protected static long lastTime = 0;
+	transient private static long qnamecpt = 0;
 
+	transient private final static ThreadLocal<SubLoader> subLoader = new ThreadLocal<SubLoader>() {
+		@Override
+		protected SubLoader initialValue() {
+			return new SubLoader();
+		}
+	};
+	
 	transient protected long identity;
 
 	transient public boolean isImporting = false;
+	
+	transient private DatabaseObject original = null;
+	
+	transient private String qname = null;
+
+	transient public boolean isSubLoaded = true;
 
 	/**
 	 * The source values map for compilable properties.
@@ -144,25 +174,30 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
-		try {
-			Object clone = super.clone();
-			((DatabaseObject) clone).isImporting = false;
-			((DatabaseObject) clone).isSubLoaded = Engine.isEngineMode() ? isSubLoaded : false;
-			((DatabaseObject) clone).hasChanged = Engine.isEngineMode() ? false : hasChanged;// Studio
-																								// case
-																								// of
-																								// refresh
-																								// without
-																								// saving
-			((DatabaseObject) clone).compilablePropertySourceValuesMap = new HashMap<String, Object>(5);
-			((DatabaseObject) clone).compilablePropertySourceValuesMap
-					.putAll(compilablePropertySourceValuesMap);
-			return clone;
-		} catch (Exception e) {
-			Engine.logBeans.error("Unable to clone the object \"" + getName() + "\"", e);
-			String message = "DatabaseObject.clone() " + e.getClass().getName() + "\n" + e.getMessage();
-			throw new CloneNotSupportedException(message);
+	public DatabaseObject clone() throws CloneNotSupportedException {
+		if (original == null) {
+			try {
+				DatabaseObject clone = (DatabaseObject) super.clone();
+				clone.original = this;
+				clone.qname = qname;
+				clone.isImporting = false;
+				clone.isSubLoaded = false; //Engine.isEngineMode() ? isSubLoaded : false;
+				clone.hasChanged = false; //Engine.isEngineMode() ? false : hasChanged;// Studio
+				// case
+				// of
+				// refresh
+				// without
+				// saving
+				clone.compilablePropertySourceValuesMap = new HashMap<String, Object>(5);
+				clone.compilablePropertySourceValuesMap.putAll(compilablePropertySourceValuesMap);
+				return clone;
+			} catch (Exception e) {
+				Engine.logBeans.error("Unable to clone the object \"" + getName() + "\"", e);
+				String message = "DatabaseObject.clone() " + e.getClass().getName() + "\n" + e.getMessage();
+				throw new CloneNotSupportedException(message);
+			}
+		} else {
+			return original.clone();
 		}
 	}
 
@@ -175,20 +210,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	}
 
 	public void delete() throws EngineException {
-		boolean bResult = true;
-		try {
-			File dboFile = new File(Engine.PROJECTS_PATH + getQName());
-			if (dboFile.exists()) {
-				bResult = dboFile.delete();
-			}
-		} catch (Exception e) {
-			throw new EngineException("Unable to delete the object \"" + getQName() + "\".", e);
-		}
-
-		if (!bResult) {
-			throw new EngineException("Unable to delete the object \"" + getQName()
-					+ "\". The file does not exist or is probably locked by another application.");
-		}
+		parent = null;
 	}
 
 	public transient boolean hasChanged = false;
@@ -252,85 +274,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	public void setParent(DatabaseObject databaseObject) {
 		parent = databaseObject;
 	}
-
-	/**
-	 * Returns the path for writing the object in the Convertigo database
-	 * repository; it always contains the leading "/" character, but not the
-	 * trailing one.
-	 * 
-	 * @return the path for writing the object.
-	 */
-	public abstract String getPath();
-
-	protected String getOldPath() {
-		return getPath();
-	}
-
-	/**
-	 * Returns the file name of the object.
-	 * 
-	 * @return the file name of the object.
-	 */
-	public String getFileName() {
-		return computeFileName() + ".xml";
-	}
-
-	protected String getOldFileName() {
-		return computeOldFileName() + ".xml";
-	}
-
-	// My 64 valid Base64 values
-	private final static char[] ALPHABET = { (char) 'A', (char) 'B', (char) 'C', (char) 'D', (char) 'E',
-			(char) 'F', (char) 'G', (char) 'H', (char) 'I', (char) 'J', (char) 'K', (char) 'L', (char) 'M',
-			(char) 'N', (char) 'O', (char) 'P', (char) 'Q', (char) 'R', (char) 'S', (char) 'T', (char) 'U',
-			(char) 'V', (char) 'W', (char) 'X', (char) 'Y', (char) 'Z', (char) 'a', (char) 'b', (char) 'c',
-			(char) 'd', (char) 'e', (char) 'f', (char) 'g', (char) 'h', (char) 'i', (char) 'j', (char) 'k',
-			(char) 'l', (char) 'm', (char) 'n', (char) 'o', (char) 'p', (char) 'q', (char) 'r', (char) 's',
-			(char) 't', (char) 'u', (char) 'v', (char) 'w', (char) 'x', (char) 'y', (char) 'z', (char) '0',
-			(char) '1', (char) '2', (char) '3', (char) '4', (char) '5', (char) '6', (char) '7', (char) '8',
-			(char) '9', (char) '_', (char) '-' };
-
-	private transient String computedFileName = null;
-	public transient String oldComputedFileName = null;
-
-	protected String computeFileName() {
-		if (computedFileName == null) {
-			long hashcode = Math.abs(name.hashCode());
-			long len = name.length();
-
-			long checksum = 0;
-			for (int i = 1; i < len; i++) {
-				checksum += ((byte) name.charAt(i)) - 32;
-			}
-
-			len = name.length();
-			hashcode = (hashcode << 12) | (len + checksum);
-
-			computedFileName = "";
-
-			long reminder = hashcode;
-			int mod;
-			// int pow = 0;
-			while (reminder != 0) {
-				mod = (int) (reminder % 64);
-
-				if (mod == 0) {
-					// pow = (int) reminder / 64;
-					computedFileName += ALPHABET[0];
-				} else {
-					computedFileName += ALPHABET[mod];
-				}
-				reminder = (reminder - mod) / 64;
-				// pow++;
-			}
-		}
-		return computedFileName;
-	}
-
-	protected String computeOldFileName() {
-		return oldComputedFileName;
-	}
-
+	
 	/**
 	 * Returns the fully qualified name of the object, i.e. with the object
 	 * path, for writing purposes.
@@ -338,11 +282,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	 * @return the fully qualified name of the object.
 	 */
 	public String getQName() {
-		return getPath() + "/" + getFileName();
-	}
-
-	public String getOldQName() {
-		return getOldPath() + "/" + getOldFileName();
+		if (qname == null) {
+			qname = Long.toString(qnamecpt++, Character.MAX_RADIX);
+		}
+		return qname;
 	}
 
 	/**
@@ -355,8 +298,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	 */
 	protected String name = "new object";
 
-	public transient String oldName = null;
-
 	/**
 	 * Retrieves the object name.
 	 * 
@@ -364,10 +305,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	 */
 	public String getName() {
 		return name;
-	}
-
-	public String getOldName() {
-		return oldName;
 	}
 
 	/**
@@ -381,8 +318,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			throw new EngineException("The object name cannot be empty!");
 		}
 		this.name = name;
-		computedFileName = null;
-		computeFileName();
 	}
 
 	/**
@@ -405,14 +340,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 					+ getClass().getSimpleName() + ")");
 		}
 
-		// get old name
-		oldName = ((oldName == null) ? name : this.name);
-
 		// set new name and new computed file name
 		setBeanName(name);
-
-		// get old computed file name
-		oldComputedFileName = ((oldComputedFileName == null) ? computedFileName : oldComputedFileName);
 	}
 
 	/**
@@ -484,19 +413,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	}
 
 	public transient long newPriority = 0;
-
-	public String toXml() throws EngineException {
-		Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
-
-		ProcessingInstruction pi = document.createProcessingInstruction("xml",
-				"version=\"1.0\" encoding=\"ISO-8859-1\"");
-		document.appendChild(pi);
-
-		Element rootElement = toXml(document, ExportOption.bIncludeVersion);
-		document.appendChild(rootElement);
-
-		return XMLUtils.prettyPrintDOM(document);
-	}
 
 	public Element toXml(Document document) throws EngineException {
 		Element element = document.createElement(getDatabaseType().toLowerCase());
@@ -1256,65 +1172,15 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	 * Writes the object to the Convertigo repository database.
 	 */
 	public void write() throws EngineException {
-		String databaseObjectQName = getQName();
-		write(databaseObjectQName);
+		hasChanged = false;
+		bNew = false;
 	}
 
 	/**
 	 * Writes the object to the Convertigo repository database.
 	 */
 	public void write(String databaseObjectQName) throws EngineException {
-		String fileName = Engine.PROJECTS_PATH + databaseObjectQName;
-
-		try {
-			Engine.logBeans.trace("Trying to write the object " + databaseObjectQName + "[" + getName()
-					+ "]...");
-
-			// The parent must have been saved!
-			if ((parent != null) && ((parent.bNew) || (parent.hasChanged && !isImporting))) {
-				throw new EngineException("The parent object (\"" + parent.getName()
-						+ "\") has not been saved; save it first!");
-			}
-
-			// Verify if there is a conflict of qname
-			File file = new File(fileName);
-			if (bNew) {
-				if (file.exists()) {
-					throw new EngineException("A file with the same qname (\"" + databaseObjectQName
-							+ "\") already exists! Try to change the name of the object.");
-				}
-			}
-
-			// Create directories
-			if (!file.exists()) {
-				File dir = file.getParentFile();
-				if (!dir.exists()) {
-					Engine.logBeans.trace("Creating directories... " + dir.mkdirs());
-				}
-			}
-
-			// Write the object
-			FileOutputStream fos = new FileOutputStream(file);
-
-			String xmlSerializationData = toXml();
-			Charset cs = Charset.forName("ISO-8859-1");
-			ByteBuffer bb = cs.encode(xmlSerializationData);
-			fos.write(bb.array());
-			fos.close();
-
-			oldName = name;
-			oldComputedFileName = computedFileName;
-			hasChanged = false;
-			bNew = false;
-
-			Engine.logBeans.trace("The object \"" + databaseObjectQName + "\" has been written.");
-		} catch (Exception e) {
-			if (e instanceof EngineException) {
-				throw (EngineException) e;
-			} else {
-				throw new EngineException("Unable to write the object \"" + databaseObjectQName + "\".", e);
-			}
-		}
+		write();
 	}
 
 	/** Holds value of property comment. */
@@ -1339,8 +1205,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		this.comment = comment;
 	}
 
-	transient public boolean isSubLoaded = false;
-
 	synchronized public void checkSubLoaded() {
 		if (bNew) {
 			return;
@@ -1353,14 +1217,16 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		if (!isSubLoaded) {
 			isSubLoaded = true;
 			try {
-				Engine.theApp.databaseObjectsManager.getSubDatabaseObjects(this);
+				subLoader.get().init(this);
 			} catch (CompilablePropertyException e) {
 				Engine.logBeans.error(e.getMessage());
 			} catch (EngineException e) {
-				Engine.logBeans.error("(DatabaseObject) getSubDatabaseObjects failed with EngineException!",
-						e);
+				Engine.logBeans.error("(DatabaseObject) getSubDatabaseObjects failed with EngineException!", e);
 			} catch (DatabaseObjectNotFoundException e) {
 				Engine.logBeans.error("Database object not found: " + e.getMessage());
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				Engine.logBeans.error("Another Exception: " + e.getMessage(), e);
 			}
 		}
 	}

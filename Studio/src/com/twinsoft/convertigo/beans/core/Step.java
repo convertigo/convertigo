@@ -59,8 +59,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	private static final long serialVersionUID = 1600450851360946365L;
 	private String schemaDataType = "xsd:string"; // since beans version 5.0.2
 	
-	public static final String DATA_DIRECTORY = "sp";
-    
     public static String loopSeparator = "--";
     
     public boolean isEnable = true;
@@ -96,8 +94,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#clone()
 	 */
 	@Override
-	public Object clone() throws CloneNotSupportedException {
-		Step clonedObject = (Step)super.clone();
+	public Step clone() throws CloneNotSupportedException {
+		Step clonedObject = (Step) super.clone();
 		clonedObject.executeTimeID = "";
 		clonedObject.cloneNumber = ++cloneNumber;
 		clonedObject.transactionContextMaintainer = null;
@@ -246,25 +244,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
     protected void finalize() throws Throwable {
 		super.finalize();
 	}
-
-	public String getPath() {
-        return parent.getPath() + "/" + DATA_DIRECTORY + "/" + computeFileName();
-    }
-
-	@Override
-    public String getOldPath() {
-        return parent.getOldPath() + "/" + DATA_DIRECTORY + "/" + computeOldFileName();
-    }
-
-	@Override
-    public String getFileName() {
-        return "step.xml";
-    }
-    
-	@Override
-    public String getOldFileName() {
-        return "step.xml";
-    }
 
     /**
      * Get order for quick sort.

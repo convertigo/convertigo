@@ -74,8 +74,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
     public static final String EVENT_SEQUENCE_STARTED = "SequenceStarted";
     public static final String EVENT_SEQUENCE_FINISHED = "SequenceFinished";
-	
-    public static final String DATA_DIRECTORY = "sq";
 
     transient protected TwsCachedXPathAPI xpathApi = null;
     
@@ -142,7 +140,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 
 	@Override
-    public Object clone() throws CloneNotSupportedException {
+    public Sequence clone() throws CloneNotSupportedException {
     	Sequence clonedObject = (Sequence) super.clone();
     	clonedObject.variables = new HashMap<String, Object>();
     	clonedObject.cloneNumber = ++cloneNumber;
@@ -172,25 +170,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
         return clonedObject;
     }
 	
-	public String getPath() {
-		return parent.getPath() + "/" + DATA_DIRECTORY + "/" + computeFileName();
-    }
-    
-	@Override
-    public String getOldPath() {
-		return parent.getOldPath() + "/" + DATA_DIRECTORY + "/" + computeOldFileName();
-    }
-
-	@Override
-    public String getFileName() {
-        return "sequence.xml";
-    }
-    
-	@Override
-    public String getOldFileName() {
-        return "sequence.xml";
-    }
-
 	public XMLVector<XMLVector<Long>> getOrderedSteps() {
 		return orderedSteps;
 	}

@@ -33,12 +33,13 @@ public class ElseStep extends StepWithExpressions {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+    public ElseStep clone() throws CloneNotSupportedException {
     	ElseStep clonedObject = (ElseStep) super.clone();
         return clonedObject;
     }
-	
-	public Object copy() throws CloneNotSupportedException {
+
+	@Override
+	public ElseStep copy() throws CloneNotSupportedException {
 		ElseStep copiedObject = (ElseStep)super.copy();
 		return copiedObject;
 	}
@@ -51,6 +52,7 @@ public class ElseStep extends StepWithExpressions {
 		return false;
 	}
 
+	@Override
 	public String toString() {
 		return "Else";
 	}

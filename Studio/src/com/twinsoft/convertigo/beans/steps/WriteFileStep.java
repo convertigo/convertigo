@@ -55,14 +55,14 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	}
 	
 	@Override
-    public Object clone() throws CloneNotSupportedException {
+    public WriteFileStep clone() throws CloneNotSupportedException {
     	WriteFileStep clonedObject = (WriteFileStep) super.clone();
     	clonedObject.source = null;
         return clonedObject;
     }
 	
 	@Override
-    public Object copy() throws CloneNotSupportedException {
+    public WriteFileStep copy() throws CloneNotSupportedException {
     	WriteFileStep copiedObject = (WriteFileStep) super.copy();
         return copiedObject;
     }

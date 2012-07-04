@@ -82,8 +82,6 @@ public class PanelBlockFactory extends DefaultBlockFactory {
     	
     	clone.bNew = blockFactory.bNew;
     	clone.fields = blockFactory.fields;
-    	clone.oldComputedFileName = blockFactory.oldComputedFileName;
-    	clone.oldName = blockFactory.oldName;
     	clone.blockCount = blockFactory.blockCount;
     	clone.blockIndex = blockFactory.blockIndex;
     	clone.javelin = blockFactory.javelin;

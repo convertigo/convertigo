@@ -70,17 +70,20 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 		this.xml = true;
 	}
 	
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public XMLAttributeStep clone() throws CloneNotSupportedException {
     	XMLAttributeStep clonedObject = (XMLAttributeStep) super.clone();
     	clonedObject.source = null;
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public XMLAttributeStep copy() throws CloneNotSupportedException {
     	XMLAttributeStep copiedObject = (XMLAttributeStep) super.copy();
         return copiedObject;
     }
-    
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -118,7 +121,8 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 	public String toJsString() {
 		return "";
 	}
-	
+
+	@Override
 	public String getStepNodeName() {
 		return getNodeName();
 	}
@@ -139,11 +143,13 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 	public void setDefaultValueWhenNoSource(boolean defaultValueWhenNoSource) {
 		this.defaultValueWhenNoSource = defaultValueWhenNoSource;
 	}
-	
+
+	@Override
 	public String getAnchor() throws EngineException {
 		return "//document/@"+ getStepNodeName();
 	}
 
+	@Override
 	protected Node createWsdlDom() throws EngineException {
 		wsdlDom = getSequence().createDOM();
 		wsdlDom.getDocumentElement().setAttribute(nodeName, "");
@@ -151,7 +157,8 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 		wsdlDomDirty = false;
 		return attr;
 	}
-	
+
+	@Override
 	protected Node generateWsdlDom() throws EngineException {
 		Attr attr = null;
     	try {
@@ -167,7 +174,8 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
     		throw new EngineException("Unable to generate WSDL document",e);
     	}
 	}
-	
+
+	@Override
 	protected Node createStepNode() throws EngineException {
 		Attr stepNode = null;
 		Document doc = getOutputDocument();

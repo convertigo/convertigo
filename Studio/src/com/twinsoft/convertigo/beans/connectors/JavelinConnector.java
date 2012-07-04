@@ -120,7 +120,7 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public JavelinConnector clone() throws CloneNotSupportedException {
 		JavelinConnector clonedObject = (JavelinConnector) super.clone();
 		clonedObject.emulatorID = emulatorID;
 		clonedObject.javelin = null;

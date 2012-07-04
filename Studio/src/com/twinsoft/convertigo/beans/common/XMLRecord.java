@@ -52,7 +52,7 @@ public class XMLRecord extends AbstractXMLReferer implements ITablesProperty {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public XMLRecord clone() throws CloneNotSupportedException {
 		XMLRecord xmlRecord = (XMLRecord)super.clone();
 		return xmlRecord;
 	}

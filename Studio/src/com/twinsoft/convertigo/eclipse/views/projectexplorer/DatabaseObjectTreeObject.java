@@ -37,11 +37,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionFilter;
@@ -80,10 +76,8 @@ import com.twinsoft.convertigo.eclipse.property_editors.validators.CompilableVal
 import com.twinsoft.convertigo.eclipse.property_editors.validators.NumberValidator;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
-import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
@@ -98,9 +92,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	public static final String P_NAME = "#name";
 
 	public String objectClassName = null;
-	public String latestSavedDatabaseObjectQName = null;
-	public String latestSavedDatabaseObjectName = null;
-	public boolean isModified = false;
 	public boolean canPaste = false;
 	
     /**
@@ -132,8 +123,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	 * Indicates if the object is currently the default one.
 	 */
 	public boolean isDefault = false;
-	
-    protected int nModifications = 0;
     
     public DatabaseObjectTreeObject(Viewer viewer, DatabaseObject object) {
     	this(viewer,object,false);
@@ -142,8 +131,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     public DatabaseObjectTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object);
 		isInherited = inherited;
-        latestSavedDatabaseObjectQName = ((object.hasChanged && !object.bNew) ? object.getOldQName():object.getQName());
-        latestSavedDatabaseObjectName = ((object.hasChanged && !object.bNew) ? object.getOldName():object.getName());
         hasBeenModified((object.bNew) || (object.hasChanged && !object.bNew));
 		getDescriptors();
 	}
@@ -178,20 +165,18 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 
     @Override
 	public void update() {
-		if (isInherited)
+		if (isInherited) {
 			return;
+		}
 		
-		DatabaseObject databaseObject = getObject();
-		if ((nModifications == 0) && (databaseObject.hasChanged))
-			hasBeenModified(true);
-		else if ((nModifications > 0) && (!databaseObject.hasChanged))
-			hasBeenModified(false);
+		hasBeenModified(hasChanged());
 	}
 
     @Override
 	protected void remove() {
-		if (isInherited)
+		if (isInherited) {
 			return;
+		}
 	}
 	
     public boolean isEnabled() {
@@ -203,86 +188,17 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     }
     
     public void hasBeenModified(boolean bModified) {
-		if (isInherited)
-			return;
-
-		String projectName = getObject().getProject().getName();
-		
-		if (bModified) {
-    		if (nModifications == 0) {
-    			nModifications++;
-    			markAsChanged(true);
-    			try {
-    				TreeObject project = ((ViewContentProvider) ((TreeViewer)viewer).getContentProvider()).getProjectRootObject(projectName);
-    				if (project instanceof ProjectTreeObject) {
-    					((ProjectTreeObject)project).hasBeenModified(bModified);
-    				}
-    			} catch (EngineException e) {}
-    		}
-    	}
-    	else {
-    		if (nModifications == 1) {
-    			nModifications--;
-    			try {
-    				TreeObject project = ((ViewContentProvider) ((TreeViewer)viewer).getContentProvider()).getProjectRootObject(projectName);
-    				if (project instanceof ProjectTreeObject) {
-    					((ProjectTreeObject)project).hasBeenModified(bModified);
-    				}
-    			} catch (EngineException e) {}
-    		}
-    	}
+		if (bModified && !isInherited && !hasChanged()) {
+			markAsChanged(true);
+		}
 	}
-	
-	public boolean save(boolean bDialog) {
-		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
-		Shell shell = display.getActiveShell();
-		shell.setCursor(waitCursor);
-        
-        try {
-            if (hasChanged()) {
-            	DatabaseObject databaseObject = getObject();
-
-            	int response = SWT.YES;
-                if (bDialog) {
-                	MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-                	messageBox.setMessage("The object \""+ databaseObject.getName() +"\" has not been saved. Do you want to save your work now?");
-                	response = messageBox.open();
-                }
-            	
-                if (response == SWT.YES) {
-                	ConvertigoPlugin.logInfo("Saving the object '"+ databaseObject.getName() +"'");
-                	ConvertigoPlugin.projectManager.save(databaseObject, false);
-                    ConvertigoPlugin.logInfo("Object '"+ databaseObject.getName() +"' saved!");
-                }
-                else if (response == SWT.NO) {
-                	Engine.theApp.databaseObjectsManager.cacheRemoveObject(databaseObject.getQName());
-                    return true;
-                }
-                else if (response == SWT.CANCEL) {
-                    return false;
-                }
-            }
-        }
-        catch (Exception e) {
-        	ConvertigoPlugin.logException(e, "Unable to save the object!");
-        }
-        finally {
-			shell.setCursor(null);
-			waitCursor.dispose();
-        }
-        
-        return true;
-	}
-
+    
 	public DatabaseObjectTreeObject getOwnerDatabaseObjectTreeObject() {
-		if (this instanceof ProjectTreeObject)	return this;
 		TreeObject owner = getParent();
 		while (owner!=null && !(owner instanceof DatabaseObjectTreeObject)) {
 			owner = owner.getParent();
 		}
-		return (DatabaseObjectTreeObject)owner;
+		return (DatabaseObjectTreeObject) owner;
 	}
 	
 	public BeanInfo databaseObjectBeanInfo = null;
@@ -856,7 +772,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
             Object args[] = { value };
 	        setter.invoke(databaseObject, args);
 	        
-	        databaseObject.hasChanged = true;
 	        hasBeenModified(true);
 	      
 			// Set treeObject isEnabled attribute value (Fix #1129)
@@ -937,8 +852,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				ConvertigoPlugin.projectManager.save(project, false);
 
 				// Export project to xml file
-				String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + newName + "/" + newName + ".xml";
-				CarUtils.exportProject(project, exportedProjectFileName);
+				Engine.theApp.databaseObjectsManager.exportProject(project);
 				
 				// Rename old .xsd file
 				try {
@@ -1120,7 +1034,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			return bool.equals(Boolean.valueOf(isInherited));
 		}
 		if (name.equals("isModified")) {
-			isModified = hasChanged();
+			boolean isModified = hasChanged();
 			Boolean bool = Boolean.valueOf(value);
 			return bool.equals(Boolean.valueOf(isModified));
 		}

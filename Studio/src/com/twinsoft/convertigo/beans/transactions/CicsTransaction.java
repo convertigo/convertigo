@@ -89,7 +89,8 @@ public class CicsTransaction extends Transaction {
 		super();
     }
 
-    public Object clone() throws CloneNotSupportedException {
+    @Override
+    public CicsTransaction clone() throws CloneNotSupportedException {
         CicsTransaction clonedObject = (CicsTransaction) super.clone();
         return clonedObject;
     }

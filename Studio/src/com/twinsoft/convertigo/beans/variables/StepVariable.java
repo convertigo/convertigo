@@ -40,7 +40,7 @@ public class StepVariable extends Variable implements IStepSourceContainer {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public StepVariable clone() throws CloneNotSupportedException {
 		StepVariable clonedObject = (StepVariable)super.clone();
 		return clonedObject;
 	}

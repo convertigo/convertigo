@@ -22,12 +22,14 @@ public class DeleteStep extends Step {
 		super();
 	}
 
-	public Object clone() throws CloneNotSupportedException {
+	@Override
+	public DeleteStep clone() throws CloneNotSupportedException {
 		DeleteStep clonedObject = (DeleteStep) super.clone();
 		return clonedObject;
 	}
 
-	public Object copy() throws CloneNotSupportedException {
+	@Override
+	public DeleteStep copy() throws CloneNotSupportedException {
 		DeleteStep copiedObject = (DeleteStep) super.copy();
 		return copiedObject;
 	}

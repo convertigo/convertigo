@@ -96,7 +96,7 @@ public class SqlConnector extends Connector {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public SqlConnector clone() throws CloneNotSupportedException {
 		SqlConnector clonedObject = (SqlConnector) super.clone();
 		clonedObject.jdbc = new HashMap<String, String>();
 		return clonedObject;

@@ -20,13 +20,15 @@ public class CreateDirectoryStep extends Step {
 	public CreateDirectoryStep() {
 		super();
 	}
-	
-    public Object clone() throws CloneNotSupportedException {
+
+	@Override
+    public CreateDirectoryStep clone() throws CloneNotSupportedException {
     	CreateDirectoryStep clonedObject = (CreateDirectoryStep) super.clone();
         return clonedObject;
     }
-	
-	public Object copy() throws CloneNotSupportedException {
+
+	@Override
+	public CreateDirectoryStep copy() throws CloneNotSupportedException {
 		CreateDirectoryStep copiedObject = (CreateDirectoryStep)super.copy();
 		return copiedObject;
 	}

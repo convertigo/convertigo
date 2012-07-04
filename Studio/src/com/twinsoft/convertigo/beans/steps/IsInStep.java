@@ -42,12 +42,14 @@ public class IsInStep extends TestStep {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public IsInStep clone() throws CloneNotSupportedException {
     	IsInStep clonedObject = (IsInStep) super.clone();
         return clonedObject;
     }
-	
-	public Object copy() throws CloneNotSupportedException {
+
+	@Override
+	public IsInStep copy() throws CloneNotSupportedException {
 		IsInStep copiedObject = (IsInStep)super.copy();
 		return copiedObject;
 	}

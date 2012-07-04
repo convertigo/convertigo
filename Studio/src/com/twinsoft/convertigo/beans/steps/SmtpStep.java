@@ -68,17 +68,20 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public SmtpStep clone() throws CloneNotSupportedException {
     	SmtpStep clonedObject = (SmtpStep) super.clone();
     	clonedObject.source = null;
         return clonedObject;
     }
-	
-	public Object copy() throws CloneNotSupportedException {
+
+	@Override
+	public SmtpStep copy() throws CloneNotSupportedException {
 		SmtpStep copiedObject = (SmtpStep)super.copy();
 		return copiedObject;
 	}
-    
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -169,7 +172,8 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 	public void setSmtpPassword(String newSmtpPassword) {
 		this.smtpPassword = newSmtpPassword;
 	}
-	
+
+	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		String[] result = new String[0];
 		if(propertyName.equals("smtpAuthType")){
@@ -178,7 +182,8 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 		}
 		return result;
 	}
-	
+
+	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.stepExecute(javascriptContext, scope)) {
@@ -194,7 +199,8 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 	}
 	
 	private class SMTPAuthenticator extends javax.mail.Authenticator {
-		 
+
+		@Override
 		public PasswordAuthentication getPasswordAuthentication() {
 			String username = smtpUsername;
 			String password = smtpPassword;

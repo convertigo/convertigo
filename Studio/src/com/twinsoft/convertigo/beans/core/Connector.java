@@ -41,8 +41,6 @@ import com.twinsoft.convertigo.engine.EngineException;
  */
 public abstract class Connector extends DatabaseObject implements ITagsProperty{
 	private static final long serialVersionUID = 5573688971345318823L;
-
-	public static final String DATA_DIRECTORY = "cn";
     
     /**
      * The context associated to the XML producer. The XML producer is
@@ -54,25 +52,6 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
         super();
 		databaseType = "Connector";
         vPropertiesForAdmin.add("isTasAuthenticationRequired");
-	}
-
-	public String getPath() {
-		return parent.getPath() + "/" + DATA_DIRECTORY + "/" + computeFileName();
-	}
-    
-	@Override
-	public String getOldPath() {
-		return parent.getOldPath() + "/" + DATA_DIRECTORY + "/" + computeOldFileName();
-	}
-	
-	@Override
-	public String getFileName() {
-		return "connector.xml";
-	}
-    
-	@Override
-	public String getOldFileName() {
-		return "connector.xml";
 	}
 	
     private transient EventListenerList connectorListeners = new EventListenerList();
@@ -366,7 +345,7 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 	}
     
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public Connector clone() throws CloneNotSupportedException {
 		Connector clonedObject = (Connector) super.clone();
 		clonedObject.defaultTransaction = null;
 		clonedObject.connectorListeners = new EventListenerList();

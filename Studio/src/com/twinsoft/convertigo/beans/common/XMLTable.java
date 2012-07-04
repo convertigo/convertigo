@@ -57,7 +57,7 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public XMLTable clone() throws CloneNotSupportedException {
 		XMLTable xmlTable = (XMLTable)super.clone();
 		return xmlTable;
 	}

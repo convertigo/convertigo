@@ -40,21 +40,25 @@ public class WhileStep extends LoopStep {
 		super(condition);
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public WhileStep clone() throws CloneNotSupportedException {
     	WhileStep clonedObject = (WhileStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public WhileStep copy() throws CloneNotSupportedException {
     	WhileStep copiedObject = (WhileStep) super.copy();
         return copiedObject;
     }
-    
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		return "while("+ (condition.equals("")?"??":condition) +")"+ (!text.equals("") ? " // "+text:"");
 	}
-	
+
+	@Override
 	public String toJsString() {
 		String code = "";
 		if (!condition.equals("")) {
@@ -64,19 +68,23 @@ public class WhileStep extends LoopStep {
 		}
 		return code;
 	}
-	
+
+	@Override
 	protected boolean workOnSource() {
 		return false;
 	}
 
+	@Override
 	protected StepSource getSource() {
 		return null;
 	}
-	
+
+	@Override
 	protected boolean hasToEvaluateBeforeNextStep() throws EngineException {
 		return true;
 	}
 
+	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			do {
@@ -89,7 +97,8 @@ public class WhileStep extends LoopStep {
 		}
 		return false;
 	}
-	
+
+	@Override
 	protected void reset() throws EngineException {
 		super.reset();
 	}

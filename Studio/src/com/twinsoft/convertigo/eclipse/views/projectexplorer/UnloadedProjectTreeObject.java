@@ -34,11 +34,12 @@ public class UnloadedProjectTreeObject extends TreeObject implements IActionFilt
 	
 	public UnloadedProjectTreeObject(Viewer viewer, String object) {
 		super(viewer, object);
-        String fileName = Engine.PROJECTS_PATH + "/" + object + "/_data/project.xml";
+        String fileName = Engine.PROJECTS_PATH + "/" + object + "/" + object + ".xml";
 		File file = new File(fileName);
 		isLoadable = file.exists();
 	}
 
+	@Override
 	public boolean testAttribute(Object target, String name, String value) {
 		if (name.equals("isLoadable")) {
 			boolean bTest = (isLoadable == Boolean.valueOf(value).booleanValue());

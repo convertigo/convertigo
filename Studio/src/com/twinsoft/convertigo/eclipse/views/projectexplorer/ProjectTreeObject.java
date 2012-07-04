@@ -88,14 +88,12 @@ import com.twinsoft.convertigo.eclipse.property_editors.validators.NamespaceUriV
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.WSDLUtils.WSDL;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
 
 public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject, IResourceChangeListener {
 	private IProject iProject = null;
-	private boolean bModified = false;
 
 	public ProjectTreeObject(Viewer viewer, Project object) {
 		this(viewer, object, false);
@@ -107,12 +105,12 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	}
 
 	@Override
-	public Project getObject(){
+	public Project getObject() {
 		return (Project) super.getObject();
 	}
 
 	public boolean getModified() {
-		return bModified;
+		return hasChanged();
 	}
 
 	@Override
@@ -120,23 +118,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		// does nothing
 	}
 
-	/**
-     * Means one or more of the project items has been modified.
-     */
 	@Override
-	public void hasBeenModified(boolean bModified) {
-		if (bModified) {
-			nModifications++;
-		} else {
-			nModifications--;
-			if (nModifications <= 0) {
-				nModifications = 0;
-			}
-		}
-		ConvertigoPlugin.logDebug("Project modified "+ nModifications + " times.");
-		this.bModified = (nModifications != 0);
+	public DatabaseObjectTreeObject getOwnerDatabaseObjectTreeObject() {
+		return this;
 	}
-
+	
 	/**
 	 * Closes a project.
 	 * 
@@ -153,6 +139,8 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			removeTempFiles();
 			// clear Source picker view if needed
 			clearSourcePickerView();
+			
+			Engine.theApp.databaseObjectsManager.clearCache(getObject());
 		}
 		return bRet;
 	}
@@ -217,7 +205,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	 *
 	 * @return <code>false</code> if the save process has been canceled by user.
 	 */
-	@Override
 	public boolean save(boolean bDialog) {
 		boolean ret = true;
 		
@@ -229,9 +216,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			shell.setCursor(waitCursor);
 			
 			try {
-				//TODO: saveTreeState();
-				
-				if (bModified) {
+//				if (hasChanged()) {
 					Project project = getObject();
 					String projectName = project.getName();
 					
@@ -244,22 +229,24 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					
 					if (response == SWT.YES) {
 						ConvertigoPlugin.logInfo("Saving the project '" + projectName + "'");
+
+						saveFiles(projectName);
+						
+						Engine.theApp.databaseObjectsManager.exportProject(project);
+
 						ConvertigoPlugin.projectManager.save(project, true);
-						nModifications = 0;
+						
 						hasBeenModified(false);
 						ConvertigoPlugin.logInfo("Project '" + projectName + "' saved!");
 						
-						saveFiles(projectName);
+//						ConvertigoPlugin.logInfo("Project's XML automatically built");
 						
-						ConvertigoPlugin.logInfo("Project's XML automatically built");
-						//ConvertigoPlugin.projectManager.exportProject(project, Engine.PROJECTS_DIRECTORY + "/" + projectName + "/" + projectName + ".xml");
-						CarUtils.exportProject(project, Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
 						getIProject().refreshLocal(IResource.DEPTH_ONE, null);
 					} else if (response == SWT.NO) {
-						Engine.theApp.databaseObjectsManager.cacheRemoveObjects("/" + projectName);
+						Engine.theApp.databaseObjectsManager.cacheRemoveObjects(projectName);
 						ret = true;
 					}
-				}
+//				}
 			} catch (Exception e) {
 				ConvertigoPlugin.logException(e, "Unable to save the project!");
 				ConvertigoPlugin.logInfo("Project NOT saved!");
@@ -1466,17 +1453,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			}
 		}
 	}
-
-	@Override
-	public boolean testAttribute(Object target, String name, String value) {
-		if (name.equals("isModified")) {
-			isModified = bModified || hasChanged();
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isModified));
-		}
-		return super.testAttribute(target, name, value);
-	}
-
 	
 	public IProject getIProject() {
 		if(iProject==null || !(getName()!=iProject.getName())){

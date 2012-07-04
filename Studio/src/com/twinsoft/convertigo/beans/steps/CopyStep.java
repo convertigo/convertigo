@@ -24,12 +24,14 @@ public class CopyStep extends Step {
 		super();
 	}
 
-	public Object clone() throws CloneNotSupportedException {
+	@Override
+	public CopyStep clone() throws CloneNotSupportedException {
 		CopyStep clonedObject = (CopyStep) super.clone();
 		return clonedObject;
 	}
 
-	public Object copy() throws CloneNotSupportedException {
+	@Override
+	public CopyStep copy() throws CloneNotSupportedException {
 		CopyStep copiedObject = (CopyStep) super.copy();
 		return copiedObject;
 	}

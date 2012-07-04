@@ -31,8 +31,6 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
 public class Pool extends DatabaseObject implements ITagsProperty{
 
 	private static final long serialVersionUID = 6241651041599239082L;
-
-	public static final String DATA_DIRECTORY = "po";
 	
 	/**
 	 * The initial screen class in which every pooled context should be. 
@@ -69,10 +67,6 @@ public class Pool extends DatabaseObject implements ITagsProperty{
         vPropertiesForAdmin.add("initialScreenClass");
         vPropertiesForAdmin.add("startTransaction");
     }
-    
-	public String getPath() {
-		return parent.getPath() + "/" + DATA_DIRECTORY;
-	}
     
 	public String getInitialScreenClass() {
 		return initialScreenClass;

@@ -42,14 +42,14 @@ public class SleepStep extends Step {
 	
 	
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public SleepStep clone() throws CloneNotSupportedException {
 		SleepStep clonedObject = (SleepStep)super.clone();
 		return clonedObject;
 	}
 
 
 	@Override
-	public Object copy() throws CloneNotSupportedException {
+	public SleepStep copy() throws CloneNotSupportedException {
 		SleepStep copiedObject = (SleepStep)super.copy();
 		return copiedObject;
 	}

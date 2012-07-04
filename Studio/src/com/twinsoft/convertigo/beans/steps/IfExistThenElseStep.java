@@ -30,16 +30,19 @@ public class IfExistThenElseStep extends IfExistStep implements IThenElseContain
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public IfExistThenElseStep clone() throws CloneNotSupportedException {
     	IfExistThenElseStep clonedObject = (IfExistThenElseStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public IfExistThenElseStep copy() throws CloneNotSupportedException {
     	IfExistThenElseStep copiedObject = (IfExistThenElseStep) super.copy();
         return copiedObject;
     }
-	
+
+	@Override
 	public boolean hasThenElseSteps() {
 		return true;
 	}

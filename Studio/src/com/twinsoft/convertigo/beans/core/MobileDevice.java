@@ -29,7 +29,6 @@ public abstract class MobileDevice extends DatabaseObject {
 
 	private static final long serialVersionUID = 8006681009945420375L;
 	public static String RESOURCES_PATH = "DisplayObjects/mobile";
-	public static final String DATA_DIRECTORY = "md";
 	
 	public MobileDevice() {
         super();
@@ -37,8 +36,8 @@ public abstract class MobileDevice extends DatabaseObject {
 	}
 	
 	@Override
-	public Object clone() throws CloneNotSupportedException {
-		MobileDevice clonedObject = (MobileDevice)super.clone();
+	public MobileDevice clone() throws CloneNotSupportedException {
+		MobileDevice clonedObject = (MobileDevice) super.clone();
 		return clonedObject;
 	}
 	
@@ -71,8 +70,4 @@ public abstract class MobileDevice extends DatabaseObject {
 	public void setResourcesPath(String resourcesPath) {
 		this.resourcesPath = resourcesPath;
 	}
-
-	public String getPath() {
-		return parent.getPath() + "/" + DATA_DIRECTORY;
-    }
 }

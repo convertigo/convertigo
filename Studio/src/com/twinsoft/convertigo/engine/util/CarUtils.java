@@ -67,8 +67,7 @@ public class CarUtils {
 		String projectName = project.getName();
 		try {
 			// Export the project
-			String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
-			exportProject(project, exportedProjectFileName);
+			exportProject(project);
 			
 			// Create Convertigo archive
 			String projectArchiveFilename = dir + "/" + projectName + ".car";
@@ -178,6 +177,8 @@ public class CarUtils {
 					element.appendChild(document.createTextNode("\n"));
 					element.appendChild(document.createComment(StringUtils.rightPad(closepad + "</" + name + ">", 150)));
 					document.setUserData("depth", depth, null);
+					
+					databaseObject.hasChanged = false;
 					
 					this.parentElement = parentElement;
 				}				

@@ -36,7 +36,8 @@ public class HttpStatementVariable extends Variable implements ITagsProperty {
 		super();
 	}
 
-	public Object clone() throws CloneNotSupportedException {
+	@Override
+	public HttpStatementVariable clone() throws CloneNotSupportedException {
 		HttpStatementVariable clonedObject = (HttpStatementVariable)super.clone();
 		return clonedObject;
 	}

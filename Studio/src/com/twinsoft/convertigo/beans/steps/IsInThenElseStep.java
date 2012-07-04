@@ -30,16 +30,19 @@ public class IsInThenElseStep extends IsInStep implements IThenElseContainer {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public IsInThenElseStep clone() throws CloneNotSupportedException {
     	IsInThenElseStep clonedObject = (IsInThenElseStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public IsInThenElseStep copy() throws CloneNotSupportedException {
     	IsInThenElseStep copiedObject = (IsInThenElseStep) super.copy();
         return copiedObject;
     }
-	
+
+	@Override
 	public boolean hasThenElseSteps() {
 		return true;
 	}

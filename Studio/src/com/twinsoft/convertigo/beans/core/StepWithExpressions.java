@@ -82,7 +82,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	}
 
 	@Override
-    public Object clone() throws CloneNotSupportedException {
+    public StepWithExpressions clone() throws CloneNotSupportedException {
     	StepWithExpressions clonedObject = (StepWithExpressions) super.clone();
     	clonedObject.nbAsyncThreadRunning = 0;
     	clonedObject.haveToWait = Boolean.FALSE;

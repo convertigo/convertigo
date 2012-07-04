@@ -53,7 +53,7 @@ public class IfXpathExistsThenElseStatement extends BlockStatement implements IT
 	}
 	
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public IfXpathExistsThenElseStatement clone() throws CloneNotSupportedException {
     	IfXpathExistsThenElseStatement clonedObject = (IfXpathExistsThenElseStatement) super.clone();
         clonedObject.thenStatement = null;
         clonedObject.elseStatement = null;

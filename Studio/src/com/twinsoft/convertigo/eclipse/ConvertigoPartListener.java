@@ -125,25 +125,22 @@ public class ConvertigoPartListener implements IPartListener {
 					Tree tree = (Tree) view.getCurrentPage().getControl();
 					if (tree != null) {
 						tree.addKeyListener(new KeyAdapter() {
+							
+							@Override
 							public void keyReleased(KeyEvent event) {
 								boolean bCtrl = (((event.stateMask & SWT.CONTROL) != 0) || ((event.stateMask & SWT.CTRL) != 0));
-								boolean bShift = (event.stateMask & SWT.SHIFT) != 0;
 								int keyCode = event.keyCode;
 								char c = event.character;
-								if (bCtrl)
-								{
+								if (bCtrl) {
 									if ((c == 's') || (keyCode == 115)) {
 										ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 										if (projectExplorerView != null) {
-											if (bShift)
-												projectExplorerView.saveAction.run();
-											else {
-												projectExplorerView.projectExplorerSaveAllAction.run();
-											}
+											projectExplorerView.projectExplorerSaveAllAction.run();
 										}
 									}
 								}
 							}
+							
 						});
 					}
 				}

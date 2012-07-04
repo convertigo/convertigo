@@ -36,12 +36,6 @@ import com.twinsoft.convertigo.engine.EngineException;
  */
 public abstract class ExtractionRule extends DatabaseObject {
 	private static final long serialVersionUID = -7322067869844724239L;
-	
-	public static final String DATA_DIRECTORY = "er";
-    
-    public String getPath() {
-        return parent.getPath() + "/" + DATA_DIRECTORY;
-    }
     
     /**
      * Indicates if this object is enable or not.
@@ -93,8 +87,8 @@ public abstract class ExtractionRule extends DatabaseObject {
 	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#clone()
 	 */
     @Override
-	public Object clone() throws CloneNotSupportedException {
-		ExtractionRule clonedObject = (ExtractionRule)super.clone();
+	public ExtractionRule clone() throws CloneNotSupportedException {
+		ExtractionRule clonedObject = (ExtractionRule) super.clone();
 		clonedObject.newPriority = newPriority;
 		return clonedObject;
 	}

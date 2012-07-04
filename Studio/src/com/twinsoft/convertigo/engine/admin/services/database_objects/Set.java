@@ -26,6 +26,7 @@ import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.TransformerException;
@@ -72,31 +73,19 @@ public class Set extends XmlService {
 		return nodetmp.getNodeValue();
 	}
 
-//	private ArrayList<String> getPropertyValues(String propertyName) throws TransformerException {
-//		ArrayList<String> results = new ArrayList<String>();
-//		NodeList nodetmp = xpath.selectNodeList(postElt, "./property[@name=\"" + propertyName
-//				+ "\"]/*[@value]/@value");
-//
-//		for (int i = 0; i < nodetmp.getLength(); i++)
-//			results.add(nodetmp.item(i).getNodeValue());
-//		return results;
-//	}
-
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Document post = null;
 
 		try {
+			Map<String, DatabaseObject> map = com.twinsoft.convertigo.engine.admin.services.projects.Get.getDatabaseObjectByQName(request);
+			
 			xpath = new TwsCachedXPathAPI();
 			post = XMLUtils.parseDOM(request.getInputStream());
 			postElt = document.importNode(post.getFirstChild(), true);
 
 			String objectQName = xpath.selectSingleNode(postElt, "./@qname").getNodeValue();
-			DatabaseObject object = Engine.theApp.databaseObjectsManager
-					.getDatabaseObject(objectQName);
+			DatabaseObject object = map.get(objectQName);
 
-			// String comment = request.getParameter("comment");
-			// comment = (String) DatabaseObject.compileProperty(object,
-			// "comment", comment);
 			String comment = getPropertyValue("comment");
 			object.setComment(comment);
 
@@ -125,42 +114,34 @@ public class Set extends XmlService {
 										+ "\".\n This directory already exists or is probably locked by another application.");
 					}
 
+					Engine.theApp.databaseObjectsManager.clearCache(project);					
 					project.setName(objectNewName);
-					objectQName = project.getQName();
+					map.remove(objectQName);
+					map.put(project.getQName(), project);
+					
 				}
 			}
 
 			BeanInfo bi = CachedIntrospector.getBeanInfo(object.getClass());
 
 			PropertyDescriptor[] propertyDescriptors = bi.getPropertyDescriptors();
-			int len2 = propertyDescriptors.length;
 
-			PropertyDescriptor propertyDescriptor;
-			Object oPropertyValue;
-			Object propertyValue;
-			String propertyTypeString;
-
-			int j;
-
-			oPropertyValue = null;
-			propertyDescriptor = null;
-			String propertyName;
-			for (j = 0; j < len2; j++) {
-				propertyDescriptor = propertyDescriptors[j];
-				propertyName=propertyDescriptor.getName();
+			for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+				String propertyName = propertyDescriptor.getName();
 				
 				Method setter = propertyDescriptor.getWriteMethod();
 
-				propertyTypeString = xpath.selectSingleNode(postElt,
+				String propertyTypeString = xpath.selectSingleNode(postElt,
 						"./property[@name=\"" + propertyName + "\"]/*[1]")
 						.getNodeName();
 
-				propertyValue = getPropertyValue(propertyName);
+				String propertyValue = getPropertyValue(propertyName);
 
-				oPropertyValue = createObject(propertyTypeString, propertyValue);
+				Object oPropertyValue = createObject(propertyTypeString, propertyValue);
 
-				if (object.isCipheredProperty(propertyName))
+				if (object.isCipheredProperty(propertyName)) {
 					oPropertyValue = DatabaseObject.encryptPropertyValue(oPropertyValue);
+				}
 				
 				if (oPropertyValue != null) {
 					Object args[] = { oPropertyValue };
@@ -168,10 +149,8 @@ public class Set extends XmlService {
 				}
 				
 			}
-
-			object.write(objectQName);
-			Engine.theApp.databaseObjectsManager.cacheUpdateObject(object, objectQName);
-
+			
+			Engine.theApp.databaseObjectsManager.exportProject(object.getProject());
 		} finally {
 			xpath.resetCache();
 		}

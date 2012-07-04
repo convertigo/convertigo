@@ -41,14 +41,14 @@ public class RemoveContextStep extends Step {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
-		RemoveContextStep clonedObject = (RemoveContextStep)super.clone();
+	public RemoveContextStep clone() throws CloneNotSupportedException {
+		RemoveContextStep clonedObject = (RemoveContextStep) super.clone();
 		return clonedObject;
 	}
 
 	@Override
-	public Object copy() throws CloneNotSupportedException {
-		RemoveContextStep copiedObject = (RemoveContextStep)super.copy();
+	public RemoveContextStep copy() throws CloneNotSupportedException {
+		RemoveContextStep copiedObject = (RemoveContextStep) super.copy();
 		return copiedObject;
 	}
 
@@ -66,6 +66,7 @@ public class RemoveContextStep extends Step {
 		this.contextName = contextName;
 	}
 
+	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.stepExecute(javascriptContext, scope)) {

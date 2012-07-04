@@ -211,7 +211,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public StatementWithExpressions clone() throws CloneNotSupportedException {
     	StatementWithExpressions clonedObject = (StatementWithExpressions) super.clone();
         clonedObject.vStatements = new Vector<Statement>();
         clonedObject.vAllStatements = null;

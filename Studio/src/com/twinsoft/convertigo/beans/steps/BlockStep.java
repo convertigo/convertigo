@@ -56,20 +56,23 @@ public abstract class BlockStep extends StepWithExpressions {
 		this.condition = condition;
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public BlockStep clone() throws CloneNotSupportedException {
     	BlockStep clonedObject = (BlockStep) super.clone();
     	clonedObject.thenStep = null;
     	clonedObject.elseStep = null;
         return clonedObject;
     }
-	
-	public Object copy() throws CloneNotSupportedException {
+
+	@Override
+	public BlockStep copy() throws CloneNotSupportedException {
 		BlockStep copiedObject = (BlockStep)super.copy();
     	copiedObject.thenStep = thenStep;
     	copiedObject.elseStep = elseStep;
 		return copiedObject;
 	}
-    
+
+	@Override
     protected void cleanCopy() {
     	super.cleanCopy();
     	thenStep = null;
@@ -89,7 +92,8 @@ public abstract class BlockStep extends StepWithExpressions {
 	public void setCondition(String condition) {
 		this.condition = condition;
 	}
-	
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		return name + (!text.equals("") ? " // "+text:"");
@@ -106,7 +110,8 @@ public abstract class BlockStep extends StepWithExpressions {
 	public boolean hasThenElseSteps() {
 		return false;
 	}
-		
+
+	@Override
 	public void addStep(Step step) throws EngineException {
 		checkSubLoaded();
 		
@@ -142,6 +147,7 @@ public abstract class BlockStep extends StepWithExpressions {
 		}
 	}
 
+	@Override
 	public void removeStep(Step step) {
 		checkSubLoaded();
 		
@@ -186,7 +192,8 @@ public abstract class BlockStep extends StepWithExpressions {
 			throw ee;
 		}
 	}
-	
+
+	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (hasToEvaluateBeforeNextStep()) {// e.g. While case
@@ -238,10 +245,12 @@ public abstract class BlockStep extends StepWithExpressions {
     	return false;
     }
 
+	@Override
 	protected void stepDone() {
 		super.stepDone();
 	}
-		
+
+	@Override
 	protected void reset() throws EngineException {
 		super.reset();
 	}

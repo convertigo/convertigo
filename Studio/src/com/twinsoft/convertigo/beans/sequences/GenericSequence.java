@@ -34,7 +34,8 @@ public class GenericSequence extends Sequence {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public GenericSequence clone() throws CloneNotSupportedException {
     	GenericSequence clonedObject = (GenericSequence) super.clone();
     	return clonedObject;
     }

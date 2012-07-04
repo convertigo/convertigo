@@ -64,24 +64,28 @@ public class ElementStep extends StepWithExpressions {
 		super();
 		this.expression = expression;
 	}
-	
-    public Object clone() throws CloneNotSupportedException {
+
+	@Override
+    public ElementStep clone() throws CloneNotSupportedException {
     	ElementStep clonedObject = (ElementStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public ElementStep copy() throws CloneNotSupportedException {
     	ElementStep copiedObject = (ElementStep) super.copy();
         return copiedObject;
     }
-    
+
+	@Override
 	protected String getSpecificLabel() throws EngineException {
 		if (!expression.equals(""))
 			return "="+ ((expression.length()<10) ? expression : expression.substring(0, 10)+ "...");
 		else
 			return "=\""+ nodeText + "\"";
 	}
-    
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -122,11 +126,13 @@ public class ElementStep extends StepWithExpressions {
 	public void setExpression(String expression) {
 		this.expression = expression;
 	}
-	
+
+	@Override
 	public String getStepNodeName() {
 		return getNodeName();
 	}
-	
+
+	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		String nodeValue = nodeText;
 		if (evaluated != null) {
@@ -159,7 +165,8 @@ public class ElementStep extends StepWithExpressions {
 		Node text = doc.createTextNode(nodeValue);
 		stepNode.appendChild(text);
 	}
-	
+
+	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			try {
@@ -178,7 +185,8 @@ public class ElementStep extends StepWithExpressions {
 		}
 		return false;
 	}
-	
+
+	@Override
 	public String toJsString() {
 		return expression;
 	}

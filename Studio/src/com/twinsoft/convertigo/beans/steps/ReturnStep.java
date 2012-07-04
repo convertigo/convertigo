@@ -41,16 +41,19 @@ public class ReturnStep extends SimpleStep {
 		super(expression);
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public ReturnStep clone() throws CloneNotSupportedException {
     	ReturnStep clonedObject = (ReturnStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public ReturnStep copy() throws CloneNotSupportedException {
     	ReturnStep copiedObject = (ReturnStep) super.copy();
         return copiedObject;
     }
-	
+
+	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.stepExecute(javascriptContext, scope)) {
@@ -74,7 +77,8 @@ public class ReturnStep extends SimpleStep {
 		}
 		return false;
 	}
-	
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		return "return "+ getExpression() + (!text.equals("") ? " // "+text:"");

@@ -46,16 +46,19 @@ abstract public class XMLActionStep extends Step {
 		this.xml = true;
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public XMLActionStep clone() throws CloneNotSupportedException {
     	XMLActionStep clonedObject = (XMLActionStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public XMLActionStep copy() throws CloneNotSupportedException {
     	XMLActionStep copiedObject = (XMLActionStep) super.copy();
         return copiedObject;
     }
-    
+
+	@Override
     protected String getSpecificLabel() throws EngineException {
 		if (sourcesDefinition.size() > 0) {
 			for (int i=0; i<sourcesDefinition.size();i++) {
@@ -78,7 +81,8 @@ abstract public class XMLActionStep extends Step {
 			return "(??)";
 		}
 	}
-    
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -123,7 +127,8 @@ abstract public class XMLActionStep extends Step {
 	public List<String> getSourceDefinition(int index) {
 		return GenericUtils.cast(sourcesDefinition.get(index).get(1));
 	}
-	
+
+	@Override
 	public String getStepNodeName() {
 		return getNodeName();
 	}
@@ -155,6 +160,7 @@ abstract public class XMLActionStep extends Step {
 		return null;
 	}
 
+	@Override
 	public void stepMoved(StepEvent stepEvent) {
 		if (sourcesDefinition.size() > 0) {
 			for (int i=0; i<sourcesDefinition.size();i++) {
@@ -166,6 +172,7 @@ abstract public class XMLActionStep extends Step {
 		}
 	}
 
+	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		String nodeValue = getActionValue();
 		stepNode.appendChild(doc.createTextNode(nodeValue));

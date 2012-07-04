@@ -78,7 +78,7 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 	}
     
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public HtmlConnector clone() throws CloneNotSupportedException {
 		HtmlConnector htmlConnector = (HtmlConnector) super.clone();
 		htmlConnector.screenClassHelper = new ScreenClassHelper<HtmlScreenClass>(htmlConnector);
 		htmlConnector.currentXmlDocument = currentXmlDocument;

@@ -44,16 +44,19 @@ public class BreakStep extends SimpleStep {
 		super(expression);
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public BreakStep clone() throws CloneNotSupportedException {
     	BreakStep clonedObject = (BreakStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public BreakStep copy() throws CloneNotSupportedException {
     	BreakStep copiedObject = (BreakStep) super.copy();
         return copiedObject;
     }
-	
+
+	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.stepExecute(javascriptContext, scope)) {
@@ -78,6 +81,7 @@ public class BreakStep extends SimpleStep {
 		return false;
 	}
 	
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		return "break;" + (!text.equals("") ? " // "+text:"");

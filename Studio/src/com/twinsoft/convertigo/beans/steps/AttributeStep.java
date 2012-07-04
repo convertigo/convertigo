@@ -62,13 +62,15 @@ public class AttributeStep extends Step {
 		super();
 		this.expression = expression;
 	}
-	
-    public Object clone() throws CloneNotSupportedException {
+
+	@Override
+    public AttributeStep clone() throws CloneNotSupportedException {
     	AttributeStep clonedObject = (AttributeStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public AttributeStep copy() throws CloneNotSupportedException {
     	AttributeStep copiedObject = (AttributeStep) super.copy();
         return copiedObject;
     }
@@ -83,6 +85,7 @@ public class AttributeStep extends Step {
 		return expression;
 	}
 
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		return "@"+ nodeName + (!text.equals("") ? " // "+text:"");
@@ -93,6 +96,7 @@ public class AttributeStep extends Step {
 		return false;
 	}
 
+	@Override
 	public String getStepNodeName() {
 		return getNodeName();
 	}
@@ -136,7 +140,8 @@ public class AttributeStep extends Step {
 	public void setNodeNameSpaceURI(String nodeNameSpaceURI) {
 		this.nodeNameSpaceURI = nodeNameSpaceURI;
 	}
-	
+
+	@Override
 	protected Node createWsdlDom() throws EngineException {
 		wsdlDom = getSequence().createDOM();
 		wsdlDom.getDocumentElement().setAttribute(nodeName, "");
@@ -144,7 +149,8 @@ public class AttributeStep extends Step {
 		wsdlDomDirty = false;
 		return attr;
 	}
-	
+
+	@Override
 	protected Node generateWsdlDom() throws EngineException {
 		Attr attr = null;
     	try {
@@ -160,7 +166,8 @@ public class AttributeStep extends Step {
     		throw new EngineException("Unable to generate WSDL document",e);
     	}
 	}
-	
+
+	@Override
 	protected Node createStepNode() throws EngineException {
 		Attr stepNode = null;
 		String nodeValue = nodeText;
@@ -211,7 +218,8 @@ public class AttributeStep extends Step {
 		}
 		return stepNode;
 	}
-	
+
+	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			try {

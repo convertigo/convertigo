@@ -46,13 +46,13 @@ public class WriteCSVStep extends WriteFileStep {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public WriteCSVStep clone() throws CloneNotSupportedException {
 		WriteCSVStep clonedObject = (WriteCSVStep) super.clone();
 		return clonedObject;
 	}
 
 	@Override
-	public Object copy() throws CloneNotSupportedException {
+	public WriteCSVStep copy() throws CloneNotSupportedException {
 		WriteCSVStep copiedObject = (WriteCSVStep) super.copy();
 		return copiedObject;
 	}

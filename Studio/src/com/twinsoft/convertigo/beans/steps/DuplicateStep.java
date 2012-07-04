@@ -25,13 +25,13 @@ public class DuplicateStep extends Step {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public DuplicateStep clone() throws CloneNotSupportedException {
 		DuplicateStep clonedObject = (DuplicateStep) super.clone();
 		return clonedObject;
 	}
 
 	@Override
-	public Object copy() throws CloneNotSupportedException {
+	public DuplicateStep copy() throws CloneNotSupportedException {
 		DuplicateStep copiedObject = (DuplicateStep) super.copy();
 		return copiedObject;
 	}

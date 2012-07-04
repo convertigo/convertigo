@@ -56,7 +56,7 @@ public class XMLSplitNodes extends HtmlExtractionRule {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public XMLSplitNodes clone() throws CloneNotSupportedException {
 		XMLSplitNodes splitNodes = (XMLSplitNodes)super.clone();
 		return splitNodes;
 	}

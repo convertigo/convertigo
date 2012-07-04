@@ -52,19 +52,22 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		super();
 	}
 
-	public Object clone() throws CloneNotSupportedException {
+	@Override
+    public IteratorStep clone() throws CloneNotSupportedException {
     	IteratorStep clonedObject = (IteratorStep) super.clone();
     	clonedObject.iterator = null;
     	clonedObject.source = null;
     	clonedObject.iterations = null;
         return clonedObject;
     }
-	
-	public Object copy() throws CloneNotSupportedException {
-		IteratorStep copiedObject = (IteratorStep)super.copy();
+
+	@Override
+	public IteratorStep copy() throws CloneNotSupportedException {
+		IteratorStep copiedObject = (IteratorStep) super.copy();
 		return copiedObject;
 	}
-    
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -74,10 +77,12 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		return name + label + (!text.equals("") ? " // "+text:"");
 	}
 
+	@Override
 	protected boolean workOnSource() {
 		return true;
 	}
-	
+
+	@Override
 	protected StepSource getSource() {
 		if (source == null) source = new StepSource(this,sourceDefinition);
 		return source;
@@ -100,11 +105,13 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		this.startIndex = startIndex;
 	}
 
+	@Override
 	public Node getContextNode(int loop) {
 		Engine.logBeans.trace("(IteratorStep) Retrieve context node for loop :"+ loop);
 		return iterator.getNode(loop);
 	}
-		
+
+	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			try {
@@ -143,12 +150,14 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		}
 		return false;
 	}
-	
+
+	@Override
 	protected void stepInit() throws EngineException {
 		super.stepInit();
 		initialize();
 	}
-	
+
+	@Override
 	protected void stepDone() {
 		iterator.reset();
 		super.stepDone();
@@ -160,6 +169,7 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		return iterations;
 	}
 	
+	@Override
 	protected void doLoop(Context javascriptContext, Scriptable scope) throws EngineException {
 		super.doLoop(javascriptContext, scope);
 		if (iterator.hasMoreElements()) {

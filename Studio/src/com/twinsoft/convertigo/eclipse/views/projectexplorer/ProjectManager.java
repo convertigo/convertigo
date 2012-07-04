@@ -23,26 +23,20 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PlatformUI;
 
-import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
-import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.TestCase;
-import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
@@ -96,10 +90,10 @@ public class ProjectManager {
         
         try {
             // Copy the whole directory
-            copyDir(Engine.PROJECTS_PATH + "/" + projectName, Engine.PROJECTS_PATH + "/" + copyProjectName);
+        	FileUtils.copyDirectory(new File(Engine.PROJECTS_PATH + "/" + projectName), new File(Engine.PROJECTS_PATH + "/" + copyProjectName));
             
             // Rename the project
-            Project project = Engine.theApp.databaseObjectsManager.getProjectByName0(copyProjectName);
+            Project project = Engine.theApp.databaseObjectsManager.getProjectByName(copyProjectName);
             project.setName(copyProjectName);
             project.write();
             Engine.theApp.databaseObjectsManager.cacheRemoveObject(project.getQName());
@@ -108,182 +102,56 @@ public class ProjectManager {
             throw new EngineException("Unable to copy the directory for the project \"" + projectName + "\"", e);
         }
     }
-    
-    // Deletes all files and subdirectories under dir.
-    // Returns true if all deletions were successful.
-    // If a deletion fails, the method stops attempting to delete and returns false.
-    private boolean deleteDir(File dir) {
-        if (dir.isDirectory()) {
-            String[] children = dir.list();
-            for (int i=0; i<children.length; i++) {
-                boolean success = deleteDir(new File(dir, children[i]));
-                if (!success) {
-                    return false;
-                }
-            }
-        }
-    
-        // The directory is now empty so delete it
-        return dir.delete();
-    }
-
-    
-    private void copyDir(String source, String dest) throws IOException {
-        File fDest = new File(dest);
-        fDest.mkdir();
-        
-        File fSource = new File(source);
-        File[] files = fSource.listFiles();
-        File file;
-        for (int i = 0 ; i < files.length ; i++) {
-            file = files[i];
-            if (file.isDirectory()) {
-                copyDir(file.getAbsolutePath(), dest + "/" + file.getName());
-            }
-            else {
-                copyFile(file.getAbsolutePath(), dest + "/" + file.getName());
-            }
-        }
-    }
-    
-    private void copyFile(String source, String dest) throws IOException {
-        File inputFile = new File(source);
-        File outputFile = new File(dest);
-
-        FileInputStream in = new FileInputStream(inputFile);
-        FileOutputStream out = new FileOutputStream(outputFile);
-        int c;
-
-        while ((c = in.read()) != -1)
-           out.write(c);
-
-        in.close();
-        out.close();
-    }
 
     public void saveSingleObject(DatabaseObject databaseObject, boolean bForce) throws ConvertigoException {
 		if (databaseObject.hasChanged || bForce) {
 			ProjectExplorerView projectExplorerView = getProjectExplorerView();
 			
 			// Case of already loaded project
-			boolean bProject = ((currentProject != null) && (databaseObject.getQName().startsWith(currentProject.getPath())));
+			boolean bProject = ((currentProject != null) && (databaseObject.getQName().startsWith(currentProject.getQName())));
 			if (bProject) {
-				DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)projectExplorerView.findTreeObjectByUserObject(databaseObject);
+				DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) projectExplorerView.findTreeObjectByUserObject(databaseObject);
 
 				if (treeObject != null) {
-					String latestSavedDatabaseObjectQName = treeObject.latestSavedDatabaseObjectQName;
-					String latestSavedDatabaseObjectName = treeObject.latestSavedDatabaseObjectName;
-					String newQName = databaseObject.getQName();
-					String newName = databaseObject.getName();
-					
-					if (!latestSavedDatabaseObjectQName.equalsIgnoreCase(newQName)) {
-						Engine.theApp.databaseObjectsManager.cacheRemoveObject(latestSavedDatabaseObjectQName);
-	
-						if (databaseObject instanceof Project) {
-							String latestSavedDatabaseObjectPath = latestSavedDatabaseObjectQName.substring(0, latestSavedDatabaseObjectQName.lastIndexOf("/_data/"));
-							File file = new File(Engine.PROJECTS_PATH + latestSavedDatabaseObjectPath);
-							if (file.exists()) {
-								// Rename dir
-								if (!file.renameTo(new File(Engine.PROJECTS_PATH + "/" + newName))) {
-									throw new ConvertigoException(
-										"Unable to rename the object path \"" +
-										Engine.PROJECTS_PATH + latestSavedDatabaseObjectPath + 
-										"\" to \"" + Engine.PROJECTS_PATH + "/" + newName +
-										"\".\n This directory is probably locked by another application or is (or one of its child objects is) read-only.");
-								}
-	
-								// Rename CVS if needed
-								if (treeObject.isUnderCvs) {
-								}
-							}
-	                    
-							// Update the project name
-							currentProjectName = newName;
-						}
-						else if ((databaseObject instanceof Connector) || 
-								(databaseObject instanceof Sequence) || 
-								(databaseObject instanceof Transaction) || 
-								(databaseObject instanceof ScreenClass) || 
-								(databaseObject instanceof Statement) || 
-								(databaseObject instanceof Step) || 
-								(databaseObject instanceof TestCase)) {
-							String latestSavedDatabaseObjectPath = latestSavedDatabaseObjectQName.substring(0, latestSavedDatabaseObjectQName.lastIndexOf('/'));
-							File file = new File(Engine.PROJECTS_PATH + latestSavedDatabaseObjectPath);
-							if (file.exists()) {
-								// Rename dir
-								if (!file.renameTo(new File(Engine.PROJECTS_PATH + databaseObject.getPath()))) {
-									throw new ConvertigoException(
-										"Unable to rename the object path \"" +
-										Engine.PROJECTS_PATH + latestSavedDatabaseObjectPath + 
-										"\" to \"" + Engine.PROJECTS_PATH + databaseObject.getPath() +
-										"\".\n This directory is probably locked by another application or is (or one of its child objects is) read-only.");
-								}
-	
-								// Rename CVS if needed
-								if (treeObject.isUnderCvs) {
-								}
-							}
-							else {
-								DatabaseObjectTreeObject parentTreeObject = (DatabaseObjectTreeObject)projectExplorerView.findTreeObjectByUserObject(databaseObject.getParent());
-								String latestSavedParentObjectQName = parentTreeObject.latestSavedDatabaseObjectQName;
-								String latestSavedParentObjectPath = latestSavedParentObjectQName.substring(0, latestSavedParentObjectQName.lastIndexOf('/'));
-								
-								// One of parents has been renamed before while saving project
-								if (latestSavedDatabaseObjectQName.indexOf(latestSavedParentObjectPath) == -1) {
-									// Must delete previously renamed directory
-									String dataDirectory = "";
-									if (databaseObject instanceof Connector) dataDirectory = Connector.DATA_DIRECTORY;
-									else if (databaseObject instanceof Sequence) dataDirectory = Sequence.DATA_DIRECTORY;
-									else if (databaseObject instanceof Transaction) dataDirectory = Transaction.DATA_DIRECTORY;
-									else if (databaseObject instanceof ScreenClass) dataDirectory = ScreenClass.DATA_DIRECTORY;
-									else if (databaseObject instanceof Statement) dataDirectory = Statement.DATA_DIRECTORY;
-									else if (databaseObject instanceof Step) dataDirectory = Step.DATA_DIRECTORY;
-									else if (databaseObject instanceof TestCase) dataDirectory = TestCase.DATA_DIRECTORY;
-									
-									int i = latestSavedDatabaseObjectQName.lastIndexOf('/'+dataDirectory+'/');
-									int j = latestSavedDatabaseObjectQName.lastIndexOf('/');
-									String databaseObjectRenamedPath = latestSavedParentObjectPath + latestSavedDatabaseObjectQName.substring(i, j);
-									File renamedDir = new File(Engine.PROJECTS_PATH + databaseObjectRenamedPath);
-									if (databaseObject.hasChanged && renamedDir.exists()) {
-										// delete file first (If pathname denotes a directory, then the directory must be empty in order to be deleted)
-										if (!deleteDir(renamedDir)) {
-											throw new ConvertigoException(
-													"Unable to delete the previously renamed object \"" +
-													Engine.PROJECTS_PATH + databaseObjectRenamedPath +
-													"\".\n This file is probably locked by another application.");
-										}
-									}
-								}
-							}
-							
-							if (databaseObject instanceof Connector) {
-								// Rename dir in Traces directory
-								file = new File(Engine.PROJECTS_PATH + "/" + currentProjectName + "/Traces/" + latestSavedDatabaseObjectName);
-								if (file.exists()) {
-									file.renameTo(new File(Engine.PROJECTS_PATH + "/" + currentProjectName + "/Traces/" + newName));
-								}
-							}
-						}
-						else {
-							File file = new File(Engine.PROJECTS_PATH + latestSavedDatabaseObjectQName);
-							if (file.exists()) {
-								// Delete old file
-								if (!file.delete()) {
-									throw new ConvertigoException(
-										"Unable to delete the old object \"" +
-										Engine.PROJECTS_PATH + latestSavedDatabaseObjectQName +
-										"\".\n This file is probably locked by another application.");
-								}
-	
-								// Rename CVS if needed
-								if (treeObject.isUnderCvs) {
-								}
-							}
-						}
-	
-						treeObject.latestSavedDatabaseObjectQName = newQName;
-						treeObject.latestSavedDatabaseObjectName = newName;
-					}
+//					String latestSavedDatabaseObjectQName = treeObject.latestSavedDatabaseObjectQName;
+//					String latestSavedDatabaseObjectName = treeObject.latestSavedDatabaseObjectName;
+//					String newQName = databaseObject.getQName();
+//					String newName = databaseObject.getName();
+//					
+//					if (!latestSavedDatabaseObjectQName.equalsIgnoreCase(newQName)) {
+//						Engine.theApp.databaseObjectsManager.cacheRemoveObject(latestSavedDatabaseObjectQName);
+//	
+//						if (databaseObject instanceof Project) {
+//							String latestSavedDatabaseObjectPath = latestSavedDatabaseObjectQName.substring(0, latestSavedDatabaseObjectQName.lastIndexOf("/_data/"));
+//							File file = new File(Engine.PROJECTS_PATH + latestSavedDatabaseObjectPath);
+//							if (file.exists()) {
+//								// Rename dir
+//								if (!file.renameTo(new File(Engine.PROJECTS_PATH + "/" + newName))) {
+//									throw new ConvertigoException(
+//										"Unable to rename the object path \"" +
+//										Engine.PROJECTS_PATH + latestSavedDatabaseObjectPath + 
+//										"\" to \"" + Engine.PROJECTS_PATH + "/" + newName +
+//										"\".\n This directory is probably locked by another application or is (or one of its child objects is) read-only.");
+//								}
+//	
+//								// Rename CVS if needed
+//								if (treeObject.isUnderCvs) {
+//								}
+//							}
+//	                    
+//							// Update the project name
+//							currentProjectName = newName;
+//						}
+//						else if (databaseObject instanceof Connector) {												
+//							if (databaseObject instanceof Connector) {
+//								// Rename dir in Traces directory
+//								File file = new File(Engine.PROJECTS_PATH + "/" + currentProjectName + "/Traces/" + latestSavedDatabaseObjectName);
+//								if (file.exists()) {
+//									file.renameTo(new File(Engine.PROJECTS_PATH + "/" + currentProjectName + "/Traces/" + newName));
+//								}
+//							}
+//						}
+//					}
 				}
 				if (databaseObject instanceof HandlerStatement) {
 					if (((HandlerStatement)databaseObject).getHandlerType().equals("")) {
@@ -395,14 +263,6 @@ public class ProjectManager {
     }
     
 	public int getNumberOfObjects(String projectName) {
-		File dir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/_data");
-		return getNumberOfObjects(dir);
+		return 100;
 	}
-
-	public int getNumberOfObjects(File dir) {
-		int size = FileUtils.listFiles(dir, new String[]{"xml"}, true).size();
-		return size;
-	}
-
-    
 }

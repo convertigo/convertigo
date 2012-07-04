@@ -60,6 +60,7 @@ public class DatabaseObjectDecreasePriorityAction extends MyAbstractAction imple
 		this.counter = counter;
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		

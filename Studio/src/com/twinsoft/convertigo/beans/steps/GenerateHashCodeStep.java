@@ -36,22 +36,22 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty {
 		super();
 		this.xml = true;
 	}
-	
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public GenerateHashCodeStep clone() throws CloneNotSupportedException {
 		GenerateHashCodeStep clonedObject = (GenerateHashCodeStep) super.clone();
 		clonedObject.sourceFilePath = "";
 		return clonedObject;
 	}
 
 	@Override
-	public Object copy() throws CloneNotSupportedException {
+	public GenerateHashCodeStep copy() throws CloneNotSupportedException {
 		GenerateHashCodeStep copiedObject = (GenerateHashCodeStep) super.copy();
 		copiedObject.sourceFilePath = "";
 		return copiedObject;
 	}
 
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		return "<"+ nodeName +">" + getName()+ (!text.equals("") ? " // "+text:"");
@@ -183,7 +183,8 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty {
 	public void setNodeName(String nodeName) {
 		this.nodeName = nodeName;
 	}
-	
+
+	@Override
 	public String getStepNodeName() {
 		return getNodeName();
 	}

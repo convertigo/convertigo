@@ -38,13 +38,13 @@ public class FunctionStep extends StepWithExpressions {
 		super();
 	}
 	
-    public Object clone() throws CloneNotSupportedException {
+    public FunctionStep clone() throws CloneNotSupportedException {
     	FunctionStep clonedObject = (FunctionStep) super.clone();
     	clonedObject.returnedValue = null;
         return clonedObject;
     }
 	
-    public Object copy() throws CloneNotSupportedException {
+    public FunctionStep copy() throws CloneNotSupportedException {
     	FunctionStep copiedObject = (FunctionStep) super.copy();
         return copiedObject;
     }

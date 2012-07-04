@@ -112,7 +112,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	}
 
 	@Override
-    public Object clone() throws CloneNotSupportedException {
+    public RequestableObject clone() throws CloneNotSupportedException {
     	RequestableObject clonedObject = (RequestableObject) super.clone();
         clonedObject.vSheets = new Vector<Sheet>();
         return clonedObject;

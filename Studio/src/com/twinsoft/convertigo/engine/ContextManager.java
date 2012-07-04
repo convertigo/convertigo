@@ -22,8 +22,6 @@
 
 package com.twinsoft.convertigo.engine;
 
-import java.io.File;
-import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -32,8 +30,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.servlet.http.HttpSession;
 
@@ -626,18 +624,6 @@ public class ContextManager extends AbstractRunnableManager {
 			// with the auto-start transaction
 			for (String projectName : Engine.theApp.databaseObjectsManager.getAllProjectNamesList()) {
 				if (!isRunning) return;
-	            String dirPath = Engine.PROJECTS_PATH + "/" + projectName + "/_data/" + Connector.DATA_DIRECTORY;
-				File dir = new File(dirPath);
-				File[] dirs = dir.listFiles(new FileFilter() {
-					public boolean accept(File pathname) {
-						File poolDir = new File(pathname + "/" + Pool.DATA_DIRECTORY);
-						return poolDir.exists();
-					}
-				});
-				
-				if ((dirs == null) || (dirs.length == 0)) {
-					continue;
-				}
 				
 				Engine.logContextManager.trace("Analyzing project " + projectName);
 				Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);

@@ -71,7 +71,7 @@ public class WebClipper extends XMLNodeList implements ITagsProperty {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public WebClipper clone() throws CloneNotSupportedException {
 		WebClipper webClipper = (WebClipper) super.clone();
 		return webClipper;
 	}

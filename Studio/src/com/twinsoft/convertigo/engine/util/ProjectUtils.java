@@ -836,7 +836,7 @@ public class ProjectUtils {
 	public static void getFullProjectDOM(Document document, String projectName, ExportOption... exportOptions) throws TransformerFactoryConfigurationError, EngineException, TransformerException{
 		Element root = document.getDocumentElement();
 				
-		Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 		Element projectTag = project.toXml(document, exportOptions);
 		projectTag.setAttribute("qname", project.getQName());
 		root.appendChild(projectTag);

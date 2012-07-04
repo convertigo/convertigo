@@ -85,18 +85,21 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		super();
 	}
 
-	public Object clone() throws CloneNotSupportedException {
+	@Override
+	public SequenceStep clone() throws CloneNotSupportedException {
 		SequenceStep clonedObject = (SequenceStep) super.clone();
 		clonedObject.setSourceSequence(sourceSequence);
 		return clonedObject;
 	}
-	
-	public Object copy() throws CloneNotSupportedException {
+
+	@Override
+	public SequenceStep copy() throws CloneNotSupportedException {
 		SequenceStep copiedObject = (SequenceStep)super.copy();
 		copiedObject.setSourceSequence(sourceSequence);
 		return copiedObject;
 	}
-	
+
+	@Override
 	public String getStepNodeName() {
 		return "sequence";
 	}
@@ -116,7 +119,8 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 	public void setInheritTransactionCtx(boolean inheritTransactionCtx) {
 		this.inheritTransactionCtx = inheritTransactionCtx;
 	}
-	
+
+	@Override
 	protected void stepDone() {
 		super.stepDone();
 	}
@@ -344,7 +348,8 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
     		throw new EngineException("Unable to generate XML document from XSD project file",e);
     	}
 	}
-	
+
+	@Override
     protected Node generateWsdlDom() throws EngineException {
     	try {
     		return generateXmlFromXsd();
@@ -354,7 +359,8 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
     		throw new EngineException("Unable to generate WSDL document",e);
     	}
     }
-	
+
+	@Override
     public Document getWsdlDom() throws EngineException {
     	if (wsdlDomDirty || (wsdlDom == null))
     		generateWsdlDom();
@@ -422,7 +428,8 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		}
 		return result;
 	}
-    
+
+	@Override
 	public void configure(Element element) throws Exception {
         super.configure(element);
         
@@ -459,7 +466,8 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
             throw new EngineException("Unable to migrate the source definition for CallSequence step \"" + getName() + "\".", e);
         }
 	}
-	
+
+	@Override
 	public Element toXml(Document document) throws EngineException {
 		Element element = super.toXml(document);
 		
@@ -479,6 +487,7 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
         return element;
 	}
 
+	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if (propertyName.equals("sourceSequence")) {
 			List<String> sequencesList = new ArrayList<String>();

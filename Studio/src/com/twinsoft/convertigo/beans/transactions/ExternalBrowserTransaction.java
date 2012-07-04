@@ -57,7 +57,7 @@ public class ExternalBrowserTransaction extends TransactionWithVariables {
 		//		externalBrowser.terminate();
 		//		Engine.logEngine.info("bench term");
 		//		context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
-		String url = context.httpServletRequest.getParameter("url");
+		String url = (String) variables.get("url");
 		if (url == null) {
 			url = "http://www.google.fr";
 		}
@@ -77,6 +77,7 @@ public class ExternalBrowserTransaction extends TransactionWithVariables {
 			ebi.addDocumentCompledListener(listener);
 			synchronized (listener) {
 				ebi.gotoUrl(url);
+				Document d = ebi.getDom();
 				try {
 					listener.wait(30000);
 					if (!done[0]) {
@@ -88,7 +89,11 @@ public class ExternalBrowserTransaction extends TransactionWithVariables {
 				}
 			}
 			Document doc = ebi.getDom();
-			context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
+			if (doc != null) {
+				context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
+			} else {
+				throw new EngineException("(EBA) no dom !");
+			}
 		} finally {
 			ebi.removeDocumentCompledListener(listener);
 			//			ebi.setContext(null);

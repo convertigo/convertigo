@@ -37,8 +37,6 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 
 	private static final long serialVersionUID = -8671967475887212428L;
 	
-	public static final String DATA_DIRECTORY = "vb";
-	
 	protected Object value;
 	private int visibility = 0;
 	private String description = "new variable";
@@ -57,7 +55,7 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 	}
 	
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public Variable clone() throws CloneNotSupportedException {
 		Variable clonedObject = (Variable)super.clone();
 		clonedObject.newPriority = newPriority;
 		clonedObject.nullProps = nullProps;
@@ -156,10 +154,6 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 		//this.multi = multi;
 	}
 	/*---------------------------------*/
-	
-	public String getPath() {
-        return parent.getPath() + "/" + DATA_DIRECTORY ;
-    }
 
     public String getDescription() {
 		return description;

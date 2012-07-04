@@ -40,12 +40,14 @@ public class XMLTransformStep extends XMLElementStep {
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public XMLTransformStep clone() throws CloneNotSupportedException {
     	XMLTransformStep clonedObject = (XMLTransformStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public XMLTransformStep copy() throws CloneNotSupportedException {
     	XMLTransformStep copiedObject = (XMLTransformStep) super.copy();
         return copiedObject;
     }

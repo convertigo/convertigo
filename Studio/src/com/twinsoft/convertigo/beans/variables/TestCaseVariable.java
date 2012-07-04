@@ -34,7 +34,7 @@ public class TestCaseVariable extends Variable {
 	}
 	
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public TestCaseVariable clone() throws CloneNotSupportedException {
 		TestCaseVariable clonedObject = (TestCaseVariable)super.clone();
 		return clonedObject;
 	}

@@ -50,13 +50,13 @@ public class ListDirStep extends Step {
 	}
 
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public ListDirStep clone() throws CloneNotSupportedException {
 		ListDirStep clonedObject = (ListDirStep)super.clone();
 		return clonedObject;
 	}
 	
 	@Override
-	public Object copy() throws CloneNotSupportedException {
+	public ListDirStep copy() throws CloneNotSupportedException {
 		ListDirStep copiedObject = (ListDirStep)super.copy();
 		return copiedObject;
 	}

@@ -47,19 +47,21 @@ public abstract class LoopStep extends BlockStep {
 		super(condition);
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public LoopStep clone() throws CloneNotSupportedException {
     	LoopStep clonedObject = (LoopStep) super.clone();
     	clonedObject.loop = 1;
     	clonedObject.executedLoops = new Vector<String>();
         return clonedObject;
     }
-	
-	public Object copy() throws CloneNotSupportedException {
+
+	@Override
+	public LoopStep copy() throws CloneNotSupportedException {
 		LoopStep copiedObject = (LoopStep)super.copy();
 		return copiedObject;
 	}
-	
-	
+
+	@Override
 	protected void cleanCopy() {
 		for (int i=0; i<executedLoops.size(); i++) {
 			String timeID = executedLoops.elementAt(i);
@@ -69,22 +71,26 @@ public abstract class LoopStep extends BlockStep {
 		super.cleanCopy();
 	}
 
+	@Override
 	protected StepSource getSource() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	@Override
 	protected boolean workOnSource() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
+	@Override
 	protected String getExecuteTimeID() {
 		String timeID = super.getExecuteTimeID() + loopSeparator + loop;
 		executedLoops.addElement(timeID);
 		return timeID;
 	}
-		
+
+	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.executeNextStep(javascriptContext, scope)) {
@@ -105,11 +111,13 @@ public abstract class LoopStep extends BlockStep {
 			currentChildStep = 0;
 		}
 	}
-	
+
+	@Override
 	protected void stepDone() {
 		super.stepDone();
 	}
 	
+	@Override
 	protected void reset() throws EngineException {
 		super.reset();
 	}

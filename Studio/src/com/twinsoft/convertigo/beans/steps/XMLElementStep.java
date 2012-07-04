@@ -57,17 +57,20 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 		this.xml = true;
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public XMLElementStep clone() throws CloneNotSupportedException {
     	XMLElementStep clonedObject = (XMLElementStep) super.clone();
     	clonedObject.source = null;
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public XMLElementStep copy() throws CloneNotSupportedException {
     	XMLElementStep copiedObject = (XMLElementStep) super.copy();
         return copiedObject;
     }
-    
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -102,7 +105,8 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 	public void setNodeText(String nodeText) {
 		this.nodeText = nodeText;
 	}
-	
+
+	@Override
 	public String getStepNodeName() {
 		return getNodeName();
 	}
@@ -123,7 +127,8 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 	public void setDefaultValueWhenNoSource(boolean defaultValueWhenNoSource) {
 		this.defaultValueWhenNoSource = defaultValueWhenNoSource;
 	}
-	
+
+	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		boolean useDefaultValue = true;
 		NodeList list = getContextValues();
@@ -148,7 +153,8 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 			stepNode.appendChild(text);
 		}
 	}
-	
+
+	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
     	if (isEnable) {
 			if (inError()) {

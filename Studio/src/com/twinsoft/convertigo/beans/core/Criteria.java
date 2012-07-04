@@ -33,8 +33,6 @@ import com.twinsoft.convertigo.engine.EngineException;
  */
 public abstract class Criteria extends DatabaseObject {
 	private static final long serialVersionUID = 4417148740041540014L;
-	
-	public static final String DATA_DIRECTORY = "ct";
     
 	public Criteria() {
         super();
@@ -44,10 +42,6 @@ public abstract class Criteria extends DatabaseObject {
 		this.priority = getNewOrderValue();
 		this.newPriority = priority;
 	}
-	
-    public String getPath() {
-        return parent.getPath() + "/" + DATA_DIRECTORY;
-    }
     
     /**
      * Get order for quick sort.
@@ -94,8 +88,8 @@ public abstract class Criteria extends DatabaseObject {
 	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#clone()
 	 */
 	@Override
-	public Object clone() throws CloneNotSupportedException {
-		Criteria clonedObject = (Criteria)super.clone();
+	public Criteria clone() throws CloneNotSupportedException {
+		Criteria clonedObject = (Criteria) super.clone();
 		clonedObject.newPriority = newPriority;
 		return clonedObject;
 	}

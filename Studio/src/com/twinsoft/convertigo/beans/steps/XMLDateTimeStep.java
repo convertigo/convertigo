@@ -46,20 +46,24 @@ public class XMLDateTimeStep extends XMLConcatStep implements ITagsProperty{
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public XMLDateTimeStep clone() throws CloneNotSupportedException {
     	XMLDateTimeStep clonedObject = (XMLDateTimeStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public XMLDateTimeStep copy() throws CloneNotSupportedException {
     	XMLDateTimeStep copiedObject = (XMLDateTimeStep) super.copy();
         return copiedObject;
     }
-	
+
+	@Override
 	protected String getActionName() {
 		return "Date";
 	}
 
+	@Override
 	protected String getActionValue() throws EngineException {
 		String nodeValue = super.getActionValue();
 		if (!nodeValue.equals("")) {
@@ -116,7 +120,8 @@ public class XMLDateTimeStep extends XMLConcatStep implements ITagsProperty{
 	public void setOutputLocale(String outputLocale) {
 		this.outputLocale = outputLocale;
 	}
-	
+
+	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if(propertyName.equals("outputLocale") || propertyName.equals("inputLocale")){
 			return Locale.getISOCountries();

@@ -57,6 +57,8 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	
 	public final static String CONVERTIGO_PROJECTS_NAMESPACEURI = "http://www.convertigo.com/convertigo/projects/";
 	
+	private String oldName;
+	
 	public static String getProjectTargetNamespace(String projectName) {
 		try {
 			Project p = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
@@ -105,24 +107,9 @@ public class Project extends DatabaseObject implements ITagsProperty {
 			throw new EngineException("The project name (\"" + name + "\") cannot contain one of the following character(s):\n\\/:*?\"<>|");
 	}
 
-    public String getPath() {
-        return "/" + getName() + "/_data";
-    }
-
-    @Override
-    public String getOldPath() {
-        return "/" + getOldName() + "/_data";
-    }
-
-    @Override
-    public String getFileName() {
-        return "project.xml";
-    }
-    
-    @Override
-    public String getOldFileName() {
-        return "project.xml";
-    }
+	public String getQName() {
+		return name;
+	}
 
     /**
      * The HTTP session timeout.
@@ -407,7 +394,7 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	}
 	
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public Project clone() throws CloneNotSupportedException {
 		Project clonedObject = (Project) super.clone();
 		clonedObject.defaultConnector = null;
 		clonedObject.vConnectors = new Vector<Connector>();
@@ -504,5 +491,9 @@ public class Project extends DatabaseObject implements ITagsProperty {
 			rep.add(device);
 		}		
 		return rep;
+	}
+
+	public String getOldName() {
+		return oldName;
 	}
 }

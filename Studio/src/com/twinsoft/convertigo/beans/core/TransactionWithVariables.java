@@ -75,7 +75,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     }
     
     @Override
-	public Object clone() throws CloneNotSupportedException {
+	public TransactionWithVariables clone() throws CloneNotSupportedException {
 		TransactionWithVariables clonedObject = (TransactionWithVariables) super.clone();
 		clonedObject.variables = new HashMap<String, Object>();
 		clonedObject.vVariables = new Vector<RequestableVariable>();

@@ -136,7 +136,7 @@ public class HtmlTransaction extends HttpTransaction {
 	}
 
     @Override
-	public Object clone() throws CloneNotSupportedException {
+	public HtmlTransaction clone() throws CloneNotSupportedException {
 		HtmlTransaction clonedObject = (HtmlTransaction) super.clone();
 		clonedObject.vStatements = new LinkedList<Statement>();
 		clonedObject.alreadyConnected = false;

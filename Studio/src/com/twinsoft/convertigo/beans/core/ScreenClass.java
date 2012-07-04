@@ -40,9 +40,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 public class ScreenClass extends DatabaseObject implements ISheetContainer, IContainerOrdered {
 
 	private static final long serialVersionUID = 6886891146000360258L;
-
-    public static final String DATA_DIRECTORY = "sc";
-    
+	
     /**
      * The vector of ordered Criterias objects which have to be verified by the ScreenClass.
      */
@@ -91,25 +89,6 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
 
         orderedExtractionRules = new XMLVector<XMLVector<Long>>();
         orderedExtractionRules.add(new XMLVector<Long>());
-    }
-    
-    public String getPath() {
-        return parent.getPath() + "/" + DATA_DIRECTORY + "/" + computeFileName();
-    }
-    
-    @Override
-	public String getOldPath() {
-		return parent.getOldPath() + "/" + DATA_DIRECTORY + "/" + computeOldFileName();
-	}
-    
-    @Override
-    public String getFileName() {
-        return "screenclass.xml";
-    }
-    
-    @Override
-    public String getOldFileName() {
-        return "screenclass.xml";
     }
 
     public int getDepth() {
@@ -516,7 +495,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public ScreenClass clone() throws CloneNotSupportedException {
         ScreenClass clonedObject = (ScreenClass) super.clone();
         clonedObject.handlePriorities = handlePriorities;
         clonedObject.vCriterias = new LinkedList<Criteria>();

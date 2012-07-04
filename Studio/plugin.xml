@@ -235,12 +235,6 @@
             id="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditor"
             name="Javascript step Editor">
       </editor>
-      <!--editor
-            class="com.twinsoft.convertigo.eclipse.editors.browser.DreamfaceEditor"
-            icon="icons/convertigo_16x16.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.browser.DreamfaceEditor"
-            name="Dreamface editor">
-      </editor-->
       <editor
             class="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
@@ -1067,19 +1061,6 @@
                id="convertigo.action.renameAction"
                label="Rename"
                menubarPath="delete"/>
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectSaveAction"
-               enablesFor="1"
-               icon="icons/studio/dbo_save.gif"
-               id="convertigo.action.saveAction"
-               label="Save"
-               menubarPath="save">
-            <enablement>
-               <objectState
-                     name="isModified"
-                     value="true"/>
-            </enablement>
-         </action>
          <menu
                id="convertigo.menu.new"
                label="New"
@@ -1300,9 +1281,9 @@
                menubarPath="edit">
          </action>
          <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectReloadXmlAction"
+               class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerRefreshAction"
                enablesFor="1"
-               icon="icons/studio/project_import.gif"
+               icon="icons/studio/refresh.gif"
                id="convertigo.action.reloadXmlProject"
                label="Reload from XML"
                menubarPath="project"/>
@@ -1846,98 +1827,6 @@
                      label="Play"
                      menubarPath="play"/>
             </objectContribution>
-            <!--objectContribution
-                  id="convertigo.dreamfaceContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject">
-                <visibility>
-                  <objectState
-                        name="isDreamface"
-                        value="true"/>
-                </visibility>
-                <menu
-                    id="convertigo.menu.df"
-                    label="Mashup composer"
-                    path="dreamface">
-                    <groupMarker name="content"/>
-                    <separator name="additions"/>
-                </menu>
-                <menu
-                    id="convertigo.menu.df.add"
-                    label="Add"
-                    path="convertigo.menu.df/content">
-                    <groupMarker name="content"/>
-                    <separator name="additions"/>
-                </menu>
-                <menu
-                    id="convertigo.menu.df.update"
-                    label="Update"
-                    path="convertigo.menu.df/content">
-                    <groupMarker name="content"/>
-                    <separator name="additions"/>
-                </menu>
-                <menu
-                    id="convertigo.menu.df.delete"
-                    label="Delete"
-                    path="convertigo.menu.df/content">
-                    <groupMarker name="content"/>
-                    <separator name="additions"/>
-                 </menu>
-                 <action
-                       class="com.twinsoft.convertigo.eclipse.popup.actions.DreamFaceAddDataViewAction"
-                       enablesFor="1"
-                       id="convertigo.action.addDfDataView"
-                       label="Dataview"
-                       menubarPath="convertigo.menu.df/convertigo.menu.df.add/content"/>
-                 <action
-                       class="com.twinsoft.convertigo.eclipse.popup.actions.DreamFaceUpdateDataViewAction"
-                       enablesFor="1"
-                       id="convertigo.action.updateDfDataView"
-                       label="Dataview"
-                       menubarPath="convertigo.menu.df/convertigo.menu.df.update/content"/>
-                 <action
-                       class="com.twinsoft.convertigo.eclipse.popup.actions.DreamFaceDeleteDataViewAction"
-                       enablesFor="1"
-                       id="convertigo.action.deleteDfDataView"
-                       label="Dataview"
-                       menubarPath="convertigo.menu.df/convertigo.menu.df.delete/content"/>
-                 <action
-                       class="com.twinsoft.convertigo.eclipse.popup.actions.DreamFaceAddActionAction"
-                       enablesFor="1"
-                       id="convertigo.action.addDfAction"
-                       label="Action to execute"
-                       menubarPath="convertigo.menu.df/convertigo.menu.df.add/content"/>
-                 <action
-                       class="com.twinsoft.convertigo.eclipse.popup.actions.DreamFaceUpdateActionAction"
-                       enablesFor="1"
-                       id="convertigo.action.updateDfAction"
-                       label="Action to execute"
-                       menubarPath="convertigo.menu.df/convertigo.menu.df.update/content"/>
-                 <action
-                       class="com.twinsoft.convertigo.eclipse.popup.actions.DreamFaceDeleteActionAction"
-                       enablesFor="1"
-                       id="convertigo.action.deleteDfAction"
-                       label="Action to execute"
-                       menubarPath="convertigo.menu.df/convertigo.menu.df.delete/content"/>
-
-                 <action
-                       class="com.twinsoft.convertigo.eclipse.popup.actions.DreamFaceAddEventAction"
-                       enablesFor="1"
-                       id="convertigo.action.addDfEvent"
-                       label="Event to fire"
-                       menubarPath="convertigo.menu.df/convertigo.menu.df.add/content"/>
-                 <action
-                       class="com.twinsoft.convertigo.eclipse.popup.actions.DreamFaceUpdateEventAction"
-                       enablesFor="1"
-                       id="convertigo.action.updateDfEvent"
-                       label="Event to fire"
-                       menubarPath="convertigo.menu.df/convertigo.menu.df.update/content"/>
-                 <action
-                       class="com.twinsoft.convertigo.eclipse.popup.actions.DreamFaceDeleteEventAction"
-                       enablesFor="1"
-                       id="convertigo.action.deleteDfEvent"
-                       label="Event to fire"
-                       menubarPath="convertigo.menu.df/convertigo.menu.df.delete/content"/>
-            </objectContribution-->
             <objectContribution
                   id="convertigo.stepContribution"
                   objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">

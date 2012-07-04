@@ -47,12 +47,14 @@ public class XMLSplitStep extends XMLElementStep {
 		defaultValueWhenNoSource = true;
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public XMLSplitStep clone() throws CloneNotSupportedException {
     	XMLSplitStep clonedObject = (XMLSplitStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public XMLSplitStep copy() throws CloneNotSupportedException {
     	XMLSplitStep copiedObject = (XMLSplitStep) super.copy();
         return copiedObject;
     }
@@ -95,7 +97,8 @@ public class XMLSplitStep extends XMLElementStep {
 		}
 		return "split";
 	}
-	
+
+	@Override
 	protected Node createWsdlDom() throws EngineException {
 		Element element = (Element)super.createWsdlDom();
 		if (element != null) {
@@ -111,7 +114,8 @@ public class XMLSplitStep extends XMLElementStep {
 		}
 		return element;
 	}
-	
+
+	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		NodeList list = getContextValues();
 		if (list != null) {

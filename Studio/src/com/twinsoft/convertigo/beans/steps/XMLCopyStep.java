@@ -50,18 +50,21 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 		this.output = true;
 		this.xml = true;
 	}
-	
-    public Object clone() throws CloneNotSupportedException {
+
+	@Override
+    public XMLCopyStep clone() throws CloneNotSupportedException {
     	XMLCopyStep clonedObject = (XMLCopyStep) super.clone();
     	clonedObject.source = null;
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public XMLCopyStep copy() throws CloneNotSupportedException {
     	XMLCopyStep copiedObject = (XMLCopyStep) super.copy();
         return copiedObject;
     }
-    
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -93,15 +96,18 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 		this.sourceDefinition = sourceDefinition;
 		source = new StepSource(this,sourceDefinition);
 	}
-	
+
+	@Override
 	public String getAnchor() throws EngineException {
 		return "//document";
 	}
 
+	@Override
 	public Node getContextNode(int loop) throws EngineException {
 		return outputDocument.getDocumentElement();
 	}
-	
+
+	@Override
 	protected Node createWsdlDom() throws EngineException {
 		wsdlDom = getSequence().createDOM();
 		Element element = wsdlDom.getDocumentElement();
@@ -125,6 +131,7 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 		return element;
 	}
 
+	@Override
 	protected Node generateWsdlDom() throws EngineException {
 		Element element = null;
 		if (isXml()) {
@@ -142,7 +149,8 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 		}
 		return element;
 	}
-	
+
+	@Override
 	protected Node createStepNode() throws EngineException {
 		Document doc = getOutputDocument();
 		Element stepNode = doc.getDocumentElement();
@@ -156,7 +164,8 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 		}
 		return stepNode;
 	}
-	
+
+	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		NodeList list = getContextValues();
 		if (list != null) {

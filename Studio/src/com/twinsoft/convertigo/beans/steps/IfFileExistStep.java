@@ -23,22 +23,26 @@ public class IfFileExistStep extends BlockStep {
 	public IfFileExistStep(String sourcePath) {
 		super(sourcePath);
 	}
-	
-    public Object clone() throws CloneNotSupportedException {
+
+	@Override
+    public IfFileExistStep clone() throws CloneNotSupportedException {
     	IfFileExistStep clonedObject = (IfFileExistStep) super.clone();
         return clonedObject;
     }
-	
-	public Object copy() throws CloneNotSupportedException {
+
+	@Override
+	public IfFileExistStep copy() throws CloneNotSupportedException {
 		IfFileExistStep copiedObject = (IfFileExistStep)super.copy();
 		return copiedObject;
 	}
 
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		return "ifFileExists("+ (condition.equals("")?"??":condition) +")" + (!text.equals("") ? " // "+text:"");
 	}
-	
+
+	@Override
 	public String toJsString() {
 		String code = "";
 		if (!condition.equals("")) {
@@ -49,14 +53,17 @@ public class IfFileExistStep extends BlockStep {
 		return code;
 	}
 
+	@Override
 	protected boolean workOnSource() {
 		return false;
 	}
-	
+
+	@Override
 	protected StepSource getSource() {
 		return null;
 	}
-	
+
+	@Override
 	protected boolean hasToEvaluateBeforeNextStep() throws EngineException {
 		return true;
 	}
@@ -64,7 +71,8 @@ public class IfFileExistStep extends BlockStep {
 	private String evaluateSourcePath(Context javascriptContext, Scriptable scope) throws EngineException {
 		return evaluateToString(javascriptContext, scope, condition, "sourcePath", false);
 	}
-	
+
+	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			boolean test = evaluateStep(javascriptContext, scope);

@@ -43,17 +43,20 @@ public abstract class TestStep extends BlockStep implements IStepSourceContainer
 		super();
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public TestStep clone() throws CloneNotSupportedException {
     	TestStep clonedObject = (TestStep) super.clone();
     	clonedObject.source = null;
         return clonedObject;
     }
-	
-	public Object copy() throws CloneNotSupportedException {
+
+	@Override
+	public TestStep copy() throws CloneNotSupportedException {
 		TestStep copiedObject = (TestStep)super.copy();
 		return copiedObject;
 	}
-    
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -63,10 +66,12 @@ public abstract class TestStep extends BlockStep implements IStepSourceContainer
 		return name + label + (!text.equals("") ? " // "+text:"");
 	}
 
+	@Override
 	protected boolean workOnSource() {
 		return true;
 	}
-	
+
+	@Override
 	protected StepSource getSource() {
 		if (source == null) source = new StepSource(this,sourceDefinition);
 		return source;
@@ -82,7 +87,8 @@ public abstract class TestStep extends BlockStep implements IStepSourceContainer
 	}
 
 	protected abstract boolean executeTest(Context javascriptContext, Scriptable scope) throws EngineException;
-	
+
+	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (inError()) {

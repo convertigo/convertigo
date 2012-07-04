@@ -104,12 +104,9 @@ public class ProjectExportAction extends MyAbstractAction {
     					ConvertigoPlugin.logWarning("Wrong file name (it must be the same as the project)!");
     				}
     				else if (exportFileName.endsWith(".xml")) {
-    					String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + exportFileName;
-    					//ConvertigoPlugin.projectManager.exportProject(project, exportedProjectFileName);
-    					CarUtils.exportProject(project, exportedProjectFileName);
+    					Engine.theApp.databaseObjectsManager.exportProject(project);
     				}
     				else if (exportFileName.endsWith(".car")) {
-    					
     					CarUtils.makeArchive(exportDirectoryPath, project);
     				}
     				else {

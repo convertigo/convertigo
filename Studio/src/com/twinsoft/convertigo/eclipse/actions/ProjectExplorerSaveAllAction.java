@@ -57,25 +57,15 @@ public class ProjectExplorerSaveAllAction extends MyAbstractAction implements IV
         try {
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
-    			DatabaseObjectTreeObject databaseObjectTreeObject = null;
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
     			
-    			if (treeObject != null) {
-    				// normal case
-        			if (treeObject instanceof DatabaseObjectTreeObject) {
-        				databaseObjectTreeObject = (DatabaseObjectTreeObject)treeObject;
-        			}
-        			// case of selected object is not a bean (e.g PropertyTableRowTreeObject)
-        			else {
-        				while (!(treeObject instanceof DatabaseObjectTreeObject)) {
-        					treeObject = treeObject.getParent();
-        					if (treeObject == null) break;
-        				}
-        				databaseObjectTreeObject = (DatabaseObjectTreeObject)treeObject;
-        			}
-    			}
+        		while (treeObject != null && !(treeObject instanceof DatabaseObjectTreeObject)) {
+        			treeObject = treeObject.getParent();
+        		}
+        		
+        		DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) treeObject;
     				
-    			if (databaseObjectTreeObject != null){
+    			if (databaseObjectTreeObject != null) {
     				DatabaseObjectTreeObject parentObjectTreeObject = databaseObjectTreeObject.getParentDatabaseObjectTreeObject();
     				ProjectTreeObject projectTreeObject = databaseObjectTreeObject.getProjectTreeObject();
     				projectTreeObject.save(false);
@@ -84,8 +74,9 @@ public class ProjectExplorerSaveAllAction extends MyAbstractAction implements IV
 
     				explorerView.setFocus();
 
-    				if (parentObjectTreeObject != null)
+    				if (parentObjectTreeObject != null) {
     					explorerView.setSelectedTreeObject(parentObjectTreeObject);
+    				}
     				explorerView.setSelectedTreeObject(databaseObjectTreeObject);
     			}
     		}

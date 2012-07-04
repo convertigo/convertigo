@@ -48,7 +48,7 @@ public class ProxyHttpConnector extends HttpConnector {
 	}
 	
 	@Override
-	public Object clone() throws CloneNotSupportedException {
+	public ProxyHttpConnector clone() throws CloneNotSupportedException {
 		ProxyHttpConnector clonedObject = (ProxyHttpConnector) super.clone();
 
 		clonedObject.replacementsForMimeType = new HashMap<String, Replacements>();

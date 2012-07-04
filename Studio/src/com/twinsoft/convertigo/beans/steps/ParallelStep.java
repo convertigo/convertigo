@@ -36,17 +36,20 @@ public class ParallelStep extends BranchStep {
 		super(false);
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public ParallelStep clone() throws CloneNotSupportedException {
     	ParallelStep clonedObject = (ParallelStep) super.clone();
     	clonedObject.totalAsyncThreadRunning = 0;
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public ParallelStep copy() throws CloneNotSupportedException {
     	ParallelStep copiedObject = (ParallelStep) super.copy();
         return copiedObject;
     }
-	
+
+	@Override
 	public synchronized void increaseAsyncThreadRunning() {
 		nbAsyncThreadRunning++;
 		//System.out.println("Incr step "+ name + " ("+executeTimeID+") threads :" + nbAsyncThreadRunning);
@@ -76,7 +79,8 @@ public class ParallelStep extends BranchStep {
 			}
 		}
 	}
-	
+
+	@Override
 	public synchronized void decreaseAsyncThreadRunning() {
 		if (nbAsyncThreadRunning > 0) nbAsyncThreadRunning--;
 		//System.out.println("Decr step "+ name + " ("+executeTimeID+") threads : " + nbAsyncThreadRunning);

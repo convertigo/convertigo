@@ -31,8 +31,6 @@ public class Sheet extends DatabaseObject implements ITagsProperty{
 
 	private static final long serialVersionUID = 2474285022734204501L;
 
-	public static final String DATA_DIRECTORY = "sh";
-
     public static final String BROWSER_ALL = "*";
     
     /** Holds value of property browserSignature. */
@@ -48,10 +46,6 @@ public class Sheet extends DatabaseObject implements ITagsProperty{
         super();
 		databaseType = "Sheet";
 	}
-	
-    public String getPath() {
-        return parent.getPath() + "/" + DATA_DIRECTORY;
-    }
     
     /** Getter for property browser.
      * @return Value of property browser.

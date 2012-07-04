@@ -40,20 +40,24 @@ abstract public class XMLGenerateStep extends Step {
 		this.xml = true;
 	}
 
-    public Object clone() throws CloneNotSupportedException {
+	@Override
+    public XMLGenerateStep clone() throws CloneNotSupportedException {
     	XMLGenerateStep clonedObject = (XMLGenerateStep) super.clone();
         return clonedObject;
     }
-	
-    public Object copy() throws CloneNotSupportedException {
+
+	@Override
+    public XMLGenerateStep copy() throws CloneNotSupportedException {
     	XMLGenerateStep copiedObject = (XMLGenerateStep) super.copy();
         return copiedObject;
     }
-    
+
+	@Override
     protected String getSpecificLabel() throws EngineException {
     	return "(...)";
     }
-    
+
+	@Override
 	public String toString() {
 		String text = this.getComment();
 		String label = "";
@@ -82,11 +86,13 @@ abstract public class XMLGenerateStep extends Step {
 	public void setNodeName(String nodeName) {
 		this.nodeName = nodeName;
 	}
-		
+
+	@Override
 	public String getStepNodeName() {
 		return getNodeName();
 	}
-	
+
+	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		String nodeValue = getGenerateValue();
 		stepNode.appendChild(doc.createTextNode(nodeValue));
