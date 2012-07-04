@@ -2582,7 +2582,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public boolean reloadProject(ProjectTreeObject projectTreeObject) throws EngineException, IOException, CoreException {
 		if (projectTreeObject != null) {
 			String targetProjectName = projectTreeObject.getName();
-			return importProject(Engine.PROJECTS_PATH  + "/" + targetProjectName + "/" + targetProjectName + ".xml", targetProjectName);
+			return importProject(Engine.PROJECTS_PATH  + "/" + targetProjectName + "/" + targetProjectName + ".xml", targetProjectName, true);
 		}
 		return false;
 	}
@@ -2590,8 +2590,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public boolean importProject(String filePath, ProjectTreeObject projectTreeObject) throws EngineException, IOException, CoreException {
 		return importProject(filePath, projectTreeObject.getName());
 	}
-
+	
 	public boolean importProject(String filePath, String targetProjectName) throws EngineException, IOException, CoreException {
+		return importProject(filePath, targetProjectName, false);
+	}
+
+	public boolean importProject(String filePath, String targetProjectName, boolean reload) throws EngineException, IOException, CoreException {
 		TreeObject projectTreeObject = null;
 		if (targetProjectName != null) {
 			projectTreeObject = ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(targetProjectName);
@@ -2603,8 +2607,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				DatabaseObjectsManager.deleteDir(new File(Engine.PROJECTS_PATH + "/" + targetProjectName + "/_data"));
 				DatabaseObjectsManager.deleteDir(new File(Engine.PROJECTS_PATH + "/" + targetProjectName + "/_private"));
 			}
-			// delete project resource (but not content)
-			ConvertigoPlugin.getDefault().deleteProjectPluginResource(false,targetProjectName);
+			if (!reload) {
+				// delete project resource (but not content)
+				ConvertigoPlugin.getDefault().deleteProjectPluginResource(false, targetProjectName);
+			}
 		}
 		
 		ConvertigoPlugin.logInfo("Import project from file \"" + filePath + "\"");
