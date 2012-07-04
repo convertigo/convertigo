@@ -351,9 +351,11 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 						String screenClassName = scHandlerStatement.getNormalizedScreenClassName();
 						ScreenClass screenClass = ((HtmlConnector)connector).getScreenClassByName(screenClassName);
 
-						if (!screenClassList.contains(screenClass)) {
-							screenClassList.add(screenClass);
-							requiresNode.addChild(new ScreenClassNode(requiresNode, screenClassName, screenClass));
+						if (screenClass != null) {
+							if (!screenClassList.contains(screenClass)) {
+								screenClassList.add(screenClass);
+								requiresNode.addChild(new ScreenClassNode(requiresNode, screenClassName, screenClass));
+							}
 						}
 					} 
 					List<Statement> statementList = ((HandlerStatement)statement).getStatements();
@@ -682,6 +684,9 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				requiresNode.addChild(projectNode);
 				sequenceStepNode.addChild(requiresNode);
 				root.addChild(sequenceStepNode);
+			} else {
+				root.addChild(new Folder(root, "References are not handled for this object"));
+				treeViewer.setInput(root);
 			}
 			
 			treeViewer.setInput(root);
