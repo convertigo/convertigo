@@ -83,6 +83,10 @@ public class ScSourceEditorComposite  extends AbstractDialogComposite implements
 		HtmlConnector connector = (HtmlConnector) cellEditor.databaseObjectTreeObject.getObject().getConnector();
 		
 		sourceScreenClass = connector.getScreenClassByName(requestableSource);
+		if (sourceScreenClass == null){
+			ScreenClass defaultScreenClass = connector.getDefaultScreenClass();
+			sourceScreenClass = connector.getScreenClassByName(defaultScreenClass.getName());
+		}
 		
 		initialize();
 	}
