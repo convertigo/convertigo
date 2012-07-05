@@ -38,7 +38,7 @@ public class GetNodesStatement extends XpathableStatement {
 
 	private static final long serialVersionUID = 5555147220832481093L;
 
-	private String variableName = "//todo";
+	protected String variableName = "nodeList";
 	
 	public GetNodesStatement() {
 		super();
@@ -93,7 +93,7 @@ public class GetNodesStatement extends XpathableStatement {
 		return false;
 	}
 
-	public void addToScope(Scriptable scope, NodeList nodeList) {
+	protected void addToScope(Scriptable scope, NodeList nodeList) {
 		if (nodeList != null)
 			scope.put(this.variableName, scope, nodeList);
 	}
