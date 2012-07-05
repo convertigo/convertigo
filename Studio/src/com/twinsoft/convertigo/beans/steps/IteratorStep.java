@@ -42,7 +42,7 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 	private static final long serialVersionUID = -5108986745479990736L;
 	
 	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
-	protected int startIndex = 1;
+	protected int startIndex = 0;
 	
 	private transient Iterator iterator = null;
 	private transient StepSource source = null;
@@ -126,16 +126,16 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 					return true;
 				}
 				if (bContinue && sequence.isRunning()) {
-					Object item = iterator.nextElement();
-					Scriptable jsItem = org.mozilla.javascript.Context.toObject(item, scope);
-					scope.put("item", scope, jsItem);
-					
 					int index = iterator.numberOfIterations();
 					Scriptable jsIndex = org.mozilla.javascript.Context.toObject(index, scope);
 					scope.put("index", scope, jsIndex);
 					
+					Object item = iterator.nextElement();
+					Scriptable jsItem = org.mozilla.javascript.Context.toObject(item, scope);
+					scope.put("item", scope, jsItem);
+					
 					int start = getStartIndex();
-					start = start<1 ? 1:start;
+					start = start<0 ? 0:start;
 					if (start > index) {
 						doLoop(javascriptContext, scope);
 						continue;
