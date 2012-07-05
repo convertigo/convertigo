@@ -141,7 +141,7 @@ public enum Visibility {
 				for (Variable variable: variableList) {
 					if (variable != null && isMasked(variable.getVisibility())) {
 						for (String key : getVariableKeyNames(variable))
-							toPrint = toPrint.replaceAll(key+"=[^\\&]*", key+"="+STRING_MASK);
+							toPrint = toPrint.replaceAll(key+"=[^\\&]*", key+"=\""+ STRING_MASK +"\"");
 					}
 				}
 				return toPrint;

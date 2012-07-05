@@ -48,7 +48,6 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
-import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.AttachmentManager;
@@ -164,7 +163,7 @@ public class WebServiceTranslator implements Translator {
 						if (parameterValue == null) parameterValue = "";
 						
 						if (variableList != null) {		// jmc 12/06/26 hide hidden variables in sequences
-							String str = (String) Visibility.Logs.replaceVariables(variableList, "" + parameterName + "=\"" + parameterValue) + "\"";
+							String str = (String) Visibility.Logs.replaceVariables(variableList, "" + parameterName + "=\"" + parameterValue + "\"") ;
 							Engine.logBeans.debug("   Parameter: " + str);
 						}
 						else
@@ -367,8 +366,8 @@ public class WebServiceTranslator implements Translator {
 					if (requestable instanceof TransactionWithVariables)
 						Engine.logBeans.debug("[WebServiceTranslator] SOAP message received:\n" + Visibility.Logs.replaceVariables(((TransactionWithVariables)(requestable)).getVariablesList(), request));
 					else
-					if (requestable instanceof GenericSequence)
-						Engine.logBeans.debug("[WebServiceTranslator] SOAP message received:\n" + Visibility.Logs.replaceVariables(((GenericSequence)(requestable)).getVariablesList(), request));
+					if (requestable instanceof Sequence)
+						Engine.logBeans.debug("[WebServiceTranslator] SOAP message received:\n" + Visibility.Logs.replaceVariables(((Sequence)(requestable)).getVariablesList(), request));
 					else
 						Engine.logBeans.debug("[WebServiceTranslator] SOAP message received:\n" + soapMessage);
 				}
