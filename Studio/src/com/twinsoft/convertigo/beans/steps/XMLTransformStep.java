@@ -62,13 +62,13 @@ public class XMLTransformStep extends XMLElementStep {
 	
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
-		boolean useDefaultValue = isDefaultValueWhenNoSource();
+		boolean useDefaultValue = true;
 		NodeList list = getContextValues();
 		if (list != null) {
 			int len = list.getLength();
-			useDefaultValue = (len==0) && isDefaultValueWhenNoSource();
+			useDefaultValue = (len == 0);
 			if (!useDefaultValue) {
-				for (int i=0; i<len;i++) {
+				for (int i = 0; i < len; i++) {
 					Node node = list.item(i);
 					if (node != null) {
 						String nodeValue = getNodeValue(node);

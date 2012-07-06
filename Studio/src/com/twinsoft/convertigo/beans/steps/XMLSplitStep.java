@@ -44,7 +44,6 @@ public class XMLSplitStep extends XMLElementStep {
 		
 	public XMLSplitStep() {
 		super();
-		defaultValueWhenNoSource = true;
 	}
 
 	@Override
@@ -120,10 +119,10 @@ public class XMLSplitStep extends XMLElementStep {
 		NodeList list = getContextValues();
 		if (list != null) {
 			int len = list.getLength();
-			for (int i=0;i<len;i++) {
+			for (int i = 0; i < len; i++) {
 				Node node = list.item(i);
 				String nodeValue = getNodeValue(node);
-				String text = ((nodeValue == null) ? (isDefaultValueWhenNoSource() ? getNodeText():""):nodeValue);
+				String text = (nodeValue == null) ? getNodeText() : nodeValue;
 				
 				if (!text.equals("")) {
 					Pattern myPattern = Pattern.compile(regexp);
@@ -134,33 +133,38 @@ public class XMLSplitStep extends XMLElementStep {
 					while (myMatcher.find()) {
 						startIndex = myMatcher.start();
 						endIndex = myMatcher.end();
-						if (beginIndex != startIndex)
+						if (beginIndex != startIndex) {
 							splitString.add(new String (text.substring(beginIndex, startIndex)));
-						if (keepSeparator)
+						}
+						if (keepSeparator) {
 							splitString.add(new String (text.substring(startIndex, endIndex)));
+						}
 						beginIndex = endIndex;
 					}
-					if (beginIndex != text.length())
+					if (beginIndex != text.length()) {
 						splitString.add(new String (text.substring(beginIndex, text.length())));
+					}
 					
 					Element splits = null;
-					if (len > 1)
+					if (len > 1) {
 						splits = doc.createElement("splits");
+					}
 
 					// for all split string : create a node and add it
 					for (int j = 0 ; j < splitString.size() ; j++) {
 						String splitted = (String) splitString.elementAt(j);
 						Element split = doc.createElement(getTag(j)); 
 						split.appendChild(doc.createTextNode(splitted));
-						if (splits == null)
+						if (splits == null) {
 							stepNode.appendChild(split);
-						else {
+						} else {
 							splits.appendChild(split);
 						}
 					}
 					
-					if (splits != null)
+					if (splits != null) {
 						stepNode.appendChild(splits);
+					}
 				}
 			}
 		}

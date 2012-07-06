@@ -40,7 +40,6 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 
 	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
 	protected String nodeName = "attribute";
-	protected boolean defaultValueWhenNoSource = false;
 	
 	private String nodeNameSpace = "";
 	public String getNodeNameSpace() {
@@ -135,14 +134,6 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 		this.sourceDefinition = sourceDefinition;
 		source = new StepSource(this,sourceDefinition);
 	}
-	
-	public boolean isDefaultValueWhenNoSource() {
-		return defaultValueWhenNoSource;
-	}
-
-	public void setDefaultValueWhenNoSource(boolean defaultValueWhenNoSource) {
-		this.defaultValueWhenNoSource = defaultValueWhenNoSource;
-	}
 
 	@Override
 	public String getAnchor() throws EngineException {
@@ -184,9 +175,9 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 			NodeList list = getContextValues();
 			if (list != null) {
 				int len = list.getLength();
-				useDefaultValue = (len==0) && isDefaultValueWhenNoSource();
+				useDefaultValue = (len == 0);
 				if (!useDefaultValue) {
-					for (int i=0;i<len;i++) {
+					for (int i = 0; i < len; i++) {
 						Node node = list.item(i);
 						if (node != null) {
 							String snodeName = ((len==1) ? getStepNodeName():node.getNodeName());
