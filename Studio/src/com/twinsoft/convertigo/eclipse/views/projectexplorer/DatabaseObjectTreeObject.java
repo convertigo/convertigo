@@ -190,6 +190,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     public void hasBeenModified(boolean bModified) {
 		if (bModified && !isInherited && !hasChanged()) {
 			markAsChanged(true);
+			getProjectTreeObject().hasBeenModified(true);
 		}
 	}
     

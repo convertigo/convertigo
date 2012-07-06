@@ -216,7 +216,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			shell.setCursor(waitCursor);
 			
 			try {
-//				if (hasChanged()) {
+				if (hasChanged()) {
 					Project project = getObject();
 					String projectName = project.getName();
 					
@@ -246,7 +246,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						Engine.theApp.databaseObjectsManager.cacheRemoveObjects(projectName);
 						ret = true;
 					}
-//				}
+				}
 			} catch (Exception e) {
 				ConvertigoPlugin.logException(e, "Unable to save the project!");
 				ConvertigoPlugin.logInfo("Project NOT saved!");
