@@ -2,6 +2,7 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import java.util.Arrays;
 
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
@@ -20,9 +21,9 @@ public class ConfigureProxyPage extends WizardPage {
 	private Combo proxyMode;
 	private Text proxyPort;
 	private Text proxyHost;
-	private Text doNotApplyProxy;
-	private Combo proxyMethode;
-	private Text proxyUrl;
+	private Text proxyExceptions;
+	private Combo proxyMethod;
+	private Text proxyAutoConfUrl;
 	private Text proxyUser;
 	private Text proxyPassword;
 	
@@ -30,8 +31,8 @@ public class ConfigureProxyPage extends WizardPage {
 
 	public ConfigureProxyPage() {
 		super("Configuration proxy");
-		setTitle("Proxy");
-		setDescription("Configuration proxy.");
+		setTitle("Proxy settings");
+		setDescription("This page configures the proxy settings. By default, no proxy is configured.");
 	}
 	
 	public void createControl(Composite parent) {
@@ -57,8 +58,7 @@ public class ConfigureProxyPage extends WizardPage {
 		proxyMode.addSelectionListener(new SelectionListener() {
 			
 			public void widgetSelected(SelectionEvent e) {
-				System.out.println(proxyMode.getText());
-				isEnable(proxyMode.getText());
+				enableComponents(proxyMode.getText());
 			}
 			
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -84,9 +84,8 @@ public class ConfigureProxyPage extends WizardPage {
 						Integer.parseInt(proxyPort.getText());
 						setErrorMessage(null);
 						setMessage(getDescription());
-//						setPageComplete(true);
 					} catch (NumberFormatException exp) {
-						setErrorMessage("Please enter an int!");
+						setErrorMessage("Please enter a number!");
 					}
 				}
 			}
@@ -105,7 +104,6 @@ public class ConfigureProxyPage extends WizardPage {
 			public void keyReleased(KeyEvent e) {
 				if (proxyHost.getText().length() > 0) {
 						setMessage(getDescription());
-//						setPageComplete(true);
 				} else {
 					setErrorMessage("Please enter the host name!");
 				}
@@ -117,43 +115,41 @@ public class ConfigureProxyPage extends WizardPage {
 		label = new Label(container, SWT.NONE);
 		label.setText("Do not apply proxy settings on");
 
-		doNotApplyProxy = new Text(container, SWT.BORDER | SWT.SINGLE);
-		doNotApplyProxy.setText("localhost,127.0.0.1");
-		doNotApplyProxy.addKeyListener(new KeyListener() {
+		proxyExceptions = new Text(container, SWT.BORDER | SWT.SINGLE);
+		proxyExceptions.setText("localhost,127.0.0.1");
+		proxyExceptions.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent e) {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (doNotApplyProxy.getText().length() > 0) {
+				if (proxyExceptions.getText().length() > 0) {
 					setMessage(getDescription());
-//					setPageComplete(true);
 				} else {
-					setErrorMessage("Please enter an int!");
+					setErrorMessage("Please enter a number!");
 				}
 			}
 		});
 		
-		doNotApplyProxy.setLayoutData(layoutData);
+		proxyExceptions.setLayoutData(layoutData);
 		
 		label = new Label(container, SWT.NONE);
 		label.setText("Autoconfiguration proxy url");
 
-		proxyUrl = new Text(container, SWT.BORDER | SWT.SINGLE);
-		proxyUrl.addKeyListener(new KeyListener() {
+		proxyAutoConfUrl = new Text(container, SWT.BORDER | SWT.SINGLE);
+		proxyAutoConfUrl.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent e) {
 			}
 
 			public void keyReleased(KeyEvent e) {
-				if (proxyUrl.getText().length() > 0) {
+				if (proxyAutoConfUrl.getText().length() > 0) {
 						setMessage(getDescription());
-//						setPageComplete(true);
 				} else {
-					setErrorMessage("Please enter url!");
+					setErrorMessage("Please enter the autonconfiguration proxy URL!");
 				}
 			}
 		});
 		
-		proxyUrl.setLayoutData(layoutData);
+		proxyAutoConfUrl.setLayoutData(layoutData);
 		
 		label = new Label(container, SWT.SEPARATOR | SWT.HORIZONTAL);
 		GridData gLayoutData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
@@ -162,25 +158,23 @@ public class ConfigureProxyPage extends WizardPage {
 		label.setLayoutData(gLayoutData);
 		
 		label = new Label(container, SWT.NONE);
-		label.setText("Proxy authentication methode");
+		label.setText("Proxy authentication method");
 
-		proxyMethode = new Combo(container, SWT.BORDER);
-		proxyMethode.setText("anonymous");
-		proxyMethode.add("anonymous");
-		proxyMethode.add("basic");
-		proxyMethode.add("NTLM");
+		proxyMethod = new Combo(container, SWT.BORDER);
+		proxyMethod.add("anonymous");
+		proxyMethod.add("basic");
+		proxyMethod.add("NTLM");
+		proxyMethod.select(0);
 		
-		proxyMethode.setLayoutData(layoutData);
+		proxyMethod.setLayoutData(layoutData);
 		
-		proxyMethode.addSelectionListener(new SelectionListener() {
+		proxyMethod.addSelectionListener(new SelectionListener() {
 			
 			public void widgetSelected(SelectionEvent e) {
-				isEnable(proxyMethode.getText());
+				enableComponents(proxyMethod.getText());
 			}
 			
 			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
 			}
 		});	
 		
@@ -197,7 +191,7 @@ public class ConfigureProxyPage extends WizardPage {
 						setMessage(getDescription());
 						setPageComplete(true);
 				} else {
-					setErrorMessage("Please enter user name!");
+					setErrorMessage("Please enter the proxy user name!");
 				}
 			}
 		});
@@ -217,18 +211,17 @@ public class ConfigureProxyPage extends WizardPage {
 						setMessage(getDescription());
 						setPageComplete(true);
 				} else {
-					setErrorMessage("Please enter password!");
+					setErrorMessage("Please enter the proxy password!");
 				}
 			}
 		});
 		
 		proxyPassword.setLayoutData(layoutData);		
 		
-		isEnable("off");
+		enableComponents("off");
 		
 		// Required to avoid an error in the system
 		setControl(container);
-//		setPageComplete(true);
 	}
 	
 	public enum ProxyMode {
@@ -271,22 +264,21 @@ public class ConfigureProxyPage extends WizardPage {
 		}
 	}
 	
-	public void isEnable(String proxyMode) {
+	public void enableComponents(String proxyMode) {
 		if ("manual".equals(proxyMode)) {
 			proxyHost.setEnabled(true);
 			proxyPort.setEnabled(true);
-			proxyUrl.setEnabled(false);
-			isEnable(getProxyMethode());
-			proxyMethode.setEnabled(true);
-			doNotApplyProxy.setEnabled(true);
+			proxyAutoConfUrl.setEnabled(false);
+			proxyMethod.setEnabled(true);
+			proxyExceptions.setEnabled(true);
 		} else if ("auto".equals(proxyMode)) {
 			proxyHost.setEnabled(false);
 			proxyPort.setEnabled(false);
-			proxyUrl.setEnabled(true);
+			proxyAutoConfUrl.setEnabled(true);
 			proxyUser.setEnabled(false);
 			proxyPassword.setEnabled(false);
-			proxyMethode.setEnabled(false);
-			doNotApplyProxy.setEnabled(false);
+			proxyMethod.setEnabled(false);
+			proxyExceptions.setEnabled(false);
 		} else if ("anonymous".equals(proxyMode)) {
 			proxyUser.setEnabled(false);
 			proxyPassword.setEnabled(false);
@@ -299,11 +291,11 @@ public class ConfigureProxyPage extends WizardPage {
 		} else {
 			proxyHost.setEnabled(false);
 			proxyPort.setEnabled(false);
-			proxyUrl.setEnabled(false);
+			proxyAutoConfUrl.setEnabled(false);
 			proxyUser.setEnabled(false);
 			proxyPassword.setEnabled(false);
-			proxyMethode.setEnabled(false);
-			doNotApplyProxy.setEnabled(false);
+			proxyMethod.setEnabled(false);
+			proxyExceptions.setEnabled(false);
 			proxyUser.setEnabled(false);
 			proxyPassword.setEnabled(false);
 		}
@@ -320,13 +312,13 @@ public class ConfigureProxyPage extends WizardPage {
 		return proxyHost.getText();
 	}
 	public String getDoNotApplyProxy() {
-		return doNotApplyProxy.getText();
+		return proxyExceptions.getText();
 	}
-	public String getProxyUrl() {
-		return proxyUrl.getText();
+	public String getProxyAutoConfUrl() {
+		return proxyAutoConfUrl.getText();
 	}
-	public String getProxyMethode() {
-		return proxyMethode.getText();
+	public String getProxyMethod() {
+		return proxyMethod.getText();
 	}
 	public String getProxyUser() {
 		return proxyUser.getText();
@@ -334,6 +326,18 @@ public class ConfigureProxyPage extends WizardPage {
 	public String getProxyPassword() {
 		return proxyPassword.getText();
 	}
+
+	@Override
+	public IWizardPage getNextPage() {
+		SetupWizard setupWizard = (SetupWizard) getWizard();
+		((SummaryPage) setupWizard.getPage("SummaryPage")).updateSummary();
+		return super.getNextPage();
+	}
 	
-	
+	@Override
+	public IWizardPage getPreviousPage() {
+		SetupWizard setupWizard = (SetupWizard) getWizard();
+		((SummaryPage) setupWizard.getPage("SummaryPage")).updateSummary();
+		return super.getPreviousPage();
+	}
 }

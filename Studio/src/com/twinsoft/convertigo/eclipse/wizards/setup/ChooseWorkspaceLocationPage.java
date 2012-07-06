@@ -2,6 +2,7 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import java.io.File;
 
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
@@ -25,6 +26,7 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 		super("User workspace location");
 		setTitle("Workspace Launcher");
 		setDescription("Choose the Convertigo user workspace location.");
+		setPageComplete(true);
 	}
 
 	public void createControl(Composite parent) {
@@ -44,7 +46,8 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 		label = new Label(container, SWT.NONE);
 		label.setText("The Convertigo user workspace will contain all Convertigo " +
 				"configuration files, log files, and all projects files.\n\n" +
-				"You must choose a directory for which you have full read and write permissions.\n");		
+				"You must choose a directory for which you have full read and write permissions.\n" +
+				"If the chosen location does not exist, it will be automatically created.");		
 		label.setLayoutData(layoutData);
 		
 		GridData gdLayout = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_VERTICAL);
@@ -54,7 +57,8 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 		label.setText("User workspace location:");
 
 		userWorkspaceLocation = new Text(container, SWT.BORDER | SWT.SINGLE);
-		userWorkspaceLocation.setText(System.getProperty("user.home") + "/convertigo");
+		String userWorkspace = System.getProperty("user.home") + "/convertigo";
+		userWorkspaceLocation.setText(userWorkspace);
 		userWorkspaceLocation.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent e) {
 			}
@@ -62,12 +66,12 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 			public void keyReleased(KeyEvent e) {
 				if (userWorkspaceLocation.getText().length() != 0) {
 					File directory = new File(userWorkspaceLocation.getText());
-					if (directory.isDirectory() && directory.exists()) {
-						setErrorMessage(null);
-						setMessage(getDescription());
-						setPageComplete(true);
+					if (directory.exists() && !directory.isDirectory()) {
+						setErrorMessage("This chosen location is not a directory!");
+						setPageComplete(false);
 					} else {
-					setErrorMessage("This location is not a directory or is not exist!");
+						setErrorMessage(null);
+						setPageComplete(true);
 					}
 				}
 			}
@@ -102,5 +106,17 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 		return userWorkspaceLocation.getText();
 	}
 
+	@Override
+	public IWizardPage getNextPage() {
+		SetupWizard setupWizard = (SetupWizard) getWizard();
+		((SummaryPage) setupWizard.getPage("SummaryPage")).updateSummary();
+		return super.getNextPage();
+	}
 	
+	@Override
+	public IWizardPage getPreviousPage() {
+		SetupWizard setupWizard = (SetupWizard) getWizard();
+		((SummaryPage) setupWizard.getPage("SummaryPage")).updateSummary();
+		return super.getPreviousPage();
+	}
 }

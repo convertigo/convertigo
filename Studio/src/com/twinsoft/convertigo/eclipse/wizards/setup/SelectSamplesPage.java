@@ -1,39 +1,40 @@
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
 public class SelectSamplesPage extends WizardPage {
 
-	private List<String> projects = new ArrayList<String>();
-	private Tree projectSamples;
+	private Tree categories;
 	private Composite container;
-	
-	public SelectSamplesPage () {
-		super("Select samples");
-		setTitle("Demos and Samples");
-		setDescription("Select demos and samples to be installed.");
+
+	public SelectSamplesPage() {
+		super("SelectSamplesPage");
+		setTitle("Demos and samples");
+		setDescription("Select the demos and samples you want to install. You will also be able to install them later.");
 	}
 
 	public void createControl(Composite parent) {
@@ -42,85 +43,68 @@ public class SelectSamplesPage extends WizardPage {
 		container.setLayout(layout);
 		layout.numColumns = 1;
 		layout.marginWidth = 30;
-		
+
 		Label label = new Label(container, SWT.NONE);
 		label.setText("Select samples :");
-		
+
 		GridData layoutData;
 		layoutData = new GridData(GridData.FILL_BOTH);
 		layoutData.heightHint = 180;
 
-		projectSamples = new Tree(container, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-		final File directory = new File("C:/Users/rahmanf/workspace/CemsStudio/tomcat/webapps/convertigo/templates/project");
-		
-		final TreeItem itemDocumentationSamples = new TreeItem(projectSamples, SWT.CHECK);
-		itemDocumentationSamples.setText("Documentation Samples");
-		final TreeItem itemDemo = new TreeItem(projectSamples, SWT.CHECK);
+		categories = new Tree(container, SWT.CHECK | SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+		categories.setLayoutData(layoutData);
+
+		TreeItem itemDocumentationSamples = new TreeItem(categories, SWT.CHECK);
+		itemDocumentationSamples.setText("Documentation samples");
+		TreeItem itemDemo = new TreeItem(categories, SWT.CHECK);
 		itemDemo.setText("Mashup demo projects");
-		final TreeItem itemMobileSamples = new TreeItem(projectSamples, SWT.CHECK);
+		TreeItem itemMobileSamples = new TreeItem(categories, SWT.CHECK);
 		itemMobileSamples.setText("Mobile samples");
-		final TreeItem itemReferenceManualSamples = new TreeItem(projectSamples, SWT.CHECK);
+		TreeItem itemReferenceManualSamples = new TreeItem(categories, SWT.CHECK);
 		itemReferenceManualSamples.setText("Reference Manual samples");
-		final TreeItem itemSqlConnectorSamples = new TreeItem(projectSamples, SWT.CHECK);
+		TreeItem itemSqlConnectorSamples = new TreeItem(categories, SWT.CHECK);
 		itemSqlConnectorSamples.setText("SQL Connector samples");
-		
-		projectSamples.addListener(SWT.Selection, new Listener() {
-	      public void handleEvent(Event event) {
-    		  for (File file : directory.listFiles()) {
-    				String name = file.getName();
-    				if (name.startsWith("sample_documentation_")) {
-    					 if (itemDocumentationSamples.getChecked()) {
-    						 projects.add(name);
-    					 }
-    				} else if (name.startsWith("demo_")) {
-    					if (itemDemo.getChecked()) {
-    						projects.add(name);
-    					}
-    				} else if (name.startsWith("sample_refManual_")) {
-    					if (itemReferenceManualSamples.getChecked()) {
-    						projects.add(name);
-    					}
-    				} else if (name.startsWith("sampleMobile")) {
-    					if (itemMobileSamples.getChecked()) {
-    						projects.add(name);
-    					}
-    				} else if (name.startsWith("sample_database_SQL_")) {
-    					if (itemSqlConnectorSamples.getChecked()) {
-    						projects.add(name);
-    					}
-    				} else if ("lib_GoogleMaps.car".equals(name)) {
-    					if (itemDemo.getChecked()) {
-    						projects.add(name);
-    					}
-    				}
-    			}
-	      }
-	    });
-	    
-		getSamplesAndDemos(itemDocumentationSamples, itemDemo, itemMobileSamples, itemReferenceManualSamples, itemSqlConnectorSamples);
-		projectSamples.setLayoutData(layoutData);
-		
+
+		categories.addSelectionListener(new SelectionListener() {				
+			public void widgetSelected(SelectionEvent e) {
+				TreeItem treeItem = (TreeItem) e.item;
+				boolean categoryCheck = treeItem.getChecked();
+				
+				// Handle category selection
+				if (treeItem.getParentItem() == null) {
+					TreeItem[] children = treeItem.getItems();
+					for (TreeItem childTreeItem : children) {
+						childTreeItem.setChecked(categoryCheck);							
+					}
+				}
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+
+		getSamplesAndDemos(itemDocumentationSamples, itemDemo, itemMobileSamples, itemReferenceManualSamples,
+				itemSqlConnectorSamples);
+
 		// Required to avoid an error in the system
 		setControl(container);
-//		setPageComplete(true);		
 	}
-	
-	private void getSamplesAndDemos(TreeItem itemDocumentationSamples, TreeItem itemDemo, TreeItem itemMobileSamples, TreeItem itemReferenceManualSamples, TreeItem itemSqlConnectorSamples) {
+
+	private void getSamplesAndDemos(TreeItem itemDocumentationSamples, TreeItem itemDemo,
+			TreeItem itemMobileSamples, TreeItem itemReferenceManualSamples, TreeItem itemSqlConnectorSamples) {
 		try {
-		
-			DocumentBuilderFactory fabrique = DocumentBuilderFactory.newInstance();
-			
-			// création d'un constructeur de documents
-			DocumentBuilder constructeur = fabrique.newDocumentBuilder();
-			
-         		// lecture du contenu d'un fichier XML avec DOM
-			File xml = new File("C:/Users/rahmanf/workspace/CemsStudio/plugin.xml");
-			Document document = constructeur.parse(xml);
+	        Path path = new Path("plugin.xml");
+	        InputStream pluginXml = FileLocator.openStream(ConvertigoPlugin.getDefault().getBundle(), path, false);
+
+			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+
+			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+			Document document = documentBuilder.parse(pluginXml);
 
 			document.getDocumentElement().normalize();
 			NodeList list = document.getElementsByTagName("wizard");
 			int nbNode = list.getLength();
-			for (int i=0 ; i < nbNode ; i++) {
+			for (int i = 0; i < nbNode; i++) {
 				Node item = list.item(i);
 				Node attribut = item.getAttributes().getNamedItem("category");
 				String category = attribut.getTextContent();
@@ -140,25 +124,40 @@ public class SelectSamplesPage extends WizardPage {
 					TreeItem treeItem = new TreeItem(itemDemo, SWT.NONE);
 					treeItem.setText(item.getAttributes().getNamedItem("name").getTextContent());
 				}
-		}			
-		}catch(ParserConfigurationException pce){
-			System.out.println("Erreur de configuration du parseur DOM");
-			System.out.println("lors de l'appel à fabrique.newDocumentBuilder();");
-		}catch(SAXException se){
-			System.out.println("Erreur lors du parsing du document");
-			System.out.println("lors de l'appel à construteur.parse(xml)");
-		}catch(IOException ioe){
-			System.out.println("Erreur d'entrée/sortie");
-			System.out.println("lors de l'appel à construteur.parse(xml)");
+			}
+		} catch (Exception e) {
+			// TODO: handle error
 		}
 	}
-	
-	public String getSamples() {
-		String result = "";
-		for (String sample : projects) {
-			result = result + sample;
+
+	public Set<String> getSelectedProjects() {
+		Set<String> selectedProjects = new HashSet<String>();
+		
+		TreeItem[] categoryItems = categories.getItems();
+		
+		for (TreeItem categoryItem : categoryItems) {
+			TreeItem[] sampleItems = categoryItem.getItems();
+			for (TreeItem sampleItem : sampleItems) {
+				if (sampleItem.getChecked())
+					selectedProjects.add(sampleItem.getText());				
+			}
 		}
-		return result;
+		
+		return selectedProjects;
+	}
+
+	@Override
+	public IWizardPage getNextPage() {
+		SetupWizard setupWizard = (SetupWizard) getWizard();
+		((SummaryPage) setupWizard.getPage("SummaryPage")).updateSummary();
+		return super.getNextPage();
 	}
 	
+	@Override
+	public IWizardPage getPreviousPage() {
+		SetupWizard setupWizard = (SetupWizard) getWizard();
+		((SummaryPage) setupWizard.getPage("SummaryPage")).updateSummary();
+		return super.getPreviousPage();
+	}
+
 }
