@@ -29,7 +29,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.wizards.NewMinitelConnectorWizard;
+import com.twinsoft.convertigo.eclipse.wizards.new_project.NewMinitelConnectorWizard;
 
 public class ProjectCreateAction extends MyAbstractAction {
 

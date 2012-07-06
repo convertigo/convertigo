@@ -31,7 +31,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
-import com.twinsoft.convertigo.eclipse.wizards.ObjectsExplorerComposite;
+import com.twinsoft.convertigo.eclipse.wizards.new_object.ObjectsExplorerComposite;
 
 public class CreateHandlerDialog extends Dialog {
 	private String dialogTitle;

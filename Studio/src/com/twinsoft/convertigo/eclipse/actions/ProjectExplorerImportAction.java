@@ -31,7 +31,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.wizards.ImportWizard;
+import com.twinsoft.convertigo.eclipse.wizards.import_export.ImportWizard;
 
 public class ProjectExplorerImportAction extends MyAbstractAction implements IViewActionDelegate {
 

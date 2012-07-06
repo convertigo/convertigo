@@ -20,7 +20,7 @@
  * $Date$
  */
 
-package com.twinsoft.convertigo.eclipse.wizards.StatementGenerator;
+package com.twinsoft.convertigo.eclipse.wizards.new_statement;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -34,7 +34,7 @@ import org.eclipse.swt.widgets.Display;
 
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.wizards.ObjectsExplorerComposite;
+import com.twinsoft.convertigo.eclipse.wizards.new_object.ObjectsExplorerComposite;
 
 public class StatementGeneratorComposite extends ObjectsExplorerComposite {
 

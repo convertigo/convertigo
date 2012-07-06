@@ -20,7 +20,7 @@
  * $Date$
  */
 
-package com.twinsoft.convertigo.eclipse.wizards.StatementGenerator;
+package com.twinsoft.convertigo.eclipse.wizards.new_statement;
 
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;

@@ -53,7 +53,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
-import com.twinsoft.convertigo.eclipse.wizards.NewObjectWizard;
+import com.twinsoft.convertigo.eclipse.wizards.new_object.NewObjectWizard;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;

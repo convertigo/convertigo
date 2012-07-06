@@ -52,7 +52,7 @@ import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.steps.XMLComplexStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.wizards.ObjectsExplorerComposite;
+import com.twinsoft.convertigo.eclipse.wizards.new_object.ObjectsExplorerComposite;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XmlGenerationDescription;

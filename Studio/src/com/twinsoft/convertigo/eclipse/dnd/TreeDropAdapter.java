@@ -83,7 +83,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableTreeOb
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ScreenClassTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
-import com.twinsoft.convertigo.eclipse.wizards.NewObjectWizard;
+import com.twinsoft.convertigo.eclipse.wizards.new_object.NewObjectWizard;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;

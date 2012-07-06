@@ -86,8 +86,8 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ConnectorTreeObject
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
-import com.twinsoft.convertigo.eclipse.wizards.NewObjectWizard;
-import com.twinsoft.convertigo.eclipse.wizards.StatementGenerator.StatementGeneratorWizard;
+import com.twinsoft.convertigo.eclipse.wizards.new_statement.StatementGeneratorWizard;
+import com.twinsoft.convertigo.eclipse.wizards.new_object.NewObjectWizard;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;

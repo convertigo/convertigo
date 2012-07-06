@@ -32,7 +32,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
-import com.twinsoft.convertigo.eclipse.wizards.ObjectsExplorerComposite;
+import com.twinsoft.convertigo.eclipse.wizards.new_object.ObjectsExplorerComposite;
 
 public class CreateExtractionRuleDialog extends Dialog {
 

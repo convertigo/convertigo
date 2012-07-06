@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
-import com.twinsoft.convertigo.eclipse.wizards.NewObjectWizard;
+import com.twinsoft.convertigo.eclipse.wizards.new_object.NewObjectWizard;
 
 public class DatabaseObjectCreateAction extends MyAbstractAction {
 	protected String databaseObjectClassName = null;
