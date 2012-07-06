@@ -1,6 +1,7 @@
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
@@ -92,7 +93,8 @@ public class SetupWizard extends Wizard {
 		engineProperties.setProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PASSWORD.toString(),
 				Crypto2.encodeToHexString(configureProxyPage.getProxyPassword()));
 		try {
-			engineProperties.store(new FileWriter(new File(workspaceLocation + "/configuration/engine.properties")), null);
+			engineProperties.store(new FileOutputStream(new File(workspaceLocation
+					+ "/configuration/engine.properties")), null);
 		} catch (IOException e) {
 			ConvertigoPlugin.errorMessageBox("Unable to create the engine configuration file.\n"
 					+ "Default values will be used, i.e. you will have to reconfigure the proxy afterwards.\n\n"
