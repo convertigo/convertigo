@@ -37,6 +37,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.contrib.ssl.EasySSLProtocolSocketFactory;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -51,6 +52,9 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
+
 public class RemoteAdmin {
 
 	private HostConfiguration hostConfiguration = null;
@@ -63,6 +67,7 @@ public class RemoteAdmin {
 	private String host;
 	private URL url;
 
+
 	public RemoteAdmin(String serverBaseUrl, boolean bHttps, boolean bTrustAllCertificates) throws RemoteAdminException {
 		this.serverBaseUrl = serverBaseUrl;
 		this.bHttps = bHttps;
@@ -73,6 +78,11 @@ public class RemoteAdmin {
 			url = new URL("http" + (bHttps ? "s" : "") + "://" + serverBaseUrl);
 			this.serverPort = url.getPort();
 			this.host = url.getHost();
+			
+			if (serverPort == -1) {
+				if (bHttps) serverPort = 443;
+				else serverPort = 80;
+			}
 		} catch (MalformedURLException e) {
 			throw new RemoteAdminException(
 					"The Convertigo server is not valid: " + serverBaseUrl + "\n"
@@ -90,15 +100,17 @@ public class RemoteAdmin {
 
 			Protocol myhttps = null;					
 			
-			if (bHttps && bTrustAllCertificates) {	
-				ProtocolSocketFactory socketFactory = new EasySSLProtocolSocketFactory();
-				myhttps = new Protocol("https", socketFactory, serverPort);
-				Protocol.registerProtocol("https", myhttps);
-
-				hostConfiguration = httpClient.getHostConfiguration();
-				hostConfiguration.setHost(host, serverPort, myhttps);
-				httpClient.setHostConfiguration(hostConfiguration);	
-			} 
+			hostConfiguration = httpClient.getHostConfiguration();
+			
+			if (bHttps) {
+				if (bTrustAllCertificates) {	
+					ProtocolSocketFactory socketFactory = new EasySSLProtocolSocketFactory();
+					myhttps = new Protocol("https", socketFactory, serverPort);
+					Protocol.registerProtocol("https", myhttps);
+	
+					hostConfiguration.setHost(host, serverPort, myhttps);
+				}
+			}
 				
 			if (("").equals(username) || username == null) {
 				throw new RemoteAdminException(
@@ -109,6 +121,14 @@ public class RemoteAdmin {
 						"Unable to connect to the Convertigo server: \"Password\" field is empty.");
 			}
 			
+			
+			URL url = new URL (loginServiceURL);
+			
+			HttpState httpState = new HttpState();
+			httpClient.setState(httpState);
+			// Proxy configuration
+			Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
+
 			loginMethod = new PostMethod(loginServiceURL);
 			loginMethod.addParameter("authType", "login");
 			loginMethod.addParameter("authUserName", username);
@@ -174,6 +194,9 @@ public class RemoteAdmin {
 			throw new RemoteAdminException(
 					"Unable to reach the Convertigo server: \n"
 							+ "(GeneralSecurityException) " + e.getMessage(), e);
+		} catch (EngineException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} finally {
 			Protocol.unregisterProtocol("https");
 			if (loginMethod != null)
