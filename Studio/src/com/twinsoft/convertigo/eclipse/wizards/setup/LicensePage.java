@@ -15,6 +15,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 public class LicensePage extends WizardPage {
@@ -69,6 +70,9 @@ public class LicensePage extends WizardPage {
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
+		
+		Label acceptation = new Label(container, SWT.NONE);
+		acceptation.setText("BY INDICATING YOUR ACCEPTANCE BY CLICKING “YES” BELOW, OR INSTALLING OR USING THE SOFTWARE, YOU ARE AGREEING TO BE BOUND BY THE TERMS OF THIS AGREEMENT.");
 		
 		setControl(container);
 		setPageComplete(false);
