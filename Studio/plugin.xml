@@ -281,6 +281,7 @@
          </menu>
          <action
                class="com.twinsoft.convertigo.eclipse.actions.AboutAction"
+               icon="icons/convertigo_16x16.gif"
                id="com.twinsoft.convertigo.About"
                label="About Convertigo plug-in"
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
@@ -293,16 +294,16 @@
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
          <action
                class="com.twinsoft.convertigo.eclipse.actions.AdministrationAction"
-               icon="icons/convertigo_16x16.gif"
+               icon="icons/administration_16x16.gif"
                id="com.twinsoft.convertigo.Administration"
                label="&amp;Administration"
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
-         <!--action
+         <action
                class="com.twinsoft.convertigo.eclipse.actions.SetupAction"
-               icon="icons/convertigo_16x16.gif"
+               icon="icons/setupwizard_16x16.gif"
                id="com.twinsoft.convertigo.Setup"
                label="&amp;Setup"
-               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/-->
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
       </actionSet>
    </extension>
    <extension
@@ -383,7 +384,7 @@
 <!-- Mobilizer projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewSenchaMobileWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSenchaMobileWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSenchaMobileWizard"
             name="Sencha/PhoneGap based configurable project"
@@ -393,7 +394,7 @@
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewEmptyJQueryMobileWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewEmptyJQueryMobileWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewEmptyJQueryMobileWizard"
             name="jQuery Mobile based empty project"
@@ -404,7 +405,7 @@
 <!-- Legacy publishing projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
-            class="com.twinsoft.convertigo.eclipse.wizards.New3270WebWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New3270WebWizard"
             icon="icons/studio/panel_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New3270WebWizard"
             name="3270 Web Style"
@@ -414,7 +415,7 @@
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
-            class="com.twinsoft.convertigo.eclipse.wizards.New5250WebWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New5250WebWizard"
             icon="icons/studio/panel_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New5250WebWizard"
             name="5250 Web Style"
@@ -424,7 +425,7 @@
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewDKUWebWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDKUWebWizard"
             icon="icons/studio/panel_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewDKUWebWizard"
             name="DKU7xxx Web Style"
@@ -434,7 +435,7 @@
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
-            class="com.twinsoft.convertigo.eclipse.wizards.New3270FlexWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New3270FlexWizard"
             icon="icons/studio/flex_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New3270FlexWizard"
             name="3270 Flex Style"
@@ -444,7 +445,7 @@
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
-            class="com.twinsoft.convertigo.eclipse.wizards.New5250FlexWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New5250FlexWizard"
             icon="icons/studio/flex_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New5250FlexWizard"
             name="5250 Flex Style"
@@ -455,7 +456,7 @@
 <!-- Legacy integration projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
-            class="com.twinsoft.convertigo.eclipse.wizards.New3270ConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New3270ConnectorWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New3270ConnectorWizard"
             name="3270 Screen"
@@ -465,7 +466,7 @@
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
-            class="com.twinsoft.convertigo.eclipse.wizards.New5250ConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New5250ConnectorWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.New5250ConnectorWizard"
             name="5250 Screen"
@@ -475,7 +476,7 @@
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewDKUConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDKUConnectorWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewDKUConnectorWizard"
             name="Bull DKUxxx Screen"
@@ -485,7 +486,7 @@
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewMinitelConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewMinitelConnectorWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewMinitelConnectorWizard"
             name="Minitel Screen"
@@ -495,7 +496,7 @@
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewVT220ConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewVT220ConnectorWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewVT220ConnectorWizard"
             name="Unix VTxxx Screen"
@@ -505,7 +506,7 @@
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewCicsConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewCicsConnectorWizard"
             icon="icons/studio/cicsconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewCicsConnectorWizard"
             name="CICS COMMAREA"
@@ -516,7 +517,7 @@
 <!-- Web integration projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebintegration"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewHtmlConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewHtmlConnectorWizard"
             icon="icons/studio/htmlconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewHtmlConnectorWizard"
             name="HTML Web Site"
@@ -527,7 +528,7 @@
 <!-- Web clipping projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebclipping"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewWebClippingConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebClippingConnectorWizard"
             icon="icons/studio/htmlconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewWebClippingConnectorWizard"
             name="Web Clipping"
@@ -538,7 +539,7 @@
 <!-- Sequencer projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosequencer"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewSequencerWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSequencerWizard"
              icon="icons/studio/sequence_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSequencerWizard"
              name="Sequencer project"
@@ -549,7 +550,7 @@
 <!-- SQL projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosql"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewSQLConnectorWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSQLConnectorWizard"
              icon="icons/studio/sqlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSQLConnectorWizard"
              name="SQL project"
@@ -560,7 +561,7 @@
 <!-- Site Clipper connector projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigositeclipper"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewSiteClipperProjectWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSiteClipperProjectWizard"
             icon="icons/studio/siteclipperconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSiteClipperProjectWizard"
             name="Site Clipper project"
@@ -571,7 +572,7 @@
 <!-- Tutorials sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCLIWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCLIWizard"
              icon="icons/studio/javelinconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCLIWizard"
              name="Legacy integration"
@@ -581,7 +582,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCLPWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCLPWizard"
              icon="icons/studio/javelinconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCLPWizard"
              name="Legacy publishing"
@@ -591,7 +592,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCMCWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCMCWizard"
              icon="icons/studio/interaction_hub_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCMCWizard"
              name="Mashup composition"
@@ -601,7 +602,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCMSWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCMSWizard"
              icon="icons/studio/sequence_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCMSWizard"
              name="Mashup sequencing"
@@ -611,7 +612,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCWCWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCWCWizard"
              icon="icons/studio/htmlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCWCWizard"
              name="Web clipping"
@@ -621,7 +622,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCWIWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCWIWizard"
              icon="icons/studio/htmlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCWIWizard"
              name="Web integration"
@@ -631,7 +632,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleMobilizerWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleMobilizerWizard"
              icon="icons/studio/mobile_HighEnd_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleMobilizerWizard"
              name="Mobile Sencha-based"
@@ -641,7 +642,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleSiteClipperWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleSiteClipperWizard"
              icon="icons/studio/siteclipperconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleSiteClipperWizard"
              name="Site clipping"
@@ -652,7 +653,7 @@
 <!-- Reference Manual sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleSiteClipperWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleSiteClipperWizard"
              icon="icons/studio/siteclipperconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleSiteClipperWizard"
              name="Site Clipper objects examples"
@@ -662,7 +663,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStatementsWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleStatementsWizard"
              icon="icons/studio/htmlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStatementsWizard"
              name="HTML connector statements examples"
@@ -672,7 +673,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleStepsWizard"
              icon="icons/studio/sequence_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
              name="Sequencer steps examples"
@@ -682,7 +683,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleVariablesWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleVariablesWizard"
              icon="icons/studio/variable_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleVariablesWizard"
              name="Variables examples"
@@ -692,7 +693,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleHTTPWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleHTTPWizard"
              icon="icons/studio/httpconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleHTTPWizard"
              name="HTTP connector objects examples"
@@ -702,7 +703,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleWebClipperWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleWebClipperWizard"
              icon="icons/studio/htmlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleWebClipperWizard"
              name="Web Clipper objects examples"
@@ -713,7 +714,7 @@
 <!-- Mobile sample projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerFullFeaturedJQueryMobileWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerFullFeaturedJQueryMobileWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerFullFeaturedJQueryMobileWizard"
             name="jQuery Mobile based full-featured sample project"
@@ -723,7 +724,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerPdfWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerPdfWizard"
              icon="icons/studio/mobile_HighEnd_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerPdfWizard"
              name="Sencha based Pdf sample"
@@ -733,7 +734,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerWebToPdfWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerWebToPdfWizard"
              icon="icons/studio/mobile_HighEnd_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerWebToPdfWizard"
              name="Sencha based WebToPdf sample"
@@ -743,7 +744,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerRssNYTimesWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerRssNYTimesWizard"
              icon="icons/studio/mobile_HighEnd_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerRssNYTimesWizard"
              name="Sencha based NYTimes sample"
@@ -753,7 +754,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerSiebelWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerSiebelWizard"
              icon="icons/studio/mobile_HighEnd_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerSiebelWizard"
              name="Sencha based Siebel sample"
@@ -763,7 +764,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerUsDirectoryDemoWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerUsDirectoryDemoWizard"
              icon="icons/studio/mobile_HighEnd_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerUsDirectoryDemoWizard"
              name="Sencha based US Directory sample"
@@ -774,7 +775,7 @@
 <!-- SQL connector sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigosqlsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewSQLSampleHSQLDBWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSQLSampleHSQLDBWizard"
              icon="icons/studio/sqlconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSQLSampleHSQLDBWizard"
              name="HSQLDB database sample project"
@@ -784,7 +785,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigosqlsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewSQLSampleXLSWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSQLSampleXLSWizard"
              icon="icons/studio/excel.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSQLsampleXLSWizard"
              name="Excel file database sample project"
@@ -795,7 +796,7 @@
 <!-- Web services projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservices"
-            class="com.twinsoft.convertigo.eclipse.wizards.NewHttpConnectorWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewHttpConnectorWizard"
             icon="icons/studio/httpconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewHttpConnectorWizard"
             name="REST Web service"
@@ -805,7 +806,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservices"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceReferenceWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebServiceReferenceWizard"
              icon="icons/studio/httpconnector_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceReferenceWizard"
              name="SOAP Web service"
@@ -816,7 +817,7 @@
 <!-- Librairies projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleMapsWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryGoogleMapsWizard"
              icon="icons/studio/library_googleMaps_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleMapsWizard"
              name="Google Maps"
@@ -826,7 +827,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleSpreadsheetsWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryGoogleSpreadsheetsWizard"
              icon="icons/studio/library_googleSpreadsheets_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleSpreadsheetsWizard"
              name="Google Spreadsheets"
@@ -847,7 +848,7 @@
 <!-- Mashup demo projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewDemoSalesForceWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDemoSalesForceWizard"
              icon="icons/studio/demo_salesForce_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDemoSalesForceWizard"
              name="SalesForce"
@@ -857,7 +858,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewDemoUsDirectoryWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDemoUsDirectoryWizard"
              icon="icons/studio/demo_usDirectory_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDemoUsDirectoryWizard"
              name="US Directory"
@@ -867,7 +868,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewDemoLegacyCRMWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDemoLegacyCRMWizard"
              icon="icons/studio/demo_legacyCRM_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDemoLegacyCRMWizard"
              name="Legacy CRM"
@@ -877,7 +878,7 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewDemoMashupWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDemoMashupWizard"
              icon="icons/studio/demo_mashup_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDemoMashupWizard"
              name="Mashup demo"
@@ -888,7 +889,7 @@
 <!-- Interaction hub projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigohubs"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewInteractionHubWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewInteractionHubWizard"
              icon="icons/studio/interaction_hub_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewInteractionHubWizard"
              name="Interaction hub"
@@ -2663,7 +2664,7 @@
       </category>
       <wizard
             category="com.twinsoft.convertigo.eclipse.wizards.ConvertigoCategory"
-            class="com.twinsoft.convertigo.eclipse.wizards.ImportWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.import_export.ImportWizard"
             icon="icons/sample.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.ImportWizard"
             name="Convertigo project">
@@ -2680,7 +2681,7 @@
       </category>
       <wizard
             category="com.twinsoft.convertigo.eclipse.wizards.ConvertigoCategory"
-            class="com.twinsoft.convertigo.eclipse.wizards.ExportWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.import_export.ExportWizard"
             icon="icons/sample.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.ExportWizard"
             name="Convertigo project">
