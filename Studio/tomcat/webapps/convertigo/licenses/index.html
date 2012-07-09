@@ -3,7 +3,7 @@
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>3rd party components used by Convertigo</title>
+<title>Convertigo licenses</title>
 <link rel="stylesheet" type="text/css" href="../admin/styles/admin.css" />
 <style type="text/css">
 td {
@@ -16,7 +16,28 @@ thead td {
 table td {
     padding: 5px 25px 5px 5px;
 }
+#c8oLicense {
+    font-family: "Courier New";
+}
+#c8oLicenseContainer {
+    text-align: left;
+    margin: 16px;
+}
 </style>
+
+<script src="../scripts/jquery.min.js"></script>
+
+<script>
+
+$.get(
+	"license.txt",
+    function(data){
+		   $("#c8oLicense").val(data);
+	},
+	"text"
+);
+
+</script>
 
 </head>
 
@@ -24,206 +45,215 @@ table td {
 
 <img src="../admin/images/convertigo-administration-logo.png"/>
 
-<h1>List of all the 3rd party components used by Convertigo</h1>
-
-<p></p>
-
-<table>
-	<thead>
-		<tr>
-			<td>Component</td>
-			<td>URL</td>
-			<td>License</td>
-		</tr>
-	</thead>
-	<tbody>
-        <tr>
-            <td>Apache Commons</td>
-            <td><a href="http://commons.apache.org/">http://commons.apache.org/</a></td>
-            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
-        </tr>
-        <tr>
-            <td>Avalon</td>
-            <td><a href="http://avalon.apache.org/">http://avalon.apache.org/</a></td>
-            <td><a href="ASL-1.1.txt">ASL 1.1</a></td>
-        </tr>
-		<tr>
-			<td>Aviva</td>
-			<td><a href="http://www.avivasolutions.com">http://www.avivasolutions.com</a></td>
-			<td><a href="aviva.txt">Aviva license</a></td>
-		</tr>
-        <tr>
-            <td>Axis</td>
-            <td><a href="http://ws.apache.org/axis2">http://ws.apache.org/axis2</a></td>
-            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
-        </tr>
-        <tr>
-            <td>Batik</td>
-            <td><a href="http://xml.apache.org/batik">http://xml.apache.org/batik</a></td>
-            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
-        </tr>
-        <tr>
-            <td>BCEL</td>
-            <td><a href="http://jakarta.apache.org/bcel">http://jakarta.apache.org/bcel</a></td>
-            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
-        </tr>
-        <tr>
-            <td>DirectKit</td>
-            <td><a href="http://www.orange-business-services.com">http://www.orange-business-services.com</a></td>
-            <td><a href="#">OBS license</a></td>
-        </tr>
-        <tr>
-            <td>DHTML Tree</td>
-            <td><a href="http://www.mattkruse.com">http://www.mattkruse.com</a></td>
-            <td><a href="MIT-jquery.txt">MIT</a></td>
-        </tr>
-		<tr>
-			<td>Dom4j</td>
-			<td><a href="http://www.dom4j.org">http://www.dom4j.org</a></td>
-			<td><a href="BSD.txt">BSD style</a></td>
-		</tr>
-        <tr>
-            <td>Eclipse</td>
-            <td><a href="http://www.eclipse.org">http://www.eclipse.org</a></td>
-            <td><a href="EPL-1.0.txt">EPL 1.0</a></td>
-        </tr>
-        <tr>
-            <td>FOP</td>
-            <td><a href="http://xmlgraphics.apache.org/fop/">http://xmlgraphics.apache.org/fop/</a></td>
-            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
-        </tr>
-        <tr>
-            <td>HSQLDB</td>
-            <td><a href="http://hsqldb.org">http://hsqldb.org</a></td>
-            <td><a href="hsqldb.txt">HSQLDB license</a></td>
-        </tr>
-        <tr>
-            <td>Hibernate</td>
-            <td><a href="http://www.hibernate.org">http://www.hibernate.org</a></td>
-            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
-        </tr>
-        <tr>
-            <td>Httpclient</td>
-            <td><a href="http://www.innovation.ch/java/HTTPClient">http://www.innovation.ch/java/HTTPClient</a></td>
-            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
-        </tr>
-        <tr>
-            <td>Jacob</td>
-            <td><a href="http://sourceforge.net/projects/jacob-project">http://sourceforge.net/projects/jacob-project</a></td>
-            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
-        </tr>
-        <tr>
-            <td>Jakarta RegExp</td>
-            <td><a href="http://jakarta.apache.org/regexp">http://jakarta.apache.org/regexp</a></td>
-            <td><a href="BSD.txt">BSD style</a></td>
-        </tr>
-        <tr>
-            <td>Java</td>
-            <td><a href="http://www.oracle.com">http://www.oracle.com</a></td>
-            <td><a href="java.txt">Java license</a></td>
-        </tr>
-        <tr>
-            <td>Jaxen</td>
-            <td><a href="http://www.jaxen.org">http://www.jaxen.org</a></td>
-            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
-        </tr>
-        <tr>
-            <td>jCharts</td>
-            <td><a href="http://jcharts.sourceforge.net">http://jcharts.sourceforge.net/</a></td>
-            <td><a href="jcharts.txt">jCharts license</a></td>
-        </tr>
-        <tr>
-            <td>jettison</td>
-            <td><a href="http://jettison.codehaus.org">http://jettison.codehaus.org</a></td>
-            <td><a href="jettison.txt">Jettison license</a></td>
-        </tr>
-        <tr>
-            <td>jQuery</td>
-            <td><a href="http://www.jquery.com">http://www.jquery.com</a></td>
-            <td><a href="MIT-jquery.txt">MIT</a></td>
-        </tr>
-        <tr>
-            <td>jTDS</td>
-            <td><a href="http://jtds.sourceforge.net">http://jtds.sourceforge.net</a></td>
-            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
-        </tr>
-        <tr>
-            <td>JT400</td>
-            <td><a href="http://jt400.sourceforge.net/">http://jt400.sourceforge.net/</a></td>
-            <td><a href="IBM-PL-1.0.html">IBM Public License 1.0</a></td>
-        </tr>
-        <tr>
-            <td>MIT VT220 parser</td>
-            <td><a href="http://web.mit.edu/dosathena/doc/www/parser.html">http://web.mit.edu/dosathena/doc/www/parser.html</a></td>
-            <td><a href="MIT-VT-parser.txt">MIT</a></td>
-        </tr>
-        <tr>
-            <td>OpenSSL</td>
-            <td><a href="http://www.openssl.org">http://www.openssl.org</a></td>
-            <td><a href="openssl.txt">OpenSSL license</a></td>
-        </tr>
-        <tr>
-            <td>Oracle</td>
-            <td><a href="http://www.oracle.com">http://www.oracle.com</a></td>
-            <td><a href="OTN.txt">ORACLE license</a></td>
-        </tr>
-        <tr>
-            <td>Phaos Technology SSLava (Oracle)</td>
-            <td><a href="http://www.phaos.com">http://www.phaos.com</a></a></td>
-            <td>n/a</td>
-        </tr>
-        <tr>
-            <td>QRCode (Kazuhiko Arase)</td>
-            <td><a href="http://www.d-project.com/qrcode/">http://www.d-project.com/qrcode/</a></td>
-            <td><a href="MIT.txt">MIT</a></td>
-        </tr>
-        <tr>
-            <td>Quartz</td>
-            <td><a href="http://www.quartz-scheduler.org">http://www.quartz-scheduler.org</a></td>
-            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
-        </tr>
-        <tr>
-            <td>Rhino</td>
-            <td><a href="https://developer.mozilla.org">https://developer.mozilla.org</a></td>
-            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
-        </tr>
-        <tr>
-            <td>Scribe</td>
-            <td><a href="https://github.com/fernandezpablo85/scribe-java">https://github.com/fernandezpablo85/scribe-java</a></td>
-            <td><a href="scribe.txt">MIT</a></td>
-        </tr>
-        <tr>
-            <td>SLF4J</td>
-            <td><a href="http://www.slf4j.org">http://www.slf4j.org/</a></td>
-            <td><a href="MIT-slf4j.txt">MIT</a></td>
-        </tr>
-        <tr>
-            <td>SoapUI</td>
-            <td><a href="https://www.soapui.org">http://www.soapui.org</a></td>
-            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
-        </tr>
-        <tr>
-            <td>Telnet Java Socks4</td>
-            <td><a href="http://jsocks.sourceforge.net">http://jsocks.sourceforge.net</a></td>
-            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
-        </tr>
-        <tr>
-            <td>Tomcat</td>
-            <td><a href="http://tomcat.apache.org">http://tomcat.apache.org</a></td>
-            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
-        </tr>
-        <tr>
-            <td>XmlGraphics</td>
-            <td><a href="http://xmlgraphics.apache.org">http://xmlgraphics.apache.org</a></td>
-            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
-        </tr>
-        <tr>
-            <td>Xulrunner</td>
-            <td><a href="http://www.mozilla.org">http://www.mozilla.org</a></td>
-            <td><a href="MPL-1.1.txt">MPL 1.1</a></td>
-        </tr>
-	</tbody>
-</table>
+<div>
+	<h1>Convertigo End User License Agreement (EULA)</h1>
+	
+	<div id="c8oLicenseContainer">
+	    <textarea id="c8oLicense" cols="90" rows="40" >
+	    </textarea>
+	</div>
+	
+	<h1>List of all the 3rd party components used by Convertigo</h1>
+	
+	<p></p>
+	
+	<table>
+	    <thead>
+	        <tr>
+	            <td>Component</td>
+	            <td>URL</td>
+	            <td>License</td>
+	        </tr>
+	    </thead>
+	    <tbody>
+	        <tr>
+	            <td>Apache Commons</td>
+	            <td><a href="http://commons.apache.org/">http://commons.apache.org/</a></td>
+	            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
+	        </tr>
+	        <tr>
+	            <td>Avalon</td>
+	            <td><a href="http://avalon.apache.org/">http://avalon.apache.org/</a></td>
+	            <td><a href="ASL-1.1.txt">ASL 1.1</a></td>
+	        </tr>
+	        <tr>
+	            <td>Aviva</td>
+	            <td><a href="http://www.avivasolutions.com">http://www.avivasolutions.com</a></td>
+	            <td><a href="aviva.txt">Aviva license</a></td>
+	        </tr>
+	        <tr>
+	            <td>Axis</td>
+	            <td><a href="http://ws.apache.org/axis2">http://ws.apache.org/axis2</a></td>
+	            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
+	        </tr>
+	        <tr>
+	            <td>Batik</td>
+	            <td><a href="http://xml.apache.org/batik">http://xml.apache.org/batik</a></td>
+	            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
+	        </tr>
+	        <tr>
+	            <td>BCEL</td>
+	            <td><a href="http://jakarta.apache.org/bcel">http://jakarta.apache.org/bcel</a></td>
+	            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
+	        </tr>
+	        <tr>
+	            <td>DirectKit</td>
+	            <td><a href="http://www.orange-business-services.com">http://www.orange-business-services.com</a></td>
+	            <td><a href="#">OBS license</a></td>
+	        </tr>
+	        <tr>
+	            <td>DHTML Tree</td>
+	            <td><a href="http://www.mattkruse.com">http://www.mattkruse.com</a></td>
+	            <td><a href="MIT-jquery.txt">MIT</a></td>
+	        </tr>
+	        <tr>
+	            <td>Dom4j</td>
+	            <td><a href="http://www.dom4j.org">http://www.dom4j.org</a></td>
+	            <td><a href="BSD.txt">BSD style</a></td>
+	        </tr>
+	        <tr>
+	            <td>Eclipse</td>
+	            <td><a href="http://www.eclipse.org">http://www.eclipse.org</a></td>
+	            <td><a href="EPL-1.0.txt">EPL 1.0</a></td>
+	        </tr>
+	        <tr>
+	            <td>FOP</td>
+	            <td><a href="http://xmlgraphics.apache.org/fop/">http://xmlgraphics.apache.org/fop/</a></td>
+	            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
+	        </tr>
+	        <tr>
+	            <td>HSQLDB</td>
+	            <td><a href="http://hsqldb.org">http://hsqldb.org</a></td>
+	            <td><a href="hsqldb.txt">HSQLDB license</a></td>
+	        </tr>
+	        <tr>
+	            <td>Hibernate</td>
+	            <td><a href="http://www.hibernate.org">http://www.hibernate.org</a></td>
+	            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
+	        </tr>
+	        <tr>
+	            <td>Httpclient</td>
+	            <td><a href="http://www.innovation.ch/java/HTTPClient">http://www.innovation.ch/java/HTTPClient</a></td>
+	            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
+	        </tr>
+	        <tr>
+	            <td>Jacob</td>
+	            <td><a href="http://sourceforge.net/projects/jacob-project">http://sourceforge.net/projects/jacob-project</a></td>
+	            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
+	        </tr>
+	        <tr>
+	            <td>Jakarta RegExp</td>
+	            <td><a href="http://jakarta.apache.org/regexp">http://jakarta.apache.org/regexp</a></td>
+	            <td><a href="BSD.txt">BSD style</a></td>
+	        </tr>
+	        <tr>
+	            <td>Java</td>
+	            <td><a href="http://www.oracle.com">http://www.oracle.com</a></td>
+	            <td><a href="java.txt">Java license</a></td>
+	        </tr>
+	        <tr>
+	            <td>Jaxen</td>
+	            <td><a href="http://www.jaxen.org">http://www.jaxen.org</a></td>
+	            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
+	        </tr>
+	        <tr>
+	            <td>jCharts</td>
+	            <td><a href="http://jcharts.sourceforge.net">http://jcharts.sourceforge.net/</a></td>
+	            <td><a href="jcharts.txt">jCharts license</a></td>
+	        </tr>
+	        <tr>
+	            <td>jettison</td>
+	            <td><a href="http://jettison.codehaus.org">http://jettison.codehaus.org</a></td>
+	            <td><a href="jettison.txt">Jettison license</a></td>
+	        </tr>
+	        <tr>
+	            <td>jQuery</td>
+	            <td><a href="http://www.jquery.com">http://www.jquery.com</a></td>
+	            <td><a href="MIT-jquery.txt">MIT</a></td>
+	        </tr>
+	        <tr>
+	            <td>jTDS</td>
+	            <td><a href="http://jtds.sourceforge.net">http://jtds.sourceforge.net</a></td>
+	            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
+	        </tr>
+	        <tr>
+	            <td>JT400</td>
+	            <td><a href="http://jt400.sourceforge.net/">http://jt400.sourceforge.net/</a></td>
+	            <td><a href="IBM-PL-1.0.html">IBM Public License 1.0</a></td>
+	        </tr>
+	        <tr>
+	            <td>MIT VT220 parser</td>
+	            <td><a href="http://web.mit.edu/dosathena/doc/www/parser.html">http://web.mit.edu/dosathena/doc/www/parser.html</a></td>
+	            <td><a href="MIT-VT-parser.txt">MIT</a></td>
+	        </tr>
+	        <tr>
+	            <td>OpenSSL</td>
+	            <td><a href="http://www.openssl.org">http://www.openssl.org</a></td>
+	            <td><a href="openssl.txt">OpenSSL license</a></td>
+	        </tr>
+	        <tr>
+	            <td>Oracle</td>
+	            <td><a href="http://www.oracle.com">http://www.oracle.com</a></td>
+	            <td><a href="OTN.txt">ORACLE license</a></td>
+	        </tr>
+	        <tr>
+	            <td>Phaos Technology SSLava (Oracle)</td>
+	            <td><a href="http://www.phaos.com">http://www.phaos.com</a></a></td>
+	            <td>n/a</td>
+	        </tr>
+	        <tr>
+	            <td>QRCode (Kazuhiko Arase)</td>
+	            <td><a href="http://www.d-project.com/qrcode/">http://www.d-project.com/qrcode/</a></td>
+	            <td><a href="MIT.txt">MIT</a></td>
+	        </tr>
+	        <tr>
+	            <td>Quartz</td>
+	            <td><a href="http://www.quartz-scheduler.org">http://www.quartz-scheduler.org</a></td>
+	            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
+	        </tr>
+	        <tr>
+	            <td>Rhino</td>
+	            <td><a href="https://developer.mozilla.org">https://developer.mozilla.org</a></td>
+	            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
+	        </tr>
+	        <tr>
+	            <td>Scribe</td>
+	            <td><a href="https://github.com/fernandezpablo85/scribe-java">https://github.com/fernandezpablo85/scribe-java</a></td>
+	            <td><a href="scribe.txt">MIT</a></td>
+	        </tr>
+	        <tr>
+	            <td>SLF4J</td>
+	            <td><a href="http://www.slf4j.org">http://www.slf4j.org/</a></td>
+	            <td><a href="MIT-slf4j.txt">MIT</a></td>
+	        </tr>
+	        <tr>
+	            <td>SoapUI</td>
+	            <td><a href="https://www.soapui.org">http://www.soapui.org</a></td>
+	            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
+	        </tr>
+	        <tr>
+	            <td>Telnet Java Socks4</td>
+	            <td><a href="http://jsocks.sourceforge.net">http://jsocks.sourceforge.net</a></td>
+	            <td><a href="LGPL-2.1.txt">LGPL 2.1</a></td>
+	        </tr>
+	        <tr>
+	            <td>Tomcat</td>
+	            <td><a href="http://tomcat.apache.org">http://tomcat.apache.org</a></td>
+	            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
+	        </tr>
+	        <tr>
+	            <td>XmlGraphics</td>
+	            <td><a href="http://xmlgraphics.apache.org">http://xmlgraphics.apache.org</a></td>
+	            <td><a href="ASL-2.0.txt">ASL 2.0</a></td>
+	        </tr>
+	        <tr>
+	            <td>Xulrunner</td>
+	            <td><a href="http://www.mozilla.org">http://www.mozilla.org</a></td>
+	            <td><a href="MPL-1.1.txt">MPL 1.1</a></td>
+	        </tr>
+	    </tbody>
+	</table>
+</div>
 
 </body>
 </html>
