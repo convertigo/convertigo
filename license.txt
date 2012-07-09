@@ -538,9 +538,9 @@ provisions, and the rights and obligations of each party shall be construed and
 enforced accordingly.
 
 18.6 Language. It is the express will of the parties that this Agreement and all
-related documents be drawn up in English. C'est la volonté expresse des parties
-que la présente convention ainsi que les documents qui s'y rattachent soient
-rédigés en anglais.
+related documents be drawn up in English. C'est la volont√© expresse des parties
+que la pr√©sente convention ainsi que les documents qui s'y rattachent soient
+r√©dig√©s en anglais.
 
 18.7 Entire Agreement. This Agreement constitutes the entire agreement between
 the parties hereto with respect to the subject matter hereof and cancels and
