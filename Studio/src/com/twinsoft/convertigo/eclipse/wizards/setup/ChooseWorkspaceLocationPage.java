@@ -57,7 +57,8 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 		label.setText("User workspace location:");
 
 		userWorkspaceLocation = new Text(container, SWT.BORDER | SWT.SINGLE);
-		String userWorkspace = System.getProperty("user.home") + "/convertigo";
+		String userWorkspace = System.getProperty("convertigo.cems.user_workspace_path",
+				System.getProperty("user.home") + "/convertigo");
 		userWorkspaceLocation.setText(userWorkspace);
 		userWorkspaceLocation.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent e) {

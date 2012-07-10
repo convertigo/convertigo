@@ -2,7 +2,6 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -64,13 +63,23 @@ public class SetupWizard extends Wizard {
 
 	@Override
 	public boolean performFinish() {
-		// Create new workspace
-		String workspaceLocation = chooseWorkspaceLocationPage.getUserWorkspaceLocation();
-		File workspace = new File(workspaceLocation);
-		workspace.mkdirs();
+		// Create new workspace if needed
+		String currentWorkspaceLocation = System.getProperty("convertigo.cems.user_workspace_path",
+				System.getProperty("user.home") + "/convertigo");
+		File currentWorkspace = new File(currentWorkspaceLocation);
+		String newWorkspaceLocation = chooseWorkspaceLocationPage.getUserWorkspaceLocation();
+		File newWorkspace = new File(newWorkspaceLocation);
+
+		boolean bRestartRequired = false;
+		if (currentWorkspace.exists()) {
+			if (!currentWorkspace.equals(newWorkspace)) {
+				newWorkspace.mkdirs();
+				bRestartRequired = true;
+			}
+		}
 
 		// Configure the engine
-		File workspaceConfiguration = new File(workspaceLocation + "/configuration");
+		File workspaceConfiguration = new File(newWorkspaceLocation + "/configuration");
 		workspaceConfiguration.mkdirs();
 		
 		// Create the engine.properties file
@@ -93,7 +102,7 @@ public class SetupWizard extends Wizard {
 		engineProperties.setProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PASSWORD.toString(),
 				Crypto2.encodeToHexString(configureProxyPage.getProxyPassword()));
 		try {
-			engineProperties.store(new FileOutputStream(new File(workspaceLocation
+			engineProperties.store(new FileOutputStream(new File(newWorkspaceLocation
 					+ "/configuration/engine.properties")), null);
 		} catch (IOException e) {
 			ConvertigoPlugin.errorMessageBox("Unable to create the engine configuration file.\n"
@@ -102,7 +111,7 @@ public class SetupWizard extends Wizard {
 		}
 
 		// Create the eclipse workspace (the 'projects' directory)
-		File workspaceProjects = new File(workspaceLocation + "/projects");
+		File workspaceProjects = new File(newWorkspaceLocation + "/projects");
 		workspaceProjects.mkdirs();
 
 		// Install selected samples
@@ -113,7 +122,8 @@ public class SetupWizard extends Wizard {
 //		}
 		
 		// Restart the studio with the new eclipse workspace
-		restart(workspaceProjects.getPath());
+		if (bRestartRequired)
+			restart(workspaceProjects.getPath());
 		
 		return true;
 	}
