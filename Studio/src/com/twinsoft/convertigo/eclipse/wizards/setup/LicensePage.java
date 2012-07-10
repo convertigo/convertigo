@@ -59,6 +59,15 @@ public class LicensePage extends WizardPage {
 			licenseText.setText("Unable to get the license text!\n" + e.getMessage());
 		}
 	
+		Label acceptation = new Label(container, SWT.WRAP);
+		gd = new GridData(GridData.FILL_BOTH);
+		gd.widthHint = 600;
+		gd.heightHint = 50;
+		acceptation.setLayoutData(gd);
+		acceptation.setText("BY INDICATING YOUR ACCEPTANCE BY CLICKING “Accept license” BELOW, "
+				+ "OR INSTALLING OR USING THE SOFTWARE, YOU ARE AGREEING TO BE BOUND "
+				+ "BY THE TERMS OF THIS AGREEMENT.");
+		
 		Button acceptLicense = new Button(container, SWT.CHECK);
 		acceptLicense.setText("Accept license");
 		acceptLicense.addSelectionListener(new SelectionListener() {
@@ -70,9 +79,6 @@ public class LicensePage extends WizardPage {
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
-		
-		Label acceptation = new Label(container, SWT.NONE);
-		acceptation.setText("BY INDICATING YOUR ACCEPTANCE BY CLICKING “YES” BELOW, OR INSTALLING OR USING THE SOFTWARE, YOU ARE AGREEING TO BE BOUND BY THE TERMS OF THIS AGREEMENT.");
 		
 		setControl(container);
 		setPageComplete(false);
