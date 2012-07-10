@@ -24,13 +24,11 @@ package com.twinsoft.convertigo.eclipse.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard;
 
 public class SetupAction implements IWorkbenchWindowActionDelegate {
@@ -46,16 +44,7 @@ public class SetupAction implements IWorkbenchWindowActionDelegate {
 	public static void runSetup() {
 		Display display = Display.getDefault();
 		WizardDialog wizardDialog = new WizardDialog(display.getActiveShell(), new SetupWizard());
-		if (wizardDialog.open() == Window.OK) {
-			System.out.println("Ok pressed");
-		} else {
-			ConvertigoPlugin.warningMessageBox("You have canceled the installation process.\n\n"
-					+ "Default values will be applied:\n"
-					+ "* Convertigo user workspace: " + System.getProperty("user.home") + "/convertigo\n"
-					+ "* No proxy configuration\n"
-					+ "* No sample or demo projects\n"
-					+ "* No registration for Convertigo Cloud");
-		}
+		wizardDialog.open();
 	}
 
 	public void dispose() {
