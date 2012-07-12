@@ -25,15 +25,19 @@ public class AuthenticatedSessionManager implements AbstractManager {
 
 	public void addAuthenticatedSession(String sessionId, Role[] roles) {
 		authenticatedSessions.put(sessionId,  roles);
+		Engine.logAdmin.debug("Added roles " + roles + " to session " + sessionId);
 	}
 	
 	public void removeAuthenticatedSession(String sessionId) {
 		authenticatedSessions.remove(sessionId);
+		Engine.logAdmin.debug("Removed authenticated sdession from session " + sessionId);
 	}
 
 	public boolean hasRole(String sessionId, Role role) {
 		Role[] roles = authenticatedSessions.get(sessionId);
-		return AuthenticatedSessionManager.hasRole(roles, role);
+		boolean bResult = AuthenticatedSessionManager.hasRole(roles, role);
+		Engine.logAdmin.debug("Session " + sessionId + " has " + (bResult ? "" : "not ") + "role " + role);
+		return bResult;
 	}
 	
 	public boolean isAuthenticated(String sessionId) {
@@ -54,7 +58,9 @@ public class AuthenticatedSessionManager implements AbstractManager {
 
 	public Role[] getRoles(String sessionId) {
 		Role[] roles = authenticatedSessions.get(sessionId);
-		return (roles == null ? null : roles.clone());
+		roles = (roles == null ? null : roles.clone());
+		Engine.logAdmin.debug("Getting roles for session " + sessionId + ": " + roles);
+		return roles;
 	}
 	
 	public void checkRoles(String sessionId, Role[] requiredRoles) throws AuthenticationException {
@@ -66,8 +72,8 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		
 		List<Role> lUserRoles = Arrays.asList(userRoles);
 		
-		Engine.logEngine.debug("User roles: " + lUserRoles);
-		Engine.logEngine.debug("Required roles: " + lRequiredRoles);
+		Engine.logAdmin.debug("User roles: " + lUserRoles);
+		Engine.logAdmin.debug("Required roles: " + lRequiredRoles);
 
 		// Check if the user has one (or more) role(s) in common with the required roles list
 		if (ListUtils.intersection(lUserRoles, lRequiredRoles).size() > 0) return;
