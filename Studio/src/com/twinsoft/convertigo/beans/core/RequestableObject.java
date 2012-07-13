@@ -284,6 +284,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             runningThread = new RequestableThread();
             String currentThreadName = Thread.currentThread().getName();
             runningThread.setName(currentThreadName + "/RequestableThread");
+            runningThread.setDaemon(true);
             runningThread.start();
             
             try {

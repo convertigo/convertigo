@@ -28,6 +28,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
 
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.util.Log;
 
 public class TracePlayer {
@@ -105,7 +106,7 @@ public class TracePlayer {
 				break;
 			}
 			sp.start();
-		} while (true);
+		} while (Engine.theApp != null && Engine.isStarted);
 		try {
 			serverSocket.close();
 			return;

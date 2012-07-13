@@ -122,6 +122,7 @@ public class MigrationManager {
 			}
 		});
 		t.setName("Migration");
+		t.setDaemon(true);
 		t.start();
 	}
 	

@@ -410,11 +410,13 @@ public class ContextManager extends AbstractRunnableManager {
 				for (final Connector connector : context.getOpenedConnectors()) {
 					Engine.logContextManager.trace("Releasing " + connector.getName() + " connector ("
 							+ connector.getClass().getName() + ") for context id " + context.contextID);
-					new Thread(new Runnable() {
+					Thread th = new Thread(new Runnable() {
 						public void run() {
 							connector.release();
 						}
-					}).start();
+					});
+					th.setDaemon(true);
+					th.start();
 				}
 			}
 

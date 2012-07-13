@@ -181,10 +181,11 @@ public class Configure extends XmlService {
 			Thread vulture = new Thread(Engine.theApp.cacheManager);
 			Engine.theApp.cacheManager.executionThread = vulture;
 			vulture.setName("CacheManager");
+			vulture.setDaemon(true);
 			vulture.start();
 		}
 		catch(Exception e) {
-			String message="Unable to restart the cache manager.";
+			String message = "Unable to restart the cache manager.";
 			Engine.logEngine.error(message, e);
 			throw new ServiceException(message,e);
 		}

@@ -356,6 +356,7 @@ public class Engine {
 
 					Thread vulture = new Thread(Engine.theApp.usageMonitor);
 					vulture.setName("UsageMonitor");
+					vulture.setDaemon(true);
 					vulture.start();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to launch the usage monitor.", e);
@@ -499,6 +500,7 @@ public class Engine {
 					Thread vulture = new Thread(Engine.theApp.cacheManager);
 					Engine.theApp.cacheManager.executionThread = vulture;
 					vulture.setName("CacheManager");
+					vulture.setDaemon(true);
 					vulture.start();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to launch the cache manager.", e);
@@ -512,6 +514,7 @@ public class Engine {
 					Thread vulture = new Thread(Engine.theApp.contextManager);
 					Engine.theApp.contextManager.executionThread = vulture;
 					vulture.setName("ContextManager");
+					vulture.setDaemon(true);
 					vulture.start();
 				} catch (Exception e) {
 					Engine.theApp.contextManager = null;

@@ -136,6 +136,7 @@ public class SchedulerJob implements Job {
 							}
 						});
 						threads.add(thread);
+						thread.setDaemon(true);
 						thread.start();
 					}
 					for (Thread thread : threads) {

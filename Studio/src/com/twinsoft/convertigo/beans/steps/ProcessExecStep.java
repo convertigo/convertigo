@@ -210,7 +210,7 @@ public class ProcessExecStep extends Step {
 			if (isWaitForProcessEnd()) {
 				// Launch a thread to handle sequence abortion
 				final Sequence s = sequence;
-				new Thread(new Runnable() {
+				Thread th = new Thread(new Runnable() { 
 					public void run() {
 						try {
 							while (s.isRunning()) {
@@ -221,7 +221,9 @@ public class ProcessExecStep extends Step {
 							Engine.logBeans.warn("An error occured while executing process.", e);
 						}
 					}
-				}).start();
+				});
+				th.setDaemon(true);
+				th.start();
 
 				// Wait for process end
 				process.waitFor();
@@ -302,6 +304,7 @@ public class ProcessExecStep extends Step {
 			this.processStream = processStream;
 			this.outputNode = outputNode;
 			thread = new Thread(this);
+			thread.setDaemon(true);
 		}
 
 		public void join() throws InterruptedException {

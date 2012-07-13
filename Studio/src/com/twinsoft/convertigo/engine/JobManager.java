@@ -67,11 +67,13 @@ public class JobManager {
         		throw new EngineException("The context for (jobID=" + jobID + ") does not exist anymore.");
         	}
         	
-			new Thread(new Runnable(){
+			Thread th = new Thread(new Runnable(){
 				public void run() {
 					jobContext.abortRequestable();
 				}
-			}).start();
+			});
+			th.setDaemon(true);
+			th.start();
         	
             Engine.logJobManager.debug("Job #" + jobID + " aborted");
             jobs.remove(jobID);

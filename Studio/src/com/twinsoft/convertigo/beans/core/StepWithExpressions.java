@@ -680,6 +680,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		Engine.logBeans.debug("Invoquing step named '"+ step +"' ("+ step.getName() +")");
 		AsynchronousStepThread connectionStepThread = new AsynchronousStepThread(step, scope);
 		increaseAsyncThreadRunning();
+		connectionStepThread.setDaemon(true);
 		connectionStepThread.start();
 	}
 	

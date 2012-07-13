@@ -42,7 +42,8 @@ public class TracePlayerThread implements Runnable {
         this.traceFile = traceFile;
         Thread th = new Thread(this);
         th.setName(threadName);
-        synchronized(mtp){
+        th.setDaemon(true);
+        synchronized(mtp) {
         	th.start();
         	try {
 				mtp.wait();
@@ -61,7 +62,7 @@ public class TracePlayerThread implements Runnable {
 	
 	public void run() {	
 		try {
-			synchronized(mtp){
+			synchronized(mtp) {
 				mtp.notify();
 			}
 			mtp.runTrace(traceFile, ConvertigoPlugin.getTraceplayerPort());
