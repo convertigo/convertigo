@@ -129,7 +129,7 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 	}
 
 	@Override
-	public boolean rename(String newName, Boolean dialog) {
+	public boolean rename(String newName, boolean dialog) {
 		if (super.rename(newName, dialog)) {
 			IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 			if (activePage != null) {

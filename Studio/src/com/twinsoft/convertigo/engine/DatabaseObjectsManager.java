@@ -1194,6 +1194,76 @@ public class DatabaseObjectsManager implements AbstractManager {
 						+ node.getNodeName() + "\".", e);
 		}
 	}
+	
+	public void renameProject(Project project, String newName) throws ConvertigoException {
+		String oldName = project.getName();
+		
+		if (!oldName.equals(newName)) {
+			File file = new File(Engine.PROJECTS_PATH + "/" + oldName);
+			// Rename dir
+			if (!file.renameTo(new File(Engine.PROJECTS_PATH + "/" + newName))) {
+				throw new EngineException(
+						"Unable to rename the object path \""
+								+ Engine.PROJECTS_PATH
+								+ "/"
+								+ oldName
+								+ "\" to \""
+								+ Engine.PROJECTS_PATH
+								+ "/"
+								+ newName
+								+ "\".\n This directory already exists or is probably locked by another application.");
+			}
+
+			clearCache(project);
+			project.setName(newName);
+			project.hasChanged = true;
+			exportProject(project);
+			
+			// Rename old .xsd file
+			try {
+				ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, oldName, newName);
+			} catch (Exception e) {
+				throw new ConvertigoException(e.getMessage());
+			}
+			
+			// Rename old .wsdl file
+			try {
+				ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, oldName, newName);
+			} catch (Exception e) {
+				throw new ConvertigoException(e.getMessage());
+			}
+
+			// Delete old .temp.xsd file
+			File xsdTemp = new File(Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".temp.xsd");
+	        if (xsdTemp.exists() && !xsdTemp.delete()) {
+				throw new ConvertigoException("Unable to delete the xsd file \"" + oldName + ".temp.xsd\".");
+			}
+			
+			// Delete old .temp.wsdl file
+			File wsdlTemp = new File(Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".temp.wsdl");
+	        if (wsdlTemp.exists() && !wsdlTemp.delete()) {
+				throw new ConvertigoException("Unable to delete the wsdl file \"" + oldName + ".temp.wsdl\".");
+			}
+			
+			// Delete the old .xml file
+	        String xmlFilePath = Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".xml";
+	        File xmlFile = new File(xmlFilePath);
+	        if (!xmlFile.exists()) {
+	        	throw new ConvertigoException("The xml file \"" + oldName + ".xml\" doesn't exist.");
+	        }
+	        if (!xmlFile.canWrite()) {
+	    		throw new ConvertigoException("Unable to access the xml file \"" + oldName + ".xml\".");
+	        }
+	        if (!xmlFile.delete()) {
+				throw new ConvertigoException("Unable to delete the xml file \"" + oldName + ".xml\".");
+			}
+			
+	        // Delete .project file
+	        String ressourcePath = Engine.PROJECTS_PATH + "/" + newName + "/.project";
+	        File ressourceFile = new File(ressourcePath);
+	        ressourceFile.delete();
+		}
+	}
 
 	public void cacheUpdateObject(DatabaseObject databaseObject) throws EngineException {
 //		synchronized (objects) {

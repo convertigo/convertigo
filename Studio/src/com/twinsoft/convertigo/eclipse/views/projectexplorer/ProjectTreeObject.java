@@ -86,6 +86,7 @@ import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditorInput
 import com.twinsoft.convertigo.eclipse.editors.xsl.XslFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.validators.NamespaceUriValidator;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
+import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
@@ -189,12 +190,33 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	}
 
 	private transient boolean isRenaming = false;
-
+	
+	@Override
+	protected void rename_(String newName, boolean bDialog) throws ConvertigoException, CoreException {
+    	Project project = getObject();
+		String oldName = project.getName();
+    	
+        // First verify if an object with the same name exists
+    	if (Engine.theApp.databaseObjectsManager.existsProject(newName)) {
+			throw new ConvertigoException("The project \"" + newName + "\" already exist!");
+    	}
+    	
+    	// save only objects which have changed
+   		save(bDialog);
+    	
+    	Engine.theApp.databaseObjectsManager.renameProject(project, newName);
+        
+		// delete old resources plugin
+		ConvertigoPlugin.getDefault().deleteProjectPluginResource(oldName);
+		// create new resources plugin
+		ConvertigoPlugin.getDefault().createProjectPluginResource(newName);
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject#rename(java.lang.String, java.lang.Boolean)
 	 */
 	@Override
-	public boolean rename(String newName, Boolean bDialog) {
+	public boolean rename(String newName, boolean bDialog) {
 		closeAllEditors();
 		isRenaming = true;
 		return super.rename(newName, bDialog);

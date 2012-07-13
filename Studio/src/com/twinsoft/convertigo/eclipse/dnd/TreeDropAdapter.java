@@ -325,7 +325,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	
 	private void paste(Node node, TreeObject targetTreeObject) throws EngineException {
 		if (targetTreeObject instanceof DatabaseObjectTreeObject) {
-			DatabaseObject parent = (DatabaseObject)targetTreeObject.getObject();
+			DatabaseObject parent = ((DatabaseObjectTreeObject) targetTreeObject).getObject();
 			
 			DatabaseObject databaseObject = paste(node, null, true);
 			Element element = (Element)((Element)node).getElementsByTagName("dnd").item(0);
@@ -398,7 +398,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 		if (StepSourceTransfer.getInstance().isSupportedType(transferType)) {
 			if (target instanceof TreeObject) {
-				TreeObject targetTreeObject = (TreeObject)target;
+				TreeObject targetTreeObject = (TreeObject) target;
 				// Check for drop to a step which contains a stepSource definition
 				if (targetTreeObject.getObject() instanceof IStepSourceContainer) {
 					Object ob = targetTreeObject.getObject();
@@ -453,8 +453,8 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		if (data instanceof String) {
 			String source = data.toString();
 			if (targetTreeObject instanceof ObjectsFolderTreeObject) {
-				ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject)targetTreeObject;
-				dbo = (DatabaseObject)folderTreeObject.getParent().getObject();
+				ObjectsFolderTreeObject folderTreeObject = (ObjectsFolderTreeObject) targetTreeObject;
+				dbo = (DatabaseObject) folderTreeObject.getParent().getObject();
 				switch (folderTreeObject.folderType) {
 					case ObjectsFolderTreeObject.FOLDER_TYPE_CRITERIAS:
 						if (dbo instanceof HtmlScreenClass) {

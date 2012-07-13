@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.engine.admin.services.database_objects;
 
 import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -39,7 +38,6 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.CompilablePropertyExcep
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
@@ -91,35 +89,13 @@ public class Set extends XmlService {
 
 			if (object instanceof Project) {
 				Project project = (Project) object;
-				String projectName = project.getName();
-
-				// get the first child of the property name=name
-				// nodetmp=xpath.selectSingleNode(postElt,
-				// "./property[@name=\"name\"]/*[1]/@value");
+				
 				String objectNewName = getPropertyValue(object, "name").toString();
-
-				if (!projectName.equals(objectNewName)) {
-					File file = new File(Engine.PROJECTS_PATH + "/" + projectName);
-					// Rename dir
-					if (!file.renameTo(new File(Engine.PROJECTS_PATH + "/" + objectNewName))) {
-						throw new EngineException(
-								"Unable to rename the object path \""
-										+ Engine.PROJECTS_PATH
-										+ "/"
-										+ projectName
-										+ "\" to \""
-										+ Engine.PROJECTS_PATH
-										+ "/"
-										+ objectNewName
-										+ "\".\n This directory already exists or is probably locked by another application.");
-					}
-
-					Engine.theApp.databaseObjectsManager.clearCache(project);					
-					project.setName(objectNewName);
-					map.remove(objectQName);
-					map.put(project.getQName(), project);
-					
-				}
+				
+				Engine.theApp.databaseObjectsManager.renameProject(project, objectNewName);
+				
+				map.remove(objectQName);
+				map.put(project.getQName(), project);
 			}
 
 			BeanInfo bi = CachedIntrospector.getBeanInfo(object.getClass());

@@ -46,14 +46,11 @@ import com.twinsoft.convertigo.engine.print.PrintPDF;
 
 
 public class PrintDialog extends Dialog {
-
-
 	private PrintDialogArea printDialogArea;
 
 	private Project project = null;
 	
 	private String outputFileName=null;
-	
 
 	public PrintDialog(Shell parentShell) {
 		super(parentShell);
@@ -72,10 +69,10 @@ public class PrintDialog extends Dialog {
 								"Please select an opened project or an opened project item before printing");
 			} else if (element instanceof ProjectTreeObject) {
 				ProjectTreeObject dboto = (ProjectTreeObject) element;
-				project = (Project) dboto.getObject();				 
+				project = dboto.getObject();				 
 			} else {
 				DatabaseObjectTreeObject dboto = (DatabaseObjectTreeObject) element;
-				DatabaseObject dbo = (DatabaseObject) dboto.getObject();
+				DatabaseObject dbo = dboto.getObject();
 				project = dbo.getProject();
 			}
 		} catch (Exception e) {
@@ -88,6 +85,7 @@ public class PrintDialog extends Dialog {
 		super(parentShell);
 	}
 
+	@Override
 	protected Control createDialogArea(Composite parent) {
 		printDialogArea = new PrintDialogArea(parent, 0);		
 		String projectName = project.getName();
@@ -96,6 +94,7 @@ public class PrintDialog extends Dialog {
 		return printDialogArea;
 	}
 
+	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Print project");
@@ -103,12 +102,10 @@ public class PrintDialog extends Dialog {
 		
 	}
 
+	@Override
 	protected void okPressed() {
-		
-		
-		
 		String openFileText="Open file";
-		if(this.getButton(IDialogConstants.OK_ID).getText().equals(openFileText)){
+		if (this.getButton(IDialogConstants.OK_ID).getText().equals(openFileText)) {
 			try {
 				Runtime.getRuntime().exec("cmd.exe /c \""+outputFileName+"\"");
 				this.close();
@@ -116,7 +113,7 @@ public class PrintDialog extends Dialog {
 				ConvertigoPlugin.logException(e, "Unable to open youre file");
 			}
 		}
-		else{
+		else {
 			ConvertigoPrint convertigoPrint;
 			String projectName=project.getName();
 			SwtStatus progress=new SwtStatus(printDialogArea.getProgressBar(), printDialogArea.getProgressLabel());
@@ -137,9 +134,7 @@ public class PrintDialog extends Dialog {
 						+ outputFileName);
 			} catch (Exception e) {
 				ConvertigoPlugin.logException(e, "Unable to print");
-			} 			
-			
-			
+			}
 		}
 			
 	}
@@ -151,8 +146,4 @@ public class PrintDialog extends Dialog {
 	public void setProject(Project project) {
 		this.project = project;
 	}
-
-	
-
-
 }

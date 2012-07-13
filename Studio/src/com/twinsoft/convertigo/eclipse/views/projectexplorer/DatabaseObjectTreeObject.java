@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -75,10 +74,8 @@ import com.twinsoft.convertigo.eclipse.property_editors.StringOrNullEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.validators.CompilableValueValidator;
 import com.twinsoft.convertigo.eclipse.property_editors.validators.NumberValidator;
 import com.twinsoft.convertigo.engine.ConvertigoException;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
-import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 
@@ -826,140 +823,67 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		return null;
 	}
 
-	public boolean rename(String newName, Boolean bDialog) {
-        try {
-        	if(!StringUtils.isNormalized(newName)) throw new ConvertigoException("The name \"" + newName + "\" must be normalized.\nDon't start with number and don't use non ASCII caracters.");
-        	
-			DatabaseObject databaseObject = (DatabaseObject)getObject();
-			String oldName = databaseObject.getName();
-			
-			if (newName.equals(oldName))
-				return true;
-			
-            if (databaseObject instanceof Project) {
-            	Project project = (Project) databaseObject;
-            	
-                // First verify if an object with the same name exists
-            	if (Engine.theApp.databaseObjectsManager.existsProject(newName)) {
-					throw new ConvertigoException("The project \"" + newName + "\" already exist!");
-            	}
-            	
-            	// save only objects which have changed
-           		ConvertigoPlugin.projectManager.save(project, false);
-            	
-            	// Set new name and save
-				project.setName(newName);
-				project.hasChanged = true;
-				ConvertigoPlugin.projectManager.save(project, false);
-
-				// Export project to xml file
-				Engine.theApp.databaseObjectsManager.exportProject(project);
-				
-				// Rename old .xsd file
-				try {
-					ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, oldName, newName);
-				} catch (Exception e) {
-					throw new ConvertigoException(e.getMessage());
-				}
-				
-				// Rename old .wsdl file
-				try {
-					ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, oldName, newName);
-				} catch (Exception e) {
-					throw new ConvertigoException(e.getMessage());
-				}
-
-				// Delete old .temp.xsd file
-				File xsdTemp = new File(Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".temp.xsd");
-		        if (xsdTemp.exists() && !xsdTemp.delete()) {
-					throw new ConvertigoException("Unable to delete the xsd file \"" + oldName + ".temp.xsd\".");
-				}
-				
-				// Delete old .temp.wsdl file
-				File wsdlTemp = new File(Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".temp.wsdl");
-		        if (wsdlTemp.exists() && !wsdlTemp.delete()) {
-					throw new ConvertigoException("Unable to delete the wsdl file \"" + oldName + ".temp.wsdl\".");
-				}
-				
-				// Delete the old .xml file
-		        String xmlFilePath = Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".xml";
-		        File xmlFile = new File(xmlFilePath);
-		        if (!xmlFile.exists()) {
-		        	throw new ConvertigoException("The xml file \"" + oldName + ".xml\" doesn't exist.");
-		        }
-		        if (!xmlFile.canWrite()) {
-		    		throw new ConvertigoException("Unable to access the xml file \"" + oldName + ".xml\".");
-		        }
-		        if (!xmlFile.delete()) {
-					throw new ConvertigoException("Unable to delete the xml file \"" + oldName + ".xml\".");
-				}
-				
-		        // Delete .project file
-		        String ressourcePath = Engine.PROJECTS_PATH + "/" + newName + "/.project";
-		        File ressourceFile = new File(ressourcePath);
-		        ressourceFile.delete();
-		        
-				// delete old resources plugin
-				ConvertigoPlugin.getDefault().deleteProjectPluginResource(oldName);
-				// create new resources plugin
-				ConvertigoPlugin.getDefault().createProjectPluginResource(newName);
-            }
-            else {
-				// Verify if an object with the same name exists
-				DatabaseObjectTreeObject siblingDatabaseObjectTreeObject;
-				TreeObject siblingTreeObject;
-				String databaseObjectName;
-				Object object;
-				DatabaseObject databaseObjectTmp;
-
-				siblingTreeObject = this;
-				while ((siblingTreeObject = siblingTreeObject.getPreviousSibling()) != null) {
-					if (siblingTreeObject instanceof DatabaseObjectTreeObject) {
-						siblingDatabaseObjectTreeObject = (DatabaseObjectTreeObject)siblingTreeObject;
-						if (!siblingDatabaseObjectTreeObject.isInherited) {
-							object = siblingDatabaseObjectTreeObject.getObject();
-							if (object instanceof DatabaseObject) {
-								databaseObjectTmp = (DatabaseObject) object;
-								databaseObjectName = databaseObjectTmp.getName();
-								if (databaseObjectName.equals(newName)) {
-									throw new ConvertigoException("Another object with the same name already exists.");
-								}
-							}
-						}
+	protected void rename_(String newName, boolean bDialog) throws ConvertigoException, CoreException {
+		// Verify if an object with the same name exists
+		TreeObject siblingTreeObject = this;
+		while ((siblingTreeObject = siblingTreeObject.getPreviousSibling()) != null) {
+			if (siblingTreeObject instanceof DatabaseObjectTreeObject) {
+				DatabaseObjectTreeObject siblingDatabaseObjectTreeObject = (DatabaseObjectTreeObject)siblingTreeObject;
+				if (!siblingDatabaseObjectTreeObject.isInherited) {
+					DatabaseObject databaseObjectTmp = siblingDatabaseObjectTreeObject.getObject();
+					String databaseObjectName = databaseObjectTmp.getName();
+					if (databaseObjectName.equals(newName)) {
+						throw new ConvertigoException("Another object with the same name already exists.");
 					}
 				}
-            
-				siblingTreeObject = this;
-				while ((siblingTreeObject = siblingTreeObject.getNextSibling()) != null) {
-					if (siblingTreeObject instanceof DatabaseObjectTreeObject) {
-						siblingDatabaseObjectTreeObject = (DatabaseObjectTreeObject)siblingTreeObject;
-						if (!siblingDatabaseObjectTreeObject.isInherited) {
-							object = siblingDatabaseObjectTreeObject.getObject();
-							if (object instanceof DatabaseObject) {
-								databaseObjectTmp = (DatabaseObject) siblingDatabaseObjectTreeObject.getObject();
-								databaseObjectName = databaseObjectTmp.getName();
-								if (databaseObjectName.equals(newName)) {
-									throw new ConvertigoException("Another object with the same name already exists.");
-								}
-							}
-						}
-					}
-				}
-				
-				databaseObject.setName(newName);
-				databaseObject.hasChanged = true;
-				hasBeenModified(true);
-            }
-        }
-        catch(ConvertigoException e) {
-            ConvertigoPlugin.logException(e, "Unable to change the object name.", bDialog);
-            return false;
-        } catch (CoreException e) {
-        	ConvertigoPlugin.logException(e, "Unable to change the object name.", bDialog);
-        	return false;
+			}
 		}
-        return true;
-    }
+
+		siblingTreeObject = this;
+		while ((siblingTreeObject = siblingTreeObject.getNextSibling()) != null) {
+			if (siblingTreeObject instanceof DatabaseObjectTreeObject) {
+				DatabaseObjectTreeObject siblingDatabaseObjectTreeObject = (DatabaseObjectTreeObject)siblingTreeObject;
+				if (!siblingDatabaseObjectTreeObject.isInherited) {
+					DatabaseObject databaseObjectTmp = siblingDatabaseObjectTreeObject.getObject();
+
+					String databaseObjectName = databaseObjectTmp.getName();
+					if (databaseObjectName.equals(newName)) {
+						throw new ConvertigoException("Another object with the same name already exists.");
+					}
+				}
+			}
+		}
+
+		DatabaseObject databaseObject = getObject();
+		databaseObject.setName(newName);
+		databaseObject.hasChanged = true;
+		hasBeenModified(true);
+	}
+	
+	public boolean rename(String newName, boolean bDialog) {
+		try {
+			if (!StringUtils.isNormalized(newName)) {
+				throw new ConvertigoException("The name \"" + newName + "\" must be normalized.\nDon't start with number and don't use non ASCII caracters.");
+			}
+
+			DatabaseObject databaseObject = getObject();
+			String oldName = databaseObject.getName();
+
+			if (newName.equals(oldName)) {
+				return true;
+			}
+
+			rename_(newName, bDialog);
+		}
+		catch(ConvertigoException e) {
+			ConvertigoPlugin.logException(e, "Unable to change the object name.", bDialog);
+			return false;
+		} catch (CoreException e) {
+			ConvertigoPlugin.logException(e, "Unable to change the object name.", bDialog);
+			return false;
+		}
+		return true;
+	}
 	
 	@Override
 	public ProjectTreeObject getProjectTreeObject() {
