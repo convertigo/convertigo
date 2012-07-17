@@ -45,13 +45,7 @@ public class SetupWizard extends Wizard {
 	}
 
 	@Override
-	public void addPages() {
-		registrationPage = new RegistrationPage();
-		addPage(registrationPage);
-		
-		pscKeyPage = new PscKeyPage();
-		addPage(pscKeyPage);
-		
+	public void addPages() {		
 		licensePage = new LicensePage();
 		addPage(licensePage);
 		
@@ -60,6 +54,12 @@ public class SetupWizard extends Wizard {
 		
 		configureProxyPage = new ConfigureProxyPage();
 		addPage(configureProxyPage);
+		
+		registrationPage = new RegistrationPage();
+		addPage(registrationPage);
+		
+		pscKeyPage = new PscKeyPage();
+		addPage(pscKeyPage);
 
 		selectSamplesPage = new SelectSamplesPage();
 		addPage(selectSamplesPage);
