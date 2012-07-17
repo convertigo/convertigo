@@ -32,6 +32,7 @@ public class SetupWizard extends Wizard {
 	protected ConfigureProxyPage configureProxyPage;
 	protected SelectSamplesPage selectSamplesPage;
 	protected RegistrationPage registrationPage;
+	protected PscKeyPage pscKeyPage;
 	protected SummaryPage summaryPage;
 
 	public SetupWizard() {
@@ -45,6 +46,12 @@ public class SetupWizard extends Wizard {
 
 	@Override
 	public void addPages() {
+		registrationPage = new RegistrationPage();
+		addPage(registrationPage);
+		
+		pscKeyPage = new PscKeyPage();
+		addPage(pscKeyPage);
+		
 		licensePage = new LicensePage();
 		addPage(licensePage);
 		
@@ -53,7 +60,7 @@ public class SetupWizard extends Wizard {
 		
 		configureProxyPage = new ConfigureProxyPage();
 		addPage(configureProxyPage);
-		
+
 		selectSamplesPage = new SelectSamplesPage();
 		addPage(selectSamplesPage);
 		
