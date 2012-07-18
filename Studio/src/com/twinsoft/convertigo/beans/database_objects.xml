@@ -910,6 +910,11 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
 				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.GetTextStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ContextGetStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
@@ -945,11 +950,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
 				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.GetTextStatement">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
-                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-				</bean>
+				
 			</beans>
 		</category>
 	</group>
