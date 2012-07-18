@@ -124,6 +124,13 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		return this;
 	}
 	
+	@Override
+    public void hasBeenModified(boolean bModified) {
+		if (bModified && !isInherited) {
+			markAsChanged(true);
+		}
+	}
+	
 	/**
 	 * Closes a project.
 	 * 
