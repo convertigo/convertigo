@@ -129,7 +129,7 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 			} 
 			else if ("sourceSequence".equals(propertyName)) {
 				if (databaseObject instanceof SequenceStep) {
-					stepSourceNameChanged(databaseObject);
+					stepSourceNameChanged(databaseObject, treeObjectEvent);
 				}
 			}
 		}
@@ -215,40 +215,70 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 		return steps;
 	}
 	
-	private void stepSourceNameChanged (DatabaseObject databaseObject) {
+	private void stepSourceNameChanged (DatabaseObject databaseObject, TreeObjectEvent treeObjectEvent) {
+		
+		Object oldValue = treeObjectEvent.oldValue;
+		
+		String oldName = (String)oldValue;
+		String[] oldSource = oldName.split("\\.");
 		
 		SequenceStep sequenceStep = (SequenceStep) databaseObject;
-		String sourceSequence = sequenceStep.getSequenceName();
-		String sourceProject = sequenceStep.getProjectName();
-		try {
-			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
-			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-			
-			for (String projectName : projectNames) {
-				Project project = null;
-				TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer
-						.getContentProvider()).getProjectRootObject(projectName);
-				if (projectTreeObject instanceof UnloadedProjectTreeObject) {
-					project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-				} else {
-					project = projectExplorerView.getProject(projectName);
-				}
 		
-				List<Sequence> sequences = project.getSequencesList();
-				for (Sequence sequence : sequences) {
-					
-					if (sequenceStep.getName().equals("Call_" + sequence.getProject().getName() + "_" + sequence.getName())) {
-						sequenceStep.setName("Call_" + sourceProject + "_" + sourceSequence);
-						projectExplorerView.refreshTree();
+		if (sequenceStep.getName().startsWith("Call_" + oldSource[0] + "_" + oldSource[1])) {
+			
+			String sequenceSourceName = sequenceStep.getSequenceName();
+			String projectSourceName = sequenceStep.getProjectName();
+			
+			try {
+				ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+				
+				String newName = "Call_" + projectSourceName + "_" + sequenceSourceName;
+				
+				DatabaseObject parent = sequenceStep.getParent();
+				List<DatabaseObject> listChildrens = parent.getAllChildren();
+				List<String> listSequenceStepNames = new ArrayList<String>();
+
+				int i = 0;
+				for (DatabaseObject child : listChildrens) {
+					if (child instanceof SequenceStep) {
+						SequenceStep sequenceStepChild = (SequenceStep)child;
+						String name = sequenceStepChild.getName();
+						if (name.startsWith(newName)) {
+							listSequenceStepNames.add(name);
+							i++;
+						}
 					}
 				}
+				
+				String name = newName;
+				for (int j=0; j<=i; j++) {
+					if (isNameContainer(listSequenceStepNames, name)) {
+						if (j != 0) {
+							name = newName + j;
+						}
+					} else {
+						continue;
+					}
+				}
+				sequenceStep.setName(name);
+				projectExplorerView.refreshTree();
+				
+			} catch (EngineException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		}catch (EngineException e) {
-			ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);
-		}
-	
+		}	
 	}
 
+	private boolean isNameContainer (List<String> listName, String name) {
+		for (String sequenceStepName : listName) {
+			if (sequenceStepName.equals(name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	private void updateLoadedProjects() {
 		TreeParent invisibleRoot = ((ViewContentProvider)((TreeViewer)viewer).getContentProvider()).getTreeRoot();
 		Sequence sequence = getObject();

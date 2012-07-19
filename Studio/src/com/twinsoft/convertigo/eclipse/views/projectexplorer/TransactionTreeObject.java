@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -34,7 +35,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
-import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
@@ -115,43 +115,76 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 			}
 			else if ("sourceTransaction".equals(propertyName)) {
 				if (databaseObject instanceof TransactionStep) {
-					stepSourceNameChanged(databaseObject);
+					stepSourceNameChanged(databaseObject, treeObjectEvent);
 				}
 			}
 		}
 	}
 	
-	private void stepSourceNameChanged (DatabaseObject databaseObject) {		
+	private void stepSourceNameChanged (DatabaseObject databaseObject, TreeObjectEvent treeObjectEvent) {		
+
+		Object oldValue = treeObjectEvent.oldValue;
+		
+		String oldName = (String)oldValue;
+		String[] oldSource = oldName.split("\\.");
 		
 		TransactionStep transactionStep = (TransactionStep) databaseObject;
-		try {
-			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
-			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		
+		if (transactionStep.getName().startsWith("Call_" + oldSource[0] + "_" + oldSource[1] + "_" + oldSource[2])) {
 			
-			for (String projectName : projectNames) {
-				Project project = null;
-				TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer
-						.getContentProvider()).getProjectRootObject(projectName);
-				if (projectTreeObject instanceof UnloadedProjectTreeObject) {
-					project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-				} else {
-					project = projectExplorerView.getProject(projectName);
-				}
+			String transactionSourceName = transactionStep.getTransactionName();
+			String projectSourceName = transactionStep.getProjectName();
+			String connectorSourceName = transactionStep.getConnectorName();
+			
+			try {
+				ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 				
-				List<Connector> connectors = project.getConnectorsList();
-				for (Connector connector : connectors) {
-					List<Transaction> transactions = connector.getTransactionsList();
-					for (Transaction transaction : transactions) {
-						if (transactionStep.getName().equals("Call_" + transaction.getProject().getName() +"_"+ transaction.getConnector().getName() + "_" + transaction.getName())) {
-							transactionStep.setName("Call_" + transactionStep.getProjectName() + "_" + transactionStep.getConnectorName() + "_" + transactionStep.getTransactionName());
-							projectExplorerView.refreshTree();
-						} 
+				String newName = "Call_" + projectSourceName + "_" + connectorSourceName + "_" + transactionSourceName;
+				
+				DatabaseObject parent = transactionStep.getParent();
+				List<DatabaseObject> listChildrens = parent.getAllChildren();
+				List<String> listtransactionstepNames = new ArrayList<String>();
+				
+				int i = 0;
+				for (DatabaseObject child : listChildrens) {
+					if (child instanceof TransactionStep) {
+						TransactionStep transactionChild = (TransactionStep)child;
+						String name = transactionChild.getName();
+						if (name.startsWith(newName)) {
+							listtransactionstepNames.add(name);
+							i++;
+						}
 					}
 				}
-			}
-		} catch (EngineException e) {
-			ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);
+				
+				String name = newName;
+				for (int j=0; j<=i; j++) {
+					if (isNameContainer(listtransactionstepNames, name)) {
+						if (j != 0) {
+							name = newName + j;
+						}
+					} else {
+						continue;
+					}
+				}
+					
+				transactionStep.setName(name);
+				projectExplorerView.refreshTree();
+				
+			} catch (EngineException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 
 		}
+	}
+	
+	private boolean isNameContainer (List<String> listName, String name) {
+		for (String sequenceStepName : listName) {
+			if (sequenceStepName.equals(name)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	protected void stepNameChanged (TreeObjectEvent treeObjectEvent) {
