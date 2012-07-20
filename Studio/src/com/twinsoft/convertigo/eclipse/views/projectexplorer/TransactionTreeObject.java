@@ -163,11 +163,8 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 						if (j != 0) {
 							name = newName + j;
 						}
-					} else {
-						continue;
-					}
-				}
-					
+					} 
+				}	
 				transactionStep.setName(name);
 				projectExplorerView.refreshTree();
 				
@@ -212,18 +209,7 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 					for (Sequence sequence : sequences) {
 						List<Step> steps = sequence.getSteps();
 						for (Step step : steps) {
-							if (step instanceof TransactionStep) {
-								TransactionStep transactionStep = (TransactionStep)step;
-								Transaction transaction = getObject();
-								String projectNameTransaction = (transaction.getProject()).getName();
-								String connectorNameTransaction = (transaction.getConnector()).getName();
-								if (transactionStep.getName().equals("Call_" + projectNameTransaction + "_" + connectorNameTransaction + "_" + oldValue)) {
-									transactionStep.setName("Call_"+projectNameTransaction+"_"+connectorNameTransaction+"_"+ newValue);
-									projectExplorerView.refreshTree();
-								}
-							} else if (isStepContainer(step) ) {
-								nameChanged(step, projectExplorerView, oldValue, newValue);
-							}
+							nameChanged(step, projectExplorerView, oldValue, newValue);
 						}
 					}
 				}
@@ -257,18 +243,27 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 
 	private void nameChanged (Step step, ProjectExplorerView projectExplorerView, Object oldValue, Object newValue) {
 		try {
-			List<Step> steps = getStepList(step);
-			for (Step s : steps) {
-				if (s instanceof TransactionStep) {
-					TransactionStep transactionStep = (TransactionStep) s;
-					Transaction transaction = getObject();
-					String projectNameTransaction = (transaction.getProject()).getName();
-					String connectorNameTransaction = (transaction.getConnector()).getName();
-					if (transactionStep.getName().equals("Call_" + projectNameTransaction + "_" + connectorNameTransaction + "_" + oldValue)) {
-						transactionStep.setName("Call_"+projectNameTransaction+"_"+connectorNameTransaction+"_"+newValue);
+			if (step instanceof TransactionStep) {
+				TransactionStep transactionStep = (TransactionStep) step;
+				String name = transactionStep.getName();
+				Transaction transaction = getObject();
+				String projectNameTransaction = (transaction.getProject()).getName();
+				String connectorNameTransaction = (transaction.getConnector()).getName();
+				String oldName = "Call_" + projectNameTransaction + "_" + connectorNameTransaction + "_" + oldValue;
+				String newName = "Call_" + projectNameTransaction + "_" + connectorNameTransaction + "_" + newValue;
+				if (name.startsWith(oldName)) {
+					if (transactionStep.getSourceTransaction().endsWith((String) newValue)) {
+						if (name.length()> oldName.length()) {
+							String subString = name.substring(oldName.length());
+							newName += subString;
+						}
+						transactionStep.setName(newName);
 						projectExplorerView.refreshTree();
 					}
-				} else if (isStepContainer(s) ) {
+				}
+			} else if (isStepContainer(step) ) {
+				List<Step> steps = getStepList(step);
+				for (Step s : steps) {
 					nameChanged(s, projectExplorerView, oldValue, newValue);
 				}
 			}

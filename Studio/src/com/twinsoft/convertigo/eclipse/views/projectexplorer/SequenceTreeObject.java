@@ -160,7 +160,7 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 					
 					List<Sequence> sequences = project.getSequencesList();
 					for (Sequence sequence : sequences) {
-						List<Step> steps = sequence.getAllSteps();
+						List<Step> steps = sequence.getSteps();
 						for (Step step : steps) {
 							nameChanged(step, projectExplorerView, oldValue, newValue);
 						}
@@ -178,9 +178,17 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 				SequenceStep sequenceStep = (SequenceStep) step;
 				String sequenceStepName = sequenceStep.getName();
 				Sequence seq = getObject();
-				if (sequenceStepName.equals("Call_" + seq.getProject().getName() + "_" + oldValue)) {
-					sequenceStep.setName("Call_" + seq.getProject().getName() + "_" + newValue);
-					projectExplorerView.refreshTree();
+				String oldName = "Call_" + seq.getProject().getName() + "_" + oldValue;
+				String newName = "Call_" + seq.getProject().getName() + "_" + newValue;
+				if (sequenceStepName.startsWith(oldName)) {
+					if (sequenceStep.getSourceSequence().endsWith((String) newValue)) {
+						if (sequenceStepName.length()>oldName.length()) {
+							String subString = sequenceStepName.substring(oldName.length());
+							newName += subString;
+						}
+						sequenceStep.setName(newName);
+						projectExplorerView.refreshTree();
+					}
 				}
 			} else if (isStepContainer(step)) {
 				List<Step> steps = getStepList(step);
@@ -256,8 +264,6 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 						if (j != 0) {
 							name = newName + j;
 						}
-					} else {
-						continue;
 					}
 				}
 				sequenceStep.setName(name);
