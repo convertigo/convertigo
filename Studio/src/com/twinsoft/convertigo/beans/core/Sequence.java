@@ -119,6 +119,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	transient private List<TestCase> vTestCases = new Vector<TestCase>();
 	
+	transient private Map<String, Object> variables = null;
+	
     /** The vector of ordered step objects which can be applied on the Sequence. */
 	public XMLVector<XMLVector<Long>> orderedSteps = null;
 	
@@ -167,6 +169,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
         clonedObject.skipSteps = false;
         clonedObject.sequenceListeners = new EventListenerList();
         clonedObject.stepListeners = new EventListenerList();
+        clonedObject.variables = new HashMap<String, Object>();
         return clonedObject;
     }
 	
@@ -246,8 +249,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			return variable.getVisibility();
 		return 0;
 	}
-	
-	public transient Map<String, Object> variables = new HashMap<String, Object>();
 
 	@Override
 	public void parseInputDocument(Context context) {
