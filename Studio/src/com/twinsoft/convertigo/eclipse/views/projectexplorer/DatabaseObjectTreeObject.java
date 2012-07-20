@@ -187,7 +187,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     public void hasBeenModified(boolean bModified) {
 		if (bModified && !isInherited) {
 			markAsChanged(true);
-			getProjectTreeObject().hasBeenModified(true);
+			ProjectTreeObject projectTree = getProjectTreeObject();
+			if (projectTree != null) {
+				projectTree.hasBeenModified(true);
+			}
 		}
 	}
     
@@ -887,22 +890,19 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	
 	@Override
 	public ProjectTreeObject getProjectTreeObject() {
-		ProjectTreeObject projectTreeObject = null;
-		
 		if (this instanceof ProjectTreeObject) {
-			return (ProjectTreeObject)this;
+			return (ProjectTreeObject) this;
 		}
 		
 		TreeParent treeParent = parent;
 		while (treeParent != null) {
 			if (treeParent instanceof ProjectTreeObject) {
-				projectTreeObject = (ProjectTreeObject)treeParent;
-				break;
+				return (ProjectTreeObject) treeParent;
 			}
 			treeParent = treeParent.getParent();
 		}
 		
-		return projectTreeObject;
+		return null;
 	}
 	
 	public DatabaseObjectTreeObject getParentDatabaseObjectTreeObject() {
