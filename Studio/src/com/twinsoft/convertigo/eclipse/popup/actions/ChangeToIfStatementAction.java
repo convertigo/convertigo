@@ -21,7 +21,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreePath;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class ChangeToIfStatementAction extends MyAbstractAction {
 
@@ -92,8 +91,7 @@ public class ChangeToIfStatementAction extends MyAbstractAction {
     						}
     						
     		   				// Delete IfThenElse statement
-    		   				Engine.theApp.databaseObjectsManager.delete(ifThenElseStatement);
-    		   				parentDbo.remove(ifThenElseStatement);
+    		   				ifThenElseStatement.delete();
 		        			parentTreeObject.hasBeenModified(true);
 			                explorerView.reloadTreeObject(parentTreeObject);
 			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(ifStatement));

@@ -257,8 +257,7 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			ConvertigoPlugin.getDefault().deleteProjectPluginResource(databaseObject.getName());
 		}
 		else {
-			Engine.theApp.databaseObjectsManager.delete(databaseObject);
-			(databaseObject.getParent()).remove(databaseObject);
+			databaseObject.delete();
 		}
 		ConvertigoPlugin.logDebug("The object \"" + databaseObjectQName + "\" has been deleted from the database repository!");
     }

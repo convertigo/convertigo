@@ -152,7 +152,9 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     	variable.setParent(null);
     	
     	Long value = new Long(variable.priority);
-        removeOrderedVariable(value);    	
+        removeOrderedVariable(value);
+        
+        hasChanged = true;
     }
     
     private void removeOrderedVariable(Long value) {

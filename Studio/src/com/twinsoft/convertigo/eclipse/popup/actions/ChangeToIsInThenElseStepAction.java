@@ -45,7 +45,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreePath;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class ChangeToIsInThenElseStepAction extends MyAbstractAction {
 
@@ -129,8 +128,7 @@ public class ChangeToIsInThenElseStepAction extends MyAbstractAction {
 						
 		   				// Delete If step
 						long oldPriority = ifStep.priority;
-		   				Engine.theApp.databaseObjectsManager.delete(ifStep);
-		   				parentDbo.remove(ifStep);
+						ifStep.delete();
 		   				
 		   				// Simulate move of If to IfThenElse
 		   				ifThenElseStep.getSequence().fireStepMoved(new StepEvent(ifThenElseStep,String.valueOf(oldPriority)));

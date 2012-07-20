@@ -210,6 +210,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	}
 
 	public void delete() throws EngineException {
+		Engine.logBeans.info("Deleting the object \"" + getName() + "\"");
+		if (parent != null) {
+			parent.remove(this);
+		}
 		parent = null;
 	}
 

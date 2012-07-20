@@ -43,7 +43,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreePath;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class ChangeToIfXpathExistsThenElseStatementAction extends MyAbstractAction {
 
@@ -125,8 +124,7 @@ public class ChangeToIfXpathExistsThenElseStatementAction extends MyAbstractActi
 						}
 						
 		   				// Delete If statement
-		   				Engine.theApp.databaseObjectsManager.delete(ifStatement);
-		   				parentDbo.remove(ifStatement);		   				
+						ifStatement.delete();			
 
 		   				parentTreeObject.hasBeenModified(true);
 		                explorerView.reloadTreeObject(parentTreeObject);

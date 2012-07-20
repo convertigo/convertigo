@@ -337,16 +337,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return file.exists();
 	}
 
-	public void delete(DatabaseObject databaseObject) throws EngineException {
-		String databaseObjectQName = databaseObject.getQName();
-		Engine.logDatabaseObjectManager
-					.info("Deleting the object \"" + databaseObjectQName + "\"");
-
-
-			databaseObject.delete();
-			cacheRemoveObject(databaseObjectQName);
-	}
-
 	public void deleteProject(String projectName) throws EngineException {
 		try {
 			deleteProject(projectName, true);

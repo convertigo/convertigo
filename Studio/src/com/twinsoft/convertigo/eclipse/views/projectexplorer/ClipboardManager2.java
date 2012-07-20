@@ -651,9 +651,7 @@ public class ClipboardManager2 {
 	 */
 	public synchronized void move(DatabaseObject object, DatabaseObject target) throws ConvertigoException {
 		// First, delete the object from its parent
-		DatabaseObject parent = object.getParent();
-		Engine.theApp.databaseObjectsManager.delete(object);
-		parent.remove(object);
+		object.delete();
 		//ConvertigoPlugin.projectManager.save(parent, false);
 
 		long oldPriority = object.priority;

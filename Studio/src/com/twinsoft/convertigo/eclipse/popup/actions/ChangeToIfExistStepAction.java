@@ -44,7 +44,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreePath;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class ChangeToIfExistStepAction extends MyAbstractAction {
 
@@ -117,8 +116,7 @@ public class ChangeToIfExistStepAction extends MyAbstractAction {
     						
     		   				// Delete IfThenElse step
     						long oldPriority = ifThenElseStep.priority;
-    		   				Engine.theApp.databaseObjectsManager.delete(ifThenElseStep);
-    		   				parentDbo.remove(ifThenElseStep);
+    		   				ifThenElseStep.delete();
     		   				
     		   				// Simulate move of IfThenElse to If
     						ifStep.getSequence().fireStepMoved(new StepEvent(ifStep,String.valueOf(oldPriority)));

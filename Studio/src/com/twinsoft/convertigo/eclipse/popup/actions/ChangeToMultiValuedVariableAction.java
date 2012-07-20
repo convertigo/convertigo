@@ -50,7 +50,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.VariableTreeObject2;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class ChangeToMultiValuedVariableAction extends MyAbstractAction {
 
@@ -123,8 +122,7 @@ public class ChangeToMultiValuedVariableAction extends MyAbstractAction {
     						treeParent.addChild(varTreeObject);
     						
     		   				// Delete simple variable
-    		   				Engine.theApp.databaseObjectsManager.delete(simple);
-    		   				parentDbo.remove(simple);
+    						simple.delete();
     		   				
     		   				// Set correct name
     		   				multi.setName(simple.getName());

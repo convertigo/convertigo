@@ -48,6 +48,7 @@ import org.w3c.dom.ProcessingInstruction;
 
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -229,13 +230,11 @@ public class SqlTransaction extends TransactionWithVariables {
 				if (updateDefinitions && (vOldParameters != null))
 					for (String parameterName : vOldParameters)
 						if (!vParameters.contains(parameterName)) {
-							RequestableVariable variable = (RequestableVariable)getVariable(parameterName);
+							Variable variable = getVariable(parameterName);
 							if (variable != null) {
 								try {
-									Engine.theApp.databaseObjectsManager.delete(variable);
+									variable.delete();
 								} catch (EngineException e) {}
-								removeVariable(variable);
-								hasChanged = true;
 							}
 						}
 				vOldParameters = vParameters;

@@ -51,7 +51,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.VariableTreeObject2;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class ChangeToSingleValuedVariableAction extends MyAbstractAction {
@@ -126,8 +125,7 @@ public class ChangeToSingleValuedVariableAction extends MyAbstractAction {
     						treeParent.addChild(varTreeObject);
     						
     		   				// Delete simple variable
-    		   				Engine.theApp.databaseObjectsManager.delete(multi);
-    		   				parentDbo.remove(multi);
+    						multi.delete();
     		   				
     		   				// Set correct name
     		   				simple.setName(multi.getName());

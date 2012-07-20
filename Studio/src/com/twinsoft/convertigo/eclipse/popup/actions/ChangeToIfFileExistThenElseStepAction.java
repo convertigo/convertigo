@@ -45,7 +45,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreePath;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class ChangeToIfFileExistThenElseStepAction extends MyAbstractAction {
 
@@ -128,8 +127,7 @@ public class ChangeToIfFileExistThenElseStepAction extends MyAbstractAction {
 						
 		   				// Delete If step
 						long oldPriority = ifFileExistStep.priority;
-		   				Engine.theApp.databaseObjectsManager.delete(ifFileExistStep);
-		   				parentDbo.remove(ifFileExistStep);
+		   				ifFileExistStep.delete();
 		   				
 		   				// Simulate move of If to IfThenElse
 		   				ifFileExistThenElseStep.getSequence().fireStepMoved(new StepEvent(ifFileExistThenElseStep,String.valueOf(oldPriority)));
