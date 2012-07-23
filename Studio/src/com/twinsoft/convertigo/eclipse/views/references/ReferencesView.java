@@ -103,6 +103,12 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 		getSite().getPage().addSelectionListener(this);
 		
 	}
+	
+	@Override
+	public void dispose() {
+		getSite().getPage().removeSelectionListener(this);
+		super.dispose();
+	}
 
 	@Override
 	public void setFocus() {
