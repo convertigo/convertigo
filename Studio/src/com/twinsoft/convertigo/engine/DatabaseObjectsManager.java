@@ -1141,9 +1141,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 			throws EngineException {
 		try {
 			DatabaseObject databaseObject = DatabaseObject.read(node);
-			if (parentDatabaseObject != null)
-				parentDatabaseObject.add(databaseObject);
 			databaseObject.isImporting = true;
+			if (parentDatabaseObject != null) {
+				parentDatabaseObject.add(databaseObject);
+			}
 			
 			cacheUpdateObject(databaseObject); // put a clone of databaseObject
 												// into object's cache

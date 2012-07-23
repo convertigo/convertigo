@@ -276,7 +276,17 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	 * Sets the parent Object object.
 	 */
 	public void setParent(DatabaseObject databaseObject) {
+		if (parent != null) {
+			parent.changed();
+		}
+		
 		parent = databaseObject;
+		
+		if (parent != null) {
+			parent.changed();
+		}
+		
+		changed();
 	}
 	
 	/**
@@ -1282,5 +1292,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 	public <E extends DatabaseObject> List<E> getAllChildren() {
 		return new Vector<E>();
+	}
+	
+	protected void changed() {
+		if (!isImporting && !hasChanged) {
+			hasChanged = true;
+		}
 	}
 }

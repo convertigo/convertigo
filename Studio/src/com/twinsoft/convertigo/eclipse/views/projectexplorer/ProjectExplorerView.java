@@ -1812,6 +1812,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	
 	public void reloadDatabaseObject(DatabaseObject databaseObject) throws EngineException, IOException {
 		DatabaseObjectTreeObject treeObject = findTreeObjectByUserObject(databaseObject);
+		treeObject.hasBeenModified(databaseObject.hasChanged);
 		reloadTreeObject(treeObject);
 	}
 	
@@ -1830,7 +1831,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	protected void reloadTreeObject(TreeObject object, boolean bDynamicSchemaUpdate) throws EngineException, IOException {
 		if (object != null)
-			reload((TreeParent)object, (DatabaseObject)object.getObject(), bDynamicSchemaUpdate);
+			reload((TreeParent) object, (DatabaseObject) object.getObject(), bDynamicSchemaUpdate);
 	}
 	
 	public void refreshTree() {
