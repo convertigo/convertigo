@@ -179,6 +179,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			try {
 				DatabaseObject clone = (DatabaseObject) super.clone();
 				clone.original = this;
+				clone.parent = null;
 				clone.qname = qname;
 				clone.isImporting = false;
 				clone.isSubLoaded = false; //Engine.isEngineMode() ? isSubLoaded : false;
