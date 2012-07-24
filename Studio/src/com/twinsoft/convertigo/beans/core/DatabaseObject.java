@@ -119,7 +119,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	
 	transient private String qname = null;
 
-	transient public boolean isSubLoaded = true;
+	transient public boolean isSubLoaded = false;
 
 	/**
 	 * The source values map for compilable properties.
