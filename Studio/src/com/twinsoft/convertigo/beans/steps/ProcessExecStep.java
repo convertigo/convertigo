@@ -180,7 +180,18 @@ public class ProcessExecStep extends Step {
 			// Command line string
 			if (evaluated instanceof org.mozilla.javascript.Undefined)
 				throw new EngineException("Process command line argument is empty.");
-			String command = evaluated.toString();
+			
+			String cmd = null;
+			String[] command = null;
+			if (evaluated instanceof org.mozilla.javascript.NativeArray) {
+				long ln = ((org.mozilla.javascript.NativeArray) evaluated).getLength();
+				command = new String[(int) ln];
+				for (int i=0; i < ln; i++) {
+				command[i] = (String) ((org.mozilla.javascript.NativeArray) evaluated).get(i, null);
+				}
+			} else {
+				cmd = evaluated.toString();
+			}
 
 			// Check if encoding is supported
 			try {
@@ -199,7 +210,14 @@ public class ProcessExecStep extends Step {
 			// Launch the process :
 			// if envp is null, current environment parameters are used
 			// if dir is null, current execution directory is used
-			final Process process = Runtime.getRuntime().exec(command, envp, dir);
+//			final Process process = Runtime.getRuntime().exec(command, envp, dir);		
+			final Process process;
+			if (command != null) {
+				process = Runtime.getRuntime().exec(command, envp, dir);
+			} else {
+				process = Runtime.getRuntime().exec(cmd, envp, dir);
+			}
+			
 
 			// Create and launch process stream reader threads
 			stderrThread = new ProcessStreamReaderThread(process.getErrorStream(), errorNode);
