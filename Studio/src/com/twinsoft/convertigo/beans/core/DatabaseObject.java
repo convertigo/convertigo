@@ -1221,15 +1221,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	}
 
 	synchronized public void checkSubLoaded() {
-		if (bNew) {
-			return;
-		}
-
-		if (isImporting) {
-			return;
-		}
-
-		if (!isSubLoaded) {
+		if (original != null && !isSubLoaded) {
 			isSubLoaded = true;
 			try {
 				subLoader.get().init(this);
