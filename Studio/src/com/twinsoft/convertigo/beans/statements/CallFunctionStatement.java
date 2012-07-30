@@ -40,17 +40,19 @@ public class CallFunctionStatement extends Statement implements ITagsProperty{
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
-			if (super.execute(javascriptContext, scope))
-				for(FunctionStatement function : getFunctions()){
-					if(function.getName().equals(functionName)){
+			if (super.execute(javascriptContext, scope)) {
+				for (FunctionStatement function : getFunctions()) {
+					if (function.getName().equals(functionName)) {
 						Scriptable curScope = javascriptContext.initStandardObjects();
 						curScope.setParentScope(scope);
 						boolean ret = function.execute(javascriptContext, curScope);
 						Object returnedValue = function.getReturnedValue();
-						if(returnedValue!=null)
+						if (returnedValue != null) {
 							ReturnStatement.returnLoop(this.parent, returnedValue);
+						}
 						return ret;
 					}
+				}
 			}
 		}
 		return false;
@@ -59,8 +61,7 @@ public class CallFunctionStatement extends Statement implements ITagsProperty{
     @Override
 	public String toString(){
 		String text = this.getComment();
-		return "call "+("".equals(functionName)?"??":functionName+"()") +
-				("".equals(text)? "":" // "+text);
+		return "call " + ("".equals(functionName) ? "??" : functionName + "()") + ("".equals(text)  ? "" : " // " + text);
 	}
 
     @Override
@@ -85,10 +86,12 @@ public class CallFunctionStatement extends Statement implements ITagsProperty{
 	}
 	
 	public String[] getTagsForProperty(String propertyName) {
-		if(propertyName.equals("functionName")){
+		if (propertyName.equals("functionName")) {
 			List<String> functionsNames = new LinkedList<String>();
-			for(FunctionStatement function : getFunctions())
+			functionsNames.add("");
+			for (FunctionStatement function : getFunctions()) {
 				functionsNames.add(function.getName());
+			}
 			return functionsNames.toArray(new String[functionsNames.size()]);
 		}
 		return new String[0];
