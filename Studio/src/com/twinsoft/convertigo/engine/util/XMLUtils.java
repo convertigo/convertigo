@@ -41,6 +41,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
@@ -98,6 +99,10 @@ public class XMLUtils {
 
 	public static Transformer getNewTransformer() throws TransformerConfigurationException {
 		return defaultTransformerFactory.get().newTransformer();
+	}
+	
+	public static Transformer getNewTransformer(Source source) throws TransformerConfigurationException {
+		return defaultTransformerFactory.get().newTransformer(source);
 	}
 	
 	private static ThreadLocal<SAXParser> defaultSAXParser = new ThreadLocal<SAXParser>() {

@@ -41,7 +41,7 @@ public class SmtpStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[9];
+			properties = new PropertyDescriptor[11];
 
             properties[0] = new PropertyDescriptor("smtpServer", beanClass, "getSmtpServer", "setSmtpServer");
             properties[0].setDisplayName(getExternalizedString("property.smtpServer.display_name"));
@@ -86,6 +86,18 @@ public class SmtpStepBeanInfo extends MySimpleBeanInfo {
             properties[8].setDisplayName(getExternalizedString("property.smtpSender.display_name"));
             properties[8].setShortDescription(getExternalizedString("property.smtpSender.short_description"));
             properties[8].setExpert(true);
+			
+			properties[9] = new PropertyDescriptor("xslFilepath", beanClass, "getXslFilepath", "setXslFilepath");
+            properties[9].setDisplayName(getExternalizedString("property.xslFilepath.display_name"));
+            properties[9].setShortDescription(getExternalizedString("property.xslFilepath.short_description"));
+            properties[9].setExpert(true);
+	        properties[9].setValue("scriptable", Boolean.TRUE);
+	        
+	        properties[10] = new PropertyDescriptor("contentType", beanClass, "getContentType", "setContentType");
+            properties[10].setDisplayName(getExternalizedString("property.contentType.display_name"));
+            properties[10].setShortDescription(getExternalizedString("property.contentType.short_description"));
+            properties[10].setExpert(true);
+	        properties[10].setValue("scriptable", Boolean.TRUE);
 			
 		}
 		catch(Exception e) {
