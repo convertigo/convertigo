@@ -41,7 +41,7 @@ public class SmtpStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[11];
+			properties = new PropertyDescriptor[12];
 
             properties[0] = new PropertyDescriptor("smtpServer", beanClass, "getSmtpServer", "setSmtpServer");
             properties[0].setDisplayName(getExternalizedString("property.smtpServer.display_name"));
@@ -90,7 +90,6 @@ public class SmtpStepBeanInfo extends MySimpleBeanInfo {
 			properties[9] = new PropertyDescriptor("xslFilepath", beanClass, "getXslFilepath", "setXslFilepath");
             properties[9].setDisplayName(getExternalizedString("property.xslFilepath.display_name"));
             properties[9].setShortDescription(getExternalizedString("property.xslFilepath.short_description"));
-            properties[9].setExpert(true);
 	        properties[9].setValue("scriptable", Boolean.TRUE);
 	        
 	        properties[10] = new PropertyDescriptor("contentType", beanClass, "getContentType", "setContentType");
@@ -98,7 +97,11 @@ public class SmtpStepBeanInfo extends MySimpleBeanInfo {
             properties[10].setShortDescription(getExternalizedString("property.contentType.short_description"));
             properties[10].setExpert(true);
 	        properties[10].setValue("scriptable", Boolean.TRUE);
-			
+
+	        properties[11] = new PropertyDescriptor("attachments", beanClass, "getAttachments", "setAttachments");
+            properties[11].setDisplayName(getExternalizedString("property.attachments.display_name"));
+            properties[11].setShortDescription(getExternalizedString("property.attachments.short_description"));
+	        properties[11].setPropertyEditorClass(getEditorClass("SmtpAttachmentEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -25,15 +25,21 @@ package com.twinsoft.convertigo.beans.steps;
 import java.io.File;
 import java.io.StringWriter;
 import java.security.Provider;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.mail.Address;
+import javax.mail.BodyPart;
 import javax.mail.Message;
+import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.dom.DOMSource;
@@ -71,10 +77,12 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 	private String smtpSender = "Convertigo <noreply@fakedomain.fake>";
 	private String xslFilepath = "";
 	private String contentType = "";
+	private XMLVector<XMLVector<String>> attachments = new XMLVector<XMLVector<String>>();
 
 	private transient StepSource source = null;
 	private transient String sMessageText = "";
 	private transient String sContentType;
+	private transient List<BodyPart> bodyParts = new LinkedList<BodyPart>();
 	
 	public SmtpStep() {
 		super();
@@ -203,6 +211,14 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 		this.contentType = contentType;
 	}
 
+	public XMLVector<XMLVector<String>> getAttachments() {
+		return attachments;
+	}
+
+	public void setAttachments(XMLVector<XMLVector<String>> attachments) {
+		this.attachments = attachments;
+	}
+
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		String[] result = new String[0];
@@ -267,6 +283,38 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 						transformer.transform(new DOMSource(sequence.context.outputDocument), new StreamResult(sw));
 					}
 					sMessageText = sw.toString();
+					
+					bodyParts.clear();
+					for (XMLVector<String> attachment : attachments) {
+						String filepath = attachment.get(0);
+						try {
+							evaluate(javascriptContext, scope, filepath, "filepath", false);
+							filepath = evaluated instanceof Undefined ? "" : evaluated.toString();
+							if (filepath.length() > 0) {
+								File file = new File(Engine.theApp.filePropertyManager.getFilepathFromProperty(filepath, getProject().getName()));
+								if (file.exists()) {
+									if (file.isFile()) {
+										String filename = attachment.get(1);
+										evaluate(javascriptContext, scope, filename, "filename", false);
+										filename = evaluated instanceof Undefined ? file.getName() : evaluated.toString();
+										
+										MimeBodyPart bodyPart = new MimeBodyPart();
+										bodyPart.attachFile(file);
+										bodyPart.setFileName(filename);
+										bodyParts.add(bodyPart);
+									} else {
+										Engine.logBeans.info("Unable attach a directory : " + file.getAbsolutePath());
+									}
+								} else {
+									Engine.logBeans.info("Unable attach an unexisting file : " + file.getAbsolutePath());
+								}
+							} else {
+								Engine.logBeans.info("Unable attach an empty filepath !!");
+							}
+						} catch (Exception e) {
+							Engine.logBeans.info("Unable attach " + filepath, e);
+						}							
+					}
 
 					sendMess();
 					return true;
@@ -329,9 +377,23 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 			
 			//Adding mail subject
 			ret.setSubject(smtpSubject);
-			
+
 			//Adding content
-			ret.setContent(sMessageText, sContentType);
+			if (bodyParts.size() > 0) {
+				Multipart multipart = new MimeMultipart();
+				
+				MimeBodyPart msgPart = new MimeBodyPart();
+				msgPart.setContent(sMessageText, sContentType);
+				multipart.addBodyPart(msgPart);
+				
+				for (BodyPart bodyPart : bodyParts) {
+					multipart.addBodyPart(bodyPart);
+				}
+				
+				ret.setContent(multipart);
+			} else {
+				ret.setContent(sMessageText, sContentType);
+			}
 		} catch (Exception e1) {
 			Engine.logBeans.error("(SmtpStep) An error occured while trying to build e-mail : " + e1.getStackTrace().toString(), e1);
 		}
