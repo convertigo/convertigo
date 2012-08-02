@@ -267,8 +267,8 @@ function certificates_List_update(){
 				type: createTypeSelect($(this).attr("type")),
 				password: "<input type='password' value='"+$(this).attr("password")+"' />"+error,
 				group:"<input type='text' value='"+$(this).attr("group")+"' />",
-				btnDelete: "<a href=\"javascript: deleteCertificate('" + certificateName + "')\"><img border=\"0\" title=\"Delete the project\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
-				btnValid: "<a href=\"javascript: updateCertificate('" + certificateName +"')\"><img border=\"0\" title=\"Edit the project\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
+				btnDelete: "<a href=\"javascript: deleteCertificate('" + certificateName + "')\"><img border=\"0\" title=\"Delete\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
+				btnValid: "<a href=\"javascript: updateCertificate('" + certificateName +"')\"><img border=\"0\" title=\"Update\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 				}
 			);
 		});
@@ -287,7 +287,7 @@ function certificates_List_update(){
 					type: createTypeSelect(""),
 					password: "<input type='password'/>",
 					group: "<input type='text'/>",							
-					btnValid: "<a href=\"javascript: updateCertificate()\"><img border=\"0\" title=\"Edit the project\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
+					btnValid: "<a href=\"javascript: updateCertificate()\"><img border=\"0\" title=\"Update\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 					} 	
 		);			
 		
@@ -320,8 +320,8 @@ function certificates_List_update(){
 					certificateName+"/"+projectName,{	
 					projectName:projectName,
 					certificateStore: certificateName,
-					btnDelete: "<a href=\"javascript: deleteMapping"+deleteParams+" \"><img border=\"0\" title=\"Delete the project\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
-					btnValid: "<a href=\"javascript: deleteMappingWithoutUpdate"+deleteParams+" configureMapping('certificatesAnonymousMappings','"+projectName+"','"+certificateName+"')\"><img border=\"0\" title=\"Edit the project\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
+					btnDelete: "<a href=\"javascript: deleteMapping"+deleteParams+" \"><img border=\"0\" title=\"Delete mapping\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
+					btnValid: "<a href=\"javascript: deleteMappingWithoutUpdate"+deleteParams+" configureMapping('certificatesAnonymousMappings','"+projectName+"','"+certificateName+"')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 					} 	
 				);
 				
@@ -346,8 +346,8 @@ function certificates_List_update(){
 					virtualServer:"<input type='text' value='"+virtualServeur+"' />",
 					authorizationGroup:"<input type='text' value='"+imputationGroup+"'/>",
 					user:"<input value='"+userName+"' />",
-					btnDelete: "<a href=\"javascript: deleteMapping"+deleteParams+" \"><img border=\"0\" title=\"Delete the project\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
-					btnValid: "<a href=\"javascript:  deleteMappingWithoutUpdate"+deleteParams+" configureMapping('certificatesUserMappings','"+projectName+"','"+certificateName+"')\"><img border=\"0\" title=\"Edit the project\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
+					btnDelete: "<a href=\"javascript: deleteMapping"+deleteParams+" \"><img border=\"0\" title=\"Delete mapping\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
+					btnValid: "<a href=\"javascript:  deleteMappingWithoutUpdate"+deleteParams+" configureMapping('certificatesUserMappings','"+projectName+"','"+certificateName+"')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 					} 	
 				);
 				
@@ -364,7 +364,7 @@ function certificates_List_update(){
 					"new",{ 
 				projectName: selectProjectName,
 				certificateStore:selectCertificateName,				
-				btnValid: "<a href=\"javascript:configureMapping('certificatesAnonymousMappings','"+NEW_MAPPING_MESSAGE_VALUE+"')\"><img border=\"0\" title=\"Edit the project\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
+				btnValid: "<a href=\"javascript:configureMapping('certificatesAnonymousMappings','"+NEW_MAPPING_MESSAGE_VALUE+"')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 				} 	
 			);
 			
@@ -375,7 +375,7 @@ function certificates_List_update(){
 				virtualServer:"<input type='text'/>",
 				authorizationGroup:"<input type='text'/>",
 				user:"<input type='text'/>",				
-				btnValid: "<a href=\"javascript: configureMapping('certificatesUserMappings','"+NEW_MAPPING_MESSAGE_VALUE+"')\"><img border=\"0\" title=\"Edit the project\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
+				btnValid: "<a href=\"javascript: configureMapping('certificatesUserMappings','"+NEW_MAPPING_MESSAGE_VALUE+"')\"><img border=\"0\" title=\"Update mapping\" src=\"images/convertigo-administration-picto-validate.png\"></a>"
 				} 	
 			);
 			
