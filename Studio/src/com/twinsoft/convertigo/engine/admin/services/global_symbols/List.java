@@ -50,9 +50,12 @@ public class List extends XmlService{
         root.appendChild(symbolsListElement);
         
         Properties prop = new Properties();
-        FileInputStream in = new FileInputStream(Engine.CONFIGURATION_PATH + "/global_symbols.properties");
-        prop.load(in);
-        in.close();
+        try {
+        	FileInputStream in = new FileInputStream(Engine.CONFIGURATION_PATH + "/global_symbols.properties");
+	        prop.load(in);
+	        in.close();
+        }
+        catch (Exception e) {}
         
         int nbList = prop.size();
         String listKeys = prop.keySet().toString();

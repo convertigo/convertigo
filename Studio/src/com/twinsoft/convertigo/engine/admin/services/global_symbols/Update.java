@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.engine.admin.services.global_symbols;
 
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Properties;
 
@@ -48,11 +47,6 @@ public class Update extends XmlService {
         int nbSymbol = Integer.parseInt(request.getParameter("nbSymbol"));
         
         Properties prop = new Properties();
-        FileInputStream in = new FileInputStream(Engine.CONFIGURATION_PATH + "/global_symbols.properties");
-        prop.load(in);
-        in.close();
-        
-        prop.clear();
         for (int i=0; i<nbSymbol; i++) {
         	String symbol = symbols.split(",")[0];
         	symbols = symbols.substring(symbol.length()+1);

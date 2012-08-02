@@ -83,7 +83,9 @@ function globalSymbols_List_update() {
 }
 
 function updateGlobalSymbolsList(xml) {
-	$("#symbolsList").jqGrid('clearGridData');
+	if ($(xml).find("symbol"))
+		$("#symbolsList").jqGrid('clearGridData');
+	
 	var symbolName = "";
 	$(xml)
 			.find("symbol")
