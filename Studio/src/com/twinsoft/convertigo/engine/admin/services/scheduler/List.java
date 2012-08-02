@@ -86,8 +86,10 @@ public class List extends XmlService{
 		if (category == null || category == Category.scheduledJobs) {
 			for (ScheduledJob sj : schedulerXML.getScheduledJobs()) {				
 				Element element = prepareElement(document, Category.scheduledJobs, sj);
-				element.setAttribute("jobName", sj.getJob().getName());
-				element.setAttribute("scheduleName", sj.getSchedule().getName());
+				AbstractJob job = sj.getJob();
+				AbstractSchedule schedule = sj.getSchedule();
+				element.setAttribute("jobName", job == null ? "..." : job.getName());
+				element.setAttribute("scheduleName", schedule == null ? "..." : schedule.getName());
 				
 				StringBuffer info = new StringBuffer();
 				if (schedulerManager.getRunningScheduledJobs().contains(sj)) {
@@ -99,10 +101,14 @@ public class List extends XmlService{
 					info.append("[ not ready to run ] ");
 					if (sj.isEnable()) {
 						info.append("caused by ");
-						if (!sj.getJob().isEnable()) {
+						if (job == null) {
+							info.append("[ job is not defined ]");
+						} else if (!job.isEnable()) {
 							info.append("[ job is disabled ]");
 						}
-						if (!sj.getSchedule().isEnable()) {
+						if (schedule == null) {
+							info.append("[ schedule is not defined ]");
+						} else if (!schedule.isEnable()) {
 							info.append("[ schedule is disabled ]");
 						}
 					}

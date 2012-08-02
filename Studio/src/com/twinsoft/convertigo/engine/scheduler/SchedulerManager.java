@@ -55,15 +55,15 @@ public class SchedulerManager {
 	private SchedulerXML schedulerXML;
 	private String counterName = "a";
 
-	public SchedulerManager(boolean serverMode){
+	public SchedulerManager(boolean serverMode) {
 		schedulerOn = serverMode;
-		if(serverMode){
+		if (serverMode) {
 			init();
 			refreshJobs();
 		}
 	}
 
-	private void init(){
+	private void init() {
 		SchedulerFactory schedFact = new org.quartz.impl.StdSchedulerFactory();
 		try {
 			sched = schedFact.getScheduler();
@@ -71,7 +71,7 @@ public class SchedulerManager {
 			
 			try{
 				XMLDecoder decoder = new XMLDecoder(new FileInputStream(getFileURL()));
-				schedulerXML = (SchedulerXML)decoder.readObject();
+				schedulerXML = (SchedulerXML) decoder.readObject();
 			}catch (Exception e) {
 				schedulerXML = new SchedulerXML();
 			}
@@ -81,33 +81,35 @@ public class SchedulerManager {
 		}
 	}
 	
-	private String nextCounterName(){
+	private String nextCounterName() {
 		boolean more = true;
 		StringBuffer sb = new StringBuffer();
-		for(int i=0;i<counterName.length();i++){
+		for (int i = 0 ; i < counterName.length() ; i++) {
 			char c = counterName.charAt(i);
-			if(more){
+			if (more) {
 				more = false;
-				switch(c){
+				switch(c) {
 				case 'Z' : c = 'a'; more = true; break;
 				case 'z' : c = 'A'; break;
-				default  : c = (char)(((int)c)+1); break;
+				default  : c = (char) (((int) c) + 1); break;
 				}
 			}
 			sb.append(c);
 		}
-		if(more)sb.append('a');
+		if (more) {
+			sb.append('a');
+		}
 		String res = counterName;
 		counterName = sb.toString();
 		return res;
 	}
 
-	public boolean isSchedulerOn(){
+	public boolean isSchedulerOn() {
 		return schedulerOn;
 	}
 
-	public void pause(){
-		if(schedulerOn && !paused){
+	public void pause() {
+		if (schedulerOn && !paused) {
 			try {
 				sched.pauseAll();
 				paused = true;
@@ -118,8 +120,8 @@ public class SchedulerManager {
 		}
 	}
 
-	public void resume(){
-		if(schedulerOn && paused){
+	public void resume() {
+		if (schedulerOn && paused) {
 			try {
 				sched.resumeAll();
 				paused = false;
@@ -130,12 +132,12 @@ public class SchedulerManager {
 		}
 	}
 
-	public boolean isPaused(){
+	public boolean isPaused() {
 		return paused;
 	}
 
-	public void destroy(){
-		if(schedulerOn){
+	public void destroy() {
+		if (schedulerOn) {
 			try {
 				sched.shutdown();
 			} catch (SchedulerException e) {
@@ -146,23 +148,25 @@ public class SchedulerManager {
 		}
 	}
 
-	public void refreshJobs(){
-		if(schedulerOn){
+	public void refreshJobs() {
+		if (schedulerOn) {
 			try {
 				Engine.logEngine.debug("(Scheduler Manager) refresh jobs start");
 				String[] jobs = sched.getJobNames(Scheduler.DEFAULT_GROUP);
-				for(int i=0;i<jobs.length;i++){
-					Engine.logEngine.trace("(Scheduler Manager) Delete "+jobs[i]+" ...");
+				for (int i = 0; i < jobs.length; i++) {
+					Engine.logEngine.trace("(Scheduler Manager) Delete " + jobs[i] + " ...");
 					boolean ok = sched.deleteJob(jobs[i], Scheduler.DEFAULT_GROUP);
-					Engine.logEngine.trace("(Scheduler Manager) ... "+jobs[i]+" deleted ? "+ok);
-					if(!ok)Engine.logEngine.debug("(Scheduler Manager) Job "+jobs[i]+" not deleted for refresh !");
+					Engine.logEngine.trace("(Scheduler Manager) ... " + jobs[i] + " deleted ? " + ok);
+					if (!ok) {
+						Engine.logEngine.debug("(Scheduler Manager) Job " + jobs[i] + " not deleted for refresh !");
+					}
 				}
 				
 				boolean shouldSave = false;
 				
-				for(ScheduledJob scheduledJob : schedulerXML.getScheduledJobs()){
-					if(scheduledJob.isAllEnabled()){
-						String currentName = nextCounterName()+"["+scheduledJob.getName()+"]";
+				for (ScheduledJob scheduledJob : schedulerXML.getScheduledJobs()) {
+					if (scheduledJob.isAllEnabled()) {
+						String currentName = nextCounterName() + "[" + scheduledJob.getName() + "]";
 						
 						JobDetail jd = new JobDetail(currentName, Scheduler.DEFAULT_GROUP, SchedulerJob.class);
 						jd.getJobDataMap().put("scheduledJob", scheduledJob);
@@ -170,26 +174,30 @@ public class SchedulerManager {
 						
 						AbstractSchedule abstractSchedule = scheduledJob.getSchedule();
 						
-						Trigger tg = null;
-						
-						if(abstractSchedule instanceof ScheduleCron){
-							ScheduleCron scheduleCron = (ScheduleCron)abstractSchedule;
-							try {
-								tg = new CronTrigger(currentName, Scheduler.DEFAULT_GROUP, scheduleCron.getCron());
-							} catch (ParseException e) { }
-						}else if(abstractSchedule instanceof ScheduleRunNow){
-							tg = new SimpleTrigger(currentName, Scheduler.DEFAULT_GROUP);
-							scheduledJob.setEnable(false);
-							shouldSave = true;
-						}
+						if (abstractSchedule != null) {
+							Trigger tg = null;
 							
-						if(tg!=null){
-							sched.scheduleJob(jd, tg);
-							Engine.logEngine.trace("(Scheduler Manager) "+currentName+" scheduled");
+							if (abstractSchedule instanceof ScheduleCron) {
+								ScheduleCron scheduleCron = (ScheduleCron) abstractSchedule;
+								try {
+									tg = new CronTrigger(currentName, Scheduler.DEFAULT_GROUP, scheduleCron.getCron());
+								} catch (ParseException e) { }
+							} else if (abstractSchedule instanceof ScheduleRunNow) {
+								tg = new SimpleTrigger(currentName, Scheduler.DEFAULT_GROUP);
+								scheduledJob.setEnable(false);
+								shouldSave = true;
+							}
+								
+							if (tg != null) {
+								sched.scheduleJob(jd, tg);
+								Engine.logEngine.trace("(Scheduler Manager) "+currentName+" scheduled");
+							}
 						}
 					}
 				}
-				if(shouldSave) save();
+				if (shouldSave) {
+					save();
+				}
 				Engine.logEngine.debug("(Scheduler Manager) refresh jobs finished");
 			} catch (SchedulerException e) {
 				Engine.logEngine.error("(Scheduler Manager) refresh jobs failed !", e);
@@ -198,13 +206,14 @@ public class SchedulerManager {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public SortedSet<ScheduledJob> getRunningScheduledJobs(){
+	public SortedSet<ScheduledJob> getRunningScheduledJobs() {
 		SortedSet<ScheduledJob> ss = new TreeSet<ScheduledJob>();
 		try {
-			for(JobExecutionContext ctx : (List<JobExecutionContext>)sched.getCurrentlyExecutingJobs()){
+			for (JobExecutionContext ctx : (List<JobExecutionContext>) sched.getCurrentlyExecutingJobs()) {
 				JobDetail jd = ctx.getJobDetail();
-				if(jd.getJobDataMap().containsKey("running"))
-					ss.add((ScheduledJob)jd.getJobDataMap().get("scheduledJob"));
+				if (jd.getJobDataMap().containsKey("running")) {
+					ss.add((ScheduledJob) jd.getJobDataMap().get("scheduledJob"));
+				}
 			}
 		} catch (SchedulerException e) { }
 		return ss;
@@ -214,7 +223,7 @@ public class SchedulerManager {
 		return Engine.CONFIGURATION_PATH + "/scheduler.xml";
 	}
 	
-	public void save(){
+	public void save() {
 		try {
 			Engine.logEngine.debug("(Scheduler Manager) Start jobs saving ...");
 			XMLEncoder encoder = new XMLEncoder(new FileOutputStream(getFileURL()));
@@ -226,7 +235,7 @@ public class SchedulerManager {
 		}
 	}
 	
-	public SchedulerXML getSchedulerXML(){
+	public SchedulerXML getSchedulerXML() {
 		return schedulerXML;
 	}
 }
