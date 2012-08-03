@@ -32,7 +32,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.PartInitException;
@@ -43,7 +42,6 @@ import org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class XMLTransactionStepEditor extends EditorPart implements IPropertyListener {
 	private IFile file;
@@ -57,6 +55,7 @@ public class XMLTransactionStepEditor extends EditorPart implements IPropertyLis
 		super();
 	}
 
+	@Override
 	public void dispose() {
 		xmlEditor.removePropertyListener(this);
 		xmlEditor.dispose();
@@ -85,12 +84,11 @@ public class XMLTransactionStepEditor extends EditorPart implements IPropertyLis
 			byte[] array = new byte[is.available()];
 			is.read(array);
 			step.wsdlType = new String(array, "ISO-8859-1");
-			step.write();
-			Engine.theApp.databaseObjectsManager.cacheUpdateObject(step);
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while writing step wsdl type.'" + eInput.getName() + "'");
 		}
-		
+
+		step.hasChanged = true;
 		// Refresh tree
 		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		if (projectExplorerView != null)
@@ -193,13 +191,14 @@ public class XMLTransactionStepEditor extends EditorPart implements IPropertyLis
 		setPartName(file.getName());
 	}
 
-
+	@Override
 	public void addPropertyListener(IPropertyListener l) {
 		if (listenerList == null)
 			listenerList = new ListenerList();
 		listenerList.add(l);
 	}
 
+	@Override
 	public void removePropertyListener(IPropertyListener l) {
 		if (listenerList != null) {
 			listenerList.remove(l);
@@ -207,20 +206,11 @@ public class XMLTransactionStepEditor extends EditorPart implements IPropertyLis
 	}
 	
 	public void propertyChanged(Object source, int propId) {
-		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		
 		// When a property from the xmlEditor Changes, walk the list all the listeners and notify them.
 		Object listeners[] = listenerList.getListeners();
 		for (int i = 0; i < listeners.length; i++) {
 			IPropertyListener listener = (IPropertyListener) listeners[i];
 			listener.propertyChanged(this, propId);
-		}
-		if (IEditorPart.PROP_DIRTY == propId) {
-			if (xmlEditor.isDirty()) {
-				step.hasChanged = true;
-				if (projectExplorerView != null)
-					projectExplorerView.updateDatabaseObject(step);
-			}
 		}
 	}
 }

@@ -32,7 +32,6 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.PartInitException;
@@ -42,7 +41,6 @@ import org.eclipse.ui.part.FileEditorInput;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class JscriptTransactionEditor extends EditorPart implements IPropertyListener {
 	private IFile file;
@@ -56,7 +54,7 @@ public class JscriptTransactionEditor extends EditorPart implements IPropertyLis
 		super();
 	}
 
-	
+	@Override
 	public void dispose() {
 		jsEditor.removePropertyListener(this);
 		jsEditor.dispose();
@@ -85,16 +83,16 @@ public class JscriptTransactionEditor extends EditorPart implements IPropertyLis
 			byte[] array = new byte[is.available()];
 			is.read(array);
 			transaction.handlers = new String (array);
-			transaction.write();
-			Engine.theApp.databaseObjectsManager.cacheUpdateObject(transaction);
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error writing transaction handlers '" + eInput.getName() + "'");
 		}
-		
+
+		transaction.hasChanged = true;
 		// Refresh tree
 		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		if (projectExplorerView != null)
+		if (projectExplorerView != null) {
 			projectExplorerView.updateDatabaseObject(transaction);
+		}
 	}
 
 	/*
@@ -157,7 +155,7 @@ public class JscriptTransactionEditor extends EditorPart implements IPropertyLis
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		// Get from the input the necessary objects as the temp IFile to create to hold the handlers data and the Transaction object itself.
 		file = ((FileEditorInput) input).getFile();
-		transaction = (Transaction)((JscriptTransactionEditorInput)input).getTransaction();
+		transaction = (Transaction) ((JscriptTransactionEditorInput) input).getTransaction();
 		
 		// Create a temp  file to hold transaction's data
 		InputStream sbisHandlersStream = new ByteArrayInputStream(transaction.handlers.getBytes());
@@ -190,12 +188,15 @@ public class JscriptTransactionEditor extends EditorPart implements IPropertyLis
 		return jsEditor;
 	}
 
+	@Override
 	public void addPropertyListener(IPropertyListener l) {
-		if (listenerList == null)
+		if (listenerList == null) {
 			listenerList = new ListenerList();
+		}
 		listenerList.add(l);
 	}
 
+	@Override
 	public void removePropertyListener(IPropertyListener l) {
 		if (listenerList != null) {
 			listenerList.remove(l);
@@ -203,20 +204,11 @@ public class JscriptTransactionEditor extends EditorPart implements IPropertyLis
 	}
 
 	public void propertyChanged(Object source, int propId) {
-		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		
 		// When a property from the jsEditor Changes, walk the list all the listeners and notify them.
 		Object listeners[] = listenerList.getListeners();
 		for (int i = 0; i < listeners.length; i++) {
 			IPropertyListener listener = (IPropertyListener) listeners[i];
 			listener.propertyChanged(this, propId);
-		}
-		if (IEditorPart.PROP_DIRTY == propId) {
-			if (jsEditor.isDirty()) {
-				transaction.hasChanged = true;
-				if (projectExplorerView != null)
-					projectExplorerView.updateDatabaseObject(transaction);
-			}
 		}
 	}
 	

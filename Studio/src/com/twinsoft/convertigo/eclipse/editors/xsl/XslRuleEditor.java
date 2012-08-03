@@ -51,7 +51,6 @@ import org.xml.sax.InputSource;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
@@ -89,7 +88,8 @@ public class XslRuleEditor extends EditorPart implements IPropertyListener {
 	public XslRuleEditor() {
 		super();
 	}
-
+	
+	@Override
 	public void dispose() {
 		xmlEditor.removePropertyListener(this);
 		xmlEditor.dispose();
@@ -103,13 +103,8 @@ public class XslRuleEditor extends EditorPart implements IPropertyListener {
 	 */
 	public void doSave(IProgressMonitor monitor) {
 		xmlEditor.doSave(monitor);
-		try {
-			parentStyleSheet.write();
-			Engine.theApp.databaseObjectsManager.cacheUpdateObject(parentStyleSheet);
-		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Error writing sheet '" + eInput.getName() + "'");
-		}
-		
+
+		parentStyleSheet.hasChanged = true;
 		// Refresh tree
 		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		if (projectExplorerView != null)
@@ -282,12 +277,14 @@ public class XslRuleEditor extends EditorPart implements IPropertyListener {
 //		browser.setUrl(url);
 //	}
 
+	@Override
 	public void addPropertyListener(IPropertyListener l) {
 		if (listenerList == null)
 			listenerList = new ListenerList();
 		listenerList.add(l);
 	}
 
+	@Override
 	public void removePropertyListener(IPropertyListener l) {
 		if (listenerList != null) {
 			listenerList.remove(l);
@@ -295,8 +292,6 @@ public class XslRuleEditor extends EditorPart implements IPropertyListener {
 	}
 
 	public void propertyChanged(Object source, int propId) {
-		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		
 		// When a property from the xslEditor Changes, walk the list all the listeners and notify them.
 		Object listeners[] = listenerList.getListeners();
 		for (int i = 0; i < listeners.length; i++) {
@@ -319,12 +314,6 @@ public class XslRuleEditor extends EditorPart implements IPropertyListener {
 				parentFile.setLastModified(System.currentTimeMillis());
 
 				browser.setUrl(url);
-			}
-			else {
-				parentStyleSheet.hasChanged = true;
-				if (projectExplorerView != null) {
-					projectExplorerView.updateDatabaseObject(parentStyleSheet);
-				}
 			}
 		}
 	}

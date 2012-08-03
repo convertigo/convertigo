@@ -25,7 +25,6 @@ package com.twinsoft.convertigo.engine;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -282,53 +281,18 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 		}
 	}
+	
+	public void clearCache(String projectName) {
+		synchronized (projects) {
+			projects.remove(projectName);
+		}
+	}
 
 	public void buildCar(String projectName) {
 		try {
 			CarUtils.makeArchive(projectName);
 		} catch (EngineException e) {
 			Engine.logDatabaseObjectManager.error("Build car failed!", e);
-		}
-	}
-
-	/**
-	 * Reloads a database object from the projects database repository.
-	 * 
-	 * @param databaseObject
-	 *            the object to reload.
-	 * 
-	 * @throw DatabaseObjectNotFoundException if the corresponding database
-	 *        object does not exist.
-	 * @throw EngineException if the corresponding database object can not be
-	 *        returned, or does not exist.
-	 */
-	public void reloadDatabaseObject(DatabaseObject databaseObject) throws EngineException,
-			DatabaseObjectNotFoundException {
-		String databaseObjectQName = databaseObject.getQName();
-		Engine.logDatabaseObjectManager.trace("(DatabaseObjectsManager) Reloading object: "
-				+ databaseObjectQName);
-		cacheRemoveObject(databaseObjectQName);
-
-		try {
-			String fileName = Engine.PROJECTS_PATH + databaseObjectQName;
-
-			FileReader fr = new FileReader(fileName);
-			char[] buffer = new char[4096];
-			String serializationData = "";
-			int nbReadChars = 0;
-			while ((nbReadChars = fr.read(buffer)) != -1) {
-				serializationData += new String(buffer, 0, nbReadChars);
-			}
-			fr.close();
-
-			databaseObject.reload(serializationData);
-			cacheUpdateObject(databaseObject, databaseObjectQName);
-			Engine.logDatabaseObjectManager.debug(databaseObject.getDatabaseType() + " '"
-					+ databaseObject.getName() + "' has been successfully deserialized.");
-		} catch (FileNotFoundException e) {
-			throw new DatabaseObjectNotFoundException(databaseObjectQName);
-		} catch (IOException e) {
-			throw new EngineException("Unable to read the object file \"" + databaseObjectQName + "\".", e);
 		}
 	}
 
@@ -381,8 +345,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				// Bugfix #1659: do not call getProjectByName() if the migration
 				// process is ongoing!
 				if (!(Thread.currentThread() instanceof MigrationJob)) {
-					Project projectToDelete = Engine.theApp.databaseObjectsManager
-							.getProjectByName(projectName);
+					Project projectToDelete = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
 					for (Connector connector : projectToDelete.getConnectorsList()) {
 						Engine.theApp.contextManager.removeDevicePool(connector.getQName());
 					}
@@ -390,7 +353,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 			}
 
-			cacheRemoveObjects("/" + projectName);
+			clearCache(projectName);
 		} catch (Exception e) {
 			throw new EngineException("Unable to delete" + (bDataOnly ? " datas for" : "") + " project \""
 					+ projectName + "\".", e);
@@ -571,8 +534,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Engine.logDatabaseObjectManager.debug("Analyzing the archive entries: " + projectArchiveFilename);
 			ZipUtils.expandZip(projectArchiveFilename, deployDirPath, archiveProjectName);
 		} catch (Exception e) {
-			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename
-					+ "\".", e);
+			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename + "\".", e);
 		}
 
 		// Check for correct project name
@@ -1145,9 +1107,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 			if (parentDatabaseObject != null) {
 				parentDatabaseObject.add(databaseObject);
 			}
-			
-			cacheUpdateObject(databaseObject); // put a clone of databaseObject
-												// into object's cache
 
 			NodeList childNodes = node.getChildNodes();
 			int len = childNodes.getLength();
@@ -1254,67 +1213,5 @@ public class DatabaseObjectsManager implements AbstractManager {
 	        File ressourceFile = new File(ressourcePath);
 	        ressourceFile.delete();
 		}
-	}
-
-	public void cacheUpdateObject(DatabaseObject databaseObject) throws EngineException {
-//		synchronized (objects) {
-//			cacheUpdateObject(databaseObject, databaseObject.getQName());
-//		}
-	}
-
-	public void cacheUpdateObject(DatabaseObject databaseObject, String databaseObjectQName)
-			throws EngineException {
-//		objects.put(databaseObjectQName, databaseObject);
-//		synchronized (objects) {
-//			try {
-//				DatabaseObject clonedDatabaseObject = (DatabaseObject) databaseObject.clone();
-//				Engine.logDatabaseObjectManager.trace("cacheUpdateObject(): " + databaseObjectQName);
-//				objects.put(databaseObjectQName, clonedDatabaseObject);
-//			} catch (CloneNotSupportedException e) {
-//				throw new EngineException("CloneNotSupportedException on object \"" + databaseObjectQName
-//						+ "\": " + e.getMessage());
-//			}
-//		}
-	}
-
-	public void cacheRemoveObject(String databaseObjectQName) {
-//		synchronized (objects) {
-//			Engine.logDatabaseObjectManager.trace("cacheRemoveObject(): " + databaseObjectQName);
-//			objects.remove(databaseObjectQName);
-//		}
-	}
-
-	public void cacheRemoveObjects(String databaseObjectQNamePrefix) {
-//		synchronized (objects) {
-//
-//			Engine.logDatabaseObjectManager.trace("cacheRemoveObjects(): " + databaseObjectQNamePrefix);
-//
-//			// Nathalieh:
-//			// This code throws a ConcurrentModificationException after the
-//			// first key is removed
-//			/*
-//			 * for (String key : objects.keySet()) { if
-//			 * (key.startsWith(databaseObjectQNamePrefix)) {
-//			 * Engine.logDatabaseObjectManager.trace("   >>> removing " + key);
-//			 * objects.remove(key); } }
-//			 */
-//
-//			// Nathalieh:
-//			// Until someone writes the right code...
-//			boolean bContinue = true;
-//			while (bContinue) {
-//				try {
-//					for (String key : objects.keySet()) {
-//						if (key.startsWith(databaseObjectQNamePrefix)) {
-//							Engine.logDatabaseObjectManager.trace("   >>> removing " + key);
-//							objects.remove(key);
-//						}
-//					}
-//					bContinue = false;
-//				} catch (ConcurrentModificationException e) {
-//					;// ignore
-//				}
-//			}
-//		}
 	}
 }

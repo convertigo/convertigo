@@ -32,7 +32,6 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.PartInitException;
@@ -42,7 +41,6 @@ import org.eclipse.ui.part.FileEditorInput;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 	private IFile file;
@@ -56,6 +54,7 @@ public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 		super();
 	}
 
+	@Override
 	public void dispose() {
 		jsEditor.removePropertyListener(this);
 		jsEditor.dispose();
@@ -84,16 +83,16 @@ public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 			byte[] array = new byte[is.available()];
 			is.read(array);
 			step.setExpression(new String (array));
-			step.write();
-			Engine.theApp.databaseObjectsManager.cacheUpdateObject(step);
 		} catch (Exception e) {
 			ConvertigoPlugin.logWarning("Error writing step jscript code '" + eInput.getName() + "' : "+e.getMessage());
 		}
 		
+		step.hasChanged = true;
 		// Refresh tree
 		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		if (projectExplorerView != null)
+		if (projectExplorerView != null) {
 			projectExplorerView.updateDatabaseObject(step);
+		}
 	}
 
 	/*
@@ -111,7 +110,7 @@ public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 	 * @see org.eclipse.ui.part.EditorPart#isDirty()
 	 */
 	public boolean isDirty() {
-		return (jsEditor.isDirty());
+		return jsEditor.isDirty();
 	}
 
 	/*
@@ -156,7 +155,7 @@ public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		// Get from the input the necessary objects as the temp IFile to create to hold the jscript code itself.
 		file = ((FileEditorInput) input).getFile();
-		step = (SimpleStep)((JscriptStepEditorInput)input).getStep();
+		step = (SimpleStep) ((JscriptStepEditorInput) input).getStep();
 		
 		// Create a temp  file to hold step jscript code
 		InputStream sbisHandlersStream = new ByteArrayInputStream(step.getExpression().getBytes());
@@ -183,15 +182,18 @@ public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 		eSite = site;
 		eInput = input;
 		String[] splits = file.getName().split(" ");
-		setPartName(splits[splits.length-1]);
+		setPartName(splits[splits.length - 1]);
 	}
 
+	@Override
 	public void addPropertyListener(IPropertyListener l) {
-		if (listenerList == null)
+		if (listenerList == null) {
 			listenerList = new ListenerList();
+		}
 		listenerList.add(l);
 	}
 
+	@Override
 	public void removePropertyListener(IPropertyListener l) {
 		if (listenerList != null) {
 			listenerList.remove(l);
@@ -199,20 +201,11 @@ public class JscriptStepEditor extends EditorPart implements IPropertyListener {
 	}
 
 	public void propertyChanged(Object source, int propId) {
-		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		
 		// When a property from the jsEditor Changes, walk the list all the listeners and notify them.
 		Object listeners[] = listenerList.getListeners();
 		for (int i = 0; i < listeners.length; i++) {
 			IPropertyListener listener = (IPropertyListener) listeners[i];
 			listener.propertyChanged(this, propId);
-		}
-		if (IEditorPart.PROP_DIRTY == propId) {
-			if (jsEditor.isDirty()) {
-				step.hasChanged = true;
-				if (projectExplorerView != null)
-					projectExplorerView.updateDatabaseObject(step);
-			}
 		}
 	}
 	

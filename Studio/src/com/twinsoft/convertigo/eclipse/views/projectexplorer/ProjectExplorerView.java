@@ -1743,7 +1743,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 	
 	public void unloadSelectedProjectTreeObject() {
-//		TreeObject treeObject = getFirstSelectedTreeObject();
 		TreeObject[] treeObjects = getSelectedTreeObjects();
 		if ((treeObjects != null)) {
 			for (TreeObject treeObject :treeObjects) {
@@ -1752,9 +1751,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				}
 			}
 		}
-//		if ((treeObject != null) && (treeObject instanceof ProjectTreeObject)) {
-//			unloadProjectTreeObject((ProjectTreeObject)treeObject);
-//		}
 	}
 
 	protected UnloadedProjectTreeObject unloadProjectTreeObject(ProjectTreeObject projectTreeObject) {

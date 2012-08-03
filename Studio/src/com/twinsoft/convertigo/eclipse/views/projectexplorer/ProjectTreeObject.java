@@ -137,12 +137,13 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	 * @return <code>false</code> if the close process has been canceled by user.
 	 */
 	public boolean close() {
+		// close opened editors
+		closeAllEditors();
+		
 		// save project and copy temporary files to project files
 		boolean bRet = save(true);
 		if (bRet) {
 			ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
-			// close opened editors
-			closeAllEditors();
 			// remove temporary files
 			removeTempFiles();
 			// clear Source picker view if needed
@@ -263,7 +264,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						
 						Engine.theApp.databaseObjectsManager.exportProject(project);
 
-						ConvertigoPlugin.projectManager.save(project, true);
+//						ConvertigoPlugin.projectManager.save(project, true);
 						
 						hasBeenModified(false);
 						ConvertigoPlugin.logInfo("Project '" + projectName + "' saved!");
@@ -271,9 +272,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 //						ConvertigoPlugin.logInfo("Project's XML automatically built");
 						
 						getIProject().refreshLocal(IResource.DEPTH_ONE, null);
-					} else if (response == SWT.NO) {
-						Engine.theApp.databaseObjectsManager.cacheRemoveObjects(projectName);
-						ret = true;
 					}
 				}
 			} catch (Exception e) {

@@ -33,7 +33,6 @@ import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.PartInitException;
@@ -43,7 +42,6 @@ import org.eclipse.ui.part.FileEditorInput;
 import com.twinsoft.convertigo.beans.statements.SimpleStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class JscriptStatementEditor extends EditorPart implements IPropertyListener {
 	private IFile file;
@@ -57,6 +55,7 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 		super();
 	}
 
+	@Override
 	public void dispose() {
 		jsEditor.removePropertyListener(this);
 		jsEditor.dispose();
@@ -85,17 +84,16 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 			byte[] array = new byte[is.available()];
 			is.read(array);
 			statement.setExpression(new String (array));
-			statement.write();
-			Engine.theApp.databaseObjectsManager.cacheUpdateObject(statement);
-			
 		} catch (Exception e) {
-			ConvertigoPlugin.logWarning("Error writing statement jscript code '" + eInput.getName() + "' : "+e.getMessage());
+			ConvertigoPlugin.logWarning("Error writing statement jscript code '" + eInput.getName() + "' : " + e.getMessage());
 		}
 		
+		statement.hasChanged = true;
 		// Refresh tree
 		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		if (projectExplorerView != null)
+		if (projectExplorerView != null) {
 			projectExplorerView.updateDatabaseObject(statement);
+		}
 	}
 
 	/*
@@ -158,7 +156,7 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		// Get from the input the necessary objects as the temp IFile to create to hold the jscript code itself.
 		file = ((FileEditorInput) input).getFile();
-		statement = (SimpleStatement)((JscriptStatementEditorInput)input).getStatement();
+		statement = (SimpleStatement) ((JscriptStatementEditorInput) input).getStatement();
 		
 		// Create a temp  file to hold statement jscript code
 		InputStream sbisHandlersStream = new ByteArrayInputStream(statement.getExpression().getBytes());
@@ -186,15 +184,18 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 		eSite = site;
 		eInput = input;
 		String[] splits = file.getName().split(" ");
-		setPartName(splits[splits.length-1]);
+		setPartName(splits[splits.length - 1]);
 	}
 
+	@Override
 	public void addPropertyListener(IPropertyListener l) {
-		if (listenerList == null)
+		if (listenerList == null) {
 			listenerList = new ListenerList();
+		}
 		listenerList.add(l);
 	}
 
+	@Override
 	public void removePropertyListener(IPropertyListener l) {
 		if (listenerList != null) {
 			listenerList.remove(l);
@@ -202,20 +203,11 @@ public class JscriptStatementEditor extends EditorPart implements IPropertyListe
 	}
 
 	public void propertyChanged(Object source, int propId) {
-		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		
 		// When a property from the jsEditor Changes, walk the list all the listeners and notify them.
 		Object listeners[] = listenerList.getListeners();
 		for (int i = 0; i < listeners.length; i++) {
 			IPropertyListener listener = (IPropertyListener) listeners[i];
 			listener.propertyChanged(this, propId);
-		}
-		if (IEditorPart.PROP_DIRTY == propId) {
-			if (jsEditor.isDirty()) {
-				statement.hasChanged = true;
-				if (projectExplorerView != null)
-					projectExplorerView.updateDatabaseObject(statement);
-			}
 		}
 	}
 	

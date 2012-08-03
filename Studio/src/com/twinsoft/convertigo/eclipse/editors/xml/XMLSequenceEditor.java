@@ -32,7 +32,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.PartInitException;
@@ -43,7 +42,6 @@ import org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class XMLSequenceEditor extends EditorPart implements IPropertyListener {
 	private IFile file;
@@ -57,6 +55,7 @@ public class XMLSequenceEditor extends EditorPart implements IPropertyListener {
 		super();
 	}
 
+	@Override
 	public void dispose() {
 		xmlEditor.removePropertyListener(this);
 		xmlEditor.dispose();
@@ -85,16 +84,16 @@ public class XMLSequenceEditor extends EditorPart implements IPropertyListener {
 			byte[] array = new byte[is.available()];
 			is.read(array);
 			sequence.wsdlType = new String(array, "ISO-8859-1");
-			sequence.write();
-			Engine.theApp.databaseObjectsManager.cacheUpdateObject(sequence);
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while writing stequence wsdl type.'" + eInput.getName() + "'");
 		}
-		
+
+		sequence.hasChanged = true;
 		// Refresh tree
 		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		if (projectExplorerView != null)
+		if (projectExplorerView != null) {
 			projectExplorerView.updateDatabaseObject(sequence);
+		}
 	}
 
 	/*
@@ -193,13 +192,14 @@ public class XMLSequenceEditor extends EditorPart implements IPropertyListener {
 		setPartName(file.getName());
 	}
 
-
+	@Override
 	public void addPropertyListener(IPropertyListener l) {
 		if (listenerList == null)
 			listenerList = new ListenerList();
 		listenerList.add(l);
 	}
 
+	@Override
 	public void removePropertyListener(IPropertyListener l) {
 		if (listenerList != null) {
 			listenerList.remove(l);
@@ -207,20 +207,11 @@ public class XMLSequenceEditor extends EditorPart implements IPropertyListener {
 	}
 	
 	public void propertyChanged(Object source, int propId) {
-		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		
 		// When a property from the xmlEditor Changes, walk the list all the listeners and notify them.
 		Object listeners[] = listenerList.getListeners();
 		for (int i = 0; i < listeners.length; i++) {
 			IPropertyListener listener = (IPropertyListener) listeners[i];
 			listener.propertyChanged(this, propId);
-		}
-		if (IEditorPart.PROP_DIRTY == propId) {
-			if (xmlEditor.isDirty()) {
-				sequence.hasChanged = true;
-				if (projectExplorerView != null)
-					projectExplorerView.updateDatabaseObject(sequence);
-			}
 		}
 	}
 }
