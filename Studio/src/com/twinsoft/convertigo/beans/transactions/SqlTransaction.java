@@ -342,6 +342,9 @@ public class SqlTransaction extends TransactionWithVariables {
 			}
 		}
 		
+		if (Engine.logBeans.isDebugEnabled())
+			Engine.logBeans.debug("(SqlTransaction) Preparing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
+		
 		preparedStatement = connector.prepareStatement(query);
 		return query;
 	}
@@ -371,8 +374,6 @@ public class SqlTransaction extends TransactionWithVariables {
 			
 			// prepare the query and retrieve its type
 			query = prepareQuery(logHiddenValues);
-			if (Engine.logBeans.isDebugEnabled())
-				Engine.logBeans.debug("(SqlTransaction) Executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
 			
 			// build xsdType
 			if (studioMode) {
@@ -612,8 +613,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 		catch (Exception e) {
 			connector.setData(null,null);
-			String logQuery = (String) Visibility.Logs.replaceValues(logHiddenValues, query==null ? sqlQuery:query);
-			throw new EngineException("An unexpected error occured while executing transaction.\nCould not execute query '" + logQuery + "'.",e);
+			throw new EngineException("An unexpected error occured while executing transaction. Could not execute the SQL query.",e);
 		}
 		finally {
 			try {
