@@ -34,8 +34,8 @@ public class HTTPStatementBeanInfo extends MySimpleBeanInfo {
 			beanClass = HTTPStatement.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Statement.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/http_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/http_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/http_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/http_32x32.png";
 			
 			properties = new PropertyDescriptor[9];
 			

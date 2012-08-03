@@ -33,8 +33,8 @@ public class HTTPUploadStatementBeanInfo extends MySimpleBeanInfo {
 			beanClass = HTTPUploadStatement.class;
 			additionalBeanClass = HTTPStatement.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/httpupload_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/httpupload_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/httpupload_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/httpupload_32x32.png";
 			
 			properties = new PropertyDescriptor[2];
 			

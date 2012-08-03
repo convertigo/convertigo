@@ -31,8 +31,8 @@ public class RequestableHttpMultiValuedVariableBeanInfo extends MySimpleBeanInfo
 			beanClass = RequestableHttpMultiValuedVariable.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.variables.RequestableHttpVariable.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/variables/images/variable_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/variables/images/variable_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/variables/images/variable_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/variables/images/variable_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/variables/res/RequestableHttpMultiValuedVariable");
 

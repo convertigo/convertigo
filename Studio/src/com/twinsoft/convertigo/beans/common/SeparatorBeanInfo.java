@@ -37,8 +37,8 @@ public class SeparatorBeanInfo extends MySimpleBeanInfo {
 			beanClass =  Separator.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.JavelinExtractionRule.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/separator_color_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/separator_color_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/separator_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/separator_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/Separator");
 			

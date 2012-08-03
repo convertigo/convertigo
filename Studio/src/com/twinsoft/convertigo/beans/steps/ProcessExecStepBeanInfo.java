@@ -32,8 +32,8 @@ public class ProcessExecStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = ProcessExecStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 	
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/processexec_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/processexec_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/processexec_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/processexec_32x32.png";
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/ProcessExecStep");
 			

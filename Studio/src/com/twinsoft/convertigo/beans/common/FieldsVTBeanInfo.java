@@ -34,8 +34,8 @@ public class FieldsVTBeanInfo extends MySimpleBeanInfo {
 			beanClass = FieldsVT.class;
 			additionalBeanClass = JavelinExtractionRule.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/fieldVT_color_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/fieldVT_color_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/fieldVT_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/fieldVT_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/FieldsVT");
 

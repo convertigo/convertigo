@@ -33,8 +33,8 @@ public class ImageBeanInfo extends MySimpleBeanInfo {
 			beanClass = Image.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.JavelinMashupEventExtractionRule.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/picture_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/picture_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/picture_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/picture_32x32.png";
 
  			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/Image");
 

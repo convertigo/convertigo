@@ -33,8 +33,8 @@ public class XMLGenerateDatesStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = XMLGenerateDatesStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.steps.XMLGenerateStep.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/generatedates_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/generatedates_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/generatedates_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/generatedates_32x32.png";
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/XMLGenerateDatesStep");
 			

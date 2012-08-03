@@ -32,8 +32,8 @@ public class SiteClipperConnectorBeanInfo extends MySimpleBeanInfo {
 			beanClass = SiteClipperConnector.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Connector.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/connectors/images/siteclipper_color_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/connectors/images/siteclipper_color_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/connectors/images/siteclipper_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/connectors/images/siteclipper_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/connectors/res/SiteClipperConnector");
 

@@ -31,8 +31,8 @@ public class RemoveCacheHeadersFromResponseBeanInfo extends MySimpleBeanInfo{
 			beanClass = RemoveCacheHeadersFromResponse.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveCacheHeaders.class;
 	
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_removeCacheheadersResponse_color_16x16.gif";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_removeCacheheadersResponse_color_32x32.gif";
+		    iconNameC16 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_removeCacheheadersResponse_color_16x16.png";
+		    iconNameC32 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_removeCacheheadersResponse_color_32x32.png";
 	
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/RemoveCacheHeadersFromResponse");
 	

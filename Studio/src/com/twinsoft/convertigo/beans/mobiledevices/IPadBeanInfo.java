@@ -31,8 +31,8 @@ public class IPadBeanInfo extends MySimpleBeanInfo {
 			beanClass = IPad.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.MobileDevice.class;
 
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobiledevices/images/apple_color_16x16.gif";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobiledevices/images/apple_color_32x32.gif";
+		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobiledevices/images/apple_color_16x16.png";
+		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobiledevices/images/apple_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/mobiledevices/res/IPad");
 

@@ -31,8 +31,8 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			beanClass = Project.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.DatabaseObject.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/project_color_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/project_color_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/project_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/project_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/Project");
 

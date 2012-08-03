@@ -31,8 +31,8 @@ public class WhileStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = WhileStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.steps.LoopStep.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/while_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/while_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/while_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/while_32x32.png";
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/WhileStep");
 			

@@ -31,8 +31,8 @@ public class ReadXMLStepBeanInfo extends MySimpleBeanInfo{
 			beanClass = ReadXMLStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.steps.ReadFileStep.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/xmlR_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/xmlR_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/xmlR_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/xmlR_32x32.png";
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/ReadXMLStep");
 			

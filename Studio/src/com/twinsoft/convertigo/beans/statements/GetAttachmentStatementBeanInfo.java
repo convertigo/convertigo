@@ -33,8 +33,8 @@ public class GetAttachmentStatementBeanInfo extends MySimpleBeanInfo {
 			beanClass = GetAttachmentStatement.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Statement.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/getattachment_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/getattachment_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/getattachment_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/getattachment_32x32.png";
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/GetAttachmentStatement");
 			

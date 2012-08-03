@@ -10,8 +10,8 @@ public class ThenStatementBeanInfo extends MySimpleBeanInfo {
 			beanClass = ThenStatement.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.StatementWithExpressions.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/if_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/if_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/if_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/if_32x32.png";
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/ThenStatement");
 			

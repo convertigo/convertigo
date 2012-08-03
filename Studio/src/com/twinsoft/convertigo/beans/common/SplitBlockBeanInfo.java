@@ -36,8 +36,8 @@ public class SplitBlockBeanInfo extends MySimpleBeanInfo {
 			beanClass =  SplitBlock.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.JavelinExtractionRule.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/splitblock_color_16x16.gif";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/splitblock_color_32x32.gif";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/splitblock_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/splitblock_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/SplitBlock");
 			
