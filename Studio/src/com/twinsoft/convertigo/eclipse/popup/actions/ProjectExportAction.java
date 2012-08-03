@@ -29,7 +29,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.Project;
@@ -45,6 +44,7 @@ public class ProjectExportAction extends MyAbstractAction {
 		super();
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
@@ -60,22 +60,10 @@ public class ProjectExportAction extends MyAbstractAction {
     		if (explorerView != null) {
     			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
     			Project project = (Project) projectTreeObject.getObject();
-            	String projectName = project.getName();
-    			
-                if (projectTreeObject.getModified()) {
-                    int response = SWT.YES;
-                	MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-                	messageBox.setMessage("The project has not been saved. Do you want to save your work now?");
-                	response = messageBox.open();
-                    if (response == SWT.YES) {
-                    	ConvertigoPlugin.logInfo("Saving the project '"+ projectName +"'");
-                    	ConvertigoPlugin.projectManager.save(project, true);
-                    	while (projectTreeObject.getModified())
-                    		projectTreeObject.hasBeenModified(false);
-                        ConvertigoPlugin.logInfo("Project '"+ projectName +"' saved!");
-                        explorerView.refreshTree();
-                    }
-                }
+            	String projectName = project.getName();                
+
+            	projectTreeObject.save(true);
+            	explorerView.refreshTreeObject(projectTreeObject);
     			
     			String projectArchive = projectName + ".car";
     			

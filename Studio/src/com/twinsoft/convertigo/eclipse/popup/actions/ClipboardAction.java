@@ -240,9 +240,8 @@ public class ClipboardAction extends MyAbstractAction {
                     				else throw new EngineException("Unable to import project archive");
                     			}
                     			catch (Exception e1) {
-                        			project = (Project)object;
+                        			project = (Project) object;
                         			String oldName = project.getOldName();
-                        			ConvertigoPlugin.projectManager.save(project, true);
                         			String newName = project.getName();
                         			
                     				// Copy old xsd file

@@ -31,20 +31,18 @@ public class HandlerStatement extends FunctionStatement implements ITagsProperty
     public static final String EVENT_TRANSACTION_STARTED = "TransactionStarted";
 	public static final String EVENT_XML_GENERATED = "XmlGenerated";
 	public static final String RETURN_CANCEL = "cancel";
-    
-	public static final String CHOOSE_HANDLER_TYPE = "[Please choose handler type]";
 	
 	protected String handlerType = "";
 	protected String handlerResult = "";
 	public boolean preventFromLoops = true;
 	
 	public HandlerStatement() {
-		this(CHOOSE_HANDLER_TYPE,"");
+		this(EVENT_TRANSACTION_STARTED,"");
 	}
 	
 	public HandlerStatement(String handlerType, String handlerResult) {
 		super();
-		this.handlerType = ((handlerType.equals(CHOOSE_HANDLER_TYPE)) ? "":handlerType);
+		this.handlerType = handlerType;
 		this.handlerResult = handlerResult;
 		this.name = "on" + handlerType;
 	}
@@ -77,6 +75,7 @@ public class HandlerStatement extends FunctionStatement implements ITagsProperty
 		this.handlerResult = handlerResult;
 	}
 
+	@Override
 	public Object getReturnedValue() {
 		String value = this.handlerResult;
 		if (this.returnedValue != null) {
@@ -86,6 +85,7 @@ public class HandlerStatement extends FunctionStatement implements ITagsProperty
 		return value;
 	}
 
+	@Override
 	public String toString() {
 		return getName();
 	}
@@ -96,7 +96,7 @@ public class HandlerStatement extends FunctionStatement implements ITagsProperty
 	
 	public String[] getTagsForProperty(String propertyName) {
 		if(propertyName.equals("handlerType")){
-			return new String[] { "", EVENT_TRANSACTION_STARTED, EVENT_XML_GENERATED };
+			return new String[] { EVENT_TRANSACTION_STARTED, EVENT_XML_GENERATED };
 		}else if(propertyName.equals("handlerResult")){
 			return getResultStrings();
 		}

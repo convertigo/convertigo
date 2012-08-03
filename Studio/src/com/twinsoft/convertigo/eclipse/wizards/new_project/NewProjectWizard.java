@@ -505,7 +505,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 					Connector defaultConnector = project.getDefaultConnector();
 					project.setDefaultConnector(httpConnector);
 					defaultConnector.delete();
-					ConvertigoPlugin.projectManager.save(project, true);
 					
 					// Update project xsd/wsdl files
 					for (Transaction transaction: httpConnector.getTransactionsList()) {

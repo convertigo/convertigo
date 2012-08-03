@@ -263,13 +263,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						saveFiles(projectName);
 						
 						Engine.theApp.databaseObjectsManager.exportProject(project);
-
-//						ConvertigoPlugin.projectManager.save(project, true);
 						
 						hasBeenModified(false);
 						ConvertigoPlugin.logInfo("Project '" + projectName + "' saved!");
-						
-//						ConvertigoPlugin.logInfo("Project's XML automatically built");
 						
 						getIProject().refreshLocal(IResource.DEPTH_ONE, null);
 					}
