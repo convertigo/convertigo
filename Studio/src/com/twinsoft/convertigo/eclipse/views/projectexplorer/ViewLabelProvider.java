@@ -97,7 +97,7 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 	@Override
 	public Image getImage(Object obj) {
 		try {
-			String iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.gif";
+			String iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.png";
 			Image image = null;
 			
 			if (obj instanceof UnloadedProjectTreeObject) {
@@ -133,11 +133,11 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 				image = PlatformUI.getWorkbench().getSharedImages().getImage(imageKey);
 			}
 			else if (obj instanceof VariableTreeObject) {
-				iconName = "/com/twinsoft/convertigo/beans/core/images/variable_color_16x16.gif";
+				iconName = "/com/twinsoft/convertigo/beans/core/images/variable_color_16x16.png";
 				image = ViewImageProvider.getImageFromCache(iconName, (VariableTreeObject) obj);
 			}
 			else if (obj instanceof VariableTreeObject2) {
-					iconName = "/com/twinsoft/convertigo/beans/core/images/variable_color_16x16.gif";
+					iconName = "/com/twinsoft/convertigo/beans/core/images/variable_color_16x16.png";
 					image = ViewImageProvider.getImageFromCache(iconName, (VariableTreeObject2) obj);
 			}
 			else if (obj instanceof DatabaseObjectTreeObject) {
@@ -145,21 +145,21 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 				
 				iconName = MySimpleBeanInfo.getIconName(databaseObjectTreeObject.databaseObjectBeanInfo, BeanInfo.ICON_COLOR_16x16);
 				if (iconName == null) {
-					iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.gif";
+					iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.png";
 				}
 				
 				image = ViewImageProvider.getImageFromCache(iconName, databaseObjectTreeObject);
 			}
 			else if (obj instanceof PropertyTableTreeObject) {
-				iconName = "/com/twinsoft/convertigo/beans/core/images/bean_property_16x16.gif";
+				iconName = "/com/twinsoft/convertigo/beans/core/images/bean_property_16x16.png";
 				image = ViewImageProvider.getImageFromCache(iconName, (PropertyTableTreeObject)obj);
 			}
 			else if (obj instanceof PropertyTableRowTreeObject) {
-				iconName = "/com/twinsoft/convertigo/beans/core/images/bean_property_16x16.gif";
+				iconName = "/com/twinsoft/convertigo/beans/core/images/bean_property_16x16.png";
 				image = ViewImageProvider.getImageFromCache(iconName, (PropertyTableRowTreeObject)obj);
 			}
 			else if (obj instanceof PropertyTableColumnTreeObject) {
-				iconName = "/com/twinsoft/convertigo/beans/core/images/bean_property_16x16.gif";
+				iconName = "/com/twinsoft/convertigo/beans/core/images/bean_property_16x16.png";
 				image = ViewImageProvider.getImageFromCache(iconName, (PropertyTableColumnTreeObject)obj);
 			}
 			else {

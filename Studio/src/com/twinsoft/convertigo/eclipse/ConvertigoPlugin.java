@@ -850,7 +850,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
         	String iconName = MySimpleBeanInfo.getIconName(bi, iconKind);
         	if (iconName == null) {
-        		iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_32x32.gif";
+        		iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_32x32.png";
         	}
         	
 			Device device = Display.getCurrent();

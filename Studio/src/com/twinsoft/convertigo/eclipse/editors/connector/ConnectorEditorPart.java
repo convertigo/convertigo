@@ -159,7 +159,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	private Image imageDisableNewScreenclass = new Image(Display.getCurrent(), getClass().getResourceAsStream(
 			"/com/twinsoft/convertigo/eclipse/editors/images/new_screenclass.d.gif"));
 	private Image imageNewTagName = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/beans/common/images/tagname_color_16x16.gif"));
+			"/com/twinsoft/convertigo/beans/common/images/tagname_color_16x16.png"));
 	private Image imageRecord = new Image(Display.getCurrent(), getClass().getResourceAsStream(
 			"/com/twinsoft/convertigo/eclipse/editors/images/record.gif"));
 	private Image imageLearn = new Image(Display.getCurrent(), getClass().getResourceAsStream(

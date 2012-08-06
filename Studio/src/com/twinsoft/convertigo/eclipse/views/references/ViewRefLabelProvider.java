@@ -73,41 +73,41 @@ public class ViewRefLabelProvider implements ILabelProvider {
 		Image image = null;
 
 		if (element instanceof TransactionNode) {
-			iconName = "/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png";
 		} else if (element instanceof ScreenClassNode) {
-			iconName = "/com/twinsoft/convertigo/beans/core/images/screenclass_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/core/images/screenclass_color_16x16.png";
 		} else if (element instanceof Folder) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/information_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/information_color_16x16.png";
 		} else if (element instanceof ProjectNode) {
-			iconName = "/com/twinsoft/convertigo/beans/core/images/project_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/core/images/project_color_16x16.png";
 		} else if (element instanceof EntryHandlerNode) {
-			iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_exit_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_exit_16x16.png";
 		} else if (element instanceof ExitHandlerNode) {
-			iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_entry_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_entry_16x16.png";
 		} else if (element instanceof SequenceNode) {
-			iconName = "/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png";
 		} else if (element instanceof TransactionStepNode) {
-			iconName = "/com/twinsoft/convertigo/beans/steps/images/transactionstep_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/steps/images/transactionstep_16x16.png";
 		} else if (element instanceof SequenceStepNode) {
-			iconName = "/com/twinsoft/convertigo/beans/steps/images/sequencestep_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/steps/images/sequencestep_16x16.png";
 		} else if (element instanceof IsUsedByNode) {
 			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/isusedby_16x16.gif";
 		} else if (element instanceof RequiresNode) {
 			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/requires_16x16.gif";
 		} else if (element instanceof HtmlConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/beans/connectors/images/htmlconnector_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/connectors/images/htmlconnector_color_16x16.png";
 		} else if (element instanceof HttpConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/beans/connectors/images/httpconnector_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/connectors/images/httpconnector_color_16x16.png";
 		} else if (element instanceof JavelinConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/beans/connectors/images/javelinconnector_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/connectors/images/javelinconnector_color_16x16.png";
 		} else if (element instanceof ProxyHttpConnectorNode) {
-			iconName = "/com/twinsoft/convertigobeans/connectors/images/proxyhttpconnector_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/connectors/images/proxyhttpconnector_color_16x16.png";
 		} else if (element instanceof SiteClipperConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/beans/connectors/images/siteclipper_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/connectors/images/siteclipper_color_16x16.png";
 		} else if (element instanceof SqlConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/beans/connectors/images/sqlconnector_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/connectors/images/sqlconnector_color_16x16.png";
 		} else if (element instanceof CicsConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/beans/connectors/images/cicsconnector_color_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/beans/connectors/images/cicsconnector_color_16x16.png";
 		}
 		else {
 			return null;
