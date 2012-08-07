@@ -84,8 +84,8 @@ public class TableEditorComposite extends AbstractDialogComposite {
 		toolBar = new ToolBar(this, SWT.FLAT);
 		toolBar.setLayoutData(gridData);
 		ToolItem newLine = new ToolItem(toolBar, SWT.PUSH);
-		newLine.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/new_line.gif")));
-		newLine.setDisabledImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/new_line.d.gif")));
+		newLine.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/new_line.png")));
+		newLine.setDisabledImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/new_line.d.png")));
 		newLine.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
 			@Override
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
@@ -97,8 +97,8 @@ public class TableEditorComposite extends AbstractDialogComposite {
 			}
 		});
 		ToolItem deleteLine = new ToolItem(toolBar, SWT.PUSH);
-		deleteLine.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/delete.gif")));
-		deleteLine.setDisabledImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/delete.d.gif")));
+		deleteLine.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/delete.png")));
+		deleteLine.setDisabledImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/delete.d.png")));
 		deleteLine.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
 			@Override
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
@@ -122,8 +122,8 @@ public class TableEditorComposite extends AbstractDialogComposite {
 			}
 		});
 		ToolItem moveUp = new ToolItem(toolBar, SWT.PUSH);
-		moveUp.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_up.gif")));
-		moveUp.setDisabledImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_up.d.gif")));
+		moveUp.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_up.png")));
+		moveUp.setDisabledImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_up.d.png")));
 		moveUp.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
 			@Override
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
@@ -144,8 +144,8 @@ public class TableEditorComposite extends AbstractDialogComposite {
 			}
 		});
 		ToolItem moveDown = new ToolItem(toolBar, SWT.PUSH);
-		moveDown.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_down.gif")));
-		moveDown.setDisabledImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_down.d.gif")));
+		moveDown.setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_down.png")));
+		moveDown.setDisabledImage(new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/move_down.d.png")));
 		moveDown.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
 			@Override
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {

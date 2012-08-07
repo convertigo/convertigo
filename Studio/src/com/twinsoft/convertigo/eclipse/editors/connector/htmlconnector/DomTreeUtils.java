@@ -43,8 +43,8 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
 public class DomTreeUtils {
 	private	TreeItem selectedTreeItem = null;
-	private Image imageAttrib = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/attrib.gif"));
-	private Image imageNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/node.gif"));
+	private Image imageAttrib = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/attrib.png"));
+	private Image imageNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/node.png"));
 	
 	/**
 	 * Fills an SWT Tree object with a parsed XML document

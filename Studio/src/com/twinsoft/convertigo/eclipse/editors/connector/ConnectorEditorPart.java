@@ -105,71 +105,71 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	private Action createTagNameFromSelectionZoneAction = null;
 
 	private Image imageRenew = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/renew.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/renew.png"));
 	private Image imageConnect = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/connect.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/connect.png"));
 	private Image imageDisableConnect = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/connect.d.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/connect.d.png"));
 	private Image imageDisconnect = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/disconnect.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/disconnect.png"));
 	private Image imageDisableDisconnect = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/disconnect.d.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/disconnect.d.png"));
 	private Image imageReset = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/reset.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/reset.png"));
 	private Image imageRefresh = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/refresh.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/refresh.png"));
 	private Image imageDebug = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/debug.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/debug.png"));
 	private Image imageDisableDebug = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/debug.d.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/debug.d.png"));
 	private Image imageRun = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/run.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/run.png"));
 	private Image imageDisableRun = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/run.d.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/run.d.png"));
 	private Image imagePause = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/pause.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/pause.png"));
 	private Image imageDisablePause = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/pause.d.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/pause.d.png"));
 	private Image imageStep = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.png"));
 	private Image imageDisableStep = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.d.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/step_by_step.d.png"));
 	private Image imageGenerateXml = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/xml.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/xml.png"));
 	private Image imageStop = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/stop.d.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/stop.d.png"));
 	private Image imageDisableStop = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/stop.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/stop.png"));
 	private Image imageShowScreenclass = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/goto_screen_class.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/goto_screen_class.png"));
 	private Image imageLink = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/bound_property.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/bound_property.png"));
 	private Image imageDisableLink = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/bound_property.d.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/bound_property.d.png"));
 	private Image imageAddFromSelection = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/new_line.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/new_line.png"));
 	private Image imageDisableAddFromSelection = new Image(Display.getCurrent(), getClass()
-			.getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/new_line.d.gif"));
+			.getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/new_line.d.png"));
 	private Image imageGenerateXsl = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/sheet.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/sheet.png"));
 	private Image imageShowBlocks = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/show_blocks.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/show_blocks.png"));
 	private Image imageNewScreenclass = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/new_screenclass.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/new_screenclass.png"));
 	private Image imageDisableNewScreenclass = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/new_screenclass.d.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/new_screenclass.d.png"));
 	private Image imageNewTagName = new Image(Display.getCurrent(), getClass().getResourceAsStream(
 			"/com/twinsoft/convertigo/beans/common/images/tagname_color_16x16.png"));
 	private Image imageRecord = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/record.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/record.png"));
 	private Image imageLearn = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/next_node.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/next_node.png"));
 	private Image imageAccumulate = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/next_node.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/next_node.png"));
 	private Image imageNewWaitAt = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.png"));
 	private Image imageDisableNewWaitAt = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.d.gif"));
+			"/com/twinsoft/convertigo/eclipse/editors/images/write_wait_zone.d.png"));
 
 	private Canvas canvas = null;
 	private AnimatedGif animatedWait;

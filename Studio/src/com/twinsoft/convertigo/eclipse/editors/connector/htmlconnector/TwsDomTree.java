@@ -53,9 +53,9 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public class TwsDomTree extends TreeWrapper {
 	
 	private	TreeItem selectedTreeItem = null;
-	private Image imageAttrib = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/attrib.gif"));
-	private Image imageNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/node.gif"));
-	private Image imageText = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/text.gif"));
+	private Image imageAttrib = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/attrib.png"));
+	private Image imageNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/node.png"));
+	private Image imageText = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/text.png"));
 	private List<MenuMaker> menuMakers = new ArrayList<MenuMaker>();
 	private List<KeyAccelerator> keyAccelerators =  new ArrayList<KeyAccelerator>();
 	

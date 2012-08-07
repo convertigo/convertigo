@@ -218,10 +218,10 @@ public class HtmlXpathEvaluatorComposite extends XpathEvaluatorComposite {
 		String mustEvalMsg = "evaluate the Xpath";
 		String [][][] buttonsDef = new String[][][] {
 				{	//name					, tooltip													, disable_msg														, image_url																		, other
-					{"screenclass"			, "Create new child screen class from current Xpath"		, mustEvalMsg														, "/com/twinsoft/convertigo/eclipse/editors/images/screenclass.gif"	, null},
-					{"criterion"			, "Create new criterion from current Xpath"					, mustEvalMsg														, "/com/twinsoft/convertigo/eclipse/editors/images/criteria.gif"		, null},
-					{"extractionrule"		, "Create new extraction rule from current Xpath"			, mustEvalMsg														, "/com/twinsoft/convertigo/eclipse/editors/images/extractionrule.gif", null},
-					{"statement"			, "Create new statement from current Xpath"					, mustEvalMsg+" and select a statement container in project tree" 	, "/com/twinsoft/convertigo/eclipse/editors/images/statement.gif"		, null}
+					{"screenclass"			, "Create new child screen class from current Xpath"		, mustEvalMsg														, "/com/twinsoft/convertigo/eclipse/editors/images/screenclass.png"	, null},
+					{"criterion"			, "Create new criterion from current Xpath"					, mustEvalMsg														, "/com/twinsoft/convertigo/eclipse/editors/images/criteria.png"		, null},
+					{"extractionrule"		, "Create new extraction rule from current Xpath"			, mustEvalMsg														, "/com/twinsoft/convertigo/eclipse/editors/images/extractionrule.png", null},
+					{"statement"			, "Create new statement from current Xpath"					, mustEvalMsg+" and select a statement container in project tree" 	, "/com/twinsoft/convertigo/eclipse/editors/images/statement.png"		, null}
 				}
 		};
 		return buttonsDef;

@@ -55,11 +55,11 @@ public class DomTreeComposite extends Composite {
 	private HtmlConnectorDesignComposite htmlDesign;
 	private ToolBar treeToolBar = null;
 	private TwsDomTree twsDomTree = null;
-	private Image imageSyncTree = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/sync_tree.gif"));
-	private Image imageParentNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/parent_node.gif"));
-	private Image imagePreviewNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/preview_node.gif"));
-	private Image imageNextNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/next_node.gif"));
-	private Image imageRemoveAlerts = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/remove_alerts.gif"));
+	private Image imageSyncTree = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/sync_tree.png"));
+	private Image imageParentNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/parent_node.png"));
+	private Image imagePreviewNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/preview_node.png"));
+	private Image imageNextNode = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/next_node.png"));
+	private Image imageRemoveAlerts = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/remove_alerts.png"));
 	private Document currentDom;
 	
 	public DomTreeComposite(Composite parent, int style, HtmlConnectorDesignComposite htmlDesign) {

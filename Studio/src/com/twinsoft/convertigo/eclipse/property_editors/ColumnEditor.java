@@ -155,8 +155,8 @@ public class ColumnEditor extends JavelinPropertyTableEditor implements SwingVal
         addButton.setFocusPainted(false);
         addButton.setEnabled(false);
         addButton.setPreferredSize(new Dimension(24, 24));
-        addButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/new_line.gif")));
-        addButton.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/new_line.d.gif")));
+        addButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/new_line.png")));
+        addButton.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/com/twinsoft/convertigo/eclipse/property_editors/images/table_editor/new_line.d.png")));
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
                 addButtonActionPerformed();

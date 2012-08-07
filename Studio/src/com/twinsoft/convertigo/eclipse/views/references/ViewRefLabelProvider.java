@@ -91,9 +91,9 @@ public class ViewRefLabelProvider implements ILabelProvider {
 		} else if (element instanceof SequenceStepNode) {
 			iconName = "/com/twinsoft/convertigo/beans/steps/images/sequencestep_16x16.png";
 		} else if (element instanceof IsUsedByNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/isusedby_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/isusedby_16x16.png";
 		} else if (element instanceof RequiresNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/requires_16x16.gif";
+			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/requires_16x16.png";
 		} else if (element instanceof HtmlConnectorNode) {
 			iconName = "/com/twinsoft/convertigo/beans/connectors/images/htmlconnector_color_16x16.png";
 		} else if (element instanceof HttpConnectorNode) {

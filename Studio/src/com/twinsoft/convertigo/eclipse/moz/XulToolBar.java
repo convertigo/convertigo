@@ -248,7 +248,7 @@ public class XulToolBar extends Composite implements SelectionChangedListener{
 	}
 	
 	public void setEnable(String name, boolean enable){
-		String url = "/com/twinsoft/convertigo/eclipse/moz/images/"+((enable)?"e_":"d_")+name+".gif";
+		String url = "/com/twinsoft/convertigo/eclipse/moz/images/"+((enable)?"e_":"d_")+name+".png";
 		buttons.get(name).setImage(new Image(Display.getCurrent(), getClass().getResourceAsStream(url)));
 	}
 	

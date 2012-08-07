@@ -200,10 +200,10 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		for (int i=0; i<numButtonsDefinition; i++) buttonsDef[i]= buttonsDefinition[i];
 		buttonsDef[numButtonsDefinition] = new String [][] {
 			//name			, tooltip					, disable_msg			, image_url																	, other
-			{"calcxpath"	, "Evaluate Xpath"			, "modify the Xpath"	, "/com/twinsoft/convertigo/eclipse/editors/images/calc_xpath.gif", null},
-			{"backward"		, "Backward Xpath history"	, null					, "/com/twinsoft/convertigo/eclipse/editors/images/backward_history.gif", null},
-			{"forward"		, "Forward Xpath history"	, null					, "/com/twinsoft/convertigo/eclipse/editors/images/forward_history.gif", null},
-			{"anchor"		, "Set anchor"				, "evaluate the Xpath"	, "/com/twinsoft/convertigo/eclipse/editors/images/anchor.gif", null}
+			{"calcxpath"	, "Evaluate Xpath"			, "modify the Xpath"	, "/com/twinsoft/convertigo/eclipse/editors/images/calc_xpath.png", null},
+			{"backward"		, "Backward Xpath history"	, null					, "/com/twinsoft/convertigo/eclipse/editors/images/backward_history.png", null},
+			{"forward"		, "Forward Xpath history"	, null					, "/com/twinsoft/convertigo/eclipse/editors/images/forward_history.png", null},
+			{"anchor"		, "Set anchor"				, "evaluate the Xpath"	, "/com/twinsoft/convertigo/eclipse/editors/images/anchor.png", null}
 		};
 		
 		SelectionListener listener = new SelectionListener(){
