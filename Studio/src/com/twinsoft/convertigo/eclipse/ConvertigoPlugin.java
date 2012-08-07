@@ -898,17 +898,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
         
         switch (iconKind) {
             case java.beans.BeanInfo.ICON_COLOR_16x16:
-                iconType = "_color_16x16.gif";
+                iconType = "_color_16x16.png";
                 break;
             default:
             case java.beans.BeanInfo.ICON_COLOR_32x32:
-                iconType = "_color_32x32.gif";
+                iconType = "_color_32x32.png";
                 break;
             case java.beans.BeanInfo.ICON_MONO_16x16:
-                iconType = "_mono_16x16.gif";
+                iconType = "_mono_16x16.png";
                 break;
             case java.beans.BeanInfo.ICON_MONO_32x32:
-                iconType = "_mono_32x32.gif";
+                iconType = "_mono_32x32.png";
                 break;
         }
         
