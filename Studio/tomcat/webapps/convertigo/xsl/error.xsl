@@ -26,67 +26,62 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:fo="http://www.w3.org/1999/XSL/Format">
 	<xsl:output method="html" indent="no" media-type="text/html" encoding="UTF-8"/>
 	<xsl:template match="error">
-		<html>
-			<head>
-				<title>Twinsoft Convertigo - Error</title>
-				<link rel="stylesheet" href="../../css/exception.css" type="text/css"/>
-				<script type="text/javascript" language="javascript">
-					function showErrorDetails() {
-					   var detailsDiv = document.getElementById("details");
-					   if (eval(detailsDiv)) {
-					      if (detailsDiv.style.display == "none") {
-								detailsDiv.style.display = "block";
-							}
-							else {
-								detailsDiv.style.display = "none";
-							}
-						}
+		<script type="text/javascript" language="javascript">
+			function showErrorDetails() {
+			   var detailsDiv = document.getElementById("details");
+			   if (eval(detailsDiv)) {
+			      if (detailsDiv.style.display == "none") {
+						detailsDiv.style.display = "block";
 					}
-				</script>
-			</head>
-			<body>
+					else {
+						detailsDiv.style.display = "none";
+					}
+				}
+			}
+		</script>
+		<div id="c8o_errorPage">
+			<p class="center">
+				<img src="../../admin/logo_convertigo_mashup_server300_error.png" id="logoConvertigo"/>
+			</p>
+			<blockquote>
 				<p>
-					<img src="../../admin/images/logo-ems-datasheet-300pix.png"/>
+					<table bordercolor="#002F8E" style="border-collapse: collapse" cellspacing="0" cellpadding="0" border="3">
+						<tr>
+							<td valign="top">
+								<table cellspacing="0" cellpadding="6" border="0">
+									<tr>
+										<td class="title" colspan="2">Error</td>
+									</tr>
+									<tr>
+										<td colspan="2">
+											An unexpected error occured while Convertigo was trying to execute the transaction :  '<xsl:value-of select="@transaction"/>'
+											<br/>Try again your request.
+											<br/>If the issue is still occuring, please contact Convertigo administrator, providing the following information.
+										</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
 				</p>
-				<blockquote>
-					<p>
-						<table bordercolor="#002F8E" style="border-collapse: collapse" cellspacing="0" cellpadding="0" border="3">
-							<tr>
-								<td valign="top">
-									<table cellspacing="0" cellpadding="6" border="0">
-										<tr>
-											<td class="title" colspan="2">error</td>
-										</tr>
-										<tr>
-											<td colspan="2">
-												An unexpected error occured while Convertigo was trying to execute the transaction :  '<xsl:value-of select="@transaction"/>'
-												<br/>Try again your request.
-												<br/>If the issue is still occuring, please contact Convertigo administrator, providing the following information.
-											</td>
-										</tr>
-									</table>
-								</td>
-							</tr>
-						</table>
-					</p>
-				</blockquote>
+			</blockquote>
+			<p class="errorDetails">
+				<img src="../../images/arrow-right-triple.gif"/>
+				<a href="javascript:showErrorDetails()">Click here to display error details</a>
+			</p>
+			<div id="details" style="display: none">
+				<h3>Main exception</h3>
 				<p>
-					<img src="../../images/arrow-right-triple.gif"/>
-					<a href="javascript:showErrorDetails()">Click here to display error details</a>
+					<b>[<xsl:value-of select="exception"/>]</b><br/>
+					<xsl:value-of select="message"/>
 				</p>
-				<div id="details" style="display: none">
-					<h3>Main exception</h3>
-					<p>
-						<b>[<xsl:value-of select="exception"/>]</b><br/>
-						<xsl:value-of select="message"/>
-					</p>
-					<h3>Stack trace</h3>
-					<pre>
-						<xsl:value-of select="stacktrace"/>
-					</pre>
-					<p class="small">Copyright © 2001-2011 Convertigo SA. All rights reserved.</p>
-				</div>
-			</body>
-		</html>
+				<h3>Stack trace</h3>
+				<pre>
+					<xsl:value-of select="stacktrace"/>
+				</pre>
+				<hr/>
+				<p class="small center">Copyright © 2001-20112 Convertigo SA. All rights reserved.</p>
+			</div>
+		</div>
 	</xsl:template>
 </xsl:stylesheet>
