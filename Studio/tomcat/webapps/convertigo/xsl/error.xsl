@@ -45,7 +45,7 @@
 			</p>
 			<blockquote>
 				<p>
-					<table bordercolor="#002F8E" style="border-collapse: collapse" cellspacing="0" cellpadding="0" border="3">
+					<table cellspacing="0" cellpadding="0">
 						<tr>
 							<td valign="top">
 								<table cellspacing="0" cellpadding="6" border="0">
@@ -66,7 +66,7 @@
 				</p>
 			</blockquote>
 			<p class="errorDetails">
-				<img src="../../images/arrow-right-triple.gif"/>
+				<img src="../../admin/images/icon_details_error_xsl.png"/>
 				<a href="javascript:showErrorDetails()">Click here to display error details</a>
 			</p>
 			<div id="details" style="display: none">

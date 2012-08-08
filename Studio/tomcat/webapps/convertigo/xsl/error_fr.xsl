@@ -45,7 +45,7 @@
 			</p>
 			<blockquote>
 				<p>
-					<table bordercolor="#002F8E" style="border-collapse: collapse" cellspacing="0" cellpadding="0" border="3">
+					<table cellspacing="0" cellpadding="0">
 						<tr>
 							<td valign="top">
 								<table cellspacing="0" cellpadding="6" border="0">
