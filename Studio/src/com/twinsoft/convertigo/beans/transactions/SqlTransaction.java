@@ -480,7 +480,11 @@ public class SqlTransaction extends TransactionWithVariables {
 								} catch (SQLException e) {
 									Engine.logBeans.error("(SqlTransaction) Exception while getting object for column " + index, e);
 								}
-								String resu = ((ob != null) ? ob.toString():"");
+								String resu = "";
+								if (ob != null) {
+									if (ob instanceof byte[]) resu = new String((byte[]) ob, "UTF-8"); // See #3043
+									else resu = ob.toString();
+								}
 								Engine.logBeans.trace("(SqlTransaction) Retrieved value ("+resu+") for column " + columnName + ", line " + (j-1) + ".");
 								line.set(index-1, resu);
 								elementTable.put(columnName,resu);
