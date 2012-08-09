@@ -77,7 +77,7 @@ public class ExternalBrowserTransaction extends TransactionWithVariables {
 			ebi.addDocumentCompledListener(listener);
 			synchronized (listener) {
 				ebi.gotoUrl(url);
-				Document d = ebi.getDom();
+				//Document d = ebi.getDom();
 				try {
 					listener.wait(30000);
 					if (!done[0]) {
