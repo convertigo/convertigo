@@ -235,11 +235,11 @@ public abstract class GenericRequester extends Requester {
 			this.inputData = inputData;
 			context = getContext();
 
-			Engine.logContext.trace("[" + getName() + "] Locking the working semaphore...");
+			Engine.logContext.debug("[" + getName() + "] Locking the working semaphore...");
 
 			synchronized(context) {
 				context.waitingRequests++;
-				Engine.logContext.trace("[" + getName() + "] Working semaphore locked (" + context.waitingRequests + " requests(s) pending) [" + context.hashCode() + "]");
+				Engine.logContext.debug("[" + getName() + "] Working semaphore locked (" + context.waitingRequests + " requests(s) pending) [" + context.hashCode() + "]");
 
 				// Update log4j context infos
 				Log4jHelper.mdcInit(context);
