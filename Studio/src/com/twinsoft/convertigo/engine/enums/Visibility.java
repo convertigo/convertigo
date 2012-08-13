@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Iterator;
 import java.util.List;
 
@@ -190,6 +191,19 @@ public enum Visibility {
 			}
 			
 			// Case of variables Map : {variable_name,variable_value}
+			if (object instanceof Map<?, ?>) {
+				Map<String, Object> toPrint = GenericUtils.cast(GenericUtils.clone(object));
+				for (Variable variable: variableList) {
+					if (variable != null && isMasked(variable.getVisibility())) {
+						for (String key : getVariableKeyNames(variable)) {
+							if (toPrint.get(key) != null)
+								toPrint.put(key, STRING_MASK);
+						}
+					}
+				}
+				return toPrint;
+			}
+			// Case of variables HashMap : {variable_name,variable_value}
 			if (object instanceof HashMap<?, ?>) {
 				HashMap<String, Object> toPrint = GenericUtils.cast(GenericUtils.clone(object));
 				for (Variable variable: variableList) {
@@ -201,7 +215,7 @@ public enum Visibility {
 					}
 				}
 				return toPrint;
-			}
+			}			
 			// Case of Document : inputDocument | XSL requestTemplate
 			if (object instanceof Document) {
 				Document toPrint = XMLUtils.createDom("java");
