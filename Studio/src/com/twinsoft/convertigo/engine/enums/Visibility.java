@@ -24,9 +24,9 @@ package com.twinsoft.convertigo.engine.enums;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.soap.SOAPBody;
@@ -154,8 +154,8 @@ public enum Visibility {
 			}
 			
 			// Case of variables Map : {variable_name,variable_value}
-			if (object instanceof Hashtable<?, ?>) {
-				Hashtable<String, Object> toPrint = GenericUtils.cast(GenericUtils.clone(object));
+			if (object instanceof Map<?, ?>) {
+				Map<String, Object> toPrint = GenericUtils.cast(GenericUtils.clone(object));
 				for (Variable variable: variableList) {
 					if (variable != null && isMasked(variable.getVisibility())) {
 						for (String key : getVariableKeyNames(variable)) {
