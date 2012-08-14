@@ -26,10 +26,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.soap.SOAPBody;
@@ -203,19 +202,6 @@ public enum Visibility {
 				}
 				return toPrint;
 			}
-			// Case of variables HashMap : {variable_name,variable_value}
-			if (object instanceof HashMap<?, ?>) {
-				HashMap<String, Object> toPrint = GenericUtils.cast(GenericUtils.clone(object));
-				for (Variable variable: variableList) {
-					if (variable != null && isMasked(variable.getVisibility())) {
-						for (String key : getVariableKeyNames(variable)) {
-							if (toPrint.get(key) != null)
-								toPrint.put(key, STRING_MASK);
-						}
-					}
-				}
-				return toPrint;
-			}			
 			// Case of Document : inputDocument | XSL requestTemplate
 			if (object instanceof Document) {
 				Document toPrint = XMLUtils.createDom("java");
