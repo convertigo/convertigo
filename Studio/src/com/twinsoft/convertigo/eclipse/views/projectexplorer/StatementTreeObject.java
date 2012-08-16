@@ -262,9 +262,9 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 	}
 	
 	private void openJscriptStatementEditor(IProject project) {
-		Statement statement = (Statement)this.getObject();
+		Statement statement = this.getObject();
 
-		IFile file = project.getFile("/_private/" + statement.getQName());
+		IFile file = project.getFile("/_private/" + statement.getQName() + " " + statement.getName());
 
 		IWorkbenchPage activePage = PlatformUI
 										.getWorkbench()
@@ -272,7 +272,7 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 										.getActivePage();
 		if (activePage != null) {
 			try {
-				activePage.openEditor(new JscriptStatementEditorInput(file,statement),
+				activePage.openEditor(new JscriptStatementEditorInput(file, statement),
 										"com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStatementEditor");
 			}
 			catch(PartInitException e) {

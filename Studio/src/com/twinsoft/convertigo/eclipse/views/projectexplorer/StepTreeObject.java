@@ -336,9 +336,10 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 	}
 	
 	private void openJscriptStepEditor(IProject project) {
-		Step step = (Step)this.getObject();
+		Step step = (Step) this.getObject();
 
-		IFile file = project.getFile("/_private/" + step.getQName());
+
+		IFile file = project.getFile("/_private/" + step.getQName() + " " + step.getName());
 		
 		IWorkbenchPage activePage = PlatformUI
 										.getWorkbench()
