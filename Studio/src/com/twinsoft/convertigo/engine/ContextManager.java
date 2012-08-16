@@ -357,7 +357,10 @@ public class ContextManager extends AbstractRunnableManager {
     }
     
     public void remove(Context context) {
-        synchronized(contexts) {
+    	// To prevent from deadlock, we must synchronize on the context itself (see #3048)
+    	// to avoid another request thread to try to use the context simultaneously.
+    	// This lock must occur BEFORE acquiring lock the the contexts table.
+    	synchronized (context) {
 			if (context == null) {
 				// Silently ignore
 				Engine.logContextManager.warn("The context can not be removed because it does not exist any more!");
@@ -450,7 +453,11 @@ public class ContextManager extends AbstractRunnableManager {
 			}
 
 			context = null;
-            contexts.remove(contextID);
+
+            synchronized(contexts) {
+            	contexts.remove(contextID);
+            }
+
             Engine.logContextManager.debug("Context " + contextID + " has been removed");
             Engine.logContext.debug("[" + contextID + "] Context removed, project: " + projectName);
             Engine.logContextManager.info("Current in-use contexts: " + contexts.size());
@@ -475,8 +482,7 @@ public class ContextManager extends AbstractRunnableManager {
 		// improve context removal on session unbound process
 		try {
 			HttpSession httpSession = (HttpSession)HttpSessionListener.httpSessions.get(sessionID);
-			@SuppressWarnings("unchecked")
-			ArrayList<Context> contextList = (ArrayList<Context>)httpSession.getAttribute("contexts");
+			ArrayList<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
 			for (Context context: contextList) {
 				remove(context);
 			}
