@@ -23,6 +23,7 @@
       <library name="lib/runtime.jar"/>
       <library name="lib/studio.jar"/>
       <library name="lib/engine.jar"/>
+      <library name="lib/engine-htmlparsers.jar"/>
       <library name="lib/beans.jar"/>
       <library name="lib/tools.jar"/>
       <library name="lib/traceplayer.jar"/>
