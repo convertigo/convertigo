@@ -49,6 +49,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -59,6 +60,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SmtpStep extends Step implements IStepSourceContainer, ITagsProperty {
@@ -68,8 +70,8 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
 	
 	private String smtpServer = "xxx.xxx.xxx.xxx";
-	private String smtpRecipients = "someone@domain.org";
-	private String smtpSubject = "Convertigo sequence report";
+	private String smtpRecipients = "\"someone@domain.org\"";
+	private String smtpSubject = "\"Convertigo sequence report\"";
 	private String smtpUsername = "";
 	private String smtpPassword = "";
 	private String smtpPort = "25";
@@ -83,6 +85,8 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 	private transient String sMessageText = "";
 	private transient String sContentType;
 	private transient List<BodyPart> bodyParts = new LinkedList<BodyPart>();
+	private transient String sSubject;
+	private transient String sRecipients;
 	
 	public SmtpStep() {
 		super();
@@ -234,6 +238,12 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 		if (isEnable) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				try {
+					evaluate(javascriptContext, scope, this.smtpSubject, "smtpSubject", false);
+					sSubject = evaluated instanceof Undefined ? "" : evaluated.toString();
+					
+					evaluate(javascriptContext, scope, this.smtpRecipients, "smtpRecipients", false);
+					sRecipients = evaluated instanceof Undefined ? "" : evaluated.toString();
+					
 					evaluate(javascriptContext, scope, this.xslFilepath, "xslFilepath", false);
 					String xslFilepath = evaluated instanceof Undefined ? "" : evaluated.toString();
 					evaluate(javascriptContext, scope, contentType, "contentType", false);
@@ -346,8 +356,7 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 		MimeMessage ret = message;
 		try {
 			Address[] replies = {new InternetAddress(smtpSender)};
-			smtpRecipients = smtpRecipients.replaceAll(",|;", "µ");
-			String[] recipients = smtpRecipients.split("µ");
+			String[] recipients = sRecipients.split(",|;");
 			// Adding sender
 			ret.setFrom(new InternetAddress(smtpSender));
 			ret.setSender(new InternetAddress(smtpSender));
@@ -376,7 +385,7 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 			}
 			
 			//Adding mail subject
-			ret.setSubject(smtpSubject);
+			ret.setSubject(sSubject);
 
 			//Adding content
 			if (bodyParts.size() > 0) {
@@ -498,4 +507,18 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 		}
 		return ret;
 	}
+	
+    @Override
+	public void configure(Element element) throws Exception {
+		super.configure(element);
+		
+		String version = element.getAttribute("version");
+		
+		 if (version!= null && VersionUtils.compareMigrationVersion(version, ".m005") < 0) {
+	        Engine.logDatabaseObjectManager.info("Migration to m005 for SmtpStep subject and recipients");
+	        
+	        smtpSubject = "\"" + smtpSubject + "\"";
+	        smtpRecipients = "\"" + smtpRecipients + "\"";
+		 }
+    }
 }

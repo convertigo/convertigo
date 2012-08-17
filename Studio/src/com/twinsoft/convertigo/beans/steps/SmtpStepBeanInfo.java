@@ -65,10 +65,12 @@ public class SmtpStepBeanInfo extends MySimpleBeanInfo {
             properties[4] = new PropertyDescriptor("smtpRecipients", beanClass, "getSmtpRecipients", "setSmtpRecipients");
             properties[4].setDisplayName(getExternalizedString("property.smtpRecipients.display_name"));
             properties[4].setShortDescription(getExternalizedString("property.smtpRecipients.short_description"));
+	        properties[4].setValue("scriptable", Boolean.TRUE);
             
             properties[5] = new PropertyDescriptor("smtpSubject", beanClass, "getSmtpSubject", "setSmtpSubject");
             properties[5].setDisplayName(getExternalizedString("property.smtpSubject.display_name"));
             properties[5].setShortDescription(getExternalizedString("property.smtpSubject.short_description"));
+	        properties[5].setValue("scriptable", Boolean.TRUE);
             
             properties[6] = new PropertyDescriptor("smtpAuthType", beanClass, "getSmtpAuthType", "setSmtpAuthType");
             properties[6].setDisplayName(getExternalizedString("property.smtpAuthType.display_name"));
