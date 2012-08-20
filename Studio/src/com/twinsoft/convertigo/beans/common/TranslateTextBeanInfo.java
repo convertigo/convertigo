@@ -41,11 +41,15 @@ public class TranslateTextBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[1];
+			properties = new PropertyDescriptor[2];
 
 		    properties[0] = new PropertyDescriptor("dictionary", beanClass, "getDictionary", "setDictionary");
 			properties[0].setDisplayName(getExternalizedString("property.dictionary.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.dictionary.short_description"));
+
+		    properties[1] = new PropertyDescriptor("generateOrphans", beanClass, "isGenerateOrphans", "setGenerateOrphans");
+			properties[1].setDisplayName(getExternalizedString("property.generateOrphans.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.generateOrphans.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

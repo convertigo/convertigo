@@ -22,11 +22,18 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.engine.Engine;
+
 
 public class FileUtils extends org.apache.commons.io.FileUtils {
 	private static Pattern CrlfPattern = Pattern.compile("\\r\\n");
@@ -82,5 +89,39 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	
 	public static String CrlfToLf(String content) {
 		return CrlfPattern.matcher(content).replaceAll("\n");
+	}
+	
+	public static void saveUTF8Properties(Map<String, String> map, File file) throws IOException {
+		PrintStream ps = new PrintStream(file, "UTF-8");
+		for (Entry<String, String> entry : map.entrySet()) {
+			ps.println(entry.getKey());
+			ps.println(entry.getValue());
+			ps.println();
+		}
+		ps.close();
+	}
+	
+	public static void loadUTF8Properties(Map<String, String> map, File file) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+		String key = null;
+		String line;
+		int cpt = 1;
+		while ((line = br.readLine()) != null) {
+			if (line.length() != 0) {
+				if (cpt % 3 == 1) {
+					key = line;
+				} else if (cpt % 3 == 2) {
+					map.put(key, line);
+				} else {
+					throw new IOException("The line number " + cpt + " must be empty (" + line + ")");
+				}
+			} else {
+				if (cpt % 3 != 0) {
+					throw new IOException("The line number " + cpt + " must not be empty (last key =" + key + ")");
+				}
+			}
+			cpt++;
+		}
+		br.close();
 	}
 }
