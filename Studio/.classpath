@@ -35,6 +35,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/internal/twinj-v28353.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/aviva-111114.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/externalbrowser.jar"/>
+	<classpathentry kind="lib" path="lib/convertigo-engine-htmlparsers.jar"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry exported="true" kind="lib" path="lib/cos.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jCharts-0.7.2.jar"/>
