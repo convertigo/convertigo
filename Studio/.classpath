@@ -31,12 +31,10 @@
 	<classpathentry exported="true" kind="lib" path="lib/internal/phaos.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/tas-v25667.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/api-v25978.jar" sourcepath="/ConvertigoLibs/src"/>
-	<classpathentry exported="true" kind="lib" path="lib/internal/ibm-v28353.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/internal/ibm-v28353.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/twinj-v28353.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/internal/html_parsers-v30936.jar" sourcepath="/CemsHtmlParsers/src"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/aviva-111114.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/externalbrowser.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry exported="true" kind="lib" path="lib/cos.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jCharts-0.7.2.jar"/>
@@ -83,7 +81,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-codec-1.3.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-fileupload-1.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-httpclient-3.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-io-1.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-io-1.4.jar" sourcepath="/ExternalJavaSources/commons-io-2.0.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-logging-1.1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/geronimo-annotation_1.0_spec-1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/geronimo-jaxws_2.2_spec-1.0.jar"/>
@@ -122,11 +120,8 @@
 	<classpathentry exported="true" kind="lib" path="lib/apache/bcel/bcel-5.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/backport/backport-util-concurrent-3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/bcprov-jdk15-141.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/soapui/not-yet-commons-ssl-0.3.11.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/commons-beanutils-1.7.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/soapui/commons-cli-1.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/soapui/soapui-3.5.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/soapui/soapui-xmlbeans-3.5.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/xerces-2_11_0/xercesImpl.jar" sourcepath="/ExternalJavaSources/Xerces-J-src.2.11.0.zip"/>
 	<classpathentry exported="true" kind="lib" path="lib/xerces-2_11_0/xml-apis.jar"/>
 	<classpathentry exported="true" kind="lib" path="tomcat/lib/catalina.jar" sourcepath="/ExternalJavaSources/apache-tomcat-6.0.20-src"/>
@@ -135,5 +130,9 @@
 	<classpathentry exported="true" kind="lib" path="tomcat/lib/tomcat-coyote.jar"/>
 	<classpathentry exported="true" kind="lib" path="tomcat/lib/tomcat-dbcp.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/rhino-1.7-R2.jar" sourcepath="/ExternalJavaSources/rhino-1.7R3"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5"/>
+	<classpathentry kind="lib" path="lib/soapui/not-yet-commons-ssl-0.3.11.jar"/>
+	<classpathentry kind="lib" path="lib/soapui/soapui-3.5.1.jar"/>
+	<classpathentry kind="lib" path="lib/soapui/soapui-xmlbeans-3.5.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
