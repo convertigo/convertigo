@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans;
  
+import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.FileFilter;
 import java.lang.reflect.Field;
@@ -29,9 +30,15 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class CheckBeans {
 
@@ -55,7 +62,7 @@ public class CheckBeans {
 					if (javaClassName.endsWith("BeanInfo")) return false;
 					
 					javaClassName = "com.twinsoft.convertigo.beans" + javaClassName;
-					System.out.println("Adding " + javaClassName);
+					//System.out.println("Adding " + javaClassName);
 					javaClassNames.add(javaClassName);
 					return true;
 				}
@@ -67,6 +74,8 @@ public class CheckBeans {
 	private static String srcBase;
 	
 	public static void main(String[] args) {
+		Engine.logBeans = Logger.getLogger(BeansDoc.class);
+
 		srcBase = args[0];
 		
 		System.out.println("Browsing sources in " + srcBase);
@@ -79,43 +88,104 @@ public class CheckBeans {
 			analyzeJavaClass(javaClassName);
 		}
 
-		System.out.println("\nFound " + nbWarnings1 + " non static, non transient and public field(s) possibly without getter and/or setter");
-		for (String warning : warnings1) {
-			System.out.println("   " + warning);
+		System.out.println();
+		
+		for (Error error : Error.values()) {
+			List<String> errorList = errors.get(error);
+			if (errorList == null) continue;
+			System.out.println(error);
+			for (String errorMessage : errorList) {
+				System.out.println("   " + errorMessage);
+			}
+			System.out.println();
 		}
-		System.out.println("\nFound " + nbWarnings4 + " possible DBO property(ies) not declared as private");
-		for (String warning : warnings4) {
-			System.out.println("   " + warning);
+		
+		System.out.println();
+		System.out.println("=======");
+		System.out.println("Summary");
+		System.out.println("=======");
+		System.out.println();
+
+		for (Error error : Error.values()) {
+			List<String> errorList = errors.get(error);
+			int nError = 0;
+			if (errorList != null) nError = errorList.size();
+			System.out.println(error + ": found " + nError + " error(s)");
 		}
-		System.out.println("\nFound " + nbWarnings2 + " non static, non transient and non public field(s)");	
-		for (String warning : warnings2) {
-			System.out.println("   " + warning);
-		}
-		System.out.println("\nIgnored " + nbWarnings3 + " non DBO class(es)");	
-		for (String warning : warnings3) {
-			System.out.println("   " + warning);
-		}
+		
+		System.out.println("\nBean checking finished!");
 	}
 
-	private static int nbWarnings1 = 0;
-	private static List<String> warnings1 = new ArrayList<String>();
-	private static int nbWarnings2 = 0;
-	private static List<String> warnings2 = new ArrayList<String>();
-	private static int nbWarnings3 = 0;
-	private static List<String> warnings3 = new ArrayList<String>();
-	private static int nbWarnings4 = 0;
-	private static List<String> warnings4 = new ArrayList<String>();
+	private enum Error {
+		//NON_DATABASE_OBJECT("Non database object"),
+		MISSING_BEAN_INFO("Missing bean info"),
+		BEAN_ICON_NAMING_POLICY("Wrong icon name "),
+		BEAN_PROPERTY_NAMING_POLICY("Wrong property name"),
+		BEAN_PROPERTY_NOT_PRIVATE("Non private bean property"),
+		BEAN_PROPERTY_TRANSIENT("Transient bean property"),
+		GETTER_SETTER_NAMING_POLICY("Wrong getter and/or setter name"),
+		GETTER_SETTER_DECLARED_EXPECTED_NAME_MISMATCH("Declared and expected getter and/or setter mismatch"),
+		FIELD_NOT_TRANSIENT("Field not transient");
+		
+		private String label;
+		
+		Error(String label) {
+			this.label = label;
+		}
+		
+		public String toString() {
+			return label;
+		}
+		
+		public void add(String errorMessage) {
+			List<String> errorList = errors.get(this);
+			if (errorList == null) {
+				errorList = new ArrayList<String>();
+				errors.put(this, errorList);
+			}
+			errorList.add(errorMessage);
+		}
+	}
 	
+	private static Map<Error, List<String>> errors = new HashMap<Error, List<String>>();
+
 	private static void analyzeJavaClass(String javaClassName) {
 		try {
 			Class<?> javaClass = Class.forName(javaClassName);
+			String javaClassSimpleName = javaClass.getSimpleName();
 			
 			if (!DatabaseObject.class.isAssignableFrom(javaClass)) {
-				warnings3.add(javaClassName);
-				nbWarnings3++;
+				//Error.NON_DATABASE_OBJECT.add(javaClassName);
 				return;
 			}
 			
+			String dboBeanInfoClassName = javaClassName + "BeanInfo";
+			MySimpleBeanInfo dboBeanInfo = null;
+			try {
+				dboBeanInfo = (MySimpleBeanInfo) (Class.forName(dboBeanInfoClassName)).newInstance();
+			} catch (ClassNotFoundException e) {
+				Error.MISSING_BEAN_INFO.add(javaClassName + " (expected bean info: " + dboBeanInfoClassName + ")");
+				return;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return;
+			}
+			
+			// Check icon name policy
+			String expectedIconName = javaClassName.replace(javaClassSimpleName, "images/" + javaClassSimpleName);
+			expectedIconName = "/" + expectedIconName.replace('.', '/') + "_color_16x16";
+			expectedIconName = expectedIconName.toLowerCase();
+			String declaredIconName = MySimpleBeanInfo.getIconName(dboBeanInfo, MySimpleBeanInfo.ICON_COLOR_16x16);
+			if (declaredIconName != null) {
+				declaredIconName = declaredIconName.substring(0, declaredIconName.length() - 4);
+				if (!declaredIconName.equals(expectedIconName)) {
+					Error.BEAN_ICON_NAMING_POLICY.add(javaClassName + "\n"
+							+ "      Declared: " + declaredIconName + "\n"
+							+ "      Expected: " + expectedIconName);
+					return;
+				}
+			}
+
 			Method[] methods = javaClass.getDeclaredMethods();
 			List<Method> listMethods = Arrays.asList(methods);
 			List<String> listMethodNames = new ArrayList<String>();
@@ -128,41 +198,75 @@ public class CheckBeans {
 			for (Field field : fields) {
 				int fieldModifiers = field.getModifiers();
 
+				// Ignore static fields (constants)
 				if (Modifier.isStatic(fieldModifiers)) continue;
-				
-				if (Modifier.isTransient(fieldModifiers)) continue;
-				
-				String getter = "get" + field.getName();
-				if (field.getType().equals(Boolean.class))
-					getter = "is" + field.getName();
-				String setter = "set" + field.getName();
-				
-				getter = getter.toLowerCase();
-				setter = setter.toLowerCase();
 
-				if (Modifier.isPublic(fieldModifiers)) {
-					// check getter and setter
-					if (!listMethodNames.contains(getter) || !listMethodNames.contains(setter)) {
-						warnings1.add(javaClassName + ": " + field.getName());
-						nbWarnings1++;
+				String fieldName = field.getName();
+				
+				String errorMessage = javaClassName + ": " + field.getName();
+				
+				// Check against bean info class
+				PropertyDescriptor propertyDescriptor = isBeanProperty(fieldName, dboBeanInfo);
+				if (propertyDescriptor != null) {
+					String declaredGetter = propertyDescriptor.getReadMethod().getName();
+					String declaredSetter = propertyDescriptor.getWriteMethod().getName();
+					
+					String formattedFieldName = Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+					String expectedGetter = "get" + formattedFieldName;
+					String expectedSetter = "set" + formattedFieldName;
+					
+					// Check bean property name policy
+					if (!propertyDescriptor.getName().equals(fieldName)) {
+						Error.BEAN_PROPERTY_NAMING_POLICY.add(errorMessage);
+						continue;
 					}
+					
+					// Check getter and setter name policy
+					if (!declaredGetter.equals(expectedGetter) || !declaredGetter.equals(expectedSetter)) {
+						Error.GETTER_SETTER_DECLARED_EXPECTED_NAME_MISMATCH.add(errorMessage);
+						continue;
+					}
+					
+					// Check required private modifiers for bean property
+					if (!Modifier.isPrivate(fieldModifiers)) {
+						Error.BEAN_PROPERTY_NOT_PRIVATE.add(errorMessage);
+						continue;
+					}
+					
+					// Check getter and setter
+					if (!listMethodNames.contains(declaredGetter) || !listMethodNames.contains(declaredSetter)) {
+						Error.GETTER_SETTER_NAMING_POLICY.add(errorMessage);
+						continue;
+					}
+
+					// Check non transient modifier
+					if (Modifier.isTransient(fieldModifiers)) {
+						Error.BEAN_PROPERTY_TRANSIENT.add(errorMessage);
+						continue;
+					}
+					
+					continue;
 				}
 
-				if (Modifier.isProtected(fieldModifiers)) {
-					// check getter and setter
-					if (listMethodNames.contains(getter) && listMethodNames.contains(setter)) {
-						warnings4.add(javaClassName + ": " + field.getName());
-						nbWarnings4++;
-					}
+				if (!Modifier.isTransient(fieldModifiers)) {
+					Error.FIELD_NOT_TRANSIENT.add(errorMessage);
+					continue;
 				}
-
-				warnings2.add(javaClassName + ": " + field.getName());
-				nbWarnings2++;
 			}
 		} catch (ClassNotFoundException e) {
 			System.out.println("ERROR on " + javaClassName);
 			e.printStackTrace();
 		}
+	}
+
+	private static PropertyDescriptor isBeanProperty(String fieldName, MySimpleBeanInfo dboBeanInfo) {
+		PropertyDescriptor[] propertyDescriptors = dboBeanInfo.getPropertyDescriptors();
+		
+		for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+			if (propertyDescriptor.getName().equals(fieldName)) return propertyDescriptor;
+		}
+		
+		return null;
 	}
 
 }
