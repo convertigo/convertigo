@@ -1097,7 +1097,7 @@
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.ReplaceText">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
                 </bean>
-                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.common.TranslateText">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.TranslateText">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
                 </bean>
             </beans>
