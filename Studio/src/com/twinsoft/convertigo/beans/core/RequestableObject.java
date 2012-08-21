@@ -272,6 +272,14 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 			Element outputDocumentRootElement = context.outputDocument.createElement("document");
 			context.outputDocument.appendChild(outputDocumentRootElement);
             
+			outputDocumentRootElement.setAttribute("project", context.projectName);
+			outputDocumentRootElement.setAttribute("sequence", context.sequenceName);
+			outputDocumentRootElement.setAttribute("connector", context.connectorName);
+			outputDocumentRootElement.setAttribute("transaction", context.transactionName);
+			if (context.lang != null && context.lang.length() != 0) {
+				outputDocumentRootElement.setAttribute("lang", context.lang);
+			}
+			
             int maxNbCurrentWorkerThreads = Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_MAX_WORKER_THREADS));
             
             if (nbCurrentWorkerThreads >= maxNbCurrentWorkerThreads)
@@ -361,10 +369,6 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
                     throw (EngineException) runningThread.exception;
                 else throw new EngineException("An unexpected error has occured while the execution of the requested object '" + name + "'.", runningThread.exception);
 
-			outputDocumentRootElement.setAttribute("project", context.projectName);
-			outputDocumentRootElement.setAttribute("sequence", context.sequenceName);
-			outputDocumentRootElement.setAttribute("connector", context.connectorName);
-			outputDocumentRootElement.setAttribute("transaction", context.transactionName);
 			outputDocumentRootElement.setAttribute("generated", Calendar.getInstance(Locale.getDefault()).getTime().toString());
 			
             Engine.logContext.debug("(RequestableObject) End of the thread for the requested object '" + name + "'");

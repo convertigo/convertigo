@@ -514,6 +514,13 @@ public abstract class GenericRequester extends Requester {
 				}
 			}
 		}
+		// This is the overidden transaction
+		else if (parameterName.equals(Parameter.Lang.getName())) {
+			if ((parameterValue != null) && (!parameterValue.equals(""))) {
+				context.lang = parameterValue;
+				Engine.logContext.debug("The translation language requested is \"" + context.lang + "\".");
+			}
+		}
 	}
 
 	@Override

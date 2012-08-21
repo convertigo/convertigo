@@ -91,8 +91,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		return CrlfPattern.matcher(content).replaceAll("\n");
 	}
 	
-	public static void saveUTF8Properties(Map<String, String> map, File file) throws IOException {
-		PrintStream ps = new PrintStream(file, "UTF-8");
+	public static void saveProperties(Map<String, String> map, File file, String encoding) throws IOException {
+		PrintStream ps = new PrintStream(file, encoding);
 		for (Entry<String, String> entry : map.entrySet()) {
 			ps.println(entry.getKey());
 			ps.println(entry.getValue());
@@ -101,8 +101,8 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		ps.close();
 	}
 	
-	public static void loadUTF8Properties(Map<String, String> map, File file) throws IOException {
-		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+	public static void loadProperties(Map<String, String> map, File file, String encoding) throws IOException {
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding));
 		String key = null;
 		String line;
 		int cpt = 1;

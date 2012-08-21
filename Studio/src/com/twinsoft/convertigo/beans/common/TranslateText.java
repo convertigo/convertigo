@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.twinsoft.convertigo.beans.core.Block;
@@ -47,14 +48,15 @@ public class TranslateText extends JavelinExtractionRule {
 		
 		public DictionaryEntry() {
 			if (generateOrphans) {
-				orphans = Collections.synchronizedMap(new HashMap<String, String>());
+				orphans = Collections.synchronizedMap(new LinkedHashMap<String, String>());
 			}
 		}
 	}
 	
 	private final static Map<String, DictionaryEntry> cachedDictionaries = new HashMap<String, TranslateText.DictionaryEntry>();
     
-    private String dictionary = "dictionary.txt";
+    private String dictionary = "";
+    private String encoding = "UTF-8";
     private boolean generateOrphans = false;
     
     /** Creates new ReplaceText */
@@ -78,75 +80,92 @@ public class TranslateText extends JavelinExtractionRule {
     	
     	String lang = dom.getDocumentElement().getAttribute("lang");
     	
-    	if (lang != null && lang.length() > 0) {
-    		lang = "." + lang;
-    	}
-    	
-    	// retrieve fullpath of the dictionary    	
-    	String filepath = Engine.theApp.filePropertyManager.getFilepathFromProperty(dictionary + lang, getProject().getName());
-    	
-    	// retrieve the previous loaded dictionary
-    	DictionaryEntry dictionaryEntry;
-    	synchronized (cachedDictionaries) {
-    		dictionaryEntry = cachedDictionaries.get(filepath);
-    		if (dictionaryEntry == null) {
-    			dictionaryEntry = new DictionaryEntry();
-    			cachedDictionaries.put(filepath, dictionaryEntry);
-    		}
-		}
-    	
-    	// check dictionary validity
-    	Map<String, String> words;
-    	synchronized (dictionaryEntry) {
-			File file = new File(filepath);
-			if (file.lastModified() > dictionaryEntry.lastModified) {
-				dictionaryEntry.lastModified = -1;
+    	if (lang == null || lang.length() > 0) {
+	    	// retrieve fullpath of the dictionary
+	    	String filepath = Engine.theApp.filePropertyManager.getFilepathFromProperty(dictionary + "_" + lang + ".txt", getProject().getName());
+	    	String orphanspath = null;
+	    	if (generateOrphans) {
+	    		orphanspath = Engine.theApp.filePropertyManager.getFilepathFromProperty(dictionary + "_" + lang + "_orphans.txt", getProject().getName());
+	    	}
+	    	
+	    	Engine.logBeans.trace("(TranslateText) Waiting for chachedDictionaries for " + filepath);
+	    	
+	    	// retrieve the previous loaded dictionary
+	    	DictionaryEntry dictionaryEntry;
+	    	synchronized (cachedDictionaries) {
+	    		dictionaryEntry = cachedDictionaries.get(filepath);
+	    		if (dictionaryEntry == null) {
+	    			Engine.logBeans.debug("(TranslateText) Create a new dictionaryEntry for " + filepath);
+	    			dictionaryEntry = new DictionaryEntry();
+	    			cachedDictionaries.put(filepath, dictionaryEntry);
+	    		}
 			}
-			
-			// read the dictionary
-    		if (dictionaryEntry.lastModified == -1) {
-    			dictionaryEntry.lastModified = file.lastModified();
-				dictionaryEntry.words.clear();
-				try {
-					FileUtils.loadUTF8Properties(dictionaryEntry.words, file);
-				} catch (Exception e) {
-					Engine.logBeans.error("(TranslateText) Can't read the propertie file \"" + filepath + "\" : " + e.getMessage());
-				}
-				if (generateOrphans) {
-					String orphanspath = filepath + ".orphans";
-					try {
-						dictionaryEntry.orphans.clear();
-						FileUtils.loadUTF8Properties(dictionaryEntry.orphans, new File(orphanspath));
-					} catch (Exception e) {
-						Engine.logBeans.debug("(TranslateText) The optional propertie file \"" + orphanspath + "\" cannot be load : " + e.getMessage());
+	    	
+	    	// check dictionary validity
+	    	Map<String, String> words;
+	    	synchronized (dictionaryEntry) {
+				File file = new File(filepath);
+				
+				if (!file.exists()) {
+					file.getParentFile().mkdirs();
+					Engine.logBeans.error("(TranslateText) The dictionary file \"" + filepath + "\" does not exist");
+				} else {
+					if (file.lastModified() > dictionaryEntry.lastModified) {
+						dictionaryEntry.lastModified = -1;
 					}
-				}
-    		}
-    		words = dictionaryEntry.words;
-		}
-    	
-    	// Translate the block text
-        String txt = block.getText();
-        
-        if (txt.length() != 0) {
-	        String txtTranslated = words.get(txt);
-	        
-	        if (txtTranslated != null) {
-	        	block.setText(txtTranslated);
-	        } else if (generateOrphans) {
-	        	synchronized (dictionaryEntry.orphans) {
-	            	Object ex = dictionaryEntry.orphans.put(txt, txt);
-	            	if (ex == null) {
-						String orphanspath = filepath + ".orphans";
-	            		try {
-	            			FileUtils.saveUTF8Properties(dictionaryEntry.orphans, new File(orphanspath));
-						} catch (IOException e) {
-							Engine.logBeans.warn("(TranslateText) Can't write the orphan propertie file \"" + orphanspath + "\" : " + e.getMessage());
+					
+					// read the dictionary
+		    		if (dictionaryEntry.lastModified == -1) {
+		    			Engine.logBeans.trace("(TranslateText) Dictionary change for " + filepath);
+		    			dictionaryEntry.lastModified = file.lastModified();
+						dictionaryEntry.words.clear();
+						try {
+							FileUtils.loadProperties(dictionaryEntry.words, file, encoding);
+							Engine.logBeans.debug("(TranslateText) Dictionary had load " + dictionaryEntry.words.size() + " rules");
+						} catch (Exception e) {
+							Engine.logBeans.error("(TranslateText) Error while opening dictionary.\nCan't read the dictionary file \"" + filepath + "\" :\n" + e.getMessage() + "\nPlease refer to the rule documentation.");
 						}
-	            	}
+						if (generateOrphans) {
+							Engine.logBeans.trace("(TranslateText) Prepare to generate orphans words");
+							try {
+								dictionaryEntry.orphans.clear();
+								FileUtils.loadProperties(dictionaryEntry.orphans, new File(orphanspath), encoding);
+							} catch (Exception e) {
+								Engine.logBeans.debug("(TranslateText) The optional dictionary file \"" + orphanspath + "\" cannot be load :\n" + e.getMessage());
+							}
+						}
+		    		}
 				}
+		    	words = dictionaryEntry.words;
+			}
+	    	
+	    	// Translate the block text
+	        String txt = block.getText();
+	        Engine.logBeans.debug("(TranslateText) Search translation for the string \"" + txt + "\"");
+	        
+	        if (txt.length() != 0) {
+		        String txtTranslated = words.get(txt);
+		        
+		        if (txtTranslated != null) {
+		        	Engine.logBeans.debug("(TranslateText) Translated to \"" + txtTranslated + "\"");
+		        	block.setText(txtTranslated);
+		        } else if (generateOrphans) {
+		        	synchronized (dictionaryEntry.orphans) {
+		            	Object ex = dictionaryEntry.orphans.put(txt, txt);
+		            	if (ex == null) {
+		            		try {
+		            			Engine.logBeans.debug("(TranslateText) New orphan word \"" + txt + "\", write to " + orphanspath);
+		            			FileUtils.saveProperties(dictionaryEntry.orphans, new File(orphanspath), encoding);
+							} catch (IOException e) {
+								Engine.logBeans.warn("(TranslateText) Can't write the orphan dictionary file \"" + orphanspath + "\" :\n" + e.getMessage());
+							}
+		            	}
+					}
+		        }
 	        }
-        }
+    	} else {
+    		Engine.logBeans.debug("(TranslateText) No lang, no translation.");
+    	}
     	
         xrs.hasMatched = true;
         xrs.newCurrentBlock = block;
@@ -167,11 +186,19 @@ public class TranslateText extends JavelinExtractionRule {
         this.dictionary = dictionary;
     }
 
-	public boolean isGenerateOrphans() {
+	public boolean getGenerateOrphans() {
 		return generateOrphans;
 	}
 
 	public void setGenerateOrphans(boolean generateOrphans) {
 		this.generateOrphans = generateOrphans;
+	}
+
+	public String getEncoding() {
+		return encoding;
+	}
+
+	public void setEncoding(String encoding) {
+		this.encoding = encoding;
 	}
 }
