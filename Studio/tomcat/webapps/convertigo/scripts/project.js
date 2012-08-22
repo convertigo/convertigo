@@ -453,6 +453,7 @@ $(document).ready(function() {
 		call("projects.GetRequestables", {projectName : vars.projectName}, function (xml) {
 			$("#acc .connector").remove();
 			$("#acc .device").remove();
+			$("#acc .sequences .requestables").empty();
 			$(".acc>li>h6").unbind('click');
 			
 			var $project = $(xml).find("project:first");
