@@ -159,6 +159,11 @@ public abstract class AbstractContext {
 	 * The steps objects, useful for asynchronous transaction.
 	 */
 	public Vector<String> steps;
+	
+	/**
+	 * The lang object, useful for translate the target application
+	 */
+	public String lang;
 
 	public AbstractContext() {
 	}

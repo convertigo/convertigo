@@ -104,7 +104,7 @@ public class Context extends AbstractContext {
 	public long documentSignatureSent = 0;
 	public long documentSignatureReceived = 0;
 	
-	public EngineStatistics statistics = new EngineStatistics();
+	public final EngineStatistics statistics = new EngineStatistics();
 
 	public Map<String, Block> previousFields = new HashMap<String, Block>();
 
