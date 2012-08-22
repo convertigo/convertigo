@@ -152,10 +152,11 @@ public class TranslateText extends JavelinExtractionRule {
 		        } else if (generateOrphans) {
 		        	synchronized (dictionaryEntry.orphans) {
 		            	Object ex = dictionaryEntry.orphans.put(txt, txt);
-		            	if (ex == null) {
+		            	File file = new File(orphanspath);
+		            	if (ex == null || !file.exists()) {
 		            		try {
 		            			Engine.logBeans.debug("(TranslateText) New orphan word \"" + txt + "\", write to " + orphanspath);
-		            			FileUtils.saveProperties(dictionaryEntry.orphans, new File(orphanspath), encoding);
+		            			FileUtils.saveProperties(dictionaryEntry.orphans, file, encoding);
 							} catch (IOException e) {
 								Engine.logBeans.warn("(TranslateText) Can't write the orphan dictionary file \"" + orphanspath + "\" :\n" + e.getMessage());
 							}
