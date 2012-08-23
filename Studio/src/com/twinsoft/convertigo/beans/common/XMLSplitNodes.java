@@ -47,9 +47,9 @@ public class XMLSplitNodes extends HtmlExtractionRule {
 
 	private static final long serialVersionUID = -4286418144685038971L;
 
-	protected String resultXpath= "";
-	protected String regExp = "";
-	protected boolean keepSeparator = true;
+	private String resultXpath= "";
+	private String regExp = "";
+	private boolean keepSeparator = true;
 	
 	public XMLSplitNodes() {
 		super();

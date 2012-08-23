@@ -36,7 +36,7 @@ abstract public class XMLGenerateStep extends Step {
 	
 	public XMLGenerateStep() {
 		super();
-		this.output = true;
+		setOutput(true);
 		this.xml = true;
 	}
 

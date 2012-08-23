@@ -34,7 +34,7 @@ public class XMLAddImage extends XMLAddText {
 
 	private static final long serialVersionUID = 8151719137075322727L;
 
-	protected String imageUrl = null;
+	private String imageUrl = null;
 		
 	public String getImageUrl() {
 		return imageUrl;

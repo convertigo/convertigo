@@ -218,7 +218,7 @@ public class SqlTransaction extends TransactionWithVariables {
 							variable.hasChanged = true;
 							hasChanged = true;
 						} catch(EngineException e) {
-							Engine.logBeans.error("Could not add variable '"+parameterName+"' for SqlTransaction '"+ name +"'", null);
+							Engine.logBeans.error("Could not add variable '"+parameterName+"' for SqlTransaction '"+ getName() +"'", null);
 						}
 					}
 					start = eIndex;
@@ -380,7 +380,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				xsdType = "";
 				doc = createDOM(getEncodingCharSet());
 				Element element = doc.createElement("xsd:complexType");
-				element.setAttribute("name", prefix + name +"Response");
+				element.setAttribute("name", prefix + getName() +"Response");
 				doc.appendChild(element);
 				
 				Element all = doc.createElement("xsd:all");

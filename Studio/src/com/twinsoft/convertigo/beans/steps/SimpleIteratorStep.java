@@ -93,7 +93,7 @@ public class SimpleIteratorStep extends LoopStep {
 		try {
 			label += " " + getLabel();
 		} catch (EngineException e) {}
-		return name + label + (!text.equals("") ? " // "+text:"");
+		return getName() + label + (!text.equals("") ? " // "+text:"");
 	}
 
 	@Override
@@ -107,7 +107,7 @@ public class SimpleIteratorStep extends LoopStep {
 			try {
 				evaluate(javascriptContext, scope, getExpression(), "expression", true);
 				if (evaluated instanceof org.mozilla.javascript.Undefined) {
-					throw new Exception("Step "+ name +" has none expression defined." );
+					throw new Exception("Step "+ getName() +" has none expression defined." );
 				}
 			}
 			catch (Exception e) {

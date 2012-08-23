@@ -22,11 +22,13 @@
 
 package com.twinsoft.convertigo.beans.statements;
 
+import com.twinsoft.convertigo.engine.EngineException;
+
 public class ScExitDefaultHandlerStatement extends ScDefaultHandlerStatement {
 
 	private static final long serialVersionUID = 5845181760818480593L;
 
-	public ScExitDefaultHandlerStatement() {
+	public ScExitDefaultHandlerStatement() throws EngineException {
 		super(EVENT_EXIT_HANDLER);
 	}
 	

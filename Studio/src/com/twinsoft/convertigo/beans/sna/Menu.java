@@ -38,7 +38,8 @@ public class Menu extends JavelinExtractionRule {
 
 	/** Holds value of property keywordSeparator. */
 	private String keywordSeparator = ".-";
-	private final String colors[] = { "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white" };
+	
+	transient private final String colors[] = { "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white" };
 
 	class Item implements Serializable {
 

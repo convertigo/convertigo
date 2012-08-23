@@ -37,9 +37,9 @@ import com.twinsoft.convertigo.engine.parsers.events.TabManagementEvent;
 public class TabManagementStatement extends Statement implements ITagsProperty{
 	private static final long serialVersionUID = 4434921446758559335L;
 	
-	protected String action = TabManagementEvent.ACTION_GETINDEX;
-	protected String jsIndex = "1";
-	protected String getIndexVarname = "tabIndex";
+	private String action = TabManagementEvent.ACTION_GETINDEX;
+	private String jsIndex = "1";
+	private String getIndexVarname = "tabIndex";
 
 	public TabManagementStatement() {
 		super();

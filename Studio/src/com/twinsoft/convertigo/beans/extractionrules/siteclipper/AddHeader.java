@@ -34,7 +34,9 @@ public abstract class AddHeader extends Header {
 	}
 
 	protected boolean addHeader(Shuttle shuttle) {
-		try {			
+		try {
+			String headerName = getHeaderName();
+			String headerValue = getHeaderValue();
 			if (!headerName.equals("")) {
 				if (shuttle.getCustomHeader(headerName) == null) {
 					Engine.logSiteClipper.trace("(AddHeader) Adding header " + headerName + "=" + headerValue);
@@ -45,7 +47,7 @@ public abstract class AddHeader extends Header {
 				}
 			}
 		} catch (Exception e) {
-			Engine.logSiteClipper.warn("Unable to apply 'AddHeader' rule : "+ name, e);
+			Engine.logSiteClipper.warn("Unable to apply 'AddHeader' rule : "+ getName(), e);
 		}
 		return false;
 	}

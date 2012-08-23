@@ -39,7 +39,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 abstract public class AbstractEventStatement extends XpathableStatement implements ITriggerOwner {
 	private static final long serialVersionUID = -8398273995003637112L;
-	protected TriggerXMLizer trigger = new TriggerXMLizer(new DocumentCompletedTrigger(1,60000));
+	private TriggerXMLizer trigger = new TriggerXMLizer(new DocumentCompletedTrigger(1,60000));
 	
 	public AbstractEventStatement() {
 		super();
@@ -55,7 +55,7 @@ abstract public class AbstractEventStatement extends XpathableStatement implemen
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.execute(javascriptContext, scope)) {
-				evaluate(javascriptContext, scope, xpath, "xpath", false);
+				evaluate(javascriptContext, scope, getXpath(), "xpath", false);
 				String jsXpath = evaluated.toString();
 				
 				HtmlTransaction htmlTransaction = (HtmlTransaction)getParentTransaction();
@@ -64,7 +64,7 @@ abstract public class AbstractEventStatement extends XpathableStatement implemen
 				Engine.logBeans.trace("Getting event...");
 				AbstractEvent event = getEvent(javascriptContext, scope);
 				event.setXPath(jsXpath);
-				event.setDelay(delay);
+				event.setDelay(getDelay());
 				
 				Engine.logBeans.trace("Dispatching event...");
 				boolean dispatch = htmlConnector.dispatchEvent(event, htmlTransaction.context, trigger.getTrigger());
@@ -122,7 +122,7 @@ abstract public class AbstractEventStatement extends XpathableStatement implemen
         }
         
         if (VersionUtils.compare(version, "4.0.4") < 0) {
-        	xpath = "'" + xpath + "'";
+        	setXpath("'" + getXpath() + "'");
 			hasChanged = true;
 			Engine.logBeans.warn("[HttpStatement] The object \"" + getName()+ "\" has been updated to version 4.0.4");
         }

@@ -35,6 +35,8 @@ public abstract class ModifyHeader extends Header {
 
 	protected boolean modifyHeader(Shuttle shuttle) {
 		try {			
+			String headerName = getHeaderName();
+			String headerValue = getHeaderValue();
 			if (!headerName.equals("")) {
 				if (shuttle.getCustomHeader(headerName) != null) {
 					Engine.logSiteClipper.trace("(ModifyHeader) Modifying header " + headerName + "=" + headerValue);
@@ -45,7 +47,7 @@ public abstract class ModifyHeader extends Header {
 				}
 			}
 		} catch (Exception e) {
-			Engine.logSiteClipper.warn("Unable to apply 'ModifyHeader' rule : "+ name, e);
+			Engine.logSiteClipper.warn("Unable to apply 'ModifyHeader' rule : "+ getName(), e);
 		}
 		return false;
 	}

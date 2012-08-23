@@ -52,8 +52,8 @@ public class WebClipper2 extends XMLNodeList implements ITagsProperty {
 	public static final String mHttptunnelOnNoCache = "no cache";
 
 	/* Properties */
-	protected XMLVector<XMLVector<String>> attributes = new XMLVector<XMLVector<String>>();
-	protected String	mHttptunnel = mHttptunnelOff;
+	private XMLVector<XMLVector<String>> attributes = new XMLVector<XMLVector<String>>();
+	private String mHttptunnel = mHttptunnelOff;
 	
 	/* Variables */
 	transient private Context 	context 		= null;
@@ -97,6 +97,7 @@ public class WebClipper2 extends XMLNodeList implements ITagsProperty {
 		initUrlRewriter(xmlDom, context.outputDocument);
 		
 		try {
+			String xpath = getXpath();
 			Element indoc = htmlParser.getStyledDom(context, xpath).getDocumentElement();
 			Element outDoc = context.outputDocument.getDocumentElement();
 			

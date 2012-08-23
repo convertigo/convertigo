@@ -40,9 +40,9 @@ import com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer;
 public class NavigationBarStatement extends Statement implements ITagsProperty, ITriggerOwner {
 	private static final long serialVersionUID = -2138787100756864583L;
 	
-	protected String action = NavigationBarEvent.ACTION_GOTO;
-	protected String jsUrl = "\"about:blank\"";
-	protected TriggerXMLizer trigger = new TriggerXMLizer(new DocumentCompletedTrigger(1,60000));
+	private String action = NavigationBarEvent.ACTION_GOTO;
+	private String jsUrl = "\"about:blank\"";
+	private TriggerXMLizer trigger = new TriggerXMLizer(new DocumentCompletedTrigger(1,60000));
 
 
 	public NavigationBarStatement() {

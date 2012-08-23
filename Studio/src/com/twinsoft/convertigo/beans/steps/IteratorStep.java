@@ -74,7 +74,7 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		try {
 			label += (sourceDefinition.size() > 0) ? " @("+ getLabel()+")":" @(??)";
 		} catch (EngineException e) {}
-		return name + label + (!text.equals("") ? " // "+text:"");
+		return getName() + label + (!text.equals("") ? " // "+text:"");
 	}
 
 	@Override

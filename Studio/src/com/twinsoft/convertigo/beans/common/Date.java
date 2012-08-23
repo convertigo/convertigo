@@ -43,43 +43,43 @@ import com.twinsoft.twinj.iJavelin;
 public class Date extends JavelinExtractionRule {
 	public static final long serialVersionUID = -6735666205939933877L;
 
-	private SimpleDateFormat day = new SimpleDateFormat("dd");
+	private static SimpleDateFormat day = new SimpleDateFormat("dd");
 
-	private SimpleDateFormat day_in_week_short = new SimpleDateFormat("EEE");
+	private static SimpleDateFormat day_in_week_short = new SimpleDateFormat("EEE");
 
-	private SimpleDateFormat day_in_week_long = new SimpleDateFormat("EEEE");
+	private static SimpleDateFormat day_in_week_long = new SimpleDateFormat("EEEE");
 
-	private SimpleDateFormat month = new SimpleDateFormat("MM");
+	private static SimpleDateFormat month = new SimpleDateFormat("MM");
 
-	private SimpleDateFormat month_name_short = new SimpleDateFormat("MMM");
+	private static SimpleDateFormat month_name_short = new SimpleDateFormat("MMM");
 
-	private SimpleDateFormat month_name_long = new SimpleDateFormat("MMMM");
+	private static SimpleDateFormat month_name_long = new SimpleDateFormat("MMMM");
 
-	private SimpleDateFormat week_in_year = new SimpleDateFormat("ww");
+	private static SimpleDateFormat week_in_year = new SimpleDateFormat("ww");
 
-	private SimpleDateFormat week_in_month = new SimpleDateFormat("W");
+	private static SimpleDateFormat week_in_month = new SimpleDateFormat("W");
 
-	private SimpleDateFormat year = new SimpleDateFormat("yyyy");
+	private static SimpleDateFormat year = new SimpleDateFormat("yyyy");
 
-	private SimpleDateFormat am_pm_marker = new SimpleDateFormat("a");
+	private static SimpleDateFormat am_pm_marker = new SimpleDateFormat("a");
 
-	private SimpleDateFormat hour_in_day_0_to_23 = new SimpleDateFormat("HH");
+	private static SimpleDateFormat hour_in_day_0_to_23 = new SimpleDateFormat("HH");
 
-	private SimpleDateFormat hour_in_day_1_to_24 = new SimpleDateFormat("kk");
+	private static SimpleDateFormat hour_in_day_1_to_24 = new SimpleDateFormat("kk");
 
-	private SimpleDateFormat hour_in_day_0_to_11 = new SimpleDateFormat("hh");
+	private static SimpleDateFormat hour_in_day_0_to_11 = new SimpleDateFormat("hh");
 
-	private SimpleDateFormat hour_in_day_1_to_12 = new SimpleDateFormat("KK");
+	private static SimpleDateFormat hour_in_day_1_to_12 = new SimpleDateFormat("KK");
 
-	private SimpleDateFormat minutes = new SimpleDateFormat("mm");
+	private static SimpleDateFormat minutes = new SimpleDateFormat("mm");
 
-	private SimpleDateFormat seconds = new SimpleDateFormat("ss");
+	private static SimpleDateFormat seconds = new SimpleDateFormat("ss");
 
-	private SimpleDateFormat milliseconds = new SimpleDateFormat("SSS");
+	private static SimpleDateFormat milliseconds = new SimpleDateFormat("SSS");
 
-	private SimpleDateFormat time_zone_text = new SimpleDateFormat("z");
+	private static SimpleDateFormat time_zone_text = new SimpleDateFormat("z");
 
-	private SimpleDateFormat time_zone_number = new SimpleDateFormat("Z");
+	private static SimpleDateFormat time_zone_number = new SimpleDateFormat("Z");
 
 	/** Holds value of property format. */
 	private String format = "dd/MM/yy";
@@ -190,7 +190,7 @@ public class Date extends JavelinExtractionRule {
 		return xrs;
 	}
 
-	private int nDate;
+	transient private int nDate;
 	
 	public JavelinExtractionRuleResult execute1(iJavelin javelin, Block block,
 			BlockFactory blockFactory, org.w3c.dom.Document dom) {

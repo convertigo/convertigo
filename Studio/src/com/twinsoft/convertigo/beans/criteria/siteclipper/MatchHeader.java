@@ -26,7 +26,7 @@ public abstract class MatchHeader extends CriteriaWithRegex {
 
 	private static final long serialVersionUID = 5392469035396290244L;
 
-	protected String headerName = "";
+	private String headerName = "";
 
 	public String getHeaderName() {
 		return headerName;

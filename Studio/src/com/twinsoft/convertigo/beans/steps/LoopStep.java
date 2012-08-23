@@ -106,7 +106,7 @@ public abstract class LoopStep extends BlockStep {
 			if (nbAsyncThreadRunning == 0) {
 				cleanChildren();
 			}
-			Engine.logBeans.debug("Step "+ name + " ("+executeTimeID+") : loop "+ loop +" done");
+			Engine.logBeans.debug("Step "+ getName() + " ("+executeTimeID+") : loop "+ loop +" done");
 			loop++;
 			currentChildStep = 0;
 		}

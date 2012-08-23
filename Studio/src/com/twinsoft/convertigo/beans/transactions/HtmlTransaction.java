@@ -918,7 +918,7 @@ public class HtmlTransaction extends HttpTransaction {
 			    	if (!isPublicAccessibility()) {
 		    			HtmlConnector connector = (HtmlConnector)getParent();
 		    			String prefix = (connector.isDefault ? "":connector.getName() + "__");
-		    			String transactionName = StringUtils.normalize(prefix + name, true) + "Response";
+		    			String transactionName = StringUtils.normalize(prefix + getName(), true) + "Response";
 		    			/* remove complexType for transaction*/
 		    			int i = types.indexOf("<xsd:complexType name=\""+ transactionName +"\">");
 		    			if (i != -1) {
@@ -930,15 +930,15 @@ public class HtmlTransaction extends HttpTransaction {
 	    		}
 		    	// Replace xxxResponse by yyy__xxxResponseData
 				StringEx sx = new StringEx(types);
-		    	sx.replace("\""+ name + "Response\"", "\"" + getXsdTypePrefix() + name + "ResponseData\"");
-		    	sx.replace(":"+ name + "Response\"", ":" + getXsdTypePrefix() + name + "ResponseData\"");
-		    	sx.replace("__"+ name + "Response\"", "__" + name + "ResponseData\"");
+		    	sx.replace("\""+ getName() + "Response\"", "\"" + getXsdTypePrefix() + getName() + "ResponseData\"");
+		    	sx.replace(":"+ getName() + "Response\"", ":" + getXsdTypePrefix() + getName() + "ResponseData\"");
+		    	sx.replace("__"+ getName() + "Response\"", "__" + getName() + "ResponseData\"");
 		    	sx.replaceAll("tns:", getProject().getName() + "_ns:");
 		    	xsdTypes = generateXsdRequestData() + " " + sx.toString();
 			}
     	}
 		catch (Exception e) {
-			Engine.logBeans.warn("Unable to migrate to XSD types for requestable \""+ name +"\"", e);
+			Engine.logBeans.warn("Unable to migrate to XSD types for requestable \""+ getName() +"\"", e);
 		}
     	return xsdTypes;
     }
@@ -986,7 +986,7 @@ public class HtmlTransaction extends HttpTransaction {
         }
 		
 		// Construct transaction schema
-		String transactionName = StringUtils.normalize(prefix + name, true) + "Response";
+		String transactionName = StringUtils.normalize(prefix + getName(), true) + "Response";
 		
 		String 	schema = "<?xml version=\"1.0\" encoding=\""+ getEncodingCharSet() +"\" ?>\n";
 		schema += "<xsd:schema>\n";

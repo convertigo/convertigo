@@ -35,6 +35,7 @@ public abstract class RemoveHeader extends Header {
 
 	protected boolean removeHeader(Shuttle shuttle) {
 		try {
+			String headerName = getHeaderName();
 			if (!headerName.equals("")) {
 				if (shuttle.getCustomHeader(headerName) != null) {
 					Engine.logSiteClipper.trace("(RemoveHeader) Removing header " + headerName);
@@ -45,7 +46,7 @@ public abstract class RemoveHeader extends Header {
 				}
 			}
 		} catch (Exception e) {
-			Engine.logSiteClipper.warn("Unable to apply 'RemoveHeader' rule : "+ name, e);
+			Engine.logSiteClipper.warn("Unable to apply 'RemoveHeader' rule : "+ getName(), e);
 		}
 		return false;
 	}

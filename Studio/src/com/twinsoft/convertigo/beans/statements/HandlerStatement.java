@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.statements;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
+import com.twinsoft.convertigo.engine.EngineException;
 
 public class HandlerStatement extends FunctionStatement implements ITagsProperty{
 
@@ -32,19 +33,19 @@ public class HandlerStatement extends FunctionStatement implements ITagsProperty
 	public static final String EVENT_XML_GENERATED = "XmlGenerated";
 	public static final String RETURN_CANCEL = "cancel";
 	
-	protected String handlerType = "";
-	protected String handlerResult = "";
+	private String handlerType = "";
+	private String handlerResult = "";
 	public boolean preventFromLoops = true;
 	
-	public HandlerStatement() {
+	public HandlerStatement() throws EngineException {
 		this(EVENT_TRANSACTION_STARTED,"");
 	}
 	
-	public HandlerStatement(String handlerType, String handlerResult) {
+	public HandlerStatement(String handlerType, String handlerResult) throws EngineException {
 		super();
 		this.handlerType = handlerType;
 		this.handlerResult = handlerResult;
-		this.name = "on" + handlerType;
+		setName("on" + handlerType);
 	}
 	
 	/**

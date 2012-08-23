@@ -69,7 +69,7 @@ public class IfXpathExistsStatement extends BlockStatement implements IXPathable
 					return false;
 				}
 
-				evaluate(javascriptContext, scope, condition, "xpath", false);
+				evaluate(javascriptContext, scope, getCondition(), "xpath", false);
 				String jsXpath = evaluated.toString();
 				
 				NodeList nodeList = null;
@@ -93,7 +93,7 @@ public class IfXpathExistsStatement extends BlockStatement implements IXPathable
 	
 	public String toString() {
 		String text = this.getComment();
-		return "IfExists node at "+ condition + (!text.equals("") ? " // "+text:"");
+		return "IfExists node at "+ getCondition() + (!text.equals("") ? " // "+text:"");
 	}
 	
 	public String toJsString() {

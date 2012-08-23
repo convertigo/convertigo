@@ -56,7 +56,7 @@ public abstract class Injector extends BaseRule implements IResponseRule, ITagsP
 				Engine.logSiteClipper.debug("(Injector) The selected pattern was not found in the current ressource");
 			}
 		} catch (Exception e) {
-			Engine.logSiteClipper.warn("Unable to apply 'Injector' rule : "+ name, e);
+			Engine.logSiteClipper.warn("Unable to apply 'Injector' rule : "+ getName(), e);
 		}
 		return false;
 	}

@@ -30,9 +30,9 @@ public class IPhone3 extends MobileDevice {
 
 	public IPhone3() {
 		super();
-		screenWidth = 480;
-		screenHeight = 320;
-		resourcesPath = MobileDevice.RESOURCES_PATH + "/";
+		setScreenWidth(480);
+		setScreenHeight(320);
+		setResourcesPath(MobileDevice.RESOURCES_PATH + "/");
 	}
 
 }

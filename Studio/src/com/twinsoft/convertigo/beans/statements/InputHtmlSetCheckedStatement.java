@@ -58,6 +58,6 @@ public class InputHtmlSetCheckedStatement extends AbstractComplexeEventStatement
 
 	@Override
 	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) throws EngineException {
-		return new InputCheckEvent(xpath, uiEvent, checked);
+		return new InputCheckEvent(getXpath(), getUiEvent(), checked);
 	}
 }

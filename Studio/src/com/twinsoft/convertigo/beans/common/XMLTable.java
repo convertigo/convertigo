@@ -92,7 +92,7 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 		length = nodeList.getLength();
 		for (int i=0; i< length && isRequestedObjectRunning(); i++) {			
 			Node tableNode = nodeList.item(i);
-			String tableTagName = (tagName.equals("") ? name:tagName);
+			String tableTagName = (tagName.equals("") ? getName():tagName);
 			Element table;
 			
 			if (accumulateDataInSameTable // if we want to accumulate data in same table
@@ -279,7 +279,7 @@ public class XMLTable extends AbstractXMLReferer implements ITablesProperty {
 	}
 	
 	public String getSchemaElementName() {
-		return (tagName.equals("") ? name : tagName);
+		return (tagName.equals("") ? getName() : tagName);
 	}
 
 	public String getSchemaElementType() {

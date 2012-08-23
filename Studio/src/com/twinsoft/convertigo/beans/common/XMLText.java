@@ -81,7 +81,7 @@ public class XMLText extends AbstractXMLReferer {
 		doc = outputDom.getDocumentElement();
 		if (length >= 1) {
 			node = nodeList.item(0);
-			eltTagName = (tagName.equals("") ? name:tagName);
+			eltTagName = (tagName.equals("") ? getName():tagName);
 			elt = outputDom.createElement(eltTagName);
 			text = outputDom.createTextNode(getStringValue(node, recurse));
 			elt.appendChild(text);
@@ -114,7 +114,7 @@ public class XMLText extends AbstractXMLReferer {
 	}
 	
 	public String getSchemaElementName() {
-		return (tagName.equals("") ? name:tagName);
+		return (tagName.equals("") ? getName():tagName);
 	}
 
 	public String getSchemaElementType() {

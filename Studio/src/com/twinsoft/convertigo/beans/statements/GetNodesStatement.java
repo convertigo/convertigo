@@ -38,7 +38,7 @@ public class GetNodesStatement extends XpathableStatement {
 
 	private static final long serialVersionUID = 5555147220832481093L;
 
-	protected String variableName = "nodeList";
+	private String variableName = "nodeList";
 	
 	public GetNodesStatement() {
 		super();
@@ -71,7 +71,7 @@ public class GetNodesStatement extends XpathableStatement {
 					return false;
 				}
 				
-				evaluate(javascriptContext, scope, xpath, "xpath", false);
+				evaluate(javascriptContext, scope, getXpath(), "xpath", false);
 				String jsXpath = evaluated.toString();
 				
 				NodeList nodeList = null;

@@ -119,10 +119,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	transient private List<TestCase> vTestCases = new Vector<TestCase>();
 	
     /** The vector of ordered step objects which can be applied on the Sequence. */
-	public XMLVector<XMLVector<Long>> orderedSteps = null;
+	private XMLVector<XMLVector<Long>> orderedSteps = null;
 	
 	/** The vector of ordered variables objects of Sequence. */
-	protected XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
+	private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
 	private boolean includeResponseElement = true;
 	
@@ -266,7 +266,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 					}
 				}
 				else {
-					Engine.logBeans.warn("Sequence: there's no testcase named '" + variableValue + "' for '" +  name + "' sequence");
+					Engine.logBeans.warn("Sequence: there's no testcase named '" + variableValue + "' for '" +  getName() + "' sequence");
 				}
 				continue;
 			}
@@ -387,7 +387,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public String generateXsdRequestData() throws Exception {
     	String xsdRequestData = null;
     	RequestableVariable variable = null;
-    	xsdRequestData = 	"  <xsd:complexType name=\""+ name + "RequestData\">\n";
+    	xsdRequestData = 	"  <xsd:complexType name=\""+ getName() + "RequestData\">\n";
 		xsdRequestData += 	"    <xsd:annotation>\n";
 		xsdRequestData += 	"      <xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
 		xsdRequestData += 	"    </xsd:annotation>\n";
@@ -426,7 +426,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	@Override
 	protected String generateXsdResponseData(Document document, boolean extract) throws Exception {
     	StringEx sx = new StringEx(extract ? extractXsdType(document):generateWsdlType(document));
-    	sx.replace(name + "Response", name + "ResponseData");
+    	sx.replace(getName() + "Response", getName() + "ResponseData");
     	sx.replaceAll("\"p_ns:", "\""+ getProject().getName() + "_ns:");
     	String xsdResponseData = sx.toString();
     	return xsdResponseData;
@@ -460,7 +460,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		prettyPrintedText = prettyPrintedText.substring(prettyPrintedText.indexOf("<xsd:schema>") + "<xsd:schema>".length());
 		prettyPrintedText = prettyPrintedText.substring(0, prettyPrintedText.indexOf("</xsd:schema>"));
 		prettyPrintedText = prettyPrintedText.replaceAll("<xsd:element name=\"document\" type=\"p_ns:"+ePrefix+"documentType\"/>", "");
-		prettyPrintedText = prettyPrintedText.replaceAll("<xsd:complexType name=\""+ePrefix+"documentType\">", "<xsd:complexType name=\""+ tPrefix + name + "Response\">");
+		prettyPrintedText = prettyPrintedText.replaceAll("<xsd:complexType name=\""+ePrefix+"documentType\">", "<xsd:complexType name=\""+ tPrefix + getName() + "Response\">");
 		return prettyPrintedText;
 	}
 
@@ -471,7 +471,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		
 		String 	schema = "<?xml version=\"1.0\" encoding=\""+ getEncodingCharSet() +"\" ?>\n";
 		schema += "<xsd:schema>\n";
-		schema += "\t<xsd:complexType name=\""+ name + "Response\">\n";
+		schema += "\t<xsd:complexType name=\""+ getName() + "Response\">\n";
 		schema += "\t\t<xsd:sequence>\n";
 		schema += "\t\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"error\" type=\"p_ns:ConvertigoError\" />\n";
 		for (Step step: getSteps()) {
@@ -882,7 +882,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     			XMLVector<Long> ordered = orderedSteps.elementAt(0);
     			steps = Arrays.asList(ordered.toArray()).toString();
     		}
-    		Engine.logBeans.trace("["+ name +"] Ordered Steps ["+ steps + "]");
+    		Engine.logBeans.trace("["+ getName() +"] Ordered Steps ["+ steps + "]");
     	}
 	}
 	
@@ -1013,9 +1013,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	public String getContextName() {
 		if (useSameJSessionForSteps())
-			return "Container-"+ getProject().getName() + "-" + name + "." + cloneNumber;
+			return "Container-"+ getProject().getName() + "-" + getName() + "." + cloneNumber;
 		else
-			return "Container-"+ name + "." + cloneNumber;
+			return "Container-"+ getName() + "." + cloneNumber;
 	}
 	
 	public String getSessionId() {
@@ -1279,7 +1279,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	@Override
 	public void abort() {
 		if (runningThread.bContinue && !arborting) {
-			Engine.logBeans.debug("Sequence '"+ name + "' is aborting...");
+			Engine.logBeans.debug("Sequence '"+ getName() + "' is aborting...");
 			
 			// Sets abort flag
 			arborting = true;
@@ -1351,13 +1351,13 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	            			boolean hasWait = false;
 	            			while (nbAsyncThreadRunning > 0) {
 	            				// If this sequence contains ParallelSteps, waits until child's threads finish
-	            				Engine.logBeans.trace("Sequence '"+ name + "' waiting...");
+	            				Engine.logBeans.trace("Sequence '"+ getName() + "' waiting...");
 	            				Thread.sleep(500);
 	            				hasWait = true;
 	            			}
-	            			if (hasWait) Engine.logBeans.trace("Sequence '"+ name + "' ends wait");
+	            			if (hasWait) Engine.logBeans.trace("Sequence '"+ getName() + "' ends wait");
 	            		} catch (InterruptedException e) {
-	            			Engine.logBeans.trace("Sequence '"+ name + "' has been interrupted");
+	            			Engine.logBeans.trace("Sequence '"+ getName() + "' has been interrupted");
 	            		}
 	        		}
 	        		if (skipSteps)
@@ -1369,7 +1369,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	finally {
     		arborting = false;
     		skipSteps = false;
-    		Engine.logBeans.debug("Sequence '"+ name + "' done");
+    		Engine.logBeans.debug("Sequence '"+ getName() + "' done");
     		
         	try {
         		// Cleans all steps
@@ -1401,7 +1401,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		if (Engine.isEngineMode()) {
 			if (useSameJSessionForSteps()) {
 	    		String sessionID, contextName;
-				Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ name +"\"");
+				Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ getName() +"\"");
 	    		sessionID = getSessionId();
 	    		for (int i=0; i<stepContextNames.size(); i++) {
 	    			contextName = (String)stepContextNames.get(i);
@@ -1414,13 +1414,13 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	    				Engine.logBeans.debug("(Sequence) Keeping context \""+ contextID +"\"");
 	    			}
 	    		}
-				Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ name +"\" done");
+				Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ getName() +"\" done");
 			}
 			else {
 				if (transactionSessionId != null) {
-					Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ name +"\"");
+					Engine.logBeans.debug("(Sequence) Executing deletion of transaction's context for sequence \""+ getName() +"\"");
 					Engine.theApp.contextManager.removeAll(transactionSessionId);
-					Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ name +"\" done");
+					Engine.logBeans.debug("(Sequence) Deletion of transaction's context for sequence \""+ getName() +"\" done");
 				}
 			}
 		}
@@ -1563,7 +1563,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 
 	@Override
 	public String getXsdExtractPrefix() {
-		return name + "_";
+		return getName() + "_";
 	}
 	
 	private Element findStepElement(String executeTimeID) {

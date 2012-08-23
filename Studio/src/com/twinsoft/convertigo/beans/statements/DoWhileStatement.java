@@ -41,11 +41,12 @@ public class DoWhileStatement extends BlockStatement {
 
 	public String toString() {
 		String text = this.getComment();
-		return "do...while("+ condition +")" + (!text.equals("") ? " // "+text:"");
+		return "do...while("+ getCondition() +")" + (!text.equals("") ? " // "+text:"");
 	}
 	
 	public String toJsString() {
 		String code = "";
+		String condition = getCondition();
 		if (!condition.equals("")) {
 			code += " do {\n";
 			code += super.toString();
@@ -64,7 +65,7 @@ public class DoWhileStatement extends BlockStatement {
 	}
 
 	public boolean doLoop(Context javascriptContext, Scriptable scope) throws EngineException {
-		evaluate(javascriptContext, scope, condition, "condition",true);
+		evaluate(javascriptContext, scope, getCondition(), "condition",true);
 		if (evaluated instanceof Boolean) {
 			if (evaluated.equals(Boolean.TRUE)) {
 				return execute(javascriptContext, scope);

@@ -65,7 +65,7 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 	
 	public XMLAttributeStep() {
 		super();
-		this.output = true;
+		setOutput(true);
 		this.xml = true;
 	}
 	

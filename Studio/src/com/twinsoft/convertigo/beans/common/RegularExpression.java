@@ -46,7 +46,7 @@ public class RegularExpression extends LegacyScreenCriteria {
     /**
      * The regular expression to search.
      */
-    protected String regularExpression = "";
+    private String regularExpression = "";
     
     /**
      * Retrieves the regular expression associated with the criteria.
@@ -83,7 +83,11 @@ public class RegularExpression extends LegacyScreenCriteria {
     	iJavelin javelin = ((JavelinConnector) connector).javelin;
         String substring;
         
-        Engine.logBeans.trace("RegularExpression");
+    	int attribute = getAttribute();
+    	int x = getX();
+    	int y = getY();
+    	
+    	Engine.logBeans.trace("RegularExpression");
         Engine.logBeans.trace("  regularExpression: " + regularExpression);
         Engine.logBeans.trace("  attribute: " + attribute);
         

@@ -42,7 +42,7 @@ public abstract class LegacyScreenCriteria extends Criteria {
      * The horizontal coordinate at which the string search
      * begins.
      */
-    protected int x = 0;
+	private int x = 0;
     
     /**
      * Retrieves the horizontal coordinate at which the string
@@ -67,7 +67,7 @@ public abstract class LegacyScreenCriteria extends Criteria {
     /**
      * The vertical coordinate at which the string search begins.
      */
-    protected int y = 0;
+    private int y = 0;
     
     /**
      * Retrieves the vertical coordinate at which the string
@@ -92,7 +92,7 @@ public abstract class LegacyScreenCriteria extends Criteria {
     /**
      * The attribute to search (-1 means no attribute check).
      */
-    protected int attribute = -1;
+    private int attribute = -1;
     
     /**
      * Retrieves the searched attribute (-1 means that there

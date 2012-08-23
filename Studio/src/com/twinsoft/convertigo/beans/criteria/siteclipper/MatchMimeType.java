@@ -33,14 +33,14 @@ public class MatchMimeType extends CriteriaWithRegex implements ISiteClipperResp
 	
 	public MatchMimeType() {
 		super();
-		regexp = "text/";
+		setRegexp("text/");
 	}
 
 	@Override
 	public boolean isMatchingResponse(Shuttle shuttle) {
 		String mimeType = shuttle.getResponseMimeType();
 		boolean find = getRegexPattern().matcher(mimeType).find();
-		Engine.logSiteClipper.debug("(MatchMimeType) Check '" + mimeType + "' with '" + regexp + "' => " + find);
+		Engine.logSiteClipper.debug("(MatchMimeType) Check '" + mimeType + "' with '" + getRegexp() + "' => " + find);
 		return find;
 	}
 

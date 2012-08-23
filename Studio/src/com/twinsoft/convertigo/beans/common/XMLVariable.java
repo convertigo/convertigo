@@ -46,7 +46,7 @@ public class XMLVariable extends HtmlExtractionRule {
 	}
 
 	public void addToScope(Scriptable scope) {
-		scope.put(this.name, scope, this.resultList);
+		scope.put(getName(), scope, this.resultList);
 	}
 
 	public String getSchema(String tns) {

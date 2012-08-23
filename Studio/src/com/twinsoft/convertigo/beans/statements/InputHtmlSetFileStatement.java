@@ -61,7 +61,7 @@ public class InputHtmlSetFileStatement extends AbstractEventStatement {
 				throw new EngineException("(HTTPUploadStatement) The file '" + fileupload.getAbsolutePath() + "' isn't a file.");
 			}
 			
-			return new InputFileEvent(xpath, fileupload);
+			return new InputFileEvent(getXpath(), fileupload);
 		} else {
 			throw new EngineException("(HTTPUploadStatement) The filename expresion must return the file path in string.");
 		}

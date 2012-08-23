@@ -24,16 +24,17 @@ package com.twinsoft.convertigo.beans;
  
 import java.beans.PropertyDescriptor;
 import java.io.File;
-import java.io.FileFilter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -42,35 +43,6 @@ import com.twinsoft.convertigo.engine.Engine;
 
 public class CheckBeans {
 
-	private static List<String> javaClassNames = new ArrayList<String>();
-
-	private static void browsePackages(final String currentPackage) {
-		new File(currentPackage).listFiles(new FileFilter() {
-			public boolean accept(File file) {
-				if (file.isDirectory()) {
-					browsePackages(currentPackage + "/" + file.getName());
-					return false;
-				}
-				else if (file.getParent().equals(srcBase)) {
-					return false;
-				}
-				else if (file.getName().endsWith(".java")) {
-					String javaClassName = file.getPath();
-					javaClassName = javaClassName.substring(srcBase.length()).replace('/', '.');
-					javaClassName = javaClassName.substring(0, javaClassName.lastIndexOf(".java"));
-					
-					if (javaClassName.endsWith("BeanInfo")) return false;
-					
-					javaClassName = "com.twinsoft.convertigo.beans" + javaClassName;
-					//System.out.println("Adding " + javaClassName);
-					javaClassNames.add(javaClassName);
-					return true;
-				}
-				return false;
-			}
-		});
-	}
-	
 	private static String srcBase;
 	
 	public static void main(String[] args) {
@@ -116,10 +88,28 @@ public class CheckBeans {
 		System.out.println("\nBean checking finished!");
 	}
 
+	private static List<String> javaClassNames = new ArrayList<String>();
+
+	private static void browsePackages(final String currentPackage) {
+		@SuppressWarnings("unchecked")
+		Collection<File> files = FileUtils.listFiles(new File(currentPackage), new String[] { "java" }, true);
+		for (File file : files) {
+			String javaClassName = file.getPath();
+			javaClassName = javaClassName.substring(srcBase.length()).replace('/', '.');
+			javaClassName = javaClassName.substring(0, javaClassName.lastIndexOf(".java"));
+			
+			if (!javaClassName.endsWith("BeanInfo")) {
+				javaClassName = "com.twinsoft.convertigo.beans" + javaClassName;
+				javaClassNames.add(javaClassName);
+			}
+		}
+	}
+	
 	private enum Error {
 		//NON_DATABASE_OBJECT("Non database object"),
 		MISSING_BEAN_INFO("Missing bean info"),
 		BEAN_ICON_NAMING_POLICY("Wrong icon name "),
+		BEAN_PROPERTY_DECLARED_BUT_NOT_DEFINED("Declared property but not defined"),
 		BEAN_PROPERTY_NAMING_POLICY("Wrong property name"),
 		BEAN_PROPERTY_NOT_PRIVATE("Non private bean property"),
 		BEAN_PROPERTY_TRANSIENT("Transient bean property"),
@@ -185,6 +175,26 @@ public class CheckBeans {
 					return;
 				}
 			}
+			
+			// Check declared bean properties
+			PropertyDescriptor[] propertyDescriptors = dboBeanInfo.getLocalPropertyDescriptors();
+			for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+				String propertyName = propertyDescriptor.getName();
+				try {
+					javaClass.getDeclaredField(propertyName);
+				} catch (SecurityException e) {
+					e.printStackTrace();
+				} catch (NoSuchFieldException e) {
+					try {
+						// Try to find it in the upper classes
+						javaClass.getField(propertyName);
+					} catch (SecurityException e1) {
+						// printStackTrace();
+					} catch (NoSuchFieldException e1) {
+						Error.BEAN_PROPERTY_DECLARED_BUT_NOT_DEFINED.add(javaClassName + ": " + propertyName);
+					}
+				}
+			}
 
 			Method[] methods = javaClass.getDeclaredMethods();
 			List<Method> listMethods = Arrays.asList(methods);
@@ -221,9 +231,18 @@ public class CheckBeans {
 						continue;
 					}
 					
-					// Check getter and setter name policy
-					if (!declaredGetter.equals(expectedGetter) || !declaredGetter.equals(expectedSetter)) {
-						Error.GETTER_SETTER_DECLARED_EXPECTED_NAME_MISMATCH.add(errorMessage);
+					// Check getter name policy
+					if (!declaredGetter.equals(expectedGetter)) {
+						Error.GETTER_SETTER_DECLARED_EXPECTED_NAME_MISMATCH.add(errorMessage + "\n"
+								+ "      Declared getter: " + declaredGetter + "\n"
+								+ "      Expected getter: " + expectedGetter);
+					}
+					
+					// Check setter name policy
+					if (!declaredSetter.equals(expectedSetter)) {
+						Error.GETTER_SETTER_DECLARED_EXPECTED_NAME_MISMATCH.add(errorMessage + "\n"
+								+ "      Declared setter: " + declaredSetter + "\n"
+								+ "      Expected setter: " + expectedSetter);
 						continue;
 					}
 					
@@ -260,7 +279,9 @@ public class CheckBeans {
 	}
 
 	private static PropertyDescriptor isBeanProperty(String fieldName, MySimpleBeanInfo dboBeanInfo) {
-		PropertyDescriptor[] propertyDescriptors = dboBeanInfo.getPropertyDescriptors();
+		if (dboBeanInfo == null) return null;
+		
+		PropertyDescriptor[] propertyDescriptors = dboBeanInfo.getLocalPropertyDescriptors();
 		
 		for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
 			if (propertyDescriptor.getName().equals(fieldName)) return propertyDescriptor;

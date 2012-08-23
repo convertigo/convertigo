@@ -66,7 +66,7 @@ public class ParallelStep extends BranchStep {
 		if (haveToWait == Boolean.FALSE) {
 			//if (!maxNumberOfThreads.equals("") && (nbAsyncThreadRunning >= Integer.parseInt(maxNumberOfThreads,10))) {
 			if ((maxNumberOfThreadsInteger > 0) && (nbAsyncThreadRunning >= maxNumberOfThreadsInteger)) {
-				Engine.logBeans.debug("(ParallelStep) Max number of threads exceded for step '"+ name +"' ("+executeTimeID+"), waiting for available...");
+				Engine.logBeans.debug("(ParallelStep) Max number of threads exceded for step '"+ getName() +"' ("+executeTimeID+"), waiting for available...");
 				this.shouldWait(true);
 			}
 		}
@@ -74,7 +74,7 @@ public class ParallelStep extends BranchStep {
 		if (haveToWait == Boolean.FALSE) {
 			//if (!maxNumberOfThreads.equals("") && (totalAsyncThreadRunning >= Integer.parseInt(maxNumberOfThreads,10))) {
 			if ((maxNumberOfThreadsInteger > 0) && (totalAsyncThreadRunning >= maxNumberOfThreadsInteger)) {
-				Engine.logBeans.debug("(ParallelStep) Max number of threads exceded for step '"+ name +"' ("+executeTimeID+"), waiting for available...");
+				Engine.logBeans.debug("(ParallelStep) Max number of threads exceded for step '"+ getName() +"' ("+executeTimeID+"), waiting for available...");
 				((StepWithExpressions)parent).shouldWait(true);
 			}
 		}
@@ -98,7 +98,7 @@ public class ParallelStep extends BranchStep {
 		if (haveToWait == Boolean.TRUE) {
 			//if (!maxNumberOfThreads.equals("") && (nbAsyncThreadRunning < Integer.parseInt(maxNumberOfThreads,10))) {
 			if ((maxNumberOfThreadsInteger > 0) && (nbAsyncThreadRunning < maxNumberOfThreadsInteger)) {
-				Engine.logBeans.debug("(ParallelStep) New thread available for step '"+ name +"' ("+executeTimeID+")");
+				Engine.logBeans.debug("(ParallelStep) New thread available for step '"+ getName() +"' ("+executeTimeID+")");
 				this.shouldWait(false);
 			}
 		}
@@ -106,7 +106,7 @@ public class ParallelStep extends BranchStep {
 		else {
 			//if (!maxNumberOfThreads.equals("") && (totalAsyncThreadRunning < Integer.parseInt(maxNumberOfThreads,10))) {
 			if ((maxNumberOfThreadsInteger > 0) && (totalAsyncThreadRunning < maxNumberOfThreadsInteger)) {
-				Engine.logBeans.debug("(ParallelStep) New thread available for step '"+ name +"' ("+executeTimeID+")");
+				Engine.logBeans.debug("(ParallelStep) New thread available for step '"+ getName() +"' ("+executeTimeID+")");
 				((StepWithExpressions)parent).shouldWait(false);
 			}
 		}

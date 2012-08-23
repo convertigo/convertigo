@@ -82,20 +82,11 @@ public class Table extends JavelinMashupEventExtractionRule {
 		}
 	}
 
-	/** Holds value of property verticalSeparator. */
-	private String verticalSeparators = "";
-
-	/** Holds value of property horizontalSeparator. */
-	private String horizontalSeparators = "";
-
 	/** Holds value of property columns. */
 	private XMLVector<TableColumn> columns = new XMLVector<TableColumn>();
 
 	/** Holds value of property columns. */
 	protected transient List<Block> columnsBlocks = null;
-
-	/** Holds value of property rows. */
-	private XMLVector<TableRow> rows = new XMLVector<TableRow>();
 
 	/** Holds value of property actions. */
 	private XMLVector<XMLVector<String>> actions = new XMLVector<XMLVector<String>>();
@@ -112,16 +103,16 @@ public class Table extends JavelinMashupEventExtractionRule {
 	private int offset = 0;
 
 	/** Holds value of property startPattern. */
-	public String startPattern = "";
+	private String startPattern = "";
 
 	/** Holds value of property endPattern. */
-	public String endPattern = "";
+	private String endPattern = "";
 
 	/** Holds value of property separatorChars. */
-	public String separatorChars = "";
+	private String separatorChars = "";
 
 	/** Holds value of property separatorCharsForTokens. */
-	protected String separatorCharsForTokens = "=";
+	private String separatorCharsForTokens = "=";
 
 	/** Holds value of property doNotIncludeTitles. */
 	private boolean doNotIncludeTitles = false;
@@ -762,34 +753,6 @@ public class Table extends JavelinMashupEventExtractionRule {
 		}
 	}
 
-	/** Getter for property verticalSeparator.
-	 * @return Value of property verticalSeparator.
-	 */
-	public String getVerticalSeparators() {
-		return verticalSeparators;
-	}
-
-	/** Setter for property verticalSeparator.
-	 * @param verticalSeparator New value of property verticalSeparator.
-	 */
-	public void setVerticalSeparators(String verticalSeparators) {
-		this.verticalSeparators = verticalSeparators;
-	}
-
-	/** Getter for property horizontalSeparator.
-	 * @return Value of property horizontalSeparator.
-	 */
-	public String getHorizontalSeparators() {
-		return horizontalSeparators;
-	}
-
-	/** Setter for property horizontalSeparator.
-	 * @param horizontalSeparator New value of property horizontalSeparator.
-	 */
-	public void setHorizontalSeparators(String horizontalSeparators) {
-		this.horizontalSeparators = horizontalSeparators;
-	}
-
 	/** Getter for property columns.
 	 * @return Value of property columns.
 	 */
@@ -837,44 +800,6 @@ public class Table extends JavelinMashupEventExtractionRule {
 			cols.add(new TableColumn(title, start, end, index));
 		}
 		this.columns = cols;
-	}
-
-	/** Getter for property rows.
-	 * @return Value of property rows.
-	 */
-	public XMLVector<XMLVector<Object>> getRows() {
-		XMLVector<XMLVector<Object>> lines = new XMLVector<XMLVector<Object>>();
-
-		for(TableRow tr : rows) {
-			XMLVector<Object> element = new XMLVector<Object>();
-			element.add(new String(tr.title));
-			element.add(new Integer(tr.startRow));
-			element.add(new Integer(tr.endRow));
-			lines.add(element);
-		}
-		return lines;
-	}
-
-	/** Setter for property rows.
-	 * @param rows New value of property rows.
-	 */
-	public void setRows(XMLVector<XMLVector<Object>> rows) {
-		XMLVector<TableRow> lines = new XMLVector<TableRow>();
-
-		for(List<Object> v : rows){
-			String  title = (String)v.get(0);
-			int     start, end;
-
-			if (v.get(1) instanceof String) {
-				start = Integer.parseInt((String)v.get(1));
-				end   = Integer.parseInt((String)v.get(2));
-			} else {
-				start = ((Integer)v.get(1)).intValue();
-				end   = ((Integer)v.get(2)).intValue();
-			}
-			lines.add(new TableRow(title, start, end));
-		}
-		this.rows = lines;
 	}
 
 	/** Getter for property tagName.

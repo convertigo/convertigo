@@ -54,11 +54,11 @@ public class WebClipper extends XMLNodeList implements ITagsProperty {
 	public static final String mHttptunnelOnNoCache = "no cache";
 
 	/* Properties */
-	protected XMLVector<XMLVector<String>> attributes = new XMLVector<XMLVector<String>>();
-	protected boolean bHttpTunnel = false;
-	protected String transactionName = "";
-	protected String	mHttptunnel = mHttptunnelOff;
-	protected boolean extractParent = false;
+	private XMLVector<XMLVector<String>> attributes = new XMLVector<XMLVector<String>>();
+	private boolean bHttpTunnel = false;
+	private String transactionName = "";
+	private String mHttpTunnel = mHttptunnelOff;
+	private boolean extractParent = false;
 
 	/* Variables */
 	transient private Context context = null;
@@ -143,14 +143,14 @@ public class WebClipper extends XMLNodeList implements ITagsProperty {
 	}
 	
 	public String getMHttpTunnel() {
-		return mHttptunnel;
+		return mHttpTunnel;
 	}
 	
 	public void setMHttpTunnel(String mHttptunnel) {
 		if (mHttptunnel.equals(mHttptunnelOff) ||
 			mHttptunnel.equals(mHttptunnelOnCache) ||
 			mHttptunnel.equals(mHttptunnelOnNoCache)) {
-				this.mHttptunnel = mHttptunnel;
+				this.mHttpTunnel = mHttptunnel;
 		}
 	}
 
@@ -363,7 +363,7 @@ public class WebClipper extends XMLNodeList implements ITagsProperty {
 				NodeList currentHeadNodes = xpathApi.selectNodeList(doc, "/HTML/HEAD");
 				if (currentHeadNodes.getLength() == 0) {
 					//no head !
-					context.urlRewriter = new URLrewriter(targetReferer, context, mHttptunnel, makeAttributesXpath());
+					context.urlRewriter = new URLrewriter(targetReferer, context, mHttpTunnel, makeAttributesXpath());
 					return;
 				}
 				mustRewriteHead = true;
@@ -375,7 +375,7 @@ public class WebClipper extends XMLNodeList implements ITagsProperty {
 				targetReferer = base.getAttribute("href");
 				base.getParentNode().removeChild(base);
 			}
-			context.urlRewriter = new URLrewriter(targetReferer, context, mHttptunnel, makeAttributesXpath());
+			context.urlRewriter = new URLrewriter(targetReferer, context, mHttpTunnel, makeAttributesXpath());
 			
 		} catch (TransformerException e) {
 			Engine.logBeans.error("Exception when using xpathAPI on WebClipper.getHead()", e);
@@ -403,7 +403,7 @@ public class WebClipper extends XMLNodeList implements ITagsProperty {
             throw ee;
         }
         if (VersionUtils.compare(version, "4.2.1") < 0) {
-        	mHttptunnel = (bHttpTunnel)?mHttptunnelOnCache:mHttptunnelOff;
+        	mHttpTunnel = (bHttpTunnel)?mHttptunnelOnCache:mHttptunnelOff;
 			hasChanged = true;
 			Engine.logBeans.warn("[HttpStatement] The object \"" + getName()+ "\" has been updated to version 4.2.1");
         }

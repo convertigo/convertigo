@@ -99,7 +99,7 @@ public class IfXpathExistsThenElseStatement extends BlockStatement implements IT
 				}
 
 				
-				evaluate(javascriptContext, scope, condition, "xpath", false);
+				evaluate(javascriptContext, scope, getCondition(), "xpath", false);
 				String jsXpath = evaluated.toString();
 					
 				NodeList nodeList = null;
@@ -187,12 +187,13 @@ public class IfXpathExistsThenElseStatement extends BlockStatement implements IT
 	@Override
 	public String toString() {
 		String text = this.getComment();
-		return "ifExists node at "+ condition + (!text.equals("") ? " // "+text:"");
+		return "ifExists node at "+ getCondition() + (!text.equals("") ? " // "+text:"");
 	}
 	
 	@Override
 	public String toJsString() {
 		String code = "";
+		String condition = getCondition();
 		if (!condition.equals("")) {
 			code += " if ("+ condition +") {\n";
 			code += super.toString();

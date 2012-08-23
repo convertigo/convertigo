@@ -33,7 +33,7 @@ import com.twinsoft.convertigo.engine.parsers.events.SimpleEvent;
 
 abstract public class SimpleEventStatement extends AbstractEventStatement implements ITagsProperty{	
 	private static final long serialVersionUID = 2414729337804241305L;
-	protected String action = "";
+	private String action = "";
 		
 	public SimpleEventStatement() {
 		super();
@@ -66,7 +66,7 @@ abstract public class SimpleEventStatement extends AbstractEventStatement implem
 	
 	@Override
 	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope)  throws EngineException {
-		return new SimpleEvent(xpath, action);
+		return new SimpleEvent(getXpath(), action);
 	}
 
 	public String[] getTagsForProperty(String propertyName) {

@@ -1244,7 +1244,7 @@ public class HttpConnector extends Connector {
 
 	private String getRequestEncoding(HttpTransaction httpTransaction) {
 		if (httpTransaction instanceof XmlHttpTransaction) {
-			return (((XmlHttpTransaction) httpTransaction).xmlEncoding);
+			return (((XmlHttpTransaction) httpTransaction).getXmlEncoding());
 		}
 		return "UTF-8";
 	}

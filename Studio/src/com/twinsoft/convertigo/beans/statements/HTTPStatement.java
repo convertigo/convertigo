@@ -119,7 +119,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
     
     protected transient Scriptable scope = null;
     
-    protected TriggerXMLizer trigger = new TriggerXMLizer(new DocumentCompletedTrigger(1,60000));
+    private TriggerXMLizer trigger = new TriggerXMLizer(new DocumentCompletedTrigger(1,60000));
     
     private transient List<HttpStatementVariable> vVariables = new Vector<HttpStatementVariable>();
     transient private List<HttpStatementVariable> vAllVariables = null;

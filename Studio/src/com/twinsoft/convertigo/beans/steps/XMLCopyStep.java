@@ -47,7 +47,7 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 	
 	public XMLCopyStep() {
 		super();
-		this.output = true;
+		setOutput(true);
 		this.xml = true;
 	}
 
@@ -244,7 +244,7 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 					}
 				}
 			} catch (TransformerException e) {
-				Engine.logBeans.warn("Unable to retrieve schema for XMLCopyStep \""+ name +"\"", e);
+				Engine.logBeans.warn("Unable to retrieve schema for XMLCopyStep \""+ getName() +"\"", e);
 				targetSchema = "";
 			}
 		}

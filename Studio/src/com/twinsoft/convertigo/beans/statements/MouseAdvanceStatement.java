@@ -31,15 +31,15 @@ import com.twinsoft.convertigo.engine.parsers.events.MouseEvent;
 public class MouseAdvanceStatement extends MouseStatement {
 	private static final long serialVersionUID = -8671654909869364944L;
 
-	protected int screenX = -1;
-	protected int screenY = -1;
-	protected int clientX = -1;
-	protected int clientY = -1;
-	protected boolean ctrlKey = false;
-	protected boolean altKey = false;
-	protected boolean shiftKey = false;
-	protected boolean metKey = false;
-	protected short button = 0;
+	private int screenX = -1;
+	private int screenY = -1;
+	private int clientX = -1;
+	private int clientY = -1;
+	private boolean ctrlKey = false;
+	private boolean altKey = false;
+	private boolean shiftKey = false;
+	private boolean metKey = false;
+	private short button = 0;
 	
 	public MouseAdvanceStatement() {
 		super();
@@ -55,7 +55,7 @@ public class MouseAdvanceStatement extends MouseStatement {
 
 	@Override
 	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) {
-		return new MouseEvent(xpath, action, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metKey, button);
+		return new MouseEvent(getXpath(), getAction(), screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metKey, button);
 	}
 	
 	@Override

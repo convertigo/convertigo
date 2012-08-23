@@ -42,7 +42,7 @@ abstract public class XMLActionStep extends Step {
 	
 	public XMLActionStep() {
 		super();
-		this.output = true;
+		setOutput(true);
 		this.xml = true;
 	}
 

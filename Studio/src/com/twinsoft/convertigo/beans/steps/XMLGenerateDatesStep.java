@@ -252,7 +252,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 		try {
 			if (startDefinition.isEmpty() && stopDefinition.isEmpty()) {
 				bInvalid = true;
-				Engine.logBeans.warn("Skipping GenerateDates step \""+ name +"\" : definitions are empty");
+				Engine.logBeans.warn("Skipping GenerateDates step \""+ getName() +"\" : definitions are empty");
 			}
 			else {
 				NodeList startList = getStartSource().getContextValues();
@@ -296,7 +296,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 				c2.setTime(dateStop);
 				
 				if (c2.before(c1))
-					Engine.logBeans.warn("Skipping GenerateDates step \""+ name +"\" : end date lower than start date");
+					Engine.logBeans.warn("Skipping GenerateDates step \""+ getName() +"\" : end date lower than start date");
 				
 				c2.add(Calendar.DATE, 1);
 				
@@ -372,7 +372,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 		}
 		catch (Exception e) {
 			bInvalid = true;
-			Engine.logBeans.error("Skipping GenerateDates step \""+ name +"\"", e);
+			Engine.logBeans.error("Skipping GenerateDates step \""+ getName() +"\"", e);
 		}
 		finally {
 			if (bInvalid) {

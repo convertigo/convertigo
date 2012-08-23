@@ -32,8 +32,8 @@ public class ReplaceString extends BaseRule implements IResponseRule {
 
 	private static final long serialVersionUID = -5169971576599772010L;
 
-	protected String regexp = "";
-	protected String replacement = "";
+	private String regexp = "";
+	private String replacement = "";
 
 	private transient Pattern regexPattern = null;
 	
@@ -87,7 +87,7 @@ public class ReplaceString extends BaseRule implements IResponseRule {
 				}
 			}
 		} catch (Exception e) {
-			Engine.logSiteClipper.warn("Unable to apply 'ReplaceString' rule : "+ name, e);
+			Engine.logSiteClipper.warn("Unable to apply 'ReplaceString' rule : "+ getName(), e);
 		}
 		return false;
 	}

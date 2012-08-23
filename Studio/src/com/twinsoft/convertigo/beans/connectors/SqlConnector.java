@@ -124,7 +124,7 @@ public class SqlConnector extends Connector {
         		sx.replace("/WEB-INF/minime/", "/WEB-INF/databases/");
         		jdbcURL = sx.toString();
 				hasChanged = true;
-				Engine.logBeans.warn("[SqlConnector] Successfully updated connection string for \""+ name +"\" (v 4.6.0)");
+				Engine.logBeans.warn("[SqlConnector] Successfully updated connection string for \""+ getName() +"\" (v 4.6.0)");
         	}
         }
 		

@@ -174,7 +174,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
 			ordered.addElement(new Long(statement.newPriority));
 		}
     	s += "]";
-    	Engine.logBeans.debug("["+ name +"] " + s);
+    	Engine.logBeans.debug("["+ getName() +"] " + s);
     	
     	statements.addElement(ordered);
 		setOrderedStatements(statements);
@@ -288,7 +288,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
 			XMLVector<Long> ordered = orderedStatements.elementAt(0);
 			statements = Arrays.asList(ordered.toArray()).toString();
 		}
-		Engine.logBeans.trace("["+ name +"] Ordered Statements ["+ statements + "]");
+		Engine.logBeans.trace("["+ getName() +"] Ordered Statements ["+ statements + "]");
 	}
 	
 	public String toJsString() {

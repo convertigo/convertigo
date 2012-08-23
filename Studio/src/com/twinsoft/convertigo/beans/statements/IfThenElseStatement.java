@@ -58,7 +58,7 @@ public class IfThenElseStatement extends BlockStatement implements IThenElseStat
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {		
 		if (isEnable) {
 			if (super.execute(javascriptContext, scope)) {
-				evaluate(javascriptContext, scope, condition, "condition", true);
+				evaluate(javascriptContext, scope, getCondition(), "condition", true);
 				if (evaluated instanceof Boolean) {
 					if (evaluated.equals(Boolean.TRUE)) {
         				ThenStatement thenStatement = getThenStatement();
@@ -138,11 +138,13 @@ public class IfThenElseStatement extends BlockStatement implements IThenElseStat
 	@Override
 	public String toString() {
 		String text = this.getComment();
+		String condition = getCondition();
 		return "if("+ (condition.equals("")?"??":condition) +")" + (!text.equals("") ? " // "+text:"");
 	}
 	
 	@Override
 	public String toJsString() {
+		String condition = getCondition();
 		String code = "";
 		if (!condition.equals("")) {
 			code += " if ("+ condition +") {\n";

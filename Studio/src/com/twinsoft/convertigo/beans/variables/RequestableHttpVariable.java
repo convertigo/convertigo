@@ -43,7 +43,7 @@ public class RequestableHttpVariable extends RequestableVariable {
 
 	@Override
 	public void setName(String name) throws EngineException {
-		String exName = this.name;
+		String exName = getName();
 		super.setName(name);
 		if (httpName == null || httpName.equals(exName)) {
 			httpName = name;

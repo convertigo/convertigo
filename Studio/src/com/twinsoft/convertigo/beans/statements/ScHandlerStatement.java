@@ -27,6 +27,7 @@ import java.util.List;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class ScHandlerStatement extends HandlerStatement{
@@ -45,20 +46,20 @@ public class ScHandlerStatement extends HandlerStatement{
     
 	private String normalizedScreenClassName = "";
 	
-	public ScHandlerStatement(String handlerType) {
+	public ScHandlerStatement(String handlerType) throws EngineException {
 		this(handlerType,CHOOSE_SCREENCLASS_NAME);
 	}
 	
-	public ScHandlerStatement(String handlerType, String normalizedScreenClassName) {
+	public ScHandlerStatement(String handlerType, String normalizedScreenClassName) throws EngineException {
 		super(handlerType,"");
 		this.normalizedScreenClassName = (normalizedScreenClassName.equals(CHOOSE_SCREENCLASS_NAME) ? "":normalizedScreenClassName);
 		if (handlerType.equals(EVENT_ENTRY_HANDLER)) {
-			this.handlerResult = RETURN_REDETECT;
-			this.name = "on" + normalizedScreenClassName + "Entry";
+			setHandlerResult(RETURN_REDETECT);
+			setName("on" + normalizedScreenClassName + "Entry");
 		}
 		else {
-			this.handlerResult = RETURN_ACCUMULATE;
-			this.name = "on" + normalizedScreenClassName + "Exit";
+			setHandlerResult(RETURN_ACCUMULATE);
+			setName("on" + normalizedScreenClassName + "Exit");
 		}
 	}
 	
@@ -81,7 +82,7 @@ public class ScHandlerStatement extends HandlerStatement{
 	}
 	
 	public String[] getResultStrings() {
-		if (handlerType.equals(EVENT_ENTRY_HANDLER))
+		if (getHandlerType().equals(EVENT_ENTRY_HANDLER))
 			return new String[] { "", RETURN_CONTINUE, RETURN_REDETECT, RETURN_SKIP };
 		else
 			return new String[] { "", RETURN_ACCUMULATE, RETURN_CONTINUE };

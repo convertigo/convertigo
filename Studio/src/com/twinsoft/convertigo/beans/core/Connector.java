@@ -124,7 +124,7 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 	 * The boolean which specify if Transaction is the default one
 	 * for the project to which it belongs.
 	 */
-	public boolean isDefault = false;
+	transient public boolean isDefault = false;
     
 	/**
 	 * Sets the transaction to be the default one.

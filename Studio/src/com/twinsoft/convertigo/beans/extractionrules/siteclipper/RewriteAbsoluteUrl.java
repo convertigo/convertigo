@@ -102,7 +102,7 @@ public class RewriteAbsoluteUrl extends BaseRule implements IResponseRule {
 				Engine.logSiteClipper.trace("(RewriteAbsoluteUrl) Do not rewrite this resource");
 			}
 		} catch (Exception e) {
-			Engine.logSiteClipper.warn("Unable to apply 'RewriteRule' rule : "+ name, e);
+			Engine.logSiteClipper.warn("Unable to apply 'RewriteRule' rule : "+ getName(), e);
 		}
 		return false;
 	}

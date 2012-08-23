@@ -484,6 +484,7 @@ public class Subfile extends Table {
 		
 		// We've found a block of the line action or there is no action line 
 		if (blockTmp != null) {
+			String separatorCharsForTokens = getSeparatorCharsForTokens();
 			if (new StringTokenizer( blockTmp.getText().trim(), separatorCharsForTokens, false).countTokens() >= 2) {
 				Engine.logBeans.trace("Block : " + blockTmp.getText().trim() + " matches token;");
 				foundToken = true;

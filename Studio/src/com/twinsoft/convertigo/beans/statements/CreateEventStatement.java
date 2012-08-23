@@ -33,6 +33,6 @@ public class CreateEventStatement extends SimpleEventStatement {
 	
 	@Override
 	public String toString() {
-		return action + super.toString();
+		return getAction() + super.toString();
 	}
 }

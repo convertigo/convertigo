@@ -1161,7 +1161,7 @@ public class JavelinTransaction extends TransactionWithVariables {
 
     				// Skip rendering if needed
     				if (block.bRender) {
-    					xmlBlock = block.toXML(context.outputDocument, includedTagAttributes, prefix + transactionName+"_blocks");
+    					xmlBlock = block.toXML(context.outputDocument, getIncludedTagAttributes(), prefix + transactionName+"_blocks");
     					
     					// Add history
     					String historyBlock = block.getOptionalAttribute("history");

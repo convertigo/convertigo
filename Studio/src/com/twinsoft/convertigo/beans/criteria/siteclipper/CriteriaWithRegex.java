@@ -32,7 +32,7 @@ public abstract class CriteriaWithRegex extends BaseCriteria {
 		super();
 	}
 
-	protected String regexp = "";
+	private String regexp = "";
 	private transient Pattern regexPattern = null;
 
 	public String getRegexp() {

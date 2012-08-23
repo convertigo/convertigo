@@ -57,7 +57,7 @@ import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 public abstract class HtmlExtractionRule extends ExtractionRule implements IXPathable {
 	private static final long serialVersionUID = -3795226757497040142L;
 
-	protected String xpath= "";
+	private String xpath= "";
 	
 	protected transient TwsCachedXPathAPI xpathApi = null;
 	protected transient Context context = null;

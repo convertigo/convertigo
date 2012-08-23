@@ -38,7 +38,7 @@ public class XMLComplexStep extends StepWithExpressions {
 	
 	public XMLComplexStep() {
 		super();
-		this.output = true;
+		setOutput(true);
 		this.xml = true;
 	}
 

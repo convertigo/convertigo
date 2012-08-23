@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 public abstract class BlockStatement extends StatementWithExpressions {
 	private static final long serialVersionUID = 5517319866039313466L;
 	
-	protected String condition = "";
+	private String condition = "";
 	public boolean isLoop = false;
 	
 	public BlockStatement() {
@@ -71,7 +71,7 @@ public abstract class BlockStatement extends StatementWithExpressions {
 	
 	public String toString() {
 		String text = this.getComment();
-		return name + (!text.equals("") ? " // "+text:"");
+		return getName() + (!text.equals("") ? " // "+text:"");
 	}
 
 	public boolean executeNextStatement(Context javascriptContext, Scriptable scope) throws EngineException

@@ -70,11 +70,11 @@ public class SleepStep extends Step {
 				try {
 					long t = (getSequence().getResponseTimeout() * 1000) - 500;
 					long l = (delay<=0) ? 0:(delay>t ? t:delay);
-					Engine.logBeans.debug("Step "+ name + " ("+executeTimeID+") sleeping for "+l+"ms ...");
+					Engine.logBeans.debug("Step "+ getName() + " ("+executeTimeID+") sleeping for "+l+"ms ...");
 					Thread.sleep(l);
-					Engine.logBeans.debug("Step "+ name + " ("+executeTimeID+") ends sleep");
+					Engine.logBeans.debug("Step "+ getName() + " ("+executeTimeID+") ends sleep");
 				} catch (InterruptedException e) {
-					Engine.logBeans.debug("Step "+ name + " ("+executeTimeID+") has been interrupted");
+					Engine.logBeans.debug("Step "+ getName() + " ("+executeTimeID+") has been interrupted");
 				}
 			}
 			return true;

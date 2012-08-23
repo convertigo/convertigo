@@ -81,7 +81,7 @@ public abstract class BranchStep extends StepWithExpressions {
     @Override
 	public String toString() {
 		String text = this.getComment();
-		return name + (!text.equals("") ? " // "+text:"");
+		return getName() + (!text.equals("") ? " // "+text:"");
 	}
 
 	

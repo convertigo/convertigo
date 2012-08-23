@@ -27,8 +27,8 @@ public abstract class Header extends BaseRule {
 
 	private static final long serialVersionUID = 3654453577704488658L;
 
-	protected String headerName = "Header-Name";
-	protected String headerValue = "header value";
+	private String headerName = "Header-Name";
+	private String headerValue = "header value";
 
 	public Header() {
 		super();

@@ -38,7 +38,7 @@ import com.twinsoft.convertigo.engine.Engine;
 public abstract class AbstractXMLReferer extends HtmlExtractionRule {
 	private static final long serialVersionUID = -6289517723754312205L;
 
-	protected boolean displayReferer = false;
+	private boolean displayReferer = false;
 	
 	private transient String referer = null;
 	
@@ -55,6 +55,7 @@ public abstract class AbstractXMLReferer extends HtmlExtractionRule {
 			try {
 				try{
 					if(xpathApi!=null || (xpathApi=context.getXpathApi())!=null){
+						String xpath = getXpath();
 						NodeList nl = xpathApi.selectNodeList(xmlDom, "(("+xpath+")/ancestor::IFRAME|("+xpath+")/ancestor::FRAME)[last()]");
 						if(nl.getLength()>0) referer = ((Element)nl.item(0)).getAttribute("src");
 					}

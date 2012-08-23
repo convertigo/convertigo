@@ -30,9 +30,9 @@ public class IPad extends MobileDevice {
 
 	public IPad() {
 		super();
-		screenWidth = 1024;
-		screenHeight = 768;
-		resourcesPath = MobileDevice.RESOURCES_PATH + "/";
+		setScreenWidth(1024);
+		setScreenHeight(768);
+		setResourcesPath(MobileDevice.RESOURCES_PATH + "/");
 	}
 
 }

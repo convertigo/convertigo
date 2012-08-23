@@ -33,7 +33,7 @@ public class GetTextStatement extends GetNodesStatement {
 
 	public GetTextStatement() {
 		super();
-		variableName = "nodeText";
+		setVariableName("nodeText");
 	}
 	
 	@Override
@@ -46,7 +46,7 @@ public class GetTextStatement extends GetNodesStatement {
 				if (node instanceof Element)
 					nodeValue = ((Element) node).getTextContent();
 			}
-			scope.put(variableName, scope, nodeValue);
+			scope.put(getVariableName(), scope, nodeValue);
 		}
 	}
 }

@@ -40,17 +40,17 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 public class InvokeBrowserJsStatement extends AbstractEventStatement {
 	private static final long serialVersionUID = 6803619557375078473L;
 
-	protected String codeJS = "//todo";
-	protected XMLVector<XMLVector<String>> variables = new XMLVector<XMLVector<String>>();
+	private String codeJS = "//todo";
+	private XMLVector<XMLVector<String>> variables = new XMLVector<XMLVector<String>>();
 		
 	public InvokeBrowserJsStatement() {
 		super("'/HTML'");
-		trigger = new TriggerXMLizer(new NoWaitTrigger(false));
+		setTrigger(new TriggerXMLizer(new NoWaitTrigger(false)));
 	}
 	
 	public InvokeBrowserJsStatement(String xpath) {
 		super(xpath);
-		trigger = new TriggerXMLizer(new NoWaitTrigger(false));
+		setTrigger(new TriggerXMLizer(new NoWaitTrigger(false)));
 	}
 
 	public InvokeBrowserJsStatement(String codeJS, String xpath) {
@@ -109,6 +109,6 @@ public class InvokeBrowserJsStatement extends AbstractEventStatement {
 		}
 		jsCode += codeJS;
 		Engine.logBeans.trace("InvokeBrowserJsStatement prepare this jsCode for invokation :\n" + jsCode);
-		return new InvokeBrowserJsEvent(xpath, jsCode);
+		return new InvokeBrowserJsEvent(getXpath(), jsCode);
 	}
 }

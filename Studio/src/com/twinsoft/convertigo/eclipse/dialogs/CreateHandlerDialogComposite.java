@@ -192,7 +192,7 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 		}
 	}
 	
-	public Vector<Object> generateHandler() {
+	public Vector<Object> generateHandler() throws EngineException {
 		result = null;
 		if (transaction instanceof HtmlTransaction)
 			generateStatementHandler();
@@ -324,7 +324,7 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 		}
 	}
 	
-	public void generateStatementHandler() {
+	public void generateStatementHandler() throws EngineException {
 		String normalizedScreenClassName, handlerName = "";
 		
 		if (jCheckBoxTransactionStarted.getSelection()) {

@@ -33,12 +33,12 @@ public class KeyStatement extends SimpleEventStatement {
 
 	private static final long serialVersionUID = -8307732995064245341L;
 
-	protected int keyCode = 0;
-	protected int charCode = 0;
-	protected boolean ctrlKey = false;
-	protected boolean altKey = false;
-	protected boolean shiftKey = false;
-	protected boolean metKey = false;
+	private int keyCode = 0;
+	private int charCode = 0;
+	private boolean ctrlKey = false;
+	private boolean altKey = false;
+	private boolean shiftKey = false;
+	private boolean metKey = false;
 	
 	public KeyStatement() {
 		this(SimpleEvent.action_keypress, "");
@@ -54,12 +54,12 @@ public class KeyStatement extends SimpleEventStatement {
 	
 	@Override
 	public AbstractEvent getEvent(Context javascriptContext, Scriptable scope) {
-		return new KeyEvent(xpath, action, keyCode, charCode, ctrlKey, altKey, shiftKey, metKey);
+		return new KeyEvent(getXpath(), getAction(), keyCode, charCode, ctrlKey, altKey, shiftKey, metKey);
 	}
 	
 	@Override
 	public String toString() {
-		return action +
+		return getAction() +
 				(ctrlKey ? " + ctrl":"") +
 				(altKey ? " + alt":"") +
 				(shiftKey ? " + shift":"") +

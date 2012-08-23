@@ -120,7 +120,7 @@ public class XMLRecord extends AbstractXMLReferer implements ITablesProperty {
 			if (!isRequestedObjectRunning()) break;
 			
 			node = nodeList.item(i);
-			recordName = (tagName.equals("") ? name:tagName);
+			recordName = (tagName.equals("") ? getName():tagName);
 			record = outputDom.createElement(recordName);
 	        for(List<Object> re : description) {
 	        	nl = null;
@@ -174,7 +174,7 @@ public class XMLRecord extends AbstractXMLReferer implements ITablesProperty {
 	}
 	
 	public String getSchemaElementName() {
-		return (tagName.equals("") ? name:tagName);
+		return (tagName.equals("") ? getName():tagName);
 	}
 
 	public String getSchemaElementType() {

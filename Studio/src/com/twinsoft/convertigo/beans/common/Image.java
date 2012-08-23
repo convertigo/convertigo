@@ -39,7 +39,7 @@ public class Image extends JavelinMashupEventExtractionRule {
     private 	String			action 			= "";
     private 	boolean			doTransaction 	= false;
     private 	XMLRectangle	imageDesc 		= new XMLRectangle(-1, -1, -1, -1);
-    public 		String 			url 			= "";
+    private		String 			url 			= "";
     private 	boolean			keepSize 		= true;
     private 	String			zOrder 			= "";
     

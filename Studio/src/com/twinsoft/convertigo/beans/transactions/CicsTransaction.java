@@ -172,7 +172,7 @@ public class CicsTransaction extends Transaction {
 						   0);                      //ECI LUW token
 			
 			Engine.logBeans.debug("(CicsTransaction) Request on server: "+ strServer + " - program: " + strProgram + " - transId: "+ strTransactionID);
-			Engine.logBeans.debug("(CicsTransaction) Executing '"+ this.name +"' transaction.");
+			Engine.logBeans.debug("(CicsTransaction) Executing '"+ getName() +"' transaction.");
 			
 			// Call the flowRequest method: if the method returns not null a security error has occurred.
 			String t = context.statistics.start(EngineStatistics.APPLY_USER_REQUEST);
@@ -275,7 +275,7 @@ public class CicsTransaction extends Transaction {
 		
 		if (bLoadFromFile) {
 			String projectsDir = Engine.PROJECTS_PATH;
-			String strFilePath = projectsDir + "/" + parent.getParent().getName() + "/" + name + "2.xml";
+			String strFilePath = projectsDir + "/" + parent.getParent().getName() + "/" + getName() + "2.xml";
 			File f = new File(strFilePath);
 			if (f.exists()) {
 				array = null;
@@ -633,7 +633,7 @@ public class CicsTransaction extends Transaction {
 			try {
 				FileOutputStream output = null;
 				String projectsDir = Engine.PROJECTS_PATH;
-				String strFilePath = projectsDir + "/" + parent.getParent().getName() + "/" + name + ((i == 0) ? "_input.txt" : "_output.txt");
+				String strFilePath = projectsDir + "/" + parent.getParent().getName() + "/" + getName() + ((i == 0) ? "_input.txt" : "_output.txt");
 				try {
 					output = new FileOutputStream(strFilePath,true);
 				}
@@ -698,7 +698,7 @@ public class CicsTransaction extends Transaction {
 			FileOutputStream output = null;
 			String projectsDir = Engine.PROJECTS_PATH;
 			if (strFilePath == null)
-				strFilePath = projectsDir + "/" + parent.getParent().getName() + "/" + name + ".htm";
+				strFilePath = projectsDir + "/" + parent.getParent().getName() + "/" + getName() + ".htm";
 			if (output == null)
 				output = new FileOutputStream(strFilePath);
 			
@@ -716,7 +716,7 @@ public class CicsTransaction extends Transaction {
 			sHtml += "<FORM name='requestForm' method='post' action='request.xml'>";
 			sHtml += "<TABLE border='1'>";
 			sHtml += elementToHTMLTag(root);
-			sHtml += "<TR><TD><input type='hidden' name='"+Parameter.Transaction.getName()+"' value='" + this.name +"'></TD></TR>";
+			sHtml += "<TR><TD><input type='hidden' name='"+Parameter.Transaction.getName()+"' value='" + getName() +"'></TD></TR>";
 			sHtml += "<TR><TD align='center'><BR/><input type='submit' value='Valider'></TD></TR>";
 			sHtml += "</TABLE>";
 			sHtml += "</FORM>";

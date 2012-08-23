@@ -57,7 +57,7 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	
 	public final static String CONVERTIGO_PROJECTS_NAMESPACEURI = "http://www.convertigo.com/convertigo/projects/";
 	
-	private String oldName;
+	transient private String oldName;
 	
 	public static String getProjectTargetNamespace(String projectName) {
 		try {
@@ -94,8 +94,8 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	public void setName(String name) throws EngineException {
 		name = name.trim();
 		Project.checkName(name);
-		oldName = ((oldName == null) ? name:this.name);
-		this.name = name;
+		oldName = ((oldName == null) ? name:this.getName());
+		super.setName(name);
 	}
     
 	public static void checkName(String name) throws EngineException {
@@ -108,7 +108,7 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	}
 
 	public String getQName() {
-		return name;
+		return getName();
 	}
 
     /**
@@ -194,7 +194,7 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	public String getTargetNamespace() {
 		String targetNamespace = getNamespaceUri();
 		if (targetNamespace.equals(""))
-			targetNamespace = CONVERTIGO_PROJECTS_NAMESPACEURI + name;
+			targetNamespace = CONVERTIGO_PROJECTS_NAMESPACEURI + getName();
 		return targetNamespace;
 	}
 	
@@ -418,7 +418,7 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	public String[] getXsdTypes() {
 		if ((xsdTypes == null) || xsdDirty) {
 			try {
-				String xsdUri = Engine.PROJECTS_PATH + "/" + name + "/" + name + ".temp.xsd";
+				String xsdUri = Engine.PROJECTS_PATH + "/" + getName() + "/" + getName() + ".temp.xsd";
 				XSD xsd = XSDUtils.getXSD(xsdUri);
 				xsdTypes = xsd.getTypes();
 				xsdDirty = false;

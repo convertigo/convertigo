@@ -29,7 +29,7 @@ import com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer;
 abstract public class AbstractComplexeEventStatement extends AbstractEventStatement {
 	private static final long serialVersionUID = 7966864043544697918L;
 	
-	protected boolean uiEvent = false;
+	private boolean uiEvent = false;
 	
 	public AbstractComplexeEventStatement() {
 		this("");
@@ -43,7 +43,7 @@ abstract public class AbstractComplexeEventStatement extends AbstractEventStatem
 		super(xpath);
 		this.uiEvent = uiEvent;
 
-		trigger = new TriggerXMLizer(new NoWaitTrigger(false));
+		setTrigger(new TriggerXMLizer(new NoWaitTrigger(false)));
 	}
 
 	public boolean getUiEvent() {

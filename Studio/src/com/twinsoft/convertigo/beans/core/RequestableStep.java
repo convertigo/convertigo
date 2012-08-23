@@ -146,7 +146,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		try {
 			label += getLabel();
 		} catch (EngineException e) { }
-		return name + (label.equals("") ? "":" ") + label + (!text.equals("") ? " // "+text:"");
+		return getName() + (label.equals("") ? "":" ") + label + (!text.equals("") ? " // "+text:"");
 	}
 	
 	@Override
@@ -252,14 +252,14 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 				if (!wsdlType.equals("")) {
 					wsdlType = "";
 					hasChanged = true;
-					Engine.logBeans.warn("[RequestableStep] Successfully backup wsdlTypes for step \""+ name +"\" (v 4.6.0)");
+					Engine.logBeans.warn("[RequestableStep] Successfully backup wsdlTypes for step \""+ getName() +"\" (v 4.6.0)");
 				}
 				else {
-					Engine.logBeans.warn("[RequestableStep] Empty wsdlTypes for step \""+ name +"\", none backup done (v 4.6.0)");
+					Engine.logBeans.warn("[RequestableStep] Empty wsdlTypes for step \""+ getName() +"\", none backup done (v 4.6.0)");
 				}
 	    	}
 	    	catch (Exception e) {
-	    		Engine.logBeans.error("[RequestableStep] Could not backup wsdlTypes for step \""+ name +"\" (v 4.6.0)", e);
+	    		Engine.logBeans.error("[RequestableStep] Could not backup wsdlTypes for step \""+ getName() +"\" (v 4.6.0)", e);
 	    	}
         }
         
@@ -828,7 +828,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 			if (errors.getLength() > 0) {
 				Element error = (Element)errors.item(0);
 				if (error.getElementsByTagName("exception").getLength() > 0)
-					Engine.logBeans.warn("(SequenceStep) Retrieved document for step '"+name+"' ("+executeTimeID+") is in error");
+					Engine.logBeans.warn("(SequenceStep) Retrieved document for step '"+getName()+"' ("+executeTimeID+") is in error");
 			}
 		}
     }

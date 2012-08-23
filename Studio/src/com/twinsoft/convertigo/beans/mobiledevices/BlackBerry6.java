@@ -30,9 +30,9 @@ public class BlackBerry6 extends MobileDevice {
 
 	public BlackBerry6() {
 		super();
-		screenWidth = 960;
-		screenHeight = 640;
-		resourcesPath = MobileDevice.RESOURCES_PATH + "/";
+		setScreenWidth(960);
+		setScreenHeight(640);
+		setResourcesPath(MobileDevice.RESOURCES_PATH + "/");
 	}
 
 }

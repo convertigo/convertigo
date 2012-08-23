@@ -74,8 +74,7 @@ public abstract class Transaction extends RequestableObject {
 	/**
 	 * The String containing code of ScreenClass handlers.
 	 */
-	public String handlers = "";
-    
+	transient public String handlers = "";    
     
     /**
      * Constructs a Transaction object.
@@ -105,7 +104,7 @@ public abstract class Transaction extends RequestableObject {
      * The boolean which specify if Transaction is the default one
      * for the project to which it belongs.
      */
-    public boolean isDefault = false;
+    transient public boolean isDefault = false;
     
     /**
      * Sets the transaction to be the default one.
@@ -121,7 +120,7 @@ public abstract class Transaction extends RequestableObject {
 
 	public void abort() {
 		if (runningThread.bContinue) {
-			Engine.logBeans.debug("Transaction '"+ name + "' is aborting...");
+			Engine.logBeans.debug("Transaction '"+ getName() + "' is aborting...");
 			runningThread.bContinue = false;
 		}
 	}
@@ -197,7 +196,7 @@ public abstract class Transaction extends RequestableObject {
     }
     
 	/** Holds value of property includedTagAttributes. */
-	protected boolean[] includedTagAttributes = new boolean[] { true, true, true, true, true, true, true, true, true, true, true };
+    private boolean[] includedTagAttributes = new boolean[] { true, true, true, true, true, true, true, true, true, true, true };
     
     /** Getter for property includedTagAttributes.
      * @return Value of property includedTagAttributes.
@@ -392,7 +391,7 @@ public abstract class Transaction extends RequestableObject {
 	@Override
 	public String getXsdExtractPrefix() {
 		Connector connector = (Connector)getParent();
-		String connectorPrefix = connector.getName() + "_" + name + "_";
+		String connectorPrefix = connector.getName() + "_" + getName() + "_";
 		return connectorPrefix;
 	}
 
@@ -404,13 +403,13 @@ public abstract class Transaction extends RequestableObject {
 	
 	@Override
 	public String generateXsdRequestData() throws Exception {
-    	String xsdRequestData = "  <xsd:complexType name=\""+ getXsdTypePrefix() + name + "RequestData\"/>\n";
+    	String xsdRequestData = "  <xsd:complexType name=\""+ getXsdTypePrefix() + getName() + "RequestData\"/>\n";
     	return xsdRequestData;
     }
 	
 	@Override
 	protected String generateXsdResponseData(Document document, boolean extract) throws Exception {
-    	String xsdResponseData = "  <xsd:complexType name=\""+ getXsdTypePrefix() + name + "ResponseData\"/>\n";
+    	String xsdResponseData = "  <xsd:complexType name=\""+ getXsdTypePrefix() + getName() + "ResponseData\"/>\n";
     	return xsdResponseData;
     }
 	
@@ -454,10 +453,10 @@ public abstract class Transaction extends RequestableObject {
 			prettyPrintedText = prettyPrintedText.substring(prettyPrintedText.indexOf("<xsd:schema>") + "<xsd:schema>".length());
 			prettyPrintedText = prettyPrintedText.substring(0, prettyPrintedText.indexOf("</xsd:schema>"));
 			prettyPrintedText = prettyPrintedText.replaceAll("<xsd:element name=\"document\" type=\"p_ns:"+ePrefix+"documentType\"/>", "");
-			prettyPrintedText = prettyPrintedText.replaceAll("<xsd:complexType name=\""+ePrefix+"documentType\">", "<xsd:complexType name=\""+ tPrefix + name + "Response\">");
+			prettyPrintedText = prettyPrintedText.replaceAll("<xsd:complexType name=\""+ePrefix+"documentType\">", "<xsd:complexType name=\""+ tPrefix + getName() + "Response\">");
 		}
 		else {
-			prettyPrintedText  = "<xsd:complexType name=\""+ tPrefix + name + "Response\">";
+			prettyPrintedText  = "<xsd:complexType name=\""+ tPrefix + getName() + "Response\">";
 			prettyPrintedText += "\t<xsd:sequence>\n";
 			prettyPrintedText += "\t\t<xsd:element name=\"error\" minOccurs=\"0\" maxOccurs=\"1\" type=\"p_ns:ConvertigoError\"/>\n";
 			prettyPrintedText += "\t</xsd:sequence>\n";

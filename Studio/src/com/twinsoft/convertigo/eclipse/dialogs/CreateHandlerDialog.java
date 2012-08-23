@@ -31,7 +31,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.ObjectsExplorerComposite;
+import com.twinsoft.convertigo.engine.EngineException;
 
 public class CreateHandlerDialog extends Dialog {
 	private String dialogTitle;
@@ -78,7 +80,11 @@ public class CreateHandlerDialog extends Dialog {
 	
 	@Override
 	protected void okPressed() {
-		result = createHandlerDialogComposite.generateHandler();
+		try {
+			result = createHandlerDialogComposite.generateHandler();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logException(e, "Error while creating the handler", true);
+		}
 		super.okPressed();
 	}
 }

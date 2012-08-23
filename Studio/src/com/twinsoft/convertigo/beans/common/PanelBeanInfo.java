@@ -36,7 +36,7 @@ public class PanelBeanInfo extends MySimpleBeanInfo {
     private static final int PROPERTY_top = 5;
     private static final int PROPERTY_upperLeft = 6;
     private static final int PROPERTY_left = 7;
-    private static final int PROPERTY_minsides = 8;
+    private static final int PROPERTY_minSides = 8;
     private static final int PROPERTY_removeBlocksInBorder = 9;
     private static final int PROPERTY_titleAttribute = 10;
     
@@ -87,9 +87,9 @@ public class PanelBeanInfo extends MySimpleBeanInfo {
             properties[PROPERTY_left].setDisplayName ( getExternalizedString("property.left.display_name") );
             properties[PROPERTY_left].setShortDescription ( getExternalizedString("property.left.short_description") );
             
-            properties[PROPERTY_minsides] = new PropertyDescriptor ( "minsides", Panel.class, "getMinSides", "setMinSides" );
-            properties[PROPERTY_minsides].setDisplayName ( getExternalizedString("property.minsides.display_name") );
-            properties[PROPERTY_minsides].setShortDescription ( getExternalizedString("property.minsides.short_description") );
+            properties[PROPERTY_minSides] = new PropertyDescriptor ( "minSides", Panel.class, "getMinSides", "setMinSides" );
+            properties[PROPERTY_minSides].setDisplayName ( getExternalizedString("property.minsides.display_name") );
+            properties[PROPERTY_minSides].setShortDescription ( getExternalizedString("property.minsides.short_description") );
          
             properties[PROPERTY_removeBlocksInBorder] = new PropertyDescriptor ( "removeBlocksInBorder", Panel.class, "isRemoveBlocksInBorder", "setRemoveBlocksInBorder" );
             properties[PROPERTY_removeBlocksInBorder].setDisplayName ( getExternalizedString("property.removeBlocksInBorder.display_name") );

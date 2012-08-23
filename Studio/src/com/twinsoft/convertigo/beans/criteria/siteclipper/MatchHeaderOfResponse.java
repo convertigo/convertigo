@@ -38,6 +38,7 @@ public class MatchHeaderOfResponse extends MatchHeader implements ISiteClipperRe
 
 	@Override
 	public boolean isMatchingResponse(Shuttle shuttle) {
+		String headerName = getHeaderName();
 		String headerValue = shuttle.getResponseHeader(headerName);
 		if (headerValue == null) {
 			Engine.logSiteClipper.trace("(MatchHeaderOfResponse) header \"" + headerName + "\" doesn't exist");

@@ -39,7 +39,7 @@ public class TestCase extends DatabaseObject implements IVariableContainer, ICon
 
 	private static final long serialVersionUID = 8119436229667565326L;
 	
-	protected XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
+	private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
 	transient private List<TestCaseVariable> vVariables = new LinkedList<TestCaseVariable>();
 	transient private List<TestCaseVariable> vAllVariables = null;

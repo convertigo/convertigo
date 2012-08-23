@@ -38,10 +38,10 @@ public class Choice extends JavelinExtractionRule {
 	
     public static final long serialVersionUID = 4350644982787619412L;
     
-    public String tagName = "choice";
-    public String startPattern = "";
-    public String endPattern = "";
-    public String separatorChars = ",";
+    private String tagName = "choice";
+    private String startPattern = "";
+    private String endPattern = "";
+    private String separatorChars = ",";
     
     public static final int CHOICE_CHARACTER_POLICY_INDEX_INDEX = 0;
     public static final int CHOICE_CHARACTER_POLICY_INDEX_SEPARATOR = 1;

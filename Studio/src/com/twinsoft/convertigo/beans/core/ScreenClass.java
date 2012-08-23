@@ -44,12 +44,12 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
     /**
      * The vector of ordered Criterias objects which have to be verified by the ScreenClass.
      */
-    public XMLVector<XMLVector<Long>> orderedCriterias = null;
+	private XMLVector<XMLVector<Long>> orderedCriterias = null;
 	
     /**
      * The vector of ordered ExtractionRules objects which can be applied on the ScreenClass.
      */
-    public XMLVector<XMLVector<Long>> orderedExtractionRules = null;
+	private XMLVector<XMLVector<Long>> orderedExtractionRules = null;
     
     /**
      * The array of inherited ScreenClass objects of the ScreenClass.
@@ -217,7 +217,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
 			ordered.add(criteria.newPriority);
 		}
     	s += "]";
-    	Engine.logBeans.debug("["+ name +"] " + s);
+    	Engine.logBeans.debug("["+ getName() +"] " + s);
 
     	criterias.add(ordered);
 		setOrderedCriterias(criterias);
@@ -344,7 +344,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
 			ordered.add(extractionRule.newPriority);
 		}
     	s += "]";
-    	Engine.logBeans.debug("["+ name +"] " + s);
+    	Engine.logBeans.debug("["+ getName() +"] " + s);
 		extractionrules.add(ordered);
 		setOrderedExtractionRules(extractionrules);
 		debugExtractionRules();
@@ -382,7 +382,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
         String requestedBrowser = sheet.getBrowser();
         for (Sheet sh : vSheets)
             if (sh.getBrowser().equals(requestedBrowser))
-                throw new EngineException("Cannot add the sheet because a sheet is already defined for the browser \"" + requestedBrowser + "\" in the screen class \"" + name + "\".");
+                throw new EngineException("Cannot add the sheet because a sheet is already defined for the browser \"" + requestedBrowser + "\" in the screen class \"" + getName() + "\".");
         vSheets.add(sheet);
         super.add(sheet);
     }
@@ -533,7 +533,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
 			Collection<Long> ordered = orderedCriterias.get(0);
 			criterias = ordered.toString();
 		}
-		Engine.logBeans.trace("["+ name +"] Ordered Criterias ["+ criterias + "]");
+		Engine.logBeans.trace("["+ getName() +"] Ordered Criterias ["+ criterias + "]");
 	}
 	
 	/**
@@ -556,7 +556,7 @@ public class ScreenClass extends DatabaseObject implements ISheetContainer, ICon
 			Collection<Long> ordered = orderedExtractionRules.get(0);
 			extractionrules = ordered.toString();
 		}
-		Engine.logBeans.trace("["+ name +"] Ordered ExtractionRules ["+ extractionrules + "]");
+		Engine.logBeans.trace("["+ getName() +"] Ordered ExtractionRules ["+ extractionrules + "]");
 	}
 	
 	public void increasePriority(DatabaseObject databaseObject) throws EngineException {

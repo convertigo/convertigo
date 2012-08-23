@@ -126,13 +126,13 @@ public class Panel extends JavelinExtractionRule {
 	/** Holds value of property selectionAttribute. */
     private int titleAttribute = -1;
 
-	private boolean allowTextInBorders = true;
+    transient private boolean allowTextInBorders = true;
 
 	private int minSides = 4;
 
 	private boolean removeBlocksInBorder = true;
 
-	private boolean initialize = false;
+	transient private boolean initialize = false;
 
 	transient int screenHeight;
 
@@ -244,7 +244,7 @@ public class Panel extends JavelinExtractionRule {
 		if (initialize && isSelected) {
 			initialize = false;
 			Block myPanel = new Block();
-			myPanel.name = this.name;
+			myPanel.name = getName();
 			myPanel.type = "panel";
 			myPanel.setText("");
 			myPanel.bRender = true;
@@ -326,7 +326,7 @@ public class Panel extends JavelinExtractionRule {
 								+ (lePanel.LR.line - lePanel.UR.line));
 						if (laScreenZone.width > 1 && laScreenZone.height > 1) {
 							Block myPanel = new Block();
-							myPanel.name = this.name;
+							myPanel.name = getName();
 							myPanel.type = "panel";
 							myPanel.setText("");
 							myPanel.bRender = true;

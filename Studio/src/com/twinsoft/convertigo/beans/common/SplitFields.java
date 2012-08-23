@@ -345,7 +345,7 @@ public class SplitFields extends ComplexExtractionRule {
 				// A CPU loop in getNextBlock. As block equality is done by comparing blocks by 
 				// tagName and attributes. If all attibutes are the same, the routine goes in CPU loop.
 				
-				tableBlock.name = this.name+"_"+(tab_count++);
+				tableBlock.name = this.getName()+"_"+(tab_count++);
 				tableBlock.type = "table";
 				tableBlock.tagName = tagTable;
 				tableBlock.setText("");

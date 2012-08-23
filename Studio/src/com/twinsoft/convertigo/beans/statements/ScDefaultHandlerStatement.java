@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.statements;
 
+import com.twinsoft.convertigo.engine.EngineException;
+
 public class ScDefaultHandlerStatement extends HandlerStatement {
 
 	private static final long serialVersionUID = -8564360897367937541L;
@@ -34,15 +36,15 @@ public class ScDefaultHandlerStatement extends HandlerStatement {
     public static final String RETURN_SKIP = "skip";
     public static final String RETURN_ACCUMULATE = "accumulate";
     
-	public ScDefaultHandlerStatement(String handlerType) {
+	public ScDefaultHandlerStatement(String handlerType) throws EngineException {
 		super(handlerType,"");
 		if (handlerType.equals(EVENT_ENTRY_HANDLER)) {
-			this.handlerResult = RETURN_REDETECT;
-			this.name = "onTransactionDefaultHandlerEntry";
+			setHandlerResult(RETURN_REDETECT);
+			setName("onTransactionDefaultHandlerEntry");
 		}
 		else {
-			this.handlerResult = RETURN_ACCUMULATE;
-			this.name = "onTransactionDefaultHandlerExit";
+			setHandlerResult(RETURN_ACCUMULATE);
+			setName("onTransactionDefaultHandlerExit");
 		}
 	}
 	
@@ -51,7 +53,7 @@ public class ScDefaultHandlerStatement extends HandlerStatement {
 	}
 	
 	public String[] getResultStrings() {
-		if (handlerType.equals(EVENT_ENTRY_HANDLER))
+		if (getHandlerType().equals(EVENT_ENTRY_HANDLER))
 			return new String[] { "", RETURN_CONTINUE, RETURN_REDETECT, RETURN_SKIP };
 		else
 			return new String[] { "", RETURN_ACCUMULATE };

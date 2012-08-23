@@ -51,7 +51,7 @@ public class XMLHttpUrl extends HtmlExtractionRule {
 		try {
 			Document doc = context.outputDocument;
 			Element root = doc.getDocumentElement();
-			Element eurl = doc.createElement((tagName.equals("") ? name:tagName));
+			Element eurl = doc.createElement((tagName.equals("") ? getName():tagName));
 			eurl.appendChild(doc.createTextNode(getReferer(context)));
 			root.appendChild(eurl);
 			return true;
@@ -61,11 +61,11 @@ public class XMLHttpUrl extends HtmlExtractionRule {
 	}
 	
 	public String getSchema(String tns) {
-		return "<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\""+ (tagName.equals("") ? name:tagName) + "\" type=\"xsd:string\" />\n";
+		return "<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\""+ (tagName.equals("") ? getName():tagName) + "\" type=\"xsd:string\" />\n";
 	}
 	
 	public String getSchemaElementName() {
-		return (tagName.equals("") ? name:tagName);
+		return (tagName.equals("") ? getName():tagName);
 	}
 
 	public String getSchemaElementType() {

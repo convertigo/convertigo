@@ -41,11 +41,12 @@ public class WhileStatement extends BlockStatement {
 
 	public String toString() {
 		String text = this.getComment();
-		return "while("+ condition +")"+ (!text.equals("") ? " // "+text:"");
+		return "while("+ getCondition() +")"+ (!text.equals("") ? " // "+text:"");
 	}
 
 	public String toJsString() {
 		String code = "";
+		String condition = getCondition();
 		if (!condition.equals("")) {
 			code += " while ("+ condition +") {\n";
 			code += super.toString();
@@ -57,7 +58,7 @@ public class WhileStatement extends BlockStatement {
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable) {
 			if (super.execute(javascriptContext, scope)) {
-				evaluate(javascriptContext, scope, condition, "condition", true);
+				evaluate(javascriptContext, scope, getCondition(), "condition", true);
 				if (evaluated instanceof Boolean) {
 					if (evaluated.equals(Boolean.TRUE)) {
 						return executeNextStatement(javascriptContext, scope);

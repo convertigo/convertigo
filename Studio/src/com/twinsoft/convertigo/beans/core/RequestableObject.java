@@ -133,7 +133,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     	String wsdlBackupDir = getWsdlBackupDir();
         File dir = new File(wsdlBackupDir);
 		if (dir.exists()) {
-			File file = new File(wsdlBackupDir + "/" + name + ".xml");
+			File file = new File(wsdlBackupDir + "/" + getName() + ".xml");
 			if (file.exists()) {
                 DocumentBuilder documentBuilder = XMLUtils.getDefaultDocumentBuilder();
                 Document document = documentBuilder.parse(file);
@@ -156,20 +156,20 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		    	StringEx sx = new StringEx(backupWsdlTypes);
 		    	
 		    	// Replace ccc_xxxResponse by ccc__xxxResponse (Fix ticket #252)
-		    	sx.replace("_"+ name + "Response\"", "__" + name + "Response\"");
+		    	sx.replace("_"+ getName() + "Response\"", "__" + getName() + "Response\"");
 
 		    	// Fix missing type for sql_output element (SqlTransaction)
 		    	sx.replace("<xsd:element maxOccurs=\"1\" minOccurs=\"0\" name=\"sql_output\"/>", "<xsd:element maxOccurs=\"1\" minOccurs=\"0\" name=\"sql_output\" type=\"xsd:string\"/>");
 		    	
 		    	// Replace xxxResponse by yyy__xxxResponseData
-		    	sx.replace("\""+ name + "Response\"", "\"" + getXsdTypePrefix() + name + "ResponseData\"");
-		    	sx.replace(":"+ name + "Response\"", ":" + getXsdTypePrefix() + name + "ResponseData\"");
-		    	sx.replace("__"+ name + "Response\"", "__" + name + "ResponseData\"");
+		    	sx.replace("\""+ getName() + "Response\"", "\"" + getXsdTypePrefix() + getName() + "ResponseData\"");
+		    	sx.replace(":"+ getName() + "Response\"", ":" + getXsdTypePrefix() + getName() + "ResponseData\"");
+		    	sx.replace("__"+ getName() + "Response\"", "__" + getName() + "ResponseData\"");
 		    	sx.replaceAll("tns:", getProject().getName() + "_ns:");
 		    	xsdTypes = generateXsdRequestData() + " " + sx.toString();
 			}
     	}catch (Exception e) {
-    		Engine.logBeans.error("Unable to migrate to XSD types for requestable \""+ name +"\"", e);
+    		Engine.logBeans.error("Unable to migrate to XSD types for requestable \""+ getName() +"\"", e);
     	}
     	return xsdTypes;
     }
@@ -204,7 +204,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		if (!dir.exists())
 			dir.mkdirs();
 
-		File file = new File(wsdlBackupDir + "/" + name + ".xml");
+		File file = new File(wsdlBackupDir + "/" + getName() + ".xml");
         Result result = new StreamResult(new FileOutputStream(file));
         Transformer xformer = TransformerFactory.newInstance().newTransformer();
         xformer.transform(source, result);
@@ -285,7 +285,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             if (nbCurrentWorkerThreads >= maxNbCurrentWorkerThreads)
             	throw new EngineException("No more available worker thread (" + maxNbCurrentWorkerThreads + ")");
             
-            Engine.logContext.debug("(RequestableObject) Start of the thread for the requested object '" + name + "' ("+context.contextID+")");
+            Engine.logContext.debug("(RequestableObject) Start of the thread for the requested object '" + getName() + "' ("+context.contextID+")");
 
             workerThreadCreationStatistic = context.statistics.start(EngineStatistics.WORKER_THREAD_START);
             
@@ -337,13 +337,13 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     			                		// Stops thread
     				                	if (EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_THREADING_USE_STOP_METHOD).equalsIgnoreCase("true")) {
     				                		ThreadUtils.stopThread(runningThread);
-    					                    Engine.logContext.error("(RequestableObject) Stopping the thread for the requested object '" + name + "' because of timeout expiration");
+    					                    Engine.logContext.error("(RequestableObject) Stopping the thread for the requested object '" + getName() + "' because of timeout expiration");
     				                	} else {
     				                		runningThread.bContinue = false;
-    					                    Engine.logContext.error("(RequestableObject) Request for stopping the thread for the requested object '" + name + "' because of timeout expiration");
+    					                    Engine.logContext.error("(RequestableObject) Request for stopping the thread for the requested object '" + getName() + "' because of timeout expiration");
     				                	}
     		
-    				                    TransactionTimeoutException e = new TransactionTimeoutException("The requested object '" + name + "' has been interrupted because it did not terminate quickly enough.");
+    				                    TransactionTimeoutException e = new TransactionTimeoutException("The requested object '" + getName() + "' has been interrupted because it did not terminate quickly enough.");
     				                    throw e;
     			                	} else Engine.logContext.trace("(RequestableObject) Spurious wakup , keep waiting" );
     			                }
@@ -368,11 +368,11 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             if (runningThread.exception != null)
                 if (runningThread.exception instanceof EngineException)
                     throw (EngineException) runningThread.exception;
-                else throw new EngineException("An unexpected error has occured while the execution of the requested object '" + name + "'.", runningThread.exception);
+                else throw new EngineException("An unexpected error has occured while the execution of the requested object '" + getName() + "'.", runningThread.exception);
 
 			outputDocumentRootElement.setAttribute("generated", Calendar.getInstance(Locale.getDefault()).getTime().toString());
 			
-            Engine.logContext.debug("(RequestableObject) End of the thread for the requested object '" + name + "'");
+            Engine.logContext.debug("(RequestableObject) End of the thread for the requested object '" + getName() + "'");
             
             /* 
              * If we have a status node , this means that we are in async mode.
@@ -454,7 +454,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     }
 	
 	/** Holds value of property billable. */
-	protected boolean billable = false;
+    private boolean billable = false;
     
     /** Getter for property billable.
      * @return Value of property billable.
@@ -471,7 +471,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     }
     
 	/** Holds value of property clientCachable. */
-	protected boolean clientCachable = false;
+    private boolean clientCachable = false;
 
     /** Getter for property clientCachable.
      * @return Value of property clientCachable.
@@ -669,7 +669,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	/**
 	 * The String containing the WSDL type definition for this requested object.
 	 */
-	public String wsdlType = "";
+	transient public String wsdlType = "";
 	
 	transient protected List<Sheet> vSheets = new LinkedList<Sheet>();
     
@@ -696,7 +696,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         String requestedBrowser = sheet.getBrowser();
         for(Sheet sh : vSheets)
             if (sh.getBrowser().equals(requestedBrowser))
-                throw new EngineException("Cannot add the sheet because a sheet is already defined for the browser \"" + requestedBrowser + "\" in the requestable object \"" + name + "\".");
+                throw new EngineException("Cannot add the sheet because a sheet is already defined for the browser \"" + requestedBrowser + "\" in the requestable object \"" + getName() + "\".");
         vSheets.add(sheet);
         super.add(sheet);
     }
@@ -866,12 +866,12 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 				if (!wsdlType.equals("")) {
 					wsdlType = "";
 					hasChanged = true;
-					Engine.logBeans.warn("[RequestableObject] Successfully backup wsdlTypes for requestable \""+ name +"\" (v 4.6.0)");
+					Engine.logBeans.warn("[RequestableObject] Successfully backup wsdlTypes for requestable \""+ getName() +"\" (v 4.6.0)");
 				} else {
-					Engine.logBeans.warn("[RequestableObject] Empty wsdlTypes for requestable \""+ name +"\", none backup done (v 4.6.0)");
+					Engine.logBeans.warn("[RequestableObject] Empty wsdlTypes for requestable \""+ getName() +"\", none backup done (v 4.6.0)");
 				}
 	    	} catch (Exception e) {
-	    		Engine.logBeans.error("[RequestableObject] Could not backup wsdlTypes for requestable \""+ name +"\" (v 4.6.0)", e);
+	    		Engine.logBeans.error("[RequestableObject] Could not backup wsdlTypes for requestable \""+ getName() +"\" (v 4.6.0)", e);
 	    	}
         }
 	}

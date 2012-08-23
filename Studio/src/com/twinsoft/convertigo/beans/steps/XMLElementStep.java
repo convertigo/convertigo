@@ -52,7 +52,7 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 	
 	public XMLElementStep() {
 		super();
-		this.output = true;
+		setOutput(true);
 		this.xml = true;
 	}
 

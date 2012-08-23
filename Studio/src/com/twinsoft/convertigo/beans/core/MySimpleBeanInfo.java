@@ -49,6 +49,7 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 	protected String shortDescription = "?";
 	
 	protected PropertyDescriptor[] properties = new PropertyDescriptor[0];
+	protected PropertyDescriptor[] allProperties = new PropertyDescriptor[0];
 
 	protected String iconNameC16 = null;
 	protected String iconNameC32 = null;
@@ -94,6 +95,10 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 	@Override
 	public PropertyDescriptor[] getPropertyDescriptors() {
 		checkAdditionalProperties();
+		return allProperties;
+	}
+
+	public PropertyDescriptor[] getLocalPropertyDescriptors() {
 		return properties;
 	}
 
@@ -223,7 +228,7 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     	if (!additionalPropertiesLoaded) {
     		if (additionalBeanClass != null) {
     			try {
-					properties = (PropertyDescriptor[]) ArrayUtils.addAll(properties, CachedIntrospector.getBeanInfo(additionalBeanClass).getPropertyDescriptors());
+					allProperties = (PropertyDescriptor[]) ArrayUtils.addAll(properties, CachedIntrospector.getBeanInfo(additionalBeanClass).getPropertyDescriptors());
 				} catch (IntrospectionException e) {
 				}
     		}

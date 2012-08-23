@@ -62,9 +62,9 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
     public static String loopSeparator = "--";
     
     public boolean isEnable = true;
-    protected List<Sheet> vSheets = new LinkedList<Sheet>();
-	protected boolean output = false;
-	protected boolean xml = false;
+    transient protected List<Sheet> vSheets = new LinkedList<Sheet>();
+    private boolean output = false;
+	transient protected boolean xml = false;
 	
 	transient protected Hashtable<Long, String> executedSteps = null;
 	transient protected TwsCachedXPathAPI xpathApi = null;
@@ -687,7 +687,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
         String requestedBrowser = sheet.getBrowser();
         for(Sheet sh : vSheets) {
             if (sh.getBrowser().equals(requestedBrowser) && (!sh.getName().equals(newDatabaseObjectName)))
-                throw new EngineException("Cannot add the sheet because a sheet is already defined for the browser \"" + requestedBrowser + "\" in the step \"" + name + "\".");
+                throw new EngineException("Cannot add the sheet because a sheet is already defined for the browser \"" + requestedBrowser + "\" in the step \"" + getName() + "\".");
         }
 
         vSheets.add(sheet);
@@ -743,7 +743,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable && sequence.isRunning()) {
-			Engine.logBeans.debug("Executing step named '"+ this +"' ("+ this.name +")");
+			Engine.logBeans.debug("Executing step named '"+ this +"' ("+ this.getName() +")");
 			
 			Long key = new Long(priority);
 			
@@ -773,7 +773,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	protected void stepDone() {
-		Engine.logBeans.trace("Step "+ name + " ("+executeTimeID+") done");
+		Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") done");
 		stepDone = true;
 	}
 	

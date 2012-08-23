@@ -76,6 +76,6 @@ public class EmulatorTechnology extends Criteria {
 			
 		}
 		catch (Exception e) {}
-		return processToString(technology == null ? name:technology);
+		return processToString(technology == null ? getName():technology);
 	}
 }

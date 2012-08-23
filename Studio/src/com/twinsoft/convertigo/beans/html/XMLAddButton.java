@@ -34,7 +34,7 @@ public class XMLAddButton extends XMLAddLink {
 
 	private static final long serialVersionUID = 6093906527851500534L;
 
-	protected String imageUrl = null;
+	private String imageUrl = null;
 	
 	public XMLAddButton() {
 		super();
@@ -54,8 +54,8 @@ public class XMLAddButton extends XMLAddLink {
 		Element imgElem = dom.createElement("IMG");
 		// add attributes
 		imgElem.setAttribute("src", imageUrl);
-		imgElem.setAttribute("alt", text);
-		imgElem.setAttribute("title", text);
+		imgElem.setAttribute("alt", getText());
+		imgElem.setAttribute("title", getText());
 		// append to parent A element
 		parentElem.appendChild(imgElem);
 	}

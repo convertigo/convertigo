@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class XmlHttpTransaction extends HttpTransaction {
 
-	public String xmlEncoding = "ISO-8859-1";
+	private String xmlEncoding = "ISO-8859-1";
 	
 	private String responseElementQName = "";
 	
@@ -174,7 +174,7 @@ public class XmlHttpTransaction extends HttpTransaction {
 	public String generateWsdlType(Document document) throws Exception {
     	String reqn = getResponseElementQName();
     	if (!reqn.equals("")) {
-    		String opName = name+"Response", eltName = "response", eltType = "xsd:string";
+    		String opName = getName()+"Response", eltName = "response", eltType = "xsd:string";
     		boolean useRef = true;
     		int index, index2;
     		if ((index = reqn.indexOf(";")) != -1) {
@@ -188,7 +188,7 @@ public class XmlHttpTransaction extends HttpTransaction {
     		
     		String prefix = getXsdTypePrefix();
     		String xsdType = "";
-    		xsdType += "<xsd:complexType name=\""+ prefix + name +"Response" +"\" >\n";
+    		xsdType += "<xsd:complexType name=\""+ prefix + getName() +"Response" +"\" >\n";
     		xsdType += "  <xsd:sequence>\n";
     		if (useRef)
     			xsdType += "    <xsd:element ref=\""+ reqn +"\"/>\n";

@@ -56,7 +56,7 @@ public class ElementStep extends StepWithExpressions {
 	
 	public ElementStep() {
 		super();
-		this.output = true;
+		setOutput(true);
 		this.xml = true;
 	}
 
@@ -172,7 +172,7 @@ public class ElementStep extends StepWithExpressions {
 			try {
 				evaluate(javascriptContext, scope, getExpression(), "expression", true);
 				if (evaluated instanceof org.mozilla.javascript.Undefined) {
-					throw new Exception("Step "+ name +" has none expression defined." );
+					throw new Exception("Step "+ getName() +" has none expression defined." );
 				}
 					
 			}

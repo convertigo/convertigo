@@ -92,7 +92,7 @@ public abstract class Statement extends DatabaseObject {
 		HtmlTransaction htmlTransaction = (HtmlTransaction)getParentTransaction();
 		if (isEnable && htmlTransaction.runningThread.bContinue) {
 			htmlTransaction.currentStatement = this;
-			Engine.logBeans.debug("Executing statement named '"+ this.name +"' ("+ this.getClass().getName() +")");
+			Engine.logBeans.debug("Executing statement named '"+ this.getName() +"' ("+ this.getClass().getName() +")");
 			
 			// We fire engine events only in studio mode.
             if (Engine.isStudioMode()) {

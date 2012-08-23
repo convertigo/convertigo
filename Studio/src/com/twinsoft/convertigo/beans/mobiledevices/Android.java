@@ -30,9 +30,9 @@ public class Android extends MobileDevice {
 
 	public Android() {
 		super();
-		screenWidth = 800;
-		screenHeight = 480;
-		resourcesPath = MobileDevice.RESOURCES_PATH + "/";
+		setScreenWidth(800);
+		setScreenHeight(480);
+		setResourcesPath(MobileDevice.RESOURCES_PATH + "/");
 	}
 
 }

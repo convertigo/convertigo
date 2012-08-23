@@ -73,7 +73,7 @@ public class RemoveContextStep extends Step {
 				try {
 					evaluate(javascriptContext, scope, getContextName(), "contextName", true);
 					if (evaluated instanceof org.mozilla.javascript.Undefined) {
-						throw new Exception("Step "+ name +" has none context name defined." );
+						throw new Exception("Step "+ getName() +" has none context name defined." );
 					}
 					
 					if (evaluated != null) {

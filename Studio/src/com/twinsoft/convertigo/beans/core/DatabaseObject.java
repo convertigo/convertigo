@@ -157,7 +157,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		}
 	}
 
-	protected SortedSet<String> vPropertiesForAdmin = new TreeSet<String>();
+	transient protected SortedSet<String> vPropertiesForAdmin = new TreeSet<String>();
 
 	public List<String> getPropertiesForAdmin() {
 		return new ArrayList<String>(vPropertiesForAdmin);
@@ -226,7 +226,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	 * The type of the database object. This type is used for storing the object
 	 * into the database.
 	 */
-	String databaseType = "undefined";
+	transient protected String databaseType = "undefined";
 
 	public String getDatabaseType() {
 		return databaseType;
@@ -306,12 +306,12 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	/**
 	 * The priority of object.
 	 */
-	public long priority = 0;
+	transient public long priority = 0;
 
 	/**
 	 * The object name.
 	 */
-	protected String name = "new object";
+	private String name = "new object";
 
 	/**
 	 * Retrieves the object name.

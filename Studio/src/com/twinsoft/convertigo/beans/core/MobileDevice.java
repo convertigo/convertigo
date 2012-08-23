@@ -41,7 +41,7 @@ public abstract class MobileDevice extends DatabaseObject {
 		return clonedObject;
 	}
 	
-	protected long screenWidth = 0;
+	private long screenWidth = 0;
 	
 	public long getScreenWidth() {
 		return screenWidth;
@@ -51,7 +51,7 @@ public abstract class MobileDevice extends DatabaseObject {
 		this.screenWidth = screenWidth;
 	}
 
-	protected long screenHeight = 0;
+	private long screenHeight = 0;
 	
 	public long getScreenHeight() {
 		return screenHeight;
@@ -61,7 +61,7 @@ public abstract class MobileDevice extends DatabaseObject {
 		this.screenHeight = screenHeight;
 	}
 	
-	protected String resourcesPath = "";
+	private String resourcesPath = "";
 	
 	public String getResourcesPath() {
 		return resourcesPath;

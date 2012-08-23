@@ -95,7 +95,7 @@ public class InputHtmlSetSelectedStatement extends AbstractComplexeEventStatemen
 				};
 			}
 		}
-		return new InputSelectEvent(xpath, uiEvent, mode, values);
+		return new InputSelectEvent(getXpath(), getUiEvent(), mode, values);
 	}
 	
 	protected String convertValue(Object obj) {

@@ -43,7 +43,7 @@ public class FunctionStatement extends StatementWithExpressions {
 	
 	@Override
 	public String toString() {
-		return "function "+ name +"()";
+		return "function "+ getName() +"()";
 	}
 	
 	@Override

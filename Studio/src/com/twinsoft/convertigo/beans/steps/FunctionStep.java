@@ -50,7 +50,7 @@ public class FunctionStep extends StepWithExpressions {
     }
     
 	public String toString() {
-		return "function "+ name +"()";
+		return "function "+ getName() +"()";
 	}
 	
 	protected boolean workOnSource() {

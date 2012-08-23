@@ -41,7 +41,7 @@ public class FindString extends LegacyScreenCriteria {
 	/**
      * The string to search.
      */
-    protected String string = "";
+	private String string = "";
     
     /**
      * Retrieves the string to search.
@@ -71,6 +71,10 @@ public class FindString extends LegacyScreenCriteria {
     protected boolean isMatching0(Connector connector) {
     	iJavelin javelin = ((JavelinConnector) connector).javelin;
 
+    	int attribute = getAttribute();
+    	int x = getX();
+    	int y = getY();
+    	
         Engine.logBeans.trace("FindString");
         Engine.logBeans.trace("  string: " + string);
         Engine.logBeans.trace("  attribute: " + attribute);

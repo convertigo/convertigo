@@ -505,7 +505,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 				XMLVector<Long> ordered = orderedSteps.elementAt(0);
 				steps = Arrays.asList(ordered.toArray()).toString();
 			}
-			Engine.logBeans.trace("["+ name +"] Ordered Steps ["+ steps + "]");
+			Engine.logBeans.trace("["+ getName() +"] Ordered Steps ["+ steps + "]");
 		}
 	}
 	
@@ -612,13 +612,13 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 				boolean hasWait = false;
 				while (nbAsyncThreadRunning > 0) {
 					// If contains ParallelSteps, waits until child's threads finish
-					Engine.logBeans.trace("Step "+ name + " ("+executeTimeID+") waiting...");
+					Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") waiting...");
 					Thread.sleep(500);
 					hasWait = true;
 				}
-				if (hasWait) Engine.logBeans.trace("Step "+ name + " ("+executeTimeID+") ends wait");
+				if (hasWait) Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") ends wait");
 			} catch (InterruptedException e) {
-				Engine.logBeans.trace("Step "+ name + " ("+executeTimeID+") has been interrupted");
+				Engine.logBeans.trace("Step "+ getName() + " ("+executeTimeID+") has been interrupted");
 			}
 		}
 		
@@ -635,9 +635,9 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 					// TODO ??
 				}
 				else {
-					Engine.logBeans.debug("Executing deletion of transaction's context for step \""+ name +"\"");
+					Engine.logBeans.debug("Executing deletion of transaction's context for step \""+ getName() +"\"");
 					Engine.theApp.contextManager.removeAll(transactionSessionId);
-					Engine.logBeans.debug("Deletion of transaction's context for step \""+ name +"\" done");
+					Engine.logBeans.debug("Deletion of transaction's context for step \""+ getName() +"\" done");
 				}
 			}
 		}
@@ -815,13 +815,13 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		try {
 			if (haveToWait.equals(Boolean.TRUE)) {
 				if (bContinue && sequence.isRunning()) {
-					Engine.logBeans.trace("Step '"+ name +"' ("+executeTimeID+") waiting...");
+					Engine.logBeans.trace("Step '"+ getName() +"' ("+executeTimeID+") waiting...");
 					wait();
-					Engine.logBeans.trace("Step '"+ name +"' ("+executeTimeID+") going through...");
+					Engine.logBeans.trace("Step '"+ getName() +"' ("+executeTimeID+") going through...");
 				}
 			}
 		} catch (InterruptedException e) {
-			Engine.logBeans.debug("Step '"+ name +"' ("+executeTimeID+") has been interrupted");				
+			Engine.logBeans.debug("Step '"+ getName() +"' ("+executeTimeID+") has been interrupted");				
 		}
 	}
 	
@@ -832,7 +832,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		}
 		else {
 			if (haveToWait.equals(Boolean.TRUE)) {
-				Engine.logBeans.trace("Step '"+ name +"' ("+executeTimeID+") has been notified");
+				Engine.logBeans.trace("Step '"+ getName() +"' ("+executeTimeID+") has been notified");
 				haveToWait = Boolean.FALSE;
 				notify();
 			}

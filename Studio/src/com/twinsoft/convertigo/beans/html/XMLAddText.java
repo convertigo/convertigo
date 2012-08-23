@@ -42,7 +42,7 @@ public class XMLAddText extends XMLNodeList {
 
 	private static final long serialVersionUID = -4219403874543488602L;
 	
-	protected String text = null;
+	private String text = null;
 	
 	public XMLAddText() {
 		super();

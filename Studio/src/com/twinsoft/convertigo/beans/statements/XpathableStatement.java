@@ -28,8 +28,8 @@ import com.twinsoft.convertigo.beans.core.Statement;
 abstract public class XpathableStatement extends Statement implements IXPathable{
 	private static final long serialVersionUID = -1382597462556957815L;
 	
-	protected String xpath = "";
-	protected long delay = 0;
+	private String xpath = "";
+	private long delay = 0;
 	
 	public XpathableStatement() {
 		super();

@@ -495,7 +495,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 					}
 				}
 				else {
-					Engine.logBeans.warn("Transaction: there's no testcase named '"+variableValue+"' for '"+ name +"' transaction");
+					Engine.logBeans.warn("Transaction: there's no testcase named '"+variableValue+"' for '"+ getName() +"' transaction");
 				}
 				continue;
 			}
@@ -654,7 +654,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     	
     	String xsdRequestData = null;
     	RequestableVariable variable = null;
-    	xsdRequestData = 	"  <xsd:complexType name=\""+ prefix + name + "RequestData\">\n";
+    	xsdRequestData = 	"  <xsd:complexType name=\""+ prefix + getName() + "RequestData\">\n";
 		xsdRequestData += 	"    <xsd:annotation>\n";
 		xsdRequestData += 	"      <xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
 		xsdRequestData += 	"    </xsd:annotation>\n";
@@ -693,7 +693,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	@Override
 	protected String generateXsdResponseData(Document document, boolean extract) throws Exception {
     	StringEx sx = new StringEx(extract ? extractXsdType(document):generateWsdlType(document));
-    	sx.replace(name + "Response", name + "ResponseData");
+    	sx.replace(getName() + "Response", getName() + "ResponseData");
     	sx.replaceAll("\"p_ns:", "\""+ getProject().getName() + "_ns:");
     	String xsdResponseData = "  " + sx.toString();
     	return xsdResponseData;

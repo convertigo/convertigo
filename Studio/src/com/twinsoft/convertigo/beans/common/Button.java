@@ -42,8 +42,8 @@ public class Button extends JavelinMashupEventExtractionRule {
     private 	String			Action 			= "";
     private 	boolean			doTransaction 	= false;
     private 	XMLRectangle	buttonDesc 		= new XMLRectangle(-1, -1, -1, -1);
-    public 		String 			startPattern 	= "<";
-    public 		String 			endPattern 		= ">";
+    private		String 			startPattern 	= "<";
+    private		String 			endPattern 		= ">";
     
     /* Working variables */
     transient	boolean			bFirstTime;

@@ -42,7 +42,7 @@ public class MouseStatement extends SimpleEventStatement {
 	
 	@Override
 	public String toString() {
-		return action + super.toString();
+		return getAction() + super.toString();
 	}
 
 	@Override

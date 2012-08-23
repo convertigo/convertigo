@@ -101,7 +101,7 @@ public class InputHtmlSetValueStatement extends AbstractComplexeEventStatement {
 			}
 		}
 		
-		return new InputValueEvent(xpath, uiEvent, value);
+		return new InputValueEvent(getXpath(), getUiEvent(), value);
 	}
 	
 	public String getExpression() {

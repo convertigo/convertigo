@@ -59,13 +59,13 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class HtmlConnector extends HttpConnector implements IScreenClassContainer<HtmlScreenClass> {
 
-	public static final String ParseMode_4_0= "4.0";
+	public static final String ParseMode_4_0 = "4.0";
 	public static final String ParseMode_4_5 = "4.5";
 	
 	private static final long serialVersionUID = -9124803554595732247L;
 
-	protected boolean ignoreEmptyAttributes = false; 
-	protected String parseMode = ParseMode_4_5;
+	private boolean ignoreEmptyAttributes = false; 
+	private String parseMode = ParseMode_4_5;
 
 	transient private HtmlParser htmlParser = null;
 	transient private Document currentXmlDocument = null;

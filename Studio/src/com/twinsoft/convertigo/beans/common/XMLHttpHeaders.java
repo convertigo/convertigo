@@ -42,7 +42,7 @@ public class XMLHttpHeaders extends HtmlExtractionRule {
 	
 	public XMLHttpHeaders() {
 		super();
-		xpath = "/";
+		setXpath("/");
 	}
 
 	@Override

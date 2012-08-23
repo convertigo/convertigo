@@ -38,6 +38,7 @@ public class MatchHeaderOfRequest extends MatchHeader implements ISiteClipperReq
 
 	@Override
 	public boolean isMatchingRequest(Shuttle shuttle) {
+		String headerName = getHeaderName();
 		String headerValue = shuttle.getRequestHeader(headerName);
 		if (headerValue == null) {
 			Engine.logSiteClipper.trace("(MatchHeaderOfRequest) header \"" + headerName + "\" doesn't exist");

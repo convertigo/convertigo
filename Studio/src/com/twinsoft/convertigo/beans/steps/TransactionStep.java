@@ -175,11 +175,11 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 							if (cookie.getName().equalsIgnoreCase("JSESSIONID")) {
 								Engine.logBeans
 										.debug("Executing deletion of transaction's context of TranscationStep \""
-												+ name + "\"");
+												+ getName() + "\"");
 								Engine.theApp.contextManager.removeAll(cookie.getValue());
 								Engine.logBeans
 										.debug("Deletion of transaction's context of TranscationStep \""
-												+ name + "\" done");
+												+ getName() + "\" done");
 								break;
 							}
 						}

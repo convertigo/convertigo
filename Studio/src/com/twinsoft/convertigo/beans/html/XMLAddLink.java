@@ -38,13 +38,13 @@ public class XMLAddLink extends XMLAddText {
 
 	private static final long serialVersionUID = 6333551567580185077L;
 
-	protected String href = null;
+	private String href = null;
 	
 	protected boolean targetBlank;
 	
 	public XMLAddLink() {
 		super();
-		text = "click here";
+		setText("click here");
 		href = "\"#\"";
 		targetBlank = false;
 	}
@@ -92,7 +92,7 @@ public class XMLAddLink extends XMLAddText {
 	
 	protected void setLinkContent(Element parentElem, Document dom) {
 		// add of link text content
-		parentElem.setTextContent(text);
+		parentElem.setTextContent(getText());
 	}
 	
 }

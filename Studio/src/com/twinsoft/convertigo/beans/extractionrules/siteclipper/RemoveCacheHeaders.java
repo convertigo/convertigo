@@ -48,7 +48,7 @@ public abstract class RemoveCacheHeaders extends BaseRule {
 						Engine.logSiteClipper.trace("(RemoveHeader) Removing header " + headerName + " failed because this header does not exist");
 					} 
 			} catch (Exception e) {
-				Engine.logSiteClipper.warn("Unable to apply 'RemoveHeader' rule : "+ name, e);
+				Engine.logSiteClipper.warn("Unable to apply 'RemoveHeader' rule : "+ getName(), e);
 			}
 		}
 		return status;

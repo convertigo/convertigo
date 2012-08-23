@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.engine.parsers.triggers.WaitTimeTrigger;
 public class WaitTriggerStatement extends Statement implements ITriggerOwner{
 	private static final long serialVersionUID = -1336157462556957815L;
 	
-	protected TriggerXMLizer trigger = new TriggerXMLizer(new WaitTimeTrigger(1000));
+	private TriggerXMLizer trigger = new TriggerXMLizer(new WaitTimeTrigger(1000));
 	
 	public WaitTriggerStatement() {
 		super();

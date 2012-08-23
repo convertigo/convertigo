@@ -61,11 +61,7 @@ public class TagName extends JavelinMashupEventExtractionRule {
         }
     }
     
-    /* bean properties */
-    private XMLVector<FieldDesc> fieldList = new XMLVector<FieldDesc>();
-    
-    /** Holds value of property vertical. */
-    private boolean vertical = false;
+    transient private XMLVector<FieldDesc> fieldList = new XMLVector<FieldDesc>();
     
     /** Holds value of property tagName. */
     private String tagName = "";
@@ -147,7 +143,7 @@ public class TagName extends JavelinMashupEventExtractionRule {
         tagName = findFieldByCoord(block);
         if (labelPolicy == TagName.LABEL_POLICY_EXPLICIT) {
         	if (tagName.length() == 0) {
-        		throw new IllegalArgumentException("TagName extraction rule: \"" + name + "\"\nThe label policy is set to 'Explicit' while the tag name property is empty!");
+        		throw new IllegalArgumentException("TagName extraction rule: \"" + getName() + "\"\nThe label policy is set to 'Explicit' while the tag name property is empty!");
         	}
             block.tagName = tagName;
             Engine.logBeans.trace("FieldName extraction rule matched by coord. tag is : " + block.tagName);
@@ -256,20 +252,6 @@ public class TagName extends JavelinMashupEventExtractionRule {
             cols.add(new FieldDesc(line, colon, literal, tagName));
         }
         this.fieldList = cols;
-    }
-    
-    /** Getter for property vertical.
-     * @return Value of property vertical.
-     */
-    public boolean isVertical() {
-        return vertical;
-    }
-    
-    /** Setter for property vertical.
-     * @param vertical New value of property vertical.
-     */
-    public void setVertical(boolean vertical) {
-        this.vertical = vertical;
     }
     
     /** Getter for property tagName.
