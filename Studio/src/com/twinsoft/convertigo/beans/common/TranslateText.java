@@ -45,12 +45,6 @@ public class TranslateText extends JavelinExtractionRule {
 		Map<String, String> words = Collections.synchronizedMap(new HashMap<String, String>());
 		Map<String, String> orphans;
 		long lastModified = -1;
-		
-		public DictionaryEntry() {
-			if (generateOrphans) {
-				orphans = Collections.synchronizedMap(new LinkedHashMap<String, String>());
-			}
-		}
 	}
 	
 	private final static Map<String, DictionaryEntry> cachedDictionaries = new HashMap<String, TranslateText.DictionaryEntry>();
@@ -123,18 +117,24 @@ public class TranslateText extends JavelinExtractionRule {
 							FileUtils.loadProperties(dictionaryEntry.words, file, encoding);
 							Engine.logBeans.debug("(TranslateText) Dictionary had load " + dictionaryEntry.words.size() + " rules");
 						} catch (Exception e) {
+							dictionaryEntry.words.clear();
 							Engine.logBeans.error("(TranslateText) Error while opening dictionary.\nCan't read the dictionary file \"" + filepath + "\" :\n" + e.getMessage() + "\nPlease refer to the rule documentation.");
 						}
-						if (generateOrphans) {
-							Engine.logBeans.trace("(TranslateText) Prepare to generate orphans words");
-							try {
-								dictionaryEntry.orphans.clear();
-								FileUtils.loadProperties(dictionaryEntry.orphans, new File(orphanspath), encoding);
-							} catch (Exception e) {
-								Engine.logBeans.debug("(TranslateText) The optional dictionary file \"" + orphanspath + "\" cannot be load :\n" + e.getMessage());
-							}
-						}
 		    		}
+				}
+				if (generateOrphans) {
+					if (dictionaryEntry.orphans == null) {
+						dictionaryEntry.orphans = Collections.synchronizedMap(new LinkedHashMap<String, String>());
+						Engine.logBeans.trace("(TranslateText) Prepare to generate orphans words");
+						
+						try {
+							FileUtils.loadProperties(dictionaryEntry.orphans, new File(orphanspath), encoding);
+						} catch (Exception e) {
+							Engine.logBeans.debug("(TranslateText) The optional dictionary file \"" + orphanspath + "\" cannot be load :\n" + e.getMessage());
+						}
+					}
+				} else {
+					dictionaryEntry.orphans = null;
 				}
 		    	words = dictionaryEntry.words;
 			}
