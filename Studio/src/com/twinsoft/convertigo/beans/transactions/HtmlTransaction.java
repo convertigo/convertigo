@@ -1241,7 +1241,7 @@ public class HtmlTransaction extends HttpTransaction {
 	public void testLoop(HandlerStatement handler) throws EngineException {
 		if (handler != null) {
 			handlerName = handler.getName();
-			if (handler.preventFromLoops) {
+			if (handler.preventFromLoops()) {
 				if (!handlerName.equals(latestCalledHandler)) {
 					Engine.logBeans.trace("first loop for " + handlerName);
 					

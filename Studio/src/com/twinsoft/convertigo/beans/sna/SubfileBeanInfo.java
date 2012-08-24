@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.beans.sna;
 
 import java.beans.PropertyDescriptor;
 
-import com.twinsoft.convertigo.beans.common.Table;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class SubfileBeanInfo extends MySimpleBeanInfo {    
@@ -42,7 +41,7 @@ public class SubfileBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[10];
+			properties = new PropertyDescriptor[5];
 			
             properties[PROPERTY_actionLineAttribute] = new PropertyDescriptor ( "actionLineAttribute", Subfile.class, "getActionLineAttribute", "setActionLineAttribute" );
             properties[PROPERTY_actionLineAttribute].setDisplayName ( getExternalizedString("property.actionLineAttribute.display_name") );
@@ -63,30 +62,9 @@ public class SubfileBeanInfo extends MySimpleBeanInfo {
             properties[PROPERTY_endString].setDisplayName ( getExternalizedString("property.endString.display_name") );
             properties[PROPERTY_endString].setShortDescription ( getExternalizedString("property.endString.short_description") );
 			
-            properties[PROPERTY_autoValidate] = new PropertyDescriptor ( "autoValidate", Subfile.class, "isAutoValidate", "setAutoValidate" );
-			properties[PROPERTY_autoValidate].setDisplayName ( getExternalizedString("property.autoValidate.display_name") );
-			properties[PROPERTY_autoValidate].setShortDescription ( getExternalizedString("property.autoValidate.short_description") );
-			
-			properties[PROPERTY_removeActionLines] = new PropertyDescriptor ( "removeActionLines", Subfile.class, "isRemoveActionLines", "setRemoveActionLines" );
-			properties[PROPERTY_removeActionLines].setDisplayName ( getExternalizedString("property.removeActionLines.display_name") );
-			properties[PROPERTY_removeActionLines].setShortDescription ( getExternalizedString("property.removeActionLines.short_description") );
-			
-			properties[PROPERTY_doNotIncludeTitles] = new PropertyDescriptor ( "doNotIncludeTitles", Table.class, "isDoNotIncludeTitles", "setDoNotIncludeTitles" );
-			properties[PROPERTY_doNotIncludeTitles].setDisplayName ( java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/Table").getString("property.doNotIncludeTitles.display_name") );
-			properties[PROPERTY_doNotIncludeTitles].setShortDescription ( java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/Table").getString("property.doNotIncludeTitles.short_description") );
-			
-			properties[PROPERTY_keepEmptyLines] = new PropertyDescriptor ( "keepEmptyLines", Table.class, "isKeepEmptyLines", "setKeepEmptyLines" );
-			properties[PROPERTY_keepEmptyLines].setDisplayName ( getExternalizedString("property.keepEmptyLines.display_name") );
-			properties[PROPERTY_keepEmptyLines].setShortDescription ( getExternalizedString("property.keepEmptyLines.short_description") );
-			
 			properties[PROPERTY_subFileDetectionStartLine] = new PropertyDescriptor ( "subFileDetectionStartLine", Subfile.class, "getSubFileDetectionStartLine", "setSubFileDetectionStartLine" );
 			properties[PROPERTY_subFileDetectionStartLine].setDisplayName ( getExternalizedString("property.subFileDetectionStartLine.display_name") );
 			properties[PROPERTY_subFileDetectionStartLine].setShortDescription ( getExternalizedString("property.subFileDetectionStartLine.short_description") );
-			
-			properties[PROPERTY_separatorCharsForTokens] = new PropertyDescriptor ( "separatorCharsForTokens", Table.class, "getSeparatorCharsForTokens", "setSeparatorCharsForTokens" );
-            properties[PROPERTY_separatorCharsForTokens].setDisplayName ( java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/Table").getString("property.separatorCharsForTokens.display_name") );
-            properties[PROPERTY_separatorCharsForTokens].setShortDescription ( java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/Table").getString("property.separatorCharsForTokens.short_description") );
-           
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
@@ -97,12 +75,7 @@ public class SubfileBeanInfo extends MySimpleBeanInfo {
     private static final int PROPERTY_endStringAttribute = 1;
     private static final int PROPERTY_titleRowAttribute = 2;
 	private static final int PROPERTY_endString = 3;
-	private static final int PROPERTY_autoValidate = 4;
-	private static final int PROPERTY_removeActionLines = 5;
-    private static final int PROPERTY_doNotIncludeTitles = 6;
-    private static final int PROPERTY_keepEmptyLines = 7;
-    private static final int PROPERTY_subFileDetectionStartLine = 8;
-    private static final int PROPERTY_separatorCharsForTokens = 9;
+    private static final int PROPERTY_subFileDetectionStartLine = 4;
     
 }
 

@@ -94,7 +94,7 @@ public class CheckBeans {
 		System.out.println();
 		System.out.println("Found " + nTotalError + " error(s)");
 		System.out.println();
-		System.out.println("Bean check finished!");
+		System.out.println("Beans check finished!");
 		
 		System.exit(nTotalError);
 	}

@@ -35,7 +35,7 @@ public class HandlerStatement extends FunctionStatement implements ITagsProperty
 	
 	private String handlerType = "";
 	private String handlerResult = "";
-	transient public boolean preventFromLoops = true;
+	transient public boolean handlerLoopable = true;
 	
 	public HandlerStatement() throws EngineException {
 		this(EVENT_TRANSACTION_STARTED,"");
@@ -105,10 +105,10 @@ public class HandlerStatement extends FunctionStatement implements ITagsProperty
 	}
 	
 	public boolean preventFromLoops() {
-		return preventFromLoops;
+		return handlerLoopable;
 	}
 
 	public void setPreventFromLoops(boolean preventFromLoops) {
-		this.preventFromLoops = preventFromLoops;
+		this.handlerLoopable = preventFromLoops;
 	}
 }
