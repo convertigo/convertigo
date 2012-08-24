@@ -96,7 +96,7 @@ public class CheckBeans {
 		System.out.println();
 		System.out.println("Bean check finished!");
 		
-		System.exit(0);
+		System.exit(nTotalError);
 	}
 
 	private static List<String> javaClassNames = new ArrayList<String>();
