@@ -43,8 +43,8 @@ public class ChoiceBeanInfo extends MySimpleBeanInfo {
 			beanClass =  Choice.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.JavelinExtractionRule.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/listbox_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/listbox_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/choice_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/choice_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/Choice");
 			

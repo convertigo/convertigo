@@ -33,8 +33,8 @@ public class CheckBoxBeanInfo extends MySimpleBeanInfo {
 			beanClass = CheckBox.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.JavelinExtractionRule.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/checkbox_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/checkbox_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/checkbox_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/checkbox_color_32x32.png";
 
  			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/CheckBox");
 

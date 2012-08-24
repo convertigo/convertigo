@@ -33,8 +33,8 @@ public class TabBoxBeanInfo extends MySimpleBeanInfo {
 			beanClass = TabBox.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.JavelinExtractionRule.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/tabs_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/tabs_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/tabbox_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/tabbox_color_32x32.png";
 
  			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/TabBox");
 

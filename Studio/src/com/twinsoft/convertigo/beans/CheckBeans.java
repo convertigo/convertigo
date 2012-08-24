@@ -53,7 +53,7 @@ public class CheckBeans {
 		
 		System.out.println("Browsing sources in " + srcBase);
 		
-		browsePackages(srcBase);
+		browsePackages(srcBase + "com/twinsoft/convertigo/beans");
 		
 		System.out.println();
 		System.out.println("Found " + javaClassNames.size() + " classes");
@@ -62,12 +62,17 @@ public class CheckBeans {
 			analyzeJavaClass(javaClassName);
 		}
 
+		for (String icon : icons) {
+			Error.BEAN_ICON_NOT_USED.add(icon);
+		}
+
 		System.out.println();
 		
 		for (Error error : Error.values()) {
 			List<String> errorList = errors.get(error);
 			if (errorList == null) continue;
-			System.out.println(error);
+			int nError = errorList.size();
+			System.out.println(error + " (" + nError + ")");
 			for (String errorMessage : errorList) {
 				System.out.println("   " + errorMessage);
 			}
@@ -79,7 +84,8 @@ public class CheckBeans {
 		System.out.println("Summary");
 		System.out.println("=======");
 		System.out.println();
-		System.out.println("Found " + nBeanClass + " bean classes");
+		System.out.println("Found " + nBeanClass + " bean classes (including abstract classes)");
+		System.out.println("Found " + nBeanClassNotAbstract + " instantiable bean classes");
 		System.out.println();
 
 		int nTotalError = 0;
@@ -100,19 +106,28 @@ public class CheckBeans {
 	}
 
 	private static List<String> javaClassNames = new ArrayList<String>();
+	private static List<String> icons = new ArrayList<String>();
 
 	private static void browsePackages(final String currentPackage) {
 		@SuppressWarnings("unchecked")
-		Collection<File> files = FileUtils.listFiles(new File(currentPackage), new String[] { "java" }, true);
-		for (File file : files) {
+		Collection<File> javaFiles = FileUtils.listFiles(new File(currentPackage), new String[] { "java" }, true);
+		for (File file : javaFiles) {
 			String javaClassName = file.getPath();
 			javaClassName = javaClassName.substring(srcBase.length()).replace('/', '.');
 			javaClassName = javaClassName.substring(0, javaClassName.lastIndexOf(".java"));
 			
 			if (!javaClassName.endsWith("BeanInfo")) {
-				javaClassName = "com.twinsoft.convertigo.beans" + javaClassName;
 				javaClassNames.add(javaClassName);
 			}
+		}
+
+		@SuppressWarnings("unchecked")
+		Collection<File> iconFiles = FileUtils.listFiles(new File(currentPackage), new String[] { "png" }, true);
+		for (File file : iconFiles) {
+			String iconPath = file.getPath();
+			iconPath = iconPath.substring(srcBase.length() - 1);
+
+			icons.add(iconPath);
 		}
 	}
 	
@@ -126,6 +141,7 @@ public class CheckBeans {
 		BEAN_MISSING_DESCRIPTION("Bean missing description"),
 		BEAN_MISSING_ICON("Declared icon missing"),
 		BEAN_ICON_NAMING_POLICY("Wrong icon name "),
+		BEAN_ICON_NOT_USED("Not used icon"),
 		PROPERTY_DECLARED_BUT_NOT_FOUND("Declared property but not found"),
 		PROPERTY_NAMING_POLICY("Declared and defined bean property name mismatch"),
 		PROPERTY_NOT_PRIVATE("Non private bean property"),
@@ -157,6 +173,7 @@ public class CheckBeans {
 	private static Map<Error, List<String>> errors = new HashMap<Error, List<String>>();
 
 	private static int nBeanClass = 0;
+	private static int nBeanClassNotAbstract = 0;
 	
 	private static void analyzeJavaClass(String javaClassName) {
 		try {
@@ -184,11 +201,16 @@ public class CheckBeans {
 			
 			BeanDescriptor beanDescriptor = dboBeanInfo.getBeanDescriptor();
 			
-			String declaredIconName = MySimpleBeanInfo.getIconName(dboBeanInfo, MySimpleBeanInfo.ICON_COLOR_16x16);
-
 			// Check abstract class
 			if (Modifier.isAbstract(javaClass.getModifiers())) {
-				// Check icon
+				// Check icon (16x16)
+				String declaredIconName = MySimpleBeanInfo.getIconName(dboBeanInfo, MySimpleBeanInfo.ICON_COLOR_16x16);
+				if (declaredIconName != null) {
+					Error.ABSTRACT_CLASS_WITH_ICON.add(javaClassName);
+				}
+
+				// Check icon (32x32)
+				declaredIconName = MySimpleBeanInfo.getIconName(dboBeanInfo, MySimpleBeanInfo.ICON_COLOR_32x32);
 				if (declaredIconName != null) {
 					Error.ABSTRACT_CLASS_WITH_ICON.add(javaClassName);
 				}
@@ -204,7 +226,10 @@ public class CheckBeans {
 				}
 			}
 			else {
-				// Check icon name policy
+				nBeanClassNotAbstract++;
+				
+				// Check icon name policy (16x16)
+				String declaredIconName = MySimpleBeanInfo.getIconName(dboBeanInfo, MySimpleBeanInfo.ICON_COLOR_16x16);
 				String expectedIconName = javaClassName.replace(javaClassSimpleName, "images/" + javaClassSimpleName);
 				expectedIconName = "/" + expectedIconName.replace('.', '/') + "_color_16x16";
 				expectedIconName = expectedIconName.toLowerCase() + ".png";
@@ -216,10 +241,35 @@ public class CheckBeans {
 					}
 				}
 				
-				// Check icon file
+				// Check icon file (16x16)
 				File iconFile = new File(srcBase + declaredIconName);
 				if (!iconFile.exists()) {
 					Error.BEAN_MISSING_ICON.add(javaClassName+ " - icon missing: " + declaredIconName);
+				}
+				else {
+					icons.remove(declaredIconName);
+				}
+				
+				// Check icon name policy (32x32)
+				declaredIconName = MySimpleBeanInfo.getIconName(dboBeanInfo, MySimpleBeanInfo.ICON_COLOR_32x32);
+				expectedIconName = javaClassName.replace(javaClassSimpleName, "images/" + javaClassSimpleName);
+				expectedIconName = "/" + expectedIconName.replace('.', '/') + "_color_32x32";
+				expectedIconName = expectedIconName.toLowerCase() + ".png";
+				if (declaredIconName != null) {
+					if (!declaredIconName.equals(expectedIconName)) {
+						Error.BEAN_ICON_NAMING_POLICY.add(javaClassName + "\n"
+								+ "      Declared: " + declaredIconName + "\n"
+								+ "      Expected: " + expectedIconName);
+					}
+				}
+				
+				// Check icon file (32x32)
+				iconFile = new File(srcBase + declaredIconName);
+				if (!iconFile.exists()) {
+					Error.BEAN_MISSING_ICON.add(javaClassName+ " - icon missing: " + declaredIconName);
+				}
+				else {
+					icons.remove(declaredIconName);
 				}
 				
 				// Check display name

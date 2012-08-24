@@ -33,8 +33,8 @@ public class ContainerBeanInfo extends MySimpleBeanInfo {
 			beanClass = Container.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.JavelinMashupEventExtractionRule.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/panel_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/panel_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/container_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/container_color_32x32.png";
 
  			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/Container");
 

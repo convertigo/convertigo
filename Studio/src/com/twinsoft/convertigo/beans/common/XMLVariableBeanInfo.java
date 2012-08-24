@@ -31,8 +31,8 @@ public class XMLVariableBeanInfo extends MySimpleBeanInfo {
 			beanClass = XMLVariable.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.HtmlExtractionRule.class;
 
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/xml_variable_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/xml_variable_color_32x32.png";
+		    iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/xmlvariable_color_16x16.png";
+		    iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/xmlvariable_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/XMLVariable");
 
