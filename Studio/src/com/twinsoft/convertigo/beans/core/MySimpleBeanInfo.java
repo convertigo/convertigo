@@ -49,7 +49,7 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 	protected String shortDescription = "?";
 	
 	protected PropertyDescriptor[] properties = new PropertyDescriptor[0];
-	protected PropertyDescriptor[] allProperties = new PropertyDescriptor[0];
+	protected PropertyDescriptor[] localProperties = new PropertyDescriptor[0];
 
 	protected String iconNameC16 = null;
 	protected String iconNameC32 = null;
@@ -95,11 +95,11 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
 	@Override
 	public PropertyDescriptor[] getPropertyDescriptors() {
 		checkAdditionalProperties();
-		return allProperties;
+		return properties;
 	}
 
 	public PropertyDescriptor[] getLocalPropertyDescriptors() {
-		return properties;
+		return localProperties;
 	}
 
 	@Override
@@ -203,8 +203,8 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     
     protected PropertyDescriptor getPropertyDescriptor(String name) throws IntrospectionException {
     	checkAdditionalProperties();
-    	for (int i = 0 ; i < allProperties.length ; i++) {
-    		PropertyDescriptor property = allProperties[i];
+    	for (int i = 0 ; i < properties.length ; i++) {
+    		PropertyDescriptor property = properties[i];
     		if (name.equals(property.getName())) {
     			PropertyDescriptor clone = new PropertyDescriptor(name, property.getReadMethod(), property.getWriteMethod());
     			clone.setDisplayName(property.getDisplayName());
@@ -218,7 +218,7 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     			for (String attributeName : Collections.list(property.attributeNames())) {
     				clone.setValue(attributeName, property.getValue(attributeName));
     			}
-    			return allProperties[i] = clone;
+    			return properties[i] = clone;
     		}
     	}
     	return null;
@@ -226,9 +226,10 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     
     private void checkAdditionalProperties() {
     	if (!additionalPropertiesLoaded) {
+    		ArrayUtils.addAll(localProperties, properties);
     		if (additionalBeanClass != null) {
     			try {
-					allProperties = (PropertyDescriptor[]) ArrayUtils.addAll(properties, CachedIntrospector.getBeanInfo(additionalBeanClass).getPropertyDescriptors());
+					properties = (PropertyDescriptor[]) ArrayUtils.addAll(properties, CachedIntrospector.getBeanInfo(additionalBeanClass).getPropertyDescriptors());
 				} catch (IntrospectionException e) {
 				}
     		}
