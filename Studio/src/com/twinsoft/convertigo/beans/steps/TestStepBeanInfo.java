@@ -33,14 +33,8 @@ public class TestStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = TestStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.steps.BlockStep.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/step_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/step_color_32x32.png";
-			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/TestStep");
 			
-			displayName = resourceBundle.getString("display_name");
-			shortDescription = resourceBundle.getString("short_description");
-
 			properties = new PropertyDescriptor[1];
 
 			properties[0] = new PropertyDescriptor("sourceDefinition", beanClass, "getSourceDefinition", "setSourceDefinition");

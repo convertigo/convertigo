@@ -31,14 +31,8 @@ public class ModifyHeaderBeanInfo extends MySimpleBeanInfo {
 			beanClass = ModifyHeader.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.siteclipper.Header.class;
 	
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_modifyheader_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_modifyheader_color_32x32.png";
-	
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/ModifyHeader");
-	
-			displayName = getExternalizedString("display_name");
-			shortDescription = getExternalizedString("short_description");
-			
+
 			getPropertyDescriptor("headerValue").setHidden(false);			
 		}
 		catch(Exception e) {

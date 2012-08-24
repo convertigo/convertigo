@@ -33,13 +33,7 @@ public class XMLGenerateStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = XMLGenerateStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/transactionstep_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/transactionstep_32x32.png";
-			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/XMLGenerateStep");
-			
-			displayName = resourceBundle.getString("display_name");
-			shortDescription = resourceBundle.getString("short_description");
 			
 			properties = new PropertyDescriptor[1];
 

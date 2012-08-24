@@ -31,13 +31,7 @@ public class ExtractionRuleBeanInfo extends MySimpleBeanInfo {
 			beanClass = ExtractionRule.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.DatabaseObject.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/extractionrule_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/extractionrule_color_32x32.png";
-
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/ExtractionRule");
-
-			displayName = getExternalizedString("display_name");
-			shortDescription = getExternalizedString("short_description");
 
 			properties = new PropertyDescriptor[1];
 			

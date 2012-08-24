@@ -31,13 +31,7 @@ public class VariableBeanInfo extends MySimpleBeanInfo {
 			beanClass = Variable.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.DatabaseObject.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/variable_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/variable_color_32x32.png";
-
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/Variable");
-
-			displayName = getExternalizedString("display_name");
-			shortDescription = getExternalizedString("short_description");
 
 			properties = new PropertyDescriptor[4];
 			
@@ -65,6 +59,5 @@ public class VariableBeanInfo extends MySimpleBeanInfo {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
 		}
 	}
-
 	
 }

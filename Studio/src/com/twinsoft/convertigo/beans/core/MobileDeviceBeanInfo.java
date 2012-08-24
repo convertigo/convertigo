@@ -31,9 +31,6 @@ public class MobileDeviceBeanInfo extends MySimpleBeanInfo {
 			beanClass = MobileDevice.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.DatabaseObject.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/mobiledevice_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/mobiledevice_color_32x32.png";
-
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/MobileDevice");
 			
 			properties = new PropertyDescriptor[3];

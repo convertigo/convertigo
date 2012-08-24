@@ -28,9 +28,6 @@ public class BlockFactoryBeanInfo extends MySimpleBeanInfo {
 		try {
 			beanClass = BlockFactory.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.DatabaseObject.class;
-
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/blockfactory_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/blockfactory_color_32x32.png";
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

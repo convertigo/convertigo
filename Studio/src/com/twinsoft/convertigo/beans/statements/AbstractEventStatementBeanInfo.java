@@ -33,13 +33,7 @@ public class AbstractEventStatementBeanInfo extends MySimpleBeanInfo {
 			beanClass = AbstractEventStatement.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.statements.XpathableStatement.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/statement_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/statement_color_32x32.png";
-			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/AbstractEventStatement");
-			
-			displayName = resourceBundle.getString("display_name");
-			shortDescription = resourceBundle.getString("short_description");
 			
 			properties = new PropertyDescriptor[1];
 

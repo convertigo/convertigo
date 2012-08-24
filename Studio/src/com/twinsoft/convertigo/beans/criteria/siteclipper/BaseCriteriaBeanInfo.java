@@ -31,14 +31,7 @@ public class BaseCriteriaBeanInfo extends MySimpleBeanInfo {
 			beanClass = BaseCriteria.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Criteria.class;
 	
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/criteria_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/criteria_color_32x32.png";
-	
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/criteria/siteclipper/res/BaseCriteria");
-	
-			displayName = getExternalizedString("display_name");
-			shortDescription = getExternalizedString("short_description");
-			
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -34,14 +34,8 @@ public class AbstractXMLRefererBeanInfo extends MySimpleBeanInfo {
 			beanClass = AbstractXMLReferer.class;
 			additionalBeanClass = HtmlExtractionRule.class;
 
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/xml_text_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/xml_text_color_32x32.png";
-
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/AbstractXMLReferer");
 
-			displayName = getExternalizedString("display_name");
-			shortDescription = getExternalizedString("short_description");
-			
 			properties = new PropertyDescriptor[1];
 			
 			properties[0] = new PropertyDescriptor("displayReferer", beanClass, "isDisplayReferer", "setDisplayReferer");

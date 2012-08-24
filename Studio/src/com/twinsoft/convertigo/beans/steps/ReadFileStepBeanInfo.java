@@ -33,13 +33,7 @@ public class ReadFileStepBeanInfo extends MySimpleBeanInfo{
 			beanClass = ReadFileStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/step_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/step_color_32x32.png";
-			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/ReadFileStep");
-			
-			displayName = resourceBundle.getString("display_name");
-			shortDescription = resourceBundle.getString("short_description");	          
 			
 			properties = new PropertyDescriptor[1];
 			

@@ -31,9 +31,6 @@ public class TransactionBeanInfo extends MySimpleBeanInfo {
 			beanClass =  Transaction.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.RequestableObject.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_32x32.png";
-
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/Transaction");
 			
 			properties = new PropertyDescriptor[1];

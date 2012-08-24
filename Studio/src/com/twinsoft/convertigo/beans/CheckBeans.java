@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans;
  
+import java.beans.BeanDescriptor;
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.lang.reflect.Field;
@@ -121,8 +122,10 @@ public class CheckBeans {
 		ABSTRACT_CLASS_WITH_ICON("Abstract class should not have icon"),
 		ABSTRACT_CLASS_WITH_DISPLAY_NAME("Abstract class should not have a display name"),
 		ABSTRACT_CLASS_WITH_DESCRIPTION("Abstract class should not have a description"),
-		ICON_NAMING_POLICY("Wrong icon name "),
-		ICON_MISSING("Declared icon missing"),
+		BEAN_MISSING_DISPLAY_NAME("Bean missing display name"),
+		BEAN_MISSING_DESCRIPTION("Bean missing description"),
+		BEAN_MISSING_ICON("Declared icon missing"),
+		BEAN_ICON_NAMING_POLICY("Wrong icon name "),
 		PROPERTY_DECLARED_BUT_NOT_FOUND("Declared property but not found"),
 		PROPERTY_NAMING_POLICY("Declared and defined bean property name mismatch"),
 		PROPERTY_NOT_PRIVATE("Non private bean property"),
@@ -179,6 +182,8 @@ public class CheckBeans {
 				return;
 			}
 			
+			BeanDescriptor beanDescriptor = dboBeanInfo.getBeanDescriptor();
+			
 			String declaredIconName = MySimpleBeanInfo.getIconName(dboBeanInfo, MySimpleBeanInfo.ICON_COLOR_16x16);
 
 			// Check abstract class
@@ -189,12 +194,12 @@ public class CheckBeans {
 				}
 
 				// Check display name
-				if (dboBeanInfo.getBeanDescriptor().getDisplayName() != null) {
+				if (!beanDescriptor.getDisplayName().equals("?")) {
 					Error.ABSTRACT_CLASS_WITH_DISPLAY_NAME.add(javaClassName);
 				}
 
 				// Check description
-				if (dboBeanInfo.getBeanDescriptor().getShortDescription() != null) {
+				if (!beanDescriptor.getShortDescription().equals("?")) {
 					Error.ABSTRACT_CLASS_WITH_DESCRIPTION.add(javaClassName);
 				}
 			}
@@ -205,7 +210,7 @@ public class CheckBeans {
 				expectedIconName = expectedIconName.toLowerCase() + ".png";
 				if (declaredIconName != null) {
 					if (!declaredIconName.equals(expectedIconName)) {
-						Error.ICON_NAMING_POLICY.add(javaClassName + "\n"
+						Error.BEAN_ICON_NAMING_POLICY.add(javaClassName + "\n"
 								+ "      Declared: " + declaredIconName + "\n"
 								+ "      Expected: " + expectedIconName);
 					}
@@ -214,7 +219,17 @@ public class CheckBeans {
 				// Check icon file
 				File iconFile = new File(srcBase + declaredIconName);
 				if (!iconFile.exists()) {
-					Error.ICON_MISSING.add(javaClassName+ " - icon missing: " + declaredIconName);
+					Error.BEAN_MISSING_ICON.add(javaClassName+ " - icon missing: " + declaredIconName);
+				}
+				
+				// Check display name
+				if (beanDescriptor.getDisplayName().equals("?")) {
+					Error.BEAN_MISSING_DISPLAY_NAME.add(javaClassName);
+				}
+
+				// Check description
+				if (beanDescriptor.getShortDescription().equals("?")) {
+					Error.BEAN_MISSING_DESCRIPTION.add(javaClassName);
 				}
 			}
 			

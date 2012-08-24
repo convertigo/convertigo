@@ -33,14 +33,8 @@ public class FileInjectorBeanInfo extends MySimpleBeanInfo {
 			beanClass = FileInjector.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.siteclipper.Injector.class;
 
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_injector_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_injector_color_32x32.png";
-
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/FileInjector");
 
-			displayName = getExternalizedString("display_name");
-			shortDescription = getExternalizedString("short_description");
-			
 			properties = new PropertyDescriptor[1];
 			
 			properties[0] = new PropertyDescriptor("filePath", beanClass, "getFilePath", "setFilePath");

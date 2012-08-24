@@ -33,13 +33,7 @@ public class LegacyScreenCriteriaBeanInfo extends MySimpleBeanInfo {
 			beanClass = LegacyScreenCriteria.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Criteria.class;
 
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/legacyScreenCriteria_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/legacyScreenCriteria_color_32x32.png";
-
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/LegacyScreenCriteria");
-
-			displayName = getExternalizedString("display_name");
-			shortDescription = getExternalizedString("short_description");
 
 			properties = new PropertyDescriptor[3];
 			

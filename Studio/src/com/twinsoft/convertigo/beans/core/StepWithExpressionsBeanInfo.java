@@ -31,9 +31,6 @@ public class StepWithExpressionsBeanInfo extends MySimpleBeanInfo {
 			beanClass = StepWithExpressions.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/step_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/step_color_32x32.png";
-			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/StepWithExpressions");
 
 			properties = new PropertyDescriptor[1];
