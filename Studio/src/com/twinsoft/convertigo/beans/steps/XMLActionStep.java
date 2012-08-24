@@ -37,8 +37,8 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 abstract public class XMLActionStep extends Step {
 	private static final long serialVersionUID = -3582328787633662760L;
 	
-	protected XMLVector<XMLVector<Object>> sourcesDefinition = new XMLVector<XMLVector<Object>>();
-	protected String nodeName = "element";
+	private XMLVector<XMLVector<Object>> sourcesDefinition = new XMLVector<XMLVector<Object>>();
+	private String nodeName = "element";
 	
 	public XMLActionStep() {
 		super();

@@ -140,7 +140,7 @@ public class MoveFileStep extends Step {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					String inputFilePath = getAbsoluteFilePath(evaluateDataFileName(javascriptContext, scope));

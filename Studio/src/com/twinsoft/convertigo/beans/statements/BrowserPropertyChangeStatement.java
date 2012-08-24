@@ -46,68 +46,55 @@ public class BrowserPropertyChangeStatement extends Statement implements ITagsPr
 	public static String convertigoModeEngine = "engine mode";
 	public static String convertigoModeBoth = "both modes";
 	
-	String convertigoMode = convertigoModeBoth;
-	
-	
+	private String convertigoMode = convertigoModeBoth;
 	
 	public static String javascriptModeNoChange = "no change";
 	public static String javascriptModeForceOn = "force on";
 	public static String javascriptModeForceOff = "force off";
 	
-	boolean bJavascriptChange = false;
-	boolean bJavascriptStat = true;
+	private boolean bJavascriptChange = false;
+	private boolean bJavascriptStat = true;
 	
-	String javascriptMode = javascriptModeNoChange;
-	
-	
+	private String javascriptMode = javascriptModeNoChange;
 	
 	public static String imageModeNoChange = "no change";
 	public static String imageModeForceOn = "force on";
 	public static String imageModeForceOff = "force off";
 	
-	boolean bImageChange = false;
-	boolean bImageStat = true;
+	private boolean bImageChange = false;
+	private boolean bImageStat = true;
 	
-	String imageMode = imageModeNoChange;
-	
-	
+	private String imageMode = imageModeNoChange;
 	
 	public static String pluginModeNoChange = "no change";
 	public static String pluginModeForceOn = "force on";
 	public static String pluginModeForceOff = "force off";
 
-	boolean bPluginChange = false;
-	boolean bPluginStat = true;
+	private boolean bPluginChange = false;
+	private boolean bPluginStat = true;
 
-	String pluginMode = pluginModeNoChange;
-	
-	
+	private String pluginMode = pluginModeNoChange;
 	
 	public static String attachmentModeNoChange = "no change";
 	public static String attachmentModeForceOn = "force on";
 	public static String attachmentModeForceOff = "force off";
 
-	boolean bAttachmentChange = false;
-	boolean bAttachmentStat = true;
+	private boolean bAttachmentChange = false;
+	private boolean bAttachmentStat = true;
 
-	String attachmentMode = attachmentModeNoChange;
-	
-	
+	private String attachmentMode = attachmentModeNoChange;
 	
 	public static String windowOpenModeNoChange = "no change";
 	public static String windowOpenModeForceOnSameWindow = "force on same window";
 	public static String windowOpenModeForceOnNewWindow = "force on new window";
 	public static String windowOpenModeForceOff = "force off";
 	
-	boolean bWindowOpenChange = false;
-	boolean bWindowOpenStat = true;
+	private boolean bWindowOpenChange = false;
+	private boolean bWindowOpenStat = true;
 	
-	String windowOpenMode = windowOpenModeNoChange;
+	private String windowOpenMode = windowOpenModeNoChange;
 	
-
-	
-	boolean bClearCookies = false;
-	
+	private boolean bClearCookies = false;
 	
 	public BrowserPropertyChangeStatement() {
 		super();
@@ -150,7 +137,7 @@ public class BrowserPropertyChangeStatement extends Statement implements ITagsPr
 
     @Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				if(convertigoMode.equals(convertigoModeBoth) ||
 				   convertigoMode.equals(convertigoModeStudio) && Engine.isStudioMode() ||

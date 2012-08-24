@@ -83,7 +83,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				evaluate(javascriptContext, scope, getExpression(), "expression", true);
 				return true;

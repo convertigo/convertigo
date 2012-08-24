@@ -35,7 +35,7 @@ public abstract class TestStep extends BlockStep implements IStepSourceContainer
 
 	private static final long serialVersionUID = -9065196463100156249L;
 
-	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
+	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	
 	private transient StepSource source = null;
 	
@@ -90,7 +90,7 @@ public abstract class TestStep extends BlockStep implements IStepSourceContainer
 
 	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (inError()) {
 				Engine.logBeans.info("(TestStep) Skipping step "+ this +" ("+ hashCode()+") because its source is in error");
 				return true;

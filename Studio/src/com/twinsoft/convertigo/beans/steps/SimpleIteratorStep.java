@@ -41,8 +41,8 @@ public class SimpleIteratorStep extends LoopStep {
 
 	private static final long serialVersionUID = -9093650239163532022L;
 
-	protected String expression = "";
-	protected String startIndex = "0";
+	private String expression = "";
+	private String startIndex = "0";
 	
 	private transient Iterator iterator = null;
 	private transient Integer iterations = null;
@@ -103,7 +103,7 @@ public class SimpleIteratorStep extends LoopStep {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			try {
 				evaluate(javascriptContext, scope, getExpression(), "expression", true);
 				if (evaluated instanceof org.mozilla.javascript.Undefined) {
@@ -165,6 +165,7 @@ public class SimpleIteratorStep extends LoopStep {
 	}
 	
 	private Integer evaluateMaxIterationsInteger(Context javascriptContext, Scriptable scope) throws EngineException {
+		String condition = getCondition();
 		if (iterations == null)
 			iterations = evaluateToInteger(javascriptContext, scope, condition, "condition", true);
 		return iterations;

@@ -34,7 +34,7 @@ public class XMLComplexStep extends StepWithExpressions {
 
 	private static final long serialVersionUID = 7002348210812220725L;
 
-	protected String nodeName = "complex";
+	private String nodeName = "complex";
 	
 	public XMLComplexStep() {
 		super();
@@ -83,7 +83,7 @@ public class XMLComplexStep extends StepWithExpressions {
 
 	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
-    	if (isEnable) {
+    	if (isEnable()) {
 			if (inError()) {
 				Engine.logBeans.info("Skipping step "+ this +" ("+ hashCode()+") because its source is in error");
 				return true;

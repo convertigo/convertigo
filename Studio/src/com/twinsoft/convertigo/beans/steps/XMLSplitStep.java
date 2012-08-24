@@ -38,9 +38,9 @@ public class XMLSplitStep extends XMLElementStep {
 
 	private static final long serialVersionUID = -4205502933374092261L;
 
-	protected String regexp = "";
-	protected boolean keepSeparator = false;
-	protected XMLVector<XMLVector<String>> tags = new XMLVector<XMLVector<String>>();
+	private String regexp = "";
+	private boolean keepSeparator = false;
+	private XMLVector<XMLVector<String>> tags = new XMLVector<XMLVector<String>>();
 		
 	public XMLSplitStep() {
 		super();
@@ -207,9 +207,11 @@ public class XMLSplitStep extends XMLElementStep {
 		String text = this.getComment();
 		String label = "";
 		try {
+			XMLVector<String> sourceDefinition = getSourceDefinition();
 			label += (sourceDefinition.size() > 0) ? "@("+ getLabel()+")":"@(??)";
 		} catch (EngineException e) {
 		}
+		String nodeName = getNodeName();
 		return "<"+ nodeName +">" + "Split("+ label +")"+ (!text.equals("") ? " // "+text:"");
 	}
 	

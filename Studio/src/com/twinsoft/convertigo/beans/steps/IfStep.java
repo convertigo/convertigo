@@ -55,12 +55,14 @@ public class IfStep extends BlockStep {
     @Override
 	public String toString() {
 		String text = this.getComment();
+		String condition = getCondition();
 		return "if("+ (condition.equals("")?"??":condition) +")" + (!text.equals("") ? " // "+text:"");
 	}
 
     @Override
 	public String toJsString() {
 		String code = "";
+		String condition = getCondition();
 		if (!condition.equals("")) {
 			code += " if ("+ condition +") {\n";
 			code += super.toString();
@@ -86,7 +88,7 @@ public class IfStep extends BlockStep {
 
     @Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			boolean test = evaluateStep(javascriptContext, scope);
 			return super.executeNextStep(test, javascriptContext, scope);
 		}

@@ -76,7 +76,7 @@ public abstract class BlockStatement extends StatementWithExpressions {
 
 	public boolean executeNextStatement(Context javascriptContext, Scriptable scope) throws EngineException
     {
-    	if (isEnable) {
+    	if (isEnable()) {
 	    	if (hasStatements()) {
 	    		if (currentChildStatement < numberOfStatements()) {
 	        		Statement st = (Statement) getStatements().get(currentChildStatement);

@@ -44,7 +44,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 public abstract class Statement extends DatabaseObject {
 	private static final long serialVersionUID = 1113997185686423262L;
     
-    public boolean isEnable = true;
+	private boolean isEnable = true;
     
     public Statement() {
         super();

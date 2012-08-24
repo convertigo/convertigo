@@ -352,7 +352,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	}
 	
 	/** Holds value of property orderedVariables. */
-	protected XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
+	private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
 	/** Stores value of property orderedVariables. */
 	//private transient XMLVector originalVariablesDefinition = null;
@@ -798,7 +798,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	}
 
 	/** Holds value of property bIncludeCertificateGroup. */
-	protected boolean bIncludeCertificateGroup = false;
+	private boolean bIncludeCertificateGroup = false;
 
 	/** Getter for property bIncludeCertificateGroup.
      * @return Value of property bIncludeCertificateGroup.

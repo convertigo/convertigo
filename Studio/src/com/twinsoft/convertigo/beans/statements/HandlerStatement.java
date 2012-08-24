@@ -35,7 +35,7 @@ public class HandlerStatement extends FunctionStatement implements ITagsProperty
 	
 	private String handlerType = "";
 	private String handlerResult = "";
-	transient public boolean handlerLoopable = true;
+	private boolean handlerLoopable = true;
 	
 	public HandlerStatement() throws EngineException {
 		this(EVENT_TRANSACTION_STARTED,"");

@@ -54,7 +54,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	/**
      * The vector of ordered step objects which can be applied on the StepWithExpressions.
      */
-    public XMLVector<XMLVector<Long>> orderedSteps = null;
+    private XMLVector<XMLVector<Long>> orderedSteps = null;
 	
     transient private List<Step> vSteps = new Vector<Step>();
     
@@ -583,7 +583,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (bContinue && sequence.isRunning()) {
 				if (super.stepExecute(javascriptContext, scope)) {
 					return executeNextStep(javascriptContext, scope);
@@ -737,7 +737,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException
     {
-    	if (isEnable) {
+    	if (isEnable()) {
 	    	if (hasSteps()) {
 	    		for (int i=0; i<numberOfSteps(); i++) {
 	    			if (bContinue && sequence.isRunning())

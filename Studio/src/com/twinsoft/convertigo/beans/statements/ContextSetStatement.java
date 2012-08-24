@@ -50,7 +50,7 @@ public class ContextSetStatement extends Statement {
 	}
 	
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				evaluate(javascriptContext, scope, expression, "ContextSet", true);
 				scope.put("__tmp__ContextSetStatement", scope, evaluated);

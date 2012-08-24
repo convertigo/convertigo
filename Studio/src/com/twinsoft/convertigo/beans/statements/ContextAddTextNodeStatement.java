@@ -55,7 +55,7 @@ public class ContextAddTextNodeStatement extends Statement {
 	}
 	
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				evaluate(javascriptContext, scope, expression, "ContextAddTextNode", true);
 				scope.put("__tmp__ContextAddTextNode", scope, evaluated);

@@ -42,11 +42,11 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public abstract class WriteFileStep extends Step implements IStepSourceContainer {
 	private static final long serialVersionUID = 1935459983330667718L;
 	
-	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
-	protected boolean appendTimestamp=false;
+	private XMLVector<String> sourceDefinition = new XMLVector<String>();
+	private boolean appendTimestamp=false;
 	private String dataFile = "";	
-	protected String encoding="iso-8859-1";
-	protected boolean appendResult=false;
+	private String encoding="iso-8859-1";
+	private boolean appendResult=false;
 
 	private transient StepSource source = null;
 	
@@ -159,7 +159,7 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					StepSource stepSource = getSource();

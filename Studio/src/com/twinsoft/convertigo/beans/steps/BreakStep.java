@@ -58,7 +58,7 @@ public class BreakStep extends SimpleStep {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				List<StepWithExpressions> parents = new ArrayList<StepWithExpressions>();
 				DatabaseObject parentStep = this.parent;

@@ -42,7 +42,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
 	/**
      * The vector of ordered statement objects which can be applied on the StatementWithExpressions.
      */
-    public XMLVector<XMLVector<Long>> orderedStatements = null;
+    private XMLVector<XMLVector<Long>> orderedStatements = null;
 	
     transient private List<Statement> vStatements = new Vector<Statement>();
     

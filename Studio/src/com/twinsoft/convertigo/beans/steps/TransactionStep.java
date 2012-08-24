@@ -202,7 +202,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 
 		String connectionStringValue = (String) getConnectionStringValue();
 
-		if (bInternalInvoke) {
+		if (isInternalInvoke()) {
 			request.put(Parameter.Project.getName(), new String[] { projectName });
 			// request.put(Parameter.Pool.getName(), new String[] { "" });
 			request.put(Parameter.TransactionMotherSequenceContext.getName(),

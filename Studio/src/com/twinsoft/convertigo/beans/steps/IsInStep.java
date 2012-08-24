@@ -36,7 +36,7 @@ public class IsInStep extends TestStep {
 
 	private static final long serialVersionUID = 2062311729789746229L;
 
-	protected XMLVector<XMLVector<String>> testDefinition = new XMLVector<XMLVector<String>>();
+	private XMLVector<XMLVector<String>> testDefinition = new XMLVector<XMLVector<String>>();
 	
 	public IsInStep() {
 		super();

@@ -34,7 +34,7 @@ public class XMLTransformStep extends XMLElementStep {
 
 	private static final long serialVersionUID = 6828884684092984710L;
 
-	protected XMLVector<XMLVector<String>> replacements = new XMLVector<XMLVector<String>>();
+	private XMLVector<XMLVector<String>> replacements = new XMLVector<XMLVector<String>>();
 	
 	public XMLTransformStep() {
 		super();
@@ -111,9 +111,11 @@ public class XMLTransformStep extends XMLElementStep {
 		String text = this.getComment();
 		String label = "";
 		try {
+			XMLVector<String> sourceDefinition = getSourceDefinition();
 			label += (sourceDefinition.size() > 0) ? "@("+ getLabel()+")":"\""+getNodeText()+"\"";
 		} catch (EngineException e) {
 		}
+		String nodeName = getNodeName();
 		return "<"+ nodeName +">" + "Transform("+ label +")"+ (!text.equals("") ? " // "+text:"");
 	}
 	

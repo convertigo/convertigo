@@ -55,12 +55,14 @@ public class DoWhileStep extends LoopStep {
 	@Override
 	public String toString() {
 		String text = this.getComment();
+		String condition = getCondition();
 		return "do...while("+ (condition.equals("")?"??":condition) +")" + (!text.equals("") ? " // "+text:"");
 	}
 
 	@Override
 	public String toJsString() {
 		String code = "";
+		String condition = getCondition();
 		if (!condition.equals("")) {
 			code += " do {\n";
 			code += super.toString();
@@ -86,7 +88,7 @@ public class DoWhileStep extends LoopStep {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			do {
 				if (!super.stepExecute(javascriptContext, scope)) {
 					break;

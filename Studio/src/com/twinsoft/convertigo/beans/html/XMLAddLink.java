@@ -40,7 +40,7 @@ public class XMLAddLink extends XMLAddText {
 
 	private String href = null;
 	
-	protected boolean targetBlank;
+	private boolean targetBlank;
 	
 	public XMLAddLink() {
 		super();

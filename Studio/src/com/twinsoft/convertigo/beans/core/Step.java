@@ -61,7 +61,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
     public static String loopSeparator = "--";
     
-    public boolean isEnable = true;
+    private boolean isEnable = true;
     transient protected List<Sheet> vSheets = new LinkedList<Sheet>();
     private boolean output = false;
 	transient protected boolean xml = false;

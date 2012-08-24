@@ -34,9 +34,9 @@ public abstract class BranchStep extends StepWithExpressions {
 
 	private static final long serialVersionUID = 2146267225465203569L;
 
-	protected boolean synchronous = true;
+	private boolean synchronous = true;
 	
-	protected String maxNumberOfThreads = "";
+	private String maxNumberOfThreads = "";
 	protected transient Integer maxNumberOfThreadsInteger = -1;
 
 	public BranchStep() {
@@ -100,7 +100,7 @@ public abstract class BranchStep extends StepWithExpressions {
     @Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException
     {
-    	if (isEnable) {
+    	if (isEnable()) {
 	    	if (hasSteps()) {
 	    		int num = numberOfSteps();
 	    		for (int i=0; i < num; i++) {

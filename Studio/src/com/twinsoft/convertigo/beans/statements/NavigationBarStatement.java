@@ -57,7 +57,7 @@ public class NavigationBarStatement extends Statement implements ITagsProperty, 
 
     @Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				HtmlTransaction htmlTransaction = (HtmlTransaction)getParentTransaction();
 				HtmlConnector htmlConnector = (HtmlConnector)htmlTransaction.getParent();

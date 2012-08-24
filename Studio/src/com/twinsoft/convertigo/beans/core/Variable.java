@@ -37,7 +37,7 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 
 	private static final long serialVersionUID = -8671967475887212428L;
 	
-	protected Object value;
+	private Object value;
 	private int visibility = 0;
 	private String description = "new variable";
 	private boolean bSoapArray = true;

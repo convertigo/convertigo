@@ -75,7 +75,7 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 	private String sourceSequence = "";
 	
 	// Specify if transaction's context should be inherited from mother sequence's one
-	protected boolean inheritTransactionCtx = false;
+	private boolean inheritTransactionCtx = false;
 	
 	public SequenceStep() {
 		super();
@@ -140,7 +140,7 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		inheritedCxtName = (inheritContex && (inheritedCxtName == null)) ? sequence.getContextName():inheritedCxtName;
 		inheritedCxtName = (inheritedCxtName == null) ? "":inheritedCxtName;
 		
-		if (bInternalInvoke ) {
+		if (isInternalInvoke()) {
 	    	request.put(Parameter.Project.getName(), new String[] { projectName });
 	    	request.put(Parameter.Sequence.getName(), new String[] { targetSequence.getName() });
 	    	request.put(Parameter.Context.getName(), new String[] { sequence.addStepContextName(ctxName) });

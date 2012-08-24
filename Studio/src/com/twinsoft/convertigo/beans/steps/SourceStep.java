@@ -36,9 +36,9 @@ public class SourceStep extends Step implements IStepSourceContainer {
 
 	private static final long serialVersionUID = 3915732415195665643L;
 
-	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
+	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	
-	public String variableName = "myNodeList";
+	private String variableName = "myNodeList";
 	
 	private transient StepSource source = null;
 	
@@ -96,7 +96,7 @@ public class SourceStep extends Step implements IStepSourceContainer {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				NodeList list = getSource().getContextValues();
 				if (list != null) {

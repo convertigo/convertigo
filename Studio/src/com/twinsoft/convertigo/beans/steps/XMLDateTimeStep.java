@@ -37,10 +37,10 @@ public class XMLDateTimeStep extends XMLConcatStep implements ITagsProperty{
 
 	private static final long serialVersionUID = -9090204919218726488L;
 
-	public String inputFormat = "dd/MM/yyyy HH:mm:ss";
-	public String inputLocale = "FR";
-	public String outputFormat = "yyyy-MM-dd HH:mm:ss";
-	public String outputLocale = "US";
+	private String inputFormat = "dd/MM/yyyy HH:mm:ss";
+	private String inputLocale = "FR";
+	private String outputFormat = "yyyy-MM-dd HH:mm:ss";
+	private String outputLocale = "US";
 	
 	public XMLDateTimeStep() {
 		super();

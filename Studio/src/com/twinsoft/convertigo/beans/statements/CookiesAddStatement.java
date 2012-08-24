@@ -94,7 +94,7 @@ public class CookiesAddStatement extends Statement {
 	
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				HttpConnector connector = this.getConnector();
 				if(connector.handleCookie){

@@ -39,12 +39,14 @@ public class IfFileExistStep extends BlockStep {
 	@Override
 	public String toString() {
 		String text = this.getComment();
+		String condition = getCondition();
 		return "ifFileExists("+ (condition.equals("")?"??":condition) +")" + (!text.equals("") ? " // "+text:"");
 	}
 
 	@Override
 	public String toJsString() {
 		String code = "";
+		String condition = getCondition();
 		if (!condition.equals("")) {
 			code += " ifFileExists ("+ condition +") {\n";
 			code += super.toString();
@@ -69,12 +71,13 @@ public class IfFileExistStep extends BlockStep {
 	}
 	
 	private String evaluateSourcePath(Context javascriptContext, Scriptable scope) throws EngineException {
+		String condition = getCondition();
 		return evaluateToString(javascriptContext, scope, condition, "sourcePath", false);
 	}
 
 	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			boolean test = evaluateStep(javascriptContext, scope);
 			return super.executeNextStep(test, javascriptContext, scope);
 		}

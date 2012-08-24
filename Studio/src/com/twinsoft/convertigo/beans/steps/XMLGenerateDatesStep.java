@@ -50,16 +50,16 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 
 	private static final long serialVersionUID = 6690947224439520417L;
 
-	protected XMLVector<String> startDefinition = new XMLVector<String>();
-	protected XMLVector<String> stopDefinition = new XMLVector<String>();
-	protected XMLVector<String> daysDefinition = new XMLVector<String>();
+	private XMLVector<String> startDefinition = new XMLVector<String>();
+	private XMLVector<String> stopDefinition = new XMLVector<String>();
+	private XMLVector<String> daysDefinition = new XMLVector<String>();
 	
-	protected String inputFormat = "dd/MM/yyyy";
-	protected String inputLocale = "FR";
-	protected String outputFormat = "EEEE, d MMMM yyyy";
-	protected String outputLocale = "FR";
-	protected boolean split = true;
-	protected boolean calendarCompatibility = false;
+	private String inputFormat = "dd/MM/yyyy";
+	private String inputLocale = "FR";
+	private String outputFormat = "EEEE, d MMMM yyyy";
+	private String outputLocale = "FR";
+	private boolean split = true;
+	private boolean calendarCompatibility = false;
 	
 	private transient StepSource startSource = null;
 	private transient StepSource stopSource = null;

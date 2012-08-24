@@ -42,7 +42,7 @@ public class ReturnStatement extends SimpleStatement {
 
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				returnLoop(this.parent, this.evaluated);
 				return true;

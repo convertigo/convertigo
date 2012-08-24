@@ -27,7 +27,7 @@ public class InputVariablesStep extends Step {
 
 	private static final long serialVersionUID = 3276050659362959158L;
 
-	protected String nodeName = "inputVars";
+	private String nodeName = "inputVars";
 
 	transient Map<String, Object> variables = new LinkedHashMap<String, Object>();
 
@@ -140,7 +140,7 @@ public class InputVariablesStep extends Step {
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		variables.clear();
 
-		if (isEnable) {
+		if (isEnable()) {
 			for (RequestableVariable var : getParentSequence().getAllVariables()) {
 				try {
 					evaluate(javascriptContext, scope, var.getName(), "expression", true);

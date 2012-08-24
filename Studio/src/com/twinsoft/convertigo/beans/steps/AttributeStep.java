@@ -45,9 +45,9 @@ public class AttributeStep extends Step {
 
 	private static final long serialVersionUID = 4426876799938289068L;
 
-	protected String expression = "";
-	protected String nodeName = "attribute";
-	protected String nodeText = "";
+	private String expression = "";
+	private String nodeName = "attribute";
+	private String nodeText = "";
 	
 	private String nodeNameSpace = "";
 	private String nodeNameSpaceURI = "";
@@ -221,7 +221,7 @@ public class AttributeStep extends Step {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			try {
 				evaluate(javascriptContext, scope, getExpression(), "expression", true);
 				if (evaluated instanceof org.mozilla.javascript.Undefined) {

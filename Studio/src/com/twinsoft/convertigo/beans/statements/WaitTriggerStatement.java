@@ -52,7 +52,7 @@ public class WaitTriggerStatement extends Statement implements ITriggerOwner{
 	
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {				
 				HtmlTransaction htmlTransaction = getParentTransaction();
 				HtmlConnector htmlConnector = (HtmlConnector)htmlTransaction.getParent();

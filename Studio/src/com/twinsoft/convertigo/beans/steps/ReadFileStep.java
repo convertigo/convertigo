@@ -125,7 +125,7 @@ public abstract class ReadFileStep extends Step {
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					String filePath = evaluateDataFileName(javascriptContext, scope);

@@ -32,7 +32,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 abstract public class XMLGenerateStep extends Step {
 	private static final long serialVersionUID = 1384625418225432309L;
 	
-	protected String nodeName = "element";
+	private String nodeName = "element";
 	
 	public XMLGenerateStep() {
 		super();

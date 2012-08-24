@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.steps;
 
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -31,7 +32,7 @@ public class XMLConcatStep extends XMLActionStep {
 
 	private static final long serialVersionUID = 2246207792295809623L;
 
-	protected String separator = " ";
+	private String separator = " ";
 	
 	public XMLConcatStep() {
 		super();
@@ -64,6 +65,7 @@ public class XMLConcatStep extends XMLActionStep {
 	@Override
 	protected String getActionValue() throws EngineException {
 		String nodeValue = super.getActionValue();
+		XMLVector<XMLVector<Object>> sourcesDefinition = getSourcesDefinition();
 		if (sourcesDefinition.size() > 0) {
 			StepSource source = null;
 			NodeList list = null;

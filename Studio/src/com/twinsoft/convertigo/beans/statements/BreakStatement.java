@@ -41,7 +41,7 @@ public class BreakStatement extends SimpleStatement {
 	}
 
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				DatabaseObject parentStatement = this.parent;
 				while (parentStatement != null) {

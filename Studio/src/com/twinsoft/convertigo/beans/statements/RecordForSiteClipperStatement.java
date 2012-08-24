@@ -37,13 +37,13 @@ public class RecordForSiteClipperStatement extends Statement {
 
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			com.twinsoft.convertigo.engine.Context context = getParentTransaction().context;
 			context.newXulRecorder(urlRegex, entryLifetime);
 			Engine.logBeans.debug("(RecordForSiteClipperStatement) Recording start for URL like '" + urlRegex + "'");
 		}
 
-		return isEnable;
+		return isEnable();
 	}
 	
 	@Override

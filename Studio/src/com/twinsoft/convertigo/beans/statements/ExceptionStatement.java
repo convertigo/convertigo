@@ -44,7 +44,7 @@ public class ExceptionStatement extends SimpleStatement {
 	}
 	
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				if (evaluated != null) {
 					String message = "A statement exception has been raised: ";

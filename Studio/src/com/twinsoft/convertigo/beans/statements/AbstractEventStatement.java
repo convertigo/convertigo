@@ -53,7 +53,7 @@ abstract public class AbstractEventStatement extends XpathableStatement implemen
 	
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				evaluate(javascriptContext, scope, getXpath(), "xpath", false);
 				String jsXpath = evaluated.toString();

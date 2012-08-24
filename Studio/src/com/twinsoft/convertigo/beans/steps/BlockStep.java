@@ -36,7 +36,7 @@ public abstract class BlockStep extends StepWithExpressions {
 	private transient ThenStep thenStep = null;
 	private transient ElseStep elseStep = null;
 		
-	protected String condition = "";
+	private String condition = "";
 	
 	public BlockStep() {
 		super();
@@ -195,7 +195,7 @@ public abstract class BlockStep extends StepWithExpressions {
 
 	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (hasToEvaluateBeforeNextStep()) {// e.g. While case
 				if (evaluateStep(javascriptContext, scope)) {
 					return super.executeNextStep(javascriptContext, scope);
@@ -217,7 +217,7 @@ public abstract class BlockStep extends StepWithExpressions {
 	
 	protected boolean executeNextStep(boolean isTrue, Context javascriptContext, Scriptable scope) throws EngineException
     {
-    	if (isEnable) {
+    	if (isEnable()) {
     		if (hasThenElseSteps()) {
     	    	if (hasSteps()) {
         			if (bContinue && sequence.isRunning()) {

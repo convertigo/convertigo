@@ -42,7 +42,7 @@ public class ContainerStatement extends StatementWithExpressions {
 	}
 		
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {		
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				return executeNextStatement(javascriptContext, scope);
 			}
@@ -51,7 +51,7 @@ public class ContainerStatement extends StatementWithExpressions {
 	}
 
 	public boolean executeNextStatement(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 	    	if (hasStatements()) {
 	    		if (currentChildStatement < numberOfStatements()) {
 	        		Statement st = (Statement) getStatements().get(currentChildStatement);

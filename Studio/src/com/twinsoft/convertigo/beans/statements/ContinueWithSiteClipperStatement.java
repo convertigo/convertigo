@@ -78,7 +78,7 @@ public class ContinueWithSiteClipperStatement extends Statement implements ITags
 
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (siteClipperConnectorName.equals("")) {
 				throw new EngineException("You didn't choose a Site Clipper connector for redirection.");
 			}
@@ -95,7 +95,7 @@ public class ContinueWithSiteClipperStatement extends Statement implements ITags
 			context.stopXulRecording();
 		}
 
-		return isEnable;
+		return isEnable();
 	}
 	
 	@Override

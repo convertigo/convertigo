@@ -44,9 +44,9 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 
 	private static final long serialVersionUID = -427374285639844989L;
 	
-	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
-	protected String nodeName = "element";
-	protected String nodeText = "";
+	private XMLVector<String> sourceDefinition = new XMLVector<String>();
+	private String nodeName = "element";
+	private String nodeText = "";
 	
 	private transient StepSource source = null;
 	
@@ -147,7 +147,7 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 
 	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
-    	if (isEnable) {
+    	if (isEnable()) {
 			if (inError()) {
 				Engine.logBeans.info("Skipping step "+ this +" ("+ hashCode()+") because its source is in error");
 				return true;

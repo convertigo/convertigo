@@ -41,12 +41,12 @@ import com.twinsoft.util.StringEx;
 public class ReadCSVStep extends ReadFileStep {
 	private static final long serialVersionUID = -6548050468297488381L;
 
-	protected String separator = ";";		
-	protected String tagLineName = "line";
-	protected String tagColName = "col";
-	protected boolean titleLine = false;
-	protected boolean verticalDirection = false;
-	protected String encoding="iso-8859-1";
+	private String separator = ";";		
+	private String tagLineName = "line";
+	private String tagColName = "col";
+	private boolean titleLine = false;
+	private boolean verticalDirection = false;
+	private String encoding="iso-8859-1";
 	
 	public ReadCSVStep() {
 		super();

@@ -150,6 +150,8 @@ public class HttpTransaction extends TransactionWithVariables {
 				}
 			}
 			
+			XMLVector<XMLVector<Long>> orderedVariables = getOrderedVariables();
+			
 			int len = orderedVariables.size();
 			XMLVector line;
 			for (int i = 0 ; i < len ; i++) {

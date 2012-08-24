@@ -67,7 +67,7 @@ public class LogStatement extends Statement implements ITagsProperty {
 
     @Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				Logger log = engine ? Engine.logEngine : Engine.logContext;
 				if(level.equals(Level.WARN.toString()) && log.isEnabledFor(Level.WARN))

@@ -88,6 +88,7 @@ public class WriteXMLStep extends WriteFileStep {
 		String fullPathName = getAbsoluteFilePath(filePath);
 		synchronized (Engine.theApp.filePropertyManager.getMutex(fullPathName)) {
 			try {
+				String encoding = getEncoding();
 				if(!isReallyAppend(fullPathName)){
 					String tEnc = (encoding.length()>0 && Charset.isSupported(encoding))?encoding:"iso-8859-1";
 					String tTag = (defaultRootTagname.length()>0)?StringUtils.normalize(defaultRootTagname):"document";

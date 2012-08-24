@@ -29,7 +29,7 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty {
 
 	private transient String sourceFilePath = "";
 	
-	protected String nodeName = "hash";
+	private String nodeName = "hash";
 
 		
 	public GenerateHashCodeStep() {
@@ -59,7 +59,7 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty {
 	
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			try {
 				Engine.logBeans.info("Hashing file \"" + sourceFilePath + "\"");
 
@@ -99,7 +99,7 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty {
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			try {
 				sourceFilePath = getAbsoluteFilePath(evaluateToString(javascriptContext, scope, sourcePath, "sourcePath", false));
 

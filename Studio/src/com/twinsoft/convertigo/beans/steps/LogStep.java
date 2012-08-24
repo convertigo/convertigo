@@ -73,7 +73,7 @@ public class LogStep extends Step implements ITagsProperty {
 
     @Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				Logger log = null;
 				if(logger.equals(Engine.logEngine.getName())) 

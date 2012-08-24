@@ -38,8 +38,8 @@ public class WriteCSVStep extends WriteFileStep {
 
 	private static final long serialVersionUID = 484006052411796784L;
 
-	protected String separator = ";";
-	protected boolean titleLine = false;
+	private String separator = ";";
+	private boolean titleLine = false;
 
 	public WriteCSVStep() {
 		super();
@@ -99,6 +99,8 @@ public class WriteCSVStep extends WriteFileStep {
 			try {
 				boolean skipTitle = isReallyAppend(fullPathName);
 
+				boolean appendResult = isAppendResult();
+				String encoding = getEncoding();
 				OutputStreamWriter sortie = new OutputStreamWriter(new FileOutputStream(fullPathName,
 						appendResult), (encoding.length() > 0) ? encoding : "iso-8859-1");
 

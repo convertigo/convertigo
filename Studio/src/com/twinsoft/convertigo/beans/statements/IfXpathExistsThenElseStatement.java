@@ -87,7 +87,7 @@ public class IfXpathExistsThenElseStatement extends BlockStatement implements IT
 	
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				HtmlConnector htmlConnector = getConnector();
 				Document xmlDocument = htmlConnector.getCurrentXmlDocument();

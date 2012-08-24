@@ -55,7 +55,7 @@ public class ReturnStep extends SimpleStep {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				DatabaseObject parentStep = this.parent;
 				while (parentStep != null) {

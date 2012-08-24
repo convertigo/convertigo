@@ -35,11 +35,11 @@ import com.twinsoft.convertigo.engine.EngineException;
 public class CallFunctionStatement extends Statement implements ITagsProperty{
 	private static final long serialVersionUID = -2138787100798764583L;
 	
-	String functionName = "";
+	private String functionName = "";
 
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				for (FunctionStatement function : getFunctions()) {
 					if (function.getName().equals(functionName)) {

@@ -55,7 +55,7 @@ public class GetUrlStatement extends Statement {
 
     @Override	
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				String referer = null;
 				

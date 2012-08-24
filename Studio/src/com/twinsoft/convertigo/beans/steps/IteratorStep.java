@@ -41,8 +41,8 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 
 	private static final long serialVersionUID = -5108986745479990736L;
 	
-	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
-	protected String startIndex = "0";
+	private XMLVector<String> sourceDefinition = new XMLVector<String>();
+	private String startIndex = "0";
 	
 	private transient Iterator iterator = null;
 	private transient StepSource source = null;
@@ -113,7 +113,7 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			try {
 				iterator.init();
 			} catch (TransformerException e) {
@@ -164,6 +164,7 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 	}
 	
 	private Integer evaluateMaxIterationsInteger(Context javascriptContext, Scriptable scope) throws EngineException {
+		String condition = getCondition();
 		if (iterations == null)
 			iterations = evaluateToInteger(javascriptContext, scope, condition, "condition", true);
 		return iterations;

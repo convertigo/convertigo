@@ -56,7 +56,7 @@ public class SimpleStatement extends Statement {
 	}
 	
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				evaluate(javascriptContext, scope, getExpression(), "expression", true);
 				return true;

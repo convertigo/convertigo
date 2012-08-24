@@ -51,7 +51,7 @@ public class HTTPUploadStatement extends HTTPStatement {
 	
     @Override
 	public boolean execute(org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			parts.clear();
 			evaluate(javascriptContext, scope, filename, "filename", true);
 			

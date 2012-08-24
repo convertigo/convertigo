@@ -38,8 +38,8 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 
 	private static final long serialVersionUID = 61436680158858545L;
 
-	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
-	protected String nodeName = "attribute";
+	private XMLVector<String> sourceDefinition = new XMLVector<String>();
+	private String nodeName = "attribute";
 	
 	private String nodeNameSpace = "";
 	public String getNodeNameSpace() {
@@ -59,7 +59,7 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 		this.nodeNameSpaceURI = nodeNameSpaceURI;
 	}
 
-	protected String nodeText = "";
+	private String nodeText = "";
 	
 	private transient StepSource source = null;
 	

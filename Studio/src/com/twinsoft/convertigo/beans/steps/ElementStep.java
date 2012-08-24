@@ -50,9 +50,9 @@ public class ElementStep extends StepWithExpressions {
 
 	private static final long serialVersionUID = 3276050659362959159L;
 	
-	protected String expression = "";
-	protected String nodeName = "element";
-	protected String nodeText = "";
+	private String expression = "";
+	private String nodeName = "element";
+	private String nodeText = "";
 	
 	public ElementStep() {
 		super();
@@ -168,7 +168,7 @@ public class ElementStep extends StepWithExpressions {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			try {
 				evaluate(javascriptContext, scope, getExpression(), "expression", true);
 				if (evaluated instanceof org.mozilla.javascript.Undefined) {

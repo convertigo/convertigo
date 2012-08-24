@@ -274,7 +274,7 @@ public class ProcessExecStep extends Step {
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			evaluate(javascriptContext, scope, getCommandLine(), "commandLine", true);
 			if (super.stepExecute(javascriptContext, scope)) {
 				return true;

@@ -67,7 +67,7 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 
 	private static final long serialVersionUID = 3915732415195665643L;
 
-	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
+	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	
 	private String smtpServer = "xxx.xxx.xxx.xxx";
 	private String smtpRecipients = "\"someone@domain.org\"";
@@ -235,7 +235,7 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 				try {
 					evaluate(javascriptContext, scope, this.smtpSubject, "smtpSubject", false);

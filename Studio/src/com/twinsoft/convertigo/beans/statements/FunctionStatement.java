@@ -55,7 +55,7 @@ public class FunctionStatement extends StatementWithExpressions {
 	@Override
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
 		reset();
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				return executeNextStatement(javascriptContext, scope);
 			}
@@ -65,7 +65,7 @@ public class FunctionStatement extends StatementWithExpressions {
 	
 	@Override
     public boolean executeNextStatement(Context javascriptContext, Scriptable scope) throws EngineException {
-    	if (isEnable) {
+    	if (isEnable()) {
 	    	if (hasStatements()) {
 	    		List<Statement> v = getStatements();
 	    		if (currentChildStatement < v.size()) {

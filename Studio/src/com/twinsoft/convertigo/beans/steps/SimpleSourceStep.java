@@ -36,13 +36,14 @@ public class SimpleSourceStep extends SourceStep {
 	
 	public SimpleSourceStep() {
 		super();
-		variableName = "myVariable";
+		setVariableName("myVariable");
 	}
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
+				String variableName = getVariableName();
 				NodeList list = (NodeList) scope.get(variableName, scope);
 				
 				Object string = null;

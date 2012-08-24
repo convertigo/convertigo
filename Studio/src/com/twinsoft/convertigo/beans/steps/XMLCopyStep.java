@@ -41,7 +41,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public class XMLCopyStep extends Step implements IStepSourceContainer {
 
 	private static final long serialVersionUID = 4871778624030668414L;
-	protected XMLVector<String> sourceDefinition = new XMLVector<String>();
+	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	
 	private transient StepSource source = null;
 	

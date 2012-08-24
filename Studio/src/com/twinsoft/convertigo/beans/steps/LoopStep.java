@@ -92,7 +92,7 @@ public abstract class LoopStep extends BlockStep {
 
 	@Override
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.executeNextStep(javascriptContext, scope)) {
 				doLoop(javascriptContext, scope);
 				return true;
@@ -102,7 +102,7 @@ public abstract class LoopStep extends BlockStep {
 	}
 	
 	protected void doLoop(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (nbAsyncThreadRunning == 0) {
 				cleanChildren();
 			}

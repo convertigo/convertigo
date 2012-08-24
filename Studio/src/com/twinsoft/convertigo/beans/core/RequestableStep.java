@@ -83,7 +83,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 
 	public static final String SOURCE_SEPARATOR = ".";
 
-	protected XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
+	private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 	
 	transient private List<StepVariable> vVariables = new LinkedList<StepVariable>();
 	transient private List<StepVariable> vAllVariables = null;
@@ -93,9 +93,9 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	transient protected String targetUrl = "";
 	
 	
-	protected String contextName = "";
+	private String contextName = "";
 	
-	protected boolean bInternalInvoke = true;
+	private boolean bInternalInvoke = true;
 	
 	transient protected Map<String, Object> request;
 	
@@ -761,7 +761,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable) {
+		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
 	            try {
 	            	request = new HashMap<String, Object>();
