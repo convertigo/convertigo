@@ -836,7 +836,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			String version = projectNode.getAttribute("version");
 			if ("".equals(version)) {
-				version = rootElement.getAttribute("version");
+				version = rootElement.getAttribute("beans");
 			}
 
 			// Migration to version 3.0.0 schema
