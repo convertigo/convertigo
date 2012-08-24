@@ -105,7 +105,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 	private XMLVector<XMLVector<Long>> orderedVariables = new XMLVector<XMLVector<Long>>();
 
 	/** Holds the value of property form. */
-	private String formName = "";
+	transient private String formName = "";
 	
     /** Holds value of property httpVerb. */
     private int httpVerb = 0;

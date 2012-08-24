@@ -523,7 +523,7 @@ public class Subfile extends Table {
 			return (JavelinUtils.isSameAttribute(block.attribute, titleRowAttribute));
 	}
 	
-	int columnTitleWest, columnTitleEast;
+	transient private int columnTitleWest, columnTitleEast;
 	
 	private XMLVector<XMLVector<Object>> createTitleColumns(WindowedBlockManager windowedBlockManager, Block block, int bottomScreenZone, int columnDataLastCharEast) {		
 		XMLVector<XMLVector<Object>> columns = new XMLVector<XMLVector<Object>>();

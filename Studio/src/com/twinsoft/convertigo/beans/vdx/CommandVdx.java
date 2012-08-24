@@ -42,7 +42,7 @@ import com.twinsoft.twinj.iJavelin;
 public class CommandVdx extends com.twinsoft.convertigo.beans.common.Command {
     public static final long serialVersionUID = 4350644982787619412L;
     
-    private boolean bStarFlag = true;
+    private boolean starFlag = true;
     
     public CommandVdx() {
         super();
@@ -67,14 +67,14 @@ public class CommandVdx extends com.twinsoft.convertigo.beans.common.Command {
      * @return Value of property bStarFlag.
      */
     public boolean isStarFlag() {
-        return bStarFlag;
+        return starFlag;
     }
     
     /** Setter for property bStarFlag.
      * @param bStarFlag New value of property bStarFlag.
      */
     public void setStarFlag(boolean bStarFlag) {
-        this.bStarFlag = bStarFlag;
+        this.starFlag = bStarFlag;
     }
     
     public JavelinExtractionRuleResult execute(iJavelin javelin, Block block, BlockFactory blockFactory, org.w3c.dom.Document dom) {

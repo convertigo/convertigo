@@ -53,7 +53,7 @@ public class WebClipper2 extends XMLNodeList implements ITagsProperty {
 
 	/* Properties */
 	private XMLVector<XMLVector<String>> attributes = new XMLVector<XMLVector<String>>();
-	private String mHttptunnel = mHttptunnelOff;
+	private String mHttpTunnel = mHttptunnelOff;
 	
 	/* Variables */
 	transient private Context 	context 		= null;
@@ -129,14 +129,14 @@ public class WebClipper2 extends XMLNodeList implements ITagsProperty {
 	}	
 	
 	public String getMHttpTunnel(){
-		return mHttptunnel;
+		return mHttpTunnel;
 	}
 	
 	public void setMHttpTunnel(String mHttptunnel){
 		if(mHttptunnel.equals(mHttptunnelOff)||
 			mHttptunnel.equals(mHttptunnelOnCache)||
 			mHttptunnel.equals(mHttptunnelOnNoCache)){
-				this.mHttptunnel = mHttptunnel;
+				this.mHttpTunnel = mHttptunnel;
 		}
 	}
 	
@@ -206,7 +206,7 @@ public class WebClipper2 extends XMLNodeList implements ITagsProperty {
 						base.getParentNode().removeChild(base);
 					}
 				}
-				context.urlRewriter = new URLrewriter(targetReferer, context, mHttptunnel, makeAttributesXpath());
+				context.urlRewriter = new URLrewriter(targetReferer, context, mHttpTunnel, makeAttributesXpath());
 			}
 		} catch (TransformerException e) {
 			Engine.logBeans.error("Exception when using xpathAPI on WebClipper.getHead()", e);

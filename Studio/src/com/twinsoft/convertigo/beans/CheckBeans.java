@@ -54,7 +54,8 @@ public class CheckBeans {
 		
 		browsePackages(srcBase);
 		
-		System.out.println("\nFound " + javaClassNames.size() + " classes");
+		System.out.println();
+		System.out.println("Found " + javaClassNames.size() + " classes");
 		
 		for (String javaClassName : javaClassNames) {
 			analyzeJavaClass(javaClassName);
@@ -77,15 +78,24 @@ public class CheckBeans {
 		System.out.println("Summary");
 		System.out.println("=======");
 		System.out.println();
+		System.out.println("Found " + nBeanClass + " bean classes");
+		System.out.println();
 
+		int nTotalError = 0;
 		for (Error error : Error.values()) {
 			List<String> errorList = errors.get(error);
 			int nError = 0;
 			if (errorList != null) nError = errorList.size();
+			nTotalError += nError;
 			System.out.println(error + ": found " + nError + " error(s)");
 		}
+
+		System.out.println();
+		System.out.println("Found " + nTotalError + " error(s)");
+		System.out.println();
+		System.out.println("Bean check finished!");
 		
-		System.out.println("\nBean checking finished!");
+		System.exit(0);
 	}
 
 	private static List<String> javaClassNames = new ArrayList<String>();
@@ -108,13 +118,17 @@ public class CheckBeans {
 	private enum Error {
 		//NON_DATABASE_OBJECT("Non database object"),
 		MISSING_BEAN_INFO("Missing bean info"),
-		BEAN_ICON_NAMING_POLICY("Wrong icon name "),
-		BEAN_PROPERTY_DECLARED_BUT_NOT_DEFINED("Declared property but not defined"),
-		BEAN_PROPERTY_NAMING_POLICY("Wrong property name"),
-		BEAN_PROPERTY_NOT_PRIVATE("Non private bean property"),
-		BEAN_PROPERTY_TRANSIENT("Transient bean property"),
-		GETTER_SETTER_NAMING_POLICY("Wrong getter and/or setter name"),
-		GETTER_SETTER_DECLARED_EXPECTED_NAME_MISMATCH("Declared and expected getter and/or setter mismatch"),
+		ABSTRACT_CLASS_WITH_ICON("Abstract class should not have icon"),
+		ABSTRACT_CLASS_WITH_DISPLAY_NAME("Abstract class should not have a display name"),
+		ABSTRACT_CLASS_WITH_DESCRIPTION("Abstract class should not have a description"),
+		ICON_NAMING_POLICY("Wrong icon name "),
+		ICON_MISSING("Declared icon missing"),
+		PROPERTY_DECLARED_BUT_NOT_FOUND("Declared property but not found"),
+		PROPERTY_NAMING_POLICY("Declared and defined bean property name mismatch"),
+		PROPERTY_NOT_PRIVATE("Non private bean property"),
+		PROPERTY_TRANSIENT("Bean property should not be transient"),
+		GETTER_SETTER_DECLARED_BUT_NOT_FOUND("Declared getter or setter but not found"),
+		GETTER_SETTER_DECLARED_EXPECTED_NAMES_MISMATCH("Declared and expected getter and/or setter mismatch"),
 		FIELD_NOT_TRANSIENT("Field not transient");
 		
 		private String label;
@@ -139,6 +153,8 @@ public class CheckBeans {
 	
 	private static Map<Error, List<String>> errors = new HashMap<Error, List<String>>();
 
+	private static int nBeanClass = 0;
+	
 	private static void analyzeJavaClass(String javaClassName) {
 		try {
 			Class<?> javaClass = Class.forName(javaClassName);
@@ -148,6 +164,8 @@ public class CheckBeans {
 				//Error.NON_DATABASE_OBJECT.add(javaClassName);
 				return;
 			}
+			
+			nBeanClass++;
 			
 			String dboBeanInfoClassName = javaClassName + "BeanInfo";
 			MySimpleBeanInfo dboBeanInfo = null;
@@ -161,18 +179,42 @@ public class CheckBeans {
 				return;
 			}
 			
-			// Check icon name policy
-			String expectedIconName = javaClassName.replace(javaClassSimpleName, "images/" + javaClassSimpleName);
-			expectedIconName = "/" + expectedIconName.replace('.', '/') + "_color_16x16";
-			expectedIconName = expectedIconName.toLowerCase();
 			String declaredIconName = MySimpleBeanInfo.getIconName(dboBeanInfo, MySimpleBeanInfo.ICON_COLOR_16x16);
-			if (declaredIconName != null) {
-				declaredIconName = declaredIconName.substring(0, declaredIconName.length() - 4);
-				if (!declaredIconName.equals(expectedIconName)) {
-					Error.BEAN_ICON_NAMING_POLICY.add(javaClassName + "\n"
-							+ "      Declared: " + declaredIconName + "\n"
-							+ "      Expected: " + expectedIconName);
-					return;
+
+			// Check abstract class
+			if (Modifier.isAbstract(javaClass.getModifiers())) {
+				// Check icon
+				if (declaredIconName != null) {
+					Error.ABSTRACT_CLASS_WITH_ICON.add(javaClassName);
+				}
+
+				// Check display name
+				if (dboBeanInfo.getBeanDescriptor().getDisplayName() != null) {
+					Error.ABSTRACT_CLASS_WITH_DISPLAY_NAME.add(javaClassName);
+				}
+
+				// Check description
+				if (dboBeanInfo.getBeanDescriptor().getShortDescription() != null) {
+					Error.ABSTRACT_CLASS_WITH_DESCRIPTION.add(javaClassName);
+				}
+			}
+			else {
+				// Check icon name policy
+				String expectedIconName = javaClassName.replace(javaClassSimpleName, "images/" + javaClassSimpleName);
+				expectedIconName = "/" + expectedIconName.replace('.', '/') + "_color_16x16";
+				expectedIconName = expectedIconName.toLowerCase() + ".png";
+				if (declaredIconName != null) {
+					if (!declaredIconName.equals(expectedIconName)) {
+						Error.ICON_NAMING_POLICY.add(javaClassName + "\n"
+								+ "      Declared: " + declaredIconName + "\n"
+								+ "      Expected: " + expectedIconName);
+					}
+				}
+				
+				// Check icon file
+				File iconFile = new File(srcBase + declaredIconName);
+				if (!iconFile.exists()) {
+					Error.ICON_MISSING.add(javaClassName+ " - icon missing: " + declaredIconName);
 				}
 			}
 			
@@ -191,7 +233,7 @@ public class CheckBeans {
 					} catch (SecurityException e1) {
 						// printStackTrace();
 					} catch (NoSuchFieldException e1) {
-						Error.BEAN_PROPERTY_DECLARED_BUT_NOT_DEFINED.add(javaClassName + ": " + propertyName);
+						Error.PROPERTY_DECLARED_BUT_NOT_FOUND.add(javaClassName + ": " + propertyName);
 					}
 				}
 			}
@@ -200,7 +242,7 @@ public class CheckBeans {
 			List<Method> listMethods = Arrays.asList(methods);
 			List<String> listMethodNames = new ArrayList<String>();
 			for (Method method : listMethods) {
-				listMethodNames.add(method.getName().toLowerCase());
+				listMethodNames.add(method.getName());
 			}
 			
 			Field[] fields = javaClass.getDeclaredFields();
@@ -215,9 +257,14 @@ public class CheckBeans {
 				
 				String errorMessage = javaClassName + ": " + field.getName();
 				
-				// Check against bean info class
+				// Check bean info
 				PropertyDescriptor propertyDescriptor = isBeanProperty(fieldName, dboBeanInfo);
 				if (propertyDescriptor != null) {
+					// Check bean property name policy
+					if (!propertyDescriptor.getName().equals(fieldName)) {
+						Error.PROPERTY_NAMING_POLICY.add(errorMessage);
+					}
+					
 					String declaredGetter = propertyDescriptor.getReadMethod().getName();
 					String declaredSetter = propertyDescriptor.getWriteMethod().getName();
 					
@@ -225,51 +272,42 @@ public class CheckBeans {
 					String expectedGetter = "get" + formattedFieldName;
 					String expectedSetter = "set" + formattedFieldName;
 					
-					// Check bean property name policy
-					if (!propertyDescriptor.getName().equals(fieldName)) {
-						Error.BEAN_PROPERTY_NAMING_POLICY.add(errorMessage);
-						continue;
-					}
-					
 					// Check getter name policy
 					if (!declaredGetter.equals(expectedGetter)) {
-						Error.GETTER_SETTER_DECLARED_EXPECTED_NAME_MISMATCH.add(errorMessage + "\n"
+						Error.GETTER_SETTER_DECLARED_EXPECTED_NAMES_MISMATCH.add(errorMessage + "\n"
 								+ "      Declared getter: " + declaredGetter + "\n"
 								+ "      Expected getter: " + expectedGetter);
 					}
 					
 					// Check setter name policy
 					if (!declaredSetter.equals(expectedSetter)) {
-						Error.GETTER_SETTER_DECLARED_EXPECTED_NAME_MISMATCH.add(errorMessage + "\n"
+						Error.GETTER_SETTER_DECLARED_EXPECTED_NAMES_MISMATCH.add(errorMessage + "\n"
 								+ "      Declared setter: " + declaredSetter + "\n"
 								+ "      Expected setter: " + expectedSetter);
-						continue;
 					}
 					
 					// Check required private modifiers for bean property
 					if (!Modifier.isPrivate(fieldModifiers)) {
-						Error.BEAN_PROPERTY_NOT_PRIVATE.add(errorMessage);
-						continue;
+						Error.PROPERTY_NOT_PRIVATE.add(errorMessage);
 					}
 					
-					// Check getter and setter
-					if (!listMethodNames.contains(declaredGetter) || !listMethodNames.contains(declaredSetter)) {
-						Error.GETTER_SETTER_NAMING_POLICY.add(errorMessage);
-						continue;
+					// Check getter
+					if (!listMethodNames.contains(declaredGetter)) {
+						Error.GETTER_SETTER_DECLARED_BUT_NOT_FOUND.add(errorMessage + " - Declared getter not found: " + declaredGetter);
+					}
+
+					// Check setter
+					if (!listMethodNames.contains(declaredSetter)) {
+						Error.GETTER_SETTER_DECLARED_BUT_NOT_FOUND.add(errorMessage + " - Declared setter not found: " + declaredGetter);
 					}
 
 					// Check non transient modifier
 					if (Modifier.isTransient(fieldModifiers)) {
-						Error.BEAN_PROPERTY_TRANSIENT.add(errorMessage);
-						continue;
+						Error.PROPERTY_TRANSIENT.add(errorMessage);
 					}
-					
-					continue;
 				}
-
-				if (!Modifier.isTransient(fieldModifiers)) {
+				else if (!Modifier.isTransient(fieldModifiers)) {
 					Error.FIELD_NOT_TRANSIENT.add(errorMessage);
-					continue;
 				}
 			}
 		} catch (ClassNotFoundException e) {

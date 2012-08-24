@@ -59,7 +59,7 @@ public class HttpTransaction extends TransactionWithVariables {
     private XMLVector<XMLVector<String>> httpParameters = new XMLVector<XMLVector<String>>();
     
     /** Stores value of property httpParameters. */
-    private XMLVector<XMLVector<String>> originalHttpParameters = null;
+    transient private XMLVector<XMLVector<String>> originalHttpParameters = null;
 
     /** Holds value of property handleCookie. */
     private boolean handleCookie = true;

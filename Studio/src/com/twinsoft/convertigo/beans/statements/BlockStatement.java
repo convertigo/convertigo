@@ -33,7 +33,7 @@ public abstract class BlockStatement extends StatementWithExpressions {
 	private static final long serialVersionUID = 5517319866039313466L;
 	
 	private String condition = "";
-	public boolean isLoop = false;
+	transient public boolean isLoop = false;
 	
 	public BlockStatement() {
 		super();

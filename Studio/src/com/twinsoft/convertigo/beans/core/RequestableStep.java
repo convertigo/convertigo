@@ -97,9 +97,9 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	
 	protected boolean bInternalInvoke = true;
 	
-	protected Map<String, Object> request;
+	transient protected Map<String, Object> request;
 	
-	public String wsdlType = "";
+	transient public String wsdlType = "";
 	
 	public RequestableStep() {
 		super();

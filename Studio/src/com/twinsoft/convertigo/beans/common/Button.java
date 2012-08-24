@@ -40,7 +40,7 @@ public class Button extends JavelinMashupEventExtractionRule {
     /* Properties */
     private 	String			Label 			= "";
     private 	String			Action 			= "";
-    private 	boolean			doTransaction 	= false;
+    private 	boolean			DoTransaction 	= false;
     private 	XMLRectangle	buttonDesc 		= new XMLRectangle(-1, -1, -1, -1);
     private		String 			startPattern 	= "<";
     private		String 			endPattern 		= ">";
@@ -213,7 +213,7 @@ public class Button extends JavelinMashupEventExtractionRule {
         		else
         			myButton.setOptionalAttribute("penselectable", "false");
     		} else {
-    			myButton = createButton(Label, buttonDesc, doTransaction);
+    			myButton = createButton(Label, buttonDesc, DoTransaction);
     		}
         	
         	addMashupAttribute(myButton);
@@ -280,14 +280,14 @@ public class Button extends JavelinMashupEventExtractionRule {
 	 * @return Returns the doTransaction.
 	 */
 	public boolean isDoTransaction() {
-		return doTransaction;
+		return DoTransaction;
 	}
 
 	/**
 	 * @param doTransaction The doTransaction to set.
 	 */
 	public void setDoTransaction(boolean doTransaction) {
-		this.doTransaction = doTransaction;
+		this.DoTransaction = doTransaction;
 	}
 
 	/**

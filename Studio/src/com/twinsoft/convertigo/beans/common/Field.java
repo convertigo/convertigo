@@ -34,10 +34,10 @@ import com.twinsoft.twinj.iJavelin;
 public class Field extends JavelinMashupEventExtractionRule {
 	public static final long serialVersionUID = 4350644982787619412L;
 
-	private String fieldValue = "";
-	private String fieldType = "field";
-	private String fieldName = "fieldName";
-	private boolean fieldFocus = false;
+	private String Value = "";
+	private String Type = "field";
+	private String Name = "fieldName";
+	transient private boolean fieldFocus = false;
 	private int fieldAttrb = 7;
 	private XMLRectangle fieldDesc = new XMLRectangle(-1, -1, -1, -1);
 
@@ -108,9 +108,9 @@ public class Field extends JavelinMashupEventExtractionRule {
         
         // block matches : add the field block
 		Block myField = new Block();
-		myField.name = fieldName;
-		myField.type = fieldType;
-		myField.setText(fieldValue);
+		myField.name = Name;
+		myField.type = Type;
+		myField.setText(Value);
 		myField.bRender = true;
 		myField.line = fieldDesc.y;
 		myField.column = fieldDesc.x;
@@ -134,7 +134,7 @@ public class Field extends JavelinMashupEventExtractionRule {
 	 * @return Returns the fieldName.
 	 */
 	public String getFieldName() {
-		return fieldName;
+		return Name;
 	}
 
 	/**
@@ -142,14 +142,14 @@ public class Field extends JavelinMashupEventExtractionRule {
 	 *            The fieldName to set.
 	 */
 	public void setFieldName(String fieldName) {
-		this.fieldName = fieldName;
+		this.Name = fieldName;
 	}
 
 	/**
 	 * @return Returns the fieldType.
 	 */
 	public String getFieldType() {
-		return fieldType;
+		return Type;
 	}
 
 	/**
@@ -157,14 +157,14 @@ public class Field extends JavelinMashupEventExtractionRule {
 	 *            The fieldType to set.
 	 */
 	public void setFieldType(String fieldType) {
-		this.fieldType = fieldType;
+		this.Type = fieldType;
 	}
 
 	/**
 	 * @return Returns the fieldValue.
 	 */
 	public String getFieldValue() {
-		return fieldValue;
+		return Value;
 	}
 
 	/**
@@ -172,7 +172,7 @@ public class Field extends JavelinMashupEventExtractionRule {
 	 *            The fieldValue to set.
 	 */
 	public void setFieldValue(String fieldValue) {
-		this.fieldValue = fieldValue;
+		this.Value = fieldValue;
 	}
 
 	/**

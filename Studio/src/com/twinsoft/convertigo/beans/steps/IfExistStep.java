@@ -33,7 +33,7 @@ public class IfExistStep extends TestStep {
 
 	private static final long serialVersionUID = 1615428447261700976L;
 
-	protected XMLVector<XMLVector<String>> testDefinition = new XMLVector<XMLVector<String>>();
+	transient protected XMLVector<XMLVector<String>> testDefinition = new XMLVector<XMLVector<String>>();
 	
 	public IfExistStep() {
 		super();

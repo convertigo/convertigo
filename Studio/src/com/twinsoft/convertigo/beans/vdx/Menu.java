@@ -39,9 +39,9 @@ public class Menu extends JavelinExtractionRule {
     private static final int LETTER = 1;
     private static final int LETTER_OR_DIGIT = 2;
     
-    transient private int startLine = 1;
-    transient private int menuWidth = 2;
-    transient private int menuCharType = DIGIT;
+    private int startLine = 1;
+    private int menuWidth = 2;
+    private int charType = DIGIT;
     
     transient int refColumn;
     transient int refAttrib;
@@ -61,7 +61,7 @@ public class Menu extends JavelinExtractionRule {
     public boolean isCharTypeOK(String str) {
         int len = str.length();
         
-        switch(menuCharType) {
+        switch(charType) {
             case LETTER:
                 for(int i = 0 ; i < len ; i++)
                     if (!Character.isLetter(str.charAt(i)))
@@ -187,7 +187,7 @@ public class Menu extends JavelinExtractionRule {
      * @param type IS_DIGIT=0, IS_LETTER=1 or IS_LETTER_OR_DIGIT=2.
      */
     public void setCharType(int type) {
-        menuCharType = type;
+    	charType = type;
     }
     
     /**
@@ -196,7 +196,7 @@ public class Menu extends JavelinExtractionRule {
      * @return the actual line value.
      */
     public int getCharType() {
-        return menuCharType;
+        return charType;
     }
     
     /**

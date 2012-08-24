@@ -115,14 +115,14 @@ public class JavelinTransaction extends TransactionWithVariables {
 	 * Defines if the 'blocks' node should be removed from the response or not
 	 * (useful in web services context).
 	 */
-	private boolean removeBlockNode = false;
+	private boolean removeBlocksNode = false;
     
 	public boolean isRemoveBlocksNode() {
-		return removeBlockNode;
+		return removeBlocksNode;
 	}
 
 	public void setRemoveBlocksNode(boolean removeBlocksNode) {
-		this.removeBlockNode = removeBlocksNode;
+		this.removeBlocksNode = removeBlocksNode;
 	}
 
 	/**
@@ -550,7 +550,7 @@ public class JavelinTransaction extends TransactionWithVariables {
     	}
     }
     
-    private boolean sessionMustBeDestroyed;
+    transient private boolean sessionMustBeDestroyed;
     
     public void applyUserRequest(iJavelin javelin) throws EngineException {
         boolean fieldIsAutoEnter = false;
