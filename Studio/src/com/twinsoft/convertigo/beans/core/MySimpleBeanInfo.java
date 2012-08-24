@@ -203,8 +203,8 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     
     protected PropertyDescriptor getPropertyDescriptor(String name) throws IntrospectionException {
     	checkAdditionalProperties();
-    	for (int i = 0 ; i < properties.length ; i++) {
-    		PropertyDescriptor property = properties[i];
+    	for (int i = 0 ; i < allProperties.length ; i++) {
+    		PropertyDescriptor property = allProperties[i];
     		if (name.equals(property.getName())) {
     			PropertyDescriptor clone = new PropertyDescriptor(name, property.getReadMethod(), property.getWriteMethod());
     			clone.setDisplayName(property.getDisplayName());
@@ -218,7 +218,7 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     			for (String attributeName : Collections.list(property.attributeNames())) {
     				clone.setValue(attributeName, property.getValue(attributeName));
     			}
-    			return properties[i] = clone;
+    			return allProperties[i] = clone;
     		}
     	}
     	return null;
