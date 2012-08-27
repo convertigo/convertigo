@@ -73,8 +73,8 @@ public class ChangeToIfThenElseStatementAction extends MyAbstractAction {
 						
 						// Set correct order
 						if (parentDbo instanceof StatementWithExpressions) {
-							int index = ((StatementWithExpressions)parentDbo).orderedStatements.get(0).indexOf(ifStatement.priority);
-		   				    ((StatementWithExpressions)parentDbo).orderedStatements.get(0).insertElementAt(ifThenElseStatement.priority, index);
+							int index = ((StatementWithExpressions)parentDbo).getOrderedStatements().get(0).indexOf(ifStatement.priority);
+		   				    ((StatementWithExpressions)parentDbo).getOrderedStatements().get(0).insertElementAt(ifThenElseStatement.priority, index);
 						}
 						
 						// Add Then/Else statement
