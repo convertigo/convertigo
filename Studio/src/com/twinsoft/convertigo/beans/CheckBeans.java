@@ -192,7 +192,9 @@ public class CheckBeans {
 			try {
 				dboBeanInfo = (MySimpleBeanInfo) (Class.forName(dboBeanInfoClassName)).newInstance();
 			} catch (ClassNotFoundException e) {
-				Error.MISSING_BEAN_INFO.add(javaClassName + " (expected bean info: " + dboBeanInfoClassName + ")");
+				if (!Modifier.isAbstract(javaClass.getModifiers())) {
+					Error.MISSING_BEAN_INFO.add(javaClassName + " (expected bean info: " + dboBeanInfoClassName + ")");
+				}
 				return;
 			} catch (Exception e) {
 				e.printStackTrace();
