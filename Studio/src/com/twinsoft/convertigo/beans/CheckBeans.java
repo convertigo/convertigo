@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans;
 import java.beans.BeanDescriptor;
 import java.beans.PropertyDescriptor;
 import java.io.File;
+import java.io.FileInputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -35,8 +36,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
@@ -44,12 +51,77 @@ import com.twinsoft.convertigo.engine.Engine;
 
 public class CheckBeans {
 
+	private enum Error {
+		//NON_DATABASE_OBJECT("Non database object"),
+		MISSING_BEAN_INFO("Missing bean info"),
+		ABSTRACT_CLASS_WITH_ICON("Abstract class should not have icon"),
+		ABSTRACT_CLASS_WITH_DISPLAY_NAME("Abstract class should not have a display name"),
+		ABSTRACT_CLASS_WITH_DESCRIPTION("Abstract class should not have a description"),
+		BEAN_DEFINED_BUT_NOT_USED("Bean defined but not used"),
+		BEAN_MISSING_DISPLAY_NAME("Bean missing display name"),
+		BEAN_MISSING_DESCRIPTION("Bean missing description"),
+		BEAN_MISSING_ICON("Declared icon missing"),
+		BEAN_ICON_NAMING_POLICY("Wrong icon name "),
+		BEAN_ICON_NOT_USED("Not used icon"),
+		PROPERTY_DECLARED_BUT_NOT_FOUND("Declared property but not found"),
+		PROPERTY_NAMING_POLICY("Declared and defined bean property name mismatch"),
+		PROPERTY_NOT_PRIVATE("Non private bean property"),
+		PROPERTY_TRANSIENT("Bean property should not be transient"),
+		GETTER_SETTER_DECLARED_BUT_NOT_FOUND("Declared getter or setter but not found"),
+		GETTER_SETTER_DECLARED_EXPECTED_NAMES_MISMATCH("Declared and expected getter and/or setter mismatch"),
+		FIELD_NOT_TRANSIENT("Field not transient");
+		
+		private String label;
+		
+		Error(String label) {
+			this.label = label;
+		}
+		
+		public String toString() {
+			return label;
+		}
+		
+		public void add(String errorMessage) {
+			List<String> errorList = errors.get(this);
+			if (errorList == null) {
+				errorList = new ArrayList<String>();
+				errors.put(this, errorList);
+			}
+			errorList.add(errorMessage);
+		}
+	}
+	
 	private static String srcBase;
+	
+	private static List<String> dboXmlDeclaredDatabaseObjects;
+
+	private static DocumentBuilderFactory defaultDocumentBuilderFactory = DocumentBuilderFactory.newInstance();
+	private static DocumentBuilder defaultDocumentBuilder;
 	
 	public static void main(String[] args) {
 		Engine.logBeans = Logger.getLogger(BeansDoc.class);
 
 		srcBase = args[0];
+
+		System.out.println("Loading database objects XML DB in " + srcBase);
+		try {
+			defaultDocumentBuilderFactory = DocumentBuilderFactory.newInstance();
+			defaultDocumentBuilder = defaultDocumentBuilderFactory.newDocumentBuilder();
+
+			dboXmlDeclaredDatabaseObjects = new ArrayList<String>();
+			
+			Document dboXmlDocument = defaultDocumentBuilder.parse(new FileInputStream(new File(srcBase + "/com/twinsoft/convertigo/beans/database_objects.xml")));
+			NodeList beanList = dboXmlDocument.getElementsByTagName("bean");
+			int n = beanList.getLength();
+			for (int i = 0; i < n; i++) {
+				Element element = (Element) beanList.item(i);
+				dboXmlDeclaredDatabaseObjects.add(element.getAttribute("classname"));
+			}
+		} catch (Exception e) {
+			System.out.println("Error while loading DBO XML DB");
+			e.printStackTrace();
+			System.exit(-1);
+		}
 		
 		System.out.println("Browsing sources in " + srcBase);
 		
@@ -131,45 +203,6 @@ public class CheckBeans {
 		}
 	}
 	
-	private enum Error {
-		//NON_DATABASE_OBJECT("Non database object"),
-		MISSING_BEAN_INFO("Missing bean info"),
-		ABSTRACT_CLASS_WITH_ICON("Abstract class should not have icon"),
-		ABSTRACT_CLASS_WITH_DISPLAY_NAME("Abstract class should not have a display name"),
-		ABSTRACT_CLASS_WITH_DESCRIPTION("Abstract class should not have a description"),
-		BEAN_MISSING_DISPLAY_NAME("Bean missing display name"),
-		BEAN_MISSING_DESCRIPTION("Bean missing description"),
-		BEAN_MISSING_ICON("Declared icon missing"),
-		BEAN_ICON_NAMING_POLICY("Wrong icon name "),
-		BEAN_ICON_NOT_USED("Not used icon"),
-		PROPERTY_DECLARED_BUT_NOT_FOUND("Declared property but not found"),
-		PROPERTY_NAMING_POLICY("Declared and defined bean property name mismatch"),
-		PROPERTY_NOT_PRIVATE("Non private bean property"),
-		PROPERTY_TRANSIENT("Bean property should not be transient"),
-		GETTER_SETTER_DECLARED_BUT_NOT_FOUND("Declared getter or setter but not found"),
-		GETTER_SETTER_DECLARED_EXPECTED_NAMES_MISMATCH("Declared and expected getter and/or setter mismatch"),
-		FIELD_NOT_TRANSIENT("Field not transient");
-		
-		private String label;
-		
-		Error(String label) {
-			this.label = label;
-		}
-		
-		public String toString() {
-			return label;
-		}
-		
-		public void add(String errorMessage) {
-			List<String> errorList = errors.get(this);
-			if (errorList == null) {
-				errorList = new ArrayList<String>();
-				errors.put(this, errorList);
-			}
-			errorList.add(errorMessage);
-		}
-	}
-	
 	private static Map<Error, List<String>> errors = new HashMap<Error, List<String>>();
 
 	private static int nBeanClass = 0;
@@ -229,6 +262,11 @@ public class CheckBeans {
 			}
 			else {
 				nBeanClassNotAbstract++;
+				
+				// Check bean declaration in database_objects.xml
+				if (!dboXmlDeclaredDatabaseObjects.contains(javaClassName)) {
+					Error.BEAN_DEFINED_BUT_NOT_USED.add(javaClassName);
+				}
 				
 				// Check icon name policy (16x16)
 				String declaredIconName = MySimpleBeanInfo.getIconName(dboBeanInfo, MySimpleBeanInfo.ICON_COLOR_16x16);
