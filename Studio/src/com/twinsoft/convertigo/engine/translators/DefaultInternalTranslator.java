@@ -32,6 +32,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -242,6 +243,11 @@ public class DefaultInternalTranslator implements Translator {
 			NodeList nl = (NodeList) parameterObject;
 			for (int i = 0 ; i < nl.getLength() ; i++) {
 				addParameterObject(doc, parentItem, parameterName, nl.item(i));
+			}
+		} else if (parameterObject instanceof XMLVector) {
+			XMLVector<Object> values = GenericUtils.cast(parameterObject);
+			for (Object object : values) {
+				addParameterObject(doc, parentItem, parameterName, object);
 			}
 		} else {
 			Element item = doc.createElement("variable");
