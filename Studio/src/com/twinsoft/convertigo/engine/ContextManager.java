@@ -357,16 +357,16 @@ public class ContextManager extends AbstractRunnableManager {
     }
     
     public void remove(Context context) {
+		if (context == null) {
+			// Silently ignore
+			Engine.logContextManager.warn("The context can not be removed because it does not exist any more!");
+			return;
+		}
+
     	// To prevent from deadlock, we must synchronize on the context itself (see #3048)
     	// to avoid another request thread to try to use the context simultaneously.
     	// This lock must occur BEFORE acquiring lock the the contexts table.
     	synchronized (context) {
-			if (context == null) {
-				// Silently ignore
-				Engine.logContextManager.warn("The context can not be removed because it does not exist any more!");
-				return;
-			}
-
 			String contextID = context.contextID;
 			Engine.logContextManager.info("Removing context " + contextID);
 			
