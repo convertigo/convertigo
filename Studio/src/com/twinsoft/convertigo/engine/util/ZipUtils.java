@@ -349,4 +349,21 @@ public class ZipUtils {
 			zis.close();
 		}
 	}
+    
+	public static String getProjectName(String path) throws IOException {
+		Engine.logEngine.debug("PATH: "+path);
+		
+		ZipInputStream zis = new ZipInputStream(new FileInputStream(path));
+	    ZipEntry ze = null;	  
+	    String fileName = null;
+	    try {
+	        if((ze = zis.getNextEntry()) != null){
+	        	fileName = ze.getName().replaceAll("/.*","");
+	        }
+	    }
+	    finally {
+	        zis.close();
+	    }
+		return fileName;
+	}
 }

@@ -1491,10 +1491,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 		try {
 			File f = new File(projectArchiveFilename);
-			String fName = f.getName();
-			archiveProjectName = fName.substring(0, fName.indexOf(".car"));
-
-			if ((targetProjectName == null) || (archiveProjectName.equals(targetProjectName))) {
+			//String fName = f.getName();
+			//archiveProjectName = fName.substring(0, fName.indexOf(".car"));
+			archiveProjectName = ZipUtils.getProjectName(projectArchiveFilename);	
+			Engine.logEngine.debug("filename: "+archiveProjectName);
+			Engine.logEngine.debug("targetProjectName: "+targetProjectName);
+			
+			if ((targetProjectName.equals(archiveProjectName))) {
 				projectName = archiveProjectName;
 				deployDirPath = Engine.PROJECTS_PATH;
 			} else {
@@ -1579,7 +1582,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 			}
 
-			// Import project (will perform the migration)
+			// Import project (will perform the migration) ***
 			Project project = importProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName
 					+ ".xml");
 

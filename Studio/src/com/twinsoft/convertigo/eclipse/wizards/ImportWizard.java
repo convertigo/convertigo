@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.eclipse.wizards;
 
+import java.io.IOException;
+
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
@@ -30,6 +32,7 @@ import org.eclipse.ui.IWorkbench;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class ImportWizard extends Wizard implements IImportWizard {
 
@@ -105,15 +108,19 @@ public class ImportWizard extends Wizard implements IImportWizard {
 	private String getDefaultProjectName() {
 		String projectName = null;
 		String filePath = fileChooserPage.getFilePath();
-		if (filePath != null) {
-			int index = filePath.lastIndexOf("/");
-			String choosenFileName = filePath.substring(index+1);
-			int idx = choosenFileName.lastIndexOf('.');
-			if (idx != -1) {
-				projectName = choosenFileName.substring(0, idx);
+		try {
+			return ZipUtils.getProjectName(filePath);
+		} catch (IOException e) {
+			if (filePath != null) {
+				int index = filePath.lastIndexOf("/");
+				String choosenFileName = filePath.substring(index+1);
+				int idx = choosenFileName.lastIndexOf('.');
+				if (idx != -1) {
+					projectName = choosenFileName.substring(0, idx);
+				}
 			}
+			return projectName;
 		}
-		return projectName;
 	}
 
 	private String getTargetProjectName() {
