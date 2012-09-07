@@ -312,9 +312,9 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_ADMIN ("log4j.logger.cems.Admin", "WARN", "Log4J admin logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_BEANS ("log4j.logger.cems.Beans", "WARN", "Log4J beans logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_BEANS ("log4j.logger.cems.Beans", "", "Log4J beans logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_BILLERS ("log4j.logger.cems.Billers", "", "Log4J billers logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_BILLERS ("log4j.logger.cems.Billers", "WARN", "Log4J billers logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_CACHEMANAGER ("log4j.logger.cems.CacheManager", "WARN", "Log4J cache manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
