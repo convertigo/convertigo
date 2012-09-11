@@ -31,7 +31,6 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
-import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
@@ -111,12 +110,16 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 	protected Node createWsdlDom() throws EngineException {
 		wsdlDom = getSequence().createDOM();
 		Element element = wsdlDom.getDocumentElement();
-		Document doc = getSource().getWsdlDom();
 		try {
-			Step step = getSource().getStep();
-			String xpath = getSource().getXpath();
-			if (!(step instanceof RequestableStep)) xpath = xpath.replaceFirst(".", step.getStepNodeName());
-			NodeList list = getXPathAPI().selectNodeList(doc.getDocumentElement(), xpath);
+			Document doc = getSource().getWsdlDom();
+			String anchor = getSource().getAnchor();
+//			Step step = getSource().getStep();
+//			String xpath = getSource().getXpath();
+//			if (!(step instanceof RequestableStep)) {
+//					xpath = xpath.replaceFirst(".", step.getStepNodeName());
+//			}
+//			NodeList list = getXPathAPI().selectNodeList(doc.getDocumentElement(), xpath);
+			NodeList list = getXPathAPI().selectNodeList(doc.getDocumentElement(), anchor);
 			if (list != null) {
 				for (int i=0; i<list.getLength(); i++) {
 					Node imported = wsdlDom.importNode(list.item(i), true);

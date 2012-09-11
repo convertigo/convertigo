@@ -1328,7 +1328,7 @@
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectCleanXSDAction"
                enablesFor="1"
                id="convertigo.action.cleanProjectXSD"
-               label="Clean schema file"
+               label="Update Web Service"
                menubarPath="schema">
          </action>
          <!--action
