@@ -426,7 +426,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 			String projectName = null;
 			Project project = null;
 
+			Engine.logEngine.debug("DatabaseObjectsManager.updateProject() - projectFileName  :  "+projectFileName);
 			File projectFile = new File(projectFileName);
+			Engine.logEngine.debug("DatabaseObjectsManager.updateProject() - projectFile.exists()  :  "+projectFile.exists());
+			
 			if (projectFile.exists()) {
 				String fName = projectFile.getName();
 				if (projectFileName.endsWith(".xml")) {
@@ -462,9 +465,22 @@ public class DatabaseObjectsManager implements AbstractManager {
 						}
 					}
 				}
-			} else
-				throw new EngineException("File \"" + projectFileName + "\" is missing");
-
+			} else{
+				//Added by julienda - 10/09/2012
+					Engine.logEngine.debug("DatabaseObjectsManager.updateProject() - projectFileName :  "+projectFileName);
+					//Get the correct archive file (path)
+					String archiveFileProject =  ZipUtils.getArchiveName(projectFileName);
+					
+					if(archiveFileProject == null)
+						throw new EngineException("File \"" + projectFileName + "\" is missing");
+					else
+						//Call method with the correct archive (path)
+						updateProject(new File(new File (projectFileName).getParent(), archiveFileProject).getPath());
+					
+					Engine.logEngine.debug("DatabaseObjectsManager.updateProject() - archiveFileProject  :  "+archiveFileProject);		
+			}
+				
+	
 			return project;
 		} catch (Exception e) {
 			throw new EngineException("Unable to update the project from the file \"" + projectFileName
@@ -492,11 +508,24 @@ public class DatabaseObjectsManager implements AbstractManager {
 		String deployDirPath, projectDirPath;
 
 		try {
+			//Added by julienda - 10/09/2012
+				Engine.logEngine.debug("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - projectArchiveFilename: "+projectArchiveFilename);
+				Engine.logEngine.debug("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - targetProjectName: "+targetProjectName);
+			
+				archiveProjectName = ZipUtils.getProjectName(projectArchiveFilename);
+				Engine.logEngine.debug("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - archiveProjectName: "+archiveProjectName);
+				
+				if(targetProjectName==null && projectArchiveFilename!=null){
+					targetProjectName = archiveProjectName;
+				}
+				
+					
 			File f = new File(projectArchiveFilename);
-			String fName = f.getName();
-			archiveProjectName = fName.substring(0, fName.indexOf(".car"));
+			// Modified by julienda - 08/09/2012
+				//String fName = f.getName();
+				//archiveProjectName = fName.substring(0, fName.indexOf(".car"));
 
-			if ((targetProjectName == null) || (archiveProjectName.equals(targetProjectName))) {
+			if ((targetProjectName.equals(archiveProjectName))) {
 				projectName = archiveProjectName;
 				deployDirPath = Engine.PROJECTS_PATH;
 			} else {
@@ -507,6 +536,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				deployDirPath = deployDir.getCanonicalPath();
 			}
 
+			Engine.logEngine.debug("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - projectName: "+projectName);
 			projectDirPath = deployDirPath + "/" + archiveProjectName;
 
 			Engine.logDatabaseObjectManager.info("Deploying the project \"" + archiveProjectName + "\" ...");
