@@ -462,7 +462,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 				Document doc = step.getSequence().createDOM();
 				Element root = (Element)doc.importNode(stepDoc.getDocumentElement(), true);
 				doc.replaceChild(root, doc.getDocumentElement());
-				removeSchemaTypeNodes(doc.getDocumentElement());
+				removeUserDefinedNodes(doc.getDocumentElement());
 				
 				boolean shouldDisplayDom = (!(!step.isXml() && (step instanceof StepWithExpressions) && !(step instanceof IteratorStep)));
 				if ((doc != null) && (shouldDisplayDom)) {
@@ -510,18 +510,20 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		}
 	}
 	
-	private void removeSchemaTypeNodes(Element parent) {
+	private void removeUserDefinedNodes(Element parent) {
 		HashSet<Node> toRemove = new HashSet<Node>();
 		
 		NodeList list = parent.getChildNodes();
 		for (int i=0; i<list.getLength(); i++) {
 			Node node = list.item(i);
 			if (node.getNodeType() == Node.ELEMENT_NODE) {
+				((Element)node).removeAttribute("done");
+				((Element)node).removeAttribute("hashcode");
 				if (node.getNodeName().equals("schema-type")) {
 					toRemove.add(node);
 				}
 				else {
-					removeSchemaTypeNodes((Element)node);
+					removeUserDefinedNodes((Element)node);
 				}
 			}
 		}

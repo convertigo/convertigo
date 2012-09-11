@@ -50,6 +50,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -73,23 +74,100 @@ import com.twinsoft.convertigo.engine.util.XSDUtils.XSDException;
 
 public class ProjectUtils {
 
-	public static void RemoveUselessObjects(XSD xsd, Project project) {
+	public static String retrieveTransactionXsdObjects(String projectName, String connectorName, String transactionName, boolean bTempFile) {
+		String xsdFilePath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + (bTempFile ? ".temp":"") + ".xsd";
+		if (new File(xsdFilePath).exists()) {
+			try {
+				List<QName> qnames = new ArrayList<QName>();
+				String xsdObjects = null;
+
+				XSD xsd = XSDUtils.getXSD(xsdFilePath);
+		    	xsd.getXmlGenerationDescription().setOutputSchemaTypeCData(false);
+		    	
+		    	String project_ns = projectName+ "_ns";
+		    	String nsUri = xsd.getNamespaceUri(project_ns);
+				try {
+					String name = connectorName + "__" + transactionName;
+					for (QName qname: xsd.getTypeQNameList(project_ns, name + "RequestData")) {
+						if (qname.getNamespaceURI().equals(nsUri)) {
+							addQNameInList(qnames, qname);
+						}
+					}
+					for (QName qname: xsd.getTypeQNameList(project_ns, name + "ResponseData")) {
+						if (qname.getNamespaceURI().equals(nsUri)) {
+							addQNameInList(qnames, qname);
+						}
+					}
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				xsd.removeSchemaObjectsNotIn(qnames);
+				if (qnames.isEmpty()) {
+					xsdObjects = "";
+				}
+				else {
+					Document doc = xsd.getSchemaDom(nsUri);
+					if (doc != null) {
+						Element schemaEl = doc.getDocumentElement();
+						NodeList imports = schemaEl.getElementsByTagNameNS("http://www.w3.org/2001/XMLSchema", "import");
+						for (int i=0; i<imports.getLength(); i++) {
+							Element importEl = (Element) imports.item(i);
+							if (importEl.getAttribute("schemaLocation").startsWith("..")) {
+								doc.getDocumentElement().removeChild(importEl);
+								NamedNodeMap nmm = schemaEl.getAttributes();
+								for (int j=0; j<nmm.getLength(); j++) {
+									Node attrNode = nmm.item(j);
+									if (attrNode.getNodeValue().equals(importEl.getAttribute("namespace"))) {
+										nmm.removeNamedItem(attrNode.getNodeName());
+										break;
+									}
+								}
+							}
+						}
+						xsdObjects = XMLUtils.prettyPrintDOM(doc);
+						if (xsdObjects.indexOf("<?xml") != -1) {
+							int index = xsdObjects.indexOf("?>");
+							if (index > 0)
+								xsdObjects = xsdObjects.substring(index+2);
+						}
+					}
+				}
+				
+				//if (xsdObjects != null) System.out.println(xsdObjects);
+				return xsdObjects;
+		    	
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+	
+	public static void removeUselessObjects(XSD xsd, Project project) {
 		String projectName = project.getName();
 		String project_ns = projectName+ "_ns";
 		
 		List<QName> qnames = new ArrayList<QName>();
 		
+		Engine.logEngine.trace("WSDL reducing : start");
 		for (Connector c : project.getConnectorsList()) {
 			String connectorName = c.getName();
 			for (Transaction t: c.getTransactionsList()) {
 				if (t.isPublicAccessibility()) {
 					try {
-						for (QName qname: xsd.getElementQNameList(project_ns, connectorName + "__" + t.getName()))
+						String name = connectorName + "__" + t.getName();
+						Engine.logEngine.trace("Analyzing '"+name+"' ...");
+						for (QName qname: xsd.getElementQNameList(project_ns, name))
 							addQNameInList(qnames, qname);
-						for (QName qname: xsd.getElementQNameList(project_ns, connectorName + "__" + t.getName()+ "Response"))
+						Engine.logEngine.trace("Analyzing '"+name+"Response' ...");
+						for (QName qname: xsd.getElementQNameList(project_ns, name + "Response"))
 							addQNameInList(qnames, qname);
 					}
-					catch (Exception e) {}
+					catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -97,16 +175,28 @@ public class ProjectUtils {
 		for (Sequence s : project.getSequencesList()) {
 			if (s.isPublicAccessibility()) {
 				try {
-					for (QName qname: xsd.getElementQNameList(project_ns, s.getName()))
+					String name = s.getName();
+					Engine.logEngine.trace("Analyzing '"+name+"' ...");
+					for (QName qname: xsd.getElementQNameList(project_ns, name))
 						addQNameInList(qnames, qname);
-					for (QName qname: xsd.getElementQNameList(project_ns, s.getName()+ "Response"))
+					Engine.logEngine.trace("Analyzing '"+name+"Response' ...");
+					for (QName qname: xsd.getElementQNameList(project_ns, name + "Response"))
 						addQNameInList(qnames, qname);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		
+		if (Engine.logEngine.isTraceEnabled()) {
+			Engine.logEngine.trace("Removing all except");
+			for (QName qn: qnames) {
+				Engine.logEngine.trace(" "+ qn.toString());
+			}
+		}
 		xsd.removeSchemaObjectsNotIn(qnames);
+		Engine.logEngine.trace("WSDL reducing : done");
 	}
 
 	private static void addQNameInList(List<QName> qnames, QName qname) {
@@ -329,11 +419,11 @@ public class ProjectUtils {
 		}
 		
 		if (xsdTypes.indexOf(requestdataSearchString) == -1) {
-			if (!xsd.hasSchemaObject(projectName, "<xsd:complexType name=\""+ requestdataSearchString +"\" />\n"))
+			if (!xsd.hasSchemaType(ns, requestdataSearchString))
 				xsdTypes += "<xsd:complexType name=\""+ requestdataSearchString +"\" />\n";
 		}
 		if (xsdTypes.indexOf(responsedataSearchString) == -1) {
-			if (!xsd.hasSchemaObject(projectName, "<xsd:complexType name=\""+ responsedataSearchString +"\" />\n"))
+			if (!xsd.hasSchemaType(ns, responsedataSearchString))
 				xsdTypes += "<xsd:complexType name=\""+ responsedataSearchString +"\" />\n";
 		}
 			
@@ -465,12 +555,12 @@ public class ProjectUtils {
 	public static void cleanSchema(List<String> names, String projectName, boolean bTempFile) throws Exception {
 		String filePath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + (bTempFile ? ".temp":"") + ".xsd";
 		
-		// Retrieve current xsd namespaces map
-		XSD xsd = getXSD(projectName, bTempFile);
-		Map<String, String> namespaceMap = xsd.getNamespaceMap();
-
-		// Remove unused namespaces
-		removeUnusedNamespaces(namespaceMap, filePath);
+//		// Retrieve current xsd namespaces map
+//		XSD xsd = getXSD(projectName, bTempFile);
+//		Map<String, String> namespaceMap = xsd.getNamespaceMap();
+//
+//		// Remove unused namespaces
+//		removeUnusedNamespaces(namespaceMap, filePath);
 		
 		// Clean sequence and step schemas
 		cleanSequences(names, filePath);

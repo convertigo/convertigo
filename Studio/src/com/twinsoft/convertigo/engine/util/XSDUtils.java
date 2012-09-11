@@ -55,7 +55,6 @@ import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -242,6 +241,7 @@ public class XSDUtils {
 			options.put(OutputKeys.METHOD, "xml");
 			options.put(OutputKeys.ENCODING, "UTF-8");
 			options.put(OutputKeys.INDENT, "yes");
+			options.put("{http://xml.apache.org/xslt}indent-amount", "4");
 			options.put(OutputKeys.OMIT_XML_DECLARATION, "no");
 			options.put(OutputKeys.CDATA_SECTION_ELEMENTS, "{"+Constants.URI_2001_SCHEMA_XSD+"}documentation");
 		}
@@ -284,6 +284,22 @@ public class XSDUtils {
 			return xmlgenDescription;
 		}
 		
+		public Document getSchemaDom(String targetNamespace) {
+			XmlSchema[] schemas = schemaCol.getXmlSchemas();
+			int len = schemas.length;
+			Document doc = null;
+			
+			for (int i=0; i<len; i++) {
+				XmlSchema schema = schemas[i];
+				if (schema.getTargetNamespace().equals(targetNamespace)) {
+					doc = getSchemaDOM(schema);
+					break;
+				}
+			}
+			
+			return doc;
+		}
+		
 		public Document[] getAllSchemas() {
 			XmlSchema[] schemas = schemaCol.getXmlSchemas();
 			int len = schemas.length;
@@ -291,6 +307,8 @@ public class XSDUtils {
 			
 			for (int i=0; i<len; i++) {
 				XmlSchema schema = schemas[i];
+				if (schema.getTargetNamespace().equals(Constants.URI_2001_SCHEMA_XSD))
+					continue;
 				try {
 					docs[i] = getSchemaDOM(schema);
 				}
@@ -305,8 +323,10 @@ public class XSDUtils {
 			Document doc = null;
 			try {
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();
-				xmlSchema.write(bos);
-				doc = XMLUtils.parseDOM(new ByteArrayInputStream(bos.toByteArray()));
+				xmlSchema.write(bos, options);
+				doc = getDefaultDocumentBuilder().parse(new ByteArrayInputStream(bos.toByteArray()));
+				doc.normalizeDocument();
+				return doc;
 			}
 			catch (Exception e) {
 				//System.out.println(e);
@@ -393,43 +413,52 @@ public class XSDUtils {
 			}
 		}
 		
-		public boolean hasSchemaObject(String projectName, String xsdString) throws XSDException {
-			XmlSchema typesSchema = toXmlSchema(xsdString, projectName);
-			if (typesSchema != null) {
-				XmlSchemaObjectCollection items = typesSchema.getItems();
-				Iterator<Object> it0 = GenericUtils.cast(items.getIterator());
-				if (it0.hasNext()) {
-					Iterator<Object> it1 = null;
-					Object searchOb = null;
-					XmlSchemaObject object = (XmlSchemaObject)it0.next();
-					if (object instanceof XmlSchemaType) {
-						it1 = GenericUtils.cast(loadedSchema.getSchemaTypes().getNames());
-						searchOb = ((XmlSchemaType)object).getQName();
-					}
-					else if (object instanceof XmlSchemaElement) {
-			            it1 = GenericUtils.cast(loadedSchema.getElements().getNames());
-			            searchOb = ((XmlSchemaType)object).getQName();
-					}
-					else if (object instanceof XmlSchemaGroup) {
-			            it1 = GenericUtils.cast(loadedSchema.getGroups().getNames());
-			            searchOb = ((XmlSchemaType)object).getName();
-					}
-					else if (object instanceof XmlSchemaAttribute) {
-			            it1 = GenericUtils.cast(loadedSchema.getAttributes().getNames());
-			            searchOb = ((XmlSchemaType)object).getQName();
-					}
-					
-					if (it1 != null) {
-						while (it1.hasNext()) {
-							Object ob = it1.next();
-							if (ob.toString().equals(searchOb.toString())) {
+		public boolean hasSchemaType(String prefix, String name) {
+			String ns = loadedSchema.getNamespaceContext().getNamespaceURI(prefix);
+			QName qname = new QName(ns,name,prefix);
+			XmlSchemaType xmlSchemaType = schemaCol.getTypeByQName(qname);
+			return xmlSchemaType != null;
+		}
+		
+		public boolean hasSchemaElement(String prefix, String name) {
+			String ns = loadedSchema.getNamespaceContext().getNamespaceURI(prefix);
+			QName qname = new QName(ns,name,prefix);
+			XmlSchemaElement xmlSchemaElement = schemaCol.getElementByQName(qname);
+			return xmlSchemaElement != null;
+		}
+
+		public boolean hasSchemaObject(String prefix, String name) {
+			String ns = loadedSchema.getNamespaceContext().getNamespaceURI(prefix);
+			QName qname = new QName(ns,name,prefix);
+			
+//			XmlSchema[] xmlSchemas = schemaCol.getXmlSchema(ns);
+//			for (int i=0; i<xmlSchemas.length; i++) {
+//				XmlSchema xmlSchema = xmlSchemas[i];
+				XmlSchema xmlSchema = schemaCol.schemaForNamespace(ns);
+				if (xmlSchema != null) {
+					XmlSchemaObjectCollection items = xmlSchema.getItems();
+					Iterator<Object> it = GenericUtils.cast(items.getIterator());
+					while (it.hasNext()) {
+						XmlSchemaObject object = (XmlSchemaObject)it.next();
+						if (object instanceof XmlSchemaType) {
+							if (((XmlSchemaType)object).getQName().equals(qname))
 								return true;
-							}
+						}
+						else if (object instanceof XmlSchemaElement) {
+				            if (((XmlSchemaElement)object).getQName().equals(qname))
+				            	return true;
+						}
+						else if (object instanceof XmlSchemaGroup) {
+				            if (((XmlSchemaGroup)object).getName().equals(qname))
+				            	return true;
+						}
+						else if (object instanceof XmlSchemaAttribute) {
+				            if (((XmlSchemaAttribute)object).getQName().equals(qname))
+				            	return true;
 						}
 					}
 				}
-			}
-			
+//			}
 			return false;
 		}
 		
@@ -508,6 +537,10 @@ public class XSDUtils {
 			return xmlDom;
 		}
 
+		public String getNamespaceUri(String nsPrefix) {
+			return loadedSchema.getNamespaceContext().getNamespaceURI(nsPrefix);
+		}
+
 		public List<QName> getElementQNameList(String nsPrefix, String elementName) throws ParserConfigurationException {
 			String ns = loadedSchema.getNamespaceContext().getNamespaceURI(nsPrefix);
 			QName qname = new QName(ns,elementName,nsPrefix);
@@ -521,6 +554,7 @@ public class XSDUtils {
 			if (xmlSchemaElement != null) {
 				qnames.add(elementQName);
 				schemaElementToXml(xmlDom, xmlDom.getDocumentElement(), xmlSchemaElement, qnames);
+				//System.out.println(XMLUtils.prettyPrintDOM(xmlDom));
 			}
 			return qnames;
 		}
@@ -707,8 +741,18 @@ public class XSDUtils {
 		}
 
 		private void schemaAttributeGroupRefToXml(Document xmlDom, Node parentNode, XmlSchemaAttributeGroupRef xmlSchemaAttributeGroupRef, List<QName> qnames) {
-			XmlSchemaAttributeGroup xmlSchemaAttributeGroup = (XmlSchemaAttributeGroup)loadedSchema.getGroups().getItem(xmlSchemaAttributeGroupRef.getRefName());
-			schemaAttributeGroupToXml(xmlDom, parentNode, xmlSchemaAttributeGroup, qnames);
+//			XmlSchemaAttributeGroup xmlSchemaAttributeGroup = (XmlSchemaAttributeGroup)loadedSchema.getGroups().getItem(xmlSchemaAttributeGroupRef.getRefName());
+//			schemaAttributeGroupToXml(xmlDom, parentNode, xmlSchemaAttributeGroup, qnames);
+
+			QName qname = xmlSchemaAttributeGroupRef.getRefName();
+			XmlSchema[] schemas = schemaCol.getXmlSchemas();
+			for (int i=0; i<schemas.length; i++) {
+				XmlSchemaAttributeGroup xmlSchemaAttributeGroup = (XmlSchemaAttributeGroup)schemas[i].getGroups().getItem(qname);
+				if (xmlSchemaAttributeGroup != null) {
+					schemaAttributeGroupToXml(xmlDom, parentNode, xmlSchemaAttributeGroup, qnames);
+					break;
+				}
+			}
 		}
 		
 		private void schemaContentToXml(Document xmlDom, Node parentNode, XmlSchemaContent xmlSchemaContent, List<QName> qnames) {
@@ -737,6 +781,9 @@ public class XSDUtils {
 		}
 
 		private void schemaSimpleContentExtensionToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleContentExtension xmlSchemaSimpleContentExtension, List<QName> qnames) {
+			XmlSchemaType xmlSchemaType = loadedSchema.getTypeByName(xmlSchemaSimpleContentExtension.getBaseTypeName());
+			schemaTypeToXml(xmlDom, parentNode, xmlSchemaType, qnames);
+			
 			XmlSchemaObjectCollection collection = xmlSchemaSimpleContentExtension.getAttributes();
 			Iterator<XmlSchemaAttribute> it = GenericUtils.cast(collection.getIterator());
 			while (it.hasNext()) {
@@ -755,6 +802,8 @@ public class XSDUtils {
 		}
 
 		private void schemaComplexContentExtensionToXml(Document xmlDom, Node parentNode, XmlSchemaComplexContentExtension xmlSchemaComplexContentExtension, List<QName> qnames) {
+			XmlSchemaType xmlSchemaType = loadedSchema.getTypeByName(xmlSchemaComplexContentExtension.getBaseTypeName());
+			schemaTypeToXml(xmlDom, parentNode, xmlSchemaType, qnames);
 			schemaParticleToXml(xmlDom, parentNode, xmlSchemaComplexContentExtension.getParticle(), qnames);
 			
 			XmlSchemaObjectCollection collection = xmlSchemaComplexContentExtension.getAttributes();
@@ -805,41 +854,362 @@ public class XSDUtils {
 			String doneAttr = xmlgenDescription.getDoneAttribute();
 			
 			Element element = null;
-			
+			String nsURI = null, prefix = null;
+			String name = xmlSchemaElement.getName();
 			QName xmlSchemaElementQName = xmlSchemaElement.getQName();
-			if (!outputElementWithNS || (xmlSchemaElementQName == null))
-				element = xmlDom.createElement(xmlSchemaElement.getName());
-			else {
-				String nsURI = xmlSchemaElementQName.getNamespaceURI();
-				String prefix = loadedSchema.getNamespaceContext().getPrefix(nsURI);
-				String name = xmlSchemaElement.getName();
+			if (xmlSchemaElementQName != null) {
+				nsURI = xmlSchemaElementQName.getNamespaceURI();
+				prefix = loadedSchema.getNamespaceContext().getPrefix(nsURI);
 				if (prefix == null) prefix = "";
 				if (prefix.equals("")) prefix = loadedSchema.getNamespaceContext().getPrefix(loadedSchema.getTargetNamespace());
 				if (prefix.equals("")) prefix = "target_ns";
-				
-				NodeList elements = xmlDom.getElementsByTagNameNS(nsURI, name);
-				if (elements.getLength()>0) {
-					Element elementNode = (Element)elements.item(0);
-					boolean done = "true".equals(elementNode.getAttribute(doneAttr));
-					if (done)
-						((Element)parentNode).appendChild(elementNode.cloneNode(true));
-					else {
-						// This means there's a recursion on element: ignore
-						((Element)parentNode).appendChild(xmlDom.createElement("recursion"));
-					}
+			}
+			
+			String IdAttribute = String.valueOf(xmlSchemaElement.hashCode());
+			Element elementId = xmlDom.getElementById(IdAttribute);
+			if (elementId != null) {
+				boolean done = "true".equals(elementId.getAttribute(doneAttr));
+				if (done)
+					((Element)parentNode).appendChild(elementId.cloneNode(true));
+				else {
+					// This means there's a recursion on element
+					elementId.setAttribute(doneAttr, "true");
+					Element cloned = (Element)elementId.cloneNode(true);
+					((Element)parentNode).appendChild(cloned);
+				}
+			}
+			else {
+				if (!outputElementWithNS || (xmlSchemaElementQName == null)) {
+					element = xmlDom.createElement(name);
 				}
 				else {
 					element = xmlDom.createElementNS(nsURI,prefix+":"+name);
 				}
+				element.setAttribute("hashcode", IdAttribute);
+				element.setIdAttribute("hashcode", true);
 			}
 			return element;
 		}
 		
+		private String toString(int tab, XmlSchemaObject xmlSchemaObject) {
+			return toString(new ArrayList<String>(), tab, xmlSchemaObject);
+		}
+		
+		private String toString(List<String> codes, int tab, XmlSchemaObject xmlSchemaObject) {
+			return toString("", codes, tab, xmlSchemaObject);
+		}
+
+		private String toString(String s, List<String> codes, int tab, XmlSchemaObject xmlSchemaObject) {
+			String sTab = "";
+			int iTab = tab;
+			while (--iTab>=0) sTab += "\t";
+			if (xmlSchemaObject != null) {
+				String code = String.valueOf(xmlSchemaObject.hashCode());
+				if (!codes.contains(code)) {
+					codes.add(code);
+					if (xmlSchemaObject instanceof XmlSchemaElement) {
+						XmlSchemaElement xmlSchemaElement = (XmlSchemaElement)xmlSchemaObject;
+						XmlSchemaType xmlSchemaType = xmlSchemaElement.getSchemaType();
+						QName qname = null;
+						if (xmlSchemaType != null) {
+							if ((qname = xmlSchemaElement.getSchemaTypeName()) != null) {
+								String prefix = loadedSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());//qname.getPrefix();
+								String local = qname.getLocalPart();
+								s += sTab + "<xsd:element name=\""+xmlSchemaElement.getName()+"\"" +
+												" minOccurs=\""+xmlSchemaElement.getMinOccurs()+"\"" +
+												" maxOccurs=\""+xmlSchemaElement.getMaxOccurs()+"\"" +
+												" type=\""+prefix+":"+local+"\"" +
+											"/>\n";
+							}
+							else {
+								s += sTab + "<xsd:element name=\""+xmlSchemaElement.getName()+"\"" +
+												" minOccurs=\""+xmlSchemaElement.getMinOccurs()+"\"" +
+												" maxOccurs=\""+xmlSchemaElement.getMaxOccurs()+"\"" +
+											">\n";
+								s += toString(codes, tab+1, xmlSchemaType);
+								s += sTab + "</xsd:element>\n";
+							}
+						}
+						else if ((qname = xmlSchemaElement.getRefName()) != null) {
+							String prefix = loadedSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());//qname.getPrefix();
+							String local = qname.getLocalPart();
+							s += sTab + "<xsd:element name=\""+xmlSchemaElement.getName()+"\"" +
+											" minOccurs=\""+xmlSchemaElement.getMinOccurs()+"\"" +
+											" maxOccurs=\""+xmlSchemaElement.getMaxOccurs()+"\"" +
+											" ref=\""+prefix+":"+local+"\"" +
+										"/>\n";
+						}
+						else {
+							s += sTab + "<!-- "+xmlSchemaObject.getClass().getSimpleName()+" -->\n";
+						}
+					}
+					else if (xmlSchemaObject instanceof XmlSchemaAttribute) {
+						XmlSchemaAttribute xmlSchemaAttribute = (XmlSchemaAttribute)xmlSchemaObject;
+						XmlSchemaType xmlSchemaType = xmlSchemaAttribute.getSchemaType();
+						QName qname = null;
+						if (xmlSchemaType != null) {
+							s += sTab + "<xsd:attribute name=\""+xmlSchemaAttribute.getName()+"\">\n";
+							s += toString(codes, tab+1, xmlSchemaType);
+							s += sTab + "</xsd:attribute>\n";
+						}
+						else if ((qname = xmlSchemaAttribute.getSchemaTypeName()) != null) {
+							String prefix = loadedSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());//qname.getPrefix();
+							String local = qname.getLocalPart();
+							s += sTab + "<xsd:attribute name=\""+xmlSchemaAttribute.getName()+"\"" +
+											" type=\""+prefix+":"+local+ "\"/>\n";
+						}
+						else if ((qname = xmlSchemaAttribute.getRefName()) != null) {
+							String prefix = loadedSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());//qname.getPrefix();
+							String local = qname.getLocalPart();
+							s += sTab + "<xsd:attribute name=\""+xmlSchemaAttribute.getName()+"\"" +
+											" ref=\""+prefix+":"+local+"\" />\n";
+						}
+						else {
+							s += sTab + "<!-- "+xmlSchemaObject.getClass().getSimpleName()+" -->\n";
+						}
+					}
+					else if (xmlSchemaObject instanceof XmlSchemaType) {
+						if (xmlSchemaObject instanceof XmlSchemaSimpleType) {
+							XmlSchemaSimpleType xmlSchemaSimpleType = (XmlSchemaSimpleType)xmlSchemaObject;
+							//QName qname = xmlSchemaSimpleType.getBaseSchemaTypeName();
+							//XmlSchemaSimpleTypeContent xmlSchemaSimpleTypeContent  = xmlSchemaSimpleType.getContent();
+							s += sTab + "<xsd:simpleType>\n";
+							s += toString(codes, tab+1, xmlSchemaSimpleType.getContent());
+							s += sTab + "</xsd:simpleType>\n";
+						}
+						else if (xmlSchemaObject instanceof XmlSchemaComplexType) {
+							XmlSchemaComplexType xmlSchemaComplexType = (XmlSchemaComplexType)xmlSchemaObject;
+							s += sTab + "<xsd:complexType>\n";
+							XmlSchemaParticle xmlSchemaParticle = xmlSchemaComplexType.getParticle();
+							if (xmlSchemaParticle != null)
+								s += toString(codes, tab+1, xmlSchemaParticle);
+							else {
+								s += toString(codes, tab+1, xmlSchemaComplexType.getContentModel());
+							}
+							
+							XmlSchemaObjectCollection collection = xmlSchemaComplexType.getAttributes();
+							Iterator<XmlSchemaAttribute> it = GenericUtils.cast(collection.getIterator());
+							while (it.hasNext()) {
+								s += toString(codes, tab+1, it.next());
+							}
+							s += sTab + "</xsd:complexType>\n";
+						}
+						else {
+							s += sTab + "<!-- "+xmlSchemaObject.getClass().getSimpleName()+" -->\n";
+						}
+					}
+					else if (xmlSchemaObject instanceof XmlSchemaContentModel) {
+						if (xmlSchemaObject instanceof XmlSchemaComplexContent) {
+							s += sTab + "<xsd:complexContent>\n";
+							s += toString(codes, tab+1, ((XmlSchemaComplexContent)xmlSchemaObject).getContent());
+							s += sTab + "</xsd:complexContent>\n";
+						}
+						if (xmlSchemaObject instanceof XmlSchemaSimpleContent) {
+							s += sTab + "<xsd:simpleContent>\n";
+							s += toString(codes, tab+1, ((XmlSchemaSimpleContent)xmlSchemaObject).getContent());
+							s += sTab + "</xsd:simpleContent>\n";
+						}
+					}
+					else if (xmlSchemaObject instanceof XmlSchemaContent) {
+						if (xmlSchemaObject instanceof XmlSchemaComplexContentExtension) {
+							XmlSchemaComplexContentExtension extension = (XmlSchemaComplexContentExtension)xmlSchemaObject;
+							QName qname = extension.getBaseTypeName();
+							String prefix = loadedSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());
+							String local = qname.getLocalPart();
+							s += sTab + "<xsd:extension base=\""+prefix+":"+local+"\">\n";
+							s += toString(codes, tab+1, extension.getParticle());
+							s += sTab + "</xsd:extension>\n";
+						}
+						else if (xmlSchemaObject instanceof XmlSchemaComplexContentRestriction) {
+							XmlSchemaComplexContentRestriction restriction = (XmlSchemaComplexContentRestriction)xmlSchemaObject;
+							QName qname = restriction.getBaseTypeName();
+							String prefix = loadedSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());
+							String local = qname.getLocalPart();
+							s += sTab + "<xsd:restriction base=\""+prefix+":"+local+"\">\n";
+							s += toString(codes, tab+1, restriction.getParticle());
+							s += sTab + "</xsd:restriction>\n";
+						}
+						else if (xmlSchemaObject instanceof XmlSchemaSimpleContentExtension) {
+							XmlSchemaSimpleContentExtension extension = (XmlSchemaSimpleContentExtension)xmlSchemaObject;
+							QName qname = extension.getBaseTypeName();
+							String prefix = loadedSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());
+							String local = qname.getLocalPart();
+							s += sTab + "<xsd:extension base=\""+prefix+":"+local+"\">\n";
+							XmlSchemaObjectCollection collection = extension.getAttributes();
+							Iterator<XmlSchemaAttribute> it = GenericUtils.cast(collection.getIterator());
+							while (it.hasNext()) {
+								s += toString(codes, tab+1, it.next());
+							}
+							s += sTab + "</xsd:extension>\n";
+						}
+						else if (xmlSchemaObject instanceof XmlSchemaSimpleContentRestriction) {
+							XmlSchemaSimpleContentRestriction restriction = (XmlSchemaSimpleContentRestriction)xmlSchemaObject;
+							QName qname = restriction.getBaseTypeName();
+							String prefix = loadedSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());
+							String local = qname.getLocalPart();
+							s += sTab + "<xsd:restriction base=\""+prefix+":"+local+"\">\n";
+							XmlSchemaObjectCollection collection = restriction.getAttributes();
+							Iterator<XmlSchemaAttribute> it = GenericUtils.cast(collection.getIterator());
+							while (it.hasNext()) {
+								s += toString(codes, tab+1, it.next());
+							}
+							s += sTab + "</xsd:restriction>\n";
+						}
+						else {
+							s += sTab + "<!-- "+xmlSchemaObject.getClass().getSimpleName()+" -->\n";
+						}
+					}
+					else if (xmlSchemaObject instanceof XmlSchemaSimpleTypeContent) {
+						if (xmlSchemaObject instanceof XmlSchemaSimpleTypeRestriction) {
+							XmlSchemaSimpleTypeRestriction restriction = (XmlSchemaSimpleTypeRestriction)xmlSchemaObject;
+							QName qname = restriction.getBaseTypeName();
+							String prefix = loadedSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());
+							String local = qname.getLocalPart();
+							s += sTab + "<xsd:restriction base=\""+prefix+":"+local+"\">\n";
+							XmlSchemaObjectCollection collection = restriction.getFacets();
+							Iterator<XmlSchemaAttribute> it = GenericUtils.cast(collection.getIterator());
+							while (it.hasNext()) {
+								s += toString(codes, tab+1, it.next());
+							}
+							s += sTab + "</xsd:restriction>\n";
+						}
+						/*else if (xmlSchemaObject instanceof XmlSchemaSimpleTypeList) {
+							
+						}*/
+						else if (xmlSchemaObject instanceof XmlSchemaSimpleTypeUnion) {
+							XmlSchemaSimpleTypeUnion union = (XmlSchemaSimpleTypeUnion)xmlSchemaObject;
+							QName[] qnames = union.getMemberTypesQNames();
+							if (qnames.length > 0) {
+								s += sTab + "<xsd:union memberTypes=\"";
+								for (int i=0; i<qnames.length; i++) {
+									QName qname = qnames[i];
+									String prefix = loadedSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());
+									String local = qname.getLocalPart();
+									s += prefix+":"+local;
+									s += (i==qnames.length-1)?"":" ";
+								}
+								s += "\"/>";
+							}
+							else {
+								s += sTab + "<xsd:union>\n";
+								XmlSchemaObjectCollection collection = union.getBaseTypes();
+								Iterator<XmlSchemaAttribute> it = GenericUtils.cast(collection.getIterator());
+								while (it.hasNext()) {
+									s += toString(codes, tab+1, it.next());
+								}
+								s += sTab + "</xsd:union>\n";
+							}
+						}
+						else {
+							s += sTab + "<!-- "+xmlSchemaObject.getClass().getSimpleName()+" -->\n";
+						}
+					}
+					else if (xmlSchemaObject instanceof XmlSchemaFacet) {
+						String xml = ((XmlSchemaFacet)xmlSchemaObject).toString("xsd", 0);
+						if (!xml.startsWith("<xsd:")) xml = xml.replaceFirst("<", "<xsd:");
+						s += sTab + xml;
+					}
+					else if (xmlSchemaObject instanceof XmlSchemaAll) {
+						s += sTab + "<xsd:all>\n";
+						XmlSchemaObjectCollection collection = ((XmlSchemaAll)xmlSchemaObject).getItems();
+						Iterator<XmlSchemaObject> it = GenericUtils.cast(collection.getIterator());
+						while (it.hasNext()) s += toString(codes, tab+1, it.next());
+						s += sTab + "</xsd:all>\n";
+					}
+					else if (xmlSchemaObject instanceof XmlSchemaChoice) {
+						s += sTab + "<xsd:choice>\n";
+						XmlSchemaObjectCollection collection = ((XmlSchemaChoice)xmlSchemaObject).getItems();
+						Iterator<XmlSchemaObject> it = GenericUtils.cast(collection.getIterator());
+						while (it.hasNext()) s += toString(codes, tab+1, it.next());
+						s += sTab + "</xsd:choice>\n";
+					}
+					else if (xmlSchemaObject instanceof XmlSchemaSequence) {
+						s += sTab + "<xsd:sequence>\n";
+						XmlSchemaObjectCollection collection = ((XmlSchemaSequence)xmlSchemaObject).getItems();
+						Iterator<XmlSchemaObject> it = GenericUtils.cast(collection.getIterator());
+						while (it.hasNext()) s += toString(codes, tab+1, it.next());
+						s += sTab + "</xsd:sequence>\n";
+					}
+					else if (xmlSchemaObject instanceof XmlSchemaAny) {
+						 s += sTab + "<xsd:any/>\n";
+					}
+//					else if (xmlSchemaObject instanceof XmlSchemaParticle) {
+//						XmlSchemaParticle xmlSchemaParticle = (XmlSchemaParticle)xmlSchemaObject;
+//						else if (xmlSchemaParticle instanceof XmlSchemaElement) {
+//							s += toString(s, tab, (XmlSchemaElement)xmlSchemaParticle);
+//						}
+//						else if (xmlSchemaParticle instanceof XmlSchemaGroupBase) {
+//							s += toString(s, tab, (XmlSchemaGroupBase)xmlSchemaParticle);
+//						}
+//						else if (xmlSchemaParticle instanceof XmlSchemaGroupRef) {
+//							s += toString(s, tab,(XmlSchemaGroupRef)xmlSchemaParticle);
+//						}
+//					}
+//					else if (xmlSchemaObject instanceof XmlSchemaGroupBase) {
+//						XmlSchemaGroupBase xmlSchemaGroup = (XmlSchemaGroupBase)xmlSchemaObject;
+//						if (xmlSchemaGroup instanceof XmlSchemaAll) {
+//							s += toString(s, tab, (XmlSchemaAll)xmlSchemaGroup);
+//						}
+//						else if (xmlSchemaGroup instanceof XmlSchemaChoice) {
+//							s += toString(s, tab, (XmlSchemaChoice)xmlSchemaGroup);
+//						}
+//						else if (xmlSchemaGroup instanceof XmlSchemaSequence) {
+//							s += toString(s, tab, (XmlSchemaSequence)xmlSchemaGroup);
+//						}
+//					}
+					else if (xmlSchemaObject instanceof XmlSchemaGroupRef) {
+//						XmlSchemaGroup xmlSchemaGroup = (XmlSchemaGroup)loadedSchema.getGroups().getItem(((XmlSchemaGroupRef)xmlSchemaObject).getRefName());
+//						s += toString(codes, tab+1, xmlSchemaGroup.getParticle());
+						XmlSchemaGroupRef xmlSchemaGroupRef = (XmlSchemaGroupRef)xmlSchemaObject;
+						QName qname = xmlSchemaGroupRef.getRefName();
+						
+						String prefix = loadedSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());
+						String local = qname.getLocalPart();
+						s += sTab + "<xsd:group" +
+										" minOccurs=\""+xmlSchemaGroupRef.getMinOccurs()+"\"" +
+										" maxOccurs=\""+xmlSchemaGroupRef.getMaxOccurs()+"\"" +
+										" ref=\""+prefix+":"+local+"\"" +
+									"/>\n";
+						
+//						XmlSchema[] schemas = schemaCol.getXmlSchemas();
+//						for (int i=0; i<schemas.length; i++) {
+//							XmlSchemaGroup xmlSchemaGroup = (XmlSchemaGroup)schemas[i].getGroups().getItem(qname);
+//							if (xmlSchemaGroup != null) {
+//								s += toString(codes, tab+1, xmlSchemaGroup);
+//								break;
+//							}
+//						}
+					}
+					else if (xmlSchemaObject instanceof XmlSchemaGroup) {
+						XmlSchemaGroup xmlSchemaGroup = (XmlSchemaGroup)xmlSchemaObject;
+						QName qname = xmlSchemaGroup.getName();
+						if (qname != null) {
+							s += sTab + "<xsd:group name=\""+qname.getLocalPart()+"\">\n";
+							s += toString(codes, tab+1, xmlSchemaGroup.getParticle());
+							s += sTab + "</xsd:group>\n";
+						}
+						else {
+							s += sTab + "<xsd:group>\n";
+							s += toString(codes, tab+1, xmlSchemaGroup.getParticle());
+							s += sTab + "</xsd:group>\n";
+						}
+					}
+					else {
+						s += sTab + "<!-- "+xmlSchemaObject.getClass().getSimpleName()+" -->\n";
+					}
+				}
+				else {
+					s += sTab + "<!-- recursion -->\n";
+				}
+			}	
+			return s;
+		}
+
 		private void schemaElementToXml(Document xmlDom, Node parentNode, XmlSchemaElement xmlSchemaElement, List<QName> qnames) {
 			boolean outputOccurrences = xmlgenDescription.isOutputOccurences();
 			boolean outputOccursAttribute = xmlgenDescription.isOutputOccursAttribute();
 			boolean outputSchemaTypeCData = xmlgenDescription.isOutputSchemaTypeCData();
-			boolean outputElementWithNS = xmlgenDescription.isOutputElementWithNS();
+			//boolean outputElementWithNS = xmlgenDescription.isOutputElementWithNS();
 			String doneAttr = xmlgenDescription.getDoneAttribute();
 			
 			long maxOccurs = xmlSchemaElement.getMaxOccurs();
@@ -859,38 +1229,58 @@ public class XSDUtils {
 				if (element != null) {
 					if (outputSchemaTypeCData) {
 						Element schemaType = xmlDom.createElement("schema-type");
-						String xsdSchema = xmlSchemaElement.toString("xsd", 3);
-						if (xmlSchemaType.getName()== null) {
-							xsdSchema = xsdSchema.replaceAll(" name=\"\"", "");
+						try {
+//							String xsdSchema = "";
+//							try {
+//								xsdSchema = xmlSchemaElement.toString("xsd", 3);
+//							}
+//							catch (Exception e) {
+//								e.printStackTrace();
+//							}
+//							
+//							if (xmlSchemaType.getName()== null) {
+//								xsdSchema = xsdSchema.replaceAll(" name=\"\"", "");
+//								
+//							}
+//							else {
+//								int index = xsdSchema.indexOf(">");
+//								if (index != -1) {
+//									xsdSchema = xsdSchema.substring(0, index) + "/>";
+//								}
+//							}
+//	
+//							NamespacePrefixList namespacePrefixList = loadedSchema.getNamespaceContext();
+//							String[] prefixes = namespacePrefixList.getDeclaredPrefixes();
+//							for (int i=0; i<prefixes.length; i++) {
+//								String prefix = prefixes[i];
+//								String ns = namespacePrefixList.getNamespaceURI(prefix);
+//								xsdSchema = xsdSchema.replaceAll("\\{"+ns+"\\}", prefix+":");
+//							}
+//							xsdSchema = xsdSchema.replaceAll("\"minOccurs=", "\" minOccurs="); 	// fix
+//							xsdSchema = removeEmptySimpleType(0,xsdSchema); 					// fix
+//							
+//							System.out.println("-----------xsdSchema--------------");
+//							System.out.println(xsdSchema);
+							
+							String xsdSchema = toString(0, xmlSchemaElement);
+							//System.out.println("-----------toString--------------");
+							//System.out.println(xsdSchema);
+							
+			                CDATASection cDATASection = xmlDom.createCDATASection(xsdSchema);
+			                schemaType.appendChild(cDATASection);
 						}
-						else {
-							int index = xsdSchema.indexOf(">");
-							if (index != -1) {
-								xsdSchema = xsdSchema.substring(0, index) + "/>";
-							}
+						catch (Exception e) {
+							e.printStackTrace();
 						}
-
-						NamespacePrefixList namespacePrefixList = loadedSchema.getNamespaceContext();
-						String[] prefixes = namespacePrefixList.getDeclaredPrefixes();
-						for (int i=0; i<prefixes.length; i++) {
-							String prefix = prefixes[i];
-							String ns = namespacePrefixList.getNamespaceURI(prefix);
-							xsdSchema = xsdSchema.replaceAll("\\{"+ns+"\\}", prefix+":");
-						}
-						xsdSchema = xsdSchema.replaceAll("\"minOccurs=", "\" minOccurs="); 	// fix
-						xsdSchema = removeEmptySimpleType(0,xsdSchema); 					// fix
-						
-		                CDATASection cDATASection = xmlDom.createCDATASection(xsdSchema);
-		                schemaType.appendChild(cDATASection);
 		                element.appendChild(schemaType);
 					}
 	                
 					if (outputOccursAttribute) element.setAttribute("occurs", ""+maxOccurs);
-					if (outputElementWithNS) element.setAttribute(doneAttr, "false");// to avoid recursion
+					element.setAttribute(doneAttr, "false");// to avoid recursion
 	                Node node = ((Element)parentNode).appendChild(element);
 					schemaTypeToXml(xmlDom, element, xmlSchemaType, qnames);
-					if (outputElementWithNS) element.setAttribute(doneAttr, "true");
-					
+					element.setAttribute(doneAttr, "true");
+										
 					while (--occurs>0) {
 						((Element)parentNode).appendChild(node.cloneNode(true));
 					}
@@ -899,9 +1289,15 @@ public class XSDUtils {
 			else {
 				// TODO (e.g. BnppInfoGreffe:Extrait)
 				
-				QName refName = xmlSchemaElement.getRefName();
-				if (refName != null) {
-					XmlSchemaElement xmlSchemaElementRef = loadedSchema.getElementByName(refName);
+				QName xmlSchemaRefQName = xmlSchemaElement.getRefName();
+				if (xmlSchemaRefQName != null) {
+					if ((xmlSchemaRefQName != null) && !xmlSchemaRefQName.equals("")) {
+						if (!Constants.URI_2001_SCHEMA_XSD.equals(xmlSchemaRefQName.getNamespaceURI())) {
+							if (!qnames.contains(xmlSchemaRefQName))
+								qnames.add(xmlSchemaRefQName);
+						}
+					}
+					XmlSchemaElement xmlSchemaElementRef = loadedSchema.getElementByName(xmlSchemaRefQName);
 					schemaElementToXml(xmlDom, parentNode, xmlSchemaElementRef, qnames);
 				}
 				else {
@@ -909,7 +1305,7 @@ public class XSDUtils {
 					Element element = createElement(xmlDom, parentNode, xmlSchemaElement);
 					if (element != null) {
 						element.appendChild(xmlDom.createTextNode("any"));
-						if (outputElementWithNS) element.setAttribute(doneAttr, "true");
+						element.setAttribute(doneAttr, "true");
 		                Node node = ((Element)parentNode).appendChild(element);
 						while (--occurs>0) {
 							((Element)parentNode).appendChild(node.cloneNode(true));
@@ -919,22 +1315,22 @@ public class XSDUtils {
 			}
 		}
 		
-		private String removeEmptySimpleType(int index, String xsdSchema) {
-			int z1,z2,z3,z4;
-			if ((z1 = xsdSchema.indexOf("<xsd:simpleType>",index))!=-1) {
-				if ((z2 = xsdSchema.indexOf("</xsd:simpleType>",z1))!=-1) {
-					z3 = z1+"<xsd:simpleType>".length();
-					z4 = z2+"</xsd:simpleType>".length();
-					if (xsdSchema.substring(z3, z2).trim().equals("")) {
-						xsdSchema = xsdSchema.substring(0, z1) + xsdSchema.substring(z4);
-						return removeEmptySimpleType(z1, xsdSchema);
-					}
-					else
-						return removeEmptySimpleType(z4, xsdSchema);
-				}
-			}
-			return xsdSchema.replaceAll("<xsd:simpleType/>", "");
-		}
+//		private String removeEmptySimpleType(int index, String xsdSchema) {
+//			int z1,z2,z3,z4;
+//			if ((z1 = xsdSchema.indexOf("<xsd:simpleType>",index))!=-1) {
+//				if ((z2 = xsdSchema.indexOf("</xsd:simpleType>",z1))!=-1) {
+//					z3 = z1+"<xsd:simpleType>".length();
+//					z4 = z2+"</xsd:simpleType>".length();
+//					if (xsdSchema.substring(z3, z2).trim().equals("")) {
+//						xsdSchema = xsdSchema.substring(0, z1) + xsdSchema.substring(z4);
+//						return removeEmptySimpleType(z1, xsdSchema);
+//					}
+//					else
+//						return removeEmptySimpleType(z4, xsdSchema);
+//				}
+//			}
+//			return xsdSchema.replaceAll("<xsd:simpleType/>", "");
+//		}
 
 		private void schemaGroupBaseToXml(Document xmlDom, Node parentNode, XmlSchemaGroupBase xmlSchemaGroup, List<QName> qnames) {
 			boolean outputOccurrences = xmlgenDescription.isOutputOccurences();
@@ -985,9 +1381,16 @@ public class XSDUtils {
 			long maxOccurs = xmlSchemaGroupRef.getMaxOccurs();
 			long occurs = (outputOccurrences ? ((maxOccurs > 2) ? 2:maxOccurs):1);
 			
-			XmlSchemaGroup xmlSchemaGroup = (XmlSchemaGroup)loadedSchema.getGroups().getItem(xmlSchemaGroupRef.getRefName());
-			while (occurs-->0)
-				schemaGroupToXml(xmlDom, parentNode, xmlSchemaGroup, qnames);
+			QName qname = xmlSchemaGroupRef.getRefName();
+			XmlSchema[] schemas = schemaCol.getXmlSchemas();
+			for (int i=0; i<schemas.length; i++) {
+				XmlSchemaGroup xmlSchemaGroup = (XmlSchemaGroup)schemas[i].getGroups().getItem(qname);
+				if (xmlSchemaGroup != null) {
+					while (occurs-->0)
+						schemaGroupToXml(xmlDom, parentNode, xmlSchemaGroup, qnames);
+					break;
+				}
+			}
 		}
 		
 		private void schemaSimpleTypeContentToXml(Document xmlDom, Node parentNode, XmlSchemaSimpleTypeContent xmlSchemaSimpleTypeContent, List<QName> qnames) {
@@ -1058,7 +1461,15 @@ public class XSDUtils {
 		}
 		
 		private void schemaComplexTypeToXml(Document xmlDom, Node parentNode, XmlSchemaComplexType xmlSchemaComplexType, List<QName> qnames) {
-			schemaParticleToXml(xmlDom, parentNode, xmlSchemaComplexType.getParticle(), qnames);
+			XmlSchemaParticle xmlSchemaParticle = xmlSchemaComplexType.getParticle();
+			if (xmlSchemaParticle != null)
+				schemaParticleToXml(xmlDom, parentNode, xmlSchemaParticle, qnames);
+			else {
+				XmlSchemaContentModel xmlSchemaContentModel  = xmlSchemaComplexType.getContentModel();
+				if (xmlSchemaContentModel != null) {
+					schemaContentModelToXml(xmlDom, parentNode, xmlSchemaContentModel, qnames);
+				}
+			}
 			
 			XmlSchemaObjectCollection collection = xmlSchemaComplexType.getAttributes();
 			Iterator<XmlSchemaAttribute> it = GenericUtils.cast(collection.getIterator());

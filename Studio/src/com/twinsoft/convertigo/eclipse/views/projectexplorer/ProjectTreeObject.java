@@ -382,14 +382,14 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		}
 	}
 
-	protected boolean dymamicSchemaUpdate = true;
+	protected boolean dymamicSchemaUpdate = false;//true;
 	
 	public void setDynamicSchemaUpdate(boolean update) {
-		dymamicSchemaUpdate = update;
+		dymamicSchemaUpdate = false;//update;
 	}
 	
 	public void resetDynamicSchemaUpdate() {
-		dymamicSchemaUpdate = true;
+		dymamicSchemaUpdate = false;//true;
 	}
 	
 	@Override
@@ -400,8 +400,8 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
 			
-			if (dymamicSchemaUpdate) {
-				if (databaseObject.getProject().getName().equals(getName())) {
+			if (databaseObject.getProject().getName().equals(getName())) {
+				if (dymamicSchemaUpdate) {
 					// A transaction or sequence has been added
 					if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
 						RequestableObject requestable = (RequestableObject)databaseObject;
@@ -452,6 +452,15 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						}
 					}
 				}
+				else {
+					for (Sequence sequence: getObject().getSequencesList()) {
+						try {
+							sequence.generateWsdlType(null);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}
 			}
 		}
 	}
@@ -465,45 +474,56 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			if (treeObject instanceof DatabaseObjectTreeObject) {
 				DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
 				
-				// A connector has been removed
-				if (databaseObject instanceof Connector) {
-					Connector connector = (Connector)databaseObject;
-					List<Transaction> v = connector.getTransactionsList();
-					for (Transaction transaction : v) {
-						transaction.setParent(null);//
-						updateWebService(connector, transaction, null, false);
+				if (dymamicSchemaUpdate) {
+					// A connector has been removed
+					if (databaseObject instanceof Connector) {
+						Connector connector = (Connector)databaseObject;
+						List<Transaction> v = connector.getTransactionsList();
+						for (Transaction transaction : v) {
+							transaction.setParent(null);//
+							updateWebService(connector, transaction, null, false);
+						}
+					}				
+					//  A transaction or sequence has been removed
+					else if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
+						DatabaseObject parentDatabaseObject = (DatabaseObject)treeObject.getParent().getParent().getObject();
+						updateWebService(parentDatabaseObject, (RequestableObject)databaseObject, null, false);
 					}
-				}				
-				//  A transaction or sequence has been removed
-				else if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
-					DatabaseObject parentDatabaseObject = (DatabaseObject)treeObject.getParent().getParent().getObject();
-					updateWebService(parentDatabaseObject, (RequestableObject)databaseObject, null, false);
-				}
-				// A step has been removed
-				else if (databaseObject instanceof Step) {
-					RequestableObject requestable = null;
-					TreeParent treeParent = treeObject.getParent();
-					while (!(treeParent instanceof DatabaseObjectTreeObject))
-						treeParent = treeParent.getParent();
-					DatabaseObject parentObject = (DatabaseObject)treeParent.getObject();
-					if (parentObject instanceof Sequence) requestable = (Sequence)parentObject;
-					else requestable = ((Step)parentObject).getSequence();
-					if (requestable.getProject().getName().equals(getName())) {
-						try {
-							String xsdTypes = requestable.generateXsdTypes(null, false);
-							updateXSDFileWithNS(requestable.getParent(), requestable, xsdTypes, false);
-						} catch (Exception e) {
+					// A step has been removed
+					else if (databaseObject instanceof Step) {
+						RequestableObject requestable = null;
+						TreeParent treeParent = treeObject.getParent();
+						while (!(treeParent instanceof DatabaseObjectTreeObject))
+							treeParent = treeParent.getParent();
+						DatabaseObject parentObject = (DatabaseObject)treeParent.getObject();
+						if (parentObject instanceof Sequence) requestable = (Sequence)parentObject;
+						else requestable = ((Step)parentObject).getSequence();
+						if (requestable.getProject().getName().equals(getName())) {
+							try {
+								String xsdTypes = requestable.generateXsdTypes(null, false);
+								updateXSDFileWithNS(requestable.getParent(), requestable, xsdTypes, false);
+							} catch (Exception e) {
+							}
+						}
+					}
+					// A requestable's variable has been removed
+					else if (databaseObject instanceof RequestableVariable) {
+						RequestableObject requestable = (RequestableObject)treeObject.getParent().getParent().getObject();
+						if (requestable.getProject().getName().equals(getName())) {
+							try {
+								String xsdTypes = requestable.generateXsdTypes(null, false);
+								updateWebService(requestable.getParent(), requestable, xsdTypes, false);
+							} catch (Exception e) {
+							}
 						}
 					}
 				}
-				// A requestable's variable has been removed
-				else if (databaseObject instanceof RequestableVariable) {
-					RequestableObject requestable = (RequestableObject)treeObject.getParent().getParent().getObject();
-					if (requestable.getProject().getName().equals(getName())) {
+				else {
+					for (Sequence sequence: getObject().getSequencesList()) {
 						try {
-							String xsdTypes = requestable.generateXsdTypes(null, false);
-							updateWebService(requestable.getParent(), requestable, xsdTypes, false);
+							sequence.generateWsdlType(null);
 						} catch (Exception e) {
+							e.printStackTrace();
 						}
 					}
 				}
@@ -565,66 +585,81 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					}
 				}
 			}
-			else if (propertyName.equals("sourceTransaction")) {
-				if (databaseObject instanceof TransactionStep) {
-					TransactionStep transactionStep = (TransactionStep)databaseObject;
-					if (transactionStep.getProject().getName().equals(getName())) {
-						if (!transactionStep.getProjectName().equals(getName())) {
-							addXSDFileImport(transactionStep.getProjectName());
+			// Case of xsd/wsdl automatic update
+			else if (dymamicSchemaUpdate) {
+				if (propertyName.equals("sourceTransaction")) {
+					if (databaseObject instanceof TransactionStep) {
+						TransactionStep transactionStep = (TransactionStep)databaseObject;
+						if (transactionStep.getProject().getName().equals(getName())) {
+							if (!transactionStep.getProjectName().equals(getName())) {
+								addXSDFileImport(transactionStep.getProjectName());
+							}
 						}
 					}
 				}
-			}
-			else if (propertyName.equals("sourceSequence")) {
-				if (databaseObject instanceof SequenceStep) {
-					SequenceStep sequenceStep = (SequenceStep)databaseObject;
-					if (sequenceStep.getProject().getName().equals(getName())) {
-						if (!sequenceStep.getProjectName().equals(getName())) {
-							addXSDFileImport(sequenceStep.getProjectName());
+				else if (propertyName.equals("sourceSequence")) {
+					if (databaseObject instanceof SequenceStep) {
+						SequenceStep sequenceStep = (SequenceStep)databaseObject;
+						if (sequenceStep.getProject().getName().equals(getName())) {
+							if (!sequenceStep.getProjectName().equals(getName())) {
+								addXSDFileImport(sequenceStep.getProjectName());
+							}
 						}
 					}
 				}
-			}
-			else if (propertyName.equals("comment")) {
-				RequestableObject requestable = null;
-				if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
-					requestable = (RequestableObject)databaseObject;
+				else if (propertyName.equals("comment")) {
+					RequestableObject requestable = null;
+					if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
+						requestable = (RequestableObject)databaseObject;
+					}
+					else if (databaseObject instanceof Step) {
+						requestable = (RequestableObject)((Step)databaseObject).getSequence();
+					}
+					else if (databaseObject instanceof RequestableVariable) {
+						requestable = (RequestableObject)((RequestableVariable)databaseObject).getParent();
+					}
+					if (requestable!=null) {
+						if (requestable.getProject().getName().equals(getName())) {
+							try {
+								String xsdTypes = requestable.generateXsdRequestData();
+								updateWebService(requestable.getParent(), requestable, xsdTypes, false);
+							} catch (Exception e) {
+							}
+						}
+					}
 				}
+				// Case of a step has changed
 				else if (databaseObject instanceof Step) {
-					requestable = (RequestableObject)((Step)databaseObject).getSequence();
-				}
-				else if (databaseObject instanceof RequestableVariable) {
-					requestable = (RequestableObject)((RequestableVariable)databaseObject).getParent();
-				}
-				if (requestable!=null) {
+					RequestableObject requestable = (RequestableObject)((Step)databaseObject).getSequence();
 					if (requestable.getProject().getName().equals(getName())) {
 						try {
-							String xsdTypes = requestable.generateXsdRequestData();
+							String xsdTypes = requestable.generateXsdTypes(null, false);
+							updateXSDFile(requestable.getParent(), requestable, xsdTypes, false);
+						} catch (Exception e) {
+						}
+					}
+				}
+				// Case of a requestable's variable has changed
+				else if (databaseObject instanceof RequestableVariable) {
+					RequestableObject requestable = (RequestableObject)((RequestableVariable)databaseObject).getParent();
+					if (requestable.getProject().getName().equals(getName())) {
+						try {
+							String xsdTypes = requestable.generateXsdTypes(null, false);
 							updateWebService(requestable.getParent(), requestable, xsdTypes, false);
 						} catch (Exception e) {
 						}
 					}
 				}
 			}
-			// Case of a step has changed
-			else if (databaseObject instanceof Step) {
-				RequestableObject requestable = (RequestableObject)((Step)databaseObject).getSequence();
-				if (requestable.getProject().getName().equals(getName())) {
-					try {
-						String xsdTypes = requestable.generateXsdTypes(null, false);
-						updateXSDFile(requestable.getParent(), requestable, xsdTypes, false);
-					} catch (Exception e) {
-					}
-				}
-			}
-			// Case of a requestable's variable has changed
-			else if (databaseObject instanceof RequestableVariable) {
-				RequestableObject requestable = (RequestableObject)((RequestableVariable)databaseObject).getParent();
-				if (requestable.getProject().getName().equals(getName())) {
-					try {
-						String xsdTypes = requestable.generateXsdTypes(null, false);
-						updateWebService(requestable.getParent(), requestable, xsdTypes, false);
-					} catch (Exception e) {
+			// Case of xsd/wsdl update by user
+			else {
+				if (databaseObject.getProject().getName().equals(getName())) {
+					for (Sequence sequence: getObject().getSequencesList()) {
+						try {
+							sequence.generateWsdlType(null);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}
