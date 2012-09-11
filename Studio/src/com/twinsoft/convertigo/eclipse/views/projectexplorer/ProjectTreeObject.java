@@ -920,7 +920,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						xsdTypes = t.generateXsdTypes(null, false);
 	                if ((xsdTypes != null) && (!xsdTypes.equals(""))) {
 	                	ProjectUtils.updateWebService(xsd, wsdl, projectName, c, t, xsdTypes, false);
-	                	ProjectUtils.retrieveTransactionXsdObjects(projectName, c.getName(), t.getName(), true);
 	                	t.hasChanged = true;
 	                }
 				}
