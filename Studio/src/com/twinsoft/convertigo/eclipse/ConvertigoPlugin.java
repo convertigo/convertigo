@@ -28,6 +28,7 @@ import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.MissingResourceException;
@@ -112,6 +113,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.util.Log;
 
@@ -476,7 +478,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		DeploymentConfiguration deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get("trial.convertigo.net/cems");
 
 		String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
-		url += 	deploymentConfiguration == null ? "":"&user=" + deploymentConfiguration.getUsername();
+		url += deploymentConfiguration == null ? "" : "&user=" + URLEncoder.encode(deploymentConfiguration.getUsername(), "utf8");
+		url += "&version=" + URLEncoder.encode(ProductVersion.fullProductVersion, "utf8");
 		
 		browser.setUrl(url);
 	}
