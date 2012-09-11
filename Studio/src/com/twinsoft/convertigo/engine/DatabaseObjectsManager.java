@@ -1421,7 +1421,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 			String projectName = null;
 			Project project = null;
 
+			Engine.logEngine.debug("DatabaseObjectsManager.updateProject() - projectFileName  :  "+projectFileName);
 			File projectFile = new File(projectFileName);
+			Engine.logEngine.debug("DatabaseObjectsManager.updateProject() - projectFile.exists()  :  "+projectFile.exists());
+			
 			if (projectFile.exists()) {
 				String fName = projectFile.getName();
 				if (projectFileName.endsWith(".xml")) {
@@ -1457,8 +1460,21 @@ public class DatabaseObjectsManager implements AbstractManager {
 						}
 					}
 				}
-			} else
-				throw new EngineException("File \"" + projectFileName + "\" is missing");
+			} else{
+				//Added by julienda - 10/09/2012
+					Engine.logEngine.debug("DatabaseObjectsManager.updateProject() - projectFileName :  "+projectFileName);
+					//Get the correct archive file (path)
+					String archiveFileProject =  ZipUtils.getArchiveName(projectFileName);
+					
+					if(archiveFileProject == null)
+						throw new EngineException("File \"" + projectFileName + "\" is missing");
+					else
+						//Call method with the correct archive (path)
+						updateProject(new File(new File (projectFileName).getParent(), archiveFileProject).getPath());
+					
+					Engine.logEngine.debug("DatabaseObjectsManager.updateProject() - archiveFileProject  :  "+archiveFileProject);		
+			}
+				
 
 			return project;
 		} catch (Exception e) {
@@ -1488,17 +1504,26 @@ public class DatabaseObjectsManager implements AbstractManager {
 			throws EngineException {
 		String projectName, archiveProjectName = "<unknown>";
 		String deployDirPath, projectDirPath;
-
+		
 		try {
-			File f = new File(projectArchiveFilename);
-			//String fName = f.getName();
-			//archiveProjectName = fName.substring(0, fName.indexOf(".car"));
-			archiveProjectName = ZipUtils.getProjectName(projectArchiveFilename);	
-			Engine.logEngine.debug("filename: "+archiveProjectName);
-			Engine.logEngine.debug("targetProjectName: "+targetProjectName);
+			//Added by julienda - 10/09/2012
+				Engine.logEngine.debug("DatabaseObjectsManager.deployProject() 6.1.x - projectArchiveFilename: "+projectArchiveFilename);
+				Engine.logEngine.debug("DatabaseObjectsManager.deployProject() 6.1.x - targetProjectName: "+targetProjectName);
 			
+				archiveProjectName = ZipUtils.getProjectName(projectArchiveFilename);	
+				Engine.logEngine.debug("DatabaseObjectsManager.deployProject() 6.1.x - archiveProjectName: "+archiveProjectName);
+				
+				if(targetProjectName==null && projectArchiveFilename!=null)
+					targetProjectName = archiveProjectName;
+						
+			File f = new File(projectArchiveFilename);
+			// Modified by julienda - 08/09/2012
+				//String fName = f.getName();
+				//archiveProjectName = fName.substring(0, fName.indexOf(".car"));
+
 			if ((targetProjectName.equals(archiveProjectName))) {
 				projectName = archiveProjectName;
+				Engine.logEngine.debug("DatabaseObjectsManager.deployProject() 6.1.x - projectName: "+projectName);
 				deployDirPath = Engine.PROJECTS_PATH;
 			} else {
 				projectName = targetProjectName;
@@ -1535,8 +1560,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Engine.logDatabaseObjectManager.debug("Analyzing the archive entries: " + projectArchiveFilename);
 			ZipUtils.expandZip(projectArchiveFilename, deployDirPath, archiveProjectName);
 		} catch (Exception e) {
-			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename
-					+ "\".", e);
+			throw new EngineException("Unable to deploy the project from the file \"" + projectArchiveFilename + "\".", e);
 		}
 
 		// Check for correct project name
@@ -1582,7 +1606,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 			}
 
-			// Import project (will perform the migration) ***
+			// Import project (will perform the migration)
 			Project project = importProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName
 					+ ".xml");
 
@@ -1775,9 +1799,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 			// Retrieve project name
 			NodeList properties = projectElement.getElementsByTagName("property");
 			Element pName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
-			String projectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName,
-					Node.ELEMENT_NODE));
+			String projectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
 
+			
+			
 			// Import will perform necessary beans migration (see
 			// deserialisation)
 			Project project = (Project) importDatabaseObject(projectNode, null);

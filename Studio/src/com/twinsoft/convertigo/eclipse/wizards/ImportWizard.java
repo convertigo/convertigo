@@ -108,19 +108,20 @@ public class ImportWizard extends Wizard implements IImportWizard {
 	private String getDefaultProjectName() {
 		String projectName = null;
 		String filePath = fileChooserPage.getFilePath();
-		try {
-			return ZipUtils.getProjectName(filePath);
-		} catch (IOException e) {
-			if (filePath != null) {
-				int index = filePath.lastIndexOf("/");
-				String choosenFileName = filePath.substring(index+1);
-				int idx = choosenFileName.lastIndexOf('.');
-				if (idx != -1) {
-					projectName = choosenFileName.substring(0, idx);
+		//Added by julienda - 08/09/2012
+			try {
+				return ZipUtils.getProjectName(filePath);
+			} catch (IOException e) {
+				if (filePath != null) {
+					int index = filePath.lastIndexOf("/");
+					String choosenFileName = filePath.substring(index+1);
+					int idx = choosenFileName.lastIndexOf('.');
+					if (idx != -1) {
+						projectName = choosenFileName.substring(0, idx);
+					}
 				}
+				return projectName;
 			}
-			return projectName;
-		}
 	}
 
 	private String getTargetProjectName() {
