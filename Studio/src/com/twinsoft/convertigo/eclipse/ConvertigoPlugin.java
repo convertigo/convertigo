@@ -28,6 +28,7 @@ import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.MissingResourceException;
@@ -112,6 +113,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.util.Log;
 
@@ -132,6 +134,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	
     public static final String SYSTEM_PROP_PREFIX = "convertigo.studio.";
     
+    public static final String PREFERENCE_SETUP_STAGE = "setup";
     public static final String PREFERENCE_LOG_LEVEL = "log.level";
     public static final String PREFERENCE_TREE_HIGHLIGHT_DETECTED = "tree.highlight.detected";
     public static final String PREFERENCE_OPENED_CONSOLES = "opened.consoles";
@@ -312,8 +315,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		display.asyncExec(new Runnable() {
 			public void run() {
 				
-				try {
-					
+				try {					
 					final Shell shell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
 					
 					GridLayout gridLayout = new GridLayout();
@@ -381,7 +383,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					image = new Image(Display.getCurrent(), fileURL.openStream());
 					
 					closeButton = new Button(toolComposite, SWT.PUSH);
-					closeButton.setText("Wait..");
+					closeButton.setText("Wait...");
 					closeButton.setImage(image);
 					
 					gridData = new GridData();
@@ -476,7 +478,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		DeploymentConfiguration deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get("trial.convertigo.net/cems");
 
 		String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
-		url += 	deploymentConfiguration == null ? "":"&user=" + deploymentConfiguration.getUsername();
+		url += deploymentConfiguration == null ? "" : "&user=" + URLEncoder.encode(deploymentConfiguration.getUsername(), "utf8");
+		url += "&version=" + URLEncoder.encode(ProductVersion.fullProductVersion, "utf8");
 		
 		browser.setUrl(url);
 	}
@@ -542,10 +545,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 		// Get auto project open
 		autoOpenProjects = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_AUTO_OPEN_PROJECTS);
-		
-		// Check product key
-		// Since Convertigo 4.6, no key check is required
-		//checkProductKey(context);
 		
 		// Adds listeners
 		addListeners();
@@ -1345,7 +1344,5 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	
 	public boolean isShuttingDown() {
 		return this.shuttingDown;
-	}
-	
-	
+	}	
 }
