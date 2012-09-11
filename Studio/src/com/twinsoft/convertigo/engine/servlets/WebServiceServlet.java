@@ -74,6 +74,7 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XSDUtils;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
+import com.twinsoft.convertigo.engine.util.XSDUtils.XmlGenerationDescription;
 import com.twinsoft.util.StringEx;
 
 public class WebServiceServlet extends GenericServlet {
@@ -226,7 +227,13 @@ public class WebServiceServlet extends GenericServlet {
 			if (project.isSchemaInline()) {
 				try  {
 					XSD xsd = XSDUtils.getXSD(xsdFilePath);
-					ProjectUtils.RemoveUselessObjects(xsd, project);
+					XmlGenerationDescription xmlDescription = xsd.getXmlGenerationDescription();
+					xmlDescription.setOutputOccurences(false);
+					xmlDescription.setOutputSchemaTypeCData(false);
+					xmlDescription.setOutputOccursAttribute(false);
+					xmlDescription.setOutputElementWithNS(false);
+					
+					ProjectUtils.removeUselessObjects(xsd, project);
 					
 					if (xsd != null) {
 						int start = wsdl.indexOf("<xsd:schema ");

@@ -30,6 +30,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import javax.wsdl.Definition;
@@ -109,13 +110,13 @@ public class WsReference {
 		
 	}
 	
-	private void updateSchema(String wsdlUrl, Project project, Definition definition) throws WSDLException, XSDException {
+	private Map<String, String> updateSchema(String wsdlUrl, Project project, Definition definition) throws WSDLException, XSDException {
 		String projectName = project.getName();
 		String projectDir = Engine.PROJECTS_PATH + "/"+ projectName;
 		
 		// Dump schemas to project directory
 		setTaskLabel("Dumping schemas ...");
-		HashMap<String, String> nsmap = WSDLUtils.dumpSchemas(projectDir, definition);
+		Map<String, String> nsmap = WSDLUtils.dumpSchemas(projectDir, definition);
 		
 		// Add namespaces into project's xsd file
 		setTaskLabel("Adding schema namespace ...");
@@ -127,7 +128,7 @@ public class WsReference {
 		
 		// Add imports into project's xsd file
 		setTaskLabel("Adding schema imports ...");
-		HashMap<String, String> immap = new HashMap<String, String>();
+		Map<String, String> immap = new HashMap<String, String>();
 		Iterator<String> it = nsmap.keySet().iterator();
 		while (it.hasNext()) {
 			String prefix = (String)it.next();
@@ -139,6 +140,8 @@ public class WsReference {
 		
 		// Save xsd
 		xsd.save();
+		
+		return nsmap;
 	}
 	
 	private HttpConnector importReference(String wsdlUrl, Project project) throws Exception
@@ -224,17 +227,22 @@ public class WsReference {
 		
 		// Import WSDL using SoapUI
 		HttpConnector httpConnector = null;
+		String projectName = project.getName();
+		String projectDir = Engine.PROJECTS_PATH + "/"+ projectName;
 		
 	   	WsdlProject wsdlProject = new WsdlProject();
 	   	WsdlInterface[] wsdls = WsdlImporter.importWsdl( wsdlProject, wsdlUrl);
 	   	
 	   	boolean hasDefaultTransaction;
 	   	WsdlInterface iface;
+	   	
 	   	for (int i=0; i<wsdls.length; i++) {
 		   	iface = wsdls[i];
 		   	if (iface != null) {
-		   		Definition definition = iface.getWsdlContext().getDefinition();
-		   		updateSchema(wsdlUrl, project, definition);
+			   	iface.getWsdlContext().export(projectDir+ "/wsdl");
+			   	
+			   	Definition definition = iface.getWsdlContext().getDefinition();
+			   	Map<String, String> nsmap = updateSchema(wsdlUrl, project, definition);
 		   		
 		   		httpConnector = createConnector(iface);
 		   		if (httpConnector != null) {
@@ -243,8 +251,9 @@ public class WsReference {
 				   	for (int j=0; j<iface.getOperationCount(); j++) {
 				   		WsdlOperation wsdlOperation = (WsdlOperation)iface.getOperationAt(j);
 				   		Set<RequestableHttpVariable> variables = new HashSet<RequestableHttpVariable>();
-				   		XmlHttpTransaction xmlHttpTransaction = createTransaction(iface, wsdlOperation, variables, project, httpConnector);
+				   		XmlHttpTransaction xmlHttpTransaction = createTransaction(nsmap, iface, wsdlOperation, variables, project, httpConnector);
 				   		if (xmlHttpTransaction != null) {
+				   			// Adds transaction
 				   			httpConnector.add(xmlHttpTransaction);
 				   			if (!hasDefaultTransaction) {
 				   				xmlHttpTransaction.setByDefault();
@@ -306,7 +315,7 @@ public class WsReference {
 	   	return httpConnector;
 	}
 	
-	private XmlHttpTransaction createTransaction(WsdlInterface iface, WsdlOperation operation, Set<RequestableHttpVariable> variables, Project project, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException {
+	private XmlHttpTransaction createTransaction(Map<String,String> nsmap, WsdlInterface iface, WsdlOperation operation, Set<RequestableHttpVariable> variables, Project project, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException, XSDException {
 		XmlHttpTransaction xmlHttpTransaction = null;
 	   	WsdlRequest request;
 	   	//String responseXml;
@@ -375,8 +384,19 @@ public class WsReference {
 						MessagePart.ContentPart mpcp = (MessagePart.ContentPart)parts[0];
 					   	try {
 							qname = mpcp.getSchemaType().getName();
-							qprefix = iface.getDefinitionContext().getDefinition().getPrefix(qname.getNamespaceURI());
 							qlocal = qname.getLocalPart();
+							
+		   					// Replace prefix with the one from map
+				   			String nsuri = qname.getNamespaceURI();
+				   			Iterator<String> it = nsmap.keySet().iterator();
+				   			while (it.hasNext()) {
+				   				String prefix = it.next();
+				   				String prefixns = nsmap.get(prefix);
+				   				if (prefixns.equals(nsuri)) {
+				   					qprefix = prefix;
+				   					break;
+				   				}
+				   			}
 						} catch (Exception e) {}
 						
 						if ((qname != null)&&(qprefix != null)) {
@@ -390,8 +410,19 @@ public class WsReference {
    			else {
    			   	try {
    					qname = operation.getResponseBodyElementQName();
-   					qprefix = iface.getDefinitionContext().getDefinition().getPrefix(qname.getNamespaceURI());
    					qlocal = qname.getLocalPart();
+   					
+   					// Replace prefix with the one from map
+		   			String nsuri = qname.getNamespaceURI();
+		   			Iterator<String> it = nsmap.keySet().iterator();
+		   			while (it.hasNext()) {
+		   				String prefix = it.next();
+		   				String prefixns = nsmap.get(prefix);
+		   				if (prefixns.equals(nsuri)) {
+		   					qprefix = prefix;
+		   					break;
+		   				}
+		   			}
    				} catch (Exception e) {}
    				
    				if ((qname != null)&&(qprefix != null)) {
@@ -422,11 +453,19 @@ public class WsReference {
 			Element body = (Element)requestDoc.getDocumentElement().getElementsByTagName("soapenv:Body").item(0);
 			if (body == null) body = (Element)requestDoc.getDocumentElement().getElementsByTagName("soap:Body").item(0);
 			
-			extractVariables(header.getChildNodes(), variables);
-			extractVariables(body.getChildNodes(), variables);
+			//System.out.println(XMLUtils.prettyPrintDOM(requestDoc));
+			
+			// Extract variables
+			String projectName = project.getName();
+			String projectDir = Engine.PROJECTS_PATH + "/"+ projectName;
+			String filePath = projectDir + "/" + projectName + ".temp.xsd";
+			if (!new File(filePath).exists())
+				filePath = projectDir + "/" + projectName + ".xsd";
+			XSD xsd = XSDUtils.getXSD(filePath);
+			extractVariables(nsmap, xsd, header.getChildNodes(), variables);
+			extractVariables(nsmap, xsd, body.getChildNodes(), variables);
 			
 			// Serialize request/response into template xml files
-			String projectName = project.getName();
 			String connectorName = httpConnector.getName();
 			String templateDir = Engine.PROJECTS_PATH + "/"+ projectName + "/soap-templates/" + connectorName;
 			File dir = new File(templateDir);
@@ -461,7 +500,7 @@ public class WsReference {
         }
 	}
 	
-	private void extractVariables(NodeList list, Set<RequestableHttpVariable> variables) throws EngineException {
+	private void extractVariables(Map<String,String> nsmap, XSD xsd, NodeList list, Set<RequestableHttpVariable> variables) throws EngineException {
 		String nodeValue, variableName, schemaType="";
 		Element parent, element, child;
 		Node node, prev;
@@ -478,7 +517,7 @@ public class WsReference {
 					child.appendChild(element.getOwnerDocument().createTextNode("?"));
 					element.appendChild(child);
 				}
-				extractVariables(element.getChildNodes(), variables);
+				extractVariables(nsmap, xsd, element.getChildNodes(), variables);
 			}
 			else if (type == Node.TEXT_NODE) {
 				parent = (Element)node.getParentNode();
@@ -517,7 +556,7 @@ public class WsReference {
 											schemaType = prev.getNodeValue().substring("type:".length()).trim();
 											if (!schemaType.equals("")) {
 												if (schemaType.indexOf(":")<0) schemaType = "xsd:"+ schemaType;
-												else if (schemaType.indexOf("xsd:")<0) schemaType = ""; // not supported
+												else if (schemaType.indexOf("xsd:")<0) schemaType = ""; // not yet supported
 											}
 											break;
 										}
@@ -530,7 +569,13 @@ public class WsReference {
 							schemaType = "";
 						}
 					}
+					
 					schemaType = schemaType.equals("") ? "xsd:string":schemaType;
+					String[] qinfos = schemaType.split(":");
+					String qprefix = qinfos[0];
+					String qlocal = qinfos[1];
+					if (!xsd.hasSchemaType(qprefix,qlocal)) schemaType = "xsd:string";
+					
 					
 					setTaskLabel("Creating variable \""+variableName+"\"...");
 					RequestableHttpVariable httpVariable = createVariable(multi,variableName);
