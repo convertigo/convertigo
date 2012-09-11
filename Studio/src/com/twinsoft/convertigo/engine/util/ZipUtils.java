@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.*;
 import java.util.*;
 import java.util.zip.*;
+
 import com.twinsoft.convertigo.engine.*;
 
 public class ZipUtils {
@@ -349,4 +350,70 @@ public class ZipUtils {
 			zis.close();
 		}
 	}
+    
+    
+ 	/*** Added by julienda - 08/09/2012
+ 	 * Return the project name by reading the first directory into the archive (.car)
+ 	 * @param path: the archive path
+ 	 * @return filename: the project name
+ 	 * @throws IOException */
+     public static String getProjectName(String path) throws IOException {
+ 		Engine.logEngine.debug("PATH: "+path);
+ 		
+ 		ZipInputStream zis = new ZipInputStream(new FileInputStream(path));
+ 	    ZipEntry ze = null;	  
+ 	    String fileName = null;
+ 	    try {
+ 	        if((ze = zis.getNextEntry()) != null){
+ 	        	fileName = ze.getName().replaceAll("/.*","");
+ 	        	Engine.logEngine.debug("ZipUtils.getProjectName() - fileName: "+fileName);
+ 	        }
+ 	    }
+ 	    finally {
+ 	        zis.close();
+ 	    }
+ 		return fileName;
+ 	}
+ 	
+ 	/*** Added by julienda - 10/09/2012
+ 	 * Return the archive name corresponding of the project name
+ 	 * @param supposedProject: the (supposed) project
+ 	 * @return the path of the real archive name
+ 	 * @throws IOException */
+ 	public static String getArchiveName(String supposedProject) throws IOException {
+ 		
+ 		//Get the project directory path
+ 		String pathProjects = new File (supposedProject).getParent();
+ 		//Get the supposed project name without ".car"
+ 		String supposedProjectName = new File (supposedProject).getName();
+ 		supposedProjectName = supposedProjectName.substring(0, supposedProjectName.length()-4);
+ 		
+ 		File projectPath = new File(pathProjects); 	String realArchiveFile =  null;
+ 		
+ 		Engine.logEngine.debug("ZipUtils.getArchiveName() - projectPath: "+projectPath);
+ 				
+ 		int i = 0;
+ 		
+ 		//Create a list with the (path) files of the project directory 
+ 		String [] listfiles = projectPath.list(); 
+ 		
+ 		while((i < listfiles.length)){ 
+ 			
+ 			//If the file is an archive
+ 			if(listfiles[i].endsWith(".car") == true){
+ 				Engine.logEngine.debug("ZipUtils.getArchiveName() - listfiles["+i+"]: "+listfiles[i]);
+ 				Engine.logEngine.debug("ZipUtils.getArchiveName() - supposedProjectName: "+supposedProjectName);
+ 				Engine.logEngine.debug("ZipUtils.getArchiveName() - listfiles PATH: "+new File(projectPath, listfiles[i]));
+ 				
+ 				//If the project name is equals to the (supposed) project name
+ 				if(getProjectName(new File(projectPath, listfiles[i]).getPath()).equals(supposedProjectName)){
+ 					return new File(projectPath, listfiles[i]).getName();
+ 				}
+ 				Engine.logEngine.debug("ZipUtils.getArchiveName() - realArchiveFile: "+realArchiveFile);
+ 			}
+ 			i++;
+ 		}
+ 		
+ 		throw new FileNotFoundException("Supposed project "+supposedProject+" not found!");
+ 	}
 }

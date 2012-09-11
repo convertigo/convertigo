@@ -30,6 +30,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import com.twinsoft.convertigo.engine.migration.Migration3_0_0;
+import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class MigrationManager {
 	private static Map<String, MigrationJob> jobs = new Hashtable<String, MigrationJob>(256);
@@ -54,6 +55,8 @@ public class MigrationManager {
 				Engine.logEngine.info("Migration starting...");
 				try {
 					String projectName;
+					//Added by julienda
+						String targetProjectArchive = ""; 
 					MigrationJob job;
 					
 					// Starts Convertigo projects (already deployed) migration
@@ -82,7 +85,14 @@ public class MigrationManager {
 					String projectArchive;
 					for (int i = 0 ; i < projectArchives.length ; i++) {
 						projectArchive = projectArchives[i];
-						projectName = projectArchive.substring(0, projectArchive.indexOf(".car"));
+						Engine.logEngine.debug("MigrationManager.performProjectsMigration() - projectArchive: "+projectArchive);
+						Engine.logEngine.debug("MigrationManager.performProjectsMigration() - projectsDirFile: "+projectsDirFile);
+						//projectName = projectArchive.substring(0, projectArchive.indexOf(".car"));
+						
+						//Added by julienda
+							targetProjectArchive = (new File(projectsDirFile, projectArchive)).getPath();
+							projectName = ZipUtils.getProjectName(targetProjectArchive);
+						
 						job = new MigrationJob(projectName);
 						if (!jobs.containsKey(projectName)) {
 							jobs.put(projectName, job);
