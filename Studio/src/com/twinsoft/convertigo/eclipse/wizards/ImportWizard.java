@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.eclipse.wizards;
 
 import java.io.IOException;
+import java.io.File;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.IWizardPage;
@@ -108,20 +109,29 @@ public class ImportWizard extends Wizard implements IImportWizard {
 	private String getDefaultProjectName() {
 		String projectName = null;
 		String filePath = fileChooserPage.getFilePath();
-		//Added by julienda - 08/09/2012
-			try {
-				return ZipUtils.getProjectName(filePath);
-			} catch (IOException e) {
-				if (filePath != null) {
-					int index = filePath.lastIndexOf("/");
-					String choosenFileName = filePath.substring(index+1);
-					int idx = choosenFileName.lastIndexOf('.');
-					if (idx != -1) {
-						projectName = choosenFileName.substring(0, idx);
-					}
-				}
-				return projectName;
+
+		// Find the filename
+		if (filePath != null) {
+			File file = new File(filePath);
+			String choosenFileName = file.getName();
+			int idx = choosenFileName.lastIndexOf('.');
+			if (idx != -1) {
+				projectName = choosenFileName.substring(0, idx);
 			}
+		}
+		
+		// XML file case
+		if (filePath.toLowerCase().endsWith(".xml")) {
+			return projectName;
+		}
+
+		// CAR file case
+		//Added by julienda - 08/09/2012
+		try {
+			return ZipUtils.getProjectName(filePath);
+		} catch (IOException e) {
+			return projectName;
+		}
 	}
 
 	private String getTargetProjectName() {
