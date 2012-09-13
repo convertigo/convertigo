@@ -216,12 +216,12 @@ public class ProxyManager {
 	public void setBasicAuth(HttpState httpState) {
 		// Setting basic authentication for proxy
 		if ((!this.proxyServer.equals("")) && (!this.proxyUser.equals(""))) {
-				httpState.setProxyCredentials(
-						new AuthScope(this.proxyServer, -1, AuthScope.ANY_REALM),
-						new UsernamePasswordCredentials(this.proxyUser, this.proxyPassword));
+			httpState.setProxyCredentials(new AuthScope(this.proxyServer, -1, AuthScope.ANY_REALM),
+					new UsernamePasswordCredentials(this.proxyUser, this.proxyPassword));
 
-			Engine.logProxyManager.debug("(ProxyManager) Proxy credentials: " + this.proxyUser + ":"
-					+ this.proxyPassword);
+			Engine.logProxyManager.debug("(ProxyManager) Using credentials: " + promptUser
+					+ ", <password not logged, set engine logger log level to TRACE to see it>");
+			Engine.logProxyManager.trace("(ProxyManager) Using password: " + proxyPassword);
 		}
 	}
 	
