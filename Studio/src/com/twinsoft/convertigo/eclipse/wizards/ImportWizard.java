@@ -105,7 +105,8 @@ public class ImportWizard extends Wizard implements IImportWizard {
 	public boolean canFinish() {
 		return getTargetProjectName() != null;
 	}
-
+	
+	//Modified by julienda - 13/09/2012
 	private String getDefaultProjectName() {
 		String projectName = null;
 		String filePath = fileChooserPage.getFilePath();
