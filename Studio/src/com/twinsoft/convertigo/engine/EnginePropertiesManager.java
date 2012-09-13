@@ -347,6 +347,8 @@ public class EnginePropertiesManager {
 		LOG4J_LOGGER_CEMS_USAGEMONITOR ("log4j.logger.cems.UsageMonitor", "WARN", "Log4J usage monitor logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_USER ("log4j.logger.cems.User", "INFO", "Log4J user output logger", PropertyCategory.Logs),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
+		LOG4J_LOGGER_CEMS_PROXYMANAGER ("log4j.logger.cems.ProxyManager", "DEBUG", "Log4J proxy manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Text)
 		LOG4J_LOGGER_CEMS_CONTEXT_AUDIT ("log4j.logger.cems.Context.Audit", "INFO, AuditAppender", "Log4J audit context logger", PropertyCategory.Logs),
 		
