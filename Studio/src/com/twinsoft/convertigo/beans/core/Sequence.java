@@ -38,6 +38,12 @@ import javax.swing.event.EventListenerList;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -68,7 +74,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XSDExtractor;
 import com.twinsoft.util.StringEx;
 
-public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered {
+public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered, ISchemaGenerator {
 
 	private static final long serialVersionUID = 8218719500689068156L;
 	
@@ -1709,4 +1715,25 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public void setIncludeResponseElement(boolean includeResponseElement) {
 		this.includeResponseElement = includeResponseElement;
 	}
+
+	public XmlSchemaObject getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaComplexType type = new XmlSchemaComplexType(schema);
+		schema.getItems().add(type);
+
+		type.setName(getName());
+		
+		XmlSchemaElement element = new XmlSchemaElement();
+		element.setName("document");
+		
+		XmlSchemaSequence sequence = new XmlSchemaSequence();
+		sequence.getItems().add(element);
+		type.setParticle(sequence);
+		
+		type = new XmlSchemaComplexType(schema);
+		element.setType(type);
+		
+		sequence = new XmlSchemaSequence();
+		type.setParticle(sequence);
+		return sequence;
+	}	
 }

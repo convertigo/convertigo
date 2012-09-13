@@ -162,6 +162,11 @@ public class Engine {
 	 * The external browser manager
 	 */
 	public ExternalBrowserManager externalBrowserManager;
+	
+	/**
+	 * The external browser manager
+	 */
+	public SchemaManager schemaManager;
 
 	/**
 	 * Loggers
@@ -582,6 +587,10 @@ public class Engine {
 				Engine.theApp.externalBrowserManager = new ExternalBrowserManager();
 				Engine.theApp.externalBrowserManager.init();
 				
+				// Initialization of the Schema manager
+				Engine.theApp.schemaManager = new SchemaManager();
+				Engine.theApp.schemaManager.init();
+				
 				// XUL initialization
 				String xulrunner_url = System.getProperty("org.eclipse.swt.browser.XULRunnerPath");
 				if (xulrunner_url == null || xulrunner_url.equals(""))
@@ -704,6 +713,10 @@ public class Engine {
 				
 				if (Engine.theApp.externalBrowserManager != null) {
 					Engine.theApp.externalBrowserManager.destroy();
+				}
+				
+				if (Engine.theApp.schemaManager != null) {
+					Engine.theApp.schemaManager.destroy();
 				}
 
 				// Closing the session manager

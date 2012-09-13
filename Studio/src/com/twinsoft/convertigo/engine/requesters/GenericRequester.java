@@ -608,6 +608,9 @@ public abstract class GenericRequester extends Requester {
     @Override
     public Document getDocument() throws Exception {
 		Document document = Engine.theApp.getDocument(this, context);
+		
+		Engine.theApp.schemaManager.getSchemasForProject(this.context.projectName);
+		
 		return document;
     }
 
