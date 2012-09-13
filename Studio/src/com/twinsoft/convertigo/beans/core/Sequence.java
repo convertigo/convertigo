@@ -63,6 +63,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.requesters.DefaultRequester;
 import com.twinsoft.convertigo.engine.requesters.GenericRequester;
@@ -1717,23 +1718,31 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 
 	public XmlSchemaObject getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaComplexType type = new XmlSchemaComplexType(schema);
-		schema.getItems().add(type);
+		XmlSchemaElement eSequence = new XmlSchemaElement();
+		eSequence.setName(getName() + "Response");
+		
+		
+		XmlSchemaComplexType tSequence = new XmlSchemaComplexType(schema);
+		//schema.getItems().add(type);
+		//type.setName(getName());
+		
+		eSequence.setSchemaType(tSequence);
+		
 
-		type.setName(getName());
-		
-		XmlSchemaElement element = new XmlSchemaElement();
-		element.setName("document");
-		
 		XmlSchemaSequence sequence = new XmlSchemaSequence();
-		sequence.getItems().add(element);
-		type.setParticle(sequence);
+		tSequence.setParticle(sequence);
 		
-		type = new XmlSchemaComplexType(schema);
-		element.setType(type);
+		XmlSchemaElement eDocument = new XmlSchemaElement();
+		eDocument.setName("document");
 		
-		sequence = new XmlSchemaSequence();
-		type.setParticle(sequence);
-		return sequence;
+		sequence.getItems().add(eDocument);
+		
+		eSequence.addMetaInfo(SchemaMeta.container, eDocument);
+//		type = new XmlSchemaComplexType(schema);
+//		element.setType(type);
+//		
+//		sequence = new XmlSchemaSequence();
+//		type.setParticle(sequence);
+		return eSequence;
 	}	
 }
