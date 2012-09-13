@@ -236,8 +236,9 @@ public class ProxyManager {
 						new AuthScope(this.proxyServer, -1, AuthScope.ANY_REALM),
 						new UsernamePasswordCredentials(this.proxyUser, this.proxyPassword));
 
-			Engine.logProxyManager.debug("(ProxyManager) Proxy credentials: " + this.proxyUser + ":"
-					+ this.proxyPassword);
+				Engine.logProxyManager.debug("(ProxyManager) Using credentials: " + promptUser
+						+ ", <password not logged, set engine logger log level to TRACE to see it>");
+				Engine.logProxyManager.trace("(ProxyManager) Using password: " + proxyPassword);
 		}
 	}
 	
