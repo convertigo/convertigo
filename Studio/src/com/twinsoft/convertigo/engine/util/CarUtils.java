@@ -63,14 +63,19 @@ public class CarUtils {
 	}
 
 	public static void makeArchive(String dir, Project project) throws EngineException {
+		makeArchive(dir, project, project.getName());
+	}
+	
+	public static void makeArchive(String dir, Project project, String exportName) throws EngineException {
 		List<File> undeployedFiles=getUndeployedFiles(project.getName());	
 		String projectName = project.getName();
 		try {
 			// Export the project
-			exportProject(project);
+			String exportedProjectFileName = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml";
+			exportProject(project, exportedProjectFileName);
 			
 			// Create Convertigo archive
-			String projectArchiveFilename = dir + "/" + projectName + ".car";
+			String projectArchiveFilename = dir + "/" + exportName + ".car";
 			ZipUtils.makeZip(projectArchiveFilename, Engine.PROJECTS_PATH + "/" + projectName, projectName, undeployedFiles);
 		} catch(Exception e) {
 			throw new EngineException("Unable to make the archive file for the project \"" + projectName + "\".", e);
