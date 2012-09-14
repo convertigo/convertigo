@@ -42,7 +42,6 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Attr;
@@ -75,7 +74,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XSDExtractor;
 import com.twinsoft.util.StringEx;
 
-public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered, ISchemaGenerator {
+public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered, ISchemaElementGenerator {
 
 	private static final long serialVersionUID = 8218719500689068156L;
 	
@@ -1717,14 +1716,11 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		this.includeResponseElement = includeResponseElement;
 	}
 
-	public XmlSchemaObject getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement eSequence = new XmlSchemaElement();
 		eSequence.setName(getName() + "Response");
 		
-		
 		XmlSchemaComplexType tSequence = new XmlSchemaComplexType(schema);
-		//schema.getItems().add(type);
-		//type.setName(getName());
 		
 		eSequence.setSchemaType(tSequence);
 		
@@ -1737,12 +1733,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		
 		sequence.getItems().add(eDocument);
 		
-		eSequence.addMetaInfo(SchemaMeta.container, eDocument);
-//		type = new XmlSchemaComplexType(schema);
-//		element.setType(type);
-//		
-//		sequence = new XmlSchemaSequence();
-//		type.setParticle(sequence);
+		SchemaMeta.setContainerElement(eSequence, eDocument);
+		
 		return eSequence;
-	}	
+	}
+	
+	public boolean isOutput() {
+		return true;
+	}
 }

@@ -30,7 +30,6 @@ import java.util.List;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeArray;
@@ -42,7 +41,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.twinsoft.convertigo.beans.core.ISchemaGenerator;
+import com.twinsoft.convertigo.beans.core.ISchemaElementGenerator;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
@@ -51,7 +50,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class ElementStep extends StepWithExpressions implements ISchemaGenerator {
+public class ElementStep extends StepWithExpressions implements ISchemaElementGenerator {
 
 	private static final long serialVersionUID = 3276050659362959159L;
 	
@@ -234,7 +233,7 @@ public class ElementStep extends StepWithExpressions implements ISchemaGenerator
 		}
 	}
 
-	public XmlSchemaObject getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement element = new XmlSchemaElement();
 		element.setName(getStepNodeName());
 		element.setSchemaTypeName(Constants.XSD_STRING);
