@@ -240,9 +240,30 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
                 	messageBox.setMessage(msg);
                 	messageBox.open();
 				}
-				catch (Exception e){;}
+				catch(Exception e){
+					ConvertigoPlugin.logException(e, "Error while trying to error message box");
+				}
 			};
 		});
+	}
+	
+	public static int questionMessageBox(String message){
+		final String msg = message;
+		final Display display = Display.getDefault();
+		int response = SWT.NO;
+
+		try{
+			Shell shell = display.getActiveShell();
+	    	MessageBox messageBox = new MessageBox(shell, SWT.YES | SWT.NO | SWT.ICON_QUESTION);
+	    	messageBox.setText("Convertigo");
+	    	messageBox.setMessage(msg);
+	    	response = messageBox.open();
+		}
+		catch(Exception e){
+			ConvertigoPlugin.logException(e, "Error while trying to question message box");
+		}
+
+    	return response;
 	}
 	
 	public static void projectDeployErrorDialog(String message, String stackTrace) {
@@ -258,7 +279,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		    		if (projectDeployErrorDialog.getReturnCode() != Window.CANCEL) {
 		    		}
 				}
-				catch (Exception e){;}
+				catch(Exception e){
+					ConvertigoPlugin.logException(e, "Error while trying to deploy dialog");
+				}
 			};
 		});
 	}
@@ -275,7 +298,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
                 	messageBox.setMessage(msg);
                 	messageBox.open();
 				}
-				catch (Exception e){;}
+				catch(Exception e){
+					ConvertigoPlugin.logException(e, "Error while trying to warning message box");
+				}
 			};
 		});
 	}
@@ -292,7 +317,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
                 	messageBox.setMessage(msg);
                 	messageBox.open();
 				}
-				catch (Exception e){;}
+				catch(Exception e){
+					ConvertigoPlugin.logException(e, "Error while trying to info message box");
+				}
 			};
 		});
 	}

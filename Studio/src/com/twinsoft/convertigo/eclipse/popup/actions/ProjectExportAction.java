@@ -76,26 +76,45 @@ public class ProjectExportAction extends MyAbstractAction {
             	
             	String filePath = fileDialog.open();
             	if (filePath != null) {
-            		int index = filePath.lastIndexOf(File.separator);
-            		String exportDirectoryPath = filePath.substring(0,index);
-            		String exportFileName = filePath.substring(index+1);
-            		ConvertigoPlugin.logInfo("Export project to file \"" + exportFileName + "\"");
-            		
-    				String fileName = exportFileName;
-    				int idx = fileName.lastIndexOf('.');
-    				if (idx != -1 ) {
-    					fileName = fileName.substring(0, idx);
+					String exportName = project.getName();
+					
+					File file = new File(filePath);
+					
+					if(file.exists()){
+						if(ConvertigoPlugin.questionMessageBox("File already exists. Do you want to overwrite?")==SWT.YES){
+							if(file.delete()==false){
+								ConvertigoPlugin.warningMessageBox("Error when deleting the file "+file.getName()+"! Please verify access rights!");
+								return;
+							}
+						}else{
+							return;
+						}
+					}
+					
+					String filename = file.getName();
+					int idx = -1;
+					if(filePath.endsWith(".xml")){
+						idx = filename.lastIndexOf(".xml");
+					}else if(filePath.endsWith(".car")){
+						idx = filename.lastIndexOf(".car");
+					}
+					
+					String overriddenProjectName = filename.substring(0, idx);
+					
+            		if (filePath.endsWith(".xml")) {
+    					if (!overriddenProjectName.equals(exportName)) {
+        					Toolkit.getDefaultToolkit().beep();
+        					ConvertigoPlugin.logWarning("Xml file and project must have same name!");
+        					return;
+    					}
+            			
+    					CarUtils.exportProject(project, filePath);
     				}
-
-    				if (!fileName.equals(projectName)) {
-    					Toolkit.getDefaultToolkit().beep();
-    					ConvertigoPlugin.logWarning("Wrong file name (it must be the same as the project)!");
-    				}
-    				else if (exportFileName.endsWith(".xml")) {
-    					Engine.theApp.databaseObjectsManager.exportProject(project);
-    				}
-    				else if (exportFileName.endsWith(".car")) {
-    					CarUtils.makeArchive(exportDirectoryPath, project);
+    				else if (filePath.endsWith(".car")) {
+    					if (!overriddenProjectName.equals(exportName)) {
+    						exportName = overriddenProjectName;
+    					}
+						CarUtils.makeArchive(file.getParent(), project, exportName);
     				}
     				else {
     					Toolkit.getDefaultToolkit().beep();
