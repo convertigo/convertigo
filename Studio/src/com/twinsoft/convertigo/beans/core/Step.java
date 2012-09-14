@@ -31,6 +31,13 @@ import java.util.List;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAnnotated;
+import org.apache.ws.commons.schema.XmlSchemaAnnotation;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaDocumentation;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
@@ -55,7 +62,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 /**
  * The Step class is the base class for all steps.
  */
-public abstract class Step extends DatabaseObject implements StepListener, ISheetContainer, ITagsProperty  {
+public abstract class Step extends DatabaseObject implements StepListener, ISheetContainer, ITagsProperty, ISchemaGenerator {
 	private static final long serialVersionUID = 1600450851360946365L;
 	private String schemaDataType = "xsd:string"; // since beans version 5.0.2
 	
@@ -975,6 +982,25 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return isEnable() && isOutput() ? schema:"";
 	}
 	
+	protected void addXmlSchemaAnnotation(XmlSchemaAnnotated annoted) {
+		String comment = getComment();
+		if (comment != null && comment.length() > 0) {
+			XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+			XmlSchemaDocumentation documentation = new XmlSchemaDocumentation();
+			annotation.getItems().add(documentation);
+			
+			documentation.setSource(comment);
+			annoted.setAnnotation(annotation);
+		}
+	}
+	
+	public XmlSchemaObject getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaElement element = new XmlSchemaElement();
+		element.setName(getStepNodeName());
+		addXmlSchemaAnnotation(element);
+		return element;
+	}
+
 	public void addSchemaType(HashMap<Long, String> stepTypes, String tns) throws EngineException {
 		addSchemaType(stepTypes, tns, null);
 	}

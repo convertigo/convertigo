@@ -256,10 +256,12 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator {
 		return isEnable() && isOutput() ? schema:"";
 	}
 
+	@Override
 	public XmlSchemaAttribute getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaAttribute attribute = new XmlSchemaAttribute();
 		attribute.setName(getStepNodeName());
 		attribute.setSchemaTypeName(Constants.XSD_STRING);
+		addXmlSchemaAnnotation(attribute);
 		return attribute;
 	}
 	

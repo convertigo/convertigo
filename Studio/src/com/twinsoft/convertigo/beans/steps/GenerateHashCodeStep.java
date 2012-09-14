@@ -4,12 +4,17 @@ import java.io.File;
 import java.util.HashMap;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.twinsoft.convertigo.beans.core.ISchemaElementGenerator;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
@@ -17,7 +22,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class GenerateHashCodeStep extends Step implements ITagsProperty {
+public class GenerateHashCodeStep extends Step implements ITagsProperty, ISchemaElementGenerator {
 
 	private static final long serialVersionUID = -2873578590344942963L;
 
@@ -226,4 +231,10 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty {
 		stepTypes.put(new Long(priority), stepTypeSchema);
 	}
 	
+	@Override
+	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+		element.setSchemaTypeName(Constants.XSD_STRING);
+		return element;
+	}
 }

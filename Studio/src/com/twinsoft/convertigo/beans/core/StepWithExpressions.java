@@ -864,10 +864,9 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		}		
 		return rep;
 	}
-
+	
+	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaElement element = new XmlSchemaElement();
-		element.setName(getStepNodeName());
-		return element;
+		return (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
 	}
 }

@@ -22,19 +22,24 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class XMLAttributeStep extends Step implements IStepSourceContainer {
+public class XMLAttributeStep extends Step implements IStepSourceContainer, ISchemaAttributeGenerator {
 
 	private static final long serialVersionUID = 61436680158858545L;
 
@@ -243,5 +248,14 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer {
 		schema += "\t\t\t</xsd:attribute>\n";
 		
 		return isEnable() && isOutput() ? schema:"";
+	}
+	
+	@Override
+	public XmlSchemaAttribute getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaAttribute attribute = new XmlSchemaAttribute();
+		attribute.setName(getStepNodeName());
+		attribute.setSchemaTypeName(Constants.XSD_STRING);
+		addXmlSchemaAnnotation(attribute);
+		return attribute;
 	}
 }
