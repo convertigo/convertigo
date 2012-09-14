@@ -1,5 +1,7 @@
 package com.twinsoft.convertigo.engine;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,7 +19,12 @@ import org.apache.ws.commons.schema.XmlSchemaComplexContent;
 import org.apache.ws.commons.schema.XmlSchemaComplexContentExtension;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaForm;
+import org.apache.ws.commons.schema.XmlSchemaInclude;
+import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 
@@ -25,9 +32,11 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaElementGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaGenerator;
+import com.twinsoft.convertigo.beans.core.ISchemaIncludeGenerator;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 
 public class SchemaManager implements AbstractManager {
@@ -46,7 +55,7 @@ public class SchemaManager implements AbstractManager {
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 		final XmlSchemaCollection collection = new XmlSchemaCollection();
 		
-		final XmlSchema schema = new XmlSchema(project.getName(), collection);
+		final XmlSchema schema = new XmlSchema(project.getTargetNamespace(), collection);
 		
 		NamespaceMap nsMap = new NamespaceMap();
 		int cpt = 0;
@@ -55,8 +64,8 @@ public class SchemaManager implements AbstractManager {
 			String prefix;
 			if (Constants.URI_2001_SCHEMA_XSD.equals(tns)) {
 				prefix = "xsd";
-			} else if (project.getName().equals(tns)) {
-				prefix = "myns";
+			} else if (project.getTargetNamespace().equals(tns)) {
+				prefix = project.getName() + "_ns";
 			} else {
 				prefix = "p" + cpt++;
 			}
@@ -65,6 +74,9 @@ public class SchemaManager implements AbstractManager {
 		
 		schema.setNamespaceContext(nsMap);
 		collection.setNamespaceContext(nsMap);
+		
+		schema.setElementFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
+		schema.setAttributeFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
 		
 //		new WalkHelper() {
 //			XmlSchemaObject parent = schema;
@@ -85,16 +97,42 @@ public class SchemaManager implements AbstractManager {
 //		}.init(project);
 		
 		new WalkHelper() {
+			List<XmlSchemaInclude> includeChildren;
 			List<XmlSchemaElement> elementChildren;
 			List<XmlSchemaAttribute> attributeChildren;
 
 			@Override
 			public void init(DatabaseObject databaseObject) throws Exception {
+				List<XmlSchemaInclude> myIncludeChildren = includeChildren = new ArrayList<XmlSchemaInclude>();
 				List<XmlSchemaElement> myElementChildren = elementChildren = new LinkedList<XmlSchemaElement>();
 				List<XmlSchemaAttribute> myAttributeChildren = attributeChildren = new LinkedList<XmlSchemaAttribute>();
 				
 				super.init(databaseObject);
 				
+				for (XmlSchemaInclude include : myIncludeChildren) {
+					XmlSchema xmlSchema = include.getSchema();
+					if (xmlSchema != null) {
+						XmlSchemaObjectCollection c = xmlSchema.getItems();
+						Iterator<XmlSchemaObject> it = GenericUtils.cast(c.getIterator());
+						while (it.hasNext()) {
+							XmlSchemaObject xmlSchemaObject  = it.next();
+							if (xmlSchemaObject instanceof XmlSchemaElement) {
+								XmlSchemaElement element = (XmlSchemaElement)xmlSchemaObject;
+								if (collection.getElementByQName(element.getQName()) == null)
+									schema.getItems().add(xmlSchemaObject);
+							}
+							else if (xmlSchemaObject instanceof XmlSchemaType) {
+								XmlSchemaType type = (XmlSchemaType)xmlSchemaObject;
+								if (collection.getTypeByQName(type.getQName()) == null)
+									schema.getItems().add(xmlSchemaObject);
+							}
+							else {
+								schema.getItems().add(xmlSchemaObject);
+							}
+						}
+					}
+				}
+
 				for (XmlSchemaElement element : myElementChildren) {
 					schema.getItems().add(element);
 				}
@@ -123,7 +161,12 @@ public class SchemaManager implements AbstractManager {
 					super.walk(databaseObject);
 					
 					// generate itself and add to the caller list
-					if (databaseObject instanceof ISchemaAttributeGenerator) {
+					if (databaseObject instanceof ISchemaIncludeGenerator) {
+						// Include case
+						includeChildren.add(((ISchemaIncludeGenerator)databaseObject).getXmlSchemaObject(collection, schema));
+						
+					}
+					else if (databaseObject instanceof ISchemaAttributeGenerator) {
 						// Attribute case
 						parentAttributeChildren.add(((ISchemaAttributeGenerator) databaseObject).getXmlSchemaObject(collection, schema));
 						

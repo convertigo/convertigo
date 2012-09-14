@@ -1729,7 +1729,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		tSequence.setParticle(sequence);
 		
 		XmlSchemaElement eDocument = new XmlSchemaElement();
-		eDocument.setName("document");
+		eDocument.setName("response");
 		
 		sequence.getItems().add(eDocument);
 		
