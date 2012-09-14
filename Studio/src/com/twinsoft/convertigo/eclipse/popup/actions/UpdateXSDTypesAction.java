@@ -182,6 +182,9 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
                         
                         if ((result != null) && (!result.equals(""))) {
                         	String xsdTypes = result;
+                        	if (requestable instanceof Transaction) {
+                        		((Transaction)requestable).writeSchemaToFile(xsdTypes);
+                        	}
                         	projectTreeObject.updateWebService(requestable.getParent(), requestable, xsdTypes, false);
                         	
                         	requestable.hasChanged = true;

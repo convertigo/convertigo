@@ -22,6 +22,17 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import java.io.File;
+
+import javax.xml.namespace.QName;
+
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaInclude;
+import org.apache.ws.commons.schema.constants.Constants;
+import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.Function;
@@ -41,13 +52,14 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XSDExtractor;
+import com.twinsoft.convertigo.engine.util.XSDUtils;
 
 /**
  * This is the base interface from a Convertigo transaction. A transaction is
  * an algorithm defining how to produce the XML document required by the Convertigo
  * user.
  */
-public abstract class Transaction extends RequestableObject {
+public abstract class Transaction extends RequestableObject implements ISchemaIncludeGenerator {
     
 	private static final long serialVersionUID = 8629312962446057509L;
 	
@@ -420,7 +432,7 @@ public abstract class Transaction extends RequestableObject {
 		
 		String ePrefix = getXsdExtractPrefix();
 		Document xsdDom = XSDExtractor.extractXSD(ePrefix, document);
-		
+
 		// Add Convertigo error element (Fix #1099)
 		Element complex, sequence, error;
 		NodeList list = xsdDom.getElementsByTagName("xsd:complexType");
@@ -512,4 +524,150 @@ public abstract class Transaction extends RequestableObject {
 		return prettyPrintedText;
 */
     }
+	
+	
+	private String getSchemaFileDirPath() {
+		String projectName = getProject().getName();
+		String connectorName = getConnector().getName();
+		String dirPath = Engine.PROJECTS_PATH + "/" + projectName + "/xsd/internal/" + connectorName;
+		return dirPath;
+	}
+	
+	private String getSchemaFilePath() {
+		String filePath = getSchemaFileDirPath()+ "/"+ getName() + ".xsd";
+		return filePath;
+	}
+	
+	protected String getXsdRequestElementName() {
+		return getXsdTypePrefix() + getName();
+	}
+	protected String getXsdResponseElementName() {
+		return getXsdTypePrefix() + getName() + "Response";
+	}
+	protected String getXsdRequestTypeName() {
+		return getXsdTypePrefix() + getName() + "RequestData";
+	}
+	protected String getXsdResponseTypeName() {
+		return getXsdTypePrefix() + getName() + "ResponseData";
+	}
+	protected String getXsdProjectPrefix() {
+		return getProject().getName()+"_ns";
+	}
+	protected String getXsdProjectNamespace() {
+		return getProject().getTargetNamespace();
+	}
+	
+	public void writeSchemaToFile(String xsdTypes) {
+		try {
+			String p_ns = getXsdProjectPrefix();
+			String requestName = getXsdRequestElementName();
+			String responseName = getXsdResponseElementName();
+			String requestType = getXsdRequestTypeName();
+			String responseType = getXsdResponseTypeName();
+			
+	        String xsdElements = "";
+			xsdElements += "  <xsd:element name=\""+ requestName +"\" type=\""+ p_ns +":"+ requestType +"\">\n";
+			xsdElements += "    <xsd:annotation>\n";
+			xsdElements += "      <xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
+			xsdElements += "    </xsd:annotation>\n";
+			xsdElements += "  </xsd:element>\n";
+			xsdElements += "  <xsd:element name=\""+ responseName +"\">\n";
+			xsdElements += "    <xsd:complexType>\n";
+			xsdElements += "      <xsd:sequence>\n";
+			xsdElements += "        <xsd:element name=\"response\" type=\""+ p_ns +":"+ responseType +"\"/>\n";
+			xsdElements += "      </xsd:sequence>\n";
+			xsdElements += "    </xsd:complexType>\n";
+			xsdElements += "  </xsd:element>\n";
+			
+    		String xsdDom = "<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\""
+    							+" xmlns:"+p_ns+"=\""+getProject().getTargetNamespace()+"\""
+    							+" attributeFormDefault=\""+getProject().getSchemaElementForm()+"\""
+    							+" elementFormDefault=\""+getProject().getSchemaElementForm()+"\""
+    							+" targetNamespace=\""+getProject().getTargetNamespace()+"\">\n"
+    						+ Engine.getExceptionSchema().replaceAll("p_ns", p_ns)
+    						+ xsdElements
+    						+ xsdTypes
+    						+ "</xsd:schema>";
+    		Document xsdDocument = XMLUtils.parseDOMFromString(xsdDom);
+    		if (xsdDocument != null) {
+    			//System.out.println(XMLUtils.prettyPrintDOM(xsdDocument));
+    			new File(getSchemaFileDirPath()).mkdirs();
+    			XMLUtils.saveXml(xsdDocument, getSchemaFilePath());
+    		}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	protected XmlSchema loadSchemaFromFile() {
+		try {
+			String filePath = getSchemaFilePath();
+			File xsdFile = new File(filePath);
+			if (xsdFile.exists()) {
+				Document xsdDocument = XSDUtils.getDefaultDocumentBuilder().parse(xsdFile);
+				XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
+				XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, null);
+				return xmlSchema;
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	protected XmlSchema createSchema() {
+		XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
+		NamespaceMap nsMap = new NamespaceMap();
+		nsMap.add("xsd", Constants.URI_2001_SCHEMA_XSD);
+		
+		XmlSchema transactionSchema = new XmlSchema(getProject().getTargetNamespace(), xmlSchemaCollection);
+		
+		//Create the request element
+		XmlSchemaElement requestElement = new XmlSchemaElement();
+		requestElement.setName(getXsdRequestElementName());
+		requestElement.setQName(new QName(getXsdProjectNamespace(), getXsdRequestElementName(), getXsdProjectPrefix()));
+		requestElement.setSchemaTypeName(new QName(getXsdProjectNamespace(), getXsdRequestTypeName(), getXsdProjectPrefix()));
+		transactionSchema.getItems().add(requestElement);
+		
+		//Create an empty request type
+		XmlSchemaComplexType requestType = new XmlSchemaComplexType(transactionSchema);
+		requestType.setName(getXsdRequestTypeName());
+		transactionSchema.getItems().add(requestType);
+		
+		// Create the response element
+		XmlSchemaElement responseElement = new XmlSchemaElement();
+		responseElement.setName(getXsdResponseElementName());
+		responseElement.setQName(new QName(getXsdProjectNamespace(), getXsdResponseElementName(), getXsdProjectPrefix()));
+		responseElement.setSchemaTypeName(new QName(getXsdProjectNamespace(), getXsdResponseTypeName(), getXsdProjectPrefix()));
+		transactionSchema.getItems().add(responseElement);
+		
+		//Create an empty response type
+		XmlSchemaComplexType responseType = new XmlSchemaComplexType(transactionSchema);
+		responseType.setName(getXsdResponseTypeName());
+		transactionSchema.getItems().add(responseType);
+		
+		return transactionSchema;
+	}
+	
+	public boolean isOutput() {
+		return true;
+	}
+	
+	public XmlSchemaInclude getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaInclude xmlSchemaInclude = new XmlSchemaInclude();		
+		XmlSchema transactionSchema = loadSchemaFromFile();
+		if (transactionSchema == null) {
+			transactionSchema = createSchema();
+		}
+		if (transactionSchema != null) {
+//			Transformer transformer = TransformerFactory.newInstance().newTransformer();
+//			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+//			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+//			transformer.transform(new DOMSource(xmlSchema.getSchemaDocument()), new StreamResult(System.out));
+			xmlSchemaInclude.setSchema(transactionSchema);
+		}
+		return xmlSchemaInclude;
+	}
 }
