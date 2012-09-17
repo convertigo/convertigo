@@ -1,6 +1,5 @@
 package com.twinsoft.convertigo.engine;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -103,7 +102,7 @@ public class SchemaManager implements AbstractManager {
 
 			@Override
 			public void init(DatabaseObject databaseObject) throws Exception {
-				List<XmlSchemaInclude> myIncludeChildren = includeChildren = new ArrayList<XmlSchemaInclude>();
+				List<XmlSchemaInclude> myIncludeChildren = includeChildren = new LinkedList<XmlSchemaInclude>();
 				List<XmlSchemaElement> myElementChildren = elementChildren = new LinkedList<XmlSchemaElement>();
 				List<XmlSchemaAttribute> myAttributeChildren = attributeChildren = new LinkedList<XmlSchemaAttribute>();
 				
@@ -122,9 +121,11 @@ public class SchemaManager implements AbstractManager {
 									schema.getItems().add(xmlSchemaObject);
 							}
 							else if (xmlSchemaObject instanceof XmlSchemaType) {
-								XmlSchemaType type = (XmlSchemaType)xmlSchemaObject;
-								if (collection.getTypeByQName(type.getQName()) == null)
-									schema.getItems().add(xmlSchemaObject);
+								XmlSchemaType type = (XmlSchemaType) xmlSchemaObject;
+								if (collection.getTypeByQName(type.getQName()) == null) {
+									schema.addType(type);
+									schema.getItems().add(type);
+								}
 							}
 							else {
 								schema.getItems().add(xmlSchemaObject);
@@ -175,6 +176,19 @@ public class SchemaManager implements AbstractManager {
 						XmlSchemaElement element = ((ISchemaElementGenerator) databaseObject).getXmlSchemaObject(collection, schema);
 						parentElementChildren.add(element);
 						
+						XmlSchemaType type = null;
+						String elementType = databaseObject.getComment();
+						if (elementType != null && elementType.startsWith("tn:")) {
+							elementType = elementType.substring(3);
+							type = schema.getTypeByName(elementType);
+						} else {
+							elementType = null;
+						}
+						 
+						if (type != null) {
+							element.setSchemaTypeName(type.getQName());
+						}
+						
 						// do something only on case of child
 						if (!myElementChildren.isEmpty() || !myAttributeChildren.isEmpty()) {
 	
@@ -191,45 +205,56 @@ public class SchemaManager implements AbstractManager {
 								}
 							}
 							
-							// new complexType to enhance the element
-							XmlSchemaComplexType cType = new XmlSchemaComplexType(schema);
-							element.setSchemaType(cType);
-							
-							// check for existing type
-							QName typeName = element.getSchemaTypeName();
-							if (typeName != null) {
-								// the type must be customized, create an extension
-								element.setSchemaTypeName(null);
-								
-								XmlSchemaComplexContent cContent = new XmlSchemaComplexContent();
-								cType.setContentModel(cContent);
-								
-								XmlSchemaComplexContentExtension cContentExt = new XmlSchemaComplexContentExtension();
-								cContent.setContent(cContentExt);
-									
-								cContentExt.setBaseTypeName(typeName);
-								cContentExt.setParticle(sequence);
-								
-								// add attributes
-								for (XmlSchemaAttribute attribute : myAttributeChildren) {
-									cContentExt.getAttributes().add(attribute);
+							if (type == null) {
+								// new complexType to enhance the element
+								XmlSchemaComplexType cType = new XmlSchemaComplexType(schema);
+								if (elementType != null) {
+									cType.setName(elementType);
+									schema.addType(cType);
+									schema.getItems().add(cType);
+									element.setSchemaTypeName(cType.getQName());
+								} else {
+									element.setSchemaType(cType);
 								}
 								
-								// add elements
-								if (sequence != null) {
+								// check for existing type
+								QName typeName = element.getSchemaTypeName();
+								if (elementType == null && typeName != null) {
+									// the type must be customized, create an extension
+									element.setSchemaTypeName(null);
+									
+									XmlSchemaComplexContent cContent = new XmlSchemaComplexContent();
+									cType.setContentModel(cContent);
+									
+									XmlSchemaComplexContentExtension cContentExt = new XmlSchemaComplexContentExtension();
+									cContent.setContent(cContentExt);
+										
+									cContentExt.setBaseTypeName(typeName);
 									cContentExt.setParticle(sequence);
+									
+									// add attributes
+									for (XmlSchemaAttribute attribute : myAttributeChildren) {
+										cContentExt.getAttributes().add(attribute);
+									}
+									
+									// add elements
+									if (sequence != null) {
+										cContentExt.setParticle(sequence);
+									}
+								} else {
+									
+									// add attributes
+									for (XmlSchemaAttribute attribute : myAttributeChildren) {
+										cType.getAttributes().add(attribute);
+									}
+									
+									// add elements
+									if (sequence != null) {
+										cType.setParticle(sequence);
+									}
 								}
 							} else {
-								
-								// add attributes
-								for (XmlSchemaAttribute attribute : myAttributeChildren) {
-									cType.getAttributes().add(attribute);
-								}
-								
-								// add elements
-								if (sequence != null) {
-									cType.setParticle(sequence);
-								}
+								// Type merging here
 							}
 						}
 					}
