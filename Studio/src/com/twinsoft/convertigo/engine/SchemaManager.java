@@ -29,12 +29,14 @@ import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 
+import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaElementGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaIncludeGenerator;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -55,237 +57,286 @@ public class SchemaManager implements AbstractManager {
 	
 	public XmlSchemaCollection getSchemasForProject(String projectName) throws Exception {
 		long timeStart = System.currentTimeMillis();
+		
+		// get directly the project reference (read only)
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		
 		final XmlSchemaCollection collection = new XmlSchemaCollection();
-		
-		final XmlSchema schema = new XmlSchema(project.getTargetNamespace(), collection);
-		
-		NamespaceMap nsMap = new NamespaceMap();
-		int cpt = 0;
-		for (XmlSchema xs : collection.getXmlSchemas()) {
-			String tns = xs.getTargetNamespace();
-			String prefix;
-			if (Constants.URI_2001_SCHEMA_XSD.equals(tns)) {
-				prefix = "xsd";
-			} else if (project.getTargetNamespace().equals(tns)) {
-				prefix = project.getName() + "_ns";
-			} else {
-				prefix = "p" + cpt++;
-			}
-			nsMap.add(prefix, tns);
-		}
-		
-		schema.setNamespaceContext(nsMap);
-		collection.setNamespaceContext(nsMap);
-		
-		schema.setElementFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
-		schema.setAttributeFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
-		
-		new WalkHelper() {
-			List<XmlSchemaInclude> includeChildren;
-			List<XmlSchemaElement> elementChildren;
-			List<XmlSchemaAttribute> attributeChildren;
-
-			@Override
-			public void init(DatabaseObject databaseObject) throws Exception {
-				List<XmlSchemaInclude> myIncludeChildren = includeChildren = new LinkedList<XmlSchemaInclude>();
-				List<XmlSchemaElement> myElementChildren = elementChildren = new LinkedList<XmlSchemaElement>();
-				List<XmlSchemaAttribute> myAttributeChildren = attributeChildren = new LinkedList<XmlSchemaAttribute>();
-				
-				super.init(databaseObject);
-				
-				for (XmlSchemaInclude include : myIncludeChildren) {
-					XmlSchema xmlSchema = include.getSchema();
-					if (xmlSchema != null) {
-						XmlSchemaObjectCollection c = xmlSchema.getItems();
-						Iterator<XmlSchemaObject> it = GenericUtils.cast(c.getIterator());
-						while (it.hasNext()) {
-							XmlSchemaObject xmlSchemaObject  = it.next();
-							if (xmlSchemaObject instanceof XmlSchemaElement) {
-								XmlSchemaElement element = (XmlSchemaElement)xmlSchemaObject;
-								if (collection.getElementByQName(element.getQName()) == null)
-									schema.getItems().add(xmlSchemaObject);
-							}
-							else if (xmlSchemaObject instanceof XmlSchemaType) {
-								XmlSchemaType type = (XmlSchemaType) xmlSchemaObject;
-								if (collection.getTypeByQName(type.getQName()) == null) {
-									schema.addType(type);
-									schema.getItems().add(type);
-								}
-							}
-							else {
-								schema.getItems().add(xmlSchemaObject);
-							}
-						}
-					}
+		try {
+			// empty schema for the current project
+			final XmlSchema schema = new XmlSchema(project.getTargetNamespace(), collection);
+			
+			// defined prefixes for this schema
+			NamespaceMap nsMap = new NamespaceMap();
+			int cpt = 0;
+			for (XmlSchema xs : collection.getXmlSchemas()) {
+				String tns = xs.getTargetNamespace();
+				String prefix;
+				if (Constants.URI_2001_SCHEMA_XSD.equals(tns)) {
+					prefix = "xsd";
+				} else if (project.getTargetNamespace().equals(tns)) {
+					prefix = project.getName() + "_ns";
+				} else {
+					prefix = "p" + cpt++;
 				}
-
-				for (XmlSchemaElement element : myElementChildren) {
-					schema.getItems().add(element);
-				}
-				
-				for (XmlSchemaAttribute attribute : myAttributeChildren) {
-					schema.getItems().add(attribute);
-				}
+				nsMap.add(prefix, tns);
 			}
 			
-			@Override
-			protected void walk(DatabaseObject databaseObject) throws Exception {
-				List<XmlSchemaElement> parentElementChildren = elementChildren;
-				List<XmlSchemaAttribute> parentAttributeChildren = attributeChildren;
-				
-				if (databaseObject instanceof ISchemaGenerator && ((ISchemaGenerator) databaseObject).isOutput()) {
-					List<XmlSchemaElement> myElementChildren = null;
-					List<XmlSchemaAttribute> myAttributeChildren = null;
-					
-					// prepare to receive children
-					if (databaseObject instanceof ISchemaElementGenerator) {
-						myElementChildren = elementChildren = new LinkedList<XmlSchemaElement>();
-						myAttributeChildren = attributeChildren = new LinkedList<XmlSchemaAttribute>();
-					}
-					
-					// deep walk
-					super.walk(databaseObject);
-					
-					// generate itself and add to the caller list
-					if (databaseObject instanceof ISchemaIncludeGenerator) {
-						// Include case
-						includeChildren.add(((ISchemaIncludeGenerator)databaseObject).getXmlSchemaObject(collection, schema));
-						
-					}
-					else if (databaseObject instanceof ISchemaAttributeGenerator) {
-						// Attribute case
-						parentAttributeChildren.add(((ISchemaAttributeGenerator) databaseObject).getXmlSchemaObject(collection, schema));
-						
-					} else if (databaseObject instanceof ISchemaElementGenerator) {
-						// Element case
-						XmlSchemaElement element = ((ISchemaElementGenerator) databaseObject).getXmlSchemaObject(collection, schema);
-						parentElementChildren.add(element);
-						
-						// new complexType to enhance the element
-						XmlSchemaComplexType cType = new XmlSchemaComplexType(schema);
-						
-						// do something only on case of child
-						if (!myElementChildren.isEmpty() || !myAttributeChildren.isEmpty()) {
+			schema.setNamespaceContext(nsMap);
+			collection.setNamespaceContext(nsMap);
+			
+			schema.setElementFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
+			schema.setAttributeFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
+			
+			new WalkHelper() {
+				List<XmlSchemaInclude> includeChildren;
+				List<XmlSchemaElement> elementChildren;
+				List<XmlSchemaAttribute> attributeChildren;
 	
-							// retrieve the xsd:element to add children
-							element = SchemaMeta.getContainerElement(element);
-
-							// prepare element children in a xsd:sequence
-							XmlSchemaSequence sequence = null;
-							if (!myElementChildren.isEmpty()) {
-								sequence = new XmlSchemaSequence();
-
-								for (XmlSchemaElement elt : myElementChildren) {
-									sequence.getItems().add(elt);
+				public void init(Project project) throws Exception {
+					List<XmlSchemaInclude> myIncludeChildren = includeChildren = new LinkedList<XmlSchemaInclude>();
+					List<XmlSchemaElement> myElementChildren = elementChildren = new LinkedList<XmlSchemaElement>();
+					List<XmlSchemaAttribute> myAttributeChildren = attributeChildren = new LinkedList<XmlSchemaAttribute>();
+					
+					super.init(project);
+					
+					for (XmlSchemaInclude include : myIncludeChildren) {
+						XmlSchema xmlSchema = include.getSchema();
+						if (xmlSchema != null) {
+							XmlSchemaObjectCollection c = xmlSchema.getItems();
+							Iterator<XmlSchemaObject> it = GenericUtils.cast(c.getIterator());
+							while (it.hasNext()) {
+								XmlSchemaObject xmlSchemaObject  = it.next();
+								if (xmlSchemaObject instanceof XmlSchemaElement) {
+									XmlSchemaElement element = (XmlSchemaElement)xmlSchemaObject;
+									if (collection.getElementByQName(element.getQName()) == null)
+										schema.getItems().add(xmlSchemaObject);
+								}
+								else if (xmlSchemaObject instanceof XmlSchemaType) {
+									XmlSchemaType type = (XmlSchemaType) xmlSchemaObject;
+									if (collection.getTypeByQName(type.getQName()) == null) {
+										schema.addType(type);
+										schema.getItems().add(type);
+									}
+								}
+								else {
+									schema.getItems().add(xmlSchemaObject);
 								}
 							}
-
-							// check for existing type
-							QName typeName = element.getSchemaTypeName();
-							if (typeName != null) {
-								// the type must be customized, create an extension
-								element.setSchemaTypeName(null);
-
-								XmlSchemaComplexContent cContent = new XmlSchemaComplexContent();
-								cType.setContentModel(cContent);
-
-								XmlSchemaComplexContentExtension cContentExt = new XmlSchemaComplexContentExtension();
-								cContent.setContent(cContentExt);
-
-								cContentExt.setBaseTypeName(typeName);
-
-								// add attributes
-								for (XmlSchemaAttribute attribute : myAttributeChildren) {
-									cContentExt.getAttributes().add(attribute);
-								}
-
-								// add elements
-								if (sequence != null) {
-									cContentExt.setParticle(sequence);
-								}
-							} else {
-
-								// add attributes
-								for (XmlSchemaAttribute attribute : myAttributeChildren) {
-									cType.getAttributes().add(attribute);
-								}
-
-								// add elements
-								if (sequence != null) {
-									cType.setParticle(sequence);
-								}
-							}
-						}
-						
-						XmlSchemaType type = null;
-						String elementType = databaseObject.getComment();
-						if (elementType != null && elementType.startsWith("tn:")) {
-							elementType = elementType.substring(3);
-							type = schema.getTypeByName(elementType);
-							if (type == null) {
-								cType.setName(elementType);
-								schema.addType(cType);
-								schema.getItems().add(cType);
-							} else {
-								XmlSchemaComplexType currentCType = (XmlSchemaComplexType) type;
-								merge(currentCType, cType);
-							}
-
-							element.setSchemaTypeName(cType.getQName());
-						} else {
-							element.setSchemaType(cType);
 						}
 					}
-				} else {
-					// doesn't generate schema, just deep walk
-					super.walk(databaseObject);
+	
+					for (XmlSchemaElement element : myElementChildren) {
+						schema.getItems().add(element);
+					}
+					
+					for (XmlSchemaAttribute attribute : myAttributeChildren) {
+						schema.getItems().add(attribute);
+					}
 				}
-
-				elementChildren = parentElementChildren;
-				attributeChildren = parentAttributeChildren;
-			}
-		}.init(project);
+				
+				@Override
+				protected void walk(DatabaseObject databaseObject) throws Exception {
+					if ((databaseObject instanceof Step && !((Step) databaseObject).isEnable())) {
+						return;
+					}
+					
+					List<XmlSchemaElement> parentElementChildren = elementChildren;
+					List<XmlSchemaAttribute> parentAttributeChildren = attributeChildren;
+					
+					if (databaseObject instanceof ISchemaGenerator && ((ISchemaGenerator) databaseObject).isOutput()) {
+						List<XmlSchemaElement> myElementChildren = null;
+						List<XmlSchemaAttribute> myAttributeChildren = null;
+						
+						// prepare to receive children
+						if (databaseObject instanceof ISchemaElementGenerator) {
+							myElementChildren = elementChildren = new LinkedList<XmlSchemaElement>();
+							myAttributeChildren = attributeChildren = new LinkedList<XmlSchemaAttribute>();
+						}
+						
+						// deep walk
+						super.walk(databaseObject);
+						
+						// generate itself and add to the caller list
+						if (databaseObject instanceof ISchemaIncludeGenerator) {
+							// Include case
+							includeChildren.add(((ISchemaIncludeGenerator)databaseObject).getXmlSchemaObject(collection, schema));
+							
+						}
+						else if (databaseObject instanceof ISchemaAttributeGenerator) {
+							// Attribute case
+							parentAttributeChildren.add(((ISchemaAttributeGenerator) databaseObject).getXmlSchemaObject(collection, schema));
+							
+						} else if (databaseObject instanceof ISchemaElementGenerator) {
+							// Element case
+							XmlSchemaElement element = ((ISchemaElementGenerator) databaseObject).getXmlSchemaObject(collection, schema);
+							parentElementChildren.add(element);
+							
+							// new complexType to enhance the element
+							XmlSchemaComplexType cType = new XmlSchemaComplexType(schema);
+							
+							
+							// do something only on case of child
+							if (!myElementChildren.isEmpty() || !myAttributeChildren.isEmpty()) {
 		
-		long timeStop = System.currentTimeMillis();
-		
-		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-		transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-		transformer.transform(new DOMSource(schema.getSchemaDocument()), new StreamResult(System.out));
-		System.out.println("Times >> total : " + (timeStop - timeStart) + " ms");
+								// retrieve the xsd:element to add children
+								element = SchemaMeta.getContainerElement(element);
+	
+								// prepare element children in a xsd:sequence
+								XmlSchemaSequence sequence = null;
+								if (!myElementChildren.isEmpty()) {
+									sequence = new XmlSchemaSequence();
+	
+									for (XmlSchemaElement elt : myElementChildren) {
+										sequence.getItems().add(elt);
+									}
+								}
+	
+								// check for existing type
+								QName typeName = element.getSchemaTypeName();
+								if (typeName != null) {
+									// the type must be customized, create an extension
+									element.setSchemaTypeName(null);
+	
+									XmlSchemaComplexContent cContent = new XmlSchemaComplexContent();
+									cType.setContentModel(cContent);
+	
+									XmlSchemaComplexContentExtension cContentExt = new XmlSchemaComplexContentExtension();
+									cContent.setContent(cContentExt);
+	
+									cContentExt.setBaseTypeName(typeName);
+	
+									// add attributes
+									for (XmlSchemaAttribute attribute : myAttributeChildren) {
+										cContentExt.getAttributes().add(attribute);
+									}
+	
+									// add elements
+									if (sequence != null) {
+										cContentExt.setParticle(sequence);
+									}
+								} else {
+	
+									// add attributes
+									for (XmlSchemaAttribute attribute : myAttributeChildren) {
+										cType.getAttributes().add(attribute);
+									}
+	
+									// add elements
+									if (sequence != null) {
+										cType.setParticle(sequence);
+									}
+								}
+							}
+							
+							// check if the type is named
+							XmlSchemaType type = null;
+							String elementType = databaseObject.getComment();
+							if (elementType != null && elementType.startsWith("tn:")) {
+								elementType = elementType.substring(3);
+								type = schema.getTypeByName(elementType);
+								
+								if (type == null) {
+									// the type doesn't exist, declare it
+									cType.setName(elementType);
+									schema.addType(cType);
+									schema.getItems().add(cType);
+								} else {
+									// the type already exists, merge it
+									XmlSchemaComplexType currentCType = (XmlSchemaComplexType) type;
+									merge(currentCType, cType);
+								}
+								
+								// reference the type in the current element
+								element.setSchemaTypeName(cType.getQName());
+							} else if (element.getSchemaTypeName() == null) {
+								// the element contains an anonymous type
+								element.setSchemaType(cType);
+							}
+						}
+					} else {
+						// doesn't generate schema, just deep walk
+						super.walk(databaseObject);
+					}
+	
+					elementChildren = parentElementChildren;
+					attributeChildren = parentAttributeChildren;
+				}
+	
+				@Override
+				protected boolean before(DatabaseObject databaseObject, Class<? extends DatabaseObject> dboClass) {
+					// just walk ISchemaGenerator DBO or Connector
+					return ISchemaGenerator.class.isAssignableFrom(dboClass) || Connector.class.isAssignableFrom(dboClass);
+				}
+			}.init(project);
+			
+			long timeStop = System.currentTimeMillis();
+			
+			// pretty print
+			Transformer transformer = TransformerFactory.newInstance().newTransformer();
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+			transformer.transform(new DOMSource(schema.getSchemaDocument()), new StreamResult(System.out));
+			System.out.println("Times >> total : " + (timeStop - timeStart) + " ms");
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 		return collection;
 	}
 	
 	private static void merge(XmlSchemaComplexType first, XmlSchemaComplexType second) {
+		// merge attributes
 		mergeAttributes(first.getAttributes(), second.getAttributes());
+		
+		// merge sequence of xsd:element if any
 		XmlSchemaSequence firstSequence = (XmlSchemaSequence) first.getParticle();
 		XmlSchemaSequence secondSequence = (XmlSchemaSequence) second.getParticle();
+		
 		if (firstSequence != null || secondSequence != null) {
+			// create missing sequence
 			if (firstSequence == null) {
 				firstSequence = new XmlSchemaSequence();
 				first.setParticle(firstSequence);
 			} else if (secondSequence == null) {
 				secondSequence = new XmlSchemaSequence();
 			}
+			
+			// merge sequence
 			mergeElements(firstSequence.getItems(), secondSequence.getItems());
+		} else {
+			// suppose the type contains an extension
+			XmlSchemaComplexContent firstContent = (XmlSchemaComplexContent) first.getContentModel();
+			XmlSchemaComplexContent secondContent = (XmlSchemaComplexContent) second.getContentModel();
+			
+			if (firstContent != null && secondContent != null) {
+				XmlSchemaComplexContentExtension firstContentExtension = (XmlSchemaComplexContentExtension) firstContent.getContent();
+				XmlSchemaComplexContentExtension secondContentExtension = (XmlSchemaComplexContentExtension) secondContent.getContent();
+	
+				mergeAttributes(firstContentExtension.getAttributes(), secondContentExtension.getAttributes());
+			}
 		}
 	}
 	
 
 	
 	private static void mergeAttributes(XmlSchemaObjectCollection first, XmlSchemaObjectCollection second) {
+		// merge only if there attributes
 		if (first.getCount() != 0 && second.getCount() != 0) {
+			// copy and sort attributes
 			Iterator<XmlSchemaAttribute> iFirst = XmlSchemaUtils.attributesToSortedSet(first).iterator();
 			Iterator<XmlSchemaAttribute> iSecond = XmlSchemaUtils.attributesToSortedSet(second).iterator();
 			XmlSchemaAttribute aFirst = GenericUtils.nextOrNull(iFirst);
 			XmlSchemaAttribute aSecond = GenericUtils.nextOrNull(iSecond);
 			
+			// prepare to receive ordered attributes
 			XmlSchemaUtils.clear(first);
 	
-			while (aFirst != null && aSecond != null) {			
+			while (aFirst != null && aSecond != null) {
+				// compare attributes name
 				int compare = XmlSchemaUtils.attributeNameComparator.compare(aFirst, aSecond);
 				if (compare == 0) {
+					// same name, make it optional if one of them is optional
 					if (!aFirst.getUse().equals(aSecond.getUse())) {
 						aFirst.setUse(XmlSchemaUtils.attributeUseOptional);
 					}
@@ -293,16 +344,19 @@ public class SchemaManager implements AbstractManager {
 					aFirst = GenericUtils.nextOrNull(iFirst);
 					aSecond = GenericUtils.nextOrNull(iSecond);
 				} else if (compare < 0) {
+					// not same name, add the first attribute as optional
 					aFirst.setUse(XmlSchemaUtils.attributeUseOptional);
 					first.add(aFirst);
 					aFirst = GenericUtils.nextOrNull(iFirst);
 				} else {
+					// not same name, add the second attribute as optional
 					aSecond.setUse(XmlSchemaUtils.attributeUseOptional);
 					first.add(aSecond);
 					aSecond = GenericUtils.nextOrNull(iSecond);
 				}
 			}
 			
+			// copy tailing attributes as optional 
 			if (aFirst != null || (aFirst = aSecond) != null) {
 				aFirst.setUse(XmlSchemaUtils.attributeUseOptional);
 				first.add(aFirst);			
@@ -317,21 +371,31 @@ public class SchemaManager implements AbstractManager {
 	}
 	
 	private static void mergeElements(XmlSchemaObjectCollection first, XmlSchemaObjectCollection second) {
+		// wrap element collection in a standard java List interface
 		List<XmlSchemaElement> lFirst = new XmlSchemaUtils.XmlSchemaObjectCollectionList<XmlSchemaElement>(first);
 		List<XmlSchemaElement> result = new ArrayList<XmlSchemaElement>(first.getCount() + second.getCount());
 		List<Boolean> minor = new ArrayList<Boolean>(first.getCount() + second.getCount());
 		
 		GenericUtils.merge(lFirst, new XmlSchemaUtils.XmlSchemaObjectCollectionList<XmlSchemaElement>(second), result, minor, new Comparator<XmlSchemaElement>() {
-			public int compare(XmlSchemaElement o1, XmlSchemaElement o2) {
-				int comp = o1.getName().compareTo(o2.getName());
+			public int compare(XmlSchemaElement first, XmlSchemaElement second) {
+				int comp = first.getName().compareTo(second.getName());
 				if (comp == 0) {
 					// merge element
-					comp += 0;
+					XmlSchemaComplexType tFirst = (XmlSchemaComplexType) first.getSchemaType();
+					XmlSchemaComplexType tSecond = (XmlSchemaComplexType) second.getSchemaType();
+					if (tFirst != null && tSecond != null) {
+						merge(tFirst, tSecond);
+					}
+					if (tFirst == null && tSecond != null) {
+						first.setSchemaTypeName(null);
+						first.setSchemaType(tSecond);
+					}
 				}
 				return comp;
 			}
 		});
 		
+		// set the merged content in the first collection
 		lFirst.clear();
 		
 		for (int i = 0; i < result.size(); i++) {
