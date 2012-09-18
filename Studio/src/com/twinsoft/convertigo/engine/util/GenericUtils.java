@@ -28,6 +28,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -237,5 +238,102 @@ public class GenericUtils {
 			}
 		}
 		return result;
+	}
+	
+	public static <E> E nextOrNull(Iterator<E> iterator) {
+		return iterator.hasNext() ? iterator.next() : null;
+	}
+	
+	public static <E> void merge(List<E> first, List<E> second, List<E> result, List<Boolean> minor, Comparator<E> comparator) {
+		int iFirst = 0;
+		int iSecond = 0;
+		int sFirst = first.size();
+		int sSecond = second.size();
+		
+		while (iFirst < sFirst && iSecond < sSecond) {
+			E finded = null;
+			boolean search = true;
+			for (int dec = 0 ; finded == null && search; dec++) {
+				search = false;
+				int iEnd = iFirst + dec;
+				if (iEnd < sFirst) {
+					search = true;
+					E item1 = first.get(iEnd);
+					E item2 = second.get(iSecond);
+					if (comparator.compare(item1, item2) == 0) {
+						for (; iFirst < iEnd ; iFirst++) {
+							result.add(first.get(iFirst));
+							minor.add(true);
+						}
+						finded = item1;
+					}
+				}
+				if (finded == null && (iEnd = iSecond + dec) < sSecond) {
+					search = true;
+					E item1 = first.get(iFirst);
+					E item2 = second.get(iEnd);
+					if (comparator.compare(item1, item2) == 0) {
+						for (; iSecond < iEnd ; iSecond++) {
+							result.add(second.get(iSecond));
+							minor.add(true);
+						}
+						finded = item2;
+					}
+				}
+			}
+			
+			if (search) {
+				result.add(finded);
+				minor.add(false);
+				iFirst++;
+				iSecond++;
+			} else {
+				result.add(first.get(iFirst++));
+				minor.add(true);
+				result.add(second.get(iSecond++));
+				minor.add(true);
+			}
+		}
+		
+		for (;iFirst < sFirst; iFirst++) {
+			result.add(first.get(iFirst));
+			minor.add(true);
+		}
+		
+		for (;iSecond < sSecond; iSecond++) {
+			result.add(second.get(iSecond));
+			minor.add(true);
+		}
+	}
+
+	public static void main(String args[]) {
+//		List<Character> a1 = Arrays.asList('A', 'B', 'C', 'D', 'E', 'F');
+//		List<Character> b1 = Arrays.asList('A', 'B', 'C', 'D', 'E', 'F');
+		
+//		List<Character> a1 = Arrays.asList('A', 'C', 'D');
+//		List<Character> b1 = Arrays.asList('A', 'B', 'C');
+
+//		List<Character> a1 = Arrays.asList('A', 'B', 'C', 'D', 'E', 'F');
+//		List<Character> b1 = Arrays.asList('A', 'B', 'D', 'E', 'F');
+		
+		List<Character> a1 = Arrays.asList('A', 'B', 'C', 'E', 'D', 'F');
+		List<Character> b1 = Arrays.asList('B', 'B', 'C', 'A', 'F', 'D', 'F');
+
+//		List<Character> a1 = Arrays.asList('E', 'D');
+//		List<Character> b1 = Arrays.asList('A', 'F', 'D');
+		
+		List<Character> result = new ArrayList<Character>(a1.size() + b1.size());
+		List<Boolean> minor = new ArrayList<Boolean>(a1.size() + b1.size());
+		
+		merge(a1, b1, result, minor, new Comparator<Character>() {
+			public int compare(Character o1, Character o2) {
+				return o1.compareTo(o2);
+			}
+		});
+		
+		System.out.println(a1);
+		System.out.println(b1);
+		System.out.println(result);
+		System.out.println(minor);
 	}
 }

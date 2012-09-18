@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class AttributeStep extends Step implements ISchemaAttributeGenerator {
 
@@ -261,6 +262,7 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator {
 		XmlSchemaAttribute attribute = new XmlSchemaAttribute();
 		attribute.setName(getStepNodeName());
 		attribute.setSchemaTypeName(Constants.XSD_STRING);
+		attribute.setUse(XmlSchemaUtils.attributeUseRequired);
 		addXmlSchemaAnnotation(attribute);
 		return attribute;
 	}

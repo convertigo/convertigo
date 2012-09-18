@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLAttributeStep extends Step implements IStepSourceContainer, ISchemaAttributeGenerator {
 
@@ -255,6 +256,7 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 		XmlSchemaAttribute attribute = new XmlSchemaAttribute();
 		attribute.setName(getStepNodeName());
 		attribute.setSchemaTypeName(Constants.XSD_STRING);
+		attribute.setUse(XmlSchemaUtils.attributeUseRequired);
 		addXmlSchemaAnnotation(attribute);
 		return attribute;
 	}
