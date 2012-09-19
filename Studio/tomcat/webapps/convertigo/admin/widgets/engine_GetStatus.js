@@ -64,6 +64,8 @@ function engine_GetStatus_update() {
 		$("#statusBuild").html($(xml).find("version").attr("build"));
 		$("#statusEngine").html($(xml).find("version").attr("engine"));
 		$("#statusObjects").html($(xml).find("version").attr("beans"));	
+		$("#statusBuildDate").html($(xml).find("build").attr("date"));
+		$("#statusBuildFilename").html($(xml).find("build").attr("filename"));	
 		instanceUpdateDate++;
 		init_date_started_from(instanceUpdateDate);		
 	});	

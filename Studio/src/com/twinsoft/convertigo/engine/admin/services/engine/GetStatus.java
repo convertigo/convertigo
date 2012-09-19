@@ -25,7 +25,9 @@ package com.twinsoft.convertigo.engine.admin.services.engine;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Properties;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.Document;
@@ -65,6 +67,20 @@ public class GetStatus extends XmlService {
         versionElement.setAttribute("engine", com.twinsoft.convertigo.engine.Version.version);
         versionElement.setAttribute("build", com.twinsoft.convertigo.engine.Version.revision);
         rootElement.appendChild(versionElement);
+        
+        try {
+			Element buildElement = document.createElement("build");
+			Properties properties = new Properties();
+			ServletContext servletContext = request.getSession().getServletContext();
+			properties.load(servletContext.getResourceAsStream("/WEB-INF/build.txt"));
+			buildElement.setAttribute("date", properties.getProperty("build.date"));
+			buildElement.setAttribute("filename", properties.getProperty("build.filename"));
+			buildElement.setAttribute("version", properties.getProperty("build.version"));
+			rootElement.appendChild(buildElement);
+		} catch (Exception e) {
+			// Ignore
+			Engine.logAdmin.error("Unable to get build info", e);
+		}
         
         Element EngineState = document.createElement("engineState");        
         Text textStart = null;
