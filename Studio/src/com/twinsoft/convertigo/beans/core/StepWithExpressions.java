@@ -33,7 +33,7 @@ import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
-import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
@@ -51,7 +51,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public abstract class StepWithExpressions extends Step implements IContextMaintainer, IContainerOrdered, ISchemaElementGenerator {
+public abstract class StepWithExpressions extends Step implements IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator {
 	private static final long serialVersionUID = 6835033841635158551L;
 
 	/**
@@ -866,7 +866,11 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	}
 	
 	@Override
-	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		return (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+	public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		return (XmlSchemaParticle) super.getXmlSchemaObject(collection, schema);
+	}
+
+	public boolean isGenerateSchema() {
+		return isOutput();
 	}
 }

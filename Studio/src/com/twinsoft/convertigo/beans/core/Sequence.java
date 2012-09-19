@@ -1741,4 +1741,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public boolean isOutput() {
 		return true;
 	}
+	
+	public boolean isGenerateSchema() {
+		return true;
+	}
 }

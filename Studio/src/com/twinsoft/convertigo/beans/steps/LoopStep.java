@@ -24,12 +24,19 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.util.Vector;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 
 public abstract class LoopStep extends BlockStep {
 
@@ -120,5 +127,27 @@ public abstract class LoopStep extends BlockStep {
 	@Override
 	protected void reset() throws EngineException {
 		super.reset();
+	}
+
+	@Override
+	public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaSequence sequence = new XmlSchemaSequence();
+		sequence.setMinOccurs(0);
+		sequence.setMaxOccurs(Long.MAX_VALUE);
+		XmlSchemaParticle particle = sequence;
+		if (isOutput()) {
+			XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+			XmlSchemaComplexType cType = new XmlSchemaComplexType(schema);
+			SchemaMeta.setContainerParticle(particle, sequence);
+			element.setType(cType);
+			cType.setParticle(sequence);
+			particle = element;
+		}
+		return particle;
+	}
+
+	@Override
+	public boolean isGenerateSchema() {
+		return true;
 	}
 }

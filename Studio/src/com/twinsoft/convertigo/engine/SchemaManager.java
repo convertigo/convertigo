@@ -24,6 +24,7 @@ import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
@@ -35,6 +36,7 @@ import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaElementGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaIncludeGenerator;
+import com.twinsoft.convertigo.beans.core.ISchemaParticleGenerator;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
@@ -90,12 +92,12 @@ public class SchemaManager implements AbstractManager {
 			
 			new WalkHelper() {
 				List<XmlSchemaInclude> includeChildren;
-				List<XmlSchemaElement> elementChildren;
+				List<XmlSchemaParticle> particleChildren;
 				List<XmlSchemaAttribute> attributeChildren;
 	
 				public void init(Project project) throws Exception {
 					List<XmlSchemaInclude> myIncludeChildren = includeChildren = new LinkedList<XmlSchemaInclude>();
-					List<XmlSchemaElement> myElementChildren = elementChildren = new LinkedList<XmlSchemaElement>();
+					List<XmlSchemaParticle> myParticleChildren = particleChildren = new LinkedList<XmlSchemaParticle>();
 					List<XmlSchemaAttribute> myAttributeChildren = attributeChildren = new LinkedList<XmlSchemaAttribute>();
 					
 					super.init(project);
@@ -126,8 +128,8 @@ public class SchemaManager implements AbstractManager {
 						}
 					}
 	
-					for (XmlSchemaElement element : myElementChildren) {
-						schema.getItems().add(element);
+					for (XmlSchemaParticle particle : myParticleChildren) {
+						schema.getItems().add(particle);
 					}
 					
 					for (XmlSchemaAttribute attribute : myAttributeChildren) {
@@ -141,17 +143,20 @@ public class SchemaManager implements AbstractManager {
 						return;
 					}
 					
-					List<XmlSchemaElement> parentElementChildren = elementChildren;
+					List<XmlSchemaParticle> parentParticleChildren = particleChildren;
 					List<XmlSchemaAttribute> parentAttributeChildren = attributeChildren;
 					
-					if (databaseObject instanceof ISchemaGenerator && ((ISchemaGenerator) databaseObject).isOutput()) {
-						List<XmlSchemaElement> myElementChildren = null;
+					if (databaseObject instanceof ISchemaGenerator && ((ISchemaGenerator) databaseObject).isOutput() ||
+							databaseObject instanceof ISchemaParticleGenerator && ((ISchemaParticleGenerator) databaseObject).isGenerateSchema()) {
+						List<XmlSchemaParticle> myParticleChildren = null;
 						List<XmlSchemaAttribute> myAttributeChildren = null;
 						
 						// prepare to receive children
-						if (databaseObject instanceof ISchemaElementGenerator) {
-							myElementChildren = elementChildren = new LinkedList<XmlSchemaElement>();
-							myAttributeChildren = attributeChildren = new LinkedList<XmlSchemaAttribute>();
+						if (databaseObject instanceof ISchemaParticleGenerator) {
+							myParticleChildren = particleChildren = new LinkedList<XmlSchemaParticle>();
+							if (databaseObject instanceof ISchemaElementGenerator) {
+								myAttributeChildren = attributeChildren = new LinkedList<XmlSchemaAttribute>();
+							}
 						}
 						
 						// deep walk
@@ -170,25 +175,25 @@ public class SchemaManager implements AbstractManager {
 						} else if (databaseObject instanceof ISchemaElementGenerator) {
 							// Element case
 							XmlSchemaElement element = ((ISchemaElementGenerator) databaseObject).getXmlSchemaObject(collection, schema);
-							parentElementChildren.add(element);
+							parentParticleChildren.add(element);
 							
 							// new complexType to enhance the element
 							XmlSchemaComplexType cType = new XmlSchemaComplexType(schema);
 							
 							
 							// do something only on case of child
-							if (!myElementChildren.isEmpty() || !myAttributeChildren.isEmpty()) {
+							if (!myParticleChildren.isEmpty() || !myAttributeChildren.isEmpty()) {
 		
 								// retrieve the xsd:element to add children
 								element = SchemaMeta.getContainerElement(element);
 	
 								// prepare element children in a xsd:sequence
 								XmlSchemaSequence sequence = null;
-								if (!myElementChildren.isEmpty()) {
+								if (!myParticleChildren.isEmpty()) {
 									sequence = new XmlSchemaSequence();
 	
-									for (XmlSchemaElement elt : myElementChildren) {
-										sequence.getItems().add(elt);
+									for (XmlSchemaParticle particle : myParticleChildren) {
+										sequence.getItems().add(particle);
 									}
 								}
 	
@@ -253,13 +258,26 @@ public class SchemaManager implements AbstractManager {
 								// the element contains an anonymous type
 								element.setSchemaType(cType);
 							}
+						} else if (databaseObject instanceof ISchemaParticleGenerator) {
+							// Particle case
+							XmlSchemaParticle particle = ((ISchemaParticleGenerator) databaseObject).getXmlSchemaObject(collection, schema);
+							parentParticleChildren.add(particle);
+							
+							particle = SchemaMeta.getContainerParticle(particle);
+							if (particle instanceof XmlSchemaSequence) {
+								XmlSchemaSequence sequence = (XmlSchemaSequence) particle;
+								for (XmlSchemaParticle part : myParticleChildren) {
+									sequence.getItems().add(part);
+								} 
+							}
+							
 						}
 					} else {
 						// doesn't generate schema, just deep walk
 						super.walk(databaseObject);
 					}
 	
-					elementChildren = parentElementChildren;
+					particleChildren = parentParticleChildren;
 					attributeChildren = parentAttributeChildren;
 				}
 	

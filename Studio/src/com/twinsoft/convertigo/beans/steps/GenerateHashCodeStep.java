@@ -237,4 +237,8 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty, ISchema
 		element.setSchemaTypeName(Constants.XSD_STRING);
 		return element;
 	}
+
+	public boolean isGenerateSchema() {
+		return isOutput();
+	}
 }
