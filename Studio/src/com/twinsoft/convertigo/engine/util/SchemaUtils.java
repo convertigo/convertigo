@@ -212,6 +212,7 @@ public class SchemaUtils {
 									XmlSchemaObject xmlSchemaObject = includes.getItem(i);
 									if (xmlSchemaObject instanceof XmlSchemaImport) {
 										if (((XmlSchemaImport) xmlSchemaObject).getNamespace().equals(namespaceURI)) {
+											//TODO: create XSD dbo on project
 											XmlSchemaImport xmlSchemaImport = new XmlSchemaImport();
 											xmlSchemaImport.setSchemaLocation("../../../" +((XmlSchemaImport) xmlSchemaObject).getSchemaLocation());
 											xmlSchemaImport.setNamespace(namespaceURI);
