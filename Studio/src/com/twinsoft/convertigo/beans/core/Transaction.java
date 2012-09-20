@@ -27,8 +27,11 @@ import java.io.File;
 import javax.xml.namespace.QName;
 
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAnnotated;
+import org.apache.ws.commons.schema.XmlSchemaAnnotation;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaDocumentation;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.mozilla.javascript.EcmaError;
@@ -608,36 +611,84 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 	}
 	
 	protected XmlSchema createSchema() {
-		XmlSchema transactionSchema = SchemaUtils.createSchema(getXsdProjectPrefix(),
-																getXsdProjectNamespace(),
-																getProject().getSchemaElementForm(),
-																getProject().getSchemaElementForm());
+		String prefix = getXsdProjectPrefix();
+		String tns = getXsdProjectNamespace();
+		String elementForm = getProject().getSchemaElementForm();
+		String attributeForm = getProject().getSchemaElementForm();
 		
-		//Create the request element
-		XmlSchemaElement requestElement = new XmlSchemaElement();
-		requestElement.setName(getXsdRequestElementName());
-		requestElement.setQName(new QName(getXsdProjectNamespace(), getXsdRequestElementName(), getXsdProjectPrefix()));
-		requestElement.setSchemaTypeName(new QName(getXsdProjectNamespace(), getXsdRequestTypeName(), getXsdProjectPrefix()));
-		transactionSchema.getItems().add(requestElement);
+		XmlSchema xmlSchema = SchemaUtils.createSchema(prefix, tns, elementForm, attributeForm);
+		addSchemaRequestElement(xmlSchema);
+		addSchemaRequestType(xmlSchema);
+		addSchemaResponseElement(xmlSchema);
+		addSchemaResponseType(xmlSchema);
 		
-		//Create an empty request type
-		XmlSchemaComplexType requestType = new XmlSchemaComplexType(transactionSchema);
-		requestType.setName(getXsdRequestTypeName());
-		transactionSchema.getItems().add(requestType);
+		return xmlSchema;
+	}
+	
+	protected XmlSchemaAnnotation addSchemaCommentAnnotation(XmlSchemaAnnotated annoted, String comment) {
+		XmlSchemaAnnotation annotation = null;
+		if (comment != null && comment.length() > 0) {
+			annotation = new XmlSchemaAnnotation();
+			XmlSchemaDocumentation documentation = new XmlSchemaDocumentation();
+			documentation.setSource(XMLUtils.getCDataXml(comment));
+			annotation.getItems().add(documentation);
+			annoted.setAnnotation(annotation);
+		}
+		return annotation;
+	}
+	
+	protected XmlSchemaElement addSchemaRequestElement(XmlSchema xmlSchema) {
+		String nsURI = xmlSchema.getTargetNamespace();
+		String prefix = xmlSchema.getNamespaceContext().getPrefix(nsURI);
+		String localName = getXsdRequestElementName();
 		
-		// Create the response element
-		XmlSchemaElement responseElement = new XmlSchemaElement();
-		responseElement.setName(getXsdResponseElementName());
-		responseElement.setQName(new QName(getXsdProjectNamespace(), getXsdResponseElementName(), getXsdProjectPrefix()));
-		responseElement.setSchemaTypeName(new QName(getXsdProjectNamespace(), getXsdResponseTypeName(), getXsdProjectPrefix()));
-		transactionSchema.getItems().add(responseElement);
+		XmlSchemaElement xmlSchemaElement = new XmlSchemaElement();
+		xmlSchemaElement.setName(localName);
+		xmlSchemaElement.setQName(new QName(nsURI, localName, prefix));
+		xmlSchemaElement.setSchemaTypeName(new QName(nsURI, getXsdRequestTypeName(), prefix));
 		
-		//Create an empty response type
-		XmlSchemaComplexType responseType = new XmlSchemaComplexType(transactionSchema);
-		responseType.setName(getXsdResponseTypeName());
-		transactionSchema.getItems().add(responseType);
+		addSchemaCommentAnnotation(xmlSchemaElement, getComment());
 		
-		return transactionSchema;
+		xmlSchema.getItems().add(xmlSchemaElement);
+		
+		return xmlSchemaElement;
+	}
+	
+	protected XmlSchemaComplexType addSchemaRequestType(XmlSchema xmlSchema) {
+		String localName = getXsdRequestTypeName();
+		
+		XmlSchemaComplexType xmlSchemaComplexType = new XmlSchemaComplexType(xmlSchema);
+		xmlSchemaComplexType.setName(localName);
+		
+		xmlSchema.getItems().add(xmlSchemaComplexType);
+		
+		return xmlSchemaComplexType;
+	}
+	
+	protected XmlSchemaElement addSchemaResponseElement(XmlSchema xmlSchema) {
+		String nsURI = xmlSchema.getTargetNamespace();
+		String prefix = xmlSchema.getNamespaceContext().getPrefix(nsURI);
+		String localName = getXsdResponseElementName();
+		
+		XmlSchemaElement xmlSchemaElement = new XmlSchemaElement();
+		xmlSchemaElement.setName(localName);
+		xmlSchemaElement.setQName(new QName(nsURI, localName, prefix));
+		xmlSchemaElement.setSchemaTypeName(new QName(nsURI, getXsdRequestTypeName(), prefix));
+		
+		xmlSchema.getItems().add(xmlSchemaElement);
+		
+		return xmlSchemaElement;
+	}
+	
+	protected XmlSchemaComplexType addSchemaResponseType(XmlSchema xmlSchema) {
+		String localName = getXsdResponseTypeName();
+		
+		XmlSchemaComplexType xmlSchemaComplexType = new XmlSchemaComplexType(xmlSchema);
+		xmlSchemaComplexType.setName(localName);
+		
+		xmlSchema.getItems().add(xmlSchemaComplexType);
+		
+		return xmlSchemaComplexType;
 	}
 	
 	public boolean isOutput() {
