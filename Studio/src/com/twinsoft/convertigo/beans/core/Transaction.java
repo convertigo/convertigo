@@ -626,9 +626,8 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 	}
 	
 	protected XmlSchemaAnnotation addSchemaCommentAnnotation(XmlSchemaAnnotated annoted, String comment) {
-		XmlSchemaAnnotation annotation = null;
-		if (comment != null && comment.length() > 0) {
-			annotation = new XmlSchemaAnnotation();
+		XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+		if ((comment != null) && (comment.length() > 0)) {
 			XmlSchemaDocumentation documentation = new XmlSchemaDocumentation();
 			documentation.setSource(XMLUtils.getCDataXml(comment));
 			annotation.getItems().add(documentation);
