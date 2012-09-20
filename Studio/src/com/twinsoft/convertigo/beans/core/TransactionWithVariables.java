@@ -837,28 +837,29 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	@Override
 	protected XmlSchemaComplexType addSchemaRequestType(XmlSchema xmlSchema) {
 		XmlSchemaComplexType xmlSchemaComplexType = super.addSchemaRequestType(xmlSchema);
-		
-		for (int i=0; i<numberOfVariables(); i++) {
+		int len = numberOfVariables();
+		if (len > 0) {
 			XmlSchemaSequence xmlSchemaSequence = new XmlSchemaSequence();
-			RequestableVariable variable = (RequestableVariable)getVariable(i);
-			if (variable.isWsdl().booleanValue()) {
-				XmlSchemaElement xmlSchemaElement = new XmlSchemaElement();
-				xmlSchemaElement.setName(variable.getName());
-				
-				if (variable.isMultiValued())
-					xmlSchemaElement.setMaxOccurs(Long.MAX_VALUE);
-				
-				String[] qn = variable.getSchemaType().split(":");
-				QName typeName = new QName(xmlSchema.getNamespaceContext().getNamespaceURI(qn[0]), qn[1], qn[0]);
-				xmlSchemaElement.setSchemaTypeName(typeName);
-				
-				addSchemaCommentAnnotation(xmlSchemaElement, variable.getComment());
-				
-				xmlSchemaSequence.getItems().add(xmlSchemaElement);
+			for (int i=0; i < len; i++) {
+				RequestableVariable variable = (RequestableVariable)getVariable(i);
+				if (variable.isWsdl().booleanValue()) {
+					XmlSchemaElement xmlSchemaElement = new XmlSchemaElement();
+					xmlSchemaElement.setName(variable.getName());
+					
+					if (variable.isMultiValued())
+						xmlSchemaElement.setMaxOccurs(Long.MAX_VALUE);
+					
+					String[] qn = variable.getSchemaType().split(":");
+					QName typeName = new QName(xmlSchema.getNamespaceContext().getNamespaceURI(qn[0]), qn[1], qn[0]);
+					xmlSchemaElement.setSchemaTypeName(typeName);
+					
+					addSchemaCommentAnnotation(xmlSchemaElement, variable.getComment());
+					
+					xmlSchemaSequence.getItems().add(xmlSchemaElement);
+				}
 			}
 			xmlSchemaComplexType.setParticle(xmlSchemaSequence);
 		}
-		
 		return xmlSchemaComplexType;
 	}
 
