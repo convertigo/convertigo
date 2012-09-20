@@ -31,8 +31,6 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
-import org.apache.ws.commons.schema.constants.Constants;
-import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.Function;
@@ -49,10 +47,10 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XSDExtractor;
-import com.twinsoft.convertigo.engine.util.XSDUtils;
 
 /**
  * This is the base interface from a Convertigo transaction. A transaction is
@@ -526,34 +524,34 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
     }
 	
 	
-	private String getSchemaFileDirPath() {
+	public String getSchemaFileDirPath() {
 		String projectName = getProject().getName();
 		String connectorName = getConnector().getName();
 		String dirPath = Engine.PROJECTS_PATH + "/" + projectName + "/xsd/internal/" + connectorName;
 		return dirPath;
 	}
 	
-	private String getSchemaFilePath() {
+	public String getSchemaFilePath() {
 		String filePath = getSchemaFileDirPath()+ "/"+ getName() + ".xsd";
 		return filePath;
 	}
 	
-	protected String getXsdRequestElementName() {
+	public String getXsdRequestElementName() {
 		return getXsdTypePrefix() + getName();
 	}
-	protected String getXsdResponseElementName() {
+	public String getXsdResponseElementName() {
 		return getXsdTypePrefix() + getName() + "Response";
 	}
-	protected String getXsdRequestTypeName() {
+	public String getXsdRequestTypeName() {
 		return getXsdTypePrefix() + getName() + "RequestData";
 	}
-	protected String getXsdResponseTypeName() {
+	public String getXsdResponseTypeName() {
 		return getXsdTypePrefix() + getName() + "ResponseData";
 	}
-	protected String getXsdProjectPrefix() {
+	public String getXsdProjectPrefix() {
 		return getProject().getName()+"_ns";
 	}
-	protected String getXsdProjectNamespace() {
+	public String getXsdProjectNamespace() {
 		return getProject().getTargetNamespace();
 	}
 	
@@ -602,27 +600,18 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 	
 	protected XmlSchema loadSchemaFromFile() {
 		try {
-			String filePath = getSchemaFilePath();
-			File xsdFile = new File(filePath);
-			if (xsdFile.exists()) {
-				Document xsdDocument = XSDUtils.getDefaultDocumentBuilder().parse(xsdFile);
-				XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
-				XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, null);
-				return xmlSchema;
-			}
-		}
-		catch (Exception e) {
+			return SchemaUtils.loadSchema(getSchemaFilePath());
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 	
 	protected XmlSchema createSchema() {
-		XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
-		NamespaceMap nsMap = new NamespaceMap();
-		nsMap.add("xsd", Constants.URI_2001_SCHEMA_XSD);
-		
-		XmlSchema transactionSchema = new XmlSchema(getProject().getTargetNamespace(), xmlSchemaCollection);
+		XmlSchema transactionSchema = SchemaUtils.createSchema(getXsdProjectPrefix(),
+																getXsdProjectNamespace(),
+																getProject().getSchemaElementForm(),
+																getProject().getSchemaElementForm());
 		
 		//Create the request element
 		XmlSchemaElement requestElement = new XmlSchemaElement();
