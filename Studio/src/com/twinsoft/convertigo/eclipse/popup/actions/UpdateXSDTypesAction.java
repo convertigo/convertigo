@@ -106,25 +106,7 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
                             	throw new Exception("Connector must have a default transaction");
                             }
                             
-                            if (!(requestable instanceof HtmlTransaction)) {
-        	                    ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
-        	                    if (connectorEditor == null) {
-                            		ConvertigoPlugin.infoMessageBox("Please open connector first.");
-        	                    	return;
-            	                }
-            	                
-        	                    document = connectorEditor.getLastGeneratedDocument();
-        	                    if (document == null) {
-        	                    	ConvertigoPlugin.infoMessageBox("You should first generate the XML document before trying to extract the XSD types.");
-        	                    	return;
-        	                    }
-        	                    
-        	                    String prefix = requestable.getXsdTypePrefix();
-       	                        document.getDocumentElement().setAttribute("transaction", prefix + requestableName);
-        	                    
-        	                    result = requestable.generateXsdTypes(document, extract);
-                            }
-                            else {
+                            if (requestable instanceof HtmlTransaction) {
                             	if (extract) {
             	                    ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
             	                    if (connectorEditor == null) {
@@ -160,6 +142,26 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
     		        		        	}
                                     }
                             	}
+                            }
+                            else {
+                            	if (extract) {
+	        	                    ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
+	        	                    if (connectorEditor == null) {
+	                            		ConvertigoPlugin.infoMessageBox("Please open connector first.");
+	        	                    	return;
+	            	                }
+	            	                
+	        	                    document = connectorEditor.getLastGeneratedDocument();
+	        	                    if (document == null) {
+	        	                    	ConvertigoPlugin.infoMessageBox("You should first generate the XML document before trying to extract the XSD types.");
+	        	                    	return;
+	        	                    }
+	        	                    
+	        	                    String prefix = requestable.getXsdTypePrefix();
+	       	                        document.getDocumentElement().setAttribute("transaction", prefix + requestableName);
+                            	}
+                            	
+        	                    result = requestable.generateXsdTypes(document, extract);
                             }
                         }
                         else if (requestable instanceof Sequence) {
