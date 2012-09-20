@@ -672,7 +672,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		XmlSchemaElement xmlSchemaElement = new XmlSchemaElement();
 		xmlSchemaElement.setName(localName);
 		xmlSchemaElement.setQName(new QName(nsURI, localName, prefix));
-		xmlSchemaElement.setSchemaTypeName(new QName(nsURI, getXsdRequestTypeName(), prefix));
+		xmlSchemaElement.setSchemaTypeName(new QName(nsURI, getXsdResponseTypeName(), prefix));
 		
 		xmlSchema.getItems().add(xmlSchemaElement);
 		
