@@ -1000,6 +1000,10 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		addXmlSchemaAnnotation(element);
 		return element;
 	}
+	
+	public boolean isGenerateSchema() {
+		return isOutput();
+	}
 
 	public void addSchemaType(HashMap<Long, String> stepTypes, String tns) throws EngineException {
 		addSchemaType(stepTypes, tns, null);

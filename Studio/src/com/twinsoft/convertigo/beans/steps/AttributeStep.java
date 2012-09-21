@@ -266,5 +266,4 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator {
 		addXmlSchemaAnnotation(attribute);
 		return attribute;
 	}
-	
 }

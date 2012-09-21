@@ -28,13 +28,12 @@ import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
-import com.twinsoft.convertigo.beans.core.ISchemaElementGenerator;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class XMLComplexStep extends StepWithExpressions implements ISchemaElementGenerator {
+public class XMLComplexStep extends StepWithExpressions {
 
 	private static final long serialVersionUID = 7002348210812220725L;
 
@@ -101,6 +100,4 @@ public class XMLComplexStep extends StepWithExpressions implements ISchemaElemen
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		return (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
 	}
-	
-	
 }

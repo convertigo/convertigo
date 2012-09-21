@@ -6,5 +6,5 @@ import org.apache.ws.commons.schema.XmlSchemaParticle;
 
 public interface ISchemaParticleGenerator extends ISchemaGenerator {
 	XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema);
-	boolean isGenerateSchema();
+	boolean isGenerateElement();
 }

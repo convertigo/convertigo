@@ -24,6 +24,10 @@ package com.twinsoft.convertigo.beans.steps;
 
 import javax.xml.transform.TransformerException;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaGroupBase;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
@@ -36,6 +40,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 
 public class IteratorStep extends LoopStep implements IStepSourceContainer {
 
@@ -188,6 +193,21 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		if (iterator == null) {
 			iterator = new Iterator();
 		}
+	}
+
+	@Override
+	public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaParticle particle = super.getXmlSchemaObject(collection, schema);
+		long max = Long.MAX_VALUE;
+		try {
+			max = Integer.parseInt(getCondition());
+			if (max < 0) {
+				max = 0;
+			}
+			XmlSchemaGroupBase group = SchemaMeta.getContainerXmlSchemaGroupBase(particle);
+			group.setMaxOccurs(max);
+		} catch (Exception e) { }
+		return particle;
 	}
 	
 	class Iterator {

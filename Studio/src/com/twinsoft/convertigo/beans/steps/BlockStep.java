@@ -22,6 +22,10 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
@@ -253,5 +257,17 @@ public abstract class BlockStep extends StepWithExpressions {
 	@Override
 	protected void reset() throws EngineException {
 		super.reset();
+	}
+	
+	public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaSequence sequence = new XmlSchemaSequence(); 
+		sequence.setMinOccurs(0);
+		XmlSchemaParticle particle = getXmlSchemaParticle(collection, schema, sequence);
+		return particle;
+	}
+	
+	@Override
+	public boolean isGenerateSchema() {
+		return true;
 	}
 }

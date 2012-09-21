@@ -22,6 +22,11 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaChoice;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
+
 public class IfExistThenElseStep extends IfExistStep implements IThenElseContainer {
 
 	private static final long serialVersionUID = 5124025868949574305L;
@@ -47,4 +52,9 @@ public class IfExistThenElseStep extends IfExistStep implements IThenElseContain
 		return true;
 	}
 	
+    @Override
+    public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+    	XmlSchemaChoice choice = new XmlSchemaChoice();
+		return getXmlSchemaParticle(collection, schema, choice);
+	}	
 }

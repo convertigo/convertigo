@@ -690,7 +690,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		return xmlSchemaComplexType;
 	}
 	
-	public boolean isOutput() {
+	public boolean isGenerateSchema() {
 		return true;
 	}
 	

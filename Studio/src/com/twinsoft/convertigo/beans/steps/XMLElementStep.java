@@ -24,6 +24,10 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.util.HashMap;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
@@ -195,4 +199,10 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 		}
 	}
 	
+	@Override
+	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+		element.setSchemaTypeName(Constants.XSD_STRING);
+		return element;
+	}
 }

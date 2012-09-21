@@ -14,7 +14,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.twinsoft.convertigo.beans.core.ISchemaElementGenerator;
+import com.twinsoft.convertigo.beans.core.ISchemaParticleGenerator;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
@@ -22,7 +22,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class GenerateHashCodeStep extends Step implements ITagsProperty, ISchemaElementGenerator {
+public class GenerateHashCodeStep extends Step implements ITagsProperty, ISchemaParticleGenerator {
 
 	private static final long serialVersionUID = -2873578590344942963L;
 
@@ -237,8 +237,8 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty, ISchema
 		element.setSchemaTypeName(Constants.XSD_STRING);
 		return element;
 	}
-
-	public boolean isGenerateSchema() {
-		return isOutput();
+	
+	public boolean isGenerateElement() {
+		return true;
 	}
 }

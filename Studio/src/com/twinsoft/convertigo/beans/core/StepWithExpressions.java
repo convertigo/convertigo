@@ -33,6 +33,9 @@ import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaGroupBase;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -49,6 +52,7 @@ import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class StepWithExpressions extends Step implements IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator {
@@ -857,20 +861,33 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
-		List<DatabaseObject> rep=super.getAllChildren();
-		List<Step> steps=getSteps();		
-		for(Step step:steps){
+		List<DatabaseObject> rep = super.getAllChildren();
+		List<Step> steps = getSteps();		
+		for (Step step : steps) {
 			rep.add(step);
 		}		
 		return rep;
+	}
+	
+	protected XmlSchemaParticle getXmlSchemaParticle(XmlSchemaCollection collection, XmlSchema schema, XmlSchemaGroupBase group) {
+		XmlSchemaParticle particle = group;
+		if (isOutput()) {
+			XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+			XmlSchemaComplexType cType = new XmlSchemaComplexType(schema);
+			SchemaMeta.setContainerXmlSchemaGroupBase(element, group);
+			element.setType(cType);
+			cType.setParticle(group);
+			particle = element;
+		}
+		return particle;
 	}
 	
 	@Override
 	public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		return (XmlSchemaParticle) super.getXmlSchemaObject(collection, schema);
 	}
-
-	public boolean isGenerateSchema() {
+	
+	public boolean isGenerateElement() {
 		return isOutput();
 	}
 }

@@ -22,6 +22,11 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaChoice;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
+
 public class IsInThenElseStep extends IsInStep implements IThenElseContainer {
 
 	private static final long serialVersionUID = -1043042913971960610L;
@@ -45,5 +50,11 @@ public class IsInThenElseStep extends IsInStep implements IThenElseContainer {
 	@Override
 	public boolean hasThenElseSteps() {
 		return true;
+	}
+	
+    @Override
+    public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+    	XmlSchemaChoice choice = new XmlSchemaChoice();
+		return getXmlSchemaParticle(collection, schema, choice);
 	}
 }

@@ -22,6 +22,11 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 
@@ -56,5 +61,15 @@ public class ThenStep extends StepWithExpressions {
 	@Override
 	public String toString() {
 		return "Then";
+	}
+	
+	@Override
+	public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		return getXmlSchemaParticle(collection, schema, new XmlSchemaSequence());
+	}
+	
+	@Override
+	public boolean isGenerateSchema() {
+		return true;
 	}
 }

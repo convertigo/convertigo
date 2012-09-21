@@ -74,7 +74,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XSDExtractor;
 import com.twinsoft.util.StringEx;
 
-public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered, ISchemaElementGenerator {
+public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator {
 
 	private static final long serialVersionUID = 8218719500689068156L;
 	
@@ -1733,16 +1733,16 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		
 		sequence.getItems().add(eDocument);
 		
-		SchemaMeta.setContainerElement(eSequence, eDocument);
+		SchemaMeta.setContainerXmlSchemaElement(eSequence, eDocument);
 		
 		return eSequence;
 	}
 	
-	public boolean isOutput() {
+	public boolean isGenerateSchema() {
 		return true;
 	}
 	
-	public boolean isGenerateSchema() {
+	public boolean isGenerateElement() {
 		return true;
 	}
 }
