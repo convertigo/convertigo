@@ -23,6 +23,8 @@
 package com.twinsoft.convertigo.eclipse.views.schema;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -63,14 +65,14 @@ import com.twinsoft.convertigo.eclipse.views.schema.model.XsdNode;
 
 public class SchemaViewLabelProvider implements ILabelProvider {
 
+	private static Map<String, Image> imagesCache = new HashMap<String, Image>(1024);
+	
 	public SchemaViewLabelProvider() {
 		
 	}
 
 	public Image getImage(Object element) {
 		String iconName = null;
-		Image image = null;
-		
 		if (element instanceof FolderNode) {
 			if (element instanceof AttributesFolder) {
 				iconName = "/com/twinsoft/convertigo/eclipse/views/schema/images/attributes_folder.gif";
@@ -86,9 +88,6 @@ public class SchemaViewLabelProvider implements ILabelProvider {
 			}
 			else if (element instanceof TypesFolder) {
 				iconName = "/com/twinsoft/convertigo/eclipse/views/schema/images/types_folder.gif";
-			}
-			else {
-				return null;
 			}
 		}
 		else if (element instanceof XsdNode) {
@@ -171,28 +170,35 @@ public class SchemaViewLabelProvider implements ILabelProvider {
 			else if (element instanceof UnionNode) {
 				iconName = "/com/twinsoft/convertigo/eclipse/views/schema/images/simple_type_union.gif";
 			}
-			else {
-				return null;
-			}
-		}
-		else {
-			return null;
 		}
 		
-		image = getImageFromCache(iconName, (Object) element);
+		if (iconName == null)
+			return null;
+		Image image = getImageFromCache(iconName, (Object) element);
 		return image;
 	}
 
 	public static Image getImageFromCache(String iconName, Object object) {
-		Image image = null;
-		Device device = Display.getCurrent();
-		InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
-		image = new Image(device, inputStream);
-		
-		ImageData imageData = image.getImageData();
-		image = new Image(device, imageData);
-		
+		Image image = imagesCache.get(iconName);
+		if (image == null) {
+			Device device = Display.getCurrent();
+			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
+			image = new Image(device, inputStream);
+			
+			ImageData imageData = image.getImageData();
+			image = new Image(device, imageData);
+			
+			imagesCache.put(iconName, image);
+		}
 		return image;
+	}
+	
+	public static Image getDecoratedImageFromCache(String iconName, Object object) {
+		return imagesCache.get(iconName);
+	}
+	
+	public static void setDecoratedImageFromCache(String iconName, Image decoratedImage) {
+		imagesCache.put(iconName, decoratedImage);
 	}
 	
 	public String getText(Object element) {

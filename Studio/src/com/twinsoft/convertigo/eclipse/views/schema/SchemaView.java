@@ -26,6 +26,7 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
 import org.apache.ws.commons.schema.constants.Constants;
+import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -59,7 +60,8 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	public void createPartControl(Composite parent) {
 		treeViewer = new TreeViewer(parent);
 		treeViewer.setContentProvider(new SchemaViewContentProvider());
-		treeViewer.setLabelProvider(new SchemaViewLabelProvider());
+		DecoratingLabelProvider dlp = new DecoratingLabelProvider(new SchemaViewLabelProvider(), new SchemaViewLabelDecorator());
+		treeViewer.setLabelProvider(dlp);
 		treeViewer.setInput(null);
 
 		getSite().setSelectionProvider(treeViewer);

@@ -55,6 +55,11 @@ public class XsdNode extends TreeParentNode {
 		return getObject().getTagName().endsWith("simpleContent");
 	}
 
+	public boolean hasOccurs() {
+		return getObject().hasAttribute("minOccurs") ||
+				getObject().hasAttribute("maxOccurs");
+	}
+	
 	@Override
 	public String getName() {
 		String name = "";
@@ -65,9 +70,6 @@ public class XsdNode extends TreeParentNode {
 			name = getObject().getAttribute("name");
 			if (name.equals("")) {
 				name = getObject().getLocalName();
-			}
-			else if (useType()) {
-				name += " : " + getObject().getAttribute("type");
 			}
 		}
 		return name;
