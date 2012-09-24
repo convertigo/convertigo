@@ -176,9 +176,7 @@ public class SchemaManager implements AbstractManager {
 						} else if (databaseObject instanceof ISchemaParticleGenerator) {
 							// Particle case
 							XmlSchemaParticle particle = ((ISchemaParticleGenerator) databaseObject).getXmlSchemaObject(collection, schema);
-							if (particle instanceof XmlSchemaElement) {
-								parentParticleChildren.add(particle);
-							}
+							parentParticleChildren.add(particle);
 							
 							// retrieve the xsd:element to add children
 							XmlSchemaElement element = SchemaMeta.getContainerXmlSchemaElement(particle);
@@ -199,11 +197,7 @@ public class SchemaManager implements AbstractManager {
 								}
 			
 								// prepare element children in the group
-								if (!myParticleChildren.isEmpty()) {
-									if (particle instanceof XmlSchemaGroupBase) {
-										parentParticleChildren.add(particle);
-									}
-									
+								if (!myParticleChildren.isEmpty()) {									
 									if (group == null) {
 										group = new XmlSchemaSequence();
 									}

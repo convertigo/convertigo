@@ -3,8 +3,17 @@ package com.twinsoft.convertigo.beans.steps;
 import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaGroupBase;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.Scriptable;
@@ -15,15 +24,17 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.ISchemaParticleGenerator;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class InputVariablesStep extends Step {
+public class InputVariablesStep extends Step implements ISchemaParticleGenerator {
 
 	private static final long serialVersionUID = 3276050659362959158L;
 
@@ -196,6 +207,47 @@ public class InputVariablesStep extends Step {
 				Node text = doc.createTextNode(nodeValue);
 				var.appendChild(text);
 			}
+		}
+	}
+
+	public boolean isGenerateElement() {
+		return isOutput();
+	}
+	
+	protected XmlSchemaParticle getXmlSchemaParticle(XmlSchemaCollection collection, XmlSchema schema, XmlSchemaGroupBase group) {
+		XmlSchemaParticle particle = group;
+		if (isOutput()) {
+			XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+			XmlSchemaComplexType cType = new XmlSchemaComplexType(schema);
+			SchemaMeta.setContainerXmlSchemaGroupBase(element, group);
+			element.setType(cType);
+			cType.setParticle(group);
+			particle = element;
+		}
+		return particle;
+	}
+
+	@Override
+	public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		List<RequestableVariable> variables = getParentSequence().getAllVariables();
+		
+		XmlSchemaSequence sequence = variables.size() > 0 ? new XmlSchemaSequence() : null;
+		
+		for (RequestableVariable variable : getParentSequence().getAllVariables()) {
+			XmlSchemaElement element = new XmlSchemaElement();
+			element.setName(variable.getName());
+			element.setSchemaTypeName(Constants.XSD_STRING);
+			element.setMinOccurs(0);
+			if (variable.isMultiValued()) {
+				element.setMaxOccurs(Long.MAX_VALUE);
+			}
+			sequence.getItems().add(element);
+		}
+		
+		if (sequence != null) {
+			return getXmlSchemaParticle(collection, schema, sequence);
+		} else {
+			return (XmlSchemaParticle) super.getXmlSchemaObject(collection, schema);
 		}
 	}
 }
