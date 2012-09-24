@@ -39,6 +39,10 @@ public class XsdNode extends TreeParentNode {
 		return getObject().hasAttribute("type");
 	}
 
+	public boolean useBase() {
+		return getObject().hasAttribute("base");
+	}
+
 	public boolean isComplexType() {
 		return getObject().getTagName().endsWith("complexType");
 	}
