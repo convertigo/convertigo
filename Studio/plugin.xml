@@ -962,6 +962,13 @@
                relationship="right"
                relative="org.eclipse.ui.editorss">
          </view>
+         <view
+               relationship="right"
+               minimized="false"
+               ratio="0.8"
+               relative="org.eclipse.ui.editorss"
+               id="com.twinsoft.convertigo.eclipse.views.schema.SchemaView">
+         </view>
       </perspectiveExtension>
    </extension>
    <extension
@@ -2492,6 +2499,14 @@
             icon="icons/consoles/engine.gif"
             id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
             name="Engine Log"
+            restorable="true">
+      </view>
+      <view
+            category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.schema.SchemaView"
+            icon="icons/schema_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.views.schema.SchemaView"
+            name="Schema"
             restorable="true">
       </view>
       <!--view
