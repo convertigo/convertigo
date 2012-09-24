@@ -82,14 +82,8 @@ public class XsdNode extends TreeParentNode {
 	protected XsdNode createNode(Element element) {
 		XsdNode xsdNode = null;
 		String tagName = element.getTagName();
-		if (tagName.endsWith("schema")) {
-			xsdNode = new SchemaNode(this, element);
-		}
-		else if (tagName.endsWith("import")) {
-			xsdNode = new ImportNode(this, element);
-		}
-		else if (tagName.endsWith("include")) {
-			xsdNode = new IncludeNode(this, element);
+		if (tagName.endsWith("all")) {
+			xsdNode = new AllNode(this, element);
 		}
 		else if (tagName.endsWith("annotation")) {
 			xsdNode = new AnnotationNode(this, element);
@@ -97,17 +91,56 @@ public class XsdNode extends TreeParentNode {
 		else if (tagName.endsWith("attribute")) {
 			xsdNode = new AttributeNode(this, element);
 		}
+		else if (tagName.endsWith("attributeGroup")) {
+			xsdNode = new AttributeGroupNode(this, element);
+		}
+		else if (tagName.endsWith("choice")) {
+			xsdNode = new ChoiceNode(this, element);
+		}
+		else if (tagName.endsWith("Content")) {
+			xsdNode = new ContentNode(this, element);
+		}
 		else if (tagName.endsWith("element")) {
 			xsdNode = new ElementNode(this, element);
 		}
-		else if (tagName.endsWith("Type")) {
-			xsdNode = new TypeNode(this, element);
+		else if (tagName.endsWith("extension")) {
+			xsdNode = new ExtensionNode(this, element);
 		}
 		else if (tagName.endsWith("group")) {
 			xsdNode = new GroupNode(this, element);
 		}
+		else if (tagName.endsWith("include")) {
+			xsdNode = new IncludeNode(this, element);
+		}
+		else if (tagName.endsWith("import")) {
+			xsdNode = new ImportNode(this, element);
+		}
+		else if (tagName.endsWith("key")) {
+			xsdNode = new KeyNode(this, element);
+		}
+		else if (tagName.endsWith("list")) {
+			xsdNode = new ListNode(this, element);
+		}
+		else if (tagName.endsWith("redefine")) {
+			xsdNode = new RedefineNode(this, element);
+		}
+		else if (tagName.endsWith("restriction")) {
+			xsdNode = new RestrictionNode(this, element);
+		}
+		else if (tagName.endsWith("schema")) {
+			xsdNode = new SchemaNode(this, element);
+		}
 		else if (tagName.endsWith("sequence")) {
 			xsdNode = new SequenceNode(this, element);
+		}
+		else if (tagName.endsWith("Type")) {
+			xsdNode = new TypeNode(this, element);
+		}
+		else if (tagName.endsWith("unique")) {
+			xsdNode = new UniqueNode(this, element);
+		}
+		else if (tagName.endsWith("union")) {
+			xsdNode = new UnionNode(this, element);
 		}
 		else {
 			xsdNode = new XsdNode(this, element);
