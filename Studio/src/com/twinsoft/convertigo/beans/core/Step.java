@@ -986,11 +986,16 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		String comment = getComment();
 		if (comment != null && comment.length() > 0) {
 			XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+			annoted.setAnnotation(annotation);
 			XmlSchemaDocumentation documentation = new XmlSchemaDocumentation();
 			annotation.getItems().add(documentation);
 			
-			documentation.setSource(comment);
-			annoted.setAnnotation(annotation);
+			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+			Element root = doc.createElement("root");
+			root.appendChild(doc.createTextNode(comment));
+			NodeList nl = root.getChildNodes();
+			
+			documentation.setMarkup(nl);
 		}
 	}
 	

@@ -22,14 +22,20 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.util.Map;
+
 import javax.xml.transform.TransformerException;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
@@ -253,5 +259,16 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 		}
 		
 		return targetSchema;
+	}
+	
+	public XmlSchemaObject getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema, Map<DatabaseObject, XmlSchemaObject> schemaCache) throws EngineException {
+		StepSource source = getSource();
+		if (!source.isEmpty()) {
+			XmlSchemaObject object = schemaCache.get(source.getStep());
+			if (object != null) {
+				return object;
+			}
+		}
+		return super.getXmlSchemaObject(collection, schema);
 	}
 }
