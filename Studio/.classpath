@@ -116,7 +116,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/xalan-2.7.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/xml-resolver-1.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/xmlbeans-2.3.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/XmlSchema-1.4.7.jar"/>
+	<classpathentry kind="lib" path="lib/axis2-1.6.1/lib/XmlSchema-1.4.7.jar" sourcepath="/ExternalJavaSources/XmlSchema-1.4.7-src"/>
 	<classpathentry exported="true" kind="lib" path="lib/apache/batik/batik.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/apache/bcel/bcel-5.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/backport/backport-util-concurrent-3.1.jar"/>
@@ -130,7 +130,7 @@
 	<classpathentry exported="true" kind="lib" path="tomcat/lib/servlet-api.jar" sourcepath="/ExternalJavaSources/servlet-api"/>
 	<classpathentry exported="true" kind="lib" path="tomcat/lib/tomcat-coyote.jar"/>
 	<classpathentry exported="true" kind="lib" path="tomcat/lib/tomcat-dbcp.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/rhino-1.7-R2.jar" sourcepath="/ExternalJavaSources/rhino-1.7R3"/>
+	<classpathentry exported="true" kind="lib" path="lib/rhino-1.7-R4.jar" sourcepath="/ExternalJavaSources/rhino-1.7R4"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5"/>
 	<classpathentry kind="lib" path="lib/soapui/not-yet-commons-ssl-0.3.11.jar"/>
 	<classpathentry kind="lib" path="lib/soapui/soapui-3.5.1.jar"/>
