@@ -123,27 +123,32 @@ class SchemaViewLabelDecorator implements ILabelDecorator {
 		if (element != null) {
 			if (element instanceof XsdNode) {
 				XsdNode xsdNode = (XsdNode)element;
-				if (xsdNode.useType()) {
-					decoratedText = text + " : " + xsdNode.getObject().getAttribute("type");
+				if (xsdNode.getSchemaNode() != null) {
+					// ignore
 				}
-				else if (xsdNode.useBase()) {
-					decoratedText = text + " : " + xsdNode.getObject().getAttribute("base");
-				}
-				
-				NamedNodeMap map = xsdNode.getObject().getAttributes();
-				for (int i=0; i < map.getLength(); i++) {
-					Node node = map.item(i);
-					String name = node.getNodeName();
-					String value = node.getNodeValue();
-					if (name.equals("name") ||
-						name.equals("type") ||
-						name.equals("ref") ||
-						name.equals("base") ||
-						name.equals("minOccurs") ||
-						name.equals("maxOccurs")) {
-						continue;
+				else {
+					if (xsdNode.useType()) {
+						decoratedText = text + " : " + xsdNode.getObject().getAttribute("type");
 					}
-					decoratedText += " " + name + "=" + value;
+					else if (xsdNode.useBase()) {
+						decoratedText = text + " : " + xsdNode.getObject().getAttribute("base");
+					}
+					
+					NamedNodeMap map = xsdNode.getObject().getAttributes();
+					for (int i=0; i < map.getLength(); i++) {
+						Node node = map.item(i);
+						String name = node.getNodeName();
+						String value = node.getNodeValue();
+						if (name.equals("name") ||
+							name.equals("type") ||
+							name.equals("ref") ||
+							name.equals("base") ||
+							name.equals("minOccurs") ||
+							name.equals("maxOccurs")) {
+							continue;
+						}
+						decoratedText += " " + name + "=" + value;
+					}
 				}
 			}
 		}

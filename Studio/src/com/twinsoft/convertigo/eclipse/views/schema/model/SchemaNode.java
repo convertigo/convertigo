@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.eclipse.views.schema.model;
 
+import org.apache.ws.commons.schema.utils.DOMUtil;
 import org.w3c.dom.Element;
 
 public class SchemaNode extends XsdNode {
@@ -45,7 +46,6 @@ public class SchemaNode extends XsdNode {
 		// Add children
 		handleChidren();
 	}
-
 	
 	@Override
 	public String getName() {
@@ -75,5 +75,32 @@ public class SchemaNode extends XsdNode {
 		else {
 			super.addChild(child);
 		}
+	}
+	
+	@Override
+	protected void handleChidren() {
+		Element element = (Element) getObject();
+		Element first = DOMUtil.getFirstChildElement(element);
+		while (first != null) {
+			XsdNode xsdNode = createNode(first);
+			addChild(xsdNode);
+			first = DOMUtil.getNextSiblingElement(first);
+		}
+	}
+	
+	public AttributeNode findAttribute(String name) {
+		return (AttributeNode) attributes.findChild(name);
+	}
+
+	public TypeNode findType(String name) {
+		return (TypeNode) types.findChild(name);
+	}
+	
+	public TypeNode findElement(String name) {
+		return (TypeNode) elements.findChild(name);
+	}
+
+	public GroupNode findGroup(String name) {
+		return (GroupNode) groups.findChild(name);
 	}
 }

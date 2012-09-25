@@ -48,4 +48,14 @@ public abstract class TreeParentNode extends TreeNode {
 	public boolean hasChildren() {
 		return children.size()>0;
 	}
+	
+	public TreeNode findChild(String name) {
+		if (name != null) {
+			for (TreeNode treeNode: children) {
+				if (name.equals(treeNode.getName()))
+					return treeNode;
+			}
+		}
+		return null;
+	}
 }

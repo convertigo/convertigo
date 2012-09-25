@@ -61,6 +61,7 @@ import com.twinsoft.convertigo.eclipse.views.schema.model.TypeNode;
 import com.twinsoft.convertigo.eclipse.views.schema.model.TypesFolder;
 import com.twinsoft.convertigo.eclipse.views.schema.model.UnionNode;
 import com.twinsoft.convertigo.eclipse.views.schema.model.UniqueNode;
+import com.twinsoft.convertigo.eclipse.views.schema.model.UnresolvedNode;
 import com.twinsoft.convertigo.eclipse.views.schema.model.XsdNode;
 
 public class SchemaViewLabelProvider implements ILabelProvider {
@@ -170,6 +171,9 @@ public class SchemaViewLabelProvider implements ILabelProvider {
 			else if (element instanceof UnionNode) {
 				iconName = "/com/twinsoft/convertigo/eclipse/views/schema/images/simple_type_union.gif";
 			}
+		}
+		else if (element instanceof UnresolvedNode) {
+			iconName = "/com/twinsoft/convertigo/eclipse/views/schema/images/unresolved.gif";
 		}
 		
 		if (iconName == null)

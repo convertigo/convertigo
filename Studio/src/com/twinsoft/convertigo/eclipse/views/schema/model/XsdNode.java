@@ -23,7 +23,10 @@
 package com.twinsoft.convertigo.eclipse.views.schema.model;
 
 import org.apache.ws.commons.schema.utils.DOMUtil;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 
 public class XsdNode extends TreeParentNode {
 
@@ -79,6 +82,60 @@ public class XsdNode extends TreeParentNode {
 		return name;
 	}
 
+	public XsdNode handleNode() {
+		XsdNode nodeCreated = createNode(getObject());
+		nodeCreated.handleChidren();
+		return nodeCreated;
+	}
+	
+	public SchemaNode getSchemaNode() {
+		TreeParentNode parent = getParent();
+		while (parent!= null) {
+			if (parent instanceof SchemaNode)
+				return (SchemaNode)parent;
+			parent = parent.getParent();
+		}
+		return null;
+	}
+	
+	public String getTargetNamespace() {
+		Document doc = ((Element) getObject()).getOwnerDocument();
+		return doc.getDocumentElement().getAttribute("targetNamespace");
+	}
+	
+	public String getNamespaceURI(String prefix) {
+		if (prefix.equals(""))
+			return getTargetNamespace();
+		
+		Document doc = ((Element) getObject()).getOwnerDocument();
+		NamedNodeMap map = doc.getDocumentElement().getAttributes();
+		for (int i=0; i < map.getLength(); i++) {
+			Node node = map.item(i);
+			String nodeName = node.getNodeName();
+			if (nodeName.equals("xmlns:"+prefix))
+				return node.getNodeValue();
+		}
+		return null;
+	}
+	
+	public String findNamespaceURI(String qname) {
+		if ((qname != null) && (!qname.equals(""))) {
+			String[] qn = qname.split(":");
+			String ns = qn.length > 1 ? getNamespaceURI(qn[0]):getNamespaceURI("");
+			return ns;
+		}
+		return null;
+	}
+	
+	public String findLocalName(String qname) {
+		if ((qname != null) && (!qname.equals(""))) {
+			String[] qn = qname.split(":");
+			String ns = qn.length > 1 ? qn[1]:qn[0];
+			return ns;
+		}
+		return null;
+	}
+
 	protected XsdNode createNode(Element element) {
 		XsdNode xsdNode = null;
 		String tagName = element.getTagName();
@@ -99,6 +156,9 @@ public class XsdNode extends TreeParentNode {
 		}
 		else if (tagName.endsWith("Content")) {
 			xsdNode = new ContentNode(this, element);
+		}
+		else if (tagName.endsWith("documentation")) {
+			xsdNode = new DocumentationNode(this, element);
 		}
 		else if (tagName.endsWith("element")) {
 			xsdNode = new ElementNode(this, element);

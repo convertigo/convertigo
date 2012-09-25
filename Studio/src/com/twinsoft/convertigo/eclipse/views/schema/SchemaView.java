@@ -27,9 +27,17 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.ISelectionListener;
@@ -42,13 +50,23 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeO
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
-import com.twinsoft.convertigo.eclipse.views.schema.model.FolderNode;
+import com.twinsoft.convertigo.eclipse.views.schema.model.ElementNode;
+import com.twinsoft.convertigo.eclipse.views.schema.model.GroupNode;
 import com.twinsoft.convertigo.eclipse.views.schema.model.SchemaNode;
+import com.twinsoft.convertigo.eclipse.views.schema.model.SchemaTreeRoot;
+import com.twinsoft.convertigo.eclipse.views.schema.model.TreeRootNode;
+import com.twinsoft.convertigo.eclipse.views.schema.model.UnresolvedNode;
+import com.twinsoft.convertigo.eclipse.views.schema.model.XsdNode;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class SchemaView extends ViewPart implements IPartListener, ISelectionListener, TreeObjectListener {
 
-	private TreeViewer treeViewer;
+	private TreeViewer schemaTreeViewer;
+	private SchemaTreeRoot schemaTreeRoot;
+	private TreeViewer nodeTreeViewer;
+	private TreeRootNode nodeTreeRoot;
+	private XsdNode selectedXsdNode;
+	
 	private boolean needRefresh;
 	private String projectName;
 	
@@ -58,18 +76,65 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 
 	@Override
 	public void createPartControl(Composite parent) {
-		treeViewer = new TreeViewer(parent);
-		treeViewer.setContentProvider(new SchemaViewContentProvider());
-		DecoratingLabelProvider dlp = new DecoratingLabelProvider(new SchemaViewLabelProvider(), new SchemaViewLabelDecorator());
-		treeViewer.setLabelProvider(dlp);
-		treeViewer.setInput(null);
-
-		getSite().setSelectionProvider(treeViewer);
+		GridLayout gl = new GridLayout(2,false);
+		Composite content = new Composite(parent, SWT.NONE);
+		content.setLayout(gl);
+		
+		GridData gd = new org.eclipse.swt.layout.GridData();
+		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
+		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
+		gd.grabExcessHorizontalSpace = true;
+		gd.grabExcessVerticalSpace = true;
+		gd.horizontalSpan = 2;
+		SashForm mainSashForm = new SashForm(content, SWT.NONE);
+		mainSashForm.setOrientation(SWT.HORIZONTAL);
+		mainSashForm.setLayoutData(gd);
+		
+		createSchemaForm(mainSashForm);
+		createNodeForm(mainSashForm);
+		
+//
+//		getSite().setSelectionProvider(treeViewer);
 		getSite().getPage().addSelectionListener(this);
 		
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(this);
 	}
 
+	private void createSchemaForm(Composite parent) {
+		GridData gd = new org.eclipse.swt.layout.GridData();
+		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
+		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
+		gd.grabExcessHorizontalSpace = true;
+		gd.grabExcessVerticalSpace = true;
+		
+		SashForm schemaSashForm = new SashForm(parent, SWT.NONE);
+		schemaSashForm.setOrientation(SWT.VERTICAL);
+		schemaSashForm.setLayoutData(gd);
+		schemaTreeViewer = createTreeViewer(schemaSashForm);
+	}
+
+	private void createNodeForm(Composite parent) {
+		GridData gd = new org.eclipse.swt.layout.GridData();
+		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
+		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
+		gd.grabExcessHorizontalSpace = true;
+		gd.grabExcessVerticalSpace = true;
+		
+		SashForm nodeSashForm = new SashForm(parent, SWT.NONE);
+		nodeSashForm.setOrientation(SWT.VERTICAL);
+		nodeSashForm.setLayoutData(gd);
+		nodeTreeViewer = createTreeViewer(nodeSashForm);
+	}
+	
+	private TreeViewer createTreeViewer(Composite parent) {
+		TreeViewer treeViewer = new TreeViewer(parent);
+		treeViewer.setContentProvider(new SchemaViewContentProvider());
+		DecoratingLabelProvider dlp = new DecoratingLabelProvider(new SchemaViewLabelProvider(), new SchemaViewLabelDecorator());
+		treeViewer.setLabelProvider(dlp);
+		treeViewer.setInput(null);
+		return treeViewer;
+	}
+	
 	@Override
 	public void dispose() {
 		getSite().getPage().removeSelectionListener(this);
@@ -79,11 +144,9 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	
 	@Override
 	public void setFocus() {
-		treeViewer.getControl().setFocus();
+		schemaTreeViewer.getControl().setFocus();
 	}
 
-	private FolderNode root;
-	
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 		if (selection instanceof IStructuredSelection) {
 			if (part instanceof ProjectExplorerView) {
@@ -92,9 +155,9 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 					DatabaseObjectTreeObject dboTreeObject = (DatabaseObjectTreeObject)firstElement;
 					String currentProjectName = dboTreeObject.getProjectTreeObject().getName();
 					if (needRefresh || (projectName == null) || (!projectName.equals(currentProjectName))) {
-						projectName = currentProjectName;
 						needRefresh = false;
-						root = new FolderNode(null,"root");
+						projectName = currentProjectName;
+						schemaTreeRoot = new SchemaTreeRoot(null,"schemaTreeRoot");
 						XmlSchemaCollection xmlSchemaCollection;
 						try {
 							xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName);
@@ -102,17 +165,74 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 							for (int i=0; i < schemas.length; i++) {
 								handleSchema(schemas[i]);
 							}
-							treeViewer.setInput(root);
-							treeViewer.expandToLevel(3);
+							schemaTreeViewer.setInput(schemaTreeRoot);
+							schemaTreeViewer.expandToLevel(3);
+							schemaTreeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+								public void selectionChanged(SelectionChangedEvent event) {
+									Object firstElement = ((IStructuredSelection) event.getSelection()).getFirstElement();
+									if (firstElement instanceof XsdNode) {
+										if (firstElement instanceof SchemaNode) return;
+										if ((selectedXsdNode == null) || !selectedXsdNode.equals((XsdNode)firstElement)) {
+											selectedXsdNode = (XsdNode)firstElement;
+											
+											nodeTreeRoot = new TreeRootNode(null,"nodeTreeRoot");
+											nodeTreeRoot.addChild(selectedXsdNode.handleNode());
+											nodeTreeViewer.setInput(nodeTreeRoot);
+											nodeTreeViewer.expandAll();
+											
+											nodeTreeViewer.addDoubleClickListener(new IDoubleClickListener() {
+												public void doubleClick(DoubleClickEvent event) {
+													Object firstElement = ((IStructuredSelection) event.getSelection()).getFirstElement();
+													if (firstElement instanceof XsdNode) {
+														XsdNode selectedNode = (XsdNode)firstElement;
+														String qname = null, ns, localName; 
+														if (selectedNode.useType()) {
+															qname = selectedNode.getObject().getAttribute("type");
+														}
+														else if (selectedNode.useRef()) {
+															qname = selectedNode.getObject().getAttribute("ref");
+														}
+														
+														if (qname != null) {
+															ns = selectedNode.findNamespaceURI(qname);
+															localName = selectedNode.findLocalName(qname);
+															if (!ns.equals(Constants.URI_2001_SCHEMA_XSD)) {
+																if (selectedNode.findChild(localName) == null) {
+																	XsdNode xsdNode = null;
+																	if (selectedNode instanceof ElementNode) {
+																		if (selectedNode.useType())
+																			xsdNode = schemaTreeRoot.findType(ns, localName);
+																		else if (selectedNode.useRef())
+																			xsdNode = schemaTreeRoot.findElement(ns, localName);
+																	}
+																	else if (selectedNode instanceof GroupNode) {
+																		if (selectedNode.useRef())
+																			xsdNode = schemaTreeRoot.findGroup(ns, localName);
+																	}
+																	
+																	if (xsdNode != null)
+																		selectedNode.addChild(xsdNode.handleNode());
+																	else
+																		selectedNode.addChild(new UnresolvedNode(selectedNode, qname));
+																	nodeTreeViewer.refresh(firstElement);
+																	nodeTreeViewer.expandAll();
+																}
+															}
+														}
+													}
+												}
+											});
+										}
+									}
+								}
+							});
+							
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					}
 				}
-			}
-			else if (part.equals(this)) {
-				
 			}
 		}
 	}
@@ -123,8 +243,8 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 			try {
 				Document doc = xmlSchema.getSchemaDocument();
 				//System.out.println(XMLUtils.prettyPrintDOM(doc));
-				SchemaNode schema = new SchemaNode(root, doc.getDocumentElement());
-				root.addChild(schema);
+				SchemaNode schema = new SchemaNode(schemaTreeRoot, doc.getDocumentElement());
+				schemaTreeRoot.addChild(schema);
 				
 			} catch (XmlSchemaSerializerException e) {
 				// TODO Auto-generated catch block
