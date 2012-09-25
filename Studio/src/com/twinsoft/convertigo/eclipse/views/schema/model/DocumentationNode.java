@@ -14,10 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/eclipse/views/schema/model/ChoiceNode.java $
- * $Author: nathalieh $
- * $Revision: 31789 $
- * $Date: 2012-09-24 14:40:03 +0200 (lun., 24 sept. 2012) $
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
  */
 
 package com.twinsoft.convertigo.eclipse.views.schema.model;
