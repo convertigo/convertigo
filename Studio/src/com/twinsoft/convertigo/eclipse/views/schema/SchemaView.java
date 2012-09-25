@@ -178,7 +178,6 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 											nodeTreeRoot = new TreeRootNode(null,"nodeTreeRoot");
 											nodeTreeRoot.addChild(selectedXsdNode.handleNode());
 											nodeTreeViewer.setInput(nodeTreeRoot);
-											nodeTreeViewer.expandAll();
 											
 											nodeTreeViewer.addDoubleClickListener(new IDoubleClickListener() {
 												public void doubleClick(DoubleClickEvent event) {
@@ -215,7 +214,6 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 																	else
 																		selectedNode.addChild(new UnresolvedNode(selectedNode, qname));
 																	nodeTreeViewer.refresh(firstElement);
-																	nodeTreeViewer.expandAll();
 																}
 															}
 														}
