@@ -9,6 +9,7 @@ import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -57,6 +58,12 @@ public class WalkHelper {
 			if (before(databaseObject, MobileDevice.class)) {
 				for (MobileDevice device : project.getMobileDeviceList()) {
 					walk(device);
+				}
+			}
+			
+			if (before(databaseObject, Reference.class)) {
+				for (Reference reference : project.getReferenceList()) {
+					walk(reference);
 				}
 			}
 		} else if (databaseObject instanceof Sequence) {

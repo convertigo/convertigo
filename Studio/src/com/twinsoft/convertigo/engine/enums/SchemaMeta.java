@@ -6,32 +6,12 @@ import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaGroupBase;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
+import org.apache.ws.commons.schema.XmlSchemaType;
 
 public enum SchemaMeta {
+	dynamicType,
 	containerElement,
 	containerGroupBase;
-//	container;
-	
-//	public static void setContainerParticle(XmlSchemaParticle particle, XmlSchemaParticle eContainer) {
-//		particle.addMetaInfo(container, eContainer);
-//	}
-//	
-//	public static XmlSchemaParticle getContainerParticle(XmlSchemaParticle particle) {
-//		XmlSchemaParticle eContainer = (XmlSchemaParticle) getMetaInfo(particle, container);
-////		while (eContainer != null) {
-////			particle = eContainer;
-////			eContainer = (XmlSchemaParticle) getMetaInfo(particle, container);
-////		}
-//		return eContainer != null ? eContainer : particle;
-//	}
-//	
-//	public static void setContainerElement(XmlSchemaElement element, XmlSchemaElement eContainer) {
-//		setContainerParticle(element, eContainer);
-//	}
-//	
-//	public static XmlSchemaElement getContainerElement(XmlSchemaElement element) {
-//		return (XmlSchemaElement) getContainerParticle(element);
-//	}
 	
 	private static Object getMetaInfo(XmlSchemaObject xso, SchemaMeta key) {
 		Map<?, ?> map = xso.getMetaInfoMap();
@@ -60,5 +40,14 @@ public enum SchemaMeta {
 			result = (XmlSchemaGroupBase) particle;
 		}
 		return result;
+	}
+
+	public static void setDynamic(XmlSchemaType type) {
+		type.addMetaInfo(dynamicType, true);
+	}
+	
+	public static boolean isDynamic(XmlSchemaType type) {
+		Boolean isDynamic = (Boolean) getMetaInfo(type, dynamicType);
+		return isDynamic != null ? isDynamic : false;
 	}
 }

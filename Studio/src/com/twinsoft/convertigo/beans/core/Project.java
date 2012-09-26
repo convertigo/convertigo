@@ -25,8 +25,8 @@ package com.twinsoft.convertigo.beans.core;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Vector;
 
 import org.w3c.dom.Element;
 
@@ -57,7 +57,63 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	
 	public final static String CONVERTIGO_PROJECTS_NAMESPACEURI = "http://www.convertigo.com/convertigo/projects/";
 	
+    /**
+     * The HTTP session timeout.
+     */
+    private int httpSessionTimeout = 300;
+    
+    /** Holds value of property browserTypes. */
+    private XMLVector<XMLVector<String>> browserDefinitions = new XMLVector<XMLVector<String>>();
+    
+    /**
+     * The WSDL style (Doc/Literal, RPC or Both).
+     */
+	private String wsdlStyle = WSDL_STYLE_DOC;
+	
+	/**
+	 * WSDL with inline schema or not
+	 */
+	private boolean schemaInline = true;
+	
+	/** 
+	 * The namespace URI
+	 */
+	private String namespaceUri = "";
+	
+	/**
+	 * The schema element form
+	 */
+	private String schemaElementForm = XSD_FORM_QUALIFIED;
+	
+	/**
+	 * The default connector for this project.
+	 */
+	transient private Connector defaultConnector = null;
+
+	/**
+	 * The list of available connectors for this project.
+	 */
+	transient private List<Connector> vConnectors = new LinkedList<Connector>();
+    
+	/**
+	 * The list of available sequences for this project.
+	 */
+	transient private List<Sequence> vSequences = new LinkedList<Sequence>();
+	
+	/**
+	 * The list of available mobile device for this project.
+	 */
+	transient private List<MobileDevice> vMobileDevices = new LinkedList<MobileDevice>();
+
+	/**
+	 * The list of available references for this project.
+	 */
+	transient private List<Reference> vReferences = new LinkedList<Reference>();
+	
 	transient private String oldName;
+
+	transient private boolean xsdDirty = true;
+	transient private String[] xsdTypes = null;
 	
 	public static String getProjectTargetNamespace(String projectName) {
 		try {
@@ -110,34 +166,6 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	public String getQName() {
 		return getName();
 	}
-
-    /**
-     * The HTTP session timeout.
-     */
-    private int httpSessionTimeout = 300;
-    
-    /** Holds value of property browserTypes. */
-    private XMLVector<XMLVector<String>> browserDefinitions = new XMLVector<XMLVector<String>>();
-    
-    /**
-     * The WSDL style (Doc/Literal, RPC or Both).
-     */
-	private String wsdlStyle = WSDL_STYLE_DOC;
-	
-	/**
-	 * WSDL with inline schema or not
-	 */
-	private boolean schemaInline = true;
-	
-	/** 
-	 * The namespace URI
-	 */
-	private String namespaceUri = "";
-	
-	/**
-	 * The schema element form
-	 */
-	private String schemaElementForm = XSD_FORM_QUALIFIED;
 	
     public int getHttpSessionTimeout() {
         return httpSessionTimeout;
@@ -214,31 +242,34 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	
 	@Override
     public void add(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof Connector)
+		if (databaseObject instanceof Connector) {
 			addConnector((Connector) databaseObject);
-		else if (databaseObject instanceof Sequence)
+		} else if (databaseObject instanceof Sequence) {
 			addSequence((Sequence) databaseObject);
-		else if (databaseObject instanceof MobileDevice)
+		} else if (databaseObject instanceof MobileDevice) {
 			addMobileDevice((MobileDevice) databaseObject);
-        else throw new EngineException("You cannot add to a project a database object of type " + databaseObject.getClass().getName());
+		} else if (databaseObject instanceof Reference) {
+			addReference((Reference) databaseObject);
+		} else {
+			throw new EngineException("You cannot add to a project a database object of type " + databaseObject.getClass().getName());
+		}
     }
 
     @Override
     public void remove(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof Connector)
+		if (databaseObject instanceof Connector) {
 			removeConnector((Connector) databaseObject);
-		else if (databaseObject instanceof Sequence)
+		} else if (databaseObject instanceof Sequence) {
 			removeSequence((Sequence) databaseObject);
-		else if (databaseObject instanceof MobileDevice)
+		} else if (databaseObject instanceof MobileDevice) {
 			removeMobileDevice((MobileDevice) databaseObject);
-		else throw new EngineException("You cannot remove from a project a database object of type " + databaseObject.getClass().getName());
+		} else if (databaseObject instanceof Reference) {
+			removeReference((Reference) databaseObject);
+		} else {
+			throw new EngineException("You cannot remove from a project a database object of type " + databaseObject.getClass().getName());
+		}
 		super.remove(databaseObject);
     }
-
-	/**
-	 * The vector of available connectors for this project.
-	 */
-	transient private List<Connector> vConnectors = new Vector<Connector>();
 	
 	/**
 	 * Adds a connector.
@@ -257,11 +288,6 @@ public class Project extends DatabaseObject implements ITagsProperty {
 		vConnectors.remove(connector);
 	}
 	
-	@Deprecated
-	public Vector<Connector> getConnectors() {
-		return new Vector<Connector>(getConnectorsList());
-	}
-	
 	public List<Connector> getConnectorsList() {
 		checkSubLoaded();
 		return sort(vConnectors);
@@ -273,11 +299,6 @@ public class Project extends DatabaseObject implements ITagsProperty {
 			if (connector.getName().equalsIgnoreCase(connectorName)) return connector;
 		throw new EngineException("There is no connector named \"" + connectorName + "\" found into this project.");
 	}
-    
-	/**
-	 * The vector of available sequences for this project.
-	 */
-	transient private List<Sequence> vSequences = new Vector<Sequence>();
 
 	/**
 	 * Adds a sequence.
@@ -294,11 +315,6 @@ public class Project extends DatabaseObject implements ITagsProperty {
 		checkSubLoaded();
 		vSequences.remove(sequence);
 	}
-
-	@Deprecated
-	public Vector<Sequence> getSequences() {
-		return new Vector<Sequence>(getSequencesList());
-	}
 	
 	public List<Sequence> getSequencesList() {
 		checkSubLoaded();
@@ -311,11 +327,6 @@ public class Project extends DatabaseObject implements ITagsProperty {
 			if (sequence.getName().equalsIgnoreCase(sequenceName)) return sequence;
 		throw new EngineException("There is no sequence named \"" + sequenceName + "\" found into this project.");
 	}
-	
-	/**
-	 * The vector of available mobile device for this project.
-	 */
-	transient private List<MobileDevice> vMobileDevices = new Vector<MobileDevice>();
 
 	/**
 	 * Adds a mobile device.
@@ -344,13 +355,28 @@ public class Project extends DatabaseObject implements ITagsProperty {
 			if (device.getName().equalsIgnoreCase(deviceName)) return device;
 		throw new EngineException("There is no mobile device named \"" + deviceName + "\" found into this project.");
 	}
-	
-	/**
-	/**
-	 * The default connector for this project.
-	 */
-	transient private Connector defaultConnector = null;
     
+	/**
+	 * Adds a reference.
+	 */
+	protected void addReference(Reference reference) throws EngineException {
+		checkSubLoaded();
+		String newDatabaseObjectName = getChildBeanName(vReferences, reference.getName(), reference.bNew);
+		reference.setName(newDatabaseObjectName);
+		vReferences.add(reference);
+		super.add(reference);
+	}
+
+	public void removeReference(Reference device) throws EngineException {
+		checkSubLoaded();
+		vReferences.remove(device);
+	}
+
+	public List<Reference> getReferenceList() {
+		checkSubLoaded();
+		return sort(vReferences);
+	}
+	
 	/**
 	 * Retrieves the default connector.
 	 */
@@ -397,16 +423,14 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	public Project clone() throws CloneNotSupportedException {
 		Project clonedObject = (Project) super.clone();
 		clonedObject.defaultConnector = null;
-		clonedObject.vConnectors = new Vector<Connector>();
-		clonedObject.vSequences = new Vector<Sequence>();
-		clonedObject.vMobileDevices = new Vector<MobileDevice>();
+		clonedObject.vReferences = new LinkedList<Reference>();
+		clonedObject.vConnectors = new LinkedList<Connector>();
+		clonedObject.vSequences = new LinkedList<Sequence>();
+		clonedObject.vMobileDevices = new LinkedList<MobileDevice>();
 		clonedObject.xsdDirty = true;
 		clonedObject.xsdTypes = null;
 		return clonedObject;
 	}
-
-	transient private boolean xsdDirty = true;
-	transient private String[] xsdTypes = null;
 	
 	public void setXsdDirty(boolean dirty) {
 		xsdDirty = dirty;
@@ -435,12 +459,13 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	 */
 	public String[] getXsdTypes(String prefix) {
 		List<String> list = Arrays.asList(getXsdTypes());
-		ArrayList<String> nsList = new ArrayList<String>();
+		List<String> nsList = new ArrayList<String>();
 		for (String s: list) {
-			if (s.startsWith(prefix+":"))
+			if (s.startsWith(prefix+":")) {
 				nsList.add(s);
+			}
 		}
-		return nsList.toArray(new String[]{});
+		return nsList.toArray(new String[nsList.size()]);
 	}
 
 	/* (non-Javadoc)
@@ -478,18 +503,10 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
-		List<Connector> connectors = getConnectorsList();		
-		for(Connector conn: connectors){
-			rep.add(conn);
-		}
-		List<Sequence> sequences = getSequencesList();	
-		for(Sequence sequence: sequences){
-			rep.add(sequence);
-		}
-		List<MobileDevice> devices = getMobileDeviceList();	
-		for(MobileDevice device: devices){
-			rep.add(device);
-		}		
+		rep.addAll(getConnectorsList());
+		rep.addAll(getSequencesList());
+		rep.addAll(getMobileDeviceList());
+		rep.addAll(getReferenceList());
 		return rep;
 	}
 

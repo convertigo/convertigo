@@ -121,6 +121,7 @@ import com.twinsoft.convertigo.beans.core.ITablesProperty;
 import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
@@ -1297,7 +1298,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					if (parentTreeObject.getObject() == databaseObject) {
 						databaseObjectTreeObject = (DatabaseObjectTreeObject) parentTreeObject;
 					}
-					// recurcive call case, the tree object doesn't exist and must be added to the parent tree object
+					// recursive call case, the tree object doesn't exist and must be added to the parent tree object
 					else {
 						int folderType = Integer.MIN_VALUE;
 						if (databaseObject instanceof Connector) {
@@ -1311,6 +1312,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						} else if (databaseObject instanceof MobileDevice) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_MOBILEDEVICES;
 							databaseObjectTreeObject = new MobileDeviceTreeObject(viewer, (MobileDevice) databaseObject, false);
+
+						} else if (databaseObject instanceof Reference) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_REFERENCES;
+							databaseObjectTreeObject = new ReferenceTreeObject(viewer, (Reference) databaseObject, false);
 
 						} else if (databaseObject instanceof Pool) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_POOLS;
