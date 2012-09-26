@@ -151,7 +151,6 @@
       <library name="lib/internal/ui-090918.jar"/>
       <library name="lib/internal/vdx-090918.jar"/>
       <library name="lib/internal/vt220-090918.jar"/>
-      <library name="lib/internal/externalbrowser.jar"/>
       <library name="lib/rhino-1.7-R2.jar"/>
       <library name="lib/commons-collections-3.1.jar"/>
       <library name="lib/quartz-1.7.1.jar"/>

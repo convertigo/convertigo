@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>Cems</name>
+	<name>CemsStudio_6.1.x</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -28,21 +28,6 @@
 		<nature>org.eclipse.jem.beaninfo.BeanInfoNature</nature>
 	</natures>
 	<linkedResources>
-		<link>
-			<name>src/com/convertigo/externalbrowser/common</name>
-			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsExternalBrowser/src/java/com/convertigo/externalbrowser/common</locationURI>
-		</link>
-		<link>
-			<name>src/com/convertigo/externalbrowser/agent/stub</name>
-			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsExternalBrowser/src/java/com/convertigo/externalbrowser/agent/stub</locationURI>
-		</link>
-		<link>
-			<name>src/com/twinsoft/convertigo/engine/externalbrowser</name>
-			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsExternalBrowser/src/java/com/twinsoft/convertigo/engine/externalbrowser</locationURI>
-		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/parsers</name>
 			<type>2</type>
