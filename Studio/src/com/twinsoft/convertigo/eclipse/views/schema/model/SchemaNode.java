@@ -96,8 +96,8 @@ public class SchemaNode extends XsdNode {
 		return (TypeNode) types.findChild(name);
 	}
 	
-	public TypeNode findElement(String name) {
-		return (TypeNode) elements.findChild(name);
+	public ElementNode findElement(String name) {
+		return (ElementNode) elements.findChild(name);
 	}
 
 	public GroupNode findGroup(String name) {

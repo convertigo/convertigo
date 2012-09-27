@@ -29,8 +29,6 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.eclipse.views.schema.model.XsdNode;
 
@@ -122,34 +120,7 @@ class SchemaViewLabelDecorator implements ILabelDecorator {
 		String decoratedText = text;
 		if (element != null) {
 			if (element instanceof XsdNode) {
-				XsdNode xsdNode = (XsdNode)element;
-				if (xsdNode.getSchemaNode() != null) {
-					// ignore
-				}
-				else {
-					if (xsdNode.useType()) {
-						decoratedText = text + " : " + xsdNode.getObject().getAttribute("type");
-					}
-					else if (xsdNode.useBase()) {
-						decoratedText = text + " : " + xsdNode.getObject().getAttribute("base");
-					}
-					
-					NamedNodeMap map = xsdNode.getObject().getAttributes();
-					for (int i=0; i < map.getLength(); i++) {
-						Node node = map.item(i);
-						String name = node.getNodeName();
-						String value = node.getNodeValue();
-						if (name.equals("name") ||
-							name.equals("type") ||
-							name.equals("ref") ||
-							name.equals("base") ||
-							name.equals("minOccurs") ||
-							name.equals("maxOccurs")) {
-							continue;
-						}
-						decoratedText += " " + name + "=" + value;
-					}
-				}
+				decoratedText = ((XsdNode)element).decorateText(text);
 			}
 		}
 		return decoratedText;

@@ -166,7 +166,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 								handleSchema(schemas[i]);
 							}
 							schemaTreeViewer.setInput(schemaTreeRoot);
-							schemaTreeViewer.expandToLevel(3);
+							nodeTreeViewer.setInput(null);
 							schemaTreeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
 								public void selectionChanged(SelectionChangedEvent event) {
 									Object firstElement = ((IStructuredSelection) event.getSelection()).getFirstElement();

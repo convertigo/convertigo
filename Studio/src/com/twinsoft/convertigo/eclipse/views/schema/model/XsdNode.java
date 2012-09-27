@@ -82,6 +82,41 @@ public class XsdNode extends TreeParentNode {
 		return name;
 	}
 
+	public String decorateText(String text) {
+		String decoratedText = text;
+		if (getSchemaNode() == null) {
+			if (useType()) {
+				decoratedText = text + " : " + getObject().getAttribute("type");
+			}
+			else if (useBase()) {
+				decoratedText = text + " : " + getObject().getAttribute("base");
+			}
+		}
+		decoratedText = decorateTextWithAttributes(decoratedText);
+		
+		return decoratedText;
+	}
+	
+	protected String decorateTextWithAttributes(String text) {
+		String decoratedText = text;
+		NamedNodeMap map = getObject().getAttributes();
+		for (int i=0; i < map.getLength(); i++) {
+			Node node = map.item(i);
+			String name = node.getNodeName();
+			String value = node.getNodeValue();
+			if (name.equals("name") ||
+				name.equals("type") ||
+				name.equals("ref") ||
+				name.equals("base") ||
+				name.equals("minOccurs") ||
+				name.equals("maxOccurs")) {
+				continue;
+			}
+			decoratedText += " " + name + "=" + value;
+		}
+		return decoratedText;
+	}
+	
 	public XsdNode handleNode() {
 		XsdNode nodeCreated = createNode(getObject());
 		nodeCreated.handleChidren();

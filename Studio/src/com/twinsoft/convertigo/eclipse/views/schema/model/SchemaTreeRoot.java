@@ -48,7 +48,7 @@ public class SchemaTreeRoot extends TreeRootNode {
 		return null;
 	}
 	
-	public TypeNode findElement(String namespaceURI, String elementName) {
+	public ElementNode findElement(String namespaceURI, String elementName) {
 		SchemaNode schemaNode = getSchemaNode(namespaceURI);
 		if (schemaNode != null) {
 			return schemaNode.findElement(elementName);

@@ -89,10 +89,9 @@ public class SchemaUtils {
 	public static XmlSchema loadSchema(String xsdFilePath) throws SAXException, IOException {
 		File xsdFile = new File(xsdFilePath);
 		if (xsdFile.exists()) {
-			Document xsdDocument = getDefaultDocumentBuilder().parse(xsdFile);
+			Document xsdDocument = getDefaultDocumentBuilder().parse(xsdFile.toURL().toString());
 			XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
-			xmlSchemaCollection.setBaseUri(xsdFilePath.substring(0, xsdFilePath.lastIndexOf("/")+1));
-			XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, null);
+			XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, xsdFile.toURL().toString(), null);
 			return xmlSchema;
 		}
 		return null;
@@ -150,11 +149,13 @@ public class SchemaUtils {
 	public static NamespaceMap getNamespaceMap(XmlSchema xmlSchema) {
 		NamespaceMap namespacesMap = new NamespaceMap();
 		NamespacePrefixList namespacePrefixList = xmlSchema.getNamespaceContext();
-		String[] prefixes = namespacePrefixList.getDeclaredPrefixes();
-		for (int i=0; i<prefixes.length; i++) {
-			String prefix = prefixes[i];
-			String ns = namespacePrefixList.getNamespaceURI(prefix);
-			namespacesMap.add(prefix, ns);
+		if (namespacePrefixList != null) {
+			String[] prefixes = namespacePrefixList.getDeclaredPrefixes();
+			for (int i=0; i<prefixes.length; i++) {
+				String prefix = prefixes[i];
+				String ns = namespacePrefixList.getNamespaceURI(prefix);
+				namespacesMap.add(prefix, ns);
+			}
 		}
 		return namespacesMap;
 	}
