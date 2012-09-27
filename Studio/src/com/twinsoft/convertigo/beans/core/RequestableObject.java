@@ -792,18 +792,6 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             } finally {
 				Engine.logContext.debug("(RequestableObject) Final stage for requested object thread");
 								
-                synchronized(this) {
-	            	if (runningThread.bContinue) {
-	    				Engine.logContext.debug("(RequestableObject) Notifying the calling thread '" + callingThread.getName() + "' because of normal request termination");
-	    				runningThread.bContinue = false;
-    					notify();
-	    				Engine.logContext.debug("(RequestableObject) The calling thread has been notified!");
-	            	} else {
-	        			Engine.logContext.warn("(RequestableObject) Requested object \"" + RequestableObject.this.getName() + "\" aborted because of session or requestable timeout on context " + context.contextID);
-	    				Engine.logContext.debug("(RequestableObject) Requested object thread: nothing to notify");
-	            	}
-                }
-
 				if (isMsXml)
                 	ComThread.Release();
 
@@ -815,6 +803,18 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 				}
 				
 				Engine.logContext.debug("(RequestableObject) End of requested object thread");
+
+                synchronized(this) {
+	            	if (runningThread.bContinue) {
+	    				Engine.logContext.debug("(RequestableObject) Notifying the calling thread '" + callingThread.getName() + "' because of normal request termination");
+	    				runningThread.bContinue = false;
+    					notify();
+	    				Engine.logContext.debug("(RequestableObject) The calling thread has been notified!");
+	            	} else {
+	        			Engine.logContext.warn("(RequestableObject) Requested object \"" + RequestableObject.this.getName() + "\" aborted because of session or requestable timeout on context " + context.contextID);
+	    				Engine.logContext.debug("(RequestableObject) Requested object thread: nothing to notify");
+	            	}
+                }
             }
         }
     }
