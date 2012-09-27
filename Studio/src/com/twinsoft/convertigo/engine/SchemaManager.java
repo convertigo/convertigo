@@ -71,6 +71,8 @@ public class SchemaManager implements AbstractManager {
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 		
 		final XmlSchemaCollection collection = new XmlSchemaCollection();
+		collection.setBaseUri(Engine.PROJECTS_PATH + "/" + projectName);
+		
 		try {
 			// empty schema for the current project
 			final XmlSchema schema = new XmlSchema(project.getTargetNamespace(), collection);
@@ -143,7 +145,10 @@ public class SchemaManager implements AbstractManager {
 								Iterator<XmlSchemaObject> it = GenericUtils.cast(c.getIterator());
 								while (it.hasNext()) {
 									XmlSchemaObject xmlSchemaObject  = it.next();
-									if (xmlSchemaObject instanceof XmlSchemaElement) {
+									if (xmlSchemaObject instanceof XmlSchemaImport) {
+										
+									}
+									else if (xmlSchemaObject instanceof XmlSchemaElement) {
 										XmlSchemaElement element = (XmlSchemaElement) xmlSchemaObject;
 										if (collection.getElementByQName(element.getQName()) == null) {
 											schema.getItems().add(xmlSchemaObject);
