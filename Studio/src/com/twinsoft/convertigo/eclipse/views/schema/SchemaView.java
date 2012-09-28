@@ -93,8 +93,6 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		createSchemaForm(mainSashForm);
 		createNodeForm(mainSashForm);
 		
-//
-//		getSite().setSelectionProvider(treeViewer);
 		getSite().getPage().addSelectionListener(this);
 		
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(this);

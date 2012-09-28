@@ -23,6 +23,8 @@
 package com.twinsoft.convertigo.eclipse.views.schema.model;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public class DocumentationNode extends XsdNode {
 
@@ -30,4 +32,18 @@ public class DocumentationNode extends XsdNode {
 		super(parent, object);
 	}
 
+	@Override
+	protected void handleChidren() {
+		Element element = (Element) getObject();
+		NodeList childrenList = element.getChildNodes();
+		for (int i=0; i<childrenList.getLength(); i++) {
+			Node node = childrenList.item(i);
+			if (node.getNodeType() == Node.TEXT_NODE) {
+				addChild(new TextNode(this, node.getTextContent()));
+			}
+		}
+		super.handleChidren();
+	}
+
+	
 }
