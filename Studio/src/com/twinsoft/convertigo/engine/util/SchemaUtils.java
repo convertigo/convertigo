@@ -26,11 +26,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 
-import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -39,19 +35,11 @@ import javax.xml.transform.OutputKeys;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaForm;
-import org.apache.ws.commons.schema.XmlSchemaImport;
-import org.apache.ws.commons.schema.XmlSchemaObject;
-import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.apache.ws.commons.schema.utils.NamespacePrefixList;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
-
-import com.twinsoft.convertigo.beans.core.Connector;
-import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.engine.Engine;
 
 public class SchemaUtils {
 	
@@ -158,94 +146,5 @@ public class SchemaUtils {
 			}
 		}
 		return namespacesMap;
-	}
-	
-	public static void testMigration_6_3_0(String projectName) {
-		try {
-			Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-			String projectXsdFilePath = Engine.PROJECTS_PATH + "/" + projectName + "/"+ projectName + ".xsd";
-			File xsdFile = new File(projectXsdFilePath);
-			if (xsdFile.exists()) {
-				// Load project schema from old XSD file
-				XmlSchema projectSchema = loadSchema(projectXsdFilePath);
-				
-				for (Connector connector: project.getConnectorsList()) {
-					for (Transaction transaction: connector.getTransactionsList()) {
-						try {
-							// Retrieve required XmlSchemaObjects for transaction
-							QName requestQName = new QName(project.getTargetNamespace(), transaction.getXsdRequestElementName());
-							QName responseQName = new QName(project.getTargetNamespace(), transaction.getXsdResponseElementName());
-							LinkedHashMap<QName, XmlSchemaObject> map = new LinkedHashMap<QName, XmlSchemaObject>();
-							XmlSchemaWalker dw = XmlSchemaWalker.newDependencyWalker(map);
-							dw.walkByElementRef(projectSchema, requestQName, true);
-							dw.walkByElementRef(projectSchema, responseQName, true);
-							
-							// Create transaction schema
-							String targetNamespace = projectSchema.getTargetNamespace();
-							String prefix = projectSchema.getNamespaceContext().getPrefix(targetNamespace);
-							String elementFormDefault = projectSchema.getElementFormDefault().getValue();
-							String attributeFormDefault = projectSchema.getAttributeFormDefault().getValue();
-							XmlSchema transactionSchema = createSchema(prefix, targetNamespace, elementFormDefault, attributeFormDefault);
-							
-							// Add required prefix declarations
-							List<String> nsList = new LinkedList<String>();
-							for (QName qname: map.keySet()) {
-								String nsURI = qname.getNamespaceURI();
-								if (!nsURI.equals(Constants.URI_2001_SCHEMA_XSD)) {
-									if (!nsList.contains(nsURI)) {
-										nsList.add(nsURI);
-									}
-								}
-								String nsPrefix = qname.getPrefix();
-								if (!nsURI.equals(targetNamespace)) {
-									NamespaceMap nsMap = getNamespaceMap(transactionSchema);
-									if (nsMap.getNamespaceURI(nsPrefix) == null) {
-										nsMap.add(nsPrefix, nsURI);
-										transactionSchema.setNamespaceContext(nsMap);
-									}
-								}
-							}
-							
-							// Add required imports
-							for (String namespaceURI: nsList) {
-								XmlSchemaObjectCollection includes = projectSchema.getIncludes();
-								for (int i=0; i < includes.getCount(); i++) {
-									XmlSchemaObject xmlSchemaObject = includes.getItem(i);
-									if (xmlSchemaObject instanceof XmlSchemaImport) {
-										if (((XmlSchemaImport) xmlSchemaObject).getNamespace().equals(namespaceURI)) {
-											//TODO: create XSD dbo on project
-											XmlSchemaImport xmlSchemaImport = new XmlSchemaImport();
-											xmlSchemaImport.setSchemaLocation("../../../" +((XmlSchemaImport) xmlSchemaObject).getSchemaLocation());
-											xmlSchemaImport.setNamespace(namespaceURI);
-											transactionSchema.getIncludes().add(xmlSchemaImport);
-											transactionSchema.getItems().add(xmlSchemaImport);
-										}
-									}
-								}
-							}
-							
-							
-							// Add required schema objects
-							for (QName qname: map.keySet()) {
-								if (qname.getNamespaceURI().equals(targetNamespace)) {
-									transactionSchema.getItems().add(map.get(qname));
-								}
-							}
-							
-							// Save schema to file
-							String transactionXsdFilePath = transaction.getSchemaFilePath().replaceFirst("\\.xsd", ".mgr.xsd");
-							new File(transaction.getSchemaFileDirPath()).mkdirs();
-							saveSchema(transactionXsdFilePath, transactionSchema);
-						}
-						catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				}
-			}
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 }

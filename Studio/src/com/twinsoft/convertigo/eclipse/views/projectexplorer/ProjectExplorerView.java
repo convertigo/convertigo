@@ -179,7 +179,6 @@ import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
-import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ProjectExplorerView extends ViewPart implements ObjectsProvider, CompositeListener, EngineListener, MigrationListener {
@@ -2485,9 +2484,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (importedProject != null) {
 			// project's name may have been changed because of non-normalized name (fix ticket #788 : Can not import project 213.car)
 			targetProjectName = importedProject.getName();
-			
-			//TODO: move migration code to DatabaseObjectsManager:performWsMigration
-			SchemaUtils.testMigration_6_3_0(targetProjectName);
 			
 			ViewContentProvider viewContentProvider = (ViewContentProvider) viewer.getContentProvider();
 			
