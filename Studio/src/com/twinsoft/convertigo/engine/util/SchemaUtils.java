@@ -76,9 +76,12 @@ public class SchemaUtils {
 
 	public static XmlSchema loadSchema(String xsdFilePath) throws SAXException, IOException {
 		File xsdFile = new File(xsdFilePath);
+		return loadSchema(xsdFile, new XmlSchemaCollection());
+	}
+
+	public static XmlSchema loadSchema(File xsdFile, XmlSchemaCollection xmlSchemaCollection) throws SAXException, IOException {
 		if (xsdFile.exists()) {
 			Document xsdDocument = getDefaultDocumentBuilder().parse(xsdFile.toURL().toString());
-			XmlSchemaCollection xmlSchemaCollection = new XmlSchemaCollection();
 			XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, xsdFile.toURL().toString(), null);
 			return xmlSchema;
 		}

@@ -528,15 +528,11 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 	
 	
 	public String getSchemaFileDirPath() {
-		String projectName = getProject().getName();
-		String connectorName = getConnector().getName();
-		String dirPath = Engine.PROJECTS_PATH + "/" + projectName + "/xsd/internal/" + connectorName;
-		return dirPath;
+		return getProject().getXsdInternalDirPath()+ "/" + getConnector().getName();
 	}
 	
 	public String getSchemaFilePath() {
-		String filePath = getSchemaFileDirPath()+ "/"+ getName() + ".xsd";
-		return filePath;
+		return getSchemaFileDirPath()+ "/"+ getName() + ".xsd";
 	}
 	
 	public String getXsdRequestElementName() {

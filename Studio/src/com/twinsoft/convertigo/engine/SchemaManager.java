@@ -71,7 +71,7 @@ public class SchemaManager implements AbstractManager {
 		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 		
 		final XmlSchemaCollection collection = new XmlSchemaCollection();
-		collection.setBaseUri(Engine.PROJECTS_PATH + "/" + projectName);
+		//collection.setBaseUri(Engine.PROJECTS_PATH + "/" + projectName);
 		
 		try {
 			// empty schema for the current project

@@ -513,4 +513,17 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	public String getOldName() {
 		return oldName;
 	}
+	
+	public String getXsdDirPath() {
+		return Engine.PROJECTS_PATH + "/" + getName() + "/xsd";
+	}
+
+	public String getXsdInternalDirPath() {
+		return getXsdDirPath() + "/internal";
+	}
+	
+	public String getWsdlDirPath() {
+		return Engine.PROJECTS_PATH + "/" + getName() + "/wsdl";
+	}
+	
 }
