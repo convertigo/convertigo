@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public abstract class BlockStep extends StepWithExpressions {
 
@@ -260,7 +261,7 @@ public abstract class BlockStep extends StepWithExpressions {
 	}
 	
 	public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaSequence sequence = new XmlSchemaSequence(); 
+		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence()); 
 		sequence.setMinOccurs(0);
 		XmlSchemaParticle particle = getXmlSchemaParticle(collection, schema, sequence);
 		return particle;

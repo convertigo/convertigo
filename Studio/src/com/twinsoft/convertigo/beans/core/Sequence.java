@@ -72,6 +72,7 @@ import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XSDExtractor;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.util.StringEx;
 
 public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator {
@@ -1717,18 +1718,16 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaElement eSequence = new XmlSchemaElement();
+		XmlSchemaElement eSequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
 		eSequence.setName(getName() + "Response");
 		
-		XmlSchemaComplexType tSequence = new XmlSchemaComplexType(schema);
-		
+		XmlSchemaComplexType tSequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 		eSequence.setSchemaType(tSequence);
-		
 
-		XmlSchemaSequence sequence = new XmlSchemaSequence();
+		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
 		tSequence.setParticle(sequence);
 		
-		XmlSchemaElement eDocument = new XmlSchemaElement();
+		XmlSchemaElement eDocument = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
 		eDocument.setName("response");
 		
 		sequence.getItems().add(eDocument);

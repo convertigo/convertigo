@@ -14,6 +14,9 @@ import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaUse;
 import org.apache.ws.commons.schema.constants.Constants;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+
 public class XmlSchemaUtils {
 	public static class XmlSchemaObjectCollectionList<E extends XmlSchemaObject> implements List<E> {
 		private XmlSchemaObjectCollection collection;
@@ -156,5 +159,17 @@ public class XmlSchemaUtils {
 		while (count > 0) {
 			collection.removeAt(--count);
 		}
+	}
+	
+	public static <E extends XmlSchemaObject> E makeDynamic(DatabaseObject databaseObject, E xso) {
+		SchemaMeta.getReferencedDatabaseObjects(xso).add(databaseObject);
+		SchemaMeta.setDynamic(xso);
+		return xso;
+	}
+	
+	public static <E extends XmlSchemaObject> E makeDynamic(Collection<DatabaseObject> databaseObjects, E xso) {
+		SchemaMeta.getReferencedDatabaseObjects(xso).addAll(databaseObjects);
+		SchemaMeta.setDynamic(xso);
+		return xso;
 	}
 }

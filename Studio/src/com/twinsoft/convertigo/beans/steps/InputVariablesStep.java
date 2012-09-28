@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class InputVariablesStep extends Step implements ISchemaParticleGenerator {
 
@@ -218,7 +219,7 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 		XmlSchemaParticle particle = group;
 		if (isOutput()) {
 			XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-			XmlSchemaComplexType cType = new XmlSchemaComplexType(schema);
+			XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 			SchemaMeta.setContainerXmlSchemaGroupBase(element, group);
 			element.setType(cType);
 			cType.setParticle(group);
@@ -231,10 +232,10 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 	public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		List<RequestableVariable> variables = getParentSequence().getAllVariables();
 		
-		XmlSchemaSequence sequence = variables.size() > 0 ? new XmlSchemaSequence() : null;
+		XmlSchemaSequence sequence = variables.size() > 0 ? XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence()) : null;
 		
 		for (RequestableVariable variable : getParentSequence().getAllVariables()) {
-			XmlSchemaElement element = new XmlSchemaElement();
+			XmlSchemaElement element = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
 			element.setName(variable.getName());
 			element.setSchemaTypeName(Constants.XSD_STRING);
 			element.setMinOccurs(0);

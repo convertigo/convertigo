@@ -57,6 +57,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 
 /**
@@ -985,9 +986,9 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	protected void addXmlSchemaAnnotation(XmlSchemaAnnotated annoted) {
 		String comment = getComment();
 		if (comment != null && comment.length() > 0) {
-			XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+			XmlSchemaAnnotation annotation = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAnnotation());
 			annoted.setAnnotation(annotation);
-			XmlSchemaDocumentation documentation = new XmlSchemaDocumentation();
+			XmlSchemaDocumentation documentation = XmlSchemaUtils.makeDynamic(this, new XmlSchemaDocumentation());
 			annotation.getItems().add(documentation);
 			
 			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
@@ -1000,7 +1001,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	public XmlSchemaObject getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaElement element = new XmlSchemaElement();
+		XmlSchemaElement element = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
 		element.setName(getStepNodeName());
 		addXmlSchemaAnnotation(element);
 		return element;

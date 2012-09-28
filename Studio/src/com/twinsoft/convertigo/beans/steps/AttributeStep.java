@@ -259,7 +259,7 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator {
 
 	@Override
 	public XmlSchemaAttribute getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaAttribute attribute = new XmlSchemaAttribute();
+		XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
 		attribute.setName(getStepNodeName());
 		attribute.setSchemaTypeName(Constants.XSD_STRING);
 		attribute.setUse(XmlSchemaUtils.attributeUseRequired);

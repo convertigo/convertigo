@@ -53,7 +53,7 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 
 public class SchemaManager implements AbstractManager {
-
+	
 	public void init() throws EngineException {
 		// TODO Auto-generated method stub
 		
@@ -191,15 +191,14 @@ public class SchemaManager implements AbstractManager {
 							// do something only on case of child
 							if (!myParticleChildren.isEmpty() || (myAttributeChildren != null && !myAttributeChildren.isEmpty())) {
 								if (cType == null) {
-									cType = new XmlSchemaComplexType(schema);
-									SchemaMeta.setDynamic(cType);
+									cType = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaComplexType(schema));
 									newComplexType = true;
 								}
 			
 								// prepare element children in the group
 								if (!myParticleChildren.isEmpty()) {									
 									if (group == null) {
-										group = new XmlSchemaSequence();
+										group = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaSequence());
 									}
 	
 									for (XmlSchemaParticle child : myParticleChildren) {
@@ -214,10 +213,10 @@ public class SchemaManager implements AbstractManager {
 										// the type must be customized, create an extension
 										element.setSchemaTypeName(null);
 		
-										XmlSchemaSimpleContent sContent = new XmlSchemaSimpleContent();
+										XmlSchemaSimpleContent sContent = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaSimpleContent());
 										cType.setContentModel(sContent);
 		
-										XmlSchemaSimpleContentExtension sContentExt = new XmlSchemaSimpleContentExtension();
+										XmlSchemaSimpleContentExtension sContentExt = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaSimpleContentExtension());
 										sContent.setContent(sContentExt);
 		
 										sContentExt.setBaseTypeName(typeName);
@@ -247,8 +246,7 @@ public class SchemaManager implements AbstractManager {
 								String elementType = databaseObject.getComment();
 								if (elementType != null && elementType.startsWith("tn:")) {
 									if (cType == null) {
-										cType = new XmlSchemaComplexType(schema);
-										SchemaMeta.setDynamic(cType);
+										cType = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaComplexType(schema));
 										newComplexType = true;
 									}
 									elementType = elementType.substring(3);
@@ -349,14 +347,14 @@ public class SchemaManager implements AbstractManager {
 			if (firstSequence != null || secondSequence != null) {
 				// create missing sequence
 				if (firstSequence == null) {
-					firstSequence = new XmlSchemaSequence();
+					firstSequence = XmlSchemaUtils.makeDynamic(SchemaMeta.getReferencedDatabaseObjects(first), new XmlSchemaSequence());
 					first.setParticle(firstSequence);
 				} else if (secondSequence == null) {
-					secondSequence = new XmlSchemaSequence();
+					secondSequence = XmlSchemaUtils.makeDynamic(SchemaMeta.getReferencedDatabaseObjects(second), new XmlSchemaSequence());
 				}
 				
 				// merge sequence
-				mergeParticules(firstSequence.getItems(), secondSequence.getItems());
+				mergeParticules(firstSequence, secondSequence);
 			} else {
 				// suppose the type contains an extension
 				XmlSchemaComplexContent firstContent = (XmlSchemaComplexContent) first.getContentModel();
@@ -370,6 +368,7 @@ public class SchemaManager implements AbstractManager {
 				}
 			}
 		}
+		SchemaMeta.getReferencedDatabaseObjects(first).addAll(SchemaMeta.getReferencedDatabaseObjects(second));
 	}
 	
 	private static void mergeAttributes(XmlSchemaObjectCollection first, XmlSchemaObjectCollection second) {
@@ -422,16 +421,16 @@ public class SchemaManager implements AbstractManager {
 		}
 	}
 	
-	private static void mergeParticules(XmlSchemaObjectCollection first, XmlSchemaObjectCollection second) {
+	private static void mergeParticules(XmlSchemaGroupBase first, XmlSchemaGroupBase second) {
 		// wrap element collection in a standard java List interface
-		List<XmlSchemaParticle> lFirst = new XmlSchemaUtils.XmlSchemaObjectCollectionList<XmlSchemaParticle>(first);
-		List<XmlSchemaParticle> result = new ArrayList<XmlSchemaParticle>(first.getCount() + second.getCount());
-		List<Boolean> minor = new ArrayList<Boolean>(first.getCount() + second.getCount());
+		List<XmlSchemaParticle> lFirst = new XmlSchemaUtils.XmlSchemaObjectCollectionList<XmlSchemaParticle>(first.getItems());
+		List<XmlSchemaParticle> result = new ArrayList<XmlSchemaParticle>(first.getItems().getCount() + second.getItems().getCount());
+		List<Boolean> minor = new ArrayList<Boolean>(first.getItems().getCount() + second.getItems().getCount());
 		
-		GenericUtils.merge(lFirst, new XmlSchemaUtils.XmlSchemaObjectCollectionList<XmlSchemaParticle>(second), result, minor, new Comparator<XmlSchemaParticle>() {
+		GenericUtils.merge(lFirst, new XmlSchemaUtils.XmlSchemaObjectCollectionList<XmlSchemaParticle>(second.getItems()), result, minor, new Comparator<XmlSchemaParticle>() {
 			public int compare(XmlSchemaParticle first, XmlSchemaParticle second) {
 				if (first instanceof XmlSchemaGroupBase && first.getClass().equals(second.getClass())) {
-					mergeParticules(((XmlSchemaGroupBase) first).getItems(), ((XmlSchemaGroupBase) first).getItems());
+					mergeParticules((XmlSchemaGroupBase) first, (XmlSchemaGroupBase) second);
 					return 0;
 				} else if (first instanceof XmlSchemaElement && second instanceof XmlSchemaElement) {
 					XmlSchemaElement eFirst = (XmlSchemaElement) first;
@@ -449,6 +448,7 @@ public class SchemaManager implements AbstractManager {
 								eFirst.setSchemaType(tSecond);
 							}
 						}
+						SchemaMeta.getReferencedDatabaseObjects(eFirst).addAll(SchemaMeta.getReferencedDatabaseObjects(eSecond));
 					}
 					return comp;
 				}
@@ -466,5 +466,7 @@ public class SchemaManager implements AbstractManager {
 			}
 			lFirst.add(element);
 		}
+		
+		SchemaMeta.getReferencedDatabaseObjects(first).addAll(SchemaMeta.getReferencedDatabaseObjects(second));
 	}
 }

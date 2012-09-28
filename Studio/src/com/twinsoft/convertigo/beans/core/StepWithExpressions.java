@@ -54,6 +54,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public abstract class StepWithExpressions extends Step implements IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator {
 	private static final long serialVersionUID = 6835033841635158551L;
@@ -873,7 +874,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 		XmlSchemaParticle particle = group;
 		if (isOutput()) {
 			XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-			XmlSchemaComplexType cType = new XmlSchemaComplexType(schema);
+			XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 			SchemaMeta.setContainerXmlSchemaGroupBase(element, group);
 			element.setType(cType);
 			cType.setParticle(group);

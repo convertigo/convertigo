@@ -29,6 +29,7 @@ import org.apache.ws.commons.schema.XmlSchemaSequence;
 
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class ThenStep extends StepWithExpressions {
 
@@ -65,7 +66,7 @@ public class ThenStep extends StepWithExpressions {
 	
 	@Override
 	public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		return getXmlSchemaParticle(collection, schema, new XmlSchemaSequence());
+		return getXmlSchemaParticle(collection, schema, XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence()));
 	}
 	
 	@Override

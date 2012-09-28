@@ -27,6 +27,8 @@ import org.apache.ws.commons.schema.XmlSchemaChoice;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
 
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
+
 public class IfExistThenElseStep extends IfExistStep implements IThenElseContainer {
 
 	private static final long serialVersionUID = 5124025868949574305L;
@@ -54,7 +56,7 @@ public class IfExistThenElseStep extends IfExistStep implements IThenElseContain
 	
     @Override
     public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-    	XmlSchemaChoice choice = new XmlSchemaChoice();
+    	XmlSchemaChoice choice = XmlSchemaUtils.makeDynamic(this, new XmlSchemaChoice());
 		return getXmlSchemaParticle(collection, schema, choice);
 	}	
 }

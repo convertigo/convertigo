@@ -253,7 +253,7 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 	
 	@Override
 	public XmlSchemaAttribute getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaAttribute attribute = new XmlSchemaAttribute();
+		XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
 		attribute.setName(getStepNodeName());
 		attribute.setSchemaTypeName(Constants.XSD_STRING);
 		attribute.setUse(XmlSchemaUtils.attributeUseRequired);
