@@ -24,7 +24,7 @@ $(document).ready(function () {
 	initCommon(function () {
 		call("projects.List", {}, function (xml) {
 			var $xml = $(xml);
-			$("#projects").empty();
+			$("#projects>tbody").empty();
 			$xml.find("project[name^='demo_mashup']").each(function () {
 				var $project = $(this);
 				var display_name = $project.attr("name").replace(new RegExp("_", "g"), " ");
@@ -43,7 +43,7 @@ $(document).ready(function () {
 				$project_div.find(".project_link").attr("href", "project.html#" + $project.attr("name"));
 				$project_div.find(".project_wsdl").attr("href", "projects/" + $project.attr("name") + "/.wsl?wsdl");
 				$project_div.find(".table_cell").addClass("table_row_" + (i%2 === 0 ? "odd" : "even"));
-				$("#projects").append($project_div);
+				$("#projects>tbody").append($project_div);
 			});
 		});
 		call("engine.GetStatus", {}, function (xml) {
