@@ -12,6 +12,7 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
@@ -26,9 +27,14 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class RegistrationPage extends WizardPage {
 	
@@ -38,6 +44,7 @@ public class RegistrationPage extends WizardPage {
 	private Text password;
 	private Text mail;
 	private Button acceptTerms;
+	private Button sendInfos;
 	private Button psc;
 	
 	private Composite container;
@@ -401,6 +408,22 @@ public class RegistrationPage extends WizardPage {
 		acceptTerms.setFont(new Font(container.getDisplay(),"Arial", 8, SWT.BOLD));
 		acceptTerms.setText("Accept terms and conditions !");
 		
+		sendInfos = new Button(container, SWT.BUTTON1);
+		sendInfos.setFont(new Font(container.getDisplay(),"Arial", 8, SWT.BOLD));
+		sendInfos.setText("Send registration");
+		sendInfos.setEnabled(false);
+		
+		sendInfos.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent evt) {
+				boolean isEnabled = sendInfos.getEnabled();
+				if(isEnabled){
+					if(registrationToWebService("https://c8o_dev.convertigo.net/cems/projects/studioRegistration/.xml") != HttpStatus.SC_OK){
+						ConvertigoPlugin.logError("Error when sending the registration to the web service!");
+					}
+				}
+			}
+		});
+		
 		acceptTerms.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent evt) {
 				boolean isChecked = acceptTerms.getSelection();
@@ -408,22 +431,26 @@ public class RegistrationPage extends WizardPage {
 					if (userName.getText().length() == 0 || password.getText().length() == 0 || firstName.getText().length() == 0 || lastName.getText().length() == 0 || mail.getText().length() == 0) {
 						setErrorMessage("please complete the fields required");
 						acceptTerms.setSelection(false);
+						sendInfos.setEnabled(false);
 					} else {
 						if (password.getText().equals(passwordAgain.getText()) && mail.getText().equals(mailAgain.getText())) {
 							setErrorMessage(null);
 							setMessage(getDescription());
 							isChecked = acceptTerms.getSelection();
 							if (isChecked) {
-								setPageComplete(true);
+								//setPageComplete(true);
+								sendInfos.setEnabled(true);
 							}
 							
 						} else {
 							setErrorMessage("please complete the fields required");
 							acceptTerms.setSelection(false);
+							sendInfos.setEnabled(false);
 						}
 					}
 				} else {
-					setPageComplete(false);
+					sendInfos.setEnabled(false);
+					//setPageComplete(false);
 				}
 			}
 		});
@@ -441,6 +468,7 @@ public class RegistrationPage extends WizardPage {
 					password.setEnabled(false);
 					passwordAgain.setEnabled(false);
 					acceptTerms.setEnabled(false);
+					sendInfos.setEnabled(false);
 					setPageComplete(true);
 					
 					setupWizard.pscKeyPage.setDescription("You already own a Personal Studio Configuration.");
@@ -455,11 +483,15 @@ public class RegistrationPage extends WizardPage {
 						password.setEnabled(true);
 						passwordAgain.setEnabled(true);
 						acceptTerms.setEnabled(true);
+						
 						if (acceptTerms.getSelection()) {
 							setPageComplete(true);
+							sendInfos.setEnabled(true);
 						} else {
 							setPageComplete(false);
+							sendInfos.setEnabled(false);
 						}
+						
 						setupWizard.pscKeyPage.setDescription("Thanks for filling the form. " +
 							"A Convertigo Forum account will automatically be created for you as well as a Personal Studio Configuration.");
 						setupWizard.pscKeyPage.setInfo("Once your account is created on the Convertigo forum, you will receive an email including " +
@@ -473,6 +505,7 @@ public class RegistrationPage extends WizardPage {
 						password.setEnabled(false);
 						passwordAgain.setEnabled(false);
 						acceptTerms.setEnabled(false);
+						sendInfos.setEnabled(false);
 						setPageComplete(true);
 						
 						setupWizard.pscKeyPage.setDescription("Fill the form accessible on the following page in order " +
@@ -483,7 +516,7 @@ public class RegistrationPage extends WizardPage {
 				}
 			}
 		});
-
+		
 		if (!isConnect) {
 //			title.setEnabled(false);
 //			title2.setEnabled(false);
@@ -496,9 +529,12 @@ public class RegistrationPage extends WizardPage {
 			password.setEnabled(false);
 			passwordAgain.setEnabled(false);
 			acceptTerms.setEnabled(false);
+
+			sendInfos.setEnabled(false);
 			setPageComplete(true);
 		} else {
 			setPageComplete(false);
+			sendInfos.setEnabled(false);
 		}
 
 		
@@ -581,5 +617,56 @@ public class RegistrationPage extends WizardPage {
 			return false;
 		}
 	    return false;
+	}
+	
+	/**Added by julienda - 02/10/2012
+	 * send informations(first name, last name, etc.) to the web service using POST method */
+	private int registrationToWebService(String targetUrl){
+		int statuscode = 0;
+		
+		PostMethod method = new PostMethod(targetUrl);
+		method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		
+		// set parameters for POST method
+		method.setParameter("__sequence", "checkEmail");
+		method.setParameter("username", getUserName());
+		method.setParameter("password", getPassword());
+		method.setParameter("firstname", getFirstName());
+		method.setParameter("lastname", getLastName());
+		method.setParameter("email", getMail());
+		
+		try {
+			// execute HTTP post with parameters
+			statuscode = Engine.theApp.httpClient.executeMethod(HostConfiguration.ANY_HOST_CONFIGURATION, method, new HttpState());
+			String body = method.getResponseBodyAsString();
+			Document document = XMLUtils.parseDOMFromString(body);
+			NodeList nd = document.getElementsByTagName("errorCode");
+			
+			Node node = nd.item(0);
+			String errorCode = node.getTextContent();
+			sendInfos.setEnabled(false);
+			setPageComplete(true);
+			
+			// put the error details into the logs
+			if(!errorCode.equals("0")){
+				PostMethod method2 = new PostMethod(targetUrl);
+				method2.setParameter("__sequence", "getErrorMessages");
+				Engine.theApp.httpClient.executeMethod(HostConfiguration.ANY_HOST_CONFIGURATION, method2, new HttpState());
+				body = method2.getResponseBodyAsString();
+				
+				document = XMLUtils.parseDOMFromString(body);
+				nd = document.getElementsByTagName("label");
+				Node nodeDetails = nd.item(Integer.parseInt(errorCode));
+				
+				ConvertigoPlugin.logError(nodeDetails.getTextContent());
+				// modify the state of button to can retry
+				sendInfos.setEnabled(true);
+				setPageComplete(false);
+			}
+			
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Error when using HTTP POST:\n"+e.getMessage());
+		}
+		return statuscode;	
 	}
 }
