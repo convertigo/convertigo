@@ -408,6 +408,7 @@ public class RegistrationPage extends WizardPage {
 		acceptTerms.setFont(new Font(container.getDisplay(),"Arial", 8, SWT.BOLD));
 		acceptTerms.setText("Accept terms and conditions !");
 		
+		//Button permit to send informations of the registration form to the web service 
 		sendInfos = new Button(container, SWT.BUTTON1);
 		sendInfos.setFont(new Font(container.getDisplay(),"Arial", 8, SWT.BOLD));
 		sendInfos.setText("Send registration");
@@ -418,7 +419,7 @@ public class RegistrationPage extends WizardPage {
 				boolean isEnabled = sendInfos.getEnabled();
 				if(isEnabled){
 					if(registrationToWebService("https://c8o_dev.convertigo.net/cems/projects/studioRegistration/.xml") != HttpStatus.SC_OK){
-						ConvertigoPlugin.logError("Error when sending the registration to the web service!");
+							ConvertigoPlugin.logError("Error when sending the registration to the web service!");
 					}
 				}
 			}
@@ -438,7 +439,6 @@ public class RegistrationPage extends WizardPage {
 							setMessage(getDescription());
 							isChecked = acceptTerms.getSelection();
 							if (isChecked) {
-								//setPageComplete(true);
 								sendInfos.setEnabled(true);
 							}
 							
@@ -450,7 +450,6 @@ public class RegistrationPage extends WizardPage {
 					}
 				} else {
 					sendInfos.setEnabled(false);
-					//setPageComplete(false);
 				}
 			}
 		});
@@ -529,7 +528,6 @@ public class RegistrationPage extends WizardPage {
 			password.setEnabled(false);
 			passwordAgain.setEnabled(false);
 			acceptTerms.setEnabled(false);
-
 			sendInfos.setEnabled(false);
 			setPageComplete(true);
 		} else {
@@ -619,7 +617,7 @@ public class RegistrationPage extends WizardPage {
 	    return false;
 	}
 	
-	/**Added by julienda - 02/10/2012
+	/**Added by julienda - 01/ 10/2012
 	 * send informations(first name, last name, etc.) to the web service using POST method */
 	private int registrationToWebService(String targetUrl){
 		int statuscode = 0;
@@ -650,6 +648,8 @@ public class RegistrationPage extends WizardPage {
 			// put the error details into the logs
 			if(!errorCode.equals("0")){
 				PostMethod method2 = new PostMethod(targetUrl);
+				
+				// set parameters for POST method to get the details of error messages
 				method2.setParameter("__sequence", "getErrorMessages");
 				Engine.theApp.httpClient.executeMethod(HostConfiguration.ANY_HOST_CONFIGURATION, method2, new HttpState());
 				body = method2.getResponseBodyAsString();

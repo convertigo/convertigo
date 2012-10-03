@@ -1,9 +1,11 @@
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.Set;
 
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.IWorkbench;
@@ -11,8 +13,10 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.DeploymentConfiguration;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.SimpleCipher;
 
 public class SetupWizard extends Wizard {
 
@@ -127,6 +131,41 @@ public class SetupWizard extends Wizard {
 //		for (String sample : selectedSamples) {
 //			//FileUtils.copyFileToDirectory(srcFile, workspaceProjects);
 //		}
+		/**
+		 * Added by julienda - 03/10/2012
+		 * Deploy the configuration with PSC
+		 */
+		String psc = pscKeyPage.getCertificateKey();
+		String decipheredPSC = Crypto2.decodeFromHexString("registration", psc);
+		Properties pscProperties = new Properties();
+		
+		try {
+			pscProperties.load(new ByteArrayInputStream(decipheredPSC.getBytes()));
+		
+			Set<Object> keys = pscProperties.keySet();
+			int i = 1;
+			
+			while(keys.contains("deploy."+i+".server")){			
+				String server = pscProperties.getProperty("deploy." + i + ".server");
+				String user = pscProperties.getProperty("deploy." + i + ".admin.user");
+				String password = pscProperties.getProperty("deploy."+i+".admin.password");
+				boolean bHttps = Boolean.parseBoolean(pscProperties.getProperty("deploy."+i+".ssl.https"));
+	
+				if (server == null) throw new Exception("Invalid registration certificate (missing server)");
+				if (user == null) throw new Exception("Invalid registration certificate (missing user)");
+				if (password == null) throw new Exception("Invalid registration certificate (missing password)");
+				if (!user.equals(SimpleCipher.decode(password))) throw new Exception("Invalid registration certificate (invalid password)");
+				
+				DeploymentConfiguration deploymentConfiguration = new DeploymentConfiguration(server, user, password, bHttps);
+				ConvertigoPlugin.deploymentConfigurationManager.add(deploymentConfiguration);
+				i++;
+			}
+	
+			ConvertigoPlugin.deploymentConfigurationManager.save();
+		}
+		catch(Exception exception) {
+			ConvertigoPlugin.logError("Error when deploy the psc !");
+		}
 		
 		// Restart the studio with the new eclipse workspace
 		if (bRestartRequired)
