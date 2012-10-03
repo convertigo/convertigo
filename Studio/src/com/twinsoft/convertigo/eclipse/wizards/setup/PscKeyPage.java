@@ -12,6 +12,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.engine.util.Crypto2;
+
 public class PscKeyPage extends WizardPage {
 	
 	private Composite container;
@@ -71,13 +73,19 @@ public class PscKeyPage extends WizardPage {
 
 			public void keyReleased(KeyEvent e) {
 				if (pscKey.getText().length() != 0) {
-					String key = pscKey.getText();
-					if ("azerty".equals(key)) {
+					String psc = pscKey.getText();
+					String decipheredPSC = Crypto2.decodeFromHexString("registration", psc);
+					
+					if (decipheredPSC == null) {
+						setErrorMessage("Invalid PSC (unable to decipher)!");
+						setPageComplete(false);
+					}
+					else if (decipheredPSC.startsWith("# PSC file")) {
 						setErrorMessage(null);
 						setMessage(getDescription());
 						setPageComplete(true);
 					} else {
-						setErrorMessage("Incorrect PSC!");
+						setErrorMessage("Invalid PSC (wrong format)!");
 						setPageComplete(false);
 					}
 				} else {
