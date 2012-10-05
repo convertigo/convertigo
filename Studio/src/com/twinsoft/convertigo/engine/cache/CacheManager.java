@@ -67,8 +67,15 @@ public abstract class CacheManager extends AbstractRunnableManager {
 		
 		long expiryDate = context.requestedObject.getResponseExpiryDateInMillis();
 		
+		// Cache not enabled
+		if(EnginePropertiesManager.getPropertyAsBoolean(PropertyName.DISABLE_CACHE)){
+			Engine.logCacheManager.debug("Cache not enabled explicitly");
+
+			response = context.requestedObject.run(requester, context);
+			response.getDocumentElement().setAttribute("fromcache", "false");
+		}
 		// Not cached transaction
-		if (expiryDate <= 0) {
+		else if (expiryDate <= 0) {
 			Engine.logCacheManager.trace("The response is not cachable");
 			
 			response = context.requestedObject.run(requester, context);
