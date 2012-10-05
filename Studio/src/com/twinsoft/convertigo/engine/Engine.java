@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserManager;
 import com.twinsoft.convertigo.engine.plugins.AbstractBiller;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
@@ -157,6 +158,10 @@ public class Engine {
 	public ProxyManager proxyManager;
 	
 	/**
+	 * The external browser manager
+	 */
+	public ExternalBrowserManager externalBrowserManager;	
+	/**
 	 * Loggers
 	 */
 	public static Logger logConvertigo;
@@ -178,6 +183,7 @@ public class Engine {
 	public static Logger logStatistics;
 	public static Logger logScheduler;
 	public static Logger logSiteClipper;
+	public static Logger logExternalBrowser;
 	public static Logger logAudit;
 
 	/**
@@ -305,6 +311,7 @@ public class Engine {
 			Engine.logStatistics = Logger.getLogger("cems.Statistics");
 			Engine.logScheduler = Logger.getLogger("cems.Scheduler");
 			Engine.logSiteClipper = Logger.getLogger("cems.SiteClipper");
+			Engine.logExternalBrowser = Logger.getLogger("cems.ExternalBrowser");
 			Engine.logAudit = Logger.getLogger("cems.Context.Audit");
 			
 			// Managers
@@ -564,6 +571,10 @@ public class Engine {
 				Engine.theApp.rsaManager = new RsaManager();
 				Engine.theApp.rsaManager.init();
 
+				// Initialization of the External Browser manager
+				Engine.theApp.externalBrowserManager = new ExternalBrowserManager();
+				Engine.theApp.externalBrowserManager.init();
+
 				// XUL initialization
 				String xulrunner_url = System.getProperty("org.eclipse.swt.browser.XULRunnerPath");
 				if (xulrunner_url == null || xulrunner_url.equals(""))
@@ -684,7 +695,10 @@ public class Engine {
 					Engine.theApp.rsaManager.destroy();
 				}
 				
-
+				if (Engine.theApp.externalBrowserManager != null) {
+					Engine.theApp.externalBrowserManager.destroy();
+				}
+				
 				// Closing the session manager
 				if (Engine.theApp.sessionManager != null) {
 					Engine.logEngine.info("Closing the session manager");
@@ -1021,7 +1035,7 @@ public class Engine {
 				outputDom = JobManager.addJob(cacheManager, requestedObject, requester, context);
 			} else {
 				outputDom = cacheManager.getDocument(requester, context);
-			}
+			}	
 
 			Element documentElement = outputDom.getDocumentElement();
 			documentElement.setAttribute("version", Version.fullProductVersion);

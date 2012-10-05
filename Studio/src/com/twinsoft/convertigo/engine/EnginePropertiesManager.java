@@ -298,7 +298,10 @@ public class EnginePropertiesManager {
 		UPDATE_STEPS ("update.steps", "false", "Update steps", PropertyCategory.Main),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		CRYPTO_PASSPHRASE ("crypto.passphrase", "A8dkLmsdfkKze0e34FGh", "Cryptographic services passphrase", PropertyCategory.Main),
-
+		//Added by julienda - 03/10/2012
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		DISABLE_CACHE ("disable.cache", "false", "Disable Cache", PropertyCategory.Main),
+		
 		/** ACCOUNTS */
 		ADMIN_USERNAME ("admin.username", "admin", "Admin username", PropertyCategory.Account),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
