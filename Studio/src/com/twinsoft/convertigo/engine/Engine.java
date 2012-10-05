@@ -1042,7 +1042,7 @@ public class Engine {
 				outputDom = JobManager.addJob(cacheManager, requestedObject, requester, context);
 			} else {
 				outputDom = cacheManager.getDocument(requester, context);
-			}
+			}	
 
 			Element documentElement = outputDom.getDocumentElement();
 			documentElement.setAttribute("version", Version.fullProductVersion);
