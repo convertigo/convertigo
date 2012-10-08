@@ -28,12 +28,13 @@ import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
+import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class XMLComplexStep extends StepWithExpressions {
+public class XMLComplexStep extends StepWithExpressions implements IComplexTypeAffectation {
 
 	private static final long serialVersionUID = 7002348210812220725L;
 
@@ -59,7 +60,7 @@ public class XMLComplexStep extends StepWithExpressions {
 	@Override
 	public String toString() {
 		String text = this.getComment();
-		String tag = "<"+ nodeName +">";
+		String tag = "<"+ nodeName +"> " + getComplexTypeAffectation();
 		return tag + (!text.equals("") ? " // "+text:"");
 	}
 	

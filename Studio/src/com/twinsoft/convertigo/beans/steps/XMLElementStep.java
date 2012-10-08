@@ -36,6 +36,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
@@ -44,7 +45,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class XMLElementStep extends StepWithExpressions implements IStepSourceContainer {
+public class XMLElementStep extends StepWithExpressions implements IStepSourceContainer, IComplexTypeAffectation {
 
 	private static final long serialVersionUID = -427374285639844989L;
 	
@@ -81,7 +82,7 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 			label += (sourceDefinition.size() > 0) ? " @("+ getLabel()+")":" =\""+nodeText+"\"";
 		} catch (EngineException e) {
 		}
-		return "<"+ nodeName +">" + label + (!text.equals("") ? " // "+text:"");
+		return "<"+ nodeName +">" + label + " " + getComplexTypeAffectation() + (!text.equals("") ? " // "+text:"");
 	}
 	
 	protected boolean workOnSource() {

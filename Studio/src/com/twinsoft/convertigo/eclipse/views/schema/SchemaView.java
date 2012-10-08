@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.eclipse.views.schema;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
@@ -66,6 +67,8 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	private TreeViewer nodeTreeViewer;
 	private TreeRootNode nodeTreeRoot;
 	private XsdNode selectedXsdNode;
+	private TreeViewer schemaTreeViewerBis;
+	private TreeViewer nodeTreeViewerBis;
 	
 	private boolean needRefresh;
 	private String projectName;
@@ -76,7 +79,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 
 	@Override
 	public void createPartControl(Composite parent) {
-		GridLayout gl = new GridLayout(2,false);
+		GridLayout gl = new GridLayout(2, false);
 		Composite content = new Composite(parent, SWT.NONE);
 		content.setLayout(gl);
 		
@@ -93,11 +96,55 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		createSchemaForm(mainSashForm);
 		createNodeForm(mainSashForm);
 		
+		
+		mainSashForm = new SashForm(content, SWT.NONE);
+		mainSashForm.setOrientation(SWT.HORIZONTAL);
+		mainSashForm.setLayoutData(gd);
+		
+		createSchemaFormBis(mainSashForm);
+		createNodeFormBis(mainSashForm);
+		
 		getSite().getPage().addSelectionListener(this);
 		
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(this);
 	}
 
+	private void createSchemaFormBis(Composite parent) {
+		GridData gd = new org.eclipse.swt.layout.GridData();
+		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
+		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
+		gd.grabExcessHorizontalSpace = true;
+		gd.grabExcessVerticalSpace = true;
+		
+		SashForm schemaSashForm = new SashForm(parent, SWT.NONE);
+		schemaSashForm.setOrientation(SWT.VERTICAL);
+		schemaSashForm.setLayoutData(gd);
+		
+		schemaTreeViewerBis = new TreeViewer(schemaSashForm);
+		schemaTreeViewerBis.setContentProvider(new SchemaViewContentProviderBis(3));
+		DecoratingLabelProvider dlp = new DecoratingLabelProvider(new SchemaViewLabelProviderBis(), new SchemaViewLabelDecoratorBis());
+		schemaTreeViewerBis.setLabelProvider(dlp);
+		schemaTreeViewerBis.setInput(null);
+	}
+	
+	private void createNodeFormBis(Composite parent) {
+		GridData gd = new org.eclipse.swt.layout.GridData();
+		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
+		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
+		gd.grabExcessHorizontalSpace = true;
+		gd.grabExcessVerticalSpace = true;
+		
+		SashForm nodeSashForm = new SashForm(parent, SWT.NONE);
+		nodeSashForm.setOrientation(SWT.VERTICAL);
+		nodeSashForm.setLayoutData(gd);
+		
+		nodeTreeViewerBis = new TreeViewer(nodeSashForm);
+		nodeTreeViewerBis.setContentProvider(new SchemaViewContentProviderBis());
+		DecoratingLabelProvider dlp = new DecoratingLabelProvider(new SchemaViewLabelProviderBis(), new SchemaViewLabelDecoratorBis());
+		nodeTreeViewerBis.setLabelProvider(dlp);
+		nodeTreeViewerBis.setInput(null);
+	}
+	
 	private void createSchemaForm(Composite parent) {
 		GridData gd = new org.eclipse.swt.layout.GridData();
 		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
@@ -156,9 +203,22 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 						needRefresh = false;
 						projectName = currentProjectName;
 						schemaTreeRoot = new SchemaTreeRoot(null,"schemaTreeRoot");
-						XmlSchemaCollection xmlSchemaCollection;
 						try {
-							xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName);
+							final XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName);
+							schemaTreeViewerBis.setInput(xmlSchemaCollection);
+							schemaTreeViewerBis.expandToLevel(3);
+							nodeTreeViewerBis.setInput(null);
+							schemaTreeViewerBis.addSelectionChangedListener(new ISelectionChangedListener() {
+								public void selectionChanged(SelectionChangedEvent event) {
+									Object firstElement = ((IStructuredSelection) event.getSelection()).getFirstElement();
+									if (firstElement instanceof XmlSchemaObject && !(firstElement instanceof XmlSchema)) {
+										nodeTreeViewerBis.setInput(xmlSchemaCollection);
+										nodeTreeViewerBis.setInput(SchemaViewContentProviderBis.newRoot(firstElement));
+										nodeTreeViewerBis.expandToLevel(5);
+									}
+								}
+							});
+							
 							XmlSchema[] schemas = xmlSchemaCollection.getXmlSchemas();
 							for (int i=0; i < schemas.length; i++) {
 								handleSchema(schemas[i]);

@@ -17,11 +17,16 @@ public abstract class AbstractImportLocalXsdReference extends Reference {
 	public XmlSchemaImport getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaImport schemaImport = new XmlSchemaImport();
 		try {
-			XmlSchema importedSchema = SchemaUtils.loadSchema(getXsdFile(), collection);
-			schemaImport.setSchemaLocation(getXsdFile().toURI().toString());
+			XmlSchema importedSchema = SchemaUtils.loadSchema(getXsdFile(), new XmlSchemaCollection());
+			
 			if (importedSchema.getTargetNamespace() == null) {
 				importedSchema.setTargetNamespace("http://no.name.space/" + getName());
+				importedSchema = collection.read(importedSchema.getSchemaDocument().getDocumentElement());
+			} else {
+				importedSchema = SchemaUtils.loadSchema(getXsdFile(), collection);
 			}
+			
+			schemaImport.setSchemaLocation(getXsdFile().toURI().toString());
 			schemaImport.setNamespace(importedSchema.getTargetNamespace());
 			schemaImport.setSchema(importedSchema);
 		} catch (Exception e) {

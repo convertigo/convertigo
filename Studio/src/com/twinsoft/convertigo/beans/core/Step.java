@@ -29,6 +29,8 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.ws.commons.schema.XmlSchema;
@@ -51,6 +53,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -70,10 +73,12 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
     public static String loopSeparator = "--";
     
     private boolean isEnable = true;
-    transient protected List<Sheet> vSheets = new LinkedList<Sheet>();
     private boolean output = false;
+    private XmlQName xmlComplexTypeAffectation = new XmlQName();
+    
+    
 	transient protected boolean xml = false;
-	
+    transient protected List<Sheet> vSheets = new LinkedList<Sheet>();
 	transient protected Hashtable<Long, String> executedSteps = null;
 	transient protected TwsCachedXPathAPI xpathApi = null;
 	transient protected HttpState httpState = null;
@@ -957,7 +962,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	public abstract String toJsString();
-	
+		
 	public String getSchemaType(String tns) {
 		return getSchemaDataType(tns);
 	}
@@ -1055,6 +1060,16 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		}
 		return new String[0];
 	}
+
+	public XmlQName getXmlComplexTypeAffectation() {
+		return xmlComplexTypeAffectation;
+	}
+
+	public void setXmlComplexTypeAffectation(XmlQName xmlComplexTypeAffectation) {
+		this.xmlComplexTypeAffectation = xmlComplexTypeAffectation;
+	}
 	
-	
+	public QName getComplexTypeAffectation() {
+		return getXmlComplexTypeAffectation().getQName();
+	}
 }

@@ -18,8 +18,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
-import org.apache.ws.commons.schema.XmlSchemaComplexContent;
-import org.apache.ws.commons.schema.XmlSchemaComplexContentExtension;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaForm;
@@ -39,17 +37,21 @@ import org.apache.ws.commons.schema.utils.NamespaceMap;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
+import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.ISchemaGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaImportGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaIncludeGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaParticleGenerator;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Reference;
+import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaWalker;
 
 
 public class SchemaManager implements AbstractManager {
@@ -74,9 +76,7 @@ public class SchemaManager implements AbstractManager {
 		
 		try {
 			// empty schema for the current project
-			final XmlSchema schema = new XmlSchema(project.getTargetNamespace(), collection);
-			
-
+			final XmlSchema schema = XmlSchemaUtils.makeDynamic(project, new XmlSchema(project.getTargetNamespace(), collection));
 			
 			schema.setElementFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
 			schema.setAttributeFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
@@ -144,6 +144,8 @@ public class SchemaManager implements AbstractManager {
 								Iterator<XmlSchemaObject> it = GenericUtils.cast(c.getIterator());
 								while (it.hasNext()) {
 									XmlSchemaObject xmlSchemaObject  = it.next();
+									SchemaMeta.getReferencedDatabaseObjects(xmlSchemaObject).add(databaseObject);
+									
 									if (xmlSchemaObject instanceof XmlSchemaImport) {
 										// ignore (already handle by reference)
 									}
@@ -245,18 +247,18 @@ public class SchemaManager implements AbstractManager {
 							if (element != null) {
 								// check if the type is named
 								XmlSchemaType type = null;
-								String elementType = databaseObject.getComment();
-								if (elementType != null && elementType.startsWith("tn:")) {
+								QName qName = databaseObject instanceof IComplexTypeAffectation ? ((IComplexTypeAffectation) databaseObject).getComplexTypeAffectation() : null;
+								if (qName != null && qName.getLocalPart().length() > 0) {
 									if (cType == null) {
 										cType = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaComplexType(schema));
 										newComplexType = true;
 									}
-									elementType = elementType.substring(3);
-									type = schema.getTypeByName(elementType);
+									
+									type = qName.getNamespaceURI().length() == 0 ? schema.getTypeByName(qName.getLocalPart()) : collection.getTypeByQName(qName);
 									
 									if (type == null) {
 										// the type doesn't exist, declare it
-										cType.setName(elementType);
+										cType.setName(qName.getLocalPart());
 										schema.addType(cType);
 										schema.getItems().add(cType);
 									} else {
@@ -268,6 +270,7 @@ public class SchemaManager implements AbstractManager {
 									
 									// reference the type in the current element
 									element.setSchemaTypeName(cType.getQName());
+									element.setSchemaType(null);
 								} else if (newComplexType && element.getSchemaTypeName() == null && cType != null) {
 									// the element contains an anonymous type
 									element.setSchemaType(cType);
@@ -283,6 +286,27 @@ public class SchemaManager implements AbstractManager {
 								particleChildren.add((XmlSchemaParticle) object);
 							} else if (object instanceof XmlSchemaAttribute) {
 								attributeChildren.add((XmlSchemaAttribute) object);
+							}
+						}
+					} else if (databaseObject instanceof Project) {
+						// override Project walking order
+						Project project = (Project) databaseObject;
+
+						if (before(databaseObject, Reference.class)) {
+							for (Reference reference : project.getReferenceList()) {
+								walk(reference);
+							}
+						}
+
+						if (before(databaseObject, Connector.class)) {
+							for (Connector connector : project.getConnectorsList()) {
+								walk(connector);
+							}
+						}
+
+						if (before(databaseObject, Sequence.class)) {
+							for (Sequence sequence : project.getSequencesList()) {
+								walk(sequence);
 							}
 						}
 					} else {
@@ -304,7 +328,7 @@ public class SchemaManager implements AbstractManager {
 			// defined prefixes for this schema
 			NamespaceMap nsMap = new NamespaceMap();
 			int cpt = 0;
-			for (XmlSchema xs : collection.getXmlSchemas()) {
+			for (final XmlSchema xs : collection.getXmlSchemas()) {
 				String tns = xs.getTargetNamespace();
 				String prefix;
 				if (Constants.URI_2001_SCHEMA_XSD.equals(tns)) {
@@ -314,9 +338,20 @@ public class SchemaManager implements AbstractManager {
 				} else {
 					prefix = "p" + cpt++;
 				}
+				SchemaMeta.setPrefix(xs, prefix);
+				SchemaMeta.setCollection(xs, collection);
 				nsMap.add(prefix, tns);
+				
+				new XmlSchemaWalker.XmlSchemaWalkerWatcher() {
+
+					@Override
+					protected boolean on(XmlSchemaObject obj) {
+						SchemaMeta.setSchema(obj, xs);
+						return super.on(obj);
+					}
+					
+				}.init(xs);
 			}
-			
 			schema.setNamespaceContext(nsMap);
 			collection.setNamespaceContext(nsMap);
 			
@@ -359,14 +394,18 @@ public class SchemaManager implements AbstractManager {
 				mergeParticules(firstSequence, secondSequence);
 			} else {
 				// suppose the type contains an extension
-				XmlSchemaComplexContent firstContent = (XmlSchemaComplexContent) first.getContentModel();
-				XmlSchemaComplexContent secondContent = (XmlSchemaComplexContent) second.getContentModel();
+				XmlSchemaSimpleContent firstContent = (XmlSchemaSimpleContent) first.getContentModel();
+				XmlSchemaSimpleContent secondContent = (XmlSchemaSimpleContent) second.getContentModel();
 				
 				if (firstContent != null && secondContent != null) {
-					XmlSchemaComplexContentExtension firstContentExtension = (XmlSchemaComplexContentExtension) firstContent.getContent();
-					XmlSchemaComplexContentExtension secondContentExtension = (XmlSchemaComplexContentExtension) secondContent.getContent();
+					SchemaMeta.getReferencedDatabaseObjects(firstContent).addAll(SchemaMeta.getReferencedDatabaseObjects(secondContent));
+					
+					XmlSchemaSimpleContentExtension firstContentExtension = (XmlSchemaSimpleContentExtension) firstContent.getContent();
+					XmlSchemaSimpleContentExtension secondContentExtension = (XmlSchemaSimpleContentExtension) secondContent.getContent();
 		
 					mergeAttributes(firstContentExtension.getAttributes(), secondContentExtension.getAttributes());
+					
+					SchemaMeta.getReferencedDatabaseObjects(firstContentExtension).addAll(SchemaMeta.getReferencedDatabaseObjects(secondContentExtension));
 				}
 			}
 		}
@@ -394,6 +433,7 @@ public class SchemaManager implements AbstractManager {
 						aFirst.setUse(XmlSchemaUtils.attributeUseOptional);
 					}
 					first.add(aFirst);
+					SchemaMeta.getReferencedDatabaseObjects(aFirst).addAll(SchemaMeta.getReferencedDatabaseObjects(aSecond));
 					aFirst = GenericUtils.nextOrNull(iFirst);
 					aSecond = GenericUtils.nextOrNull(iSecond);
 				} else if (compare < 0) {

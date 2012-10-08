@@ -1,0 +1,151 @@
+/*
+ * Copyright (c) 2001-2011 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
+ */
+
+package com.twinsoft.convertigo.eclipse.views.schema;
+
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaDocumentation;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaImport;
+import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.XmlSchemaType;
+import org.eclipse.jface.viewers.IColorProvider;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ILabelProviderListener;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
+import org.w3c.dom.NodeList;
+
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewContentProviderBis.NamedList;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+
+public class SchemaViewLabelProviderBis implements ILabelProvider, IColorProvider {
+	private static Map<String, Image> imagesCache = new HashMap<String, Image>();
+	
+	public SchemaViewLabelProviderBis() {
+	}
+
+	public void dispose() {
+	}
+
+	public Image getImage(Object element) {
+		String key = element.getClass().getSimpleName();
+		Image image = imagesCache.get(key);
+		if (image == null) {
+			String iconName = null;
+			if (element instanceof NamedList) {
+				iconName = key = ((NamedList) element).getName().toLowerCase() + "_folder";
+			} else if (element instanceof XmlSchema) {
+				iconName = "schema";
+			} else if (element instanceof XmlSchemaDocumentation) {
+				iconName = "notation";
+			}  else if (element instanceof XmlSchemaObject) {
+				iconName = key.contains("Extension") ?
+					"extension" :
+					key.substring(9).replaceAll("(\\p{Upper})", "_$1").toLowerCase().substring(1);
+			} else {
+				iconName = "unresolved";
+			}
+			
+			Device device = Display.getCurrent();
+			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream("/com/twinsoft/convertigo/eclipse/views/schema/images/" + iconName + ".gif");
+			if (inputStream == null) {
+				inputStream = ConvertigoPlugin.class.getResourceAsStream("/com/twinsoft/convertigo/eclipse/views/schema/images/unresolved.gif");
+			}
+			image = new Image(device, inputStream);
+			
+			imagesCache.put(key, image);
+		}
+		return image;
+	}
+	
+	public String getText(Object element) {
+		String txt;
+		if (element instanceof XmlSchema) {
+			XmlSchema schema = (XmlSchema) element;
+			String prefix = SchemaMeta.getPrefix(schema);
+			txt = prefix + "{" + schema.getTargetNamespace() + "}";
+		} else if (element instanceof XmlSchemaImport) {
+			txt = "import " + getText(((XmlSchemaImport) element).getSchema());	
+		} else if (element instanceof XmlSchemaDocumentation) {
+			XmlSchemaDocumentation documentation = (XmlSchemaDocumentation) element;
+			NodeList nl = documentation.getMarkup();
+			if (nl != null && nl.getLength() > 0) {
+				txt = nl.item(0).getTextContent();
+			} else {
+				txt = "...";	
+			}
+		}  else if (element instanceof XmlSchemaObject) {
+			txt = element.getClass().getSimpleName().substring(9);
+			if (element instanceof XmlSchemaElement) {
+				txt = ((XmlSchemaElement) element).getName();
+			} else if (element instanceof XmlSchemaAttribute) {
+				txt = ((XmlSchemaAttribute) element).getName();
+			} else if (element instanceof XmlSchemaType) {
+				XmlSchemaType type = (XmlSchemaType) element;
+				String name = type.getName();
+				if (name != null) {
+					txt = name;
+				}
+			}
+		} else if (element instanceof NamedList) {
+			txt = ((NamedList) element).getName();
+		} else {
+			txt = "<?>";
+		}
+		return txt;
+	}
+
+	public boolean isLabelProperty(Object arg0, String arg1) {
+		return false;
+	}
+
+	public void addListener(ILabelProviderListener listener) {
+
+	}
+
+	public void removeListener(ILabelProviderListener listener) {
+		
+	}
+
+	public Color getForeground(Object element) {
+		if (element instanceof XmlSchemaObject) {
+			return Display.getCurrent().getSystemColor(
+					SchemaMeta.isDynamic((XmlSchemaObject) element) ? SWT.COLOR_DARK_GREEN : SWT.COLOR_DARK_GRAY
+			);
+		}
+		return null;
+	}
+
+	public Color getBackground(Object element) {
+		return null;
+	}
+}

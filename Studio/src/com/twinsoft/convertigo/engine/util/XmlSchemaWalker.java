@@ -22,12 +22,14 @@
 
 package com.twinsoft.convertigo.engine.util;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 import javax.xml.namespace.QName;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAll;
+import org.apache.ws.commons.schema.XmlSchemaAnnotated;
 import org.apache.ws.commons.schema.XmlSchemaAnnotation;
 import org.apache.ws.commons.schema.XmlSchemaAny;
 import org.apache.ws.commons.schema.XmlSchemaAnyAttribute;
@@ -67,9 +69,254 @@ import org.apache.ws.commons.schema.XmlSchemaSimpleTypeUnion;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.XmlSchemaXPath;
 
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+
 public class XmlSchemaWalker {
 	protected boolean deep = true;
 	protected boolean deepExternal = true;
+	
+	static public class XmlSchemaWalkerWatcher extends XmlSchemaWalker {
+		
+		public void init(XmlSchemaObject obj) {
+			init(obj, false, false);
+		}
+		
+		public void init(XmlSchemaObject obj, boolean deep, boolean deepExternal) {
+			this.deep = deep;
+			this.deepExternal = deepExternal;
+			walk(SchemaMeta.getSchema(obj), obj);
+		}
+		
+		protected boolean on(XmlSchemaObject obj) {
+			return true;
+		}
+
+		@Override
+		protected void walk(XmlSchema xmlSchema) {
+			if (on(xmlSchema)) {
+				super.walk(xmlSchema);
+			}
+		}
+		
+		@Override
+		protected void walkElement(XmlSchema xmlSchema, XmlSchemaElement obj) {
+			if (on(obj)) {
+				super.walkElement(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkSimpleType(XmlSchema xmlSchema, XmlSchemaSimpleType obj) {
+			if (on(obj)) {
+				super.walkSimpleType(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkSimpleTypeRestriction(XmlSchema xmlSchema, XmlSchemaSimpleTypeRestriction obj) {
+			if (on(obj)) {
+				super.walkSimpleTypeRestriction(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkSimpleTypeList(XmlSchema xmlSchema, XmlSchemaSimpleTypeList obj) {
+			if (on(obj)) {
+				super.walkSimpleTypeList(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkSimpleTypeUnion(XmlSchema xmlSchema, XmlSchemaSimpleTypeUnion obj) {
+			if (on(obj)) {
+				super.walkSimpleTypeUnion(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkComplexType(XmlSchema xmlSchema, XmlSchemaComplexType obj) {
+			if (on(obj)) {
+				super.walkComplexType(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkGroupRef(XmlSchema xmlSchema, XmlSchemaGroupRef obj) {
+			if (on(obj)) {
+				super.walkGroupRef(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkIdentityConstraint(XmlSchema xmlSchema, XmlSchemaIdentityConstraint obj) {
+			if (on(obj)) {
+				super.walkIdentityConstraint(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkImport(XmlSchema xmlSchema, XmlSchemaImport obj) {
+			if (on(obj)) {
+				super.walkImport(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkInclude(XmlSchema xmlSchema, XmlSchemaInclude obj) {
+			if (on(obj)) {
+				super.walkInclude(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkAll(XmlSchema xmlSchema, XmlSchemaAll obj) {
+			if (on(obj)) {
+				super.walkAll(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkAnnotation(XmlSchema xmlSchema, XmlSchemaAnnotation obj) {
+			if (on(obj)) {
+				super.walkAnnotation(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkDocumentation(XmlSchema xmlSchema, XmlSchemaDocumentation obj) {
+			if (on(obj)) {
+				super.walkDocumentation(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkAppInfo(XmlSchema xmlSchema, XmlSchemaAppInfo obj) {
+			if (on(obj)) {
+				super.walkAppInfo(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkChoice(XmlSchema xmlSchema, XmlSchemaChoice obj) {
+			if (on(obj)) {
+				super.walkChoice(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkSequence(XmlSchema xmlSchema, XmlSchemaSequence obj) {
+			if (on(obj)) {
+				super.walkSequence(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkAny(XmlSchema xmlSchema, XmlSchemaAny obj) {
+			if (on(obj)) {
+				super.walkAny(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkSimpleContent(XmlSchema xmlSchema, XmlSchemaSimpleContent obj) {
+			if (on(obj)) {
+				super.walkSimpleContent(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkSimpleContentRestriction(XmlSchema xmlSchema, XmlSchemaSimpleContentRestriction obj) {
+			if (on(obj)) {
+				super.walkSimpleContentRestriction(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkFacet(XmlSchema xmlSchema, XmlSchemaFacet obj) {
+			if (on(obj)) {
+				super.walkFacet(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkField(XmlSchema xmlSchema, XmlSchemaXPath obj) {
+			if (on(obj)) {
+				super.walkField(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkAttributeGroupRef(XmlSchema xmlSchema, XmlSchemaAttributeGroupRef obj) {
+			if (on(obj)) {
+				super.walkAttributeGroupRef(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkSimpleContentExtension(XmlSchema xmlSchema, XmlSchemaSimpleContentExtension obj) {
+			if (on(obj)) {
+				super.walkSimpleContentExtension(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkAnyAttribute(XmlSchema xmlSchema, XmlSchemaAnyAttribute obj) {
+			if (on(obj)) {
+				super.walkAnyAttribute(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkComplexContent(XmlSchema xmlSchema, XmlSchemaComplexContent obj) {
+			if (on(obj)) {
+				super.walkComplexContent(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkComplexContentExtension(XmlSchema xmlSchema, XmlSchemaComplexContentExtension obj) {
+			if (on(obj)) {
+				super.walkComplexContentExtension(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkComplexContentRestriction(XmlSchema xmlSchema, XmlSchemaComplexContentRestriction obj) {
+			if (on(obj)) {
+				super.walkComplexContentRestriction(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkGroup(XmlSchema xmlSchema, XmlSchemaGroup obj) {
+			if (on(obj)) {
+				super.walkGroup(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkAttributeGroup(XmlSchema xmlSchema,
+				XmlSchemaAttributeGroup obj) {
+			if (on(obj)) {
+				super.walkAttributeGroup(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkAttribute(XmlSchema xmlSchema, XmlSchemaAttribute obj) {
+			if (on(obj)) {
+				super.walkAttribute(xmlSchema, obj);
+			}
+		}
+
+		@Override
+		protected void walkRedefine(XmlSchema xmlSchema, XmlSchemaRedefine obj) {
+			if (on(obj)) {
+				super.walkRedefine(xmlSchema, obj);
+			}
+		}
+
+	}
 	
 	public static XmlSchemaWalker newDependencyWalker(LinkedHashMap<QName, XmlSchemaObject> linkedMap, boolean deep, boolean deepExternal) {
 		final LinkedHashMap<QName, XmlSchemaObject> map = linkedMap;
@@ -144,18 +391,24 @@ public class XmlSchemaWalker {
 	
 	protected void walk(XmlSchema xmlSchema) {
 		XmlSchemaObjectCollection items = xmlSchema.getItems();
-		for (int i=0; i < items.getCount(); i++) {
-			XmlSchemaObject obj = items.getItem(i);
+		for (Iterator<XmlSchemaObject> i = GenericUtils.cast(items.getIterator()); i.hasNext(); ) {
+			XmlSchemaObject obj = i.next();
 			if (obj instanceof XmlSchemaInclude) {
-				walkInclude(xmlSchema, (XmlSchemaInclude)obj);
-			}
-			else if (obj instanceof XmlSchemaImport) {
-				walkImport(xmlSchema, (XmlSchemaImport)obj);
+				walkInclude(xmlSchema, (XmlSchemaInclude) obj);
+			} else if (obj instanceof XmlSchemaImport) {
+				walkImport(xmlSchema, (XmlSchemaImport) obj);
 			}
 		}
 		
-		for (int i=0; i < items.getCount(); i++) {
-			walk(xmlSchema, items.getItem(i));
+		for (Iterator<XmlSchemaType> i = GenericUtils.cast(xmlSchema.getSchemaTypes().getValues()); i.hasNext(); ) {
+			walk(xmlSchema, i.next());
+		}
+		
+		for (Iterator<XmlSchemaObject> i = GenericUtils.cast(items.getIterator()); i.hasNext(); ) {
+			XmlSchemaObject obj = i.next();
+			if (!(obj instanceof XmlSchemaInclude || obj instanceof XmlSchemaImport || obj instanceof XmlSchemaType)) {
+				walk(xmlSchema, obj);
+			}
 		}
 	}
 	
@@ -173,13 +426,13 @@ public class XmlSchemaWalker {
 	}
 	
 	public void walkByTypeName(XmlSchema xmlSchema, QName qname) {
-		doWalk(xmlSchema, qname, xmlSchema.getTypeByName(qname));
+		doWalk(xmlSchema, qname, SchemaMeta.getCollection(xmlSchema).getTypeByQName(qname));
 	}
 	public void walkByElementRef(XmlSchema xmlSchema, QName qname) {
-		doWalk(xmlSchema, qname, xmlSchema.getElementByName(qname));
+		doWalk(xmlSchema, qname, SchemaMeta.getCollection(xmlSchema).getTypeByQName(qname));
 	}
 	public void walkByAttributeRef(XmlSchema xmlSchema, QName qname) {
-		doWalk(xmlSchema, qname, xmlSchema.getAttributeByName(qname));
+		doWalk(xmlSchema, qname, SchemaMeta.getCollection(xmlSchema).getTypeByQName(qname));
 	}
 	public void walkByAttributeGroupRef(XmlSchema xmlSchema, QName qname) {
 		doWalk(xmlSchema, qname, (XmlSchemaAttributeGroup)xmlSchema.getAttributeGroups().getItem(qname));
@@ -189,32 +442,93 @@ public class XmlSchemaWalker {
 	}
 	
 	protected void walk(XmlSchema xmlSchema, XmlSchemaObject obj) {
-        if (obj instanceof XmlSchemaElement) {
-        	walkElement(xmlSchema, (XmlSchemaElement)obj);
+        if (obj instanceof XmlSchema) {
+        	walk((XmlSchema) obj);
+        } else if (obj instanceof XmlSchemaElement) {
+        	walkElement(xmlSchema, (XmlSchemaElement) obj);
         } else if (obj instanceof XmlSchemaSimpleType) {
-        	walkSimpleType(xmlSchema, (XmlSchemaSimpleType)obj);
+        	walkSimpleType(xmlSchema, (XmlSchemaSimpleType) obj);
+        } else if (obj instanceof XmlSchemaSimpleTypeRestriction) {
+        	walkSimpleTypeRestriction(xmlSchema, (XmlSchemaSimpleTypeRestriction) obj);
+        } else if (obj instanceof XmlSchemaSimpleTypeList) {
+        	walkSimpleTypeList(xmlSchema, (XmlSchemaSimpleTypeList) obj);
+        } else if (obj instanceof XmlSchemaSimpleTypeUnion) {
+        	walkSimpleTypeUnion(xmlSchema, (XmlSchemaSimpleTypeUnion) obj);
         } else if (obj instanceof XmlSchemaComplexType) {
-        	walkComplexType(xmlSchema, (XmlSchemaComplexType)obj);
+        	walkComplexType(xmlSchema, (XmlSchemaComplexType) obj);
+        } else if (obj instanceof XmlSchemaGroupRef) {
+        	walkGroupRef(xmlSchema, (XmlSchemaGroupRef) obj);
+        } else if (obj instanceof XmlSchemaIdentityConstraint) {
+        	walkIdentityConstraint(xmlSchema, (XmlSchemaIdentityConstraint) obj);
+        } else if (obj instanceof XmlSchemaImport) {
+        	walkImport(xmlSchema, (XmlSchemaImport) obj);
+        } else if (obj instanceof XmlSchemaInclude) {
+        	walkInclude(xmlSchema, (XmlSchemaInclude) obj);
+        } else if (obj instanceof XmlSchemaAll) {
+        	walkAll(xmlSchema, (XmlSchemaAll) obj);
+        } else if (obj instanceof XmlSchemaAnnotation) {
+        	walkAnnotation(xmlSchema, (XmlSchemaAnnotation) obj);
+        } else if (obj instanceof XmlSchemaDocumentation) {
+        	walkDocumentation(xmlSchema, (XmlSchemaDocumentation) obj);
+        } else if (obj instanceof XmlSchemaAppInfo) {
+        	walkAppInfo(xmlSchema, (XmlSchemaAppInfo) obj);
+        } else if (obj instanceof XmlSchemaChoice) {
+        	walkChoice(xmlSchema, (XmlSchemaChoice) obj);
+        } else if (obj instanceof XmlSchemaSequence) {
+        	walkSequence(xmlSchema, (XmlSchemaSequence) obj);
+        } else if (obj instanceof XmlSchemaAny) {
+        	walkAny(xmlSchema, (XmlSchemaAny) obj);
+        } else if (obj instanceof XmlSchemaSimpleContent) {
+        	walkSimpleContent(xmlSchema, (XmlSchemaSimpleContent) obj);
+        } else if (obj instanceof XmlSchemaSimpleContentRestriction) {
+        	walkSimpleContentRestriction(xmlSchema, (XmlSchemaSimpleContentRestriction) obj);
+        } else if (obj instanceof XmlSchemaFacet) {
+        	walkFacet(xmlSchema, (XmlSchemaFacet) obj);
+        } else if (obj instanceof XmlSchemaXPath) {
+        	walkField(xmlSchema, (XmlSchemaXPath) obj);
+        } else if (obj instanceof XmlSchemaAttributeGroupRef) {
+        	walkAttributeGroupRef(xmlSchema, (XmlSchemaAttributeGroupRef) obj);
+        } else if (obj instanceof XmlSchemaSimpleContentExtension) {
+        	walkSimpleContentExtension(xmlSchema, (XmlSchemaSimpleContentExtension) obj);
+        } else if (obj instanceof XmlSchemaAnyAttribute) {
+        	walkAnyAttribute(xmlSchema, (XmlSchemaAnyAttribute) obj);
+        } else if (obj instanceof XmlSchemaComplexContent) {
+        	walkComplexContent(xmlSchema, (XmlSchemaComplexContent) obj);
+        } else if (obj instanceof XmlSchemaComplexContentExtension) {
+        	walkComplexContentExtension(xmlSchema, (XmlSchemaComplexContentExtension) obj);
+        } else if (obj instanceof XmlSchemaComplexContentRestriction) {
+        	walkComplexContentRestriction(xmlSchema, (XmlSchemaComplexContentRestriction) obj);
         } else if (obj instanceof XmlSchemaGroup) {
-        	walkGroup(xmlSchema, (XmlSchemaGroup)obj);
+        	walkGroup(xmlSchema, (XmlSchemaGroup) obj);
         } else if (obj instanceof XmlSchemaAttributeGroup) {
-        	walkAttributeGroup(xmlSchema, (XmlSchemaAttributeGroup)obj);
+        	walkAttributeGroup(xmlSchema, (XmlSchemaAttributeGroup) obj);
         } else if (obj instanceof XmlSchemaAttribute) {
-        	walkAttribute(xmlSchema, (XmlSchemaAttribute)obj);
+        	walkAttribute(xmlSchema, (XmlSchemaAttribute) obj);
         } else if (obj instanceof XmlSchemaRedefine) {
-        	walkRedefine(xmlSchema, (XmlSchemaRedefine)obj);
+        	walkRedefine(xmlSchema, (XmlSchemaRedefine) obj);
         }
 	}
 	
+	protected void walkAnnotated(XmlSchema xmlSchema, XmlSchemaAnnotated obj) {
+		XmlSchemaAnnotation annotation = obj.getAnnotation();
+		if (annotation != null) {
+			walkAnnotation(xmlSchema, annotation);
+		}
+	}
+	
 	protected void walkElement(XmlSchema xmlSchema, XmlSchemaElement obj) {
-		XmlSchemaElement xmlSchemaElement = (XmlSchemaElement)obj;
-		QName refName = xmlSchemaElement.getRefName();
-		QName typeName = xmlSchemaElement.getSchemaTypeName();
-		XmlSchemaType xmlSchemaType = xmlSchemaElement.getSchemaType();
-		if ((refName != null) && (deep)) {
-			walkByElementRef(xmlSchema, refName);
-		} else if ((typeName != null) && (deep)) {
-			walkByTypeName(xmlSchema, typeName);
+		walkAnnotated(xmlSchema, obj);
+		QName refName = obj.getRefName();
+		QName typeName = obj.getSchemaTypeName();
+		XmlSchemaType xmlSchemaType = obj.getSchemaType();
+		if (refName != null) {
+			if (deep) {
+				walkByElementRef(xmlSchema, refName);
+			}
+		} else if (typeName != null) {
+			if (deep) {
+				walkByTypeName(xmlSchema, typeName);
+			}
 		} else if (xmlSchemaType != null) {
             if (xmlSchemaType instanceof XmlSchemaComplexType) {
             	walkComplexType(xmlSchema, (XmlSchemaComplexType)xmlSchemaType);
@@ -225,6 +539,7 @@ public class XmlSchemaWalker {
 	}
 	
 	protected void walkSimpleType(XmlSchema xmlSchema, XmlSchemaSimpleType obj) {
+		walkAnnotated(xmlSchema, obj);
 		XmlSchemaSimpleTypeContent simpleTypeContent = obj.getContent();
 		if (simpleTypeContent != null) {
 	        if (simpleTypeContent instanceof XmlSchemaSimpleTypeRestriction) {
@@ -237,6 +552,7 @@ public class XmlSchemaWalker {
 		}
 	}
 	protected void walkSimpleTypeRestriction(XmlSchema xmlSchema, XmlSchemaSimpleTypeRestriction obj) {
+		walkAnnotated(xmlSchema, obj);
 		QName qname = obj.getBaseTypeName();
 		if ((qname != null) && (deep))
 			walkByTypeName(xmlSchema, qname);
@@ -244,13 +560,23 @@ public class XmlSchemaWalker {
 			walkSimpleType(xmlSchema, obj.getBaseType());
 	}
 	protected void walkSimpleTypeList(XmlSchema xmlSchema, XmlSchemaSimpleTypeList obj) {
-		
+		walkAnnotated(xmlSchema, obj);		
 	}
 	protected void walkSimpleTypeUnion(XmlSchema xmlSchema, XmlSchemaSimpleTypeUnion obj) {
-		
+		walkAnnotated(xmlSchema, obj);		
 	}
 	
 	protected void walkComplexType(XmlSchema xmlSchema, XmlSchemaComplexType obj) {
+		walkAnnotated(xmlSchema, obj);
+		XmlSchemaObjectCollection attributes = obj.getAttributes();
+        for (int i = 0; i < attributes.getCount(); i++) {
+            XmlSchemaObject attribute = attributes.getItem(i);
+            if (attribute instanceof XmlSchemaAttribute) {
+            	walkAttribute(xmlSchema, (XmlSchemaAttribute) attribute);
+            } else if (attribute instanceof XmlSchemaAttributeGroupRef) {
+            	walkAttributeGroupRef(xmlSchema, (XmlSchemaAttributeGroupRef) attribute);
+            }
+        }
 		XmlSchemaContentModel xmlSchemaContentModel  = obj.getContentModel();
 		XmlSchemaParticle xmlSchemaParticle = obj.getParticle();
 		if (xmlSchemaContentModel != null) {
@@ -272,6 +598,7 @@ public class XmlSchemaWalker {
 		}
 	}
 	protected void walkGroupRef(XmlSchema xmlSchema, XmlSchemaGroupRef obj) {
+		walkAnnotated(xmlSchema, obj);
 		QName refName = obj.getRefName();
 		if ((refName != null) && deep) {
 			walkByGroupRef(xmlSchema, refName);
@@ -290,10 +617,11 @@ public class XmlSchemaWalker {
 	}
 
 	protected void walkIdentityConstraint(XmlSchema xmlSchema, XmlSchemaIdentityConstraint obj) {
-		
+		walkAnnotated(xmlSchema, obj);		
 	}
 	
 	protected void walkImport(XmlSchema xmlSchema, XmlSchemaImport obj) {
+		walkAnnotated(xmlSchema, obj);
 		XmlSchema imported = obj.getSchema();
 		if ((imported != null) && deep) {
 			walk(imported);
@@ -301,6 +629,7 @@ public class XmlSchemaWalker {
 	}
 	
 	protected void walkInclude(XmlSchema xmlSchema, XmlSchemaInclude obj) {
+		walkAnnotated(xmlSchema, obj);
 		XmlSchema included = obj.getSchema();
 		if ((included != null) && deep) {
 			walk(included);
@@ -308,6 +637,7 @@ public class XmlSchemaWalker {
 	}
 
 	protected void walkAll(XmlSchema xmlSchema, XmlSchemaAll obj) {
+		walkAnnotated(xmlSchema, obj);
         XmlSchemaObjectCollection children = obj.getItems();
         for (int i = 0; i < children.getCount(); i++) {
             XmlSchemaObject child = children.getItem(i);
@@ -340,6 +670,7 @@ public class XmlSchemaWalker {
 	}
 
 	protected void walkChoice(XmlSchema xmlSchema, XmlSchemaChoice obj) {
+		walkAnnotated(xmlSchema, obj);
         XmlSchemaObjectCollection children = obj.getItems();
         for (int i = 0; i < children.getCount(); i++) {
             XmlSchemaObject child = children.getItem(i);
@@ -358,6 +689,7 @@ public class XmlSchemaWalker {
 	}
 
 	protected void walkSequence(XmlSchema xmlSchema, XmlSchemaSequence obj) {
+		walkAnnotated(xmlSchema, obj);
         XmlSchemaObjectCollection children = obj.getItems();
         for (int i = 0; i < children.getCount(); i++) {
             XmlSchemaObject child = children.getItem(i);
@@ -376,11 +708,13 @@ public class XmlSchemaWalker {
 	}
 
 	protected void walkAny(XmlSchema xmlSchema, XmlSchemaAny obj) {
+		walkAnnotated(xmlSchema, obj);
 		// TODO Auto-generated method stub
 		
 	}
 
 	protected void walkSimpleContent(XmlSchema xmlSchema, XmlSchemaSimpleContent obj) {
+		walkAnnotated(xmlSchema, obj);
 		XmlSchemaContent xmlSchemaContent = obj.getContent();
         if (xmlSchemaContent instanceof XmlSchemaSimpleContentRestriction) {
         	walkSimpleContentRestriction(xmlSchema, (XmlSchemaSimpleContentRestriction)xmlSchemaContent);
@@ -389,6 +723,7 @@ public class XmlSchemaWalker {
         }
 	}
 	protected void walkSimpleContentRestriction(XmlSchema xmlSchema, XmlSchemaSimpleContentRestriction obj) {
+		walkAnnotated(xmlSchema, obj);
 		QName baseTypeName = obj.getBaseTypeName();
 		if ((baseTypeName != null) && deep) {
 			walkByTypeName(xmlSchema, baseTypeName);
@@ -418,15 +753,18 @@ public class XmlSchemaWalker {
         }
 	}
 	protected void walkFacet(XmlSchema xmlSchema, XmlSchemaFacet obj) {
+		walkAnnotated(xmlSchema, obj);
 		// TODO Auto-generated method stub
 		
 	}
 
 	protected void walkField(XmlSchema xmlSchema, XmlSchemaXPath obj) {
+		walkAnnotated(xmlSchema, obj);
 		
 	}
 	
 	protected void walkAttributeGroupRef(XmlSchema xmlSchema, XmlSchemaAttributeGroupRef obj) {
+		walkAnnotated(xmlSchema, obj);
 		QName refName = obj.getRefName();
 		if ((refName != null) && deep) {
 			walkByGroupRef(xmlSchema, refName);
@@ -434,6 +772,7 @@ public class XmlSchemaWalker {
 	}
 
 	protected void walkSimpleContentExtension(XmlSchema xmlSchema, XmlSchemaSimpleContentExtension obj) {
+		walkAnnotated(xmlSchema, obj);
 		QName baseTypeName = obj.getBaseTypeName();
 		if ((baseTypeName != null) && deep) {
 			walkByTypeName(xmlSchema, baseTypeName);
@@ -455,11 +794,13 @@ public class XmlSchemaWalker {
 	}
 	
 	protected void walkAnyAttribute(XmlSchema xmlSchema, XmlSchemaAnyAttribute obj) {
+		walkAnnotated(xmlSchema, obj);
 		// TODO Auto-generated method stub
 		
 	}
 
 	protected void walkComplexContent(XmlSchema xmlSchema, XmlSchemaComplexContent obj) {
+		walkAnnotated(xmlSchema, obj);
 		XmlSchemaContent xmlSchemaContent = obj.getContent();
         if (xmlSchemaContent instanceof XmlSchemaComplexContentRestriction) {
         	walkComplexContentRestriction(xmlSchema, (XmlSchemaComplexContentRestriction)xmlSchemaContent);
@@ -469,6 +810,7 @@ public class XmlSchemaWalker {
 	}
 	
 	protected void walkComplexContentExtension(XmlSchema xmlSchema, XmlSchemaComplexContentExtension obj) {
+		walkAnnotated(xmlSchema, obj);
 		QName baseTypeName = obj.getBaseTypeName();
 		if ((baseTypeName != null) && deep) {
 			walkByTypeName(xmlSchema, baseTypeName);
@@ -503,6 +845,7 @@ public class XmlSchemaWalker {
 	}
 
 	protected void walkComplexContentRestriction(XmlSchema xmlSchema, XmlSchemaComplexContentRestriction obj) {
+		walkAnnotated(xmlSchema, obj);
 		QName baseTypeName = obj.getBaseTypeName();
 		if ((baseTypeName != null) && deep) {
 			walkByTypeName(xmlSchema, baseTypeName);
@@ -537,6 +880,7 @@ public class XmlSchemaWalker {
 	}
 
 	protected void walkGroup(XmlSchema xmlSchema, XmlSchemaGroup obj) {
+		walkAnnotated(xmlSchema, obj);
 		XmlSchemaGroupBase xmlSchemaGroupBase = obj.getParticle();
         if (xmlSchemaGroupBase instanceof XmlSchemaSequence) {
         	walkSequence(xmlSchema, (XmlSchemaSequence)xmlSchemaGroupBase);
@@ -547,6 +891,7 @@ public class XmlSchemaWalker {
         }
 	}
 	protected void walkAttributeGroup(XmlSchema xmlSchema, XmlSchemaAttributeGroup obj) {
+		walkAnnotated(xmlSchema, obj);
 		XmlSchemaObjectCollection  attributes = obj.getAttributes();
         for (int i = 0; i < attributes.getCount(); i++) {
             XmlSchemaObject attribute = attributes.getItem(i);
@@ -562,6 +907,7 @@ public class XmlSchemaWalker {
         }
 	}
 	protected void walkAttribute(XmlSchema xmlSchema, XmlSchemaAttribute obj) {
+		walkAnnotated(xmlSchema, obj);
 		QName refName = obj.getRefName();
 		QName typeName = obj.getSchemaTypeName();
 		XmlSchemaSimpleType xmlSchemaSimpleType = obj.getSchemaType();
@@ -576,6 +922,7 @@ public class XmlSchemaWalker {
 		
 	}
 	protected void walkRedefine(XmlSchema xmlSchema, XmlSchemaRedefine obj) {
+		walkAnnotated(xmlSchema, obj);
 		XmlSchemaObjectCollection items = obj.getItems();
         for (int i = 0; i < items.getCount(); i++) {
             XmlSchemaObject item = items.getItem(i);

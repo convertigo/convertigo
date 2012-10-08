@@ -277,7 +277,7 @@ public class GenericUtils {
 							result.add(second.get(iSecond));
 							minor.add(true);
 						}
-						finded = item2;
+						finded = item1;
 					}
 				}
 			}

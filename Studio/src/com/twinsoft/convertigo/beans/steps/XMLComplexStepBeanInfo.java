@@ -48,6 +48,8 @@ public class XMLComplexStepBeanInfo extends MySimpleBeanInfo {
             properties[0].setShortDescription(getExternalizedString("property.nodeName.short_description"));
             properties[0].setValue("normalizable", Boolean.TRUE);
             properties[0].setValue(BLACK_LIST_NAME, Boolean.TRUE);
+            
+            getPropertyDescriptor("xmlComplexTypeAffectation").setHidden(false);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
