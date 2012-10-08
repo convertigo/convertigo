@@ -358,7 +358,7 @@ public class ZipUtils {
  	 * @return filename: the project name
  	 * @throws IOException */
      public static String getProjectName(String path) throws IOException {
- 		Engine.logEngine.debug("PATH: "+path);
+ 		Engine.logEngine.trace("PATH: "+path);
  		
  		ZipInputStream zis = new ZipInputStream(new FileInputStream(path));
  	    ZipEntry ze = null;	  
@@ -366,7 +366,7 @@ public class ZipUtils {
  	    try {
  	        if((ze = zis.getNextEntry()) != null){
  	        	fileName = ze.getName().replaceAll("/.*","");
- 	        	Engine.logEngine.debug("ZipUtils.getProjectName() - fileName: "+fileName);
+ 	        	Engine.logEngine.trace("ZipUtils.getProjectName() - fileName: "+fileName);
  	        }
  	    }
  	    finally {
@@ -390,7 +390,7 @@ public class ZipUtils {
  		
  		File projectPath = new File(pathProjects); 	String realArchiveFile =  null;
  		
- 		Engine.logEngine.debug("ZipUtils.getArchiveName() - projectPath: "+projectPath);
+ 		Engine.logEngine.trace("ZipUtils.getArchiveName() - projectPath: "+projectPath);
  				
  		int i = 0;
  		
@@ -401,15 +401,15 @@ public class ZipUtils {
  			
  			//If the file is an archive
  			if(listfiles[i].endsWith(".car") == true){
- 				Engine.logEngine.debug("ZipUtils.getArchiveName() - listfiles["+i+"]: "+listfiles[i]);
- 				Engine.logEngine.debug("ZipUtils.getArchiveName() - supposedProjectName: "+supposedProjectName);
- 				Engine.logEngine.debug("ZipUtils.getArchiveName() - listfiles PATH: "+new File(projectPath, listfiles[i]));
+ 				Engine.logEngine.trace("ZipUtils.getArchiveName() - listfiles["+i+"]: "+listfiles[i]);
+ 				Engine.logEngine.trace("ZipUtils.getArchiveName() - supposedProjectName: "+supposedProjectName);
+ 				Engine.logEngine.trace("ZipUtils.getArchiveName() - listfiles PATH: "+new File(projectPath, listfiles[i]));
  				
  				//If the project name is equals to the (supposed) project name
  				if(getProjectName(new File(projectPath, listfiles[i]).getPath()).equals(supposedProjectName)){
  					return new File(projectPath, listfiles[i]).getName();
  				}
- 				Engine.logEngine.debug("ZipUtils.getArchiveName() - realArchiveFile: "+realArchiveFile);
+ 				Engine.logEngine.trace("ZipUtils.getArchiveName() - realArchiveFile: "+realArchiveFile);
  			}
  			i++;
  		}
