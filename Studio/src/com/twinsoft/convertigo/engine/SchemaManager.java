@@ -68,17 +68,18 @@ public class SchemaManager implements AbstractManager {
 		return getSchemasForProject(projectName, false);
 	}
 	
-	public XmlSchemaCollection getSchemasForProject(String projectName, final boolean fullSchema) throws Exception {
+	public XmlSchemaCollection getSchemasForProject(final String projectName, final boolean fullSchema) throws Exception {
 		long timeStart = System.currentTimeMillis();
 		
 		// get directly the project reference (read only)
-		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		final Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 		
 		final XmlSchemaCollection collection = new XmlSchemaCollection();
 		
 		try {
 			// empty schema for the current project
 			final XmlSchema schema = XmlSchemaUtils.makeDynamic(project, new XmlSchema(project.getTargetNamespace(), collection));
+			final XmlSchema[] fullSchemaCache = {null};
 			
 			schema.setElementFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
 			schema.setAttributeFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
@@ -280,9 +281,20 @@ public class SchemaManager implements AbstractManager {
 							}
 							
 						} else {
-							XmlSchemaObject object = (databaseObject instanceof XMLCopyStep) ?
-									((XMLCopyStep) databaseObject).getXmlSchemaObject(collection, schema) :
-									((ISchemaGenerator) databaseObject).getXmlSchemaObject(collection, schema);
+							XmlSchemaObject object;
+							if (databaseObject instanceof XMLCopyStep && !fullSchema) {
+								XmlSchemaCollection collection;
+								XmlSchema schema = fullSchemaCache[0];
+								if (schema == null) {
+									collection = SchemaManager.this.getSchemasForProject(projectName, true);
+									schema = fullSchemaCache[0] = collection.schemaForNamespace(project.getTargetNamespace());
+								} else {
+									collection = SchemaMeta.getCollection(schema);
+								}
+								object = ((ISchemaGenerator) databaseObject).getXmlSchemaObject(collection, schema);
+							} else {
+								object = ((ISchemaGenerator) databaseObject).getXmlSchemaObject(collection, schema);
+							}
 							SchemaMeta.setXmlSchemaObject(schema, databaseObject, object);
 							if (object instanceof XmlSchemaParticle) {
 								particleChildren.add((XmlSchemaParticle) object);

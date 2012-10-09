@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.eclipse.views.schema;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -43,13 +44,10 @@ import org.apache.ws.commons.schema.constants.Constants;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XmlSchemaWalker;
 
-public class SchemaViewContentProviderBis implements ITreeContentProvider {
-//	static private class HasChildrenException extends RuntimeException {
-//		private static final long serialVersionUID = -5041161601866181155L;
-//	};
-	
+public class SchemaViewContentProviderBis implements ITreeContentProvider {	
 	static public class Root {
 		private Object root;
 		
@@ -126,13 +124,20 @@ public class SchemaViewContentProviderBis implements ITreeContentProvider {
 			} else if (object instanceof XmlSchemaCollection) {
 				XmlSchemaCollection collection = (XmlSchemaCollection) object;
 				XmlSchema[] schemas = collection.getXmlSchemas();
+				
+				// sort the array to set our dynamic schema at the first position
+				Arrays.sort(schemas, new Comparator<XmlSchema>() {
+					public int compare(XmlSchema o1, XmlSchema o2) {
+						return SchemaMeta.isDynamic(o1) ? -1 : SchemaMeta.isDynamic(o2) ? 1 : 0;
+					}
+				});
 				res = new XmlSchema[schemas.length - 1];
 				int i = 0;
 				for (XmlSchema schema : schemas) {
 					if (!Constants.URI_2001_SCHEMA_XSD.equals(schema.getTargetNamespace())) {
 						res[i++] = schema;
 					}
-				} 
+				}
 			} else if (object instanceof XmlSchemaObject) {
 				final List<XmlSchemaObject> children = new LinkedList<XmlSchemaObject>();
 				XmlSchemaObject xso = (XmlSchemaObject) object;
@@ -227,37 +232,6 @@ public class SchemaViewContentProviderBis implements ITreeContentProvider {
 			ret = getChildren(object).length > 0;
 		}
 		return ret;
-//		boolean ret = true;
-//		if (depths != null) {
-//			ret = depths.get(object) < maxDepth; 
-//		}
-//		if (ret) {
-//			ret = false;
-//			if (object instanceof Root || object instanceof NamedList) {
-//				ret = true;
-//			} else if (object instanceof XmlSchemaCollection) {
-//				ret = ((XmlSchemaCollection) object).getXmlSchemas().length > 1; 
-//			} else if (object instanceof XmlSchemaObject) {
-//				try {
-//					new XmlSchemaWalker.XmlSchemaWalkerWatcher() {
-//						@Override
-//						protected boolean on(XmlSchemaObject subObject) {
-//							if (object == subObject) {
-//								return true;
-//							} else if (subObject != null) {
-//								throw new HasChildrenException();
-//							}
-//							return false;
-//						}
-//					}.init((XmlSchemaObject) object, false, false);
-//				} catch (HasChildrenException e) {
-//					ret = true;
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		}
-//		return ret;
 	}
 
 }
