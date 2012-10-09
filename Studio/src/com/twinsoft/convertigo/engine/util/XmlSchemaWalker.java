@@ -429,10 +429,10 @@ public class XmlSchemaWalker {
 		doWalk(xmlSchema, qname, SchemaMeta.getCollection(xmlSchema).getTypeByQName(qname));
 	}
 	public void walkByElementRef(XmlSchema xmlSchema, QName qname) {
-		doWalk(xmlSchema, qname, SchemaMeta.getCollection(xmlSchema).getTypeByQName(qname));
+		doWalk(xmlSchema, qname, SchemaMeta.getCollection(xmlSchema).getElementByQName(qname));
 	}
 	public void walkByAttributeRef(XmlSchema xmlSchema, QName qname) {
-		doWalk(xmlSchema, qname, SchemaMeta.getCollection(xmlSchema).getTypeByQName(qname));
+		doWalk(xmlSchema, qname, SchemaMeta.getCollection(xmlSchema).getAttributeByQName(qname));
 	}
 	public void walkByAttributeGroupRef(XmlSchema xmlSchema, QName qname) {
 		doWalk(xmlSchema, qname, (XmlSchemaAttributeGroup)xmlSchema.getAttributeGroups().getItem(qname));
