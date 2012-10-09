@@ -551,17 +551,24 @@ public class XmlSchemaWalker {
 	        }
 		}
 	}
+	
 	protected void walkSimpleTypeRestriction(XmlSchema xmlSchema, XmlSchemaSimpleTypeRestriction obj) {
 		walkAnnotated(xmlSchema, obj);
 		QName qname = obj.getBaseTypeName();
-		if ((qname != null) && (deep))
+		if ((qname != null) && (deep)) {
 			walkByTypeName(xmlSchema, qname);
-		else
-			walkSimpleType(xmlSchema, obj.getBaseType());
+		} else {
+			XmlSchemaSimpleType type = obj.getBaseType();
+			if (type != null) {
+				walkSimpleType(xmlSchema, type);
+			}
+		}
 	}
+	
 	protected void walkSimpleTypeList(XmlSchema xmlSchema, XmlSchemaSimpleTypeList obj) {
 		walkAnnotated(xmlSchema, obj);		
 	}
+	
 	protected void walkSimpleTypeUnion(XmlSchema xmlSchema, XmlSchemaSimpleTypeUnion obj) {
 		walkAnnotated(xmlSchema, obj);		
 	}
@@ -597,6 +604,7 @@ public class XmlSchemaWalker {
 	        }
 		}
 	}
+	
 	protected void walkGroupRef(XmlSchema xmlSchema, XmlSchemaGroupRef obj) {
 		walkAnnotated(xmlSchema, obj);
 		QName refName = obj.getRefName();
@@ -752,6 +760,7 @@ public class XmlSchemaWalker {
         	walkFacet(xmlSchema, (XmlSchemaFacet)facet);
         }
 	}
+	
 	protected void walkFacet(XmlSchema xmlSchema, XmlSchemaFacet obj) {
 		walkAnnotated(xmlSchema, obj);
 		// TODO Auto-generated method stub
@@ -890,6 +899,7 @@ public class XmlSchemaWalker {
         	walkAll(xmlSchema, (XmlSchemaAll)xmlSchemaGroupBase);
         }
 	}
+	
 	protected void walkAttributeGroup(XmlSchema xmlSchema, XmlSchemaAttributeGroup obj) {
 		walkAnnotated(xmlSchema, obj);
 		XmlSchemaObjectCollection  attributes = obj.getAttributes();
@@ -906,6 +916,7 @@ public class XmlSchemaWalker {
         	walkAnyAttribute(xmlSchema, xmlSchemaAnyAttribute);
         }
 	}
+	
 	protected void walkAttribute(XmlSchema xmlSchema, XmlSchemaAttribute obj) {
 		walkAnnotated(xmlSchema, obj);
 		QName refName = obj.getRefName();
@@ -919,8 +930,8 @@ public class XmlSchemaWalker {
 		} else if (xmlSchemaSimpleType != null) {
 			walkSimpleType(xmlSchema, xmlSchemaSimpleType);
 		}
-		
 	}
+	
 	protected void walkRedefine(XmlSchema xmlSchema, XmlSchemaRedefine obj) {
 		walkAnnotated(xmlSchema, obj);
 		XmlSchemaObjectCollection items = obj.getItems();
