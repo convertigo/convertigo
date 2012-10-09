@@ -2,11 +2,9 @@ package com.twinsoft.convertigo.engine;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.namespace.QName;
 import javax.xml.transform.OutputKeys;
@@ -36,8 +34,8 @@ import org.apache.ws.commons.schema.utils.NamespaceMap;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
+import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaImportGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaIncludeGenerator;
@@ -67,6 +65,10 @@ public class SchemaManager implements AbstractManager {
 	}
 	
 	public XmlSchemaCollection getSchemasForProject(String projectName) throws Exception {
+		return getSchemasForProject(projectName, false);
+	}
+	
+	public XmlSchemaCollection getSchemasForProject(String projectName, final boolean fullSchema) throws Exception {
 		long timeStart = System.currentTimeMillis();
 		
 		// get directly the project reference (read only)
@@ -81,7 +83,7 @@ public class SchemaManager implements AbstractManager {
 			schema.setElementFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
 			schema.setAttributeFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
 			
-			final Map<DatabaseObject, XmlSchemaObject> schemaCache = new HashMap<DatabaseObject, XmlSchemaObject>();
+//			final Map<DatabaseObject, XmlSchemaObject> schemaCache = new HashMap<DatabaseObject, XmlSchemaObject>();
 			
 			new WalkHelper() {
 				List<XmlSchemaParticle> particleChildren;
@@ -111,14 +113,14 @@ public class SchemaManager implements AbstractManager {
 					List<XmlSchemaParticle> parentParticleChildren = particleChildren;
 					List<XmlSchemaAttribute> parentAttributeChildren = attributeChildren;
 					
-					if (databaseObject instanceof ISchemaGenerator && ((ISchemaGenerator) databaseObject).isGenerateSchema()) {
+					if (databaseObject instanceof ISchemaGenerator && (fullSchema || ((ISchemaGenerator) databaseObject).isGenerateSchema())) {
 						List<XmlSchemaParticle> myParticleChildren = null;
 						List<XmlSchemaAttribute> myAttributeChildren = null;
 						
 						// prepare to receive children
 						if (databaseObject instanceof ISchemaParticleGenerator) {
 							myParticleChildren = particleChildren = new LinkedList<XmlSchemaParticle>();
-							if (((ISchemaParticleGenerator) databaseObject).isGenerateElement()) {
+							if (fullSchema || ((ISchemaParticleGenerator) databaseObject).isGenerateElement()) {
 								myAttributeChildren = attributeChildren = new LinkedList<XmlSchemaAttribute>();
 							}
 						}
@@ -130,13 +132,13 @@ public class SchemaManager implements AbstractManager {
 						if (databaseObject instanceof ISchemaImportGenerator) {
 							// Import case
 							XmlSchemaImport schemaImport = ((ISchemaImportGenerator) databaseObject).getXmlSchemaObject(collection, schema);
-							schemaCache.put(databaseObject, schemaImport);
+							SchemaMeta.setXmlSchemaObject(schema, databaseObject, schemaImport);
 							schema.getItems().add(schemaImport);
 							
 						} else if (databaseObject instanceof ISchemaIncludeGenerator) {
 							// Include case
 							XmlSchemaInclude include = ((ISchemaIncludeGenerator)databaseObject).getXmlSchemaObject(collection, schema);
-							schemaCache.put(databaseObject, include);
+							SchemaMeta.setXmlSchemaObject(schema, databaseObject, include);
 							
 							XmlSchema xmlSchema = include.getSchema();
 							if (xmlSchema != null) {
@@ -173,13 +175,13 @@ public class SchemaManager implements AbstractManager {
 						} else if (databaseObject instanceof ISchemaAttributeGenerator) {
 							// Attribute case
 							XmlSchemaAttribute attribute = ((ISchemaAttributeGenerator) databaseObject).getXmlSchemaObject(collection, schema);
-							schemaCache.put(databaseObject, attribute);
+							SchemaMeta.setXmlSchemaObject(schema, databaseObject, attribute);
 							parentAttributeChildren.add(attribute);
 							
 						} else if (databaseObject instanceof ISchemaParticleGenerator) {
 							// Particle case
 							XmlSchemaParticle particle = ((ISchemaParticleGenerator) databaseObject).getXmlSchemaObject(collection, schema);
-							schemaCache.put(databaseObject, particle);
+							SchemaMeta.setXmlSchemaObject(schema, databaseObject, particle);
 							parentParticleChildren.add(particle);
 							
 							// retrieve the xsd:element to add children
@@ -279,9 +281,9 @@ public class SchemaManager implements AbstractManager {
 							
 						} else {
 							XmlSchemaObject object = (databaseObject instanceof XMLCopyStep) ?
-									((XMLCopyStep) databaseObject).getXmlSchemaObject(collection, schema, schemaCache) :
+									((XMLCopyStep) databaseObject).getXmlSchemaObject(collection, schema) :
 									((ISchemaGenerator) databaseObject).getXmlSchemaObject(collection, schema);
-							schemaCache.put(databaseObject, object);
+							SchemaMeta.setXmlSchemaObject(schema, databaseObject, object);
 							if (object instanceof XmlSchemaParticle) {
 								particleChildren.add((XmlSchemaParticle) object);
 							} else if (object instanceof XmlSchemaAttribute) {

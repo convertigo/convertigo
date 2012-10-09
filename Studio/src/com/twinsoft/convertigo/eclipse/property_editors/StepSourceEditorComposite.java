@@ -29,6 +29,9 @@ import java.util.Vector;
 
 import javax.xml.transform.TransformerException;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.KeyAdapter;
@@ -55,6 +58,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
@@ -62,10 +66,13 @@ import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.steps.IteratorStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.util.Log;
 import com.twinsoft.util.StringEx;
 
@@ -87,6 +94,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 	private TwsCachedXPathAPI twsCachedXPathAPI = null;
 	private XMLVector<String> stepSourceDefinition = null;
 	private String regexpForPredicates = "\\[\\D{1,}\\]";
+	private XmlSchema schema = null;
 	
 	public StepSourceEditorComposite(Composite parent, int style, AbstractDialogCellEditor cellEditor) {
 		super(parent, style, cellEditor);
@@ -104,6 +112,15 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 				step = (Step)object;
 			else // Variable
 				step = (Step)((Variable)object).getParent();
+		}
+		
+		try {
+			Project project = step.getProject();
+			XmlSchemaCollection collection = Engine.theApp.schemaManager.getSchemasForProject(project.getName(), true);
+			schema = collection.schemaForNamespace(project.getTargetNamespace());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		//stepSourceDefinition = (XMLVector)((XMLVector)cellEditor.getEditorData()).clone();
@@ -457,7 +474,9 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		try {
 			String xpath = getSourceXPath();
 			String anchor = step.getAnchor();
-			Document stepDoc = step.getWsdlDom();
+			XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, step);
+			Document stepDoc = XmlSchemaUtils.getDomInstance(xso);
+//			Document stepDoc = step.getWsdlDom();
 			if (stepDoc != null) { // stepDoc can be null for non "xml" step : e.g jIf
 				Document doc = step.getSequence().createDOM();
 				Element root = (Element)doc.importNode(stepDoc.getDocumentElement(), true);

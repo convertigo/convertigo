@@ -8,11 +8,16 @@ import java.util.ListIterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaUse;
 import org.apache.ws.commons.schema.constants.Constants;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
@@ -171,5 +176,41 @@ public class XmlSchemaUtils {
 		SchemaMeta.getReferencedDatabaseObjects(xso).addAll(databaseObjects);
 		SchemaMeta.setDynamic(xso);
 		return xso;
+	}
+	
+	public static Document getDomInstance(XmlSchemaObject object) {
+		final Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+		final Element root = doc.createElement("document");
+		doc.appendChild(root);
+		
+		new XmlSchemaWalker() {
+			Node parent = root;
+			int maxDepth = 50;
+			
+			@Override
+			protected void walkElement(XmlSchema xmlSchema, XmlSchemaElement obj) {
+				Node myParent = parent;
+				XmlSchemaElement element = (XmlSchemaElement) obj;
+				Element xElement = doc.createElement(element.getName());
+				myParent.appendChild(xElement);
+				parent = xElement;
+				if (--maxDepth > 0) {
+					super.walkElement(xmlSchema, obj);
+				}
+				parent = myParent;
+			}
+
+			@Override
+			protected void walkAttribute(XmlSchema xmlSchema, XmlSchemaAttribute obj) {
+				if (parent instanceof Element) {
+					((Element) parent).setAttribute(obj.getName(), "");
+				}
+			}
+			
+		}.walk(SchemaMeta.getSchema(object), object);
+		
+		System.out.println(XMLUtils.prettyPrintDOM(doc));
+		
+		return doc;
 	}
 }

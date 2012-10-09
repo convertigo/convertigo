@@ -1,5 +1,6 @@
 package com.twinsoft.convertigo.engine.enums;
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +23,7 @@ public enum SchemaMeta {
 	schemaPrefix,
 	ownerCollection,
 	ownerSchema,
+	dboSchemaMap,
 	referencedDatabaseObjects,
 	dynamicType,
 	containerElement,
@@ -131,5 +133,22 @@ public enum SchemaMeta {
 			prefix = getPrefix(schema);
 		}
 		return prefix;
+	}
+	
+	private static Map<DatabaseObject, XmlSchemaObject> getXmlSchemaObject(XmlSchema schema) {
+		Map<DatabaseObject, XmlSchemaObject> map = getMetaInfo(schema, dboSchemaMap);
+		if (map == null) {
+			map = new HashMap<DatabaseObject, XmlSchemaObject>();
+			schema.addMetaInfo(dboSchemaMap, map);
+		}
+		return map;
+	}
+	
+	public static void setXmlSchemaObject(XmlSchema schema, DatabaseObject databaseObject, XmlSchemaObject xso) {
+		getXmlSchemaObject(schema).put(databaseObject, xso);
+	}
+	
+	public static XmlSchemaObject getXmlSchemaObject(XmlSchema schema, DatabaseObject databaseObject) {
+		return getXmlSchemaObject(schema).get(databaseObject);
 	}
 }
