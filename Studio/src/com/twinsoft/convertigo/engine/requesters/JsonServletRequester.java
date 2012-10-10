@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.engine.requesters;
 
+import java.io.UnsupportedEncodingException;
+
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
@@ -88,9 +90,12 @@ public class JsonServletRequester extends ServletRequester {
 			Engine.logContext.debug("Json string:\n"+result);
 		return result;
 	}
-
-	@Override
-	protected Object addStatistics(String stats, Object result) throws Exception {
+	
+	protected Object addStatisticsAsData(Object result) {
+		return result;
+	}
+	
+	protected Object addStatisticsAsText(String stats, Object result) throws UnsupportedEncodingException{
 		return result;
 	}
 }

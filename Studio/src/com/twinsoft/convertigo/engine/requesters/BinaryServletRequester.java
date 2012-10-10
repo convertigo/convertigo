@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.engine.requesters;
 
+import java.io.UnsupportedEncodingException;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -52,5 +54,13 @@ public class BinaryServletRequester extends ServletRequester {
 					return AttachmentManager.getAttachment(attach);
 			}
 		return null;
+	}
+	
+	protected Object addStatisticsAsData(Object result) {
+		return result;
+	}
+	
+	protected Object addStatisticsAsText(String stats, Object result) throws UnsupportedEncodingException{
+		return result;
 	}
 }

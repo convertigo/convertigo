@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.Vector;
@@ -294,13 +295,18 @@ public abstract class GenericRequester extends Requester {
     			
     			if (Engine.logStatistics.isInfoEnabled()) {
     				stats = context.statistics.printStatistics();
+    				//stats = context.statistics.printStatisticsXML();
     				Engine.logStatistics.info("Statistics:\n" + stats);
     			}
 
     			String s = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.DOCUMENT_INCLUDE_STATISTICS);
     			boolean bStatistics = (s.equalsIgnoreCase("true"));
-    			if (bStatistics)
-    				result = addStatistics(stats, result);
+    			if (bStatistics){
+    				result = addStatisticsAsText(stats, result);
+    			}
+    			
+    			// Requestable data statistics
+    			addStatisticsAsData(result);
     			
     			context.waitingRequests--;
         		Engine.logContext.debug("[" + getName() + "] Working semaphore released (" + context.waitingRequests + " request(s) pending) [" + context.hashCode() + "]");
@@ -310,26 +316,29 @@ public abstract class GenericRequester extends Requester {
 
     	return result;
     }
-    
-	protected Object addStatistics(String stats, Object result) throws Exception {
-		if (result != null) {
-			if (stats == null) stats = context.statistics.printStatistics();
-			if (result instanceof Document) {
-				Document document = (Document) result;
-				Comment comment = document.createComment("\n" + stats);
-				document.appendChild(comment);
-			}
-			else if (result instanceof byte[]) {
-				String encodingCharSet = "UTF-8";
-				if (context.requestedObject != null)
-					encodingCharSet = context.requestedObject.getEncodingCharSet();
-				String sResult = new String((byte[]) result, encodingCharSet);
-				sResult += "<!--\n" + stats + "\n-->";
-				result = sResult.getBytes(encodingCharSet);
-			}
-		}
-		return result;
-	}
+   
+	abstract protected Object addStatisticsAsText(String stats, Object result) throws UnsupportedEncodingException;
+//	protected Object addStatisticsAsText(String stats, Object result) throws Exception {
+//		if (result != null) {
+//			if (stats == null) stats = context.statistics.printStatistics();
+//			if (result instanceof Document) {
+//				Document document = (Document) result;
+//				Comment comment = document.createComment("\n" + stats);
+//				document.appendChild(comment);
+//			}
+//			else if (result instanceof byte[]) {
+//				String encodingCharSet = "UTF-8";
+//				if (context.requestedObject != null)
+//					encodingCharSet = context.requestedObject.getEncodingCharSet();
+//				String sResult = new String((byte[]) result, encodingCharSet);
+//				sResult += "<!--\n" + stats + "\n-->";
+//				result = sResult.getBytes(encodingCharSet);
+//			}
+//		}
+//		return result;
+//	}
+
+	abstract protected Object addStatisticsAsData(Object result);
 	
     protected String poolName = null;
     protected String projectName = null;
@@ -543,6 +552,10 @@ public abstract class GenericRequester extends Requester {
 //            if (!document.getDocumentElement().hasChildNodes()) {
 //            	Engine.log2_warning("The returned document does not contain any data");
 //            }
+            //TODO get the xmlstatistics boolean
+           // 	if(RequestableObject.)
+            //	context.statistics.printStatisticsXML(document);
+            	
             result = postGetDocument(document);
 		}
 		catch(Throwable e) {

@@ -453,6 +453,7 @@ public class WebServiceTranslator implements Translator {
 	public Object buildOutputData(Context context, Object convertigoResponse) throws Exception {
         Engine.logBeans.debug("[WebServiceTranslator] Encoding the SOAP response...");
         
+        SOAPMessage responseMessage = null;
         String sResponseMessage = "";
 		String encodingCharSet = "UTF-8";
 		if (context.requestedObject != null)
@@ -464,7 +465,7 @@ public class WebServiceTranslator implements Translator {
 
     		//MessageFactory messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL);
             MessageFactory messageFactory = MessageFactory.newInstance();
-            SOAPMessage responseMessage = messageFactory.createMessage();
+            responseMessage = messageFactory.createMessage();
             
             responseMessage.setProperty(SOAPMessage.CHARACTER_SET_ENCODING, encodingCharSet);
 
@@ -514,7 +515,7 @@ public class WebServiceTranslator implements Translator {
             
             NodeList childNodes = document.getDocumentElement().getChildNodes();
             int len = childNodes.getLength();
-			org.w3c.dom.Node node;
+			org.w3c.dom.Node node;//TODO
             for (int i = 0 ; i < len ; i++) {
             	node = childNodes.item(i);
             	if (node instanceof Element) {
@@ -536,7 +537,7 @@ public class WebServiceTranslator implements Translator {
 			Engine.logBeans.debug("[WebServiceTranslator] SOAP response:\n" + sResponseMessage);
         }
         
-        return sResponseMessage.getBytes(encodingCharSet);
+        return responseMessage == null ? sResponseMessage.getBytes(encodingCharSet) : responseMessage;
 	}
 
 	private void addElement(SOAPMessage responseMessage, SOAPEnvelope soapEnvelope, Context context, Element elementToAdd, SOAPElement soapElement) throws SOAPException {

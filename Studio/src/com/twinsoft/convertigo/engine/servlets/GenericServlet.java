@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.xml.soap.SOAPMessage;
 
 import org.w3c.dom.Document;
 
@@ -45,6 +46,7 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.ServletRequester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
+import com.twinsoft.convertigo.engine.util.SOAPUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class GenericServlet extends HttpServlet {
@@ -232,6 +234,8 @@ public abstract class GenericServlet extends HttpServlet {
 								sResult = (String) result;
 							} else if (result instanceof Document) {
 								sResult = XMLUtils.prettyPrintDOM((Document) result);
+							} else if (result instanceof SOAPMessage) {
+								sResult = SOAPUtils.toString((SOAPMessage) result, (String) request.getAttribute("convertigo.charset"));
 							}
 
 							Writer writer = response.getWriter();

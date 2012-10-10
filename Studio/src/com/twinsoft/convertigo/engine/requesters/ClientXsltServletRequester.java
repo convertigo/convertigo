@@ -22,10 +22,15 @@
 
 package com.twinsoft.convertigo.engine.requesters;
 
-import org.w3c.dom.*;
+import java.io.UnsupportedEncodingException;
+
+import org.w3c.dom.Comment;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.ProcessingInstruction;
 
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.EngineStatistics;
 
 public class ClientXsltServletRequester extends ServletRequester {
 
@@ -59,9 +64,30 @@ public class ClientXsltServletRequester extends ServletRequester {
     }
 
     protected Object performXSLT(Document document) throws Exception {
-    	// Because it is a client XSLT process, just return the pretty print DOM.
-    	String sDocument = XMLUtils.prettyPrintDOMWithEncoding(document);
-    	return sDocument;
+    	// Because it is a client XSLT process, just return the document
+    	return document;
     }
 	
+	protected Object addStatisticsAsData(Object result) {
+		return EngineStatistics.addStatisticsAsXML(context, result);
+	}
+	protected Object addStatisticsAsText(String stats, Object result) throws UnsupportedEncodingException{
+		if (result != null) {
+			if (stats == null) stats = context.statistics.printStatistics();
+			if (result instanceof Document) {
+				Document document = (Document) result;
+				Comment comment = document.createComment("\n" + stats);
+				document.appendChild(comment);
+			}
+			else if (result instanceof byte[]) {
+				String encodingCharSet = "UTF-8";
+				if (context.requestedObject != null)
+					encodingCharSet = context.requestedObject.getEncodingCharSet();
+				String sResult = new String((byte[]) result, encodingCharSet);
+				sResult += "<!--\n" + stats + "\n-->";
+				result = sResult.getBytes(encodingCharSet);
+			}
+		}
+		return result;
+	}
 }

@@ -85,7 +85,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     
     protected final static String fake_root = "document";
     
-    /**
+    private boolean addStatistics = false;
+
+	/**
      * The requester. This object is responsible for realizing
      * the interface between the Convertigo engine and the transaction.
      */
@@ -904,5 +906,13 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		}
 		
 		return rep;
+	}
+	
+    public boolean getAddStatistics() {
+		return addStatistics;
+	}
+
+	public void setAddStatistics(boolean addStatistics) {
+		this.addStatistics = addStatistics;
 	}
 }

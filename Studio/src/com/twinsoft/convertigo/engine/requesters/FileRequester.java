@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.engine.requesters;
 
+import java.io.UnsupportedEncodingException;
+
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Context;
@@ -63,5 +65,12 @@ public class FileRequester extends GenericRequester {
 	protected void initInternalVariables() throws EngineException {
 		// Do nothing
 	}
-
+	
+	protected Object addStatisticsAsData(Object result) {
+		return result;
+	}
+	
+	protected Object addStatisticsAsText(String stats, Object result) throws UnsupportedEncodingException{
+		return result;
+	}
 }

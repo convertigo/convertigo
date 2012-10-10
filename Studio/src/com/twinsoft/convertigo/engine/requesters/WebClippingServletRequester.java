@@ -261,4 +261,11 @@ public class WebClippingServletRequester extends GenericRequester {
 		}
 		return data;
 	}
+	
+	protected Object addStatisticsAsData(Object result) {
+		return result;
+	}
+	protected Object addStatisticsAsText(String stats, Object result) throws UnsupportedEncodingException{
+		return result;
+	}
 }
