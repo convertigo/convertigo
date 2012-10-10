@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.engine.requesters;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
@@ -122,5 +123,12 @@ public class PdfServletRequester extends ServletRequester {
 			context.statistics.stop(t1);
         }
 	}
-
+	
+	protected Object addStatisticsAsData(Object result) { 
+		return result; 
+	} 
+	
+	protected Object addStatisticsAsText(String stats, Object result) throws UnsupportedEncodingException{ 
+		return result; 
+	} 
 }

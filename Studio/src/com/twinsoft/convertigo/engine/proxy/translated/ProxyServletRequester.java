@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.engine.proxy.translated;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Enumeration;
 import java.util.StringTokenizer;
@@ -472,4 +473,12 @@ public class ProxyServletRequester extends ServletRequester {
 	public void setStyleSheet(Document document) {
 		// Nothing to do
 	}
+    
+	protected Object addStatisticsAsData(Object result) { 
+		return result; 
+	} 
+	
+	protected Object addStatisticsAsText(String stats, Object result) throws UnsupportedEncodingException{ 
+		return result; 
+	} 
 }

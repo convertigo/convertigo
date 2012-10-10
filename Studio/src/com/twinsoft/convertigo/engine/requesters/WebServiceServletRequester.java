@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.engine.requesters;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
@@ -176,4 +177,17 @@ public class WebServiceServletRequester extends ServletRequester {
 	public Object postGetDocument(Document document) throws Exception {
 		return document;
 	}
+	
+	protected Object addStatisticsAsData(Object result) { 
+        if (result != null && context.requestedObject.getAddStatistics()) { 
+                if (result instanceof SOAPMessage) { 
+                        context.statistics.printStatisticsSOAP((SOAPMessage) result); 
+                } 
+        } 
+		return result; 
+	} 
+	
+	protected Object addStatisticsAsText(String stats, Object result) throws UnsupportedEncodingException{ 
+		return result; 
+	} 
 }
