@@ -1,5 +1,6 @@
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -9,16 +10,24 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
+import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
 import org.apache.ws.commons.schema.XmlSchemaUse;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
@@ -143,8 +152,12 @@ public class XmlSchemaUtils {
 		
 	}
 	
+	final private static SchemaFactory factory = SchemaFactory.newInstance(Constants.URI_2001_SCHEMA_XSD);
+	final private static Source emptySource = new DOMSource(XMLUtils.getDefaultDocumentBuilder().newDocument());
+	
 	final public static XmlSchemaUse attributeUseRequired = new XmlSchemaUse(Constants.BlockConstants.REQUIRED);
 	final public static XmlSchemaUse attributeUseOptional = new XmlSchemaUse(Constants.BlockConstants.OPTIONAL);
+	
 	
 	final public static Comparator<XmlSchemaAttribute> attributeNameComparator = new Comparator<XmlSchemaAttribute>() {
 		public int compare(XmlSchemaAttribute o1, XmlSchemaAttribute o2) {
@@ -223,5 +236,29 @@ public class XmlSchemaUtils {
 		}.walk(SchemaMeta.getSchema(object), object);
 		
 		return doc;
+	}
+
+	public static void validate(XmlSchema schema) throws SAXException {
+		validate(schema, emptySource);
+	}
+	
+	public static void validate(XmlSchema schema, Document document) throws SAXException {
+		validate(schema, new DOMSource(document));
+	}
+	
+	private static void validate(XmlSchema schema, Source source) throws SAXException {
+		try {
+		      Schema vSchema = factory.newSchema(new DOMSource(schema.getSchemaDocument()));
+		      Validator validator = vSchema.newValidator();
+		      validator.validate(source);
+			} catch (XmlSchemaSerializerException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		      // at last perform validation:
 	}
 }

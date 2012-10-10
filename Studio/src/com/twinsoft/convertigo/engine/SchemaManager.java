@@ -31,6 +31,7 @@ import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
+import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -377,6 +378,12 @@ public class SchemaManager implements AbstractManager {
 			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 			transformer.transform(new DOMSource(schema.getSchemaDocument()), new StreamResult(System.out));
 			System.out.println("Times >> total : " + (timeStop - timeStart) + " ms");
+			
+			try {
+				XmlSchemaUtils.validate(schema);
+			} catch (SAXException e) {
+				System.err.println("XSD not valid : " + e.getMessage());
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
