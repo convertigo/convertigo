@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.xml.transform.TransformerException;
 
 import org.apache.ws.commons.schema.XmlSchema;
@@ -40,6 +43,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLCopyStep extends Step implements IStepSourceContainer {
 
@@ -266,6 +270,22 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 			if (!source.isEmpty()) {
 				XmlSchemaObject object = SchemaMeta.getXmlSchemaObject(schema, source.getStep());
 				if (object != null) {
+					String xpath = source.getXpath();
+					String anchor = source.getAnchor();
+					if (!".".equals(xpath)) {
+						Map<Node, XmlSchemaObject> references = new HashMap<Node, XmlSchemaObject>();
+						Document doc = XmlSchemaUtils.getDomInstance(object, references);
+						NodeList list = getXPathAPI().selectNodeList(doc.getDocumentElement(), anchor);
+						if (list != null) {
+							for (int i = 0; i < list.getLength(); i++) {
+								Node node = list.item(i);
+								XmlSchemaObject referenced = references.get(node);
+								if (referenced != null) {
+									object = referenced;
+								}
+							}
+						}
+					}
 					return object;
 				}
 			}

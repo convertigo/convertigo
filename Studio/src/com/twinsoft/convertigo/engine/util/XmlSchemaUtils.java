@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -179,6 +180,10 @@ public class XmlSchemaUtils {
 	}
 	
 	public static Document getDomInstance(XmlSchemaObject object) {
+		return getDomInstance(object, null);
+	}
+	
+	public static Document getDomInstance(XmlSchemaObject object, final Map<Node, XmlSchemaObject> references) {
 		final Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 		final Element root = doc.createElement("document");
 		doc.appendChild(root);
@@ -192,6 +197,9 @@ public class XmlSchemaUtils {
 				Node myParent = parent;
 				XmlSchemaElement element = (XmlSchemaElement) obj;
 				Element xElement = doc.createElement(element.getName());
+				if (references != null) {
+					references.put(xElement, element);
+				}
 				myParent.appendChild(xElement);
 				parent = xElement;
 				if (--maxDepth > 0) {
@@ -203,13 +211,16 @@ public class XmlSchemaUtils {
 			@Override
 			protected void walkAttribute(XmlSchema xmlSchema, XmlSchemaAttribute obj) {
 				if (parent instanceof Element) {
-					((Element) parent).setAttribute(obj.getName(), "");
+					Element xParent = (Element) parent;
+					String name = obj.getName();
+					xParent.setAttribute(name, "");
+					if (references != null) {
+						references.put(xParent.getAttributeNode(name), obj);
+					}
 				}
 			}
 			
 		}.walk(SchemaMeta.getSchema(object), object);
-		
-		System.out.println(XMLUtils.prettyPrintDOM(doc));
 		
 		return doc;
 	}
