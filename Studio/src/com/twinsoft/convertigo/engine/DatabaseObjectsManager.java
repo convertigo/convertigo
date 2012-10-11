@@ -81,7 +81,9 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
  */
 public class DatabaseObjectsManager implements AbstractManager {
 	private Map<String, Project> projects;
-
+	
+	//
+	private String globalSymbolsFilePath = null;
 	/**
 	 * The symbols repository for compiling text properties.
 	 */
@@ -104,28 +106,29 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	private void symbolsMapInit() {
-		String filePath = System.getProperty("convertigo_global_symbols");
-		try {
-			if (filePath != null) {
-				Properties prop = new Properties();
-				prop.load(new FileInputStream(filePath));
-				// Enumeration of the properties
-				Enumeration<?> propsEnum = prop.propertyNames();
-				String propertyName, propertyValue;
+		globalSymbolsFilePath = System.getProperty("convertigo_global_symbols", 
+				System.getProperty("convertigo.cems.global_symbols_file",
+						Engine.CONFIGURATION_PATH + "/global_symbols.properties"));
 
-				while (propsEnum.hasMoreElements()) {
-					propertyName = (String) propsEnum.nextElement();
-					propertyValue = prop.getProperty(propertyName, "");
-					symbolsMap.put(propertyName, propertyValue);
-				}
-				Engine.logEngine.info("Symbols file \"" + filePath + "\" loaded!");
+		try {
+			Properties prop = new Properties();
+			prop.load(new FileInputStream(globalSymbolsFilePath));
+			// Enumeration of the properties
+			Enumeration<?> propsEnum = prop.propertyNames();
+			String propertyName, propertyValue;
+
+			while (propsEnum.hasMoreElements()) {
+				propertyName = (String) propsEnum.nextElement();
+				propertyValue = prop.getProperty(propertyName, "");
+				symbolsMap.put(propertyName, propertyValue);
 			}
+			Engine.logEngine.info("Symbols file \"" + globalSymbolsFilePath + "\" loaded!");
 		} catch (FileNotFoundException e) {
 			Engine.logDatabaseObjectManager.error("The symbols file specified in JVM argument as \""
-					+ filePath + "\" does not exist! Symbols won't be calculated.");
+					+ globalSymbolsFilePath + "\" does not exist! Symbols won't be calculated.");
 		} catch (IOException e) {
 			Engine.logDatabaseObjectManager.error(
-					"Error while reading symbols file specified in JVM argument as \"" + filePath
+					"Error while reading symbols file specified in JVM argument as \"" + globalSymbolsFilePath
 							+ "\"; symbols won't be calculated.", e);
 		}
 	}
@@ -1252,5 +1255,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 	        File ressourceFile = new File(ressourcePath);
 	        ressourceFile.delete();
 		}
+
+	}
+	public String getGlobalSymbolsFilePath(){
+		return globalSymbolsFilePath;
 	}
 }
