@@ -41,7 +41,7 @@ public class LogServiceHelper {
 		endDate
 	}
 
-	private static final DateFormat date_format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+	private static final DateFormat date_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
 
 	public static LogManager getLogManager(HttpServletRequest request) {
 		HttpSession session = request.getSession();

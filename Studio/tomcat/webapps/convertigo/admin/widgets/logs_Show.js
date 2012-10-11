@@ -61,6 +61,7 @@ function logs_Show_init(options) {
 	for (var i = 0; i < 10; i++) {
 		$(".log-field-hour").append("<option>0" + i + "</option>");
 		$(".log-field-minute").append("<option>0" + i + "</option>");
+		$(".log-field-second").append("<option>0" + i + "</option>");
 	}
 	for (var i = 10; i < 24; i++) {
 		$(".log-field-hour").append("<option>" + i + "</option>");
@@ -68,6 +69,7 @@ function logs_Show_init(options) {
 
 	for (var i = 10; i < 60; i++) {
 		$(".log-field-minute").append("<option>" + i + "</option>");
+		$(".log-field-second").append("<option>" + i + "</option>");
 	}
 
 	resetOptions();
@@ -417,8 +419,10 @@ function resetOptions() {
 	
 	$("#logOptionsStartHour").val(now.format("HH"));
 	$("#logOptionsStartMinute").val(now.format("MM"));
+	$("#logOptionsStartSecond").val(now.format("ss"));
 	$("#logOptionsEndHour").val("23");
 	$("#logOptionsEndMinute").val("59");
+	$("#logOptionsEndSecond").val("59");
 	
 	$("#logOptionsFilter").val("");
 	
@@ -502,11 +506,11 @@ function onLogGetSuccess(json) {
 }
 
 function getStartDateAsString() {
-	return $("#logOptionsStartDate").val() + " " + $("#logOptionsStartHour").val() + ":" + $("#logOptionsStartMinute").val();
+	return $("#logOptionsStartDate").val() + " " + $("#logOptionsStartHour").val() + ":" + $("#logOptionsStartMinute").val() + ":" + $("#logOptionsStartSecond").val() + ",000";
 }
 
 function getEndDateAsString() {
-	return $("#logOptionsEndDate").val() + " " + $("#logOptionsEndHour").val() + ":" + $("#logOptionsEndMinute").val();
+	return $("#logOptionsEndDate").val() + " " + $("#logOptionsEndHour").val() + ":" + $("#logOptionsEndMinute").val() + ":" + $("#logOptionsEndSecond").val() + ",999";
 }
 
 function getLines() {
