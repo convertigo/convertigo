@@ -35,23 +35,27 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.references.ImportLocalXsdReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -73,7 +77,9 @@ public class Migration6_3_0 {
 				Map<String, Reference> referenceMap = new HashMap<String, Reference>();
 				
 				// Load project schema from old XSD file
-				XmlSchema projectSchema = SchemaUtils.loadSchema(projectXsdFilePath);
+				XmlSchemaCollection collection = new XmlSchemaCollection();
+				XmlSchema projectSchema = SchemaUtils.loadSchema(new File(projectXsdFilePath), collection);
+				SchemaMeta.setCollection(projectSchema, collection);
 				
 				for (Connector connector: project.getConnectorsList()) {
 					for (Transaction transaction: connector.getTransactionsList()) {
@@ -161,44 +167,8 @@ public class Migration6_3_0 {
 					for (Sequence sequence: project.getSequencesList()) {
 						// Modify sequence's typeName
 						// TODO: set the correct property when implemented : should be a QName !!
-						sequence.setComment(new QName(project.getTargetNamespace(),sequence.getName()+ "ResponseData").toString());
-						
-						for (Step step: sequence.getSteps()) {
-							String targetProjectName = null;
-							String typeLocalName = null;
-							if (step instanceof TransactionStep) {
-								targetProjectName = ((TransactionStep)step).getProjectName();
-								typeLocalName = ((TransactionStep)step).getConnectorName()+ "__"	+
-											((TransactionStep)step).getTransactionName() 	+
-											"ResponseData";
-							}
-							else if (step instanceof SequenceStep) {
-								targetProjectName = ((SequenceStep)step).getProjectName();
-								typeLocalName = ((SequenceStep)step).getSequenceName() +
-											"ResponseData";
-							}
-							
-							if (targetProjectName != null) {
-								if (!targetProjectName.equals(step.getProject().getName())) {
-									// Copy all xsd files to xsd directory
-									copyXsdOfProject(targetProjectName, destDir);
-									
-									String location = targetProjectName + ".xsd";
-									String namespaceURI = Project.CONVERTIGO_PROJECTS_NAMESPACEURI + targetProjectName;
-									try {
-										namespaceURI = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(targetProjectName).getTargetNamespace();
-									}
-									catch (Exception e) {}
-									
-									// Add reference
-									addReferenceToMap(referenceMap, namespaceURI, location);
-									
-									// Modify step's typeName
-									// TODO: set the correct property when implemented : should be a QName !!
-									step.setComment(new QName(namespaceURI,typeLocalName).toString());
-								}
-							}
-						}
+						//sequence.setComment(new QName(project.getTargetNamespace(),sequence.getName()+ "ResponseData").toString());
+						handleSteps(destDir, projectSchema,referenceMap, sequence.getSteps());
 					}
 				}
 				
@@ -238,6 +208,74 @@ public class Migration6_3_0 {
 			reference.setName(StringUtils.normalize(location));
 			reference.setFilepath(".//xsd/"+location);
 			referenceMap.put(namespaceURI, reference);
+		}
+	}
+	
+	private static void handleSteps(File destDir, XmlSchema projectSchema, Map<String, Reference> referenceMap, List<Step> stepList) {
+		for (Step step: stepList) {
+			String targetProjectName = null;
+			String typeLocalName = null;
+			if (step instanceof TransactionStep) {
+				targetProjectName = ((TransactionStep)step).getProjectName();
+				typeLocalName = ((TransactionStep)step).getConnectorName()+ "__"	+
+							((TransactionStep)step).getTransactionName() 	+
+							"ResponseData";
+			}
+			else if (step instanceof SequenceStep) {
+				targetProjectName = ((SequenceStep)step).getProjectName();
+				typeLocalName = ((SequenceStep)step).getSequenceName() +
+							"ResponseData";
+			}
+			
+			String namespaceURI = null;
+			if (targetProjectName != null) {
+				try {
+					namespaceURI = Project.CONVERTIGO_PROJECTS_NAMESPACEURI + targetProjectName;
+					if (!targetProjectName.equals(step.getProject().getName())) {
+						// Copy all xsd files to xsd directory
+						copyXsdOfProject(targetProjectName, destDir);
+						
+						String location = targetProjectName + ".xsd";
+						try {
+							namespaceURI = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(targetProjectName).getTargetNamespace();
+						}
+						catch (Exception e) {}
+						
+						// Add reference
+						addReferenceToMap(referenceMap, namespaceURI, location);
+					}
+						
+					// Set step's typeQName
+					step.setXmlComplexTypeAffectation(new XmlQName(new QName(namespaceURI,typeLocalName)));
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			else {
+				String targetNamespace = projectSchema.getTargetNamespace();
+				String targetPrefix = projectSchema.getNamespaceContext().getPrefix(targetNamespace);
+				
+				String s = step.getSchemaType(targetPrefix);
+				if ((s != null) && (!s.equals("")) && (!s.startsWith("xsd:"))) {
+					String prefix = s.split(":")[0];
+					typeLocalName = s.split(":")[1];
+					if (prefix.equals(targetPrefix)) {
+						// TODO: ignore or handle XmlCopy ??
+					}
+					else {
+						// Retrieve namespace uri
+						namespaceURI = projectSchema.getNamespaceContext().getNamespaceURI(prefix);
+						
+						// Set step's typeQName
+						step.setXmlComplexTypeAffectation(new XmlQName(new QName(namespaceURI,typeLocalName)));
+					}
+				}
+			}
+			
+			if (step instanceof StepWithExpressions) {
+				handleSteps(destDir, projectSchema,referenceMap, ((StepWithExpressions)step).getSteps());
+			}
 		}
 	}
 }
