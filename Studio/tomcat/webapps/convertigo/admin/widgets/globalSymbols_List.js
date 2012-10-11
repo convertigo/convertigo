@@ -147,7 +147,7 @@ function addSymbol(xml) {
 							$(this).dialog('close');
 							var symbolName = $("#addName").val();
 							var value = $("#addValue").val();
-							
+														
 							if (symbolName && value) {
 								var add = $("#symbolsList").jqGrid(
 										"addRowData",
@@ -165,14 +165,17 @@ function addSymbol(xml) {
 								if (add) {
 									showInfo("The symbol '" + symbolName
 											+ "' has been successfully added.");
-	
+									
 									$("#updateSymbols").button("enable");
+									$("#addName").val("");
+									$("#addValue").val("");
 								} else {
 									showError("Can not update");
 								}
 							} else {
 								showInfo("Please enter name and value"); 
 							}
+
 							return false;
 						},
 						Cancel : function() {
