@@ -167,6 +167,8 @@ function addSymbol(xml) {
 											+ "' has been successfully added.");
 	
 									$("#updateSymbols").button("enable");
+									$("#addName").val("");
+									$("#addValue").val("");
 								} else {
 									showError("Can not update");
 								}
