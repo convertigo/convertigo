@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeO
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
+import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewContentProvider.Root;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
@@ -137,18 +138,15 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		ToolBar toolbar = new ToolBar(composite, SWT.NONE);
 		
 		ToolItem toolItem = new ToolItem(toolbar, SWT.PUSH);
-		toolItem.setText("R");
-		toolItem.setToolTipText("Refresh");
+		setToolItemIcon(toolItem, "icons/studio/refresh.gif", "R", "Refresh");
 		toolItem.addSelectionListener(selectionListener);
 		
 		toolItem = autoRefresh = new ToolItem(toolbar, SWT.CHECK);
-		toolItem.setText("AR");
-		toolItem.setToolTipText("Toggle auto refresh");
+		setToolItemIcon(toolItem, "icons/studio/refresh.d.gif", "AR", "Toggle auto refresh");
 		toolItem.setSelection(true);
 		
 		toolItem = internalSchema = new ToolItem(toolbar, SWT.CHECK);
-		toolItem.setText("IS");
-		toolItem.setToolTipText("Toggle internal schema");
+		setToolItemIcon(toolItem, "icons/studio/pretty_print.gif", "IS", "Toggle internal schema");
 		toolItem.addSelectionListener(selectionListener);
 		
 		message = new Label(composite, SWT.NONE);
@@ -166,7 +164,9 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		schemaTreeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
 			public void selectionChanged(SelectionChangedEvent event) {
 				Object firstElement = ((IStructuredSelection) event.getSelection()).getFirstElement();
-				if (firstElement instanceof XmlSchemaObject && !(firstElement instanceof XmlSchema)) {
+				if (firstElement instanceof XmlSchemaObject &&
+						(nodeTreeViewer.getInput() == null || ((Root) nodeTreeViewer.getInput()).get() != firstElement) &&
+						!(firstElement instanceof XmlSchema)) {
 					nodeTreeViewer.setInput(xmlSchemaCollection);
 					nodeTreeViewer.setInput(SchemaViewContentProvider.newRoot(firstElement));
 					nodeTreeViewer.expandToLevel(5);
@@ -189,7 +189,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		});
 		
 		// DOM PANE
-		composite = new Composite(sashForm, SWT.BORDER);
+		composite = new Composite(sashForm, SWT.NONE);
 		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		composite.setLayout(SwtUtils.newGridLayout(1, false, 0, 0, 0, 0));
 		
@@ -197,10 +197,10 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
-		toolItem.setText("C");
+		setToolItemIcon(toolItem, "icons/studio/collapse_all_nodes.gif", "C", "Collapse all");
 		
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
-		toolItem.setText("E");
+		setToolItemIcon(toolItem, "icons/studio/expand_all_nodes.gif", "E", "Expand all");
 		
 		domTree = new TwsDomTree(composite, SWT.BORDER);
 		domTree.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -263,8 +263,17 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		needRefresh = true;
 	}
 	
+	private void setToolItemIcon(ToolItem toolItem, String iconPath, String text, String tooltip) {
+		try {
+			toolItem.setImage(ConvertigoPlugin.getDefault().getStudioIcon(iconPath));
+		} catch (IOException e1) {
+			toolItem.setText(text);
+		}
+		toolItem.setToolTipText(tooltip);
+	}
+	
 	private TreeViewer makeTreeViewer(Composite parent) {
-		Composite composite = new Composite(parent, SWT.BORDER);
+		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
 		composite.setLayout(SwtUtils.newGridLayout(1, false, 0, 0, 0, 0));
 		
@@ -274,13 +283,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		final TreeViewer treeViewer = new TreeViewer(composite);
 		
 		ToolItem toolItem = new ToolItem(toolbar, SWT.PUSH);
-		toolItem.setToolTipText("Collapse");
-		
-		try {
-			toolItem.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/collapse_all_nodes.gif"));
-		} catch (IOException e1) {
-			toolItem.setText("C");
-		}
+		setToolItemIcon(toolItem, "icons/studio/collapse_all_nodes.gif", "C", "Collapse all");
 		
 		toolItem.addSelectionListener(new SelectionListener() {
 			
@@ -293,14 +296,8 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		});
 		
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
+		setToolItemIcon(toolItem, "icons/studio/expand_all_nodes.gif", "E", "Expand all");
 		
-		try {
-			toolItem.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/expand_all_nodes.gif"));
-		} catch (IOException e1) {
-			toolItem.setText("C");
-		}
-		
-		toolItem.setToolTipText("Expand");
 		toolItem.addSelectionListener(new SelectionListener() {
 			
 			public void widgetSelected(SelectionEvent e) {
