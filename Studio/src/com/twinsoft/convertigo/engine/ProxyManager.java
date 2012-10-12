@@ -106,6 +106,10 @@ public class ProxyManager {
 		}
 	}
 	
+	public boolean isEnabled() {
+		return !ProxyMode.off.name().equals(proxyMode);
+	}
+	
 	public enum ProxyMode {
     	off,
     	auto,
