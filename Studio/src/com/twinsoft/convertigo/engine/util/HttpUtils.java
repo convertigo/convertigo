@@ -27,6 +27,8 @@ import java.io.BufferedWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -181,15 +183,25 @@ public class HttpUtils {
 	}
 
 	public static String originalRequestURI(HttpServletRequest request) {
-		String uri = request.getHeader("x-convertigo-request-uri");
+		String uri = request.getHeader(HeaderName.XConvertigoRequestURI.value());
 		if (uri == null) {
 			uri = request.getRequestURI();
+		} else {
+			String frontal = request.getHeader(HeaderName.XConvertigoFrontal.value());
+			if ("apache".equalsIgnoreCase(frontal)) {
+				try {
+					uri = new URI(null, null, uri, null).toASCIIString();
+				} catch (URISyntaxException e) {
+					// Transformation failed, keep existing uri
+					Engine.logEngine.debug("(HttpUtils) Apache URI escape failed : " + e.getMessage());
+				}
+			}
 		}
 		return uri;
 	}
 	
 	public static String originalRequestURL(HttpServletRequest request) {
-		String uri = request.getHeader(HeaderName.XConvertigoRequestURI.value());
+		String uri = originalRequestURI(request);
 		String host = request.getHeader(HeaderName.XConvertigoRequestHost.value());
 		String https_state = request.getHeader(HeaderName.XConvertigoHttpsState.value());
 		
