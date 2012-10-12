@@ -53,9 +53,7 @@ public class Update extends XmlService {
         	String symbolName = symbol.split("=")[0];
         	String value = symbol.split("=")[1];
         	prop.setProperty(symbolName, value);
-        	//prop.store(new FileOutputStream(Engine.CONFIGURATION_PATH + "/global_symbols.properties"), "global symbols");
-        	String globalSymbolsFilePath = Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath();
-        	prop.store(new FileOutputStream(globalSymbolsFilePath), "global symbols");
-        }         
+        } 
+        prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");        
 	}
 }
