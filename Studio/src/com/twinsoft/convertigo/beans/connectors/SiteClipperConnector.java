@@ -459,6 +459,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					case deflate:
 						stream = new InflaterInputStream(stream, new Inflater(true));
 						break;
+					default:
+						break;
 					}
 					String charset = getResponseCharset();
 					responseAsString = IOUtils.toString(stream, charset);
@@ -718,10 +720,13 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					case POST :
 						httpMethod = new PostMethod(uri);
 						((PostMethod) httpMethod).setRequestEntity(new InputStreamRequestEntity(shuttle.request.getInputStream()));
+						break;
+					default :
+						throw new ServletException("(SiteClipperConnector) unknown http method " + shuttle.request.getMethod());
 					}
 					httpMethod.setFollowRedirects(false);
 				} catch (Exception e) {
-					throw new ServletException("(SiteClipperConnector) unknown http method " + shuttle.request.getMethod());
+					throw new ServletException("(SiteClipperConnector) unexpected exception will building the http method : " + e.getMessage());
 				}
 				shuttle.httpMethod = httpMethod;
 
@@ -883,6 +888,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					break;
 				case deflate:
 					os = new DeflaterOutputStream(os, new Deflater(Deflater.DEFAULT_COMPRESSION|Deflater.DEFAULT_STRATEGY, true));
+					break;
+				default:
 					break;
 				}
 				nbBytes = shuttle.responseAsByte.length;
