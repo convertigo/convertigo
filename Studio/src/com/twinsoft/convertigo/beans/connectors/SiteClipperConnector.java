@@ -934,11 +934,12 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	
 	private synchronized HostConfiguration getHostConfiguration(Shuttle shuttle) throws EngineException, MalformedURLException {
 		if (hostConfiguration != null) {
-			if (isCompatibleConfiguration(hostConfiguration.getHost().equals(shuttle.getRequest(QueryPart.host)))) {
+			String host = hostConfiguration.getHost();
+			if (isCompatibleConfiguration(host != null && host.equals(shuttle.getRequest(QueryPart.host)))) {
 				if (isCompatibleConfiguration(hostConfiguration.getPort() == shuttle.getRequestPort())){
 					Protocol protocol = hostConfiguration.getProtocol();
 					String scheme = (protocol == null) ? "" : protocol.getScheme();
-					if (isCompatibleConfiguration(scheme.equals(shuttle.getRequest(QueryPart.scheme)))) {
+					if (isCompatibleConfiguration(scheme != null && scheme.equals(shuttle.getRequest(QueryPart.scheme)))) {
 						if (Engine.theApp.proxyManager.isEnabled()) {
 							String proxyHost = hostConfiguration.getProxyHost();
 							if (proxyHost == null){
