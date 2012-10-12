@@ -139,6 +139,11 @@ public class Engine {
 	public ContextManager contextManager;
 
 	/**
+	 * The thread manager.
+	 */
+	public ThreadManager threadManager;
+
+	/**
 	 * The cache manager.
 	 */
 	public CacheManager cacheManager;
@@ -332,7 +337,7 @@ public class Engine {
 
 			// Logger for compatibility issues
 			Engine.log = new LogWrapper(Engine.logConvertigo);
-			
+
 			try {
 				Engine.logEngine.info("===========================================================");
 				Engine.logEngine.info("Web app home: " + Engine.WEBAPP_PATH);
@@ -509,6 +514,21 @@ public class Engine {
 					vulture.start();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to launch the cache manager.", e);
+				}
+
+				// Launch the thread manager
+				try {
+					Engine.theApp.threadManager = new ThreadManager();
+					Engine.theApp.threadManager.init();
+
+					Thread vulture = new Thread(Engine.theApp.threadManager);
+					Engine.theApp.threadManager.executionThread = vulture;
+					vulture.setName("ThreadManager");
+					vulture.setDaemon(true);
+					vulture.start();
+				} catch (Exception e) {
+					Engine.theApp.threadManager = null;
+					Engine.logEngine.error("Unable to launch the thread manager.", e);
 				}
 
 				// Launch the context manager
@@ -702,7 +722,7 @@ public class Engine {
 					Engine.theApp.tracePlayerManager.destroy();
 				}
 
-				Engine.logEngine.info("Removing the cache");
+				Engine.logEngine.info("Removing the cache manager");
 				if (Engine.theApp.cacheManager != null) {
 					Engine.theApp.cacheManager.destroy();
 				}
@@ -735,6 +755,10 @@ public class Engine {
 				Engine.logEngine.info("Removing the database objects manager");
 				if (Engine.theApp.databaseObjectsManager != null)
 					Engine.theApp.databaseObjectsManager.destroy();
+
+				Engine.logEngine.info("Removing the thread manager");
+				if (Engine.theApp.threadManager != null)
+					Engine.theApp.threadManager.destroy();
 
 				Engine.logEngine.info("The Convertigo Engine has been successfully stopped.");
 			} finally {
