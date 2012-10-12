@@ -56,7 +56,6 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.enums.Parameter;
-import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserManager;
 import com.twinsoft.convertigo.engine.plugins.AbstractBiller;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
@@ -157,10 +156,6 @@ public class Engine {
 	 */
 	public ProxyManager proxyManager;
 	
-	/**
-	 * The external browser manager
-	 */
-	public ExternalBrowserManager externalBrowserManager;	
 	/**
 	 * Loggers
 	 */
@@ -571,10 +566,6 @@ public class Engine {
 				Engine.theApp.rsaManager = new RsaManager();
 				Engine.theApp.rsaManager.init();
 
-				// Initialization of the External Browser manager
-				Engine.theApp.externalBrowserManager = new ExternalBrowserManager();
-				Engine.theApp.externalBrowserManager.init();
-
 				// XUL initialization
 				String xulrunner_url = System.getProperty("org.eclipse.swt.browser.XULRunnerPath");
 				if (xulrunner_url == null || xulrunner_url.equals(""))
@@ -693,10 +684,6 @@ public class Engine {
 
 				if (Engine.theApp.rsaManager != null) {
 					Engine.theApp.rsaManager.destroy();
-				}
-				
-				if (Engine.theApp.externalBrowserManager != null) {
-					Engine.theApp.externalBrowserManager.destroy();
 				}
 				
 				// Closing the session manager
