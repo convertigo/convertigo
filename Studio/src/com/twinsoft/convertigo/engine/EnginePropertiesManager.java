@@ -298,9 +298,7 @@ public class EnginePropertiesManager {
 		UPDATE_STEPS ("update.steps", "false", "Update steps", PropertyCategory.Main),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		CRYPTO_PASSPHRASE ("crypto.passphrase", "A8dkLmsdfkKze0e34FGh", "Cryptographic services passphrase", PropertyCategory.Main),
-		//Added by julienda - 03/10/2012
-		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		DISABLE_CACHE ("disable.cache", "false", "Disable Cache", PropertyCategory.Main),
+
 		
 		/** ACCOUNTS */
 		ADMIN_USERNAME ("admin.username", "admin", "Admin username", PropertyCategory.Account),
@@ -462,7 +460,9 @@ public class EnginePropertiesManager {
 		@PropertyOptions(visibility = Visibility.HIDDEN_CLOUD)
 		CACHE_MANAGER_FILECACHE_DIRECTORY ("cache_manager.filecache.directory", "${user.workspace}/cache", "File cache directory", PropertyCategory.Cache),
 		CACHE_MANAGER_SCAN_DELAY ("cache_manager.scan_delay", "60", "Cache scan delay (in seconds)", PropertyCategory.Cache),
-
+		@PropertyOptions(advance = false, propertyType = PropertyType.Boolean)
+		DISABLE_CACHE ("disable.cache", "false", "Disable Cache", PropertyCategory.Cache),
+		
 		/** CARIOCA */
 		CARIOCA_DEFAULT_USER_NAME ("carioca.default.user.name", "admin", "Default user name", PropertyCategory.Carioca),
 		CARIOCA_DEFAULT_USER_PASSWORD ("carioca.default.user.password", "admin", "Default user password", PropertyCategory.Carioca),
