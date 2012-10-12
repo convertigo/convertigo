@@ -51,7 +51,7 @@ public class List extends XmlService{
         
         Properties prop = new Properties();
         try {
-        	FileInputStream in = new FileInputStream(Engine.CONFIGURATION_PATH + "/global_symbols.properties");
+        	FileInputStream in = new FileInputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath());
 	        prop.load(in);
 	        in.close();
         }

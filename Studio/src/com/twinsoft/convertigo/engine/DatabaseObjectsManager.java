@@ -84,6 +84,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 	/**
 	 * The symbols repository for compiling text properties.
 	 */
+	private String globalSymbolsFilePath = null; 
+	
 	private Map<String, String> symbolsMap;
 
 	public String getSymbolValue(String symbolName) {
@@ -103,22 +105,24 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	private void symbolsMapInit() {
+		globalSymbolsFilePath = System.getProperty("convertigo_global_symbols",  
+				System.getProperty("convertigo.cems.global_symbols_file", 
+                        Engine.CONFIGURATION_PATH + "/global_symbols.properties")); 
+		
 		String filePath = System.getProperty("convertigo_global_symbols");
-		try {
-			if (filePath != null) {
-				Properties prop = new Properties();
-				prop.load(new FileInputStream(filePath));
-				// Enumeration of the properties
-				Enumeration<?> propsEnum = prop.propertyNames();
-				String propertyName, propertyValue;
-
-				while (propsEnum.hasMoreElements()) {
-					propertyName = (String) propsEnum.nextElement();
-					propertyValue = prop.getProperty(propertyName, "");
-					symbolsMap.put(propertyName, propertyValue);
-				}
-				Engine.logEngine.info("Symbols file \"" + filePath + "\" loaded!");
-			}
+		try { 
+                Properties prop = new Properties(); 
+                prop.load(new FileInputStream(globalSymbolsFilePath)); 
+                // Enumeration of the properties 
+                        Enumeration<?> propsEnum = prop.propertyNames(); 
+                        String propertyName, propertyValue; 
+ 
+                        while (propsEnum.hasMoreElements()) { 
+                                propertyName = (String) propsEnum.nextElement(); 
+                                propertyValue = prop.getProperty(propertyName, ""); 
+                        symbolsMap.put(propertyName, propertyValue); 
+                } 
+                Engine.logEngine.info("Symbols file \"" + globalSymbolsFilePath + "\" loaded!"); 
 		} catch (FileNotFoundException e) {
 			Engine.logDatabaseObjectManager.error("The symbols file specified in JVM argument as \""
 					+ filePath + "\" does not exist! Symbols won't be calculated.");
@@ -1243,5 +1247,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 	        File ressourceFile = new File(ressourcePath);
 	        ressourceFile.delete();
 		}
+	}
+	
+	public String getGlobalSymbolsFilePath(){
+		return globalSymbolsFilePath;
 	}
 }
