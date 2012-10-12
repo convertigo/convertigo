@@ -30,6 +30,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.Iterator;
@@ -39,6 +40,26 @@ import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.wsdl.Binding;
+import javax.wsdl.BindingInput;
+import javax.wsdl.BindingOperation;
+import javax.wsdl.BindingOutput;
+import javax.wsdl.Definition;
+import javax.wsdl.Input;
+import javax.wsdl.Message;
+import javax.wsdl.Operation;
+import javax.wsdl.Output;
+import javax.wsdl.Part;
+import javax.wsdl.Port;
+import javax.wsdl.PortType;
+import javax.wsdl.Service;
+import javax.wsdl.Types;
+import javax.wsdl.WSDLElement;
+import javax.wsdl.WSDLException;
+import javax.wsdl.extensions.schema.Schema;
+import javax.wsdl.extensions.soap.SOAPAddress;
+import javax.wsdl.xml.WSDLWriter;
+import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.MimeHeaders;
 import javax.xml.soap.SOAPBody;
@@ -50,15 +71,28 @@ import javax.xml.soap.SOAPPart;
 
 import org.apache.axiom.om.OMNode;
 import org.apache.axiom.om.impl.dom.TextImpl;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import com.ibm.wsdl.DefinitionImpl;
+import com.ibm.wsdl.extensions.PopulatedExtensionRegistry;
+import com.ibm.wsdl.extensions.schema.SchemaConstants;
+import com.ibm.wsdl.extensions.soap.SOAPAddressImpl;
+import com.ibm.wsdl.extensions.soap.SOAPBindingImpl;
+import com.ibm.wsdl.extensions.soap.SOAPBodyImpl;
+import com.ibm.wsdl.extensions.soap.SOAPOperationImpl;
+import com.ibm.wsdl.xml.WSDLWriterImpl;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
+import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
@@ -102,7 +136,7 @@ public class WebServiceServlet extends GenericServlet {
         String queryString = request.getQueryString();
         Engine.logEngine.debug("(WebServiceServlet) Query string: " + queryString);
 
-        if ("wsdl".equalsIgnoreCase(queryString)) {
+        if ("wsdl".equalsIgnoreCase(queryString) || "xwsdl".equalsIgnoreCase(queryString)) {
     		response.addHeader("Expires", "-1");
     		response.addHeader("Pragma", "no-cache");
     		response.addHeader("Cache-control", "no-cache");
@@ -181,9 +215,11 @@ public class WebServiceServlet extends GenericServlet {
 			Engine.logEngine.debug("(WebServiceServlet) Project name: " + projectName);
 
 			if (servletPath.endsWith(".wsl") || servletPath.endsWith(".ws") || servletPath.endsWith(".wsr")) {
-		        return getWsdlFromFile(servletURI, projectName);
+				if ("xwsdl".equalsIgnoreCase(request.getQueryString())) {
+					return generateWsdlForDocLiteral(servletURI, projectName);
+				}
+				return getWsdlFromFile(servletURI, projectName);
 			}
-			
 			throw new EngineException("Unhandled SOAP method (RPC or literal accepted)");
 		}
 		catch(StringIndexOutOfBoundsException e) {
@@ -310,6 +346,222 @@ public class WebServiceServlet extends GenericServlet {
 			
 		} catch (Exception e) {
 			throw new EngineException("Unable to retrieve WSDL file for project \""+ projectName +"\"",e);
+		}
+    }
+
+    public static String generateWsdlForDocLiteral(String servletURI, String projectName) throws EngineException {
+    	Engine.logEngine.debug("(WebServiceServlet) Generating WSDL...");
+    	
+    	String locationPath = servletURI.substring(0,servletURI.indexOf("/.w"));
+    	String targetNamespace = Project.CONVERTIGO_PROJECTS_NAMESPACEURI + projectName;
+    	
+    	Project project = null;
+		// server mode
+		if (Engine.isEngineMode()) {
+			project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+			targetNamespace = project.getTargetNamespace();
+		}
+		// studio mode
+		else {
+			project = Engine.objectsProvider.getProject(projectName);
+			targetNamespace = project.getTargetNamespace();
+		}
+
+		// Create WSDL definition
+		Definition definition = new DefinitionImpl();
+		definition.setExtensionRegistry(new PopulatedExtensionRegistry());
+		definition.setTargetNamespace(targetNamespace);
+		definition.setQName(new QName(targetNamespace, projectName));
+		definition.addNamespace("soap", "http://schemas.xmlsoap.org/wsdl/soap/");
+		definition.addNamespace("soapenc", "http://schemas.xmlsoap.org/soap/encoding/");
+		definition.addNamespace("wsdl", "http://schemas.xmlsoap.org/wsdl/");
+		definition.addNamespace("xsd", "http://www.w3.org/2001/XMLSchema");
+		definition.addNamespace(projectName+"_ns", targetNamespace);
+		
+		// Add WSDL Types
+		Types types = definition.createTypes();
+		definition.setTypes(types);
+		try {
+			// Add all schemas of project
+			XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName);
+			for (XmlSchema xmlSchema: xmlSchemaCollection.getXmlSchemas()) {
+				if (xmlSchema.getTargetNamespace().equals(Constants.URI_2001_SCHEMA_XSD)) continue;
+				Schema wsdlSchema = (Schema)definition.getExtensionRegistry().createExtension(Types.class, SchemaConstants.Q_ELEM_XSD_2001);
+				Element schemaElt = xmlSchema.getSchemaDocument().getDocumentElement();
+				// Remove 'schemaLocation' attribute on imports
+				NodeList importList = schemaElt.getElementsByTagNameNS(Constants.URI_2001_SCHEMA_XSD, "import");
+				if (importList.getLength() > 0) {
+					for (int i=0; i < importList.getLength(); i++) {
+						Element importElt = (Element)importList.item(i);
+						importElt.removeAttribute("schemaLocation");
+					}
+				}
+				wsdlSchema.setElement(schemaElt);
+				types.addExtensibilityElement(wsdlSchema);
+			}
+			
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
+		
+		// Add WSDL service
+		Service service = definition.createService();
+		service.setQName(new QName(targetNamespace, projectName));
+		definition.addService(service);
+		
+		// Add WSDL binding
+		PortType portType = definition.createPortType();
+		portType.setQName(new QName(targetNamespace, projectName + "PortType"));
+		portType.setUndefined(false);
+		definition.addPortType(portType);
+		
+		SOAPBindingImpl soapBinding = new SOAPBindingImpl();
+		soapBinding.setTransportURI("http://schemas.xmlsoap.org/soap/http");
+		soapBinding.setStyle("document");
+		
+		Binding binding = definition.createBinding();
+		binding.setQName(new QName(targetNamespace, projectName + "SOAPBinding"));
+		binding.setUndefined(false);
+		definition.addBinding(binding);
+		binding.addExtensibilityElement(soapBinding);
+		binding.setPortType(portType);
+		
+		// Add WSDL port
+		SOAPAddress soapAddress = new SOAPAddressImpl();
+		soapAddress.setLocationURI(locationPath +"/.wsl");
+		
+		Port port = definition.createPort();
+		port.setName(projectName + "SOAP");
+		port.addExtensibilityElement(soapAddress);
+		port.setBinding(binding);
+		
+		service.addPort(port);
+    	
+		// Add all WSDL operations
+		if (project != null) {
+			for (Connector connector : project.getConnectorsList()) {
+				for (Transaction transaction : connector.getTransactionsList()) {
+					if (transaction.isPublicAccessibility()) {
+						addWsdlOperation(definition, transaction);
+					}
+				}
+			}
+			for (Sequence sequence : project.getSequencesList()) {
+				if (sequence.isPublicAccessibility()) {
+					addWsdlOperation(definition, sequence);
+				}
+			}
+		}
+		
+		// Write WSDL to string
+		WSDLWriter wsdlWriter = new WSDLWriterImpl();
+		StringWriter sw = new StringWriter();
+		try {
+			wsdlWriter.writeWSDL(definition, sw);
+		} catch (WSDLException e) {
+			e.printStackTrace();
+		}
+		String wsdl = sw.toString();
+        return wsdl;
+    }
+    
+    private static void addWsdlOperation(Definition definition, RequestableObject requestable) {
+    	String targetNamespace = definition.getTargetNamespace();
+    	String projectName = requestable.getProject().getName();
+    	String operationName = requestable.getXsdTypePrefix() + requestable.getName();
+    	String operationComment = requestable.getComment();
+    	
+		// Adds messages
+		QName requestQName = new QName(targetNamespace, operationName + "Request");
+		QName partElementRequestQName = new QName(targetNamespace, operationName);
+		addWsdlMessage(definition, requestQName, partElementRequestQName);
+
+		QName responseQName = new QName(targetNamespace, operationName + "Response");
+		QName partElementResponseQName = new QName(targetNamespace, operationName + "Response");
+		addWsdlMessage(definition, responseQName, partElementResponseQName);
+		
+		// Adds portType operation
+		QName portTypeQName = new QName(targetNamespace, projectName + "PortType");
+		addWsdlPortTypeOperation(definition, portTypeQName, operationName, operationComment, requestQName, responseQName);
+		
+		// Adds binding operation
+		QName bindingQName = new QName(targetNamespace, projectName + "SOAPBinding");
+		addWsdlBindingOperation(definition, bindingQName, projectName, operationName, operationComment);
+    }
+    
+    private static void addWsdlMessage(Definition definition, QName messageQName, QName partElementQName) {
+		Message message = definition.createMessage();
+		message.setQName(messageQName);
+		message.setUndefined(false);
+		Part part = definition.createPart();
+		part.setName("parameters");
+		part.setElementName(partElementQName);
+		message.addPart(part);
+		definition.addMessage(message);
+    }
+    
+    private static void addWsdlPortTypeOperation(Definition definition, QName portTypeQName, String operationName, String operationComment, QName inputQName, QName ouptutQName) {
+		Message inputMessage = definition.createMessage();
+		inputMessage.setQName(inputQName);
+		Input input = definition.createInput();
+		input.setMessage(inputMessage);
+		
+		Message outpuMessage = definition.createMessage();
+		outpuMessage.setQName(ouptutQName);
+		Output output = definition.createOutput();
+		output.setMessage(outpuMessage);
+		
+		Operation operation = definition.createOperation();
+		operation.setName(operationName);
+		operation.setInput(input);
+		operation.setOutput(output);
+		operation.setUndefined(false);
+		addWsdLDocumentation(definition, operation, operationComment);
+		
+		PortType portType = definition.getPortType(portTypeQName);
+		portType.addOperation(operation);
+    }
+    
+    private static void addWsdlBindingOperation(Definition definition, QName bindingQName, String projectName, String operationName, String operationComment) {
+    	SOAPBodyImpl soapInputBody = new SOAPBodyImpl();
+		soapInputBody.setUse("literal");
+		BindingInput bindingInput = definition.createBindingInput();
+		bindingInput.addExtensibilityElement(soapInputBody);
+		
+		SOAPBodyImpl soapOutputBody = new SOAPBodyImpl();
+		soapOutputBody.setUse("literal");
+		BindingOutput bindingOutput = definition.createBindingOutput();
+		bindingOutput.addExtensibilityElement(soapOutputBody);
+
+		SOAPOperationImpl soapOperation = new SOAPOperationImpl();
+		soapOperation.setSoapActionURI(projectName + "?" + operationName);
+		
+		BindingOperation bindingOperation = definition.createBindingOperation();
+		bindingOperation.setName(operationName);
+		bindingOperation.addExtensibilityElement(soapOperation);
+		bindingOperation.setBindingInput(bindingInput);
+		bindingOperation.setBindingOutput(bindingOutput);
+		addWsdLDocumentation(definition, bindingOperation, operationComment);
+		
+		Binding binding = definition.getBinding(bindingQName);
+		binding.addBindingOperation(bindingOperation);
+    }
+    
+    private static void addWsdLDocumentation(Definition definition, WSDLElement wsdlElement, String documentation) {
+		if (documentation.equals(""))
+			return;
+		
+    	try {
+			Document doc = new WSDLWriterImpl().getDocument(definition);
+			Element element = doc.createElementNS("http://schemas.xmlsoap.org/wsdl/","documentation");
+			element.setPrefix("wsdl");
+			String cdataValue = documentation;
+			cdataValue = cdataValue.replaceAll("<!\\[CDATA\\[", "&lt;!\\[CDATA\\[");
+			cdataValue = cdataValue.replaceAll("\\]\\]>", "\\]\\]&gt;");
+			element.appendChild(doc.createCDATASection(cdataValue));
+			wsdlElement.setDocumentationElement(element);
+		} catch (WSDLException e) {
+			e.printStackTrace();
 		}
     }
     
