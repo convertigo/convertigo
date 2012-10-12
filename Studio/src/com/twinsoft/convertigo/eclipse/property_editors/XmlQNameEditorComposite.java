@@ -49,9 +49,9 @@ import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewContentProviderBis;
-import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewLabelDecoratorBis;
-import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewLabelProviderBis;
+import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewContentProvider;
+import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewLabelDecorator;
+import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewLabelProvider;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 
@@ -83,7 +83,7 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 		
 		final TreeViewer bisTreeViewer = new TreeViewer(this);
 		bisTreeViewer.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
-		bisTreeViewer.setContentProvider(new SchemaViewContentProviderBis() {
+		bisTreeViewer.setContentProvider(new SchemaViewContentProvider() {
 
 			@Override
 			public Object[] getChildren(Object object) {
@@ -102,7 +102,7 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 			
 		});
 
-		DecoratingLabelProvider dlp = new DecoratingLabelProvider(new SchemaViewLabelProviderBis(), new SchemaViewLabelDecoratorBis());
+		DecoratingLabelProvider dlp = new DecoratingLabelProvider(new SchemaViewLabelProvider(), new SchemaViewLabelDecorator());
 		bisTreeViewer.setLabelProvider(dlp);
 		bisTreeViewer.setInput(collection);
 		bisTreeViewer.expandToLevel(3);

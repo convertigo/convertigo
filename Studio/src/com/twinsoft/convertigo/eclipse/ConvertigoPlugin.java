@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.MissingResourceException;
@@ -89,7 +90,6 @@ import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.views.properties.PropertySheet;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 import com.twinsoft.convertigo.beans.core.BlockFactory;
@@ -355,10 +355,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					
 					shell.setText("Convertigo Studio");
 					
-					Bundle bundle = ConvertigoPlugin.getDefault().getBundle();
-					Path path = new Path("icons/splash_wait_rss.jpg");
-					URL fileURL = FileLocator.find(bundle, path, null);
-					Image image = new Image(Display.getCurrent(), fileURL.openStream());
+					Image image = getStudioIcon("icons/splash_wait_rss.jpg");
 					
 					Composite compositeHeader = new Composite(shell, SWT.NONE);
 					compositeHeader.setBackgroundImage(image);
@@ -404,10 +401,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS).equalsIgnoreCase("true")) {
 						checkBox.setSelection(true);
 					}
-		
-					path = new Path("icons/studio/unloadable_project.gif");
-					fileURL = FileLocator.find(bundle, path, null);
-					image = new Image(Display.getCurrent(), fileURL.openStream());
+					
+					image = getStudioIcon("icons/studio/unloadable_project.gif");
 					
 					closeButton = new Button(toolComposite, SWT.PUSH);
 					closeButton.setText("Wait...");
@@ -442,9 +437,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					progressBar.dispose();
 					compositeBar.dispose();
 					
-					path = new Path("icons/splash_ready_rss.jpg");
-					fileURL = FileLocator.find(bundle, path, null);
-					image = new Image(Display.getCurrent(), fileURL.openStream());
+					image = getStudioIcon("icons/splash_ready_rss.jpg");
 					compositeHeader.setBackgroundImage(image);
 					
 					gridData = new GridData ();
@@ -857,8 +850,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		}
 	}
 
-    private Map<String, Image> icons = new Hashtable<String, Image>(256);
+    private Map<String, Image> icons = new HashMap<String, Image>();
 
+    public synchronized Image getStudioIcon(String iconPath) throws IOException {
+    	Image image = icons.get(iconPath);
+    	if (image == null) {
+    		icons.put(iconPath, image = new Image(Display.getCurrent(), FileLocator.find(getBundle(), new Path(iconPath), null).openStream()));
+    	}
+    	return image;
+    }
+    
     public synchronized Image getBeanIcon(DatabaseObject bean, int iconKind) throws IntrospectionException {
         Class<? extends DatabaseObject> beanClass = bean.getClass();
         BeanInfo bi = CachedIntrospector.getBeanInfo(beanClass);
@@ -869,7 +870,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
         Class<?> beanClass = bi.getBeanDescriptor().getBeanClass();
         String beanClassName = beanClass.getName();
         
-        Image beanIcon = (Image) icons.get(beanClassName + iconKind);
+        Image beanIcon = icons.get(beanClassName + iconKind);
         
         if (beanIcon == null) {
         	ConvertigoPlugin.studioLog.debug("Getting icon:" + beanClassName + iconKind);

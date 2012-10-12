@@ -22,14 +22,11 @@
 
 package com.twinsoft.convertigo.eclipse.views.schema;
 
+import java.io.IOException;
+
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaObject;
-import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
-import org.apache.ws.commons.schema.constants.Constants;
-import org.eclipse.jface.viewers.DecoratingLabelProvider;
-import org.eclipse.jface.viewers.DoubleClickEvent;
-import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -37,151 +34,181 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
-import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree;
+import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
-import com.twinsoft.convertigo.eclipse.views.schema.model.ElementNode;
-import com.twinsoft.convertigo.eclipse.views.schema.model.GroupNode;
-import com.twinsoft.convertigo.eclipse.views.schema.model.SchemaNode;
-import com.twinsoft.convertigo.eclipse.views.schema.model.SchemaTreeRoot;
-import com.twinsoft.convertigo.eclipse.views.schema.model.TreeRootNode;
-import com.twinsoft.convertigo.eclipse.views.schema.model.UnresolvedNode;
-import com.twinsoft.convertigo.eclipse.views.schema.model.XsdNode;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class SchemaView extends ViewPart implements IPartListener, ISelectionListener, TreeObjectListener {
-
 	private TreeViewer schemaTreeViewer;
-	private SchemaTreeRoot schemaTreeRoot;
 	private TreeViewer nodeTreeViewer;
-	private TreeRootNode nodeTreeRoot;
-	private XsdNode selectedXsdNode;
-	private TreeViewer schemaTreeViewerBis;
-	private TreeViewer nodeTreeViewerBis;
+	private TwsDomTree domTree;
+	
+	private Label message;
+	private ToolItem autoRefresh;
+	private ToolItem internalSchema;
 	
 	private boolean needRefresh;
 	private String projectName;
+	private XmlSchemaCollection xmlSchemaCollection;
+	
+	private Thread workingThread;
+	private Runnable task;
 	
 	public SchemaView() {
-		projectName = null;
 	}
 
 	@Override
 	public void createPartControl(Composite parent) {
-		GridLayout gl = new GridLayout(2, false);
-		Composite content = new Composite(parent, SWT.NONE);
-		content.setLayout(gl);
-		
-		GridData gd = new org.eclipse.swt.layout.GridData();
-		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.grabExcessHorizontalSpace = true;
-		gd.grabExcessVerticalSpace = true;
-		gd.horizontalSpan = 2;
-		SashForm mainSashForm = new SashForm(content, SWT.NONE);
-		mainSashForm.setOrientation(SWT.HORIZONTAL);
-		mainSashForm.setLayoutData(gd);
-		
-		createSchemaForm(mainSashForm);
-		createNodeForm(mainSashForm);
-		
-		
-		mainSashForm = new SashForm(content, SWT.NONE);
-		mainSashForm.setOrientation(SWT.HORIZONTAL);
-		mainSashForm.setLayoutData(gd);
-		
-		createSchemaFormBis(mainSashForm);
-		createNodeFormBis(mainSashForm);
+		workingThread = new Thread(new Runnable() {
+
+			public void run() {
+				while (workingThread != null) {
+
+					try {
+						synchronized (workingThread) {
+							if (task != null) {
+								task.run();
+								task = null;
+							}
+							workingThread.wait(5000);
+						}
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+
+		});
+		workingThread.setName("SchemaViewThread");
+		workingThread.start();
+	
+		makeUI(new Composite(parent, SWT.NONE));
 		
 		getSite().getPage().addSelectionListener(this);
 		
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(this);
 	}
+	
+	private void makeUI(Composite content) {
+		content.setLayout(SwtUtils.newGridLayout(1, false, 0, 0, 0, 0));
+		
+		// TOP TOOLBAR
+		Composite composite = new Composite(content, SWT.BORDER);
+		composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		composite.setLayout(SwtUtils.newGridLayout(2, false, 0, 0, 0, 0));
+		composite.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+		
+		SelectionListener selectionListener = new SelectionListener() {
+			
+			public void widgetSelected(SelectionEvent e) {
+				needRefresh = true;
+				updateSchema((IStructuredSelection) ConvertigoPlugin.getDefault().getProjectExplorerView().viewer.getSelection());
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+			
+		};
+		
+		ToolBar toolbar = new ToolBar(composite, SWT.NONE);
+		
+		ToolItem toolItem = new ToolItem(toolbar, SWT.PUSH);
+		toolItem.setText("R");
+		toolItem.setToolTipText("Refresh");
+		toolItem.addSelectionListener(selectionListener);
+		
+		toolItem = autoRefresh = new ToolItem(toolbar, SWT.CHECK);
+		toolItem.setText("AR");
+		toolItem.setToolTipText("Toggle auto refresh");
+		toolItem.setSelection(true);
+		
+		toolItem = internalSchema = new ToolItem(toolbar, SWT.CHECK);
+		toolItem.setText("IS");
+		toolItem.setToolTipText("Toggle internal schema");
+		toolItem.addSelectionListener(selectionListener);
+		
+		message = new Label(composite, SWT.NONE);
+		message.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		message.setText("No schema to validate");
+		
+		// MAIN SASH FORM
+		SashForm sashForm = new SashForm(content, SWT.NONE);
+		sashForm.setOrientation(SWT.HORIZONTAL);
+		sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
+		
+		// SCHEMA PANE
+		schemaTreeViewer = makeTreeViewer(sashForm);
+		schemaTreeViewer.setContentProvider(new SchemaViewContentProvider(3));
+		schemaTreeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+			public void selectionChanged(SelectionChangedEvent event) {
+				Object firstElement = ((IStructuredSelection) event.getSelection()).getFirstElement();
+				if (firstElement instanceof XmlSchemaObject && !(firstElement instanceof XmlSchema)) {
+					nodeTreeViewer.setInput(xmlSchemaCollection);
+					nodeTreeViewer.setInput(SchemaViewContentProvider.newRoot(firstElement));
+					nodeTreeViewer.expandToLevel(5);
 
-	private void createSchemaFormBis(Composite parent) {
-		GridData gd = new org.eclipse.swt.layout.GridData();
-		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.grabExcessHorizontalSpace = true;
-		gd.grabExcessVerticalSpace = true;
+					domTree.fillDomTree(XmlSchemaUtils.getDomInstance((XmlSchemaObject) firstElement));
+				}
+			}
+		});
 		
-		SashForm schemaSashForm = new SashForm(parent, SWT.NONE);
-		schemaSashForm.setOrientation(SWT.VERTICAL);
-		schemaSashForm.setLayoutData(gd);
+		// DETAIL PANE
+		nodeTreeViewer = makeTreeViewer(sashForm);
+		nodeTreeViewer.setContentProvider(new SchemaViewContentProvider());
+		nodeTreeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+			public void selectionChanged(SelectionChangedEvent event) {
+				Object firstElement = ((IStructuredSelection) event.getSelection()).getFirstElement();
+				if (firstElement instanceof XmlSchemaObject && !(firstElement instanceof XmlSchema)) {
+					domTree.fillDomTree(XmlSchemaUtils.getDomInstance((XmlSchemaObject) firstElement));
+				}
+			}
+		});
 		
-		schemaTreeViewerBis = new TreeViewer(schemaSashForm);
-		schemaTreeViewerBis.setContentProvider(new SchemaViewContentProviderBis(3));
-		DecoratingLabelProvider dlp = new DecoratingLabelProvider(new SchemaViewLabelProviderBis(), new SchemaViewLabelDecoratorBis());
-		schemaTreeViewerBis.setLabelProvider(dlp);
-		schemaTreeViewerBis.setInput(null);
-	}
-	
-	private void createNodeFormBis(Composite parent) {
-		GridData gd = new org.eclipse.swt.layout.GridData();
-		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.grabExcessHorizontalSpace = true;
-		gd.grabExcessVerticalSpace = true;
+		// DOM PANE
+		composite = new Composite(sashForm, SWT.BORDER);
+		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
+		composite.setLayout(SwtUtils.newGridLayout(1, false, 0, 0, 0, 0));
 		
-		SashForm nodeSashForm = new SashForm(parent, SWT.NONE);
-		nodeSashForm.setOrientation(SWT.VERTICAL);
-		nodeSashForm.setLayoutData(gd);
+		toolbar = new ToolBar(composite, SWT.NONE);
+		toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
-		nodeTreeViewerBis = new TreeViewer(nodeSashForm);
-		nodeTreeViewerBis.setContentProvider(new SchemaViewContentProviderBis());
-		DecoratingLabelProvider dlp = new DecoratingLabelProvider(new SchemaViewLabelProviderBis(), new SchemaViewLabelDecoratorBis());
-		nodeTreeViewerBis.setLabelProvider(dlp);
-		nodeTreeViewerBis.setInput(null);
-	}
-	
-	private void createSchemaForm(Composite parent) {
-		GridData gd = new org.eclipse.swt.layout.GridData();
-		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.grabExcessHorizontalSpace = true;
-		gd.grabExcessVerticalSpace = true;
+		toolItem = new ToolItem(toolbar, SWT.PUSH);
+		toolItem.setText("C");
 		
-		SashForm schemaSashForm = new SashForm(parent, SWT.NONE);
-		schemaSashForm.setOrientation(SWT.VERTICAL);
-		schemaSashForm.setLayoutData(gd);
-		schemaTreeViewer = createTreeViewer(schemaSashForm);
-	}
-
-	private void createNodeForm(Composite parent) {
-		GridData gd = new org.eclipse.swt.layout.GridData();
-		gd.horizontalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.verticalAlignment = org.eclipse.swt.layout.GridData.FILL;
-		gd.grabExcessHorizontalSpace = true;
-		gd.grabExcessVerticalSpace = true;
+		toolItem = new ToolItem(toolbar, SWT.PUSH);
+		toolItem.setText("E");
 		
-		SashForm nodeSashForm = new SashForm(parent, SWT.NONE);
-		nodeSashForm.setOrientation(SWT.VERTICAL);
-		nodeSashForm.setLayoutData(gd);
-		nodeTreeViewer = createTreeViewer(nodeSashForm);
-	}
-	
-	private TreeViewer createTreeViewer(Composite parent) {
-		TreeViewer treeViewer = new TreeViewer(parent);
-		treeViewer.setContentProvider(new SchemaViewContentProvider());
-		DecoratingLabelProvider dlp = new DecoratingLabelProvider(new SchemaViewLabelProvider(), new SchemaViewLabelDecorator());
-		treeViewer.setLabelProvider(dlp);
-		treeViewer.setInput(null);
-		return treeViewer;
+		domTree = new TwsDomTree(composite, SWT.BORDER);
+		domTree.setLayoutData(new GridData(GridData.FILL_BOTH));
 	}
 	
 	@Override
 	public void dispose() {
+		workingThread = null;
 		getSite().getPage().removeSelectionListener(this);
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().removePartListener(this);
 		super.dispose();
@@ -193,122 +220,12 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	}
 
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		if (selection instanceof IStructuredSelection) {
-			if (part instanceof ProjectExplorerView) {
-				Object firstElement = ((IStructuredSelection) selection).getFirstElement();
-				if (firstElement instanceof DatabaseObjectTreeObject) {
-					DatabaseObjectTreeObject dboTreeObject = (DatabaseObjectTreeObject)firstElement;
-					String currentProjectName = dboTreeObject.getProjectTreeObject().getName();
-					if (needRefresh || (projectName == null) || (!projectName.equals(currentProjectName))) {
-						needRefresh = false;
-						projectName = currentProjectName;
-						schemaTreeRoot = new SchemaTreeRoot(null,"schemaTreeRoot");
-						try {
-							final XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName);
-							schemaTreeViewerBis.setInput(xmlSchemaCollection);
-							schemaTreeViewerBis.expandToLevel(3);
-							nodeTreeViewerBis.setInput(null);
-							schemaTreeViewerBis.addSelectionChangedListener(new ISelectionChangedListener() {
-								public void selectionChanged(SelectionChangedEvent event) {
-									Object firstElement = ((IStructuredSelection) event.getSelection()).getFirstElement();
-									if (firstElement instanceof XmlSchemaObject && !(firstElement instanceof XmlSchema)) {
-										nodeTreeViewerBis.setInput(xmlSchemaCollection);
-										nodeTreeViewerBis.setInput(SchemaViewContentProviderBis.newRoot(firstElement));
-										nodeTreeViewerBis.expandToLevel(5);
-									}
-								}
-							});
-							
-							XmlSchema[] schemas = xmlSchemaCollection.getXmlSchemas();
-							for (int i=0; i < schemas.length; i++) {
-								handleSchema(schemas[i]);
-							}
-							schemaTreeViewer.setInput(schemaTreeRoot);
-							nodeTreeViewer.setInput(null);
-							schemaTreeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-								public void selectionChanged(SelectionChangedEvent event) {
-									Object firstElement = ((IStructuredSelection) event.getSelection()).getFirstElement();
-									if (firstElement instanceof XsdNode) {
-										if (firstElement instanceof SchemaNode) return;
-										if ((selectedXsdNode == null) || !selectedXsdNode.equals((XsdNode)firstElement)) {
-											selectedXsdNode = (XsdNode)firstElement;
-											
-											nodeTreeRoot = new TreeRootNode(null,"nodeTreeRoot");
-											nodeTreeRoot.addChild(selectedXsdNode.handleNode());
-											nodeTreeViewer.setInput(nodeTreeRoot);
-											
-											nodeTreeViewer.addDoubleClickListener(new IDoubleClickListener() {
-												public void doubleClick(DoubleClickEvent event) {
-													Object firstElement = ((IStructuredSelection) event.getSelection()).getFirstElement();
-													if (firstElement instanceof XsdNode) {
-														XsdNode selectedNode = (XsdNode)firstElement;
-														String qname = null, ns, localName; 
-														if (selectedNode.useType()) {
-															qname = selectedNode.getObject().getAttribute("type");
-														}
-														else if (selectedNode.useRef()) {
-															qname = selectedNode.getObject().getAttribute("ref");
-														}
-														
-														if (qname != null) {
-															ns = selectedNode.findNamespaceURI(qname);
-															localName = selectedNode.findLocalName(qname);
-															if (!ns.equals(Constants.URI_2001_SCHEMA_XSD)) {
-																if (selectedNode.findChild(localName) == null) {
-																	XsdNode xsdNode = null;
-																	if (selectedNode instanceof ElementNode) {
-																		if (selectedNode.useType())
-																			xsdNode = schemaTreeRoot.findType(ns, localName);
-																		else if (selectedNode.useRef())
-																			xsdNode = schemaTreeRoot.findElement(ns, localName);
-																	}
-																	else if (selectedNode instanceof GroupNode) {
-																		if (selectedNode.useRef())
-																			xsdNode = schemaTreeRoot.findGroup(ns, localName);
-																	}
-																	
-																	if (xsdNode != null)
-																		selectedNode.addChild(xsdNode.handleNode());
-																	else
-																		selectedNode.addChild(new UnresolvedNode(selectedNode, qname));
-																	nodeTreeViewer.refresh(firstElement);
-																}
-															}
-														}
-													}
-												}
-											});
-										}
-									}
-								}
-							});
-							
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-				}
+		if (selection instanceof IStructuredSelection && part instanceof ProjectExplorerView) {
+			if (autoRefresh.getSelection()) {
+				updateSchema((IStructuredSelection) selection);
 			}
 		}
 	}
-
-	private void handleSchema(XmlSchema xmlSchema) {
-		String tns = xmlSchema.getTargetNamespace();
-		if (!tns.equals(Constants.URI_2001_SCHEMA_XSD)) {
-			try {
-				Document doc = xmlSchema.getSchemaDocument();
-				//System.out.println(XMLUtils.prettyPrintDOM(doc));
-				SchemaNode schema = new SchemaNode(schemaTreeRoot, doc.getDocumentElement());
-				schemaTreeRoot.addChild(schema);
-				
-			} catch (XmlSchemaSerializerException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-	
 
 	public void partOpened(IWorkbenchPart part) {
 		if (part instanceof ProjectExplorerView) {
@@ -344,5 +261,125 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 		needRefresh = true;
+	}
+	
+	private TreeViewer makeTreeViewer(Composite parent) {
+		Composite composite = new Composite(parent, SWT.BORDER);
+		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
+		composite.setLayout(SwtUtils.newGridLayout(1, false, 0, 0, 0, 0));
+		
+		ToolBar toolbar = new ToolBar(composite, SWT.NONE);
+		toolbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		
+		final TreeViewer treeViewer = new TreeViewer(composite);
+		
+		ToolItem toolItem = new ToolItem(toolbar, SWT.PUSH);
+		toolItem.setToolTipText("Collapse");
+		
+		try {
+			toolItem.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/collapse_all_nodes.gif"));
+		} catch (IOException e1) {
+			toolItem.setText("C");
+		}
+		
+		toolItem.addSelectionListener(new SelectionListener() {
+			
+			public void widgetSelected(SelectionEvent e) {
+				treeViewer.collapseAll();
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {	
+			}
+		});
+		
+		toolItem = new ToolItem(toolbar, SWT.PUSH);
+		
+		try {
+			toolItem.setImage(ConvertigoPlugin.getDefault().getStudioIcon("icons/studio/expand_all_nodes.gif"));
+		} catch (IOException e1) {
+			toolItem.setText("C");
+		}
+		
+		toolItem.setToolTipText("Expand");
+		toolItem.addSelectionListener(new SelectionListener() {
+			
+			public void widgetSelected(SelectionEvent e) {
+				treeViewer.expandToLevel(50);
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {	
+			}
+		});
+		
+		treeViewer.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
+		treeViewer.setLabelProvider(SchemaViewContentProvider.decoratingLabelProvider);	
+		return treeViewer;
+	}
+	
+	private void updateSchema(IStructuredSelection selection) {
+		Object firstElement = selection.getFirstElement();
+		if (firstElement instanceof DatabaseObjectTreeObject) {
+			DatabaseObjectTreeObject dboTreeObject = (DatabaseObjectTreeObject) firstElement;
+			String currentProjectName = dboTreeObject.getProjectTreeObject().getName();
+			if (needRefresh || (projectName == null) || (!projectName.equals(currentProjectName))) {
+				needRefresh = false;
+				projectName = currentProjectName;
+				
+				schemaTreeViewer.setInput(null);
+				nodeTreeViewer.setInput(null);
+				domTree.fillDomTree(null);
+				message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
+				message.setText("Waiting for schema validation");
+
+				final boolean fullSchema = internalSchema.getSelection();
+
+				synchronized (workingThread) {
+					task = new Runnable() {
+
+						public void run() {
+							try {
+								XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(projectName, fullSchema);
+
+								final XmlSchemaCollection xmlSchemaCollection = SchemaMeta.getCollection(schema);
+								
+								Display.getDefault().asyncExec(new Runnable() {
+
+									public void run() {
+										schemaTreeViewer.setInput(xmlSchemaCollection);
+										schemaTreeViewer.expandToLevel(3);
+									}
+								
+								});
+								
+								final Exception[] exception = {null};
+								try {
+									XmlSchemaUtils.validate(schema);
+								} catch (SAXException e) {
+									exception[0] = e;
+								}
+
+								Display.getDefault().asyncExec(new Runnable() {
+
+									public void run() {
+										if (exception[0] == null) {
+											message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+											message.setText("The current schema is valid.");
+										} else {
+											message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
+											message.setText("The current schema is invalid : " + exception[0].getMessage());
+										}
+									}
+									
+								});
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+					};
+					workingThread.notify();
+				}
+			}
+		}
 	}
 }

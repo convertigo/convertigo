@@ -22,6 +22,18 @@
 
 package com.twinsoft.convertigo.eclipse.views.schema;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
+import org.apache.ws.commons.schema.XmlSchemaSimpleType;
+import org.apache.ws.commons.schema.XmlSchemaType;
+import org.apache.ws.commons.schema.XmlSchemaUse;
 import org.eclipse.jface.resource.CompositeImageDescriptor;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ILabelDecorator;
@@ -30,73 +42,68 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 
-import com.twinsoft.convertigo.eclipse.views.schema.model.XsdNode;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
-class SchemaViewLabelDecorator implements ILabelDecorator {
+public class SchemaViewLabelDecorator implements ILabelDecorator {
+	private static Map<String, Image> imagesCache = new HashMap<String, Image>();
 	
 	public SchemaViewLabelDecorator() {
 	}
 
 	public Image decorateImage(Image image, Object element) {
 		Image decoratedImage = image;
-			
+		
 		if (element == null) {
-			return null;
-		}
-		
-		if (element instanceof XsdNode) {
-			XsdNode xsdNode = (XsdNode)element;
-			if (xsdNode.hasOccurs()) {
-				decoratedImage = getDecoratedImageFromCache(image, xsdNode);
-			}
-		}
-		
-		return decoratedImage;
-	}
-
-	private Image getDecoratedImageFromCache(Image image, Object element) {
-		String decoratedImageName = getDecoratedImageName(element);
-		
-		Image decoratedImage = SchemaViewLabelProvider.getDecoratedImageFromCache(decoratedImageName, element);
-		if (decoratedImage == null) {
-			decoratedImage = image;
-			if (element instanceof XsdNode) {
-				if (((XsdNode)element).hasOccurs()) {
-					String overLayImageName = getOccurenceImageName(element);
-					decoratedImage = getOverlayImageIcon(decoratedImage, overLayImageName, OverlayImageIcon.BOTTOM_RIGHT);
+			decoratedImage = null;
+		} else if (element instanceof XmlSchemaParticle) {
+			XmlSchemaParticle particle = (XmlSchemaParticle) element;
+			
+			long min = particle.getMinOccurs();
+			long max = particle.getMaxOccurs();
+			
+			String occur = null;
+			if (min == 0) {
+				occur = "zero";
+				if (max > 0) {
+					occur += "_" + (max == 1 ? "one" : max == Long.MAX_VALUE ? "unbounded" : "n");
+				}
+			} else if (min == 1) {
+				if (max > 1) {
+					occur = "one_" + (max == Long.MAX_VALUE ? "unbounded" : "n");
+				}
+			} else {
+				occur = "n";
+				if (max > min) {
+					occur += "_" + (max == Long.MAX_VALUE ? "unbounded" : "m");
 				}
 			}
-			SchemaViewLabelProvider.setDecoratedImageFromCache(decoratedImageName, decoratedImage);
+			if (occur != null) {
+				decoratedImage = getOverlayImageOccur(decoratedImage, element, occur);
+			}			
+		} else if (element instanceof XmlSchemaAttribute) {
+			XmlSchemaAttribute attribute = (XmlSchemaAttribute) element;
+			XmlSchemaUse use = attribute.getUse();
+			if (use.equals(XmlSchemaUtils.attributeUseOptional)) {
+				decoratedImage = getOverlayImageOccur(decoratedImage, element, "zero_one");
+			}
 		}
-
+		
 		return decoratedImage;
 	}
 	
-	private String getOccurenceImageName(Object element) {
-		if (element instanceof XsdNode) {
-			XsdNode xsdNode = (XsdNode)element;
-			if (xsdNode.hasOccurs()) {
-				String imageName = "occurrence";
-				if (xsdNode.getObject().hasAttribute("minOccurs")) {
-					String minOccurs = xsdNode.getObject().getAttribute("minOccurs");
-					if (minOccurs.equals("0")) imageName += "_zero";
-					else if (minOccurs.equals("1")) imageName += "_one";
-					else imageName += "_n";
-				}
-				else 
-					imageName += "_one";
-				
-				if (xsdNode.getObject().hasAttribute("maxOccurs")) {
-					String maxOccurs = xsdNode.getObject().getAttribute("maxOccurs");
-					if (maxOccurs.equals("1")) imageName += "_one";
-					else if (maxOccurs.equals("unbounded")) imageName += "_unbounded";
-					else imageName += (imageName.indexOf("_n") != -1) ? "_m":"_n";
-					
-				}
-				return imageName += ".gif";
-			}
+	private Image getOverlayImageOccur(Image image, Object element, String occur) {
+		Image decoratedImage;
+		occur = "occurrence_" + occur + ".gif";
+		String cacheName = element.getClass().getSimpleName() + "_" + occur;
+		Image cachedImage = imagesCache.get(cacheName);
+		if (cachedImage == null) {
+			decoratedImage = getOverlayImageIcon(image, occur, OverlayImageIcon.BOTTOM_RIGHT);
+			imagesCache.put(cacheName, decoratedImage);
+		} else {
+			decoratedImage = cachedImage;
 		}
-		return null;
+		return decoratedImage;
 	}
 	
 	private Image getOverlayImageIcon(Image image, String iconName, int corner) {
@@ -106,21 +113,34 @@ class SchemaViewLabelDecorator implements ILabelDecorator {
 		return OverlayImageIcon;
 	}
 	
-	private String getDecoratedImageName(Object element) {
-		String decoratedImageName = element.getClass().getSimpleName();
-		if (element instanceof XsdNode) {
-			if (((XsdNode)element).hasOccurs()) {
-				decoratedImageName += "_" + getOccurenceImageName(element);
-			}
-		}
-		return decoratedImageName;
-	}
-	
 	public String decorateText(String text, Object element) {
 		String decoratedText = text;
 		if (element != null) {
-			if (element instanceof XsdNode) {
-				decoratedText = ((XsdNode)element).decorateText(text);
+			if (element instanceof XmlSchemaObject) {
+				XmlSchemaObject xso = (XmlSchemaObject) element;
+				
+				XmlSchemaType type = null;
+				if (element instanceof XmlSchemaElement) {
+					type = SchemaMeta.getType(xso, ((XmlSchemaElement) element).getSchemaTypeName());
+				} else if (element instanceof XmlSchemaAttribute) {
+					type = SchemaMeta.getType(xso, ((XmlSchemaAttribute) element).getSchemaTypeName());					
+				} else if (element instanceof XmlSchemaSimpleContentExtension) {
+					type = SchemaMeta.getType(xso, ((XmlSchemaSimpleContentExtension) element).getBaseTypeName());
+				}
+				if (type != null && type instanceof XmlSchemaSimpleType) {
+					decoratedText += " [" + SchemaMeta.getPrefix(type) + ":" + type.getName() + "]";
+				}
+				
+				int size = SchemaMeta.getReferencedDatabaseObjects(xso).size();
+				
+				if (size > 1 || size == 0 && element instanceof XmlSchemaComplexType && ((XmlSchemaComplexType) element).getName() != null) {
+					decoratedText += " (" + size + ")";
+				}
+				
+				String prefix = SchemaMeta.getPrefix(xso);
+				if (prefix != null) {
+					decoratedText = prefix + ":" + decoratedText;
+				}
 			}
 		}
 		return decoratedText;

@@ -64,12 +64,16 @@ public class SchemaManager implements AbstractManager {
 		// TODO Auto-generated method stub
 		
 	}
-	
-	public XmlSchemaCollection getSchemasForProject(String projectName) throws Exception {
-		return getSchemasForProject(projectName, false);
+
+	public XmlSchema getSchemaForProject(final String projectName) throws Exception {
+		return getSchemaForProject(projectName, false);
 	}
 	
-	public XmlSchemaCollection getSchemasForProject(final String projectName, final boolean fullSchema) throws Exception {
+	public XmlSchemaCollection getSchemasForProject(String projectName) throws Exception {
+		return SchemaMeta.getCollection(getSchemaForProject(projectName));
+	}
+	
+	public XmlSchema getSchemaForProject(final String projectName, final boolean fullSchema) throws Exception {
 		long timeStart = System.currentTimeMillis();
 		
 		// get directly the project reference (read only)
@@ -77,15 +81,13 @@ public class SchemaManager implements AbstractManager {
 		
 		final XmlSchemaCollection collection = new XmlSchemaCollection();
 		
+		// empty schema for the current project
+		final XmlSchema schema = XmlSchemaUtils.makeDynamic(project, new XmlSchema(project.getTargetNamespace(), collection));
+		final XmlSchema[] fullSchemaCache = {null};
+		
 		try {
-			// empty schema for the current project
-			final XmlSchema schema = XmlSchemaUtils.makeDynamic(project, new XmlSchema(project.getTargetNamespace(), collection));
-			final XmlSchema[] fullSchemaCache = {null};
-			
 			schema.setElementFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
 			schema.setAttributeFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
-			
-//			final Map<DatabaseObject, XmlSchemaObject> schemaCache = new HashMap<DatabaseObject, XmlSchemaObject>();
 			
 			new WalkHelper() {
 				List<XmlSchemaParticle> particleChildren;
@@ -287,8 +289,8 @@ public class SchemaManager implements AbstractManager {
 								XmlSchemaCollection collection;
 								XmlSchema schema = fullSchemaCache[0];
 								if (schema == null) {
-									collection = SchemaManager.this.getSchemasForProject(projectName, true);
-									schema = fullSchemaCache[0] = collection.schemaForNamespace(project.getTargetNamespace());
+									schema = fullSchemaCache[0] = SchemaManager.this.getSchemaForProject(projectName, true);
+									collection =  SchemaMeta.getCollection(schema);
 								} else {
 									collection = SchemaMeta.getCollection(schema);
 								}
@@ -388,7 +390,7 @@ public class SchemaManager implements AbstractManager {
 			e.printStackTrace();
 			throw e;
 		}
-		return collection;
+		return schema;
 	}
 	
 	private static void merge(XmlSchemaComplexType first, XmlSchemaComplexType second) {

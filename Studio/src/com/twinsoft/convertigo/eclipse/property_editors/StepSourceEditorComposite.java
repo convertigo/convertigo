@@ -30,7 +30,6 @@ import java.util.Vector;
 import javax.xml.transform.TransformerException;
 
 import org.apache.ws.commons.schema.XmlSchema;
-import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -116,8 +115,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		
 		try {
 			Project project = step.getProject();
-			XmlSchemaCollection collection = Engine.theApp.schemaManager.getSchemasForProject(project.getName(), true);
-			schema = collection.schemaForNamespace(project.getTargetNamespace());
+			schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), true);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
