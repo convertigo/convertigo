@@ -721,7 +721,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					}
 					httpMethod.setFollowRedirects(false);
 				} catch (Exception e) {
-					throw new ServletException("(SiteClipperConnector) unkown http method " + shuttle.request.getMethod());
+					throw new ServletException("(SiteClipperConnector) unknown http method " + shuttle.request.getMethod());
 				}
 				shuttle.httpMethod = httpMethod;
 
@@ -931,16 +931,18 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				if (isCompatibleConfiguration(hostConfiguration.getPort() == shuttle.getRequestPort())){
 					Protocol protocol = hostConfiguration.getProtocol();
 					String scheme = (protocol == null) ? "" : protocol.getScheme();
-					if (isCompatibleConfiguration(scheme.equals(shuttle.getRequest(QueryPart.scheme)))) {					
-						String proxyHost = hostConfiguration.getProxyHost();
-						if (proxyHost == null){
-							proxyHost = "";
+					if (isCompatibleConfiguration(scheme.equals(shuttle.getRequest(QueryPart.scheme)))) {
+						if (Engine.theApp.proxyManager.isEnabled()) {
+							String proxyHost = hostConfiguration.getProxyHost();
+							if (proxyHost == null){
+								proxyHost = "";
+							}
+							if (isCompatibleConfiguration(proxyHost.equals(Engine.theApp.proxyManager.getProxyServer()))){
+								//don't test the proxy port if the proxy host is null
+								isCompatibleConfiguration(hostConfiguration.getProxyPort() == Engine.theApp.proxyManager.getProxyPort());
+								isCompatibleConfiguration(hostConfiguration.getParams().getParameter("hostConfId").equals(Engine.theApp.proxyManager.getHostConfId()));
+							}	
 						}
-						if (isCompatibleConfiguration(proxyHost.equals(Engine.theApp.proxyManager.getProxyServer()) && proxyHost != null)){
-							//don't test the proxy port if the proxy host is null
-							isCompatibleConfiguration(hostConfiguration.getProxyPort() == Engine.theApp.proxyManager.getProxyPort());
-							isCompatibleConfiguration(hostConfiguration.getParams().getParameter("hostConfId").equals(Engine.theApp.proxyManager.getHostConfId()));
-						}	
 					}
 				}
 			}		
