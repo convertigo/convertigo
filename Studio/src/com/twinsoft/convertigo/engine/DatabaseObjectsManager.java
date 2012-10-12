@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.engine;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -107,30 +108,43 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private void symbolsMapInit() {
 		globalSymbolsFilePath = System.getProperty("convertigo_global_symbols",  
 				System.getProperty("convertigo.cems.global_symbols_file", 
-                        Engine.CONFIGURATION_PATH + "/global_symbols.properties")); 
-		
+                        Engine.CONFIGURATION_PATH + "/global_symbols.properties")); 		
 		String filePath = System.getProperty("convertigo_global_symbols");
+		Properties prop = new Properties();
+
 		try { 
-                Properties prop = new Properties(); 
-                prop.load(new FileInputStream(globalSymbolsFilePath)); 
-                // Enumeration of the properties 
-                        Enumeration<?> propsEnum = prop.propertyNames(); 
-                        String propertyName, propertyValue; 
- 
-                        while (propsEnum.hasMoreElements()) { 
-                                propertyName = (String) propsEnum.nextElement(); 
-                                propertyValue = prop.getProperty(propertyName, ""); 
-                        symbolsMap.put(propertyName, propertyValue); 
-                } 
-                Engine.logEngine.info("Symbols file \"" + globalSymbolsFilePath + "\" loaded!"); 
+			prop.load(new FileInputStream(globalSymbolsFilePath));
 		} catch (FileNotFoundException e) {
-			Engine.logDatabaseObjectManager.error("The symbols file specified in JVM argument as \""
-					+ filePath + "\" does not exist! Symbols won't be calculated.");
+			Engine.logDatabaseObjectManager.warn("The symbols file specified in JVM argument as \""
+					+ filePath + "\" does not exist! Creating a new one...");
+			
+			//Create the global_symbols.properties file into the default workspace
+			File globalSymbolsProperties = new File(Engine.CONFIGURATION_PATH + "/global_symbols.properties");
+			try {
+				prop.store(new FileOutputStream(globalSymbolsProperties.getAbsolutePath()), "global symbols");
+				Engine.logDatabaseObjectManager.info("New global symbols file created: "+globalSymbolsProperties.getAbsolutePath());
+			} catch (Exception e1) {
+				Engine.logDatabaseObjectManager.error("Error while creating the global_symbols.properties file; symbols won't be calculated.", e1);
+				return;
+			}
 		} catch (IOException e) {
 			Engine.logDatabaseObjectManager.error(
 					"Error while reading symbols file specified in JVM argument as \"" + filePath
 							+ "\"; symbols won't be calculated.", e);
+			return;
 		}
+
+		// Enumeration of the properties
+		Enumeration<?> propsEnum = prop.propertyNames();
+		String propertyName, propertyValue;
+
+		while (propsEnum.hasMoreElements()) {
+			propertyName = (String) propsEnum.nextElement();
+			propertyValue = prop.getProperty(propertyName, "");
+			symbolsMap.put(propertyName, propertyValue);
+		}
+		Engine.logEngine.info("Symbols file \"" + globalSymbolsFilePath
+				+ "\" loaded!");
 	}
 
 	public void destroy() throws EngineException {
