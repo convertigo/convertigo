@@ -154,6 +154,9 @@ public class Migration6_3_0 {
 								}
 							}
 							
+							// Add missing ResponseType (with document)
+							Transaction.addSchemaResponseType(transactionSchema, transaction);
+							
 							// Save schema to file
 							String transactionXsdFilePath = transaction.getSchemaFilePath();
 							new File(transaction.getSchemaFileDirPath()).mkdirs();
@@ -219,12 +222,12 @@ public class Migration6_3_0 {
 				targetProjectName = ((TransactionStep)step).getProjectName();
 				typeLocalName = ((TransactionStep)step).getConnectorName()+ "__"	+
 							((TransactionStep)step).getTransactionName() 	+
-							"ResponseData";
+							"ResponseType";
 			}
 			else if (step instanceof SequenceStep) {
 				targetProjectName = ((SequenceStep)step).getProjectName();
 				typeLocalName = ((SequenceStep)step).getSequenceName() +
-							"ResponseData";
+							"ResponseType";
 			}
 			
 			String namespaceURI = null;

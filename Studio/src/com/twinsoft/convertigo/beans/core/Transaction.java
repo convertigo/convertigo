@@ -34,6 +34,7 @@ import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaDocumentation;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.Function;
@@ -575,6 +576,11 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 			xsdElements += "      </xsd:sequence>\n";
 			xsdElements += "    </xsd:complexType>\n";
 			xsdElements += "  </xsd:element>\n";
+			xsdElements += "  <xsd:complexType name=\""+ responseName +"Type\">\n";
+			xsdElements += "      <xsd:sequence>\n";
+			xsdElements += "        <xsd:element name=\"document\" type=\""+ p_ns +":"+ responseType +"\"/>\n";
+			xsdElements += "      </xsd:sequence>\n";
+			xsdElements += "  </xsd:complexType>\n";
 			
     		String xsdDom = "<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\""
     							+" xmlns:"+p_ns+"=\""+getProject().getTargetNamespace()+"\""
@@ -614,9 +620,10 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		
 		XmlSchema xmlSchema = SchemaUtils.createSchema(prefix, tns, elementForm, attributeForm);
 		addSchemaRequestElement(xmlSchema);
-		addSchemaRequestType(xmlSchema);
+		addSchemaRequestDataType(xmlSchema);
 		addSchemaResponseElement(xmlSchema);
 		addSchemaResponseType(xmlSchema);
+		addSchemaResponseDataType(xmlSchema);
 		
 		return xmlSchema;
 	}
@@ -649,7 +656,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		return xmlSchemaElement;
 	}
 	
-	protected XmlSchemaComplexType addSchemaRequestType(XmlSchema xmlSchema) {
+	protected XmlSchemaComplexType addSchemaRequestDataType(XmlSchema xmlSchema) {
 		String localName = getXsdRequestTypeName();
 		
 		XmlSchemaComplexType xmlSchemaComplexType = new XmlSchemaComplexType(xmlSchema);
@@ -668,14 +675,45 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		XmlSchemaElement xmlSchemaElement = new XmlSchemaElement();
 		xmlSchemaElement.setName(localName);
 		xmlSchemaElement.setQName(new QName(nsURI, localName, prefix));
-		xmlSchemaElement.setSchemaTypeName(new QName(nsURI, getXsdResponseTypeName(), prefix));
+		
+		XmlSchemaComplexType xmlSchemaComplexType = new XmlSchemaComplexType(xmlSchema);
+		XmlSchemaSequence xmlSchemaSequence = new XmlSchemaSequence();
+		XmlSchemaElement responseElement = new XmlSchemaElement();
+		responseElement.setName("response");
+		responseElement.setSchemaTypeName(new QName(nsURI, getXsdResponseTypeName(), prefix));
+		xmlSchemaSequence.getItems().add(responseElement);
+		xmlSchemaComplexType.setParticle(xmlSchemaSequence);
+		xmlSchemaElement.setSchemaType(xmlSchemaComplexType);
 		
 		xmlSchema.getItems().add(xmlSchemaElement);
 		
 		return xmlSchemaElement;
 	}
 	
+	public static XmlSchemaComplexType addSchemaResponseType(XmlSchema xmlSchema, Transaction transaction) {
+		return transaction.addSchemaResponseType(xmlSchema);
+	}
+	
 	protected XmlSchemaComplexType addSchemaResponseType(XmlSchema xmlSchema) {
+		String nsURI = xmlSchema.getTargetNamespace();
+		String prefix = xmlSchema.getNamespaceContext().getPrefix(nsURI);
+		String localName = getXsdResponseElementName()+ "Type";
+		
+		XmlSchemaComplexType xmlSchemaComplexType = new XmlSchemaComplexType(xmlSchema);
+		xmlSchemaComplexType.setName(localName);
+		XmlSchemaSequence xmlSchemaSequence = new XmlSchemaSequence();
+		XmlSchemaElement documentElement = new XmlSchemaElement();
+		documentElement.setName("document");
+		documentElement.setSchemaTypeName(new QName(nsURI, getXsdResponseTypeName(), prefix));
+		xmlSchemaSequence.getItems().add(documentElement);
+		xmlSchemaComplexType.setParticle(xmlSchemaSequence);
+		
+		xmlSchema.getItems().add(xmlSchemaComplexType);
+		
+		return xmlSchemaComplexType;
+	}
+
+	protected XmlSchemaComplexType addSchemaResponseDataType(XmlSchema xmlSchema) {
 		String localName = getXsdResponseTypeName();
 		
 		XmlSchemaComplexType xmlSchemaComplexType = new XmlSchemaComplexType(xmlSchema);

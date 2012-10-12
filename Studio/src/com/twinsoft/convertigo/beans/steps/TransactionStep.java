@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpState;
@@ -51,6 +53,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.IContextMaintainer;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
@@ -776,5 +779,15 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		projectName = st.nextToken();
 		connectorName = st.nextToken();
 		transactionName = st.nextToken();
+	}
+
+	@Override
+	public QName getComplexTypeAffectation() {
+		if (getXmlComplexTypeAffectation().isEmpty()) {
+			String namespace = Project.getProjectTargetNamespace(projectName);
+			String localpart = connectorName + "__" + transactionName + "ResponseType";
+			super.setXmlComplexTypeAffectation(new XmlQName(new QName(namespace, localpart)));
+		}
+		return super.getComplexTypeAffectation();
 	}
 }

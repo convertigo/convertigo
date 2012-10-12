@@ -51,7 +51,7 @@ import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
-import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.Scriptable;
@@ -847,12 +847,11 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	}
 	
 	@Override
-	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-		return element;
+	public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		return (XmlSchemaParticle) super.getXmlSchemaObject(collection, schema);
 	}
 	
 	public boolean isGenerateElement() {
-		return isOutput();
+		return true;
 	}
 }

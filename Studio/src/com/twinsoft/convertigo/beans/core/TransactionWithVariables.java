@@ -835,8 +835,8 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	}
     
 	@Override
-	protected XmlSchemaComplexType addSchemaRequestType(XmlSchema xmlSchema) {
-		XmlSchemaComplexType xmlSchemaComplexType = super.addSchemaRequestType(xmlSchema);
+	protected XmlSchemaComplexType addSchemaRequestDataType(XmlSchema xmlSchema) {
+		XmlSchemaComplexType xmlSchemaComplexType = super.addSchemaRequestDataType(xmlSchema);
 		int len = numberOfVariables();
 		if (len > 0) {
 			XmlSchemaSequence xmlSchemaSequence = new XmlSchemaSequence();

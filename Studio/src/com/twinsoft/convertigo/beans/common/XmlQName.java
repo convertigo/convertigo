@@ -24,6 +24,10 @@ public class XmlQName implements XMLizable {
 		return new QName(namespace, localPart);
 	}
 	
+	public boolean isEmpty() {
+		return namespace.equals("") && localPart.equals("");
+	}
+	
 	public Node writeXml(Document document) throws Exception {
 		Element elt = document.createElement("schemaDefinition");
 		if (namespace.length() > 0) {

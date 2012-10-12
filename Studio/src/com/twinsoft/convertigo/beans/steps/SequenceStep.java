@@ -35,6 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -46,6 +48,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.IContextMaintainer;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -590,5 +593,15 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		StringTokenizer st = new StringTokenizer(sourceSequence, SequenceStep.SOURCE_SEPARATOR);
 		projectName = st.nextToken();
 		sequenceName = st.nextToken();
-	}	
+	}
+	
+	@Override
+	public QName getComplexTypeAffectation() {
+		if (getXmlComplexTypeAffectation().isEmpty()) {
+			String namespace = Project.getProjectTargetNamespace(projectName);
+			String localpart = sequenceName + "ResponseType";
+			super.setXmlComplexTypeAffectation(new XmlQName(new QName(namespace, localpart)));
+		}
+		return super.getComplexTypeAffectation();
+	}
 }

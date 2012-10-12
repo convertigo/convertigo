@@ -259,8 +259,8 @@ public class XmlHttpTransaction extends HttpTransaction {
 	}
 	
 	@Override
-	protected XmlSchemaComplexType addSchemaResponseType(XmlSchema xmlSchema) {
-		XmlSchemaComplexType xmlSchemaComplexType = super.addSchemaResponseType(xmlSchema);
+	protected XmlSchemaComplexType addSchemaResponseDataType(XmlSchema xmlSchema) {
+		XmlSchemaComplexType xmlSchemaComplexType = super.addSchemaResponseDataType(xmlSchema);
 		String reqn = getResponseElementQName();
 		if (!reqn.equals("")) {
 			boolean useRef = reqn.indexOf(";") == -1;
