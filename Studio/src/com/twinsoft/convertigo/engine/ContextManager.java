@@ -119,6 +119,7 @@ public class ContextManager extends AbstractRunnableManager {
 			Engine.logContextManager.debug("Context " + context.contextID + " has been added");
 			Engine.logContext.debug("[" + context.contextID + "] Context created, project: " + context.projectName);
             Engine.logContextManager.info("Current in-use contexts: " + contexts.size());
+            Engine.logUsageMonitor.info("[Contexts] Current in-use contexts: " + contexts.size());
 		}
 	}
 
@@ -330,6 +331,7 @@ public class ContextManager extends AbstractRunnableManager {
     
     public void remove(String contextID) {
         synchronized(contexts) {
+			Engine.logContextManager.info("Removing context '" + contextID + "'");
         	remove(get(contextID));
         }
     }
@@ -437,6 +439,7 @@ public class ContextManager extends AbstractRunnableManager {
             Engine.logContextManager.info("Context " + contextID + " has been removed");
             Engine.logContext.info("[" + contextID + "] Context removed, project: " + projectName);
             Engine.logContextManager.info("Current in-use contexts: " + contexts.size());
+            Engine.logUsageMonitor.info("[Contexts] Current in-use contexts: " + contexts.size());
 		}
     }
 
