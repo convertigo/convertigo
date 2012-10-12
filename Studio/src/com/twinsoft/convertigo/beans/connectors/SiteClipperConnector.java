@@ -459,6 +459,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					case deflate:
 						stream = new InflaterInputStream(stream, new Inflater(true));
 						break;
+					default:
+						break;
 					}
 					String charset = getResponseCharset();
 					responseAsString = IOUtils.toString(stream, charset);
@@ -718,10 +720,13 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					case POST :
 						httpMethod = new PostMethod(uri);
 						((PostMethod) httpMethod).setRequestEntity(new InputStreamRequestEntity(shuttle.request.getInputStream()));
+						break;
+					default :
+						throw new ServletException("(SiteClipperConnector) unknown http method " + shuttle.request.getMethod());
 					}
 					httpMethod.setFollowRedirects(false);
 				} catch (Exception e) {
-					throw new ServletException("(SiteClipperConnector) unknown http method " + shuttle.request.getMethod());
+					throw new ServletException("(SiteClipperConnector) unexpected exception will building the http method : " + e.getMessage());
 				}
 				shuttle.httpMethod = httpMethod;
 
@@ -884,6 +889,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				case deflate:
 					os = new DeflaterOutputStream(os, new Deflater(Deflater.DEFAULT_COMPRESSION|Deflater.DEFAULT_STRATEGY, true));
 					break;
+				default:
+					break;
 				}
 				nbBytes = shuttle.responseAsByte.length;
 				IOUtils.write(shuttle.responseAsString, os, shuttle.getResponseCharset());
@@ -927,11 +934,12 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	
 	private synchronized HostConfiguration getHostConfiguration(Shuttle shuttle) throws EngineException, MalformedURLException {
 		if (hostConfiguration != null) {
-			if (isCompatibleConfiguration(hostConfiguration.getHost().equals(shuttle.getRequest(QueryPart.host)))) {
+			String host = hostConfiguration.getHost();
+			if (isCompatibleConfiguration(host != null && host.equals(shuttle.getRequest(QueryPart.host)))) {
 				if (isCompatibleConfiguration(hostConfiguration.getPort() == shuttle.getRequestPort())){
 					Protocol protocol = hostConfiguration.getProtocol();
 					String scheme = (protocol == null) ? "" : protocol.getScheme();
-					if (isCompatibleConfiguration(scheme.equals(shuttle.getRequest(QueryPart.scheme)))) {
+					if (isCompatibleConfiguration(scheme != null && scheme.equals(shuttle.getRequest(QueryPart.scheme)))) {
 						if (Engine.theApp.proxyManager.isEnabled()) {
 							String proxyHost = hostConfiguration.getProxyHost();
 							if (proxyHost == null){
