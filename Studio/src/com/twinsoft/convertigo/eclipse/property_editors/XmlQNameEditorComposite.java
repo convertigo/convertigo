@@ -210,8 +210,6 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 		String typeName = tTypeName.getText();
 		if (typeName.length() == 0) {
 			return new XmlQName();
-		} else if (namespace.equals(currentNamespace)) {
-			return new XmlQName(new QName(typeName));
 		} else {
 			return new XmlQName(new QName(namespace, typeName));
 		}

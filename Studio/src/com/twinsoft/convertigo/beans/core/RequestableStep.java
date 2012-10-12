@@ -49,6 +49,9 @@ import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.Scriptable;
@@ -77,7 +80,7 @@ import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
 
-public abstract class RequestableStep extends Step implements IVariableContainer, IContainerOrdered {
+public abstract class RequestableStep extends Step implements IVariableContainer, IContainerOrdered, IComplexTypeAffectation, ISchemaParticleGenerator {
 	
 	private static final long serialVersionUID = 3948128175718822695L;
 
@@ -841,5 +844,15 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 			rep.add(stepVariable);
 		}		
 		return rep;
+	}
+	
+	@Override
+	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+		return element;
+	}
+	
+	public boolean isGenerateElement() {
+		return isOutput();
 	}
 }
