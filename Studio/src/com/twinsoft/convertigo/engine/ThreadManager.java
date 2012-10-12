@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.engine;
 
 import java.lang.management.ManagementFactory;
-import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 
@@ -88,7 +87,7 @@ public class ThreadManager extends AbstractRunnableManager {
 		long[] tids = threadMXBean.getAllThreadIds();
 		ThreadInfo[] tinfos = threadMXBean.getThreadInfo(tids, Integer.MAX_VALUE);
 		for (ThreadInfo ti : tinfos) {
-			message += getThreadInfoWithStacktrace(ti);
+			message += getThreadInfo(ti);
 		}
 		
 		return message;
@@ -96,24 +95,24 @@ public class ThreadManager extends AbstractRunnableManager {
 
 	private static String INDENT = "    ";
 
-	private String getThreadInfoWithStacktrace(ThreadInfo ti) {
-		// print thread information
-		String message = getThreadInfo(ti);
-
-		// print stack trace with locks
-		StackTraceElement[] stacktrace = ti.getStackTrace();
-		MonitorInfo[] monitors = ti.getLockedMonitors();
-		for (int i = 0; i < stacktrace.length; i++) {
-			StackTraceElement ste = stacktrace[i];
-			message += INDENT + "at " + ste.toString() + "\n";
-			for (MonitorInfo mi : monitors) {
-				if (mi.getLockedStackDepth() == i) {
-					message += INDENT + "  - locked " + mi + "\n";
-				}
-			}
-		}
-		return message + "\n";
-	}
+//	private String getThreadInfoWithStacktrace(ThreadInfo ti) {
+//		// print thread information
+//		String message = getThreadInfo(ti);
+//
+//		// print stack trace with locks
+//		StackTraceElement[] stacktrace = ti.getStackTrace();
+//		MonitorInfo[] monitors = ti.getLockedMonitors();
+//		for (int i = 0; i < stacktrace.length; i++) {
+//			StackTraceElement ste = stacktrace[i];
+//			message += INDENT + "at " + ste.toString() + "\n";
+//			for (MonitorInfo mi : monitors) {
+//				if (mi.getLockedStackDepth() == i) {
+//					message += INDENT + "  - locked " + mi + "\n";
+//				}
+//			}
+//		}
+//		return message + "\n";
+//	}
 
 	private String getThreadInfo(ThreadInfo ti) {
 		String message = "\"" + ti.getThreadName() + "\" [ID=" + ti.getThreadId() + "]";
@@ -153,7 +152,7 @@ public class ThreadManager extends AbstractRunnableManager {
 		String message = "Found one Java-level deadlock:\n\n";
 		ThreadInfo[] infos = threadMXBean.getThreadInfo(tids, Integer.MAX_VALUE);
 		for (ThreadInfo ti : infos) {
-			message += getThreadInfoWithStacktrace(ti);
+			message += getThreadInfo(ti);
 		}
 		Engine.logUsageMonitor.error(message);
 
