@@ -1976,7 +1976,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 	
 	private DatabaseObjectTreeObject findTreeObjectByUserObject(DatabaseObject databaseObject, ProjectTreeObject projectTreeObject) {
-		DatabaseObjectTreeObject databaseObjectTreeObject;
+		DatabaseObjectTreeObject databaseObjectTreeObject = null;
 		if (projectTreeObject.getObject().equals(databaseObject)) {
 			databaseObjectTreeObject = projectTreeObject;
 		} else {
@@ -1985,9 +1985,13 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			if (parentDatabaseObjectTreeObject == null) {
 				parentDatabaseObjectTreeObject = findTreeObjectByUserObject(parentDatabaseObject, projectTreeObject);
 			}
-			databaseObjectTreeObject = parentDatabaseObjectTreeObject.findDatabaseObjectTreeObjectChild(databaseObject);
+			if (parentDatabaseObjectTreeObject != null) {
+				databaseObjectTreeObject = parentDatabaseObjectTreeObject.findDatabaseObjectTreeObjectChild(databaseObject);
+			}
 		}
-		databaseObjectTreeObjectCache.put(databaseObject, databaseObjectTreeObject);
+		if (databaseObjectTreeObject != null) {
+			databaseObjectTreeObjectCache.put(databaseObject, databaseObjectTreeObject);
+		}
 		return databaseObjectTreeObject;
 	}
 	

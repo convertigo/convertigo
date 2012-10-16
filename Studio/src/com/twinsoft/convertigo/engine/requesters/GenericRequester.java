@@ -596,11 +596,7 @@ public abstract class GenericRequester extends Requester {
     
     @Override
     public Document getDocument() throws Exception {
-		Document document = Engine.theApp.getDocument(this, context);
-		
-		String requestableName = context.sequenceName != null ? context.sequenceName : context.connectorName + "__" + context.transactionName;
-		Engine.theApp.schemaManager.validateResponse(context.projectName, requestableName, document);
-		
+		Document document = Engine.theApp.getDocument(this, context);		
 		return document;
     }
 

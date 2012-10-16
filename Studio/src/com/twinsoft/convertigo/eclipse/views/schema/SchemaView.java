@@ -55,6 +55,8 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -67,9 +69,11 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
 import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewContentProvider.Root;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.EngineListenerHelper;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class SchemaView extends ViewPart implements IPartListener, ISelectionListener, TreeObjectListener {
+	private Composite content;
 	private TreeViewer schemaTreeViewer;
 	private TreeViewer nodeTreeViewer;
 	private TwsDomTree domTree;
@@ -82,7 +86,63 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	private String projectName;
 	
 	private Thread workingThread;
-	private Queue<Runnable> tasks = new ConcurrentLinkedQueue<Runnable>();;
+	private Queue<Runnable> tasks = new ConcurrentLinkedQueue<Runnable>();
+	private EngineListenerHelper engineListener = new EngineListenerHelper() {
+
+		@Override
+		public void documentGenerated(final Document document) {
+			final Element documentElement = document.getDocumentElement();
+			if (documentElement != null) {
+				String project = documentElement.getAttribute("project");
+				if (project != null && project.equals(projectName)) {
+					String sequence = documentElement.getAttribute("sequence");
+					String connector = documentElement.getAttribute("connector");
+					String transaction = documentElement.getAttribute("transaction");
+					final String requestableName = sequence != null && sequence.length() > 0 ? sequence : connector + "__" + transaction;
+					
+					Display.getDefault().asyncExec(new Runnable() {
+
+						public void run() {
+							message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
+							message.setText("Waiting for " + projectName + " " + requestableName + " XML response validation");
+						}
+						
+					});
+					
+					tasks.add(new Runnable() {
+
+						public void run() {
+							final Exception[] exception = {null};
+							try {
+								Engine.theApp.schemaManager.validateResponse(projectName, requestableName, document);
+							} catch (SAXException e) {
+								exception[0] = e;
+							}
+							
+							Display.getDefault().asyncExec(new Runnable() {
+
+								public void run() {
+									if (message != null && !message.isDisposed()) {
+										if (exception[0] == null) {
+											message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+											message.setText("The " + projectName + " " + requestableName + " XML response is valid.");
+										} else {
+											message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
+											message.setText("The " + projectName + " " + requestableName + " XML response is invalid : " + exception[0].getMessage());
+										}
+										content.layout(true);
+									}
+								}
+								
+							});
+						}
+						
+					});
+				}
+			}
+		}
+		
+	};
 	
 	public SchemaView() {
 	}
@@ -113,11 +173,12 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		workingThread.setName("SchemaViewThread");
 		workingThread.start();
 	
-		makeUI(new Composite(parent, SWT.NONE));
+		makeUI(content = new Composite(parent, SWT.NONE));
 		
 		getSite().getPage().addSelectionListener(this);
 		
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(this);
+		Engine.theApp.addEngineListener(engineListener);
 	}
 	
 	private void makeUI(Composite content) {
@@ -165,7 +226,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 			
 		});
 		
-		message = new Label(composite, SWT.NONE);
+		message = new Label(composite, SWT.WRAP);
 		message.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		message.setText("No schema to validate");
 		
@@ -225,7 +286,9 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	public void dispose() {
 		workingThread = null;
 		getSite().getPage().removeSelectionListener(this);
+		Engine.theApp.removeEngineListener(engineListener);
 		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().removePartListener(this);
+		content.dispose();
 		super.dispose();
 	}
 	
@@ -341,7 +404,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 				nodeTreeViewer.setInput(null);
 				domTree.fillDomTree(null);
 				message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
-				message.setText("Waiting for schema validation");
+				message.setText("Waiting for the " + projectName + " schema validation");
 				
 				final boolean fullSchema = internalSchema.getSelection();
 				
@@ -377,11 +440,12 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 								public void run() {
 									if (exception[0] == null) {
 										message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
-										message.setText("The current schema is valid.");
+										message.setText("The " + projectName + " schema is valid.");
 									} else {
 										message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
-										message.setText("The current schema is invalid : " + exception[0].getMessage());
+										message.setText("The " + projectName + " schema is invalid : " + exception[0].getMessage());
 									}
+									content.layout(true);
 								}
 
 							});
