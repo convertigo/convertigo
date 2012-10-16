@@ -50,11 +50,11 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
-import org.apache.xerces.dom.AttrImpl;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -634,7 +634,7 @@ public class XMLUtils {
 
 		// add attribute to xpath
 		if (node instanceof Attr) {
-			Attr attr = (AttrImpl) node;
+			Attr attr = (Attr) node;
 			node = attr.getOwnerElement();
 			xpath = '@' + attr.getName() + '/';
 		}
@@ -886,5 +886,24 @@ public class XMLUtils {
 			res[i] = nl.item(i);
 		}
 		return res;
+	}
+	
+	public static void setNamespace(Node node, String tns) {
+		Document doc = node instanceof Document ? (Document) node : node.getOwnerDocument();
+		boolean isParent = false;
+		while (node != null) {
+			Node next = null;
+			if (!isParent && node.getNodeType() == Node.ELEMENT_NODE) {
+				node = doc.renameNode(node, tns, node.getNodeName());
+				NamedNodeMap nodeMap = node.getAttributes();
+				int nodeMapLengthl = nodeMap.getLength();
+				for (int i = 0; i < nodeMapLengthl; i++) {
+					Node attr = nodeMap.item(i);
+					doc.renameNode(attr, tns, attr.getNodeName());
+				}
+			}
+			isParent = (isParent || (next = node.getFirstChild()) == null) && (next = node.getNextSibling()) == null;
+			node = isParent ? node.getParentNode() : next;
+		}
 	}
 }

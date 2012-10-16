@@ -23,6 +23,14 @@
 package com.twinsoft.convertigo.eclipse.views.schema;
 
 import java.io.IOException;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -72,10 +80,9 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	
 	private boolean needRefresh;
 	private String projectName;
-	private XmlSchemaCollection xmlSchemaCollection;
 	
 	private Thread workingThread;
-	private Runnable task;
+	private Queue<Runnable> tasks = new ConcurrentLinkedQueue<Runnable>();;
 	
 	public SchemaView() {
 	}
@@ -88,10 +95,10 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 				while (workingThread != null) {
 
 					try {
+						Runnable task = tasks.poll();
 						synchronized (workingThread) {
 							if (task != null) {
 								task.run();
-								task = null;
 							}
 							workingThread.wait(5000);
 						}
@@ -123,7 +130,30 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		composite.setLayout(SwtUtils.newGridLayout(2, false, 0, 0, 0, 0));
 		composite.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
 		
-		SelectionListener selectionListener = new SelectionListener() {
+		ToolBar toolbar = new ToolBar(composite, SWT.NONE);
+		
+		ToolItem toolItem = new ToolItem(toolbar, SWT.PUSH);
+		setToolItemIcon(toolItem, "icons/studio/refresh.gif", "R", "Refresh");
+		toolItem.addSelectionListener(new SelectionListener() {
+			
+			public void widgetSelected(SelectionEvent e) {
+				needRefresh = true;
+				Engine.theApp.schemaManager.clearCache(projectName);
+				updateSchema((IStructuredSelection) ConvertigoPlugin.getDefault().getProjectExplorerView().viewer.getSelection());
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+			
+		});
+		
+		toolItem = autoRefresh = new ToolItem(toolbar, SWT.CHECK);
+		setToolItemIcon(toolItem, "icons/studio/refresh.d.gif", "AR", "Toggle auto refresh");
+		toolItem.setSelection(true);
+		
+		toolItem = internalSchema = new ToolItem(toolbar, SWT.CHECK);
+		setToolItemIcon(toolItem, "icons/studio/pretty_print.gif", "IS", "Toggle internal schema");
+		toolItem.addSelectionListener(new SelectionListener() {
 			
 			public void widgetSelected(SelectionEvent e) {
 				needRefresh = true;
@@ -133,21 +163,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 			
-		};
-		
-		ToolBar toolbar = new ToolBar(composite, SWT.NONE);
-		
-		ToolItem toolItem = new ToolItem(toolbar, SWT.PUSH);
-		setToolItemIcon(toolItem, "icons/studio/refresh.gif", "R", "Refresh");
-		toolItem.addSelectionListener(selectionListener);
-		
-		toolItem = autoRefresh = new ToolItem(toolbar, SWT.CHECK);
-		setToolItemIcon(toolItem, "icons/studio/refresh.d.gif", "AR", "Toggle auto refresh");
-		toolItem.setSelection(true);
-		
-		toolItem = internalSchema = new ToolItem(toolbar, SWT.CHECK);
-		setToolItemIcon(toolItem, "icons/studio/pretty_print.gif", "IS", "Toggle internal schema");
-		toolItem.addSelectionListener(selectionListener);
+		});
 		
 		message = new Label(composite, SWT.NONE);
 		message.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -167,7 +183,6 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 				if (firstElement instanceof XmlSchemaObject &&
 						(nodeTreeViewer.getInput() == null || ((Root) nodeTreeViewer.getInput()).get() != firstElement) &&
 						!(firstElement instanceof XmlSchema)) {
-					nodeTreeViewer.setInput(xmlSchemaCollection);
 					nodeTreeViewer.setInput(SchemaViewContentProvider.newRoot(firstElement));
 					nodeTreeViewer.expandToLevel(5);
 
@@ -327,53 +342,56 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 				domTree.fillDomTree(null);
 				message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
 				message.setText("Waiting for schema validation");
-
+				
 				final boolean fullSchema = internalSchema.getSelection();
+				
+				tasks.add(new Runnable() {
 
-				synchronized (workingThread) {
-					task = new Runnable() {
+					public void run() {
+						try {
+							XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(projectName, fullSchema);
+							Transformer transformer = TransformerFactory.newInstance().newTransformer();
+							transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+							transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+							transformer.transform(new DOMSource(schema.getSchemaDocument()), new StreamResult(System.out));
+							final XmlSchemaCollection xmlSchemaCollection = SchemaMeta.getCollection(schema);
 
-						public void run() {
-							try {
-								XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(projectName, fullSchema);
+							Display.getDefault().asyncExec(new Runnable() {
 
-								final XmlSchemaCollection xmlSchemaCollection = SchemaMeta.getCollection(schema);
-								
-								Display.getDefault().asyncExec(new Runnable() {
-
-									public void run() {
-										schemaTreeViewer.setInput(xmlSchemaCollection);
-										schemaTreeViewer.expandToLevel(3);
-									}
-								
-								});
-								
-								final Exception[] exception = {null};
-								try {
-									XmlSchemaUtils.validate(schema);
-								} catch (SAXException e) {
-									exception[0] = e;
+								public void run() {
+									schemaTreeViewer.setInput(xmlSchemaCollection);
+									schemaTreeViewer.expandToLevel(3);
 								}
 
-								Display.getDefault().asyncExec(new Runnable() {
+							});
 
-									public void run() {
-										if (exception[0] == null) {
-											message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
-											message.setText("The current schema is valid.");
-										} else {
-											message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
-											message.setText("The current schema is invalid : " + exception[0].getMessage());
-										}
-									}
-									
-								});
-							} catch (Exception e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+							final Exception[] exception = {null};
+							try {
+								XmlSchemaUtils.validate(schema);
+							} catch (SAXException e) {
+								exception[0] = e;
 							}
+
+							Display.getDefault().asyncExec(new Runnable() {
+
+								public void run() {
+									if (exception[0] == null) {
+										message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+										message.setText("The current schema is valid.");
+									} else {
+										message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
+										message.setText("The current schema is invalid : " + exception[0].getMessage());
+									}
+								}
+
+							});
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
-					};
+					}
+				});
+				synchronized (workingThread) {
 					workingThread.notify();
 				}
 			}

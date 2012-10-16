@@ -22,9 +22,15 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAll;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
+
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class ParallelStep extends BranchStep {
 
@@ -110,5 +116,12 @@ public class ParallelStep extends BranchStep {
 				((StepWithExpressions)parent).shouldWait(false);
 			}
 		}
+	}
+	
+	@Override
+	public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaAll all = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAll());
+		XmlSchemaParticle particle = getXmlSchemaParticle(collection, schema, all);
+		return particle;
 	}
 }

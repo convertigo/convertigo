@@ -115,6 +115,8 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	transient private boolean xsdDirty = true;
 	transient private String[] xsdTypes = null;
 	
+	transient private long lastChange = 0L;
+	
 	public static String getProjectTargetNamespace(String projectName) {
 		try {
 			Project p = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
@@ -526,4 +528,13 @@ public class Project extends DatabaseObject implements ITagsProperty {
 		return Engine.PROJECTS_PATH + "/" + getName() + "/wsdl";
 	}
 	
+	@Override
+	public void changed() {
+		lastChange = System.currentTimeMillis();
+		super.changed();
+	}
+	
+	public long getLastChange() {
+		return lastChange;
+	}
 }

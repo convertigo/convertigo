@@ -598,7 +598,8 @@ public abstract class GenericRequester extends Requester {
     public Document getDocument() throws Exception {
 		Document document = Engine.theApp.getDocument(this, context);
 		
-		Engine.theApp.schemaManager.getSchemasForProject(this.context.projectName);
+		String requestableName = context.sequenceName != null ? context.sequenceName : context.connectorName + "__" + context.transactionName;
+		Engine.theApp.schemaManager.validateResponse(context.projectName, requestableName, document);
 		
 		return document;
     }

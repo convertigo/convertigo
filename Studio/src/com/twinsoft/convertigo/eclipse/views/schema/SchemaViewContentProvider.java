@@ -14,10 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * $URL: http://sourceus.twinsoft.fr/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/eclipse/views/schema/SchemaViewContentProvider.java $
+ * $Author: nicolasa $
+ * $Revision: 32115 $
+ * $Date: 2012-10-12 13:25:40 +0200 (ven., 12 oct. 2012) $
  */
 
 package com.twinsoft.convertigo.eclipse.views.schema;
@@ -106,6 +106,7 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		if (newInput != null) {
 			if (newInput instanceof XmlSchemaCollection) {
+				childrenCache.clear();
 				collection = (XmlSchemaCollection) newInput;
 			}
 			if (maxDepth > 0) {

@@ -500,7 +500,11 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	}
 	
     public void markAsChanged(boolean hasChanged) {
-    	getObject().hasChanged = hasChanged;
+    	if (hasChanged) {
+    		getObject().changed();
+    	} else {
+    		getObject().hasChanged = false;
+    	}
     }
     
     public Object getEditableValue() {

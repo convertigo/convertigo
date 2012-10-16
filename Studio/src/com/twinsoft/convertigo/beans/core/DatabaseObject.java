@@ -1287,7 +1287,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		return new Vector<E>();
 	}
 	
-	protected void changed() {
+	public void changed() {
 		if (!isImporting && !hasChanged) {
 			hasChanged = true;
 		}

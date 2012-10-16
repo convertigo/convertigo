@@ -216,16 +216,12 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 	}
 	
 	protected XmlSchemaParticle getXmlSchemaParticle(XmlSchemaCollection collection, XmlSchema schema, XmlSchemaGroupBase group) {
-		XmlSchemaParticle particle = group;
-		if (isOutput()) {
-			XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-			XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
-			SchemaMeta.setContainerXmlSchemaGroupBase(element, group);
-			element.setType(cType);
-			cType.setParticle(group);
-			particle = element;
-		}
-		return particle;
+		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		SchemaMeta.setContainerXmlSchemaGroupBase(element, group);
+		element.setType(cType);
+		cType.setParticle(group);
+		return element;
 	}
 
 	@Override
