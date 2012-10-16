@@ -26,12 +26,6 @@ import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaObject;
@@ -413,10 +407,6 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 					public void run() {
 						try {
 							XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(projectName, fullSchema);
-							Transformer transformer = TransformerFactory.newInstance().newTransformer();
-							transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-							transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-							transformer.transform(new DOMSource(schema.getSchemaDocument()), new StreamResult(System.out));
 							final XmlSchemaCollection xmlSchemaCollection = SchemaMeta.getCollection(schema);
 
 							Display.getDefault().asyncExec(new Runnable() {
