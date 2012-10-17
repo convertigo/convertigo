@@ -287,7 +287,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	public boolean isXml() {
-		return xml;
+		return xml || isOutput();
 	}
 	
 	public boolean hasXmlParent() {
