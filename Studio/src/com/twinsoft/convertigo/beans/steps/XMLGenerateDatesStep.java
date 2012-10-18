@@ -32,6 +32,12 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.Vector;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -45,6 +51,7 @@ import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.DateUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProperty {
 
@@ -250,7 +257,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		boolean bInvalid = false;
 		try {
-			if (startDefinition.isEmpty() && stopDefinition.isEmpty()) {
+			if (startDefinition.isEmpty() || stopDefinition.isEmpty() || daysDefinition.isEmpty()) {
 				bInvalid = true;
 				Engine.logBeans.warn("Skipping GenerateDates step \""+ getName() +"\" : definitions are empty");
 			}
@@ -429,5 +436,57 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 			return Locale.getISOCountries();
 		}
 		return super.getTagsForProperty(propertyName);
+	}
+	
+	@Override
+	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+		
+		if (!startDefinition.isEmpty() && !stopDefinition.isEmpty() && !daysDefinition.isEmpty()) {
+			XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+			element.setType(cType);
+			
+			XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+			cType.setParticle(sequence);
+			
+			XmlSchemaElement date = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+			date.setName("date");
+			date.setMinOccurs(0);
+			date.setMaxOccurs(Long.MAX_VALUE);
+			sequence.getItems().add(date);
+			
+			if (split) {
+				cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+				date.setType(cType);
+				
+				sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+				cType.setParticle(sequence);
+				
+				XmlSchemaElement elt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+				elt.setName("dayOfWeek");
+				elt.setSchemaTypeName(Constants.XSD_STRING);
+				sequence.getItems().add(elt);
+				
+				elt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+				elt.setName("day");
+				elt.setSchemaTypeName(Constants.XSD_STRING);
+				sequence.getItems().add(elt);
+				
+				elt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+				elt.setName("month");
+				elt.setSchemaTypeName(Constants.XSD_STRING);
+				sequence.getItems().add(elt);
+				
+				elt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+				elt.setName("year");
+				elt.setSchemaTypeName(Constants.XSD_STRING);
+				sequence.getItems().add(elt);
+				
+			} else {
+				date.setSchemaTypeName(Constants.XSD_STRING);
+			}
+		}
+		
+		return element;
 	}
 }

@@ -25,6 +25,15 @@ package com.twinsoft.convertigo.beans.steps;
 import java.io.File;
 import java.util.HashMap;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContent;
+import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
@@ -35,6 +44,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class ListDirStep extends Step {
 
@@ -176,6 +186,45 @@ public class ListDirStep extends Step {
 		file.setAttribute("lastModified", "");
 		file.setAttribute("size", "");
 		element.appendChild(file);
+		return element;
+	}
+	
+	@Override
+	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+
+		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		element.setType(cType);
+
+		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+		cType.setParticle(sequence);
+		
+		XmlSchemaElement elt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		sequence.getItems().add(elt);
+		elt.setName("file");
+		elt.setMinOccurs(0);
+		elt.setMaxOccurs(Long.MAX_VALUE);
+		
+		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		elt.setType(cType);
+		
+		XmlSchemaSimpleContent sContent = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContent());
+		cType.setContentModel(sContent);
+		
+		XmlSchemaSimpleContentExtension sContentExt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSimpleContentExtension());
+		sContent.setContent(sContentExt);
+		sContentExt.setBaseTypeName(Constants.XSD_STRING);
+		
+		XmlSchemaAttribute attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("lastModified");
+		attr.setSchemaTypeName(Constants.XSD_NONNEGATIVEINTEGER);
+		sContentExt.getAttributes().add(attr);
+		
+		attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("size");
+		attr.setSchemaTypeName(Constants.XSD_NONNEGATIVEINTEGER);
+		sContentExt.getAttributes().add(attr);
+		
 		return element;
 	}
 }

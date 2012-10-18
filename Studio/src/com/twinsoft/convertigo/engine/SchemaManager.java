@@ -217,13 +217,11 @@ public class SchemaManager implements AbstractManager {
 
 								// new complexType to enhance the element
 								XmlSchemaComplexType cType = element != null ? (XmlSchemaComplexType) element.getSchemaType() : null;
-								boolean newComplexType = false;							
 
 								// do something only on case of child
 								if (!myParticleChildren.isEmpty() || (myAttributeChildren != null && !myAttributeChildren.isEmpty())) {
 									if (cType == null) {
 										cType = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaComplexType(schema));
-										newComplexType = true;
 									}
 
 									// prepare element children in the group
@@ -244,33 +242,20 @@ public class SchemaManager implements AbstractManager {
 									}
 
 									if (element != null) {
-										// check for existing type
-										QName typeName = element.getSchemaTypeName();
-										if (typeName != null) {
-											// the type must be customized, create an extension
-											element.setSchemaTypeName(null);
-
-											XmlSchemaSimpleContent sContent = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaSimpleContent());
-											cType.setContentModel(sContent);
-
-											XmlSchemaSimpleContentExtension sContentExt = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaSimpleContentExtension());
-											sContent.setContent(sContentExt);
-
-											sContentExt.setBaseTypeName(typeName);
-
+										XmlSchemaSimpleContentExtension sContentExt = makeSimpleContentExtension(databaseObject, element, cType);
+										if (sContentExt != null) {
 											// add attributes
 											for (XmlSchemaAttribute attribute : myAttributeChildren) {
 												sContentExt.getAttributes().add(attribute);
 											}
 										} else {
-
 											// add attributes
 											for (XmlSchemaAttribute attribute : myAttributeChildren) {
 												cType.getAttributes().add(attribute);
 											}
 
 											// add elements
-											if (newComplexType && group != null) {
+											if (SchemaMeta.isDynamic(cType) && group != null) {
 												cType.setParticle(group);
 											}
 										}
@@ -284,7 +269,7 @@ public class SchemaManager implements AbstractManager {
 									if (qName != null && qName.getLocalPart().length() > 0) {
 										if (cType == null) {
 											cType = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaComplexType(schema));
-											newComplexType = true;
+											makeSimpleContentExtension(databaseObject, element, cType);
 										}
 
 										type = qName.getNamespaceURI().length() == 0 ? schema.getTypeByName(qName.getLocalPart()) : collection.getTypeByQName(qName);
@@ -304,7 +289,7 @@ public class SchemaManager implements AbstractManager {
 										// reference the type in the current element
 										element.setSchemaTypeName(cType.getQName());
 										element.setSchemaType(null);
-									} else if (newComplexType && element.getSchemaTypeName() == null && cType != null) {
+									} else if (cType != null && SchemaMeta.isDynamic(cType) && element.getSchemaTypeName() == null) {
 										// the element contains an anonymous type
 										element.setSchemaType(cType);
 									}
@@ -422,6 +407,25 @@ public class SchemaManager implements AbstractManager {
 
 			return schema;
 		}
+	}
+	
+	private XmlSchemaSimpleContentExtension makeSimpleContentExtension(DatabaseObject databaseObject, XmlSchemaElement element, XmlSchemaComplexType cType) {
+		QName typeName = element.getSchemaTypeName();
+		if (typeName != null) {
+			// the type must be customized, create an extension
+			element.setSchemaTypeName(null);
+
+			XmlSchemaSimpleContent sContent = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaSimpleContent());
+			cType.setContentModel(sContent);
+
+			XmlSchemaSimpleContentExtension sContentExt = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaSimpleContentExtension());
+			sContent.setContent(sContentExt);
+
+			sContentExt.setBaseTypeName(typeName);
+			
+			return sContentExt;
+		}
+		return null;
 	}
 	
 	private static void merge(XmlSchemaComplexType first, XmlSchemaComplexType second) {
