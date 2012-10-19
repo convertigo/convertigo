@@ -156,7 +156,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 							}
 							workingThread.wait(5000);
 						}
-					} catch (Exception e) {
+					} catch (Throwable e) {
 						System.err.println("Exception in " + projectName);
 						e.printStackTrace();
 					}

@@ -142,6 +142,14 @@ public class SchemaManager implements AbstractManager {
 							List<XmlSchemaParticle> myParticleChildren = null;
 							List<XmlSchemaAttribute> myAttributeChildren = null;
 
+							XmlSchemaType type = null;
+							QName qName = databaseObject instanceof IComplexTypeAffectation ? ((IComplexTypeAffectation) databaseObject).getComplexTypeAffectation() : null;
+							if (qName != null && qName.getLocalPart().length() > 0) {
+								type = qName.getNamespaceURI().length() == 0 ? schema.getTypeByName(qName.getLocalPart()) : collection.getTypeByQName(qName);
+							}
+							
+							if (type == null || SchemaMeta.isDynamic(type)) {
+							
 							// prepare to receive children
 							if (databaseObject instanceof ISchemaParticleGenerator) {
 								myParticleChildren = particleChildren = new LinkedList<XmlSchemaParticle>();
@@ -186,10 +194,10 @@ public class SchemaManager implements AbstractManager {
 											}
 										}
 										else if (xmlSchemaObject instanceof XmlSchemaType) {
-											XmlSchemaType type = (XmlSchemaType) xmlSchemaObject;
-											if (collection.getTypeByQName(type.getQName()) == null) {
-												schema.addType(type);
-												schema.getItems().add(type);
+											XmlSchemaType schemaType = (XmlSchemaType) xmlSchemaObject;
+											if (collection.getTypeByQName(schemaType.getQName()) == null) {
+												schema.addType(schemaType);
+												schema.getItems().add(schemaType);
 											}
 										}
 										else {
@@ -264,16 +272,12 @@ public class SchemaManager implements AbstractManager {
 
 								if (element != null) {
 									// check if the type is named
-									XmlSchemaType type = null;
-									QName qName = databaseObject instanceof IComplexTypeAffectation ? ((IComplexTypeAffectation) databaseObject).getComplexTypeAffectation() : null;
 									if (qName != null && qName.getLocalPart().length() > 0) {
 										if (cType == null) {
 											cType = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaComplexType(schema));
 											makeSimpleContentExtension(databaseObject, element, cType);
 										}
-
-										type = qName.getNamespaceURI().length() == 0 ? schema.getTypeByName(qName.getLocalPart()) : collection.getTypeByQName(qName);
-
+										
 										if (type == null) {
 											// the type doesn't exist, declare it
 											cType.setName(qName.getLocalPart());
@@ -312,6 +316,13 @@ public class SchemaManager implements AbstractManager {
 									attributeChildren.add((XmlSchemaAttribute) object);
 								}
 							}
+						} else {
+							XmlSchemaElement elt = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaElement());
+							elt.setName(((Step) databaseObject).getStepNodeName());
+							elt.setSchemaTypeName(qName);
+							particleChildren.add(elt);
+						}
+						
 						} else if (databaseObject instanceof Project) {
 							// override Project walking order
 							Project project = (Project) databaseObject;

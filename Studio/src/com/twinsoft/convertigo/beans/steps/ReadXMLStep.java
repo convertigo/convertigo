@@ -24,12 +24,18 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class ReadXMLStep extends ReadFileStep {
 	
@@ -108,6 +114,32 @@ public class ReadXMLStep extends ReadFileStep {
 		return xmlDoc;
 	}
 
+	@Override
+	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+		
+		File file = getFile();
+		if (file != null && file.exists()) {
+			try {
+				Document doc = XMLUtils.parseDOM(file);
+				
+				XmlSchemaElement elt = XmlSchemaUtils.extractXmlSchemaElement(doc, schema, this);
+				
+				XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+				element.setType(cType);
+
+				XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+				cType.setParticle(sequence);
+				
+				sequence.getItems().add(elt);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return element;
+	}
 }
 	
 	

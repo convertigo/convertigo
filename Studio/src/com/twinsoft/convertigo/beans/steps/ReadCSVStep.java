@@ -25,17 +25,26 @@ package com.twinsoft.convertigo.beans.steps;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.util.StringEx;
 
 public class ReadCSVStep extends ReadFileStep {
@@ -129,7 +138,7 @@ public class ReadCSVStep extends ReadFileStep {
 			throw new EngineException("The separator is empty");
 		
 		Document csvDoc = null;
-		BufferedReader fichier;
+		BufferedReader fichier = null;
 		try {
 			File csvFile = new File(getAbsoluteFilePath(filePath));
 			if (!csvFile.exists()) {
@@ -202,7 +211,7 @@ public class ReadCSVStep extends ReadFileStep {
 					lines++;
 				}
 			}
-				
+			
 			// Constructs array
 			String[][] table = new String[lines][cols];
 			for (int i = 0; i < lines; i++) {
@@ -272,8 +281,118 @@ public class ReadCSVStep extends ReadFileStep {
 			}
 		} catch (Exception e) {
 			throw new EngineException("An error occured while creating dom of csv file",e);
+		} finally {
+			if (fichier != null) {
+				try {
+					fichier.close();
+				} catch (IOException e) {
+					throw new EngineException("An error occured while creating dom of csv file",e);
+				}
+			}
 		}
 		
 		return csvDoc;
+	}
+	
+	@Override
+	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+
+		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		element.setType(cType);
+
+		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+		cType.setParticle(sequence);
+
+		XmlSchemaElement elt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		elt.setName("document");
+		sequence.getItems().add(elt);
+		
+		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		elt.setType(cType);
+		
+		sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+		cType.setParticle(sequence);
+		
+		XmlSchemaElement subElt = null;
+		if (!titleLine || !verticalDirection) {
+			subElt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+			subElt.setMinOccurs(0);
+			subElt.setMaxOccurs(Long.MAX_VALUE);
+			sequence.getItems().add(subElt);
+			
+			cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+			subElt.setType(cType);
+			
+			sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+			cType.setParticle(sequence);
+		}
+
+		if (titleLine) {
+			File file = getFile();
+			String[] cols = null;
+			if (file != null && file.exists()) {
+				BufferedReader reader = null;
+				try {
+					reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding.length() > 0 ? encoding : "iso-8859-1"));
+					String line = reader.readLine();
+					if (line != null) {
+						cols = line.split(Pattern.quote(separator));
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					if (reader != null) {
+						try {
+							reader.close();
+						} catch (IOException e) {
+						}
+					}
+				}
+				
+				if (cols != null) {
+					if (verticalDirection) {
+						for (String col : cols) {
+							subElt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+							subElt.setName(col);
+							sequence.getItems().add(subElt);
+							
+							cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+							subElt.setType(cType);
+							
+							XmlSchemaSequence subSequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+							cType.setParticle(subSequence);
+							
+							subElt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+							subElt.setName(tagLineName);
+							subElt.setSchemaTypeName(Constants.XSD_STRING);
+							subElt.setMinOccurs(0);
+							subElt.setMaxOccurs(Long.MAX_VALUE);
+							subSequence.getItems().add(subElt);							
+						}
+					} else {
+						subElt.setName(tagLineName);
+						for (String col : cols) {
+							subElt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+							subElt.setName(col);
+							subElt.setSchemaTypeName(Constants.XSD_STRING);
+							sequence.getItems().add(subElt);							
+						}
+					}
+				}
+			}
+			
+		} else {
+			subElt.setName(verticalDirection ? tagColName : tagLineName);
+
+			subElt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+			subElt.setName(verticalDirection ? tagLineName : tagColName);
+			subElt.setSchemaTypeName(Constants.XSD_STRING);
+			subElt.setMinOccurs(0);
+			subElt.setMaxOccurs(Long.MAX_VALUE);
+			sequence.getItems().add(subElt);
+		}
+
+		return element;
 	}
 }

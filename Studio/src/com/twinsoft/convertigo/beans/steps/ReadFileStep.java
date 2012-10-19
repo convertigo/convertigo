@@ -22,6 +22,10 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
@@ -37,6 +41,8 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class ReadFileStep extends Step {
 	private static final long serialVersionUID = 6887234233606563336L;
+	
+	private static final Pattern removeQuote = Pattern.compile("^('|\")(.*)\\1$");
 	
 	private String dataFile = "";			
 	
@@ -204,6 +210,16 @@ public abstract class ReadFileStep extends Step {
 		}
 				
 		return Engine.theApp.filePropertyManager.getFilepathFromProperty(entry, getProject().getName());
+	}
+	
+	protected File getFile() {
+		Matcher matcher = removeQuote.matcher(dataFile);
+		if (matcher.matches()) {
+			String filePath = matcher.group(2);
+			filePath = Engine.theApp.filePropertyManager.getFilepathFromProperty(filePath, getProject().getName());
+			return new File(filePath);
+		}
+		return null;
 	}
 
 }
