@@ -230,9 +230,7 @@ public class EnginePropertiesManager {
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
     	Billing ("Supervision"),
     	Notifications ("Notifications"),
-    	MobileBuilder ("Mobile builder"),
-    	@CategoryOptions(visibility = Visibility.HIDDEN)
-    	ExternalBrowser ("External browser")
+    	MobileBuilder ("Mobile builder")
     	;
     	
     	final String displayName;
@@ -332,8 +330,6 @@ public class EnginePropertiesManager {
 		LOG4J_LOGGER_CEMS_EMULATORS ("log4j.logger.cems.Emulators", "INFO", "Log4J emulators output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_ENGINE ("log4j.logger.cems.Engine", "", "Log4J engine logger", PropertyCategory.Logs),
-		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_EXTERNALBROWSER ("log4j.logger.cems.ExternalBrowser", "INFO", "Log4J external browser output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
 		LOG4J_LOGGER_CEMS_JOBMANAGER ("log4j.logger.cems.JobManager", "WARN", "Log4J job manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
@@ -507,12 +503,6 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		MOBILE_BUILDER_PLATFORM_URL ("mobile.builder.platform_url", "https://build.convertigo.net/cmb/PhoneGapBuilder", "Mobile builder platform URL", PropertyCategory.MobileBuilder),
 
-		/** EXTERNAL BROWSER */
-		@PropertyOptions(propertyType = PropertyType.Array)
-		EBA_LIST ("externalbrowser.agent.list", "", "External Browser Agent list", PropertyCategory.ExternalBrowser),
-		@PropertyOptions(propertyType = PropertyType.Array)
-		EBM_POOL ("externalbrowser.manager.pool", "", "External Browser Manager pool", PropertyCategory.ExternalBrowser),
-		
 		/* End of configuration keys definition */;
 		
     	final String key;

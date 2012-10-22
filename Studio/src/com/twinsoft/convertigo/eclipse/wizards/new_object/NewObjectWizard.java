@@ -35,7 +35,6 @@ import org.w3c.dom.Document;
 import com.twinsoft.convertigo.beans.common.DefaultBlockFactory;
 import com.twinsoft.convertigo.beans.common.EmulatorTechnology;
 import com.twinsoft.convertigo.beans.connectors.CicsConnector;
-import com.twinsoft.convertigo.beans.connectors.ExternalBrowserConnector;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
@@ -72,7 +71,6 @@ import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.transactions.CicsTransaction;
-import com.twinsoft.convertigo.beans.transactions.ExternalBrowserTransaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
@@ -470,15 +468,5 @@ public class NewObjectWizard extends Wizard {
 			siteClipperConnector.add(transaction);
 			siteClipperConnector.setDefaultTransaction(transaction);
 		}
-		else if (connector instanceof ExternalBrowserConnector) {
-			ExternalBrowserConnector externalBrowserConnector = (ExternalBrowserConnector) connector;
-			
-			ExternalBrowserTransaction transaction = externalBrowserConnector.newTransaction();
-			transaction.hasChanged = true;
-			transaction.bNew = true;
-			transaction.setName("Default_transaction");
-			externalBrowserConnector.add(transaction);
-			externalBrowserConnector.setDefaultTransaction(transaction);
-		}
-    }
+   }
 }
