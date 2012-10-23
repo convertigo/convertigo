@@ -32,13 +32,18 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(
@@ -54,6 +59,15 @@ public class GetPackage extends DownloadService {
 		String application = request.getParameter("application");
 		String platform = request.getParameter("platform");
 
+		// Get the final application name from config.xml
+		String mobileResourcesPath = Engine.PROJECTS_PATH + "/" + application + "/"
+				+ MobileDevice.RESOURCES_PATH;
+
+		Document configXmlDocument = XMLUtils.loadXml(mobileResourcesPath + "/config.xml");
+		NodeList nodeList = configXmlDocument.getElementsByTagName("name");
+		Element nameElement = (Element) nodeList.item(0);
+		String finalApplicationName = nameElement.getTextContent();
+		
 		String mobileBuilderPlatformURL = EnginePropertiesManager
 				.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
 		String mobileBuilderPlatformUsername = EnginePropertiesManager
@@ -72,7 +86,7 @@ public class GetPackage extends DownloadService {
 		try {
 			method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 			method.setRequestBody(new NameValuePair[] {
-					new NameValuePair("application", application),
+					new NameValuePair("application", finalApplicationName),
 					new NameValuePair("platform", platform),
 					new NameValuePair("username", mobileBuilderPlatformUsername),
 					new NameValuePair("password", mobileBuilderPlatformPassword) });
@@ -83,13 +97,14 @@ public class GetPackage extends DownloadService {
 			if (methodStatusCode != HttpStatus.SC_OK) {
 				byte[] httpBytes = IOUtils.toByteArray(methodBodyContentInputStream);
 				String sResult = new String(httpBytes, "UTF-8");
-				throw new ServiceException("Unable to get package for application '" + application + "'; reason: " + sResult);
+				throw new ServiceException("Unable to get package for application '" + application + "' (final app name: '" + finalApplicationName + "'); reason: " + sResult);
 			}
 
 			try {
-				response.setHeader("Content-Disposition", method.getResponseHeader("Content-Disposition").getValue());
+				String contentDisposition = method.getResponseHeader("Content-Disposition").getValue();
+				response.setHeader("Content-Disposition", contentDisposition);
 			} catch (Exception e) {
-				response.setHeader("Content-Disposition", "Attachment header; filename=" + application);
+				response.setHeader("Content-Disposition", "attachment; filename=\"" + application + "\"");
 			} 
 			
 			try {
