@@ -33,13 +33,16 @@ import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(name = "GetBuildStatus", roles = { Role.ANONYMOUS }, parameters = {}, returnValue = "")
@@ -48,6 +51,16 @@ public class GetBuildStatus extends XmlService {
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		String application = request.getParameter("application");
+		
+		// Get the final application name from config.xml
+		String mobileResourcesPath = Engine.PROJECTS_PATH + "/" + application + "/"
+				+ MobileDevice.RESOURCES_PATH;
+
+		Document configXmlDocument = XMLUtils.loadXml(mobileResourcesPath + "/config.xml");
+		NodeList nodeList = configXmlDocument.getElementsByTagName("name");
+		Element nameElement = (Element) nodeList.item(0);
+		String finalApplicationName = nameElement.getTextContent();
+		
 		String platform = request.getParameter("platform");
 
 		String url;
@@ -69,7 +82,7 @@ public class GetBuildStatus extends XmlService {
 		try {
 			method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 			method.setRequestBody(new NameValuePair[] {
-					new NameValuePair("application", application),
+					new NameValuePair("application", finalApplicationName),
 					new NameValuePair("username", mobileBuilderPlatformUsername),
 					new NameValuePair("password", mobileBuilderPlatformPassword) });
 
@@ -81,7 +94,7 @@ public class GetBuildStatus extends XmlService {
 
 			if (methodStatusCode != HttpStatus.SC_OK) {
 				throw new ServiceException("Unable to get building status for application '" + application
-						+ "'; reason: " + sResult);
+						+ "' (final app name: '" + finalApplicationName + "'); reason: " + sResult);
 			}
 
 			jsonResult = new JSONObject(sResult);
