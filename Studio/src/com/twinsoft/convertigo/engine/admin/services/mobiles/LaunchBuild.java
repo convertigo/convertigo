@@ -43,18 +43,17 @@ import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
@@ -161,14 +160,6 @@ public class LaunchBuild extends XmlService {
 			Document configXmlDocument = XMLUtils.loadXml(tmpMobileWwwPath + "/config.xml");
 			Element configXmlDocumentElement = configXmlDocument.getDocumentElement();
 			configXmlDocumentElement.setAttribute("id", applicationID);
-
-			NodeList nodeList = configXmlDocument.getElementsByTagName("name");
-			Element nameElement = (Element) nodeList.item(0);
-			nameElement.setTextContent(application);
-
-			nodeList = configXmlDocument.getElementsByTagName("description");
-			Element descriptionElement = (Element) nodeList.item(0);
-			descriptionElement.setTextContent("Convertigo mobile project for application '" + application + "'");
 
 			FileWriter fileWriter = new FileWriter(tmpMobileWwwPath + "/config.xml");
 			XMLUtils.prettyPrintDOMWithEncoding(configXmlDocument, "UTF-8", fileWriter);
