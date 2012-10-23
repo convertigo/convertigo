@@ -72,7 +72,7 @@ public class Download extends DownloadService {
 			logmanager.setMaxLines(200);
 			logmanager.setContinue(false);
 			
-			response.setHeader("Content-Disposition", "Attachment header; filename=" +basename + "_log.zip");
+			response.setHeader("Content-Disposition", "attachment; filename=\"" + basename + "_log.zip\"");
 			response.setContentType("application/zip");
 			
 			ZipOutputStream zop = new ZipOutputStream(response.getOutputStream());
