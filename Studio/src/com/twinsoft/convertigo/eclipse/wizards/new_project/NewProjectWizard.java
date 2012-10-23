@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.eclipse.wizards.new_project;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -55,6 +56,7 @@ import org.xml.sax.SAXException;
 import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -911,6 +913,29 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				break;
 			}
 
+			// configure config.xml
+			switch (templateId) {
+			case TEMPLATE_MOBILE_SENCHA:
+			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
+				String mobileWwwPath = Engine.PROJECTS_PATH + "/" + newProjectName + "/" + MobileDevice.RESOURCES_PATH;
+				Document configXmlDocument = XMLUtils.loadXml(mobileWwwPath + "/config.xml");
+				Element configXmlDocumentElement = configXmlDocument.getDocumentElement();
+				configXmlDocumentElement.setAttribute("id", newProjectName);
+
+				NodeList nodeList = configXmlDocument.getElementsByTagName("name");
+				Element nameElement = (Element) nodeList.item(0);
+				nameElement.setTextContent(newProjectName);
+
+				nodeList = configXmlDocument.getElementsByTagName("description");
+				Element descriptionElement = (Element) nodeList.item(0);
+				descriptionElement.setTextContent("Convertigo mobile project for application '" + newProjectName + "'");
+
+				FileWriter fileWriter = new FileWriter(mobileWwwPath + "/config.xml");
+				XMLUtils.prettyPrintDOMWithEncoding(configXmlDocument, "UTF-8", fileWriter);
+				fileWriter.close();
+				break;
+			}
+			
 			// configure connector properties
 			switch (templateId) {
 			case TEMPLATE_WEB_HTML_BULL_DKU_7107:
