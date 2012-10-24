@@ -474,12 +474,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			if (workOnSource())
 				return getSource().getContextNode();
 		}
-		if (isXml()) {
-			Document outputDocument = getOutputDocument();
-			return (outputDocument != null) ? outputDocument.getDocumentElement().getFirstChild() : null;
-		}
-		
-		return outputDocument.getDocumentElement();
+		Document outputDocument = getOutputDocument();
+		return (outputDocument != null) ? outputDocument.getDocumentElement().getFirstChild() : null;
 	}
 	
 	public Node getContextNode(String xpath, int loop) {
