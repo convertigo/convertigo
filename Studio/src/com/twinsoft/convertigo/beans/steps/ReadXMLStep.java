@@ -116,7 +116,10 @@ public class ReadXMLStep extends ReadFileStep {
 
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+		XmlSchemaElement element = null;
+		if (isOutput()) {
+			element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+		}
 		
 		File file = getFile();
 		if (file != null && file.exists()) {
@@ -125,25 +128,27 @@ public class ReadXMLStep extends ReadFileStep {
 				
 				XmlSchemaElement elt = XmlSchemaUtils.extractXmlSchemaElement(doc, schema, this);
 				
-				XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
-				element.setType(cType);
-
-				XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
-				cType.setParticle(sequence);
-				
-				sequence.getItems().add(elt);
+				if (element != null) {
+					XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+					element.setType(cType);
+	
+					XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+					cType.setParticle(sequence);
+					
+					sequence.getItems().add(elt);
+				} else {
+					element = elt;
+				}
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Engine.logBeans.info("Failed to load the xml file " + file.getAbsolutePath(), e);
 			}
+		}
+
+		if (element == null) {
+			element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
 		}
 		
 		return element;
 	}
 }
-	
-	
-
-
-
 	

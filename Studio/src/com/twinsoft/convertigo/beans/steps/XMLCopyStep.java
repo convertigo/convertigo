@@ -270,6 +270,7 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 			if (!source.isEmpty()) {
 				XmlSchemaObject object = SchemaMeta.getXmlSchemaObject(schema, source.getStep());
 				if (object != null) {
+					SchemaMeta.setSchema(object, schema);
 					String xpath = source.getXpath();
 					String anchor = source.getAnchor();
 					if (!".".equals(xpath)) {

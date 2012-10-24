@@ -48,6 +48,7 @@ public abstract class ReadFileStep extends Step {
 	
 	public ReadFileStep() {
 		super();
+		xml = true;
 	}
 
 	@Override
@@ -124,8 +125,9 @@ public abstract class ReadFileStep extends Step {
 
 	@Override
     public Document getWsdlDom() throws EngineException {
-    	if (wsdlDomDirty || (wsdlDom == null))
+    	if (wsdlDomDirty || wsdlDom == null) {
     		generateWsdlDom();
+    	}
     	return wsdlDom;
     }
 	
@@ -136,12 +138,6 @@ public abstract class ReadFileStep extends Step {
 				try {
 					String filePath = evaluateDataFileName(javascriptContext, scope);
 					Document xmlDoc = read(filePath, false);
-					Element xmlRoot = xmlDoc.getDocumentElement();
-					if (!xmlRoot.getTagName().equals("document")) {
-						Element newRoot = xmlDoc.createElement("document");
-						xmlDoc.replaceChild(newRoot, xmlRoot);
-						newRoot.appendChild(xmlRoot);
-					}
 					flushDocument(xmlDoc);
 					
 		        } catch (Exception e) {
@@ -158,8 +154,13 @@ public abstract class ReadFileStep extends Step {
 		if (sequence.runningThread.bContinue) {
 			if (isOutput()) sequence.flushStepDocument(executeTimeID, xmlDoc);
 			Node rootNode = outputDocument.getDocumentElement();
+			Node stepNode = rootNode.getFirstChild();
 			Node newChild = outputDocument.importNode(xmlDoc.getDocumentElement(), true);
-			outputDocument.replaceChild(newChild, rootNode);
+			if (isOutput()) {
+				stepNode.appendChild(newChild);
+			} else {
+				rootNode.replaceChild(newChild, stepNode);
+			}
 		}
 	}
 	
@@ -172,11 +173,13 @@ public abstract class ReadFileStep extends Step {
 			Document schemaDoc = read(filePath, true);
 			Element schemaRoot = schemaDoc.getDocumentElement();
 			
-			wsdlDom = getSequence().createDOM();
-			Element wsdlRoot = wsdlDom.getDocumentElement();
-			Element newRoot = (Element)wsdlDom.importNode(schemaRoot, true);
-			if (newRoot.getTagName().equals("document")) {
-				wsdlDom.replaceChild(newRoot, wsdlRoot);
+			wsdlDomDirty = true;
+			Element wsdlRoot = (Element) super.generateWsdlDom();
+			wsdlDom = wsdlRoot.getOwnerDocument();
+			Element newRoot = (Element) wsdlDom.importNode(schemaRoot, true);
+			if (!isOutput()) {
+				wsdlDom.renameNode(newRoot, wsdlDom.getNamespaceURI(), wsdlRoot.getNodeName());
+				wsdlRoot.getParentNode().replaceChild(newRoot, wsdlRoot);
 			}
 			else {
 				wsdlRoot.appendChild(newRoot);
@@ -222,4 +225,8 @@ public abstract class ReadFileStep extends Step {
 		return null;
 	}
 
+	@Override
+	public String getAnchor() throws EngineException {
+		return isOutput() ? super.getAnchor() : "/document/*";
+	}
 }

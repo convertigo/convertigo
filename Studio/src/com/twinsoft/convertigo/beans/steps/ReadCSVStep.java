@@ -296,22 +296,28 @@ public class ReadCSVStep extends ReadFileStep {
 	
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+		XmlSchemaElement element;
+		XmlSchemaElement elt;
+		if (isOutput()) {
+			element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+	
+			XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+			element.setType(cType);
+	
+			XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+			cType.setParticle(sequence);
 
-		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
-		element.setType(cType);
-
-		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
-		cType.setParticle(sequence);
-
-		XmlSchemaElement elt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+			elt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+			sequence.getItems().add(elt);
+		} else {
+			element = elt = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		}
 		elt.setName("document");
-		sequence.getItems().add(elt);
 		
-		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 		elt.setType(cType);
 		
-		sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
 		cType.setParticle(sequence);
 		
 		XmlSchemaElement subElt = null;

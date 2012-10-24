@@ -86,11 +86,10 @@ public class SchemaManager implements AbstractManager {
 
 		// get directly the project reference (read only)
 		final Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		XmlSchemaCacheEntry cacheEntry = getCacheEntry(projectName);
 		
-		synchronized (project) {
+		synchronized (cacheEntry) {
 			long lastChange = project.getLastChange();
-
-			XmlSchemaCacheEntry cacheEntry = schemaCache.get(projectName);
 
 			if (cacheEntry != null && cacheEntry.lastChange == lastChange) {
 				if (!fullSchema && cacheEntry.schema != null) {
@@ -105,6 +104,7 @@ public class SchemaManager implements AbstractManager {
 
 			// empty schema for the current project
 			final XmlSchema schema = XmlSchemaUtils.makeDynamic(project, new XmlSchema(project.getTargetNamespace(), collection));
+			SchemaMeta.setCollection(schema, collection);
 
 			try {
 				schema.setElementFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
@@ -393,20 +393,16 @@ public class SchemaManager implements AbstractManager {
 				long timeStop = System.currentTimeMillis();
 
 				// pretty print
-//				Transformer transformer = TransformerFactory.newInstance().newTransformer();
-//				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-//				transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-//				transformer.transform(new DOMSource(schema.getSchemaDocument()), new StreamResult(System.out));
+//				if (fullSchema) {
+//					Transformer transformer = TransformerFactory.newInstance().newTransformer();
+//					transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+//					transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+//					transformer.transform(new DOMSource(schema.getSchemaDocument()), new StreamResult(System.out));
+//				}
 				System.out.println("Schema for " + projectName + " | Times >> total : " + (timeStop - timeStart) + " ms");
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw e;
-			}
-			
-			cacheEntry = schemaCache.get(projectName);
-			if (cacheEntry == null) {
-				cacheEntry = new XmlSchemaCacheEntry();
-				schemaCache.put(projectName, cacheEntry);
 			}
 			
 			cacheEntry.lastChange = lastChange;
@@ -647,6 +643,17 @@ public class SchemaManager implements AbstractManager {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+	
+	private XmlSchemaCacheEntry getCacheEntry(String projectName) {
+		synchronized (schemaCache) {
+			XmlSchemaCacheEntry cacheEntry = schemaCache.get(projectName);
+			if (cacheEntry == null) {
+				cacheEntry = new XmlSchemaCacheEntry();
+				schemaCache.put(projectName, cacheEntry);
+			}
+			return cacheEntry;	
 		}
 	}
 }
