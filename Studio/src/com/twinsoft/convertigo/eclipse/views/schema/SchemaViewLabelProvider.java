@@ -14,10 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * $URL: http://sourceus.twinsoft.fr/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/eclipse/views/schema/SchemaViewLabelProvider.java $
+ * $Author: nicolasa $
+ * $Revision: 32115 $
+ * $Date: 2012-10-12 13:25:40 +0200 (ven., 12 oct. 2012) $
  */
 
 package com.twinsoft.convertigo.eclipse.views.schema;
@@ -88,7 +88,7 @@ public class SchemaViewLabelProvider implements ILabelProvider, IColorProvider {
 	}
 	
 	public String getText(Object element) {
-		String txt;
+		String txt = null;
 		if (element instanceof XmlSchema) {
 			XmlSchema schema = (XmlSchema) element;
 			String prefix = SchemaMeta.getPrefix(schema);
@@ -104,7 +104,6 @@ public class SchemaViewLabelProvider implements ILabelProvider, IColorProvider {
 				txt = "...";	
 			}
 		}  else if (element instanceof XmlSchemaObject) {
-			txt = element.getClass().getSimpleName().substring(9);
 			if (element instanceof XmlSchemaElement) {
 				txt = ((XmlSchemaElement) element).getName();
 			} else if (element instanceof XmlSchemaAttribute) {
@@ -115,6 +114,10 @@ public class SchemaViewLabelProvider implements ILabelProvider, IColorProvider {
 				if (name != null) {
 					txt = name;
 				}
+			}
+			if (txt == null) {
+				txt = element.getClass().getSimpleName().substring(9);
+				txt = "xsd:" + Character.toLowerCase(txt.charAt(0)) + txt.substring(1);
 			}
 		} else if (element instanceof NamedList) {
 			txt = ((NamedList) element).getName();
