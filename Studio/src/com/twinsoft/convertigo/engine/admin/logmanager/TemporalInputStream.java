@@ -237,13 +237,19 @@ public class TemporalInputStream extends InputStream {
 							min = cur;
 						}
 					}
+					date.setTime(date.getTime() + 1);
+					
+					if (cur_date != null && date.compareTo(cur_date) < 0) {
+						raf.seek(min);
+						cur_date = extractDate(raf, true);
+					}
+					
 					// Fix #1788 : 'Out of range Date' exception when start date is 2011-01-25 12:32 for log file of #1787
 					// can find next cur_date but last_date is a valid candidate for the end date
 					if (cur_date == null && last_date != null) {
 						cur_date = last_date;
 						raf.seek(last_pos);
 					}
-					date.setTime(date.getTime() + 1);
 					while (cur_date != null && date.compareTo(cur_date) > 0) {
 						raf.skipBytes(1);
 						cur_date = extractDate(raf, true);

@@ -153,6 +153,7 @@ public class Configure extends XmlService {
 						ServiceUtils.addMessage(document,root,"Request: \""+sqlRequest+"\" executed.","message");
 						
 					}finally {
+						br.close();
 						if (statement != null) {
 							statement.close();
 						}
