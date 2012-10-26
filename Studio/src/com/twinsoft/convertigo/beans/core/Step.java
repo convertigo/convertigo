@@ -483,12 +483,14 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	public Node getContextNode(int loop) throws EngineException {
-		if (!isXml() && workOnSource()) {
+		if (isXml()) {
+			Document outputDocument = getOutputDocument();
+			return (outputDocument != null) ? outputDocument.getDocumentElement().getFirstChild() : null;
+		}
+		if (workOnSource()) {
 			return getSource().getContextNode();
 		}
-		
-		Document outputDocument = getOutputDocument();
-		return (outputDocument != null) ? outputDocument.getDocumentElement().getFirstChild() : null;
+		return outputDocument.getDocumentElement();
 	}
 	
 	public Node getContextNode(String xpath, int loop) {
