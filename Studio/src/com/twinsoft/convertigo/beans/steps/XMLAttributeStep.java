@@ -207,7 +207,7 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 								stepNode = doc.getDocumentElement().getAttributeNode(namespace + ":" + snodeName);
 							}
 							
-							((Step)parent).appendChildNode(stepNode);
+							stepNode = ((Step)parent).appendChildNode(stepNode);
 						}
 					}
 				}
@@ -217,7 +217,7 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 				if (namespace.equals("")) {
 					doc.getDocumentElement().setAttribute(getStepNodeName(), getNodeText());
 					stepNode = doc.getDocumentElement().getAttributeNode(getStepNodeName());
-					((Step)parent).appendChildNode(stepNode);
+					stepNode = ((Step)parent).appendChildNode(stepNode);
 				}
 				else {
 					String namespaceURI = getNodeNameSpaceURI();
@@ -233,7 +233,7 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 					stepNode = doc.getDocumentElement().getAttributeNode(namespace + ":" + getStepNodeName());
 				}
 
-				((Step)parent).appendChildNode(stepNode);
+				stepNode = ((Step)parent).appendChildNode(stepNode);
 			}
 		}
 		return stepNode;

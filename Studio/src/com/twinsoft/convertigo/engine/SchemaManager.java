@@ -581,63 +581,28 @@ public class SchemaManager implements AbstractManager {
 		schemaCache.remove(projectName);
 	}
 	
-//	public void validateResponse(String projectName, String requestableName, Document document) {
-//		try {
-//			XmlSchema schema = getSchemaForProject(projectName);
-//		
-//			try {
-//				Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
-//				Element elt = doc.createElement(requestableName + "Response");
-//				doc.appendChild(elt);
-//				elt = doc.createElement("response");
-//	
-//				NodeList children = document.getDocumentElement().getChildNodes();
-//				for (int i = 0; i < children.getLength(); i++) {
-//					elt.appendChild(doc.importNode(children.item(i), true));
-//				}
-//				
-//				if (elt.getChildNodes().getLength() > 0) {
-//					doc.getDocumentElement().appendChild(elt);
-//				}
-//				
-//				XMLUtils.setNamespace(doc, schema.getTargetNamespace());
-//				
-//				XmlSchemaUtils.validate(schema, doc);
-//				
-//				document.appendChild(document.createComment("Response valid"));
-//			} catch (SAXException e) {
-//				System.err.println(e.getMessage());
-//				document.appendChild(document.createComment("Response not valid : " + e.getMessage()));
-//			}
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//	}
-	
 	public void validateResponse(String projectName, String requestableName, Document document) throws SAXException {
 		try {
 			XmlSchema schema = getSchemaForProject(projectName);
-		
+			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			
-				Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
-				Element elt = doc.createElement(requestableName + "Response");
-				doc.appendChild(elt);
-				elt = doc.createElement("response");
-	
-				NodeList children = document.getDocumentElement().getChildNodes();
-				for (int i = 0; i < children.getLength(); i++) {
-					elt.appendChild(doc.importNode(children.item(i), true));
-				}
-				
-				String sequence = document.getDocumentElement().getAttribute("sequence");
-				if ((sequence != null && sequence.length() > 0) || elt.getChildNodes().getLength() > 0) {
-					doc.getDocumentElement().appendChild(elt);
-				}
+			Element elt = doc.createElement(requestableName + "Response");
+			doc.appendChild(elt);
+			elt = doc.createElement("response");
 
-				XMLUtils.setNamespace(doc, schema.getTargetNamespace());
+			NodeList children = document.getDocumentElement().getChildNodes();
+			for (int i = 0; i < children.getLength(); i++) {
+				elt.appendChild(doc.importNode(children.item(i), true));
+			}
 
-				XmlSchemaUtils.validate(schema, doc);
+			String sequence = document.getDocumentElement().getAttribute("sequence");
+			if ((sequence != null && sequence.length() > 0) || elt.getChildNodes().getLength() > 0) {
+				doc.getDocumentElement().appendChild(elt);
+			}
+
+			XMLUtils.spreadNamespaces(doc, schema.getTargetNamespace());
+
+			XmlSchemaUtils.validate(schema, doc);
 		} catch (SAXException e) {
 			throw e;
 		} catch (Exception e) {

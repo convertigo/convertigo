@@ -4,8 +4,10 @@ import java.io.File;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.apache.ws.commons.schema.XmlSchemaImport;
 
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 
@@ -26,6 +28,8 @@ public abstract class AbstractImportLocalXsdReference extends Reference {
 				importedSchema = SchemaUtils.loadSchema(getXsdFile(), collection);
 			}
 			
+			importedSchema.setElementFormDefault(new XmlSchemaForm(Project.XSD_FORM_QUALIFIED));
+			importedSchema.setAttributeFormDefault(new XmlSchemaForm(Project.XSD_FORM_QUALIFIED));
 			schemaImport.setSchemaLocation(getXsdFile().toURI().toString());
 			schemaImport.setNamespace(importedSchema.getTargetNamespace());
 			schemaImport.setSchema(importedSchema);

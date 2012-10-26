@@ -25,7 +25,6 @@ import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
-import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
 import org.apache.ws.commons.schema.XmlSchemaSimpleType;
 import org.apache.ws.commons.schema.XmlSchemaUse;
 import org.apache.ws.commons.schema.constants.Constants;
@@ -254,18 +253,18 @@ public class XmlSchemaUtils {
 	
 	private static void validate(XmlSchema schema, Source source) throws SAXException {
 		try {
-		      Schema vSchema = factory.newSchema(new DOMSource(schema.getSchemaDocument()));
-		      Validator validator = vSchema.newValidator();
-		      validator.validate(source);
-			} catch (XmlSchemaSerializerException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			Document[] docs = schema.getAllSchemas();
+			Source[] sources = new Source[docs.length];
+			for (int i = 0; i < docs.length; i++) {
+				sources[i] = new DOMSource(docs[i]);
 			}
-
-		      // at last perform validation:
+			Schema vSchema = factory.newSchema(sources);
+			Validator validator = vSchema.newValidator();
+			validator.validate(source);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public static XmlSchemaElement extractXmlSchemaElement(Document doc, final XmlSchema schemaAdopter, final DatabaseObject dboAdopter) throws Exception {

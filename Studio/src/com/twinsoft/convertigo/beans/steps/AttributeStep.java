@@ -204,7 +204,7 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator {
 			if (namespace.equals("")) {
 				doc.getDocumentElement().setAttribute(getStepNodeName(), nodeValue);
 				stepNode = doc.getDocumentElement().getAttributeNode(getStepNodeName());
-				((Step)parent).appendChildNode(stepNode);
+				stepNode = ((Step)parent).appendChildNode(stepNode);
 			}
 			else {
 				String namespaceURI = getNodeNameSpaceURI();
@@ -220,7 +220,7 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator {
 				stepNode = doc.getDocumentElement().getAttributeNode(namespace + ":" + getStepNodeName());
 			}
 
-			((Step)parent).appendChildNode(stepNode);
+			stepNode = ((Step)parent).appendChildNode(stepNode);
 		}
 		return stepNode;
 	}

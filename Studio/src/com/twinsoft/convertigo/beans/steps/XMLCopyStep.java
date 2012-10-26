@@ -171,7 +171,7 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 		if (!inError()) {
 			createStepNodeValue(doc, stepNode);
 			if (parent instanceof Step)
-				((Step)parent).appendChildNode(stepNode);
+				stepNode = ((Step)parent).appendChildNode(stepNode);
 		}
 		return stepNode;
 	}

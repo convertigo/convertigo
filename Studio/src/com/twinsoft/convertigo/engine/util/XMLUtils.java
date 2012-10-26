@@ -888,22 +888,36 @@ public class XMLUtils {
 		return res;
 	}
 	
-	public static void setNamespace(Node node, String tns) {
+	public static void spreadNamespaces(Node node, String tns) {
 		Document doc = node instanceof Document ? (Document) node : node.getOwnerDocument();
 		boolean isParent = false;
 		while (node != null) {
 			Node next = null;
 			if (!isParent && node.getNodeType() == Node.ELEMENT_NODE) {
-				node = doc.renameNode(node, tns, node.getNodeName());
+				if (node.getNamespaceURI() == null) {
+					node = doc.renameNode(node, tns, node.getNodeName());
+				} else {
+					tns = node.getNamespaceURI();
+				}
 				NamedNodeMap nodeMap = node.getAttributes();
 				int nodeMapLengthl = nodeMap.getLength();
 				for (int i = 0; i < nodeMapLengthl; i++) {
 					Node attr = nodeMap.item(i);
-					doc.renameNode(attr, tns, attr.getNodeName());
+					if (attr.getNamespaceURI() == null) {
+						doc.renameNode(attr, tns, attr.getNodeName());
+					}
 				}
 			}
 			isParent = (isParent || (next = node.getFirstChild()) == null) && (next = node.getNextSibling()) == null;
 			node = isParent ? node.getParentNode() : next;
+			if (isParent && node != null) {
+				tns = node.getNamespaceURI();
+			}
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <N extends Node> N setNamespace(N node, String tns) {
+		return (N) node.getOwnerDocument().renameNode(node, tns, node.getNodeName());
 	}
 }

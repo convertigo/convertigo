@@ -349,7 +349,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			createStepNodeValue(doc, stepNode);
 			if (isXml()) {
 				if (parent instanceof Step)
-					((Step)parent).appendChildNode(stepNode);
+					stepNode = ((Step)parent).appendChildNode(stepNode);
 			}
 		}
 		return stepNode;
@@ -377,9 +377,17 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		//does nothing
 	}
 	
-	public void appendChildNode(Node nodeToImport) throws EngineException {
+	public <N extends Node> N appendChildNode(N nodeToImport) throws EngineException {
 		Document doc = getOutputDocument();
 		Node importedNode = null;
+		
+		if (nodeToImport.getNamespaceURI() == null) {
+			String tns = getComplexTypeAffectation().getNamespaceURI();
+			if (tns.length() > 0) {
+				nodeToImport = XMLUtils.setNamespace(nodeToImport, tns);
+			}
+		}
+		
 		if (!inError()) {
 			if (isXml()) {
 				NodeList list = doc.getElementsByTagName(getStepNodeName());
@@ -424,9 +432,10 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			}
 			else {
 				if (parent instanceof Step)
-					((Step)parent).appendChildNode(nodeToImport);
+					nodeToImport = ((Step)parent).appendChildNode(nodeToImport);
 			}
 		}
+		return nodeToImport;
 	}
 	
 	public void replaceChildNode(Node nodeToImport) throws EngineException {
