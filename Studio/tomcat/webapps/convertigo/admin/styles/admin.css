@@ -573,6 +573,10 @@ table {
 	text-align: right;
 }
 
+#schedulerDialogAddEntry #schedulerCronWizard td {
+	text-align: center;
+}
+
 /************************************************* DOCK MENU *******************************************************/
 #mainmenu>table.mainmenu_tab>div.mainmenu_mb_menuV {
 	width: 75px;
