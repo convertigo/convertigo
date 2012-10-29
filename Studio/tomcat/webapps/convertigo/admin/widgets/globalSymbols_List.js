@@ -74,7 +74,7 @@ function globalSymbols_List_init() {
 	            e.keyCode = $.ui.keyCode.ENTER;
 	            edit = $(".edit-cell > *");
 	            edit.blur(function() {
-	            	//Simulate press ENTER event
+	            	//Simulate press "ENTER" event
 	                edit.trigger(e);
 	                $("#updateSymbols").button("enable");
 	            });
