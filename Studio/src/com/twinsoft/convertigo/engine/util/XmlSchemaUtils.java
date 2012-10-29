@@ -34,6 +34,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XmlSchemaWalker.XmlSchemaWalkerWatcher;
 
@@ -256,6 +257,8 @@ public class XmlSchemaUtils {
 			Document[] docs = schema.getAllSchemas();
 			Source[] sources = new Source[docs.length];
 			for (int i = 0; i < docs.length; i++) {
+				docs[i].getDocumentElement().setAttribute("elementFormDefault", Project.XSD_FORM_QUALIFIED);
+				docs[i].getDocumentElement().setAttribute("attributeFormDefault", Project.XSD_FORM_QUALIFIED);
 				sources[i] = new DOMSource(docs[i]);
 			}
 			Schema vSchema = factory.newSchema(sources);
