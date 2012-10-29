@@ -66,13 +66,26 @@ function globalSymbols_List_init() {
 			pginput : true,
 			toppager : false,
 			altRows : false,			
-			rownumbers : false
+			rownumbers : false,
+			afterEditCell: function() {
+				$("#updateSymbols").button("disable")
+	            e = jQuery.Event("keydown");
+	            e.keyCode = $.ui.keyCode.ENTER;
+	            edit = $(".edit-cell > *");
+	            edit.blur(function() {
+	            	//Simulate press ENTER event
+	                edit.trigger(e);
+	                $("#updateSymbols").button("enable");
+	            });
+	        }
 		});
-		updateGlobalSymbolsList(xml);
 		
-		$("#symbolsList").change(function() {
-			$("#updateSymbols").button("enable");
-		});
+		updateGlobalSymbolsList(xml);
+	});
+	
+	//When press ENTER
+	$("#symbolsList").change(function() {
+		$("#updateSymbols").button("enable");
 	});
 }
 
