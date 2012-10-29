@@ -26,6 +26,7 @@ import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
+import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
 import org.apache.ws.commons.schema.XmlSchemaSimpleType;
 import org.apache.ws.commons.schema.XmlSchemaUse;
 import org.apache.ws.commons.schema.constants.Constants;
@@ -245,27 +246,32 @@ public class XmlSchemaUtils {
 		return doc;
 	}
 
-	public static void validate(XmlSchema schema) throws SAXException {
-		validate(schema, emptySource);
+	public static void validate(XmlSchemaCollection collection) throws SAXException {
+		validate(collection, emptySource);
 	}
 	
-	public static void validate(XmlSchema schema, Document document) throws SAXException {
-		validate(schema, new DOMSource(document));
+	public static void validate(XmlSchemaCollection collection, Document document) throws SAXException {
+		validate(collection, new DOMSource(document));
 	}
 	
-	private static void validate(XmlSchema schema, Source source) throws SAXException {
+	private static void validate(XmlSchemaCollection collection, Source source) throws SAXException {
 		try {
-			Document[] docs = schema.getAllSchemas();
-			Source[] sources = new Source[docs.length];
-			for (int i = 0; i < docs.length; i++) {
-				docs[i].getDocumentElement().setAttribute("elementFormDefault", Project.XSD_FORM_QUALIFIED);
-				docs[i].getDocumentElement().setAttribute("attributeFormDefault", Project.XSD_FORM_QUALIFIED);
-				sources[i] = new DOMSource(docs[i]);
+			XmlSchema[] schemas = collection.getXmlSchemas();
+			
+			Source[] sources = new Source[schemas.length];
+			for (int i = 0; i < schemas.length; i++) {
+				Document doc = schemas[i].getSchemaDocument();
+				doc.getDocumentElement().setAttribute("elementFormDefault", Project.XSD_FORM_QUALIFIED);
+				doc.getDocumentElement().setAttribute("attributeFormDefault", Project.XSD_FORM_QUALIFIED);
+				sources[i] = new DOMSource(doc);
 			}
 			Schema vSchema = factory.newSchema(sources);
 			Validator validator = vSchema.newValidator();
 			validator.validate(source);
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (XmlSchemaSerializerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

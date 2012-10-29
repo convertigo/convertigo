@@ -62,7 +62,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
 import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewContentProvider.Root;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.EngineListenerHelper;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
@@ -410,8 +409,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	
 						public void run() {
 							try {
-								XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(projectName, fullSchema);
-								final XmlSchemaCollection xmlSchemaCollection = SchemaMeta.getCollection(schema);
+								final XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName, fullSchema);
 	
 								Display.getDefault().asyncExec(new Runnable() {
 	
@@ -424,7 +422,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	
 								final Exception[] exception = {null};
 								try {
-									XmlSchemaUtils.validate(schema);
+									XmlSchemaUtils.validate(xmlSchemaCollection);
 								} catch (SAXException e) {
 									exception[0] = e;
 								}

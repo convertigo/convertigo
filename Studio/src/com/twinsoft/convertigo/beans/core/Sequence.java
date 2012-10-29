@@ -35,14 +35,18 @@ import java.util.Map;
 import java.util.Vector;
 
 import javax.swing.event.EventListenerList;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -75,7 +79,7 @@ import com.twinsoft.convertigo.engine.util.XSDExtractor;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.util.StringEx;
 
-public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator {
+public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator, IComplexTypeAffectation {
 
 	private static final long serialVersionUID = 8218719500689068156L;
 	
@@ -1734,9 +1738,39 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		
 		SchemaMeta.setContainerXmlSchemaElement(eSequence, eDocument);
 		
+		String[] attrs = new String[] {"connector", "context", "contextId", "fromcache", "generated", "project", "sequence", "signature", "transaction", "version"};
+		
+		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		XmlSchemaObjectCollection attributes = cType.getAttributes();
+		for (String attr : attrs) {
+			XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+			attribute.setName(attr);
+			attribute.setSchemaTypeName(Constants.XSD_STRING);
+			attribute.setUse(XmlSchemaUtils.attributeUseRequired);
+			attributes.add(attribute);
+		}
+		eDocument.setSchemaType(cType);
+		
+		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		cType.setName(getName() + "ResponseType");
+		schema.addType(cType);
+		
+		sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+		cType.setParticle(sequence);
+		
+		eDocument = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		sequence.getItems().add(eDocument);
+		
+		eDocument.setName("document");
+		eDocument.setSchemaTypeName(new QName(schema.getTargetNamespace(), getName() + "ResponseData"));
+		
 		return eSequence;
 	}
 	
+	public QName getComplexTypeAffectation() {
+		return new QName("", getName() + "ResponseData");
+	}
+
 	public boolean isGenerateSchema() {
 		return true;
 	}
