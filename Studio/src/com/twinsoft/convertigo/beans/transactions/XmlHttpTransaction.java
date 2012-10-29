@@ -22,8 +22,6 @@
 
 package com.twinsoft.convertigo.beans.transactions;
 
-import java.io.File;
-
 import javax.xml.namespace.QName;
 
 import org.apache.ws.commons.schema.XmlSchema;
@@ -36,7 +34,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class XmlHttpTransaction extends HttpTransaction {
