@@ -261,6 +261,7 @@ public class ProcessExecStep extends Step {
 				status = "" + process.exitValue();
 			} catch (IllegalThreadStateException e) {
 			}
+			status = status.equals("") ? "0":status; // status should not be empty (integer value)
 			exitNode.appendChild(doc.createTextNode(status));
 		} catch (Throwable t) {
 			setErrorStatus(true);

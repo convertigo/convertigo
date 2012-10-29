@@ -29,7 +29,6 @@ import java.util.List;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
-import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.Scriptable;
@@ -261,7 +260,7 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator {
 	public XmlSchemaAttribute getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
 		attribute.setName(getStepNodeName());
-		attribute.setSchemaTypeName(Constants.XSD_STRING);
+		attribute.setSchemaTypeName(XmlSchemaUtils.getSchemaDataTypeName(getSchemaDataType()));
 		attribute.setUse(XmlSchemaUtils.attributeUseRequired);
 		addXmlSchemaAnnotation(attribute);
 		return attribute;

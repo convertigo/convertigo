@@ -483,7 +483,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 				sequence.getItems().add(elt);
 				
 			} else {
-				date.setSchemaTypeName(Constants.XSD_STRING);
+				date.setSchemaTypeName(XmlSchemaUtils.getSchemaDataTypeName(getSchemaDataType()));
 			}
 		}
 		

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
@@ -323,5 +324,16 @@ public class XmlSchemaUtils {
 		}.init(elt, true, false);
 		
 		return elt;
+	}
+	
+	public static QName getSchemaDataTypeName(String schemaDataTypeName) {
+		QName qname = Constants.XSD_STRING;
+		if (schemaDataTypeName != null && schemaDataTypeName.startsWith("xsd:")) {
+			try {
+				qname = new QName(Constants.URI_2001_SCHEMA_XSD, schemaDataTypeName.split(":")[1]);
+			}
+			catch (Exception e) {}
+		}
+		return qname;
 	}
 }

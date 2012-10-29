@@ -31,7 +31,6 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
-import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -242,7 +241,7 @@ public class XMLSplitStep extends XMLElementStep {
 			if (i == count) {
 				elt.setMaxOccurs(Long.MAX_VALUE);
 			}
-			elt.setSchemaTypeName(Constants.XSD_STRING);
+			elt.setSchemaTypeName(XmlSchemaUtils.getSchemaDataTypeName(getSchemaDataType()));
 			sequence.getItems().add(elt);
 		}
 		

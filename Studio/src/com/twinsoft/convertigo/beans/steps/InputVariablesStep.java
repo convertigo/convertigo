@@ -13,7 +13,6 @@ import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaGroupBase;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
-import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.Scriptable;
@@ -233,7 +232,7 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 		for (RequestableVariable variable : getParentSequence().getAllVariables()) {
 			XmlSchemaElement element = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
 			element.setName(variable.getName());
-			element.setSchemaTypeName(Constants.XSD_STRING);
+			element.setSchemaTypeName(XmlSchemaUtils.getSchemaDataTypeName(variable.getSchemaType()));
 			element.setMinOccurs(0);
 			if (variable.isMultiValued()) {
 				element.setMaxOccurs(Long.MAX_VALUE);
