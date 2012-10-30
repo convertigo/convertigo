@@ -157,12 +157,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		}
 	}
 
-	transient protected SortedSet<String> vPropertiesForAdmin = new TreeSet<String>();
-
-	public List<String> getPropertiesForAdmin() {
-		return new ArrayList<String>(vPropertiesForAdmin);
-	}
-
 	public Icon getIcon(int iconKind) {
 		try {
 			BeanInfo bi = CachedIntrospector.getBeanInfo(getClass());

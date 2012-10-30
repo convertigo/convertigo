@@ -136,17 +136,6 @@ public class HttpConnector extends Connector {
 
 	public HttpConnector() {
 		super();
-		vPropertiesForAdmin.add("server");
-		vPropertiesForAdmin.add("port");
-		vPropertiesForAdmin.add("https");
-		vPropertiesForAdmin.add("baseDir");
-		vPropertiesForAdmin.add("basicUser");
-		vPropertiesForAdmin.add("basicPassword");
-		vPropertiesForAdmin.add("proxyServer");
-		vPropertiesForAdmin.add("proxyPort");
-		vPropertiesForAdmin.add("proxyUser");
-		vPropertiesForAdmin.add("proxyPassword");
-		vPropertiesForAdmin.add("trustAllServerCertificates");
 
 		certificateManager = new CertificateManager();
 

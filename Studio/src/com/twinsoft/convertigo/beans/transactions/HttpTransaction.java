@@ -117,7 +117,6 @@ public class HttpTransaction extends TransactionWithVariables {
 		line.add("application/x-www-form-urlencoded");
 		httpParameters.add(line);
 
-        vPropertiesForAdmin.add("subDir");
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })

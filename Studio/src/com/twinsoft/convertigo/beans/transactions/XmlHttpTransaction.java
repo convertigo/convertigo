@@ -43,7 +43,6 @@ public class XmlHttpTransaction extends HttpTransaction {
 	public XmlHttpTransaction()
 	{
 		super();
-        vPropertiesForAdmin.add("xmlEncoding");
 	}
 	
 	public String getXmlEncoding() {

@@ -170,8 +170,6 @@ public class JavelinTransaction extends TransactionWithVariables {
 	
 	public JavelinTransaction() {
         super();
-        vPropertiesForAdmin.add("dataStableThreshold");
-        vPropertiesForAdmin.add("timeoutForDataStable");
     }
     
     transient private Vector<String> vExtractionRulesInited;

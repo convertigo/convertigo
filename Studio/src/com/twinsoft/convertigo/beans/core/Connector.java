@@ -51,7 +51,6 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
     public Connector() {
         super();
 		databaseType = "Connector";
-        vPropertiesForAdmin.add("isTasAuthenticationRequired");
 	}
 	
     private transient EventListenerList connectorListeners = new EventListenerList();
