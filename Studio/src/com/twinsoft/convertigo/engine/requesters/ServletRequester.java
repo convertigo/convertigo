@@ -53,11 +53,6 @@ public abstract class ServletRequester extends GenericRequester {
 
 	public void checkSecuredConnection(RequestableObject requestable) throws EngineException {
 		if (requestable.isSecureConnectionRequired()) {
-			if (Engine.isStudioMode()) {
-				// In studio mode, all requestables can be executed
-				return;
-			}
-
 			if (!context.httpServletRequest.isSecure()) {
 				throw new EngineException("Unable to execute the requestable '" + requestable.getName()
 						+ "' because a secured connection is needed");
