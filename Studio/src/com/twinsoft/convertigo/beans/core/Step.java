@@ -1003,12 +1003,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			XmlSchemaDocumentation documentation = XmlSchemaUtils.makeDynamic(this, new XmlSchemaDocumentation());
 			annotation.getItems().add(documentation);
 			
-			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
-			Element root = doc.createElement("root");
-			root.appendChild(doc.createTextNode(comment));
-			NodeList nl = root.getChildNodes();
-			
-			documentation.setMarkup(nl);
+			documentation.setMarkup(XMLUtils.asNodeList(comment));
 		}
 	}
 	

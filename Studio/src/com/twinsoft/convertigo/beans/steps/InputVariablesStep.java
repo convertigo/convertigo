@@ -229,7 +229,7 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 		
 		XmlSchemaSequence sequence = variables.size() > 0 ? XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence()) : null;
 		
-		for (RequestableVariable variable : getParentSequence().getAllVariables()) {
+		for (RequestableVariable variable : variables) {
 			XmlSchemaElement element = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
 			element.setName(variable.getName());
 			element.setSchemaTypeName(XmlSchemaUtils.getSchemaDataTypeName(variable.getSchemaType()));

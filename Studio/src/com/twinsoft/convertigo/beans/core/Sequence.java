@@ -40,6 +40,8 @@ import javax.xml.namespace.QName;
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAnnotation;
+import org.apache.ws.commons.schema.XmlSchemaAppInfo;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
@@ -82,6 +84,9 @@ import com.twinsoft.util.StringEx;
 public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator, IComplexTypeAffectation {
 
 	private static final long serialVersionUID = 8218719500689068156L;
+	private enum DOC_ATTR {
+		connector, context, contextId, fromcache, generated, project, sequence, signature, transaction, version
+	};
 	
     public static final String EVENT_SEQUENCE_STARTED = "SequenceStarted";
     public static final String EVENT_SEQUENCE_FINISHED = "SequenceFinished";
@@ -1736,13 +1741,11 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		
 		SchemaMeta.setContainerXmlSchemaElement(eSequence, eDocument);
 		
-		String[] attrs = new String[] {"connector", "context", "contextId", "fromcache", "generated", "project", "sequence", "signature", "transaction", "version"};
-		
 		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 		XmlSchemaObjectCollection attributes = cType.getAttributes();
-		for (String attr : attrs) {
+		for (DOC_ATTR attr : DOC_ATTR.values()) {
 			XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
-			attribute.setName(attr);
+			attribute.setName(attr.name());
 			attribute.setSchemaTypeName(Constants.XSD_STRING);
 			attribute.setUse(XmlSchemaUtils.attributeUseRequired);
 			attributes.add(attribute);
@@ -1763,6 +1766,53 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		
 		eDocument.setName("document");
 		eDocument.setSchemaTypeName(new QName(schema.getTargetNamespace(), getName() + "ResponseData"));
+		
+		// declare input types : xyzRequestData and the xyz xsd:element		
+		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		cType.setName(getName() + "RequestData");
+		
+		schema.addType(cType);
+		schema.getItems().add(cType);
+		
+		eDocument = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		eDocument.setName(getName());
+		eDocument.setSchemaTypeName(cType.getQName());
+		
+		schema.getItems().add(eDocument);
+		
+		List<RequestableVariable> variables = getAllVariables();
+		
+		if (variables.size() > 0) {
+			sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+			cType.setParticle(sequence);
+			for (RequestableVariable variable : variables) {
+				XmlSchemaElement element = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+				sequence.getItems().add(element);
+				element.setName(variable.getName());
+				String description = variable.getDescription();
+				if (description != null && description.length() > 0) {
+					XmlSchemaAnnotation annotation = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAnnotation());
+					element.setAnnotation(annotation);
+					XmlSchemaAppInfo appInfo = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAppInfo());
+					annotation.getItems().add(appInfo);
+					appInfo.setMarkup(XMLUtils.asNodeList(description));
+				}
+				if (variable.isMultiValued()) {
+					if (variable.isSoapArray()) {
+						cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+						element.setType(cType);
+						XmlSchemaSequence items = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+						cType.setParticle(items);
+						element = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+						element.setName("item");
+						items.getItems().add(element);
+					}
+					element.setMinOccurs(0);
+					element.setMaxOccurs(Long.MAX_VALUE);
+				}
+				element.setSchemaTypeName(XmlSchemaUtils.getSchemaDataTypeName(variable.getSchemaType()));
+			}
+		}
 		
 		return eSequence;
 	}

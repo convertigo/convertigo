@@ -920,4 +920,13 @@ public class XMLUtils {
 	public static <N extends Node> N setNamespace(N node, String tns) {
 		return (N) node.getOwnerDocument().renameNode(node, tns, node.getNodeName());
 	}
+	
+	public static NodeList asNodeList(String...strings) {
+		Document doc = getDefaultDocumentBuilder().newDocument();
+		Element root = doc.createElement("root");
+		for (String string : strings) {
+			root.appendChild(doc.createTextNode(string));
+		}
+		return root.getChildNodes();
+	}
 }

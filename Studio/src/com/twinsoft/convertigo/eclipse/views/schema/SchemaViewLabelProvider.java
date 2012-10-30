@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAppInfo;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaDocumentation;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -65,7 +66,7 @@ public class SchemaViewLabelProvider implements ILabelProvider, IColorProvider {
 				iconName = key = ((NamedList) element).getName().toLowerCase() + "_folder";
 			} else if (element instanceof XmlSchema) {
 				iconName = "schema";
-			} else if (element instanceof XmlSchemaDocumentation) {
+			} else if (element instanceof XmlSchemaDocumentation || element instanceof XmlSchemaAppInfo) {
 				iconName = "notation";
 			}  else if (element instanceof XmlSchemaObject) {
 				iconName = key.contains("Extension") ?
@@ -95,9 +96,8 @@ public class SchemaViewLabelProvider implements ILabelProvider, IColorProvider {
 			txt = prefix + "{" + schema.getTargetNamespace() + "}";
 		} else if (element instanceof XmlSchemaImport) {
 			txt = "import " + getText(((XmlSchemaImport) element).getSchema());	
-		} else if (element instanceof XmlSchemaDocumentation) {
-			XmlSchemaDocumentation documentation = (XmlSchemaDocumentation) element;
-			NodeList nl = documentation.getMarkup();
+		} else if (element instanceof XmlSchemaDocumentation || element instanceof XmlSchemaAppInfo) {
+			NodeList nl = element instanceof XmlSchemaDocumentation ? ((XmlSchemaDocumentation) element).getMarkup() : ((XmlSchemaAppInfo) element).getMarkup();
 			if (nl != null && nl.getLength() > 0) {
 				txt = nl.item(0).getTextContent();
 			} else {
