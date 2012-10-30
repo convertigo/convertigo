@@ -27,6 +27,8 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
 
 import com.twinsoft.convertigo.beans.core.ISchemaIncludeGenerator;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 
 public abstract class AbstractIncludeLocalXsdReference extends AbstractLocalXsdReference implements ISchemaIncludeGenerator {
@@ -35,12 +37,22 @@ public abstract class AbstractIncludeLocalXsdReference extends AbstractLocalXsdR
 	public XmlSchemaInclude getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaInclude schemaInclude = new XmlSchemaInclude();
 		try {
-			XmlSchema incluedSchema = SchemaUtils.loadSchema(getXsdFile(), new XmlSchemaCollection());
-			
-			schemaInclude.setSchemaLocation(getXsdFile().toURI().toString());
-			schemaInclude.setSchema(incluedSchema);
+			// load schema
+			XmlSchema includedSchema = SchemaUtils.loadSchema(getXsdFile(), new XmlSchemaCollection());
+			if (includedSchema != null) {
+				try {
+					// check for same namespace
+					checkTargetNamespace(schema, includedSchema);
+					
+					// initialize include
+					schemaInclude.setSchemaLocation(getXsdFile().toURI().toString());
+					schemaInclude.setSchema(includedSchema);
+				}
+				catch (EngineException e) {
+					Engine.logBeans.error(e.getMessage());
+				}
+			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return schemaInclude;
@@ -50,4 +62,11 @@ public abstract class AbstractIncludeLocalXsdReference extends AbstractLocalXsdR
 		return true;
 	}	
 	
+	private void checkTargetNamespace(XmlSchema mainSchema, XmlSchema includedSchema) throws EngineException {
+		String tns1 = mainSchema.getTargetNamespace();
+		String tns2 = includedSchema.getTargetNamespace();
+		if (tns1 != null && tns2 != null && tns1.equals(tns2)) return;
+		throw new EngineException("Incorect schema include +" +
+				"("+getXsdFile().getPath()+"): target namespace differs from \""+tns1+"\"");
+	}
 }

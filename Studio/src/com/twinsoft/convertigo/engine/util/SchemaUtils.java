@@ -80,7 +80,7 @@ public class SchemaUtils {
 	}
 
 	public static XmlSchema loadSchema(File xsdFile, XmlSchemaCollection xmlSchemaCollection) throws SAXException, IOException {
-		if (xsdFile.exists()) {
+		if (xsdFile.exists() && xsdFile.isFile()) {
 			Document xsdDocument = getDefaultDocumentBuilder().parse(xsdFile.toURL().toString());
 			XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, xsdFile.toURL().toString(), null);
 			return xmlSchema;

@@ -5,6 +5,8 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaImport;
 
 import com.twinsoft.convertigo.beans.core.ISchemaImportGenerator;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 
 public abstract class AbstractImportLocalXsdReference extends AbstractLocalXsdReference implements ISchemaImportGenerator  {
@@ -13,22 +15,23 @@ public abstract class AbstractImportLocalXsdReference extends AbstractLocalXsdRe
 	public XmlSchemaImport getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaImport schemaImport = new XmlSchemaImport();
 		try {
-//			XmlSchema importedSchema = SchemaUtils.loadSchema(getXsdFile(), new XmlSchemaCollection());
-//			
-//			if (importedSchema.getTargetNamespace() == null) {
-//				importedSchema.setTargetNamespace("http://no.name.space/" + getName());
-//				importedSchema = collection.read(importedSchema.getSchemaDocument().getDocumentElement());
-//			} else {
-//				importedSchema = SchemaUtils.loadSchema(getXsdFile(), collection);
-//			}
-			
+			// load schema
 			XmlSchema importedSchema = SchemaUtils.loadSchema(getXsdFile(), collection);
-			
-			schemaImport.setSchemaLocation(getXsdFile().toURI().toString());
-			schemaImport.setNamespace(importedSchema.getTargetNamespace());
-			schemaImport.setSchema(importedSchema);
+			if (importedSchema != null) {
+				try {
+					// check for different namespace
+					checkTargetNamespace(schema, importedSchema);
+					
+					// initialize import
+					schemaImport.setSchemaLocation(getXsdFile().toURI().toString());
+					schemaImport.setNamespace(importedSchema.getTargetNamespace());
+					schemaImport.setSchema(importedSchema);
+				}
+				catch (EngineException e) {
+					Engine.logBeans.error(e.getMessage());
+				}
+			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return schemaImport;
@@ -36,5 +39,13 @@ public abstract class AbstractImportLocalXsdReference extends AbstractLocalXsdRe
 	
 	public boolean isGenerateSchema() {
 		return true;
-	}	
+	}
+	
+	private void checkTargetNamespace(XmlSchema mainSchema, XmlSchema importedSchema) throws EngineException {
+		String tns1 = mainSchema.getTargetNamespace();
+		String tns2 = importedSchema.getTargetNamespace();
+		if (tns1 != null && tns2 != null && !tns1.equals(tns2)) return;
+		throw new EngineException("Incorect schema import +" +
+				"("+getXsdFile().getPath()+"): target namespace is the same as \""+tns1+"\"");
+	}
 }
