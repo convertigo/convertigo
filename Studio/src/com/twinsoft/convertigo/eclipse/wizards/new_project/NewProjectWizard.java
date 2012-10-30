@@ -1019,23 +1019,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				// Boolean.toString(page6.isBSSL()));
 				monitor.setTaskName("Connector https mode updated");
 				monitor.worked(1);
-
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "proxyServer");
-				((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
-				// ((Element)property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-				// page6.getProxyServer());
-				monitor.setTaskName("Connector proxy server updated");
-				monitor.worked(1);
-
-				property = (Element) XMLUtils.findNodeByAttributeValue(
-						connectorProperties, "name", "proxyPort");
-				((Element) property.getElementsByTagName("java.lang.Integer").item(0))
-						.removeAttribute("value");
-				// ((Element)property.getElementsByTagName("java.lang.Integer").item(0)).setAttribute("value",
-				// page6.getProxyPort());
-				monitor.setTaskName("Connector proxy port updated");
-				monitor.worked(1);
 				break;
 
 			case TEMPLATE_EAI_CICS_COMMEAREA:
