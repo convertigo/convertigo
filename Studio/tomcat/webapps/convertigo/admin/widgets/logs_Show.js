@@ -566,7 +566,7 @@ function onLogContextualMenu(action, el, target, pos) {
 	if (selectedText != "") data = "" + selectedText;
 	var variableName = el[0].className.substr(11); // 11 = "log-column-".length
 
-	var date, hour, minute;
+	var date, hour, minute, second;
 	if (variableName == "time") {
 		var aCellText = cellText.split(" ");
 		date = aCellText[0];
@@ -574,6 +574,7 @@ function onLogContextualMenu(action, el, target, pos) {
 		var aTime = time.split(":");
 		hour = aTime[0];
 		minute = aTime[1];
+		second = aTime[2].substring(0,2); //take 16 from 16,542
 	}
 	
 	var $filter = $("#logOptionsFilter");
@@ -622,11 +623,13 @@ function onLogContextualMenu(action, el, target, pos) {
 		$("#logOptionsStartDate").val(date);
 		$("#logOptionsStartHour").val(hour);
 		$("#logOptionsStartMinute").val(minute);
+		$("#logOptionsStartSecond").val(second);
 		break;
 	case "setEndDate":
 		$("#logOptionsEndDate").val(date);
 		$("#logOptionsEndHour").val(hour);
 		$("#logOptionsEndMinute").val(minute);
+		$("#logOptionsEndSecond").val(second);
 		break;
 	}
 }
