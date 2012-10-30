@@ -74,8 +74,6 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 
 	public JavelinConnector() {
 		super();
-        vPropertiesForAdmin.add("serviceCode");
-        vPropertiesForAdmin.add("virtualServer");
         
         javelin = null;
 	}

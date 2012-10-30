@@ -44,9 +44,6 @@ public class CicsConnector extends Connector {
 
 	public CicsConnector() {
 		super();
-        vPropertiesForAdmin.add("mainframeName");
-        vPropertiesForAdmin.add("port");
-        vPropertiesForAdmin.add("server");
 	}
 	
 	/**

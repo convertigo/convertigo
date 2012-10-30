@@ -63,9 +63,6 @@ public class Pool extends DatabaseObject implements ITagsProperty{
     public Pool() {
         super();
         databaseType = "Pool";
-        vPropertiesForAdmin.add("numberOfContexts");
-        vPropertiesForAdmin.add("initialScreenClass");
-        vPropertiesForAdmin.add("startTransaction");
     }
     
 	public String getInitialScreenClass() {

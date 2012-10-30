@@ -116,7 +116,6 @@ public class SqlTransaction extends TransactionWithVariables {
 
 	public SqlTransaction() {
 		super();
-		vPropertiesForAdmin.add("maxResult");
 	}
 
 	@Override

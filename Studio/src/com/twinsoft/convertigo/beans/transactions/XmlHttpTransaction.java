@@ -46,10 +46,8 @@ public class XmlHttpTransaction extends HttpTransaction {
 	
 	private static final long serialVersionUID = 1494278577299328199L;
 
-	public XmlHttpTransaction()
-	{
+	public XmlHttpTransaction(){
 		super();
-        vPropertiesForAdmin.add("xmlEncoding");
 	}
 	
 	public String getXmlEncoding() {

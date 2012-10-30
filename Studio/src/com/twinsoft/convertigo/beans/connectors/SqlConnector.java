@@ -88,11 +88,6 @@ public class SqlConnector extends Connector {
 	
 	public SqlConnector() {
 		super();
-		vPropertiesForAdmin.add("jdbcDriverClassName");
-		vPropertiesForAdmin.add("jdbcURL");
-		vPropertiesForAdmin.add("jdbcUserName");
-		vPropertiesForAdmin.add("jdbcUserPassword");
-		vPropertiesForAdmin.add("jdbcMaxConnection");
 	}
 
 	@Override

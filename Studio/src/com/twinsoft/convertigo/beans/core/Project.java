@@ -132,7 +132,6 @@ public class Project extends DatabaseObject implements ITagsProperty {
     public Project() {
         super();
         databaseType = "Project";
-        vPropertiesForAdmin.add("httpSessionTimeout");
     }
 
     /**

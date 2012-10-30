@@ -74,7 +74,6 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 	
 	public HtmlConnector() {
 		super();
-		vPropertiesForAdmin.add("parseMode");
 	}
     
 	@Override

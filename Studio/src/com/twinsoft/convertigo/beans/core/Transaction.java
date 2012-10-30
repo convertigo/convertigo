@@ -96,9 +96,6 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
     public Transaction() {
         super();
         databaseType = "Transaction";
-        vPropertiesForAdmin.add("encodingCharSet");
-        //vPropertiesForAdmin.add("responseTimeout");
-        //vPropertiesForAdmin.add("responseExpiryDate");
     }
     
     /**

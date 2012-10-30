@@ -108,8 +108,6 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     
 	public RequestableObject() {
         super();
-        vPropertiesForAdmin.add("responseTimeout");
-        vPropertiesForAdmin.add("responseExpiryDate");
 	}
 
 	@Override

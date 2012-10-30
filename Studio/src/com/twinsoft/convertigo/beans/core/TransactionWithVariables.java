@@ -77,7 +77,6 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		orderedVariables.addElement(new XMLVector<Long>());
         
         databaseType = "Transaction";
-        vPropertiesForAdmin.add("bIncludeCertificateGroup");
     }
     
     @Override

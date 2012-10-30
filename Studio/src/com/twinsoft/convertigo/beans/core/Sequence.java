@@ -146,8 +146,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		orderedVariables.addElement(new XMLVector<Long>());
 
 		databaseType = "Sequence";
-        vPropertiesForAdmin.add("autoStart");
-        vPropertiesForAdmin.add("startTime");
 	}
 
 	@Override
