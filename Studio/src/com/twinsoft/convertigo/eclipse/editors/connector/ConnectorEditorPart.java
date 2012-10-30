@@ -25,6 +25,8 @@ package com.twinsoft.convertigo.eclipse.editors.connector;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.EventObject;
 import java.util.Hashtable;
@@ -1163,6 +1165,17 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			} catch (Exception e1) {
 			}
 		}
+
+        // Check secured connection
+		Transaction transaction = connector.getTransactionByName(transactionName);
+        if (transaction.isSecureConnectionRequired()) {
+			try {
+				URL urlT = new URL(url);
+	        	url = "https://" + urlT.getHost() + ":" + (urlT.getPort() + 1) + urlT.getPath();
+			} catch (MalformedURLException e) {
+				// Just ignore it
+			}
+        }        
 
 		url += "?" 	+ Parameter.Context.getName() + "=" + contextID 
 					+ "&" + Parameter.Connector.getName() + "=" + connector.getName();

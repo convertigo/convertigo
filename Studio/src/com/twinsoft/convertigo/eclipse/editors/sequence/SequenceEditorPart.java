@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.eclipse.editors.sequence;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.EventObject;
 import java.util.Hashtable;
 
@@ -663,11 +665,22 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	
 	public void getDocument(String sequenceName, String testcaseName, boolean withXslt) {
         String url = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
+        
         url += "/projects/" + projectName;
         url += (withXslt ? "/.cxml":"/.xml");
 
         if (sequenceName == null)
         	sequenceName = sequence.getName();
+
+        // Check secured connection
+        if (sequence.isSecureConnectionRequired()) {
+			try {
+				URL urlT = new URL(url);
+	        	url = "https://" + urlT.getHost() + ":" + (urlT.getPort() + 1) + urlT.getPath();
+			} catch (MalformedURLException e) {
+				// Just ignore it
+			}
+        }        
 
         url += "?"	+ Parameter.Context.getName()+"="+ contextID
         			+ "&" + Parameter.Sequence.getName()+"="+ sequenceName;
