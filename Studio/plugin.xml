@@ -170,6 +170,7 @@
       <library name="lib/qrcode.jar"/>
       <library name="lib/mysql-connector.jar"/>
       <library name="lib/internal/util-v28883.jar"/>
+      <library name="lib/apache/commons/commons-fileupload-1.2.2.jar"/>
    </runtime>
 
    <requires>
