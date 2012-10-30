@@ -217,12 +217,14 @@ public class XmlSchemaUtils {
 			protected void walkElement(XmlSchema xmlSchema, XmlSchemaElement obj) {
 				Node myParent = parent;
 				XmlSchemaElement element = (XmlSchemaElement) obj;
-				Element xElement = doc.createElement(element.getName());
-				if (references != null) {
-					references.put(xElement, element);
+				if (element.getRefName() == null) {
+					Element xElement = doc.createElement(element.getName());
+					if (references != null) {
+						references.put(xElement, element);
+					}
+					myParent.appendChild(xElement);
+					parent = xElement;
 				}
-				myParent.appendChild(xElement);
-				parent = xElement;
 				if (--maxDepth > 0) {
 					super.walkElement(xmlSchema, obj);
 				}

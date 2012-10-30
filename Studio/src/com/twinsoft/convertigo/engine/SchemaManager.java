@@ -13,10 +13,12 @@ import javax.xml.namespace.QName;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaAttributeGroup;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaForm;
+import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaGroupBase;
 import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
@@ -190,11 +192,32 @@ public class SchemaManager implements AbstractManager {
 											else if (xmlSchemaObject instanceof XmlSchemaInclude) {
 												// ignore (already handle by reference)
 											}
+											else if (xmlSchemaObject instanceof XmlSchemaAttribute) {
+												XmlSchemaAttribute attribute = (XmlSchemaAttribute) xmlSchemaObject;
+												if (schema.getAttributes().getItem(attribute.getQName()) == null) {
+													schema.getAttributes().add(attribute.getQName(), attribute);
+													schema.getItems().add(attribute);
+												}
+											}
+											else if (xmlSchemaObject instanceof XmlSchemaAttributeGroup) {
+												XmlSchemaAttributeGroup attributeGroup = (XmlSchemaAttributeGroup) xmlSchemaObject;
+												if (schema.getAttributeGroups().getItem(attributeGroup.getName()) == null) {
+													schema.getAttributeGroups().add(attributeGroup.getName(), attributeGroup);
+													schema.getItems().add(attributeGroup);
+												}
+											}
+											else if (xmlSchemaObject instanceof XmlSchemaGroup) {
+												XmlSchemaGroup group = (XmlSchemaGroup) xmlSchemaObject;
+												if (schema.getGroups().getItem(group.getName()) == null) {
+													schema.getGroups().add(group.getName(), group);
+													schema.getItems().add(group);
+												}
+											}
 											else if (xmlSchemaObject instanceof XmlSchemaElement) {
 												XmlSchemaElement element = (XmlSchemaElement) xmlSchemaObject;
 												if (collection.getElementByQName(element.getQName()) == null) {
-													schema.getElements().add(element.getQName(), xmlSchemaObject);
-													schema.getItems().add(xmlSchemaObject);
+													schema.getElements().add(element.getQName(), element);
+													schema.getItems().add(element);
 												}
 											}
 											else if (xmlSchemaObject instanceof XmlSchemaType) {

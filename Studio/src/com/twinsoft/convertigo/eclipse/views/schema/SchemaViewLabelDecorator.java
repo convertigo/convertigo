@@ -95,7 +95,8 @@ public class SchemaViewLabelDecorator implements ILabelDecorator {
 	private Image getOverlayImageOccur(Image image, Object element, String occur) {
 		Image decoratedImage;
 		occur = "occurrence_" + occur + ".gif";
-		String cacheName = element.getClass().getSimpleName() + "_" + occur;
+//		String cacheName = element.getClass().getSimpleName() + "_" + occur;
+		String cacheName = SchemaViewLabelProvider.getKey(element) + "_" + occur;
 		Image cachedImage = imagesCache.get(cacheName);
 		if (cachedImage == null) {
 			decoratedImage = getOverlayImageIcon(image, occur, OverlayImageIcon.BOTTOM_RIGHT);

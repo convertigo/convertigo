@@ -9,8 +9,10 @@ import javax.xml.namespace.QName;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaAttributeGroup;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaGroupBase;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
@@ -122,6 +124,10 @@ public enum SchemaMeta {
 			qName = ((XmlSchemaElement) xso).getQName();
 		} else if (xso instanceof XmlSchemaAttribute) {
 			qName = ((XmlSchemaAttribute) xso).getQName();
+		} else if (xso instanceof XmlSchemaAttributeGroup) {
+			qName = ((XmlSchemaAttributeGroup) xso).getName();
+		} else if (xso instanceof XmlSchemaGroup) {
+			qName = ((XmlSchemaGroup) xso).getName();
 		}
 		return qName;
 	}

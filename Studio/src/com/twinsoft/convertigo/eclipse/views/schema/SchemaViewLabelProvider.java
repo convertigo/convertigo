@@ -14,10 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL: http://sourceus.twinsoft.fr/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/eclipse/views/schema/SchemaViewLabelProvider.java $
- * $Author: nicolasa $
- * $Revision: 32115 $
- * $Date: 2012-10-12 13:25:40 +0200 (ven., 12 oct. 2012) $
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
  */
 
 package com.twinsoft.convertigo.eclipse.views.schema;
@@ -29,8 +29,10 @@ import java.util.Map;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAppInfo;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaAttributeGroup;
 import org.apache.ws.commons.schema.XmlSchemaDocumentation;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaType;
@@ -58,24 +60,10 @@ public class SchemaViewLabelProvider implements ILabelProvider, IColorProvider {
 	}
 
 	public Image getImage(Object element) {
-		String key = element.getClass().getSimpleName();
+		String key = getKey(element);
 		Image image = imagesCache.get(key);
 		if (image == null) {
-			String iconName = null;
-			if (element instanceof NamedList) {
-				iconName = key = ((NamedList) element).getName().toLowerCase() + "_folder";
-			} else if (element instanceof XmlSchema) {
-				iconName = "schema";
-			} else if (element instanceof XmlSchemaDocumentation || element instanceof XmlSchemaAppInfo) {
-				iconName = "notation";
-			}  else if (element instanceof XmlSchemaObject) {
-				iconName = key.contains("Extension") ?
-					"extension" :
-					key.substring(9).replaceAll("(\\p{Upper})", "_$1").toLowerCase().substring(1);
-			} else {
-				iconName = "unresolved";
-			}
-			
+			String iconName = key;
 			Device device = Display.getCurrent();
 			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream("/com/twinsoft/convertigo/eclipse/views/schema/images/" + iconName + ".gif");
 			if (inputStream == null) {
@@ -86,6 +74,28 @@ public class SchemaViewLabelProvider implements ILabelProvider, IColorProvider {
 			imagesCache.put(key, image);
 		}
 		return image;
+	}
+	
+	public static String getKey(Object element) {
+		String key = element.getClass().getSimpleName();
+		if (element instanceof NamedList) {
+			key = ((NamedList) element).getName().toLowerCase() + "_folder";
+		} else if (element instanceof XmlSchema) {
+			key = "schema";
+		} else if (element instanceof XmlSchemaDocumentation || element instanceof XmlSchemaAppInfo) {
+			key = "notation";
+		}  else if (element instanceof XmlSchemaObject) {
+			key = key.contains("Extension") ?
+				"extension" :
+				key.substring(9).replaceAll("(\\p{Upper})", "_$1").toLowerCase().substring(1);
+			
+			if (element instanceof XmlSchemaElement) {
+				key += ((XmlSchemaElement)element).getRefName() != null ? "_ref":"";
+			}
+		} else {
+			key = "unresolved";
+		}
+		return key;
 	}
 	
 	public String getText(Object element) {
@@ -105,9 +115,15 @@ public class SchemaViewLabelProvider implements ILabelProvider, IColorProvider {
 			}
 		}  else if (element instanceof XmlSchemaObject) {
 			if (element instanceof XmlSchemaElement) {
-				txt = ((XmlSchemaElement) element).getName();
+				if (((XmlSchemaElement) element).getRefName() == null) {
+					txt = ((XmlSchemaElement) element).getName();
+				}
 			} else if (element instanceof XmlSchemaAttribute) {
 				txt = ((XmlSchemaAttribute) element).getName();
+			} else if (element instanceof XmlSchemaAttributeGroup) {
+				txt = ((XmlSchemaAttributeGroup) element).getName().getLocalPart();
+			} else if (element instanceof XmlSchemaGroup) {
+				txt = ((XmlSchemaGroup)element).getName().getLocalPart();
 			} else if (element instanceof XmlSchemaType) {
 				XmlSchemaType type = (XmlSchemaType) element;
 				String name = type.getName();
