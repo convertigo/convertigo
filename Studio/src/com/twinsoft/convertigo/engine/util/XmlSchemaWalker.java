@@ -435,10 +435,14 @@ public class XmlSchemaWalker {
 		doWalk(xmlSchema, qname, SchemaMeta.getCollection(xmlSchema).getAttributeByQName(qname));
 	}
 	public void walkByAttributeGroupRef(XmlSchema xmlSchema, QName qname) {
-		doWalk(xmlSchema, qname, (XmlSchemaAttributeGroup)xmlSchema.getAttributeGroups().getItem(qname));
+		//doWalk(xmlSchema, qname, (XmlSchemaAttributeGroup)xmlSchema.getAttributeGroups().getItem(qname));
+		XmlSchema schema = SchemaMeta.getCollection(xmlSchema).schemaForNamespace(qname.getNamespaceURI());
+		doWalk(xmlSchema, qname, (XmlSchemaAttributeGroup)schema.getAttributeGroups().getItem(qname));
 	}
 	public void walkByGroupRef(XmlSchema xmlSchema, QName qname) {
-		doWalk(xmlSchema, qname, (XmlSchemaGroup)xmlSchema.getGroups().getItem(qname));
+		//doWalk(xmlSchema, qname, (XmlSchemaGroup)xmlSchema.getGroups().getItem(qname));
+		XmlSchema schema = SchemaMeta.getCollection(xmlSchema).schemaForNamespace(qname.getNamespaceURI());
+		doWalk(xmlSchema, qname, (XmlSchemaGroup)schema.getGroups().getItem(qname));
 	}
 	
 	protected void walk(XmlSchema xmlSchema, XmlSchemaObject obj) {
