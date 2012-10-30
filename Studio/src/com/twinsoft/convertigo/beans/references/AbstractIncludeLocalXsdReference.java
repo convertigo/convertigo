@@ -35,7 +35,7 @@ public abstract class AbstractIncludeLocalXsdReference extends AbstractLocalXsdR
 	public XmlSchemaInclude getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaInclude schemaInclude = new XmlSchemaInclude();
 		try {
-			XmlSchema incluedSchema = SchemaUtils.loadSchema(getXsdFile(), collection);
+			XmlSchema incluedSchema = SchemaUtils.loadSchema(getXsdFile(), new XmlSchemaCollection());
 			
 			schemaInclude.setSchemaLocation(getXsdFile().toURI().toString());
 			schemaInclude.setSchema(incluedSchema);
