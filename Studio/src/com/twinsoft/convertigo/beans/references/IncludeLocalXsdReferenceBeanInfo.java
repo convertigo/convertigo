@@ -14,27 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * $URL: $
+ * $Author: $
+ * $Revision: $
+ * $Date: $
  */
 
 package com.twinsoft.convertigo.beans.references;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class ImportLocalXsdReferenceBeanInfo extends MySimpleBeanInfo {
+public class IncludeLocalXsdReferenceBeanInfo extends MySimpleBeanInfo {
     
-	public ImportLocalXsdReferenceBeanInfo() {
+	public IncludeLocalXsdReferenceBeanInfo() {
 		try {
-			beanClass = ImportLocalXsdReference.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.references.AbstractImportLocalXsdReference.class;
+			beanClass = IncludeLocalXsdReference.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.references.AbstractIncludeLocalXsdReference.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/references/images/importLocalXsd_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/references/images/importLocalXsd_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/references/images/includeLocalXsd_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/references/images/includeLocalXsd_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/references/res/ImportLocalReference");
+			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/references/res/IncludeLocalReference");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

@@ -30,13 +30,8 @@ public class AbstractImportLocalXsdReferenceBeanInfo extends MySimpleBeanInfo {
     
 	public AbstractImportLocalXsdReferenceBeanInfo() {
 		try {
-			beanClass = ImportLocalXsdReference.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.core.Reference.class;
-			
-//			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/references/res/AbstractReference");
-			
-//			displayName = resourceBundle.getString("display_name");
-//			shortDescription = resourceBundle.getString("short_description");
+			beanClass = AbstractImportLocalXsdReference.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.references.AbstractLocalXsdReference.class;
 			
 			properties = new PropertyDescriptor[0];
 		}

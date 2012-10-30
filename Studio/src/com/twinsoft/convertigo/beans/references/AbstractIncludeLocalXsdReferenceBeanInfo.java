@@ -14,31 +14,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * $URL: $
+ * $Author: $
+ * $Revision: $
+ * $Date: $
  */
 
 package com.twinsoft.convertigo.beans.references;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class ImportLocalXsdReferenceBeanInfo extends MySimpleBeanInfo {
+public class AbstractIncludeLocalXsdReferenceBeanInfo extends MySimpleBeanInfo {
     
-	public ImportLocalXsdReferenceBeanInfo() {
+	public AbstractIncludeLocalXsdReferenceBeanInfo() {
 		try {
-			beanClass = ImportLocalXsdReference.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.references.AbstractImportLocalXsdReference.class;
-
-			iconNameC16 = "/com/twinsoft/convertigo/beans/references/images/importLocalXsd_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/references/images/importLocalXsd_32x32.png";
+			beanClass = AbstractIncludeLocalXsdReference.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.references.AbstractLocalXsdReference.class;
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/references/res/ImportLocalReference");
-			
-			displayName = resourceBundle.getString("display_name");
-			shortDescription = resourceBundle.getString("short_description");
-			
+			properties = new PropertyDescriptor[0];
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

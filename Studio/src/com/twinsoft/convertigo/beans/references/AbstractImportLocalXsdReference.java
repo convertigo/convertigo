@@ -1,18 +1,14 @@
 package com.twinsoft.convertigo.beans.references;
 
-import java.io.File;
-
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaImport;
 
-import com.twinsoft.convertigo.beans.core.Reference;
+import com.twinsoft.convertigo.beans.core.ISchemaImportGenerator;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 
-public abstract class AbstractImportLocalXsdReference extends Reference {
+public abstract class AbstractImportLocalXsdReference extends AbstractLocalXsdReference implements ISchemaImportGenerator  {
 	private static final long serialVersionUID = -3021403823265525359L;
-	
-	abstract protected File getXsdFile();
 	
 	public XmlSchemaImport getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaImport schemaImport = new XmlSchemaImport();
@@ -37,4 +33,8 @@ public abstract class AbstractImportLocalXsdReference extends Reference {
 		}
 		return schemaImport;
 	}
+	
+	public boolean isGenerateSchema() {
+		return true;
+	}	
 }
