@@ -397,7 +397,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 	
 	@Override
 	public String getSchemaDataType() {
-		return "xsd:date";
+		return "xsd:string"; //"xsd:date";
 	}
 
 	@Override

@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -51,6 +52,7 @@ import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeJavaArray;
@@ -80,7 +82,7 @@ import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
 
-public abstract class RequestableStep extends Step implements IVariableContainer, IContainerOrdered, IComplexTypeAffectation, ISchemaParticleGenerator {
+public abstract class RequestableStep extends Step implements IVariableContainer, IContainerOrdered, ISchemaParticleGenerator {
 	
 	private static final long serialVersionUID = 3948128175718822695L;
 
@@ -100,12 +102,15 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	
 	private boolean bInternalInvoke = true;
 	
+	transient protected String projectName = "";
+	
 	transient protected Map<String, Object> request;
 	
 	transient public String wsdlType = "";
 	
 	public RequestableStep() {
 		super();
+		xml = true;
 		
 		hostConfiguration = new HostConfiguration();
 		
@@ -140,6 +145,10 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	@Override
 	protected StepSource getSource() {
 		return null;
+	}
+
+	public String getProjectName() {
+		return projectName;
 	}
 	
 	@Override
@@ -848,10 +857,16 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	
 	@Override
 	public XmlSchemaParticle getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		return (XmlSchemaParticle) super.getXmlSchemaObject(collection, schema);
+		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+		String namespace = Project.getProjectTargetNamespace(projectName);
+		String localpart = getRequestableName() + "ResponseType";
+		element.setSchemaTypeName(new QName(namespace, localpart));
+		return element;
 	}
 	
 	public boolean isGenerateElement() {
 		return true;
 	}
+	
+	abstract protected String getRequestableName();
 }

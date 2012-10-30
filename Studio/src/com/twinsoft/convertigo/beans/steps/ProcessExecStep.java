@@ -161,6 +161,9 @@ public class ProcessExecStep extends Step {
 		final Node errorNode = stepNode.appendChild(doc.createElement("error"));
 		final Node outputNode = stepNode.appendChild(doc.createElement("output"));
 		final Node exitNode = stepNode.appendChild(doc.createElement("exit"));
+		
+		// Status exit code
+		int status = -1;
 
 		try {
 			// Environment parameters (name/value pairs)
@@ -211,9 +214,6 @@ public class ProcessExecStep extends Step {
 						"Wrong encoding for \"Process execute\" step, please enter a valid one.");
 			}
 
-			// Status exit code
-			String status = "-1";
-
 			// Launch the process :
 			// if envp is null, current environment parameters are used
 			// if dir is null, current execution directory is used
@@ -258,11 +258,10 @@ public class ProcessExecStep extends Step {
 
 			// Append process exit status to the 'exit' child node
 			try {
-				status = "" + process.exitValue();
+				status = process.exitValue();
 			} catch (IllegalThreadStateException e) {
 			}
-			status = status.equals("") ? "0":status; // status should not be empty (integer value)
-			exitNode.appendChild(doc.createTextNode(status));
+			
 		} catch (Throwable t) {
 			setErrorStatus(true);
 			if (t instanceof EngineException) {
@@ -272,6 +271,7 @@ public class ProcessExecStep extends Step {
 			else
 				errorNode.appendChild(errorNode.getOwnerDocument().createCDATASection(t.getMessage()));
 		} finally {
+			exitNode.appendChild(doc.createTextNode("" + status));
 			try {
 				stderrThread.bContinue = false;
 				stdoutThread.bContinue = false;

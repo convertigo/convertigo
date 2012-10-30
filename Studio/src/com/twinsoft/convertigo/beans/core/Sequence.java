@@ -1753,7 +1753,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		
 		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
 		cType.setName(getName() + "ResponseType");
+
 		schema.addType(cType);
+		schema.getItems().add(cType);
 		
 		sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
 		cType.setParticle(sequence);
