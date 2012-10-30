@@ -193,6 +193,7 @@ public class SchemaManager implements AbstractManager {
 											else if (xmlSchemaObject instanceof XmlSchemaElement) {
 												XmlSchemaElement element = (XmlSchemaElement) xmlSchemaObject;
 												if (collection.getElementByQName(element.getQName()) == null) {
+													schema.getElements().add(element.getQName(), xmlSchemaObject);
 													schema.getItems().add(xmlSchemaObject);
 												}
 											}
