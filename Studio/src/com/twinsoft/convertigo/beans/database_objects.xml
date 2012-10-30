@@ -103,6 +103,9 @@
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.ImportLocalXsdReference">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
 				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.IncludeLocalXsdReference">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				</bean>
 			</beans>
 		</category>
 	</group>
