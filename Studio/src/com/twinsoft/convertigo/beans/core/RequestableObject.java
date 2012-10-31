@@ -906,4 +906,14 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		
 		return rep;
 	}
+
+	private boolean authenticatedContextRequired = false;
+	
+	public boolean getAuthenticatedContextRequired() {
+		return authenticatedContextRequired;
+	}
+
+	public void setAuthenticatedContextRequired(boolean authenticatedContextRequired) {
+		this.authenticatedContextRequired = authenticatedContextRequired;
+	}
 }

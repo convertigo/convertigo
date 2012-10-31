@@ -63,7 +63,10 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.ExpiredSecurityTokenException;
 import com.twinsoft.convertigo.engine.JobManager;
+import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
+import com.twinsoft.convertigo.engine.SecurityToken;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -73,12 +76,32 @@ public abstract class GenericRequester extends Requester {
     public GenericRequester() {
     }
 
-	public void checkSecuredConnection(RequestableObject requestable) throws EngineException {
+	public void checkSecuredConnection() throws EngineException {
 		// Default implementation: nothing to check
 	}
 	
-	public void checkAccessibility(RequestableObject requestable) throws EngineException {
+	public void checkAccessibility() throws EngineException {
 		// Default implementation: nothing to check
+	}
+	
+	public void checkAuthenticatedContext() throws EngineException {
+        if (context.requestedObject.getAuthenticatedContextRequired()) {
+			Engine.logContext.debug("Authenticated context required");
+        	if (context.getAuthenticatedUser() == null) {
+        		if (context.httpSession != null) {
+            		Object authenticatedUser = context.httpSession.getAttribute("authenticatedUser");
+            		if (authenticatedUser != null) {
+            			// If there is an authenticated user in the HTTP session, we consider
+            			// the context as authenticated "from the top", and then copy the user
+            			// into the context.
+            			context.portalUserName = authenticatedUser.toString();
+    					Engine.logContext.debug("Authenticated user added in the context from the HTTP session");
+    					return;
+            		}
+        		}
+        		throw new EngineException("Authentication required");
+        	}
+        }
 	}
 
     private String findBrowserFromUserAgent(Project project, String userAgent) {
@@ -266,7 +289,7 @@ public abstract class GenericRequester extends Requester {
 		            		Log4jHelper.mdcPut("Connector", context.connectorName);
 		            		Log4jHelper.mdcPut("Transaction", context.transactionName);
 	                	}
-	            		Log4jHelper.mdcPut("User", context.tasUserName == null ? "(anonymous)" : "'" + context.tasUserName + "'");
+						Log4jHelper.mdcPut("User", context.getAuthenticatedUser());
 	                }
 					
 					result = coreProcessRequest();
@@ -360,7 +383,7 @@ public abstract class GenericRequester extends Requester {
 		}
 	}
 
-	protected void handleParameter(Context context, String parameterName, String parameterValue) {
+	protected void handleParameter(Context context, String parameterName, String parameterValue) throws NoSuchSecurityTokenException, ExpiredSecurityTokenException {
 		// This gives the required context name
 		if (parameterName.equals(Parameter.Context.getName())) {
 			Engine.logContext.debug("Required context: " + parameterValue);
@@ -372,7 +395,7 @@ public abstract class GenericRequester extends Requester {
 			if (context.isAsync)
 				Engine.logContext.debug("The transaction will be or is being processed asynchroneously.");
 		}
-		// This is the overidden sequence
+		// This is the overridden sequence
 		else if (parameterName.equals(Parameter.Sequence.getName())) {
 			if ((parameterValue != null) && (!parameterValue.equals(""))) {
 				if (!parameterValue.equals(context.sequenceName)) {
@@ -382,27 +405,40 @@ public abstract class GenericRequester extends Requester {
 				}
 			}
 		}
-		// This is the overidden connector
+		// This is the overridden connector
 		else if (parameterName.equals(Parameter.Connector.getName())) {
 			if ((parameterValue != null) && (!parameterValue.equals(""))) {
 				context.connectorName = parameterValue;
 				Engine.logContext.debug("The connector is overridden to \"" + context.connectorName + "\".");
 			}
 		}
-		// This is the overidden transaction
+		// This is the overridden transaction
 		else if (parameterName.equals(Parameter.Transaction.getName())) {
 			if ((parameterValue != null) && (!parameterValue.equals(""))) {
 				context.transactionName = parameterValue;
 				Engine.logContext.debug("The transaction is overridden to \"" + context.transactionName + "\".");
 			}
 		}
-		// This is the overidden service code
+		// This is the overridden service code
 		else if (parameterName.equals(Parameter.CariocaService.getName())) {
 			if ((context.tasServiceCode == null) || (!context.tasServiceCode.equalsIgnoreCase(parameterValue))) {
 		        Engine.logContext.debug("Service code differs from previous one; requiring new session");
 				context.isNewSession = true;
 				context.tasServiceCode = parameterValue;
 				Engine.logContext.debug("The service code is overidden to \"" + parameterValue + "\".");
+			}
+		}
+		// This is the portal authentication token
+		else if (parameterName.equals(Parameter.SecurityToken.getName())) {
+			if ((parameterValue != null) && (parameterValue.length() > 0)) {
+				SecurityToken securityToken = Engine.theApp.securityTokenManager.consumeToken(parameterValue);
+				Engine.logContext.debug("The security token is \"" + securityToken + "\".");
+				
+				context.portalUserName = securityToken.userID;
+				if (context.httpSession != null) {
+					context.httpSession.setAttribute("authenticatedUser", context.portalUserName);
+					Engine.logContext.debug("Authenticated user added in the HTTP session");
+				}
 			}
 		}
 		// This is the key given by a Carioca request

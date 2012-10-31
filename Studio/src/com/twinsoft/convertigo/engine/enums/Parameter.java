@@ -52,9 +52,11 @@ public enum Parameter {
 	Transaction("__transaction"),
 	TransactionMotherSequenceContext("__motherContext"),
 	Xslt("__xslt"),
-	
+
+	SecurityToken("__security_token"),
+
 	Carioca("__bCarioca"),
-	CariocaUser("__user,"),
+	CariocaUser("__user"),
 	CariocaPassword("__password"),
 	CariocaSesskey("__sesskey"),
 	CariocaService("__service"),
