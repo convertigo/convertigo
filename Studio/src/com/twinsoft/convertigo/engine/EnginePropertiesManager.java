@@ -451,7 +451,8 @@ public class EnginePropertiesManager {
 
 		/** SECURITY TOKEN */
 		SECURITY_TOKEN_LIFE_TIME ("security_token.life_time", "20", "Life time of security tokens (useful for portal widgets) in seconds", PropertyCategory.SecurityToken),
-		SECURITY_TOKEN_PASSPHRASE ("security_token.passphrase", "FK2M4AG63FJ9JD309K328JK34H5XN7", "Passphrase use for generating security tokens (useful for portal widgets)", PropertyCategory.SecurityToken),
+		@PropertyOptions(propertyType = PropertyType.PasswordHash)
+		SECURITY_TOKEN_PASSPHRASE ("security_token.passphrase", ""+"c8o-password".hashCode(), "Passphrase use for generating security tokens (useful for portal widgets)", PropertyCategory.SecurityToken),
 
 		
 		/** SSL */
