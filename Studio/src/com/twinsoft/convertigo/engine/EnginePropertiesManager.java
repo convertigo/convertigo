@@ -450,9 +450,9 @@ public class EnginePropertiesManager {
 		XULRUNNER_WORK ("xulrunner.work", "${user.workspace}/xulrunner-work", "XulRunner work directory", PropertyCategory.XulRunner),
 
 		/** SECURITY TOKEN */
-		SECURITY_TOKEN_LIFE_TIME ("security_token.life_time", "20", "Life time of security tokens (useful for portal widgets) in seconds", PropertyCategory.SecurityToken),
+		SECURITY_TOKEN_LIFE_TIME ("security_token.life_time", "20", "Security tokens lifetime (in seconds)", PropertyCategory.SecurityToken),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
-		SECURITY_TOKEN_PASSPHRASE ("security_token.passphrase", ""+"c8o-password".hashCode(), "Passphrase use for generating security tokens (useful for portal widgets)", PropertyCategory.SecurityToken),
+		SECURITY_TOKEN_PASSPHRASE ("security_token.passphrase", ""+"c8o-password".hashCode(), "Security token generator passphrase", PropertyCategory.SecurityToken),
 
 		
 		/** SSL */
