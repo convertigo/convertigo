@@ -57,15 +57,18 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.steps.IteratorStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -468,11 +471,22 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 	private String sourceXpath = null;
 	private boolean sourceChanged = false;
 	
+	private Step getTargetStep(Step step) throws EngineException {
+		if (step != null && (step instanceof IStepSourceContainer)) {
+			StepSource source = new StepSource(step,((IStepSourceContainer)step).getSourceDefinition());
+			if (source != null && !source.isEmpty()) {
+				return source.getStep();
+			}
+		}
+		return step;
+	}
+	
 	private void displayTargetWsdlDom(Step step) {
 		try {
 			String xpath = getSourceXPath();
 			String anchor = step.getAnchor();
-			XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, step);
+//			XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, step);
+			XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, getTargetStep(step));
 			Document stepDoc = XmlSchemaUtils.getDomInstance(xso);
 //			Document stepDoc = step.getWsdlDom();
 			if (stepDoc != null) { // stepDoc can be null for non "xml" step : e.g jIf
