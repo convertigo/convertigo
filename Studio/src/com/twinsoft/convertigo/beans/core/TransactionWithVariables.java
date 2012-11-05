@@ -633,7 +633,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	public boolean includeVariableIntoRequestString(String variableName) {
 		RequestableVariable variable = (RequestableVariable)getVariable(variableName);
 		if (variable != null) {
-			return variable.isCachedKey().booleanValue();
+			return variable.isCachedKey();
 		}
 		return false;
 	}
@@ -644,7 +644,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		RequestableVariable variable = null;
 		for (int i=0; i<numberOfVariables(); i++) {
 			variable = (RequestableVariable)getVariable(i);
-			if (variable.isWsdl().booleanValue()) {
+			if (variable.isWsdl()) {
 				if (variable.isMultiValued()) {
 					xsdArrayData += Engine.getArrayOfSchema(variable.getSchemaType());
 				}
@@ -666,7 +666,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     	xsdRequestData +=	"    <xsd:sequence>\n";
 		for (int i=0; i<numberOfVariables(); i++) {
 			variable = (RequestableVariable)getVariable(i);
-			if (variable.isWsdl().booleanValue()) {
+			if (variable.isWsdl()) {
 				if (variable.isMultiValued()) {
 					xsdRequestData += "      <xsd:element minOccurs=\"1\" maxOccurs=\"1\" name=\""+variable.getName()+"\" >\n";
 					xsdRequestData += "        <xsd:annotation>\n";
@@ -839,14 +839,15 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		int len = numberOfVariables();
 		if (len > 0) {
 			XmlSchemaSequence xmlSchemaSequence = new XmlSchemaSequence();
-			for (int i=0; i < len; i++) {
+			for (int i = 0; i < len; i++) {
 				RequestableVariable variable = (RequestableVariable)getVariable(i);
-				if (variable.isWsdl().booleanValue()) {
+				if (variable.isWsdl()) {
 					XmlSchemaElement xmlSchemaElement = new XmlSchemaElement();
 					xmlSchemaElement.setName(variable.getName());
 					
-					if (variable.isMultiValued())
+					if (variable.isMultiValued()) {
 						xmlSchemaElement.setMaxOccurs(Long.MAX_VALUE);
+					}
 					
 					String[] qn = variable.getSchemaType().split(":");
 					QName typeName = new QName(xmlSchema.getNamespaceContext().getNamespaceURI(qn[0]), qn[1], qn[0]);

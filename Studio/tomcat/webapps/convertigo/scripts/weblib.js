@@ -35,6 +35,7 @@ C8O = {
 		ajax_method : "POST", /** POST/GET */
 		auto_refresh : "true", /** true/false */
 		auto_resize : "true", /** true/false */
+		first_call : "true",
 		requester_prefix : "",
 		resize_offset : "50", /** number */
 		send_portal_username : "true", /** true/false */
@@ -62,22 +63,42 @@ C8O = {
 	
 	call : function (data) {
 		var key;
-		if ($("body #wait_div").length === 0) {
-			$("body").append(C8O._define.wait_div);
-		}
+		C8O.waitShow();
+		
 		if (typeof(data) === "string") {
 			data = C8O._parseQuery({}, data);
 		} else if (C8O.isUndefined(data)) {
 			data = {};
 		} else if (!$.isPlainObject(data) && $(data).is("form")) {
-			data = C8O._parseQuery({}, $(data).serialize());
-		}
-		
-		for (key in C8O.vars) {
-			if (!C8O.isUndefined(data["__" + key])) {
-				C8O.vars[key] = C8O._remove(data, "__" + key);
+			var $form = $(data);
+			if ($form.attr("enctype") == "multipart/form-data") {
+				var targetName = "tn_" + new Date().getTime() + "_" + Math.floor(Math.random() * 100);
+				$form.attr({
+					action : window.location.pathname.replace(new RegExp("^(.*/).*?$"), "$1") + C8O.vars.requester_prefix + (C8O.vars.xsl_side === "client" ? ".xml":".cxml"),
+					method : "POST",
+					target : targetName
+				});
+				var $iframe = $("<iframe/>").attr({
+					src : "",
+					style : "display: none"
+				}).appendTo("body").on("load", function () {
+					if (C8O.vars.xsl_side === "client") {
+						var xml = $iframe[0].contentWindow.document.XMLDocument;
+						C8O._onSuccess(xml ? xml : $iframe[0].contentWindow.document, "ok", {responseText : "No responseText for multipart, use XSL or xml_response."});
+					} else {
+						C8O._onSuccess(null, "ok", {responseText : $iframe[0].contentWindow.document.outerHTML});
+					}
+					$iframe.remove();
+				});
+				$iframe[0].contentWindow.name = targetName;
+				return true;
+			} else {
+				data = C8O._parseQuery({}, $(data).serialize());
 			}
 		}
+		
+		C8O._retrieve_vars(data);
+		
 		for (key in C8O._define.recall_params) {
 			if (C8O._define.recall_params.hasOwnProperty(key)) {
 				if (!C8O.isUndefined(data[key])) {
@@ -159,6 +180,16 @@ C8O = {
 		delete C8O._define.recall_params[parameter_name];
 	},
 	
+	waitHide : function () {
+		$("#wait_div").remove();
+	},
+	
+	waitShow : function () {
+		if ($("body #wait_div").length === 0) {
+			$("body").append(C8O._define.wait_div);
+		}
+	},
+	
 	_define : {
 		clipping_attributs :
 			$(["altKey", "ctrlKey", "metaKey", "shiftKey", "clientX", "clientY", "screenX", "screenY", "layerX", "layerY", "pageX", "pageY", "button"]),
@@ -182,43 +213,7 @@ C8O = {
 			$.ajax({
 				data : data,
 				dataType : C8O.vars.xsl_side === "client" ? "xml":"text",
-				success : function (xml, status, xhr) {
-					$("#wait_div").remove();
-					if (C8O.vars.xsl_side === "client") {
-						if (C8O._hook("xml_response", xml)) {
-							var redirect_location = $(xml.documentElement).attr("redirect_location");
-							if (!C8O.isUndefined(redirect_location)) {
-								if (C8O.vars.use_siteclipper_plugin === "true") {
-									C8O._getScript("../../scripts/weblib_plugins/siteclipper.js", function () {
-										C8O._init_siteclipper({redirect_location : redirect_location});
-									});
-								} else {
-									window.location = redirect_location;
-								}
-								return;
-							}
-							var sheet_uri = C8O._xslStyleSheet(xml);
-							if (sheet_uri !== null) {
-								$.ajax({
-									url : sheet_uri,
-									success : function (xsl) {
-										C8O._xslt(xml, xsl);
-									},
-									type : "GET"
-								});
-							} else if ($.browser.msie) {
-								C8O._fillBody($("<pre>" + xhr.responseText.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>"));
-							} else {
-								C8O._fillBody($("<pre/>").text(xhr.responseText));
-							}
-						}
-					} else {
-						var aText = [xhr.responseText + ""];
-						if (C8O._hook("text_response", aText)) {
-							C8O._fillBody(aText[0]);
-						}
-					}
-				},
+				success : C8O._onSuccess,
 				type : C8O.vars.ajax_method,
 				url : C8O.vars.requester_prefix + (C8O.vars.xsl_side === "client" ? ".xml":".cxml")
 			});
@@ -261,6 +256,44 @@ C8O = {
 		return $.extend(true, {}, object);
 	},
 	
+	_onSuccess : function (xml, status, xhr) {
+		C8O.waitHide();
+		if (C8O.vars.xsl_side === "client") {
+			if (C8O._hook("xml_response", xml)) {
+				var redirect_location = $(xml.documentElement).attr("redirect_location");
+				if (!C8O.isUndefined(redirect_location)) {
+					if (C8O.vars.use_siteclipper_plugin === "true") {
+						C8O._getScript("../../scripts/weblib_plugins/siteclipper.js", function () {
+							C8O._init_siteclipper({redirect_location : redirect_location});
+						});
+					} else {
+						window.location = redirect_location;
+					}
+					return;
+				}
+				var sheet_uri = C8O._xslStyleSheet(xml);
+				if (sheet_uri !== null) {
+					$.ajax({
+						url : sheet_uri,
+						success : function (xsl) {
+							C8O._xslt(xml, xsl);
+						},
+						type : "GET"
+					});
+				} else if ($.browser.msie) {
+					C8O._fillBody($("<pre>" + xhr.responseText.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>"));
+				} else {
+					C8O._fillBody($("<pre/>").text(xhr.responseText));
+				}
+			}
+		} else {
+			var aText = [xhr.responseText + ""];
+			if (C8O._hook("text_response", aText)) {
+				C8O._fillBody(aText[0]);
+			}
+		}
+	},
+	
 	_onMashupEvent : function (event) {
 		if (C8O._hook("receive_mashup_event", event)) {
 			if (event.type === "call") {
@@ -280,6 +313,14 @@ C8O = {
 				lowest += parseInt(C8O.vars.resize_offset);
 			}
 			C8O.doResize(lowest, options);
+		}
+	},
+	
+	_retrieve_vars : function (data) {
+		for (key in C8O.vars) {
+			if (!C8O.isUndefined(data["__" + key])) {
+				C8O.vars[key] = C8O._remove(data, "__" + key);
+			}
 		}
 	},
 	
@@ -391,7 +432,7 @@ C8O = {
 	_hook : function (name) {
 		var ret = true, i, r;
 		if ($.isArray(C8O._define.hooks[name])) {
-			for (i = 0;i < C8O._define.hooks[name].length && ret;i += 1) {
+			for (i = 0; i < C8O._define.hooks[name].length && ret; i += 1) {
 				r = C8O._define.hooks[name][i].apply(this, $.makeArray(arguments).slice(1));
 				if (!C8O.isUndefined(r)) {
 					ret = r;
@@ -405,7 +446,7 @@ C8O = {
 		var data = (C8O.isUndefined(params)) ? {}:params,
 			vars = (query?query:C8O._getQuery()).split("&"),
 			i, id, key, value;
-		for (i = 0;i < vars.length; i += 1) {
+		for (i = 0; i < vars.length; i += 1) {
 			if (vars[i].length > 0) {
 				id = vars[i].indexOf("=");
 				key = (id > 0)?vars[i].substring(0, id):vars[i];
@@ -492,8 +533,10 @@ C8O = {
 		} else {
 			C8O._define.connector = params.__connector;
 			C8O._define.context = params.__context;
-			C8O._define.wait_div = $("#wait_div").clone();
-			if (C8O._hook("init_finished", params)) {
+
+			C8O._retrieve_vars(params);
+			
+			if (C8O._hook("init_finished", params) && C8O.vars.first_call === "true") {
 				C8O.call(params);
 			}
 		}
@@ -524,11 +567,14 @@ $(document).ready(function () {
 		C8O.addHook("document_ready", C8O_document_ready);
 	}
 	
+	// retrieve the wait_div element in memory
+	C8O._define.wait_div = $("#wait_div").clone();
+	
 	if (C8O._hook("document_ready")) {
 		var loc = window.location,
 			base = loc.href.substring(0, loc.href.indexOf("/projects/")),
 			match = loc.pathname.match(/\/projects\/(.*)\/.*/);
-		if (match.length>1) {
+		if (match.length > 1) {
 			var params = C8O._parseQuery();
 			C8O._define.project = match[1];
 			
