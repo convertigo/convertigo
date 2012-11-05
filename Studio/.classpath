@@ -26,6 +26,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/jettison-1.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ctgclient.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/apache/commons/commons-lang-2.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/apache/commons/commons-fileupload-1.2.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/apache/xmlgraphics/xmlgraphics-commons-1.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/bull-v24323.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/phaos.jar"/>
@@ -80,7 +81,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/bcel-5.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-cli-1.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-codec-1.3.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-fileupload-1.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-httpclient-3.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-io-1.4.jar" sourcepath="/ExternalJavaSources/commons-io-2.0.1-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/axis2-1.6.1/lib/commons-logging-1.1.1.jar"/>

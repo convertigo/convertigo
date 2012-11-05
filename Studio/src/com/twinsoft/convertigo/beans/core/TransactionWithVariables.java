@@ -627,7 +627,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	public boolean includeVariableIntoRequestString(String variableName) {
 		RequestableVariable variable = (RequestableVariable)getVariable(variableName);
 		if (variable != null) {
-			return variable.isCachedKey().booleanValue();
+			return variable.isCachedKey();
 		}
 		return false;
 	}
@@ -638,7 +638,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		RequestableVariable variable = null;
 		for (int i=0; i<numberOfVariables(); i++) {
 			variable = (RequestableVariable)getVariable(i);
-			if (variable.isWsdl().booleanValue()) {
+			if (variable.isWsdl()) {
 				if (variable.isMultiValued()) {
 					xsdArrayData += Engine.getArrayOfSchema(variable.getSchemaType());
 				}
@@ -660,7 +660,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     	xsdRequestData +=	"    <xsd:sequence>\n";
 		for (int i=0; i<numberOfVariables(); i++) {
 			variable = (RequestableVariable)getVariable(i);
-			if (variable.isWsdl().booleanValue()) {
+			if (variable.isWsdl()) {
 				if (variable.isMultiValued()) {
 					xsdRequestData += "      <xsd:element minOccurs=\"1\" maxOccurs=\"1\" name=\""+variable.getName()+"\" >\n";
 					xsdRequestData += "        <xsd:annotation>\n";

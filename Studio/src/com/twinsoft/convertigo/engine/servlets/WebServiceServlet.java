@@ -393,7 +393,7 @@ public class WebServiceServlet extends GenericServlet {
 							variableName = variable.getName();
 							
 							// Include in WSDL?
-							if (variable.isWsdl().booleanValue()) {
+							if (variable.isWsdl()) {
 								// Multivalued?
 								if (variable.isMultiValued()) {
 									bArrayOfStringToBeDefined = true;
@@ -478,7 +478,7 @@ public class WebServiceServlet extends GenericServlet {
 							if (variable != null) {
 								variableName = variable.getName();
 								// Include in WSDL?
-								if (variable.isWsdl().booleanValue()) {
+								if (variable.isWsdl()) {
 									// Multivalued?
 									if (variable.isMultiValued()) {
 										wsdl += "        <part name=\"" + variableName + "\" type=\"p_ns:ArrayOfString\"/>\n";

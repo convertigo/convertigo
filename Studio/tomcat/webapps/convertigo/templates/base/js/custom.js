@@ -1,6 +1,6 @@
 /*******************************************************
  *******************************************************
- * public C8O API for CEMS 5.6.0 *
+ * public C8O API for CEMS 6.1.10 *
  *******************************************************
  *******************************************************/
 
@@ -39,6 +39,7 @@ $.extend(true, C8O, {
 //		ajax_method : "POST", /** POST/GET : http method to request CEMS */
 //		auto_refresh : "true", /** true/false : allow auto refresh feature for clipping */
 //		auto_resize : "true", /** true/false : allow weblib to perform resize after content filled */
+//		first_call : "true", /** true/false : automatically call convertigo using the page query/hash parameters, after the init_finished hook */
 //		requester_prefix : "", /** string prepend to the .xml or .cxml requester */
 //		resize_offset : "50", /** integer : number of pixel added to the automatic resize */
 //		send_portal_username : "true", /** true/false : (gatein only) automatically add a portal_username parameter with the name of the logger user */
@@ -166,6 +167,20 @@ $.extend(true, C8O, {
  * parameter_name : parameter name to remove from the list
  */
 //C8O.removeRecallParameter(parameter_name);
+
+/**
+ * waitHide function
+ * hide the wait screen
+ * by removing the element with the id wait_div
+ */
+//C8O.waitHide();
+
+/**
+ * waitShow function
+ * show the wait screen
+ * by putting the wait_div in the body element
+ */
+//C8O.waitShow();
 
 
 

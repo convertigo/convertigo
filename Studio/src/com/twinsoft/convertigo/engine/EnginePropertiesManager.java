@@ -31,11 +31,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
@@ -388,6 +389,8 @@ public class EnginePropertiesManager {
 		/** NETWORK */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		NET_REVERSE_DNS ("net.reverse_dns", "false", "Use DNS reverse search for finding host names", PropertyCategory.Network),
+		FILE_UPLOAD_MAX_REQUEST_SIZE ("net.upload.max_request_size", "-1", "Maximum allowed size, in bytes, of a complete multipart request. Value -1 indicates no limit.", PropertyCategory.Network),
+		FILE_UPLOAD_MAX_FILE_SIZE ("net.upload.max_request_size", "10485760", "Maximum allowed size, in bytes, of a single uploaded file.", PropertyCategory.Network),
 		
 		/** HTTPCLIENT */
 		HTTP_CLIENT_MAX_TOTAL_CONNECTIONS ("http_client.max_total_connections", "100", "Maximal number of HTTP connections (from 1 to 65535)", PropertyCategory.HttpClient),
@@ -593,6 +596,14 @@ public class EnginePropertiesManager {
     	String current_value = getProperty(property);
     	value = encodeValue(property.getType(), value);
     	return current_value.equals(value);
+    }
+    
+    public static synchronized long getPropertyAsLong(PropertyName property) {
+    	try {
+    		return Long.parseLong(getProperty(property, true));
+    	} catch (Exception e) {
+    		return Long.parseLong(property.getDefaultValue());
+    	}
     }
     
     public static synchronized boolean getPropertyAsBoolean(PropertyName property) {
@@ -826,22 +837,23 @@ public class EnginePropertiesManager {
     }
 
     public static String getPropertiesAsString(String title, Properties propertiesToGet) {
-    	if (propertiesToGet == null) propertiesToGet = properties;
-
-        String propValue;
-        Vector<String> vProperties = new Vector<String>(32);
+    	if (propertiesToGet == null) {
+    		propertiesToGet = properties;
+    	}
+    	
+        List<String> vProperties = new ArrayList<String>(propertiesToGet.size());
         for (Object propKey : propertiesToGet.keySet()) {
-            propValue = propertiesToGet.getProperty((String) propKey);
-            vProperties.addElement(propKey + "=" + propValue);
+        	String propValue = propertiesToGet.getProperty((String) propKey);
+            vProperties.add(propKey + "=" + propValue);
         }
-
+        
         Collections.sort(vProperties);
-
+        
         String msg = title + "\n";
         for (String line : vProperties) {
             msg += line + "\n";
         }
-
+        
         return msg;
     }
 
