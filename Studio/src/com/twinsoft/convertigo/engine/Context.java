@@ -641,10 +641,11 @@ public class Context extends AbstractContext {
 		temporaryFiles.add(file);
 	}
 	
-	synchronized public void deleteTemporarayFiles() {
+	synchronized public void deleteTemporaryFiles() {
 		if (temporaryFiles != null) {
 			for (File file : temporaryFiles) {
 				try {
+					Engine.logContext.debug("(Context.deleteTemporaryFiles) Removing the temporary file : " + file.getAbsolutePath());
 					FileUtils.deleteDirectory(file);
 				} catch (IOException e) { }
 			}

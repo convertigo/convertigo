@@ -219,6 +219,7 @@ public abstract class ServletRequester extends GenericRequester {
 			tmpDir.delete();
 			tmpDir.mkdirs();
 			factory.setRepository(tmpDir);
+			Engine.logContext.debug("(ServletRequester.initContext) Temporary folder for upload is : " + tmpDir.getAbsolutePath());
 
 			// Create a new file upload handler
 			ServletFileUpload upload = new ServletFileUpload(factory);
@@ -235,6 +236,7 @@ public abstract class ServletRequester extends GenericRequester {
 				String parameterValue;
 				if (fileItem.isFormField()) {
 					parameterValue = fileItem.getString();
+					Engine.logContext.trace("(ServletRequester.initContext) Value for field '" + parameterName + "' : " + parameterValue);
 				} else {
 					String name = fileItem.getName().replaceFirst("^.*(?:\\\\|/)(.*?)$", "$1");
 					if (name.length() > 0) {
@@ -244,7 +246,9 @@ public abstract class ServletRequester extends GenericRequester {
 						fileItem.write(wFile);
 						fileItem.delete();
 						parameterValue = wFile.getAbsolutePath();
+						Engine.logContext.debug("(ServletRequester.initContext) Temporary uploaded file for field '" + parameterName + "' : " + parameterValue);
 					} else {
+						Engine.logContext.debug("(ServletRequester.initContext) No temporary uploaded file for field '" + parameterName + "', empty name");
 						parameterValue = "";
 					}
 				}
@@ -347,7 +351,7 @@ public abstract class ServletRequester extends GenericRequester {
 	public Object postGetDocument(Document document) throws Exception {
 		Object result = super.postGetDocument(document);
 		
-		context.deleteTemporarayFiles();
+		context.deleteTemporaryFiles();
 		
 		return result;
     }
