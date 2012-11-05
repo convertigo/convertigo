@@ -65,16 +65,31 @@ function addRequestable($requestable, $parent) {
 	var $requestable_div = $("#templates .requestable").clone();
 	setName($requestable_div.find(".requestable_name"), $requestable);
 	
+	var $form = $requestable_div.find("form:first");
+	var requestable_type = $requestable[0].tagName;
+	if (requestable_type == "sequence") {
+		$("#templates .hidden_sequence").clone().appendTo($form).find(".sequence_value").val($requestable.attr("name"));
+	} else if (requestable_type == "transaction") {
+		var $hidden_transaction = $("#templates .hidden_transaction").clone().appendTo($form);
+		$hidden_transaction.find(".transaction_value").val($requestable.attr("name"));
+		$hidden_transaction.find(".connector_value").val($requestable.parent().attr("name"));
+	} 
+	
 	// Add variables
 	$requestable.find(">variable").each( function () {
 		var $variable = $(this);
 		var isMasked = $variable.attr("isMasked") === "true";
 		var isMultiValued = $variable.attr("isMultivalued") === "true";
+		var isFileUpload = $variable.attr("isFileUpload") === "true";
 		
 		var $variable_div = $("#templates .variable").clone();
 		setName($variable_div.find(".variable_name"), $variable);
 		
-		var $variable_type = $variable_div.find(".variable_type").data("isMasked", isMasked);
+		var $variable_type = $variable_div.find(".variable_type").data({
+			name : $variable.attr("name"),
+			isMasked : isMasked,
+			isFileUpload : isFileUpload
+		});
 		
 		// Handle multi-valued variable
 		if (isMultiValued) {
@@ -82,13 +97,13 @@ function addRequestable($requestable, $parent) {
 			
 			$variable_type.append($("#templates .multi_valued").clone());
 			for (var i = 0; i < values_array.length; i++) {
-				$variable_value_type = $("#templates .new_multi_valued").filter(isMasked ? ".value_password" : ".value_text").clone();
-				$variable_value_type.find(".variable_value").val(values_array[i]);
+				$variable_value_type = $("#templates .new_multi_valued").filter(isFileUpload ? ".value_file" : isMasked ? ".value_password" : ".value_text").clone();
+				$variable_value_type.find(".variable_value").attr("name", $variable.attr("name")).not("[type=file]").val(values_array[i]);
 				$variable_type.append($variable_value_type);
 			}
 		} else {
-			var $variable_value_type = $("#templates .single_valued").filter(isMasked ? ".value_password" : ".value_text").clone();
-			$variable_value_type.find(".variable_value").val($variable.attr("value"));
+			var $variable_value_type = $("#templates .single_valued").filter(isFileUpload ? ".value_file" : isMasked ? ".value_password" : ".value_text").clone();
+			$variable_value_type.find(".variable_value").attr("name", $variable.attr("name")).not("[type=file]").val($variable.attr("value"));
 			$variable_type.append($variable_value_type);
 		}
 
@@ -129,7 +144,7 @@ function addRequestable($requestable, $parent) {
 }
 
 function addRequestableData(params, $requestable_name) {
-	var connectorName = $requestable_name.parents(".connector").find(".connector_name").text();
+	var connectorName = $requestable_name.parents(".connector:first").find(".connector_name").text();
 	if (connectorName.length > 0) {
 		params.__connector = connectorName;
 		params.__transaction = $requestable_name.text();
@@ -185,8 +200,7 @@ function launchCliplet(url, mobile_layout, scale) {
 	vars.last_layout = mobile_layout;
 	if (mobile_layout === "none") {
 		var $iframe = $("#cliplet_div_iframe");
-		var $c8o_call = $("#check_mode_c8o_call");
-		if (!$c8o_call.attr("disabled") && $c8o_call.attr("checked") && $iframe.length && typeof($iframe[0].contentWindow.C8O) !== "undefined") {
+		if (isC8oCall() && $iframe.length && typeof($iframe[0].contentWindow.C8O) !== "undefined") {
 			$iframe[0].contentWindow.C8O.call(url.substring(url.indexOf("?") + 1));
 		} else {
 			$("#window_exe_content").empty().append("<iframe id='cliplet_div_iframe' frameborder='0' src='" + url + "'></iframe>");
@@ -212,7 +226,7 @@ function setLink($a, params) {
 	if ($a.hasClass("btn_gen_gadget")) {
 		$a.attr("href", "widgets/" + vars.projectName + "?__widget_type=gadget&__widget_name=" + vars.projectName + '&' + toUrl(params));
 	} else {
-		$a.attr("href", "projects/" + vars.projectName + "/index.html?" + toUrl(params));
+		$a.attr("href", "projects/" + vars.projectName + "/" + getRequester() + "?" + toUrl(params));
 	}
 }
 
@@ -392,7 +406,7 @@ function copyVariables($testcase) {
 			var value = $value.text();
 			if ($value.attr("ismultivalued") === "true") {
 				var values_array = parseJSONarray(value);
-				for (j in values_array) {
+				for (var j in values_array) {
 					$variable.find(".link_value_add").click();
 					$variable.find(".variable_value").last().val(values_array[j]);
 				}
@@ -413,6 +427,25 @@ function variableEnableCheck($check) {
 	} else {
 		$check.parent().prev().find(".variable_value").attr("disabled", "disabled");
 	}
+}
+
+function isC8oCall() {
+	var $c8o_call = $("#check_mode_c8o_call");
+	return !$c8o_call.attr("disabled") && $c8o_call.attr("checked");
+}
+
+function isFullscreen() {
+	return $('#check_mode_fullscreen').attr("checked");
+}
+
+function getRequester() {
+	var selected_mode = $("input[type=radio][name=form_execution_mode]:checked").val();
+	if (selected_mode == "xml") {
+		return ".pxml";
+	} else if (selected_mode == "json") {
+		return ".json";
+	}
+	return "index.html";
 }
 
 $(document).ready(function() {
@@ -496,8 +529,14 @@ $(document).ready(function() {
 				$(this).parents(".requestable").find("a.requestable_link").each(setLinkForRequestable);
 			});
 			
-			if ($(".accordion_options").length == 1)
+			$("#main input[type=radio][name=form_execution_mode]").change(function () {
+				$("#main a.requestable_link").each(setLinkForRequestable);
+				$("#main a.requestable_testcase_link").each(setLinkForTestCase);
+			});
+			
+			if ($(".accordion_options").length == 1) {
 				$("#column_left").append($(".accordion_options:first").clone());
+			}
 			
 			$("#main .btn_exe_link").button({ icons : { primary : "ui-icon-play" }});
 			$("#main .btn_gen_gadget").button({ icons : { primary : "ui-icon-gear" }});
@@ -508,9 +547,9 @@ $(document).ready(function() {
 			$("#check_mode_fullscreen").button();
 			$("#check_mode_c8o_call").button();
 
-			$("#main .radio_mode").change(function() {
+			$("#main .radio_mode, #check_mode_fullscreen").change(function() {
 				var selected = $('input[type=radio][name=form_execution_mode]:checked').val();
-				if (selected != "html") {
+				if (selected != "html" || isFullscreen()) {
 					$('input[name=form_c8o_call_mode]').button("option", "disabled", true);
 				} else {
 					$('input[name=form_c8o_call_mode]').button("option", "disabled", false);
@@ -528,16 +567,9 @@ $(document).ready(function() {
 			});
 			
 			$("#main .btn_exe_link").click(function () {
+				var $requestable = $(this).parents(".requestable:first");
 				var layout = $(this).parent().find(".device_layout").attr("value");
 				var href = $(this).parent().find("a").attr("href");
-
-				var selected_mode = $('input[type=radio][name=form_execution_mode]:checked').val();
-				
-				if (selected_mode === "xml") {
-					href = href.replace("index.html?", ".pxml?");
-				} else if (selected_mode === "json") {
-					href = href.replace("index.html?", ".json?");
-				}
 				
 				var genUrl = window.location.href;
 				genUrl = genUrl.substring(0, genUrl.indexOf("convertigo/"));
@@ -545,11 +577,72 @@ $(document).ready(function() {
 				
 				$("#main .gen_url").html(genUrl);
 				$("#main .window_exe_generated_url").css("display", "block");
+				
+				// check for file upload
+				if ($requestable.find(".value_file").length > 0) {
+					var url = genUrl.replace(new RegExp("^(.*?)\\?.*$"), "$1");
+					var $form = $requestable.find("form").attr({
+						"method" : "POST",
+						"action" : url
+					});
+					
+					if (isFullscreen()) {
+						if (getRequester() === "index.html") {
+							var name = "testplatform_" + new Date().getTime();
+							var win = window.open(url + "#__first_call=false");
+							var cpt = 3;
+							var callback = function () {
+								if (win.C8O) {
+									if (win.C8O.call($form[0]) == true) {
+										$form[0].submit();
+									}
+								} else if (--cpt > 0) {
+									window.setTimeout(callback, 500);
+								}
+							};
+							window.setTimeout(callback, 500);
+						} else {
+							$form.attr("target", "_blank").submit();
+						}
+					} else {
+						var $iframe = $("#cliplet_div_iframe");
+						if (isC8oCall() && $iframe.length && typeof($iframe[0].contentWindow.C8O) !== "undefined") {
+							if ($iframe[0].contentWindow.C8O.call($form[0]) == true) {
+								$form[0].submit();
+							}
+						} else {
+							if (getRequester() === "index.html") {
+								$iframe = $("<iframe/>").attr({
+									id : "cliplet_div_iframe",
+									frameborder : "0",
+									src : url + "#__first_call=false"
+								}).one("load", function () {
+									if ($iframe[0].contentWindow.C8O.call($form[0]) == true) {
+										$form[0].submit();
+									};
+								}).appendTo($("#window_exe_content").empty());
+							} else {
+								$iframe = $("<iframe/>").attr({
+									id : "cliplet_div_iframe",
+									frameborder : "0",
+									src : ""
+								}).one("load", function () {
+									if (getRequester() === ".pxml") {
+										$form.attr("action", $form.attr("action") + "?__content_type=text/plain");
+									}
+									$form.attr("target", this.contentWindow.name = "tesplatformIframe").submit();
+								}).appendTo($("#window_exe_content").empty());
+							}
+							$iframe.slideDown(500);
+						}
+					}
+					return false;
+				}
 
-				if ($('#check_mode_fullscreen').attr('checked')) {
+				if (isFullscreen()) {
 					window.open(href);
 				} else {
-					if (selected_mode === "xml") {
+					if (getRequester() === ".pxml") {
 						href += "&__content_type=text/plain"
 					}
 					launchCliplet(href, layout, "auto");
@@ -571,8 +664,8 @@ $(document).ready(function() {
 			});
 			$("#main .link_value_add").live("click", function () {
 				var $variable_type = $(this).parents(".variable_type");
-				var $variable_multi_new = $("#templates .new_multi_valued").filter($variable_type.data("isMasked") ? ".value_password" : ".value_text").clone();
-				$variable_multi_new.find(".variable_value").val("").change(function () {
+				var $variable_multi_new = $("#templates .new_multi_valued").filter($variable_type.data("isFileUpload") ? ".value_file" : $variable_type.data("isMasked") ? ".value_password" : ".value_text").clone();
+				$variable_multi_new.find(".variable_value").attr("name", $variable_type.data("name")).val("").change(function () {
 					$(this).parents(".requestable").find("a.requestable_link").each(setLinkForRequestable);
 				}).change();
 				$variable_type.append($variable_multi_new);

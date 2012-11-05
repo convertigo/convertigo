@@ -231,8 +231,8 @@
 																					<input type="radio" id="radio_json" name="form_execution_mode" value="json"/><label for="radio_json">Json</label>
 																				</div>
 																				<div class="check_mode">
-																					<input id="check_mode_fullscreen" type="checkbox" name="form_fullscreen_mode" value="fullscreen"><label for="check_mode_fullscreen">Fullscreen</label>
-																					<input id="check_mode_c8o_call" type="checkbox" name="form_c8o_call_mode" value="c8o_call" checked="checked"><label for="check_mode_c8o_call" title="Use c8o.call if frame is already loaded">C8O call</label>
+																					<input id="check_mode_fullscreen" type="checkbox" name="form_fullscreen_mode" value="fullscreen"/><label for="check_mode_fullscreen">Fullscreen</label>
+																					<input id="check_mode_c8o_call" type="checkbox" name="form_c8o_call_mode" value="c8o_call" checked="checked"/><label for="check_mode_c8o_call" title="Use c8o.call if frame is already loaded">C8O call</label>
 																				</div>
 																				<br/>
 																			</div>
@@ -285,11 +285,10 @@
                         </td>
                         <td valign="top"><img src="images/new/convertigo-ems-bg-gris-right.png" /></td>
                     </tr>
-                </table> 
-                
+                </table>
                 <!-- Footer -->    
                 <div class="footer">
-                    <div class="hr"></div>Copyright &copy; 2001-2011 Convertigo SA. All rights reserved.
+                    <div class="hr"></div>Copyright &copy; 2001-2012 Convertigo SA. All rights reserved.
                 </div>
                 <!-- End Footer -->                 
             <!-- End Global content -->                            
@@ -355,18 +354,20 @@
 					<h6 class="requestable_name">…</h6>
 					<div class="acc-section">
 						<div class="acc-content">
-							<table class="table requestable_variables">
-								<tr class="requestable_variables_footer">
-									<td colspan="3" height="10"></td>
-								</tr>                                                                                                         
-								<tr>
-									<td colspan="4">
-										<input type="hidden" value="none" class="device_layout" />
-										<a href="#" class="requestable_link btn_exe_link">Execute</a>
-										<a href="#" class="requestable_link btn_gen_gadget">Generate gadget URL</a>										
-									</td>
-								</tr>
-							</table>
+							<form enctype="multipart/form-data">
+								<table class="table requestable_variables">
+									<tr class="requestable_variables_footer">
+										<td colspan="3" height="10"></td>
+									</tr>                                                                                                         
+									<tr>
+										<td colspan="4">
+											<input type="hidden" value="none" class="device_layout" />
+											<a href="#" class="requestable_link btn_exe_link">Execute</a>
+											<a href="#" class="requestable_link btn_gen_gadget">Generate gadget URL</a>										
+										</td>
+									</tr>
+								</table>
+							</form>
 							<!-- Test cases -->
 							<div class="requestable_testcase_div">
 								<div class="title_testcase">Test cases</div>
@@ -388,11 +389,21 @@
 					<td class="libelle_c8o">Send value</td>
 				</tr>
 			</table>
+			<div class="hidden_sequence">
+				<input type="hidden" name="__sequence" alt="" class="sequence_value champ variable_value" value="…"/>
+			</div>
+			<div class="hidden_transaction">
+				<input type="hidden" name="__transaction" alt="" class="transaction_value champ variable_value" value="…"/>
+				<input type="hidden" name="__connector" alt="" class="connector_value champ variable_value" value="…"/>
+			</div>
 			<div class="single_valued value_text">
 				<input type="text" alt="" class="champ variable_value" value="…"/>
 			</div>
 			<div class="single_valued value_password">
 				<input type="password" alt="" class="champ variable_value" value="…"/>
+			</div>
+			<div class="single_valued value_file">
+				<input type="file" alt="" class="champ variable_value" value="…"/>
 			</div>
 			<div class="multi_valued">
 				<a title="add value" class="link_value_add">+ add a new value</a>
@@ -403,6 +414,10 @@
 			</div>
 			<div class="new_multi_valued value_password">
 				<input type="password" alt="" class="champ variable_value" value="…"/>
+				<a title="remove value" class="link_value_remove">×</a>
+			</div>
+			<div class="new_multi_valued value_file">
+				<input type="file" alt="" class="champ variable_value" value="…"/>
 				<a title="remove value" class="link_value_remove">×</a>
 			</div>
 			<ul class="testcase">

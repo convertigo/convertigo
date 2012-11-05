@@ -1,6 +1,6 @@
 /*******************************************************
  *******************************************************
- * public C8O API for CEMS 5.6.0 *
+ * public C8O API for CEMS 6.1.10 *
  *******************************************************
  *******************************************************/
 
@@ -166,6 +166,20 @@ $.extend(true, C8O, {
  * parameter_name : parameter name to remove from the list
  */
 //C8O.removeRecallParameter(parameter_name);
+
+/**
+ * waitHide function
+ * hide the wait screen
+ * by removing the element with the id wait_div
+ */
+//C8O.waitHide();
+
+/**
+ * waitShow function
+ * show the wait screen
+ * by putting the wait_div in the body element
+ */
+//C8O.waitShow();
 
 
 

@@ -31,40 +31,42 @@ public class RequestableVariable extends Variable implements ITagsProperty {
 	private static final long serialVersionUID = 1999336848736513573L;
 
 	private String schemaType = "xsd:string";
-	private Boolean wsdl = Boolean.TRUE;
-	private Boolean personalizable = Boolean.FALSE;
-	private Boolean cachedKey = Boolean.TRUE;
+	private boolean wsdl = true;
+	private boolean personalizable = false;
+	private boolean cachedKey = true;
+	private boolean isFileUpload = false;
 	
 	public RequestableVariable() {
         super();
 	}
-
+	
+	@Override
 	public Object clone() throws CloneNotSupportedException {
 		RequestableVariable clonedObject = (RequestableVariable)super.clone();
 		return clonedObject;
 	}
 	
-	public Boolean isWsdl() {
+	public boolean isWsdl() {
 		return wsdl;
 	}
 
-	public void setWsdl(Boolean wsdl) {
+	public void setWsdl(boolean wsdl) {
 		this.wsdl = wsdl;
 	}
 
-	public Boolean isPersonalizable() {
+	public boolean isPersonalizable() {
 		return personalizable;
 	}
 
-	public void setPersonalizable(Boolean personalizable) {
+	public void setPersonalizable(boolean personalizable) {
 		this.personalizable = personalizable;
 	}
 
-	public Boolean isCachedKey() {
+	public boolean isCachedKey() {
 		return cachedKey;
 	}
 
-	public void setCachedKey(Boolean cachedKey) {
+	public void setCachedKey(boolean cachedKey) {
 		this.cachedKey = cachedKey;
 	}
 
@@ -74,6 +76,15 @@ public class RequestableVariable extends Variable implements ITagsProperty {
 
 	public void setSchemaType(String schemaType) {
 		this.schemaType = schemaType;
+	}
+
+	@Override
+	public boolean getIsFileUpload() {
+		return isFileUpload;
+	}
+
+	public void setIsFileUpload(boolean isFileUpload) {
+		this.isFileUpload = isFileUpload;
 	}
 
 	public String[] getTagsForProperty(String propertyName) {
@@ -86,5 +97,4 @@ public class RequestableVariable extends Variable implements ITagsProperty {
 		}
 		return new String[0];
 	}
-
 }

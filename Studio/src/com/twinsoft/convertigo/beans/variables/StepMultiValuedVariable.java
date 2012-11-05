@@ -31,8 +31,8 @@ public class StepMultiValuedVariable extends StepVariable {
 	}
 
 	@Override
-	public Boolean isMultiValued() {
-		return Boolean.TRUE;
+	public boolean isMultiValued() {
+		return true;
 	}
 	
 }

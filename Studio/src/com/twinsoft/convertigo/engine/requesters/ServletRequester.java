@@ -33,6 +33,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -45,6 +46,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.translators.DefaultServletTranslator;
 import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 
 public abstract class ServletRequester extends GenericRequester {
@@ -57,7 +59,7 @@ public abstract class ServletRequester extends GenericRequester {
     public String getName() {
         return "ServletRequester";
     }
-
+    
 	public void checkSecuredConnection(RequestableObject requestable) throws EngineException {
 		if (requestable.isSecureConnectionRequired()) {
 			if (!context.httpServletRequest.isSecure()) {
@@ -166,14 +168,16 @@ public abstract class ServletRequester extends GenericRequester {
 		return contextName;
 	}
 
-    public void initContext(Context context) throws Exception {
-    	super.initContext(context);
-    	
+	@Override
+	public void initContext(Context context) throws Exception {
+		super.initContext(context);
+
 		HttpServletRequest request = (HttpServletRequest) inputData;
+		HttpServletRequestTwsWrapper twsRequest = request instanceof HttpServletRequestTwsWrapper ? (HttpServletRequestTwsWrapper) request : null;
 
 		// Check multipart request
-    	boolean isMultipartRequest = ServletFileUpload.isMultipartContent(request);
-    	
+		boolean isMultipartRequest = ServletFileUpload.isMultipartContent(request);
+
 		/* Fix: #1754 - Slower transaction execution with many session */
 		// HTTP session maintain its own context list in order to
 		// improve context removal on session unbound process
@@ -200,60 +204,84 @@ public abstract class ServletRequester extends GenericRequester {
 
 		boolean bConnectorGivenByUser = false;
 
-    	if (isMultipartRequest) {
-    		Engine.logContext.debug("(ServletRequester.initContext) Multipart resquest");
+		if (isMultipartRequest) {
+			Engine.logContext.debug("(ServletRequester.initContext) Multipart resquest");
 
-    		// Create a factory for disk-based file items
-    		DiskFileItemFactory factory = new DiskFileItemFactory();
+			// Create a factory for disk-based file items
+			DiskFileItemFactory factory = new DiskFileItemFactory();
 
-    		// Set factory constraints
-    		factory.setSizeThreshold(1000);
-    		
-    		File tmpDir = File.createTempFile("c8o-multipart-files", ".tmp");
-    		tmpDir.mkdirs();
-    		factory.setRepository(tmpDir);
+			// Set factory constraints
+			factory.setSizeThreshold(1000);
 
-    		// Create a new file upload handler
-    		ServletFileUpload upload = new ServletFileUpload(factory);
+			File tmpDir = File.createTempFile("c8o-multipart-files", ".tmp");
+			context.addTemporaryFile(tmpDir);
+			int cptFile = 0;
+			tmpDir.delete();
+			tmpDir.mkdirs();
+			factory.setRepository(tmpDir);
 
-    		// Set overall request size constraint
-    		upload.setSizeMax(10000000); // TODO: create an engine parameter for this value
-    		
-    		// Parse the request
-    		List<FileItem> items = GenericUtils.cast(upload.parseRequest(request));
-    		
-    		for (FileItem fileItem : items) {
-    		    if (fileItem.isFormField()) {
-    		        // TODO: processFormField(fileItem);
-    		    } else {
-    		    	// TODO: processUploadedFile(fileItem);
-    		    }
-    		}
-    	}
-    	else {
-    		Engine.logContext.debug("(ServletRequester.initContext) Query string: " + request.getQueryString());
-    		
-        	// We transform the HTTP post data into XML data.
-    		Enumeration<?> parameterNames = request.getParameterNames();
+			// Create a new file upload handler
+			ServletFileUpload upload = new ServletFileUpload(factory);
 
-    		String parameterName, parameterValue;
-    		String[] parameterValues = null;
+			// Set overall request size constraint
+			upload.setSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_REQUEST_SIZE));
+			upload.setFileSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_FILE_SIZE));
 
-    		while (parameterNames.hasMoreElements()) {
-    			parameterName = (String) parameterNames.nextElement();
-    			
-    			parameterValues = request.getParameterValues(parameterName);
+			// Parse the request
+			List<FileItem> items = GenericUtils.cast(upload.parseRequest(request));
 
-    			parameterValue = parameterValues[0];
-    			
-    			handleParameter(context, parameterName, parameterValue);
-    			
-    			if (parameterName.equals(Parameter.Connector.getName())) {
-    				bConnectorGivenByUser = true;
-    			}
-    		}
-    	}
-		
+			for (FileItem fileItem : items) {
+				String parameterName = fileItem.getFieldName();
+				String parameterValue;
+				if (fileItem.isFormField()) {
+					parameterValue = fileItem.getString();
+				} else {
+					String name = fileItem.getName().replaceFirst("^.*(?:\\\\|/)(.*?)$", "$1");
+					if (name.length() > 0) {
+						File wDir = new File(tmpDir, "" + (++cptFile));
+						wDir.mkdirs();
+						File wFile = new File(wDir, name);
+						fileItem.write(wFile);
+						fileItem.delete();
+						parameterValue = wFile.getAbsolutePath();
+					} else {
+						parameterValue = "";
+					}
+				}
+
+				if (twsRequest != null) {
+					twsRequest.addParameter(parameterName, parameterValue);
+				}
+				handleParameter(context, parameterName, parameterValue);
+
+				if (parameterName.equals(Parameter.Connector.getName())) {
+					bConnectorGivenByUser = true;
+				}
+			}
+		} else {
+			Engine.logContext.debug("(ServletRequester.initContext) Query string: " + request.getQueryString());
+
+			// We transform the HTTP post data into XML data.
+			Enumeration<?> parameterNames = request.getParameterNames();
+
+			String parameterName, parameterValue;
+			String[] parameterValues = null;
+
+			while (parameterNames.hasMoreElements()) {
+				parameterName = (String) parameterNames.nextElement();
+
+				parameterValues = request.getParameterValues(parameterName);
+
+				parameterValue = parameterValues[0];
+
+				handleParameter(context, parameterName, parameterValue);
+
+				if (parameterName.equals(Parameter.Connector.getName())) {
+					bConnectorGivenByUser = true;
+				}
+			}
+		}
+
 		if (!bConnectorGivenByUser) {
 			if (context.project != null && context.project.getName().equals(context.projectName)) {
 				String defaultConnectorName = context.project.getDefaultConnector().getName();
@@ -263,7 +291,7 @@ public abstract class ServletRequester extends GenericRequester {
 				}
 			}
 		}
-		
+
 		Engine.logContext.debug("Context initialized!");
 	}
 
@@ -314,4 +342,13 @@ public abstract class ServletRequester extends GenericRequester {
 			httpSession.setAttribute("__sessionListener", new HttpSessionListener());
 		}
 	}
+	
+	@Override
+	public Object postGetDocument(Document document) throws Exception {
+		Object result = super.postGetDocument(document);
+		
+		context.deleteTemporarayFiles();
+		
+		return result;
+    }
 }

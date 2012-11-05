@@ -31,8 +31,8 @@ public class RequestableHttpMultiValuedVariable extends RequestableHttpVariable 
 	}
 	
 	@Override
-	public Boolean isMultiValued() {
-		return Boolean.TRUE;
+	public boolean isMultiValued() {
+		return true;
 	}
 
 }

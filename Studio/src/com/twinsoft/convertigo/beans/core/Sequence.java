@@ -384,7 +384,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public boolean includeVariableIntoRequestString(String variableName) {
 		RequestableVariable variable = (RequestableVariable)getVariable(variableName);
 		if (variable != null) {
-			return variable.isCachedKey().booleanValue();
+			return variable.isCachedKey();
 		}
 		return false;
 	}
@@ -395,7 +395,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		RequestableVariable variable = null;
 		for (int i=0; i<numberOfVariables(); i++) {
 			variable = (RequestableVariable)getVariable(i);
-			if (variable.isWsdl().booleanValue()) {
+			if (variable.isWsdl()) {
 				if (variable.isMultiValued()) {
 					xsdArrayData += Engine.getArrayOfSchema(variable.getSchemaType());
 				}
@@ -415,7 +415,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	xsdRequestData +=	"    <xsd:sequence>\n";
 		for (int i=0; i<numberOfVariables(); i++) {
 			variable = (RequestableVariable)getVariable(i);
-			if (variable.isWsdl().booleanValue()) {
+			if (variable.isWsdl()) {
 				if (variable.isMultiValued()) {
 					xsdRequestData += "      <xsd:element minOccurs=\"1\" maxOccurs=\"1\" name=\""+variable.getName()+"\" >\n";
 					xsdRequestData += "        <xsd:annotation>\n";

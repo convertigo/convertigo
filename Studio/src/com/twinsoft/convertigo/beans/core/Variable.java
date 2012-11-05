@@ -64,8 +64,8 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 		return clonedObject;
 	}
 
-	public Boolean isMultiValued() {
-		return Boolean.FALSE;
+	public boolean isMultiValued() {
+		return false;
 	}
 	
 	public boolean isSoapArray() {
@@ -257,6 +257,10 @@ public abstract class Variable extends DatabaseObject implements IMultiValued, I
 		return false;
 	}
 
+	public boolean getIsFileUpload() {
+		return false;
+	}
+	
 	@Override
 	public String toString() {
 		String label = "";
