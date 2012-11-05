@@ -92,6 +92,9 @@ public class SchemaViewLabelProvider implements ILabelProvider, IColorProvider {
 			if (element instanceof XmlSchemaElement) {
 				key += ((XmlSchemaElement)element).getRefName() != null ? "_ref":"";
 			}
+			else if (element instanceof XmlSchemaAttribute) {
+				key += ((XmlSchemaAttribute)element).getRefName() != null ? "_ref":"";
+			}
 		} else {
 			key = "unresolved";
 		}
