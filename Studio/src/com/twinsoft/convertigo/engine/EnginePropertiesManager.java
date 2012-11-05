@@ -389,8 +389,8 @@ public class EnginePropertiesManager {
 		/** NETWORK */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		NET_REVERSE_DNS ("net.reverse_dns", "false", "Use DNS reverse search for finding host names", PropertyCategory.Network),
-		FILE_UPLOAD_MAX_REQUEST_SIZE ("net.upload.max_request_size", "-1", "Maximum allowed size, in bytes, of a complete multipart request. Value -1 indicates no limit.", PropertyCategory.Network),
-		FILE_UPLOAD_MAX_FILE_SIZE ("net.upload.max_request_size", "10485760", "Maximum allowed size, in bytes, of a single uploaded file.", PropertyCategory.Network),
+		FILE_UPLOAD_MAX_REQUEST_SIZE ("net.upload.max_request_size", "-1", "Maximum allowed size of a complete multipart request (in bytes). Value -1 indicates no limit.", PropertyCategory.Network),
+		FILE_UPLOAD_MAX_FILE_SIZE ("net.upload.max_request_size", "10485760", "Maximum allowed size of a single uploaded file (in bytes).", PropertyCategory.Network),
 		
 		/** HTTPCLIENT */
 		HTTP_CLIENT_MAX_TOTAL_CONNECTIONS ("http_client.max_total_connections", "100", "Maximal number of HTTP connections (from 1 to 65535)", PropertyCategory.HttpClient),
