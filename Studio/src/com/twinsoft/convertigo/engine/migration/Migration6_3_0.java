@@ -42,8 +42,10 @@ import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -216,6 +218,18 @@ public class Migration6_3_0 {
 	
 	private static void handleSteps(File destDir, XmlSchema projectSchema, Map<String, Reference> referenceMap, List<Step> stepList) {
 		for (Step step: stepList) {
+			if (step instanceof IStepSourceContainer) {
+				/** Case step's xpath has not been migrated when project has been deployed
+				 ** on a 5.0 server from a Studio with an older version **/
+				IStepSourceContainer stepSourceContainer = (IStepSourceContainer)step;
+				XMLVector<String> definition = stepSourceContainer.getSourceDefinition();
+				if (!definition.isEmpty()) {
+					String xpath = definition.get(1);
+					definition.set(1, xpath = xpath.replaceAll("\\./sequence|\\./transaction", "."));
+					stepSourceContainer.setSourceDefinition(definition);
+				}
+			}
+			
 			String targetProjectName = null;
 			String typeLocalName = null;
 			if (step instanceof TransactionStep) {

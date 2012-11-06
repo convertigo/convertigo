@@ -28,8 +28,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
-import com.twinsoft.convertigo.beans.steps.SequenceStep;
-import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -150,17 +148,6 @@ public class StepSource {
 		if (definition.size() > 0) {
 			Step step = getStep();
 			String xpath = getXpath();
-			
-			/** Case step's xpath has not been migrated when project has been deployed
-			 ** on a 5.0 server from a Studio with an older version **/
-			if (step != null) {
-				if ((step instanceof TransactionStep) && xpath.startsWith("./transaction")) {
-					xpath = xpath.replaceFirst("transaction", "");
-				} else if ((step instanceof SequenceStep) && xpath.startsWith("./sequence")) {
-	    			xpath = xpath.replaceFirst("sequence","");
-				}
-			}
-			
 			Engine.logBeans.trace("(ISourceContainer) "+ owner+" ["+owner.executeTimeID+"] retreiving value from source "+step+" ["+step.executeTimeID+"]");
 			Engine.logBeans.trace("(ISourceContainer) "+ owner+" ["+owner.hashCode()+"] retreiving value from source "+step+" ["+step.hashCode()+"]");
 			nodeList = step.getContextValues(xpath, sourceLoop);
