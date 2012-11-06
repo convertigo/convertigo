@@ -39,6 +39,7 @@ $.extend(true, C8O, {
 //		ajax_method : "POST", /** POST/GET : http method to request CEMS */
 //		auto_refresh : "true", /** true/false : allow auto refresh feature for clipping */
 //		auto_resize : "true", /** true/false : allow weblib to perform resize after content filled */
+//		first_call : "true", /** true/false : automatically call convertigo using the page query/hash parameters, after the init_finished hook */
 //		requester_prefix : "", /** string prepend to the .xml or .cxml requester */
 //		resize_offset : "50", /** integer : number of pixel added to the automatic resize */
 //		send_portal_username : "true", /** true/false : (gatein only) automatically add a portal_username parameter with the name of the logger user */
