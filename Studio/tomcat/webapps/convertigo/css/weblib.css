@@ -31,12 +31,12 @@ body {
 
 #alertTable {
 	-moz-opacity: 0.97;
-	background-color: #b5d3e7;
+	background-color: #B5D3E7;
 	cursor: pointer;
 	filter: alpha(opacity=97);
 	left: 33%;
 	opacity: 0.97;
-	position: absolute;
+	position: fixed;
 	text-align: center;
 	top: 33%;
 	width: 33%;
@@ -54,7 +54,7 @@ body {
 	height: 32px;
 	left: -25px;
 	opacity: 0.60;
-	position: absolute;
+	position: fixed;
 	top: -28px;
 	width: 32px;
 	z-index: 99998;
@@ -67,7 +67,7 @@ body {
 	height: 100%;
 	left: 0;
 	opacity: 0.2;
-	position: absolute;
+	position: fixed;
 	top: 0px;
 	width: 100%;
 	z-index:99998
@@ -75,7 +75,7 @@ body {
 
 #wait_div img {
 	left: 50%;
-	position: absolute;
+	position: fixed;
 	top: 50%;
 	z-index: 99999;
 }

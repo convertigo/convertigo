@@ -35,7 +35,7 @@ C8O = {
 		ajax_method : "POST", /** POST/GET */
 		auto_refresh : "true", /** true/false */
 		auto_resize : "true", /** true/false */
-		first_call : "true",
+		first_call : "true", /** true/false */
 		requester_prefix : "",
 		resize_offset : "50", /** number */
 		send_portal_username : "true", /** true/false */
