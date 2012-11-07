@@ -1068,10 +1068,10 @@ public class Engine {
 			}
 
 			// Check requestable accessibility
-			requester.checkAccessibility(context.requestedObject);
+			requester.checkAccessibility();
 
 			// Check requestable access policy
-			requester.checkSecuredConnection(context.requestedObject);
+			requester.checkSecuredConnection();
 
 			RequestableObject requestedObject = context.requestedObject;
 

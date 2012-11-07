@@ -74,11 +74,11 @@ public abstract class GenericRequester extends Requester {
     public GenericRequester() {
     }
 
-	public void checkSecuredConnection(RequestableObject requestable) throws EngineException {
+	public void checkSecuredConnection() throws EngineException {
 		// Default implementation: nothing to check
 	}
 	
-	public void checkAccessibility(RequestableObject requestable) throws EngineException {
+	public void checkAccessibility() throws EngineException {
 		// Default implementation: nothing to check
 	}
 

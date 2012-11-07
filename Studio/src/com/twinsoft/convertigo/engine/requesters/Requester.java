@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.engine.requesters;
 
 import org.w3c.dom.Document;
 
-import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.translators.Translator;
@@ -56,7 +55,7 @@ public abstract class Requester {
     
     public abstract Document getDocument() throws Exception;
     
-    public abstract void checkAccessibility(RequestableObject requestable) throws EngineException;
+    public abstract void checkAccessibility() throws EngineException;
     
-    public abstract void checkSecuredConnection(RequestableObject requestable) throws EngineException;
+    public abstract void checkSecuredConnection() throws EngineException;
 }
