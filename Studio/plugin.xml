@@ -674,10 +674,10 @@
              class="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
              icon="icons/studio/sequence_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
-             name="Sequencer steps examples"
+             name="Sequencer objects examples"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the sample project containing Sequencer steps examples described in the Reference Manual.</description>
+          <description>Imports the sample project containing Sequencer objects examples described in the Reference Manual.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
