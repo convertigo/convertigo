@@ -35,7 +35,6 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.w3c.dom.Document;
 
-import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -60,18 +59,18 @@ public abstract class ServletRequester extends GenericRequester {
         return "ServletRequester";
     }
     
-	public void checkSecuredConnection(RequestableObject requestable) throws EngineException {
-		if (requestable.isSecureConnectionRequired()) {
+	public void checkSecuredConnection() throws EngineException {
+		if (context.requestedObject.isSecureConnectionRequired()) {
 			if (!context.httpServletRequest.isSecure()) {
-				throw new EngineException("Unable to execute the requestable '" + requestable.getName()
+				throw new EngineException("Unable to execute the requestable '" + context.requestedObject.getName()
 						+ "' because a secured connection is needed");
 			}
 		}
 	}
 	
-	public void checkAccessibility(RequestableObject requestable) throws EngineException {
+	public void checkAccessibility() throws EngineException {
 		// By default, requesters disallow private requestables from being executed
-		if (requestable.isPrivateAccessibility()) {
+		if (context.requestedObject.isPrivateAccessibility()) {
 			if (Engine.isStudioMode()) {
 				// In studio mode, all requestables can be executed
 				return;
@@ -83,7 +82,7 @@ public abstract class ServletRequester extends GenericRequester {
 				return;
 			}
 			
-			throw new EngineException("Unable to execute the requestable '" + requestable.getName()
+			throw new EngineException("Unable to execute the requestable '" + context.requestedObject.getName()
 					+ "' because it is private (check its accessibility property)");
 		}
 	}
