@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -30,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -135,23 +137,41 @@ public class LaunchBuild extends XmlService {
 				// Update mobilelib script reference and copy from commom scripts if
 				// needed
 				sIndexHtml = resolveFile(sIndexHtml, "scripts/mobilelib.js", "js/mobilelib.js");
-			} else {				
-				String sIndexHtml_resolved = resolveFile(sIndexHtml, "css/jquery.mobile.min.css", "css/jquery.mobile.min.css");
-				if (sIndexHtml != sIndexHtml_resolved) {
-					File destFile = new File(tmpMobileWwwPath + "/css/images");
-					if (!destFile.exists()) {
-						FileUtils.copyDirectory(new File(Engine.WEBAPP_PATH + "/css/images"), destFile);
+			} else {
+				StringBuffer sbIndexHtml = new StringBuffer();
+				BufferedReader br = new BufferedReader(new StringReader(sIndexHtml));
+				String line = br.readLine();
+				while (line != null) {
+					if (!line.contains("<!--") && line.contains("\"../../../../")) {
+						String file = line.replaceFirst(".*\"\\.\\./\\.\\./\\.\\./\\.\\./(.*?)\".*", "$1");
+						File inFile = new File(Engine.WEBAPP_PATH + "/" + file);
+						
+						boolean needImages = file.matches(".*jquery\\.mobile\\..*?min.css");
+						
+						file = file.replace("scripts/", "js/");
+						File outFile = new File(tmpMobileWwwPath + "/" + file);
+						outFile.getParentFile().mkdirs();
+						FileUtils.copyFile(inFile, outFile);
+						line = line.replaceFirst("\"\\.\\./\\.\\./\\.\\./\\.\\./.*?\"", "\"" + file + "\"");
+						
+						if (needImages) {
+							File inImages = new File(inFile.getParentFile(), "images");
+							File outImages = new File(outFile.getParentFile(), "images");
+							FileUtils.copyDirectory(inImages, outImages);
+						}
+						
+						if (file.matches(".*/jquery\\.mobilelib\\..*?js")) {
+							serverJsFile = outFile;
+							String sJs = FileUtils.readFileToString(serverJsFile);
+							sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "/\"");
+							FileUtils.writeStringToFile(serverJsFile, sJs);
+						}
 					}
-					sIndexHtml = sIndexHtml_resolved;
+					sbIndexHtml.append(line + "\n");
+					line = br.readLine();
 				}
-				sIndexHtml = resolveFile(sIndexHtml, "scripts/jquery.min.js", "js/jquery.min.js");
-				sIndexHtml = resolveFile(sIndexHtml, "scripts/jquery.mobilelib.js", "js/jquery.mobilelib.js");
-				sIndexHtml = resolveFile(sIndexHtml, "scripts/jquery.mobile.min.js", "js/jquery.mobile.min.js");
 				
-				serverJsFile = new File(tmpMobileWwwPath + "/js/jquery.mobilelib.js");
-				String sJs = FileUtils.readFileToString(serverJsFile);
-				sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "/\"");
-				FileUtils.writeStringToFile(serverJsFile, sJs);
+				sIndexHtml = sbIndexHtml.toString();
 			}
 			
 			FileUtils.writeStringToFile(indexHtmlFile, sIndexHtml);

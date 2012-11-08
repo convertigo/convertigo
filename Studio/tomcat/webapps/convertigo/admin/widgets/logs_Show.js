@@ -71,8 +71,6 @@ function logs_Show_init(options) {
 		$(".log-field-minute").append("<option>" + i + "</option>");
 		$(".log-field-second").append("<option>" + i + "</option>");
 	}
-
-	resetOptions();
 	
 	$(window).resize(onWindowResize);
 	
@@ -93,7 +91,8 @@ function logs_Show_init(options) {
 
 	$logTableBody = $("#logTable > tbody:last");
 	$logDivTable = $("#logDivTable");
-	
+
+	resetOptions();
 	onWindowResize();
 	
 	$logDivTable.scroll(onLogDivTableScroll);
@@ -209,23 +208,17 @@ function onLogOptionsRealTimeClick() {
 	bRealTime = $("#logOptionsRealTime").attr("checked");
 	$("#logOptionsDivDate").fadeToggle();
 	if (this.checked) {
-		$("#logOptionsRealTimeAutoScroll").removeAttr("disabled");
-		$("#logOptionsRealTimeAutoScroll").button("refresh");
-		$("#logOptionsUpdate").attr("disabled", "disabled");
-		$("#logOptionsUpdate").button("refresh");
-		$("#logOptionsGoToEnd").attr("disabled", "disabled");
-		$("#logOptionsGoToEnd").button("refresh");
+		$("#logOptionsRealTimeAutoScroll").button("enable");
+		$("#logOptionsUpdate").button("disable");
+		$("#logOptionsGoToEnd").button("disable");
 		$logTableBody.empty();
 		currentNbLine = 1;
 		getLines();
 	}
 	else {
-		$("#logOptionsRealTimeAutoScroll").attr("disabled", "disabled");
-		$("#logOptionsRealTimeAutoScroll").button("refresh");
-		$("#logOptionsUpdate").removeAttr("disabled");
-		$("#logOptionsUpdate").button("refresh");
-		$("#logOptionsGoToEnd").removeAttr("disabled");
-		$("#logOptionsGoToEnd").button("refresh");
+		$("#logOptionsRealTimeAutoScroll").button("disable");
+		$("#logOptionsUpdate").button("enable");
+		$("#logOptionsGoToEnd").button("enable");
 	}
 }
 
@@ -426,10 +419,7 @@ function resetOptions() {
 	
 	$("#logOptionsFilter").val("");
 	
-	$("#logOptionsUpdate").removeAttr("disabled");
-	$("#logOptionsUpdate").button("refresh");
-
-	$("#logDivOptionsToolbar input").button("refresh");
+	$("#logOptionsUpdate").button("enable");
 }
 
 function logs_Show_update(options) {
@@ -481,8 +471,7 @@ function onLogGetSuccess(json) {
 		getLines();
 	}
 	else {
-		$("#logOptionsUpdate").removeAttr("disabled");
-		$("#logOptionsUpdate").button("refresh");
+		$("#logOptionsUpdate").button("enable");
 		
 		if (bHasMoreResults) {
 			$("#logMessageEndOfLogs").hide();
@@ -518,8 +507,7 @@ function getLines() {
 	$("#logMessageMoreResults").hide();
 	$("#logMessageSearching").show();
 
-	$("#logOptionsUpdate").attr("disabled", "disabled");
-	$("#logOptionsUpdate").button("refresh");
+	$("#logOptionsUpdate").button("disable");
 
 	var startDate = getStartDateAsString();
 	var endDate = getEndDateAsString();
