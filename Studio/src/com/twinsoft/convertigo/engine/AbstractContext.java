@@ -100,7 +100,26 @@ public abstract class AbstractContext {
 	 * Indicates whether the context is to be kept in the pool even if it is not in the expected state (i.e. wrong screen class).
 	 */
 	public boolean lockPooledContext = false; 
-		
+	
+	public String getAuthenticatedUser() {
+		if (tasUserName == null) {
+			if (portalUserName == null) {
+				return "(anonymous)";
+			}
+			else {
+				return portalUserName;
+			}
+		}
+		else {
+			return tasUserName;
+		}
+	}
+	
+	/**
+	 * The portal user name.
+	 */
+	public String portalUserName;
+	
 	// Carioca / VIC related properties
 
 	/**

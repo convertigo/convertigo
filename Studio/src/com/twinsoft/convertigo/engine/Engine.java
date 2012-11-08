@@ -143,6 +143,11 @@ public class Engine {
 	public ThreadManager threadManager;
 
 	/**
+	 * The security token manager.
+	 */
+	public SecurityTokenManager securityTokenManager;
+
+	/**
 	 * The cache manager.
 	 */
 	public CacheManager cacheManager;
@@ -533,6 +538,10 @@ public class Engine {
 					Engine.logEngine.error("Unable to launch the context manager.", e);
 				}
 
+				// Launch the security token manager
+				Engine.theApp.securityTokenManager = new SecurityTokenManager();
+				Engine.theApp.securityTokenManager.init();
+				
 				// Initialize the HttpClient
 				try {
 					Engine.logEngine.debug("HttpClient initializing...");
@@ -730,6 +739,10 @@ public class Engine {
 				Engine.logEngine.info("Removing the thread manager");
 				if (Engine.theApp.threadManager != null)
 					Engine.theApp.threadManager.destroy();
+
+				Engine.logEngine.info("Removing the security token manager");
+				if (Engine.theApp.securityTokenManager != null)
+					Engine.theApp.securityTokenManager.destroy();
 
 				Engine.logEngine.info("The Convertigo Engine has been successfully stopped.");
 			} finally {
@@ -1044,7 +1057,10 @@ public class Engine {
 			// Check requestable access policy
 			requester.checkSecuredConnection();
 
-			RequestableObject requestedObject = context.requestedObject;
+			// Check authenticated context requirement 
+		 	requester.checkAuthenticatedContext(); 
+		 	
+		 	RequestableObject requestedObject = context.requestedObject;
 
 			if (context.isAsync) {
 				outputDom = JobManager.addJob(cacheManager, requestedObject, requester, context);

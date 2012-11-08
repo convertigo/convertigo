@@ -224,6 +224,7 @@ public class EnginePropertiesManager {
     	HttpClient ("HTTP client"),
     	Network ("Network"),
     	Proxy ("Proxy"),
+    	SecurityToken ("Security token"),
     	Ssl ("SSL"),
     	Cache ("Cache"),
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
@@ -446,6 +447,12 @@ public class EnginePropertiesManager {
 		XULRUNNER_URL ("xulrunner.url", "${convertigo.webapp_path}/WEB-INF/xulrunner", "XulRunner path", PropertyCategory.XulRunner),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN_CLOUD)
 		XULRUNNER_WORK ("xulrunner.work", "${user.workspace}/xulrunner-work", "XulRunner work directory", PropertyCategory.XulRunner),
+
+		/** SECURITY TOKEN */
+		SECURITY_TOKEN_LIFE_TIME ("security_token.life_time", "20", "Security tokens lifetime (in seconds)", PropertyCategory.SecurityToken),
+		@PropertyOptions(propertyType = PropertyType.PasswordHash)
+		SECURITY_TOKEN_PASSPHRASE ("security_token.passphrase", ""+"c8o-password".hashCode(), "Security token generator passphrase", PropertyCategory.SecurityToken),
+
 		
 		/** SSL */
 		@PropertyOptions(propertyType = PropertyType.Boolean)

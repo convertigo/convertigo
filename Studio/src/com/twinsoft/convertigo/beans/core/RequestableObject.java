@@ -913,4 +913,14 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	public void setAddStatistics(boolean addStatistics) {
 		this.addStatistics = addStatistics;
 	}
+	
+	private boolean authenticatedContextRequired = false;
+
+	public boolean getAuthenticatedContextRequired() {
+		return authenticatedContextRequired;
+	}
+
+	public void setAuthenticatedContextRequired(boolean authenticatedContextRequired) {
+		this.authenticatedContextRequired = authenticatedContextRequired;
+	}
 }
