@@ -41,7 +41,8 @@ public class EventDetailsDialog extends MyAbstractDialog {
 	private Label logCategory = null;
 	private Label logThread = null;
 	private Text textMessage = null;
-	private Text textExtra = null;
+	//private Text textExtra = null;
+	private Text textClientIp, textConnector, textContextId, textProject, textTransaction, textUID, textUser, textSequence, textClientHostName;
 	
 	public EventDetailsDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, LogLine logLine) {
 		super(parentShell, dialogAreaClass, dialogTitle, 800, 450);
@@ -64,7 +65,17 @@ public class EventDetailsDialog extends MyAbstractDialog {
 		logCategory = ((EventDetailsDialogComposite)dialogComposite).logCategory;
 		logThread = ((EventDetailsDialogComposite)dialogComposite).logThread;
 		textMessage = ((EventDetailsDialogComposite)dialogComposite).textMessage;
-		textExtra = ((EventDetailsDialogComposite)dialogComposite).textExtra;
+		//textExtra = ((EventDetailsDialogComposite)dialogComposite).textExtra;
+		textClientIp = ((EventDetailsDialogComposite)dialogComposite).textClientIp;
+		textConnector = ((EventDetailsDialogComposite)dialogComposite).textConnector;
+		textContextId = ((EventDetailsDialogComposite)dialogComposite).textContextId;
+		textProject = ((EventDetailsDialogComposite)dialogComposite).textProject;
+		textTransaction = ((EventDetailsDialogComposite)dialogComposite).textTransaction;
+		textUID = ((EventDetailsDialogComposite)dialogComposite).textUID;
+		textUser = ((EventDetailsDialogComposite)dialogComposite).textUser;
+		textSequence = ((EventDetailsDialogComposite)dialogComposite).textSequence;
+		textClientHostName = ((EventDetailsDialogComposite)dialogComposite).textClientHostName;
+		
 		
 		String level = logLine.getLevel();
 		Color color = null;
@@ -84,7 +95,26 @@ public class EventDetailsDialog extends MyAbstractDialog {
 		logCategory.setText(logLine.getCategory());
 		logThread.setText(logLine.getThread());
 		textMessage.setText(logLine.getFullMessage());
-		textExtra.setText(logLine.getFullExtra());
+		if(logLine.getClientIP() != null)
+			textClientIp.setText(logLine.getClientIP());
+		if(logLine.getConnector() != null)
+			textConnector.setText(logLine.getConnector());
+		if(logLine.getContextID() != null)
+			textContextId.setText(logLine.getContextID());
+		if(logLine.getProject() != null)
+			textProject.setText(logLine.getProject());
+		if(logLine.getTransaction() != null)
+			textTransaction.setText(logLine.getTransaction());
+		if(logLine.getUID() != null)
+			textUID.setText(logLine.getUID());
+		if(logLine.getUser() != null)
+			textUser.setText(logLine.getUser());
+		if(logLine.getSequence() != null)
+			textSequence.setText(logLine.getSequence());
+		if(logLine.getClientHostName() != null)
+			textClientHostName.setText(logLine.getClientHostName());
+		
+		//textExtra.setText(logLine.getFullExtra());
 
 		return composite;
 	}

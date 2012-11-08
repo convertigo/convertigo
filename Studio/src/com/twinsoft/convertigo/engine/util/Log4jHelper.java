@@ -31,6 +31,8 @@ import com.twinsoft.convertigo.engine.LogParameters;
 
 public class Log4jHelper {
 	
+	public static enum mdcKeys { ClientIP, Connector, ContextID, Project, Transaction, UID, User, Sequence, ClientHostName};
+	
 	static public void mdcInit(Context context) {
 		if (context.logParameters != null) {
 			context.logParameters.clear();
@@ -49,14 +51,14 @@ public class Log4jHelper {
 		if (logParameters != null) MDC.put("ContextualParameters", logParameters);
 	}
 
-	static public void mdcPut(String key, Object value) {
+	static public void mdcPut(mdcKeys key, Object value) {
 		LogParameters logParameters = (LogParameters) MDC.get("ContextualParameters");
 		
 		if (logParameters == null) {
 			throw new IllegalStateException("ContextualParameters is null: call mdcInit() before!");
 		}
 
-		logParameters.put(key.toLowerCase(), value);
+		logParameters.put(key.toString().toLowerCase(), value);
 	}
 
 }
