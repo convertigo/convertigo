@@ -590,26 +590,24 @@ $(document).ready(function() {
 						if (getRequester() === "index.html") {
 							var name = "testplatform_" + new Date().getTime();
 							var win = window.open(url + "#__first_call=false");
-							var cpt = 3;
+							var cpt = 20;
 							var callback = function () {
 								if (win.C8O) {
-									if (win.C8O.call($form[0]) == true) {
-										$form[0].submit();
-									}
+									win.C8O.call($form[0]);
 								} else if (--cpt > 0) {
-									window.setTimeout(callback, 500);
+									window.setTimeout(callback, 100);
+								} else {
+									alert("Failed to call the requestable.");
 								}
 							};
-							window.setTimeout(callback, 500);
+							window.setTimeout(callback, 100);
 						} else {
 							$form.attr("target", "_blank").submit();
 						}
 					} else {
 						var $iframe = $("#cliplet_div_iframe");
 						if (isC8oCall() && $iframe.length && typeof($iframe[0].contentWindow.C8O) !== "undefined") {
-							if ($iframe[0].contentWindow.C8O.call($form[0]) == true) {
-								$form[0].submit();
-							}
+							$iframe[0].contentWindow.C8O.call($form[0]);
 						} else {
 							if (getRequester() === "index.html") {
 								$iframe = $("<iframe/>").attr({
@@ -617,9 +615,7 @@ $(document).ready(function() {
 									frameborder : "0",
 									src : url + "#__first_call=false"
 								}).one("load", function () {
-									if ($iframe[0].contentWindow.C8O.call($form[0]) == true) {
-										$form[0].submit();
-									};
+									$iframe[0].contentWindow.C8O.call($form[0]);
 								}).appendTo($("#window_exe_content").empty());
 							} else {
 								$iframe = $("<iframe/>").attr({

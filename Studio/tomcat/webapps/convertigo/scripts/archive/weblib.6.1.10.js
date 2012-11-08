@@ -35,7 +35,7 @@ C8O = {
 		ajax_method : "POST", /** POST/GET */
 		auto_refresh : "true", /** true/false */
 		auto_resize : "true", /** true/false */
-		first_call : "true",
+		first_call : "true", /** true/false */
 		requester_prefix : "",
 		resize_offset : "50", /** number */
 		send_portal_username : "true", /** true/false */
@@ -71,27 +71,34 @@ C8O = {
 			data = {};
 		} else if (!$.isPlainObject(data) && $(data).is("form")) {
 			var $form = $(data);
-			if ($form.attr("enctype") == "multipart/form-data") {
+			if ($form.find("input[type=file]").length) {
 				var targetName = "tn_" + new Date().getTime() + "_" + Math.floor(Math.random() * 100);
+				var action = window.location.pathname.replace(new RegExp("^(.*/).*?$"), "$1") + C8O.vars.requester_prefix + (C8O.vars.xsl_side === "client" ? ".xml":".cxml");
 				$form.attr({
-					action : window.location.pathname.replace(new RegExp("^(.*/).*?$"), "$1") + C8O.vars.requester_prefix + (C8O.vars.xsl_side === "client" ? ".xml":".cxml"),
 					method : "POST",
+					enctype : "multipart/form-data",
+					action : action,
 					target : targetName
 				});
 				var $iframe = $("<iframe/>").attr({
 					src : "",
 					style : "display: none"
 				}).appendTo("body").on("load", function () {
-					if (C8O.vars.xsl_side === "client") {
-						var xml = $iframe[0].contentWindow.document.XMLDocument;
-						C8O._onSuccess(xml ? xml : $iframe[0].contentWindow.document, "ok", {responseText : "No responseText for multipart, use XSL or xml_response."});
-					} else {
-						C8O._onSuccess(null, "ok", {responseText : $iframe[0].contentWindow.document.outerHTML});
-					}
-					$iframe.remove();
+					if (action == this.contentWindow.location.pathname) {
+						if (C8O.vars.xsl_side === "client") {
+							var xml = $iframe[0].contentWindow.document.XMLDocument;
+							C8O._onSuccess(xml ? xml : $iframe[0].contentWindow.document, "ok", {responseText : "No responseText for multipart, use XSL or xml_response."});
+						} else {
+							C8O._onSuccess(null, "ok", {responseText : $iframe[0].contentWindow.document.outerHTML});
+						}
+						$iframe.remove();
+					};
 				});
 				$iframe[0].contentWindow.name = targetName;
-				return true;
+				window.setTimeout(function () {
+					$form.trigger("submit." + targetName);
+				}, 0);
+				return;
 			} else {
 				data = C8O._parseQuery({}, $(data).serialize());
 			}
@@ -538,6 +545,10 @@ C8O = {
 			
 			if (C8O._hook("init_finished", params) && C8O.vars.first_call === "true") {
 				C8O.call(params);
+			}
+			
+			if (C8O.vars.first_call === "false") {
+				C8O.waitHide();
 			}
 		}
 	}
