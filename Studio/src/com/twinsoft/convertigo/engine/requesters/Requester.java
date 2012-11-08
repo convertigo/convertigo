@@ -58,4 +58,6 @@ public abstract class Requester {
     public abstract void checkAccessibility() throws EngineException;
     
     public abstract void checkSecuredConnection() throws EngineException;
+    
+    public abstract void checkAuthenticatedContext() throws EngineException;
 }

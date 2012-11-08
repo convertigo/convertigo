@@ -33,7 +33,7 @@ public class RequestableObjectBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/RequestableObject");
 			
-			properties = new PropertyDescriptor[9];
+			properties = new PropertyDescriptor[10];
 			
 			properties[0] = new PropertyDescriptor("accessibility", beanClass, "getAccessibility", "setAccessibility");
 			properties[0].setDisplayName(getExternalizedString("property.accessibility.display_name"));
@@ -78,6 +78,11 @@ public class RequestableObjectBeanInfo extends MySimpleBeanInfo {
 			properties[8].setExpert(true);
 			properties[8].setDisplayName(getExternalizedString("property.addStatistics.display_name"));
 			properties[8].setShortDescription(getExternalizedString("property.addStatistics.short_description"));
+
+			properties[9] = new PropertyDescriptor("authenticatedContextRequired", beanClass, "getAuthenticatedContextRequired", "setAuthenticatedContextRequired");
+			properties[9].setExpert(true);
+			properties[9].setDisplayName(getExternalizedString("property.authenticatedContextRequired.display_name"));
+			properties[9].setShortDescription(getExternalizedString("property.authenticatedContextRequired.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
