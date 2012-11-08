@@ -53,8 +53,12 @@ function logs_Show_init(options) {
 	}
 	
 	$(".date-pick").datepicker({ dateFormat: "yy-mm-dd" }).bind("mousewheel", {fn: function (delta) {		
-		var ts = Date.parse($(this).datepicker('getDate'));		
-		ts += (delta * 86400000 ); // +/- 1 day : 86400000 = 24 x 60 x 60 x 1000		
+		var ts = new Date();
+		ts = Date.parse($(this).datepicker('getDate'));
+		if(dateFormat(ts+(delta * 86400000 ), "yyyy-mm-dd")!=dateFormat(ts, "yyyy-mm-dd"))
+			ts += (delta * 86400000 ); // +/- 1 day : 86400000 = 24 x 60 x 60 x 1000	
+		else
+			ts += (delta * 90000000 ); // Daylight Saving Time
 		$(this).datepicker('setDate',dateFormat(ts, "yyyy-mm-dd"));
 	}}, simpleWheel);
 
