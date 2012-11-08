@@ -76,14 +76,17 @@ public abstract class GenericRequester extends Requester {
     public GenericRequester() {
     }
 
+	@Override
 	public void checkSecuredConnection() throws EngineException {
 		// Default implementation: nothing to check
 	}
 	
+	@Override
 	public void checkAccessibility() throws EngineException {
 		// Default implementation: nothing to check
 	}
 	
+	@Override
 	public void checkAuthenticatedContext() throws EngineException {
         if (context.requestedObject.getAuthenticatedContextRequired()) {
 			Engine.logContext.debug("Authenticated context required");
@@ -288,7 +291,7 @@ public abstract class GenericRequester extends Requester {
 	                	if (context.transactionName != null) {
 		            		Log4jHelper.mdcPut("Connector", context.connectorName);
 		            		Log4jHelper.mdcPut("Transaction", context.transactionName);
-	                	}
+		            	}
 						Log4jHelper.mdcPut("User", context.getAuthenticatedUser());
 	                }
 					
