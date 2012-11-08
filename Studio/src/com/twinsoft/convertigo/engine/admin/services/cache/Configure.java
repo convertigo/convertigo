@@ -140,25 +140,29 @@ public class Configure extends XmlService {
 				String fileName = Engine.WEBAPP_PATH + "/WEB-INF/sql" + sqlCreateTableFileName;
 				BufferedReader br = new BufferedReader(new FileReader(fileName.toString()));
 				
-				SqlRequester sqlRequester =null;
-				java.sql.Statement statement = null;
-				while ( (sqlRequest = br.readLine()) != null ) {
-					try {
-						sqlRequester = new SqlRequester(DatabaseCacheManager.DB_PROP_FILE_NAME);
-						sqlRequester.open();
+				try {
+					SqlRequester sqlRequester = null;
+					java.sql.Statement statement = null;
+					while ((sqlRequest = br.readLine()) != null) {
+						try {
+							sqlRequester = new SqlRequester(DatabaseCacheManager.DB_PROP_FILE_NAME);
+							sqlRequester.open();
 
-						sqlRequest = sqlRequest.substring(0, sqlRequest.length() - 1);						
-						statement =  sqlRequester.connection.createStatement();
-						statement.execute(sqlRequest);
-						ServiceUtils.addMessage(document,root,"Request: \""+sqlRequest+"\" executed.","message");
-						
-					}finally {
-						br.close();
-						if (statement != null) {
-							statement.close();
+							sqlRequest = sqlRequest.substring(0, sqlRequest.length() - 1);
+							statement = sqlRequester.connection.createStatement();
+							statement.execute(sqlRequest);
+							ServiceUtils.addMessage(document, root, "Request: \"" + sqlRequest
+									+ "\" executed.", "message");
+
+						} finally {
+							if (statement != null) {
+								statement.close();
+							}
+							sqlRequester.close();
 						}
-						sqlRequester.close();
 					}
+				} finally {
+					br.close();
 				}
 	
 			} catch(Exception e) {			
