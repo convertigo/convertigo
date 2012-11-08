@@ -44,7 +44,8 @@ public class EventDetailsDialogComposite extends MyAbstractDialogComposite {
 	public Label logThread = null;
 	
 	public Text textMessage = null;
-	public Text textExtra = null;
+	//public Text textExtra = null;
+	public Text textClientIp, textConnector, textContextId, textProject, textTransaction, textUID, textUser, textSequence, textClientHostName = null;
 	
 	public EventDetailsDialogComposite(Composite parent, int style) {
 		super(parent, style);
@@ -78,10 +79,55 @@ public class EventDetailsDialogComposite extends MyAbstractDialogComposite {
 		textMessage = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
 		item.setControl(textMessage);
 		
+		//item = new CTabItem (tabFolder, SWT.NONE);
+		//item.setText ("Extra");
+		//textExtra = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		//item.setControl(textExtra);
+		
 		item = new CTabItem (tabFolder, SWT.NONE);
-		item.setText ("Extra");
-		textExtra = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
-		item.setControl(textExtra);
+		item.setText ("ClientIP");
+		textClientIp = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		item.setControl(textClientIp);
+		
+		item = new CTabItem (tabFolder, SWT.NONE);
+		item.setText ("Connector");
+		textConnector = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		item.setControl(textConnector);
+		
+		item = new CTabItem (tabFolder, SWT.NONE);
+		item.setText ("ContextID");
+		textContextId = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		item.setControl(textContextId);
+		
+		item = new CTabItem (tabFolder, SWT.NONE);
+		item.setText ("Project");
+		textProject = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		item.setControl(textProject);
+		
+		item = new CTabItem (tabFolder, SWT.NONE);
+		item.setText ("Transaction");
+		textTransaction = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		item.setControl(textTransaction);
+		
+		item = new CTabItem (tabFolder, SWT.NONE);
+		item.setText ("UID");
+		textUID = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		item.setControl(textUID);
+		
+		item = new CTabItem (tabFolder, SWT.NONE);
+		item.setText ("User");
+		textUser = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		item.setControl(textUser);
+		
+		item = new CTabItem (tabFolder, SWT.NONE);
+		item.setText ("Sequence");
+		textSequence = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		item.setControl(textSequence);
+		
+		item = new CTabItem (tabFolder, SWT.NONE);
+		item.setText ("ClientHostName");
+		textClientHostName = new Text(tabFolder, SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+		item.setControl(textClientHostName);
 		
 		labelThread = new Label(this, SWT.NONE);
         labelThread.setText("Thread:");

@@ -90,7 +90,50 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 				}
 				break;
 			case 5:
-				text = line.getExtra();
+				//text = line.getExtra();
+				if (!line.isSubLine) {
+					text = line.getClientIP();
+				}
+				break;
+			case 6:
+				if (!line.isSubLine) {
+					text = line.getConnector();
+				}
+				break;
+			case 7:
+				if (!line.isSubLine) {
+					text = line.getContextID();
+				}
+				break;
+			case 8:
+				if (!line.isSubLine) {
+					text = line.getProject();
+				}
+				break;
+			case 9:
+				if (!line.isSubLine) {
+					text = line.getTransaction();
+				}
+				break;
+			case 10:
+				if (!line.isSubLine) {
+					text = line.getUID();
+				}
+				break;
+			case 11:
+				if (!line.isSubLine) {
+					text = line.getUser();
+				}
+				break;
+			case 12:
+				if (!line.isSubLine) {
+					text = line.getSequence();
+				}
+				break;
+			case 13:
+				if (!line.isSubLine) {
+					text = line.getClientHostName();
+				}
 				break;
 			default:
 				break;

@@ -51,7 +51,32 @@ public class EngineLogViewComparator extends ViewerComparator {
 				rc = line1.getThread().compareTo(line2.getThread());
 				break;
 			case 5:
-				rc = line1.getExtra().compareTo(line2.getExtra());
+				//rc = line1.getExtra().compareTo(line2.getExtra());
+				rc = line1.getClientIP().compareTo(line2.getClientIP());
+				break;
+			case 6:
+				rc = line1.getConnector().compareTo(line2.getConnector());
+				break;
+			case 7:
+				rc = line1.getContextID().compareTo(line2.getContextID());
+				break;
+			case 8:
+				rc = line1.getProject().compareTo(line2.getProject());
+				break;
+			case 9:
+				rc = line1.getTransaction().compareTo(line2.getTransaction());
+				break;
+			case 10:
+				rc = line1.getUID().compareTo(line2.getUID());
+				break;
+			case 11:
+				rc = line1.getUser().compareTo(line2.getUser());
+				break;
+			case 12:
+				rc = line1.getSequence().compareTo(line2.getSequence());
+				break;
+			case 13:
+				rc = line1.getClientHostName().compareTo(line2.getClientHostName());
 				break;
 			default:
 				rc = 0;

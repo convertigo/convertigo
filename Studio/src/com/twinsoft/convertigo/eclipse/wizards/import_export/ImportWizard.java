@@ -33,7 +33,6 @@ import org.eclipse.ui.IWorkbench;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class ImportWizard extends Wizard implements IImportWizard {

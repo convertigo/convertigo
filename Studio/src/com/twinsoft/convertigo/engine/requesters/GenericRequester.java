@@ -71,6 +71,7 @@ import com.twinsoft.convertigo.engine.SecurityToken;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 
 public abstract class GenericRequester extends Requester {
 	
@@ -271,9 +272,9 @@ public abstract class GenericRequester extends Requester {
 				// Update log4j context infos
 				Log4jHelper.mdcInit(context);
 				long uniqueRequestID = System.currentTimeMillis() + (long) (Math.random() * 1261440000000L);
-				Log4jHelper.mdcPut("UID", Long.toHexString(uniqueRequestID));
-				Log4jHelper.mdcPut("ContextID", context.contextID);
-				Log4jHelper.mdcPut("Project", context.projectName);
+				Log4jHelper.mdcPut(mdcKeys.UID, Long.toHexString(uniqueRequestID));
+				Log4jHelper.mdcPut(mdcKeys.ContextID, context.contextID);
+				Log4jHelper.mdcPut(mdcKeys.Project, context.projectName);
 
 				Engine.logContext.trace("[" + getName() + "] start");
 				
@@ -288,12 +289,14 @@ public abstract class GenericRequester extends Requester {
 	                	initContext(context);
 	            		
 	                	if (context.sequenceName != null) 
-	                		Log4jHelper.mdcPut("Sequence", context.sequenceName);
+
+	                		Log4jHelper.mdcPut(mdcKeys.Sequence, context.sequenceName);
 	                	if (context.transactionName != null) {
-		            		Log4jHelper.mdcPut("Connector", context.connectorName);
-		            		Log4jHelper.mdcPut("Transaction", context.transactionName);
+		            		Log4jHelper.mdcPut(mdcKeys.Connector, context.connectorName);
+		            		Log4jHelper.mdcPut(mdcKeys.Transaction, context.transactionName);
 	                	}
-	                	Log4jHelper.mdcPut("User", context.getAuthenticatedUser());
+	            		Log4jHelper.mdcPut(mdcKeys.User, context.tasUserName == null ? "(anonymous)" : "'" + context.tasUserName + "'");
+
 	                }
 					
 					result = coreProcessRequest();

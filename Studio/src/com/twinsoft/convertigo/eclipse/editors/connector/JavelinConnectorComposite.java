@@ -216,9 +216,9 @@ public class JavelinConnectorComposite extends AbstractConnectorComposite implem
 					
 					LogParameters logParameters = new LogParameters();
 					Log4jHelper.mdcSet(logParameters);
-					Log4jHelper.mdcPut("Project", projectName);
-					Log4jHelper.mdcPut("Connector", connectorName);
-					Log4jHelper.mdcPut("ContextID", sessionId);
+					Log4jHelper.mdcPut(Log4jHelper.mdcKeys.Project, projectName);
+					Log4jHelper.mdcPut(Log4jHelper.mdcKeys.Connector, connectorName);
+					Log4jHelper.mdcPut(Log4jHelper.mdcKeys.ContextID, sessionId);
 
 					com.twinsoft.api.Session session = Engine.theApp.sessionManager.addSession(
 							(int) emulatorID, auth, serviceCode, sessionId,
@@ -383,9 +383,9 @@ public class JavelinConnectorComposite extends AbstractConnectorComposite implem
 
 				LogParameters logParameters = new LogParameters();
 				Log4jHelper.mdcSet(logParameters);
-				Log4jHelper.mdcPut("Project", javelinConnector.getProject().getName());
-				Log4jHelper.mdcPut("Connector", javelinConnector.getName());
-				Log4jHelper.mdcPut("ContextID", sessionId);
+				Log4jHelper.mdcPut(Log4jHelper.mdcKeys.Project, javelinConnector.getProject().getName());
+				Log4jHelper.mdcPut(Log4jHelper.mdcKeys.Connector, javelinConnector.getName());
+				Log4jHelper.mdcPut(Log4jHelper.mdcKeys.ContextID, sessionId);
 
 				TracePlayerThread tracePlayerThread = null;
 				if (projectExplorerView != null)

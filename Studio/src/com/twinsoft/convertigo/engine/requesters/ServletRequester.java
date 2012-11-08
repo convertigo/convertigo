@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
+import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 
 public abstract class ServletRequester extends GenericRequester {
 	
@@ -312,7 +313,7 @@ public abstract class ServletRequester extends GenericRequester {
 		String remoteAddr = request.getRemoteAddr();
 		Engine.logContext.info("Remote-Addr: \"" + remoteAddr + "\"");
 		context.remoteAddr = remoteAddr;
-		Log4jHelper.mdcPut("ClientIP", remoteAddr);
+		Log4jHelper.mdcPut(mdcKeys.ClientIP, remoteAddr);
 
 		String remoteHost = "-";
 		context.remoteHost = remoteHost;
@@ -320,7 +321,7 @@ public abstract class ServletRequester extends GenericRequester {
 			remoteHost = request.getRemoteHost();
 			if (remoteHost != null) {
 				context.remoteHost = remoteHost;
-				Log4jHelper.mdcPut("ClientHostName", context.remoteHost);
+				Log4jHelper.mdcPut(mdcKeys.ClientHostName, context.remoteHost);
 				Engine.logContext.info("Remote-Host: \"" + remoteHost + "\"");
 			}
 		}
