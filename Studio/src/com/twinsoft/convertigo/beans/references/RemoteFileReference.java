@@ -25,6 +25,9 @@ package com.twinsoft.convertigo.beans.references;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+
 public abstract class RemoteFileReference extends FileReference implements IUrlReference {
 	
 	private static final long serialVersionUID = 717504231825643840L;
@@ -40,7 +43,12 @@ public abstract class RemoteFileReference extends FileReference implements IUrlR
 	}
 
 	public URL getUrl() throws MalformedURLException {
-		return new URL(getUrlpath());
+		String wsdlUrl = getUrlpath();
+		// change URL for server mode
+		if (wsdlUrl.startsWith("http://localhost:18080/convertigo")) {
+			wsdlUrl = wsdlUrl.replaceAll("http://localhost:18080/convertigo", EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL));
+		}
+		return new URL(wsdlUrl);
 	}
 	
 	protected URL getReferenceUrl() throws MalformedURLException {
