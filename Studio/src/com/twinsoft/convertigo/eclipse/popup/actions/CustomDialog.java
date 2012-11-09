@@ -57,14 +57,7 @@ public class CustomDialog extends MyAbstractDialog {
 
 	@Override
 	protected void buttonPressed(int buttonId) {
-		for (int i = 0; i < buttonSpecs.size(); i++) {
-			if (buttonSpecs.get(i).value == buttonId) {
-				setReturnCode(buttonId);
-				close();
-				return;
-			}
-		}
-
-		super.buttonPressed(buttonId);
+		setReturnCode(buttonId);
+		close();
 	}
 }
