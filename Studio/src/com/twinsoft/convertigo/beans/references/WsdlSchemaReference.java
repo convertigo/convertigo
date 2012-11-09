@@ -38,6 +38,7 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.ISchemaReader;
+import com.twinsoft.convertigo.engine.Engine;
 
 public abstract class WsdlSchemaReference extends RemoteFileReference implements ISchemaReader {
 
@@ -68,7 +69,7 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			Engine.logBeans.error(e.getMessage());
 		}
 		return null;
 	}

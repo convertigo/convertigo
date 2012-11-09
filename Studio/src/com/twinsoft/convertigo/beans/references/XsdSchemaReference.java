@@ -28,6 +28,7 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 
 import com.twinsoft.convertigo.beans.core.ISchemaReader;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 
 public abstract class XsdSchemaReference extends RemoteFileReference implements ISchemaReader {
@@ -41,7 +42,7 @@ public abstract class XsdSchemaReference extends RemoteFileReference implements 
 				return SchemaUtils.loadSchema(xsdURL, collection);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			Engine.logBeans.error(e.getMessage());
 		}
 		return null;
 	}

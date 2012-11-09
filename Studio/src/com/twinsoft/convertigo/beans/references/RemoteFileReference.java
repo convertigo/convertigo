@@ -39,16 +39,11 @@ public abstract class RemoteFileReference extends FileReference implements IUrlR
 		this.urlpath = urlpath;
 	}
 
-	public URL getUrl() {
-		try {
-			return new URL(getUrlpath());
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
-		return null;
+	public URL getUrl() throws MalformedURLException {
+		return new URL(getUrlpath());
 	}
 	
-	protected URL getReferenceUrl() {
+	protected URL getReferenceUrl() throws MalformedURLException {
 		URL url = super.getReferenceUrl();
 		return url != null ? url : getUrl();
 	}

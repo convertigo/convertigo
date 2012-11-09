@@ -22,8 +22,9 @@
 
 package com.twinsoft.convertigo.beans.references;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
 public interface IUrlReference {
-	abstract URL getUrl();
+	abstract URL getUrl() throws MalformedURLException;
 }

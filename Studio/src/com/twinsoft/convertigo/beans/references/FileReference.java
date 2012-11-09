@@ -47,14 +47,10 @@ public abstract class FileReference extends Reference implements IFileReference 
 		return Engine.theApp.filePropertyManager.getFileFromProperty(getFilepath(), getProject().getName());
 	}
 
-	protected URL getReferenceUrl() {
+	protected URL getReferenceUrl() throws MalformedURLException {
 		File file = getFile();
 		if (file != null && file.isFile() && file.exists()) {
-			try {
-				return file.toURL();
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			}
+			return file.toURL();
 		}
 		return null;
 	}
