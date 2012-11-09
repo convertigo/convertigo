@@ -175,63 +175,10 @@ public class SchemaManager implements AbstractManager {
 
 								} else if (databaseObject instanceof ISchemaIncludeGenerator) {
 									// Include case
-									XmlSchemaInclude include = ((ISchemaIncludeGenerator)databaseObject).getXmlSchemaObject(collection, schema);
-									SchemaMeta.setXmlSchemaObject(schema, databaseObject, include);
-
-									XmlSchema xmlSchema = include.getSchema();
-									if (xmlSchema != null) {
-										XmlSchemaObjectCollection c = xmlSchema.getItems();
-										Iterator<XmlSchemaObject> it = GenericUtils.cast(c.getIterator());
-										while (it.hasNext()) {
-											XmlSchemaObject xmlSchemaObject  = it.next();
-											SchemaMeta.getReferencedDatabaseObjects(xmlSchemaObject).add(databaseObject);
-
-											if (xmlSchemaObject instanceof XmlSchemaImport) {
-												// ignore (already handle by reference)
-											}
-											else if (xmlSchemaObject instanceof XmlSchemaInclude) {
-												// ignore (already handle by reference)
-											}
-											else if (xmlSchemaObject instanceof XmlSchemaAttribute) {
-												XmlSchemaAttribute attribute = (XmlSchemaAttribute) xmlSchemaObject;
-												if (schema.getAttributes().getItem(attribute.getQName()) == null) {
-													schema.getAttributes().add(attribute.getQName(), attribute);
-													schema.getItems().add(attribute);
-												}
-											}
-											else if (xmlSchemaObject instanceof XmlSchemaAttributeGroup) {
-												XmlSchemaAttributeGroup attributeGroup = (XmlSchemaAttributeGroup) xmlSchemaObject;
-												if (schema.getAttributeGroups().getItem(attributeGroup.getName()) == null) {
-													schema.getAttributeGroups().add(attributeGroup.getName(), attributeGroup);
-													schema.getItems().add(attributeGroup);
-												}
-											}
-											else if (xmlSchemaObject instanceof XmlSchemaGroup) {
-												XmlSchemaGroup group = (XmlSchemaGroup) xmlSchemaObject;
-												if (schema.getGroups().getItem(group.getName()) == null) {
-													schema.getGroups().add(group.getName(), group);
-													schema.getItems().add(group);
-												}
-											}
-											else if (xmlSchemaObject instanceof XmlSchemaElement) {
-												XmlSchemaElement element = (XmlSchemaElement) xmlSchemaObject;
-												if (collection.getElementByQName(element.getQName()) == null) {
-													schema.getElements().add(element.getQName(), element);
-													schema.getItems().add(element);
-												}
-											}
-											else if (xmlSchemaObject instanceof XmlSchemaType) {
-												XmlSchemaType schemaType = (XmlSchemaType) xmlSchemaObject;
-												if (collection.getTypeByQName(schemaType.getQName()) == null) {
-													schema.addType(schemaType);
-													schema.getItems().add(schemaType);
-												}
-											}
-											else {
-												schema.getItems().add(xmlSchemaObject);
-											}
-										}
-									}							
+									XmlSchemaInclude schemaInclude = ((ISchemaIncludeGenerator)databaseObject).getXmlSchemaObject(collection, schema);
+									SchemaMeta.setXmlSchemaObject(schema, databaseObject, schemaInclude);
+									addSchemaIncludeObjects(databaseObject, schemaInclude.getSchema());
+									
 								} else if (databaseObject instanceof ISchemaAttributeGenerator) {
 									// Attribute case
 									XmlSchemaAttribute attribute = ((ISchemaAttributeGenerator) databaseObject).getXmlSchemaObject(collection, schema);
@@ -394,6 +341,63 @@ public class SchemaManager implements AbstractManager {
 					protected boolean before(DatabaseObject databaseObject, Class<? extends DatabaseObject> dboClass) {
 						// just walk ISchemaGenerator DBO or Connector
 						return ISchemaGenerator.class.isAssignableFrom(dboClass) || Connector.class.isAssignableFrom(dboClass);
+					}
+					
+					protected void addSchemaIncludeObjects(DatabaseObject databaseObject, XmlSchema xmlSchema) {
+						if (xmlSchema != null) {
+							XmlSchemaObjectCollection c = xmlSchema.getItems();
+							Iterator<XmlSchemaObject> it = GenericUtils.cast(c.getIterator());
+							while (it.hasNext()) {
+								XmlSchemaObject xmlSchemaObject  = it.next();
+								SchemaMeta.getReferencedDatabaseObjects(xmlSchemaObject).add(databaseObject);
+
+								if (xmlSchemaObject instanceof XmlSchemaImport) {
+									// ignore
+								}
+								else if (xmlSchemaObject instanceof XmlSchemaInclude) {
+									XmlSchemaInclude schemaInclude = (XmlSchemaInclude)xmlSchemaObject;
+									addSchemaIncludeObjects(databaseObject, schemaInclude.getSchema());
+								}
+								else if (xmlSchemaObject instanceof XmlSchemaAttribute) {
+									XmlSchemaAttribute attribute = (XmlSchemaAttribute) xmlSchemaObject;
+									if (schema.getAttributes().getItem(attribute.getQName()) == null) {
+										schema.getAttributes().add(attribute.getQName(), attribute);
+										schema.getItems().add(attribute);
+									}
+								}
+								else if (xmlSchemaObject instanceof XmlSchemaAttributeGroup) {
+									XmlSchemaAttributeGroup attributeGroup = (XmlSchemaAttributeGroup) xmlSchemaObject;
+									if (schema.getAttributeGroups().getItem(attributeGroup.getName()) == null) {
+										schema.getAttributeGroups().add(attributeGroup.getName(), attributeGroup);
+										schema.getItems().add(attributeGroup);
+									}
+								}
+								else if (xmlSchemaObject instanceof XmlSchemaGroup) {
+									XmlSchemaGroup group = (XmlSchemaGroup) xmlSchemaObject;
+									if (schema.getGroups().getItem(group.getName()) == null) {
+										schema.getGroups().add(group.getName(), group);
+										schema.getItems().add(group);
+									}
+								}
+								else if (xmlSchemaObject instanceof XmlSchemaElement) {
+									XmlSchemaElement element = (XmlSchemaElement) xmlSchemaObject;
+									if (collection.getElementByQName(element.getQName()) == null) {
+										schema.getElements().add(element.getQName(), element);
+										schema.getItems().add(element);
+									}
+								}
+								else if (xmlSchemaObject instanceof XmlSchemaType) {
+									XmlSchemaType schemaType = (XmlSchemaType) xmlSchemaObject;
+									if (collection.getTypeByQName(schemaType.getQName()) == null) {
+										schema.addType(schemaType);
+										schema.getItems().add(schemaType);
+									}
+								}
+								else {
+									schema.getItems().add(xmlSchemaObject);
+								}
+							}
+						}
 					}
 				}.init(project);
 

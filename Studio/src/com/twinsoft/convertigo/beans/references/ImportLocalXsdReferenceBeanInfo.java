@@ -31,9 +31,6 @@ public class ImportLocalXsdReferenceBeanInfo extends MySimpleBeanInfo {
 			beanClass = ImportLocalXsdReference.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.references.AbstractImportLocalXsdReference.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/references/images/importLocalXsd_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/references/images/importLocalXsd_32x32.png";
-			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/references/res/ImportLocalReference");
 			
 			displayName = resourceBundle.getString("display_name");

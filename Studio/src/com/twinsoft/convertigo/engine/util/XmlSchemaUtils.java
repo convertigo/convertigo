@@ -37,6 +37,7 @@ import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XmlSchemaWalker.XmlSchemaWalkerWatcher;
 
@@ -343,5 +344,11 @@ public class XmlSchemaUtils {
 			catch (Exception e) {}
 		}
 		return qname;
+	}
+	
+	public static boolean hasSameNamespace(XmlSchema schema1, XmlSchema schema2) throws EngineException {
+		String tns1 = schema1.getTargetNamespace();
+		String tns2 = schema2.getTargetNamespace();
+		return (tns1 != null && tns2 != null && tns1.equals(tns2));
 	}
 }

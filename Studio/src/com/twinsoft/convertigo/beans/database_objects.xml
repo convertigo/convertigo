@@ -100,10 +100,21 @@
 		</category>
 		<category name="References">
 			<beans>
+			<!--
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.ImportLocalXsdReference">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
 				</bean>
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.IncludeLocalXsdReference">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				</bean>
+			-->
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.ImportWsdlSchemaReference">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.IncludeXsdSchemaReference">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
 				</bean>
 			</beans>

@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -80,9 +81,16 @@ public class SchemaUtils {
 	}
 
 	public static XmlSchema loadSchema(File xsdFile, XmlSchemaCollection xmlSchemaCollection) throws SAXException, IOException {
-		if (xsdFile.exists() && xsdFile.isFile()) {
-			Document xsdDocument = getDefaultDocumentBuilder().parse(xsdFile.toURL().toString());
-			XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, xsdFile.toURL().toString(), null);
+		if (xsdFile != null && xsdFile.exists() && xsdFile.isFile()) {
+			return loadSchema(xsdFile.toURL(), xmlSchemaCollection);
+		}
+		return null;
+	}
+	
+	public static XmlSchema loadSchema(URL xsdUrl, XmlSchemaCollection xmlSchemaCollection) throws SAXException, IOException {
+		if (xsdUrl != null) {
+			Document xsdDocument = getDefaultDocumentBuilder().parse(xsdUrl.toString());
+			XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, xsdUrl.toString(), null);
 			return xmlSchema;
 		}
 		return null;

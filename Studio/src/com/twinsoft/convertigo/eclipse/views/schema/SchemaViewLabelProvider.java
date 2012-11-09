@@ -34,6 +34,7 @@ import org.apache.ws.commons.schema.XmlSchemaDocumentation;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaImport;
+import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.eclipse.jface.viewers.IColorProvider;
@@ -108,7 +109,10 @@ public class SchemaViewLabelProvider implements ILabelProvider, IColorProvider {
 			String prefix = SchemaMeta.getPrefix(schema);
 			txt = prefix + "{" + schema.getTargetNamespace() + "}";
 		} else if (element instanceof XmlSchemaImport) {
-			txt = "import " + getText(((XmlSchemaImport) element).getSchema());	
+			txt = "import " + getText(((XmlSchemaImport) element).getSchema());
+		} else if (element instanceof XmlSchemaInclude) {
+			//txt = "include " + "(" +((XmlSchemaInclude) element).getSchemaLocation() +")";
+			txt = "include " + getText(((XmlSchemaInclude) element).getSchema());
 		} else if (element instanceof XmlSchemaDocumentation || element instanceof XmlSchemaAppInfo) {
 			NodeList nl = element instanceof XmlSchemaDocumentation ? ((XmlSchemaDocumentation) element).getMarkup() : ((XmlSchemaAppInfo) element).getMarkup();
 			if (nl != null && nl.getLength() > 0) {
