@@ -86,7 +86,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
@@ -144,6 +143,7 @@ import com.twinsoft.convertigo.eclipse.dnd.TreeDropAdapter;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
+import com.twinsoft.convertigo.eclipse.popup.actions.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction;
@@ -152,6 +152,7 @@ import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDeleteAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableColumnAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableRowAction;
+import com.twinsoft.convertigo.eclipse.popup.actions.CustomDialog;
 import com.twinsoft.convertigo.eclipse.popup.actions.ProjectValidateXSDAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.RedoAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedAction;
@@ -613,14 +614,22 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				int update = 0;
 				if (loadedProjectsContainsSequence()) {
 					Shell shell = Display.getDefault().getActiveShell();
-					MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-					messageBox.setMessage("Do you want to update project references in steps ?\n- click Yes to replace '" + oldName + "' by '" + newName + "' in all loaded projects.\n- click No to replace '" + oldName + "' by '" + newName + "' in current project only.\n- click Cancel for none update.");
-					int response = messageBox.open();
-					if (response == SWT.YES) {
+					int _allLoadedValue = 424242;
+					int _currentValue = 424243;
+					ButtonSpec allLoadedButton = new ButtonSpec("Replace in all loaded projects", _allLoadedValue, true);
+					ButtonSpec currentButton = new ButtonSpec("Replace in current project", _currentValue, false);
+					List<ButtonSpec> specs = new LinkedList<ButtonSpec>();
+					CustomDialog customDialog;
+
+					specs.add(allLoadedButton);
+					specs.add(currentButton);
+					customDialog = new CustomDialog(shell, "Update object references in steps", "Do you want to update project references in steps ?\n You can replace '"+ oldName +"' by '"+ newName +"' in all loaded projects or replace '"+ oldName +"' by '"+ newName +"' in current project only.\n- click Cancel for none update.", specs);
+					int response = customDialog.open();
+					if (response == _allLoadedValue) {
 						updateReferences = true;
 						update = TreeObjectEvent.UPDATE_ALL;
 					}
-					if (response == SWT.NO) {
+					if (response == _currentValue) {
 						updateReferences = true;
 						update = TreeObjectEvent.UPDATE_LOCAL;
 					}
@@ -942,14 +951,22 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								
 								if (loadedProjectsContainsSequence()) {
 									Shell shell = Display.getDefault().getActiveShell();
-									MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-									messageBox.setMessage("Do you want to update "+ objectType +" references in steps ?\n- click Yes to replace '"+oldName+"' by '"+newName+"' in all loaded projects.\n- click No to replace '"+oldName+"' by '"+newName+"' in current project only.\n- click Cancel for none update.");
-									int response = messageBox.open();
-									if (response == SWT.YES) {
+									int _allLoadedValue = 424242;
+									int _currentValue = 424243;
+									ButtonSpec allLoadedButton = new ButtonSpec("Replace in all loaded projects", _allLoadedValue, true);
+									ButtonSpec currentButton = new ButtonSpec("Replace in current project", _currentValue, false);
+									List<ButtonSpec> specs = new LinkedList<ButtonSpec>();
+									CustomDialog customDialog;
+
+									specs.add(allLoadedButton);
+									specs.add(currentButton);
+									customDialog = new CustomDialog(shell, "Update object references in steps", "Do you want to update "+ objectType +" references in steps ?\n You can replace '"+ oldName +"' by '"+ newName +"' in all loaded projects or replace '"+ oldName +"' by '"+ newName +"' in current project only.\n- click Cancel for none update.", specs);
+									int response = customDialog.open();
+									if (response == _allLoadedValue) {
 										updateReferences = true;
 										update = TreeObjectEvent.UPDATE_ALL;
 									}
-									if (response == SWT.NO) {
+									if (response == _currentValue) {
 										updateReferences = true;
 										update = TreeObjectEvent.UPDATE_LOCAL;
 									}
