@@ -241,7 +241,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
                 	messageBox.open();
 				}
 				catch(Exception e){
-					ConvertigoPlugin.logException(e, "Error while trying to error message box");
+					ConvertigoPlugin.logException(e, "Error while trying to display error message box");
 				}
 			};
 		});
