@@ -24,13 +24,12 @@ package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.swt.SWT;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.widgets.Shell;
 import org.xml.sax.SAXException;
 
@@ -137,20 +136,18 @@ public class ClipboardAction extends MyAbstractAction {
     				// Exception: if the copied object is a screen class,
     				// it must be different from the currently selected object.
     				if (ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SCREEN_CLASS) {
-    					int _siblingValue = 424242;
-    					int _inheritedValue = 424243;
-    					ButtonSpec siblingButton = new ButtonSpec("As a sibling", _siblingValue, true);
-    					ButtonSpec inheritedButton = new ButtonSpec("As an inherited", _inheritedValue, false);
-    					List<ButtonSpec> specs = new LinkedList<ButtonSpec>();
-    					CustomDialog customDialog;
-
-    					specs.add(siblingButton);
-    					specs.add(inheritedButton);
-    					customDialog = new CustomDialog(shell, "Paste a Screenclass", "Do you want to paste the screen class as a sibling or as an inherited screen class?", specs);
+    					CustomDialog customDialog = new CustomDialog(
+    							shell,
+    							"Paste a Screenclass",
+    							"Do you want to paste the Screenclass as a sibling or as an inherited Screenclass?",
+    							new ButtonSpec("As a sibling", true),
+    							new ButtonSpec("As an iherited", false),
+    							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
+    					);
     					int response = customDialog.open();
-    					if (response == _siblingValue)
+    					if (response == 0)
     						targetObject = ((DatabaseObject)targetObject).getParent();
-    					else if (response == SWT.CANCEL)
+    					else if (response == 2)
     						return;
     				}
     				else if (ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT_WITH_EXPRESSIONS) {
@@ -158,21 +155,19 @@ public class ClipboardAction extends MyAbstractAction {
     						targetObject = ((DatabaseObject)targetObject).getParent();
     					}
     					else {
-    						int _siblingValue = 424242;
-        					int _childValue = 424243;
-        					ButtonSpec siblingButton = new ButtonSpec("As a sibling", _siblingValue, true);
-        					ButtonSpec childButton = new ButtonSpec("As a child", _childValue, false);
-        					List<ButtonSpec> specs = new LinkedList<ButtonSpec>();
-        					CustomDialog customDialog;
-
-        					specs.add(siblingButton);
-        					specs.add(childButton);
-        					customDialog = new CustomDialog(shell, "Paste a statement", "Do you want to paste the statement as a sibling or a child statement?", specs);
+    						CustomDialog customDialog = new CustomDialog(
+        							shell,
+        							"Paste a statement",
+        							"Do you want to paste the statement as a sibling or a child statement?",
+        							new ButtonSpec("As a sibling", true),
+        							new ButtonSpec("As a child", false),
+        							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
+        					);
         					int response = customDialog.open();
-	    					if (response == _siblingValue) {
+	    					if (response == 0) {
 	    						targetObject = ((DatabaseObject)targetObject).getParent();
 	    					}
-	    					else if (response == SWT.CANCEL) {
+	    					else if (response == 2) {
 	    						return;
 	    					}
     					}
@@ -366,21 +361,19 @@ public class ClipboardAction extends MyAbstractAction {
 					// Case paste on itself -> ask user what to do
 					if ((size==1) && (ob.getClass().equals(targetObject.getClass()))) {
 						if (((Step)ob).getName().equals(targetObject.getName())) {
-							int _siblingValue = 424242;
-        					int _childValue = 424243;
-        					ButtonSpec siblingButton = new ButtonSpec("As a sibling", _siblingValue, true);
-        					ButtonSpec childButton = new ButtonSpec("As a child", _childValue, false);
-        					List<ButtonSpec> specs = new LinkedList<ButtonSpec>();
-        					CustomDialog customDialog;
-
-        					specs.add(siblingButton);
-        					specs.add(childButton);
-        					customDialog = new CustomDialog(shell, "Paste a step", "Do you want to paste the step as a sibling or a child step?", specs);
-        					int response = customDialog.open();
-							if (response == _siblingValue) {
+							CustomDialog customDialog = new CustomDialog(
+	    							shell,
+	    							"Paste a step",
+	    							"Do you want to paste the step as a sibling or a child step?",
+	    							new ButtonSpec("As a sibling", true),
+	    							new ButtonSpec("As a child", false),
+	    							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
+	    					);
+	    					int response = customDialog.open();
+							if (response == 0) {
 								return targetObject.getParent();
 							}
-							else if (response == SWT.CANCEL) {
+							else if (response == 2) {
 								return null;
 							}
 							else

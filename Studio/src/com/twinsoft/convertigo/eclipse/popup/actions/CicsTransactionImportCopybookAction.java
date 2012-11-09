@@ -24,11 +24,11 @@ package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import java.io.FileReader;
 
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
@@ -53,17 +53,21 @@ public class CicsTransactionImportCopybookAction extends MyAbstractAction {
 		shell.setCursor(waitCursor);
 		
         try {
-        	boolean bInputMap = true;
-        	
-        	MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-        	messageBox.setMessage("Do you want to import the copybook into the transaction input map or output map ?\nSelect 'yes' for input map, or 'no' for output map.");
-        	int index = messageBox.open();
+        	boolean bInputMap = true;  	
+        	CustomDialog customDialog = new CustomDialog(
+					shell,
+					"Import a copybook",
+					"Do you want to import the copybook into the transaction input map or output map ?",
+					new ButtonSpec("Input map", true),
+					new ButtonSpec("Outut map", false),
+					new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
+			);
+			int index = customDialog.open();
         	switch (index) {
-        		case SWT.YES:		bInputMap = true; break;
-        		case SWT.NO:		bInputMap = false; break;
-        		case SWT.CANCEL: 	return;
+        		case 0:		bInputMap = true; break;
+        		case 1:		bInputMap = false; break;
+        		case 2: 	return;
         	}
-        
         	String filePath = null;
         	FileDialog fileDialog = new FileDialog(shell);
         	fileDialog.setText("Import a copybook");

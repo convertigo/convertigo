@@ -1,5 +1,6 @@
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.swt.widgets.Composite;
@@ -7,6 +8,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.dialogs.MyAbstractDialog;
+
 
 public class CustomDialog extends MyAbstractDialog {
 
@@ -16,11 +18,11 @@ public class CustomDialog extends MyAbstractDialog {
 	private static int height = 150;
 
 	public CustomDialog(Shell parentShell, String title,
-			String question, List<ButtonSpec> buttonSpecs) {
+			String question, ButtonSpec... buttonSpecs) {
 		this(parentShell, CustomDialogComposite.class, title,
 				width, height);
 		this.question = question;
-		this.buttonSpecs = buttonSpecs;
+		this.buttonSpecs = Arrays.asList(buttonSpecs);
 	}
 
 	public CustomDialog(Shell parentShell, String title,
@@ -48,7 +50,7 @@ public class CustomDialog extends MyAbstractDialog {
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		for (int i = 0; i < buttonSpecs.size(); i++) {
-			createButton(parent, buttonSpecs.get(i).value,
+			createButton(parent, i,
 					buttonSpecs.get(i).label, buttonSpecs.get(i).defaultButton);
 		}
 	}

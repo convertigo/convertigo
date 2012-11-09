@@ -33,12 +33,12 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.w3c.dom.Document;
 
@@ -99,14 +99,19 @@ public class CreateSheetFromXMLAction extends MyAbstractAction {
         			}
         			
         			if (lastDetectedScreenClass != null) {
-	                	MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-	        			String message = "Would you like to create new sheet for last detected ScreenClass or Transaction?\nClick YES for last detected ScreenClass, NO for Transaction.";
-	                	messageBox.setMessage(message);
-	                	int ret = messageBox.open();
-	                	if (ret == SWT.YES) {
+    					CustomDialog customDialog = new CustomDialog(
+    							shell,
+    							"Create a new sheet",
+    							"Would you like to create new sheet for last detected screen class or transaction?",
+    							new ButtonSpec("Last detected screen class", true),
+    							new ButtonSpec("Transaction", false),
+    							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
+    					);
+    					int ret = customDialog.open();
+	                	if (ret == 0) {
 	                		parent = lastDetectedScreenClass;
 	                	}
-	                	if (ret == SWT.CANCEL) {
+	                	else if (ret == 2) {
 	                		return;
 	                	}
         			}
