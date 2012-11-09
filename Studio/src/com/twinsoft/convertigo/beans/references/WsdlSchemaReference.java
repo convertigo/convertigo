@@ -40,7 +40,7 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.ISchemaReader;
 import com.twinsoft.convertigo.engine.Engine;
 
-public abstract class WsdlSchemaReference extends RemoteFileReference implements ISchemaReader {
+public abstract class WsdlSchemaReference extends RemoteFileReference implements ISchemaReference, ISchemaReader {
 
 	private static final long serialVersionUID = -3639937867834626528L;
 

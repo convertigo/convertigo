@@ -346,7 +346,9 @@ public class SchemaManager implements AbstractManager {
 					@Override
 					protected boolean before(DatabaseObject databaseObject, Class<? extends DatabaseObject> dboClass) {
 						// just walk ISchemaGenerator DBO or Connector
-						return ISchemaGenerator.class.isAssignableFrom(dboClass) || Connector.class.isAssignableFrom(dboClass);
+						return ISchemaGenerator.class.isAssignableFrom(dboClass) ||
+								Reference.class.isAssignableFrom(dboClass)		 ||
+								Connector.class.isAssignableFrom(dboClass);
 					}
 					
 					protected void addSchemaIncludeObjects(DatabaseObject databaseObject, XmlSchema xmlSchema) {

@@ -31,7 +31,7 @@ import com.twinsoft.convertigo.beans.core.ISchemaReader;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 
-public abstract class XsdSchemaReference extends RemoteFileReference implements ISchemaReader {
+public abstract class XsdSchemaReference extends RemoteFileReference implements ISchemaReference, ISchemaReader {
 
 	private static final long serialVersionUID = -7369046768171657947L;
 

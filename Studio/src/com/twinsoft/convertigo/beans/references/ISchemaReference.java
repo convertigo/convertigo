@@ -14,30 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * $URL: $
+ * $Author: $
+ * $Revision: $
+ * $Date: $
  */
 
 package com.twinsoft.convertigo.beans.references;
 
-import java.io.File;
+import com.twinsoft.convertigo.beans.core.ISchemaGenerator;
 
-import com.twinsoft.convertigo.beans.core.Reference;
+public interface ISchemaReference extends ISchemaGenerator {
 
-public abstract class AbstractLocalXsdReference extends Reference implements ISchemaReference {
-	private static final long serialVersionUID = 4314342729145516466L;
-	
-	public String filepath = "";
-
-	public String getFilepath() {
-		return filepath;
-	}
-
-	public void setFilepath(String filepath) {
-		this.filepath = filepath;
-	}
-	
-	abstract protected File getXsdFile();
 }

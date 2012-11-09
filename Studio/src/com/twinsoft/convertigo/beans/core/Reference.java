@@ -1,7 +1,7 @@
 package com.twinsoft.convertigo.beans.core;
 
 
-public abstract class Reference extends DatabaseObject implements ISchemaGenerator {
+public abstract class Reference extends DatabaseObject {
 	private static final long serialVersionUID = -1201316885732909011L;
 
 }
