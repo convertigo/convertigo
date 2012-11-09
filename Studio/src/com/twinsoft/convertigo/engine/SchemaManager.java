@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
@@ -175,10 +176,15 @@ public class SchemaManager implements AbstractManager {
 
 								} else if (databaseObject instanceof ISchemaIncludeGenerator) {
 									// Include case
-									XmlSchemaInclude schemaInclude = ((ISchemaIncludeGenerator)databaseObject).getXmlSchemaObject(collection, schema);
-									SchemaMeta.setXmlSchemaObject(schema, databaseObject, schemaInclude);
-									addSchemaIncludeObjects(databaseObject, schemaInclude.getSchema());
-									
+									if (databaseObject instanceof Transaction) {
+										XmlSchemaInclude schemaInclude = ((ISchemaIncludeGenerator)databaseObject).getXmlSchemaObject(new XmlSchemaCollection(), schema);
+										SchemaMeta.setXmlSchemaObject(schema, databaseObject, schemaInclude);
+										addSchemaIncludeObjects(databaseObject, schemaInclude.getSchema());
+									} else {
+										XmlSchemaInclude schemaInclude = ((ISchemaIncludeGenerator)databaseObject).getXmlSchemaObject(collection, schema);
+										SchemaMeta.setXmlSchemaObject(schema, databaseObject, schemaInclude);
+										schema.getItems().add(schemaInclude);
+									}
 								} else if (databaseObject instanceof ISchemaAttributeGenerator) {
 									// Attribute case
 									XmlSchemaAttribute attribute = ((ISchemaAttributeGenerator) databaseObject).getXmlSchemaObject(collection, schema);
@@ -403,16 +409,16 @@ public class SchemaManager implements AbstractManager {
 
 				// defined prefixes for this schema
 				NamespaceMap nsMap = new NamespaceMap();
-				int cpt = 0;
+				int cpt1 = 0, cpt2 = 0;
 				for (final XmlSchema xs : collection.getXmlSchemas()) {
 					String tns = xs.getTargetNamespace();
 					String prefix;
 					if (Constants.URI_2001_SCHEMA_XSD.equals(tns)) {
 						prefix = "xsd";
 					} else if (project.getTargetNamespace().equals(tns)) {
-						prefix = "";//project.getName() + "_ns";
+						prefix = "n" + cpt1++;//"";//project.getName() + "_ns";
 					} else {
-						prefix = "p" + cpt++;
+						prefix = "p" + cpt2++;
 					}
 					SchemaMeta.setPrefix(xs, prefix);
 					SchemaMeta.setCollection(xs, collection);

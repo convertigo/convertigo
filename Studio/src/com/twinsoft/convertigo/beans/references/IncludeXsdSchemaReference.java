@@ -39,12 +39,12 @@ public class IncludeXsdSchemaReference extends XsdSchemaReference implements ISc
 		XmlSchemaInclude schemaInclude = new XmlSchemaInclude();
 		try {
 			// load schema
-			XmlSchema includedSchema = readSchema(new XmlSchemaCollection());
+			XmlSchema includedSchema = readSchema(collection);
 			if (includedSchema != null) {
 				// check for same namespace
 				if (XmlSchemaUtils.hasSameNamespace(schema, includedSchema)) {
 					// initialize include
-					schemaInclude.setSchemaLocation(getFile().toURI().toString());
+					schemaInclude.setSchemaLocation(getReferenceUrl().toString());
 					schemaInclude.setSchema(includedSchema);
 				}
 				else throw new EngineException("Incorect schema include +" +
