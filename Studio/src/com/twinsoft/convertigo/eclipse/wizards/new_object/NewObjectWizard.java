@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -172,6 +173,10 @@ public class NewObjectWizard extends Wizard {
 			if (beanClass.equals(TestCase.class)) {
 				objectExplorerPageTitle = "New Test case";
 				objectExplorerPageMessage = "Please select a test case template.";
+			}
+			if (beanClass.equals(Reference.class)) {
+				objectExplorerPageTitle = "New Reference";
+				objectExplorerPageMessage = "Please select a reference template.";
 			}
 			
 			addBeanPages(objectExplorerPageTitle, objectExplorerPageMessage, beanClass);
