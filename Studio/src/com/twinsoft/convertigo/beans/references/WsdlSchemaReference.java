@@ -23,10 +23,13 @@
 package com.twinsoft.convertigo.beans.references;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.wsdl.Definition;
+import javax.wsdl.Import;
 import javax.wsdl.Types;
 import javax.wsdl.extensions.ExtensibilityElement;
 import javax.wsdl.extensions.schema.Schema;
@@ -35,23 +38,23 @@ import javax.wsdl.xml.WSDLReader;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.ISchemaReader;
+import com.twinsoft.convertigo.beans.core.IWsdlReader;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public abstract class WsdlSchemaReference extends RemoteFileReference implements ISchemaReference, ISchemaReader {
+public abstract class WsdlSchemaReference extends RemoteFileReference implements ISchemaReference, ISchemaReader, IWsdlReader {
 
 	private static final long serialVersionUID = -3639937867834626528L;
 
 	public XmlSchema readSchema(XmlSchemaCollection collection) {
 		try {
 			XmlSchema mainSchema = null;
-			URL wsdlURL = getReferenceUrl();
-			if (wsdlURL != null) {
-				WSDLFactory factory = WSDLFactory.newInstance();
-				WSDLReader reader = factory.newWSDLReader();
-				Definition definition = reader.readWSDL(null,wsdlURL.toString());
+			List<Definition> definitions = readWsdl();
+			for (Definition definition: definitions) {
 				Types types = definition.getTypes();
 				List<?> list = types.getExtensibilityElements();
 				Iterator<?> iterator = list.iterator();
@@ -65,8 +68,8 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 						}
 					}
 				}
-				return mainSchema;
 			}
+			return mainSchema;
 		}
 		catch (Exception e) {
 			Engine.logBeans.error(e.getMessage());
@@ -74,4 +77,35 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 		return null;
 	}
 
+	public List<Definition> readWsdl() {
+		List<Definition> list = new ArrayList<Definition>();
+		try {
+			URL wsdlURL = getReferenceUrl();
+			if (wsdlURL != null) {
+				WSDLFactory factory = WSDLFactory.newInstance();
+				WSDLReader reader = factory.newWSDLReader();
+				reader.setFeature("javax.wsdl.importDocuments", true);
+				Definition definition = reader.readWSDL(null, wsdlURL.toString());
+				list.addAll(readWsdlImports(definition));
+			}
+		}
+		catch (Exception e) {
+			Engine.logBeans.error(e.getMessage());
+		}
+		return list;
+	}
+	
+	protected List<Definition> readWsdlImports(Definition definition) {
+		List<Definition> list = new ArrayList<Definition>();
+		list.add(definition);
+		
+		Map<String, List<Import>> imports = GenericUtils.cast(definition.getImports());
+		for (List<Import> iList : imports.values()) {
+			for (Import wsdlImport : iList) {
+				Definition def = wsdlImport.getDefinition();
+				list.addAll(readWsdlImports(def));
+			}
+		}
+		return list;
+	}
 }

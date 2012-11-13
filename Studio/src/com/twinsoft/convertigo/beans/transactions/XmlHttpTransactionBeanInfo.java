@@ -35,7 +35,7 @@ public class XmlHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_32x32.png";
 
-			properties = new PropertyDescriptor[3];
+			properties = new PropertyDescriptor[4];
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/XmlHttpTransaction");
 
@@ -51,11 +51,19 @@ public class XmlHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[1].setDisplayName(getExternalizedString("property.responseElementQName.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.responseElementQName.short_description"));
 			properties[1].setExpert(true);
+			//TODO : properties[1].setHidden(false);
 			
 			properties[2] = new PropertyDescriptor("ignoreSoapEnveloppe", XmlHttpTransaction.class, "isIgnoreSoapEnveloppe", "setIgnoreSoapEnveloppe");
 			properties[2].setDisplayName(getExternalizedString("property.ignoreSoapEnveloppe.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.ignoreSoapEnveloppe.short_description"));
 			properties[2].setExpert(true);
+			
+            properties[3] = new PropertyDescriptor("xmlElementRefAffectation", beanClass, "getXmlElementRefAffectation", "setXmlElementRefAffectation");
+			properties[3].setDisplayName(getExternalizedString("property.xmlElementRefAffectation.display_name"));
+			properties[3].setShortDescription(getExternalizedString("property.xmlElementRefAffectation.short_description"));
+			properties[3].setExpert(true);
+			properties[3].setHidden(false);
+			properties[3].setPropertyEditorClass(getEditorClass("XmlQNameEditor"));
 			
 			PropertyDescriptor property = getPropertyDescriptor("dataEncoding");
             property.setHidden(true);

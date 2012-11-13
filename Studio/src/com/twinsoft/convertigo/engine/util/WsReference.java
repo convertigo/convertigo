@@ -64,8 +64,10 @@ import com.eviware.soapui.model.settings.Settings;
 import com.eviware.soapui.settings.ProxySettings;
 import com.eviware.soapui.settings.WsdlSettings;
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable;
@@ -239,7 +241,12 @@ public class WsReference {
 	   	for (int i=0; i<wsdls.length; i++) {
 		   	iface = wsdls[i];
 		   	if (iface != null) {
-			   	iface.getWsdlContext().export(projectDir+ "/wsdl");
+			   	String wsdlPath = iface.getWsdlContext().export(projectDir+ "/wsdl");
+			   	
+			   	// Adds a WS reference to project
+			   	WebServiceReference reference = new WebServiceReference();
+			   	reference.setUrlpath(wsdlUrl);
+			   	reference.setFilepath(".//" + wsdlPath.substring(wsdlPath.indexOf("/wsdl")+1));
 			   	
 			   	Definition definition = iface.getWsdlContext().getDefinition();
 			   	Map<String, String> nsmap = updateSchema(wsdlUrl, project, definition);
@@ -247,6 +254,7 @@ public class WsReference {
 		   		httpConnector = createConnector(iface);
 		   		if (httpConnector != null) {
 		   		   	hasDefaultTransaction = false;
+		   		   	project.add(reference);
 		   			project.add(httpConnector);
 				   	for (int j=0; j<iface.getOperationCount(); j++) {
 				   		WsdlOperation wsdlOperation = (WsdlOperation)iface.getOperationAt(j);
@@ -433,6 +441,15 @@ public class WsReference {
    			}
 			xmlHttpTransaction.setResponseElementQName(responseQName);
    			
+			try {
+				qname = operation.getResponseBodyElementQName();
+				if (qname != null) {
+					QName refName = new QName(qname.getNamespaceURI(),qname.getLocalPart());
+					xmlHttpTransaction.setXmlElementRefAffectation(new XmlQName(refName));
+				}
+			}
+			catch (Exception e) {}
+			
    			// Create request/response
 		   	request = operation.addNewRequest("Test"+transactionName);
 		   	requestXml = operation.createRequest(true);

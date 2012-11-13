@@ -22,8 +22,6 @@
 
 package com.twinsoft.convertigo.beans.transactions;
 
-import javax.xml.namespace.QName;
-
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -33,6 +31,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -41,6 +40,8 @@ public class XmlHttpTransaction extends HttpTransaction {
 	private String xmlEncoding = "ISO-8859-1";
 	
 	private String responseElementQName = "";
+	
+	private XmlQName xmlElementRefAffectation = new XmlQName();
 	
 	private boolean ignoreSoapEnveloppe = false;
 	
@@ -256,48 +257,23 @@ public class XmlHttpTransaction extends HttpTransaction {
 	@Override
 	protected XmlSchemaComplexType addSchemaResponseDataType(XmlSchema xmlSchema) {
 		XmlSchemaComplexType xmlSchemaComplexType = super.addSchemaResponseDataType(xmlSchema);
-		String reqn = getResponseElementQName();
-		if (!reqn.equals("")) {
-			boolean useRef = reqn.indexOf(";") == -1;
-			
+		XmlQName xmlQName = getXmlElementRefAffectation();
+		if (!xmlQName.isEmpty()) {
 			XmlSchemaSequence xmlSchemaSequence = new XmlSchemaSequence();
 			XmlSchemaElement xmlSchemaElement = new XmlSchemaElement();
-			if (useRef) {
-				String[] qn = getResponseElementQName().split(":");
-				QName refName = new QName(xmlSchema.getNamespaceContext().getNamespaceURI(qn[0]), qn[1], qn[0]);
-				//TODO: add XmlSchemaImport to xmlSchema when needed (retrieve info from XSD dbo)
-				
-				xmlSchemaElement.setRefName(refName);
-			}
-			else {
-	    		String opName = getName()+"Response", eltName = "response", eltType = "xsd:string";
-	    		int index, index2;
-	    		if ((index = reqn.indexOf(";")) != -1) {
-	    			opName = reqn.substring(0, index);
-	    			if ((index2 = reqn.indexOf(";", index+1)) != -1) {
-	        			eltName = reqn.substring(index+1,index2);
-	        			eltType = reqn.substring(index2+1);
-	    			}
-	    		}
-				String[] qn = eltType.split(":");
-				QName typeName = new QName(xmlSchema.getNamespaceContext().getNamespaceURI(qn[0]), qn[1], qn[0]);
-				//TODO: add XmlSchemaImport to xmlSchema when needed (retrieve info from XSD dbo)
-				
-				xmlSchemaElement.setName(opName);
-				XmlSchemaComplexType complex = new XmlSchemaComplexType(xmlSchema);
-				XmlSchemaSequence sequence = new XmlSchemaSequence();
-				XmlSchemaElement element = new XmlSchemaElement();
-				element.setName(eltName);
-				element.setSchemaTypeName(typeName);
-				sequence.getItems().add(element);
-				complex.setParticle(sequence);
-				xmlSchemaElement.setSchemaType(complex);
-			}
+			xmlSchemaElement.setRefName(xmlQName.getQName());
 			xmlSchemaSequence.getItems().add(xmlSchemaElement);
 			xmlSchemaComplexType.setParticle(xmlSchemaSequence);
 		}
 		return xmlSchemaComplexType;
 	}
+
+	public XmlQName getXmlElementRefAffectation() {
+		return xmlElementRefAffectation;
+	}
+
+	public void setXmlElementRefAffectation(XmlQName xmlComplexTypeAffectation) {
+		this.xmlElementRefAffectation = xmlComplexTypeAffectation;
+	}
 	
 }
-

@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.beans.references.ImportWsdlSchemaReference;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -89,6 +90,23 @@ public class Migration6_3_0 {
 				for (Connector connector: project.getConnectorsList()) {
 					for (Transaction transaction: connector.getTransactionsList()) {
 						try {
+							// Migrate transaction in case of a Web Service consumption project
+							if (transaction instanceof XmlHttpTransaction) {
+								XmlHttpTransaction xmlHttpTransaction = (XmlHttpTransaction)transaction;
+								String reqn = xmlHttpTransaction.getResponseElementQName();
+								if (!reqn.equals("")) {
+									boolean useRef = reqn.indexOf(";") == -1;
+									if (useRef) {
+										try {
+											String[] qn = reqn.split(":");
+											QName refName = new QName(projectSchema.getNamespaceContext().getNamespaceURI(qn[0]), qn[1]);
+											xmlHttpTransaction.setXmlElementRefAffectation(new XmlQName(refName));
+										}
+										catch (Exception e) {}
+									}
+								}
+							}
+							
 							// Retrieve required XmlSchemaObjects for transaction
 							QName requestQName = new QName(project.getTargetNamespace(), transaction.getXsdRequestElementName());
 							QName responseQName = new QName(project.getTargetNamespace(), transaction.getXsdResponseElementName());
