@@ -110,6 +110,11 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
 				</bean>
 			</beans>
+			<beans groupname="Web Service references">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.WebServiceReference">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				</bean>
+			</beans>
 		</category>
 	</group>
 	
