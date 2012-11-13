@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.engine.admin.services.engine;
 
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -72,11 +73,14 @@ public class GetStatus extends XmlService {
 			Element buildElement = document.createElement("build");
 			Properties properties = new Properties();
 			ServletContext servletContext = request.getSession().getServletContext();
-			properties.load(servletContext.getResourceAsStream("/WEB-INF/build.txt"));
-			buildElement.setAttribute("date", properties.getProperty("build.date"));
-			buildElement.setAttribute("filename", properties.getProperty("build.filename"));
-			buildElement.setAttribute("version", properties.getProperty("build.version"));
-			rootElement.appendChild(buildElement);
+			InputStream buildInfoFile = servletContext.getResourceAsStream("/WEB-INF/build.txt");
+			if (buildInfoFile != null) {
+				properties.load(buildInfoFile);
+				buildElement.setAttribute("date", properties.getProperty("build.date"));
+				buildElement.setAttribute("filename", properties.getProperty("build.filename"));
+				buildElement.setAttribute("version", properties.getProperty("build.version"));
+				rootElement.appendChild(buildElement);
+			}
 		} catch (Exception e) {
 			// Ignore
 			Engine.logAdmin.error("Unable to get build info", e);
