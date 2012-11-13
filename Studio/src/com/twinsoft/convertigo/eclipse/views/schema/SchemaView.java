@@ -251,7 +251,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 						!(firstElement instanceof XmlSchema)) {
 					nodeTreeViewer.setInput(SchemaViewContentProvider.newRoot(firstElement));
 					
-					if (nodeTreeViewerExpandedTreePaths != null) {
+					if (nodeTreeViewerExpandedTreePaths != null && nodeTreeViewerExpandedTreePaths.length > 0) {
 						nodeTreeViewer.setExpandedTreePaths(nodeTreeViewerExpandedTreePaths);
 						nodeTreeViewer.setSelection(nodeTreeViewerSelection);
 						nodeTreeViewerExpandedTreePaths = null;
@@ -472,7 +472,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 									public void run() {
 										schemaTreeViewer.setInput(xmlSchemaCollection);
 										
-										if (schemaTreeViewerExpandedTreePaths != null) {
+										if (schemaTreeViewerExpandedTreePaths != null && schemaTreeViewerExpandedTreePaths.length > 0) {
 											schemaTreeViewer.setExpandedTreePaths(schemaTreeViewerExpandedTreePaths);
 											schemaTreeViewer.setSelection(schemaTreeViewerSelection);
 											schemaTreeViewerExpandedTreePaths = null;
