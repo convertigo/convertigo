@@ -89,6 +89,7 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 	private int maxDepth = -1;
 	private Map<Object, Integer> depths = null;
 	private Map<Object, Object[]> childrenCache = new HashMap<Object, Object[]>();
+	private Map<Object, Object> parents = new HashMap<Object, Object>();
 
 	public SchemaViewContentProvider() {
 	}
@@ -223,11 +224,14 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 			}
 			childrenCache.put(object, res);
 		}
+		for (Object o : res) {
+			parents.put(o, object);
+		}
 		return res;
 	}
 
 	public Object getParent(Object object) {
-		return null;
+		return parents.get(object);
 	}
 
 	public boolean hasChildren(final Object object) {
@@ -237,5 +241,4 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 		}
 		return ret;
 	}
-
 }

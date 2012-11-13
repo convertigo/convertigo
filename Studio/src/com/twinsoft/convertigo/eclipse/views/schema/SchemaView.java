@@ -23,16 +23,19 @@
 package com.twinsoft.convertigo.eclipse.views.schema;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -53,6 +56,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree;
 import com.twinsoft.convertigo.eclipse.swt.SwtUtils;
@@ -62,13 +66,18 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
 import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewContentProvider.Root;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.EngineListenerHelper;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class SchemaView extends ViewPart implements IPartListener, ISelectionListener, TreeObjectListener {
 	private Composite content;
 	private TreeViewer schemaTreeViewer;
+	private ISelection schemaTreeViewerSelection;
+	private TreePath[] schemaTreeViewerExpandedTreePaths;
 	private TreeViewer nodeTreeViewer;
+	private ISelection nodeTreeViewerSelection;
+	private TreePath[] nodeTreeViewerExpandedTreePaths;
 	private TwsDomTree domTree;
 	
 	private Label message;
@@ -81,7 +90,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	private Thread workingThread;
 	private Queue<Runnable> tasks = new ConcurrentLinkedQueue<Runnable>();
 	private EngineListenerHelper engineListener = new EngineListenerHelper() {
-
+		
 		@Override
 		public void documentGenerated(final Document document) {
 			final Element documentElement = document.getDocumentElement();
@@ -241,9 +250,16 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 						(nodeTreeViewer.getInput() == null || ((Root) nodeTreeViewer.getInput()).get() != firstElement) &&
 						!(firstElement instanceof XmlSchema)) {
 					nodeTreeViewer.setInput(SchemaViewContentProvider.newRoot(firstElement));
-					nodeTreeViewer.expandToLevel(5);
-
-					domTree.fillDomTree(XmlSchemaUtils.getDomInstance((XmlSchemaObject) firstElement));
+					
+					if (nodeTreeViewerExpandedTreePaths != null) {
+						nodeTreeViewer.setExpandedTreePaths(nodeTreeViewerExpandedTreePaths);
+						nodeTreeViewer.setSelection(nodeTreeViewerSelection);
+						nodeTreeViewerExpandedTreePaths = null;
+						nodeTreeViewerSelection = null;
+					} else {
+						nodeTreeViewer.expandToLevel(5);
+						domTree.fillDomTree(XmlSchemaUtils.getDomInstance((XmlSchemaObject) firstElement));
+					}
 				}
 			}
 		});
@@ -383,7 +399,41 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		});
 		
 		treeViewer.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
-		treeViewer.setLabelProvider(SchemaViewContentProvider.decoratingLabelProvider);	
+		treeViewer.setLabelProvider(SchemaViewContentProvider.decoratingLabelProvider);
+		treeViewer.setComparer(new IElementComparer() {
+			
+			public int hashCode(Object element) {
+				String txt = SchemaViewContentProvider.decoratingLabelProvider.getText(element);
+				int hash = txt.hashCode();
+				if (element instanceof XmlSchemaObject) {
+					Iterator<DatabaseObject> ref = SchemaMeta.getReferencedDatabaseObjects((XmlSchemaObject) element).iterator();
+					if (ref.hasNext()) {
+						hash += ref.next().hashCode();
+					}
+				}
+				return hash;
+			}
+			
+			public boolean equals(Object a, Object b) {
+				boolean ret = false;
+				if (a != null && b!= null && a.getClass().equals(b.getClass())) {
+					String aTxt = SchemaViewContentProvider.decoratingLabelProvider.getText(a);
+					String bTxt = SchemaViewContentProvider.decoratingLabelProvider.getText(b); 
+					if (aTxt.equals(bTxt)) {
+						if (a instanceof XmlSchemaObject) {
+							Iterator<DatabaseObject> aRef = SchemaMeta.getReferencedDatabaseObjects((XmlSchemaObject) a).iterator();
+							Iterator<DatabaseObject> bRef = SchemaMeta.getReferencedDatabaseObjects((XmlSchemaObject) b).iterator();
+							if (aRef.hasNext() && bRef.hasNext()) {
+								ret = aRef.next() == bRef.next();
+							}
+						} else {
+							ret = true;
+						}
+					}
+				}
+				return ret;
+			}
+		});
 		return treeViewer;
 	}
 	
@@ -395,6 +445,12 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 			if (needRefresh || (projectName == null) || (!projectName.equals(currentProjectName))) {
 				needRefresh = false;
 				projectName = currentProjectName;
+				
+				schemaTreeViewerExpandedTreePaths = schemaTreeViewer.getExpandedTreePaths();
+				schemaTreeViewerSelection = schemaTreeViewer.getSelection();
+				
+				nodeTreeViewerExpandedTreePaths = nodeTreeViewer.getExpandedTreePaths();
+				nodeTreeViewerSelection = nodeTreeViewer.getSelection();
 				
 				schemaTreeViewer.setInput(null);
 				nodeTreeViewer.setInput(null);
@@ -415,7 +471,15 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	
 									public void run() {
 										schemaTreeViewer.setInput(xmlSchemaCollection);
-										schemaTreeViewer.expandToLevel(3);
+										
+										if (schemaTreeViewerExpandedTreePaths != null) {
+											schemaTreeViewer.setExpandedTreePaths(schemaTreeViewerExpandedTreePaths);
+											schemaTreeViewer.setSelection(schemaTreeViewerSelection);
+											schemaTreeViewerExpandedTreePaths = null;
+											schemaTreeViewerSelection = null;
+										} else {
+											schemaTreeViewer.expandToLevel(3);
+										}
 									}
 	
 								});
