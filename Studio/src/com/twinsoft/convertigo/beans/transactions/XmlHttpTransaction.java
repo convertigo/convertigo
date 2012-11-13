@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.transactions;
 
+import javax.xml.namespace.QName;
+
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -32,10 +34,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XmlQName;
+import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class XmlHttpTransaction extends HttpTransaction {
+public class XmlHttpTransaction extends HttpTransaction implements IElementRefAffectation {
 
 	private String xmlEncoding = "ISO-8859-1";
 	
@@ -275,5 +278,9 @@ public class XmlHttpTransaction extends HttpTransaction {
 	public void setXmlElementRefAffectation(XmlQName xmlComplexTypeAffectation) {
 		this.xmlElementRefAffectation = xmlComplexTypeAffectation;
 	}
-	
+
+	public QName getElementRefAffectation() {
+		return getXmlElementRefAffectation().getQName();
+	}
+
 }

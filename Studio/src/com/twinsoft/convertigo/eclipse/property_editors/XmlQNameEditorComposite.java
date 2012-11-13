@@ -25,6 +25,8 @@ package com.twinsoft.convertigo.eclipse.property_editors;
 import javax.xml.namespace.QName;
 
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -48,6 +50,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.common.XmlQName;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
+import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewContentProvider;
 import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewLabelDecorator;
@@ -55,22 +60,27 @@ import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewLabelProvider;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 
-public class XmlQNameEditorComposite extends AbstractDialogComposite {	
+public class XmlQNameEditorComposite extends AbstractDialogComposite {
 	private XmlSchemaCollection collection;
 	private String currentNamespace;
 	
 	private Text tNamespace;
-	private Text tTypeName;
+	private Text tLocalName;
 	private Label lSummary;
+	private boolean useType = true;
+	private boolean useRef = false;
 	
 	public XmlQNameEditorComposite(final Composite parent, int style, AbstractDialogCellEditor cellEditor) {
 		super(parent, style, cellEditor);
 		XmlQName schemaDefinition = (XmlQName) cellEditor.getValue();
 		
 		try {
-			Project project = cellEditor.databaseObjectTreeObject.getObject().getProject();
+			DatabaseObject dbo = cellEditor.databaseObjectTreeObject.getObject();
+			Project project = dbo.getProject();
 			collection = Engine.theApp.schemaManager.getSchemasForProject(project.getName());
 			currentNamespace = project.getTargetNamespace();
+			useType = dbo instanceof IComplexTypeAffectation;
+			useRef = dbo instanceof IElementRefAffectation;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -79,7 +89,7 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 		this.setLayoutData(new GridData(GridData.FILL_BOTH));
 		this.setLayout(new GridLayout(1, false));
 		
-		new Label(this, style).setText("Existing types");
+		new Label(this, style).setText("Existing objects");
 		
 		final TreeViewer bisTreeViewer = new TreeViewer(this);
 		bisTreeViewer.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -90,7 +100,10 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 				Object[] children = super.getChildren(object);
 				for (Object child : children) {
 					if (child instanceof NamedList) {
-						if ("Types".equals(((NamedList) child).getName())) {
+						if (useType && "Types".equals(((NamedList) child).getName())) {
+							return new Object[] { child };
+						}
+						else if (useRef && "Elements".equals(((NamedList) child).getName())) {
 							return new Object[] { child };
 						}
 					} else {
@@ -114,14 +127,14 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 		tNamespace.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 		tNamespace.setEditable(false);
 		
-		new Label(this, SWT.NONE).setText("Type name");
+		new Label(this, SWT.NONE).setText("Local name");
 		
-		tTypeName = new Text(this, SWT.NONE);
-		tTypeName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		tLocalName = new Text(this, SWT.NONE);
+		tLocalName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		final Button bNone = new Button(this, SWT.NONE);
 		bNone.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		bNone.setText("No type");
+		bNone.setText("No "+ (useType ? "type":(useRef ? "element":"object")));
 		
 		new Label(this, SWT.NONE).setText("Summary");
 		
@@ -132,7 +145,7 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 
 		if (schemaDefinition != null) {
 			QName qName = schemaDefinition.getQName();
-			tTypeName.setText(qName.getLocalPart());
+			tLocalName.setText(qName.getLocalPart());
 			String namespace = qName.getNamespaceURI();
 			tNamespace.setText(namespace == null || namespace.length() == 0 ? currentNamespace : qName.getNamespaceURI());			
 		}
@@ -140,16 +153,27 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 		bisTreeViewer.addSelectionChangedListener(new ISelectionChangedListener() {		
 			public void selectionChanged(SelectionChangedEvent event) {
 				TreePath[] path = ((ITreeSelection) event.getSelection()).getPaths();
+				
+				XmlSchemaObject object = null;
+				QName qName = null;
 				if (path.length > 0 && path[0].getSegmentCount() > 2 && path[0].getSegment(2) instanceof XmlSchemaType) {
-					XmlSchemaType type = (XmlSchemaType) path[0].getSegment(2);
-					QName qName = type.getQName();
-					tTypeName.setText(qName.getLocalPart());
+					object = (XmlSchemaType) path[0].getSegment(2);
+					qName = ((XmlSchemaType)object).getQName();
+				}
+				if (path.length > 0 && path[0].getSegmentCount() > 2 && path[0].getSegment(2) instanceof XmlSchemaElement) {
+					object = (XmlSchemaElement) path[0].getSegment(2);
+					qName = ((XmlSchemaElement)object).getQName();
+				}
+				
+				if (object != null) {
+					String obText = (useType ? "type":(useRef ? "element":"object"));
+					tLocalName.setText(qName.getLocalPart());
 					tNamespace.setText(qName.getNamespaceURI());
-					if (SchemaMeta.isDynamic(type)) {
-						lSummary.setText("Use the dynamic type : \n" + qName.toString());
+					if (SchemaMeta.isDynamic(object)) {
+						lSummary.setText("Use the dynamic "+obText+" : \n" + qName.toString());
 						lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
 					} else {
-						lSummary.setText("Use the static type : \n" + qName.toString());
+						lSummary.setText("Use the static "+obText+" : \n" + qName.toString());
 						lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GRAY));
 					}
 					XmlQNameEditorComposite.this.layout(true);
@@ -161,13 +185,13 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				tNamespace.setText("");
-				tTypeName.setText("");
-				lSummary.setText("No type set.");
+				tLocalName.setText("");
+				lSummary.setText("No "+(useType ? "type":(useRef ? "element":"object")) +" set.");
 				lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
 			}
 		});
 		
-		tTypeName.addVerifyListener(new VerifyListener() {
+		tLocalName.addVerifyListener(new VerifyListener() {
 			public void verifyText(VerifyEvent e) {
 				if (e.text.contains(" ")) {
 					e.doit = false;
@@ -175,25 +199,29 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 			}
 		});
 		
-		tTypeName.addModifyListener(new ModifyListener() {
+		tLocalName.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				String txt = tTypeName.getText();
+				String txt = tLocalName.getText();
 				if (txt.length() == 0) {
 					bNone.notifyListeners(SWT.Selection, null);
 				} else {
 					tNamespace.setText(currentNamespace);
 					QName qName = new QName(currentNamespace, txt);
 					XmlSchemaType type = collection.getTypeByQName(qName);
-					if (type == null) {
-						lSummary.setText("Create the dynamic type : \n" + qName.toString());
+					XmlSchemaElement element = collection.getElementByQName(qName);
+					
+					XmlSchemaObject object = type == null ? element:type;
+					String obText = (useType ? "type":(useRef ? "element":"object"));
+					if (object == null) {
+						lSummary.setText("Create the dynamic "+obText+" : \n" + qName.toString());
 						lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_MAGENTA));
 						XmlQNameEditorComposite.this.layout(true);
 					} else {
-						if (SchemaMeta.isDynamic(type)) {
-							lSummary.setText("Use the dynamic type : \n" + qName.toString());
+						if (SchemaMeta.isDynamic(object)) {
+							lSummary.setText("Use the dynamic "+obText+" : \n" + qName.toString());
 							lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
 						} else {
-							lSummary.setText("Use the static type : \n" + qName.toString());
+							lSummary.setText("Use the static "+obText+" : \n" + qName.toString());
 							lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GRAY));
 						}
 					}
@@ -207,11 +235,11 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 	@Override
 	public XmlQName getValue() {
 		String namespace = tNamespace.getText();
-		String typeName = tTypeName.getText();
-		if (typeName.length() == 0) {
+		String localName = tLocalName.getText();
+		if (localName.length() == 0) {
 			return new XmlQName();
 		} else {
-			return new XmlQName(new QName(namespace, typeName));
+			return new XmlQName(new QName(namespace, localName));
 		}
 	}
 }

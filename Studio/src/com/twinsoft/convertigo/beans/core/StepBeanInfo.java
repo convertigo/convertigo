@@ -57,7 +57,7 @@ public class StepBeanInfo extends MySimpleBeanInfo {
 			properties[3].setDisplayName(getExternalizedString("property.xmlComplexTypeAffectation.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.xmlComplexTypeAffectation.short_description"));
 			properties[3].setExpert(true);
-			properties[3].setHidden(true);
+			properties[3].setHidden(false);
 			properties[3].setPropertyEditorClass(getEditorClass("XmlQNameEditor"));
 		}
 		catch(Exception e) {
