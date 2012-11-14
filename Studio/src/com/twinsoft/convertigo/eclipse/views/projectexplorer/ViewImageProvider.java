@@ -51,20 +51,15 @@ class ViewImageProvider {
 		String imageName = null;
 		if (object instanceof DatabaseObjectTreeObject) {
 			imageName = ((DatabaseObjectTreeObject)object).getImageName();
-		}
-		else if (object instanceof PropertyTableTreeObject) {
+		} else if (object instanceof PropertyTableTreeObject) {
 			imageName = "property";
-		}
-		else if (object instanceof PropertyTableRowTreeObject) {
+		} else if (object instanceof PropertyTableRowTreeObject) {
 			imageName = "property";
-		}
-		else if (object instanceof PropertyTableColumnTreeObject) {
+		} else if (object instanceof PropertyTableColumnTreeObject) {
 			imageName = "property";
-		}
-		else if ((object instanceof VariableTreeObject) || object instanceof VariableTreeObject2) {
+		} else if ((object instanceof VariableTreeObject) || object instanceof VariableTreeObject2) {
 			imageName = "variable";
-		}
-		else {
+		} else {
 			try {
 				imageName = object.toString();
 			}
@@ -144,209 +139,69 @@ class ViewImageProvider {
 		ImageData imageData = image.getImageData();
 		
 		DatabaseObjectTreeObject databaseObjectTreeObject = null;
+		
 		if (object instanceof DatabaseObjectTreeObject) {
-			databaseObjectTreeObject = (DatabaseObjectTreeObject)object;
-		}
-		else if (object instanceof PropertyTableTreeObject) {
-			PropertyTableTreeObject table = (PropertyTableTreeObject)object;
-			if (table != null) databaseObjectTreeObject = (DatabaseObjectTreeObject)table.getTreeObjectOwner();
-		}
-		else if (object instanceof PropertyTableRowTreeObject) {
-			PropertyTableTreeObject table = ((PropertyTableRowTreeObject)object).getParentTable();
-			if (table != null) databaseObjectTreeObject = (DatabaseObjectTreeObject)table.getTreeObjectOwner();
-		}
-		else if (object instanceof PropertyTableColumnTreeObject) {
-			PropertyTableTreeObject table = ((PropertyTableColumnTreeObject)object).getParentTable();
-			if (table != null) databaseObjectTreeObject = (DatabaseObjectTreeObject)table.getTreeObjectOwner();
-		}
-		else if (object instanceof FolderTreeObject) {
-			FolderTreeObject t_folder = (FolderTreeObject)object;
-			if(t_folder.getParent() instanceof DatabaseObjectTreeObject)
+			databaseObjectTreeObject = (DatabaseObjectTreeObject) object;
+		} else if (object instanceof PropertyTableTreeObject) {
+			PropertyTableTreeObject table = (PropertyTableTreeObject) object;
+			if (table != null) {
+				databaseObjectTreeObject = (DatabaseObjectTreeObject)table.getTreeObjectOwner();
+			}
+		} else if (object instanceof PropertyTableRowTreeObject) {
+			PropertyTableTreeObject table = ((PropertyTableRowTreeObject) object).getParentTable();
+			if (table != null) {
+				databaseObjectTreeObject = (DatabaseObjectTreeObject) table.getTreeObjectOwner();
+			}
+		} else if (object instanceof PropertyTableColumnTreeObject) {
+			PropertyTableTreeObject table = ((PropertyTableColumnTreeObject) object).getParentTable();
+			if (table != null) {
+				databaseObjectTreeObject = (DatabaseObjectTreeObject) table.getTreeObjectOwner();
+			}
+		} else if (object instanceof FolderTreeObject) {
+			FolderTreeObject t_folder = (FolderTreeObject) object;
+			if (t_folder.getParent() instanceof DatabaseObjectTreeObject) {
 				databaseObjectTreeObject = (DatabaseObjectTreeObject) t_folder.getParent();
+			}
 		}
+		
 		if (databaseObjectTreeObject != null) {
 			boolean unreachable = databaseObjectTreeObject.hasAncestorDisabled();
 			// SWT palette isn't the same on all OS
-			if(imageData.palette.colors!=null){
-				RGB rgb;
-				int irgb;
-				int[] hsl;
-				int[] _rgb;
-				for (int i = 0; i < imageData.palette.colors.length; i ++) {
-					if (i == imageData.transparentPixel) continue;
-	
-					rgb = imageData.palette.colors[i];
-	
+
+			for (int i = 0 ; i < imageData.height ; i++) {
+				for (int j = 0 ; j < imageData.width ; j++) {
+					float[] HSB = imageData.palette.getRGB(imageData.getPixel(j, i)).getHSB();
+
 					if (!databaseObjectTreeObject.isEnabled()) {
-						irgb = rgb.red << 16 | rgb.green << 8 | rgb.blue;
-				        hsl = hslFloat2Int(rgb2hsl(irgb));
-				        _rgb = hsl2rgb(0, 255, hsl[2]);
-				        rgb = new RGB(_rgb[0], _rgb[1], _rgb[2]);
+						setColor(HSB, 0);
 					} else if (databaseObjectTreeObject.isInherited) {
-						irgb = rgb.red << 16 | rgb.green << 8 | rgb.blue;
-				        hsl = hslFloat2Int(rgb2hsl(irgb));
-				        _rgb = hsl2rgb(hsl[0], 0, hsl[2]);
-				        rgb = new RGB(_rgb[0], _rgb[1], _rgb[2]);
+						HSB[1] = 0;
+						HSB[2] *= 0.9f;
 					} else if (databaseObjectTreeObject.isDetectedObject) {
-						irgb = rgb.red << 16 | rgb.green << 8 | rgb.blue;
-				        hsl = hslFloat2Int(rgb2hsl(irgb));
-				        _rgb = hsl2rgb(hsl[0], 0, hsl[2]);
-				        rgb = new RGB(_rgb[0], _rgb[1], _rgb[2]);
-					} else if (unreachable){
-						irgb = rgb.red << 16 | rgb.green << 8 | rgb.blue;
-				        hsl = hslFloat2Int(rgb2hsl(irgb));
-				        _rgb = hsl2rgb(25, 255, hsl[2]);
-				        rgb = new RGB(_rgb[0], _rgb[1], _rgb[2]);			
+						setColor(HSB, 120);
+					} else if (unreachable) {
+						setColor(HSB, 40);
+					} else {
+						HSB = null;
 					}
 					
-			        imageData.palette.colors[i] = rgb;
-				}
-			}else{
-				int irgb;
-				int[] hsl;
-				int[] _rgb = null;
-				for(int i=0;i<imageData.height;i++){
-					for(int j=0;j<imageData.width;j++){
-						irgb = imageData.getPixel(j, i);
-						
-						if (!databaseObjectTreeObject.isEnabled()) {
-					        hsl = hslFloat2Int(rgb2hsl(irgb));
-					        _rgb = hsl2rgb(0, 255, hsl[2]);
-					        irgb = _rgb[0] << 16 |_rgb[1] << 8 | _rgb[2];
-						} else if (databaseObjectTreeObject.isInherited) {
-					        hsl = hslFloat2Int(rgb2hsl(irgb));
-					        _rgb = hsl2rgb(hsl[0], 0, hsl[2]);
-					        irgb = _rgb[0] << 16 |_rgb[1] << 8 | _rgb[2];
-						} else if (databaseObjectTreeObject.isDetectedObject) {
-					        hsl = hslFloat2Int(rgb2hsl(irgb));
-					        _rgb = hsl2rgb(0, 255, hsl[2]);
-					        irgb = _rgb[0] << 16 |_rgb[1] << 8 | _rgb[2];
-						} else if (unreachable){
-					        hsl = hslFloat2Int(rgb2hsl(irgb));
-					        _rgb = hsl2rgb(25, 255, hsl[2]);
-					        irgb = _rgb[0] << 16 |_rgb[1] << 8 | _rgb[2];					
-						}
-						
-				        imageData.setPixel(j, i, irgb);
+					if (HSB != null) {
+						imageData.setPixel(j, i, imageData.palette.getPixel(new RGB(HSB[0], HSB[1], HSB[2])));
 					}
 				}
 			}
 		}
-		
+
 		return imageData;
 	}
 	
-    private static float[] rgb2hsl(int rgb) {
-        int r = (rgb >> 16) & 0xff;
-        int g = (rgb >> 8) & 0xff;
-        int b = rgb & 0xff;
-        
-        return rgb2hsl(r, g, b);
-    }
-    
-    private static float[] rgb2hsl(int r, int g, int b) {
-        float fr = r / 255f;
-        float fg = g / 255f;
-        float fb = b / 255f;
-        
-        float min = Math.min(Math.min(fr, fg), fb);
-        float max = Math.max(Math.max(fr, fg), fb);
-
-        float l = (min + max) / 2f;
-
-        float h, s;
-        if (max - min < 0.001) {
-            h = s = 0;
-        }
-        else {
-            if (l < 0.5) {
-                s = (max - min) / (max + min);
-            }
-            else {
-                s = (max - min) / (2 - max - min);
-            }
-            if (fr == max) h = (fg - fb) / (max - min);
-            else if (fg == max) h = 2 + (fg - fr) / (max - min);
-            else h = 4 + (fr - fg) / (max - min);
-        }
-        
-        float[] hsl = new float[3];
-        hsl[0] = h;
-        hsl[1] = s;
-        hsl[2] = l;
-        
-        return hsl;
-    }
-
-    private static int[] hslFloat2Int(float[] hsl) {
-        int hslInt[] = new int[3];
-        hslInt[0] = Math.round(hsl[0] * 60f * 255f / 360f);
-        hslInt[1] = Math.round(hsl[1] * 255f);
-        hslInt[2] = Math.round(hsl[2] * 255f);
-        return hslInt;
-    }
-    
-    private static int[] hsl2rgb(int h, int s, int l) {
-        float fh = h * 360f / 255f;
-        float fs = s / 255f;
-        float fl = l / 255f;
-
-        return hsl2rgb(fh, fs, fl);
-    }
-    
-    private static int[] hsl2rgb(float h, float s, float l) {
-        float r, g, b;
-
-        if (s == 0f) {
-            r = g = b = l;
-        }
-        else {
-            float temp2;
-            if (l < 0.5f) {
-                temp2 = l * (1f + s);
-            }
-            else {
-                temp2 = l + s - (l * s);
-            }
-            
-            float temp1 = 2f * l - temp2;
-            
-            h /= 360;
-            
-            float rtemp3 = h + 1f / 3f;
-            if (rtemp3 < 0f) rtemp3++;
-            if (rtemp3 > 1f) rtemp3--;
-            
-            float gtemp3 = h;
-            if (gtemp3 < 0f) gtemp3++;
-            if (gtemp3 > 1f) gtemp3--;
-
-            float btemp3 = h - 1f / 3f;
-            if (btemp3 < 0f) btemp3++;
-            if (btemp3 > 1f) btemp3--;
-
-            if (6f * rtemp3 < 1f) r = temp1 + (temp2 - temp1) * 6f * rtemp3;
-            else if (2f * rtemp3 < 1f) r = temp2;
-            else if (3f * rtemp3 < 2f) r = temp1 + (temp2 - temp1) * (2f / 3f - rtemp3) * 6f;
-            else r = temp1;
-
-            if (6f * gtemp3 < 1f) g = temp1 + (temp2 - temp1) * 6f * gtemp3;
-            else if (2f * gtemp3 < 1f) g = temp2;
-            else if (3f * gtemp3 < 2f) g = temp1 + (temp2 - temp1) * (2f / 3f - gtemp3) * 6f;
-            else g = temp1;
-
-            if (6f * btemp3 < 1f) b = temp1 + (temp2 - temp1) * 6f * btemp3;
-            else if (2f * btemp3 < 1f) b = temp2;
-            else if (3f * btemp3 < 2f) b = temp1 + (temp2 - temp1) * (2f / 3f - btemp3) * 6f;
-            else b = temp1;
-        }
-        
-        int[] rgb = new int[3];
-        rgb[0] = Math.round(r * 255f);
-        rgb[1] = Math.round(g * 255f);
-        rgb[2] = Math.round(b * 255f);
-
-        return rgb;
-    }
-
+	static private void setColor(float[] HSB, float hue) {
+		HSB[0] = hue;
+		
+		if (HSB[1] < 0.2f) {
+			HSB[1] = 0.2f;
+		} else if (HSB[1] > 0.8f) {
+			HSB[1] = 0.8f;
+		}
+	}
 }
