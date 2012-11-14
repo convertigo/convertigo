@@ -60,6 +60,7 @@ public class BeansDoc {
 
 		Engine.logBeans = Logger.getLogger(BeansDoc.class);
 		Engine.logContext = Logger.getLogger(BeansDoc.class);
+		Engine.logEngine = Logger.getLogger(BeansDoc.class);
 
 		Document documentBeansDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 		ProcessingInstruction pi = documentBeansDoc.createProcessingInstruction("xml",
