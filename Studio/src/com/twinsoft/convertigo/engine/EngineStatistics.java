@@ -413,7 +413,7 @@ public class EngineStatistics extends Statistics {
 	}
 
 	public static Object addStatisticsAsXML(Context context, Object result) {
-		if (result != null && context.requestedObject.getAddStatistics()) {
+		if (result != null && context.requestedObject != null && context.requestedObject.getAddStatistics()) {
 			if (result instanceof Document) {
 				Document document = (Document) result;
 				context.statistics.printStatisticsXML(document);
