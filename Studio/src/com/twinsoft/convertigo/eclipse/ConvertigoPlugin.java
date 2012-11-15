@@ -229,47 +229,35 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}	
 	
 	public static void errorMessageBox(String message) {
-		final String msg = message;
-		final Display display = Display.getDefault();
-		display.asyncExec(new Runnable() {
-			public void run() {
-				try {
-					Shell shell = display.getActiveShell();
-                	MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.ICON_ERROR);
-                	messageBox.setText("Convertigo");
-                	messageBox.setMessage(msg);
-                	messageBox.open();
-				}
-				catch(Exception e){
-					ConvertigoPlugin.logException(e, "Error while trying to error dialog");
-				}
-			};
-		});
+		ConvertigoPlugin.messageBox(message, SWT.OK | SWT.ICON_ERROR);
 	}
 	
 	public static int questionMessageBox(String message){
-		final String msg = message;
-		final Display display = Display.getDefault();
-		int response = SWT.NO;
+		return ConvertigoPlugin.messageBox(message, SWT.YES | SWT.NO | SWT.ICON_QUESTION);
+	}
 
-		try{
-			Shell shell = display.getActiveShell();
-	    	MessageBox messageBox = new MessageBox(shell, SWT.YES | SWT.NO | SWT.ICON_QUESTION);
-	    	messageBox.setText("Convertigo");
-	    	messageBox.setMessage(msg);
-	    	response = messageBox.open();
-		}
-		catch(Exception e){
-			ConvertigoPlugin.logException(e, "Error while trying to question message box");
-		}
+	public static void warningMessageBox(String message) {
+		ConvertigoPlugin.messageBox(message, SWT.OK | SWT.ICON_WARNING);
+	}
 
+	public static void infoMessageBox(String message) {
+		ConvertigoPlugin.messageBox(message, SWT.OK | SWT.ICON_INFORMATION);
+	}
+
+	private static int messageBox(String message, int options) {
+		Display display = Display.getCurrent();
+		Shell shell = display.getActiveShell();
+    	MessageBox messageBox = new MessageBox(shell, options);
+    	messageBox.setText("Convertigo");
+    	messageBox.setMessage(message);
+    	int response = messageBox.open();
     	return response;
 	}
 	
 	public static void projectDeployErrorDialog(String message, String stackTrace) {
 		final String errorMessage = message;
 		final String causeStackTrace = stackTrace;
-		final Display display = Display.getDefault();
+		final Display display = Display.getCurrent();
 		display.asyncExec(new Runnable() {
 			public void run() {
 				try {
@@ -281,44 +269,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				}
 				catch (Exception e){
 					ConvertigoPlugin.logException(e, "Error while trying to project deploy dialog");
-				}
-			};
-		});
-	}
-
-	public static void warningMessageBox(String message) {
-		final String msg = message;
-		final Display display = Display.getDefault();
-		display.asyncExec(new Runnable() {
-			public void run() {
-				try {
-					Shell shell = display.getActiveShell();
-                	MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.ICON_WARNING);
-                	messageBox.setText("Convertigo");
-                	messageBox.setMessage(msg);
-                	messageBox.open();
-				}
-				catch(Exception e){
-					ConvertigoPlugin.logException(e, "Error while trying to warning message box");
-				}
-			};
-		});
-	}
-
-	public static void infoMessageBox(String message) {
-		final String msg = message;
-		final Display display = Display.getDefault();
-		display.asyncExec(new Runnable() {
-			public void run() {
-				try {
-					Shell shell = display.getActiveShell();
-                	MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.ICON_INFORMATION);
-                	messageBox.setText("Convertigo");
-                	messageBox.setMessage(msg);
-                	messageBox.open();
-				}
-				catch(Exception e){
-					ConvertigoPlugin.logException(e, "Error while trying to info message box");
 				}
 			};
 		});
