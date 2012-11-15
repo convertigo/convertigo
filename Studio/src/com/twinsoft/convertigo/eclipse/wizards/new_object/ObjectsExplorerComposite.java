@@ -212,7 +212,7 @@ public class ObjectsExplorerComposite extends Composite {
 									}
 								} catch (ClassNotFoundException e) {
 									String message = java.text.MessageFormat.format(
-											"Unable to find the \"{0}\" class.", new Object[] { className });
+											"Unable to analyze the \"{0}\" class.\n\nClass not found: {1}", new Object[] { className, e.getMessage() });
 									ConvertigoPlugin.logWarning(message);
 								}
 								/*
