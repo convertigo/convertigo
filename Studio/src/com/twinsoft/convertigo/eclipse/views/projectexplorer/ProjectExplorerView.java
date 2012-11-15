@@ -686,6 +686,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 									+ "' by '"
 									+ newName
 									+ "' in current project only.\n- click Cancel for none update.",
+									1250, 150,
 							new ButtonSpec("Replace in all loaded projects",
 									true),
 							new ButtonSpec("Replace in current project", false),
@@ -1063,6 +1064,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 													+ "' by '"
 													+ newName
 													+ "' in current project only.\n- click Cancel for none update.",
+													1250, 150,
 											new ButtonSpec("Replace in all loaded projects", true),
 											new ButtonSpec("Replace in current project", false),
 											new ButtonSpec(IDialogConstants.CANCEL_LABEL, false));

@@ -26,11 +26,11 @@ public class CustomDialog extends MyAbstractDialog {
 	}
 
 	public CustomDialog(Shell parentShell, String title,
-			String question, List<ButtonSpec> buttonSpecs, int width, int height) {
+			String question, int width, int height, ButtonSpec... buttonSpecs) {
 		this(parentShell, CustomDialogComposite.class, title,
 				width, height);
 		this.question = question;
-		this.buttonSpecs = buttonSpecs;
+		this.buttonSpecs = Arrays.asList(buttonSpecs);
 	}
 
 	public CustomDialog(Shell parentShell,
