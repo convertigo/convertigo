@@ -39,6 +39,7 @@ import javax.wsdl.xml.WSDLReader;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaImport;
+import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.ISchemaReader;
@@ -52,7 +53,12 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 
 	public XmlSchema readSchema(XmlSchemaCollection collection) {
 		try {
+			List<String> namespaceList = new ArrayList<String>();
+			String mainSchemaNamespace = null;
 			XmlSchema mainSchema = null;
+			
+			// First read all schemas from WSDL in a new Collection
+			XmlSchemaCollection c = new XmlSchemaCollection();
 			List<Definition> definitions = readWsdl();
 			for (Definition definition: definitions) {
 				Types types = definition.getTypes();
@@ -62,13 +68,66 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 					ExtensibilityElement extensibilityElement = (ExtensibilityElement)iterator.next();
 					if (extensibilityElement instanceof Schema) {
 						Element element = ((Schema)extensibilityElement).getElement();
-						XmlSchema xmlSchema = collection.read(element);
-						if (definition.getTargetNamespace().equals(xmlSchema.getTargetNamespace())) {
-							mainSchema = xmlSchema;
+						XmlSchema xmlSchema = c.read(element);
+						String schemaNamespace = xmlSchema.getTargetNamespace();
+						namespaceList.add(schemaNamespace);
+						if (definition.getTargetNamespace().equals(schemaNamespace)) {
+							mainSchemaNamespace = schemaNamespace;
 						}
 					}
 				}
 			}
+			
+			// Then load schemas into our Collection
+			for (XmlSchema xs : c.getXmlSchemas()) {
+				if (namespaceList.contains(xs.getTargetNamespace())) {
+					collection.read(xs.getSchemaDocument(),null);
+				}
+			}
+			
+			// Finally
+			for (XmlSchema xmlSchema : collection.getXmlSchemas()) {
+				String tns = xmlSchema.getTargetNamespace();
+				if (namespaceList.contains(tns)) {
+					
+					// Add missing 'import' in our Collection schemas
+					String[] declaredPrefixes = xmlSchema.getNamespaceContext().getDeclaredPrefixes();
+					//System.out.println("For {"+tns+"}:");
+					for (int i=0; i <declaredPrefixes.length; i++) {
+						String prefix = declaredPrefixes[i];
+						String ns = xmlSchema.getNamespaceContext().getNamespaceURI(prefix);
+						if (!ns.equals(tns)) {
+							if (namespaceList.contains(ns)) {
+								boolean imported = false;
+								Iterator<?> it = xmlSchema.getItems().getIterator();
+								while (it.hasNext()) {
+									XmlSchemaObject ob = (XmlSchemaObject)it.next();
+									if (ob instanceof XmlSchemaImport) {
+										XmlSchemaImport xmlSchemaImport = ((XmlSchemaImport)ob);
+										String ins = xmlSchemaImport.getNamespace();
+										imported = ins.equals(ns);
+										if (imported) break;
+									}
+								}
+								if (!imported) {
+									//System.out.println("- adding import for {"+ns+"}");
+									XmlSchemaImport xmlSchemaImport = new XmlSchemaImport();
+									xmlSchemaImport.setNamespace(ns);
+									XmlSchema importedSchema = collection.schemaForNamespace(ns);
+									xmlSchemaImport.setSchema(importedSchema);
+									xmlSchema.getItems().add(xmlSchemaImport);
+								}
+							}
+						}
+					}
+					
+					// Remember main schema to import in project's one
+					if (mainSchemaNamespace.equals(xmlSchema.getTargetNamespace())) {
+						mainSchema = xmlSchema;
+					}
+				}
+			}
+			
 			return mainSchema;
 		}
 		catch (Exception e) {
@@ -84,7 +143,7 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 			if (wsdlURL != null) {
 				WSDLFactory factory = WSDLFactory.newInstance();
 				WSDLReader reader = factory.newWSDLReader();
-				reader.setFeature("javax.wsdl.importDocuments", true);
+				//reader.setFeature("javax.wsdl.importDocuments", true);
 				Definition definition = reader.readWSDL(null, wsdlURL.toString());
 				list.addAll(readWsdlImports(definition));
 			}
@@ -97,8 +156,6 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 	
 	protected List<Definition> readWsdlImports(Definition definition) {
 		List<Definition> list = new ArrayList<Definition>();
-		list.add(definition);
-		
 		Map<String, List<Import>> imports = GenericUtils.cast(definition.getImports());
 		for (List<Import> iList : imports.values()) {
 			for (Import wsdlImport : iList) {
@@ -106,6 +163,7 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 				list.addAll(readWsdlImports(def));
 			}
 		}
+		list.add(definition);
 		return list;
 	}
 }
