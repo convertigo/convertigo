@@ -28,11 +28,8 @@ public class WebServiceReferenceBeanInfo extends MySimpleBeanInfo {
 	public WebServiceReferenceBeanInfo() {
 		try {
 			beanClass = WebServiceReference.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.references.WsdlSchemaReference.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.references.ImportWsdlSchemaReference.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/references/images/importLocalXsd_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/references/images/importLocalXsd_32x32.png";
-			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/references/res/WebServiceReference");
 			
 			displayName = resourceBundle.getString("display_name");
