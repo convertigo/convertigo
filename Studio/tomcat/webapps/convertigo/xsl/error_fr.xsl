@@ -50,7 +50,7 @@
 							<td valign="top">
 								<table cellspacing="0" cellpadding="6" border="0">
 									<tr>
-										<td class="title" colspan="2">Error</td>
+										<td class="title" colspan="2">Erreur</td>
 									</tr>
 									<tr>
 										<td colspan="2">
