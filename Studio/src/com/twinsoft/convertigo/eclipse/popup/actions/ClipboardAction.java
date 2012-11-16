@@ -29,8 +29,7 @@ import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.widgets.Shell;
 import org.xml.sax.SAXException;
 
@@ -48,6 +47,7 @@ import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.FolderTreeObject;
@@ -137,30 +137,38 @@ public class ClipboardAction extends MyAbstractAction {
     				// Exception: if the copied object is a screen class,
     				// it must be different from the currently selected object.
     				if (ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SCREEN_CLASS) {
-    		        	MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO |SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-    		        	messageBox.setMessage("Do you want to paste the screen class as a sister class or a inherited class?\nClick Yes for a sister class, No otherwise.");
-    		        	int response = messageBox.open();
-    					
-    					if (response == SWT.YES) {
+    					CustomDialog customDialog = new CustomDialog(
+    							shell,
+    							"Paste a Screenclass",
+    							"Do you want to paste the Screenclass as a sibling or as an inherited ScreenClass?",
+    							new ButtonSpec("As a sibling", true),
+    							new ButtonSpec("As an iherited", false),
+    							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
+    					);
+    					int response = customDialog.open();
+    					if (response == 0)
     						targetObject = ((DatabaseObject)targetObject).getParent();
-    					}
-    					else if (response == SWT.CANCEL) {
+    					else if (response == 2)
     						return;
-    					}
     				}
     				else if (ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT_WITH_EXPRESSIONS) {
     					if (ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_FUNCTION) {
     						targetObject = ((DatabaseObject)targetObject).getParent();
     					}
     					else {
-	    					MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO |SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-	    		        	messageBox.setMessage("Do you want to paste the statement as a brother statement or a child statement?\nClick Yes for a brother class, No otherwise.");
-	    		        	int response = messageBox.open();
-	    					
-	    					if (response == SWT.YES) {
+    						CustomDialog customDialog = new CustomDialog(
+        							shell,
+        							"Paste a statement",
+        							"Do you want to paste the statement as a sibling or a child statement?",
+        							new ButtonSpec("As a sibling", true),
+        							new ButtonSpec("As a child", false),
+        							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
+        					);
+        					int response = customDialog.open();
+	    					if (response == 0) {
 	    						targetObject = ((DatabaseObject)targetObject).getParent();
 	    					}
-	    					else if (response == SWT.CANCEL) {
+	    					else if (response == 2) {
 	    						return;
 	    					}
     					}
@@ -354,14 +362,19 @@ public class ClipboardAction extends MyAbstractAction {
 					// Case paste on itself -> ask user what to do
 					if ((size==1) && (ob.getClass().equals(targetObject.getClass()))) {
 						if (((Step)ob).getName().equals(targetObject.getName())) {
-							MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO |SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-				        	messageBox.setMessage("Do you want to paste the step as a brother step or a child step?\nClick Yes for a brother class, No otherwise.");
-				        	int response = messageBox.open();
-							
-							if (response == SWT.YES) {
+							CustomDialog customDialog = new CustomDialog(
+	    							shell,
+	    							"Paste a step",
+	    							"Do you want to paste the step as a sibling or a child step?",
+	    							new ButtonSpec("As a sibling", true),
+	    							new ButtonSpec("As a child", false),
+	    							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
+	    					);
+	    					int response = customDialog.open();
+							if (response == 0) {
 								return targetObject.getParent();
 							}
-							else if (response == SWT.CANCEL) {
+							else if (response == 2) {
 								return null;
 							}
 							else
