@@ -229,13 +229,7 @@ public class SchemaManager implements AbstractManager {
 											}
 
 											for (XmlSchemaParticle child : myParticleChildren) {
-												//											if (child instanceof XmlSchemaAll) {
-												//												XmlSchemaGroup subGroup = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaGroup());
-												//												//											subGroup.setParticle((XmlSchemaAll) child);
-												//												group.getItems().add(XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaSequence()));
-												//											} else {
 												group.getItems().add(child);
-												//											}
 											}
 										}
 
