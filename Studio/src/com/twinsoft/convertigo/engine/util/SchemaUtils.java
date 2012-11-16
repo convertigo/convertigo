@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URL;
 import java.util.HashMap;
 
@@ -40,6 +41,7 @@ import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.apache.ws.commons.schema.utils.NamespacePrefixList;
 import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class SchemaUtils {
@@ -91,6 +93,15 @@ public class SchemaUtils {
 		if (xsdUrl != null) {
 			Document xsdDocument = getDefaultDocumentBuilder().parse(xsdUrl.toString());
 			XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, xsdUrl.toString(), null);
+			return xmlSchema;
+		}
+		return null;
+	}
+	
+	public static XmlSchema loadSchema(String sDocument, XmlSchemaCollection xmlSchemaCollection) throws SAXException, IOException {
+		if (sDocument != null) {
+			Document xsdDocument = getDefaultDocumentBuilder().parse(new InputSource(new StringReader(sDocument)));
+			XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, null);
 			return xmlSchema;
 		}
 		return null;

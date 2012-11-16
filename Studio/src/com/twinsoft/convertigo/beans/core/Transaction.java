@@ -529,8 +529,12 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		return getProject().getXsdInternalDirPath()+ "/" + getConnector().getName();
 	}
 	
+	public String getSchemaFileName() {
+		return getName() + ".xsd";
+	}
+	
 	public String getSchemaFilePath() {
-		return getSchemaFileDirPath()+ "/"+ getName() + ".xsd";
+		return getSchemaFileDirPath()+ "/"+ getSchemaFileName();
 	}
 	
 	public String getXsdRequestElementName() {
@@ -588,11 +592,19 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
     						+ xsdElements
     						+ xsdTypes
     						+ "</xsd:schema>";
-    		Document xsdDocument = XMLUtils.parseDOMFromString(xsdDom);
-    		if (xsdDocument != null) {
-    			//System.out.println(XMLUtils.prettyPrintDOM(xsdDocument));
-    			new File(getSchemaFileDirPath()).mkdirs();
-    			XMLUtils.saveXml(xsdDocument, getSchemaFilePath());
+			//System.out.println(xsdDom);
+    		
+    		// Save schema to file
+			new File(getSchemaFileDirPath()).mkdirs();
+    		try {
+				XmlSchema xmlSchema = SchemaUtils.loadSchema(xsdDom, new XmlSchemaCollection());
+				SchemaUtils.saveSchema(getSchemaFilePath(), xmlSchema);
+    		}
+    		catch (Exception e) {
+        		Document xsdDocument = XMLUtils.parseDOMFromString(xsdDom);
+        		if (xsdDocument != null) {
+        			XMLUtils.saveXml(xsdDocument, getSchemaFilePath());
+        		}
     		}
 		}
 		catch (Exception e) {
