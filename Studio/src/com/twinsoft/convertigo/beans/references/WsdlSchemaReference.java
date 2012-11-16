@@ -120,12 +120,12 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 							}
 						}
 					}
-					
-					// Remember main schema to import in project's one
-					if (mainSchemaNamespace.equals(xmlSchema.getTargetNamespace())) {
-						mainSchema = xmlSchema;
-					}
 				}
+			}
+			
+			// Remember main schema to import in project's one
+			if (mainSchemaNamespace != null) {
+				mainSchema = collection.schemaForNamespace(mainSchemaNamespace);
 			}
 			
 			return mainSchema;
