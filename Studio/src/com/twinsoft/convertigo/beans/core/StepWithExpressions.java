@@ -74,6 +74,8 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
     
     transient public boolean handlePriorities = true;
     
+    transient public long[] asyncCounters = null;
+    
 	public StepWithExpressions() {
 		super();
 		
@@ -93,6 +95,7 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
         clonedObject.bContinue = true;
         clonedObject.handlePriorities = handlePriorities;
         clonedObject.transactionSessionId= null;
+        clonedObject.asyncCounters = null;
         return clonedObject;
     }
 	
@@ -690,11 +693,13 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
         private Sequence refSequence = null;
         public boolean bContinue = false;
         private Step step = null;
+        private long asyncNum;
 		
         public AsynchronousStepThread(Step step, Scriptable scope) {
         	this.step = step;
         	this.scope = scope;
             this.refSequence = sequence;
+            asyncNum = asyncCounters[0]++;
             setName("AsynchronousStep #" + step.hashCode());
         }
 
@@ -732,7 +737,29 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
                	Engine.logBeans.debug("(AsynchronousStepThread) \""+ AsynchronousStepThread.this.getName() +"\" done");
             }
         }
-    	        
+        
+        public void wakeTurn(Step step) {
+        	if (asyncCounters != null) {
+        		synchronized (asyncCounters) {
+        			long next = asyncCounters[1];
+        			
+        			Engine.logBeans.trace("(AsynchronousStepThread) \"" + AsynchronousStepThread.this.getName() + "\" (" + step.getName() + ") wakeTurn : is " + asyncNum + " and current is " + next);
+        			
+        			while (asyncNum > next && bContinue && sequence.isRunning()) {
+        				try {
+        					asyncCounters.wait(5000);
+        				} catch (InterruptedException e) { }
+        				next = asyncCounters[1];
+        				Engine.logBeans.debug("(AsynchronousStepThread) \"" + AsynchronousStepThread.this.getName() + "\" (" + step.getName() + ") wakeTurn retry : is " + asyncNum + " and current is " + next);
+        			}
+        			if (asyncNum == asyncCounters[1]) {
+        				asyncCounters[1]++;
+            			Engine.logBeans.debug("(AsynchronousStepThread) \"" + AsynchronousStepThread.this.getName() + "\" (" + step.getName() + ") wakeTurn inc : next value is " + asyncCounters[1]);
+        			}
+        			asyncCounters.notifyAll();
+        		}
+        	}
+        }
 	}
 	
 	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException

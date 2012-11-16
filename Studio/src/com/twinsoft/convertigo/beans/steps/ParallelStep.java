@@ -40,12 +40,14 @@ public class ParallelStep extends BranchStep {
     public ParallelStep clone() throws CloneNotSupportedException {
     	ParallelStep clonedObject = (ParallelStep) super.clone();
     	clonedObject.totalAsyncThreadRunning = 0;
+		clonedObject.asyncCounters = new long[] {0, 0};
         return clonedObject;
     }
 
 	@Override
     public ParallelStep copy() throws CloneNotSupportedException {
     	ParallelStep copiedObject = (ParallelStep) super.copy();
+    	copiedObject.asyncCounters = asyncCounters;
         return copiedObject;
     }
 
@@ -56,11 +58,12 @@ public class ParallelStep extends BranchStep {
 		
 		totalAsyncThreadRunning = sequence.setAsyncThreadRunningNumber(priority, true);
 		
-		if (parent instanceof Sequence)
-			((Sequence)parent).increaseAsyncThreadRunning();
-		else {
-			if (parent instanceof StepWithExpressions)
+		if (parent instanceof Sequence) {
+			((Sequence) parent).increaseAsyncThreadRunning();
+		}else {
+			if (parent instanceof StepWithExpressions) {
 				((StepWithExpressions)parent).increaseAsyncThreadRunning();
+			}
 		}
 		// Case this have to wait : this have more children than maxNumberOfThreads
 		if (haveToWait == Boolean.FALSE) {
@@ -75,30 +78,33 @@ public class ParallelStep extends BranchStep {
 			//if (!maxNumberOfThreads.equals("") && (totalAsyncThreadRunning >= Integer.parseInt(maxNumberOfThreads,10))) {
 			if ((maxNumberOfThreadsInteger > 0) && (totalAsyncThreadRunning >= maxNumberOfThreadsInteger)) {
 				Engine.logBeans.debug("(ParallelStep) Max number of threads exceded for step '"+ getName() +"' ("+executeTimeID+"), waiting for available...");
-				((StepWithExpressions)parent).shouldWait(true);
+				((StepWithExpressions) parent).shouldWait(true);
 			}
 		}
 	}
 
 	@Override
 	public synchronized void decreaseAsyncThreadRunning() {
-		if (nbAsyncThreadRunning > 0) nbAsyncThreadRunning--;
+		if (nbAsyncThreadRunning > 0) {
+			nbAsyncThreadRunning--;
+		}
 		//System.out.println("Decr step "+ name + " ("+executeTimeID+") threads : " + nbAsyncThreadRunning);
 
 		totalAsyncThreadRunning = sequence.setAsyncThreadRunningNumber(priority, false);
 		
-		if (parent instanceof Sequence)
-			((Sequence)parent).decreaseAsyncThreadRunning();
-		else {
-			if (parent instanceof StepWithExpressions)
-				((StepWithExpressions)parent).decreaseAsyncThreadRunning();
+		if (parent instanceof Sequence) {
+			((Sequence) parent).decreaseAsyncThreadRunning();
+		} else {
+			if (parent instanceof StepWithExpressions) {
+				((StepWithExpressions) parent).decreaseAsyncThreadRunning();
+			}
 		}
 		
 		// Case this is waiting
 		if (haveToWait == Boolean.TRUE) {
 			//if (!maxNumberOfThreads.equals("") && (nbAsyncThreadRunning < Integer.parseInt(maxNumberOfThreads,10))) {
 			if ((maxNumberOfThreadsInteger > 0) && (nbAsyncThreadRunning < maxNumberOfThreadsInteger)) {
-				Engine.logBeans.debug("(ParallelStep) New thread available for step '"+ getName() +"' ("+executeTimeID+")");
+				Engine.logBeans.debug("(ParallelStep) New thread available for step '" + getName() + "' ("+executeTimeID+")");
 				this.shouldWait(false);
 			}
 		}
@@ -106,8 +112,8 @@ public class ParallelStep extends BranchStep {
 		else {
 			//if (!maxNumberOfThreads.equals("") && (totalAsyncThreadRunning < Integer.parseInt(maxNumberOfThreads,10))) {
 			if ((maxNumberOfThreadsInteger > 0) && (totalAsyncThreadRunning < maxNumberOfThreadsInteger)) {
-				Engine.logBeans.debug("(ParallelStep) New thread available for step '"+ getName() +"' ("+executeTimeID+")");
-				((StepWithExpressions)parent).shouldWait(false);
+				Engine.logBeans.debug("(ParallelStep) New thread available for step '" + getName() + "' ("+executeTimeID+")");
+				((StepWithExpressions) parent).shouldWait(false);
 			}
 		}
 	}

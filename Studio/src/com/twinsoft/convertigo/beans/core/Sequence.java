@@ -47,6 +47,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.StepWithExpressions.AsynchronousStepThread;
 import com.twinsoft.convertigo.beans.steps.BranchStep;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
@@ -1488,55 +1489,61 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
         catch (Exception e) {}
 		return doc;
     }
-    
-    public synchronized void appendStepNode(Step step) throws EngineException {
-		Node stepNode = step.getStepNode();
-		if (stepNode != null) {
-			if (step.isOutput()) {
-				Node node = null;
-				Element stepParentElement = findParentStepElement(step);
-				if (stepNode.getNodeType() == Node.ELEMENT_NODE) {
-					String sCopy = ((Element)stepNode).getAttribute("step_copy");
-					boolean isCopy = ((sCopy!=null)&& (sCopy.equals("true")));
-					if (isCopy) {
-    	    			NodeList list = ((Element)stepNode).getChildNodes();
-    	    			if (list != null) {
-    	    				int len = list.getLength();
-    	    				for (int i=0;i<len;i++) {
-    	    					Node child = list.item(i);
-    	    					if ((child != null) && ((child.getNodeType() == Node.ELEMENT_NODE) || (child.getNodeType() == Node.TEXT_NODE))) {
-    	    						node = context.outputDocument.importNode(child, true);
-    	    						stepParentElement.appendChild(node);
-    	    					}
-    	    				}
-    	    			}
-						NamedNodeMap map = ((Element)stepNode).getAttributes();
-						if (map != null) {
-							int len = map.getLength();
-							for (int i=0;i<len;i++) {
-								Node child = map.item(i);
-								if ((child != null) && ((child.getNodeType() == Node.ATTRIBUTE_NODE))) {
-									stepParentElement.setAttribute(child.getNodeName(),child.getNodeValue());
+	
+	public void appendStepNode(Step step) throws EngineException {
+		if (Thread.currentThread() instanceof AsynchronousStepThread) {
+			AsynchronousStepThread thread = (AsynchronousStepThread) Thread.currentThread();
+			thread.wakeTurn(step);
+		}
+
+		synchronized (this) {
+			Node stepNode = step.getStepNode();
+			if (stepNode != null) {
+				if (step.isOutput()) {
+					Node node = null;
+					Element stepParentElement = findParentStepElement(step);
+					if (stepNode.getNodeType() == Node.ELEMENT_NODE) {
+						String sCopy = ((Element) stepNode).getAttribute("step_copy");
+						boolean isCopy = sCopy != null && sCopy.equals("true");
+						if (isCopy) {
+							NodeList list = ((Element) stepNode).getChildNodes();
+							if (list != null) {
+								int len = list.getLength();
+								for (int i = 0 ; i < len ; i++) {
+									Node child = list.item(i);
+									if ((child != null) && ((child.getNodeType() == Node.ELEMENT_NODE) || (child.getNodeType() == Node.TEXT_NODE))) {
+										node = context.outputDocument.importNode(child, true);
+										stepParentElement.appendChild(node);
+									}
 								}
 							}
+							NamedNodeMap map = ((Element)stepNode).getAttributes();
+							if (map != null) {
+								int len = map.getLength();
+								for (int i = 0 ; i < len ; i++) {
+									Node child = map.item(i);
+									if ((child != null) && ((child.getNodeType() == Node.ATTRIBUTE_NODE))) {
+										stepParentElement.setAttribute(child.getNodeName(),child.getNodeValue());
+									}
+								}
+							}
+
+							stepParentElement.removeAttribute("step_copy");
+							node = stepParentElement;
+						} else {
+							node = context.outputDocument.importNode(stepNode, true);
+							((Element) node).removeAttribute("step_id");
+							stepParentElement.appendChild(node);
 						}
-    	    			
-						stepParentElement.removeAttribute("step_copy");
-    	    			node = stepParentElement;
-					}
-					else {
+					} else if (stepNode.getNodeType() == Node.ATTRIBUTE_NODE) {
 						node = context.outputDocument.importNode(stepNode, true);
-						((Element)node).removeAttribute("step_id");
-						stepParentElement.appendChild(node);
+						stepParentElement.setAttributeNode((Attr) node);
+					}
+
+					if (node != null) {
+						appendedStepElements.put(step.executeTimeID, node);
 					}
 				}
-				else if (stepNode.getNodeType() == Node.ATTRIBUTE_NODE) {
-					node = context.outputDocument.importNode(stepNode, true);
-					stepParentElement.setAttributeNode((Attr)node);
-				}
-				
-				if (node != null)
-					appendedStepElements.put(step.executeTimeID, node);
 			}
 		}
 	}

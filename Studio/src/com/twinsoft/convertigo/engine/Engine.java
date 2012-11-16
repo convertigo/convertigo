@@ -931,7 +931,7 @@ public class Engine {
 
 			Project currentProject;
 			if (isStudioMode()) {
-				currentProject = objectsProvider.getProject(context.projectName);
+				currentProject = objectsProvider.getProject(context.projectName).clone();
 				if (currentProject == null) {
 					throw new EngineException(
 							"No project has been opened in the Studio. A project should be opened in the Studio in order that the Convertigo engine can work.");
