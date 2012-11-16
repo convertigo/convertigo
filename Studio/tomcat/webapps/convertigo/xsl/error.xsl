@@ -41,7 +41,7 @@
 		</script>
 		<div id="c8o_errorPage">
 			<p class="center">
-				<img src="../../admin/logo_convertigo_mashup_server300_error.png" id="logoConvertigo"/>
+				<img src="../../admin/images/logo_convertigo_mashup_server300_error.png" id="logoConvertigo"/>
 			</p>
 			<blockquote>
 				<p>
