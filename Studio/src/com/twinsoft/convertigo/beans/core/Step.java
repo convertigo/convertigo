@@ -132,7 +132,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		copiedObject.executedSteps = new Hashtable<Long, String>(100);
 		copiedObject.sequence = getSequence();
 		copiedObject.vSheets = vSheets;
-		copiedObject.isSubLoaded = Engine.isEngineMode() ? isSubLoaded:true;
+		copiedObject.isSubLoaded = isSubLoaded;
 		return copiedObject;
 	}
 
@@ -769,7 +769,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			
 			// We fire engine events only in studio mode.
             if (Engine.isStudioMode()) {
-            	Step loadedStep = (Step)sequence.loadedSteps.get(key);
+            	Step loadedStep = (Step) sequence.loadedSteps.get(key).getOriginal();
             	Engine.theApp.fireObjectDetected(new EngineEvent(loadedStep));
 				Engine.logBeans.trace("(Step) Step reached before its execution \"" + getName() + "\" ( "+ this+" ["+ hashCode() +"] ).");
 				Engine.theApp.fireStepReached(new EngineEvent(loadedStep));
