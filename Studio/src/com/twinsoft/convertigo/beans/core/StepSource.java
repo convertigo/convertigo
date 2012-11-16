@@ -28,6 +28,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.steps.IteratorStep;
 import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -201,6 +202,9 @@ public class StepSource {
 					}
 					else {
 						label = step.getName();
+						if (step instanceof IteratorStep) {
+							label = step.getLabel().substring(step.getLabel().lastIndexOf("/")+1);
+						}
 					}
 				}
 			}

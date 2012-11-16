@@ -263,16 +263,39 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 		return targetSchema;
 	}
 	
+	protected StepSource getTargetSource() throws EngineException {
+		StepSource source = getSource();
+		if (!source.isEmpty()) {
+			Step sourceStep = source.getStep();
+			if (sourceStep instanceof IteratorStep) {
+				source = ((IteratorStep)sourceStep).getSource();
+			}
+		}
+		return source;
+	}
+	
+	protected String getTargetXPath() throws EngineException {
+		String xpath = "";
+		StepSource source = getSource();
+		if (!source.isEmpty()) {
+			Step sourceStep = source.getStep();
+			if (sourceStep instanceof IteratorStep) {
+				xpath = source.getXpath().substring(1);
+			}
+		}
+		return xpath;
+	}
+	
 	@Override
 	public XmlSchemaObject getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		try {
-			StepSource source = getSource();
+			StepSource source = getTargetSource();
 			if (!source.isEmpty()) {
 				XmlSchemaObject object = SchemaMeta.getXmlSchemaObject(schema, source.getStep());
 				if (object != null) {
 					SchemaMeta.setSchema(object, schema);
 					String xpath = source.getXpath();
-					String anchor = source.getAnchor();
+					String anchor = source.getAnchor() + getTargetXPath();
 					if (!".".equals(xpath)) {
 						Map<Node, XmlSchemaObject> references = new HashMap<Node, XmlSchemaObject>();
 						Document doc = XmlSchemaUtils.getDomInstance(object, references);
