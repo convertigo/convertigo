@@ -22,11 +22,16 @@
 
 package com.twinsoft.convertigo.beans.transactions;
 
+import java.io.File;
+
 import javax.xml.namespace.QName;
 
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaImport;
+import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -36,6 +41,7 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class XmlHttpTransaction extends HttpTransaction implements IElementRefAffectation {
@@ -247,10 +253,32 @@ public class XmlHttpTransaction extends HttpTransaction implements IElementRefAf
 	public void writeSchemaToFile(String xsdTypes) {
 		try {
 			XmlSchema xmlSchema = createSchema();
-			
-			//TODO: uncomment next lines when createSchema will handle XSD dbo for imports
-//			new File(getSchemaFileDirPath()).mkdirs();
-//			SchemaUtils.saveSchema(getSchemaFilePath(), xmlSchema);
+			try {
+				if (!getXmlElementRefAffectation().isEmpty()) {
+					String ns = getElementRefAffectation().getNamespaceURI();
+					XmlSchemaCollection collection = Engine.theApp.schemaManager.getSchemasForProject(getProject().getName());
+					XmlSchema referenced = collection.schemaForNamespace(ns);
+					if (referenced != null) {
+						if (ns.equals(xmlSchema.getTargetNamespace())) {
+							XmlSchemaInclude xmlSchemaInclude = new XmlSchemaInclude();
+							xmlSchemaInclude.setSchemaLocation(referenced.getSourceURI());
+							xmlSchemaInclude.setSchema(referenced);
+							xmlSchema.getItems().add(xmlSchemaInclude);
+						}
+						else {
+							XmlSchemaImport xmlSchemaImport = new XmlSchemaImport();
+							xmlSchemaImport.setNamespace(referenced.getTargetNamespace());
+							xmlSchemaImport.setSchemaLocation(referenced.getSourceURI());
+							xmlSchemaImport.setSchema(referenced);
+							xmlSchema.getItems().add(xmlSchemaImport);
+						}
+					}
+				}
+    		}
+    		catch (Exception e) {}
+    		
+			new File(getSchemaFileDirPath()).mkdirs();
+			SchemaUtils.saveSchema(getSchemaFilePath(), xmlSchema);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
