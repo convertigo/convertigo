@@ -52,15 +52,13 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.references.ImportWsdlSchemaReference;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
@@ -235,11 +233,12 @@ public class Migration6_3_0 {
 		if (!referenceMap.containsKey(namespaceURI)) {
 			// c8o project reference
 			if (location.startsWith("../")) {
-				ImportWsdlSchemaReference reference = new ImportWsdlSchemaReference();
 				String targetProjectName = location.substring(3, location.indexOf("/",3));
-				reference.setName(targetProjectName + " WSDL schema");
-				String wsdlUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" +targetProjectName +"/.wsl?XWSDL";
-				reference.setUrlpath(wsdlUrl);
+				ProjectSchemaReference reference = new ProjectSchemaReference();
+				reference.setProjectName(targetProjectName);
+				reference.setName(targetProjectName + " schema");
+				//String wsdlUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" +targetProjectName +"/.wsl?XWSDL";
+				//reference.setUrlpath(wsdlUrl);
 				referenceMap.put(namespaceURI, reference);
 			}
 			// other reference

@@ -30,8 +30,8 @@ public class ImportXsdSchemaReferenceBeanInfo extends MySimpleBeanInfo {
 			beanClass = ImportXsdSchemaReference.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.references.XsdSchemaReference.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/references/images/importLocalXsd_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/references/images/importLocalXsd_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/references/images/XsdSchemaReference_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/references/images/XsdSchemaReference_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/references/res/ImportXsdSchemaReference");
 			

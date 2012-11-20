@@ -47,7 +47,7 @@ public class IncludeXsdSchemaReference extends XsdSchemaReference implements ISc
 					schemaInclude.setSchemaLocation(getReferenceUrl().toString());
 					schemaInclude.setSchema(includedSchema);
 				}
-				else throw new EngineException("Incorect schema include +" +
+				else throw new EngineException("Incorrect schema include +" +
 						"("+getReferenceUrl().toString()+"): target namespace differs from \""+schema.getTargetNamespace()+"\"");
 			}
 		} catch (Exception e) {

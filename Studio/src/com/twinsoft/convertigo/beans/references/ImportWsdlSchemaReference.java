@@ -47,7 +47,7 @@ public class ImportWsdlSchemaReference extends WsdlSchemaReference implements IS
 					schemaImport.setNamespace(importedSchema.getTargetNamespace());
 					schemaImport.setSchema(importedSchema);
 				}
-				else throw new EngineException("Incorect schema import +" +
+				else throw new EngineException("Incorrect schema import +" +
 						"("+getReferenceUrl().toString()+"): target namespace is the same as \""+schema.getTargetNamespace()+"\"");
 			}
 		} catch (Exception e) {

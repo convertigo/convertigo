@@ -109,6 +109,9 @@
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.IncludeXsdSchemaReference">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
 				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.ProjectSchemaReference">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				</bean>
 			</beans>
 			<beans groupname="Web Service references">
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.WebServiceReference">

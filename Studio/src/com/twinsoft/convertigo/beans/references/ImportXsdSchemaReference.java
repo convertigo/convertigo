@@ -48,7 +48,7 @@ public class ImportXsdSchemaReference extends XsdSchemaReference implements ISch
 					schemaImport.setNamespace(importedSchema.getTargetNamespace());
 					schemaImport.setSchema(importedSchema);
 				}
-				else throw new EngineException("Incorect schema import +" +
+				else throw new EngineException("Incorrect schema import +" +
 						"("+getReferenceUrl().toString()+"): target namespace is the same as \""+schema.getTargetNamespace()+"\"");
 			}
 		} catch (Exception e) {
