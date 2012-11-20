@@ -82,6 +82,7 @@ import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.EmulatorTechnologyWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.ServiceCodeWizardPage;
+import com.twinsoft.convertigo.eclipse.wizards.references.ProjectSchemaWizardPage;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -212,6 +213,11 @@ public class NewObjectWizard extends Wizard {
 			// add service code wizard page
 			ServiceCodeWizardPage serviceCodePage = new ServiceCodeWizardPage();
 			this.addPage(serviceCodePage);
+		}
+		
+		if (beanClass.equals(Reference.class)) {
+			ProjectSchemaWizardPage projectSchemaWizardPage = new ProjectSchemaWizardPage(parentObject);
+			this.addPage(projectSchemaWizardPage);
 		}
 	}
 	
