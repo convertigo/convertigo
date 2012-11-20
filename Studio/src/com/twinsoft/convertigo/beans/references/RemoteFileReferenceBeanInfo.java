@@ -32,6 +32,9 @@ public class RemoteFileReferenceBeanInfo extends MySimpleBeanInfo {
 			beanClass = RemoteFileReference.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.references.FileReference.class;
 
+			iconNameC16 = "/com/twinsoft/convertigo/beans/references/images/RemoteFileReference_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/references/images/RemoteFileReference_32x32.png";
+			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/references/res/RemoteFileReference");
 			
 			displayName = resourceBundle.getString("display_name");
