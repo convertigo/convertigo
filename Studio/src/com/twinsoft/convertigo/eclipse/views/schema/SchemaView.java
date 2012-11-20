@@ -182,8 +182,27 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		
 		getSite().getPage().addSelectionListener(this);
 		
-		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(this);
-		Engine.theApp.addEngineListener(engineListener);
+		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(this);		
+		
+		// Wait for Engine to start
+		int nbRetry = 0;
+		while (!Engine.isStartFailed && !Engine.isStarted) {
+			try {
+				Thread.sleep(500);
+				nbRetry++;
+			} catch (InterruptedException e) {
+				// Ignore
+			}
+			
+			// Aborting if too many retries
+			if (nbRetry > 360) {
+				return;
+			}
+		}
+
+		if (Engine.isStarted) {
+			Engine.theApp.addEngineListener(engineListener);
+		}
 	}
 	
 	private void makeUI(Composite content) {
