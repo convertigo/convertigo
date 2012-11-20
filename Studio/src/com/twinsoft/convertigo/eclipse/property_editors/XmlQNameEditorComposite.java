@@ -29,9 +29,11 @@ import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
+import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
@@ -72,7 +74,6 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 	
 	public XmlQNameEditorComposite(final Composite parent, int style, AbstractDialogCellEditor cellEditor) {
 		super(parent, style, cellEditor);
-		XmlQName schemaDefinition = (XmlQName) cellEditor.getValue();
 		
 		try {
 			DatabaseObject dbo = cellEditor.databaseObjectTreeObject.getObject();
@@ -91,9 +92,9 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 		
 		new Label(this, style).setText("Existing objects");
 		
-		final TreeViewer bisTreeViewer = new TreeViewer(this);
-		bisTreeViewer.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
-		bisTreeViewer.setContentProvider(new SchemaViewContentProvider() {
+		final TreeViewer treeViewer = new TreeViewer(this);
+		treeViewer.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
+		treeViewer.setContentProvider(new SchemaViewContentProvider() {
 
 			@Override
 			public Object[] getChildren(Object object) {
@@ -114,11 +115,23 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 			}
 			
 		});
+		
+		treeViewer.setComparer(new IElementComparer() {
+			
+			public int hashCode(Object element) {
+				return element.hashCode();
+			}
+			
+			public boolean equals(Object a, Object b) {
+				return a == b;
+			}
+			
+		});
 
 		DecoratingLabelProvider dlp = new DecoratingLabelProvider(new SchemaViewLabelProvider(), new SchemaViewLabelDecorator());
-		bisTreeViewer.setLabelProvider(dlp);
-		bisTreeViewer.setInput(collection);
-		bisTreeViewer.expandToLevel(3);
+		treeViewer.setLabelProvider(dlp);
+		treeViewer.setInput(collection);
+		treeViewer.expandToLevel(3);
 		
 		new Label(this, SWT.NONE).setText("Namespace");
 		
@@ -142,15 +155,8 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 		lSummary.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		lSummary.setText("No change.");
 		lSummary.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
-
-		if (schemaDefinition != null) {
-			QName qName = schemaDefinition.getQName();
-			tLocalName.setText(qName.getLocalPart());
-			String namespace = qName.getNamespaceURI();
-			tNamespace.setText(namespace == null || namespace.length() == 0 ? currentNamespace : qName.getNamespaceURI());			
-		}
 		
-		bisTreeViewer.addSelectionChangedListener(new ISelectionChangedListener() {		
+		treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {		
 			public void selectionChanged(SelectionChangedEvent event) {
 				TreePath[] path = ((ITreeSelection) event.getSelection()).getPaths();
 				
@@ -229,7 +235,25 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 			}
 		});
 		
+		XmlQName schemaDefinition = (XmlQName) cellEditor.getValue();
 		
+		if (schemaDefinition != null) {
+			QName qName = schemaDefinition.getQName();
+			
+			if (useType) {
+				XmlSchemaType type = collection.getTypeByQName(qName);
+				if (type != null) {
+					treeViewer.setSelection(new StructuredSelection(type), true);
+				}
+			}
+			
+			if (useRef) {
+				XmlSchemaElement element = collection.getElementByQName(qName);
+				if (element != null) {
+					treeViewer.setSelection(new StructuredSelection(element), true);
+				}
+			}
+		}
 	}
 
 	@Override
