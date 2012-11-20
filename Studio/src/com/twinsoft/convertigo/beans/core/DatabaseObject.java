@@ -1237,6 +1237,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	public DatabaseObject getOriginal() {
 		return original != null ? original : this;
 	}
+	
+	public boolean isOriginal() {
+		return original == null;
+	}
 
 	protected <E extends DatabaseObject> List<E> sort(List<E> list) {
 		return sort(list, true);
