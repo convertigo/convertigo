@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.eclipse.wizards.references;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 
 import org.eclipse.core.runtime.IPath;
@@ -166,40 +165,41 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 							message = null;
 						}
 					}
-					if (message == null) {
+				}
+			}
+			
+			if (message == null) {
+				try {
+					String localPath = "".equals(filePath) ? "":(new File(filePath)).getCanonicalPath();
+					String projectPath = (new File(Engine.PROJECTS_PATH +"/"+ getProjectName())).getCanonicalPath();
+					String workspacePath = (new File(Engine.USER_WORKSPACE_PATH)).getCanonicalPath();
+					
+					if (!localPath.equals("") && 
+						!localPath.startsWith(projectPath) && 
+						!localPath.startsWith(workspacePath)) {
+							message = "Please select a local file";
+					}
+					else {
+						if (localPath.startsWith(projectPath))
+							localPath = "./" + localPath.substring(projectPath.length());
+						else if (localPath.startsWith(workspacePath))
+							localPath = "." + localPath.substring(workspacePath.length());
+						localPath = localPath.replaceAll("\\\\", "/");
+						
 						try {
-							String path = file.getCanonicalPath();
-							if (!path.startsWith(Engine.PROJECTS_PATH +"/"+ getProjectName())) {
-								if (!path.startsWith(Engine.USER_WORKSPACE_PATH)) {
-									message = "Please select a local file";
-								}
-							}
-						} catch (IOException e) {
+							setDboFilePath(localPath);
+							setDboUrlPath(urlPath);
+						} catch (NullPointerException e) {
+							message = "New Bean has not been instantiated";
 						}
 					}
+				} catch (Exception e) {
+					message = e.getMessage();
 				}
 			}
 		}
 		else {
 			message = "Please enter an url OR choose a local file";
-		}
-		
-		if (message == null) {
-			try {
-				String localPath = "".equals(filePath) ? "":(new File(filePath)).getCanonicalPath();
-				String projectPath = (new File(Engine.PROJECTS_PATH +"/"+ getProjectName())).getCanonicalPath();
-				String workspacePath = (new File(Engine.USER_WORKSPACE_PATH)).getCanonicalPath();
-				if (localPath.startsWith(projectPath))
-					localPath = "./" + localPath.substring(projectPath.length());
-				else if (localPath.startsWith(workspacePath))
-					localPath = "." + localPath.substring(workspacePath.length());
-				setDboFilePath(localPath.replaceAll("\\\\", "/"));
-				setDboUrlPath(urlPath);
-			} catch (NullPointerException e) {
-				message = "New Bean has not been instantiated";
-			} catch (Exception e) {
-				message = e.getMessage();
-			}
 		}
 		
 		updateStatus(message);
