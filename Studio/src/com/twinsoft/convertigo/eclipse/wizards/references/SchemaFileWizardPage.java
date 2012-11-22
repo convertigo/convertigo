@@ -181,7 +181,7 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 			}
 		}
 		else {
-			message = "Please enter an URL or choose a local file";
+			message = "Please enter an url OR choose a local file";
 		}
 		
 		if (message == null) {
