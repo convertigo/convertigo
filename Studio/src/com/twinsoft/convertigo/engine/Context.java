@@ -496,16 +496,17 @@ public class Context extends AbstractContext {
 	}
 	
 	public void loadSequence() throws EngineException {
-		requestedObject = project.getSequenceByName(sequenceName);
+		Sequence sequence = project.getSequenceByName(sequenceName);
 		
 		// clone sequence in studio, needed by #3188 - Order parallel step response
-		if (requestedObject.isOriginal()) {
+		if (sequence.isOriginal()) {
 			try {
-				requestedObject = requestedObject.clone();
+				sequence = sequence.cloneKeepParent();
 			} catch (CloneNotSupportedException e) {
 				Engine.logContext.error("Clone of sequence failed ! Use the original.", e);
 			}
 		}
+		requestedObject = sequence;
 		
 		Engine.logContext.debug("Sequence loaded: " + requestedObject.getName());
 		
