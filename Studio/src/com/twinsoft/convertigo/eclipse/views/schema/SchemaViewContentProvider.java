@@ -38,9 +38,7 @@ import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaExternal;
 import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaObject;
-import org.apache.ws.commons.schema.XmlSchemaSimpleType;
 import org.apache.ws.commons.schema.XmlSchemaType;
-import org.apache.ws.commons.schema.constants.Constants;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -136,16 +134,18 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 						return SchemaMeta.isDynamic(o1) ? -1 : SchemaMeta.isDynamic(o2) ? 1 : 0;
 					}
 				});
-				res = new XmlSchema[schemas.length - 1];
-				int i = 0;
-				for (XmlSchema schema : schemas) {
-					if (!Constants.URI_2001_SCHEMA_XSD.equals(schema.getTargetNamespace())) {
-						res[i++] = schema;
-					}
-				}
+//				res = new XmlSchema[schemas.length - 1];
+//				int i = 0;
+//				for (XmlSchema schema : schemas) {
+//					if (!Constants.URI_2001_SCHEMA_XSD.equals(schema.getTargetNamespace())) {
+//						res[i++] = schema;
+//					}
+//				}
+				
+				res = schemas;
 			} else if (object instanceof XmlSchemaObject) {
 				final List<XmlSchemaObject> children = new LinkedList<XmlSchemaObject>();
-				XmlSchemaObject xso = (XmlSchemaObject) object;
+				final XmlSchemaObject xso = (XmlSchemaObject) object;
 				try {
 	
 					new XmlSchemaWalker.XmlSchemaWalkerWatcher() {
@@ -153,9 +153,8 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 						protected boolean on(XmlSchemaObject subObject) {
 							if (object == subObject) {
 								return true;
-							} else if (subObject != null
-									&& !(subObject instanceof XmlSchemaSimpleType)) {
-								children.add(subObject);
+							} else if (subObject != null) {
+								filter(xso, children, subObject);
 							}
 							return false;
 						}
@@ -240,5 +239,9 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 			ret = getChildren(object).length > 0;
 		}
 		return ret;
+	}
+	
+	protected void filter(XmlSchemaObject xso, List<XmlSchemaObject> children, XmlSchemaObject subObject) {
+		children.add(subObject);
 	}
 }

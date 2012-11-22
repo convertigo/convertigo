@@ -32,6 +32,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
+import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
@@ -39,7 +40,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
-public class XMLAttributeStep extends Step implements IStepSourceContainer, ISchemaAttributeGenerator {
+public class XMLAttributeStep extends Step implements IStepSourceContainer, ISchemaAttributeGenerator, ISimpleTypeAffectation {
 
 	private static final long serialVersionUID = 61436680158858545L;
 

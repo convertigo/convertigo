@@ -22,11 +22,16 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
+import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.XmlSchemaSimpleType;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.IElementComparer;
@@ -53,8 +58,6 @@ import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
-import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewContentProvider;
 import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewLabelDecorator;
@@ -69,19 +72,24 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 	private Text tNamespace;
 	private Text tLocalName;
 	private Label lSummary;
-	private boolean useType = true;
-	private boolean useRef = false;
+	private boolean useType;
+	private boolean useComplexType;
+	private boolean useSimpleType;
+	private boolean useRef;
 	
 	public XmlQNameEditorComposite(final Composite parent, int style, AbstractDialogCellEditor cellEditor) {
 		super(parent, style, cellEditor);
 		
 		try {
+			String propertyName = "" + cellEditor.propertyDescriptor.getId();
 			DatabaseObject dbo = cellEditor.databaseObjectTreeObject.getObject();
 			Project project = dbo.getProject();
 			collection = Engine.theApp.schemaManager.getSchemasForProject(project.getName());
 			currentNamespace = project.getTargetNamespace();
-			useType = dbo instanceof IComplexTypeAffectation;
-			useRef = dbo instanceof IElementRefAffectation;
+			useComplexType = "xmlComplexTypeAffectation".equals(propertyName);
+			useSimpleType = "xmlSimpleTypeAffectation".equals(propertyName);
+			useType = useComplexType || useSimpleType;
+			useRef = "xmlElementRefAffectation".equals(propertyName);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -95,6 +103,19 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 		final TreeViewer treeViewer = new TreeViewer(this);
 		treeViewer.getTree().setLayoutData(new GridData(GridData.FILL_BOTH));
 		treeViewer.setContentProvider(new SchemaViewContentProvider() {
+			
+			@Override
+			protected void filter(XmlSchemaObject xso, List<XmlSchemaObject> children, XmlSchemaObject subObject) {
+				if (xso instanceof XmlSchema) {
+					if ((useSimpleType && subObject instanceof XmlSchemaSimpleType) ||
+						useComplexType && subObject instanceof XmlSchemaComplexType ||
+						useRef && subObject instanceof XmlSchemaElement) {
+							super.filter(xso, children, subObject);
+					}
+				} else {
+					super.filter(xso, children, subObject);
+				}
+			}
 
 			@Override
 			public Object[] getChildren(Object object) {
@@ -144,10 +165,13 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 		
 		tLocalName = new Text(this, SWT.NONE);
 		tLocalName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		if (useSimpleType) {
+			tLocalName.setEnabled(false);
+		}
 		
 		final Button bNone = new Button(this, SWT.NONE);
 		bNone.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		bNone.setText("No "+ (useType ? "type":(useRef ? "element":"object")));
+		bNone.setText("No "+ (useComplexType ? "type":(useRef ? "element":"object")));
 		
 		new Label(this, SWT.NONE).setText("Summary");
 		
@@ -172,7 +196,7 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 				}
 				
 				if (object != null) {
-					String obText = (useType ? "type":(useRef ? "element":"object"));
+					String obText = (useType ? "type" : (useRef ? "element" : "object"));
 					tLocalName.setText(qName.getLocalPart());
 					tNamespace.setText(qName.getNamespaceURI());
 					updateLabel(obText, qName, object);
@@ -186,7 +210,7 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 			public void widgetSelected(SelectionEvent e) {
 				tNamespace.setText("");
 				tLocalName.setText("");
-				lSummary.setText("No "+(useType ? "type":(useRef ? "element":"object")) +" set.");
+				lSummary.setText("No "+(useType ? "type" : (useRef ? "element" : "object")) + " set.");
 				lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
 			}
 		});

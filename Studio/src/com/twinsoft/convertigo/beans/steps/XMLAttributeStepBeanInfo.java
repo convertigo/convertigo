@@ -72,6 +72,7 @@ public class XMLAttributeStepBeanInfo extends MySimpleBeanInfo {
             properties[4].setValue(BLACK_LIST_NAME, Boolean.FALSE);
 
 			getPropertyDescriptor("schemaDataType").setHidden(false);
+			getPropertyDescriptor("xmlSimpleTypeAffectation").setHidden(false);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

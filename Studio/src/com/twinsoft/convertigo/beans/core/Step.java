@@ -75,8 +75,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
     private boolean isEnable = true;
     private boolean output = false;
     private XmlQName xmlComplexTypeAffectation = new XmlQName();
-    
-    
+    private XmlQName xmlSimpleTypeAffectation = new XmlQName();
+
 	transient protected boolean xml = false;
     transient protected List<Sheet> vSheets = new LinkedList<Sheet>();
 	transient protected Hashtable<Long, String> executedSteps = null;
@@ -1073,5 +1073,17 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	public QName getComplexTypeAffectation() {
 		return getXmlComplexTypeAffectation().getQName();
+	}
+    
+	public XmlQName getXmlSimpleTypeAffectation() {
+		return xmlSimpleTypeAffectation;
+	}
+
+	public void setXmlSimpleTypeAffectation(XmlQName xmlSimpleTypeAffectation) {
+		this.xmlSimpleTypeAffectation = xmlSimpleTypeAffectation;
+	}
+	
+	public QName getSimpleTypeAffectation() {
+		return getXmlSimpleTypeAffectation().getQName();
 	}
 }

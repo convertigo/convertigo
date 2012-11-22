@@ -33,7 +33,7 @@ public class StepBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/Step");
 			
-			properties = new PropertyDescriptor[4];
+			properties = new PropertyDescriptor[5];
 			
             properties[0] = new PropertyDescriptor("isEnable", beanClass, "isEnable", "setEnable");
 			properties[0].setDisplayName(getExternalizedString("property.isEnabled.display_name"));
@@ -57,8 +57,15 @@ public class StepBeanInfo extends MySimpleBeanInfo {
 			properties[3].setDisplayName(getExternalizedString("property.xmlComplexTypeAffectation.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.xmlComplexTypeAffectation.short_description"));
 			properties[3].setExpert(true);
-			properties[3].setHidden(false);
+			properties[3].setHidden(true);
 			properties[3].setPropertyEditorClass(getEditorClass("XmlQNameEditor"));
+			
+            properties[4] = new PropertyDescriptor("xmlSimpleTypeAffectation", beanClass, "getXmlSimpleTypeAffectation", "setXmlSimpleTypeAffectation");
+			properties[4].setDisplayName(getExternalizedString("property.xmlSimpleTypeAffectation.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.xmlSimpleTypeAffectation.short_description"));
+			properties[4].setExpert(true);
+			properties[4].setHidden(true);
+			properties[4].setPropertyEditorClass(getEditorClass("XmlQNameEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

@@ -38,6 +38,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
+import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
@@ -46,7 +47,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
-public class AttributeStep extends Step implements ISchemaAttributeGenerator {
+public class AttributeStep extends Step implements ISchemaAttributeGenerator, ISimpleTypeAffectation {
 
 	private static final long serialVersionUID = 4426876799938289068L;
 
