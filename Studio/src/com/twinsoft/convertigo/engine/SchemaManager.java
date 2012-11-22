@@ -399,6 +399,9 @@ public class SchemaManager implements AbstractManager {
 									elt.setSchemaTypeName(qName);
 									particleChildren.add(elt);
 								}
+							} else {
+								// doesn't generate schema, just deep walk
+								super.walk(step);
 							}
 							
 							// restore lists for siblings
