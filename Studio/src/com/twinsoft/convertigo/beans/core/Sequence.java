@@ -169,6 +169,12 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
         return clonedObject;
     }
 	
+    public Sequence cloneKeepParent() throws CloneNotSupportedException {
+    	Sequence clonedObject = clone();
+    	clonedObject.parent = parent;
+        return clonedObject;
+    }
+	
 	public XMLVector<XMLVector<Long>> getOrderedSteps() {
 		return orderedSteps;
 	}
