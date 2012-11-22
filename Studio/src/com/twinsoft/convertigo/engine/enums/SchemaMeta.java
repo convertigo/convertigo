@@ -27,7 +27,8 @@ public enum SchemaMeta {
 	ownerSchema,
 	dboSchemaMap,
 	referencedDatabaseObjects,
-	dynamicType,
+	dynamic,
+	readOnly,
 	containerElement,
 	containerGroupBase;
 	
@@ -61,12 +62,21 @@ public enum SchemaMeta {
 	}
 
 	public static void setDynamic(XmlSchemaObject xso) {
-		xso.addMetaInfo(dynamicType, true);
+		xso.addMetaInfo(dynamic, true);
 	}
 	
 	public static boolean isDynamic(XmlSchemaObject xso) {
-		Boolean isDynamic = getMetaInfo(xso, dynamicType);
+		Boolean isDynamic = getMetaInfo(xso, dynamic);
 		return isDynamic != null ? isDynamic : false;
+	}
+	
+	public static void setReadOnly(XmlSchemaObject xso) {
+		xso.addMetaInfo(readOnly, true);
+	}
+	
+	public static boolean isReadOnly(XmlSchemaObject xso) {
+		Boolean isReadOnly = getMetaInfo(xso, readOnly);
+		return isReadOnly != null ? isReadOnly : !isDynamic(xso);
 	}
 	
 	public static Set<DatabaseObject> getReferencedDatabaseObjects(XmlSchemaObject xso) {

@@ -1732,85 +1732,87 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	}
 
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaElement eSequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		XmlSchemaElement eSequence = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
 		eSequence.setName(getName() + "Response");
-		
-		XmlSchemaComplexType tSequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+
+		XmlSchemaComplexType tSequence = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaComplexType(schema));
 		eSequence.setSchemaType(tSequence);
 
-		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaSequence());
 		tSequence.setParticle(sequence);
-		
-		XmlSchemaElement eDocument = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+
+		XmlSchemaElement eDocument = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
 		eDocument.setName("response");
-		
+
 		sequence.getItems().add(eDocument);
-		
+
 		SchemaMeta.setContainerXmlSchemaElement(eSequence, eDocument);
-		
-		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+
+		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaComplexType(schema));
+		cType.setName(getName() + "ResponseData");
 		XmlSchemaObjectCollection attributes = cType.getAttributes();
+
 		for (DOC_ATTR attr : DOC_ATTR.values()) {
-			XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+			XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaAttribute());
 			attribute.setName(attr.name());
 			attribute.setSchemaTypeName(Constants.XSD_STRING);
 			attribute.setUse(XmlSchemaUtils.attributeUseRequired);
 			attributes.add(attribute);
 		}
-		eDocument.setSchemaType(cType);
-		
-		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		XmlSchemaUtils.add(schema, cType);
+		eDocument.setSchemaTypeName(cType.getQName());
+
+		cType = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaComplexType(schema));
 		cType.setName(getName() + "ResponseType");
 
-		schema.addType(cType);
-		schema.getItems().add(cType);
-		
-		sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+		XmlSchemaUtils.add(schema, cType);
+
+		sequence = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaSequence());
 		cType.setParticle(sequence);
-		
-		eDocument = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+
+		eDocument = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
 		sequence.getItems().add(eDocument);
-		
+
 		eDocument.setName("document");
-		eDocument.setSchemaTypeName(new QName(schema.getTargetNamespace(), getName() + "ResponseData"));
-		
+		eDocument.setSchemaTypeName(new QName(schema.getTargetNamespace(), getComplexTypeAffectation().getLocalPart()));
+
 		// declare input types : xyzRequestData and the xyz xsd:element		
-		cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		cType = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaComplexType(schema));
 		cType.setName(getName() + "RequestData");
-		
-		schema.addType(cType);
-		schema.getItems().add(cType);
-		
-		eDocument = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+
+		XmlSchemaUtils.add(schema, cType);
+
+		eDocument = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
 		eDocument.setName(getName());
 		eDocument.setSchemaTypeName(cType.getQName());
-		
-		schema.getItems().add(eDocument);
-		
+
+		XmlSchemaUtils.add(schema, eDocument);
+
 		List<RequestableVariable> variables = getAllVariables();
-		
+
 		if (variables.size() > 0) {
-			sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+			sequence = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaSequence());
 			cType.setParticle(sequence);
+			
 			for (RequestableVariable variable : variables) {
-				XmlSchemaElement element = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+				XmlSchemaElement element = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
 				sequence.getItems().add(element);
 				element.setName(variable.getName());
 				String description = variable.getDescription();
 				if (description != null && description.length() > 0) {
-					XmlSchemaAnnotation annotation = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAnnotation());
+					XmlSchemaAnnotation annotation = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaAnnotation());
 					element.setAnnotation(annotation);
-					XmlSchemaAppInfo appInfo = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAppInfo());
+					XmlSchemaAppInfo appInfo = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaAppInfo());
 					annotation.getItems().add(appInfo);
 					appInfo.setMarkup(XMLUtils.asNodeList(description));
 				}
 				if (variable.isMultiValued()) {
 					if (variable.isSoapArray()) {
-						cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+						cType = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaComplexType(schema));
 						element.setType(cType);
-						XmlSchemaSequence items = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+						XmlSchemaSequence items = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaSequence());
 						cType.setParticle(items);
-						element = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+						element = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
 						element.setName("item");
 						items.getItems().add(element);
 					}

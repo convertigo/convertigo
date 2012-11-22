@@ -175,13 +175,7 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 					String obText = (useType ? "type":(useRef ? "element":"object"));
 					tLocalName.setText(qName.getLocalPart());
 					tNamespace.setText(qName.getNamespaceURI());
-					if (SchemaMeta.isDynamic(object)) {
-						lSummary.setText("Use the dynamic "+obText+" : \n" + qName.toString());
-						lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
-					} else {
-						lSummary.setText("Use the static "+obText+" : \n" + qName.toString());
-						lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GRAY));
-					}
+					updateLabel(obText, qName, object);
 					XmlQNameEditorComposite.this.layout(true);
 				}
 			}
@@ -223,13 +217,7 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 						lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_MAGENTA));
 						XmlQNameEditorComposite.this.layout(true);
 					} else {
-						if (SchemaMeta.isDynamic(object)) {
-							lSummary.setText("Use the dynamic "+obText+" : \n" + qName.toString());
-							lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
-						} else {
-							lSummary.setText("Use the static "+obText+" : \n" + qName.toString());
-							lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GRAY));
-						}
+						updateLabel(obText, qName, object);
 					}
 				}
 			}
@@ -264,6 +252,21 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 			return new XmlQName();
 		} else {
 			return new XmlQName(new QName(namespace, localName));
+		}
+	}
+	
+	private void updateLabel(String obText, QName qName, XmlSchemaObject object) {
+		if (SchemaMeta.isDynamic(object)) {
+			if (SchemaMeta.isReadOnly(object)) {
+				lSummary.setText("Use the dynamic read-only "+obText+" : \n" + qName.toString());
+				lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_BLUE));
+			} else {
+				lSummary.setText("Use the dynamic "+obText+" : \n" + qName.toString());
+				lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+			}
+		} else {
+			lSummary.setText("Use the static "+obText+" : \n" + qName.toString());
+			lSummary.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GRAY));
 		}
 	}
 }

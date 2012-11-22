@@ -164,8 +164,11 @@ public class SchemaViewLabelProvider implements ILabelProvider, IColorProvider {
 
 	public Color getForeground(Object element) {
 		if (element instanceof XmlSchemaObject) {
+			XmlSchemaObject xso = (XmlSchemaObject) element;
 			return Display.getCurrent().getSystemColor(
-					SchemaMeta.isDynamic((XmlSchemaObject) element) ? SWT.COLOR_DARK_GREEN : SWT.COLOR_DARK_GRAY
+					SchemaMeta.isDynamic(xso) ?
+							(SchemaMeta.isReadOnly(xso) ? SWT.COLOR_DARK_BLUE : SWT.COLOR_DARK_GREEN)
+							: SWT.COLOR_DARK_GRAY
 			);
 		}
 		return null;

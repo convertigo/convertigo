@@ -21,13 +21,16 @@ import javax.xml.validation.Validator;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaAttributeGroup;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
 import org.apache.ws.commons.schema.XmlSchemaSimpleType;
+import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.XmlSchemaUse;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
@@ -201,6 +204,11 @@ public class XmlSchemaUtils {
 		return xso;
 	}
 	
+	public static <E extends XmlSchemaObject> E makeDynamicReadOnly(DatabaseObject databaseObject, E xso) {
+		SchemaMeta.setReadOnly(xso);
+		return makeDynamic(databaseObject, xso);
+	}
+	
 	public static Document getDomInstance(XmlSchemaObject object) {
 		return getDomInstance(object, null);
 	}
@@ -350,5 +358,59 @@ public class XmlSchemaUtils {
 		String tns1 = schema1.getTargetNamespace();
 		String tns2 = schema2.getTargetNamespace();
 		return (tns1 != null && tns2 != null && tns1.equals(tns2));
+	}
+
+	public static void add(XmlSchema schema, XmlSchemaObject object) {
+		if (object instanceof XmlSchemaElement) {
+			add(schema, (XmlSchemaElement) object);
+		} else if (object instanceof XmlSchemaType) {
+			add(schema, (XmlSchemaType) object);
+		} else if (object instanceof XmlSchemaGroup) {
+			add(schema, (XmlSchemaGroup) object);
+		} else if (object instanceof XmlSchemaAttributeGroup) {
+			add(schema, (XmlSchemaAttributeGroup) object);
+		} else if (object instanceof XmlSchemaAttribute) {
+			add(schema, (XmlSchemaAttribute) object);
+		}
+		schema.getItems().add(object);
+	}
+	
+	public static void add(XmlSchema schema, XmlSchemaElement element) {
+		QName qName = element.getQName();
+		if (qName == null) {
+			qName = new QName(schema.getTargetNamespace(), element.getName());
+		}
+		if (schema.getElementByName(qName) == null) {
+			schema.getItems().add(element);
+			schema.getElements().add(qName, element);
+		}
+	}
+	
+	public static void add(XmlSchema schema, XmlSchemaType type) {
+		if (schema.getTypeByName(type.getQName()) == null) {
+			schema.getItems().add(type);
+			schema.addType(type);
+		}
+	}
+	
+	public static void add(XmlSchema schema, XmlSchemaGroup group) {
+		if (schema.getGroups().getItem(group.getName()) == null) {
+			schema.getItems().add(group);
+			schema.getGroups().add(group.getName(), group);
+		}
+	}
+	
+	public static void add(XmlSchema schema, XmlSchemaAttributeGroup attributeGroup) {
+		if (schema.getAttributeGroups().getItem(attributeGroup.getName()) == null) {
+			schema.getAttributeGroups().add(attributeGroup.getName(), attributeGroup);
+			schema.getItems().add(attributeGroup);
+		}
+	}
+	
+	public static void add(XmlSchema schema, XmlSchemaAttribute attribute) {
+		if (schema.getAttributes().getItem(attribute.getQName()) == null) {
+			schema.getAttributes().add(attribute.getQName(), attribute);
+			schema.getItems().add(attribute);
+		}
 	}
 }
