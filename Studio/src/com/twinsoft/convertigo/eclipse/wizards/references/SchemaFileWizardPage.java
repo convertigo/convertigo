@@ -187,10 +187,12 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 		if (message == null) {
 			try {
 				String localPath = "".equals(filePath) ? "":(new File(filePath)).getCanonicalPath();
-				if (localPath.startsWith(Engine.PROJECTS_PATH +"/"+ getProjectName()))
-					localPath = "./" + localPath.substring((Engine.PROJECTS_PATH +"/"+ getProjectName()).length());
-				else if (localPath.startsWith(Engine.USER_WORKSPACE_PATH))
-					localPath = "." + localPath.substring(Engine.USER_WORKSPACE_PATH.length());
+				String projectPath = (new File(Engine.PROJECTS_PATH +"/"+ getProjectName())).getCanonicalPath();
+				String workspacePath = (new File(Engine.USER_WORKSPACE_PATH)).getCanonicalPath();
+				if (localPath.startsWith(projectPath))
+					localPath = "./" + localPath.substring(projectPath.length());
+				else if (localPath.startsWith(workspacePath))
+					localPath = "." + localPath.substring(workspacePath.length());
 				setDboFilePath(localPath.replaceAll("\\\\", "/"));
 				setDboUrlPath(urlPath);
 			} catch (NullPointerException e) {
