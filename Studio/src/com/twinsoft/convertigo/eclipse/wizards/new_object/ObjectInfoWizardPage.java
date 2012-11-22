@@ -48,6 +48,8 @@ import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
+import com.twinsoft.convertigo.beans.references.WsdlSchemaReference;
+import com.twinsoft.convertigo.beans.references.XsdSchemaReference;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement;
@@ -232,11 +234,17 @@ public class ObjectInfoWizardPage extends WizardPage {
 			if (dbo instanceof XMLTable) {
 				return getWizard().getPage("XMLTableWizardPage");
 			}
-			if (dbo instanceof JavelinConnector) {
+			else if (dbo instanceof JavelinConnector) {
 				return getWizard().getPage("EmulatorTechnologyWizardPage");
 			}
-			if (dbo instanceof ProjectSchemaReference) {
+			else if (dbo instanceof ProjectSchemaReference) {
 				return getWizard().getPage("ProjectSchemaWizardPage");
+			}
+			else if (dbo instanceof XsdSchemaReference) {
+				return getWizard().getPage("XsdSchemaFileWizardPage");
+			}
+			else if (dbo instanceof WsdlSchemaReference) {
+				return getWizard().getPage("WsdlSchemaFileWizardPage");
 			}
 		}
 		catch (NullPointerException e) {

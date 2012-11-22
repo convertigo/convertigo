@@ -83,6 +83,8 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.EmulatorTechnologyWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.ServiceCodeWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.ProjectSchemaWizardPage;
+import com.twinsoft.convertigo.eclipse.wizards.references.WsdlSchemaFileWizardPage;
+import com.twinsoft.convertigo.eclipse.wizards.references.XsdSchemaFileWizardPage;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -218,6 +220,13 @@ public class NewObjectWizard extends Wizard {
 		if (beanClass.equals(Reference.class)) {
 			ProjectSchemaWizardPage projectSchemaWizardPage = new ProjectSchemaWizardPage(parentObject);
 			this.addPage(projectSchemaWizardPage);
+			
+			XsdSchemaFileWizardPage xsdSchemaWizardPage = new XsdSchemaFileWizardPage(parentObject);
+			this.addPage(xsdSchemaWizardPage);
+			
+			WsdlSchemaFileWizardPage wsdlSchemaWizardPage = new WsdlSchemaFileWizardPage(parentObject);
+			this.addPage(wsdlSchemaWizardPage);
+			
 		}
 	}
 	

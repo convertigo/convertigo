@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.eclipse.wizards.references;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -135,4 +136,10 @@ public class ProjectSchemaWizardPage extends WizardPage {
 		setErrorMessage(message);
 		setPageComplete(message == null);
 	}
+
+	@Override
+	public IWizardPage getNextPage() {
+		return null;
+	}
+	
 }
