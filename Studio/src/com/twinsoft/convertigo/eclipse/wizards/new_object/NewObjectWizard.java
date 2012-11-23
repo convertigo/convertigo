@@ -26,9 +26,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.wizard.Wizard;
 import org.w3c.dom.Document;
 
@@ -58,6 +63,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass;
@@ -83,12 +89,14 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.EmulatorTechnologyWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.ServiceCodeWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.ProjectSchemaWizardPage;
+import com.twinsoft.convertigo.eclipse.wizards.references.WebServiceWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.WsdlSchemaFileWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.XsdSchemaFileWizardPage;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
+import com.twinsoft.convertigo.engine.util.WsReference;
 
 public class NewObjectWizard extends Wizard {
 	
@@ -113,6 +121,7 @@ public class NewObjectWizard extends Wizard {
 		this.parentObject = selectedDatabaseObject;
 		this.className = newClassName;
 		setWindowTitle("Create a new object");
+		setNeedsProgressMonitor(true);
 		setHelpAvailable(true);
 	}
 
@@ -227,6 +236,8 @@ public class NewObjectWizard extends Wizard {
 			WsdlSchemaFileWizardPage wsdlSchemaWizardPage = new WsdlSchemaFileWizardPage(parentObject);
 			this.addPage(wsdlSchemaWizardPage);
 			
+			WebServiceWizardPage webServiceWizardPage = new WebServiceWizardPage(parentObject);
+			this.addPage(webServiceWizardPage);
 		}
 	}
 	
@@ -243,18 +254,38 @@ public class NewObjectWizard extends Wizard {
 		return dbo;
 	}
 	
+	private Class<?> getCreatedBeanClass() {
+		if (objectExplorerPage != null) {
+			return objectExplorerPage.getCreatedBeanClass();
+		}
+		return null;
+	}
+
 	public boolean canFinish() {
 		return (getContainer().getCurrentPage().getNextPage() == null && getContainer().getCurrentPage().isPageComplete());
 	}
 
-	public boolean performFinish() {
+	private void doFinish(IProgressMonitor monitor) throws CoreException {
 		String dboName, name;
 		boolean bContinue = true;
 		int index = 0;
 
 		try {
+			int total = 0;
+			Class<?> c = getCreatedBeanClass();
+			if (c != null) {
+				total = 4;
+				if (c.equals(WebServiceReference.class)) {
+					total += ImportWsReference.getTotalTaskNumber();
+				}
+			}
+			monitor.beginTask("Creating new object", total);
+			
 			newBean = getCreatedBean();
             if (newBean != null) {
+    			monitor.setTaskName("Object created");
+    			monitor.worked(1);
+    			
             	dboName = newBean.getName();
 				if (!StringUtils.isNormalized(dboName))
 					throw new EngineException("Bean name is not normalized : \""+dboName+"\".");
@@ -282,6 +313,8 @@ public class NewObjectWizard extends Wizard {
 						}
 							
 						parentObject.add(newBean);
+		    			monitor.setTaskName("Object added");
+		    			monitor.worked(1);
 						
 						if (newBean instanceof HTTPStatement) {
 							HTTPStatement httpStatement = (HTTPStatement)newBean;
@@ -371,7 +404,16 @@ public class NewObjectWizard extends Wizard {
 		    				testCase.importRequestableVariables((RequestableObject)testCase.getParent());
 						}
 						
+						if (newBean instanceof WebServiceReference) {
+							Project project = (Project)parentObject;
+							WebServiceReference webServiceReference = (WebServiceReference)newBean;
+							ImportWsReference wsr = new ImportWsReference(webServiceReference, monitor);
+							wsr.importInto(project);
+						}
+						
 						ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");
+		    			monitor.setTaskName("Object setted up");
+		    			monitor.worked(1);
 
 						bContinue = false;
 					}
@@ -392,7 +434,30 @@ public class NewObjectWizard extends Wizard {
             ConvertigoPlugin.logException(e, message);
             newBean = null;
 		}
-		
+	}
+	
+	public boolean performFinish() {
+		IRunnableWithProgress op = new IRunnableWithProgress() {
+			public void run(IProgressMonitor monitor) throws InvocationTargetException {
+				try {
+					doFinish(monitor);
+				} catch (CoreException e) {
+					throw new InvocationTargetException(e);
+				} finally {
+					monitor.done();
+				}
+			}
+		};
+
+		try {
+			getContainer().run(true, false, op);
+		} catch (InterruptedException e) {
+			return false;
+		} catch (InvocationTargetException e) {
+			Throwable realException = e.getTargetException();
+			MessageDialog.openError(getShell(), "Error", realException.getMessage());
+			return false;
+		}
 		return true;
 	}
 
@@ -501,4 +566,24 @@ public class NewObjectWizard extends Wizard {
 			externalBrowserConnector.setDefaultTransaction(transaction);
 		}
     }
+    
+	class ImportWsReference extends WsReference {
+		IProgressMonitor monitor;
+
+		public ImportWsReference(WebServiceReference reference, IProgressMonitor monitor) {
+			super(reference);
+			this.monitor = monitor;
+		}
+
+		@Override
+		public void setTaskLabel(String text) {
+			monitor.setTaskName(text);
+			monitor.worked(1);
+		}
+
+		@Override
+		protected HttpConnector importInto(Project project) throws Exception {
+			return super.importInto(project);
+		}
+	}
 }

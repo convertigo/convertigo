@@ -81,29 +81,31 @@ import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSDException;
 
 public class WsReference {
-	private String wsdlURL;
+	private WebServiceReference reference = null;
 	
 	public WsReference(String wsdlURL) {
-		this.wsdlURL = wsdlURL;
+	   	reference = new WebServiceReference();
+	   	reference.setUrlpath(wsdlURL);
 	}
 
+	public WsReference(WebServiceReference reference) {
+		this.reference = reference;
+	}
+
+	private WebServiceReference getReference() {
+		return reference;
+	}
+	
 	protected HttpConnector importInto(Project project) throws Exception {
+		WebServiceReference webServiceReference = null;
 		HttpConnector httpConnector = null;
-		try {
-			if (project != null) {
-				setTaskLabel("Importing from \""+wsdlURL+"\"...");
-				httpConnector = importReference(wsdlURL, project);
-			}
-		}
-		catch (Exception e) {
-			if (httpConnector != null) {
-				try {
-					project.remove(httpConnector);
-					httpConnector = null;
-				} catch (EngineException e1) {
-				}
-			}
-			throw new Exception(e);
+		if (project != null) {
+			webServiceReference = getReference();
+			if (webServiceReference.getParent() == null)
+   		   		project.add(webServiceReference);
+			
+			httpConnector = importWebService(webServiceReference);
+   			project.add(httpConnector);
 		}
 		return httpConnector;
 	}
@@ -112,8 +114,11 @@ public class WsReference {
 		
 	}
 	
-	private Map<String, String> updateSchema(String wsdlUrl, Project project, Definition definition) throws WSDLException, XSDException {
-		String projectName = project.getName();
+	static public int getTotalTaskNumber() {
+		return 9;
+	}
+	
+	private Map<String, String> updateSchema(String wsdlUrl, String projectName, Definition definition) throws WSDLException, XSDException {
 		String projectDir = Engine.PROJECTS_PATH + "/"+ projectName;
 		
 		// Dump schemas to project directory
@@ -146,8 +151,12 @@ public class WsReference {
 		return nsmap;
 	}
 	
-	private HttpConnector importReference(String wsdlUrl, Project project) throws Exception
+	private HttpConnector importWebService(WebServiceReference webServiceReference) throws Exception
 	{
+		String projectName = webServiceReference.getParent().getName();
+		String wsdlUrl = webServiceReference.getUrlpath();
+		setTaskLabel("Importing from \""+wsdlUrl+"\"...");
+
 		// Configure SoapUI settings
 		boolean soapuiSettingsChanged = false;
 		Settings settings = SoapUI.getSettings();
@@ -229,11 +238,10 @@ public class WsReference {
 		
 		// Import WSDL using SoapUI
 		HttpConnector httpConnector = null;
-		String projectName = project.getName();
 		String projectDir = Engine.PROJECTS_PATH + "/"+ projectName;
 		
 	   	WsdlProject wsdlProject = new WsdlProject();
-	   	WsdlInterface[] wsdls = WsdlImporter.importWsdl( wsdlProject, wsdlUrl);
+	   	WsdlInterface[] wsdls = WsdlImporter.importWsdl(wsdlProject, wsdlUrl);
 	   	
 	   	boolean hasDefaultTransaction;
 	   	WsdlInterface iface;
@@ -241,25 +249,21 @@ public class WsReference {
 	   	for (int i=0; i<wsdls.length; i++) {
 		   	iface = wsdls[i];
 		   	if (iface != null) {
-			   	String wsdlPath = iface.getWsdlContext().export(projectDir+ "/wsdl");
 			   	
-			   	// Adds a WS reference to project
-			   	WebServiceReference reference = new WebServiceReference();
-			   	reference.setUrlpath(wsdlUrl);
-			   	reference.setFilepath(".//" + wsdlPath.substring(wsdlPath.indexOf("/wsdl")+1));
+			   	// Export WSDL file(s) to project directory and modify reference local file path
+			   	String wsdlPath = iface.getWsdlContext().export(projectDir+ "/wsdl");
+			   	webServiceReference.setFilepath(".//" + wsdlPath.substring(wsdlPath.indexOf("/wsdl")+1));
 			   	
 			   	Definition definition = iface.getWsdlContext().getDefinition();
-			   	Map<String, String> nsmap = updateSchema(wsdlUrl, project, definition);
+			   	Map<String, String> nsmap = updateSchema(wsdlUrl, projectName, definition);
 		   		
 		   		httpConnector = createConnector(iface);
 		   		if (httpConnector != null) {
 		   		   	hasDefaultTransaction = false;
-		   		   	project.add(reference);
-		   			project.add(httpConnector);
 				   	for (int j=0; j<iface.getOperationCount(); j++) {
 				   		WsdlOperation wsdlOperation = (WsdlOperation)iface.getOperationAt(j);
 				   		Set<RequestableHttpVariable> variables = new HashSet<RequestableHttpVariable>();
-				   		XmlHttpTransaction xmlHttpTransaction = createTransaction(nsmap, iface, wsdlOperation, variables, project, httpConnector);
+				   		XmlHttpTransaction xmlHttpTransaction = createTransaction(nsmap, iface, wsdlOperation, variables, projectName, httpConnector);
 				   		if (xmlHttpTransaction != null) {
 				   			// Adds transaction
 				   			httpConnector.add(xmlHttpTransaction);
@@ -323,7 +327,7 @@ public class WsReference {
 	   	return httpConnector;
 	}
 	
-	private XmlHttpTransaction createTransaction(Map<String,String> nsmap, WsdlInterface iface, WsdlOperation operation, Set<RequestableHttpVariable> variables, Project project, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException, XSDException {
+	private XmlHttpTransaction createTransaction(Map<String,String> nsmap, WsdlInterface iface, WsdlOperation operation, Set<RequestableHttpVariable> variables, String projectName, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException, XSDException {
 		XmlHttpTransaction xmlHttpTransaction = null;
 	   	WsdlRequest request;
 	   	//String responseXml;
@@ -473,7 +477,6 @@ public class WsReference {
 			//System.out.println(XMLUtils.prettyPrintDOM(requestDoc));
 			
 			// Extract variables
-			String projectName = project.getName();
 			String projectDir = Engine.PROJECTS_PATH + "/"+ projectName;
 			String filePath = projectDir + "/" + projectName + ".temp.xsd";
 			if (!new File(filePath).exists())

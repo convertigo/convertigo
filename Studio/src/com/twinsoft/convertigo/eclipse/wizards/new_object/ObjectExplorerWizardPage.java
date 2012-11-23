@@ -173,6 +173,13 @@ public class ObjectExplorerWizardPage extends WizardPage {
 		return newBean;
 	}
 	
+	public Class<?> getCreatedBeanClass() {
+		if (newBean != null) {
+			return newBean.getClass();
+		}
+		return null;
+	}
+
 	private void setInfoBeanName() {
 		if (newBean != null) {
 			try {

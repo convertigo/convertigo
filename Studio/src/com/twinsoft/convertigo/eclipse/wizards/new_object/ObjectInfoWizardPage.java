@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
+import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.beans.references.WsdlSchemaReference;
 import com.twinsoft.convertigo.beans.references.XsdSchemaReference;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
@@ -245,6 +246,9 @@ public class ObjectInfoWizardPage extends WizardPage {
 			}
 			else if (dbo instanceof WsdlSchemaReference) {
 				return getWizard().getPage("WsdlSchemaFileWizardPage");
+			}
+			else if (dbo instanceof WebServiceReference) {
+				return getWizard().getPage("WebServiceWizardPage");
 			}
 		}
 		catch (NullPointerException e) {
