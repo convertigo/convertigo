@@ -791,8 +791,11 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 				Sequence sequence = null;
 				if (source instanceof Sequence) sequence = ((Sequence)source);
 				if (source instanceof Step) sequence = ((Step)source).getParentSequence();
-				if ((sequence != null) && (sequence.equals(this.sequence)))
+				if ((sequence != null)
+						&& (sequence.getOriginal() == this.sequence)
+						&& (sequence.getProject() == this.sequence.getProject())) {
 					isSourceFromSequence = true;
+				}
 			}
 			if (source instanceof org.w3c.dom.Document) {
 				org.w3c.dom.Document document = (org.w3c.dom.Document) event.getSource();
