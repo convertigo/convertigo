@@ -22,9 +22,16 @@
 
 package com.twinsoft.convertigo.beans.variables;
 
+import javax.xml.namespace.QName;
+
+import org.apache.ws.commons.schema.constants.Constants;
+import org.w3c.dom.Element;
+
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class RequestableVariable extends Variable implements ITagsProperty {
 
@@ -35,6 +42,7 @@ public class RequestableVariable extends Variable implements ITagsProperty {
 	private boolean personalizable = false;
 	private boolean cachedKey = true;
 	private boolean isFileUpload = false;
+    private XmlQName xmlTypeAffectation = new XmlQName();
 	
 	public RequestableVariable() {
         super();
@@ -44,6 +52,34 @@ public class RequestableVariable extends Variable implements ITagsProperty {
 	public RequestableVariable clone() throws CloneNotSupportedException {
 		RequestableVariable clonedObject = (RequestableVariable)super.clone();
 		return clonedObject;
+	}
+	
+	@Override
+	public void configure(Element element) throws Exception {
+		super.configure(element);
+		
+		try {
+			newPriority = new Long(element.getAttribute("newPriority")).longValue();
+			if (newPriority != priority) newPriority = priority;
+		}
+		catch(Exception e) {
+			throw new Exception("Missing \"newPriority\" attribute");
+		}
+		
+		/*TODO : REMOVE THIS PART BEFORE THE 6.3.0 RELEASE !!!!
+		 * R
+		 *  E
+		 *   M
+		 *    O
+		 *     V
+		 *      E
+		 * Minor migration for 6.3.0 dev project (already migrated)
+		 * The real migration is in Migration6_3_0.java 
+		 */
+		if (xmlTypeAffectation != null && xmlTypeAffectation.getQName().getLocalPart().length() == 0) {
+			QName qName = XmlSchemaUtils.getSchemaDataTypeName(getSchemaType());
+			this.xmlTypeAffectation = new XmlQName(qName);
+		}
 	}
 	
 	public boolean isWsdl() {
@@ -96,6 +132,22 @@ public class RequestableVariable extends Variable implements ITagsProperty {
 			return new String[]{"xsd:string"};
 		}
 		return new String[0];
+	}
+
+	public XmlQName getXmlTypeAffectation() {
+		return xmlTypeAffectation;
+	}
+
+	public void setXmlTypeAffectation(XmlQName xmlTypeAffectation) {
+		this.xmlTypeAffectation = xmlTypeAffectation;
+	}
+	
+	public QName getTypeAffectation() {
+		QName qName = getXmlTypeAffectation().getQName();
+		if (qName.getLocalPart().length() == 0) {
+			qName = Constants.XSD_STRING;
+		}
+		return qName;
 	}
 
 }

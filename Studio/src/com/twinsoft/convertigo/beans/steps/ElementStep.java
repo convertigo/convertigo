@@ -41,6 +41,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
+import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
@@ -48,9 +49,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
-public class ElementStep extends StepWithExpressions implements IComplexTypeAffectation {
+public class ElementStep extends StepWithExpressions implements IComplexTypeAffectation, ISimpleTypeAffectation {
 
 	private static final long serialVersionUID = 3276050659362959159L;
 	
@@ -236,7 +236,7 @@ public class ElementStep extends StepWithExpressions implements IComplexTypeAffe
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-		element.setSchemaTypeName(XmlSchemaUtils.getSchemaDataTypeName(getSchemaDataType()));
+		element.setSchemaTypeName(getSimpleTypeAffectation());
 		return element;
 	}
 }

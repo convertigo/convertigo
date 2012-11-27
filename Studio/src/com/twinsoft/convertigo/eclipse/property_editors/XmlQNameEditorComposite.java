@@ -86,8 +86,13 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 			Project project = dbo.getProject();
 			collection = Engine.theApp.schemaManager.getSchemasForProject(project.getName());
 			currentNamespace = project.getTargetNamespace();
-			useComplexType = "xmlComplexTypeAffectation".equals(propertyName);
-			useSimpleType = "xmlSimpleTypeAffectation".equals(propertyName);
+			if ("xmlTypeAffectation".equals(propertyName)) {
+				// useComplexType = true; // TODO: add complex type support for input variables 
+				useSimpleType = true;
+			} else {
+				useComplexType = "xmlComplexTypeAffectation".equals(propertyName);
+				useSimpleType = "xmlSimpleTypeAffectation".equals(propertyName);
+			}
 			useType = useComplexType || useSimpleType;
 			useRef = "xmlElementRefAffectation".equals(propertyName);
 		} catch (Exception e) {
@@ -165,9 +170,6 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 		
 		tLocalName = new Text(this, SWT.NONE);
 		tLocalName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		if (useSimpleType) {
-			tLocalName.setEnabled(false);
-		}
 		
 		final Button bNone = new Button(this, SWT.NONE);
 		bNone.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -246,6 +248,11 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 				}
 			}
 		});
+		
+		if (useSimpleType) {
+			tLocalName.setEnabled(false);
+			bNone.setEnabled(false);
+		}
 		
 		XmlQName schemaDefinition = (XmlQName) cellEditor.getValue();
 		

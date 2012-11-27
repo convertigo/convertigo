@@ -44,7 +44,6 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLElementStep extends StepWithExpressions implements IStepSourceContainer, IComplexTypeAffectation, ISimpleTypeAffectation {
 
@@ -204,7 +203,7 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-		element.setSchemaTypeName(XmlSchemaUtils.getSchemaDataTypeName(getSchemaDataType()));
+		element.setSchemaTypeName(getSimpleTypeAffectation());
 		return element;
 	}
 }

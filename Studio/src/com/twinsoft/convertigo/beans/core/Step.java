@@ -40,6 +40,7 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaDocumentation;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
@@ -75,7 +76,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
     private boolean isEnable = true;
     private boolean output = false;
     private XmlQName xmlComplexTypeAffectation = new XmlQName();
-    private XmlQName xmlSimpleTypeAffectation = new XmlQName();
+    private XmlQName xmlSimpleTypeAffectation = new XmlQName(Constants.XSD_STRING);
 
 	transient protected boolean xml = false;
     transient protected List<Sheet> vSheets = new LinkedList<Sheet>();
@@ -149,6 +150,22 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		}
 		catch(Exception e) {
 			throw new Exception("Missing \"newPriority\" attribute");
+		}
+		
+		/*TODO : REMOVE THIS PART BEFORE THE 6.3.0 RELEASE !!!!
+		 * R
+		 *  E
+		 *   M
+		 *    O
+		 *     V
+		 *      E
+		 * Minor migration for 6.3.0 dev project (already migrated)
+		 * The real migration is in Migration6_3_0.java 
+		 */
+		if (this instanceof ISimpleTypeAffectation
+				&& xmlSimpleTypeAffectation != null && xmlSimpleTypeAffectation.getQName().getLocalPart().length() == 0) {
+			QName qName = XmlSchemaUtils.getSchemaDataTypeName(getSchemaDataType());
+			this.xmlSimpleTypeAffectation = new XmlQName(qName);
 		}
 	}
 	
@@ -1084,6 +1101,10 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	public QName getSimpleTypeAffectation() {
-		return getXmlSimpleTypeAffectation().getQName();
+		QName qName = getXmlSimpleTypeAffectation().getQName();
+		if (qName.getLocalPart().length() == 0) {
+			qName = Constants.XSD_STRING;
+		}
+		return qName;
 	}
 }

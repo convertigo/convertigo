@@ -92,6 +92,8 @@ public class XMLGenerateDatesStepBeanInfo extends MySimpleBeanInfo {
             properties[8].setDisplayName(getExternalizedString("property.calendarCompatibility.display_name"));
             properties[8].setShortDescription(getExternalizedString("property.calendarCompatibility.short_description"));
             properties[8].setExpert(true);
+            
+            getPropertyDescriptor("xmlSimpleTypeAffectation").setHidden(false);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

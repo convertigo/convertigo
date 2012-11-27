@@ -44,6 +44,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepEvent;
@@ -53,7 +54,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.DateUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
-public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProperty {
+public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProperty, ISimpleTypeAffectation {
 
 	private static final long serialVersionUID = 6690947224439520417L;
 
@@ -483,7 +484,7 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 				sequence.getItems().add(elt);
 				
 			} else {
-				date.setSchemaTypeName(XmlSchemaUtils.getSchemaDataTypeName(getSchemaDataType()));
+				date.setSchemaTypeName(getSimpleTypeAffectation());
 			}
 		}
 		

@@ -51,6 +51,7 @@ public class XMLActionStepBeanInfo extends MySimpleBeanInfo {
 			properties[1].setValue(BLACK_LIST_NAME, Boolean.TRUE);
 			
 			getPropertyDescriptor("schemaDataType").setHidden(false);
+            getPropertyDescriptor("xmlSimpleTypeAffectation").setHidden(false);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

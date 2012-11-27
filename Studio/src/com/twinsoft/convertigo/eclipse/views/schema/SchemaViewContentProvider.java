@@ -38,7 +38,9 @@ import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaExternal;
 import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.XmlSchemaSimpleType;
 import org.apache.ws.commons.schema.XmlSchemaType;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -128,19 +130,18 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 				XmlSchemaCollection collection = (XmlSchemaCollection) object;
 				XmlSchema[] schemas = collection.getXmlSchemas();
 				
-				// sort the array to set our dynamic schema at the first position
+				// sort the array to set our dynamic schema at the first position, and XSD schema at the end
 				Arrays.sort(schemas, new Comparator<XmlSchema>() {
 					public int compare(XmlSchema o1, XmlSchema o2) {
-						return SchemaMeta.isDynamic(o1) ? -1 : SchemaMeta.isDynamic(o2) ? 1 : 0;
+						if (Constants.URI_2001_SCHEMA_XSD.equals(o1.getTargetNamespace())) {
+							return 1;
+						} else if (Constants.URI_2001_SCHEMA_XSD.equals(o2.getTargetNamespace())) {
+							return -1;
+						} else {
+							return SchemaMeta.isDynamic(o1) ? -1 : SchemaMeta.isDynamic(o2) ? 1 : 0;
+						}
 					}
 				});
-//				res = new XmlSchema[schemas.length - 1];
-//				int i = 0;
-//				for (XmlSchema schema : schemas) {
-//					if (!Constants.URI_2001_SCHEMA_XSD.equals(schema.getTargetNamespace())) {
-//						res[i++] = schema;
-//					}
-//				}
 				
 				res = schemas;
 			} else if (object instanceof XmlSchemaObject) {
@@ -242,6 +243,8 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 	}
 	
 	protected void filter(XmlSchemaObject xso, List<XmlSchemaObject> children, XmlSchemaObject subObject) {
-		children.add(subObject);
+		if (xso instanceof XmlSchema || !(subObject instanceof XmlSchemaSimpleType)) {
+			children.add(subObject);
+		}
 	}
 }

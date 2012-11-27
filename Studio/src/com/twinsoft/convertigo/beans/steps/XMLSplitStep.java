@@ -241,7 +241,7 @@ public class XMLSplitStep extends XMLElementStep {
 			if (i == count) {
 				elt.setMaxOccurs(Long.MAX_VALUE);
 			}
-			elt.setSchemaTypeName(XmlSchemaUtils.getSchemaDataTypeName(getSchemaDataType()));
+			elt.setSchemaTypeName(getSimpleTypeAffectation());
 			sequence.getItems().add(elt);
 		}
 		

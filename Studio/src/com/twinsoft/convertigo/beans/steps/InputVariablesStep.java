@@ -232,7 +232,7 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 		for (RequestableVariable variable : variables) {
 			XmlSchemaElement element = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
 			element.setName(variable.getName());
-			element.setSchemaTypeName(XmlSchemaUtils.getSchemaDataTypeName(variable.getSchemaType()));
+			element.setSchemaTypeName(variable.getTypeAffectation());
 			element.setMinOccurs(0);
 			if (variable.isMultiValued()) {
 				element.setMaxOccurs(Long.MAX_VALUE);

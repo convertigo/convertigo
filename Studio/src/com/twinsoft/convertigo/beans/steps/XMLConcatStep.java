@@ -30,7 +30,6 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLConcatStep extends XMLActionStep {
 
@@ -101,7 +100,7 @@ public class XMLConcatStep extends XMLActionStep {
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-		element.setSchemaTypeName(XmlSchemaUtils.getSchemaDataTypeName(getSchemaDataType()));
+		element.setSchemaTypeName(getSimpleTypeAffectation());
 		return element;
 	}
 }

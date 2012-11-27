@@ -45,6 +45,7 @@ import org.apache.ws.commons.schema.utils.NamespaceMap;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
@@ -52,17 +53,20 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaWalker;
 
 public class Migration6_3_0 {
@@ -186,10 +190,16 @@ public class Migration6_3_0 {
 						catch (Exception e) {
 							e.printStackTrace();
 						}
+						
+						if (transaction instanceof TransactionWithVariables) {
+							TransactionWithVariables transactionVars = (TransactionWithVariables) transaction;
+							handleRequestableVariable(transactionVars.getVariablesList());
+						}
 					}
 					
 					for (Sequence sequence: project.getSequencesList()) {
 						handleSteps(destDir, projectSchema,referenceMap, sequence.getSteps());
+						handleRequestableVariable(sequence.getVariablesList());
 					}
 				}
 				
@@ -248,6 +258,13 @@ public class Migration6_3_0 {
 				reference.setFilepath(".//xsd/"+location);
 				referenceMap.put(namespaceURI, reference);
 			}
+		}
+	}
+	
+	private static void handleRequestableVariable(List<RequestableVariable> variables) {
+		for (RequestableVariable variable : variables) {
+			QName qName = XmlSchemaUtils.getSchemaDataTypeName(variable.getSchemaType());
+			variable.setXmlTypeAffectation(new XmlQName(qName));
 		}
 	}
 	
@@ -320,6 +337,11 @@ public class Migration6_3_0 {
 						step.setXmlComplexTypeAffectation(new XmlQName(new QName(namespaceURI,typeLocalName)));
 					}
 				}
+			}
+			
+			if (step instanceof ISimpleTypeAffectation) {
+				QName qName = XmlSchemaUtils.getSchemaDataTypeName(step.getSchemaDataType());
+				step.setXmlSimpleTypeAffectation(new XmlQName(qName));
 			}
 			
 			if (step instanceof StepWithExpressions) {

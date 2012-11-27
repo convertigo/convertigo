@@ -1825,7 +1825,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 					element.setMinOccurs(0);
 					element.setMaxOccurs(Long.MAX_VALUE);
 				}
-				element.setSchemaTypeName(XmlSchemaUtils.getSchemaDataTypeName(variable.getSchemaType()));
+				element.setSchemaTypeName(variable.getTypeAffectation());
 			}
 		}
 		

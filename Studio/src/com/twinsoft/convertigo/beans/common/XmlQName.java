@@ -53,6 +53,6 @@ public class XmlQName implements XMLizable {
 
 	@Override
 	public String toString() {
-		return getQName().toString();
+		return localPart + "{" + namespace + "}";
 	}
 }

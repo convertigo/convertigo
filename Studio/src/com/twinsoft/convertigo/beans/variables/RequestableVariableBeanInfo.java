@@ -41,7 +41,7 @@ public class RequestableVariableBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[5];
+			properties = new PropertyDescriptor[6];
 			
             properties[0] = new PropertyDescriptor("wsdl", beanClass, "isWsdl", "setWsdl");
 			properties[0].setDisplayName(getExternalizedString("property.wsdl.display_name"));
@@ -69,6 +69,12 @@ public class RequestableVariableBeanInfo extends MySimpleBeanInfo {
 			properties[4].setDisplayName(getExternalizedString("property.isFileUpload.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.isFileUpload.short_description"));
 			properties[4].setExpert(true);
+			
+            properties[5] = new PropertyDescriptor("xmlTypeAffectation", beanClass, "getXmlTypeAffectation", "setXmlTypeAffectation");
+			properties[5].setDisplayName(getExternalizedString("property.xmlTypeAffectation.display_name"));
+			properties[5].setShortDescription(getExternalizedString("property.xmlTypeAffectation.short_description"));
+			properties[5].setExpert(true);
+			properties[5].setPropertyEditorClass(getEditorClass("XmlQNameEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

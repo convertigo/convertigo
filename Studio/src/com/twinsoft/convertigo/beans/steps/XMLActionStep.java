@@ -28,13 +28,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-abstract public class XMLActionStep extends Step {
+abstract public class XMLActionStep extends Step implements ISimpleTypeAffectation {
 	private static final long serialVersionUID = -3582328787633662760L;
 	
 	private XMLVector<XMLVector<Object>> sourcesDefinition = new XMLVector<XMLVector<Object>>();
