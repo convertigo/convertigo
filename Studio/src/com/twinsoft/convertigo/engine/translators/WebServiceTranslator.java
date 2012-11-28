@@ -259,6 +259,11 @@ public class WebServiceTranslator implements Translator {
 							Engine.logBeans.debug("   Adding test case = '" + parameterValue + "'");
 							transactionVariablesElement.appendChild(item);
 						}
+						// User reference
+						else if (Parameter.UserReference.getName().equals(parameterName)) {
+							context.userReference = parameterValue;
+							Engine.logContext.info("User reference = '" + parameterValue + "'");
+						}
 						else if (parameterName.startsWith("__")) {
 							Engine.logBeans.debug("Convertigo internal variable ignored! (not handled)");
 						}

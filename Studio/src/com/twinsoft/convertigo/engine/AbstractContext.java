@@ -87,6 +87,11 @@ public abstract class AbstractContext {
 	public String remoteHost;
 
 	/**
+	 * The user reference passed in input of the request
+	 */
+	public String userReference = null; 
+	
+	/**
 	 * Indicates whether the cache functionnality is enabled.
 	 */
 	public boolean isCacheEnabled = true; 

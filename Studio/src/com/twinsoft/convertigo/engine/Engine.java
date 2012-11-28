@@ -1113,6 +1113,11 @@ public class Engine {
 			context.documentSignatureSent = System.currentTimeMillis();
 			documentElement.setAttribute("signature", Long.toString(context.documentSignatureSent));
 
+			// Add the user reference if any
+			if (context.userReference != null) {
+				documentElement.setAttribute("userReference", context.userReference);
+			}
+
 			fireDocumentGenerated(new EngineEvent(outputDom));
 		} catch (EngineException e) {
 			String message = "[Engine.getDocument()] Context ID#" + context.contextID
