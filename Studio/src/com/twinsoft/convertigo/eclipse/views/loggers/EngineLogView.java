@@ -866,4 +866,3 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		logManager.setContinue(true);
 	}
 }
-
