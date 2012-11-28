@@ -2,6 +2,7 @@ package com.twinsoft.convertigo.engine.util;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -268,6 +269,16 @@ public class XmlSchemaUtils {
 	private static void validate(XmlSchemaCollection collection, Source source) throws SAXException {
 		try {
 			XmlSchema[] schemas = collection.getXmlSchemas();
+			
+			Arrays.sort(schemas, new Comparator<XmlSchema>() {
+
+				public int compare(XmlSchema o1, XmlSchema o2) {
+					return SchemaMeta.isDynamic(o1) ?
+						-1 : SchemaMeta.isDynamic(o2) ?
+						1 : 0;
+				}
+				
+			});
 			
 			Source[] sources = new Source[schemas.length];
 			for (int i = 0; i < schemas.length; i++) {
