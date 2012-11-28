@@ -225,14 +225,8 @@ public class EngineLogView extends ViewPart implements CompositeListener {
     }
     
     public static int getColOrderProperty(String key) {
-    	int ret;
-    	try{
-    		IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore(); 
-    		ret = preferenceStore.getInt(key);
-    	}catch(Exception e){
-    		return -1;
-    	}
-    	return ret;
+    	IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore(); 
+    	return preferenceStore.getInt(key);
     }
     
     public static void setColOrderProperty(String key, int value) {
@@ -241,7 +235,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
     }
 	
     public void init(){
-    	if(getColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER + "_" + 0)==-1){
+    	if(getColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER + "_" + 6)==0){
     		for (int i=0; i < tableViewer.getTable().getColumnCount(); i++) {
     			setColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER + "_" + i, i);
     			setColHideProperty(ENGINE_LOG_VIEW_COL_HIDE + "_" + i, false);
