@@ -195,6 +195,8 @@ public class Context extends AbstractContext {
 
         requestedObject = null;
 		lastDetectedObject = null;
+		
+		userReference = null;
 
 		// For compatibility with older javelin projects
 		lastDetectedScreenClass = null;

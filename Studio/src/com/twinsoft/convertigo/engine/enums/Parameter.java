@@ -51,6 +51,7 @@ public enum Parameter {
 	Testcase("__testcase"),
 	Transaction("__transaction"),
 	TransactionMotherSequenceContext("__motherContext"),
+	UserReference("__user_reference"),
 	Xslt("__xslt"),
 
 	SecurityToken("__security_token"),
