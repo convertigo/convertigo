@@ -571,11 +571,9 @@ $(document).ready(function() {
 				var layout = $(this).parent().find(".device_layout").attr("value");
 				var href = $(this).parent().find("a").attr("href");
 				
-				var genUrl = window.location.href;
-				genUrl = genUrl.substring(0, genUrl.indexOf("convertigo/"));
-				genUrl = genUrl + "convertigo/" + href;
+				var genUrl = window.location.href.replace(new RegExp("^(.*/).*$"), "$1") + href;
 				
-				$("#main .gen_url").html(genUrl);
+				$("#main .gen_url").text(genUrl).attr("href", genUrl);
 				$("#main .window_exe_generated_url").css("display", "block");
 				
 				// check for file upload
