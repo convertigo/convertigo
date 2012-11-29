@@ -204,9 +204,9 @@ function onLogDivTableScroll() {
 }
 
 function onLogOptionsRealTimeClick() {
-	bRealTime = $("#logOptionsRealTime").attr("checked");
+	bRealTime = this.checked;
 	$("#logOptionsDivDate").fadeToggle();
-	if (this.checked) {
+	if (bRealTime) {
 		$("#logOptionsRealTimeAutoScroll").removeAttr("disabled");
 		$("#logOptionsRealTimeAutoScroll").button("refresh");
 		$("#logOptionsUpdate").attr("disabled", "disabled");
