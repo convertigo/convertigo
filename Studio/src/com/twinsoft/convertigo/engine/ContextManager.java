@@ -353,9 +353,11 @@ public class ContextManager extends AbstractRunnableManager {
     
     public void remove(String contextID) {
 		Engine.logContextManager.info("Removing context '" + contextID + "'");
+		Context context;
         synchronized(contexts) {
-        	remove(get(contextID));
+        	context = contexts.remove(contextID);
         }
+        remove(context);
     }
     
     public void remove(Context context) {
@@ -371,6 +373,10 @@ public class ContextManager extends AbstractRunnableManager {
     	synchronized (context) {
 			String contextID = context.contextID;
 			Engine.logContextManager.info("Removing context " + contextID);
+			
+            synchronized(contexts) {
+            	contexts.remove(contextID);
+            }
 			
 			context.isDestroying = true;
 
@@ -453,12 +459,6 @@ public class ContextManager extends AbstractRunnableManager {
 					}
 				}
 			}
-
-			context = null;
-
-            synchronized(contexts) {
-            	contexts.remove(contextID);
-            }
 
             Engine.logContextManager.debug("Context " + contextID + " has been removed");
             Engine.logContext.debug("[" + contextID + "] Context removed, project: " + projectName);
