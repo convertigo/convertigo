@@ -80,8 +80,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 	private static final String ENGINE_LOG_VIEW_COL_HIDE = "EngineLogView.COL_HIDE";
 	private DateTime dateStart, dateEnd;
 	private Combo hourStart, minuteStart, secondeStart, hourEnd, minuteEnd, secondeEnd;
-	private Menu headerMenu;
-	private Menu tableMenu;
+	private Menu headerMenu, tableMenu;
 	private MenuItem startDateItem, endDateItem, addVariableItem;
 	private Text filterText;
 	private TableViewer tableViewer;
@@ -117,7 +116,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 	@Override
 	public void dispose() {
    		Engine.logConvertigo.removeAppender(appender);
-   		thread = null;
+   		super.dispose();
 	}
 
 	private Composite mainComposite;
@@ -236,7 +235,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
     }
 	
     public void init(){
-    	if(getColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER + "_" + 6)==0){
+    	if(getColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER + "_" + 6)==0 && getColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER + "_" + 1)==0){
     		for (int i=0; i < tableViewer.getTable().getColumnCount(); i++) {
     			setColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER + "_" + i, i);
     			setColHideProperty(ENGINE_LOG_VIEW_COL_HIDE + "_" + i, false);
@@ -257,7 +256,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
     }
 
 	private void createActions() {
-		hideLogsAction = new RetargetAction("Toggle","Hide Log View Parameters", IAction.AS_CHECK_BOX) {
+		hideLogsAction = new RetargetAction("Toggle","Hide Log Parameters", IAction.AS_CHECK_BOX) {
 			public void runWithEvent(Event event) {
 				gridDataCheck.exclude = hideLogsAction.isChecked();
 				gridDataDateTime.exclude = hideLogsAction.isChecked();
@@ -267,7 +266,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 			}
 		};
 		
-		hideLogsAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display.getDefault(), getClass().getResourceAsStream("images/clear_logs.png"))));
+		hideLogsAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display.getDefault(), getClass().getResourceAsStream("images/hide_logs_parameters.png"))));
 		hideLogsAction.setEnabled(true);
 		
 		restoreLogsAction = new Action("Restore Log Viewer") {
@@ -279,7 +278,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 				setLogFilter();
 			}
 		};
-		restoreLogsAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display.getDefault(), getClass().getResourceAsStream("images/clear_logs.png"))));
+		restoreLogsAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display.getDefault(), getClass().getResourceAsStream("images/restore_logs.png"))));
 		
 		clearLogsAction = new Action("Clear Log Viewer") {
 			public void run() {
