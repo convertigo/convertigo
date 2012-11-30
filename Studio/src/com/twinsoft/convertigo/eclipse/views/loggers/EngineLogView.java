@@ -193,6 +193,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 
 		applyOptions.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
+				firstLaunch = true;
 				updateDates();
 			}
 		});
@@ -917,6 +918,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 			ConvertigoPlugin.logException(e, "Unable to process received Engine logs", true);
 		}
 		logManager.setContinue(true);
-		firstLaunch = false;
+		if(!logManager.hasMoreResults())
+			firstLaunch = false;
 	}
 }
