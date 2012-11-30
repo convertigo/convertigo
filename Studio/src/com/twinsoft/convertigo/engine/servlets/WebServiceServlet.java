@@ -102,14 +102,9 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
-import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.convertigo.engine.util.XSDUtils;
-import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
-import com.twinsoft.convertigo.engine.util.XSDUtils.XmlGenerationDescription;
-import com.twinsoft.util.StringEx;
 
 public class WebServiceServlet extends GenericServlet {
 
@@ -215,10 +210,7 @@ public class WebServiceServlet extends GenericServlet {
 			Engine.logEngine.debug("(WebServiceServlet) Project name: " + projectName);
 
 			if (servletPath.endsWith(".wsl") || servletPath.endsWith(".ws") || servletPath.endsWith(".wsr")) {
-				if ("xwsdl".equalsIgnoreCase(request.getQueryString())) {
-					return generateWsdlForDocLiteral(servletURI, projectName);
-				}
-				return getWsdlFromFile(servletURI, projectName);
+				return generateWsdlForDocLiteral(servletURI, projectName);
 			}
 			throw new EngineException("Unhandled SOAP method (RPC or literal accepted)");
 		}
@@ -232,123 +224,6 @@ public class WebServiceServlet extends GenericServlet {
     	return encoded;
     }
     
-    public static String getWsdlFromFile(String servletURI, String projectName) throws EngineException {
-		try {
-			Project project;
-			String wsdlFilePath, xsdFilePath;
-			
-			// server mode
-			if (Engine.isEngineMode()) {
-				project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-				wsdlFilePath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".wsdl";
-				xsdFilePath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xsd";
-			}
-			// studio mode
-			else {
-				project = Engine.objectsProvider.getProject(projectName);
-				wsdlFilePath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.wsdl";
-				xsdFilePath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.xsd";
-			}
-			
-			Document dom = XMLUtils.loadXml(wsdlFilePath);
-			String path = servletURI.substring(0,servletURI.indexOf("/.w"));
-			
-			StringEx sx = new StringEx(XMLUtils.prettyPrintDOMWithEncoding(dom, "UTF-8"));
-			sx.replaceAll("schemaLocation=\""+projectName+".xsd", "schemaLocation=\""+path+"/"+projectName+".xsd");
-			sx.replaceAll("schemaLocation=\""+projectName+".temp.xsd", "schemaLocation=\""+path+"/"+projectName+".temp.xsd");
-			String wsdl = sx.toString();
-			wsdl = wsdl.replaceAll("soap:address location=\".*/\\.ws\"", "soap:address location=\""+path+"/\\.ws\"");
-			wsdl = wsdl.replaceAll("soap:address location=\".*/\\.wsl\"", "soap:address location=\""+path+"/\\.wsl\"");
-			
-			if (project.isSchemaInline()) {
-				try  {
-					XSD xsd = XSDUtils.getXSD(xsdFilePath);
-					XmlGenerationDescription xmlDescription = xsd.getXmlGenerationDescription();
-					xmlDescription.setOutputOccurences(false);
-					xmlDescription.setOutputSchemaTypeCData(false);
-					xmlDescription.setOutputOccursAttribute(false);
-					xmlDescription.setOutputElementWithNS(false);
-					
-					ProjectUtils.removeUselessObjects(xsd, project);
-					
-					if (xsd != null) {
-						int start = wsdl.indexOf("<xsd:schema ");
-						if (start != -1) {
-							int index = wsdl.indexOf(".xsd\"/>", start);
-							int end = wsdl.indexOf("</xsd:schema>", start);
-							if (end != -1) {
-								char c;
-								int i, j, k, z, x;
-								String prefix, schema, schemas = "", types = "";
-								
-								// stores inline types if exists (for RPC)
-								if (index != -1) {
-									types = wsdl.substring(index + ".xsd\"/>".length()+1, end);
-								}
-								
-								Document[] docs = xsd.getAllSchemas();
-								for (i=0; i<docs.length; i++) {
-									Document doc = docs[i];
-									if (doc != null) {
-										schema = XMLUtils.prettyPrintDOMWithEncoding(doc, "UTF-8");
-										try {
-											prefix = "";
-											x = schema.indexOf("=\"http://www.w3.org/2001/XMLSchema\"");
-											while ((x>1) && ((c = schema.charAt(x-1))!= ':')) {
-												prefix = c + prefix;
-												if (prefix.indexOf(' ')!=-1) {
-													prefix = "";
-													break;
-												}
-												x--;
-											}
-										}
-										catch (Exception e) {prefix= "";}
-										
-										prefix = prefix.equals("") ? prefix: prefix+":";
-										
-										if ((j=schema.indexOf("?>"))!=-1)
-											schema = schema.substring(j+2);
-
-										if ((j=schema.indexOf("<"+prefix+"schema "))!=-1)
-											schema = schema.substring(j);
-										
-										while ((j = schema.indexOf(" schemaLocation=\"")) != -1) {
-											k = schema.indexOf("\"", j+ " schemaLocation=\"".length()+1);
-											if (k != -1) {
-												schema = schema.substring(0,j) + schema.substring(k+1);
-											}
-										}
-										
-										String projectTargetNamespace = project.getTargetNamespace();
-										if (schema.indexOf("targetNamespace=\""+projectTargetNamespace+"\"")!=-1) {
-											z = schema.indexOf("<"+prefix+"complexType ");
-											if (z != -1) {
-												schema = schema.substring(0,z) + types + schema.substring(z);
-											}
-										}
-										schemas += schema;
-									}
-								}
-								//System.out.println(schemas);
-								
-								wsdl = wsdl.substring(0, start) + schemas + wsdl.substring(end+"</xsd:schema>".length()+1);
-							}
-						}
-					}
-				}
-				catch (Exception e) {
-					Engine.logEngine.error("Unable to include schema in WSDL for project \""+ projectName +"\"", e);
-				}
-			}
-			
-			return wsdl;
-			
-		} catch (Exception e) {
-			throw new EngineException("Unable to retrieve WSDL file for project \""+ projectName +"\"",e);
-		}
-    }
-
     public static String generateWsdlForDocLiteral(String servletURI, String projectName) throws EngineException {
     	Engine.logEngine.debug("(WebServiceServlet) Generating WSDL...");
     	

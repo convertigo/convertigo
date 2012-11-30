@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -62,8 +61,6 @@ import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.convertigo.engine.util.XSDUtils;
-import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
 import com.twinsoft.util.StringEx;
 
 public class SequenceStep extends RequestableStep implements ITagsProperty{
@@ -306,48 +303,49 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		
 	}
 	
-	protected Node generateXmlFromXsd() throws EngineException {
-		try {
-			Project p = getTargetProject(projectName);
-			List<Sequence> v = p.getSequencesList();
-			Sequence seq = (sequenceName.equals("") ? (v.isEmpty() ? null: (Sequence)v.get(0)):p.getSequenceByName(sequenceName));
-
-			String xsdURI = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.xsd";
-			if (!(new File(xsdURI).exists()))
-				xsdURI = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xsd";
-			
-			// Load xsd from file
-			XSD xsd = XSDUtils.getXSD(xsdURI);
-			
-			//Sequence DOM sample
-			Document xsdDom = xsd.generateTypeXmlStructure(projectName+"_ns", seq.getName()+"ResponseData");
-			
-			wsdlDom = getSequence().createDOM();
-			Element element = wsdlDom.createElement(getStepNodeName());
-			element.appendChild(wsdlDom.importNode(xsdDom.getDocumentElement(), true));
-			wsdlDom.getDocumentElement().appendChild(element);
-			
-    		if (wsdlDom != null) {
-                Engine.logBeans.debug("(SequenceStep) WSDL Dom successfully generated");
-                String encodingCharset = getParentSequence().getEncodingCharSet();
-    			if (Engine.logBeans.isTraceEnabled()) Engine.logBeans.trace(XMLUtils.prettyPrintDOMWithEncoding(wsdlDom, encodingCharset));
-                
-                wsdlDomDirty = false;
-                return wsdlDom.getDocumentElement();
-    		}
-    		else
-    			return null;
-    	}
-    	catch (Exception e) {
-    		wsdlDom = null;
-    		throw new EngineException("Unable to generate XML document from XSD project file",e);
-    	}
-	}
+//	protected Node generateXmlFromXsd() throws EngineException {
+//		try {
+//			Project p = getTargetProject(projectName);
+//			List<Sequence> v = p.getSequencesList();
+//			Sequence seq = (sequenceName.equals("") ? (v.isEmpty() ? null: (Sequence)v.get(0)):p.getSequenceByName(sequenceName));
+//
+//			String xsdURI = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.xsd";
+//			if (!(new File(xsdURI).exists()))
+//				xsdURI = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xsd";
+//			
+//			// Load xsd from file
+//			XSD xsd = XSDUtils.getXSD(xsdURI);
+//			
+//			//Sequence DOM sample
+//			Document xsdDom = xsd.generateTypeXmlStructure(projectName+"_ns", seq.getName()+"ResponseData");
+//			
+//			wsdlDom = getSequence().createDOM();
+//			Element element = wsdlDom.createElement(getStepNodeName());
+//			element.appendChild(wsdlDom.importNode(xsdDom.getDocumentElement(), true));
+//			wsdlDom.getDocumentElement().appendChild(element);
+//			
+//    		if (wsdlDom != null) {
+//                Engine.logBeans.debug("(SequenceStep) WSDL Dom successfully generated");
+//                String encodingCharset = getParentSequence().getEncodingCharSet();
+//    			if (Engine.logBeans.isTraceEnabled()) Engine.logBeans.trace(XMLUtils.prettyPrintDOMWithEncoding(wsdlDom, encodingCharset));
+//                
+//                wsdlDomDirty = false;
+//                return wsdlDom.getDocumentElement();
+//    		}
+//    		else
+//    			return null;
+//    	}
+//    	catch (Exception e) {
+//    		wsdlDom = null;
+//    		throw new EngineException("Unable to generate XML document from XSD project file",e);
+//    	}
+//	}
 
 	@Override
     protected Node generateWsdlDom() throws EngineException {
     	try {
-    		return generateXmlFromXsd();
+    		//return generateXmlFromXsd();
+    		return null;
     	}
     	catch (Exception e) {
     		wsdlDom = null;

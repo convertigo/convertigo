@@ -23,8 +23,6 @@
 package com.twinsoft.convertigo.beans.core;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,9 +33,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
-import com.twinsoft.convertigo.engine.util.WSDLUtils;
-import com.twinsoft.convertigo.engine.util.XSDUtils;
-import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
 
 /**
  * This class manages a Convertigo Project.
@@ -48,9 +43,9 @@ public class Project extends DatabaseObject implements ITagsProperty {
 
 	public static final int MAX_OBJECT_NAME_LENGTH = 64;
 	
-	public static final String WSDL_STYLE_ALL = WSDLUtils.WSDL_STYLE_ALL;
-	public static final String WSDL_STYLE_DOC = WSDLUtils.WSDL_STYLE_DOC;
-	public static final String WSDL_STYLE_RPC = WSDLUtils.WSDL_STYLE_RPC;
+	public static final String WSDL_STYLE_ALL = "ALL";
+	public static final String WSDL_STYLE_DOC = "DOC/LITERAL";
+	public static final String WSDL_STYLE_RPC = "RPC";
 	
 	public static final String XSD_FORM_QUALIFIED = "qualified";
 	public static final String XSD_FORM_UNQUALIFIED = "unqualified";
@@ -112,9 +107,6 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	
 	transient private String oldName;
 
-	transient private boolean xsdDirty = true;
-	transient private String[] xsdTypes = null;
-	
 	transient private long lastChange = 0L;
 	
 	public static String getProjectTargetNamespace(String projectName) {
@@ -428,47 +420,9 @@ public class Project extends DatabaseObject implements ITagsProperty {
 		clonedObject.vConnectors = new LinkedList<Connector>();
 		clonedObject.vSequences = new LinkedList<Sequence>();
 		clonedObject.vMobileDevices = new LinkedList<MobileDevice>();
-		clonedObject.xsdDirty = true;
-		clonedObject.xsdTypes = null;
 		return clonedObject;
 	}
 	
-	public void setXsdDirty(boolean dirty) {
-		xsdDirty = dirty;
-	}
-	
-	/*
-	 * Retrieve all types
-	 */
-	public String[] getXsdTypes() {
-		if ((xsdTypes == null) || xsdDirty) {
-			try {
-				String xsdUri = Engine.PROJECTS_PATH + "/" + getName() + "/" + getName() + ".temp.xsd";
-				XSD xsd = XSDUtils.getXSD(xsdUri);
-				xsdTypes = xsd.getTypes();
-				xsdDirty = false;
-			} catch (Exception e) {
-				Engine.logBeans.warn("Error while trying to get XSD types: "+ e.getMessage());
-				xsdTypes = new String[]{"xsd:string"};
-			}
-		}
-		return xsdTypes;
-	}
-	
-	/*
-	 * Retrieve types of specified namespace prefix
-	 */
-	public String[] getXsdTypes(String prefix) {
-		List<String> list = Arrays.asList(getXsdTypes());
-		List<String> nsList = new ArrayList<String>();
-		for (String s: list) {
-			if (s.startsWith(prefix+":")) {
-				nsList.add(s);
-			}
-		}
-		return nsList.toArray(new String[nsList.size()]);
-	}
-
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.beans.core.ITagsProperty#getTagsForProperty(java.lang.String)
 	 */

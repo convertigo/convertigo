@@ -1283,20 +1283,20 @@
                label="Mobile device"
                menubarPath="convertigo.menu.new/content">
          </action-->
-         <action
+         <!--action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectEditWSDLAction"
                enablesFor="1"
                id="convertigo.action.editProjectWSDL"
                label="Display wsdl file"
                menubarPath="edit">
-         </action>
-         <action
+         </action-->
+         <!--action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectEditXSDAction"
                enablesFor="1"
                id="convertigo.action.editProjectXSD"
                label="Display schema file"
                menubarPath="edit">
-         </action>
+         </action-->
          <action
                class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerRefreshAction"
                enablesFor="1"
@@ -1339,13 +1339,13 @@
                label="Import WS reference"
                menubarPath="webservice">
          </action>
-         <action
+         <!--action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectCleanXSDAction"
                enablesFor="1"
                id="convertigo.action.cleanProjectXSD"
                label="Update Web Service"
                menubarPath="schema">
-         </action>
+         </action-->
          <!--action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectValidateXSDAction"
                enablesFor="1"

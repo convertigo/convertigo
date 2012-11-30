@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.engine.migration;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -32,6 +34,9 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.ws.commons.schema.XmlSchema;
@@ -40,7 +45,10 @@ import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.constants.Constants;
+import org.apache.ws.commons.schema.resolver.DefaultURIResolver;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.common.XmlQName;
@@ -73,20 +81,50 @@ public class Migration6_3_0 {
 
 	public static void migrate(String projectName) {
 		try {
+			Map<String, Reference> referenceMap = new HashMap<String, Reference>();
+			XmlSchema projectSchema = null;
+
 			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+			
+			// Copy all xsd files to project's xsd directory
+			File destDir = new File(project.getXsdDirPath());
+			copyXsdOfProject(projectName, destDir);
+			
+			String projectWsdlFilePath = Engine.PROJECTS_PATH + "/" + projectName + "/"+ projectName + ".wsdl";
+			File wsdlFile = new File(projectWsdlFilePath);
+			
 			String projectXsdFilePath = Engine.PROJECTS_PATH + "/" + projectName + "/"+ projectName + ".xsd";
 			File xsdFile = new File(projectXsdFilePath);
+			
 			if (xsdFile.exists()) {
-				
-				// Copy all xsd files to xsd directory
-				File destDir = new File(project.getXsdDirPath());
-				copyXsdOfProject(projectName, destDir);
-				
-				Map<String, Reference> referenceMap = new HashMap<String, Reference>();
-				
 				// Load project schema from old XSD file
 				XmlSchemaCollection collection = new XmlSchemaCollection();
-				XmlSchema projectSchema = SchemaUtils.loadSchema(new File(projectXsdFilePath), collection);
+				collection.setSchemaResolver(new DefaultURIResolver() {
+					public InputSource resolveEntity(String targetNamespace, String schemaLocation, String baseUri) {
+						// Case of a c8o project location
+						if (schemaLocation.startsWith("../") && schemaLocation.endsWith(".xsd")) {
+							// Case c8o project is already migrated
+							if (!new File(Engine.PROJECTS_PATH + schemaLocation.substring(2)).exists()) {
+								String targetProjectName = schemaLocation.substring(3, schemaLocation.indexOf("/",3));
+								try {
+									Document doc = Engine.theApp.schemaManager.getSchemaForProject(targetProjectName).getSchemaDocument();
+									DOMSource source = new DOMSource(doc);
+									StringWriter writer = new StringWriter();
+									StreamResult result = new StreamResult(writer);
+									TransformerFactory.newInstance().newTransformer().transform(source, result);
+									StringReader reader = new StringReader(writer.toString());
+									return new InputSource(reader);
+								} catch (Exception e) {
+									Engine.logDatabaseObjectManager.warn("[Migration 6.3.0] Unable to find schema location \""+schemaLocation+"\"",e);
+									return null;
+								}
+							}
+						}
+						return super.resolveEntity(targetNamespace, schemaLocation, baseUri);
+					}
+					
+				});
+				projectSchema = SchemaUtils.loadSchema(new File(projectXsdFilePath), collection);
 				SchemaMeta.setCollection(projectSchema, collection);
 				
 				for (Connector connector: project.getConnectorsList()) {
@@ -188,7 +226,7 @@ public class Migration6_3_0 {
 							SchemaUtils.saveSchema(transactionXsdFilePath, transactionSchema);
 						}
 						catch (Exception e) {
-							e.printStackTrace();
+							Engine.logDatabaseObjectManager.error("[Migration 6.3.0] An error occured while migrating transaction \""+transaction.getName()+"\"",e);
 						}
 						
 						if (transaction instanceof TransactionWithVariables) {
@@ -196,24 +234,46 @@ public class Migration6_3_0 {
 							handleRequestableVariable(transactionVars.getVariablesList());
 						}
 					}
-					
-					for (Sequence sequence: project.getSequencesList()) {
-						handleSteps(destDir, projectSchema,referenceMap, sequence.getSteps());
-						handleRequestableVariable(sequence.getVariablesList());
+				}
+			}
+			else {// Should only happen for projects which version <= 4.6.0 
+				XmlSchemaCollection collection = new XmlSchemaCollection();
+				String prefix = project.getName()+"_ns";
+				projectSchema = SchemaUtils.createSchema(prefix, project.getNamespaceUri(), project.getSchemaElementForm(), project.getSchemaElementForm());
+				SchemaMeta.setCollection(projectSchema, collection);
+				
+				for (Connector connector: project.getConnectorsList()) {
+					for (Transaction transaction: connector.getTransactionsList()) {
+						if (transaction instanceof TransactionWithVariables) {
+							TransactionWithVariables transactionVars = (TransactionWithVariables) transaction;
+							handleRequestableVariable(transactionVars.getVariablesList());
+						}
 					}
 				}
-				
-				// Add all references to project
-				if (!referenceMap.isEmpty()) {
-					for (Reference reference: referenceMap.values())
-						project.add(reference);
-				}
-				
-				//TODO: delete XSD/WSDL files....
 			}
+			
+			for (Sequence sequence: project.getSequencesList()) {
+				handleSteps(projectSchema,referenceMap, sequence.getSteps());
+				handleRequestableVariable(sequence.getVariablesList());
+			}
+			
+			// Add all references to project
+			if (!referenceMap.isEmpty()) {
+				for (Reference reference: referenceMap.values())
+					project.add(reference);
+			}
+			
+			// Delete XSD file
+			if (xsdFile.exists())
+				xsdFile.delete();
+			
+			// Delete WSDL file
+			if (wsdlFile.exists())
+				wsdlFile.delete();
+			
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			Engine.logDatabaseObjectManager.error("[Migration 6.3.0] An error occured while migrating project \""+projectName+"\"",e);
 		}
 	}
 	
@@ -246,9 +306,7 @@ public class Migration6_3_0 {
 				String targetProjectName = location.substring(3, location.indexOf("/",3));
 				ProjectSchemaReference reference = new ProjectSchemaReference();
 				reference.setProjectName(targetProjectName);
-				reference.setName(targetProjectName + " schema");
-				//String wsdlUrl = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL) + "/projects/" +targetProjectName +"/.wsl?XWSDL";
-				//reference.setUrlpath(wsdlUrl);
+				reference.setName(targetProjectName + "_schema");
 				referenceMap.put(namespaceURI, reference);
 			}
 			// other reference
@@ -268,7 +326,7 @@ public class Migration6_3_0 {
 		}
 	}
 	
-	private static void handleSteps(File destDir, XmlSchema projectSchema, Map<String, Reference> referenceMap, List<Step> stepList) {
+	private static void handleSteps(XmlSchema projectSchema, Map<String, Reference> referenceMap, List<Step> stepList) {
 		for (Step step: stepList) {
 			if (step instanceof IStepSourceContainer) {
 				/** Case step's xpath has not been migrated when project has been deployed
@@ -297,6 +355,7 @@ public class Migration6_3_0 {
 			}
 			
 			String namespaceURI = null;
+			// Case of Requestable steps
 			if (targetProjectName != null) {
 				try {
 					namespaceURI = Project.CONVERTIGO_PROJECTS_NAMESPACEURI + targetProjectName;
@@ -318,11 +377,17 @@ public class Migration6_3_0 {
 					e.printStackTrace();
 				}
 			}
+			// Other steps
 			else {
 				String targetNamespace = projectSchema.getTargetNamespace();
 				String targetPrefix = projectSchema.getNamespaceContext().getPrefix(targetNamespace);
 				
-				String s = step.getSchemaType(targetPrefix);
+				String s = null;
+				try {
+					s = step.getSchemaType(targetPrefix);
+				} catch (Exception e) {
+					s = "xsd:string";
+				}
 				if ((s != null) && (!s.equals("")) && (!s.startsWith("xsd:"))) {
 					String prefix = s.split(":")[0];
 					typeLocalName = s.split(":")[1];
@@ -345,7 +410,7 @@ public class Migration6_3_0 {
 			}
 			
 			if (step instanceof StepWithExpressions) {
-				handleSteps(destDir, projectSchema,referenceMap, ((StepWithExpressions)step).getSteps());
+				handleSteps(projectSchema,referenceMap, ((StepWithExpressions)step).getSteps());
 			}
 		}
 	}

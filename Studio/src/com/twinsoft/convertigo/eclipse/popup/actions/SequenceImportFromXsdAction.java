@@ -22,6 +22,10 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.io.File;
+
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
@@ -40,8 +44,8 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeO
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.SequenceTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.util.XSDUtils;
-import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.SchemaUtils;
 
 public class SequenceImportFromXsdAction extends MyAbstractAction {
 
@@ -74,31 +78,39 @@ public class SequenceImportFromXsdAction extends MyAbstractAction {
             	if (filePath != null) {
             		filePath = filePath.replaceAll("\\\\", "/");
             		
-            		XSD xsd = XSDUtils.getXSD(filePath);
+            		//XSD xsd = XSDUtils.getXSD(filePath);
+            		XmlSchemaCollection collection = new XmlSchemaCollection();
+            		XmlSchema xmlSchema = SchemaUtils.loadSchema(new File(filePath), collection);
+            		SchemaMeta.setCollection(xmlSchema, collection);
             		
-            		SchemaObjectsDialog dlg = new SchemaObjectsDialog(shell, sequence, xsd);
+            		SchemaObjectsDialog dlg = new SchemaObjectsDialog(shell, sequence, xmlSchema);
 					if (dlg.open() == Window.OK) {
-						Step step = (Step)dlg.result;
-						if (step != null) {
-							if (databaseObject instanceof Sequence) {
-								sequence.addStep(step);
+						if (dlg.result instanceof Throwable) {
+							throw (Throwable)dlg.result;
+						}
+						else {
+							Step step = (Step)dlg.result;
+							if (step != null) {
+								if (databaseObject instanceof Sequence) {
+									sequence.addStep(step);
+									sequence.hasChanged = true;
+								}
+								else {
+									StepWithExpressions swe = (StepWithExpressions)databaseObject;
+									swe.addStep(step);
+									swe.hasChanged = true;
+								}
+								
 								sequence.hasChanged = true;
+								
+								// Reload sequence in tree without updating its schema for faster reload
+								ConvertigoPlugin.logDebug("Reload sequence: start");
+								explorerView.reloadTreeObject(sequenceTreeObject);
+								ConvertigoPlugin.logDebug("Reload sequence: end");
+								
+								// Select target dbo in tree
+								explorerView.objectSelected(new CompositeEvent(databaseObject));
 							}
-							else {
-								StepWithExpressions swe = (StepWithExpressions)databaseObject;
-								swe.addStep(step);
-								swe.hasChanged = true;
-							}
-							
-							sequence.hasChanged = true;
-							
-							// Reload sequence in tree without updating its schema for faster reload
-							ConvertigoPlugin.logDebug("Reload sequence: start");
-							explorerView.reloadTreeObjectWithoutDynamicUpdate(sequenceTreeObject);
-							ConvertigoPlugin.logDebug("Reload sequence: end");
-							
-							// Select target dbo in tree
-							explorerView.objectSelected(new CompositeEvent(databaseObject));
 						}
 		        	}
             	}

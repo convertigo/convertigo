@@ -48,7 +48,6 @@ public class StepBeanInfo extends MySimpleBeanInfo {
             properties[2] = new PropertyDescriptor("schemaDataType", beanClass, "getSchemaDataType", "setSchemaDataType");
 			properties[2].setDisplayName(getExternalizedString("property.schemaDataType.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.schemaDataType.short_description"));
-			properties[2].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
 			properties[2].setExpert(true);
 			properties[2].setHidden(true);	
 			properties[2].setValue(BLACK_LIST_NAME,true);	

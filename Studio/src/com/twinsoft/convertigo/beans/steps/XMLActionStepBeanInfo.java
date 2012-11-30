@@ -50,7 +50,6 @@ public class XMLActionStepBeanInfo extends MySimpleBeanInfo {
 			properties[1].setExpert(true);
 			properties[1].setValue(BLACK_LIST_NAME, Boolean.TRUE);
 			
-			getPropertyDescriptor("schemaDataType").setHidden(false);
             getPropertyDescriptor("xmlSimpleTypeAffectation").setHidden(false);
 		}
 		catch(Exception e) {

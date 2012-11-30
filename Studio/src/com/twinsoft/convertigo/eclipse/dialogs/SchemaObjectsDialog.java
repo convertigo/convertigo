@@ -26,6 +26,8 @@ import java.util.Hashtable;
 
 import javax.xml.namespace.QName;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -54,20 +56,20 @@ import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.ObjectsExplorerComposite;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
-import com.twinsoft.convertigo.engine.util.XSDUtils.XmlGenerationDescription;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class SchemaObjectsDialog extends Dialog implements Runnable {
 
 	private String dialogTitle;
 	private Object parentObject = null;
-	private XSD xsd = null;
+	private XmlSchema xmlSchema = null;
 	private QName qname = null;
 	public Object result = null;
 	
-	public SchemaObjectsDialog(Shell parentShell, Object parentObject, XSD xsd) {
+	public SchemaObjectsDialog(Shell parentShell, Object parentObject, XmlSchema xmlSchema) {
 		this(parentShell, ObjectsExplorerComposite.class, "Schema elements", parentObject);
-		this.xsd = xsd;
+		this.xmlSchema = xmlSchema;
 	}
 	
 	public SchemaObjectsDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, Object parentObject) {
@@ -88,7 +90,7 @@ public class SchemaObjectsDialog extends Dialog implements Runnable {
 		try {
 			GridData gridData = new GridData (GridData.HORIZONTAL_ALIGN_FILL | GridData.FILL_BOTH);
 			
-			schemaObjectsDialogComposite = new SchemaObjectsDialogComposite(composite,SWT.NONE,parentObject, xsd);
+			schemaObjectsDialogComposite = new SchemaObjectsDialogComposite(composite,SWT.NONE,parentObject,xmlSchema);
 			schemaObjectsDialogComposite.setLayoutData(gridData);
 			schemaObjectsDialogComposite.list.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
 				public void widgetSelected(SelectionEvent e) {
@@ -182,30 +184,26 @@ public class SchemaObjectsDialog extends Dialog implements Runnable {
 			}
 		};
 		
-		Throwable ex = null;
 		try {
 			progressBarThread.start();
 			if (qname != null) {
 				setTextLabel("Generating xml structure from schema object");
-				XmlGenerationDescription xmlDescription = xsd.getXmlGenerationDescription();
-				xmlDescription.setOutputOccurences(false);
-				xmlDescription.setOutputSchemaTypeCData(false);
-				xmlDescription.setOutputOccursAttribute(true);
-				xmlDescription.setOutputElementWithNS(true);
-				xmlDescription.setOutputOccursAttribute(true);
-				
-        		Document document = xsd.generateElementXmlStructure(qname);
-        		//String s = XMLUtils.prettyPrintDOM(document);
-        		
-        		setTextLabel("Creating steps from xml");
-        		Element root = document.getDocumentElement();
-        		Element firstChild = (Element)root.getFirstChild();
-        		if (firstChild != null)
-        			result = createStep(null, firstChild);
+        		//Document document = xsd.generateElementXmlStructure(qname);
+				XmlSchemaElement xso = SchemaMeta.getCollection(xmlSchema).getElementByQName(qname);
+				SchemaMeta.setSchema(xso, xmlSchema);
+				Document document = XmlSchemaUtils.getDomInstance(xso);
+        		if (document != null) {
+	        		//String s = XMLUtils.prettyPrintDOM(document);
+	        		setTextLabel("Creating steps from xml");
+	        		Element root = document.getDocumentElement();
+	        		Element firstChild = (Element)root.getFirstChild();
+	        		if (firstChild != null)
+	        			result = createStep(null, firstChild);
+        		}
 			}
 		}
 		catch (Throwable e) {
-			ex = e;
+			result = e;
 		}
 		finally {
 			stepsMap.clear();
@@ -221,10 +219,6 @@ public class SchemaObjectsDialog extends Dialog implements Runnable {
 				
 			}
 			catch (Throwable e) {}
-			
-			if (ex != null) {
-				ConvertigoPlugin.logException(ex, "Unable to import objects");
-			}
 		}
 	}
 	
@@ -291,8 +285,10 @@ public class SchemaObjectsDialog extends Dialog implements Runnable {
 		Step step = null;
 		if (element != null) {
 			if (parent != null) {
-				String occurs = element.getAttribute(xsd.getXmlGenerationDescription().getOccursAttribute());
+				String occurs = element.getAttribute("maxOccurs");//element.getAttribute(xsd.getXmlGenerationDescription().getOccursAttribute());
 				if (!occurs.equals("")) {
+					if (occurs.equals("unbounded"))
+						occurs = "10";
 					if (Long.parseLong(occurs, 10) > 1) {
 						parent = createIteratorStep(parent, element);
 					}
@@ -345,8 +341,8 @@ public class SchemaObjectsDialog extends Dialog implements Runnable {
 			String attrName = attr.getName();
 			String localName = attr.getLocalName();
 			String attributeNodeName = (localName == null) ? attrName:localName;
-			if (!attributeNodeName.equals(xsd.getXmlGenerationDescription().getDoneAttribute()) &&
-				!attributeNodeName.equals(xsd.getXmlGenerationDescription().getOccursAttribute())) {
+			if (!attributeNodeName.equals("done"/*xsd.getXmlGenerationDescription().getDoneAttribute()*/) &&
+				!attributeNodeName.equals("occurs"/*xsd.getXmlGenerationDescription().getOccursAttribute()*/)) {
 				step = new XMLAttributeStep();
 				step.setNodeName(attributeNodeName);
 				step.bNew = true;

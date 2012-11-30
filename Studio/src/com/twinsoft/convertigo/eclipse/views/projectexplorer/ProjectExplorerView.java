@@ -24,10 +24,7 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.beans.BeanInfo;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
@@ -658,23 +655,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					message += "Please import missing project(s),\nor correct your sequence(s) before clean.";
 					ConvertigoPlugin.logError(message, true);
 				}
-				
-				/*try {
-					((ProjectTreeObject)treeObject).isXsdValid();
-				}
-				catch (Exception e) {
-					Shell shell = Display.getDefault().getActiveShell();
-		        	MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-		        	messageBox.setMessage("Project's XSD file is corrupted. Would you like to clean it ?");
-		        	int response = messageBox.open();
-					if (response == SWT.YES) {
-						try {
-							projectCleanXSDAction.run();
-						} catch (Exception e1) {
-							ConvertigoPlugin.logException(e1, "Unable to clean project's XSD file");
-						}
-					}
-				}*/
 			}
 		}
 	}
@@ -1031,10 +1011,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 	
-	private void reload(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject, boolean bDynamicSchemaUpdate) throws EngineException, IOException {
+	private void reload(TreeParent parentTreeObject, DatabaseObject parentDatabaseObject) throws EngineException, IOException {
 		IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
 		try {
-			progressService.busyCursorWhile(new ReloadWithProgress(viewer, parentTreeObject, parentDatabaseObject,bDynamicSchemaUpdate));
+			progressService.busyCursorWhile(new ReloadWithProgress(viewer, parentTreeObject, parentDatabaseObject));
 		} catch (InvocationTargetException e) {
 		} catch (InterruptedException e) {
 		}
@@ -1042,21 +1022,18 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 		
 	private class ReloadWithProgress implements IRunnableWithProgress, DatabaseObjectListener {
-		private ProjectTreeObject projectTreeObject;
 		private TreeParent parentTreeObject;
 		private DatabaseObject parentDatabaseObject;
 		private TreeViewer viewer;
 		private Object[] objects = null;
 		private String[] expendedPaths = null;
 		private IProgressMonitor monitor;
-		private boolean bDynamicSchemaUpdate = true;
 		
-		public ReloadWithProgress(TreeViewer viewer, TreeParent parentTreeObject, DatabaseObject parentDatabaseObject, boolean bDynamicSchemaUpdate) {
+		public ReloadWithProgress(TreeViewer viewer, TreeParent parentTreeObject, DatabaseObject parentDatabaseObject) {
 			super();
 			this.viewer = viewer;
 			this.parentTreeObject = parentTreeObject;
 			this.parentDatabaseObject = parentDatabaseObject;
-			this.bDynamicSchemaUpdate = bDynamicSchemaUpdate;
 		}
 		
 		public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
@@ -1093,11 +1070,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				});
 				
 		        try {
-		        	projectTreeObject = parentTreeObject.getProjectTreeObject();
-		        	
-		        	if (!bDynamicSchemaUpdate && (parentTreeObject instanceof DatabaseObjectTreeObject))
-		        		projectTreeObject.setDynamicSchemaUpdate(bDynamicSchemaUpdate);
-					
 					// First remove all children of object
 					monitor.subTask("Removing objects...");
 			        parentTreeObject.removeAllChildren();
@@ -1108,8 +1080,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		        	loadDatabaseObject(parentTreeObject, parentDatabaseObject, monitor);
 		        }
 		        finally {
-					projectTreeObject.resetDynamicSchemaUpdate();
-
 					Engine.theApp.databaseObjectsManager.removeDatabaseObjectListener(this);
 		        }
 			}
@@ -1126,17 +1096,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								fireTreeObjectAdded(new TreeObjectEvent(ob));
 							}
 							addedTreeObjects.clear();
-							
-							// if DynamicSchemaUpdate has been disabled (for load performances)
-							// update project's xsd and wsdl files now
-							if (!bDynamicSchemaUpdate && (parentTreeObject instanceof DatabaseObjectTreeObject)) {
-								try {
-									projectTreeObject.updateWebService((DatabaseObjectTreeObject)parentTreeObject);
-								}
-								catch (Throwable e) {
-									ConvertigoPlugin.logException(e, "Unable to update web service for project \""+ projectTreeObject.getName()+ "\"");
-								}
-							}
 							
 							refreshTreeObject(parentTreeObject);
 							
@@ -1193,8 +1152,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 	
 	private void createFiles(String projectName) {
-		createXsd(projectName);
-		createWsdl(projectName);
 		createIndexFile(projectName);
 	}
 	
@@ -1203,83 +1160,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			ProjectUtils.copyIndexFile(projectName);
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e,"Error creating index.html file for project '" + projectName + "'", Boolean.FALSE);
-		}
-	}
-	
-	private void createXsd(String projectName) {
-		try {
-			ProjectUtils.createXsdFile(Engine.PROJECTS_PATH, projectName);
-		} catch (Exception e) {
-			ConvertigoPlugin.logException(e,"Error creating xsd file for project '" + projectName + "'", Boolean.FALSE);
-		}
-		
-		createTempXsd(projectName);
-	}
-	
-	private void createWsdl(String projectName) {
-		try {
-			ProjectUtils.createWsdlFile(Engine.PROJECTS_PATH, projectName);
-		} catch (Exception e) {
-			ConvertigoPlugin.logException(e,"Error creating wsdl file for project '" + projectName + "'", Boolean.FALSE);
-		}
-
-		createTempWsdl(projectName);
-	}
-	
-	private void createTempXsd(String projectName) {
-		String xsdPath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xsd";
-		String tempPath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.xsd";
-		try {
-			copyToTemp(projectName, xsdPath, tempPath);
-		} catch (Exception e) {
-			ConvertigoPlugin.logException(e,"Error creating temporary xsd file for project '" + projectName + "'", Boolean.FALSE);
-		}
-	}
-	
-	private void createTempWsdl(String projectName) {
-		String wsdlPath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".wsdl";
-		String tempPath = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.wsdl";
-		try {
-			copyToTemp(projectName, wsdlPath, tempPath);
-		} catch (Exception e) {
-			ConvertigoPlugin.logException(e,"Error creating temporary wsdl file for project '" + projectName + "'", Boolean.FALSE);
-		}
-	}
-
-	private void copyToTemp(String projectName, String sourceFilePath, String targetFilePath) throws EngineException {
-		try {
-			File sourceFile = new File(sourceFilePath);
-			if (sourceFile.exists()) {
-				File targetFile = new File(targetFilePath);
-				if (!targetFile.exists()) {
-					try {
-						if (targetFile.createNewFile()) {
-							String line;
-							BufferedReader br = new BufferedReader(new FileReader(sourceFilePath));
-							BufferedWriter bw = new BufferedWriter(new FileWriter(targetFilePath));
-							while((line = br.readLine()) != null) {
-								line = line.replaceAll(projectName+".xsd", projectName+".temp.xsd");
-							    bw.write(line);
-							    bw.newLine();
-							}
-							bw.close();
-							br.close();
-						}
-						else {
-							throw new EngineException("Error creating '"+targetFilePath+"'");
-						}
-					}
-					catch (IOException e) {
-						throw new EngineException("Error writing from '"+sourceFilePath+"' to '"+ targetFilePath +"'");
-					}
-				}
-			}
-			else {
-				throw new EngineException("'"+sourceFilePath+"' does not exist");
-			}
-		}
-		catch (Exception e) {
-			throw new EngineException("Unable to copy '"+sourceFilePath+"' to '"+targetFilePath+"'",e);
 		}
 	}
 
@@ -1856,16 +1736,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public void reloadTreeObject(TreeObject object) throws EngineException, IOException {
-		reloadTreeObject(object, true);
-	}
-
-	public void reloadTreeObjectWithoutDynamicUpdate(TreeObject object) throws EngineException, IOException {
-		reloadTreeObject(object, false);
-	}
-
-	protected void reloadTreeObject(TreeObject object, boolean bDynamicSchemaUpdate) throws EngineException, IOException {
-		if (object != null)
-			reload((TreeParent) object, (DatabaseObject) object.getObject(), bDynamicSchemaUpdate);
+		if (object != null) {
+			reload((TreeParent) object, (DatabaseObject) object.getObject());
+		}
 	}
 	
 	public void refreshTree() {

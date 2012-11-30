@@ -29,7 +29,6 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
 
 public class ProjectCleanXSDAction extends MyAbstractAction {
 
@@ -47,10 +46,10 @@ public class ProjectCleanXSDAction extends MyAbstractAction {
 		try {
 			ProjectExplorerView explorerView = getProjectExplorerView();
 			if (explorerView != null) {
-				ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
-				projectTreeObject.cleanWSFiles();
-				explorerView.refreshTree();
-				explorerView.setSelectedTreeObject(projectTreeObject);
+//				ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
+//				projectTreeObject.cleanWSFiles();
+//				explorerView.refreshTree();
+//				explorerView.setSelectedTreeObject(projectTreeObject);
 			}
 		} catch (Throwable e) {
 			ConvertigoPlugin.logException(e, "Unable to clean Web Service for project!");

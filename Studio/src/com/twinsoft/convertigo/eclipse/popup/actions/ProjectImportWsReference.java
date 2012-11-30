@@ -67,7 +67,7 @@ public class ProjectImportWsReference extends MyAbstractAction {
 			    			if (httpConnector != null) {
 			    				// Reload sequence in tree without updating its schema for faster reload
 			    				ConvertigoPlugin.logDebug("Reload project: start");
-								explorerView.reloadTreeObjectWithoutDynamicUpdate(projectTreeObject);
+								explorerView.reloadTreeObject(projectTreeObject);
 								ConvertigoPlugin.logDebug("Reload project: end");
 								// Select target dbo in tree
 								explorerView.objectSelected(new CompositeEvent(httpConnector));

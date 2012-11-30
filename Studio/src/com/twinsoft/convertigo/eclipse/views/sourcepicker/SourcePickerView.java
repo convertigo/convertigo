@@ -28,6 +28,8 @@ import java.util.Vector;
 
 import javax.xml.transform.TransformerException;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.dnd.DND;
@@ -62,6 +64,7 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.IteratorStep;
@@ -75,8 +78,12 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeO
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepSourceEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepSourceListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.util.StringEx;
 
 public class SourcePickerView extends ViewPart implements IStepSourceEditor, StepSourceListener {
@@ -90,7 +97,8 @@ public class SourcePickerView extends ViewPart implements IStepSourceEditor, Ste
 	private Document currentDom = null;
 	private String regexpForPredicates = "\\[\\D{1,}\\]";
 	private DatabaseObject selectedDbo = null;
-
+	private XmlSchema schema = null;
+	
 	private final String show_step_source 		= "   Show step's source   ";
 	private final String show_variable_source 	= "Show variable's source";
 	private final String remove_source 			= "Remove source";
@@ -432,6 +440,14 @@ public class SourcePickerView extends ViewPart implements IStepSourceEditor, Ste
 	private void showStep(DatabaseObject dbo, boolean showSource) {
 		if (selectedDbo == null) return;
 		
+		try {
+			Project project = selectedDbo.getProject();
+			schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), true);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		String priority, xpath;
 		DatabaseObject dboToShow = null;
 		if (showSource) {
@@ -490,13 +506,26 @@ public class SourcePickerView extends ViewPart implements IStepSourceEditor, Ste
 		}
 	}
 	
+	private Step getTargetStep(Step step) throws EngineException {
+		if (step != null && (step instanceof IStepSourceContainer)) {
+			com.twinsoft.convertigo.beans.core.StepSource source = new com.twinsoft.convertigo.beans.core.StepSource(step,((IStepSourceContainer)step).getSourceDefinition());
+			if (source != null && !source.isEmpty()) {
+				return source.getStep();
+			}
+		}
+		return step;
+	}
+	
 	private void displayTargetWsdlDom(DatabaseObject dbo) {
 		try {
 			if (dbo instanceof Step) {
 				Step step = (Step)dbo;
 				String xpath = getSourceXPath();
 				String anchor = step.getAnchor();
-				Document stepDoc = step.getWsdlDom();
+//				XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, step);
+				XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, getTargetStep(step));
+				Document stepDoc = XmlSchemaUtils.getDomInstance(xso);
+//				Document stepDoc = step.getWsdlDom();
 				if (stepDoc != null) { // stepDoc can be null for non "xml" step : e.g jIf
 					Document doc = step.getSequence().createDOM();
 					Element root = (Element)doc.importNode(stepDoc.getDocumentElement(), true);

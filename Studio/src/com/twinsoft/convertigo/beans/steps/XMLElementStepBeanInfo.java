@@ -61,7 +61,6 @@ public class XMLElementStepBeanInfo extends MySimpleBeanInfo {
 			properties[2].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
 			properties[2].setValue(BLACK_LIST_NAME, Boolean.TRUE);
 			
-			getPropertyDescriptor("schemaDataType").setHidden(false);
             getPropertyDescriptor("xmlComplexTypeAffectation").setHidden(false);
             getPropertyDescriptor("xmlSimpleTypeAffectation").setHidden(false);
 		}

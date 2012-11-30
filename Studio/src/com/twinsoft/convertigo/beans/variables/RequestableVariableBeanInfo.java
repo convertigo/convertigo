@@ -62,8 +62,8 @@ public class RequestableVariableBeanInfo extends MySimpleBeanInfo {
             properties[3] = new PropertyDescriptor("schemaType", beanClass, "getSchemaType", "setSchemaType");
 			properties[3].setDisplayName(getExternalizedString("property.schemaType.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.schemaType.short_description"));
-			properties[3].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
 			properties[3].setExpert(true);
+			properties[3].setHidden(true);
 			
             properties[4] = new PropertyDescriptor("isFileUpload", beanClass, "getIsFileUpload", "setIsFileUpload");
 			properties[4].setDisplayName(getExternalizedString("property.isFileUpload.display_name"));

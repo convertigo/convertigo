@@ -79,120 +79,117 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
         	if (explorerView != null) {
             	TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
             	ProjectTreeObject projectTreeObject = treeObject.getProjectTreeObject();
-            	if (projectTreeObject.isXsdValid()) {
-                	MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-        			String message = "Do you really want to extract the schema?\nWarning: the previous one will be replaced.";
-                	messageBox.setMessage(message);
-                	if (messageBox.open() == SWT.YES) {
-                		
-                		RequestableObject requestable = (RequestableObject)treeObject.getObject();
-                        String requestableName = StringUtils.normalize(requestable.getName(), true);
-                        Document document = null;
-                        String result = null;
+            	MessageBox messageBox = new MessageBox(shell,SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
+    			String message = "Do you really want to extract the schema?\nWarning: the previous one will be replaced.";
+            	messageBox.setMessage(message);
+            	if (messageBox.open() == SWT.YES) {
+            		
+            		RequestableObject requestable = (RequestableObject)treeObject.getObject();
+                    String requestableName = StringUtils.normalize(requestable.getName(), true);
+                    Document document = null;
+                    String result = null;
+                    
+                    if (!(requestableName.equals(requestable.getName()))) {
+                    	throw new Exception("Requestable name should be normalized");
+                    }
+                    
+                    if (requestable instanceof Transaction) {
+                        Connector connector = (Connector) requestable.getParent();
                         
-                        if (!(requestableName.equals(requestable.getName()))) {
-                        	throw new Exception("Requestable name should be normalized");
+                        String connectorName = StringUtils.normalize(connector.getName(), true);
+                        if (!(connectorName.equals(connector.getName()))) {
+                        	throw new Exception("Connector name should be normalized");
                         }
                         
-                        if (requestable instanceof Transaction) {
-                            Connector connector = (Connector) requestable.getParent();
-                            
-                            String connectorName = StringUtils.normalize(connector.getName(), true);
-                            if (!(connectorName.equals(connector.getName()))) {
-                            	throw new Exception("Connector name should be normalized");
-                            }
-                            
-                            if (connector.getDefaultTransaction() == null) {
-                            	throw new Exception("Connector must have a default transaction");
-                            }
-                            
-                            if (requestable instanceof HtmlTransaction) {
-                            	if (extract) {
-            	                    ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
-            	                    if (connectorEditor == null) {
-                                		ConvertigoPlugin.infoMessageBox("Please open connector first.");
-            	                    	return;
-                	                }
-                	                
-            	                    document = connectorEditor.getLastGeneratedDocument();
-            	                    if (document == null) {
-            	                    	ConvertigoPlugin.infoMessageBox("You should first generate the XML document before trying to extract the XSD types.");
-            	                    	return;
-            	                    }
-
-            	                    result = requestable.generateXsdTypes(document, extract);
-                            	}
-                            	else {
-                            		HtmlTransaction defaultTransaction = (HtmlTransaction)connector.getDefaultTransaction();
-                                	String defaultTransactionName = StringUtils.normalize(defaultTransaction.getName(), true);
-                                	
-                                    if (!(defaultTransactionName.equals(defaultTransaction.getName()))) {
-                                    	throw new Exception("Default transaction name should be normalized");
-                                    }
-                            		
-                                    String defaultXsdTypes = defaultTransaction.generateXsdTypes(null, false);
-                                    
-                                    if (requestable.equals(defaultTransaction))
-                                    	result = defaultXsdTypes;
-                                    else {
-    		        					TransactionXSDTypesDialog dlg = new TransactionXSDTypesDialog(shell, requestable);
-    		        					if (dlg.open() == Window.OK) {
-    		        						result = dlg.result;
-    		        						result += defaultXsdTypes;
-    		        		        	}
-                                    }
-                            	}
-                            }
-                            else {
-                            	if (extract) {
-	        	                    ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
-	        	                    if (connectorEditor == null) {
-	                            		ConvertigoPlugin.infoMessageBox("Please open connector first.");
-	        	                    	return;
-	            	                }
-	            	                
-	        	                    document = connectorEditor.getLastGeneratedDocument();
-	        	                    if (document == null) {
-	        	                    	ConvertigoPlugin.infoMessageBox("You should first generate the XML document before trying to extract the XSD types.");
-	        	                    	return;
-	        	                    }
-	        	                    
-	        	                    String prefix = requestable.getXsdTypePrefix();
-	       	                        document.getDocumentElement().setAttribute("transaction", prefix + requestableName);
-                            	}
-                            	
-        	                    result = requestable.generateXsdTypes(document, extract);
-                            }
+                        if (connector.getDefaultTransaction() == null) {
+                        	throw new Exception("Connector must have a default transaction");
                         }
-                        else if (requestable instanceof Sequence) {
+                        
+                        if (requestable instanceof HtmlTransaction) {
                         	if (extract) {
-                        		SequenceEditor sequenceEditor = projectTreeObject.getSequenceEditor((Sequence)requestable);
-        	                    if (sequenceEditor == null) {
+        	                    ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
+        	                    if (connectorEditor == null) {
                             		ConvertigoPlugin.infoMessageBox("Please open connector first.");
         	                    	return;
             	                }
-        	                    document = sequenceEditor.getLastGeneratedDocument();
+            	                
+        	                    document = connectorEditor.getLastGeneratedDocument();
         	                    if (document == null) {
         	                    	ConvertigoPlugin.infoMessageBox("You should first generate the XML document before trying to extract the XSD types.");
         	                    	return;
         	                    }
+
+        	                    result = requestable.generateXsdTypes(document, extract);
+                        	}
+                        	else {
+                        		HtmlTransaction defaultTransaction = (HtmlTransaction)connector.getDefaultTransaction();
+                            	String defaultTransactionName = StringUtils.normalize(defaultTransaction.getName(), true);
+                            	
+                                if (!(defaultTransactionName.equals(defaultTransaction.getName()))) {
+                                	throw new Exception("Default transaction name should be normalized");
+                                }
                         		
+                                String defaultXsdTypes = defaultTransaction.generateXsdTypes(null, false);
+                                
+                                if (requestable.equals(defaultTransaction))
+                                	result = defaultXsdTypes;
+                                else {
+		        					TransactionXSDTypesDialog dlg = new TransactionXSDTypesDialog(shell, requestable);
+		        					if (dlg.open() == Window.OK) {
+		        						result = dlg.result;
+		        						result += defaultXsdTypes;
+		        		        	}
+                                }
+                        	}
+                        }
+                        else {
+                        	if (extract) {
+        	                    ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
+        	                    if (connectorEditor == null) {
+                            		ConvertigoPlugin.infoMessageBox("Please open connector first.");
+        	                    	return;
+            	                }
+            	                
+        	                    document = connectorEditor.getLastGeneratedDocument();
+        	                    if (document == null) {
+        	                    	ConvertigoPlugin.infoMessageBox("You should first generate the XML document before trying to extract the XSD types.");
+        	                    	return;
+        	                    }
+        	                    
+        	                    String prefix = requestable.getXsdTypePrefix();
+       	                        document.getDocumentElement().setAttribute("transaction", prefix + requestableName);
                         	}
                         	
-                        	result = requestable.generateXsdTypes(document, extract);
+    	                    result = requestable.generateXsdTypes(document, extract);
                         }
-                        
-                        if ((result != null) && (!result.equals(""))) {
-                        	String xsdTypes = result;
-                        	if (requestable instanceof Transaction) {
-                        		((Transaction)requestable).writeSchemaToFile(xsdTypes);
-                        	}
-                        	projectTreeObject.updateWebService(requestable.getParent(), requestable, xsdTypes, false);
-                        	
-                        	requestable.hasChanged = true;
-                        	explorerView.refreshFirstSelectedTreeObject();
-                        }
-                	}
+                    }
+                    else if (requestable instanceof Sequence) {
+                    	if (extract) {
+                    		SequenceEditor sequenceEditor = projectTreeObject.getSequenceEditor((Sequence)requestable);
+    	                    if (sequenceEditor == null) {
+                        		ConvertigoPlugin.infoMessageBox("Please open connector first.");
+    	                    	return;
+        	                }
+    	                    document = sequenceEditor.getLastGeneratedDocument();
+    	                    if (document == null) {
+    	                    	ConvertigoPlugin.infoMessageBox("You should first generate the XML document before trying to extract the XSD types.");
+    	                    	return;
+    	                    }
+                    		
+                    	}
+                    	
+                    	result = requestable.generateXsdTypes(document, extract);
+                    }
+                    
+                    if ((result != null) && (!result.equals(""))) {
+                    	String xsdTypes = result;
+                    	if (requestable instanceof Transaction) {
+                    		((Transaction)requestable).writeSchemaToFile(xsdTypes);
+                    	}
+                    	
+                    	requestable.hasChanged = true;
+                    	explorerView.refreshFirstSelectedTreeObject();
+                    }
             	}
         	}
         }

@@ -252,30 +252,9 @@ public class ClipboardAction extends MyAbstractAction {
                         			String oldName = project.getOldName();
                         			String newName = project.getName();
                         			
-                    				// Copy old xsd file
-                    				try {
-                    					ProjectUtils.copyXsdFile(Engine.PROJECTS_PATH, oldName, newName);
-                    				} catch (Exception e) {
-                    					throw new ConvertigoException(e.getMessage());
-                    				}
-                    				
-                    				// Copy old wsdl file
-                    				try {
-                    					ProjectUtils.copyWsdlFile(Engine.PROJECTS_PATH, oldName, newName);
-                    				} catch (Exception e) {
-                    					throw new ConvertigoException(e.getMessage());
-                    				}
-                        			
                     				// Create index.html
                     				try {
                     					ProjectUtils.copyIndexFile(newName);
-    	            				} catch (Exception e) {
-    	            					throw new ConvertigoException(e.getMessage());
-    	            				}
-                    				
-                    				// Rename steps in xsd file
-                    				try {
-                    					ProjectUtils.renameStepsInXsd(Engine.PROJECTS_PATH, newName, ConvertigoPlugin.clipboardManager2.pastedSteps);
     	            				} catch (Exception e) {
     	            					throw new ConvertigoException(e.getMessage());
     	            				}

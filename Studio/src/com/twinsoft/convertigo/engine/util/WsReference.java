@@ -27,14 +27,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import javax.wsdl.Definition;
-import javax.wsdl.WSDLException;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -46,6 +42,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -77,8 +76,6 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.PacManager.PacInfos;
 import com.twinsoft.convertigo.engine.ProxyManager.ProxyMode;
-import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
-import com.twinsoft.convertigo.engine.util.XSDUtils.XSDException;
 
 public class WsReference {
 	private WebServiceReference reference = null;
@@ -118,38 +115,38 @@ public class WsReference {
 		return 9;
 	}
 	
-	private Map<String, String> updateSchema(String wsdlUrl, String projectName, Definition definition) throws WSDLException, XSDException {
-		String projectDir = Engine.PROJECTS_PATH + "/"+ projectName;
-		
-		// Dump schemas to project directory
-		setTaskLabel("Dumping schemas ...");
-		Map<String, String> nsmap = WSDLUtils.dumpSchemas(projectDir, definition);
-		
-		// Add namespaces into project's xsd file
-		setTaskLabel("Adding schema namespace ...");
-		String filePath = projectDir + "/" + projectName + ".temp.xsd";
-		if (!new File(filePath).exists())
-			filePath = projectDir + "/" + projectName + ".xsd";
-		XSD xsd = XSDUtils.getXSD(filePath);
-		xsd.addNamespaces(nsmap);
-		
-		// Add imports into project's xsd file
-		setTaskLabel("Adding schema imports ...");
-		Map<String, String> immap = new HashMap<String, String>();
-		Iterator<String> it = nsmap.keySet().iterator();
-		while (it.hasNext()) {
-			String prefix = (String)it.next();
-			String ns = (String)nsmap.get(prefix);
-			String location = StringUtils.normalize(ns) + ".xsd";
-			immap.put(ns, location);
-		}
-		xsd.addImportObjects(immap);
-		
-		// Save xsd
-		xsd.save();
-		
-		return nsmap;
-	}
+//	private Map<String, String> updateSchema(String wsdlUrl, String projectName, Definition definition) throws WSDLException, XSDException {
+//		String projectDir = Engine.PROJECTS_PATH + "/"+ projectName;
+//		
+//		// Dump schemas to project directory
+//		setTaskLabel("Dumping schemas ...");
+//		Map<String, String> nsmap = WSDLUtils.dumpSchemas(projectDir, definition);
+//		
+//		// Add namespaces into project's xsd file
+//		setTaskLabel("Adding schema namespace ...");
+//		String filePath = projectDir + "/" + projectName + ".temp.xsd";
+//		if (!new File(filePath).exists())
+//			filePath = projectDir + "/" + projectName + ".xsd";
+//		XSD xsd = XSDUtils.getXSD(filePath);
+//		xsd.addNamespaces(nsmap);
+//		
+//		// Add imports into project's xsd file
+//		setTaskLabel("Adding schema imports ...");
+//		Map<String, String> immap = new HashMap<String, String>();
+//		Iterator<String> it = nsmap.keySet().iterator();
+//		while (it.hasNext()) {
+//			String prefix = (String)it.next();
+//			String ns = (String)nsmap.get(prefix);
+//			String location = StringUtils.normalize(ns) + ".xsd";
+//			immap.put(ns, location);
+//		}
+//		xsd.addImportObjects(immap);
+//		
+//		// Save xsd
+//		xsd.save();
+//		
+//		return nsmap;
+//	}
 	
 	private HttpConnector importWebService(WebServiceReference webServiceReference) throws Exception
 	{
@@ -255,15 +252,16 @@ public class WsReference {
 			   	webServiceReference.setFilepath(".//" + wsdlPath.substring(wsdlPath.indexOf("/wsdl")+1));
 			   	
 			   	Definition definition = iface.getWsdlContext().getDefinition();
-			   	Map<String, String> nsmap = updateSchema(wsdlUrl, projectName, definition);
-		   		
+			   	XmlSchemaCollection xmlSchemaCollection = WSDLUtils.readSchemas(definition);
+			   	XmlSchema xmlSchema = xmlSchemaCollection.schemaForNamespace(definition.getTargetNamespace());
+			   	
 		   		httpConnector = createConnector(iface);
 		   		if (httpConnector != null) {
 		   		   	hasDefaultTransaction = false;
 				   	for (int j=0; j<iface.getOperationCount(); j++) {
 				   		WsdlOperation wsdlOperation = (WsdlOperation)iface.getOperationAt(j);
 				   		Set<RequestableHttpVariable> variables = new HashSet<RequestableHttpVariable>();
-				   		XmlHttpTransaction xmlHttpTransaction = createTransaction(nsmap, iface, wsdlOperation, variables, projectName, httpConnector);
+				   		XmlHttpTransaction xmlHttpTransaction = createTransaction(xmlSchema, iface, wsdlOperation, variables, projectName, httpConnector);
 				   		if (xmlHttpTransaction != null) {
 				   			// Adds transaction
 				   			httpConnector.add(xmlHttpTransaction);
@@ -327,7 +325,7 @@ public class WsReference {
 	   	return httpConnector;
 	}
 	
-	private XmlHttpTransaction createTransaction(Map<String,String> nsmap, WsdlInterface iface, WsdlOperation operation, Set<RequestableHttpVariable> variables, String projectName, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException, XSDException {
+	private XmlHttpTransaction createTransaction(XmlSchema xmlSchema, WsdlInterface iface, WsdlOperation operation, Set<RequestableHttpVariable> variables, String projectName, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException {
 		XmlHttpTransaction xmlHttpTransaction = null;
 	   	WsdlRequest request;
 	   	//String responseXml;
@@ -397,18 +395,7 @@ public class WsReference {
 					   	try {
 							qname = mpcp.getSchemaType().getName();
 							qlocal = qname.getLocalPart();
-							
-		   					// Replace prefix with the one from map
-				   			String nsuri = qname.getNamespaceURI();
-				   			Iterator<String> it = nsmap.keySet().iterator();
-				   			while (it.hasNext()) {
-				   				String prefix = it.next();
-				   				String prefixns = nsmap.get(prefix);
-				   				if (prefixns.equals(nsuri)) {
-				   					qprefix = prefix;
-				   					break;
-				   				}
-				   			}
+				   			qprefix = xmlSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());
 						} catch (Exception e) {}
 						
 						if ((qname != null)&&(qprefix != null)) {
@@ -423,18 +410,7 @@ public class WsReference {
    			   	try {
    					qname = operation.getResponseBodyElementQName();
    					qlocal = qname.getLocalPart();
-   					
-   					// Replace prefix with the one from map
-		   			String nsuri = qname.getNamespaceURI();
-		   			Iterator<String> it = nsmap.keySet().iterator();
-		   			while (it.hasNext()) {
-		   				String prefix = it.next();
-		   				String prefixns = nsmap.get(prefix);
-		   				if (prefixns.equals(nsuri)) {
-		   					qprefix = prefix;
-		   					break;
-		   				}
-		   			}
+		   			qprefix = xmlSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());
    				} catch (Exception e) {}
    				
    				if ((qname != null)&&(qprefix != null)) {
@@ -477,13 +453,8 @@ public class WsReference {
 			//System.out.println(XMLUtils.prettyPrintDOM(requestDoc));
 			
 			// Extract variables
-			String projectDir = Engine.PROJECTS_PATH + "/"+ projectName;
-			String filePath = projectDir + "/" + projectName + ".temp.xsd";
-			if (!new File(filePath).exists())
-				filePath = projectDir + "/" + projectName + ".xsd";
-			XSD xsd = XSDUtils.getXSD(filePath);
-			extractVariables(nsmap, xsd, header.getChildNodes(), variables);
-			extractVariables(nsmap, xsd, body.getChildNodes(), variables);
+			extractVariables(xmlSchema, header.getChildNodes(), variables);
+			extractVariables(xmlSchema, body.getChildNodes(), variables);
 			
 			// Serialize request/response into template xml files
 			String connectorName = httpConnector.getName();
@@ -507,6 +478,186 @@ public class WsReference {
 		return xmlHttpTransaction;
 	}
 	
+//	private XmlHttpTransaction createTransaction(Map<String,String> nsmap, WsdlInterface iface, WsdlOperation operation, Set<RequestableHttpVariable> variables, String projectName, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException, XSDException {
+//		XmlHttpTransaction xmlHttpTransaction = null;
+//	   	WsdlRequest request;
+//	   	//String responseXml;
+//	   	String requestXml;
+//	   	String transactionName, comment;
+//	   	String actionName, operationName;
+//	   	
+//	   	if (operation != null) {
+//	   		actionName = operation.getAction();
+//	   		comment = operation.getDescription();
+//	   		try {comment = (comment.equals("") ? operation.getBindingOperation().getDocumentationElement().getTextContent():comment);} catch (Exception e) {}
+//	   		operationName = operation.getName();
+//		   	transactionName = StringUtils.normalize("C"+operationName);
+//	   		xmlHttpTransaction = new XmlHttpTransaction();
+//	   		xmlHttpTransaction.bNew = true;
+//	   		xmlHttpTransaction.setHttpVerb(HttpTransaction.HTTP_VERB_POST);
+//	   		xmlHttpTransaction.setName(transactionName);
+//	   		xmlHttpTransaction.setComment(comment);
+//	   		setTaskLabel("Creating transaction \""+transactionName+"\"...");
+//	   		
+//	   		// Set encoding (UTF-8 by default)
+//	   		xmlHttpTransaction.setEncodingCharSet("UTF-8");
+//	   		xmlHttpTransaction.setXmlEncoding("UTF-8");
+//	   		
+//	   		// Ignore SOAP elements in response
+//	   		xmlHttpTransaction.setIgnoreSoapEnveloppe(true);
+//	   		
+//   			// Adds parameters
+//	   		setTaskLabel("Setting http parameters...");
+//   			XMLVector<XMLVector<String>> parameters = new XMLVector<XMLVector<String>>();
+//   			XMLVector<String> xmlv;
+//   			xmlv = new XMLVector<String>();
+//   			xmlv.addElement("Content-Type");
+//   			xmlv.addElement("text/xml");
+//   			parameters.addElement(xmlv);
+//   			
+//   			xmlv = new XMLVector<String>();
+//   			xmlv.addElement("Host");
+//   			xmlv.addElement(httpConnector.getServer());
+//   			parameters.addElement(xmlv);
+//
+//   			xmlv = new XMLVector<String>();
+//   			xmlv.addElement("SOAPAction");
+//   			xmlv.addElement(actionName.equals("") ? operationName:actionName);
+//   			parameters.addElement(xmlv);
+//
+//   			xmlv = new XMLVector<String>();
+//   			xmlv.addElement("user-agent");
+//   			xmlv.addElement("Convertigo EMS "+ Version.fullProductVersion);
+//   			parameters.addElement(xmlv);
+//   			
+//   			xmlHttpTransaction.setHttpParameters(parameters);
+//   			
+//   			// Set SOAP response element
+//	   		String responseQName = "", qprefix = "", qlocal = "";
+//   			QName qname = null;
+//   			boolean bRPC = false;
+//   			
+//   			String style = operation.getStyle();
+//   			if (style.toUpperCase().equals("RPC")) bRPC = true;
+//   			if (bRPC) {
+//				MessagePart[] parts = operation.getDefaultResponseParts();
+//				if (parts.length>0) {
+//					String ename = parts[0].getName();
+//					if (parts[0].getPartType().name().equals("CONTENT")) {
+//						MessagePart.ContentPart mpcp = (MessagePart.ContentPart)parts[0];
+//					   	try {
+//							qname = mpcp.getSchemaType().getName();
+//							qlocal = qname.getLocalPart();
+//							
+//		   					// Replace prefix with the one from map
+//				   			String nsuri = qname.getNamespaceURI();
+//				   			Iterator<String> it = nsmap.keySet().iterator();
+//				   			while (it.hasNext()) {
+//				   				String prefix = it.next();
+//				   				String prefixns = nsmap.get(prefix);
+//				   				if (prefixns.equals(nsuri)) {
+//				   					qprefix = prefix;
+//				   					break;
+//				   				}
+//				   			}
+//						} catch (Exception e) {}
+//						
+//						if ((qname != null)&&(qprefix != null)) {
+//							// response is based on an element defined with a type
+//							// operationResponse element name; element name; element type
+//							responseQName = operationName + "Response;" + ename + ";" + qprefix + ":" + qlocal;
+//						}
+//					}
+//				}
+//   			}
+//   			else {
+//   			   	try {
+//   					qname = operation.getResponseBodyElementQName();
+//   					qlocal = qname.getLocalPart();
+//   					
+//   					// Replace prefix with the one from map
+//		   			String nsuri = qname.getNamespaceURI();
+//		   			Iterator<String> it = nsmap.keySet().iterator();
+//		   			while (it.hasNext()) {
+//		   				String prefix = it.next();
+//		   				String prefixns = nsmap.get(prefix);
+//		   				if (prefixns.equals(nsuri)) {
+//		   					qprefix = prefix;
+//		   					break;
+//		   				}
+//		   			}
+//   				} catch (Exception e) {}
+//   				
+//   				if ((qname != null)&&(qprefix != null)) {
+//   					// response is based on a referenced element
+//   					// element type
+//   					responseQName = qprefix + ":" + qlocal;
+//   				}
+//   			}
+//			xmlHttpTransaction.setResponseElementQName(responseQName);
+//   			
+//			try {
+//				qname = operation.getResponseBodyElementQName();
+//				if (qname != null) {
+//					QName refName = new QName(qname.getNamespaceURI(),qname.getLocalPart());
+//					xmlHttpTransaction.setXmlElementRefAffectation(new XmlQName(refName));
+//				}
+//			}
+//			catch (Exception e) {}
+//			
+//   			// Create request/response
+//		   	request = operation.addNewRequest("Test"+transactionName);
+//		   	requestXml = operation.createRequest(true);
+//		   	request.setRequestContent(requestXml);
+//		   	//responseXml = operation.createResponse(true);
+//		   	
+//		   	
+//			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+//			dbf.setNamespaceAware( true );
+//			DocumentBuilder db = dbf.newDocumentBuilder();
+//			Document requestDoc = db.parse(new InputSource(new StringReader(requestXml)));
+//			//Document responseDoc = db.parse(new InputSource(new StringReader(responseXml)));
+//		   	
+//			// Retrieve variables
+//		   	Element header = (Element)requestDoc.getDocumentElement().getElementsByTagName("soapenv:Header").item(0);
+//		   	if (header == null) header = (Element)requestDoc.getDocumentElement().getElementsByTagName("soap:Header").item(0);
+//		   	
+//			Element body = (Element)requestDoc.getDocumentElement().getElementsByTagName("soapenv:Body").item(0);
+//			if (body == null) body = (Element)requestDoc.getDocumentElement().getElementsByTagName("soap:Body").item(0);
+//			
+//			//System.out.println(XMLUtils.prettyPrintDOM(requestDoc));
+//			
+//			// Extract variables
+//			String projectDir = Engine.PROJECTS_PATH + "/"+ projectName;
+//			String filePath = projectDir + "/" + projectName + ".temp.xsd";
+//			if (!new File(filePath).exists())
+//				filePath = projectDir + "/" + projectName + ".xsd";
+//			XSD xsd = XSDUtils.getXSD(filePath);
+//			extractVariables(nsmap, xsd, header.getChildNodes(), variables);
+//			extractVariables(nsmap, xsd, body.getChildNodes(), variables);
+//			
+//			// Serialize request/response into template xml files
+//			String connectorName = httpConnector.getName();
+//			String templateDir = Engine.PROJECTS_PATH + "/"+ projectName + "/soap-templates/" + connectorName;
+//			File dir = new File(templateDir);
+//			if (!dir.exists())
+//				dir.mkdirs();
+//			
+//			String requestTemplateName = "/soap-templates/" + connectorName + "/" + xmlHttpTransaction.getName() + ".xml";
+//			String requestTemplate = Engine.PROJECTS_PATH + "/"+ projectName + requestTemplateName;
+//			//String responseTemplateName = "/soap-templates/" + connectorName + "/" + xmlHttpTransaction.getName() + "-Response.xml";
+//			//String responseTemplate = Engine.PROJECTS_DIRECTORY + "/"+ projectName + responseTemplateName;
+//			
+//			xmlHttpTransaction.setRequestTemplate(requestTemplateName);
+//			createTemplate(requestDoc, requestTemplate);
+//			//createTemplate(responseDoc, responseTemplate);
+//			
+//			xmlHttpTransaction.hasChanged = true;
+//	   	}
+//		
+//		return xmlHttpTransaction;
+//	}
+	
 	private void createTemplate(Document doc, String templateDir) throws EngineException {
 		setTaskLabel("Creating template \""+templateDir+"\"...");
 		try {
@@ -519,8 +670,8 @@ public class WsReference {
         	throw new EngineException("Unable to create template file \""+templateDir+"\"", e);
         }
 	}
-	
-	private void extractVariables(Map<String,String> nsmap, XSD xsd, NodeList list, Set<RequestableHttpVariable> variables) throws EngineException {
+
+	private void extractVariables(XmlSchema xmlSchema, NodeList list, Set<RequestableHttpVariable> variables) throws EngineException {
 		String nodeValue, variableName, schemaType="";
 		Element parent, element, child;
 		Node node, prev;
@@ -537,7 +688,7 @@ public class WsReference {
 					child.appendChild(element.getOwnerDocument().createTextNode("?"));
 					element.appendChild(child);
 				}
-				extractVariables(nsmap, xsd, element.getChildNodes(), variables);
+				extractVariables(xmlSchema, element.getChildNodes(), variables);
 			}
 			else if (type == Node.TEXT_NODE) {
 				parent = (Element)node.getParentNode();
@@ -576,7 +727,7 @@ public class WsReference {
 											schemaType = prev.getNodeValue().substring("type:".length()).trim();
 											if (!schemaType.equals("")) {
 												if (schemaType.indexOf(":")<0) schemaType = "xsd:"+ schemaType;
-												else if (schemaType.indexOf("xsd:")<0) schemaType = ""; // not yet supported
+												//else if (schemaType.indexOf("xsd:")<0) schemaType = ""; // not yet supported
 											}
 											break;
 										}
@@ -590,21 +741,124 @@ public class WsReference {
 						}
 					}
 					
-					schemaType = schemaType.equals("") ? "xsd:string":schemaType;
+					String stringType = "xsd:string";
+					schemaType = schemaType.equals("") ? stringType:schemaType;
 					String[] qinfos = schemaType.split(":");
 					String qprefix = qinfos[0];
 					String qlocal = qinfos[1];
-					if (!xsd.hasSchemaType(qprefix,qlocal)) schemaType = "xsd:string";
-					
+					String nsuri = qprefix.equals("xsd") ?
+										Constants.URI_2001_SCHEMA_XSD :
+											xmlSchema.getNamespaceContext().getNamespaceURI(qprefix);
+					QName qname = new QName(nsuri,qlocal);
+					if (nsuri == null || nsuri.equals("")) {
+						schemaType = stringType;
+						qname = new QName(Constants.URI_2001_SCHEMA_XSD,"string");
+					}
 					
 					setTaskLabel("Creating variable \""+variableName+"\"...");
 					RequestableHttpVariable httpVariable = createVariable(multi,variableName);
+					
 					httpVariable.setSchemaType(schemaType);
+					
+					try {
+						if (qname != null) {
+							QName typeName = new QName(qname.getNamespaceURI(),qname.getLocalPart());
+							httpVariable.setXmlTypeAffectation(new XmlQName(typeName));
+						}
+					}
+					catch (Exception e) {}
+					
 					variables.add(httpVariable);
 				}
 			}
 		}
 	}
+	
+//	private void extractVariables(Map<String,String> nsmap, XSD xsd, NodeList list, Set<RequestableHttpVariable> variables) throws EngineException {
+//		String nodeValue, variableName, schemaType="";
+//		Element parent, element, child;
+//		Node node, prev;
+//		int index;
+//		boolean multi;
+//		for (int k=0; k<list.getLength(); k++) {
+//			node = list.item(k);
+//			int type = node.getNodeType(); 
+//			if (type == Node.ELEMENT_NODE) {
+//				element = (Element)node;
+//				if (!element.getAttribute("soapenc:arrayType").equals("") && !element.hasChildNodes()) {
+//					child = element.getOwnerDocument().createElement("item");
+//					child.setAttribute("xsi:type", "xsd:string");
+//					child.appendChild(element.getOwnerDocument().createTextNode("?"));
+//					element.appendChild(child);
+//				}
+//				extractVariables(nsmap, xsd, element.getChildNodes(), variables);
+//			}
+//			else if (type == Node.TEXT_NODE) {
+//				parent = (Element)node.getParentNode();
+//				nodeValue = node.getNodeValue().trim();
+//				
+//				// this is a variable
+//				if (nodeValue.equals("?") || !nodeValue.equals("")) {
+//					multi = parent.getNodeName().equalsIgnoreCase("item") ||
+//							(parent.getNodeName().indexOf(":item")!=-1) ? true:false;
+//
+//					variableName = getVariableName(parent,parent.getNodeName());
+//					if (variableName == null) continue;
+//					
+//					variableName = variableName.replaceAll(":", "_");
+//					
+//					index=1;
+//					while (variables.contains(variableName)) {
+//						variableName += "_"+ index;
+//					}
+//					
+//					variableName = StringUtils.normalize(variableName);
+//					
+//					node.setNodeValue("$("+ variableName.toUpperCase() +")");
+//					
+//					// Retrieve schema type only for singlevalued variable!
+//					if (!multi) {
+//						try {
+//							// For Rpc style search for xsi:type attribute
+//							schemaType = parent.getAttribute("xsi:type");
+//							// For Doc/Lit style search for comment (<!--type: ???-->)
+//							if (schemaType.equals("")) {
+//								prev = parent.getPreviousSibling();
+//								while ((prev != null) && (prev.getNodeType()!= Node.ELEMENT_NODE)) {
+//									if (prev.getNodeType() == Node.COMMENT_NODE) {
+//										if (prev.getNodeValue().startsWith("type:")) {
+//											schemaType = prev.getNodeValue().substring("type:".length()).trim();
+//											if (!schemaType.equals("")) {
+//												if (schemaType.indexOf(":")<0) schemaType = "xsd:"+ schemaType;
+//												else if (schemaType.indexOf("xsd:")<0) schemaType = ""; // not yet supported
+//											}
+//											break;
+//										}
+//									}
+//									prev = prev.getPreviousSibling();
+//								}
+//							}
+//						}
+//						catch (Exception e) {
+//							schemaType = "";
+//						}
+//					}
+//					
+//					schemaType = schemaType.equals("") ? "xsd:string":schemaType;
+//					String[] qinfos = schemaType.split(":");
+//					String qprefix = qinfos[0];
+//					String qlocal = qinfos[1];
+//					if (!xsd.hasSchemaType(qprefix,qlocal)) schemaType = "xsd:string";
+//					
+//					
+//					setTaskLabel("Creating variable \""+variableName+"\"...");
+//					RequestableHttpVariable httpVariable = createVariable(multi,variableName);
+//					httpVariable.setSchemaType(schemaType);
+//					variables.add(httpVariable);
+//				}
+//			}
+//		}
+//	}
 	
 	private String getVariableName(Element element, String name) {
 		Element p, pp;

@@ -1070,13 +1070,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	public String[] getTagsForProperty(String propertyName) {
-		if (propertyName.equals("schemaDataType")) {
-			Project project = getProject();
-			if (project != null) {
-				return project.getXsdTypes("xsd");
-			}
-			return new String[]{"xsd:string"};
-		}
 		return new String[0];
 	}
 

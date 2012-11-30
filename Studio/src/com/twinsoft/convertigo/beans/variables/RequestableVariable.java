@@ -29,7 +29,6 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
@@ -42,7 +41,7 @@ public class RequestableVariable extends Variable implements ITagsProperty {
 	private boolean personalizable = false;
 	private boolean cachedKey = true;
 	private boolean isFileUpload = false;
-    private XmlQName xmlTypeAffectation = new XmlQName();
+    private XmlQName xmlTypeAffectation = new XmlQName(Constants.XSD_STRING);
 	
 	public RequestableVariable() {
         super();
@@ -124,13 +123,6 @@ public class RequestableVariable extends Variable implements ITagsProperty {
 	}
 
 	public String[] getTagsForProperty(String propertyName) {
-		if (propertyName.equals("schemaType")) {
-			Project project = getProject();
-			if (project != null) {
-				return project.getXsdTypes();
-			}
-			return new String[]{"xsd:string"};
-		}
 		return new String[0];
 	}
 

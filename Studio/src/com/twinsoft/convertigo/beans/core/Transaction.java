@@ -583,6 +583,11 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 			xsdElements += "      </xsd:sequence>\n";
 			xsdElements += "  </xsd:complexType>\n";
 			
+			if (xsdTypes == null || "".equals(xsdTypes)) {
+				xsdTypes =  "  <xsd:complexType name=\""+ requestType +"\" />\n";
+				xsdTypes += "  <xsd:complexType name=\""+ responseType +"\" />\n";
+			}
+			
     		String xsdDom = "<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\""
     							+" xmlns:"+p_ns+"=\""+getProject().getTargetNamespace()+"\""
     							+" attributeFormDefault=\""+getProject().getSchemaElementForm()+"\""

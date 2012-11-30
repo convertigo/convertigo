@@ -22,11 +22,14 @@
 
 package com.twinsoft.convertigo.eclipse.dialogs;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 
+import org.apache.ws.commons.schema.XmlSchema;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -36,19 +39,19 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.ProgressBar;
 
-import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class SchemaObjectsDialogComposite extends MyAbstractDialogComposite {
 
+	private XmlSchema xmlSchema = null;
 	private java.util.List<QName> qnames = null;
-	private XSD xsd = null;
 	protected List list = null;
 	public ProgressBar progressBar = null;
 	public Label labelProgression = null;
 	
-	public SchemaObjectsDialogComposite(Composite parent, int style, Object parentObject, XSD xsd) {
+	public SchemaObjectsDialogComposite(Composite parent, int style, Object parentObject, XmlSchema xmlSchema) {
 		super(parent, style);
-		this.xsd = xsd;
+		this.xmlSchema = xmlSchema;
 		
 		initialize();
 
@@ -90,13 +93,18 @@ public class SchemaObjectsDialogComposite extends MyAbstractDialogComposite {
 	}
 	
 	private void fillList() {
-		qnames = xsd.getSchemaElementNames();
+		qnames = new ArrayList<QName>();//xsd.getSchemaElementNames();
+		
+		Iterator<QName> it = GenericUtils.cast(xmlSchema.getElements().getNames());
+		while (it.hasNext()) {
+			qnames.add(it.next());
+		}
+			
 		Collections.sort(qnames, new Comparator<QName>(){
 			public int compare(QName o1, QName o2) {
 				return o1.toString().compareTo(o2.toString());
 			}
 		});
-		
 		if (qnames != null) {
 			for (QName qname: qnames) {
 				list.add(qname.toString());

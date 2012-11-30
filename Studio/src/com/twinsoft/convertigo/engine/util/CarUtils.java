@@ -92,11 +92,6 @@ public class CarUtils {
 		File carFile = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".car");
 		undeployedFiles.add(carFile);
 		
-		File tempXsdFile = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.xsd");
-		undeployedFiles.add(tempXsdFile);
-		File tempWsdlFile = new File(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.wsdl");
-		undeployedFiles.add(tempWsdlFile);
-		
 		List<File> svnFiles = CarUtils.deepListFiles(Engine.PROJECTS_PATH + "/" + projectName, ".svn");
 		undeployedFiles.addAll(svnFiles);
 		

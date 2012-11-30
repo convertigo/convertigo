@@ -59,7 +59,6 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLActionStep;
 import com.twinsoft.convertigo.beans.steps.XMLGenerateDatesStep;
@@ -619,13 +618,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 					ProjectUtils.renameXmlProject(Engine.PROJECTS_PATH, archiveProjectName, projectName);
 					Engine.logDatabaseObjectManager.debug("Project renamed from \"" + archiveProjectName
 							+ "\" to \"" + projectName + "\"");
-					// rename/modify project wsdl&xsd files
-					try {
-						ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, archiveProjectName, projectName);
-						ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, archiveProjectName, projectName);
-						Engine.logDatabaseObjectManager.debug("Project wsdl & xsd files modified");
-					} catch (Exception e) {
-					}
+//					// rename/modify project wsdl&xsd files
+//					try {
+//						ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, archiveProjectName, projectName);
+//						ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, archiveProjectName, projectName);
+//						Engine.logDatabaseObjectManager.debug("Project wsdl & xsd files modified");
+//					} catch (Exception e) {
+//					}
 				}
 			}
 
@@ -955,98 +954,53 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private boolean performWsMigration(String version, String projectName) {
 		/** Part of 4.6.0 migration : creates and update XSD/WSDL static files **/
 
-		// Creates project's files if don't exist
-		boolean xsdCreated = false, wsdlCreated = false;
-		try {
-			xsdCreated = ProjectUtils.createXsdFile(Engine.PROJECTS_PATH, projectName);
-			if (xsdCreated)
-				Engine.logDatabaseObjectManager.info("Project's XSD file created");
-			wsdlCreated = ProjectUtils.createWsdlFile(Engine.PROJECTS_PATH, projectName);
-			if (xsdCreated)
-				Engine.logDatabaseObjectManager.info("Project's WSDL file created");
-		} catch (Exception e) {
-			Engine.logDatabaseObjectManager.error(
-					"An error occured while creating XSD/WSDL files for project '" + projectName + "'", e);
-			return false;
-		}
-
-		// Retrieve backup wsdlTypes and update XSD/WSDL project's files
 		if (VersionUtils.compare(version, "4.6.0") < 0) {
 			try {
-				if (xsdCreated && wsdlCreated) {
-					String xsdTypes;
-
 					// Retrieve a !clone! of project to perform update
 					Project project = getProjectByName(projectName);
 
 					for (Connector connector : project.getConnectorsList()) {
+						// Retrieve backup wsdlTypes and store Transaction's schema
 						for (Transaction transaction : connector.getTransactionsList()) {
 							try {
-								// Migrates
-								xsdTypes = transaction.migrateToXsdTypes();
-								ProjectUtils.migrateWsdlTypes(projectName, connector, transaction, xsdTypes,
-										false);
-
+								String xsdTypes = transaction.migrateToXsdTypes();
+								transaction.writeSchemaToFile(xsdTypes);
 								Engine.logDatabaseObjectManager
-										.info("XSD/WSDL files sucessfully updated for transaction \""
-												+ transaction.getName() + "\"");
+										.info("Internal schema stored for \""
+												+ transaction.getName() + "\" transaction");
 							} catch (Exception e) {
 								Engine.logDatabaseObjectManager.error(
-										"An error occured while updating XSD/WSDL files for project '"
-												+ projectName + "'", e);
+										"An error occured while writing schema to file for \""
+											+ transaction.getName() + "\" transaction");
 							}
 						}
 					}
 
+					// Fix sequence's steps sources
 					for (Sequence sequence : project.getSequencesList()) {
 						try {
-							// Migrates
-							xsdTypes = sequence.migrateToXsdTypes();
-							ProjectUtils.migrateWsdlTypes(projectName, project, sequence, xsdTypes, false);
+							List<Step> steps = sequence.getSteps();
 
-							try {
-								// Convertigo studio distribution
-								try {
-									List<Step> steps = sequence.getSteps();
-
-									// Replace source's xpath
-									// replace ./xxx by
-									// ./transaction/document/xxx or by
-									// ./sequence/document/xxx
-									replaceSourceXpath(sequence, steps);
-
-									// Add target project import in xsd
-									addStepTargetProjectImports(steps);
-
-									// Regenerate sequence schema from
-									// definition
-									xsdTypes = sequence.generateXsdTypes(null, false);
-									ProjectUtils.updateXSDFile(projectName, project, sequence, xsdTypes,
-											false, false);
-								} catch (EngineException e) {
-									Engine.logDatabaseObjectManager.warn(e);
-								}
-							} catch (ClassNotFoundException ee) {
-								// Convertigo server distribution
-								Engine.logDatabaseObjectManager
-										.warn("Sequence's schema and xpath of step sources have not been migrated. Project needs to be migrated with studio.");
-							}
+							// Replace source's xpath
+							// replace ./xxx by
+							// ./transaction/document/xxx or by
+							// ./sequence/document/xxx
+							replaceSourceXpath(sequence, steps);
 
 							Engine.logDatabaseObjectManager
-									.info("XSD/WSDL files sucessfully updated for sequence \""
+									.info("Step sources updated for sequence \""
 											+ sequence.getName() + "\"");
 						} catch (Exception e) {
 							Engine.logDatabaseObjectManager.error(
-									"An error occured while updating XSD/WSDL files for project '"
-											+ projectName + "'", e);
+									"An error occured while updating step sources for sequence \""
+									+ sequence.getName() + "\"");
 						}
 					}
 
-				}
 
 			} catch (Exception e) {
 				Engine.logDatabaseObjectManager.error(
-						"An error occured while updating XSD/WSDL files for project '" + projectName + "'", e);
+						"An error occured while updating project '" + projectName + "' for XSD", e);
 				return false;
 			}
 		}
@@ -1092,66 +1046,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 					xpath = xpath.replaceFirst("./", "./" + replace + "/document/");
 					definition.set(1, xpath);
 				}
-			}
-		}
-	}
-
-	private void addStepTargetProjectImports(List<Step> stepList) throws EngineException {
-		for (Step step : stepList) {
-			if (step instanceof SequenceStep) {
-				SequenceStep sequenceStep = (SequenceStep) step;
-				String projectName = sequenceStep.getProject().getName();
-				String targetProjectName = sequenceStep.getProjectName();
-				if (!projectName.equals(targetProjectName)) {
-					File projectFile = new File(Engine.PROJECTS_PATH + "/" + targetProjectName + "/"
-							+ targetProjectName + ".xsd");
-					if (projectFile.exists()) {
-						try {
-							ProjectUtils.addXSDFileImport(projectName, targetProjectName, false);
-							Engine.logDatabaseObjectManager.info("Sucessfully added xsd import of \""
-									+ targetProjectName + "\" project for SequenceStep \""
-									+ sequenceStep.getName() + "\"");
-						} catch (Exception e) {
-							String message = "Unable to add xsd import of \"" + targetProjectName
-									+ "\" project for SequenceStep \"" + sequenceStep.getName() + "\"";
-							throw new EngineException(message, e);
-						}
-					} else {
-						String message = "Unable to add xsd import of \"" + targetProjectName
-								+ "\" project for SequenceStep \"" + sequenceStep.getName() + "\". "
-								+ targetProjectName + ".xsd file is missing.";
-						throw new EngineException(message);
-					}
-				}
-			} else if (step instanceof TransactionStep) {
-				TransactionStep transactionStep = (TransactionStep) step;
-				String projectName = transactionStep.getProject().getName();
-				String targetProjectName = transactionStep.getProjectName();
-				if (!projectName.equals(targetProjectName)) {
-					File projectFile = new File(Engine.PROJECTS_PATH + "/" + targetProjectName + "/"
-							+ targetProjectName + ".xsd");
-					if (projectFile.exists()) {
-						try {
-							ProjectUtils.addXSDFileImport(projectName, targetProjectName, false);
-							Engine.logDatabaseObjectManager.info("Sucessfully added xsd import of \""
-									+ targetProjectName + "\" project for TransactionStep \""
-									+ transactionStep.getName() + "\"");
-						} catch (Exception e) {
-							String message = "Unable to add xsd import of \"" + targetProjectName
-									+ "\" project for TransactionStep \"" + transactionStep.getName() + "\"";
-							throw new EngineException(message, e);
-						}
-					} else {
-						String message = "Unable to add xsd import of \"" + targetProjectName
-								+ "\" project for TransactionStep \"" + transactionStep.getName() + "\". "
-								+ targetProjectName + ".xsd file is missing.";
-						throw new EngineException(message);
-					}
-				}
-			}
-
-			if (step instanceof StepWithExpressions) {
-				addStepTargetProjectImports(((StepWithExpressions) step).getSteps());
 			}
 		}
 	}
@@ -1226,31 +1120,31 @@ public class DatabaseObjectsManager implements AbstractManager {
 			project.hasChanged = true;
 			exportProject(project);
 			
-			// Rename old .xsd file
-			try {
-				ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, oldName, newName);
-			} catch (Exception e) {
-				throw new ConvertigoException(e.getMessage());
-			}
-			
-			// Rename old .wsdl file
-			try {
-				ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, oldName, newName);
-			} catch (Exception e) {
-				throw new ConvertigoException(e.getMessage());
-			}
-
-			// Delete old .temp.xsd file
-			File xsdTemp = new File(Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".temp.xsd");
-	        if (xsdTemp.exists() && !xsdTemp.delete()) {
-				throw new ConvertigoException("Unable to delete the xsd file \"" + oldName + ".temp.xsd\".");
-			}
-			
-			// Delete old .temp.wsdl file
-			File wsdlTemp = new File(Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".temp.wsdl");
-	        if (wsdlTemp.exists() && !wsdlTemp.delete()) {
-				throw new ConvertigoException("Unable to delete the wsdl file \"" + oldName + ".temp.wsdl\".");
-			}
+//			// Rename old .xsd file
+//			try {
+//				ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, oldName, newName);
+//			} catch (Exception e) {
+//				throw new ConvertigoException(e.getMessage());
+//			}
+//			
+//			// Rename old .wsdl file
+//			try {
+//				ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, oldName, newName);
+//			} catch (Exception e) {
+//				throw new ConvertigoException(e.getMessage());
+//			}
+//
+//			// Delete old .temp.xsd file
+//			File xsdTemp = new File(Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".temp.xsd");
+//	        if (xsdTemp.exists() && !xsdTemp.delete()) {
+//				throw new ConvertigoException("Unable to delete the xsd file \"" + oldName + ".temp.xsd\".");
+//			}
+//			
+//			// Delete old .temp.wsdl file
+//			File wsdlTemp = new File(Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".temp.wsdl");
+//	        if (wsdlTemp.exists() && !wsdlTemp.delete()) {
+//				throw new ConvertigoException("Unable to delete the wsdl file \"" + oldName + ".temp.wsdl\".");
+//			}
 			
 			// Delete the old .xml file
 	        String xmlFilePath = Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".xml";
