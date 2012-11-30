@@ -58,7 +58,6 @@ import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.DecoratingLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -138,13 +137,14 @@ import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.actions.ProjectExplorerSaveAllAction;
+import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
+import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.dnd.StepSourceTransfer;
 import com.twinsoft.convertigo.eclipse.dnd.TreeDragListener;
 import com.twinsoft.convertigo.eclipse.dnd.TreeDropAdapter;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
-import com.twinsoft.convertigo.eclipse.popup.actions.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction;
@@ -153,7 +153,6 @@ import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDeleteAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableColumnAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableRowAction;
-import com.twinsoft.convertigo.eclipse.popup.actions.CustomDialog;
 import com.twinsoft.convertigo.eclipse.popup.actions.ProjectValidateXSDAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.RedoAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedAction;
@@ -677,7 +676,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 					CustomDialog customDialog = new CustomDialog(
 							shell,
 							"Update object references in steps",
-							"Do you want to update project references in steps ?\n You can replace '"
+							"Do you want to update project references in steps?\n You can replace '"
 									+ oldName
 									+ "' by '"
 									+ newName
@@ -686,11 +685,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 									+ "' by '"
 									+ newName
 									+ "' in current project only.\n- click Cancel for none update.",
-									1250, 150,
+									1250, 250,
 							new ButtonSpec("Replace in all loaded projects",
 									true),
 							new ButtonSpec("Replace in current project", false),
-							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false));
+							new ButtonSpec("Do not replace", false));
 					int response = customDialog.open();
 					if (response == 0) {
 						updateReferences = true;
@@ -1055,7 +1054,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 											"Update object references in steps",
 											"Do you want to update "
 													+ objectType
-													+ " references in steps ?\n You can replace '"
+													+ " references in steps?\n You can replace '"
 													+ oldName
 													+ "' by '"
 													+ newName
@@ -1064,10 +1063,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 													+ "' by '"
 													+ newName
 													+ "' in current project only.\n- click Cancel for none update.",
-													1250, 150,
+													1250, 250,
 											new ButtonSpec("Replace in all loaded projects", true),
 											new ButtonSpec("Replace in current project", false),
-											new ButtonSpec(IDialogConstants.CANCEL_LABEL, false));
+											new ButtonSpec("Do not replace", false));
 									int response = customDialog.open();
 									if (response == 0) {
 										updateReferences = true;
