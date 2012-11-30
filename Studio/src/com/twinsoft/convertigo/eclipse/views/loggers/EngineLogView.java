@@ -35,11 +35,13 @@ import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -125,16 +127,16 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 	public void createPartControl(Composite parent) {
 		mainComposite = parent;
 		
-		GridLayout gridLayout = new GridLayout(1, false);
-		GridLayout gridLayoutCheck = new GridLayout(15, false);
-		GridLayout gridLayoutDTime = new GridLayout(17, false);
-		compositeCheck = new Composite(parent, SWT.PUSH);
-		compositeDateTime = new Composite(parent, SWT.PUSH);
+		GridLayout gridLayout = new GridLayout();
+		RowLayout gridLayoutCheck = new RowLayout(SWT.HORIZONTAL); gridLayoutCheck.wrap = true;
+		RowLayout gridLayoutDTime = new RowLayout(SWT.HORIZONTAL); gridLayoutDTime.wrap = true;
+		compositeCheck = new Composite(parent, SWT.NONE);
+		compositeDateTime = new Composite(parent, SWT.NONE);
 
-		gridDataCheck = new GridData();
-		gridDataCheck.horizontalAlignment = SWT.FILL;
-		gridDataDateTime = new GridData();
-		gridDataDateTime.horizontalAlignment = SWT.FILL;
+		gridDataCheck = new GridData(SWT.FILL, SWT.VERTICAL, true, false);
+		gridDataCheck.horizontalAlignment = SWT.HORIZONTAL;
+		gridDataDateTime = new GridData(SWT.FILL, SWT.VERTICAL, true, false);
+		gridDataDateTime.horizontalAlignment = SWT.HORIZONTAL;
 		
 		parent.setLayout(gridLayout);
 		compositeCheck.setLayoutData(gridDataCheck);
@@ -144,43 +146,42 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		
 		Label checkColumns = new Label(compositeCheck, SWT.PUSH);
 		checkColumns.setText("Selected columns:   ");
-		initCheckColumns();
+		createCheckColumns();
 		
-		Label dateFilter = new Label(compositeDateTime, SWT.PUSH);
+		Label dateFilter = new Label(compositeDateTime, SWT.NONE);
 		dateFilter.setText("Start Date:  ");
 		dateStart = new DateTime(compositeDateTime, SWT.PUSH);
 		
-		Label timeFilter = new Label(compositeDateTime, SWT.PUSH);
+		Label timeFilter = new Label(compositeDateTime, SWT.NONE);
 		timeFilter.setText("Time:");
 		hourStart = new Combo(compositeDateTime, SWT.PUSH | SWT.READ_ONLY);
-		timeFilter = new Label(compositeDateTime, SWT.PUSH);
+		timeFilter = new Label(compositeDateTime, SWT.NONE);
 		timeFilter.setText(":");
 		minuteStart = new Combo(compositeDateTime, SWT.PUSH | SWT.READ_ONLY);
-		timeFilter = new Label(compositeDateTime, SWT.PUSH);
+		timeFilter = new Label(compositeDateTime, SWT.NONE);
 		timeFilter.setText(":");
 		secondeStart = new Combo(compositeDateTime, SWT.PUSH | SWT.READ_ONLY);
 		
-		dateFilter = new Label(compositeDateTime, SWT.PUSH);
+		dateFilter = new Label(compositeDateTime, SWT.NONE);
 		dateFilter.setText(" - End Date:");
 		dateEnd = new DateTime(compositeDateTime, SWT.PUSH | SWT.DATE);
 		
-		timeFilter = new Label(compositeDateTime, SWT.PUSH);
+		timeFilter = new Label(compositeDateTime, SWT.NONE);
 		timeFilter.setText("Time:"); 	
 		hourEnd = new Combo(compositeDateTime, SWT.PUSH | SWT.READ_ONLY);
-		timeFilter = new Label(compositeDateTime, SWT.PUSH);
+		timeFilter = new Label(compositeDateTime, SWT.NONE);
 		timeFilter.setText(":"); 	
 		minuteEnd = new Combo(compositeDateTime, SWT.PUSH | SWT.READ_ONLY);
-		timeFilter = new Label(compositeDateTime, SWT.PUSH);
+		timeFilter = new Label(compositeDateTime, SWT.NONE);
 		timeFilter.setText(":");
 		secondeEnd = new Combo(compositeDateTime, SWT.PUSH | SWT.READ_ONLY);
 		
 		applyOptions = new Button(compositeDateTime, SWT.PUSH);
 		applyOptions.setText("Apply options");
 		
-		filterText = new Text(parent, SWT.BORDER | SWT.SEARCH | SWT.VERTICAL | SWT.FILL);
+		filterText = new Text(parent,  SWT.BORDER | SWT.SEARCH | SWT.VERTICAL | SWT.FILL);
 		filterText.setLayoutData(new GridData(SWT.FILL, SWT.VERTICAL, true, false));
 		
-		initComboDateTime();
 		createActions();
 		createToolbar();
 		
@@ -196,17 +197,26 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 				try {
 					String completeDateStart = dateStart.getYear()+"-"+(dateStart.getMonth()+1)+"-"+(dateStart.getDay()<10 ? "0"+dateStart.getDay() : dateStart.getDay())+" "+hourStart.getText()+":"+minuteStart.getText()+":"+secondeStart.getText()+",000";					
 					String completeDateEnd = dateEnd.getYear()+"-"+(dateEnd.getMonth()+1)+"-"+(dateEnd.getDay()<10 ? "0"+dateEnd.getDay() : dateEnd.getDay())+" "+hourEnd.getText()+":"+minuteEnd.getText()+":"+secondeEnd.getText()+",999";
-					logManager.setDateStart(date_format.parse(completeDateStart));
-					logManager.setDateEnd(date_format.parse(completeDateEnd));
-					clearLogs();
-					setLogFilter();			
+					if(date_format.parse(completeDateStart).before(date_format.parse(completeDateEnd))){
+						if(!logManager.getDateStart().toString().equals(date_format.parse(completeDateStart).toString()) || 
+								!logManager.getDateEnd().toString().equals(date_format.parse(completeDateEnd).toString()) || 
+										!logManager.getCurrentFilter().equals(filterText.getText()))
+							clearLogs();
+						logManager.setDateStart(date_format.parse(completeDateStart));
+						logManager.setDateEnd(date_format.parse(completeDateEnd));
+						setLogFilter();			
+					}
+					else{
+						ConvertigoPlugin.errorMessageBox("The start date/end date isn't valid!");
+					}
 				} catch (ParseException ex) {
 					ConvertigoPlugin.logException(ex, "Error while parsing the start/end date");
 				}
 			}
 		});
-
 		createViewer(parent);
+		initCheckColumns();
+		initComboDateTime();
 		
 		comparator = new EngineLogViewComparator();
 		tableViewer.setComparator(comparator);
@@ -338,13 +348,18 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		secondeEnd.select(59);
 	}
 	
-	private void initCheckColumns(){	
-		for (int i = 0 ; i < titles.length ; i++){				
-			final int j = i;
+	private void createCheckColumns(){	
+		for (int i = 0 ; i < titles.length ; i++){
 			columns[i] = new Button(compositeCheck, SWT.CHECK);
 			columns[i].setText(titles[i]);
+		}
+	}
+	
+	private void initCheckColumns(){
+		for (int i = 0 ; i < titles.length ; i++){	
+			final int j = i;
 			columns[i].setSelection(!getColHideProperty(ENGINE_LOG_VIEW_COL_HIDE+"_"+i));
-
+			headerMenu.getItem(i).setSelection(!getColHideProperty(ENGINE_LOG_VIEW_COL_HIDE+"_"+i));
 			columns[i].addListener(SWT.Selection, new Listener(){
 				public void handleEvent(Event e) {
 					TableColumn column = tableViewer.getTable().getColumn(j);
@@ -352,16 +367,17 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 						column.setWidth(bounds[j]);
 						column.setResizable(true);
 						setColHideProperty(ENGINE_LOG_VIEW_COL_HIDE+"_"+j, false);
+						headerMenu.getItem(j).setSelection(true);
 					}else{
 					    column.setWidth(0);
 					    column.setResizable(false);
 						setColHideProperty(ENGINE_LOG_VIEW_COL_HIDE+"_"+j, true);
+						headerMenu.getItem(j).setSelection(false);
 					}
 				}
 			});
 		}
 	}
-	
 	private void setDateTimeStart(String theDate){
 		try {
 			Date start = new Date(); start = date_format.parse(theDate);
@@ -397,7 +413,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		compositeTableViewer.setLayoutData(gridData);
 		
-		tableViewer = new TableViewer(compositeTableViewer, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.BORDER | SWT.VERTICAL | SWT.FILL);
+		tableViewer = new TableViewer(compositeTableViewer, SWT.RESIZE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.BORDER | SWT.VERTICAL | SWT.FILL);
 		
 		createColumns(compositeTableViewer, tableViewer);
 		createTableMenu(compositeTableViewer);
@@ -425,10 +441,11 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		
 		table.addListener(SWT.MenuDetect, new Listener() {
 			public void handleEvent(Event event) {
-				Point pt = Display.getCurrent().map(null, table, new Point(event.x, event.y));
+				Point pt = Display.getCurrent().map(null, table, new Point(event.x, event.y)); 
 				Rectangle clientArea = table.getClientArea();
 				boolean header = clientArea.y <= pt.y && pt.y < (clientArea.y + table.getHeaderHeight());
-				selectedColumnIndex = tableViewer.getCell(pt).getColumnIndex();
+				if(tableViewer.getCell(pt)!=null)
+					selectedColumnIndex = tableViewer.getCell(pt).getColumnIndex();
 				table.setMenu(header ? headerMenu : tableMenu);
 				if(tableViewer.getTable().getColumn(selectedColumnIndex).getText().toLowerCase().equals("time")){
 					startDateItem.setEnabled(true);		
@@ -440,12 +457,9 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 				if(selectedColumnIndex >4 && selectedColumnIndex < 14)
 					addVariableItem.setEnabled(true);		
 				else
-					addVariableItem.setEnabled(false);		
-				
-				
+					addVariableItem.setEnabled(false);
 			}
 		});
-		
 		/* IMPORTANT: Dispose the menus (only the current menu, set with setMenu(), will be automatically disposed) */
 		table.addListener(SWT.Dispose, new Listener() {
 			public void handleEvent(Event event) {
@@ -697,6 +711,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		
 		TableViewerColumn col = createTableViewerColumn(titles[0], bounds[0], 0);;
 		layout.setColumnData(col.getColumn(), new ColumnWeightData(20, ColumnWeightData.MINIMUM_WIDTH, true));
+		createMenuItem(headerMenu, col.getColumn());
 
 		col = createTableViewerColumn(titles[1], bounds[1], 1);
 		layout.setColumnData(col.getColumn(), new ColumnWeightData(3, ColumnWeightData.MINIMUM_WIDTH, true));
@@ -721,7 +736,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		}
 		//Order columns
 		TableColumn tab[] = tableViewer.getTable().getColumns();
-		for (int i = 0; i<titles.length; i++){
+		for (int i = 0; i < tableViewer.getTable().getColumnCount(); i++){
 			tab[i].addControlListener(new ControlListener() {
 				public void controlResized(ControlEvent arg0) {}
 				public void controlMoved(ControlEvent arg0) {
@@ -732,6 +747,18 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 				}
 			});
 		}
+		final MenuItem[] header = headerMenu.getItems();
+		for (int i = 0; i < headerMenu.getItemCount(); i++){
+			final int j = i;
+			header[i].addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent arg0) {
+					setColHideProperty(ENGINE_LOG_VIEW_COL_HIDE+"_"+j, !header[j].getSelection());
+					columns[j].setSelection(header[j].getSelection());
+				}
+				public void widgetDefaultSelected(SelectionEvent arg0) {}
+			});
+		}
+		
 	} 
 	
 	private TableViewerColumn createTableViewerColumn(String title, int bound, final int colNumber) {
