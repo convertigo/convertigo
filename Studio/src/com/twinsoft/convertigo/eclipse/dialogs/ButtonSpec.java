@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.eclipse.popup.actions;
+package com.twinsoft.convertigo.eclipse.dialogs;
 
 public class ButtonSpec {
 	public String label;

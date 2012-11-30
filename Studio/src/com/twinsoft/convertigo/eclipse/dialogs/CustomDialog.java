@@ -1,4 +1,4 @@
-package com.twinsoft.convertigo.eclipse.popup.actions;
+package com.twinsoft.convertigo.eclipse.dialogs;
 
 import java.util.Arrays;
 import java.util.List;
@@ -7,7 +7,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 
-import com.twinsoft.convertigo.eclipse.dialogs.MyAbstractDialog;
 
 
 public class CustomDialog extends MyAbstractDialog {

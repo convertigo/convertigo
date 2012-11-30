@@ -1,11 +1,10 @@
-package com.twinsoft.convertigo.eclipse.popup.actions;
+package com.twinsoft.convertigo.eclipse.dialogs;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import com.twinsoft.convertigo.eclipse.dialogs.MyAbstractDialogComposite;
 
 public class CustomDialogComposite extends MyAbstractDialogComposite {
 
@@ -21,12 +20,12 @@ public class CustomDialogComposite extends MyAbstractDialogComposite {
 	public void initialize() {
 		GridLayout gridLayout = new GridLayout();
 		GridData data = new GridData();
-		labelQuestion = new Label(this, SWT.NONE);
+		labelQuestion = new Label(this, SWT.FILL);
 
-		gridLayout.numColumns = 1;
+		gridLayout.numColumns = 4;
 		setLayout(gridLayout);
 		data.horizontalAlignment = SWT.FILL;
-		data.verticalAlignment = SWT.TOP;
+		data.verticalAlignment = SWT.BOTTOM;
 		labelQuestion.setText(question);
 		labelQuestion.setLayoutData(data);
 	}

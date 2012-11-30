@@ -34,6 +34,8 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.transactions.CicsTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
+import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
