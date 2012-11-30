@@ -4,6 +4,7 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.eclipse.views.references.model.AbstractNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.AbstractParentNode;
 
 public class ViewRefContentProvider implements ITreeContentProvider {
 
@@ -18,7 +19,7 @@ public class ViewRefContentProvider implements ITreeContentProvider {
 	}
 
 	public Object[] getChildren(Object parentElement) {
-		return ((AbstractNode) parentElement).getChildren().toArray();
+		return ((AbstractParentNode) parentElement).getChildren().toArray();
 	}
 
 	public Object getParent(Object element) {
@@ -26,7 +27,7 @@ public class ViewRefContentProvider implements ITreeContentProvider {
 	}
 
 	public boolean hasChildren(Object element) {
-		return ((AbstractNode) element).hasChildren();
+		return ((AbstractParentNode) element).hasChildren();
 	}
 
 }

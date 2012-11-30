@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/eclipse/views/projectexplorer/FolderTreeObject.java $
+ * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/eclipse/views/projectexplorer/TreeObject.java $
  * $Author: fabienb $
  * $Revision: 28379 $
  * $Date: 2011-09-27 11:38:59 +0200 (Tue, 27 Sep 2011) $
@@ -22,12 +22,30 @@
 
 package com.twinsoft.convertigo.eclipse.views.references.model;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 
+public abstract class AbstractNodeWithDatabaseObjectReference extends AbstractParentNode {
+	
+	protected AbstractNodeWithDatabaseObjectReference(
+			AbstractParentNode parent, String name,
+			DatabaseObject refDatabaseObject) {
+		super(parent, name);
+		setRefDatabaseObject(refDatabaseObject);
+	}
 
-public class Folder extends AbstractParentNode {
+	private DatabaseObject refDatabaseObject;
 
-	public Folder(AbstractParentNode parent, String name) {
-		super(parent, name, null);
+	public DatabaseObject getRefDatabaseObject() {
+		return refDatabaseObject;
+	}
+
+	public void setRefDatabaseObject(DatabaseObject refDatabaseObject) {
+		this.refDatabaseObject = refDatabaseObject;
+	}
+
+	@Override
+	public String getName() {
+		return (refDatabaseObject == null ? name + " (broken reference)" : name);
 	}
 
 }

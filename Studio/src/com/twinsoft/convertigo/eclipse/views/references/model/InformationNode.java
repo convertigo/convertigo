@@ -22,14 +22,12 @@
 
 package com.twinsoft.convertigo.eclipse.views.references.model;
 
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
 
 
-public class TransactionStepNode extends AbstractNodeWithDatabaseObjectReference {
+public class InformationNode extends AbstractParentNode {
 
-	public TransactionStepNode(AbstractParentNode parent, String name, DatabaseObject refDatabaseObject) {
-		
-		super(parent, name, refDatabaseObject);
+	public InformationNode(AbstractParentNode parent, String name) {
+		super(parent, name);
 	}
 
 }

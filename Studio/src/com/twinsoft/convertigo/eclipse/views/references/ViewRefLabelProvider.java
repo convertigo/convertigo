@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.eclipse.views.references.model.AbstractNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.CicsConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.EntryHandlerNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.ExitHandlerNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.Folder;
+import com.twinsoft.convertigo.eclipse.views.references.model.InformationNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.HtmlConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.HttpConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.IsUsedByNode;
@@ -76,7 +76,7 @@ public class ViewRefLabelProvider implements ILabelProvider {
 			iconName = "/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png";
 		} else if (element instanceof ScreenClassNode) {
 			iconName = "/com/twinsoft/convertigo/beans/core/images/screenclass_color_16x16.png";
-		} else if (element instanceof Folder) {
+		} else if (element instanceof InformationNode) {
 			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/information_color_16x16.png";
 		} else if (element instanceof ProjectNode) {
 			iconName = "/com/twinsoft/convertigo/beans/core/images/project_color_16x16.png";

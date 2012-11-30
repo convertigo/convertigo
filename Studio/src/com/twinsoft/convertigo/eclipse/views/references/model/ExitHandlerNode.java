@@ -25,7 +25,7 @@ package com.twinsoft.convertigo.eclipse.views.references.model;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 
 
-public class ExitHandlerNode extends AbstractParentNode {
+public class ExitHandlerNode extends AbstractNodeWithDatabaseObjectReference {
 
 	public ExitHandlerNode(AbstractParentNode parent, String name, DatabaseObject refDatabaseObject) {
 		super(parent, name, refDatabaseObject);
