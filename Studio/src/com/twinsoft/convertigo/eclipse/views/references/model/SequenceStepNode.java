@@ -25,7 +25,7 @@ package com.twinsoft.convertigo.eclipse.views.references.model;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 
 
-public class SequenceStepNode extends AbstractParentNode {
+public class SequenceStepNode extends AbstractNodeWithDatabaseObjectReference {
 
 	public SequenceStepNode(AbstractParentNode parent, String name, DatabaseObject refDatabaseObject) {
 		

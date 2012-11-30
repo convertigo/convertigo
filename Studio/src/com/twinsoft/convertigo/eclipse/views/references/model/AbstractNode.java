@@ -22,28 +22,19 @@
 
 package com.twinsoft.convertigo.eclipse.views.references.model;
 
-import java.util.List;
-
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
 
 public abstract class AbstractNode {
 	
-	private DatabaseObject refDatabaseObject;
-	public DatabaseObject getRefDatabaseObject() {
-		return refDatabaseObject;
-	}
-
 	protected AbstractParentNode parent;
-	private String name;
+	protected String name;
 	
 	public String getName() {
 		return name;
 	}
 
-	protected AbstractNode(AbstractParentNode parent, String name, DatabaseObject refDatabaseObject) {
+	protected AbstractNode(AbstractParentNode parent, String name) {
 		this.parent = parent;
 		this.name = name;
-		this.refDatabaseObject = refDatabaseObject;
 	}
 	
 	public void setParent(AbstractParentNode parent) {
@@ -53,8 +44,4 @@ public abstract class AbstractNode {
 	public AbstractParentNode getParent() {
 		return parent;
 	}
-
-	public abstract List<? extends AbstractNode> getChildren();	
-
-	public abstract boolean hasChildren();
 }

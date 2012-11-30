@@ -22,13 +22,10 @@
 
 package com.twinsoft.convertigo.eclipse.views.references.model;
 
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
-
-
 public class IsUsedByNode extends AbstractParentNode {
 
-	public IsUsedByNode(AbstractParentNode parent, String name, DatabaseObject refDatabaseObject) {
-		super(parent, name, refDatabaseObject);
+	public IsUsedByNode(AbstractParentNode parent, String name) {
+		super(parent, name);
 	}
 
 }

@@ -27,7 +27,7 @@ package com.twinsoft.convertigo.eclipse.views.references.model;
 public class RootNode extends AbstractParentNode {
 
 	public RootNode() {
-		super(null, "root", null);
+		super(null, "root");
 	}
 
 }

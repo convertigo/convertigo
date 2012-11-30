@@ -25,12 +25,10 @@ package com.twinsoft.convertigo.eclipse.views.references.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
-
 public abstract class AbstractParentNode extends AbstractNode {
 	
-	protected AbstractParentNode(AbstractParentNode parent, String name, DatabaseObject refDatabaseObject) {
-		super(parent, name, refDatabaseObject);
+	protected AbstractParentNode(AbstractParentNode parent, String name) {
+		super(parent, name);
 		children = new ArrayList<AbstractNode>();
 	}
 

@@ -25,7 +25,7 @@ package com.twinsoft.convertigo.eclipse.views.references.model;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 
 
-public class ConnectorNode extends AbstractParentNode {
+public class ConnectorNode extends AbstractNodeWithDatabaseObjectReference {
 
 	public ConnectorNode(AbstractParentNode parent, String name, DatabaseObject refDatabaseObject) {
 		super(parent, name, refDatabaseObject);
