@@ -170,16 +170,18 @@ public class LogManager {
 		}
 	}
 	
-	public Date getDateStart(){
+	public Date getDateStart() {
 		return date_start;
 	}
-	public Date getDateEnd(){
+	
+	public Date getDateEnd() {
 		return date_end;
 	}
 	
-	public String getCurrentFilter(){
+	public String getCurrentFilter() {
 		return filter;
 	}
+	
 	public void setFilter(String filter) throws ServiceException {
 		if (filter == null) {
 			filter = "";
