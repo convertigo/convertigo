@@ -153,7 +153,8 @@ public class Crypto2 {
 	}
 
 	public static String encodeToHexString(String data) {
-		return Crypto2.encodeToHexString(EnginePropertiesManager.getProperty(PropertyName.CRYPTO_PASSPHRASE),
+		return Crypto2.encodeToHexString(
+				EnginePropertiesManager.getProperty(PropertyName.CRYPTO_PASSPHRASE),
 				data);
 	}
 
@@ -162,7 +163,8 @@ public class Crypto2 {
 		// New crypto lib
 		if (ciphered.charAt(0) == NEW_CRYPTO_MARKER) {
 			return Crypto2
-					.decodeFromHexString("A8dkLmsdfkKze0e34FGh",
+					.decodeFromHexString(
+							EnginePropertiesManager.getProperty(PropertyName.CRYPTO_PASSPHRASE),
 							ciphered);
 		}
 		// Old crypto lib
