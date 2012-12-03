@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.beans.transactions.CicsTransaction;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 
 /**
  * This is the CICS connector.
@@ -252,5 +253,21 @@ public class CicsConnector extends Connector {
 	@Override
 	public CicsTransaction newTransaction() {
 		return new CicsTransaction();
+	}
+	
+	@Override
+	public boolean isMaskedProperty(Visibility target, String propertyName) {
+		if ("userPassword".equals(propertyName)) {
+			return true;
+		}
+		return super.isMaskedProperty(target, propertyName);
+	}
+
+	@Override
+	public boolean isCipheredProperty(String propertyName) {
+		if ("userPassword".equals(propertyName)) {
+			return true;
+		}
+		return super.isCipheredProperty(propertyName);
 	}
 }

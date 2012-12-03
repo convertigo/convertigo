@@ -352,15 +352,14 @@ public class ReverseProxyServlet extends HttpServlet {
 				String userPassword = ((givenBasicPassword == null) ? basicPassword : givenBasicPassword);
 				httpState.setCredentials(new AuthScope(targetHost, targetPort, realm),
 						new UsernamePasswordCredentials(userName, userPassword));
-				Engine.logEngine.debug("(ReverseProxyServlet) Credentials: " + userName + ":" + userPassword);
+				Engine.logEngine.debug("(ReverseProxyServlet) Credentials: " + userName + ":******");
 			}
 
 			// Setting basic authentication for proxy
 			if (!proxyServer.equals("") && !proxyUser.equals("")) {
 				httpState.setProxyCredentials(new AuthScope(proxyServer, proxyPort),
 						new UsernamePasswordCredentials(proxyUser, proxyPassword));
-				Engine.logEngine.debug("(ReverseProxyServlet) Proxy credentials: " + proxyUser + ":"
-						+ proxyPassword);
+				Engine.logEngine.debug("(ReverseProxyServlet) Proxy credentials: " + proxyUser + ":******");
 			}
 
 			// Forward the request headers

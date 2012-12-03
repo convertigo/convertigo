@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -186,7 +187,7 @@ public class SqlConnector extends Connector {
 		// Now attempt to create a database connection
 		Engine.logBeans.debug("(SqlConnector)  JDBC URL: " + realJdbcURL);//jdbc:hsqldb:file:C:\projets\Convertigo4\tomcat\webapps\convertigo\minime\crawlingDatabase
 		Engine.logBeans.debug("(SqlConnector)  User name: " + jdbcUserName);
-		Engine.logBeans.debug("(SqlConnector)  User password: " + jdbcUserPassword);
+		Engine.logBeans.debug("(SqlConnector)  User password: ******");
 
 		try {
 			Engine.logBeans.debug("[SqlConnector] Connecting...");
@@ -452,5 +453,21 @@ public class SqlConnector extends Connector {
 	@Override
 	public SqlTransaction newTransaction() {
 		return new SqlTransaction();
+	}
+
+	@Override
+	public boolean isMaskedProperty(Visibility target, String propertyName) {
+		if ("jdbcUserPassword".equals(propertyName)) {
+			return true;
+		}
+		return super.isMaskedProperty(target, propertyName);
+	}
+
+	@Override
+	public boolean isCipheredProperty(String propertyName) {
+		if ("jdbcUserPassword".equals(propertyName)) {
+			return true;
+		}
+		return super.isCipheredProperty(propertyName);
 	}
 }

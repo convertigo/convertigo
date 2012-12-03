@@ -60,6 +60,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -521,4 +522,20 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 	        smtpRecipients = "\"" + smtpRecipients + "\"";
 		 }
     }
+    
+	@Override
+	public boolean isMaskedProperty(Visibility target, String propertyName) {
+		if ("smtpPassword".equals(propertyName)) {
+			return true;
+		}
+		return super.isMaskedProperty(target, propertyName);
+	}
+
+	@Override
+	public boolean isCipheredProperty(String propertyName) {
+		if ("smtpPassword".equals(propertyName)) {
+			return true;
+		}
+		return super.isCipheredProperty(propertyName);
+	}
 }

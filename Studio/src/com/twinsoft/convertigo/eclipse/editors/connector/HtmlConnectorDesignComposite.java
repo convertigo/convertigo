@@ -594,7 +594,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		});
 		webViewer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		webViewer.setCredentials(user,password);
-		ConvertigoPlugin.logDebug2("(HtmlConnectorDesignComposite) Connector credentials has been set: " + user + "," + password);
+		ConvertigoPlugin.logDebug2("(HtmlConnectorDesignComposite) Connector credentials has been set: " + user + ",******");
 
 		// Set webViewer as viewer for connector html parser
 		htmlConnector.getHtmlParser().setWebViewer(webViewer);

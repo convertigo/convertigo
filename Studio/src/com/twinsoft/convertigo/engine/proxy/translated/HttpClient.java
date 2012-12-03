@@ -286,13 +286,13 @@ public class HttpClient {
 				String userName = ((givenBasicUser == null) ? basicUser:givenBasicUser);
 				String userPassword = ((givenBasicPassword == null) ? basicPassword:givenBasicPassword);
 				httpState.setCredentials(new AuthScope(host, port, realm), new UsernamePasswordCredentials(userName, userPassword));
-				Engine.logEngine.debug("(HttpClient) Credentials: " + userName + ":" + userPassword);
+				Engine.logEngine.debug("(HttpClient) Credentials: " + userName + ":******");
 			}
 			
 			// Setting basic authentication for proxy
 			if (!proxyServer.equals("") && !proxyUser.equals("")) {
 				httpState.setProxyCredentials(new AuthScope(proxyServer, proxyPort), new UsernamePasswordCredentials(proxyUser, proxyPassword));
-				Engine.logEngine.debug("(HttpClient) Proxy credentials: " + proxyUser + ":" + proxyPassword);
+				Engine.logEngine.debug("(HttpClient) Proxy credentials: " + proxyUser + ":******");
 			}
 						
 			// Setting HTTP headers

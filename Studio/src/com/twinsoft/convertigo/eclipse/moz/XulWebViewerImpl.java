@@ -429,27 +429,30 @@ public class XulWebViewerImpl extends AbstractXulWebViewer implements nsIHttpHea
 		
 		initMozillaCurrent();
 		
-		scriptableInputStream = (nsIScriptableInputStream)componentManager.createInstanceByContractID("@mozilla.org/scriptableinputstream;1", null, nsIScriptableInputStream.NS_ISCRIPTABLEINPUTSTREAM_IID);
+		scriptableInputStream = (nsIScriptableInputStream) componentManager.createInstanceByContractID("@mozilla.org/scriptableinputstream;1", null, nsIScriptableInputStream.NS_ISCRIPTABLEINPUTSTREAM_IID);
 		
-		flasher = (inIFlasher)componentManager.createInstanceByContractID("@mozilla.org/inspector/flasher;1", null, inIFlasher.INIFLASHER_IID);
+		flasher = (inIFlasher) componentManager.createInstanceByContractID("@mozilla.org/inspector/flasher;1", null, inIFlasher.INIFLASHER_IID);
 		flasher.setColor("lime");
 		flasher.setThickness(4);
-		final Runnable flashcode = new Runnable(){
+		Thread flasherd = new Thread(new Runnable() {
 			public void run() {
-				if(selectedElement!=null){
-					if(flasher_focus){
-						if(flasher!=null) flasher.scrollElementIntoView(selectedElement);
-						flasher_focus = false;
-					}
-					if(flasher!=null) flasher.drawElementOutline(selectedElement);
-				}
-			}
-		};
-		Thread flasherd = new Thread(new Runnable(){
-			public void run() {
-				long waitTime = 333;
-				while(flasher != null){
-					runSWT(flashcode);
+				long waitTime = 500;
+				while (flasher != null) {
+					display.syncExec(new Runnable() {
+						public void run() {
+							if (selectedElement != null) {
+								if (flasher_focus) {
+									if (flasher != null) {
+										flasher.scrollElementIntoView(selectedElement);
+									}
+									flasher_focus = false;
+								}
+								if (flasher != null) {
+									flasher.drawElementOutline(selectedElement);
+								}
+							}
+						}
+					});
 					try {	
 						Thread.sleep(waitTime);
 					} catch (InterruptedException e) {}
