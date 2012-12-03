@@ -62,7 +62,7 @@ public class ConsolePipes {
 				return;
 			}
 		}
-		if (nbRetry > 0) {
+		if (writerThreadEngine.isAlive()) {
 			convertigoPlugin.getLog().log(
 					new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, "Unable to close consoles"));
 		}
