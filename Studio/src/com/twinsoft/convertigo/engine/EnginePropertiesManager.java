@@ -455,7 +455,7 @@ public class EnginePropertiesManager {
 		/** SECURITY TOKEN */
 		SECURITY_TOKEN_LIFE_TIME ("security_token.life_time", "20", "Security tokens lifetime (in seconds)", PropertyCategory.SecurityToken),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
-		SECURITY_TOKEN_PASSPHRASE ("security_token.passphrase", ""+"c8o-password".hashCode(), "Security token generator passphrase", PropertyCategory.SecurityToken),
+		SECURITY_TOKEN_PASSWORD ("security_token.password", ""+"c8o-password".hashCode(), "Security token generator password", PropertyCategory.SecurityToken),
 
 		
 		/** SSL */
