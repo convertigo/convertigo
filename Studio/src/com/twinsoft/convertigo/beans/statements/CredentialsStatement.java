@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 
 public class CredentialsStatement extends Statement {
 
@@ -118,7 +119,7 @@ public class CredentialsStatement extends Statement {
 				htmlConnector.setGivenBasicUser(_user);
 				Engine.logBeans.debug("(CredentialsStatement) User '" + _user + "' has been set on http connector.");
 				htmlConnector.setGivenBasicPassword(_password);
-				Engine.logBeans.debug("(CredentialsStatement) Password '" + _password + "' has been set on http connector.");
+				Engine.logBeans.debug("(CredentialsStatement) Password '******' has been set on http connector.");
 				htmlConnector.getHtmlParser().setCredentials(htmlConnector.context, _user, _password, forceBasic);
 				
 				return true;
@@ -136,5 +137,21 @@ public class CredentialsStatement extends Statement {
     @Override
 	public String toJsString() {
 		return "";
+	}
+    
+	@Override
+	public boolean isMaskedProperty(Visibility target, String propertyName) {
+		if ("password".equals(propertyName)) {
+			return true;
+		}
+		return super.isMaskedProperty(target, propertyName);
+	}
+
+	@Override
+	public boolean isCipheredProperty(String propertyName) {
+		if ("password".equals(propertyName)) {
+			return true;
+		}
+		return super.isCipheredProperty(propertyName);
 	}
 }

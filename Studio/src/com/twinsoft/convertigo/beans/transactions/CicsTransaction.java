@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Parameter;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.COBOLUtils;
 import com.twinsoft.convertigo.engine.util.Copybook;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -901,4 +902,19 @@ public class CicsTransaction extends Transaction {
 		this.inputMapSize = size;
 	}
     
+	@Override
+	public boolean isMaskedProperty(Visibility target, String propertyName) {
+		if ("userPassword".equals(propertyName)) {
+			return true;
+		}
+		return super.isMaskedProperty(target, propertyName);
+	}
+
+	@Override
+	public boolean isCipheredProperty(String propertyName) {
+		if ("userPassword".equals(propertyName)) {
+			return true;
+		}
+		return super.isCipheredProperty(propertyName);
+	}
 }

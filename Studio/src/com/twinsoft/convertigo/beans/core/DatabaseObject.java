@@ -699,6 +699,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				if (childNode.getNodeType() != Node.ELEMENT_NODE) {
 					continue;
 				}
+				
+				Element childElement = (Element) childNode;
+				
 				childNodeName = childNode.getNodeName();
 
 				Engine.logBeans.trace("Analyzing node '" + childNodeName + "'");
@@ -718,11 +721,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 							childNode, Node.ELEMENT_NODE));
 
 					// Hides value in log trace if needed
-					try {
-						if ("false".equals(childAttributes.getNamedItem("traceable").getNodeValue())) {
-							maskValue = true;
-						}
-					} catch (Exception e) {
+					if ("false".equals(childElement.getAttribute("traceable"))) {
+						maskValue = true;
 					}
 					Engine.logBeans.trace("  value='"
 							+ (maskValue ? Visibility.maskValue(propertyObjectValue) : propertyObjectValue)
@@ -730,7 +730,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 					// Decrypts value if needed
 					try {
-						if ("true".equals(childAttributes.getNamedItem("ciphered").getNodeValue())) {
+						if ("true".equals(childElement.getAttribute("ciphered"))) {
 							propertyObjectValue = decryptPropertyValue(propertyObjectValue);
 						}
 					} catch (Exception e) {

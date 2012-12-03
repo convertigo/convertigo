@@ -797,7 +797,7 @@ public class HttpConnector extends Connector {
 				// UsernamePasswordCredentials(userName, userPassword));
 				httpState.setCredentials(new AuthScope(server, AuthScope.ANY_PORT, AuthScope.ANY_REALM),
 						new UsernamePasswordCredentials(userName, userPassword));
-				Engine.logBeans.debug("(HttpConnector) Credentials: " + userName + ":" + userPassword);
+				Engine.logBeans.debug("(HttpConnector) Credentials: " + userName + ": ******");
 			}
 
 			context.httpState = httpState;
@@ -1516,5 +1516,21 @@ public class HttpConnector extends Connector {
 	@Override
 	public HttpTransaction newTransaction() {
 		return new HttpTransaction();
+	}
+	
+	@Override
+	public boolean isMaskedProperty(Visibility target, String propertyName) {
+		if ("basicPassword".equals(propertyName)) {
+			return true;
+		}
+		return super.isMaskedProperty(target, propertyName);
+	}
+
+	@Override
+	public boolean isCipheredProperty(String propertyName) {
+		if ("basicPassword".equals(propertyName)) {
+			return true;
+		}
+		return super.isCipheredProperty(propertyName);
 	}
 }
