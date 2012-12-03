@@ -334,23 +334,29 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			// Case schemaElementForm of this project has changed
 			else if (propertyName.equals("schemaElementForm")) {
 				if (databaseObject.equals(getObject())) {
-					setXSDDefaultForms();
+					updateTransactionSchemas();
 				}
 			}
 			// Case namespaceUri of a project has changed
 			else if (propertyName.equals("namespaceUri")) {
-				// Makes replacements in XSD and WSDL files
-				Object oldValue = treeObjectEvent.oldValue;
-				Object newValue = treeObjectEvent.newValue;
-				if (oldValue.equals("")) oldValue = Project.CONVERTIGO_PROJECTS_NAMESPACEURI + databaseObject.getName();
-				if (newValue.equals("")) newValue = Project.CONVERTIGO_PROJECTS_NAMESPACEURI + databaseObject.getName();
-				
-				// TODO: set new namespaceUri in XmlSchema
+				if (databaseObject.equals(getObject())) {
+					updateTransactionSchemas();
+				}
 			}
 			// Case of a requestable changed its WS exposition
 			else if (propertyName.equals("accessibility")) {
+				// Nothing to do
 			}
 		}
+	}
+	
+	private synchronized void updateTransactionSchemas() {
+		for (Connector connector: getObject().getConnectorsList()) {
+			for (Transaction transaction: connector.getTransactionsList()) {
+				transaction.updateSchemaToFile();
+			}
+		}
+		Engine.theApp.schemaManager.clearCache(getName());
 	}
 	
 	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
@@ -360,15 +366,14 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		//Object newValue = treeObjectEvent.newValue;
 		
 		if (!(treeObject.equals(this))) {
-			//TODO: Makes replacements in XmlSchema if needed
 			if (databaseObject instanceof Project) {
-				
+				//TODO: Modify References on project, ...
 			}
 			else if (databaseObject instanceof Connector) {
-				//TODO: rename connector in transaction's schema file
+				//TODO: Move schema file + replace 'connector__transaction' in file
 			}
 			else if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
-				//TODO: rename transaction's schema file
+				//TODO: Move schema file + replace 'connector__transaction' in file
 			}
 		}
 	}
@@ -435,15 +440,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					}
 				}
 			}
-		}
-	}
-	
-	private synchronized void setXSDDefaultForms() {
-		String projectName = getName();
-		try {
-			//TODO: set Form attribute on schema
-		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Error while updating schema forms for project '" + projectName + "'");
 		}
 	}
 	

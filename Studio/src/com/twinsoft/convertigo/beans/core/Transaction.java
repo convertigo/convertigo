@@ -742,6 +742,29 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		return true;
 	}
 	
+	public void updateSchemaToFile() {
+		try {
+			XmlSchema xmlSchema = SchemaUtils.loadSchema(getSchemaFilePath());
+			if (xmlSchema != null) {
+				String targetNamespace = xmlSchema.getTargetNamespace();
+				String prefix = xmlSchema.getNamespaceContext().getPrefix(targetNamespace);
+				
+				Element schemaElement = xmlSchema.getSchemaDocument().getDocumentElement();
+				schemaElement.setAttribute("targetNamespace", getProject().getTargetNamespace());
+				schemaElement.setAttribute("xmlns:"+prefix, getProject().getTargetNamespace());
+				schemaElement.setAttribute("attributeFormDefault", getProject().getSchemaElementForm());
+				schemaElement.setAttribute("elementFormDefault", getProject().getSchemaElementForm());
+				
+				XmlSchemaCollection collection = new XmlSchemaCollection();
+				XmlSchema transactionSchema = collection.read(schemaElement);
+				new File(getSchemaFileDirPath()).mkdirs();
+				SchemaUtils.saveSchema(getSchemaFilePath(), transactionSchema);
+			}
+		} catch (Exception e) {
+			Engine.logBeans.error("Could not update schema file for transaction \""+getName()+"\"", e);
+		}
+	}
+	
 	public XmlSchemaInclude getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaInclude xmlSchemaInclude = new XmlSchemaInclude();		
 		XmlSchema transactionSchema = loadSchemaFromFile();
