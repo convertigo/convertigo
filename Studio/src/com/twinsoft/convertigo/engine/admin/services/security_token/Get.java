@@ -43,8 +43,8 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefiniti
 						description = "the ID of the portal authenticated user"
 					),
 				@ServiceParameterDefinition(
-						name = "passPhrase",
-						description = "the pass phrase required to use this service"
+						name = "password",
+						description = "the password required to use this service"
 					)
 			},
 		returnValue = "the token ID"
@@ -52,10 +52,15 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefiniti
 public class Get extends TextService {	
 
 	protected String getServiceResult(HttpServletRequest request) throws Exception {		
-		String passPhrase = request.getParameter("passPhrase");
+		String password = request.getParameter("password");
 		
-		if (!EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_PASSPHRASE).equals(passPhrase))
-			throw new EngineException("Invalid passphrase");
+		if (password == null)
+			throw new EngineException("Password not provided!");
+		
+		String servicePassword = EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_PASSWORD);
+		String providedPassword = "" + password.hashCode();
+		if (!servicePassword.equals(providedPassword))
+			throw new EngineException("Invalid password");
 		
 		String userID = request.getParameter("userID");
 		if ((userID == null) || (userID.length() == 0)) throw new EngineException("Invalid user ID");
