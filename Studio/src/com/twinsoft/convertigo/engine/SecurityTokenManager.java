@@ -47,9 +47,10 @@ public class SecurityTokenManager implements AbstractManager {
 		SecurityToken token = tokens.get(tokenID);
 		
 		if (token == null) throw new NoSuchSecurityTokenException(tokenID);
-		if (token.isExpired()) throw new ExpiredSecurityTokenException(tokenID);
 		
 		tokens.remove(tokenID);
+
+		if (token.isExpired()) throw new ExpiredSecurityTokenException(tokenID);
 		
 		return token;
 	}
