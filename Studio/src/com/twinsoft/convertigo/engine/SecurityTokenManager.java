@@ -59,7 +59,7 @@ public class SecurityTokenManager implements AbstractManager {
 		
 		long now = System.currentTimeMillis();
 		long tokenLifeTime = Long.parseLong(EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_LIFE_TIME));
-		SecurityToken token = new SecurityToken(tokenID, userID, now + tokenLifeTime);
+		SecurityToken token = new SecurityToken(tokenID, userID, now + tokenLifeTime * 1000);
 		
 		tokens.put(tokenID, token);
 		
