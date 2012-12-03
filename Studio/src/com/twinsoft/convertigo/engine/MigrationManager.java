@@ -85,8 +85,8 @@ public class MigrationManager {
 					String projectArchive;
 					for (int i = 0 ; i < projectArchives.length ; i++) {
 						projectArchive = projectArchives[i];
-						Engine.logEngine.debug("MigrationManager.performProjectsMigration() - projectArchive: "+projectArchive);
-						Engine.logEngine.debug("MigrationManager.performProjectsMigration() - projectsDirFile: "+projectsDirFile);
+						Engine.logEngine.trace("MigrationManager.performProjectsMigration() - projectArchive: "+projectArchive);
+						Engine.logEngine.trace("MigrationManager.performProjectsMigration() - projectsDirFile: "+projectsDirFile);
 						//projectName = projectArchive.substring(0, projectArchive.indexOf(".car"));
 						
 						//Added by julienda

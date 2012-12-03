@@ -444,9 +444,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 			String projectName = null;
 			Project project = null;
 
-			Engine.logEngine.debug("DatabaseObjectsManager.updateProject() - projectFileName  :  "+projectFileName);
+			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFileName  :  "+projectFileName);
 			File projectFile = new File(projectFileName);
-			Engine.logEngine.debug("DatabaseObjectsManager.updateProject() - projectFile.exists()  :  "+projectFile.exists());
+			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFile.exists()  :  "+projectFile.exists());
 			
 			if (projectFile.exists()) {
 				String fName = projectFile.getName();
@@ -485,7 +485,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				}
 			} else{
 				//Added by julienda - 10/09/2012
-					Engine.logEngine.debug("DatabaseObjectsManager.updateProject() - projectFileName :  "+projectFileName);
+					Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - projectFileName :  "+projectFileName);
 					//Get the correct archive file (path)
 					String archiveFileProject =  ZipUtils.getArchiveName(projectFileName);
 					
@@ -495,7 +495,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 						//Call method with the correct archive (path)
 						updateProject(new File(new File (projectFileName).getParent(), archiveFileProject).getPath());
 					
-					Engine.logEngine.debug("DatabaseObjectsManager.updateProject() - archiveFileProject  :  "+archiveFileProject);		
+					Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.updateProject() - archiveFileProject  :  "+archiveFileProject);		
 			}
 				
 	
@@ -527,11 +527,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 		try {
 			//Added by julienda - 10/09/2012
-				Engine.logEngine.debug("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - projectArchiveFilename: "+projectArchiveFilename);
-				Engine.logEngine.debug("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - targetProjectName: "+targetProjectName);
+				Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - projectArchiveFilename: "+projectArchiveFilename);
+				Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - targetProjectName: "+targetProjectName);
 			
 				archiveProjectName = ZipUtils.getProjectName(projectArchiveFilename);
-				Engine.logEngine.debug("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - archiveProjectName: "+archiveProjectName);
+				Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - archiveProjectName: "+archiveProjectName);
 				
 				if(targetProjectName==null && projectArchiveFilename!=null){
 					targetProjectName = archiveProjectName;
@@ -554,7 +554,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				deployDirPath = deployDir.getCanonicalPath();
 			}
 
-			Engine.logEngine.debug("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - projectName: "+projectName);
+			Engine.logDatabaseObjectManager.trace("DatabaseObjectsManager.deployProject() 6.1.x(trunk) - projectName: "+projectName);
 			projectDirPath = deployDirPath + "/" + archiveProjectName;
 
 			Engine.logDatabaseObjectManager.info("Deploying the project \"" + archiveProjectName + "\" ...");
