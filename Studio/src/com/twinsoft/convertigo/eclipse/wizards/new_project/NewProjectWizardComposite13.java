@@ -105,7 +105,7 @@ public class NewProjectWizardComposite13 extends Composite {
 		for (MobileFeature feature :MobileFeature.values()) {
 			ToggleButton featureButton = features[feature.index()] = new ToggleButton(group, SWT.NONE);
 			featureButton.addSelectionListener(selectionListener);
-			Image image = new Image(getDisplay(), getClass().getResourceAsStream("images/feature_" + feature.fileName().replaceAll("\\.js", ".png")));
+			Image image = new Image(getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/wizards/images/feature_" + feature.fileName().replaceAll("\\.js", ".png")));
 			featureButton.setImage(image);
 			featureButton.setToolTipText("Click to select the " + feature.displayName() + " feature");
 			featureButton.setSelection(true);
