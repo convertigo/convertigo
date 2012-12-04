@@ -512,7 +512,7 @@ C8O = {
 	_init : function (params) {
 		var value;
 		if (C8O._remove(params, "__enc")=="true" || C8O.init_vars.enc=="true") {
-			C8O._getScript("../../scripts/weblib_plugins.6.1.10/rsa.js", function () {
+			C8O._getScript("../../scripts/archive/weblib_plugins.6.1.10/rsa.js", function () {
 				C8O._init_rsa(params);
 			});
 		} else if (value=C8O._remove(params, "__container")) {
