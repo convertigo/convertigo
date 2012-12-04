@@ -43,14 +43,9 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 	
 	private ProjectExplorerView projectExplorerView;
 	private TreeParent invisibleRoot;
-	private String[]	autoOpenProjects = null;
 	
 	public ViewContentProvider(ProjectExplorerView projectExplorerView) {
 		this.projectExplorerView = projectExplorerView;
-		String projectsToOpen = ConvertigoPlugin.getAutoOpenProjects();
-		if (projectsToOpen.length() != 0) {
-			autoOpenProjects = projectsToOpen.split(","); 
-		}
 	}
 
 	public void inputChanged(Viewer v, Object oldInput, Object newInput) {
@@ -174,14 +169,6 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 			if (resourceProject != null) {
 				if (resourceProject.isOpen())
 					projectExplorerView.loadProject(unloadedProjectTreeObject);
-				else if (autoOpenProjects != null) { // scan the autoOpenProject list to see if the current project has to be opened
-					for (int i=0; i< autoOpenProjects.length; i++) {
-						if (autoOpenProjects[i].equalsIgnoreCase(projectName)) {
-							projectExplorerView.loadProject(unloadedProjectTreeObject);
-							break;
-						}
-					}
-				}
 			}
 		}
 	}

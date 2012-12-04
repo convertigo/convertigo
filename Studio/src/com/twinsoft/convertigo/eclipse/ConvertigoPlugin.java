@@ -138,7 +138,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
     public static final String PREFERENCE_LOG_LEVEL = "log.level";
     public static final String PREFERENCE_TREE_HIGHLIGHT_DETECTED = "tree.highlight.detected";
     public static final String PREFERENCE_OPENED_CONSOLES = "opened.consoles";
-    public static final String PREFERENCE_AUTO_OPEN_PROJECTS = "auto.open.projects";
     public static final String PREFERENCE_TRACEPLAYER_PORT = "traceplayer.port";
     public static final String PREFERENCE_TRIAL_IGNORE_USER_REGISTRATION = "trial.ignore_user_registration";
     public static final String PREFERENCE_IGNORE_NEWS = "news.ignore";
@@ -526,9 +525,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 //			SetupAction.runSetup();
 //		}
 		
-		// Get auto project open
-		autoOpenProjects = ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_AUTO_OPEN_PROJECTS);
-		
 		// Adds listeners
 		addListeners();
 		
@@ -723,7 +719,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}
 	
 	private static boolean 	highlightDetectedObject;
-	private static String	autoOpenProjects;
 	
 	public static void setHighlightDetectedObject(boolean highlight) {
 		highlightDetectedObject = highlight;
@@ -731,15 +726,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 	public static boolean getHighlightDetectedObject() {
 		return highlightDetectedObject;
-	}
-
-	
-	public static void setAutoOpenProjects(String data) {
-		autoOpenProjects = data;
-	}
-
-	public static String getAutoOpenProjects() {
-		return autoOpenProjects;
 	}
 
 	/**
