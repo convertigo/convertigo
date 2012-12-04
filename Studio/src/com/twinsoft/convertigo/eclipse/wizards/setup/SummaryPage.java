@@ -48,9 +48,6 @@ public class SummaryPage extends WizardPage {
 				+ "  Method: " + setupWizard.configureProxyPage.getProxyMethod() + "\n"
 				+ "  User: " + setupWizard.configureProxyPage.getProxyUser() + "\n"
 				+ "  Password: " + setupWizard.configureProxyPage.getProxyPassword() + "\n"
-				+ "\nSamples and demos:\n"
-				+ setupWizard.selectSamplesPage.getSelectedProjects().toString().
-				replaceAll(", ", "\n  ").replace("[", "  ").replace("]", "") + "\n"
 				;
 
 		summaryText.setText(sSummary);

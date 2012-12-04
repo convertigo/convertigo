@@ -34,7 +34,6 @@ public class SetupWizard extends Wizard {
 	protected LicensePage licensePage;
 	protected ChooseWorkspaceLocationPage chooseWorkspaceLocationPage;
 	protected ConfigureProxyPage configureProxyPage;
-	protected SelectSamplesPage selectSamplesPage;
 	protected RegistrationPage registrationPage;
 	protected PscKeyPage pscKeyPage;
 	protected SummaryPage summaryPage;
@@ -65,9 +64,6 @@ public class SetupWizard extends Wizard {
 		pscKeyPage = new PscKeyPage();
 		addPage(pscKeyPage);
 
-		selectSamplesPage = new SelectSamplesPage();
-		addPage(selectSamplesPage);
-		
 		summaryPage = new SummaryPage();
 		addPage(summaryPage);
 	}
