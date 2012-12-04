@@ -504,7 +504,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     }
 	
 	/** Holds value of property accessibility. */
-	private int accessibility = 1;
+	private int accessibility = 0;
 
     /** Getter for property accessibility.
      * @return Value of property accessibility.
