@@ -112,7 +112,7 @@ public class NewProjectWizardComposite12 extends Composite {
 		for (MobileHighEndDevice device :MobileHighEndDevice.values()) {
 			ToggleButton deviceButton = devices[device.index()] = new ToggleButton(group, SWT.NONE);
 			deviceButton.addSelectionListener(selectionListener);
-			Image image = new Image(getDisplay(), getClass().getResourceAsStream("images/device_" + device.displayName() +".png"));
+			Image image = new Image(getDisplay(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/wizards/images/device_" + device.displayName() +".png"));
 			deviceButton.setImage(image);
 			deviceButton.setToolTipText("Click to select the " + device.displayName() + " mobile device");
 			deviceButton.setSelection(true);
