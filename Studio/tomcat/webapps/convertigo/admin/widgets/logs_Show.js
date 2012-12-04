@@ -516,7 +516,9 @@ function getLines() {
 	var startDate = getStartDateAsString();
 	var endDate = getEndDateAsString();
 	
-	if (Date.parse(startDate.replace(" ", "T")) >= Date.parse(endDate.replace(" ", "T"))) {
+	var d1 = startDate.replace(" ", "T").replace(",", ".");
+	var d2 = endDate.replace(" ", "T").replace(",", ".");
+	if (Date.parse(d1) >= Date.parse(d2)) {
 		showError("End date must be greater than start date<br/>" + startDate + " >= " + endDate);
 	} else {
 		callJSONService(
