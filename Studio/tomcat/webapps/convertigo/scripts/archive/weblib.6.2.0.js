@@ -275,7 +275,7 @@ C8O = {
 				var redirect_location = $(xml.documentElement).attr("redirect_location");
 				if (!C8O.isUndefined(redirect_location)) {
 					if (C8O.vars.use_siteclipper_plugin === "true") {
-						C8O._getScript("../../scripts/weblib_plugins/siteclipper.js", function () {
+						C8O._getScript("../../scripts/archive/weblib_plugins.6.1.10/siteclipper.js", function () {
 							C8O._init_siteclipper({redirect_location : redirect_location});
 						});
 					} else {
@@ -517,28 +517,28 @@ C8O = {
 	_init : function (params) {
 		var value;
 		if (C8O._remove(params, "__enc")=="true" || C8O.init_vars.enc=="true") {
-			C8O._getScript("../../scripts/weblib_plugins/rsa.js", function () {
+			C8O._getScript("../../scripts/archive/weblib_plugins.6.1.10/rsa.js", function () {
 				C8O._init_rsa(params);
 			});
 		} else if (value=C8O._remove(params, "__container")) {
 			if (value=="df") {
-				C8O._getScript("../../scripts/weblib_plugins/df.js", function () {
+				C8O._getScript("../../scripts/archive/weblib_plugins.6.1.10/df.js", function () {
 					C8O._init_df(params);
 				});
 			} else if (value=="mosaic") {
-				C8O._getScript("../../scripts/weblib_plugins/mosaic.js", function () {
+				C8O._getScript("../../scripts/archive/weblib_plugins.6.1.10/mosaic.js", function () {
 					C8O._init_mosaic(params);
 				});
 			} else if (value=="gatein") {
-				C8O._getScript("../../scripts/weblib_plugins/gatein.js", function () {
+				C8O._getScript("../../scripts/archive/weblib_plugins.6.1.10/gatein.js", function () {
 					C8O._init_gatein(params);
 				});
 			} else if (value=="sharepoint") {
-				C8O._getScript("../../scripts/weblib_plugins/sharepoint.js", function () {
+				C8O._getScript("../../scripts/archive/weblib_plugins.6.1.10/sharepoint.js", function () {
 					C8O._init_sharepoint(params);
 				});
 			} else if (value=="standalone") {
-				C8O._getScript("../../scripts/weblib_plugins/standalone.js", function () {
+				C8O._getScript("../../scripts/archive/weblib_plugins.6.1.10/standalone.js", function () {
 					C8O._init_standalone(params);
 				});
 			}
