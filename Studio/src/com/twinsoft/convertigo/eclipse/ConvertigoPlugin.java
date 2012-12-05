@@ -229,19 +229,34 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}	
 	
 	public static void errorMessageBox(String message) {
-		ConvertigoPlugin.messageBox(message, SWT.OK | SWT.ICON_ERROR);
+		ConvertigoPlugin.messageBoxWithoutReturnCode(message, SWT.OK | SWT.ICON_ERROR);
 	}
 	
+	// Must be called in the display GUI thread
 	public static int questionMessageBox(String message){
 		return ConvertigoPlugin.messageBox(message, SWT.YES | SWT.NO | SWT.ICON_QUESTION);
 	}
 
 	public static void warningMessageBox(String message) {
-		ConvertigoPlugin.messageBox(message, SWT.OK | SWT.ICON_WARNING);
+		ConvertigoPlugin.messageBoxWithoutReturnCode(message, SWT.OK | SWT.ICON_WARNING);
 	}
 
-	public static void infoMessageBox(String message) {
-		ConvertigoPlugin.messageBox(message, SWT.OK | SWT.ICON_INFORMATION);
+	public static void infoMessageBox(final String message) {
+		ConvertigoPlugin.messageBoxWithoutReturnCode(message, SWT.OK | SWT.ICON_INFORMATION);
+	}
+
+	private static void messageBoxWithoutReturnCode(final String message, int options) {
+		Display display = Display.getCurrent();
+		display.asyncExec(new Runnable() {
+			public void run() {
+				try {
+					messageBox(message, SWT.OK | SWT.ICON_INFORMATION);
+				}
+				catch (Exception e){
+					ConvertigoPlugin.logException(e, "Error while trying to project deploy dialog");
+				}
+			};
+		});
 	}
 
 	private static int messageBox(String message, int options) {
