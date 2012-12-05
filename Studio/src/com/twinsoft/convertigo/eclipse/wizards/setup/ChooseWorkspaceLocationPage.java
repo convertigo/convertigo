@@ -33,32 +33,37 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 		container = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
-		layout.numColumns = 4;
+		layout.numColumns = 3;
 		layout.marginWidth = 30;
 		
-		GridData layoutData = new GridData();
-		layoutData.horizontalAlignment = SWT.LEFT;
-		layoutData.horizontalSpan = 4;
-		layoutData.verticalSpan = 10;
+		GridData layoutData = new GridData(GridData.FILL_HORIZONTAL);
+		layoutData.horizontalSpan = 3;
 		
-		Label label;
+		final String userWorkspace = System.getProperty("convertigo.cems.user_workspace_path",
+				System.getProperty("user.home") + "/convertigo");
 
-		label = new Label(container, SWT.NONE);
+		Label label = new Label(container, SWT.WRAP);
 		label.setText("The Convertigo user workspace will contain all Convertigo " +
 				"configuration files, log files, and all projects files.\n\n" +
 				"You must choose a directory for which you have full read and write permissions.\n" +
-				"If the chosen location does not exist, it will be automatically created.");		
+				"If the chosen location does not exist, it will be automatically created.\n\n" +
+				"Convertigo studio is currently installed in: " + System.getProperty("user.dir") + "\n\n" +
+				"Default Convertigo user workspace is: " + userWorkspace + "\n\n" +
+				"Changing the Convertigo user workspace will require a studio restart.\n\n\n\n");		
 		label.setLayoutData(layoutData);
 		
-		GridData gdLayout = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_VERTICAL);
-		gdLayout.horizontalSpan = 2;
+		layoutData = new GridData(GridData.FILL_HORIZONTAL);
+		layoutData.horizontalSpan = 3;
 		
 		label = new Label(container, SWT.NONE);
 		label.setText("User workspace location:");
-
+		label.setLayoutData(layoutData);
+		
+		layoutData = new GridData();
+		layoutData.horizontalAlignment = SWT.FILL;
+		layoutData.grabExcessHorizontalSpace = true;
+		
 		userWorkspaceLocation = new Text(container, SWT.BORDER | SWT.SINGLE);
-		String userWorkspace = System.getProperty("convertigo.cems.user_workspace_path",
-				System.getProperty("user.home") + "/convertigo");
 		userWorkspaceLocation.setText(userWorkspace);
 		userWorkspaceLocation.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent e) {
@@ -77,7 +82,7 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 				}
 			}
 		});
-		userWorkspaceLocation.setLayoutData(gdLayout);
+		userWorkspaceLocation.setLayoutData(layoutData);
 		
 		Button browseButton = new Button(container, SWT.NONE);
 		browseButton.setText("Browse...");
@@ -94,8 +99,17 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 			}
 			
 			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
+			}
+		});
+
+		Button resetButton = new Button(container, SWT.NONE);
+		resetButton.setText("Reset");
+		resetButton.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+	        	userWorkspaceLocation.setText(userWorkspace);
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
 

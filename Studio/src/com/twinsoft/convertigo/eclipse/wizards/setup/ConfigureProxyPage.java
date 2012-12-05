@@ -49,25 +49,42 @@ public class ConfigureProxyPage extends WizardPage {
 		label = new Label(container, SWT.NONE);
 		label.setText("Proxy mode");
 		
-		proxyMode = new Combo(container, SWT.BORDER);
-		proxyMode.setText("off");
+		proxyMode = new Combo(container, SWT.BORDER | SWT.READ_ONLY);
 		proxyMode.add("off");
 		proxyMode.add("auto");
 		proxyMode.add("manual");
+		proxyMode.select(0);
 		
 		proxyMode.addSelectionListener(new SelectionListener() {
-			
 			public void widgetSelected(SelectionEvent e) {
 				enableComponents(proxyMode.getText());
 			}
 			
 			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
 			}
 		});			
 		
 		proxyMode.setLayoutData(layoutData);
+		
+		label = new Label(container, SWT.NONE);
+		label.setText("Proxy host");
+		
+		proxyHost = new Text(container, SWT.BORDER | SWT.SINGLE);
+		proxyHost.setText("localhost");
+		proxyHost.addKeyListener(new KeyListener() {
+			public void keyPressed(KeyEvent e) {
+			}
+
+			public void keyReleased(KeyEvent e) {
+				if (proxyHost.getText().length() > 0) {
+						setMessage(getDescription());
+				} else {
+					setErrorMessage("Please enter the host name!");
+				}
+			}
+		});
+		
+		proxyHost.setLayoutData(layoutData);
 		
 		label = new Label(container, SWT.NONE);
 		label.setText("Proxy port");
@@ -93,26 +110,6 @@ public class ConfigureProxyPage extends WizardPage {
 		proxyPort.setLayoutData(layoutData);
 		
 		label = new Label(container, SWT.NONE);
-		label.setText("Proxy host");
-		
-		proxyHost = new Text(container, SWT.BORDER | SWT.SINGLE);
-		proxyHost.setText("localhost");
-		proxyHost.addKeyListener(new KeyListener() {
-			public void keyPressed(KeyEvent e) {
-			}
-
-			public void keyReleased(KeyEvent e) {
-				if (proxyHost.getText().length() > 0) {
-						setMessage(getDescription());
-				} else {
-					setErrorMessage("Please enter the host name!");
-				}
-			}
-		});
-		
-		proxyHost.setLayoutData(layoutData);
-		
-		label = new Label(container, SWT.NONE);
 		label.setText("Do not apply proxy settings on");
 
 		proxyExceptions = new Text(container, SWT.BORDER | SWT.SINGLE);
@@ -133,7 +130,7 @@ public class ConfigureProxyPage extends WizardPage {
 		proxyExceptions.setLayoutData(layoutData);
 		
 		label = new Label(container, SWT.NONE);
-		label.setText("Autoconfiguration proxy url");
+		label.setText("Autoconfiguration proxy URL");
 
 		proxyAutoConfUrl = new Text(container, SWT.BORDER | SWT.SINGLE);
 		proxyAutoConfUrl.addKeyListener(new KeyListener() {
@@ -160,7 +157,7 @@ public class ConfigureProxyPage extends WizardPage {
 		label = new Label(container, SWT.NONE);
 		label.setText("Proxy authentication method");
 
-		proxyMethod = new Combo(container, SWT.BORDER);
+		proxyMethod = new Combo(container, SWT.BORDER | SWT.READ_ONLY);
 		proxyMethod.add("anonymous");
 		proxyMethod.add("basic");
 		proxyMethod.add("NTLM");
@@ -209,6 +206,7 @@ public class ConfigureProxyPage extends WizardPage {
 			public void keyReleased(KeyEvent e) {
 				if (proxyPassword.getText().length() > 0) {
 						setMessage(getDescription());
+						setErrorMessage(null);
 						setPageComplete(true);
 				} else {
 					setErrorMessage("Please enter the proxy password!");
