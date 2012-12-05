@@ -228,9 +228,9 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 				};
 			});
 		}
-		catch (EngineException e) {
-			String errorMessage = e.getMessage();
-			String causeStackTrace = null;
+		catch (final EngineException e) {
+			final String errorMessage = e.getMessage();
+			final String causeStackTrace;
 			
 			if (e instanceof RemoteAdminException) {
 				RemoteAdminException rae = (RemoteAdminException) e;
@@ -244,14 +244,21 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 					e.printStackTrace(printWriter);
 					causeStackTrace = result.toString();
 				}
+				else {
+					causeStackTrace = null;
+				}
 			}
 	
-			if (causeStackTrace != null) {
-				ConvertigoPlugin.logDeployException(e, errorMessage, causeStackTrace);
-			}
-			else {
-				ConvertigoPlugin.logError(e.getMessage(), true);
-			}
+			display.asyncExec(new Runnable() {
+				public void run() {
+					if (causeStackTrace != null) {
+						ConvertigoPlugin.logDeployException(e, errorMessage, causeStackTrace);
+					}
+					else {
+						ConvertigoPlugin.logError(e.getMessage(), true);
+					}
+				};
+			});
 		}
 		finally {
 			progressBarThread.interrupt();

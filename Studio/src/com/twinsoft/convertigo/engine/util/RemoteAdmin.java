@@ -91,7 +91,7 @@ public class RemoteAdmin {
 	}
 
 	public void login(String username, String password)
-			throws RemoteAdminException {
+			throws RemoteAdminException, EngineException {
 		PostMethod loginMethod = null;
 	
 		try {
@@ -194,9 +194,6 @@ public class RemoteAdmin {
 			throw new RemoteAdminException(
 					"Unable to reach the Convertigo server: \n"
 							+ "(GeneralSecurityException) " + e.getMessage(), e);
-		} catch (EngineException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} finally {
 			Protocol.unregisterProtocol("https");
 			if (loginMethod != null)
