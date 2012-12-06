@@ -519,7 +519,7 @@ function getLines() {
 	var d1 = startDate.replace(" ", "T").replace(",", ".");
 	var d2 = endDate.replace(" ", "T").replace(",", ".");
 	if (Date.parse(d1) >= Date.parse(d2)) {
-		showError("End date must be greater than start date<br/>" + startDate + " >= " + endDate);
+		showError("End date must be greater than start date");
 	} else {
 		callJSONService(
 			"logs.Get",
