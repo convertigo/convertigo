@@ -49,7 +49,7 @@ function projects_List_init() {
 			}, {
 				name : 'exported',
 				index : 'exported',
-				width : 60,
+				width : 50,
 				align : "left"
 			}, {
 				name : 'deployDate',

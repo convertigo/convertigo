@@ -520,15 +520,19 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 		return exported;
 	}
 
-	public String getInfoForProperty(String propertyName, Locale locale) {
+	public String getInfoForProperty(String propertyName, DateFormat df, Locale locale) {
 		if ("exported".equals(propertyName)) {
 			try {
-				DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT, locale);
 				return df.format(new Date(getExportTime()));
 			}
 			catch (Exception e) {}
 		}
 		return "";
+	}
+	
+	public String getInfoForProperty(String propertyName, Locale locale) {
+		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT, locale);
+		return getInfoForProperty(propertyName, df, locale);
 	}
 	
 	public String getInfoForProperty(String propertyName) {
