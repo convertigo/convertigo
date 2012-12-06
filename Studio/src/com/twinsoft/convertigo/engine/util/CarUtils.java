@@ -27,13 +27,11 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -126,14 +124,16 @@ public class CarUtils {
 	}
 
 	private static Document exportProject(Project project) throws EngineException {
+		long exportTime = project.getExportTime();
 		try {
 			final Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			//            ProcessingInstruction pi = document.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"");
 			//            document.appendChild(pi);
 			final Element rootElement = document.createElement("convertigo");
-			DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT, Locale.getDefault());
-			String exportDate = df.format(Calendar.getInstance().getTime());
-			rootElement.setAttribute("exported", exportDate);
+			project.setExportTime(Calendar.getInstance().getTime().getTime());
+			String exported = project.getInfoForProperty("exported");
+			
+			rootElement.setAttribute("exported", exported);
 			rootElement.setAttribute("version", com.twinsoft.convertigo.engine.Version.fullProductVersion);
 			rootElement.setAttribute("engine", com.twinsoft.convertigo.engine.Version.version);
 			rootElement.setAttribute("beans", com.twinsoft.convertigo.beans.Version.version);
@@ -192,6 +192,7 @@ public class CarUtils {
 			
 			return document;
 		} catch(Exception e) {
+			project.setExportTime(exportTime);
 			throw new EngineException("Unable to export the project \"" + project.getName() + "\".", e);
 		}
 	}

@@ -65,7 +65,9 @@ import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor
 import com.twinsoft.convertigo.eclipse.property_editors.ArrayOrNullEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.DataOrNullPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.DynamicComboBoxPropertyDescriptor;
+import com.twinsoft.convertigo.eclipse.property_editors.DynamicInfoPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.property_editors.EmulatorTechnologyEditor;
+import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithDynamicInfoEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithDynamicTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditorAdvance;
@@ -369,6 +371,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     				propertyDescriptor = new ComboBoxPropertyDescriptor(name, displayName, tags);
     			}
    	        }
+        	else if (PropertyWithDynamicInfoEditor.class.isAssignableFrom(pec)) {
+        		Method getInfo = pec.getMethod("getInfo", new Class[] { DatabaseObjectTreeObject.class, String.class });
+        		propertyDescriptor = new DynamicInfoPropertyDescriptor(name, displayName, getInfo, this, name);
+        	}
 	        else if (AbstractDialogCellEditor.class.isAssignableFrom(pec)) {
 	        	final DatabaseObjectTreeObject dbotoThis = this;
 				propertyDescriptor = new PropertyDescriptor(name, displayName) {
