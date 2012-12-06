@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.eclipse.popup.actions;
 import java.awt.Toolkit;
 import java.io.File;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -122,6 +123,9 @@ public class ProjectExportAction extends MyAbstractAction {
     				}
             	}
     	
+            	projectTreeObject.getIProject().refreshLocal(IResource.DEPTH_ONE, null);
+				explorerView.setFocus();
+				explorerView.setSelectedTreeObject(projectTreeObject);
     		}
         }
         catch (Throwable e) {
