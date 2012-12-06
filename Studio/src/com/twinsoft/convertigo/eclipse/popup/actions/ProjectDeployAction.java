@@ -52,25 +52,29 @@ public class ProjectDeployAction extends MyAbstractAction {
         	boolean bDeploy = true;
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
-    			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
-    			if (projectTreeObject.getModified()) {
-					MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.CANCEL | SWT.ICON_WARNING | SWT.APPLICATION_MODAL);
-					messageBox.setMessage("The project \"" + projectTreeObject.getName() + "\" has not been saved.\n Do you want to save it before deployment?");
-					int ret = messageBox.open();
-					if (ret == SWT.OK) {
-	    				projectTreeObject.save(false);
-	       				explorerView.refreshTree();
-					}
-					else
-						bDeploy = false;
-    			}
-    			if (bDeploy) {
-	            	ProjectDeployDialog projectDeployDialog = new ProjectDeployDialog(shell, ProjectDeployDialogComposite.class, "Deploy a Convertigo project");
-	            	projectDeployDialog.open();
-	        		if (projectDeployDialog.getReturnCode() != Window.CANCEL) {
-	        			
-	        		}
-    			}
+				MessageBox msb = new MessageBox(shell, SWT.YES | SWT.NO | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
+				msb.setMessage("Would you like to update your project's version before deployment?");
+				if (msb.open() == SWT.NO) {
+	    			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
+	    			if (projectTreeObject.getModified()) {
+						MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.CANCEL | SWT.ICON_WARNING | SWT.APPLICATION_MODAL);
+						messageBox.setMessage("The project \"" + projectTreeObject.getName() + "\" has not been saved.\n Do you want to save it before deployment?");
+						int ret = messageBox.open();
+						if (ret == SWT.OK) {
+		    				projectTreeObject.save(false);
+		       				explorerView.refreshTree();
+						}
+						else
+							bDeploy = false;
+	    			}
+	    			if (bDeploy) {
+		            	ProjectDeployDialog projectDeployDialog = new ProjectDeployDialog(shell, ProjectDeployDialogComposite.class, "Deploy a Convertigo project");
+		            	projectDeployDialog.open();
+		        		if (projectDeployDialog.getReturnCode() != Window.CANCEL) {
+		        			
+		        		}
+	    			}
+				}
     		}
         }
         catch (Throwable e) {
