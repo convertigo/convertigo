@@ -23,8 +23,11 @@
 package com.twinsoft.convertigo.beans.core;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import org.w3c.dom.Element;
 
@@ -37,7 +40,7 @@ import com.twinsoft.convertigo.engine.util.VersionUtils;
 /**
  * This class manages a Convertigo Project.
  */
-public class Project extends DatabaseObject implements ITagsProperty {
+public class Project extends DatabaseObject implements ITagsProperty, IInfoProperty {
 
 	private static final long serialVersionUID = -7523308164370975102L;
 
@@ -490,4 +493,42 @@ public class Project extends DatabaseObject implements ITagsProperty {
 	public long getLastChange() {
 		return lastChange;
 	}
+	
+	/*
+	 * The user custom project's version
+	 */
+	private String version = "";
+
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	public String getVersion() {
+		return version;
+	}
+	
+	/*
+	 * The time of last project export
+	 */
+	private long exported = 0L;
+
+	public void setExportTime(long exported) {
+		this.exported = exported;
+	}
+
+	public long getExportTime() {
+		return exported;
+	}
+
+	public String getInfoForProperty(String propertyName) {
+		if ("exported".equals(propertyName)) {
+			try {
+				DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT, Locale.getDefault());
+				return df.format(new Date(getExportTime()));
+			}
+			catch (Exception e) {}
+		}
+		return "";
+	}
+	
 }
