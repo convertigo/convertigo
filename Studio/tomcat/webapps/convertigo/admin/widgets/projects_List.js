@@ -30,7 +30,7 @@ function projects_List_init() {
 	callService("projects.List", function(xml) {
 		$("#projectsList").jqGrid( {
 			datatype : "local",
-			colNames : [ 'Name', 'Comment', 'Deployment', 'Delete', 'Reload', 'Edit', 'Export', 'Test' ],
+			colNames : [ 'Name', 'Comment', 'Version', 'Exported', 'Deployment', 'Delete', 'Reload', 'Edit', 'Export', 'Test' ],
 			colModel : [ {
 				name : 'name',
 				index : 'name',
@@ -40,6 +40,16 @@ function projects_List_init() {
 				name : 'comment',
 				index : 'comment',
 				width : 120,
+				align : "left"
+			}, {
+				name : 'version',
+				index : 'version',
+				width : 40,
+				align : "left"
+			}, {
+				name : 'exported',
+				index : 'exported',
+				width : 60,
 				align : "left"
 			}, {
 				name : 'deployDate',
@@ -138,6 +148,8 @@ function updateProjectsList(xml) {
 										{
 											name : projectName,
 											comment : $(this).attr("comment"),
+											version : $(this).attr("version"),
+											exported : $(this).attr("exported"),
 											deployDate : $(this).attr("deployDate"),
 											btnDelete : "<a href=\"javascript: deleteProject('"
 													+ projectName
