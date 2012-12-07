@@ -369,7 +369,7 @@ public class ClipboardAction extends MyAbstractAction {
 	    							shell,
 	    							"Paste a step",
 	    							"Do you want to paste the step as a sibling or a child step?",
-	    							300, 150,
+	    							500, 150,
 	    							new ButtonSpec("As a sibling", true),
 	    							new ButtonSpec("As a child", false),
 	    							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
