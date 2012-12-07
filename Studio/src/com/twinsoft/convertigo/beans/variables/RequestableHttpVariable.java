@@ -22,14 +22,12 @@
 
 package com.twinsoft.convertigo.beans.variables;
 
-import com.twinsoft.convertigo.engine.EngineException;
-
 public class RequestableHttpVariable extends RequestableVariable {
 
 	private static final long serialVersionUID = -8730510144092552400L;
 
 	private String httpMethod = "POST";
-	private String httpName = null;
+	private String httpName = "";
 	
 	public RequestableHttpVariable() {
 		super();
@@ -41,15 +39,6 @@ public class RequestableHttpVariable extends RequestableVariable {
 		return clonedObject;
 	}
 
-	@Override
-	public void setName(String name) throws EngineException {
-		String exName = getName();
-		super.setName(name);
-		if (httpName == null || httpName.equals(exName)) {
-			httpName = name;
-		}
-	}
-	
 	public String getHttpMethod() {
 		return httpMethod;
 	}
