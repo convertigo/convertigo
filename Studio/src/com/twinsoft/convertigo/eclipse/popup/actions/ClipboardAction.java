@@ -142,8 +142,9 @@ public class ClipboardAction extends MyAbstractAction {
     							shell,
     							"Paste a Screenclass",
     							"Do you want to paste the Screenclass as a sibling or as an inherited Screenclass?",
+    							500, 150,
     							new ButtonSpec("As a sibling", true),
-    							new ButtonSpec("As an iherited", false),
+    							new ButtonSpec("As an inherited", false),
     							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
     					);
     					int response = customDialog.open();
@@ -161,6 +162,7 @@ public class ClipboardAction extends MyAbstractAction {
         							shell,
         							"Paste a statement",
         							"Do you want to paste the statement as a sibling or a child statement?",
+        							500, 150,
         							new ButtonSpec("As a sibling", true),
         							new ButtonSpec("As a child", false),
         							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
@@ -367,6 +369,7 @@ public class ClipboardAction extends MyAbstractAction {
 	    							shell,
 	    							"Paste a step",
 	    							"Do you want to paste the step as a sibling or a child step?",
+	    							300, 150,
 	    							new ButtonSpec("As a sibling", true),
 	    							new ButtonSpec("As a child", false),
 	    							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)

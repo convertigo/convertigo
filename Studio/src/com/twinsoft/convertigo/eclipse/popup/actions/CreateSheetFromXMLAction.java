@@ -104,7 +104,8 @@ public class CreateSheetFromXMLAction extends MyAbstractAction {
     					CustomDialog customDialog = new CustomDialog(
     							shell,
     							"Create a new sheet",
-    							"Would you like to create new sheet for last detected screen class or transaction?",
+    							"Would you like to create a new sheet for the last detected screen class or a transaction?",
+    							500, 150,
     							new ButtonSpec("Last detected screen class", true),
     							new ButtonSpec("Transaction", false),
     							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)

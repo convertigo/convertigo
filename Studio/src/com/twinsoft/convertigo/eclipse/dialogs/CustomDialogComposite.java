@@ -19,13 +19,15 @@ public class CustomDialogComposite extends MyAbstractDialogComposite {
 	@Override
 	public void initialize() {
 		GridLayout gridLayout = new GridLayout();
-		GridData data = new GridData();
-		labelQuestion = new Label(this, SWT.FILL);
+		//GridData data = new GridData();
+		GridData data = new GridData(GridData.FILL_BOTH);
+		//GridData data = new GridData(GridData.FILL_HORIZONTAL);
+		labelQuestion = new Label(this, SWT.NONE);
 
-		gridLayout.numColumns = 4;
+		gridLayout.numColumns = 1;
 		setLayout(gridLayout);
-		data.horizontalAlignment = SWT.FILL;
-		data.verticalAlignment = SWT.BOTTOM;
+		data.grabExcessVerticalSpace = true;
+	    data.verticalAlignment = SWT.FILL;
 		labelQuestion.setText(question);
 		labelQuestion.setLayoutData(data);
 	}

@@ -60,6 +60,7 @@ public class CicsTransactionImportCopybookAction extends MyAbstractAction {
 					shell,
 					"Import a copybook",
 					"Do you want to import the copybook into the transaction input map or output map ?",
+					500, 150,
 					new ButtonSpec("Input map", true),
 					new ButtonSpec("Outut map", false),
 					new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
