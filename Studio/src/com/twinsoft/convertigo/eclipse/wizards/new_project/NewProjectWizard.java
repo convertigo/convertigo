@@ -37,6 +37,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
@@ -519,7 +521,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 						+ " unknown.");
 			}
 		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "An error occured while creating the project");
+			ConvertigoPlugin.logException(e, "An error occured while creating the project", false);
+			
+			String message = "An error occured while creating the project (see Error log):\n"+ e.getMessage();
+			IStatus status = new Status(Status.ERROR, ConvertigoPlugin.PLUGIN_UNIQUE_ID, message, e);
+			throw new CoreException(status);
 		}
 	}
 
