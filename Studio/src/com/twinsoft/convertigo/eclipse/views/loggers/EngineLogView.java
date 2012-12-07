@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -33,6 +34,8 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -68,34 +71,41 @@ import com.twinsoft.convertigo.engine.admin.logmanager.LogManager;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 
 public class EngineLogView extends ViewPart implements CompositeListener {
-	private Thread thread;
+	private Thread logViewThread;
 	private LogManager logManager;
 	private List<LogLine> logLines = new LinkedList<LogLine>();
 	private Appender appender;
 	private EngineLogViewComparator comparator;
 	private int counter = 0;
-	private static boolean realtime = false;
+	private boolean realtime = false;
 	private boolean scrollLock = false;
-	private Action clearLogsAction, restoreLogsAction, hideLogsAction, realTimeLogsAction;
+	private Action clearLogsAction, restoreLogsAction, hideLogsAction, realTimeLogsAction, stopLogsAction;
 	private RetargetAction scrollLockAction;
 	private EngineLogViewLabelProvider labelProvider;
 	private static final String ENGINE_LOG_VIEW_COL_ORDER = "EngineLogView.COL_ORDER";
 	private static final String ENGINE_LOG_VIEW_COL_HIDE = "EngineLogView.COL_HIDE";
-	private Text filterText;
+	private static final String ENGINE_LOG_VIEW_COL_SIZE = "EngineLogView.COL_SIZE";
+	private Text filterText, searchText;
+	private Label infoSearch;
 	private DateTime dateStart, dateEnd;
 	private Combo hourStart, minuteStart, secondeStart, hourEnd, minuteEnd, secondeEnd;
 	private Menu headerMenu, tableMenu;
 	private MenuItem startDateItem, endDateItem, addVariableItem;
 	private TableViewer tableViewer;
-	private GridData gridDataCheck, gridDataDateTime;
-	private Button applyOptions;
+	private GridData gridDataCheck, gridDataDateTime, gridDataSearch;
+	private Button applyOptions, previousSearch, nextSearch;
 	private int selectedColumnIndex;
-	private Button columns[] = new Button[14];
-	private Composite compositeCheck, compositeDateTime;
+	private Composite compositeCheck, compositeDateTimeAndSearch, compositeDateTime, compositeSearch;
 	public static final DateFormat date_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS"), setdate = new SimpleDateFormat("yyyy-MM-dd");
-	private String[] titles = {"Message", "Level", "Category", "Time", "Thread", "ClientIP", "Project", "Connector", "Transaction", "Sequence", "ContextID", "UID", "User", "ClientHostName"};
-	private int[] bounds = {400, 50, 125, 150, 130, 50, 50, 50, 50, 50, 50, 50, 50, 50};
-	private boolean firstLaunch = true;
+	private String[] titles = {"Message", "Level", "Category", "Time", "Thread", "ClientIP", "Project", "Connector", 
+			"Transaction", "Sequence", "ContextID", "UID", "User", "ClientHostName"};
+	private int[] defaultOrderColumns = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+	private int[] defaultSizeColumns = {400, 50, 125, 150, 130, 45, 45, 45, 45, 45, 45, 45, 45, 45};
+	private Button columns[] = new Button[defaultSizeColumns.length];
+	private boolean[] defaultVisibilityColumns = {true, false, true, true, true, true, false, true, true, true, true, true, false, false};
+	private boolean bStopLogViewThread = false;
+	private int loopIndex = 0;
+	private ArrayList<Integer> searchIndex = new ArrayList<Integer>();
 	
 	public EngineLogView() {		
 		labelProvider = new EngineLogViewLabelProvider();
@@ -108,17 +118,23 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 				}
         	}
         	
-			public void close() {}
+        	public void close() {}
 
 			public boolean requiresLayout() {
 				return false;
 			}
         };
-	}
+    }
 	
 	@Override
 	public void dispose() {
    		Engine.logConvertigo.removeAppender(appender);
+   		Thread logViewThreadBackup = logViewThread;
+   		logViewThread = null;
+		synchronized (logViewThreadBackup) {
+			logViewThreadBackup.notifyAll();
+		}
+   		
    		super.dispose();
 	}
 
@@ -131,13 +147,19 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		GridLayout gridLayout = new GridLayout();
 		RowLayout gridLayoutCheck = new RowLayout(SWT.HORIZONTAL); gridLayoutCheck.wrap = true;
 		RowLayout gridLayoutDTime = new RowLayout(SWT.HORIZONTAL); gridLayoutDTime.wrap = true;
+		RowLayout gridLayoutSearch = new RowLayout(SWT.HORIZONTAL); gridLayoutSearch.wrap = true; 
+		
 		compositeCheck = new Composite(parent, SWT.NONE);
-		compositeDateTime = new Composite(parent, SWT.NONE);
-
+		compositeDateTimeAndSearch = new Composite(parent, SWT.NONE);
+		compositeDateTimeAndSearch.setLayout(new GridLayout(2, false));
+		GridData gridDataDT_Search = new GridData(GridData.FILL_HORIZONTAL);
+		compositeDateTimeAndSearch.setLayoutData(gridDataDT_Search);
+		compositeDateTime = new Composite(compositeDateTimeAndSearch, SWT.NONE);
+		
 		gridDataCheck = new GridData(SWT.FILL, SWT.VERTICAL, true, false);
-		gridDataCheck.horizontalAlignment = SWT.HORIZONTAL;
 		gridDataDateTime = new GridData(SWT.FILL, SWT.VERTICAL, true, false);
-		gridDataDateTime.horizontalAlignment = SWT.HORIZONTAL;
+		gridDataDateTime.horizontalAlignment = GridData.HORIZONTAL_ALIGN_BEGINNING;
+		gridDataSearch = new GridData(GridData.FILL_HORIZONTAL);
 		
 		parent.setLayout(gridLayout);
 		compositeCheck.setLayoutData(gridDataCheck);
@@ -178,11 +200,73 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		applyOptions = new Button(compositeDateTime, SWT.PUSH);
 		applyOptions.setText("Apply options");
 		
-		filterText = new Text(parent,  SWT.BORDER | SWT.VERTICAL | SWT.FILL);
-		filterText.setLayoutData(new GridData(SWT.FILL, SWT.VERTICAL, true, false));
+		compositeSearch = new Composite(compositeDateTimeAndSearch, SWT.BORDER);
+		
+		compositeSearch.setLayoutData(gridDataSearch);
+		gridDataSearch.horizontalAlignment = GridData.HORIZONTAL_ALIGN_END;
+		compositeSearch.setLayout(new GridLayout(4, false));
+		
+		searchText = new Text(compositeSearch, SWT.BORDER);
+		infoSearch = new Label(compositeSearch, SWT.NONE); infoSearch.setEnabled(false); infoSearch.setVisible(false);
+		previousSearch = new Button(compositeSearch, SWT.NONE); previousSearch.setText("^"); previousSearch.setEnabled(false);
+		nextSearch = new Button(compositeSearch, SWT.NONE); nextSearch.setText("v"); nextSearch.setEnabled(false);
+		
+
+		filterText = new Text(parent, SWT.BORDER);
+		filterText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));  
 		
 		createActions();
 		createToolbar();
+		createViewer(parent);
+		
+		searchText.addListener(SWT.DefaultSelection, new Listener() {
+			public void handleEvent(Event e) {
+				searchIndex.clear();
+				for (int i = 0 ; i < tableViewer.getTable().getItemCount(); i++){
+					if(tableViewer.getTable().getItem(i).getText(0).contains(searchText.getText()))
+						searchIndex.add(i);
+				}
+				if(searchIndex.isEmpty())
+					infoSearch.setText("0");
+				else{
+					infoSearch.setText((loopIndex+1)+"/"+searchIndex.size());
+					//On the first match
+					tableViewer.getTable().setSelection(searchIndex.get(loopIndex));
+					tableViewer.getTable().setFocus();
+					nextSearch.setEnabled(true);
+				}
+				infoSearch.setVisible(true); 
+				compositeSearch.layout();
+			}
+		});
+		
+		searchText.addMouseListener(new MouseListener() {
+			
+			public void mouseUp(MouseEvent arg0) {
+				searchIndex.clear();
+				infoSearch.setText("");
+				searchText.setText("");
+				compositeSearch.layout();
+				nextSearch.setEnabled(false);
+				previousSearch.setEnabled(false);
+			}
+			
+			public void mouseDown(MouseEvent arg0) {}
+			
+			public void mouseDoubleClick(MouseEvent arg0) {}
+		});
+		
+		nextSearch.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				navigationSearch(1, nextSearch, previousSearch);
+			}
+		});
+		
+		previousSearch.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				navigationSearch(-1, nextSearch, previousSearch);
+			}
+		});
 		
 		filterText.addListener(SWT.DefaultSelection, new Listener() {
 			public void handleEvent(Event e) {
@@ -193,47 +277,69 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 
 		applyOptions.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				firstLaunch = true;
 				updateDates();
 			}
 		});
-		createViewer(parent);
-		initCheckColumns();
-		initComboDateTime();
 		
 		comparator = new EngineLogViewComparator();
 		tableViewer.setComparator(comparator);
 		init();
 	}
+	
+	private void navigationSearch(int sens, Button first, Button second){		
+		loopIndex+=sens;
+		tableViewer.getTable().setSelection(searchIndex.get(loopIndex));
 
+		//Disable "second" if is the beginning
+		if(searchIndex.get(loopIndex)==searchIndex.get(0))
+			second.setEnabled(false);
+		else
+			second.setEnabled(true);
+		
+		//Disable "first" if is the end
+		if(searchIndex.get(loopIndex)==searchIndex.get(searchIndex.size()-1))
+			first.setEnabled(false);
+		else
+			first.setEnabled(true);
+		infoSearch.setText((loopIndex+1)+"/"+searchIndex.size());
+		compositeSearch.layout();
+		tableViewer.getTable().setFocus();
+	}
+	
     public static boolean getColHideProperty(String key) {
     	IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();      
         return preferenceStore.getString(key).equals("true") ? true : false;
     }
     
-    public static void setColHideProperty(String key, Boolean value) {
+    public static void setColHideProperty(String key, boolean value) {
     	IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
     	preferenceStore.setValue(key, value);
     }
     
-    public static int getColOrderProperty(String key) {
+    public static int[] getColOrderProperty(String key) {
+    	IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore(); 
+    	int[] order = new int[14];
+    	for (int i = 0 ; i < order.length; i++)
+    		order[i] = preferenceStore.getInt(key+"_"+i);
+    	return order;
+    }
+    
+    public static void setColOrderProperty(String key, int[] value) {
+    	IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
+    	for(int i=0; i<value.length; i++)
+    		preferenceStore.setValue(key+"_"+i, value[i]);
+    }
+	
+    public static int getColSizeProperty(String key) {
     	IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore(); 
     	return preferenceStore.getInt(key);
     }
     
-    public static void setColOrderProperty(String key, int value) {
+    public static void setColSizeProperty(String key, int value) {
     	IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
-    	preferenceStore.setValue(key, value+"");
+    	preferenceStore.setValue(key, value);
     }
-	
-    public static void setRealTime(boolean rltime){
-    	realtime = rltime;
-    }
-    
-    public static boolean getRealTime(){
-        return realtime;
-    }
-    
+      
     public void updateDates(){
     	String completeDateStart = dateStart.getYear()+"-"+((dateStart.getMonth()+1)<10 ? "0"+dateStart.getMonth()+1 : dateStart.getMonth()+1)+"-"+(dateStart.getDay()<10 ? "0"+dateStart.getDay() : dateStart.getDay())+" "+hourStart.getText()+":"+minuteStart.getText()+":"+secondeStart.getText()+",000";					
 		String completeDateEnd = dateEnd.getYear()+"-"+((dateEnd.getMonth()+1)<10 ? "0"+dateEnd.getMonth()+1 : dateEnd.getMonth()+1)+"-"+(dateEnd.getDay()<10 ? "0"+dateEnd.getDay() : dateEnd.getDay())+" "+hourEnd.getText()+":"+minuteEnd.getText()+":"+secondeEnd.getText()+",999";
@@ -249,42 +355,59 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 				setLogFilter();
 			}
 			else{
-				ConvertigoPlugin.errorMessageBox("The start date/end date isn't valid!");
+				ConvertigoPlugin.errorMessageBox("Start Date are after end date!");
 			}
 		} catch (ParseException ex) {
-			ConvertigoPlugin.logException(ex, "The start date/end date isn't valid!");
+			ConvertigoPlugin.logException(ex, "Start Date are after end date");
 		}
     }
     
     public void init(){
-    	if(getColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER + "_" + 6)==0 && getColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER + "_" + 1)==0){
-    		for (int i=0; i < tableViewer.getTable().getColumnCount(); i++) {
-    			setColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER + "_" + i, i);
-    			if(i==1 || i==6 || i==12 || i==16)
-    				setColHideProperty(ENGINE_LOG_VIEW_COL_HIDE + "_" + i, true);
-    			else
-    				setColHideProperty(ENGINE_LOG_VIEW_COL_HIDE + "_" + i, false);
-    		}
-    	}
-		int[] columnOrder = new int[tableViewer.getTable().getColumnCount()];
-		for (int i=0; i < tableViewer.getTable().getColumnCount(); i++) {
-			int order = getColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER + "_" + i);
-			columnOrder[i] = order;
-			boolean hide = getColHideProperty(ENGINE_LOG_VIEW_COL_HIDE + "_" + i);
-			if (hide) {
-				tableViewer.getTable().getColumn(i).setWidth(0);
-				tableViewer.getTable().getColumn(i).setResizable(false);
+		initCheckColumns();
+		createItemComboDateTime();
+    	
+	   	try{
+			for (int i=0; i < tableViewer.getTable().getColumnCount(); i++) {
+				boolean hide = getColHideProperty(ENGINE_LOG_VIEW_COL_HIDE + "_" + i);
+				tableViewer.getTable().getColumn(i).setWidth(hide ? 0 : getColSizeProperty(ENGINE_LOG_VIEW_COL_SIZE + "_" + i));
+				tableViewer.getTable().getColumn(i).setMoveable(!hide);
+				tableViewer.getTable().getColumn(i).setResizable(!hide);
 			}
-		}
-		tableViewer.getTable().setColumnOrder(columnOrder);	
+			tableViewer.getTable().setColumnOrder(getColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER));
+			
+    	}catch(Exception e){
+    		//if no data saved
+    		setColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER, defaultOrderColumns);
+    		for(int i = 0; i <titles.length; i++){			
+				setColHideProperty(ENGINE_LOG_VIEW_COL_HIDE + "_" + i, defaultVisibilityColumns[i]);
+				setColSizeProperty(ENGINE_LOG_VIEW_COL_SIZE + "_" + i, defaultSizeColumns[i]);
+			}
+    		init();
+    	}
     }
 
 	private void createActions() {
+		stopLogsAction = new Action("Stop Loading Logs") {
+			public void run() {
+				bStopLogViewThread = true;
+				if(realtime){
+					clearLogs();
+					realtime = false;
+					realTimeLogsAction.setChecked(false);
+					gridDataCheck.exclude = hideLogsAction.isChecked();
+					compositeCheck.setVisible(!gridDataCheck.exclude);
+					mainComposite.layout();
+				}
+			}
+		};
+		stopLogsAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display.getDefault(), getClass().getResourceAsStream("images/stop_logs_action.png"))));
+		
 		hideLogsAction = new RetargetAction("Toggle","Hide Log Parameters", IAction.AS_CHECK_BOX) {
 			public void runWithEvent(Event event) {
 				gridDataCheck.exclude = hideLogsAction.isChecked();
 				gridDataDateTime.exclude = hideLogsAction.isChecked();
-				compositeDateTime.setVisible(!gridDataDateTime.exclude);
+				gridDataSearch.exclude = hideLogsAction.isChecked();
+				compositeDateTimeAndSearch.setVisible(!gridDataDateTime.exclude);
 				compositeCheck.setVisible(!gridDataCheck.exclude);
 				mainComposite.layout();
 			}
@@ -295,18 +418,16 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 
 		realTimeLogsAction = new RetargetAction("Toggle","Real Time", IAction.AS_CHECK_BOX) {
 			public void runWithEvent(Event event) {
-				gridDataDateTime.exclude = realTimeLogsAction.isChecked();
+				boolean bRealtime = realTimeLogsAction.isChecked();
+				gridDataDateTime.exclude = bRealtime;
 				compositeDateTime.setVisible(!gridDataDateTime.exclude);
 				mainComposite.layout();
 				clearLogs();
-				setRealTime(realTimeLogsAction.isChecked());
-				if(!getRealTime()){
-					initDateTime();
-					updateDates();
-				}
+				realtime = bRealtime;
+				initDateTime();
+				setLogFilter();
 			}
 		};
-		
 		realTimeLogsAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display.getDefault(), getClass().getResourceAsStream("images/real_time_logs.png"))));
 		realTimeLogsAction.setEnabled(true);
 		
@@ -316,6 +437,16 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 				initDateTime();
 				//clean filter
 				filterText.setText("");
+				for(int i = 0; i < columns.length; i++){
+					//set check
+					columns[i].setSelection(defaultVisibilityColumns[i]);
+					//set visible column
+					tableViewer.getTable().getColumn(i).setWidth((!defaultVisibilityColumns[i] ? 0 : getColSizeProperty(ENGINE_LOG_VIEW_COL_SIZE+"_"+i)));
+					tableViewer.getTable().getColumn(i).setResizable(defaultVisibilityColumns[i]);
+					//set header column menu
+					headerMenu.getItem(i).setSelection(defaultVisibilityColumns[i]);
+				}
+				tableViewer.getTable().setColumnOrder(defaultOrderColumns);
 				setLogFilter();
 			}
 		};
@@ -340,6 +471,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 	
 	private void createToolbar() {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
+		manager.add(stopLogsAction);
 		manager.add(hideLogsAction);
 		manager.add(realTimeLogsAction);
 		manager.add(restoreLogsAction);
@@ -347,7 +479,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		manager.add(scrollLockAction);
 	}
 	
-	private void initComboDateTime(){
+	private void createItemComboDateTime(){
 		for (int i = 0; i < 10; i++) {
 			hourStart.add("0" + i); hourEnd.add("0" + i);
 			minuteStart.add("0" + i); minuteEnd.add("0" + i);
@@ -365,6 +497,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 	}
 	
 	private void initDateTime(){
+		//if no dates saved
 		Date currentDate = new Date();
 		Calendar calendar = GregorianCalendar.getInstance();
 		currentDate.setTime(currentDate.getTime()-600000);
@@ -389,24 +522,18 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 	}
 	
 	private void initCheckColumns(){
-		for (int i = 0 ; i < titles.length ; i++){	
+		for (int i = 0 ; i < titles.length ; i++){
 			final int j = i;
 			columns[i].setSelection(!getColHideProperty(ENGINE_LOG_VIEW_COL_HIDE+"_"+i));
 			headerMenu.getItem(i).setSelection(!getColHideProperty(ENGINE_LOG_VIEW_COL_HIDE+"_"+i));
 			columns[i].addListener(SWT.Selection, new Listener(){
 				public void handleEvent(Event e) {
 					TableColumn column = tableViewer.getTable().getColumn(j);
-					if(columns[j].getSelection()){
-						column.setWidth(bounds[j]);
-						column.setResizable(true);
-						setColHideProperty(ENGINE_LOG_VIEW_COL_HIDE+"_"+j, false);
-						headerMenu.getItem(j).setSelection(true);
-					}else{
-					    column.setWidth(0);
-					    column.setResizable(false);
-						setColHideProperty(ENGINE_LOG_VIEW_COL_HIDE+"_"+j, true);
-						headerMenu.getItem(j).setSelection(false);
-					}
+					column.setWidth(columns[j].getSelection() ? defaultSizeColumns[j] : 0);
+					column.setResizable(columns[j].getSelection());
+					headerMenu.getItem(j).setSelection(columns[j].getSelection());					
+					setColHideProperty(ENGINE_LOG_VIEW_COL_HIDE+"_"+j, !tableViewer.getTable().getColumn(j).getResizable());
+					setColSizeProperty(ENGINE_LOG_VIEW_COL_SIZE+"_"+j, tableViewer.getTable().getColumn(j).getWidth());
 				}
 			});
 		}
@@ -446,7 +573,8 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		compositeTableViewer.setLayoutData(gridData);
 		
-		tableViewer = new TableViewer(compositeTableViewer, SWT.RESIZE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.BORDER | SWT.VERTICAL | SWT.FILL);
+		tableViewer = new TableViewer(compositeTableViewer, 
+				SWT.RESIZE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.BORDER | SWT.VERTICAL | SWT.FILL);
 		
 		createColumns(compositeTableViewer, tableViewer);
 		createTableMenu(compositeTableViewer);
@@ -474,23 +602,17 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		
 		table.addListener(SWT.MenuDetect, new Listener() {
 			public void handleEvent(Event event) {
-				Point pt = Display.getCurrent().map(null, table, new Point(event.x, event.y)); 
-				Rectangle clientArea = table.getClientArea();
-				boolean header = clientArea.y <= pt.y && pt.y < (clientArea.y + table.getHeaderHeight());
-				if(tableViewer.getCell(pt)!=null)
-					selectedColumnIndex = tableViewer.getCell(pt).getColumnIndex();
-				table.setMenu(header ? headerMenu : tableMenu);
-				if(tableViewer.getTable().getColumn(selectedColumnIndex).getText().toLowerCase().equals("time")){
-					startDateItem.setEnabled(true);		
-					endDateItem.setEnabled(true);
-				}else{
-					startDateItem.setEnabled(false);
-					endDateItem.setEnabled(false);
-				}
-				if(selectedColumnIndex >4 && selectedColumnIndex < 14)
-					addVariableItem.setEnabled(true);		
-				else
-					addVariableItem.setEnabled(false);
+					Point pt = Display.getCurrent().map(null, table, new Point(event.x, event.y)); 
+					Rectangle clientArea = table.getClientArea();
+					boolean header = clientArea.y <= pt.y && pt.y < (clientArea.y + table.getHeaderHeight());
+					if(tableViewer.getCell(pt)!=null)
+						selectedColumnIndex = tableViewer.getCell(pt).getColumnIndex();
+					table.setMenu(header ? headerMenu : tableMenu);
+					startDateItem.setEnabled(tableViewer.getTable().getColumn(selectedColumnIndex).getText().toLowerCase().equals("time") ? 
+							true : false);		
+					endDateItem.setEnabled(tableViewer.getTable().getColumn(selectedColumnIndex).getText().toLowerCase().equals("time") ? 
+							true : false);
+					addVariableItem.setEnabled(selectedColumnIndex >4 && selectedColumnIndex < 14 ? true : false);
 			}
 		});
 		/* IMPORTANT: Dispose the menus (only the current menu, set with setMenu(), will be automatically disposed) */
@@ -501,12 +623,12 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 			}
 		});
 		
-		thread = new Thread(new Runnable() {
-			
+		logViewThread = new Thread(new Runnable() {
 			public void run() {
 				try {
+					// Wait for the Convertigo engine fully starts the log objects
 					while (Engine.logConvertigo == null) {
-							Thread.sleep(500);
+							Thread.sleep(180);
 					}
 			        Engine.logConvertigo.addAppender(appender);
 
@@ -514,11 +636,17 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 					logManager.setContinue(true);
 					logManager.setDateStart(new Date(new Date().getTime() - 600000));
 					logManager.setMaxLines(50);
-					
-					while (Thread.currentThread() == thread){
-						if(getRealTime() || firstLaunch) {
-							Thread.sleep(200);
+
+					//TODO
+					// While the log view thread is the relevant thread (i.e. if we close the view and reopen it,
+					// we will have another log view thread instance, and thus the first one should quit).
+					while (Thread.currentThread() == logViewThread) { 
+
+						while (!bStopLogViewThread && (realtime || logManager.hasMoreResults())) {
+							// Get the newest available lines
 							updateLogs();
+							
+							// Refresh the list view
 							Display.getDefault().asyncExec(new Runnable() {
 								public void run() {
 									tableViewer.refresh();
@@ -527,6 +655,14 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 									}
 								}
 							});
+
+							// We must release some CPU time in order to allow the GUI to be refreshed
+							Thread.sleep(540);
+						}
+						// Wait for option changes
+						synchronized(logViewThread) {
+			        		// TODO: enabled filter and options
+							logViewThread.wait();
 						}
 					}
 				} catch (InterruptedException e) {
@@ -534,9 +670,9 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 				} 
 			}
 		});
-		thread.setDaemon(true);
-		thread.setName("StudioLogViewer");
-		thread.start();
+		logViewThread.setDaemon(true);
+		logViewThread.setName("EngineLogViewerThread");
+		logViewThread.start();
 		// Make the selection available to other views
 		getSite().setSelectionProvider(tableViewer);
 	}
@@ -628,46 +764,48 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 	private String getSelectedCellText(int columnIndex, LogLine line) {
 		String text = "";
 		switch (columnIndex) {
-			case 0: 
+			case 0 :
+				break;
+			case 1: 
 				text = line.getMessage();
 				break;
-			case 1:
+			case 2:
 				text = line.getLevel();
 				break;
-			case 2:
+			case 3:
 				text = line.getCategory();
 				break;
-			case 3:
+			case 4:
 				text = line.getTime();
 				break;
-			case 4:
+			case 5:
 				text = line.getThread();
 				break;
-			case 5:
+			case 6:
 				text = line.getClientIP();
 				break;
-			case 6:
+			case 7:
 				text = line.getConnector();
 				break;
-			case 7:
+			case 8:
 				text = line.getContextID();
 				break;			
-			case 8:
+			case 9:
 				text = line.getProject();
 				break;
-			case 9:
+			case 10:
 				text = line.getTransaction();
 				break;			
-			case 10:
+			case 11:
 				text = line.getUID();
 				break;			
-			case 11:
+			case 12:
 				text = line.getUser();
 				break;
-			case 12:
+			case 13:
 				text = line.getSequence();
 				break;
-			case 13:
+			case 14:
 				text = line.getClientHostName();
 				break;
 			default:
@@ -677,7 +815,6 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 	}
 	
 	private void setFilterText(IStructuredSelection selection, int buttonIndex) {
-		
 		if (!selection.isEmpty()) {
 			LogLine logline = (LogLine) selection.getFirstElement();
 			String cellValue = getSelectedCellText(selectedColumnIndex, logline);
@@ -727,11 +864,16 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		logLines.clear();
 		tableViewer.getTable().clearAll();
 		tableViewer.refresh();
+		counter=0;
 	}
 
 	private void setLogFilter() {
 		try {
-			logManager.setFilter(filterText.getText());
+    		// TODO: disabled options and filter GUI
+    		synchronized (logViewThread) {
+				logViewThread.notifyAll();	
+				logManager.setFilter(filterText.getText());
+			}
 		} catch (ServiceException e) {
 			ConvertigoPlugin.logException(e, "Unable to set logs filter", true);
 		}
@@ -743,66 +885,44 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		
 		TableColumnLayout layout = new TableColumnLayout();
 		parent.setLayout(layout);
+		TableViewerColumn col; 
 		
-		TableViewerColumn col = createTableViewerColumn(titles[0], bounds[0], 0);;
-		layout.setColumnData(col.getColumn(), new ColumnWeightData(20, ColumnWeightData.MINIMUM_WIDTH, true));
-		createMenuItem(headerMenu, col.getColumn());
-
-		col = createTableViewerColumn(titles[1], bounds[1], 1);
-		layout.setColumnData(col.getColumn(), new ColumnWeightData(3, ColumnWeightData.MINIMUM_WIDTH, true));
-		createMenuItem(headerMenu, col.getColumn());
-		
-		col = createTableViewerColumn(titles[2], bounds[2], 2);
-		layout.setColumnData(col.getColumn(), new ColumnWeightData(5, ColumnWeightData.MINIMUM_WIDTH, true));
-		createMenuItem(headerMenu, col.getColumn());
-		
-		col = createTableViewerColumn(titles[3], bounds[3], 3);
-		layout.setColumnData(col.getColumn(), new ColumnWeightData(4, ColumnWeightData.MINIMUM_WIDTH, true));
-		createMenuItem(headerMenu, col.getColumn());
-		
-		col = createTableViewerColumn(titles[4], bounds[4], 4);
-		layout.setColumnData(col.getColumn(), new ColumnWeightData(3, ColumnWeightData.MINIMUM_WIDTH, true));
-		createMenuItem(headerMenu, col.getColumn());
-		
-		for (int i = 5 ; i < titles.length ; i++){
-			col = createTableViewerColumn(titles[i], bounds[i], i);
-			layout.setColumnData(col.getColumn(), new ColumnWeightData(5, ColumnWeightData.MINIMUM_WIDTH, true));
-			createMenuItem(headerMenu, col.getColumn());
-		}
-		//Order columns
-		TableColumn tab[] = tableViewer.getTable().getColumns();
-		for (int i = 0; i < tableViewer.getTable().getColumnCount(); i++){
-			tab[i].addControlListener(new ControlListener() {
-				public void controlResized(ControlEvent arg0) {}
-				public void controlMoved(ControlEvent arg0) {
-					int tab[] = tableViewer.getTable().getColumnOrder();
-					for(int x = 0 ; x < titles.length; x++){
-						setColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER+"_"+x, tab[x]);
-					}
-				}
-			});
-		}
-		final MenuItem[] header = headerMenu.getItems();
-		for (int i = 0; i < headerMenu.getItemCount(); i++){
+		for (int i = 0; i < titles.length ; i++){
 			final int j = i;
-			header[i].addSelectionListener(new SelectionListener() {
+			col = createTableViewerColumn(i);
+			layout.setColumnData(col.getColumn(), new ColumnWeightData(4, ColumnWeightData.MINIMUM_WIDTH, true));
+			createMenuItem(headerMenu, col.getColumn());
+			headerMenu.getItem(i).addSelectionListener(new SelectionListener() {
 				public void widgetSelected(SelectionEvent arg0) {
-					setColHideProperty(ENGINE_LOG_VIEW_COL_HIDE+"_"+j, !header[j].getSelection());
-					columns[j].setSelection(header[j].getSelection());
+					columns[j].setSelection(headerMenu.getItem(j).getSelection());
+					setColHideProperty(ENGINE_LOG_VIEW_COL_HIDE+"_"+j, !tableViewer.getTable().getColumn(j).getResizable());
 				}
 				public void widgetDefaultSelected(SelectionEvent arg0) {}
 			});
 		}
+		
 	} 
 	
-	private TableViewerColumn createTableViewerColumn(String title, int bound, final int colNumber) {
-		TableViewerColumn viewerColumn = new TableViewerColumn(tableViewer,SWT.VIRTUAL);
+	private TableViewerColumn createTableViewerColumn(final int colNumber) {	
+		TableViewerColumn viewerColumn = new TableViewerColumn(tableViewer, SWT.VIRTUAL);
 		TableColumn column = viewerColumn.getColumn();
-		column.setText(title);
-		column.setWidth(bound);
-		column.setResizable(true);
-		column.setMoveable(true);
-		column.addSelectionListener(getSelectionAdapter(column, colNumber));
+			column.setText(titles[colNumber]);
+			column.setWidth(defaultSizeColumns[colNumber]);
+			column.addControlListener(new ControlListener() {
+				public void controlResized(ControlEvent arg0) {
+					if(counter!=0){
+						for(int i = 0; i < tableViewer.getTable().getColumnCount(); i++)
+							setColSizeProperty(ENGINE_LOG_VIEW_COL_SIZE+"_"+i, tableViewer.getTable().getColumn(i).getWidth());
+					}
+				}
+				public void controlMoved(ControlEvent arg0) {
+					if(counter!=0)
+						setColOrderProperty(ENGINE_LOG_VIEW_COL_ORDER, tableViewer.getTable().getColumnOrder());
+				}
+			});
+			column.setResizable(true);
+			column.setMoveable(true);
+			column.addSelectionListener(getSelectionAdapter(column, colNumber));
 		return viewerColumn;
 	}
 	
@@ -812,13 +932,9 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		itemName.setSelection(column.getResizable());
 		itemName.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				if (itemName.getSelection()) {
-					column.setWidth(150);
-					column.setResizable(true);
-				} else {
-					column.setWidth(0);
-					column.setResizable(false);
-				}
+				column.setWidth(itemName.getSelection() ? getColSizeProperty(ENGINE_LOG_VIEW_COL_SIZE+"_"+itemName.getID()) : 0);
+				column.setResizable(itemName.getSelection() ? true : false);
+				column.setMoveable(itemName.getSelection() ? true : false);
 			}
 		});
 	}
@@ -844,21 +960,17 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 	public void setFocus() {
 		tableViewer.getControl().setFocus();
 	}
-
-	public void objectSelected(CompositeEvent compositeEvent) {
-	}
-
-	public void objectChanged(CompositeEvent compositeEvent) {
-	}	
+	public void objectSelected(CompositeEvent compositeEvent) {}
+	public void objectChanged(CompositeEvent compositeEvent) {}	
 	
 	private void updateLogs() {
 		try {
 			JSONArray logs = logManager.getLines();
 			boolean interrupted = false;
-	        while (logs.length() == 0 && !interrupted && thread != null) {
+	        while (logs.length() == 0 && !interrupted && logViewThread != null) {
 	        	synchronized (appender) {
 					try {
-						appender.wait(500);
+						appender.wait(300);
 					} catch (InterruptedException e) {
 						interrupted = true;
 					}
@@ -918,7 +1030,5 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 			ConvertigoPlugin.logException(e, "Unable to process received Engine logs", true);
 		}
 		logManager.setContinue(true);
-		if(!logManager.hasMoreResults())
-			firstLaunch = false;
 	}
 }

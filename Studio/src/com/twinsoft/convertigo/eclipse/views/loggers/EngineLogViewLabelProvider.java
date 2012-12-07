@@ -66,7 +66,7 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 		LogLine line = (LogLine) element;
 		String text = "";
 		switch (columnIndex) {
-			case 0: 
+			case 0:
 				text = line.getMessage();
 				break;
 			case 1:
@@ -90,7 +90,6 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 				}
 				break;
 			case 5:
-				//text = line.getExtra();
 				if (!line.isSubLine) {
 					text = line.getClientIP();
 				}
@@ -142,6 +141,5 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 	}
 
 	@Override
-	public void update(ViewerCell cell) {
-	}
+	public void update(ViewerCell cell) {}
 }
