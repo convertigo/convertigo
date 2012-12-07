@@ -21,7 +21,7 @@ public class EngineLogViewComparator extends ViewerComparator {
 	public void setColumn(int column) {
 		if (column == this.propertyIndex) {
 			// Same column as last sort; toggle the direction
-			direction = 1 - direction;
+				direction = 1 - direction;
 		} else {
 			// New column; do an ascending sort
 			this.propertyIndex = column;
@@ -51,7 +51,6 @@ public class EngineLogViewComparator extends ViewerComparator {
 				rc = line1.getThread().compareTo(line2.getThread());
 				break;
 			case 5:
-				//rc = line1.getExtra().compareTo(line2.getExtra());
 				rc = line1.getClientIP().compareTo(line2.getClientIP());
 				break;
 			case 6:

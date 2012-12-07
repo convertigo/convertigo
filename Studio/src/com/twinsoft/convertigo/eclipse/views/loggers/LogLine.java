@@ -12,7 +12,6 @@ public class LogLine {
 	boolean isSubLine;
 	private int counter;
 	private String fullMessage;
-	//private String fullExtra;
 	private HashMap<String, String> allExtras;
 	
 	public LogLine(String category, String time, String level, String thread, String message, String extra, boolean isSubLine, int counter, String fullMessage, HashMap<String, String> allExtras) {
@@ -25,7 +24,6 @@ public class LogLine {
 		this.level = level;
 		this.isSubLine = isSubLine;
 		this.counter = counter;
-		//this.fullExtra = fullExtra;
 		this.fullMessage = fullMessage;
 		this.allExtras = allExtras;
 	}
@@ -113,11 +111,6 @@ public class LogLine {
 		return allExtras.get("clienthostname");
 	}
 	public String getFullExtra() {
-		//return fullExtra;
 		return allExtras.toString();
 	}
-	
-	//public void setFullExtra(String fullExtra) {
-		//this.fullExtra = fullExtra;
-	//}
 }
