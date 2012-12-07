@@ -76,6 +76,7 @@ import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
+import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.EmulatorTechnologyWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.ServiceCodeWizardPage;
@@ -347,6 +348,13 @@ public class NewObjectWizard extends Wizard {
 						if (newBean instanceof TestCase) {
 							TestCase testCase = (TestCase)newBean;
 		    				testCase.importRequestableVariables((RequestableObject)testCase.getParent());
+						}
+						
+						if (newBean instanceof RequestableHttpVariable) {
+							RequestableHttpVariable variable = (RequestableHttpVariable)newBean;
+							if (!(variable.getParent() instanceof HtmlTransaction)) {
+								variable.setHttpName(variable.getName());
+							}
 						}
 						
 						ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");
