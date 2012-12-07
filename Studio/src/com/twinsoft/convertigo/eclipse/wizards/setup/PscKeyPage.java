@@ -2,8 +2,8 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
@@ -64,14 +64,11 @@ public class PscKeyPage extends WizardPage {
 		GridData gdlayout = new GridData(GridData.FILL_HORIZONTAL | GridData.FILL_VERTICAL);
 
 		
-		pscKey = new Text(container, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL);
+		pscKey = new Text(container, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.WRAP);
 		pscKey.setFont(new Font(container.getDisplay(),"Arial", 8, SWT.NONE));
-		pscKey.addKeyListener(new KeyListener() {
-			public void keyPressed(KeyEvent e) {
-				
-			}
+		pscKey.addModifyListener(new ModifyListener() {
 
-			public void keyReleased(KeyEvent e) {
+			public void modifyText(ModifyEvent e) {
 				if (pscKey.getText().length() != 0) {
 					String psc = pscKey.getText();
 					String decipheredPSC = Crypto2.decodeFromHexString("registration", psc);

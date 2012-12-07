@@ -5,8 +5,8 @@ import java.io.File;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
@@ -39,16 +39,16 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 		GridData layoutData = new GridData(GridData.FILL_HORIZONTAL);
 		layoutData.horizontalSpan = 3;
 		
-		final String userWorkspace = System.getProperty("convertigo.cems.user_workspace_path",
-				System.getProperty("user.home") + "/convertigo");
-
+		String defaultUserWorkspace = System.getProperty("user.home") + "/convertigo";
+//		final String userWorkspace = ResourcesPlugin.getWorkspace().getRoot().getRawLocation().toFile().getParent();
+		final String userWorkspace = System.getProperty("convertigo.cems.user_workspace_path", System.getProperty("user.home") + "/convertigo");
 		Label label = new Label(container, SWT.WRAP);
 		label.setText("The Convertigo user workspace will contain all Convertigo " +
 				"configuration files, log files, and all projects files.\n\n" +
 				"You must choose a directory for which you have full read and write permissions.\n" +
 				"If the chosen location does not exist, it will be automatically created.\n\n" +
-				"Convertigo studio is currently installed in: " + System.getProperty("user.dir") + "\n\n" +
-				"Default Convertigo user workspace is: " + userWorkspace + "\n\n" +
+				"Convertigo studio workspace is currently installed in: " + userWorkspace + "\n\n" +
+				"Default Convertigo user workspace is: " + defaultUserWorkspace + "\n\n" +
 				"Changing the Convertigo user workspace will require a studio restart.\n\n\n\n");		
 		label.setLayoutData(layoutData);
 		
@@ -65,11 +65,9 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 		
 		userWorkspaceLocation = new Text(container, SWT.BORDER | SWT.SINGLE);
 		userWorkspaceLocation.setText(userWorkspace);
-		userWorkspaceLocation.addKeyListener(new KeyListener() {
-			public void keyPressed(KeyEvent e) {
-			}
+		userWorkspaceLocation.addModifyListener(new ModifyListener() {
 
-			public void keyReleased(KeyEvent e) {
+			public void modifyText(ModifyEvent e) {
 				if (userWorkspaceLocation.getText().length() != 0) {
 					File directory = new File(userWorkspaceLocation.getText());
 					if (directory.exists() && !directory.isDirectory()) {
@@ -81,12 +79,14 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 					}
 				}
 			}
+			
 		});
 		userWorkspaceLocation.setLayoutData(layoutData);
 		
 		Button browseButton = new Button(container, SWT.NONE);
 		browseButton.setText("Browse...");
 		browseButton.addSelectionListener(new SelectionListener() {
+			
 			public void widgetSelected(SelectionEvent e) {
 				DirectoryDialog directoryChooserDialog = new DirectoryDialog(getShell());
 		        directoryChooserDialog.setFilterPath(null);
@@ -100,17 +100,20 @@ public class ChooseWorkspaceLocationPage extends WizardPage {
 			
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
+			
 		});
 
 		Button resetButton = new Button(container, SWT.NONE);
 		resetButton.setText("Reset");
 		resetButton.addSelectionListener(new SelectionListener() {
+			
 			public void widgetSelected(SelectionEvent e) {
 	        	userWorkspaceLocation.setText(userWorkspace);
 			}
 			
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
+			
 		});
 
 		// Required to avoid an error in the system

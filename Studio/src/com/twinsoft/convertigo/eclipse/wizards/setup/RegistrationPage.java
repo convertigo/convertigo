@@ -3,6 +3,9 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,8 +18,8 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -25,6 +28,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.w3c.dom.Document;
@@ -36,8 +40,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class RegistrationPage extends WizardPage {
-	
+public class RegistrationPage extends WizardPage {	
+	private final static Pattern pCheckEmail = Pattern.compile("[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}\\@[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}(\\.[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25})+");
 	private Text firstName;
 	private Text lastName;
 	private Text userName;
@@ -45,9 +49,6 @@ public class RegistrationPage extends WizardPage {
 	private Text mail;
 	private Button acceptTerms;
 	private Button sendInfos;
-	private Button psc;
-	
-	private Composite container;
 	
 	public RegistrationPage() {
 		super("Registration");
@@ -56,18 +57,28 @@ public class RegistrationPage extends WizardPage {
 	}
 
 	public void createControl(Composite parent) {
+		final Color colorcondition = new  Color(parent.getDisplay(), 204,0,0);
+		final Color colorpart = new  Color(parent.getDisplay(), 51,102,255);
+		final Font ftArial7i = new Font(parent.getDisplay(),"Arial", 7, SWT.ITALIC);
+		final Font ftArial8b = new Font(parent.getDisplay(),"Arial", 8, SWT.BOLD);
+		final Font ftArial10 = new Font(parent.getDisplay(),"Arial", 10, SWT.NONE);
+		final Font ftArial14b = new Font(parent.getDisplay(),"Arial", 14, SWT.BOLD);
+		final Font ftArial16b = new Font(parent.getDisplay(),"Arial", 16, SWT.BOLD);
+		
+		final int nbCol = 3;
+		
 		final SetupWizard setupWizard = (SetupWizard) getWizard();
 		final Boolean isConnect = isInternetAccess();
 		
-		container = new Composite(parent, SWT.NONE);
+		Composite container = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
 		container.setLayout(layout);
-		
-		layout.numColumns = 3;
+				
+		layout.numColumns = nbCol;
 		layout.marginWidth = 30;		
 		
 		GridData layoutDataDescription = new GridData(GridData.FILL_HORIZONTAL);
-		layoutDataDescription.horizontalSpan = 3;
+		layoutDataDescription.horizontalSpan = nbCol;
 		layoutDataDescription.widthHint = 300;
 		
 		
@@ -77,57 +88,55 @@ public class RegistrationPage extends WizardPage {
 				"This process will also provide you a Personal Studio Configuration that will automatically configure " +
 				"your Studio for projects deployments on Convertigo Cloud.");
 		description.setLayoutData(layoutDataDescription);
-		description.setFont(new Font(container.getDisplay(),"Arial", 10, SWT.NONE));
+		description.setFont(ftArial10);
 		
 		GridData gLayoutData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
 		gLayoutData.heightHint = 10;
-		gLayoutData.horizontalSpan = 3;
+		gLayoutData.horizontalSpan = nbCol;
 		Label label = new Label(container, SWT.SEPARATOR | SWT.HORIZONTAL);
 		label.setLayoutData(gLayoutData);
-		
-		GridData layoutDataText = new GridData(GridData.FILL_HORIZONTAL);
-		layoutDataText.horizontalSpan = 3;
 		
 		Label text = new Label(container, SWT.WRAP);
 		if (!isConnect) {
 			text.setText("This procedure requires Internet access.");
-			text.setFont(new Font(container.getDisplay(),"Arial", 8, SWT.BOLD));
-			text.setForeground(new  Color(container.getDisplay(), 51,102,255));
-			text.setLayoutData(layoutDataText);
+			text.setFont(ftArial8b);
+			text.setForeground(colorpart);
+			text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nbCol, 1));
 
 			text = new Label(container, SWT.WRAP);
 			text.setText("If you can not access the Internet from this computer click \"Next\"," +
 					"or if you already own a Personal Studio Configuration, choose the following option:");
-			text.setFont(new Font(container.getDisplay(),"Arial", 8, SWT.BOLD));
-			text.setLayoutData(layoutDataText);
+			text.setFont(ftArial8b);
+			text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nbCol, 1));
 		} else { 
 			text.setText("If you already own a Personal Studio Configuration, choose the following option:");
-			text.setFont(new Font(container.getDisplay(),"Arial", 8, SWT.BOLD));
-			text.setLayoutData(layoutDataText);
+			text.setFont(ftArial8b);
+			text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nbCol, 1));
 		}
 		
-		
-		psc = new Button(container, SWT.CHECK);
-		psc.setText("I already own a PSC\n");
-		psc.setLayoutData(layoutDataText);
-		
 		label = new Label(container, SWT.WRAP);
-		label.setLayoutData(layoutDataText);
+		label.setLayoutData(new GridData(SWT.END, SWT.CENTER, false, false, nbCol - 1, 1));
+		label.setText("Do you own a PSC ?");
+		
+		final Button psc = new Button(container, SWT.CHECK | SWT.CENTER);
+		psc.setText("Yes, I already own a PSC");
+		psc.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		
+		label = new Label(container, SWT.NONE);
+		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nbCol, 1));
 		label = new Label(container, SWT.WRAP);
 		label.setText("Otherwise, please fill in the following form:");
-		label.setFont(new Font(container.getDisplay(),"Arial", 8, SWT.BOLD));	
-		label.setLayoutData(layoutDataText);
+		label.setFont(ftArial8b);	
+		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nbCol, 1));
 		
 		GridData layoutDataTitle = new GridData(GridData.FILL_HORIZONTAL);
-		layoutDataTitle.horizontalSpan = 3;
+		layoutDataTitle.horizontalSpan = nbCol;
 		
 		Label title = new Label (container, SWT.NONE);
-		title.setFont(new Font(container.getDisplay(),"Arial", 14, SWT.BOLD));
-		Color color = new  Color(container.getDisplay(), 51,102,255);
-		title.setForeground(color);
+		title.setFont(ftArial14b);
+		title.setForeground(colorpart);
 		title.setLayoutData(layoutDataTitle);
 		title.setText("Your Account Details");
-		
 		
 		GridData layoutData = new GridData(GridData.FILL_HORIZONTAL);
 		layoutData.verticalIndent = 5;
@@ -140,32 +149,12 @@ public class RegistrationPage extends WizardPage {
 		lData.widthHint = 10;
 		
 		Label condition = new Label(container, SWT.NONE | SWT.FILL);
-		condition.setFont(new Font(container.getDisplay(),"Arial", 16, SWT.BOLD));
-		Color colorcondition = new  Color(container.getDisplay(), 204,0,0);
+		condition.setFont(ftArial16b);
 		condition.setForeground(colorcondition);
 		condition.setText("*");
 		condition.setLayoutData(lData);
 		
 		userName = new Text(container, SWT.BORDER);
-		userName.addKeyListener(new KeyListener() {
-			public void keyPressed(KeyEvent e) {
-				if (userName.getText().length() > 0) {
-					acceptTerms.setSelection(false);
-					setPageComplete(false);
-				} else {
-					setErrorMessage("Please enter your user name!");
-				}
-			}
-
-			public void keyReleased(KeyEvent e) {
-				if (userName.getText().length() > 0) {
-					setErrorMessage(null);
-					setMessage(getDescription());
-				} else {
-					setErrorMessage("Please enter the user name!");
-				}
-			}
-		});
 		userName.setLayoutData(layoutData);
 		
 		label = new Label(container, SWT.NONE);
@@ -173,26 +162,151 @@ public class RegistrationPage extends WizardPage {
 		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 		
 		condition = new Label(container, SWT.NONE);
-		condition.setFont(new Font(container.getDisplay(),"Arial", 16, SWT.BOLD));
+		condition.setFont(ftArial16b);
 		condition.setForeground(colorcondition);
 		condition.setText("*");
 		condition.setLayoutData(lData);
 		
 		password = new Text(container, SWT.PASSWORD | SWT.BORDER);
-		password.setText("0000");
-		password.addKeyListener(new KeyListener() {
-			public void keyPressed(KeyEvent e) {
-				if (password.getText().length() > 0) {
+		password.setLayoutData(layoutData);
+		
+		label = new Label(container, SWT.NONE);
+		label.setText("Confirm password");
+		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		
+		condition = new Label(container, SWT.NONE);
+		condition.setFont(ftArial16b);
+		condition.setForeground(colorcondition);
+		condition.setText("*");
+		condition.setLayoutData(lData);
+		
+		final Text passwordAgain = new Text(container, SWT.PASSWORD | SWT.BORDER);
+		passwordAgain.setLayoutData(layoutData);
+		
+		Label title2 = new Label (container, SWT.NONE);
+		title2.setFont(ftArial14b);
+		title2.setForeground(colorpart);
+		title2.setLayoutData(layoutDataTitle);
+		title2.setText("Your Personal Details");
+		
+		label = new Label(container, SWT.NONE);
+		label.setText("First name");
+		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		
+		condition = new Label(container, SWT.NONE);
+		condition.setFont(ftArial16b);
+		condition.setForeground(colorcondition);
+		condition.setText("*");
+		condition.setLayoutData(lData);
+		
+		firstName = new Text(container, SWT.BORDER);
+		firstName.setLayoutData(layoutData);
+		
+		label = new Label(container, SWT.NONE);
+		label.setText("Last name");
+		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		
+		condition = new Label(container, SWT.NONE);
+		condition.setFont(ftArial16b);
+		condition.setForeground(colorcondition);
+		condition.setText("*");
+		condition.setLayoutData(lData);
+		
+		lastName = new Text(container, SWT.BORDER);
+		lastName.setLayoutData(layoutData);
+		
+		label = new Label(container, SWT.NONE);
+		label.setText("Mail");
+		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		
+		condition = new Label(container, SWT.NONE);
+		condition.setFont(ftArial16b);
+		condition.setForeground(colorcondition);
+		condition.setText("*");
+		condition.setLayoutData(lData);
+		
+		mail = new Text(container, SWT.BORDER);
+		mail.setLayoutData(layoutData);
+		
+		label = new Label(container, SWT.NONE);
+		label.setText("Confirm mail");
+		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		
+		condition = new Label(container, SWT.NONE);
+		condition.setFont(ftArial16b);
+		condition.setForeground(colorcondition);
+		condition.setText("*");
+		condition.setLayoutData(lData);
+		
+		final Text mailAgain = new Text(container, SWT.BORDER);
+		mailAgain.setLayoutData(layoutData);
+		
+		label = new Label (container, SWT.NONE);
+		label.setFont(ftArial7i);
+		label.setForeground(colorcondition);
+		label.setText("* required fileds");
+		GridData layoutDataFields = new GridData(GridData.HORIZONTAL_ALIGN_END);
+		layoutDataFields.horizontalSpan = nbCol;
+		label.setLayoutData(layoutDataFields);
+		
+		condition = new Label(container, SWT.NONE);
+		condition.setFont(ftArial16b);
+		condition.setForeground(colorcondition);
+		condition.setText("*");
+		GridData lD = new GridData(GridData.HORIZONTAL_ALIGN_END);
+		lD.horizontalSpan = 2;
+		condition.setLayoutData(lD);
+
+		acceptTerms = new Button(container, SWT.CHECK);
+		acceptTerms.setFont(ftArial8b);
+		acceptTerms.setText("Accept terms and conditions !");
+		acceptTerms.setLayoutData(layoutData);
+		
+		//Button permit to send informations of the registration form to the web service 
+		sendInfos = new Button(container, SWT.BUTTON1);
+		sendInfos.setFont(ftArial8b);
+		sendInfos.setText("Send registration");
+		sendInfos.setEnabled(false);
+		
+		ModifyListener unAccept = new ModifyListener() {
+			
+			public void modifyText(ModifyEvent e) {
+				if (e.data == null) {
 					acceptTerms.setSelection(false);
+					sendInfos.setEnabled(false);
 					setPageComplete(false);
-				} else {
-					setErrorMessage("Please enter your password!");
 				}
 			}
-
-			public void keyReleased(KeyEvent e) {
+			
+		};
+		
+		final List<Text> fields = Arrays.asList(userName, password, passwordAgain, firstName, lastName, mail, mailAgain);
+		
+		for (Text txt : fields) {
+			txt.addModifyListener(unAccept);
+		}
+		
+		userName.addModifyListener(new ModifyListener() {
+			
+			public void modifyText(ModifyEvent e) {
+				if (userName.getText().length() > 0) {
+					setErrorMessage(null);
+					setMessage(getDescription());
+				} else {
+					setErrorMessage("Please enter the user name!");
+				}
+			}
+			
+		});
+		
+		password.addModifyListener(new ModifyListener() {
+			
+			public void modifyText(ModifyEvent e) {
+				if (e.data == null) {
+					passwordAgain.setText("");
+				}
 				int nbPassword = password.getText().length();
-				if (password.getText().length() > 0) {
+				if (nbPassword > 0) {
 					if (nbPassword >= 4 && nbPassword <= 18) {
 						setErrorMessage(null);
 						setMessage(getDescription());
@@ -203,74 +317,29 @@ public class RegistrationPage extends WizardPage {
 					setErrorMessage("Please enter your password!");
 				}
 			}
+			
 		});
-		password.setLayoutData(layoutData);
 		
-		label = new Label(container, SWT.NONE);
-		label.setText("Confirm password");
-		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-		
-		condition = new Label(container, SWT.NONE);
-		condition.setFont(new Font(container.getDisplay(),"Arial", 16, SWT.BOLD));
-		condition.setForeground(colorcondition);
-		condition.setText("*");
-		condition.setLayoutData(lData);
-		
-		final Text passwordAgain = new Text(container, SWT.PASSWORD | SWT.BORDER);
-		passwordAgain.addKeyListener(new KeyListener() {
-			public void keyPressed(KeyEvent e) {
+		passwordAgain.addModifyListener(new ModifyListener() {
+			
+			public void modifyText(ModifyEvent e) {
 				if (passwordAgain.getText().length() > 0) {
-					acceptTerms.setSelection(false);
-					setPageComplete(false);
-				} else {
-					setErrorMessage("Please enter the your password again!");
-				}
-			}
-
-			public void keyReleased(KeyEvent e) {
-				if (passwordAgain.getText().length() > 0) {
-					String pass = password.getText();
-					if (pass.equals(passwordAgain.getText())) {
+					if (password.getText().equals(passwordAgain.getText())) {
 						setErrorMessage(null);
 						setMessage(getDescription());
 					} else {
 						setErrorMessage("Incorrect password!");
 					}
 				} else {
-					setErrorMessage("Please enter your password again!");
+					setErrorMessage("Please enter the your password again!");
 				}
 			}
+			
 		});
-		passwordAgain.setLayoutData(layoutData);
 		
-		Label title2 = new Label (container, SWT.NONE);
-		title2.setFont(new Font(container.getDisplay(),"Arial", 14, SWT.BOLD));
-		color = new  Color(container.getDisplay(), 51,102,255);
-		title2.setForeground(color);
-		title2.setLayoutData(layoutDataTitle);
-		title2.setText("Your Personal Details");
-		
-		label = new Label(container, SWT.NONE);
-		label.setText("First name");
-		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-		
-		condition = new Label(container, SWT.NONE);
-		condition.setFont(new Font(container.getDisplay(),"Arial", 16, SWT.BOLD));
-		condition.setForeground(colorcondition);
-		condition.setText("*");
-		condition.setLayoutData(lData);
-		
-		firstName = new Text(container, SWT.BORDER);
-		firstName.addKeyListener(new KeyListener() {
-			public void keyPressed(KeyEvent e) {
-				if (firstName.getText().length() > 0) {
-					acceptTerms.setSelection(false);
-					setPageComplete(false);
-				} else {
-					setErrorMessage("Please enter your first name!");
-				}
-			}
-			public void keyReleased(KeyEvent e) {
+		firstName.addModifyListener(new ModifyListener() {
+			
+			public void modifyText(ModifyEvent e) {
 				if (firstName.getText().length() > 0) {
 					setErrorMessage(null);
 					setMessage(getDescription());
@@ -278,30 +347,12 @@ public class RegistrationPage extends WizardPage {
 					setErrorMessage("Please enter your first name!");
 				}
 			}
+			
 		});
-		firstName.setLayoutData(layoutData);
-		
-		label = new Label(container, SWT.NONE);
-		label.setText("Last name");
-		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-		
-		condition = new Label(container, SWT.NONE);
-		condition.setFont(new Font(container.getDisplay(),"Arial", 16, SWT.BOLD));
-		condition.setForeground(colorcondition);
-		condition.setText("*");
-		condition.setLayoutData(lData);
-		
-		lastName = new Text(container, SWT.BORDER);
-		lastName.addKeyListener(new KeyListener() {
-			public void keyPressed(KeyEvent e) {
-				if (lastName.getText().length() > 0) {
-					acceptTerms.setSelection(false);
-					setPageComplete(false);
-				} else {
-					setErrorMessage("Please enter your last name!");
-				}
-			}
-			public void keyReleased(KeyEvent e) {
+
+		lastName.addModifyListener(new ModifyListener() {
+			
+			public void modifyText(ModifyEvent e) {
 				if (lastName.getText().length() > 0) {
 					setErrorMessage(null);
 					setMessage(getDescription());
@@ -309,73 +360,34 @@ public class RegistrationPage extends WizardPage {
 					setErrorMessage("Please enter your last name!");
 				}
 			}
+			
 		});
-		lastName.setLayoutData(layoutData);
 		
-		label = new Label(container, SWT.NONE);
-		label.setText("Mail");
-		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-		
-		condition = new Label(container, SWT.NONE);
-		condition.setFont(new Font(container.getDisplay(),"Arial", 16, SWT.BOLD));
-		condition.setForeground(colorcondition);
-		condition.setText("*");
-		condition.setLayoutData(lData);
-		
-		mail = new Text(container, SWT.BORDER);
-		mail.setText("user@convertigo.com");
-		mail.addKeyListener(new KeyListener() {
-			public void keyPressed(KeyEvent e) {
+		mail.addModifyListener(new ModifyListener() {
+			
+			public void modifyText(ModifyEvent e) {
+				if (e.data == null) {
+					mailAgain.setText("");
+				}
 				if (mail.getText().length() > 0) {
-					acceptTerms.setSelection(false);
-					setPageComplete(false);
+					if (isEmailAdress(mail.getText())) {
+						setErrorMessage(null);
+						setMessage(getDescription());
+					} else {
+						setErrorMessage("Please enter a valid mail!");
+					}
 				} else {
 					setErrorMessage("Please enter your mail!");
 				}
 			}
-
-			public void keyReleased(KeyEvent e) {
-				String email = mail.getText();
-				if (isEmailAdress(email)) {
-					setErrorMessage(null);
-					setMessage(getDescription());
-				} else {
-					setErrorMessage("Please enter a valid mail!");
-				}
-				if (mail.getText().length() > 0) {
-					setMessage(getDescription());
-				} else {
-					setErrorMessage("Please enter your mail!");
-				}
-			}
+			
 		});
-		mail.setLayoutData(layoutData);
 		
-		label = new Label(container, SWT.NONE);
-		label.setText("Confirm mail");
-		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-		
-		condition = new Label(container, SWT.NONE);
-		condition.setFont(new Font(container.getDisplay(),"Arial", 16, SWT.BOLD));
-		condition.setForeground(colorcondition);
-		condition.setText("*");
-		condition.setLayoutData(lData);
-		
-		final Text mailAgain = new Text(container, SWT.BORDER);
-		mailAgain.addKeyListener(new KeyListener() {
-			public void keyPressed(KeyEvent e) {
+		mailAgain.addModifyListener(new ModifyListener() {
+			
+			public void modifyText(ModifyEvent e) {
 				if (mailAgain.getText().length() > 0) {
-					acceptTerms.setSelection(false);
-					setPageComplete(false);
-				} else {
-					setErrorMessage("Please enter your mail again!");
-				}
-			}
-
-			public void keyReleased(KeyEvent e) {
-				if (mailAgain.getText().length() > 0) {
-					String pass = mail.getText();
-					if (pass.equals(mailAgain.getText())) {
+					if (mail.getText().equals(mailAgain.getText())) {
 						setErrorMessage(null);
 						setMessage(getDescription());
 					} else {
@@ -385,36 +397,12 @@ public class RegistrationPage extends WizardPage {
 					setErrorMessage("Please enter your mail again!");
 				}
 			}
+			
 		});
-		mailAgain.setLayoutData(layoutData);
-		
-		Label fields = new Label (container, SWT.NONE);
-		fields.setFont(new Font(container.getDisplay(),"Arial", 7, SWT.ITALIC));
-		fields.setForeground(colorcondition);
-		fields.setText("* required fileds");
-		GridData layoutDataFields = new GridData(GridData.HORIZONTAL_ALIGN_END);
-		layoutDataFields.horizontalSpan = 3;
-		fields.setLayoutData(layoutDataFields);
-		
-		condition = new Label(container, SWT.NONE);
-		condition.setFont(new Font(container.getDisplay(),"Arial", 16, SWT.BOLD));
-		condition.setForeground(colorcondition);
-		condition.setText("*");
-		GridData lD = new GridData(GridData.HORIZONTAL_ALIGN_END);
-		lD.horizontalSpan = 2;
-		condition.setLayoutData(lD);
-		
-		acceptTerms = new Button(container, SWT.CHECK);
-		acceptTerms.setFont(new Font(container.getDisplay(),"Arial", 8, SWT.BOLD));
-		acceptTerms.setText("Accept terms and conditions !");
-		
-		//Button permit to send informations of the registration form to the web service 
-		sendInfos = new Button(container, SWT.BUTTON1);
-		sendInfos.setFont(new Font(container.getDisplay(),"Arial", 8, SWT.BOLD));
-		sendInfos.setText("Send registration");
-		sendInfos.setEnabled(false);
 		
 		sendInfos.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
 			public void widgetSelected(SelectionEvent evt) {
 				boolean isEnabled = sendInfos.getEnabled();
 				if(isEnabled){
@@ -423,49 +411,47 @@ public class RegistrationPage extends WizardPage {
 					}
 				}
 			}
+			
 		});
 		
 		acceptTerms.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
 			public void widgetSelected(SelectionEvent evt) {
 				boolean isChecked = acceptTerms.getSelection();
 				if (isChecked) {
-					if (userName.getText().length() == 0 || password.getText().length() == 0 || firstName.getText().length() == 0 || lastName.getText().length() == 0 || mail.getText().length() == 0) {
-						setErrorMessage("please complete the fields required");
+					Event event = new Event();
+					event.data = this;
+					
+					boolean valid = true;
+					
+					for (Iterator<Text> i = fields.iterator(); i.hasNext() && valid;) {
+						i.next().notifyListeners(SWT.Modify, event);
+						valid = getErrorMessage() == null;
+					}
+					
+					if (valid) {
+						sendInfos.setEnabled(true);
+					} else {
 						acceptTerms.setSelection(false);
 						sendInfos.setEnabled(false);
-					} else {
-						if (password.getText().equals(passwordAgain.getText()) && mail.getText().equals(mailAgain.getText())) {
-							setErrorMessage(null);
-							setMessage(getDescription());
-							isChecked = acceptTerms.getSelection();
-							if (isChecked) {
-								sendInfos.setEnabled(true);
-							}
-							
-						} else {
-							setErrorMessage("please complete the fields required");
-							acceptTerms.setSelection(false);
-							sendInfos.setEnabled(false);
-						}
 					}
 				} else {
 					sendInfos.setEnabled(false);
 				}
 			}
+			
 		});
-		acceptTerms.setLayoutData(layoutData);
 		
 		psc.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
 			public void  widgetSelected(SelectionEvent event) {
 				boolean isChecked = psc.getSelection();
 				if (isChecked) {
-					firstName.setEnabled(false);
-					lastName.setEnabled(false);
-					userName.setEnabled(false);
-					mail.setEnabled(false);
-					mailAgain.setEnabled(false);
-					password.setEnabled(false);
-					passwordAgain.setEnabled(false);
+					for (Text field : fields) {
+						field.setEnabled(false);
+					}
 					acceptTerms.setEnabled(false);
 					sendInfos.setEnabled(false);
 					setPageComplete(true);
@@ -474,13 +460,9 @@ public class RegistrationPage extends WizardPage {
 					setupWizard.pscKeyPage.setInfo("Please copy your PSC in the following text area:");
 				} else {					
 					if (isConnect) {
-						firstName.setEnabled(true);
-						lastName.setEnabled(true);
-						userName.setEnabled(true);
-						mail.setEnabled(true);
-						mailAgain.setEnabled(true);
-						password.setEnabled(true);
-						passwordAgain.setEnabled(true);
+						for (Text field : fields) {
+							field.setEnabled(true);
+						}
 						acceptTerms.setEnabled(true);
 						
 						if (acceptTerms.getSelection()) {
@@ -496,13 +478,9 @@ public class RegistrationPage extends WizardPage {
 						setupWizard.pscKeyPage.setInfo("Once your account is created on the Convertigo forum, you will receive an email including " +
 							"your Personal Studio Configuration. Please copy your PSC in the following text area:");
 					} else {	
-						firstName.setEnabled(false);
-						lastName.setEnabled(false);
-						userName.setEnabled(false);
-						mail.setEnabled(false);
-						mailAgain.setEnabled(false);
-						password.setEnabled(false);
-						passwordAgain.setEnabled(false);
+						for (Text field : fields) {
+							field.setEnabled(false);
+						}
 						acceptTerms.setEnabled(false);
 						sendInfos.setEnabled(false);
 						setPageComplete(true);
@@ -514,43 +492,37 @@ public class RegistrationPage extends WizardPage {
 					}
 				}
 			}
+			
 		});
 		
 		if (!isConnect) {
 //			title.setEnabled(false);
 //			title2.setEnabled(false);
 			check(false, title,title2);
-			firstName.setEnabled(false);
-			lastName.setEnabled(false);
-			userName.setEnabled(false);
-			mail.setEnabled(false);
-			mailAgain.setEnabled(false);
-			password.setEnabled(false);
-			passwordAgain.setEnabled(false);
+			for (Text field : fields) {
+				field.setEnabled(false);
+			}
 			acceptTerms.setEnabled(false);
 			sendInfos.setEnabled(false);
 			setPageComplete(true);
 		} else {
-			setPageComplete(false);
 			sendInfos.setEnabled(false);
+			setPageComplete(false);
 		}
-
 		
 		// Required to avoid an error in the system
 		setControl(container);
 	}
 
+	
 	public void check (boolean bool, Label title, Label title2) {
 		title.setEnabled(bool);
 		title2.setEnabled(bool);
 	}
-	public static boolean isEmailAdress(String email){
-		Pattern p = Pattern.compile("[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}" + "\\@" +
-		           "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}" + "(" +  "\\." +
-		           "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25}" + ")+");
-		Matcher m = p.matcher(email.toUpperCase());
+	public static boolean isEmailAdress(String email) {
+		Matcher m = pCheckEmail.matcher(email.toUpperCase());
 		return m.matches();
-		}
+	}
 
 	public String getFirstName() {
 		return firstName.getText();
@@ -569,10 +541,6 @@ public class RegistrationPage extends WizardPage {
 	
 	public String getMail() {
 		return mail.getText();
-	}
-	
-	public Boolean getPSC() {
-		return psc.getSelection();
 	}
 	
 	private boolean isInternetAccess() {

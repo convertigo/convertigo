@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.engine;
 
 
 import java.net.URL;
-import java.util.Arrays;
 import java.util.UUID;
 
 import org.apache.commons.httpclient.Credentials;
@@ -35,6 +34,9 @@ import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.auth.BasicScheme;
 
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 import com.twinsoft.convertigo.engine.PacManager.PacInfos;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
@@ -49,8 +51,8 @@ public class ProxyManager {
 	transient public String proxyServer;
 	transient public int proxyPort;
 	transient public String proxyUrl;
-	transient public String proxyMethod;
-	transient public String proxyMode;
+	transient public ProxyMethod proxyMethod;
+	transient public ProxyMode proxyMode;
 	transient public String proxyUser;
 	transient public String proxyPassword;
 	
@@ -85,70 +87,30 @@ public class ProxyManager {
 		this.hostConfId = UUID.randomUUID();
 
 		try {
-			this.proxyPort = Integer.parseInt(EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PORT));
+			this.proxyPort = Integer.parseInt(EnginePropertiesManager.getProperty(PropertyName.PROXY_SETTINGS_PORT));
 		}
 		catch (Exception e) {
-			EnginePropertiesManager.setProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PORT, "3128");
+			EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_PORT, "3128");
 			this.proxyPort = 3128;
 			Engine.logProxyManager.debug("(ProxyManager) Couldn't set proxy property, proxyPort parsing failed: " + e); 
 			Engine.logProxyManager.info("Wrong proxy configuration: bad proxy port");
 		}
-		this.proxyMethod = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_METHOD);
-		this.proxyMode = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_MODE);
-		this.proxyServer = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_HOST);
-		this.proxyUser = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_USER);
-		this.proxyPassword = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PASSWORD);
-		this.proxyUrl = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_AUTO);
-		this.bypassDomains = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_BY_PASS_DOMAINS);
+		this.proxyMethod = EnginePropertiesManager.getPropertyAsEnum(PropertyName.PROXY_SETTINGS_METHOD);
+		this.proxyMode = EnginePropertiesManager.getPropertyAsEnum(PropertyName.PROXY_SETTINGS_MODE);
+		this.proxyServer = EnginePropertiesManager.getProperty(PropertyName.PROXY_SETTINGS_HOST);
+		this.proxyUser = EnginePropertiesManager.getProperty(PropertyName.PROXY_SETTINGS_USER);
+		this.proxyPassword = EnginePropertiesManager.getProperty(PropertyName.PROXY_SETTINGS_PASSWORD);
+		this.proxyUrl = EnginePropertiesManager.getProperty(PropertyName.PROXY_SETTINGS_AUTO);
+		this.bypassDomains = EnginePropertiesManager.getProperty(PropertyName.PROXY_SETTINGS_BY_PASS_DOMAINS);
 		
-		if (proxyMode.equals(ProxyMode.auto.name())) {
+		if (proxyMode == ProxyMode.auto) {
 			this.pacUtils = new PacManager(proxyUrl);
 			this.pacUtils.start();
 		}
 	}
 	
 	public boolean isEnabled() {
-		return !ProxyMode.off.name().equals(proxyMode);
-	}
-	
-	public enum ProxyMode {
-    	off,
-    	auto,
-    	manual;
-
-		final String value;
-		
-		ProxyMode() {
-			this.value = name();
-		}
-
-		public String getValue() {
-			return value;
-		}
-		
-		public int index() {
-			return Arrays.binarySearch(ProxyMode.values(), this);
-		}
-	}
-	
-	public enum ProxyMethod {
-		anonymous,
-		basic,
-		ntlm;
-		
-		final String value;
-		
-		ProxyMethod() {
-			this.value = name();
-		}
-
-		public String getValue() {
-			return value;
-		}
-		
-		public int index() {
-			return Arrays.binarySearch(ProxyMode.values(), this);
-		}
+		return ProxyMode.off != proxyMode;
 	}
 	
 	public void disableProxy(HostConfiguration hostConfiguration) {
@@ -169,9 +131,9 @@ public class ProxyManager {
 		
 		hostConfiguration.getParams().setParameter("hostConfId",this.hostConfId);
 		
-		if (!proxyMode.equals(ProxyMode.off.name())) {
+		if (isEnabled()) {
 			if (needProxy) {
-				if (proxyMode.equals(ProxyMode.manual.name())) {
+				if (proxyMode == ProxyMode.manual) {
 					if (!proxyServer.equals("")) {
 						hostConfiguration.setProxy(proxyServer, proxyPort);
 						Engine.logProxyManager.debug("(ProxyManager) Using proxy: " + proxyServer + ":" + proxyPort);
@@ -179,7 +141,7 @@ public class ProxyManager {
 						disableProxy(hostConfiguration);
 					}
 				}
-				else if (proxyMode.equals(ProxyMode.auto.name())) {
+				else if (proxyMode == ProxyMode.auto) {
 //					String result = pacUtils.evaluate(url.toString(), url.getHost());
 //					
 //					if (result.startsWith("PROXY")) {
@@ -207,10 +169,10 @@ public class ProxyManager {
 					}
 				}
 				
-				if (proxyMethod.equals(ProxyMethod.basic.name())) {
+				if (proxyMethod == ProxyMethod.basic) {
 					setBasicAuth(httpState);
 				}
-				else if (proxyMethod.equals(ProxyMethod.ntlm.name())) {
+				else if (proxyMethod == ProxyMethod.ntlm) {
 					int indexSlash = this.proxyUser.indexOf("\\");	
 					if (indexSlash != -1) {
 						setNtlmAuth(httpState);

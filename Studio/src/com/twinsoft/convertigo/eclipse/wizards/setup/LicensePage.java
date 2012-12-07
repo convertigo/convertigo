@@ -1,9 +1,6 @@
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
+import org.apache.commons.io.IOUtils;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
@@ -36,6 +33,7 @@ public class LicensePage extends WizardPage {
 		layout.numColumns = 1;
 		
 		Text licenseText = new Text(container, SWT.MULTI | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		licenseText.setEditable(false);
 		Font terminalFont = JFaceResources.getFont(JFaceResources.TEXT_FONT);
 		licenseText.setFont(terminalFont);
 		GridData gd = new GridData(GridData.FILL_BOTH);
@@ -43,27 +41,14 @@ public class LicensePage extends WizardPage {
 		gd.heightHint = 400;
 		licenseText.setLayoutData(gd);
 		
-		try {
-			InputStream is = this.getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/wizards/setup/license.txt");
-			InputStreamReader isr = new InputStreamReader(is, "utf8");
-			BufferedReader br = new BufferedReader(isr);
-			
-			String line;
-			String sLicense = "";
-			while ((line = br.readLine()) != null) {
-				sLicense += line + "\n";
-			}
-			
-			licenseText.setText(sLicense);
+		try {			
+			licenseText.setText(IOUtils.toString(this.getClass().getResourceAsStream("license.txt"), "utf8"));
 		} catch (Exception e) {
 			licenseText.setText("Unable to get the license text!\n" + e.getMessage());
 		}
 	
 		Label acceptation = new Label(container, SWT.WRAP);
-		gd = new GridData(GridData.FILL_BOTH);
-		gd.widthHint = 600;
-		gd.heightHint = 50;
-		acceptation.setLayoutData(gd);
+		acceptation.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		acceptation.setText("BY INDICATING YOUR ACCEPTANCE BY CLICKING “Accept license” BELOW, "
 				+ "OR INSTALLING OR USING THE SOFTWARE, YOU ARE AGREEING TO BE BOUND "
 				+ "BY THE TERMS OF THIS AGREEMENT.");
