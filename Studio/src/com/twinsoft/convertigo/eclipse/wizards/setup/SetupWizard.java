@@ -48,7 +48,13 @@ public class SetupWizard extends Wizard {
 	}
 
 	@Override
-	public void addPages() {		
+	public void addPages() {
+//		registrationPage = new RegistrationPage();
+//		addPage(registrationPage);
+		
+//		configureProxyPage = new ConfigureProxyPage();
+//		addPage(configureProxyPage);
+		
 		licensePage = new LicensePage();
 		addPage(licensePage);
 		

@@ -77,7 +77,7 @@ public class EnginePropertiesManager {
 		String getValue();
 	}
 	
-	enum EmptyCombo implements ComboEnum {
+	public enum EmptyCombo implements ComboEnum {
 		;
 
 		public String getDisplay() {
@@ -89,7 +89,7 @@ public class EnginePropertiesManager {
 		}
 	}
 	
-	enum LogLevels implements ComboEnum {
+	public enum LogLevels implements ComboEnum {
 		INHERITED ("", "Inherited from root logger"),
 		FATAL,
 		ERROR,
@@ -120,7 +120,7 @@ public class EnginePropertiesManager {
 		}
 	}
 	
-	enum XmlEngine implements ComboEnum {
+	public enum XmlEngine implements ComboEnum {
 		java ("Java/Default"),
 		msxml ("Microsoft XML");
 
@@ -141,7 +141,7 @@ public class EnginePropertiesManager {
 		}
 	}
 	
-	enum XsltEngine implements ComboEnum {
+	public enum XsltEngine implements ComboEnum {
 		xalan_xslt ("xalan/xslt", "Java Xalan"),
 		xalan_xsltc ("xalan/xsltc", "Java Xalan (XSLTC)"),
 		msxml ("Microsoft XML");
@@ -168,7 +168,7 @@ public class EnginePropertiesManager {
 		}
 	}
 	
-	enum ProxyMode implements ComboEnum {
+	public enum ProxyMode implements ComboEnum {
     	off ("disabled"),
     	auto ("automatic"),
     	manual ("manual");
@@ -190,7 +190,7 @@ public class EnginePropertiesManager {
 		}
 	}
 	
-	enum ProxyMethod implements ComboEnum {
+	public enum ProxyMethod implements ComboEnum {
 		anonymous ("anonymous"),
 		basic ("basic"),
 		ntlm ("NTLM");
@@ -298,7 +298,6 @@ public class EnginePropertiesManager {
 		UPDATE_STEPS ("update.steps", "false", "Update steps", PropertyCategory.Main),
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		CRYPTO_PASSPHRASE ("crypto.passphrase", "A8dkLmsdfkKze0e34FGh", "Cryptographic services passphrase", PropertyCategory.Main),
-
 		
 		/** ACCOUNTS */
 		ADMIN_USERNAME ("admin.username", "admin", "Admin username", PropertyCategory.Account),
@@ -309,47 +308,47 @@ public class EnginePropertiesManager {
 		TEST_PLATFORM_PASSWORD ("testplatform.password", ""+"".hashCode(), "Test Platform password", PropertyCategory.Account),
 		
 		/** LOGS */
-		LOG4J_LOGGER_CEMS ("log4j.logger.cems", "INFO, CemsAppender", "Log4J root logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS ("log4j.logger.cems", LogLevels.INFO.getValue() + ", CemsAppender", "Log4J root logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_ADMIN ("log4j.logger.cems.Admin", "WARN", "Log4J admin logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_ADMIN ("log4j.logger.cems.Admin", LogLevels.WARN.getValue(), "Log4J admin logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_BEANS ("log4j.logger.cems.Beans", "", "Log4J beans logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_BEANS ("log4j.logger.cems.Beans", LogLevels.INHERITED.getValue(), "Log4J beans logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_BILLERS ("log4j.logger.cems.Billers", "WARN", "Log4J billers logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_BILLERS ("log4j.logger.cems.Billers", LogLevels.WARN.getValue(), "Log4J billers logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_CACHEMANAGER ("log4j.logger.cems.CacheManager", "WARN", "Log4J cache manager logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_CACHEMANAGER ("log4j.logger.cems.CacheManager", LogLevels.WARN.getValue(), "Log4J cache manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_CERTIFICATEMANAGER ("log4j.logger.cems.CertificateManager", "WARN", "Log4J certificate manager logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_CERTIFICATEMANAGER ("log4j.logger.cems.CertificateManager", LogLevels.WARN.getValue(), "Log4J certificate manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_CONTEXT ("log4j.logger.cems.Context", "", "Log4J context logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_CONTEXT ("log4j.logger.cems.Context", LogLevels.INHERITED.getValue(), "Log4J context logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_CONTEXT_USER ("log4j.logger.cems.Context.User", "", "Log4J user context logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_CONTEXT_USER ("log4j.logger.cems.Context.User", LogLevels.INHERITED.getValue(), "Log4J user context logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_CONTEXTMANAGER ("log4j.logger.cems.ContextManager", "WARN", "Log4J context manager logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_CONTEXTMANAGER ("log4j.logger.cems.ContextManager", LogLevels.WARN.getValue(), "Log4J context manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_DATABASEOBJECTMANAGER ("log4j.logger.cems.DatabaseObjectManager", "WARN", "Log4J database objects manager logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_DATABASEOBJECTMANAGER ("log4j.logger.cems.DatabaseObjectManager", LogLevels.WARN.getValue(), "Log4J database objects manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_EMULATORS ("log4j.logger.cems.Emulators", "INFO", "Log4J emulators output logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_EMULATORS ("log4j.logger.cems.Emulators", LogLevels.INFO.getValue(), "Log4J emulators output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_ENGINE ("log4j.logger.cems.Engine", "", "Log4J engine logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_ENGINE ("log4j.logger.cems.Engine", LogLevels.INHERITED.getValue(), "Log4J engine logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_JOBMANAGER ("log4j.logger.cems.JobManager", "WARN", "Log4J job manager logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_JOBMANAGER ("log4j.logger.cems.JobManager", LogLevels.WARN.getValue(), "Log4J job manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_PROXYMANAGER ("log4j.logger.cems.ProxyManager", "INFO", "Log4J proxy manager logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_PROXYMANAGER ("log4j.logger.cems.ProxyManager", LogLevels.INFO.getValue(), "Log4J proxy manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_SCHEDULER ("log4j.logger.cems.Scheduler", "INFO", "Log4J scheduler output logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_SCHEDULER ("log4j.logger.cems.Scheduler", LogLevels.INFO.getValue(), "Log4J scheduler output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_SITECLIPPER ("log4j.logger.cems.SiteClipper", "INFO", "Log4J site clipper output logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_SITECLIPPER ("log4j.logger.cems.SiteClipper", LogLevels.INFO.getValue(), "Log4J site clipper output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_STATISTICS ("log4j.logger.cems.Statistics", "WARN", "Log4J statistics logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_STATISTICS ("log4j.logger.cems.Statistics", LogLevels.WARN.getValue(), "Log4J statistics logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_TRACEPLAYERMANAGER ("log4j.logger.cems.TracePlayerManager", "WARN", "Log4J trace player manager logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_TRACEPLAYERMANAGER ("log4j.logger.cems.TracePlayerManager", LogLevels.WARN.getValue(), "Log4J trace player manager logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_USAGEMONITOR ("log4j.logger.cems.UsageMonitor", "WARN", "Log4J usage monitor logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_USAGEMONITOR ("log4j.logger.cems.UsageMonitor", LogLevels.WARN.getValue(), "Log4J usage monitor logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = LogLevels.class)
-		LOG4J_LOGGER_CEMS_USER ("log4j.logger.cems.User", "INFO", "Log4J user output logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_USER ("log4j.logger.cems.User", LogLevels.INFO.getValue(), "Log4J user output logger", PropertyCategory.Logs),
 		@PropertyOptions(propertyType = PropertyType.Text)
-		LOG4J_LOGGER_CEMS_CONTEXT_AUDIT ("log4j.logger.cems.Context.Audit", "INFO, AuditAppender", "Log4J audit context logger", PropertyCategory.Logs),
+		LOG4J_LOGGER_CEMS_CONTEXT_AUDIT ("log4j.logger.cems.Context.Audit", LogLevels.INFO.getValue() + ", AuditAppender", "Log4J audit context logger", PropertyCategory.Logs),
 		
 		
 		/** LOGS ADVANCE */
@@ -409,19 +408,19 @@ public class EnginePropertiesManager {
 
 		/** XML GENERATION ADVANCE */
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = XmlEngine.class)
-		DOCUMENT_XML_ENGINE ("document.xml_engine", "java", "XML engine", PropertyCategory.XmlGeneration),
+		DOCUMENT_XML_ENGINE ("document.xml_engine", XmlEngine.java.getValue(), "XML engine", PropertyCategory.XmlGeneration),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = XsltEngine.class)
-		DOCUMENT_XSLT_ENGINE ("document.xslt_engine", "xalan/xsltc", "XSLT engine", PropertyCategory.XmlGeneration),
+		DOCUMENT_XSLT_ENGINE ("document.xslt_engine", XsltEngine.xalan_xsltc.getValue(), "XSLT engine", PropertyCategory.XmlGeneration),
 
 		/** PROXY */
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = ProxyMode.class)
-		PROXY_SETTINGS_MODE ("htmlProxy.mode", "off", "Proxy mode", PropertyCategory.Proxy),
+		PROXY_SETTINGS_MODE ("htmlProxy.mode", ProxyMode.off.getValue(), "Proxy mode", PropertyCategory.Proxy),
 		PROXY_SETTINGS_PORT ("htmlProxy.port", "8080", "Proxy port", PropertyCategory.Proxy),
 		PROXY_SETTINGS_HOST ("htmlProxy.host", "localhost", "Proxy host", PropertyCategory.Proxy),
 		PROXY_SETTINGS_BY_PASS_DOMAINS ("htmlProxy.bpdomains", "localhost,127.0.0.1", "Do not apply proxy settings on", PropertyCategory.Proxy),
 		PROXY_SETTINGS_AUTO ("htmlProxy.auto", "", "Autoconfiguration proxy url", PropertyCategory.Proxy),
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = ProxyMethod.class)
-		PROXY_SETTINGS_METHOD ("htmlProxy.method", "anonymous", "Proxy authentication method", PropertyCategory.Proxy),
+		PROXY_SETTINGS_METHOD ("htmlProxy.method", ProxyMethod.anonymous.getValue(), "Proxy authentication method", PropertyCategory.Proxy),
 		PROXY_SETTINGS_USER ("htmlProxy.user", "", "Username", PropertyCategory.Proxy),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
 		PROXY_SETTINGS_PASSWORD ("htmlProxy.password", "", "Password", PropertyCategory.Proxy),
@@ -676,8 +675,9 @@ public class EnginePropertiesManager {
 	}
     
 	public static void setPropertyFromStringArray(PropertyName property, String[] values) {
-		if (property.getType() != PropertyType.Array)
+		if (property.getType() != PropertyType.Array) {
 			throw new IllegalArgumentException("The requested property is not of type Array: " + property);
+		}
 		
 		String propertyAsString = "";
 		for (String item : values) {
@@ -691,17 +691,30 @@ public class EnginePropertiesManager {
     public static void setProperty(PropertyName property, String value) {
     	String exvalue;
 
-    	if(system_properties.containsKey(SYSTEM_PROP_PREFIX + property.getKey())) {
+    	if (system_properties.containsKey(SYSTEM_PROP_PREFIX + property.getKey())) {
     		exvalue = (String) system_properties.put(SYSTEM_PROP_PREFIX + property.getKey(), value);
     	} else {
     		value = encodeValue(property.getType(), value);
     		exvalue = (String) properties.put(property.getKey(), value);
     	}
-    	if(!value.equals(exvalue)) {
+    	if (!value.equals(exvalue)) {
     		Engine.theApp.eventManager.dispatchEvent(new PropertyChangeEvent(property, value), PropertyChangeEventListener.class);
     	}
     }
 
+	public static <E extends ComboEnum> E getPropertyAsEnum(PropertyName property) {
+		if (property.getType() != PropertyType.Combo) {
+			throw new IllegalArgumentException("The requested property is not of type Combo: " + property);
+		}
+		String stringValue = getProperty(property);
+		try {
+			E value = GenericUtils.cast(property.getOptions().combo().getMethod("valueOf", String.class).invoke(null, stringValue));
+			return value;
+		} catch (Exception e) {
+			throw new RuntimeException("Unable to retrieve the Enum value", e);
+		}
+	}
+    
 	public static void copySystemProperties(){
 		if (system_properties == null) {
 			Properties sys_prop = System.getProperties();

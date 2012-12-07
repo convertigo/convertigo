@@ -71,9 +71,9 @@ import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariabl
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.Version;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 import com.twinsoft.convertigo.engine.PacManager.PacInfos;
-import com.twinsoft.convertigo.engine.ProxyManager.ProxyMode;
+import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
 import com.twinsoft.convertigo.engine.util.XSDUtils.XSDException;
 
@@ -166,16 +166,16 @@ public class WsReference {
 			}
 			
 			// PROXY
-			String proxyMode = Engine.theApp.proxyManager.proxyMode;
+			ProxyMode proxyMode = Engine.theApp.proxyManager.proxyMode;
 			String proxyExcludes = StringUtils.join(Engine.theApp.proxyManager.getBypassDomains(), ",");
 			String proxyServer = Engine.theApp.proxyManager.getProxyServer();
 			int proxyPort = Engine.theApp.proxyManager.getProxyPort();
 			String proxyUser = Engine.theApp.proxyManager.getProxyUser();
 			String proxyPwd = Engine.theApp.proxyManager.getProxyPassword();
 			
-			boolean enableProxy = !proxyMode.equals(ProxyMode.off.name());
+			boolean enableProxy = Engine.theApp.proxyManager.isEnabled();
 			if (enableProxy) {
-				if (proxyMode.equals(ProxyMode.auto.name())) {
+				if (proxyMode == ProxyMode.auto) {
 					try {
 						URL url = new URL(wsdlUrl);
 						PacInfos pacInfos = Engine.theApp.proxyManager.getPacInfos(url.toString(), url.getHost());
