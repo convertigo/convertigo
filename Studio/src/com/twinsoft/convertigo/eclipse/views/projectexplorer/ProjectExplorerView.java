@@ -135,6 +135,7 @@ import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.actions.ProjectExplorerSaveAllAction;
+import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.dnd.StepSourceTransfer;
 import com.twinsoft.convertigo.eclipse.dnd.TreeDragListener;
@@ -142,7 +143,6 @@ import com.twinsoft.convertigo.eclipse.dnd.TreeDropAdapter;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
-import com.twinsoft.convertigo.eclipse.popup.actions.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction;
@@ -624,7 +624,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									+ "' by '"
 									+ newName
 									+ "' in current project only.\n- click Cancel for none update.",
-									1250, 250,
+									670, 170,
 							new ButtonSpec("Replace in all loaded projects",
 									true),
 							new ButtonSpec("Replace in current project", false),
@@ -949,15 +949,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 													+ oldName
 													+ "' by '"
 													+ newName
-													+ "' in all loaded projects or replace '"
+													+ "' in all loaded projects \n or replace '"
 													+ oldName
 													+ "' by '"
 													+ newName
-													+ "' in current project only.\n- click Cancel for none update.",
-													1250, 250,
+													+ "' in current project only.",
+													670, 170,
 											new ButtonSpec("Replace in all loaded projects", true),
 											new ButtonSpec("Replace in current project", false),
-											new ButtonSpec("Do not replace", false));
+											new ButtonSpec("Do not replace anywhere", false));
 									int response = customDialog.open();
 									if (response == 0) {
 										updateReferences = true;

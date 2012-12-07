@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
@@ -141,6 +142,7 @@ public class ClipboardAction extends MyAbstractAction {
     							shell,
     							"Paste a Screenclass",
     							"Do you want to paste the Screenclass as a sibling or as an inherited ScreenClass?",
+    							500, 150,
     							new ButtonSpec("As a sibling", true),
     							new ButtonSpec("As an iherited", false),
     							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
@@ -160,6 +162,7 @@ public class ClipboardAction extends MyAbstractAction {
         							shell,
         							"Paste a statement",
         							"Do you want to paste the statement as a sibling or a child statement?",
+        							500, 150,
         							new ButtonSpec("As a sibling", true),
         							new ButtonSpec("As a child", false),
         							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
@@ -345,6 +348,7 @@ public class ClipboardAction extends MyAbstractAction {
 	    							shell,
 	    							"Paste a step",
 	    							"Do you want to paste the step as a sibling or a child step?",
+	    							500, 150,
 	    							new ButtonSpec("As a sibling", true),
 	    							new ButtonSpec("As a child", false),
 	    							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)

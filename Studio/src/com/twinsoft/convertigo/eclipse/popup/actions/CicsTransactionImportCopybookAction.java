@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.transactions.CicsTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
@@ -59,6 +60,7 @@ public class CicsTransactionImportCopybookAction extends MyAbstractAction {
 					shell,
 					"Import a copybook",
 					"Do you want to import the copybook into the transaction input map or output map?",
+					500, 150,
 					new ButtonSpec("Input map", true),
 					new ButtonSpec("Outut map", false),
 					new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)

@@ -48,6 +48,7 @@ import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -104,6 +105,7 @@ public class CreateSheetFromXMLAction extends MyAbstractAction {
     							shell,
     							"Create a new sheet",
     							"Would you like to create new sheet for last detected ScreenClass or Transaction?",
+    							500, 150,
     							new ButtonSpec("Last detected screen class", true),
     							new ButtonSpec("Transaction", false),
     							new ButtonSpec(IDialogConstants.CANCEL_LABEL, false)
