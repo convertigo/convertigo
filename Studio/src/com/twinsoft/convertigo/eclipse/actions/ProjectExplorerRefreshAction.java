@@ -31,10 +31,8 @@ import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
 
 public class ProjectExplorerRefreshAction extends MyAbstractAction implements IViewActionDelegate {
 	
@@ -57,14 +55,11 @@ public class ProjectExplorerRefreshAction extends MyAbstractAction implements IV
 
     			TreeObject[] treeObjects = projectExplorerView.getSelectedTreeObjects();
     			if (treeObjects == null) {
-    				((ViewContentProvider) viewer.getContentProvider()).refreshProjects();
+    				projectExplorerView.refreshProjects();
     			}
     			else {
-    				ViewContentProvider viewContentProvider = (ViewContentProvider) viewer.getContentProvider();
-    				DatabaseObjectTreeObject treeObject = null;
-    				for (int i = 0 ; i < treeObjects.length ; i++) {
-    					treeObject = (DatabaseObjectTreeObject) treeObjects[i];
-    					viewContentProvider.reloadProject(treeObject);
+    				for (TreeObject treeObject : treeObjects) {
+    					projectExplorerView.reloadProject(treeObject);
     				}
     			}
     			viewer.refresh();

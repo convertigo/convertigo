@@ -41,10 +41,10 @@ public class SetupAction implements IWorkbenchWindowActionDelegate {
 
 	}
 
-	public static void runSetup() {
+	public static boolean runSetup() {
 		Display display = Display.getDefault();
 		WizardDialog wizardDialog = new WizardDialog(display.getActiveShell(), new SetupWizard());
-		wizardDialog.open();
+		return wizardDialog.open() != WizardDialog.CANCEL;
 	}
 
 	public void dispose() {

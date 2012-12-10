@@ -1,7 +1,6 @@
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -37,7 +36,6 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class RegistrationPage extends WizardPage {	
@@ -558,10 +556,7 @@ public class RegistrationPage extends WizardPage {
 			
 			Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
 			
-		} catch (MalformedURLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (EngineException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

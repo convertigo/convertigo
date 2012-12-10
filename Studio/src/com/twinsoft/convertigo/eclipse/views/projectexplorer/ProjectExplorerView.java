@@ -1117,10 +1117,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 										structuredSelection);
 						}
 						if (needProjectReload) {
-							ViewContentProvider viewContentProvider = (ViewContentProvider) viewer
-									.getContentProvider();
-							viewContentProvider.reloadProject(theTreeObject);
-							viewer.refresh();
+							reloadProject(theTreeObject);
+							refreshTree();
 						}
 					}
 				};
@@ -2175,6 +2173,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 					bDynamicSchemaUpdate);
 	}
 
+	public void refreshProjects() {
+		((ViewContentProvider) viewer.getContentProvider()).refreshProjects();
+	}
+	
+	public void reloadProject(TreeObject projectTreeObject) {
+		((ViewContentProvider) viewer.getContentProvider()).reloadProject(projectTreeObject);
+	}
+	
 	public void refreshTree() {
 		viewer.refresh();
 	}
@@ -2799,9 +2805,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 				try {
 					ConvertigoPlugin
 							.logDebug("[ProjectExplorerView] event 'migrationFinished' received");
-					((ViewContentProvider) viewer.getContentProvider())
-							.refreshProjects();
-					viewer.refresh();
+					refreshProjects();
+					refreshTree();
 				} catch (Throwable t) {
 					t.printStackTrace();
 				}
@@ -2861,20 +2866,16 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 			// name (fix ticket #788 : Can not import project 213.car)
 			targetProjectName = importedProject.getName();
 
-			ViewContentProvider viewContentProvider = (ViewContentProvider) viewer
-					.getContentProvider();
-
 			// loads project into tree view
 			if (projectTreeObject == null) {
 				importProjectTreeObject(targetProjectName);
 			} else {
 				// recreate project resource
-				ConvertigoPlugin.getDefault().getProjectPluginResource(
-						targetProjectName);
-				viewContentProvider.reloadProject(projectTreeObject);
+				ConvertigoPlugin.getDefault().getProjectPluginResource(targetProjectName);
+				reloadProject(projectTreeObject);
 			}
 
-			viewer.refresh();
+			refreshTree();
 			return true;
 		}
 		return false;

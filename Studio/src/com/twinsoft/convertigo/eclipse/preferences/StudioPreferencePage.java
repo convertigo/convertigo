@@ -39,7 +39,6 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 
 	private ComboFieldEditor comboLevel = null;
 	private BooleanFieldEditor cbHighlight = null;
-	private BooleanFieldEditor cbIgnoreTrialRegistration = null;
 	private BooleanFieldEditor cbIgnoreNews = null;
 	private IntegerFieldEditor intTracePlayerPort = null;
 	
@@ -74,13 +73,6 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbHighlight.setPage(this);
 		cbHighlight.setPreferenceStore(getPreferenceStore());
 		cbHighlight.load();
-
-		cbIgnoreTrialRegistration = new BooleanFieldEditor(
-				ConvertigoPlugin.PREFERENCE_TRIAL_IGNORE_USER_REGISTRATION,
-				"Ignore user registration for trial", groupGeneral);
-		cbIgnoreTrialRegistration.setPage(this);
-		cbIgnoreTrialRegistration.setPreferenceStore(getPreferenceStore());
-		cbIgnoreTrialRegistration.load();
 				
 		cbIgnoreNews = new BooleanFieldEditor(
 				ConvertigoPlugin.PREFERENCE_IGNORE_NEWS,
@@ -117,10 +109,10 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.preference.PreferencePage#performDefaults()
 	 */
+	@Override
 	protected void performDefaults() {
 		comboLevel.loadDefault();
 		cbHighlight.loadDefault();
-		cbIgnoreTrialRegistration.loadDefault();
 		intTracePlayerPort.loadDefault();
 		cbIgnoreNews.loadDefault();
 		
@@ -130,13 +122,13 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.preference.PreferencePage#performOk()
 	 */
+	@Override
 	public boolean performOk() {
 		ConvertigoPlugin.setLogLevel(Integer.valueOf(comboLevel.getValue(),10));
 		ConvertigoPlugin.setHighlightDetectedObject(cbHighlight.getBooleanValue());
 		
 		comboLevel.store();
 		cbHighlight.store();
-		cbIgnoreTrialRegistration.store();
 		intTracePlayerPort.store();
 		cbIgnoreNews.store();
 		
