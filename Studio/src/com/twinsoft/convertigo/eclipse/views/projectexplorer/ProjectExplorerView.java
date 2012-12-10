@@ -985,7 +985,22 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							}
 							
 							StructuredSelection structuredSelection = new StructuredSelection(theTreeObject);
-							ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)ProjectExplorerView.this, structuredSelection);
+							
+							//Refresh properties view
+							ConvertigoPlugin
+									.getDefault()
+									.getPropertiesView()
+									.selectionChanged(
+											(IWorkbenchPart) ProjectExplorerView.this,
+											structuredSelection);
+							
+							// Refresh references view
+							ConvertigoPlugin
+								.getDefault()
+								.getReferencesView()
+								.selectionChanged(
+										(IWorkbenchPart) ProjectExplorerView.this,
+										structuredSelection);
 						}
 						if (needProjectReload) {
 							ViewContentProvider viewContentProvider = (ViewContentProvider) viewer.getContentProvider();

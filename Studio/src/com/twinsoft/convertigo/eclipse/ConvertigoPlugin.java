@@ -111,6 +111,7 @@ import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorI
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager2;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
+import com.twinsoft.convertigo.eclipse.views.references.ReferencesView;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ProductVersion;
@@ -1113,6 +1114,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		return propertiesView;
 	}
 
+	public ReferencesView getReferencesView() {
+		ReferencesView referencesView = null;
+		IWorkbenchPage activePage = getActivePage();
+		if (activePage != null) {
+			IViewPart viewPart =  activePage.findView("com.twinsoft.convertigo.eclipse.views.references.ReferencesView");
+			if (viewPart != null)
+				referencesView = (ReferencesView)viewPart;
+		}
+		return referencesView;
+	}
+	
 	/**
 	 * Gets the source picker view.
 	 * !!MUST BE CALLED IN A UI-THREAD!!
