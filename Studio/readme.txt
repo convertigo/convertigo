@@ -65,3 +65,4 @@ Before launch, open "Run configuration...":
 
 * To use connectors, you have to rename "convertigo/minime/Java/keys_studio.txt" to
   "convertigo/minime/Java/keys.txt" and restart the studio.
+  
