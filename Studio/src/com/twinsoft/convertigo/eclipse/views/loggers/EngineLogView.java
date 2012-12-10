@@ -891,7 +891,7 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 			final int j = i;
 			col = createTableViewerColumn(i);
 			layout.setColumnData(col.getColumn(), new ColumnWeightData(4, ColumnWeightData.MINIMUM_WIDTH, true));
-			createMenuItem(headerMenu, col.getColumn());
+			createMenuItem(headerMenu, col.getColumn(), j);
 			headerMenu.getItem(i).addSelectionListener(new SelectionListener() {
 				public void widgetSelected(SelectionEvent arg0) {
 					columns[j].setSelection(headerMenu.getItem(j).getSelection());
@@ -926,13 +926,13 @@ public class EngineLogView extends ViewPart implements CompositeListener {
 		return viewerColumn;
 	}
 	
-	private void createMenuItem(Menu parent, final TableColumn column) {
+	private void createMenuItem(Menu parent, final TableColumn column, final int menuID) {
 		final MenuItem itemName = new MenuItem(parent, SWT.CHECK);
 		itemName.setText(column.getText());
 		itemName.setSelection(column.getResizable());
 		itemName.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				column.setWidth(itemName.getSelection() ? getColSizeProperty(ENGINE_LOG_VIEW_COL_SIZE+"_"+itemName.getID()) : 0);
+				column.setWidth(itemName.getSelection() ? getColSizeProperty(ENGINE_LOG_VIEW_COL_SIZE+"_"+menuID) : 0);
 				column.setResizable(itemName.getSelection() ? true : false);
 				column.setMoveable(itemName.getSelection() ? true : false);
 			}
