@@ -91,6 +91,7 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -985,20 +986,19 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							}
 							
 							StructuredSelection structuredSelection = new StructuredSelection(theTreeObject);
+							ISelectionListener listener = null;
 							
-							//Refresh properties view
-							ConvertigoPlugin
-									.getDefault()
-									.getPropertiesView()
-									.selectionChanged(
+							// refresh properties view
+							listener = ConvertigoPlugin.getDefault().getPropertiesView();
+							if (listener != null)
+								listener.selectionChanged(
 											(IWorkbenchPart) ProjectExplorerView.this,
 											structuredSelection);
 							
-							// Refresh references view
-							ConvertigoPlugin
-								.getDefault()
-								.getReferencesView()
-								.selectionChanged(
+							// refresh references view
+							listener = ConvertigoPlugin.getDefault().getReferencesView();
+							if (listener != null)
+								listener.selectionChanged(
 										(IWorkbenchPart) ProjectExplorerView.this,
 										structuredSelection);
 						}
