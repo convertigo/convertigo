@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.eclipse;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -33,8 +34,11 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Properties;
 import java.util.ResourceBundle;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -104,7 +108,6 @@ import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
-import com.twinsoft.convertigo.eclipse.dialogs.TrialRegistrationDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
@@ -116,6 +119,7 @@ import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
+import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.util.Log;
 
 /**
@@ -135,13 +139,19 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	
     public static final String SYSTEM_PROP_PREFIX = "convertigo.studio.";
     
-    public static final String PREFERENCE_SETUP_STAGE = "setup";
     public static final String PREFERENCE_LOG_LEVEL = "log.level";
     public static final String PREFERENCE_TREE_HIGHLIGHT_DETECTED = "tree.highlight.detected";
     public static final String PREFERENCE_OPENED_CONSOLES = "opened.consoles";
     public static final String PREFERENCE_TRACEPLAYER_PORT = "traceplayer.port";
-    public static final String PREFERENCE_TRIAL_IGNORE_USER_REGISTRATION = "trial.ignore_user_registration";
     public static final String PREFERENCE_IGNORE_NEWS = "news.ignore";
+    
+    public static class PscException extends Exception {
+		private static final long serialVersionUID = -3828463232797723301L;
+
+		public PscException(String cause) {
+    		super(cause);
+    	}
+    }
     
     public static String getProperty(String key) {
     	IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
@@ -274,7 +284,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		final String errorMessage = message;
 		final String causeStackTrace = stackTrace;
 		final Display display = Display.getCurrent();
+		
 		display.asyncExec(new Runnable() {
+			
 			public void run() {
 				try {
 					Shell shell = display.getActiveShell();
@@ -287,6 +299,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					ConvertigoPlugin.logException(e, "Error while trying to project deploy dialog");
 				}
 			};
+			
 		});
 	}
 
@@ -307,7 +320,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		display.asyncExec(new Runnable() {
 			public void run() {
 				
-				try {					
+				try {
+					
 					final Shell shell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
 					
 					GridLayout gridLayout = new GridLayout();
@@ -434,6 +448,10 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS).equalsIgnoreCase("true")) {
 						shell.close();
 					}
+					
+					ProjectExplorerView pew = getProjectExplorerView();
+					pew.refreshProjects();
+					pew.refreshTree();
 				}
 				catch (Exception e) {
 					ConvertigoPlugin.logException(e, "Error during splash wait screen");
@@ -472,7 +490,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	/**
 	 * This method is called upon plug-in activation
 	 */
-	public void start(BundleContext context) throws Exception {
+	public void start(final BundleContext context) throws Exception {
 		super.start(context);
 
 		// Version check
@@ -487,8 +505,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		}
 		
 		Engine.setStudioMode();
-		
-		//SetupAction.runSetup();
 		
 		plugin = this;
 		try {
@@ -527,68 +543,113 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		catch(NumberFormatException e) {
 			studioLog.warning("Unable to retrieve the highlight option; using default highlight option (true).");
 		}
-
+		
 		// Adds listeners
 		addListeners();
 		
-        // Create embedded Tomcat
-		studioLog.message("Starting the embedded Tomcat");
-        System.setProperty("org.apache.commons.logging.log", "org.apache.commons.logging.impl.Jdk14Logger");
-        
-        Path path = new Path("tomcat");
-        URL tomcatHomeUrl = FileLocator.find(context.getBundle(), path, null);
+		final Exception afterPscException[] = { null };
+		final Runnable afterPscOk = new Runnable() {
 
-        String tomcatHome = FileLocator.toFileURL(tomcatHomeUrl).getPath();
-
-		int index = (System.getProperty("os.name").indexOf("Windows") != -1) ? 1 : 0;
-		tomcatHome = tomcatHome.substring(index);
-
-        embeddedTomcat = new EmbeddedTomcat(tomcatHome);
-        
-        // The embedded Tomcat has been created, so all engine paths have been computed.
-        deploymentConfigurationManager = new DeploymentConfigurationManager();
-		try {
-			deploymentConfigurationManager.load();
-		} catch (Exception e) {
-			logException(e, "Unable to load deployment configurations");
-		}
-
-		displayWaitScreen();
-				
-        Thread embeddedTomcatThread = new Thread(embeddedTomcat, "Embedded Tomcat");
-        embeddedTomcatThread.start();
-        
-        Thread engineStartWaitThread = new Thread(new Runnable() {
 			public void run() {
-				int nbRetry = 0;
-				while (!Engine.isStartFailed && !Engine.isStarted) {
-					try {
-						Thread.sleep(500);
-						nbRetry++;
-					} catch (InterruptedException e) {
-						// Ignore
-					}
-					
-					// Aborting if too many retries
-					if (nbRetry > 360) return;
-				}
-				
-				if (Engine.isStartFailed) {
-					logError("Unable to start engine; see console for more details");
-					return;
-				}
-				
-				// The console threads must be started AFTER the engine
-				consolePipes.startConsoleThreads();
-				
 				try {
-					deploymentConfigurationManager.doMigration();
+					// Create embedded Tomcat
+					studioLog.message("Starting the embedded Tomcat");
+					System.setProperty("org.apache.commons.logging.log", "org.apache.commons.logging.impl.Jdk14Logger");
+
+					Path path = new Path("tomcat");
+					URL tomcatHomeUrl = FileLocator.find(context.getBundle(), path, null);
+
+					String tomcatHome = FileLocator.toFileURL(tomcatHomeUrl).getPath();
+
+					int index = (System.getProperty("os.name").indexOf("Windows") != -1) ? 1 : 0;
+					tomcatHome = tomcatHome.substring(index);
+
+					embeddedTomcat = new EmbeddedTomcat(tomcatHome);
+
+					// The embedded Tomcat has been created, so all engine paths have been computed.
+					deploymentConfigurationManager = new DeploymentConfigurationManager();
+					
+					try {
+						deploymentConfigurationManager.load();
+					} catch (Exception e) {
+						logException(e, "Unable to load deployment configurations");
+					}
+
+					displayWaitScreen();
+
+					new Thread(embeddedTomcat, "Embedded Tomcat").start();
+					new Thread(new Runnable() {
+						
+						public void run() {
+							int nbRetry = 0;
+							while (!Engine.isStartFailed && !Engine.isStarted) {
+								try {
+									Thread.sleep(500);
+									nbRetry++;
+								} catch (InterruptedException e) {
+									// Ignore
+								}
+
+								// Aborting if too many retries
+								if (nbRetry > 360) return;
+							}
+
+							if (Engine.isStartFailed) {
+								logError("Unable to start engine; see console for more details");
+								return;
+							}
+
+							// The console threads must be started AFTER the engine
+							consolePipes.startConsoleThreads();
+
+							try {
+								deploymentConfigurationManager.doMigration();
+							} catch (Exception e) {
+								logException(e, "Unable to migrate deployment configurations");
+							}
+							
+							studioLog.message("Embedded Tomcat started");
+						}
+						
+					}, "Wait Embedded Tomcat started").start();
+					
 				} catch (Exception e) {
-					logException(e, "Unable to migrate deployment configurations");
+					afterPscException[0] = e;
 				}
 			}
-		});
-        engineStartWaitThread.start();
+			
+		};
+		
+		try {
+			decodePsc();
+			afterPscOk.run();
+			if (afterPscException[0] != null) {
+				throw afterPscException[0];
+			}
+		} catch (PscException e) {
+			studioLog.message("No valid PSC, the Engine will start after the registration wizard.\nFailure message : " + e.getMessage());
+			Engine.isStartFailed = true;
+			Display display = Display.getDefault();
+			display.asyncExec(new Runnable() {
+				
+				public void run() {
+					try {
+//						boolean success = SetupAction.runSetup();
+						boolean success = true;
+						if (success) {
+							Engine.isStartFailed = false;
+							new Thread(afterPscOk, "Start embedded Tomcat").start();
+						} else {
+							IWorkbench workbench = PlatformUI.getWorkbench();
+							workbench.close();
+						}
+					} catch (Throwable t) {
+						studioLog.exception(t, "Failure during the Convertigo setup wizard");
+					}
+				}
+				
+			});
+		}
         
 		studioLog.message("Convertigo studio started");
 	}
@@ -635,6 +696,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public void earlyStartup() {
 		final IWorkbench workbench = PlatformUI.getWorkbench();
 		workbench.getDisplay().asyncExec(new Runnable() { 
+			
 			public void run() {
 				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 				if (window != null) {
@@ -655,53 +717,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 						workbench.showPerspective(ConvertigoPlugin.PLUGIN_PERSPECTIVE_ID, window);
 					} catch (WorkbenchException e) {
 						studioLog.error("Could not open Convertigo perspective.\n" + e.getMessage());
-					}
-					
-					// Trial registration
-					if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_TRIAL_IGNORE_USER_REGISTRATION).equalsIgnoreCase("false")) {
-						final Display display = Display.getDefault();
-						display.syncExec(new Runnable() {
-							public void run() {
-								try {
-									Shell shell = display.getActiveShell();
-									TrialRegistrationDialog trialRegistrationDialog = new TrialRegistrationDialog(shell);
-									trialRegistrationDialog.open();
-									int returnCode = trialRegistrationDialog.getReturnCode();
-									if (returnCode == Window.OK) {
-								        try {
-											deploymentConfigurationManager.add(trialRegistrationDialog.deploymentConfiguration);
-											deploymentConfigurationManager.save();
-								            ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_TRIAL_IGNORE_USER_REGISTRATION, "true");
-											ConvertigoPlugin.infoMessageBox("You have successfully registered your trial studio!");
-								        }
-								        catch(Exception e) {
-								        	ConvertigoPlugin.logException(e, "Unable to save the trial deployment information.");
-								        }		
-									}
-									else if (returnCode == Window.CANCEL) {
-										final Display display = Display.getDefault();
-										display.asyncExec(new Runnable() {
-											public void run() {
-												try {
-													Shell shell = display.getActiveShell();
-								                	MessageBox messageBox = new MessageBox(shell, SWT.YES | SWT.NO | SWT.ICON_QUESTION);
-								                	messageBox.setText("Convertigo");
-								                	messageBox.setMessage("You have chosen to ignore the trial registration. Do you want to definitely ignore it (then C-EMS studio will not ask you for registration anymore)?");
-								                	int result = messageBox.open();
-								                	if (result == SWT.YES) {
-											            ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_TRIAL_IGNORE_USER_REGISTRATION, "true");
-								                	}
-												}
-												catch (Exception e) {													
-												}
-											};
-										});
-									}
-								} catch (Exception e) {
-									ConvertigoPlugin.logException(e, "Error while analyzing registration request");
-								}
-							};
-						});
 					}
 				}
 			} 
@@ -1335,5 +1350,49 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	
 	public boolean isShuttingDown() {
 		return this.shuttingDown;
-	}	
+	}
+	
+	static private File getConvertigoWorkspace() {
+		return getDefault().getStateLocation().toFile();
+	}
+	
+	static private Properties decodePsc() throws PscException {
+		return decodePsc(getConvertigoWorkspace());
+	}
+	
+	static public Properties decodePsc(File convertigoWorkspace) throws PscException {
+		File pscFile = new File(convertigoWorkspace, "studio/psc.txt");
+		if (pscFile.exists()) {
+			try {
+				String psc = FileUtils.readFileToString(pscFile, "utf-8");
+				return decodePsc(psc);
+			} catch (IOException e) {
+				throw new PscException("Invalid PSC (failed to read the file '" + pscFile.getAbsolutePath() + "' because of a '" + e.getClass().getSimpleName() + " : " + e.getMessage() +"')!");
+			}
+		} else {
+			throw new PscException("Invalid PSC (the file '" + pscFile.getAbsolutePath() + "' doesn't exist)!");
+		}
+	}
+	
+	static public Properties decodePsc(String psc)  throws PscException {
+		if (psc.length() == 0) {
+			throw new PscException("Invalid PSC (empty)!");
+		} else {
+			String decipheredPSC = Crypto2.decodeFromHexString("registration", psc);
+			
+			if (decipheredPSC == null) {
+				throw new PscException("Invalid PSC (unable to decipher)!");
+			} else if (!decipheredPSC.startsWith("# PSC file")) {
+				throw new PscException("Invalid PSC (wrong format)!");
+			} else {
+				Properties properties = new Properties();
+				try {
+					properties.load(IOUtils.toInputStream(psc, "utf8"));
+					return properties;
+				} catch (IOException e) {
+					throw new PscException("Invalid PSC (cannot load properties)!");
+				}
+			}
+		}
+	}
 }

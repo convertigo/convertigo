@@ -12,7 +12,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
 
 public class PscKeyPage extends WizardPage {
 	
@@ -69,20 +70,15 @@ public class PscKeyPage extends WizardPage {
 		pscKey.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
-				if (pscKey.getText().length() != 0) {
-					String psc = pscKey.getText();
-					String decipheredPSC = Crypto2.decodeFromHexString("registration", psc);
-					
-					if (decipheredPSC == null) {
-						setErrorMessage("Invalid PSC (unable to decipher)!");
-						setPageComplete(false);
-					}
-					else if (decipheredPSC.startsWith("# PSC file")) {
+				String psc = pscKey.getText();
+				if (psc.length() != 0) {
+					try {
+						ConvertigoPlugin.decodePsc(psc);
 						setErrorMessage(null);
 						setMessage(getDescription());
 						setPageComplete(true);
-					} else {
-						setErrorMessage("Invalid PSC (wrong format)!");
+					} catch (PscException exception) {
+						setErrorMessage(exception.getMessage());
 						setPageComplete(false);
 					}
 				} else {
@@ -90,6 +86,7 @@ public class PscKeyPage extends WizardPage {
 					setPageComplete(false);
 				}
 			}
+			
 		});
 		pscKey.setLayoutData(gdlayout);
 		
