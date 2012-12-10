@@ -64,4 +64,4 @@ Before launch, open "Run configuration...":
   External Jar in Global Entries.
 
 * To use connectors, you have to rename "convertigo/minime/Java/keys_studio.txt" to
-  "convertigo/minime/Java/keys.txt" and restart the studio. 
+  "convertigo/minime/Java/keys.txt" and restart the studio.
