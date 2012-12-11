@@ -113,13 +113,8 @@ public class DeploymentConfigurationManager {
 	}
 	
 	public DeploymentConfiguration getDefault(String projectName) {		
-		for (String defaultProjectName: defaultDeploymentConfigurations.keySet()) {			
-			if (projectName.equals(defaultProjectName)) {
-				String key = defaultDeploymentConfigurations.get(defaultProjectName);
-				return deploymentConfigurations.get(key);
-			}
-		}
-		return null;
+		String key = defaultDeploymentConfigurations.get(projectName);
+		return key == null ? null : deploymentConfigurations.get(key);
 	}
 	
 	public void setDefault(String projectName, String deploymentConfigurationName) {		
@@ -167,7 +162,9 @@ public class DeploymentConfigurationManager {
 			ConvertigoPlugin.logException(e, "An error occured saving deployment configurations: " + e.getMessage());
 		}
         finally {
-        	if (objectOutputStream != null) objectOutputStream.close();
+        	if (objectOutputStream != null) {
+        		objectOutputStream.close();
+        	}
         	ConvertigoPlugin.logDebug("Projects deployment configurations saved");
         }
 	}
@@ -194,16 +191,15 @@ public class DeploymentConfigurationManager {
     		ConvertigoPlugin.logException(e, "Invalid encryption key: " + e.getMessage());
     	} catch (FileNotFoundException e) {
 			// Use the default empty database
-        } catch (IOException e) {
-        	ConvertigoPlugin.logError("Unable to load the deployment configurations: " + e.getMessage() + "\n. A new empty list will be created.");
-        	// Use the default empty database
 		} catch (Exception e) {
 			ConvertigoPlugin.logError("Unable to load the deployment configurations: " + e.getMessage() + "\n. A new empty list will be created.");
         	// Use the default empty database
 		}
         
         finally {
-        	if (objectInputStream != null) objectInputStream.close();
+        	if (objectInputStream != null) {
+        		objectInputStream.close();
+        	}
         	ConvertigoPlugin.logDebug("Projects deployment configurations loaded");
         }
 	}

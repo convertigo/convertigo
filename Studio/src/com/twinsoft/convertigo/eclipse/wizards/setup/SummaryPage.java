@@ -36,10 +36,13 @@ public class SummaryPage extends WizardPage {
 	protected void updateSummary() {
 		SetupWizard setupWizard = (SetupWizard) getWizard();
 		
-		String sSummary =
-				"User workspace:\n"
-				+ " " + setupWizard.chooseWorkspaceLocationPage.getUserWorkspaceLocation() + "\n"
-				+ "\nProxy configuration:\n"
+		String sSummary = "";
+		if (setupWizard.chooseWorkspaceLocationPage != null) {
+			sSummary += "User workspace:\n"
+				+ " " + setupWizard.chooseWorkspaceLocationPage.getUserWorkspaceLocation() + "\n";
+		}
+		if (setupWizard.configureProxyPage != null) {
+			sSummary += "\nProxy configuration:\n"
 				+ "  Mode: " + setupWizard.configureProxyPage.getProxyMode() + "\n"
 				+ "  Host: " + setupWizard.configureProxyPage.getProxyHost() + "\n"
 				+ "  Port: " + setupWizard.configureProxyPage.getProxyPort() + "\n"
@@ -47,8 +50,8 @@ public class SummaryPage extends WizardPage {
 				+ "  Autoconf URL: " + setupWizard.configureProxyPage.getProxyAutoConfUrl() + "\n"
 				+ "  Method: " + setupWizard.configureProxyPage.getProxyMethod() + "\n"
 				+ "  User: " + setupWizard.configureProxyPage.getProxyUser() + "\n"
-				+ "  Password: " + setupWizard.configureProxyPage.getProxyPassword() + "\n"
-				;
+				+ "  Password: " + setupWizard.configureProxyPage.getProxyPassword() + "\n";
+		}
 
 		summaryText.setText(sSummary);
 	}

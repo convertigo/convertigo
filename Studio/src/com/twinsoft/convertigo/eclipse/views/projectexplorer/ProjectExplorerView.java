@@ -384,20 +384,23 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 		}
 	}
 
-	private void initialize() {
-		// Loads projects
-		if (Engine.isStarted) {
-			((ViewContentProvider) viewer.getContentProvider()).loadProjects();
-			viewer.refresh();
-		}
+	public void initialize() {
+		if (Engine.objectsProvider != this) {
 
-		// Studio mode
-		Engine.setObjectsProvider(this);
+			// Loads projects
+			if (Engine.isStarted) {
+				((ViewContentProvider) viewer.getContentProvider()).loadProjects();
+				viewer.refresh();
+			}
 
-		// Registering as Engine listener
-		if (Engine.theApp != null) {
-			Engine.theApp.addEngineListener(this);
-			Engine.theApp.addMigrationListener(this);
+			// Studio mode
+			Engine.setObjectsProvider(this);
+
+			// Registering as Engine listener
+			if (Engine.theApp != null) {
+				Engine.theApp.addEngineListener(this);
+				Engine.theApp.addMigrationListener(this);
+			}
 		}
 	}
 

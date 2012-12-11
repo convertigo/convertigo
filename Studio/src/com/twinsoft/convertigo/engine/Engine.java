@@ -72,9 +72,8 @@ import com.twinsoft.tas.ParsingException;
 import com.twinsoft.util.Log;
 import com.twinsoft.util.TWSKey;
 
-public class Engine {
-	
-	public static String USER_WORKSPACE_PATH = "";
+public class Engine {	
+	public static String USER_WORKSPACE_PATH = System.getProperty("convertigo.cems.user_workspace_path", System.getProperty("user.home") + "/convertigo");
 	public static String PROJECTS_PATH = "";
 	public static String CERTIFICATES_PATH = "";
 	public static String LOG_PATH = "";
@@ -85,6 +84,14 @@ public class Engine {
 	public static String CONFIGURATION_PATH = "";
 	public static String SENCHA_PATH = "";
 
+	static {
+		// Do not forget to retrieve the canonical paths, i.e. the path
+		// where ".." and "." are resolved to unique paths.
+		try {
+			USER_WORKSPACE_PATH = new File(USER_WORKSPACE_PATH).getCanonicalPath();
+		} catch (IOException e) {
+		}
+	}
 	/**
 	 * This is the application reference.
 	 */
@@ -236,13 +243,6 @@ public class Engine {
 
 	public static void initPaths(String webappPath) throws IOException {
 		if (bInitPathsDone) return;
-		
-		// Do not forget to retrieve the canonical paths, i.e. the path
-		// where ".." and "." are resolved to unique paths.
-		Engine.USER_WORKSPACE_PATH = System.getProperty("convertigo.cems.user_workspace_path",
-				System.getProperty("user.home") + "/convertigo");
-
-		Engine.USER_WORKSPACE_PATH = new File(Engine.USER_WORKSPACE_PATH).getCanonicalPath();
 
 		// Create/update the user workspace if needed
 		File userWorkspaceDirectory = new File(Engine.USER_WORKSPACE_PATH);
@@ -255,8 +255,11 @@ public class Engine {
 			System.out.println("Error while updating the user workspace");
 			e.printStackTrace();
 		}
-
-		Engine.PROJECTS_PATH = new File(Engine.USER_WORKSPACE_PATH + "/projects").getCanonicalPath();
+		
+		if (Engine.PROJECTS_PATH.length() == 0) {
+			Engine.PROJECTS_PATH = new File(Engine.USER_WORKSPACE_PATH + "/projects").getCanonicalPath();
+		}
+		
 		Engine.CACHE_PATH = new File(Engine.USER_WORKSPACE_PATH + "/cache").getCanonicalPath();
 		Engine.CONFIGURATION_PATH = new File(Engine.USER_WORKSPACE_PATH + "/configuration").getCanonicalPath();
 		Engine.CERTIFICATES_PATH = new File(Engine.USER_WORKSPACE_PATH + "/certificates").getCanonicalPath();
