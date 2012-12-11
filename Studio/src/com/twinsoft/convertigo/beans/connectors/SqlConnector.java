@@ -173,8 +173,16 @@ public class SqlConnector extends Connector {
 		} else text = "Connected to the database";
 		
 		// Attempt to load the database driver
-		Class.forName(jdbcDriverClassName);
-		Engine.logBeans.debug("(SqlConnector) JDBC driver loaded (" + jdbcDriverClassName + ")");
+		try {
+			Class.forName(jdbcDriverClassName);
+			Engine.logBeans.debug("(SqlConnector) JDBC driver loaded (" + jdbcDriverClassName + ")");
+		} catch (ClassNotFoundException e) {
+//			if ("com.mysql.jdbc.Driver".equals(jdbcDriverClassName)) {
+//				jdbcDriverClassName = "org.mariadb.jdbc.Driver";
+//				Class.forName("org.mariadb.jdbc.Driver");
+//				Engine.logBeans.debug("(SqlConnector) JDBC driver loaded (org.mariadb.jdbc.Driver)");
+//			}
+		}
 		
 		realJdbcURL = jdbcURL;
 		

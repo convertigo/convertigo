@@ -107,6 +107,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.eclipse.actions.SetupAction;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
@@ -176,7 +177,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	private ResourceBundle resourceBundle;
 	
 	private static Log studioLog;
-	
+
 	private static ILog log;
 	
 	//Get IProjects in memory 
@@ -450,8 +451,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					}
 					
 					ProjectExplorerView pew = getProjectExplorerView();
-					pew.refreshProjects();
-					pew.refreshTree();
+					pew.initialize();
 				}
 				catch (Exception e) {
 					ConvertigoPlugin.logException(e, "Error during splash wait screen");
@@ -490,18 +490,15 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	/**
 	 * This method is called upon plug-in activation
 	 */
+	@Override
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
 
 		// Version check
-		if (!com.twinsoft.convertigo.eclipse.Version.productVersion
-				.equals(com.twinsoft.convertigo.beans.Version.productVersion)) {
-			throw new Exception(
-					"The product version numbers of Eclipse Plugin and Objects libraries are differents.");
-		} else if (!com.twinsoft.convertigo.eclipse.Version.productVersion
-				.equals(com.twinsoft.convertigo.engine.Version.productVersion)) {
-			throw new Exception(
-					"The product version numbers of Eclipse Plugin and Engine libraries are differents.");
+		if (!com.twinsoft.convertigo.eclipse.Version.productVersion.equals(com.twinsoft.convertigo.beans.Version.productVersion)) {
+			throw new Exception("The product version numbers of Eclipse Plugin and Objects libraries are differents.");
+		} else if (!com.twinsoft.convertigo.eclipse.Version.productVersion.equals(com.twinsoft.convertigo.engine.Version.productVersion)) {
+			throw new Exception("The product version numbers of Eclipse Plugin and Engine libraries are differents.");
 		}
 		
 		Engine.setStudioMode();
@@ -534,7 +531,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		catch(NumberFormatException e) {
 			studioLog.warning("Unable to retrieve the log level; using default log level (4).");
 		}
-		
+
 		studioLog.message("Starting the Convertigo studio eclipse plugin");
 
 		try {
@@ -543,6 +540,14 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		catch(NumberFormatException e) {
 			studioLog.warning("Unable to retrieve the highlight option; using default highlight option (true).");
 		}
+
+		// In STUDIO, the Convertigo User Workspace is in the current Eclipse Workspace/.metadata/.plugins/com.twinsoft.convertigo.studio
+		Engine.USER_WORKSPACE_PATH = getDefault().getStateLocation().toFile().getCanonicalPath();
+
+		// In STUDIO, the Convertigo Projects directory is the current Eclipse Workspace
+		Engine.PROJECTS_PATH = ResourcesPlugin.getWorkspace().getRoot().getRawLocation().toFile().getCanonicalPath();
+		
+//		checkPre_6_2_0_Migration();
 		
 		// Adds listeners
 		addListeners();
@@ -634,8 +639,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				
 				public void run() {
 					try {
-//						boolean success = SetupAction.runSetup();
-						boolean success = true;
+						boolean success = false || SetupAction.runSetup();
 						if (success) {
 							Engine.isStartFailed = false;
 							new Thread(afterPscOk, "Start embedded Tomcat").start();
@@ -787,6 +791,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	/**
 	 * This method is called when the plug-in is stopped
 	 */
+	@Override
 	public void stop(BundleContext context) throws Exception {
 		
 		try {
@@ -1352,15 +1357,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		return this.shuttingDown;
 	}
 	
-	static private File getConvertigoWorkspace() {
-		return getDefault().getStateLocation().toFile();
-	}
-	
 	static private Properties decodePsc() throws PscException {
-		return decodePsc(getConvertigoWorkspace());
+		return decodePscFromWorkspace(Engine.USER_WORKSPACE_PATH);
 	}
 	
-	static public Properties decodePsc(File convertigoWorkspace) throws PscException {
+	static public Properties decodePscFromWorkspace(String convertigoWorkspace) throws PscException {
 		File pscFile = new File(convertigoWorkspace, "studio/psc.txt");
 		if (pscFile.exists()) {
 			try {
