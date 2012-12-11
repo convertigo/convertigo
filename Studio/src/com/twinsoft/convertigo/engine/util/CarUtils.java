@@ -184,6 +184,7 @@ public class CarUtils {
 					document.setUserData("depth", depth, null);
 					
 					databaseObject.hasChanged = false;
+					databaseObject.bNew = false;
 					
 					this.parentElement = parentElement;
 				}				
