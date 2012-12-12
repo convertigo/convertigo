@@ -261,25 +261,26 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		Display display = Display.getCurrent();
 		display.asyncExec(new Runnable() {
 			public void run() {
-				try {
-					messageBox(message, SWT.OK | SWT.ICON_INFORMATION);
-				}
-				catch (Exception e){
-					ConvertigoPlugin.logException(e, "Error while trying to project deploy dialog");
-				}
+				messageBox(message, SWT.OK | SWT.ICON_INFORMATION);
 			};
 		});
 	}
 
 	private static int messageBox(String message, int options) {
-		Display display = Display.getCurrent();
-		Shell shell = display.getActiveShell();
-    	MessageBox messageBox = new MessageBox(shell, options);
-    	messageBox.setText("Convertigo");
-    	if (message == null) message = "(null message)";
-    	messageBox.setMessage(message);
-    	int response = messageBox.open();
-    	return response;
+		try {
+			Display display = Display.getCurrent();
+			Shell shell = display.getActiveShell();
+	    	MessageBox messageBox = new MessageBox(shell, options);
+	    	messageBox.setText("Convertigo");
+	    	if (message == null) message = "(null message)";
+			messageBox.setMessage(message);
+	    	int response = messageBox.open();
+	    	return response;
+		}
+		catch (Exception e){
+			ConvertigoPlugin.logException(e, "Error while trying to open message box", false);
+			return -1;
+		}
 	}
 	
 	public static void projectDeployErrorDialog(String message, String stackTrace) {
@@ -298,7 +299,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		    		}
 				}
 				catch (Exception e){
-					ConvertigoPlugin.logException(e, "Error while trying to project deploy dialog");
+					ConvertigoPlugin.logException(e, "Error while trying to project deploy dialog", false);
 				}
 			};
 			
