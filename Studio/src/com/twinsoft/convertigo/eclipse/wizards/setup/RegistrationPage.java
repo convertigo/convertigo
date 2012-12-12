@@ -597,8 +597,10 @@ public class RegistrationPage extends WizardPage {
 		method.setParameter("email", getMail());
 		
 		try {
+			HttpClient httpClient = new HttpClient();
+			
 			// execute HTTP post with parameters
-			statuscode = Engine.theApp.httpClient.executeMethod(HostConfiguration.ANY_HOST_CONFIGURATION, method, new HttpState());
+			statuscode = httpClient.executeMethod(HostConfiguration.ANY_HOST_CONFIGURATION, method, new HttpState());
 			String body = method.getResponseBodyAsString();
 			Document document = XMLUtils.parseDOMFromString(body);
 			NodeList nd = document.getElementsByTagName("errorCode");
