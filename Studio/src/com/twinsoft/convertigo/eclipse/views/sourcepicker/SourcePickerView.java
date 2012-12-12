@@ -544,7 +544,7 @@ public class SourcePickerView extends ViewPart implements IStepSourceEditor, Ste
 			else clean();
 		} catch (Exception e) {
 			clean();
-			ConvertigoPlugin.errorMessageBox(StringUtils.readStackTraceCauses(e));
+			ConvertigoPlugin.logException(e, StringUtils.readStackTraceCauses(e));
 		}
 	}
 	
