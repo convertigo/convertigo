@@ -266,7 +266,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					messageBox(message, SWT.OK | SWT.ICON_INFORMATION);
 				}
 				catch (Exception e){
-					ConvertigoPlugin.logException(e, "Error while trying to project deploy dialog");
+					ConvertigoPlugin.logException(e, "Error while trying to open message box");
 				}
 			};
 		});
@@ -277,7 +277,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		Shell shell = display.getActiveShell();
     	MessageBox messageBox = new MessageBox(shell, options);
     	messageBox.setText("Convertigo");
-    	messageBox.setMessage(message);
+    	if (message == null) message = "(null message)";
+		messageBox.setMessage(message);
     	int response = messageBox.open();
     	return response;
 	}
@@ -298,7 +299,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		    		}
 				}
 				catch (Exception e){
-					ConvertigoPlugin.logException(e, "Error while trying to project deploy dialog");
+					ConvertigoPlugin.logException(e, "Error while trying to open project deploy dialog");
 				}
 			};
 			
