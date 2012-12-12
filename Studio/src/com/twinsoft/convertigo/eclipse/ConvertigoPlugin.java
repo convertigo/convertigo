@@ -273,14 +273,20 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}
 
 	private static int messageBox(String message, int options) {
-		Display display = Display.getCurrent();
-		Shell shell = display.getActiveShell();
-    	MessageBox messageBox = new MessageBox(shell, options);
-    	messageBox.setText("Convertigo");
-    	if (message == null) message = "(null message)";
-		messageBox.setMessage(message);
-    	int response = messageBox.open();
-    	return response;
+		try {
+			Display display = Display.getCurrent();
+			Shell shell = display.getActiveShell();
+	    	MessageBox messageBox = new MessageBox(shell, options);
+	    	messageBox.setText("Convertigo");
+	    	if (message == null) message = "(null message)";
+			messageBox.setMessage(message);
+	    	int response = messageBox.open();
+	    	return response;
+		}
+		catch (Exception e){
+			ConvertigoPlugin.logException(e, "Error while trying to open message box", false);
+			return -1;
+		}
 	}
 	
 	public static void projectDeployErrorDialog(String message, String stackTrace) {
@@ -299,7 +305,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		    		}
 				}
 				catch (Exception e){
-					ConvertigoPlugin.logException(e, "Error while trying to open project deploy dialog");
+					ConvertigoPlugin.logException(e, "Error while trying to open project deploy dialog", false);
 				}
 			};
 			
