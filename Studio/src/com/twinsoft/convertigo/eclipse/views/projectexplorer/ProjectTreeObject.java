@@ -452,15 +452,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						}
 					}
 				}
-				else {
-					for (Sequence sequence: getObject().getSequencesList()) {
-						try {
-							sequence.generateWsdlType(null);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-				}
 			}
 		}
 	}
@@ -515,15 +506,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 								updateWebService(requestable.getParent(), requestable, xsdTypes, false);
 							} catch (Exception e) {
 							}
-						}
-					}
-				}
-				else {
-					for (Sequence sequence: getObject().getSequencesList()) {
-						try {
-							sequence.generateWsdlType(null);
-						} catch (Exception e) {
-							e.printStackTrace();
 						}
 					}
 				}
@@ -647,18 +629,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 							String xsdTypes = requestable.generateXsdTypes(null, false);
 							updateWebService(requestable.getParent(), requestable, xsdTypes, false);
 						} catch (Exception e) {
-						}
-					}
-				}
-			}
-			// Case of xsd/wsdl update by user
-			else {
-				if (databaseObject.getProject().getName().equals(getName())) {
-					for (Sequence sequence: getObject().getSequencesList()) {
-						try {
-							sequence.generateWsdlType(null);
-						} catch (Exception e) {
-							e.printStackTrace();
 						}
 					}
 				}

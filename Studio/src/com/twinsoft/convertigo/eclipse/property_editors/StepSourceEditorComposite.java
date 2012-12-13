@@ -455,6 +455,15 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 	
 	private void displayTargetWsdlDom(Step step) {
 		try {
+			// First regenerate sequence's schema
+			try {
+				step.getSequence().generateWsdlType(null);
+			}
+			catch (Exception e) {
+				ConvertigoPlugin.logException(e, "Unable to generate sequence's schema.", false);
+			}
+			
+			// Then display DOM of source targeted by step
 			String xpath = getSourceXPath();
 			String anchor = step.getAnchor();
 			Document stepDoc = step.getWsdlDom();
