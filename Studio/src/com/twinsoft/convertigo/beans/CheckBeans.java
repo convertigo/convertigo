@@ -185,7 +185,7 @@ public class CheckBeans {
 		Collection<File> javaFiles = FileUtils.listFiles(new File(currentPackage), new String[] { "java" }, true);
 		for (File file : javaFiles) {
 			String javaClassName = file.getPath();
-			javaClassName = javaClassName.substring(srcBase.length()).replace('/', '.');
+			javaClassName = javaClassName.substring(srcBase.length()).replace('/', '.').replace('\\', '.');
 			javaClassName = javaClassName.substring(0, javaClassName.lastIndexOf(".java"));
 			
 			if (!javaClassName.endsWith("BeanInfo")) {
