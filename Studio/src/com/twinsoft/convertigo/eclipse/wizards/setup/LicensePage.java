@@ -2,7 +2,6 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -27,10 +26,7 @@ public class LicensePage extends WizardPage {
 
 	public void createControl(Composite parent) {
 		container = new Composite(parent, SWT.NONE);
-		
-		GridLayout layout = new GridLayout();
-		container.setLayout(layout);
-		layout.numColumns = 1;
+		container.setLayout(new GridLayout(1, true));
 		
 		Text licenseText = new Text(container, SWT.MULTI | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		licenseText.setEditable(false);
@@ -63,23 +59,10 @@ public class LicensePage extends WizardPage {
 			
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
+			
 		});
 		
 		setControl(container);
 		setPageComplete(false);
-	}
-
-	@Override
-	public IWizardPage getNextPage() {
-		SetupWizard setupWizard = (SetupWizard) getWizard();
-		((SummaryPage) setupWizard.getPage("SummaryPage")).updateSummary();
-		return super.getNextPage();
-	}
-	
-	@Override
-	public IWizardPage getPreviousPage() {
-		SetupWizard setupWizard = (SetupWizard) getWizard();
-		((SummaryPage) setupWizard.getPage("SummaryPage")).updateSummary();
-		return super.getPreviousPage();
 	}
 }

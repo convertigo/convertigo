@@ -2,29 +2,21 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.wizard.Wizard;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class SetupWizard extends Wizard {
-
-//	private static final String PROP_VM = "eclipse.vm"; //$NON-NLS-1$
-//	private static final String PROP_VMARGS = "eclipse.vmargs"; //$NON-NLS-1$
-//	private static final String PROP_COMMANDS = "eclipse.commands"; //$NON-NLS-1$
-//	private static final String PROP_EXIT_CODE = "eclipse.exitcode"; //$NON-NLS-1$
-//	private static final String PROP_EXIT_DATA = "eclipse.exitdata"; //$NON-NLS-1$
-//	private static final String CMD_DATA = "-data"; //$NON-NLS-1$
-//	private static final String CMD_VMARGS = "-vmargs"; //$NON-NLS-1$
-//	private static final String NEW_LINE = "\n"; //$NON-NLS-1$
-	
-//	private IWorkbenchWindow activeWorkbenchWindow;
-
 	protected LicensePage licensePage;
-	protected ChooseWorkspaceLocationPage chooseWorkspaceLocationPage;
+	protected WorkspaceMigrationPage workspaceMigrationPage;
+	protected WorkspaceCreationPage workspaceCreationPage;
 	protected ConfigureProxyPage configureProxyPage;
+	protected AlreadyPscKeyPage alreadyPscKeyPage;
 	protected RegistrationPage registrationPage;
 	protected PscKeyPage pscKeyPage;
 	protected SummaryPage summaryPage;
@@ -32,24 +24,51 @@ public class SetupWizard extends Wizard {
 	public SetupWizard() {
 		super();
 		
-//		IWorkbench workbench = PlatformUI.getWorkbench();
-//		activeWorkbenchWindow = workbench.getActiveWorkbenchWindow(); 
-		
 		setNeedsProgressMonitor(true);
 	}
 
 	@Override
-	public void addPages() {		
-		licensePage = new LicensePage();
-		addPage(licensePage);
-
+	public void addPages() {
+		
+		// no license acceptation if already accepted in the Windows installer
+		if (!System.getProperties().containsKey("convertigo.license.accepted") &&
+				!IPreferenceStore.TRUE.equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_LICENSE_ACCEPTED))) {
+			licensePage = new LicensePage();
+			addPage(licensePage);
+		} else {
+			System.getProperties().remove("convertigo.license.accepted");
+		}
+		
+		// empty workspace folder
 		if (new File(Engine.USER_WORKSPACE_PATH).list().length == 0) {
-			chooseWorkspaceLocationPage = new ChooseWorkspaceLocationPage();
-			addPage(chooseWorkspaceLocationPage);
+			boolean pre6_2 = false;
+			for (String pathToCheck : Arrays.asList(
+					"configuration/engine.properties",
+					"minime/Java/login.txt",
+					"cache",
+					"projects",
+					"logs"
+					)) {
+				pre6_2 = new File(Engine.PROJECTS_PATH, pathToCheck).exists();
+				if (!pre6_2) {
+					break;
+				}
+			}
+			
+			if (pre6_2) {
+				workspaceMigrationPage = new WorkspaceMigrationPage();
+				addPage(workspaceMigrationPage);
+			} else {
+				workspaceCreationPage = new WorkspaceCreationPage();
+				addPage(workspaceCreationPage);
+			}
 		}
 		
 //		configureProxyPage = new ConfigureProxyPage();
 //		addPage(configureProxyPage);
+		
+		alreadyPscKeyPage = new AlreadyPscKeyPage();
+		addPage(alreadyPscKeyPage);
 		
 		registrationPage = new RegistrationPage();
 		addPage(registrationPage);
@@ -63,9 +82,11 @@ public class SetupWizard extends Wizard {
 
 	@Override
 	public boolean performFinish() {
-		if (chooseWorkspaceLocationPage != null) {
-			chooseWorkspaceLocationPage.apply();
-		}
+		ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_LICENSE_ACCEPTED, IPreferenceStore.TRUE);
+		
+//		if (workspaceMigrationPage != null) {
+//			workspaceMigrationPage.apply();
+//		}
 		
 		File pscFile = new File(Engine.USER_WORKSPACE_PATH, "studio/psc.txt");
 		try {
@@ -166,88 +187,7 @@ public class SetupWizard extends Wizard {
 //		catch(Exception exception) {
 //			ConvertigoPlugin.logError("Error when deploy the psc !");
 //		}
-//		
-//		// Restart the studio with the new eclipse workspace
-//		if (bRestartRequired)
-//			restart(workspaceProjects.getPath());
 		
 		return true;
 	}
-	
-//	private void restart(String path) {
-//		String command_line = buildCommandLine(path);
-//		if (command_line == null) {
-//			return;
-//		}
-//
-//		System.setProperty(PROP_EXIT_CODE, Integer.toString(24));
-//		System.setProperty(PROP_EXIT_DATA, command_line);
-//		
-//		System.out.println("restart: " + command_line);
-//		activeWorkbenchWindow.getWorkbench().restart();
-//	}
-//
-//	/**
-//	 * Create and return a string with command line options for eclipse.exe that
-//	 * will launch a new workbench that is the same as the currently running
-//	 * one, but using the argument directory as its workspace.
-//	 * 
-//	 * @param workspace
-//	 *            the directory to use as the new workspace
-//	 * @return a string of command line options or null on error
-//	 */
-//	private String buildCommandLine(String workspace) {
-//		String property = System.getProperty(PROP_VM);
-//		if (property == null) {
-//			ConvertigoPlugin.logError("Unable to get eclipse argument " + PROP_VM);
-//		}
-//
-//		StringBuffer result = new StringBuffer(512);
-//		result.append(property);
-//		result.append(NEW_LINE);
-//
-//		// append the vmargs and commands. Assume that these already end in \n
-//		String vmargs = System.getProperty(PROP_VMARGS);
-//		if (vmargs != null) {
-//			result.append(vmargs);
-//		}
-//
-//		// append the rest of the args, replacing or adding -data as required
-//		property = System.getProperty(PROP_COMMANDS);
-//		if (property == null) {
-//			result.append(CMD_DATA);
-//			result.append(NEW_LINE);
-//			result.append(workspace);
-//			result.append(NEW_LINE);
-//		} else {
-//			// find the index of the arg to replace its value
-//			int cmd_data_pos = property.lastIndexOf(CMD_DATA);
-//			if (cmd_data_pos != -1) {
-//				cmd_data_pos += CMD_DATA.length() + 1;
-//				result.append(property.substring(0, cmd_data_pos));
-//				result.append(workspace);
-//				result.append(property.substring(property.indexOf('\n',
-//						cmd_data_pos)));
-//			} else {
-//				result.append(CMD_DATA);
-//				result.append(NEW_LINE);
-//				result.append(workspace);
-//				result.append(NEW_LINE);
-//				result.append(property);
-//			}
-//		}
-//
-//		// put the vmargs back at the very end (the eclipse.commands property
-//		// already contains the -vm arg)
-//		if (vmargs != null) {
-//			result.append(CMD_VMARGS);
-//			result.append(NEW_LINE);
-//			result.append(vmargs);
-//		}
-//
-//		return result.toString();
-//	}
-
-
-	
 }

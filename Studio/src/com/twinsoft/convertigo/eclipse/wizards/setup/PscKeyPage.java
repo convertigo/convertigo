@@ -27,7 +27,7 @@ public class PscKeyPage extends WizardPage {
 	}
 	
 	public PscKeyPage () {
-		super("PSC");
+		super("PscKeyPage");
 		setTitle("Personal Studio Configuration");
 		setDescription("Once you filled the form on the Internet in order\n" +
 				"to automatically create a Convertigo Forum account to get a Personal Studio Configuration.");
