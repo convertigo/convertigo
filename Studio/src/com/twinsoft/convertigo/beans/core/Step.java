@@ -624,12 +624,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	protected Node createWsdlDom() throws EngineException {
 		wsdlDom = getSequence().createDOM();
 		Element element = wsdlDom.createElement(getStepNodeName());
-		
-		if (schema.equals("")) {
-			try {
-				getSequence().generateWsdlType(null);
-			} catch (Exception e) {}
-		}
 		Element schemaType = wsdlDom.createElement("schema-type");
 		CDATASection cDATASection = wsdlDom.createCDATASection(schema);
         schemaType.appendChild(cDATASection);
