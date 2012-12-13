@@ -22,8 +22,6 @@
 
 package com.twinsoft.convertigo.eclipse.dialogs;
 
-import java.io.IOException;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -38,8 +36,6 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
 public class ProjectMobileCreationSuccessfulDialog extends Dialog {
 	
@@ -84,11 +80,7 @@ public class ProjectMobileCreationSuccessfulDialog extends Dialog {
 		link.setText("You can try or build this application by <a href=\""+ projectURL + "\">accessing the following address :</a>");
 		link.addListener (SWT.Selection, new Listener () {
 			public void handleEvent(Event event) {
-				try {
-					Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + event.text);
-				} catch (IOException e) {
-					ConvertigoPlugin.logException(e, "Unable to launch the default browser!");
-				} 
+				org.eclipse.swt.program.Program.launch(event.text);
 			}
 		});
 		

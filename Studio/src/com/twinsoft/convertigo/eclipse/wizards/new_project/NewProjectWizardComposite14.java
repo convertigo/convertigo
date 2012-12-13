@@ -139,12 +139,7 @@ public class NewProjectWizardComposite14 extends Composite {
 		link.setBounds(clientArea.x, clientArea.y, 140, 40);
 		link.addListener(SWT.Selection, new Listener () {
 			public void handleEvent(Event event) {
-				try {
-					Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + senchaUrl);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				org.eclipse.swt.program.Program.launch(senchaUrl);
 			}
 		});
 		gridData = new GridData();
@@ -178,11 +173,14 @@ public class NewProjectWizardComposite14 extends Composite {
 		Button updateButton = new Button(group, SWT.NONE);
 		updateButton.setText("Update frameworks list");
 		updateButton.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				findFiles(Engine.SENCHA_PATH);
 				comboSencha.select(comboSencha.getItemCount()-1);
 				comboSencha.notifyListeners(SWT.Selection, new Event());
 			}
+			
 		});
 		
 		

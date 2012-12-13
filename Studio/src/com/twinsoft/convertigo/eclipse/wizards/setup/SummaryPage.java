@@ -37,9 +37,10 @@ public class SummaryPage extends WizardPage {
 		SetupWizard setupWizard = (SetupWizard) getWizard();
 		
 		String sSummary = "";
-		if (setupWizard.chooseWorkspaceLocationPage != null) {
+		if (setupWizard.workspaceMigrationPage != null) {
 			sSummary += "User workspace:\n"
-				+ " " + setupWizard.chooseWorkspaceLocationPage.getUserWorkspaceLocation() + "\n";
+					;
+//				+ " " + setupWizard.workspaceMigrationPage.getUserWorkspaceLocation() + "\n";
 		}
 		if (setupWizard.configureProxyPage != null) {
 			sSummary += "\nProxy configuration:\n"

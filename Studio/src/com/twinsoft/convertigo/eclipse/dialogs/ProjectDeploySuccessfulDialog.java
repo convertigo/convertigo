@@ -22,8 +22,6 @@
 
 package com.twinsoft.convertigo.eclipse.dialogs;
 
-import java.io.IOException;
-
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -36,7 +34,6 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.DeploymentConfiguration;
 
 public class ProjectDeploySuccessfulDialog extends Dialog {
@@ -54,6 +51,7 @@ public class ProjectDeploySuccessfulDialog extends Dialog {
 		this.projectURL = projectURL;
 	}
 
+	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		
@@ -71,13 +69,11 @@ public class ProjectDeploySuccessfulDialog extends Dialog {
 		Link link = new Link(container, SWT.NONE);
 		link.setText("Your project has been successfully deployed.\n\nYou can try it with this URL:\n<a href=\""+ projectURL + "\">" + projectURL + "</a>");
 		link.addListener (SWT.Selection, new Listener () {
+			
 			public void handleEvent(Event event) {
-				try {
-					Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + event.text);
-				} catch (IOException e) {
-					ConvertigoPlugin.logException(e, "Unable to launch the default browser!");
-				} 
+				org.eclipse.swt.program.Program.launch(event.text);
 			}
+			
 		});
 				
 		link.setSize(330, 150);

@@ -140,6 +140,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	
     public static final String SYSTEM_PROP_PREFIX = "convertigo.studio.";
     
+    public static final String PREFERENCE_LICENSE_ACCEPTED = "license.accepted";
     public static final String PREFERENCE_LOG_LEVEL = "log.level";
     public static final String PREFERENCE_TREE_HIGHLIGHT_DETECTED = "tree.highlight.detected";
     public static final String PREFERENCE_OPENED_CONSOLES = "opened.consoles";
