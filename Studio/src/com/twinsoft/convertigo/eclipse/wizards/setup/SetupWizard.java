@@ -84,9 +84,54 @@ public class SetupWizard extends Wizard {
 	public boolean performFinish() {
 		ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_LICENSE_ACCEPTED, IPreferenceStore.TRUE);
 		
-//		if (workspaceMigrationPage != null) {
-//			workspaceMigrationPage.apply();
-//		}
+		if (workspaceMigrationPage != null) {
+			File userWorkspace = new File(Engine.USER_WORKSPACE_PATH);
+
+			File eclipseWorkspace = new File(Engine.PROJECTS_PATH);
+
+			ConvertigoPlugin.logInfo("The current Eclipse workspace is a pre-6.2.0 CEMS workspace. Migration starting …");
+
+			boolean projectsMoveFailed = false;
+
+			for (File file : eclipseWorkspace.listFiles()) {
+				if (!file.getName().equals(".metadata")) {
+					try {
+						ConvertigoPlugin.logInfo("Migration in progress : moving " + file.getName() + " …");
+						FileUtils.moveToDirectory(file, userWorkspace, false);
+					} catch (IOException e) {
+						projectsMoveFailed = projectsMoveFailed || file.getName().equals("projects");
+						ConvertigoPlugin.logInfo("Migration in progress : failed to move " + file.getName() + " ! (" + e.getMessage() + ")");
+					}
+				}
+			}
+
+			if (!projectsMoveFailed) {
+				ConvertigoPlugin.logInfo("Migration in progress : move move back CEMS projects to the Eclipse workspace …");
+				File exMetadata = new File(userWorkspace, "projects/.metadata");
+				try {
+					FileUtils.copyDirectoryToDirectory(exMetadata, eclipseWorkspace);
+					FileUtils.deleteQuietly(exMetadata);
+				} catch (IOException e1) {
+					ConvertigoPlugin.logInfo("Migration in progress : failed to merge .metadata ! (" + e1.getMessage() + ")");
+				}
+
+				for (File file : new File(userWorkspace, "projects").listFiles()) {
+					try {
+						ConvertigoPlugin.logInfo("Migration in progress : moving the file " + file.getName() + " into the Eclipse Workspace …");
+						FileUtils.moveToDirectory(file, eclipseWorkspace, false);
+					} catch (IOException e) {
+						ConvertigoPlugin.logInfo("Migration in progress : failed to move " + file.getName() + " ! (" + e.getMessage() + ")");
+					}
+				}
+
+				ConvertigoPlugin.logInfo("Migration of workspace done !\n" +
+						"Migration of the folder : " + eclipseWorkspace.getAbsolutePath() + "\n" +
+						"Eclipse Workspace with your CEMS projects : " + eclipseWorkspace.getAbsolutePath() + "\n" +
+						"Convertigo Workspace with your CEMS configuration : " + userWorkspace.getAbsolutePath());
+			} else {
+				ConvertigoPlugin.logInfo("Migration incomplet : cannot move back CEMS projects to the Eclipse workspace !");
+			}
+		}
 		
 		File pscFile = new File(Engine.USER_WORKSPACE_PATH, "studio/psc.txt");
 		try {
