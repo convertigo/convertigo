@@ -385,7 +385,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 						}
 					}
 				}
-				if(projectNode.hasChildren()) {
+				if (projectNode.hasChildren()) {
 					requiresNode.addChild(projectNode);
 				}
 			} else if (connector instanceof JavelinConnector) {
@@ -779,7 +779,6 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 	}
 	
 	private void getRequiredRequestables (Step step, Project projectSelected, ProjectExplorerView projectExplorerView, AbstractParentNode parentNode, List<String> transactionList, List<String> sequenceList) {
-	 	
 		try {
 			if (step instanceof SequenceStep) {
 				SequenceStep sequenceStep = (SequenceStep) step;
@@ -854,38 +853,52 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 	}
 	
 	private void getUsedRequestables(Step step, Project projectSelected, AbstractParentNode parentNode) {
-		if (step instanceof SequenceStep) {
-			String sourceProjectName = ((SequenceStep) step).getProjectName();
-			if (sourceProjectName.equals(projectSelected.getName())) {
-				SequenceStepNode sequenceStepNode = new SequenceStepNode(
-						parentNode, step.getName() + " -> "
-								+ ((SequenceStep) step).getSourceSequence(),
-						step);
-				parentNode.addChild(sequenceStepNode);
-			}
-		} else if (step instanceof TransactionStep) {
-			String sourceProjectName = ((TransactionStep) step)
-					.getProjectName();
-			if (sourceProjectName.equals(projectSelected.getName())) {
-				TransactionStepNode transactionStepNode = new TransactionStepNode(
-						parentNode,
-						step.getName() + " -> "
-								+ ((TransactionStep) step)
-										.getSourceTransaction(), step);
-				parentNode.addChild(transactionStepNode);
-			}
-		} else if (isStepContainer(step)) {
-			List<Step> steps = getStepList(step);
-			if (steps != null) {
-				for (Step s : steps) {
-					getUsedRequestables(s, projectSelected, parentNode);
+		try {
+			if (step instanceof SequenceStep) {
+				SequenceStep sequenceStep = (SequenceStep) step;
+				String sourceProjectName = sequenceStep.getProjectName();
+				if (sourceProjectName.equals(projectSelected.getName())) {
+					Sequence sourceSequence = null;
+					String sourceSequenceName = sequenceStep.getSequenceName();
+					try {
+						if (projectSelected != null)
+							sourceSequence = projectSelected.getSequenceByName(sourceSequenceName);
+					} catch (EngineException e) {
+						sourceSequence = null;
+					}
+					SequenceStepNode sequenceStepNode = new SequenceStepNode(parentNode, step.getName() + " -> " + sequenceStep.getSourceSequence(), sourceSequence);
+					parentNode.addChild(sequenceStepNode);
+					
+				}
+			} else if (step instanceof TransactionStep) {
+				TransactionStep transactionStep = (TransactionStep) step;
+				String sourceProjectName = transactionStep.getProjectName();
+				if (sourceProjectName.equals(projectSelected.getName())) {
+					Transaction sourceTransaction = null;
+					Connector connectorSelected = projectSelected.getConnectorByName(transactionStep.getConnectorName());
+					try {
+						if (connectorSelected != null)
+							sourceTransaction = connectorSelected.getTransactionByName(transactionStep.getTransactionName());
+					} catch (Exception e) {
+						sourceTransaction = null;
+					}
+					TransactionStepNode transactionStepNode = new TransactionStepNode(parentNode, step.getName() + " -> " + ((TransactionStep) step).getSourceTransaction(), sourceTransaction);
+					parentNode.addChild(transactionStepNode);
+				}
+			} else if (isStepContainer(step)) {
+				List<Step> steps = getStepList(step);
+				if (steps != null) {
+					for (Step s : steps) {
+						getUsedRequestables(s, projectSelected, parentNode);
+					}
 				}
 			}
+		} catch (EngineException e) {
+					ConvertigoPlugin.logException(e, "Unable to load the project", true);
 		}
 	}
 
 	private void getSequenceReferencingIsUsedBy (Step step, Sequence sequenceSelected, SequenceNode seNode) {
-	
 		if (step instanceof SequenceStep) { 
 			String sourceSequence = ((SequenceStep)step).getSourceSequence();
 			if (sourceSequence.equals(sequenceSelected.getProject().getName() + RequestableStep.SOURCE_SEPARATOR + sequenceSelected.getName())) {
