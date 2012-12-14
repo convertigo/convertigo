@@ -59,6 +59,11 @@ public class AlreadyPscKeyPage extends WizardPage {
 	
 	@Override
 	public IWizardPage getNextPage() {
-		return getWizard().getPage(alreadyPsc ? "PscKeyPage" : "RegistrationPage");
+		RegistrationPage registrationPage = (RegistrationPage) getWizard().getPage("RegistrationPage");
+		if (alreadyPsc) {
+			registrationPage.ignore();
+			return registrationPage.getNextPage();
+		}
+		return registrationPage;
 	}
 }

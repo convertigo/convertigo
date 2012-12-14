@@ -16,7 +16,7 @@ public class WorkspaceCreationPage extends WizardPage {
 	public WorkspaceCreationPage() {
 		super("WorkspaceCreationPage");
 		setTitle("Convertigo Workspace");
-		setDescription("This is the first time Convertigo is launched this workspace...");
+		setDescription("This is the first time Convertigo is launched in this workspace...");
 		setPageComplete(true);
 	}
 
