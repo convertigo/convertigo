@@ -10,6 +10,9 @@ import org.eclipse.jface.wizard.Wizard;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.ProxyManager;
 
 public class SetupWizard extends Wizard {
 	protected LicensePage licensePage;
@@ -20,6 +23,8 @@ public class SetupWizard extends Wizard {
 	protected RegistrationPage registrationPage;
 	protected PscKeyPage pscKeyPage;
 	protected SummaryPage summaryPage;
+	
+	protected ProxyManager proxyManager;
 
 	public SetupWizard() {
 		super();
@@ -39,6 +44,8 @@ public class SetupWizard extends Wizard {
 			System.getProperties().remove("convertigo.license.accepted");
 		}
 		
+		Engine.CONFIGURATION_PATH = Engine.USER_WORKSPACE_PATH;
+		
 		// empty workspace folder
 		if (new File(Engine.USER_WORKSPACE_PATH).list().length == 0) {
 			boolean pre6_2 = false;
@@ -56,15 +63,26 @@ public class SetupWizard extends Wizard {
 			}
 			
 			if (pre6_2) {
+				Engine.CONFIGURATION_PATH = Engine.PROJECTS_PATH;
 				workspaceMigrationPage = new WorkspaceMigrationPage();
 				addPage(workspaceMigrationPage);
-			} else {
+			} else {				
 				workspaceCreationPage = new WorkspaceCreationPage();
 				addPage(workspaceCreationPage);
 			}
 		}
 		
-//		configureProxyPage = new ConfigureProxyPage();
+		Engine.CONFIGURATION_PATH += "/configuration";
+		
+		try {
+			EnginePropertiesManager.loadProperties();
+			proxyManager = new ProxyManager();
+			proxyManager.init();
+		} catch (EngineException e) {
+			ConvertigoPlugin.logInfo("Unexpected EngineException : " + e.getMessage());
+		}
+		
+//		configureProxyPage = new ConfigureProxyPage(proxyManager);
 //		addPage(configureProxyPage);
 		
 		alreadyPscKeyPage = new AlreadyPscKeyPage();
@@ -232,6 +250,7 @@ public class SetupWizard extends Wizard {
 //		catch(Exception exception) {
 //			ConvertigoPlugin.logError("Error when deploy the psc !");
 //		}
+		EnginePropertiesManager.unload();
 		
 		return true;
 	}
