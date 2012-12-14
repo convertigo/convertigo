@@ -63,7 +63,9 @@ public class ProxyManager {
 	transient private PacManager pacUtils;
 	
 	public ProxyManager() {
-		Engine.theApp.eventManager.addListener(myPropertyChangeEventListener = new MyPropertyChangeEventListener(), PropertyChangeEventListener.class);
+		if (Engine.theApp != null) {
+			Engine.theApp.eventManager.addListener(new MyPropertyChangeEventListener(), PropertyChangeEventListener.class);
+		}
 	}
 	
 	public class MyPropertyChangeEventListener implements PropertyChangeEventListener {
@@ -75,7 +77,6 @@ public class ProxyManager {
 			}
 		}
 	};
-	static MyPropertyChangeEventListener myPropertyChangeEventListener;
 	
 	public void init() throws EngineException {	
 		getEngineProperties();

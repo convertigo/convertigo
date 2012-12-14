@@ -1391,7 +1391,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			} else {
 				Properties properties = new Properties();
 				try {
-					properties.load(IOUtils.toInputStream(psc, "utf8"));
+					properties.load(IOUtils.toInputStream(decipheredPSC, "utf8"));
 					return properties;
 				} catch (IOException e) {
 					throw new PscException("Invalid PSC (cannot load properties)!");
