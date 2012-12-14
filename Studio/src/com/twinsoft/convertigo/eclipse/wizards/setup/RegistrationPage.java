@@ -16,6 +16,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -53,15 +54,19 @@ public class RegistrationPage extends WizardPage {
 	private Combo country;
 	private Text username;
 	private Text password;
-	private Button acceptTerms;
 	private Button sendInfos;
+	private List<Text> fields;
 	
 	public RegistrationPage() {
 		super("RegistrationPage");
 		setTitle("Convertigo trial cloud account creation");
 		setDescription("Convertigo provides a free convertigo cloud account for you test and run your projects.");
 	}
-
+	
+	public void ignore() {
+		setPageComplete(true);
+	}
+	
 	public void createControl(Composite parent) {
 		final Color colorcondition = new  Color(parent.getDisplay(), 204,0,0);
 		final Color colorpart = new  Color(parent.getDisplay(), 51,102,255);
@@ -251,17 +256,6 @@ public class RegistrationPage extends WizardPage {
 		layoutDataFields.horizontalSpan = nbCol;
 		label.setLayoutData(layoutDataFields);
 		
-		label = new Label(container, SWT.NONE);
-		label.setFont(fontBold);
-		label.setForeground(colorcondition);
-		label.setText("*");
-		label.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, nbCol - 1, 1));
-		
-		acceptTerms = new Button(container, SWT.CHECK);
-		acceptTerms.setFont(fontBold);
-		acceptTerms.setText("Accept terms and conditions !");
-		acceptTerms.setLayoutData(layoutData);
-		
 		//Button permit to send informations of the registration form to the web service 
 		sendInfos = new Button(container, SWT.BUTTON1);
 		sendInfos.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nbCol, 1));
@@ -273,15 +267,13 @@ public class RegistrationPage extends WizardPage {
 			
 			public void modifyText(ModifyEvent e) {
 				if (e.data == null) {
-					acceptTerms.setSelection(false);
-					sendInfos.setEnabled(false);
-					setPageComplete(false);
+					getWizard();
 				}
 			}
 			
 		};
 		
-		final List<Text> fields = Arrays.asList(firstname, lastname, email, company, username, password, passwordAgain);
+		fields = Arrays.asList(firstname, lastname, email, company, username, password, passwordAgain);
 		
 		for (Text txt : fields) {
 			txt.addModifyListener(unAccept);
@@ -380,35 +372,6 @@ public class RegistrationPage extends WizardPage {
 			
 		});
 		
-		acceptTerms.addSelectionListener(new SelectionAdapter() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent evt) {
-				boolean isChecked = acceptTerms.getSelection();
-				if (isChecked) {
-					Event event = new Event();
-					event.data = this;
-					
-					boolean valid = true;
-					
-					for (Iterator<Text> i = fields.iterator(); i.hasNext() && valid;) {
-						i.next().notifyListeners(SWT.Modify, event);
-						valid = getErrorMessage() == null;
-					}
-					
-					if (valid) {
-						sendInfos.setEnabled(true);
-					} else {
-						acceptTerms.setSelection(false);
-						sendInfos.setEnabled(false);
-					}
-				} else {
-					sendInfos.setEnabled(false);
-				}
-			}
-			
-		});
-		
 		link.addSelectionListener(new SelectionListener() {
 			
 			public void widgetSelected(SelectionEvent e) {
@@ -481,13 +444,9 @@ public class RegistrationPage extends WizardPage {
 //		});
 		
 		if (!isConnect) {
-//			title.setEnabled(false);
-//			title2.setEnabled(false);
-//			check(false, title,title2);
 			for (Text field : fields) {
 				field.setEnabled(false);
 			}
-			acceptTerms.setEnabled(false);
 			sendInfos.setEnabled(false);
 			setPageComplete(true);
 		} else {
@@ -498,12 +457,26 @@ public class RegistrationPage extends WizardPage {
 		// Required to avoid an error in the system
 		setControl(container);
 	}
-
 	
-//	public void check (boolean bool, Label title, Label title2) {
-//		title.setEnabled(bool);
-//		title2.setEnabled(bool);
-//	}
+	@Override
+	public IWizard getWizard() {
+		Event event = new Event();
+		event.data = this;
+		
+		boolean valid = true;
+		
+		for (Iterator<Text> i = fields.iterator(); i.hasNext() && valid;) {
+			i.next().notifyListeners(SWT.Modify, event);
+			valid = getErrorMessage() == null;
+		}
+
+		setErrorMessage(null);
+		setMessage(getDescription());
+		
+		sendInfos.setEnabled(valid);
+		return super.getWizard();
+	}
+	
 	public static boolean isEmailAdress(String email) {
 		Matcher m = pCheckEmail.matcher(email.toUpperCase());
 		return m.matches();

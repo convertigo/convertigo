@@ -69,7 +69,7 @@ public class PscKeyPage extends WizardPage {
 		pscKey.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
-				String psc = pscKey.getText();
+				String psc = pscKey.getText().trim();
 				if (psc.length() != 0) {
 					try {
 						ConvertigoPlugin.decodePsc(psc);
