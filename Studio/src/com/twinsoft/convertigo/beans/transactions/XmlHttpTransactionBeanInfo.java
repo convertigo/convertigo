@@ -32,8 +32,8 @@ public class XmlHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			beanClass = XmlHttpTransaction.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.transactions.HttpTransaction.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/xmlhttptransaction_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/xmlhttptransaction_color_32x32.png";
 
 			properties = new PropertyDescriptor[3];
 			

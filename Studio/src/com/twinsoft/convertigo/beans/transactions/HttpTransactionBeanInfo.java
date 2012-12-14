@@ -34,8 +34,8 @@ public class HttpTransactionBeanInfo extends MySimpleBeanInfo {
 			beanClass = HttpTransaction.class;
 			additionalBeanClass = TransactionWithVariables.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/httptransaction_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/httptransaction_color_32x32.png";
 
 			properties = new PropertyDescriptor[6];
 			
