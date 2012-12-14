@@ -772,6 +772,17 @@
              project="true">
           <description>Imports a Sencha based sample project which makes search on the US Directory web site.</description>
        </wizard>
+<!-- HelloWorld sample project -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleHelloWorldWizard"
+             icon="icons/convertigo_16x16.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleHelloWorldWizard"
+             name="HelloWorld sample project"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports an HSQLDB database sample project.</description>
+       </wizard>
 <!-- SQL connector sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigosqlsamples"

@@ -130,6 +130,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_EAI_HTML_WEB_SITE = 307;
 	public static final int TEMPLATE_WEB_CLIPPING_CONNECTOR = 400;
 	public static final int TEMPLATE_SEQUENCE_CONNECTOR = 500;
+	public static final int SAMPLE_HELLO_WORLD = 620;
 	public static final int SAMPLE_DOCUMENTATION_CLI = 600;
 	public static final int SAMPLE_DOCUMENTATION_CLP = 601;
 	public static final int SAMPLE_DOCUMENTATION_CWI = 602;
@@ -212,6 +213,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME = "sample_refManual_webClipper.car";
 	public static final String SQL_HSQLDB_PROJECT_FILE_NAME = "sample_database_HSQLDB.car";
 	public static final String SQL_XLS_PROJECT_FILE_NAME = "sample_database_XLS.car";
+	public static final String SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME = "sample_HelloWorld.car";
 
 	/**
 	 * Constructor for SampleNewWizard.
@@ -231,6 +233,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	 */
 	public void addPages() {
 		switch (templateId) {
+		case SAMPLE_HELLO_WORLD:
 		case SAMPLE_SQL_HSQLDB:
 		case SAMPLE_SQL_XLS:
 		case SAMPLE_REFMANUAL_SITECLIPPER:
@@ -463,6 +466,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				createFromBlankProject(monitor);
 				return;
 
+			case SAMPLE_HELLO_WORLD:
 			case SAMPLE_SQL_HSQLDB:
 			case SAMPLE_SQL_XLS:
 			case SAMPLE_REFMANUAL_SITECLIPPER:
@@ -1214,6 +1218,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		String newProjectDir = "";
 
 		switch (templateId) {
+		case SAMPLE_HELLO_WORLD:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME;
+			projectName = SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME.substring(0,
+					SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
 		case SAMPLE_SQL_HSQLDB:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SQL_HSQLDB_PROJECT_FILE_NAME;
 			projectName = SQL_HSQLDB_PROJECT_FILE_NAME.substring(0,
