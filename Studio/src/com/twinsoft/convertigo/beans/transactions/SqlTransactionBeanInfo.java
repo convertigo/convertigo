@@ -32,8 +32,8 @@ public class SqlTransactionBeanInfo extends MySimpleBeanInfo {
 			beanClass = SqlTransaction.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.TransactionWithVariables.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/sqltransaction_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/sqltransaction_color_32x32.png";
 
 			properties = new PropertyDescriptor[4];
 			
