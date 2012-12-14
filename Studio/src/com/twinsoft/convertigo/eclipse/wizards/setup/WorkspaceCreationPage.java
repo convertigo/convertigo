@@ -16,7 +16,7 @@ public class WorkspaceCreationPage extends WizardPage {
 	public WorkspaceCreationPage() {
 		super("WorkspaceCreationPage");
 		setTitle("Convertigo Workspace");
-		setDescription("First Convertigo launch in this workspace.");
+		setDescription("This is the first time Convertigo is launched this workspace...");
 		setPageComplete(true);
 	}
 
@@ -26,8 +26,8 @@ public class WorkspaceCreationPage extends WizardPage {
 		
 		Label label = new Label(container, SWT.WRAP);
 		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		label.setText("We will create a new convertigo workspace in :\n\n" +
-				Engine.PROJECTS_PATH + "\n\n" +
+		label.setText("A new Convertigo workspace will be created in:\n\n" +
+				"\t'" + Engine.PROJECTS_PATH + "'\n\n" +
 				"This action will be completed when this wizard finishes.");
 		
 		setControl(container);
