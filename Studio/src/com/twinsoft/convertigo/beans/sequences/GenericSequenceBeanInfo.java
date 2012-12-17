@@ -32,8 +32,8 @@ public class GenericSequenceBeanInfo extends MySimpleBeanInfo {
 			beanClass = GenericSequence.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Sequence.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/sequence_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/sequences/images/genericsequence_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/sequences/images/genericsequence_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/sequences/res/GenericSequence");
 			
