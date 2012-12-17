@@ -31,8 +31,8 @@ public class StepMultiValuedVariableBeanInfo extends MySimpleBeanInfo {
 			beanClass = StepMultiValuedVariable.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.variables.StepVariable.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/variables/images/variable_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/variables/images/variable_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/variables/images/stepvariable_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/variables/images/stepvariable_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/variables/res/StepMultiValuedVariable");
 
