@@ -33,8 +33,8 @@ public class HttpStatementVariableBeanInfo extends MySimpleBeanInfo {
 			beanClass = HttpStatementVariable.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Variable.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/variables/images/variable_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/variables/images/variable_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/variables/images/httpstatementvariable_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/variables/images/httpstatementvariable_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/variables/res/HttpStatementVariable");
 
