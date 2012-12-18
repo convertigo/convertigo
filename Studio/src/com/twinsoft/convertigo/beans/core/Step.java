@@ -274,9 +274,13 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	public boolean isXml() {
-		return xml || isOutput();
+		return xml;
 	}
 	
+	public boolean isXmlOrOutput() {
+		return isXml() || isOutput();
+	}
+
 	public boolean hasXmlParent() {
 		try {
 			Step parentStep = (Step)parent;
@@ -334,7 +338,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		doc.getDocumentElement().appendChild(stepNode);
 		if (!inError()) {
 			createStepNodeValue(doc, stepNode);
-			if (isXml()) {
+			if (isXmlOrOutput()) {
 				if (parent instanceof Step)
 					((Step)parent).appendChildNode(stepNode);
 			}
@@ -368,7 +372,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		Document doc = getOutputDocument();
 		Node importedNode = null;
 		if (!inError()) {
-			if (isXml()) {
+			if (isXmlOrOutput()) {
 				NodeList list = doc.getElementsByTagName(getStepNodeName());
 				if (list.getLength()>0) {
 					Element element = (Element)list.item(0);
@@ -423,7 +427,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		Document doc = getOutputDocument();
 		Node importedNode = doc.importNode(nodeToImport, true);
 		if (!inError()) {
-			if (isXml()) {
+			if (isXmlOrOutput()) {
 				Element toReplace = null;
 				String nodeName = ((Element)importedNode).getNodeName();
 				String nodeID = ((Element)importedNode).getAttribute("step_id");

@@ -26,6 +26,7 @@ import java.io.File;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -67,13 +68,32 @@ public class ReadXMLStep extends ReadFileStep {
 		return readMyXML(filePath);
 	}
 	
+	static private boolean hasXmlRoot(Document xmlDoc) {
+		if (xmlDoc != null) {
+			Element xmlRoot = xmlDoc.getDocumentElement();
+			if (xmlRoot == null) {
+				return false;
+			}
+			Node first = xmlRoot.getFirstChild();
+		    if (first == null) {
+		    	return false;
+		    }
+		    for (Node node = first; node != null; node = node.getNextSibling()) {
+		    	if (node.getNodeType() == Node.ELEMENT_NODE) {
+		    		return true;
+		    	}
+		    }
+
+		}
+		return false;
+	}
+		
 	protected Document readMyXML(String filePath) {
 		Document xmlDoc = null;
 		
 		try {
 			File xmlFile = new File(getAbsoluteFilePath(filePath));
 			if (!xmlFile.exists()) {
-				//throw new EngineException("The XML file \""+ dataFile +"\" does not exist.");
 				Engine.logBeans.warn("(ReadXML) XML File '" + filePath + "' does not exist.");
 				
 				xmlDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
@@ -81,10 +101,15 @@ public class ReadXMLStep extends ReadFileStep {
 				Element myEl = xmlDoc.createElement("message");
 				myEl.appendChild(xmlDoc.createTextNode("File '" + filePath + "' not found." ));
 				xmlDoc.getDocumentElement().appendChild(myEl);
-				
-				//Engine.logBeans.debug("(ReadXML) XML File content '" + com.twinsoft.convertigo.engine.util.XMLUtils.prettyPrintDOM(xmlDoc) + "'", sequence.context.log);
 			} else {
 				xmlDoc = XMLUtils.parseDOM(xmlFile);
+				if (!hasXmlRoot(xmlDoc)) {
+					Engine.logBeans.warn("(ReadXML) XML File '" + filePath + "' is missing a root element.");
+					Element xmlRoot = xmlDoc.getDocumentElement();
+					Element newRoot = xmlDoc.createElement("document");
+					xmlDoc.replaceChild(newRoot, xmlRoot);
+					newRoot.appendChild(xmlRoot);
+				}
 				if (Engine.logBeans.isDebugEnabled()) {
 					Engine.logBeans.debug("(ReadXML) XML File content '" + com.twinsoft.convertigo.engine.util.XMLUtils.prettyPrintDOM(xmlDoc) + "'");
 				}
@@ -101,8 +126,6 @@ public class ReadXMLStep extends ReadFileStep {
 			catch (Exception e2) {
 				Engine.logBeans.warn("(ReadXML) An error occured while building error xml document: " + e1.toString());
 			}
-			
-			//throw new EngineException("Unable to parse XML file.",e);
 		}
 		
 		return xmlDoc;

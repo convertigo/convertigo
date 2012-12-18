@@ -149,11 +149,7 @@ public abstract class ReadFileStep extends Step {
 			Node rootNode = outputDocument.getDocumentElement();
 			Node stepNode = rootNode.getFirstChild();
 			Node newChild = outputDocument.importNode(xmlDoc.getDocumentElement(), true);
-			if (isOutput()) {
-				stepNode.appendChild(newChild);
-			} else {
-				rootNode.replaceChild(newChild, stepNode);
-			}
+			stepNode.appendChild(newChild);
 		}
 	}
 	
@@ -170,13 +166,7 @@ public abstract class ReadFileStep extends Step {
 			Element wsdlRoot = (Element) super.generateWsdlDom();
 			wsdlDom = wsdlRoot.getOwnerDocument();
 			Element newRoot = (Element) wsdlDom.importNode(schemaRoot, true);
-			if (!isOutput()) {
-				wsdlDom.renameNode(newRoot, wsdlDom.getNamespaceURI(), wsdlRoot.getNodeName());
-				wsdlRoot.getParentNode().replaceChild(newRoot, wsdlRoot);
-			}
-			else {
-				wsdlRoot.appendChild(newRoot);
-			}
+			wsdlRoot.appendChild(newRoot);
 			
 			wsdlDomDirty = false;
 			return wsdlDom.getDocumentElement();
@@ -206,10 +196,5 @@ public abstract class ReadFileStep extends Step {
 		}
 				
 		return Engine.theApp.filePropertyManager.getFilepathFromProperty(entry, getProject().getName());
-	}
-
-	@Override
-	public String getAnchor() throws EngineException {
-		return isOutput() ? super.getAnchor() : "/document/*";
 	}
 }
