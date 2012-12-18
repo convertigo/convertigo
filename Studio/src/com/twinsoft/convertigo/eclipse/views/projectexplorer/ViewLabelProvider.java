@@ -132,13 +132,15 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 				String imageKey = ISharedImages.IMG_OBJ_ELEMENT;
 				image = PlatformUI.getWorkbench().getSharedImages().getImage(imageKey);
 			}
-			else if (obj instanceof VariableTreeObject) {
-				iconName = "/com/twinsoft/convertigo/beans/core/images/variable_color_16x16.png";
-				image = ViewImageProvider.getImageFromCache(iconName, (VariableTreeObject) obj);
-			}
 			else if (obj instanceof VariableTreeObject2) {
+				VariableTreeObject2 variableTreeObject = (VariableTreeObject2) obj;
+				
+				iconName = MySimpleBeanInfo.getIconName(variableTreeObject.databaseObjectBeanInfo, BeanInfo.ICON_COLOR_16x16);
+				if (iconName == null) {
 					iconName = "/com/twinsoft/convertigo/beans/core/images/variable_color_16x16.png";
-					image = ViewImageProvider.getImageFromCache(iconName, (VariableTreeObject2) obj);
+				}
+				
+				image = ViewImageProvider.getImageFromCache(iconName, variableTreeObject);
 			}
 			else if (obj instanceof DatabaseObjectTreeObject) {
 				DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) obj;
