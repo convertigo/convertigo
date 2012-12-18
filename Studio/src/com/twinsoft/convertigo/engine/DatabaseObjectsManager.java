@@ -1072,7 +1072,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 					}
 					else if (VersionUtils.compare(version, "6.2.0") < 0) {
 						if (sourceStep instanceof ReadFileStep) {
-							xpath = xpath.replaceFirst("./", "./*/");
+							if (xpath.startsWith("./")) {
+								xpath = xpath.replaceFirst("./", "./*/");
+							}
+							else if (xpath.startsWith("/")) {
+								xpath = xpath.replaceFirst("/", "./");
+							}
 							definition.set(1, xpath);
 						}
 					}
