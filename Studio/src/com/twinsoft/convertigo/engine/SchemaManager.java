@@ -262,7 +262,7 @@ public class SchemaManager implements AbstractManager {
 							List<XmlSchemaParticle> parentParticleChildren = particleChildren;
 							List<XmlSchemaAttribute> parentAttributeChildren = attributeChildren;
 							
-							if (step.isGenerateSchema() || (fullSchema && step.isXml())) {
+							if (step.isGenerateSchema() || (fullSchema && step.isXmlOrOutput())) {
 								List<XmlSchemaParticle> myParticleChildren = null;
 								List<XmlSchemaAttribute> myAttributeChildren = null;
 								

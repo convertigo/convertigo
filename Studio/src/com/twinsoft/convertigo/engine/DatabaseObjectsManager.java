@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.steps.ReadFileStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLActionStep;
 import com.twinsoft.convertigo.beans.steps.XMLGenerateDatesStep;
@@ -849,14 +850,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 			// Creates xsd/wsdl files (Since 4.6.0)
 			performWsMigration(version, projectName);
 
-			// Project's xsd/wsdl no more based on file (Since 6.3.0)
-			if (VersionUtils.compare(version, "6.3.0") < 0) {
-				// !! Studio mode only !!
-				// Project must be migrated by hand through: Studio import
-				if (Engine.isStudioMode()) {
-					Migration6_3_0.migrate(projectName);
-				}
-			}
+			// Performs POST migration
+			performPostMigration(version, projectName);
 			
 			// Export the project (Since 4.6.0)
 			String currentVersion = com.twinsoft.convertigo.beans.Version.version;
@@ -951,6 +946,32 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 
+	private void performPostMigration(String version, String projectName) {
+		if (VersionUtils.compare(version, "6.2.0") < 0) {
+			try {
+				Project project = getProjectByName(projectName);
+				for (Sequence sequence : project.getSequencesList()) {
+					// Modify source's xpath for steps which have a source on a ReadFileStep
+					replaceSourceXpath(version, sequence, sequence.getSteps());
+				}
+				
+			} catch (Exception e) {
+				Engine.logDatabaseObjectManager.error(
+						"An error occured while performing 6.2.0 migration for project '" + projectName + "'", e);
+			}
+		}
+		
+		if (VersionUtils.compare(version, "6.3.0") < 0) {
+			// !! Studio mode only !!
+			// Project must be migrated by hand through: Studio import
+			if (Engine.isStudioMode()) {
+				// Project's xsd/wsdl no more based on file (Since 6.3.0)
+				Migration6_3_0.migrate(projectName);
+			}
+		}
+		
+	}
+	
 	private boolean performWsMigration(String version, String projectName) {
 		/** Part of 4.6.0 migration : creates and update XSD/WSDL static files **/
 
@@ -985,7 +1006,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 							// replace ./xxx by
 							// ./transaction/document/xxx or by
 							// ./sequence/document/xxx
-							replaceSourceXpath(sequence, steps);
+							replaceSourceXpath(version, sequence, steps);
 
 							Engine.logDatabaseObjectManager
 									.info("Step sources updated for sequence \""
@@ -1008,43 +1029,53 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return true;
 	}
 
-	private void replaceSourceXpath(Sequence sequence, List<Step> stepList) {
+	private void replaceSourceXpath(String version, Sequence sequence, List<Step> stepList) {
 		for (Step step : stepList) {
 			if (step instanceof IStepSourceContainer) {
-				replaceXpath(sequence, ((IStepSourceContainer) step).getSourceDefinition());
+				replaceXpath(version, sequence, ((IStepSourceContainer) step).getSourceDefinition());
 			} else if (step instanceof XMLGenerateDatesStep) {
-				replaceXpath(sequence, ((XMLGenerateDatesStep) step).getStartDefinition());
-				replaceXpath(sequence, ((XMLGenerateDatesStep) step).getStopDefinition());
-				replaceXpath(sequence, ((XMLGenerateDatesStep) step).getDaysDefinition());
+				replaceXpath(version, sequence, ((XMLGenerateDatesStep) step).getStartDefinition());
+				replaceXpath(version, sequence, ((XMLGenerateDatesStep) step).getStopDefinition());
+				replaceXpath(version, sequence, ((XMLGenerateDatesStep) step).getDaysDefinition());
 			} else if (step instanceof XMLActionStep) {
 				for (int i = 0; i < ((XMLActionStep) step).getSourcesDefinitionSize(); i++) {
-					replaceXpath(sequence, ((XMLActionStep) step).getSourceDefinition(i));
+					replaceXpath(version, sequence, ((XMLActionStep) step).getSourceDefinition(i));
 				}
 			}
 
 			// recurse on children steps
 			if (step instanceof StepWithExpressions) {
-				replaceSourceXpath(sequence, ((StepWithExpressions) step).getSteps());
+				replaceSourceXpath(version, sequence, ((StepWithExpressions) step).getSteps());
 			}
 			// recurse on children variables
 			else if (step instanceof RequestableStep) {
 				for (StepVariable variable : ((RequestableStep) step).getVariables()) {
-					replaceXpath(sequence, variable.getSourceDefinition());
+					replaceXpath(version, sequence, variable.getSourceDefinition());
 				}
 			}
 		}
 	}
 
-	private void replaceXpath(Sequence sequence, List<String> definition) {
+	private void replaceXpath(String version, Sequence sequence, List<String> definition) {
 		if (definition.size() > 0) {
 			String xpath = definition.get(1);
 			if (xpath.startsWith("./")) {
 				Long key = new Long(definition.get(0));
 				Step sourceStep = sequence.loadedSteps.get(key);
-				if ((sourceStep != null) && (sourceStep instanceof RequestableStep)) {
-					String replace = (sourceStep instanceof TransactionStep) ? "transaction" : "sequence";
-					xpath = xpath.replaceFirst("./", "./" + replace + "/document/");
-					definition.set(1, xpath);
+				if (sourceStep != null) {
+					if (VersionUtils.compare(version, "4.6.0") < 0) {
+						if (sourceStep instanceof RequestableStep) {
+							String replace = (sourceStep instanceof TransactionStep) ? "transaction" : "sequence";
+							xpath = xpath.replaceFirst("./", "./" + replace + "/document/");
+							definition.set(1, xpath);
+						}
+					}
+					else if (VersionUtils.compare(version, "6.2.0") < 0) {
+						if (sourceStep instanceof ReadFileStep) {
+							xpath = xpath.replaceFirst("./", "./*/");
+							definition.set(1, xpath);
+						}
+					}
 				}
 			}
 		}
