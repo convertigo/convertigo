@@ -21,35 +21,22 @@ package com.twinsoft.convertigo.eclipse.views.references;
  * $Date: 2011-11-30 18:38:10 +0100 (Wed, 30 Nov 2011) $
  */
 
-import java.io.InputStream;
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
 
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
-import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.widgets.Display;
 
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewImageProvider;
 import com.twinsoft.convertigo.eclipse.views.references.model.AbstractNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.CicsConnectorNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.EntryHandlerNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.ExitHandlerNode;
+import com.twinsoft.convertigo.eclipse.views.references.model.AbstractNodeWithDatabaseObjectReference;
 import com.twinsoft.convertigo.eclipse.views.references.model.InformationNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.HtmlConnectorNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.HttpConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.IsUsedByNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.JavelinConnectorNode;
 import com.twinsoft.convertigo.eclipse.views.references.model.RequiresNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.ProjectNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.ProxyHttpConnectorNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.ScreenClassNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.SequenceNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.SequenceStepNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.SiteClipperConnectorNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.SqlConnectorNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.TransactionNode;
-import com.twinsoft.convertigo.eclipse.views.references.model.TransactionStepNode;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 
 
 public class ViewRefLabelProvider implements ILabelProvider {
@@ -72,61 +59,34 @@ public class ViewRefLabelProvider implements ILabelProvider {
 		String iconName = null;
 		Image image = null;
 
-		if (element instanceof TransactionNode) {
-			iconName = "/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png";
-		} else if (element instanceof ScreenClassNode) {
-			iconName = "/com/twinsoft/convertigo/beans/core/images/screenclass_color_16x16.png";
-		} else if (element instanceof InformationNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/information_color_16x16.png";
-		} else if (element instanceof ProjectNode) {
-			iconName = "/com/twinsoft/convertigo/beans/core/images/project_color_16x16.png";
-		} else if (element instanceof EntryHandlerNode) {
-			iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_exit_16x16.png";
-		} else if (element instanceof ExitHandlerNode) {
-			iconName = "/com/twinsoft/convertigo/beans/statements/images/handler_entry_16x16.png";
-		} else if (element instanceof SequenceNode) {
-			iconName = "/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png";
-		} else if (element instanceof TransactionStepNode) {
-			iconName = "/com/twinsoft/convertigo/beans/steps/images/transactionstep_16x16.png";
-		} else if (element instanceof SequenceStepNode) {
-			iconName = "/com/twinsoft/convertigo/beans/steps/images/sequencestep_16x16.png";
-		} else if (element instanceof IsUsedByNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/isusedby_16x16.png";
-		} else if (element instanceof RequiresNode) {
-			iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/requires_16x16.png";
-		} else if (element instanceof HtmlConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/beans/connectors/images/htmlconnector_color_16x16.png";
-		} else if (element instanceof HttpConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/beans/connectors/images/httpconnector_color_16x16.png";
-		} else if (element instanceof JavelinConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/beans/connectors/images/javelinconnector_color_16x16.png";
-		} else if (element instanceof ProxyHttpConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/beans/connectors/images/proxyhttpconnector_color_16x16.png";
-		} else if (element instanceof SiteClipperConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/beans/connectors/images/siteclipper_color_16x16.png";
-		} else if (element instanceof SqlConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/beans/connectors/images/sqlconnector_color_16x16.png";
-		} else if (element instanceof CicsConnectorNode) {
-			iconName = "/com/twinsoft/convertigo/beans/connectors/images/cicsconnector_color_16x16.png";
+		if (element instanceof AbstractNodeWithDatabaseObjectReference) {
+			AbstractNodeWithDatabaseObjectReference node = (AbstractNodeWithDatabaseObjectReference) element;
+			DatabaseObject databaseObject = node.getRefDatabaseObject();
+
+			BeanInfo databaseObjectBeanInfo;
+			try {
+				databaseObjectBeanInfo = CachedIntrospector.getBeanInfo(databaseObject.getClass());
+				iconName = MySimpleBeanInfo.getIconName(databaseObjectBeanInfo, BeanInfo.ICON_COLOR_16x16);
+			} catch (IntrospectionException e) {
+			}
+
+			if (iconName == null) {
+				iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_16x16.png";
+			}
 		}
 		else {
-			return null;
+			if (element instanceof InformationNode) {
+				iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/information_color_16x16.png";
+			} else if (element instanceof IsUsedByNode) {
+				iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/isusedby_16x16.png";
+			} else if (element instanceof RequiresNode) {
+				iconName = "/com/twinsoft/convertigo/eclipse/views/references/images/requires_16x16.png";
+			} else {
+				return null;
+			}
 		}
 		
-		image = getImageFromCache(iconName, (Object) element);
-		return image;
-	    
-	}
-	
-	public static Image getImageFromCache(String iconName, Object object) {
-		Image image = null;
-		Device device = Display.getCurrent();
-		InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
-		image = new Image(device, inputStream);
-		
-		ImageData imageData = image.getImageData();
-		image = new Image(device, imageData);
-		
+		image = ViewImageProvider.getImageFromCache(iconName, (Object) element);
 		return image;
 	}
 	

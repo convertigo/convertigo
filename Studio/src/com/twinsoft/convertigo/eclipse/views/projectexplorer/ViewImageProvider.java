@@ -34,7 +34,7 @@ import org.eclipse.swt.widgets.Display;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
-class ViewImageProvider {
+public class ViewImageProvider {
 
 	/**
 	 * The Hastable cache of loaded images
