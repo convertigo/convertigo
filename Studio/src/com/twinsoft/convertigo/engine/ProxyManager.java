@@ -62,11 +62,11 @@ public class ProxyManager {
 	public String basicValue;
 	public String bypassDomains;
 	private PacManager pacUtils;
+	private MyPropertyChangeEventListener myPropertyChangeEventListener = null;
 	
 	public ProxyManager() {
-		if (Engine.theApp != null) {
-			Engine.theApp.eventManager.addListener(new MyPropertyChangeEventListener(), PropertyChangeEventListener.class);
-		} else {
+		// case of studio wizard, before the engine startup
+		if (Engine.theApp == null) {
 			Engine.logProxyManager = Logger.getRootLogger();
 		}
 	}
@@ -81,9 +81,15 @@ public class ProxyManager {
 		}
 	};
 	
-	public void init() throws EngineException {	
+	public void init() throws EngineException {
+		myPropertyChangeEventListener = new MyPropertyChangeEventListener();
+		Engine.theApp.eventManager.addListener(myPropertyChangeEventListener, PropertyChangeEventListener.class);
 		getEngineProperties();
 		certificateManager = new CertificateManager();
+	}
+	
+	public void destroy() {
+		myPropertyChangeEventListener = null;
 	}
 	
 	public void getEngineProperties() {

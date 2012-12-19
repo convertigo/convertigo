@@ -739,6 +739,11 @@ public class Engine {
 					Engine.theApp.cacheManager.destroy();
 				}
 
+				Engine.logEngine.info("Removing the proxy manager");
+				if (Engine.theApp.proxyManager != null) {
+					Engine.theApp.proxyManager.destroy();
+				}
+				
 				if (Engine.theApp.rsaManager != null) {
 					Engine.theApp.rsaManager.destroy();
 				}
