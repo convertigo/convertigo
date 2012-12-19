@@ -2,19 +2,53 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.httpclient.HostConfiguration;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
+import org.apache.commons.httpclient.HttpState;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.contrib.ssl.EasySSLProtocolSocketFactory;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.protocol.Protocol;
+import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.wizard.Wizard;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.ProxyManager;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SetupWizard extends Wizard {
+	public static final String registrationServiceUrl = "https://c8o_dev.convertigo.net/cems/projects/studioRegistration/.xml";
+//	public static final String registrationServiceUrl = "https://cosinus.twinsoft.fr:18081/convertigo/projects/studioRegistration/.xml";
+	
+	private static final Pattern scheme_host_pattern = Pattern.compile("https://(.*?)(?::([\\d]*))?(/.*|$)");
+	
+	interface SummaryGenerator {
+		public String getSummary();
+	}
+	
+	interface CheckConnectedCallback {
+		public void onCheckConnected(boolean isConnected, String message);
+	}
+	
+	interface RegisterCallback {
+		public void onRegister(boolean success, String message);
+	}
+	
 	protected LicensePage licensePage;
 	protected WorkspaceMigrationPage workspaceMigrationPage;
 	protected WorkspaceCreationPage workspaceCreationPage;
@@ -34,20 +68,18 @@ public class SetupWizard extends Wizard {
 
 	@Override
 	public void addPages() {
-		
-		// no license acceptation if already accepted in the Windows installer
-		if (!System.getProperties().containsKey("convertigo.license.accepted") &&
-				!IPreferenceStore.TRUE.equals(ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_LICENSE_ACCEPTED))) {
-			licensePage = new LicensePage();
-			addPage(licensePage);
-		} else {
-			System.getProperties().remove("convertigo.license.accepted");
-		}
-		
 		Engine.CONFIGURATION_PATH = Engine.USER_WORKSPACE_PATH;
 		
 		// empty workspace folder
 		if (new File(Engine.USER_WORKSPACE_PATH).list().length == 0) {
+			// no license acceptation if already accepted in the Windows installer
+			if (!System.getProperties().containsKey("convertigo.license.accepted")) {
+				licensePage = new LicensePage();
+				addPage(licensePage);
+			} else {
+				System.getProperties().remove("convertigo.license.accepted");
+			}
+			
 			boolean pre6_2 = false;
 			for (String pathToCheck : Arrays.asList(
 					"configuration/engine.properties",
@@ -75,15 +107,15 @@ public class SetupWizard extends Wizard {
 		Engine.CONFIGURATION_PATH += "/configuration";
 		
 		try {
-			EnginePropertiesManager.loadProperties();
+			EnginePropertiesManager.loadProperties(false);
 			proxyManager = new ProxyManager();
 			proxyManager.init();
 		} catch (EngineException e) {
 			ConvertigoPlugin.logInfo("Unexpected EngineException : " + e.getMessage());
 		}
 		
-//		configureProxyPage = new ConfigureProxyPage(proxyManager);
-//		addPage(configureProxyPage);
+		configureProxyPage = new ConfigureProxyPage(proxyManager);
+		addPage(configureProxyPage);
 		
 		alreadyPscKeyPage = new AlreadyPscKeyPage();
 		addPage(alreadyPscKeyPage);
@@ -100,7 +132,9 @@ public class SetupWizard extends Wizard {
 
 	@Override
 	public boolean performFinish() {
-		ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_LICENSE_ACCEPTED, IPreferenceStore.TRUE);
+		try {
+			EnginePropertiesManager.saveProperties();
+		} catch (Exception e) {}
 		
 		if (workspaceMigrationPage != null) {
 			File userWorkspace = new File(Engine.USER_WORKSPACE_PATH);
@@ -158,100 +192,148 @@ public class SetupWizard extends Wizard {
 			ConvertigoPlugin.logError("Failed to write the PSC file : " + e.getMessage());
 		}
 		
-//		// Create new workspace if needed
-//		String currentWorkspaceLocation = Engine.USER_WORKSPACE_PATH;
-//		File currentWorkspace = new File(currentWorkspaceLocation);
-//		String newWorkspaceLocation = chooseWorkspaceLocationPage.getUserWorkspaceLocation();
-//		File newWorkspace = new File(newWorkspaceLocation);
-//
-//		boolean bRestartRequired = false;
-//		if (currentWorkspace.exists()) {
-//			if (!currentWorkspace.equals(newWorkspace)) {
-//				newWorkspace.mkdirs();
-//				bRestartRequired = true;
-//			}
-//		}
-//
-//		// Configure the engine
-//		File workspaceConfiguration = new File(newWorkspaceLocation + "/configuration");
-//		workspaceConfiguration.mkdirs();
-//		
-//		// Create the engine.properties file
-//		Properties engineProperties = new Properties();
-//		engineProperties.setProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_MODE.toString(),
-//				configureProxyPage.getProxyMode());
-//		engineProperties.setProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PORT.toString(),
-//				configureProxyPage.getProxyPort());
-//		engineProperties.setProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_HOST.toString(),
-//				configureProxyPage.getProxyHost());
-//		engineProperties.setProperty(
-//				EnginePropertiesManager.PropertyName.PROXY_SETTINGS_BY_PASS_DOMAINS.toString(),
-//				configureProxyPage.getDoNotApplyProxy());
-//		engineProperties.setProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_AUTO.toString(),
-//				configureProxyPage.getProxyAutoConfUrl());
-//		engineProperties.setProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_METHOD.toString(),
-//				configureProxyPage.getProxyMethod());
-//		engineProperties.setProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_USER.toString(),
-//				configureProxyPage.getProxyUser());
-//		engineProperties.setProperty(EnginePropertiesManager.PropertyName.PROXY_SETTINGS_PASSWORD.toString(),
-//				Crypto2.encodeToHexString(configureProxyPage.getProxyPassword()));
-//		try {
-//			engineProperties.store(new FileOutputStream(new File(newWorkspaceLocation
-//					+ "/configuration/engine.properties")), null);
-//		} catch (IOException e) {
-//			ConvertigoPlugin.errorMessageBox("Unable to create the engine configuration file.\n"
-//					+ "Default values will be used, i.e. you will have to reconfigure the proxy afterwards.\n\n"
-//					+ "[" + e.getClass().getName() + "] " + e.getMessage());
-//		}
-//
-//		// Create the eclipse workspace (the 'projects' directory)
-//		File workspaceProjects = new File(newWorkspaceLocation + "/projects");
-//		workspaceProjects.mkdirs();
-//
-//		// Install selected samples
-//		Set<String> selectedSamples = selectSamplesPage.getSelectedProjects();
-//		File srcFile = new File("");
-//		for (String sample : selectedSamples) {
-//			//FileUtils.copyFileToDirectory(srcFile, workspaceProjects);
-//		}
-//		
-//		/**
-//		 * Added by julienda - 03/10/2012
-//		 * Deploy the configuration with PSC
-//		 */
-//		String psc = pscKeyPage.getCertificateKey();
-//		String decipheredPSC = Crypto2.decodeFromHexString("registration", psc);
-//		Properties pscProperties = new Properties();
-//		
-//		try {
-//			pscProperties.load(new ByteArrayInputStream(decipheredPSC.getBytes()));
-//		
-//			Set<Object> keys = pscProperties.keySet();
-//			int i = 1;
-//			
-//			while(keys.contains("deploy."+i+".server")){			
-//				String server = pscProperties.getProperty("deploy." + i + ".server");
-//				String user = pscProperties.getProperty("deploy." + i + ".admin.user");
-//				String password = pscProperties.getProperty("deploy."+i+".admin.password");
-//				boolean bHttps = Boolean.parseBoolean(pscProperties.getProperty("deploy."+i+".ssl.https"));
-//	
-//				if (server == null) throw new Exception("Invalid registration certificate (missing server)");
-//				if (user == null) throw new Exception("Invalid registration certificate (missing user)");
-//				if (password == null) throw new Exception("Invalid registration certificate (missing password)");
-//				if (!user.equals(SimpleCipher.decode(password))) throw new Exception("Invalid registration certificate (invalid password)");
-//				
-//				DeploymentConfiguration deploymentConfiguration = new DeploymentConfiguration(server, user, password, bHttps);
-//				ConvertigoPlugin.deploymentConfigurationManager.add(deploymentConfiguration);
-//				i++;
-//			}
-//	
-//			ConvertigoPlugin.deploymentConfigurationManager.save();
-//		}
-//		catch(Exception exception) {
-//			ConvertigoPlugin.logError("Error when deploy the psc !");
-//		}
 		EnginePropertiesManager.unload();
 		
 		return true;
+	}
+	
+	private HttpClient prepareHttpClient(String[] url) throws EngineException, MalformedURLException {
+		HttpClient client = new HttpClient();
+		
+		HostConfiguration hostConfiguration = client.getHostConfiguration();
+
+		HttpState httpState = new HttpState();
+		client.setState(httpState);
+		
+		proxyManager.getEngineProperties();
+		proxyManager.setProxy(hostConfiguration, httpState, new URL(url[0]));
+		
+		Matcher matcher = scheme_host_pattern.matcher(url[0]);
+		if (matcher.matches()) {
+			String host = matcher.group(1);
+			String sPort = matcher.group(2);
+			int port = 443;
+			
+			try {
+				port = Integer.parseInt(sPort);
+			} catch (Exception e) {}
+			
+			try {
+				Protocol myhttps = new Protocol("https", (ProtocolSocketFactory) new EasySSLProtocolSocketFactory(), port);
+				hostConfiguration.setHost(host, port, myhttps);
+				url[0] = matcher.group(3);
+			} catch (Exception e) { }
+		}
+		
+		
+		return client;
+	}
+	
+	public void checkConnected(final CheckConnectedCallback callback) {
+		new Thread(new Runnable() {
+
+			public void run() {
+				Thread.currentThread().setName("SetupWizard.checkConnected");
+				
+				synchronized (SetupWizard.this) {
+					boolean isConnected = false;
+					String message;
+	
+					try {
+						String[] urlSource = {"http://www.convertigo.com"};
+						
+						HttpClient client = prepareHttpClient(urlSource);
+						GetMethod method = new GetMethod(urlSource[0]);
+	
+						int statusCode = client.executeMethod(method);
+						if (statusCode == HttpStatus.SC_OK) {
+							isConnected = true;
+							message = "You are currently online";
+						} else {
+							message = "Bad response : HTTP status " + statusCode;
+						}
+					} catch (HttpException e) {
+						message = "HTTP failure : " + e.getMessage();
+					} catch (IOException e) {
+						message = "IO failure : " + e.getMessage();
+					} catch (Exception e) {
+						message = "Generic failure : " + e.getClass().getSimpleName() + ", " + e.getMessage();
+					}
+					
+					callback.onCheckConnected(isConnected, message);
+				}
+			}
+
+		}).start();
+	}
+	
+	public void register(final String username, final String password, final String firstname, final String lastname, final String email, final String country, final String company, final RegisterCallback callback) {
+		new Thread(new Runnable() {
+
+			public void run() {
+				Thread.currentThread().setName("SetupWizard.register");
+				
+				synchronized (SetupWizard.this) {
+					boolean success = false;
+					String message;
+					
+					try {
+						String[] url = {registrationServiceUrl};
+						HttpClient client = prepareHttpClient(url);
+						PostMethod method = new PostMethod(url[0]);			
+						method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+						
+						// set parameters for POST method
+						method.setParameter("__sequence", "checkEmail");
+						method.setParameter("username", username);
+						method.setParameter("password", password);
+						method.setParameter("firstname", firstname);
+						method.setParameter("lastname", lastname);
+						method.setParameter("email", email);
+						method.setParameter("country", country);
+						method.setParameter("company", company);
+						
+						// execute HTTP post with parameters
+						int statusCode = client.executeMethod(method);
+						if (statusCode == HttpStatus.SC_OK) {
+							Document document = XMLUtils.parseDOM(method.getResponseBodyAsStream());
+							NodeList nd = document.getElementsByTagName("errorCode");
+							
+							if (nd.getLength() > 0) {
+								Node node = nd.item(0);
+								String errorCode = node.getTextContent();
+								
+								if ("0".equals(errorCode)) {
+									success = true;
+									message = "Registration submited, please check your email.";
+								} else {
+									method = new PostMethod(registrationServiceUrl);
+									
+									// set parameters for POST method to get the details of error messages
+									method.setParameter("__sequence", "getErrorMessages");
+									client.executeMethod(method);
+									document = XMLUtils.parseDOM(method.getResponseBodyAsStream());
+									nd = document.getElementsByTagName("label");
+									Node nodeDetails = nd.item(Integer.parseInt(errorCode));
+									
+									ConvertigoPlugin.logError(nodeDetails.getTextContent());
+									message = "Failed to register : " + nodeDetails.getTextContent();
+								}
+							} else {
+								success = true;
+								message = "debug";
+							}
+						} else {
+							message = "Unexpected HTTP status : " + statusCode;
+						}					
+					} catch (Exception e) {
+						message = "Generic failure : " + e.getClass().getSimpleName() + ", " + e.getMessage();
+						ConvertigoPlugin.logException(e, "Error while trying to send registration");
+					}
+					callback.onRegister(success, message);
+				}
+			}
+			
+		}).start();
 	}
 }

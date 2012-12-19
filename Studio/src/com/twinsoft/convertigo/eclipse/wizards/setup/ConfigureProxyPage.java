@@ -13,14 +13,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.ProxyManager;
 
-public class ConfigureProxyPage extends WizardPage {
-	
+public class ConfigureProxyPage extends WizardPage implements SummaryGenerator {
 	private Combo proxyMode;
 	private Text proxyPort;
 	private Text proxyHost;
@@ -129,7 +129,6 @@ public class ConfigureProxyPage extends WizardPage {
 			public void widgetSelected(SelectionEvent e) {
 				ProxyMode mode = ProxyMode.values()[proxyMode.getSelectionIndex()];
 				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_MODE, mode.name());
-				proxyManager.proxyMode = mode;
 				enableComponents(mode);
 			}
 			
@@ -142,7 +141,6 @@ public class ConfigureProxyPage extends WizardPage {
 
 			public void modifyText(ModifyEvent e) {
 				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_HOST, proxyHost.getText());
-				proxyManager.proxyServer = proxyHost.getText();
 			}
 			
 		});
@@ -155,7 +153,6 @@ public class ConfigureProxyPage extends WizardPage {
 						Integer.parseInt(proxyPort.getText());
 
 						EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_PORT, proxyPort.getText());
-						proxyManager.proxyServer = proxyHost.getText();
 						
 						setErrorMessage(null);
 						setMessage(getDescription());
@@ -171,7 +168,6 @@ public class ConfigureProxyPage extends WizardPage {
 
 			public void modifyText(ModifyEvent e) {
 				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_BY_PASS_DOMAINS, bypassDomains.getText());
-				proxyManager.bypassDomains = bypassDomains.getText();
 			}
 			
 		});
@@ -180,7 +176,6 @@ public class ConfigureProxyPage extends WizardPage {
 
 			public void modifyText(ModifyEvent e) {
 				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_AUTO, proxyAutoConfUrl.getText());
-				proxyManager.proxyUrl = proxyAutoConfUrl.getText();
 			}
 		});
 		
@@ -189,7 +184,6 @@ public class ConfigureProxyPage extends WizardPage {
 			public void widgetSelected(SelectionEvent e) {
 				ProxyMethod method = ProxyMethod.values()[proxyMethod.getSelectionIndex()];
 				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_METHOD, method.name());
-				proxyManager.proxyMethod = method;
 				enableComponents(method);
 			}
 			
@@ -201,12 +195,7 @@ public class ConfigureProxyPage extends WizardPage {
 		proxyUser.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
-				if (proxyUser.getText().length() > 0) {
-						setMessage(getDescription());
-						setPageComplete(true);
-				} else {
-					setErrorMessage("Please enter the proxy user name!");
-				}
+				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_USER, proxyUser.getText());
 			}
 			
 		});
@@ -214,18 +203,13 @@ public class ConfigureProxyPage extends WizardPage {
 		proxyPassword.addModifyListener(new ModifyListener() {
 
 			public void modifyText(ModifyEvent e) {
-				if (proxyPassword.getText().length() > 0) {
-						setMessage(getDescription());
-						setErrorMessage(null);
-						setPageComplete(true);
-				} else {
-					setErrorMessage("Please enter the proxy password!");
-				}
+				EnginePropertiesManager.setProperty(PropertyName.PROXY_SETTINGS_PASSWORD, proxyPassword.getText());
 			}
 			
 		});
 		
-		enableComponents(ProxyMode.off);
+		enableComponents(proxyManager.proxyMode);
+		enableComponents(proxyManager.proxyMethod);
 		
 		// Required to avoid an error in the system
 		setControl(container);
@@ -279,43 +263,44 @@ public class ConfigureProxyPage extends WizardPage {
 	public String getProxyPort() {
 		return proxyPort.getText();
 	}
+	
 	public String getProxyHost() {
 		return proxyHost.getText();
 	}
+	
 	public String getDoNotApplyProxy() {
 		return bypassDomains.getText();
 	}
+	
 	public String getProxyAutoConfUrl() {
 		return proxyAutoConfUrl.getText();
 	}
+	
 	public String getProxyMethod() {
 		return proxyMethod.getText();
 	}
+	
 	public String getProxyUser() {
 		return proxyUser.getText();
 	}
+	
 	public String getProxyPassword() {
 		return proxyPassword.getText();
 	}
 
-//	@Override
-//	public IWizardPage getNextPage() {
-//		Object o = EnginePropertiesManager.PropertyName.PROXY_SETTINGS_MODE;
-//		EnginePropertiesManager.PropertyName.X;
-//		@PropertyOptions(propertyType = PropertyType.Combo, combo = ProxyMode.class)
-//		PROXY_SETTINGS_MODE ("htmlProxy.mode", "off", "Proxy mode", PropertyCategory.Proxy),
-//		PROXY_SETTINGS_PORT ("htmlProxy.port", "8080", "Proxy port", PropertyCategory.Proxy),
-//		PROXY_SETTINGS_HOST ("htmlProxy.host", "localhost", "Proxy host", PropertyCategory.Proxy),
-//		PROXY_SETTINGS_BY_PASS_DOMAINS ("htmlProxy.bpdomains", "localhost,127.0.0.1", "Do not apply proxy settings on", PropertyCategory.Proxy),
-//		PROXY_SETTINGS_AUTO ("htmlProxy.auto", "", "Autoconfiguration proxy url", PropertyCategory.Proxy),
-//		@PropertyOptions(propertyType = PropertyType.Combo, combo = ProxyMethod.class)
-//		PROXY_SETTINGS_METHOD ("htmlProxy.method", "anonymous", "Proxy authentication method", PropertyCategory.Proxy),
-//		PROXY_SETTINGS_USER ("htmlProxy.user", "", "Username", PropertyCategory.Proxy),
-//		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
-//		PROXY_SETTINGS_PASSWORD ("htmlProxy.password", "", "Password", PropertyCategory.Proxy),
-//		
-//		SetupWizard setupWizard = (SetupWizard) getWizard();
-//		((SummaryPage) setupWizard.getPage("SummaryPage")).updateSummary();
-//		return super.getNextPage();
-//	}
+	public String getSummary() {
+		return "Proxy configuration :\n" +
+				"\tmode : " + proxyMode.getText() + "\n" +
+				(proxyManager.proxyMode == ProxyMode.auto ? (
+					"\tpac url : " + proxyAutoConfUrl.getText() + "\n"
+				) : (
+				proxyManager.proxyMode == ProxyMode.manual ? (
+					"\thost : " + proxyHost.getText() + "\n" +
+					"\tport : " + proxyPort.getText() + "\n" +
+					"\tbypass domain : " + bypassDomains.getText() + "\n" +
+					(proxyManager.proxyMethod != ProxyMethod.anonymous ? (
+						"\tuser : " + proxyUser.getText() + "\n" +
+						"\tpassword : *****\n"
+					) : "")) : ""));
+	}
 }

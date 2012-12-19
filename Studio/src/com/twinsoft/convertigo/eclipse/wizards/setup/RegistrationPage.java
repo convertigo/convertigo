@@ -1,27 +1,18 @@
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.httpclient.HostConfiguration;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpState;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -29,24 +20,22 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.CheckConnectedCallback;
+import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.RegisterCallback;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class RegistrationPage extends WizardPage {	
-	private final static Pattern pCheckEmail = Pattern.compile("[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}\\@[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}(\\.[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25})+");
+public class RegistrationPage extends WizardPage implements CheckConnectedCallback {
+	private static final Pattern pCheckEmail = Pattern.compile("[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}\\@[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}(\\.[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25})+");
+	public static final String registrationLink = "<a href=\"http://register.convertigo.com\">register.convertigo.com</a>";
 	private Text firstname;
 	private Text lastname;
 	private Text email;
@@ -54,9 +43,13 @@ public class RegistrationPage extends WizardPage {
 	private Combo country;
 	private Text username;
 	private Text password;
-	private Button sendInfos;
-	private List<Text> fields;
+	private List<Text> texts;
+	private List<Control> controls;
+	private Link notConnectedLink;
 	
+	private boolean isConnected;
+	private boolean changed = true;
+
 	public RegistrationPage() {
 		super("RegistrationPage");
 		setTitle("Convertigo trial cloud account creation");
@@ -72,7 +65,6 @@ public class RegistrationPage extends WizardPage {
 		final Color colorpart = new  Color(parent.getDisplay(), 51,102,255);
 		
 		final int nbCol = 3;
-		final Boolean isConnect = isInternetAccess();
 		
 		Composite container = new Composite(parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
@@ -82,9 +74,7 @@ public class RegistrationPage extends WizardPage {
 		layout.marginWidth = 30;		
 		
 		GridData layoutDataDescription = new GridData(GridData.FILL_HORIZONTAL);
-		layoutDataDescription.horizontalSpan = nbCol;
-//		layoutDataDescription.widthHint = 300;
-		
+		layoutDataDescription.horizontalSpan = nbCol;		
 		
 		Label label = new Label(container, SWT.WRAP);
 		label.setText("Filling this form will automatically create for you a Convertigo Trial Cloud account, and send you by email the corresponding Personal Studio Configuration.\n\n" +
@@ -107,19 +97,9 @@ public class RegistrationPage extends WizardPage {
 		label = new Label(container, SWT.SEPARATOR | SWT.HORIZONTAL);
 		label.setLayoutData(gLayoutData);
 		
-		Label text = new Label(container, SWT.WRAP);
-		if (!isConnect) {
-			text.setText("This procedure requires Internet access.");
-			text.setFont(fontBold);
-			text.setForeground(colorpart);
-			text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nbCol, 1));
-
-			text = new Label(container, SWT.WRAP);
-			text.setText("If you can not access the Internet from this computer click \"Next\"," +
-					"or if you already own a Personal Studio Configuration, choose the following option:");
-			text.setFont(fontBold);
-			text.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nbCol, 1));
-		}
+		notConnectedLink = new Link(container, SWT.WRAP);
+		notConnectedLink.setFont(fontBold);
+		notConnectedLink.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, false, nbCol, 1));
 		
 		GridData layoutDataTitle = new GridData(GridData.FILL_HORIZONTAL);
 		layoutDataTitle.horizontalSpan = nbCol;
@@ -256,28 +236,24 @@ public class RegistrationPage extends WizardPage {
 		layoutDataFields.horizontalSpan = nbCol;
 		label.setLayoutData(layoutDataFields);
 		
-		//Button permit to send informations of the registration form to the web service 
-		sendInfos = new Button(container, SWT.BUTTON1);
-		sendInfos.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, nbCol, 1));
-		sendInfos.setFont(fontBold);
-		sendInfos.setText("Send registration");
-		sendInfos.setEnabled(false);
-		
 		ModifyListener unAccept = new ModifyListener() {
 			
 			public void modifyText(ModifyEvent e) {
 				if (e.data == null) {
-					getWizard();
+					checkValidity();
+					changed = true;
 				}
 			}
 			
 		};
 		
-		fields = Arrays.asList(firstname, lastname, email, company, username, password, passwordAgain);
+		texts = Arrays.asList(firstname, lastname, email, company, username, password, passwordAgain);
+		controls = Arrays.asList(firstname, lastname, email, company, (Control) country, username, password, passwordAgain);
 		
-		for (Text txt : fields) {
+		for (Text txt : texts) {
 			txt.addModifyListener(unAccept);
 		}
+		country.addModifyListener(unAccept);
 		
 		username.addModifyListener(new ModifyListener() {
 			
@@ -358,21 +334,7 @@ public class RegistrationPage extends WizardPage {
 			
 		});
 		
-		sendInfos.addSelectionListener(new SelectionAdapter() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent evt) {
-				boolean isEnabled = sendInfos.getEnabled();
-				if(isEnabled){
-					if (registrationToWebService("https://c8o_dev.convertigo.net/cems/projects/studioRegistration/.xml") != HttpStatus.SC_OK){
-							ConvertigoPlugin.logError("Error when sending the registration to the web service!");
-					}
-				}
-			}
-			
-		});
-		
-		link.addSelectionListener(new SelectionListener() {
+		SelectionListener handleLink = new SelectionListener() {
 			
 			public void widgetSelected(SelectionEvent e) {
 				org.eclipse.swt.program.Program.launch(e.text);
@@ -381,7 +343,10 @@ public class RegistrationPage extends WizardPage {
 			public void widgetDefaultSelected(SelectionEvent e) {	
 			}
 			
-		});
+		};
+		
+		link.addSelectionListener(handleLink);
+		notConnectedLink.addSelectionListener(handleLink);
 		
 		try {
 			for (String line : GenericUtils.<List<String>>cast(IOUtils.readLines(getClass().getResourceAsStream("countries.txt"), "utf-8"))) {
@@ -391,81 +356,23 @@ public class RegistrationPage extends WizardPage {
 			country.add("Failed to load countries …");
 		}
 		
-//		psc.addSelectionListener(new SelectionAdapter() {
-//			
-//			@Override
-//			public void  widgetSelected(SelectionEvent event) {
-//				boolean isChecked = psc.getSelection();
-//				if (isChecked) {
-//					for (Text field : fields) {
-//						field.setEnabled(false);
-//					}
-//					acceptTerms.setEnabled(false);
-//					sendInfos.setEnabled(false);
-//					setPageComplete(true);
-//					
-//					setupWizard.pscKeyPage.setDescription("You already own a Personal Studio Configuration.");
-//					setupWizard.pscKeyPage.setInfo("Please copy your PSC in the following text area:");
-//				} else {					
-//					if (isConnect) {
-//						for (Text field : fields) {
-//							field.setEnabled(true);
-//						}
-//						acceptTerms.setEnabled(true);
-//						
-//						if (acceptTerms.getSelection()) {
-//							setPageComplete(true);
-//							sendInfos.setEnabled(true);
-//						} else {
-//							setPageComplete(false);
-//							sendInfos.setEnabled(false);
-//						}
-//						
-//						setupWizard.pscKeyPage.setDescription("Thanks for filling the form. " +
-//							"A Convertigo Forum account will automatically be created for you as well as a Personal Studio Configuration.");
-//						setupWizard.pscKeyPage.setInfo("Once your account is created on the Convertigo forum, you will receive an email including " +
-//							"your Personal Studio Configuration. Please copy your PSC in the following text area:");
-//					} else {	
-//						for (Text field : fields) {
-//							field.setEnabled(false);
-//						}
-//						acceptTerms.setEnabled(false);
-//						sendInfos.setEnabled(false);
-//						setPageComplete(true);
-//						
-//						setupWizard.pscKeyPage.setDescription("Fill the form accessible on the following page in order " +
-//							"to automatically create a Convertigo Forum account to get a Personal Studio Configuration.");
-//						setupWizard.pscKeyPage.setInfo("Once you filled the form on the Internet, you will receive an email including" +
-//							" your Personal Studio Configuration. Please copy your PSC in the following text area:");
-//					}
-//				}
-//			}
-//			
-//		});
-		
-		if (!isConnect) {
-			for (Text field : fields) {
-				field.setEnabled(false);
-			}
-			sendInfos.setEnabled(false);
-			setPageComplete(true);
-		} else {
-			sendInfos.setEnabled(false);
-			setPageComplete(false);
-		}
-		
 		// Required to avoid an error in the system
 		setControl(container);
 	}
 	
-	@Override
-	public IWizard getWizard() {
+	private void setControlsEnabled(boolean enable) {
+		for (Control control : controls) {
+			control.setEnabled(enable);
+		}
+	}
+	
+	private void checkValidity() {
 		Event event = new Event();
 		event.data = this;
 		
 		boolean valid = true;
 		
-		for (Iterator<Text> i = fields.iterator(); i.hasNext() && valid;) {
+		for (Iterator<Text> i = texts.iterator(); i.hasNext() && valid;) {
 			i.next().notifyListeners(SWT.Modify, event);
 			valid = getErrorMessage() == null;
 		}
@@ -473,8 +380,19 @@ public class RegistrationPage extends WizardPage {
 		setErrorMessage(null);
 		setMessage(getDescription());
 		
-		sendInfos.setEnabled(valid);
-		return super.getWizard();
+		setPageComplete(valid);
+	}
+	
+	@Override
+	public IWizard getWizard() {
+		checkValidity();
+		SetupWizard wizard = (SetupWizard) super.getWizard();
+		setControlsEnabled(false);
+		notConnectedLink.setText("Checking for connection to " + registrationLink + " …");
+		notConnectedLink.setVisible(true);
+		notConnectedLink.getParent().layout();
+		wizard.checkConnected(this);
+		return wizard;
 	}
 	
 	public static boolean isEmailAdress(String email) {
@@ -509,99 +427,47 @@ public class RegistrationPage extends WizardPage {
 		return company.getText();
 	}
 	
-	private boolean isInternetAccess() {
-		String urlSource = "http://www.convertigo.com";
-		HttpClient client = new HttpClient();
-		
-		try {
-			URL url = new URL(urlSource);
-			
-			HostConfiguration hostConfiguration = null;
-			hostConfiguration = client.getHostConfiguration();
-			
-			HttpState httpState = new HttpState();
-			client.setState(httpState);
-			
-			Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		GetMethod method = new GetMethod(urlSource);
-		
-		try {
-			int statusCode = client.executeMethod(method);
-			if (statusCode == HttpStatus.SC_OK) {
-				return true;
-			}
-		} catch (HttpException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}
-	    return false;
+	public boolean isConnected() {
+		return isConnected;
 	}
 	
-	/**Added by julienda - 01/ 10/2012
-	 * send informations(first name, last name, etc.) to the web service using POST method */
-	private int registrationToWebService(String targetUrl){
-		int statuscode = 0;
-		
-		PostMethod method = new PostMethod(targetUrl);
-		method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-		
-		// set parameters for POST method
-		method.setParameter("__sequence", "checkEmail");
-		method.setParameter("username", getUsername());
-		method.setParameter("password", getPassword());
-		method.setParameter("firstname", getFirstname());
-		method.setParameter("lastname", getLastname());
-		method.setParameter("email", getEmail());
-		method.setParameter("country", getCountry());
-		method.setParameter("company", getCountry());
-		
-		try {
-			HttpClient httpClient = new HttpClient();
-			
-			// execute HTTP post with parameters
-			statuscode = httpClient.executeMethod(HostConfiguration.ANY_HOST_CONFIGURATION, method, new HttpState());
-			String body = method.getResponseBodyAsString();
-			Document document = XMLUtils.parseDOMFromString(body);
-			NodeList nd = document.getElementsByTagName("errorCode");
-			
-			Node node = nd.item(0);
-			String errorCode = node.getTextContent();
-			sendInfos.setEnabled(false);
-			setPageComplete(true);
-			
-			// put the error details into the logs
-			if(!errorCode.equals("0")){
-				PostMethod method2 = new PostMethod(targetUrl);
-				
-				// set parameters for POST method to get the details of error messages
-				method2.setParameter("__sequence", "getErrorMessages");
-				Engine.theApp.httpClient.executeMethod(HostConfiguration.ANY_HOST_CONFIGURATION, method2, new HttpState());
-				body = method2.getResponseBodyAsString();
-				
-				document = XMLUtils.parseDOMFromString(body);
-				nd = document.getElementsByTagName("label");
-				Node nodeDetails = nd.item(Integer.parseInt(errorCode));
-				
-				ConvertigoPlugin.logError(nodeDetails.getTextContent());
-				// modify the state of button to can retry
-				sendInfos.setEnabled(true);
-				setPageComplete(false);
+	public void onCheckConnected(final boolean isConnected, final String message) {
+		Display.getDefault().asyncExec(new Runnable() {
+
+			public void run() {
+				RegistrationPage.this.isConnected = isConnected;
+				String msg = message;
+				setControlsEnabled(isConnected);
+				setPageComplete(!isConnected);
+				notConnectedLink.setVisible(!isConnected);
+				if (!isConnected) {
+					msg = "Unable to connect to " + registrationLink + "\n" +
+							"Please go on it to request a PSC and press next. \n→ " + message;
+				} else {
+					checkValidity();
+				}
+				notConnectedLink.setText(msg);
+				notConnectedLink.getParent().layout(true);
 			}
 			
-		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Error while trying to send registration");
+		});
+	}
+	
+	public boolean register(RegisterCallback callback) {
+		if (isConnected && changed) {
+			changed = false;
+			((SetupWizard) getWizard()).register(
+					username.getText(),
+					password.getText(),
+					firstname.getText(),
+					lastname.getText(),
+					email.getText(),
+					country.getText(),
+					company.getText(),
+					callback
+			);
+			return true;
 		}
-		return statuscode;	
+		return false;
 	}
 }

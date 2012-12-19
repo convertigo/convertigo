@@ -14,7 +14,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
-public class LicensePage extends WizardPage {
+import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
+
+public class LicensePage extends WizardPage implements SummaryGenerator {
 	
 	private Composite container;
 	
@@ -64,5 +66,10 @@ public class LicensePage extends WizardPage {
 		
 		setControl(container);
 		setPageComplete(false);
+	}
+
+	public String getSummary() {
+		return "License :\n" +
+				"\taccepted\n";
 	}
 }

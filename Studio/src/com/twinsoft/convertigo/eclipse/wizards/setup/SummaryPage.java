@@ -1,11 +1,15 @@
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
+import org.eclipse.jface.wizard.IWizard;
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
+
+import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 
 public class SummaryPage extends WizardPage {
 	
@@ -27,33 +31,28 @@ public class SummaryPage extends WizardPage {
 		layout.marginWidth = 8;
 		
 		summaryText = new Text(container, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
-		summaryText.setLayoutData(new GridData(GridData.FILL_BOTH));
+		summaryText.setEditable(false);
+		summaryText.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		setControl(container);
-		setPageComplete(true);
+		setPageComplete(false);
 	}
-
-	protected void updateSummary() {
-		SetupWizard setupWizard = (SetupWizard) getWizard();
+	
+	@Override
+	public IWizard getWizard() {
+		SetupWizard wizard = (SetupWizard) super.getWizard();
 		
-		String sSummary = "";
-		if (setupWizard.workspaceMigrationPage != null) {
-			sSummary += "User workspace:\n"
-					;
-//				+ " " + setupWizard.workspaceMigrationPage.getUserWorkspaceLocation() + "\n";
+		StringBuffer summary = new StringBuffer();
+		
+		for (IWizardPage page : wizard.getPages()) {
+			if (page instanceof SummaryGenerator) {
+				summary.append(((SummaryGenerator) page).getSummary() + "\n");
+			}
 		}
-		if (setupWizard.configureProxyPage != null) {
-			sSummary += "\nProxy configuration:\n"
-				+ "  Mode: " + setupWizard.configureProxyPage.getProxyMode() + "\n"
-				+ "  Host: " + setupWizard.configureProxyPage.getProxyHost() + "\n"
-				+ "  Port: " + setupWizard.configureProxyPage.getProxyPort() + "\n"
-				+ "  Exceptions: " + setupWizard.configureProxyPage.getDoNotApplyProxy() + "\n"
-				+ "  Autoconf URL: " + setupWizard.configureProxyPage.getProxyAutoConfUrl() + "\n"
-				+ "  Method: " + setupWizard.configureProxyPage.getProxyMethod() + "\n"
-				+ "  User: " + setupWizard.configureProxyPage.getProxyUser() + "\n"
-				+ "  Password: " + setupWizard.configureProxyPage.getProxyPassword() + "\n";
-		}
-
-		summaryText.setText(sSummary);
+		
+		summaryText.setText(summary.toString());
+		
+		setPageComplete(true);
+		return wizard;
 	}
 }
