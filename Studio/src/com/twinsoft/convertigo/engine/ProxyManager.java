@@ -82,8 +82,10 @@ public class ProxyManager {
 	};
 	
 	public void init() throws EngineException {
-		myPropertyChangeEventListener = new MyPropertyChangeEventListener();
-		Engine.theApp.eventManager.addListener(myPropertyChangeEventListener, PropertyChangeEventListener.class);
+		if (Engine.theApp != null) {
+			myPropertyChangeEventListener = new MyPropertyChangeEventListener();
+			Engine.theApp.eventManager.addListener(myPropertyChangeEventListener, PropertyChangeEventListener.class);
+		}
 		getEngineProperties();
 		certificateManager = new CertificateManager();
 	}
