@@ -7,9 +7,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
+import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 import com.twinsoft.convertigo.engine.Engine;
 
-public class WorkspaceCreationPage extends WizardPage {
+public class WorkspaceCreationPage extends WizardPage implements SummaryGenerator {
 
 	private Composite container;
 
@@ -31,5 +32,10 @@ public class WorkspaceCreationPage extends WizardPage {
 				"This action will be completed when this wizard finishes.");
 		
 		setControl(container);
+	}
+
+	public String getSummary() {
+		return "Workspace creation in :\n" +
+				"\t" + Engine.PROJECTS_PATH + "\n";
 	}
 }

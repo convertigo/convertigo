@@ -33,6 +33,7 @@ import org.apache.commons.httpclient.NTCredentials;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.auth.BasicScheme;
+import org.apache.log4j.Logger;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
@@ -44,27 +45,29 @@ import com.twinsoft.convertigo.engine.parsers.AbstractXulWebViewer;
 
 public class ProxyManager {
 	
-	transient public CertificateManager certificateManager = null;
-
-	transient public UUID hostConfId;	
+	public CertificateManager certificateManager = null;
 	
-	transient public String proxyServer;
-	transient public int proxyPort;
-	transient public String proxyUrl;
-	transient public ProxyMethod proxyMethod;
-	transient public ProxyMode proxyMode;
-	transient public String proxyUser;
-	transient public String proxyPassword;
+	public UUID hostConfId;	
 	
-	transient public String promptUser;
-	transient public String promptPassword;
-	transient public String basicValue;
-	transient public String bypassDomains;
-	transient private PacManager pacUtils;
+	public String proxyServer;
+	public int proxyPort;
+	public String proxyUrl;
+	public ProxyMethod proxyMethod;
+	public ProxyMode proxyMode;
+	public String proxyUser;
+	public String proxyPassword;
+	
+	public String promptUser;
+	public String promptPassword;
+	public String basicValue;
+	public String bypassDomains;
+	private PacManager pacUtils;
 	
 	public ProxyManager() {
 		if (Engine.theApp != null) {
 			Engine.theApp.eventManager.addListener(new MyPropertyChangeEventListener(), PropertyChangeEventListener.class);
+		} else {
+			Engine.logProxyManager = Logger.getRootLogger();
 		}
 	}
 	

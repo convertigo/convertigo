@@ -7,9 +7,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
+import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 import com.twinsoft.convertigo.engine.Engine;
 
-public class WorkspaceMigrationPage extends WizardPage {
+public class WorkspaceMigrationPage extends WizardPage  implements SummaryGenerator {
 
 	private Composite container;
 
@@ -35,4 +36,8 @@ public class WorkspaceMigrationPage extends WizardPage {
 		setControl(container);
 	}
 	
+	public String getSummary() {
+		return "Workspace migration in :\n" +
+				"\t" + Engine.PROJECTS_PATH + "\n";
+	}
 }

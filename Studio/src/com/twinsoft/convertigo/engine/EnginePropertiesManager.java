@@ -697,7 +697,7 @@ public class EnginePropertiesManager {
     		value = encodeValue(property.getType(), value);
     		exvalue = (String) properties.put(property.getKey(), value);
     	}
-    	if (!value.equals(exvalue)) {
+    	if (!value.equals(exvalue) && Engine.isStarted) {
     		Engine.theApp.eventManager.dispatchEvent(new PropertyChangeEvent(property, value), PropertyChangeEventListener.class);
     	}
     }
@@ -732,6 +732,10 @@ public class EnginePropertiesManager {
     }
     
     public static synchronized void loadProperties() throws EngineException {
+    	loadProperties(true);
+    }
+    
+    public static synchronized void loadProperties(boolean configureLog4J) throws EngineException {
 		if (properties != null) return;
 
 		FileInputStream propsInputStream = null;
@@ -787,7 +791,9 @@ public class EnginePropertiesManager {
 
 			System.out.println("Properties loaded!");
 
-			configureLog4J();
+			if (configureLog4J) {
+				configureLog4J();
+			}
         }
         catch(IOException e) {
         	properties = null;
@@ -808,15 +814,19 @@ public class EnginePropertiesManager {
     
     public static synchronized void saveProperties() throws IOException, EngineException {
     	OutputStream propsOutputStream = null;
-		String enginePropertiesFile = Engine.CONFIGURATION_PATH + PROPERTIES_FILE_NAME;
+		String enginePropertiesPath = Engine.CONFIGURATION_PATH + PROPERTIES_FILE_NAME;
+		File enginePropertiesFile = new File(enginePropertiesPath);
         try {
     		if (Engine.logEngine == null)
-        		System.out.println("Saving Convertigo engine properties to " + enginePropertiesFile);
+        		System.out.println("Saving Convertigo engine properties to " + enginePropertiesPath);
     		else
-        		Engine.logEngine.debug("Saving Convertigo engine properties to " + enginePropertiesFile);
+        		Engine.logEngine.debug("Saving Convertigo engine properties to " + enginePropertiesPath);
     		
-    		FileUtils.copyFile(new File(enginePropertiesFile), new File(enginePropertiesFile + ".bak"));
-
+    		try {
+        		FileUtils.copyFile(enginePropertiesFile, new File(enginePropertiesPath + ".bak"));	
+			} catch (Exception e) {}
+    		
+    		enginePropertiesFile.getParentFile().mkdirs();
 			propsOutputStream = new FileOutputStream(enginePropertiesFile);
     		
 			saveProperties(propsOutputStream, "Convertigo Engine configuration file");
@@ -832,7 +842,7 @@ public class EnginePropertiesManager {
     	}
         catch(IOException e) {
         	//properties = null; // Why ??    Part of fix for Ticket #2072
-            throw new EngineException("Unable to save the Convertigo engine configuration file '" + enginePropertiesFile + "'.", e);
+            throw new EngineException("Unable to save the Convertigo engine configuration file '" + enginePropertiesPath + "'.", e);
         }
     	finally {
     		if (propsOutputStream != null) {

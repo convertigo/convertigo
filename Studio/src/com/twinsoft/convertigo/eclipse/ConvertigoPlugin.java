@@ -140,7 +140,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	
     public static final String SYSTEM_PROP_PREFIX = "convertigo.studio.";
     
-    public static final String PREFERENCE_LICENSE_ACCEPTED = "license.accepted";
     public static final String PREFERENCE_LOG_LEVEL = "log.level";
     public static final String PREFERENCE_TREE_HIGHLIGHT_DETECTED = "tree.highlight.detected";
     public static final String PREFERENCE_OPENED_CONSOLES = "opened.consoles";
@@ -292,7 +291,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public static void projectDeployErrorDialog(String message, String stackTrace) {
 		final String errorMessage = message;
 		final String causeStackTrace = stackTrace;
-		final Display display = Display.getCurrent();
+		final Display display = Display.getDefault();
 		
 		display.asyncExec(new Runnable() {
 			
@@ -1142,6 +1141,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		return propertiesView;
 	}
 
+	public ReferencesView getReferencesView() {
+		ReferencesView referencesView = null;
+		IWorkbenchPage activePage = getActivePage();
+		if (activePage != null) {
+			IViewPart viewPart =  activePage.findView("com.twinsoft.convertigo.eclipse.views.references.ReferencesView");
+			if (viewPart != null)
+				referencesView = (ReferencesView)viewPart;
+		}
+		return referencesView;
+	}
+	
 	/**
 	 * Gets the source picker view.
 	 * !!MUST BE CALLED IN A UI-THREAD!!
@@ -1158,17 +1168,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		return sourcePickerView;
 	}
 
-	public ReferencesView getReferencesView() {
-		ReferencesView referencesView = null;
-		IWorkbenchPage activePage = getActivePage();
-		if (activePage != null) {
-			IViewPart viewPart =  activePage.findView("com.twinsoft.convertigo.eclipse.views.references.ReferencesView");
-			if (viewPart != null)
-				referencesView = (ReferencesView)viewPart;
-		}
-		return referencesView;
-	}
-	
 	/**
 	 * Gets the jscript editor associated with given transaction.
 	 * !!MUST BE CALLED IN A UI-THREAD!!
