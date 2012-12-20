@@ -29,9 +29,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployDialogComposite;
+import com.twinsoft.convertigo.eclipse.dialogs.ProjectVersionUpdateDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
 
@@ -52,29 +54,35 @@ public class ProjectDeployAction extends MyAbstractAction {
         	boolean bDeploy = true;
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
-				MessageBox msb = new MessageBox(shell, SWT.YES | SWT.NO | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-				msb.setMessage("Would you like to update your project's version before deployment?");
-				if (msb.open() == SWT.NO) {
-	    			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
-	    			if (projectTreeObject.getModified()) {
-						MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.CANCEL | SWT.ICON_WARNING | SWT.APPLICATION_MODAL);
-						messageBox.setMessage("The project \"" + projectTreeObject.getName() + "\" has not been saved.\n Do you want to save it before deployment?");
-						int ret = messageBox.open();
-						if (ret == SWT.OK) {
-		    				projectTreeObject.save(false);
-		       				explorerView.refreshTree();
-						}
-						else
-							bDeploy = false;
-	    			}
-	    			if (bDeploy) {
-		            	ProjectDeployDialog projectDeployDialog = new ProjectDeployDialog(shell, ProjectDeployDialogComposite.class, "Deploy a Convertigo project");
-		            	projectDeployDialog.open();
-		        		if (projectDeployDialog.getReturnCode() != Window.CANCEL) {
-		        			
-		        		}
-	    			}
-				}
+    			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
+            	Project project = projectTreeObject.getObject();
+            	
+    			ProjectVersionUpdateDialog dlg = new ProjectVersionUpdateDialog(shell, project.getVersion());
+            	if (dlg.open() == Window.OK) {
+            		project.setVersion(dlg.result);
+            		project.hasChanged = true;
+            		projectTreeObject.save(false);
+            		explorerView.refreshTree();
+            	}
+    			
+    			if (projectTreeObject.getModified()) {
+					MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.CANCEL | SWT.ICON_WARNING | SWT.APPLICATION_MODAL);
+					messageBox.setMessage("The project \"" + projectTreeObject.getName() + "\" has not been saved.\n Do you want to save it before deployment?");
+					int ret = messageBox.open();
+					if (ret == SWT.OK) {
+	    				projectTreeObject.save(false);
+	       				explorerView.refreshTree();
+					}
+					else
+						bDeploy = false;
+    			}
+    			if (bDeploy) {
+	            	ProjectDeployDialog projectDeployDialog = new ProjectDeployDialog(shell, ProjectDeployDialogComposite.class, "Deploy a Convertigo project");
+	            	projectDeployDialog.open();
+	        		if (projectDeployDialog.getReturnCode() != Window.CANCEL) {
+	        			
+	        		}
+    			}
     		}
         }
         catch (Throwable e) {
