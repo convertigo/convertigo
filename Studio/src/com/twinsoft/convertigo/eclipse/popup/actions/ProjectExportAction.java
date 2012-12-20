@@ -26,15 +26,16 @@ import java.awt.Toolkit;
 import java.io.File;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.ProjectVersionUpdateDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
@@ -57,77 +58,80 @@ public class ProjectExportAction extends MyAbstractAction {
         try {        	
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
-				MessageBox msb = new MessageBox(shell, SWT.YES | SWT.NO | SWT.ICON_QUESTION | SWT.APPLICATION_MODAL);
-				msb.setMessage("Would you like to update your project's version before export?");
-				if (msb.open() == SWT.NO) {
-	    			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
-	    			Project project = (Project) projectTreeObject.getObject();
-	            	String projectName = project.getName();                
-
-	            	projectTreeObject.save(true);
-	            	explorerView.refreshTreeObject(projectTreeObject);
-	    			
-	    			String projectArchive = projectName + ".car";
-	    			
-	            	FileDialog fileDialog = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.SAVE);
-	            	fileDialog.setText("Export a project");
-	            	fileDialog.setFilterExtensions(new String[]{"*.car","*.xml"});
-	            	fileDialog.setFilterNames(new String[]{"Convertigo archives","Convertigo projects"});
-	            	fileDialog.setFilterPath(Engine.PROJECTS_PATH);
-	            	fileDialog.setFileName(projectArchive);
-	            	
-	            	String filePath = fileDialog.open();
-	            	if (filePath != null) {
-						String exportName = project.getName();
-						
-						File file = new File(filePath);
-						
-						if(file.exists()){
-							if(ConvertigoPlugin.questionMessageBox("File already exists. Do you want to overwrite?")==SWT.YES){
-								if(file.delete()==false){
-									ConvertigoPlugin.warningMessageBox("Error when deleting the file "+file.getName()+"! Please verify access rights!");
-									return;
-								}
-							}else{
+    			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
+    			Project project = (Project) projectTreeObject.getObject();
+            	String projectName = project.getName();                
+            	
+            	ProjectVersionUpdateDialog dlg = new ProjectVersionUpdateDialog(shell, project.getVersion());
+            	if (dlg.open() == Window.OK) {
+            		project.setVersion(dlg.result);
+            		project.hasChanged = true;
+            		projectTreeObject.save(false);
+            	}
+            	
+            	projectTreeObject.save(true);
+            	explorerView.refreshTreeObject(projectTreeObject);
+    			
+    			String projectArchive = projectName + ".car";
+    			
+            	FileDialog fileDialog = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.SAVE);
+            	fileDialog.setText("Export a project");
+            	fileDialog.setFilterExtensions(new String[]{"*.car","*.xml"});
+            	fileDialog.setFilterNames(new String[]{"Convertigo archives","Convertigo projects"});
+            	fileDialog.setFilterPath(Engine.PROJECTS_PATH);
+            	fileDialog.setFileName(projectArchive);
+            	
+            	String filePath = fileDialog.open();
+            	if (filePath != null) {
+					String exportName = project.getName();
+					
+					File file = new File(filePath);
+					
+					if(file.exists()){
+						if(ConvertigoPlugin.questionMessageBox("File already exists. Do you want to overwrite?")==SWT.YES){
+							if(file.delete()==false){
+								ConvertigoPlugin.warningMessageBox("Error when deleting the file "+file.getName()+"! Please verify access rights!");
 								return;
 							}
+						}else{
+							return;
 						}
-						
-						String filename = file.getName();
-						int idx = -1;
-						if(filePath.endsWith(".xml")){
-							idx = filename.lastIndexOf(".xml");
-						}else if(filePath.endsWith(".car")){
-							idx = filename.lastIndexOf(".car");
-						}
-						
-						String overriddenProjectName = filename.substring(0, idx);
-						
-	            		if (filePath.endsWith(".xml")) {
-	    					if (!overriddenProjectName.equals(exportName)) {
-	        					Toolkit.getDefaultToolkit().beep();
-	        					ConvertigoPlugin.logWarning("Xml file and project must have same name!");
-	        					return;
-	    					}
-	            			
-	    					CarUtils.exportProject(project, filePath);
-	    				}
-	    				else if (filePath.endsWith(".car")) {
-	    					if (!overriddenProjectName.equals(exportName)) {
-	    						exportName = overriddenProjectName;
-	    					}
-							CarUtils.makeArchive(file.getParent(), project, exportName);
-	    				}
-	    				else {
-	    					Toolkit.getDefaultToolkit().beep();
-	    					ConvertigoPlugin.logWarning("Wrong file extension!");
-	    				}
-	            	}
-	    	
-	            	projectTreeObject.getIProject().refreshLocal(IResource.DEPTH_ONE, null);
-					explorerView.setFocus();
-					explorerView.setSelectedTreeObject(projectTreeObject);
-				}
+					}
+					
+					String filename = file.getName();
+					int idx = -1;
+					if(filePath.endsWith(".xml")){
+						idx = filename.lastIndexOf(".xml");
+					}else if(filePath.endsWith(".car")){
+						idx = filename.lastIndexOf(".car");
+					}
+					
+					String overriddenProjectName = filename.substring(0, idx);
+					
+            		if (filePath.endsWith(".xml")) {
+    					if (!overriddenProjectName.equals(exportName)) {
+        					Toolkit.getDefaultToolkit().beep();
+        					ConvertigoPlugin.logWarning("Xml file and project must have same name!");
+        					return;
+    					}
+            			
+    					CarUtils.exportProject(project, filePath);
+    				}
+    				else if (filePath.endsWith(".car")) {
+    					if (!overriddenProjectName.equals(exportName)) {
+    						exportName = overriddenProjectName;
+    					}
+						CarUtils.makeArchive(file.getParent(), project, exportName);
+    				}
+    				else {
+    					Toolkit.getDefaultToolkit().beep();
+    					ConvertigoPlugin.logWarning("Wrong file extension!");
+    				}
+            	}
+    	
+            	projectTreeObject.getIProject().refreshLocal(IResource.DEPTH_ONE, null);
+				explorerView.setFocus();
+				explorerView.setSelectedTreeObject(projectTreeObject);
     		}
         }
         catch (Throwable e) {
