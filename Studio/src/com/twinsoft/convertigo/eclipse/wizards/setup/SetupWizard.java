@@ -133,7 +133,7 @@ public class SetupWizard extends Wizard {
 	@Override
 	public boolean performFinish() {
 		try {
-			EnginePropertiesManager.saveProperties();
+			EnginePropertiesManager.saveProperties(false);
 		} catch (Exception e) {}
 		
 		if (workspaceMigrationPage != null) {
