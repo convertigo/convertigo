@@ -46,43 +46,44 @@ import org.eclipse.swt.widgets.Tree;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.DeploymentConfiguration;
+import com.twinsoft.convertigo.eclipse.DeploymentConfigurationReadOnly;
 
 public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 
 	//private TWSKey twsKey;
 	
-	public Tree tree = null;
-	public Label label = null;
-	public Button delButton = null;
-	public Button checkBox = null;
-	public Button assembleXsl = null;
-	public Button checkTrustAllCertificates = null;
-	public Group webGroup = null;
-	public Group convertigoGroup = null;
-	public Group SSLGroup = null;
-	public Label webAdminLabel = null;
-	public Text webAdmin = null;
-	public Label webAdminPassword = null;
-	public Text webPassword = null;
-	public Label convertigoAdminLabel = null;
-	public Text convertigoAdmin = null;
-	public Label convertigoAdminPassword = null;
-	public Text convertigoPassword = null;
-	public Text convertigoServer = null;
-	public ProgressBar progressBar = null;
-	public Label labelProgress = null;
-	public MessageBox messageBox = null;
-	public List list = null;
-	public ObjectOutputStream objectOutputStream = null;	
-	public Button okButton = null;
+	Tree tree = null;
+	Label label = null;
+	Button delButton = null;
+	Button checkBox = null;
+	Button assembleXsl = null;
+	Button checkTrustAllCertificates = null;
+	Group webGroup = null;
+	Group convertigoGroup = null;
+	Group SSLGroup = null;
+	Label webAdminLabel = null;
+	Text webAdmin = null;
+	Label webAdminPassword = null;
+	Text webPassword = null;
+	Label convertigoAdminLabel = null;
+	Text convertigoAdmin = null;
+	Label convertigoAdminPassword = null;
+	Text convertigoPassword = null;
+	Text convertigoServer = null;
+	ProgressBar progressBar = null;
+	Label labelProgress = null;
+	MessageBox messageBox = null;
+	List list = null;
+	ObjectOutputStream objectOutputStream = null;	
+	Button okButton = null;
 
-	public static String messageList = "-- No deployment configuration saved --";
+	static String messageList = "-- No deployment configuration saved --";
 	
 	public ProjectDeployDialogComposite(Composite parent, int style) {
 		super(parent, style);
 	}
 	
-    private void fillList() {
+    void fillList() {
         list.removeAll();
         
         Set<String> deploymentConfigurationNames = new HashSet<String>();        
@@ -91,7 +92,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
         for (String deploymentConfigurationName: deploymentConfigurationNames) {
         	list.add(ConvertigoPlugin.deploymentConfigurationManager.get(deploymentConfigurationName).toString());
         }
-
+        
         String currentProjectName = ConvertigoPlugin.projectManager.currentProjectName;
         
         DeploymentConfiguration defaultDeploymentConfiguration = null;
@@ -123,6 +124,13 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
         	}
         } else {
         	list.add(messageList);
+        	convertigoAdmin.setText("");
+            convertigoPassword.setText("");
+            checkBox.setSelection(false);
+            checkTrustAllCertificates.setSelection(false);
+            convertigoServer.setText("");
+            assembleXsl.setSelection(false);
+            convertigoServer.setText("");
         }
         
         if (list.getSelectionIndex() == -1) {
@@ -139,22 +147,14 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
         convertigoServer.setText(dc.getServer());
         assembleXsl.setSelection(dc.isBAssembleXsl());
         convertigoServer.setText(dc.getServer());
-    }
-    
-    private void clearDialog() {
-    	convertigoAdmin.setText("");
-        convertigoPassword.setText("");
-        checkBox.setSelection(false);
-        checkTrustAllCertificates.setSelection(false);
-        convertigoServer.setText("");
-        assembleXsl.setSelection(false);
-        convertigoServer.setText("");
+        delButton.setEnabled(!(dc instanceof DeploymentConfigurationReadOnly));
     }
     
 	/**
 	 * This method initializes this
 	 * 
 	 */
+    @Override
 	protected void initialize() {
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = 2;
@@ -251,6 +251,8 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		delButton.setText("Remove");
 		
 		list.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
 			public void widgetSelected(SelectionEvent evt) {
 				if (list.getSelectionIndex() != -1 && !list.getItem(list.getSelectionIndex()).equals(messageList)) {
 		            DeploymentConfiguration dc = ConvertigoPlugin.deploymentConfigurationManager.get(list.getSelection()[0]);
@@ -260,10 +262,11 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		            checkTrustAllCertificates.setSelection(dc.isBTrustAllCertificates());
 		            convertigoServer.setText(dc.getServer());
 		            assembleXsl.setSelection(dc.isBAssembleXsl());
-		            delButton.setEnabled(true);
+		            delButton.setEnabled(!(dc instanceof DeploymentConfigurationReadOnly));
 		            changeOkButtonState();
 				}
 			}
+			
 		});
 		
 		gridData = new GridData();
@@ -272,6 +275,8 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		delButton.setLayoutData(gridData);
 		
 		delButton.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				int index = list.getSelectionIndex();
 				String item = list.getItem(index);
@@ -289,25 +294,26 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 						ConvertigoPlugin.logException(e1, "Unable to remove the deployment configurations");
 					}
 					list.remove(index);
-					
-					if (list.getItemCount() > 0) {
-						list.select(0);
-						
-						if (!item.equals(messageList)) {
-							DeploymentConfiguration dc = ConvertigoPlugin.deploymentConfigurationManager.get((list.getItem(0)));
-							fillDialog(dc);
-						}
-					}			
-					else {
-						clearDialog();
-			        	list.add(messageList);
-			        	delButton.setEnabled(false);
-			        	changeOkButtonState();
-					}
-					list.setRedraw(true);
-					list.redraw();
+					fillList();
+//					if (list.getItemCount() > 0) {
+//						list.select(0);
+//						
+//						if (!item.equals(messageList)) {
+//							DeploymentConfiguration dc = ConvertigoPlugin.deploymentConfigurationManager.get((list.getItem(0)));
+//							fillDialog(dc);
+//						}
+//					}			
+//					else {
+//						clearDialog();
+//			        	list.add(messageList);
+//			        	delButton.setEnabled(false);
+//			        	changeOkButtonState();
+//					}
+//					list.setRedraw(true);
+//					list.redraw();
 			    }				  
 			}
+			
 		});
 	}
 	
@@ -393,4 +399,4 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 		changeOkButtonState();
 	}
 	
-}  //  @jve:decl-index=0:visual-constraint="10,10"
+}

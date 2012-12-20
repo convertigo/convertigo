@@ -121,6 +121,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.SimpleCipher;
 import com.twinsoft.util.Log;
 
 /**
@@ -137,6 +138,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public static ClipboardManager2 clipboardManager2 = null;
 	
 	public static DeploymentConfigurationManager deploymentConfigurationManager = null;
+	
+	private static Properties pscProperties = null;
 	
     public static final String SYSTEM_PROP_PREFIX = "convertigo.studio.";
     
@@ -175,6 +178,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	
 	//Resource bundle.
 	private ResourceBundle resourceBundle;
+
+	private boolean shuttingDown = false;
 	
 	private static Log studioLog;
 
@@ -616,6 +621,21 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 							try {
 								deploymentConfigurationManager.doMigration();
+								
+								Properties properties = getPsc();
+								for (int i = 1; i < Integer.MAX_VALUE; i++) {
+									if (i > 1 && !properties.containsKey(DeploymentKey.adminUser.key(i))) {
+										break;
+									}
+									deploymentConfigurationManager.add(new DeploymentConfigurationReadOnly(
+											DeploymentKey.server.value(properties, i),
+											DeploymentKey.adminUser.value(properties, i),
+											DeploymentKey.adminPassword.value(properties, i),
+											Boolean.parseBoolean(DeploymentKey.sslHttps.value(properties, i)),
+											Boolean.parseBoolean(DeploymentKey.sslTrustCert.value(properties, i)),
+											Boolean.parseBoolean(DeploymentKey.assembleXsl.value(properties, i)))
+									);
+								}
 							} catch (Exception e) {
 								logException(e, "Unable to migrate deployment configurations");
 							}
@@ -1353,8 +1373,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
         	resourceProject.delete(deleteContent, false, null);
 		}
 	}
-
-	private boolean shuttingDown = false;
 	
 	public void setShuttingDown(boolean b) {
 		this.shuttingDown = b;
@@ -1364,8 +1382,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		return this.shuttingDown;
 	}
 	
+	static public Properties getPsc() {
+		try {
+			return pscProperties != null ? pscProperties : decodePsc();
+		} catch (PscException e) {
+			return null;
+		} 
+	}
+	
 	static private Properties decodePsc() throws PscException {
-		return decodePscFromWorkspace(Engine.USER_WORKSPACE_PATH);
+		return pscProperties = decodePscFromWorkspace(Engine.USER_WORKSPACE_PATH);
 	}
 	
 	static public Properties decodePscFromWorkspace(String convertigoWorkspace) throws PscException {
@@ -1386,21 +1412,74 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		if (psc.length() == 0) {
 			throw new PscException("Invalid PSC (empty)!");
 		} else {
-			String decipheredPSC = Crypto2.decodeFromHexString("registration", psc);
-			
-			if (decipheredPSC == null) {
-				throw new PscException("Invalid PSC (unable to decipher)!");
-			} else if (!decipheredPSC.startsWith("# PSC file")) {
-				throw new PscException("Invalid PSC (wrong format)!");
-			} else {
-				Properties properties = new Properties();
+			Properties properties = new Properties();
+			try {
+				String decipheredPSC = Crypto2.decodeFromHexString("registration", psc);
+
+				if (decipheredPSC == null) {
+					throw new PscException("Invalid PSC (unable to decipher)!");
+				} else if (!decipheredPSC.startsWith("# PSC file")) {
+					throw new PscException("Invalid PSC (wrong format)!");
+				} else {
+					
+					try {
+						properties.load(IOUtils.toInputStream(decipheredPSC, "utf8"));
+					} catch (IOException e) {
+						throw new PscException("Invalid PSC (cannot load properties)!");
+					}
+				}
+			} catch (PscException e) {
 				try {
+					String decipheredPSC = SimpleCipher.decode(psc);
+					
 					properties.load(IOUtils.toInputStream(decipheredPSC, "utf8"));
-					return properties;
-				} catch (IOException e) {
-					throw new PscException("Invalid PSC (cannot load properties)!");
+					
+					String server = properties.getProperty("server");
+					String user = properties.getProperty("admin.user");
+					String password = properties.getProperty("admin.password");
+					
+					if (server == null && user == null && password == null) {
+						throw e;
+					}
+					
+					if (server == null || user == null || password == null) {
+						throw new PscException("Invalid PSC (incomplet data)!");
+					}
+					
+					if (!user.equals(SimpleCipher.decode(password))) {
+						throw new PscException("Invalid PSC (altered data)");
+					}
+					
+					boolean bHttps = Boolean.parseBoolean(properties.getProperty("https"));
+					
+					properties.clear();
+					
+					DeploymentKey.adminUser.setValue(properties, 1, user);
+					DeploymentKey.adminPassword.setValue(properties, 1, password);
+					DeploymentKey.server.setValue(properties, 1, server);
+					DeploymentKey.sslHttps.setValue(properties, 1, Boolean.toString(bHttps));
+				} catch (PscException ex) {
+					throw ex;
+				} catch (Exception ex) {
+					throw e;
 				}
 			}
+			
+			for (int i = 1; i < Integer.MAX_VALUE; i++) {
+				if (i > 1 && !properties.containsKey(DeploymentKey.adminUser.key(i))) {
+					break;
+				}
+				for (DeploymentKey key : DeploymentKey.values()) {
+					if (!properties.containsKey(key.key(1))) {
+						if (!key.hasDefault()) {
+							throw new PscException("Invalid PSC (altered data)");
+						}
+						key.setValue(properties, 1);
+					}
+				}
+			}
+			
+			return properties;
 		}
 	}
 }

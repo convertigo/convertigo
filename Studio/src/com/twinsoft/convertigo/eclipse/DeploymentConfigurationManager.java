@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,17 +32,16 @@ public class DeploymentConfigurationManager {
     private static final String DEPLOYMENT_CONFIGURATION_DB = Engine.USER_WORKSPACE_PATH + "/studio/deployment_configurations.db";
     private static final String OLD_TRIAL_REGISTRATION_DB = Engine.USER_WORKSPACE_PATH + "/studio/trial_deploy.ser";
     
+    private Map<String, DeploymentConfiguration> deploymentConfigurationsReadOnly;
 	private Map<String, DeploymentConfiguration> deploymentConfigurations;
-	public Map<String, String> defaultDeploymentConfigurations;
-	
-	private Object [] objectsToSerialize = new Object[2];
-	private Object [] deserializedObjects = new Object[2];
+	private Map<String, String> defaultDeploymentConfigurations;
 
 	private SecretKey secretKey;
 	private DESKeySpec desKeySpec;
 	private SecretKeyFactory secretKeyFactory;
 	
 	public DeploymentConfigurationManager() {
+		deploymentConfigurationsReadOnly = new HashMap<String, DeploymentConfiguration>();
 		deploymentConfigurations = new HashMap<String, DeploymentConfiguration>();
 		defaultDeploymentConfigurations = new HashMap<String, String>();
 
@@ -114,7 +114,7 @@ public class DeploymentConfigurationManager {
 	
 	public DeploymentConfiguration getDefault(String projectName) {		
 		String key = defaultDeploymentConfigurations.get(projectName);
-		return key == null ? null : deploymentConfigurations.get(key);
+		return key == null ? null : get(key);
 	}
 	
 	public void setDefault(String projectName, String deploymentConfigurationName) {		
@@ -122,11 +122,18 @@ public class DeploymentConfigurationManager {
 	}
 	
 	public Set<String> getAllDeploymentConfigurationNames() {
-		return deploymentConfigurations.keySet();	
+		Set<String> all = new LinkedHashSet<String>(deploymentConfigurationsReadOnly.keySet());
+		all.addAll(deploymentConfigurations.keySet());
+		return all;
 	}
 	
 	public DeploymentConfiguration get(String name) {
-		return deploymentConfigurations.get(name);
+		DeploymentConfiguration deploymentConfiguration = deploymentConfigurations.get(name);
+		return deploymentConfiguration != null ? deploymentConfiguration : deploymentConfigurationsReadOnly.get(name);
+	}
+	
+	public void add(DeploymentConfigurationReadOnly deploymentConfigurationReadOnly) {
+		deploymentConfigurationsReadOnly.put(deploymentConfigurationReadOnly.getServer(), deploymentConfigurationReadOnly);
 	}
 	
 	public void add(DeploymentConfiguration deploymentConfiguration) {
@@ -138,8 +145,7 @@ public class DeploymentConfigurationManager {
 	}
 
 	public void save() throws IOException {
-		objectsToSerialize[0] = deploymentConfigurations;
-		objectsToSerialize[1] = defaultDeploymentConfigurations;
+		Object[] objectsToSerialize = {deploymentConfigurations, defaultDeploymentConfigurations};
 		
 		ObjectOutputStream objectOutputStream = null;
 		CipherOutputStream encrypt = null;
@@ -177,7 +183,7 @@ public class DeploymentConfigurationManager {
        		cipher.init(Cipher.DECRYPT_MODE, secretKey);
        		decode = new CipherInputStream(new FileInputStream(DEPLOYMENT_CONFIGURATION_DB), cipher); 
        		objectInputStream = new ObjectInputStream(decode);
-       		deserializedObjects = GenericUtils.cast(objectInputStream.readObject());       		
+       		Object [] deserializedObjects = GenericUtils.cast(objectInputStream.readObject());       		
        		deploymentConfigurations = GenericUtils.cast(deserializedObjects[0]);
        		defaultDeploymentConfigurations = GenericUtils.cast(deserializedObjects[1]);
         } catch (NoSuchAlgorithmException e) {
