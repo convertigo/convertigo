@@ -176,7 +176,7 @@ function connections_List_init() {
 				}
 			}).click(function(){
 				showConfirm("Are you sure you want to delete all the connections?",function(){
-					$("#connectionsList tr").each(function(){					
+					$("#connectionsList tr:gt(0)").each(function(){					
 						callService("connections.Delete",function(){},{"contextName":$(this).attr('id')});
 					});
 				});					
