@@ -71,7 +71,6 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 		container.setLayout(layout);
 				
 		layout.numColumns = nbCol;
-		layout.marginWidth = 30;		
 		
 		GridData layoutDataDescription = new GridData(GridData.FILL_HORIZONTAL);
 		layoutDataDescription.horizontalSpan = nbCol;		
@@ -389,6 +388,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 		SetupWizard wizard = (SetupWizard) super.getWizard();
 		setControlsEnabled(false);
 		notConnectedLink.setText("Checking for connection to " + registrationLink + " …");
+		((GridData) notConnectedLink.getLayoutData()).exclude = false;
 		notConnectedLink.setVisible(true);
 		notConnectedLink.getParent().layout();
 		wizard.checkConnected(this);
@@ -440,6 +440,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 				setControlsEnabled(isConnected);
 				setPageComplete(!isConnected);
 				notConnectedLink.setVisible(!isConnected);
+				((GridData) notConnectedLink.getLayoutData()).exclude = false;
 				if (!isConnected) {
 					msg = "Unable to connect to " + registrationLink + "\n" +
 							"Please go on it to request a PSC and press next. \n→ " + message;

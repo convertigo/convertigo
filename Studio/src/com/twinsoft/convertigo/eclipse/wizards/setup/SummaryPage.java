@@ -25,10 +25,7 @@ public class SummaryPage extends WizardPage {
 
 	public void createControl(Composite parent) {
 		container = new Composite(parent, SWT.NONE);
-		GridLayout layout = new GridLayout();
-		container.setLayout(layout);
-		layout.numColumns = 1;
-		layout.marginWidth = 8;
+		container.setLayout(new GridLayout(1, false));
 		
 		summaryText = new Text(container, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
 		summaryText.setEditable(false);
