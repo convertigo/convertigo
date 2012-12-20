@@ -22,25 +22,25 @@ public enum DeploymentKey {
 		this.key = key;
 	}
 	
-	String key(int i) {
+	public String key(int i) {
 		return "deploy." + i + "." + key; 
 	}
 	
-	String value(Properties properties, int i) {
+	public String value(Properties properties, int i) {
 		return properties.getProperty(key(i));
 	}
 	
-	boolean hasDefault() {
+	public boolean hasDefault() {
 		return defaultValue != null;
 	}
 	
-	void setValue(Properties properties, int i) {
+	public void setValue(Properties properties, int i) {
 		if (hasDefault()) {
 			setValue(properties, i, defaultValue);
 		}
 	}
 	
-	void setValue(Properties properties, int i, String value) {
+	public void setValue(Properties properties, int i, String value) {
 		properties.setProperty(key(i), value);
 	}
 }

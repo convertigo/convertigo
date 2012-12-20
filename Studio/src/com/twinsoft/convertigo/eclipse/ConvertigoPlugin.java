@@ -1464,17 +1464,19 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					throw e;
 				}
 			}
-			
-			for (int i = 1; i < Integer.MAX_VALUE; i++) {
+
+			int i = 0;
+			while (++i > 0) {
 				if (i > 1 && !properties.containsKey(DeploymentKey.adminUser.key(i))) {
-					break;
-				}
-				for (DeploymentKey key : DeploymentKey.values()) {
-					if (!properties.containsKey(key.key(1))) {
-						if (!key.hasDefault()) {
-							throw new PscException("Invalid PSC (altered data)");
+					i = -1;
+				} else {
+					for (DeploymentKey key : DeploymentKey.values()) {
+						if (!properties.containsKey(key.key(i))) {
+							if (!key.hasDefault()) {
+								throw new PscException("Invalid PSC (altered data)");
+							}
+							key.setValue(properties, i);
 						}
-						key.setValue(properties, 1);
 					}
 				}
 			}

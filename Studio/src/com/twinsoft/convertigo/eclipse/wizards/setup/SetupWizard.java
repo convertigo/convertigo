@@ -230,11 +230,9 @@ public class SetupWizard extends Wizard {
 	}
 	
 	public void checkConnected(final CheckConnectedCallback callback) {
-		new Thread(new Runnable() {
+		Thread th = new Thread(new Runnable() {
 
 			public void run() {
-				Thread.currentThread().setName("SetupWizard.checkConnected");
-				
 				synchronized (SetupWizard.this) {
 					boolean isConnected = false;
 					String message;
@@ -264,15 +262,16 @@ public class SetupWizard extends Wizard {
 				}
 			}
 
-		}).start();
+		});
+		th.setDaemon(true);
+		th.setName("SetupWizard.checkConnected");
+		th.start();
 	}
 	
 	public void register(final String username, final String password, final String firstname, final String lastname, final String email, final String country, final String company, final RegisterCallback callback) {
-		new Thread(new Runnable() {
+		Thread th = new Thread(new Runnable() {
 
-			public void run() {
-				Thread.currentThread().setName("SetupWizard.register");
-				
+			public void run() {				
 				synchronized (SetupWizard.this) {
 					boolean success = false;
 					String message;
@@ -334,6 +333,9 @@ public class SetupWizard extends Wizard {
 				}
 			}
 			
-		}).start();
+		});
+		th.setDaemon(true);
+		th.setName("SetupWizard.register");
+		th.start();
 	}
 }
