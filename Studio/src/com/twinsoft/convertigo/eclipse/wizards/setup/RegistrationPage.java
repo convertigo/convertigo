@@ -230,7 +230,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 				
 		label = new Label (container, SWT.NONE);
 		label.setForeground(colorcondition);
-		label.setText("* required fileds");
+		label.setText("* required fields");
 		GridData layoutDataFields = new GridData(GridData.HORIZONTAL_ALIGN_END);
 		layoutDataFields.horizontalSpan = nbCol;
 		label.setLayoutData(layoutDataFields);
