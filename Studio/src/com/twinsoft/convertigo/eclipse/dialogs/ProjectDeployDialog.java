@@ -31,18 +31,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.DeploymentConfiguration;
+import com.twinsoft.convertigo.eclipse.DeploymentConfigurationReadOnly;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.CarUtils;
@@ -51,15 +49,10 @@ import com.twinsoft.convertigo.engine.util.RemoteAdminException;
 
 public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 
+	private ProjectDeployDialogComposite projectDeployDialogComposite;
+	
 	private ProgressBar progressBar = null;
 	private Label labelProgression = null;
-	private Button checkBox = null;
-	private Button assembleXsl = null;
-	private Button checkTrustAllCertificates = null;
-	private List list = null;
-	private Text convertigoServerText = null;
-	private Text convertigoAdmin = null;
-	private Text convertigoPassword = null;
 
 	private boolean bFinished = false;
 	String convertigoServer = "?";
@@ -76,8 +69,9 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	@Override
 	protected Control createButtonBar(Composite parent) {
 		Control buttonBar =  super.createButtonBar(parent);
+		projectDeployDialogComposite = (ProjectDeployDialogComposite) dialogComposite; 
 		getButton(IDialogConstants.OK_ID).setText("Deploy");
-		((ProjectDeployDialogComposite)dialogComposite).setOkButton(getButton(IDialogConstants.OK_ID));
+		projectDeployDialogComposite.setOkButton(getButton(IDialogConstants.OK_ID));
 		return buttonBar;
 	}
 
@@ -90,32 +84,26 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 		}	
 		super.cancelPressed();
 	}
-
+	
+	@Override
 	protected void okPressed() {
 		try {
 			getButton(IDialogConstants.OK_ID).setEnabled(false);
-			progressBar = ((ProjectDeployDialogComposite)dialogComposite).progressBar;
-			labelProgression = ((ProjectDeployDialogComposite)dialogComposite).labelProgress;
-			checkBox = ((ProjectDeployDialogComposite)dialogComposite).checkBox;
-			checkTrustAllCertificates = ((ProjectDeployDialogComposite)dialogComposite).checkTrustAllCertificates;
-			assembleXsl = ((ProjectDeployDialogComposite)dialogComposite).assembleXsl;
-			list = ((ProjectDeployDialogComposite)dialogComposite).list;
-			convertigoAdmin = ((ProjectDeployDialogComposite)dialogComposite).convertigoAdmin;
-			convertigoPassword = ((ProjectDeployDialogComposite)dialogComposite).convertigoPassword;
-			convertigoServerText = ((ProjectDeployDialogComposite)dialogComposite).convertigoServer;
+			progressBar = projectDeployDialogComposite.progressBar;
+			labelProgression = projectDeployDialogComposite.labelProgress;
 
-			convertigoServer = convertigoServerText.getText();
+			convertigoServer = projectDeployDialogComposite.convertigoServer.getText();
 	        if ((convertigoServer == null) || (convertigoServer.equals(""))) return;
 	        
-	        convertigoUserName = convertigoAdmin.getText();
+	        convertigoUserName = projectDeployDialogComposite.convertigoAdmin.getText();
 	        if (convertigoUserName == null) convertigoUserName = "";
 	        
-	        convertigoUserPassword = new String(convertigoPassword.getText());
+	        convertigoUserPassword = projectDeployDialogComposite.convertigoPassword.getText();
 	        if (convertigoUserPassword == null) convertigoUserPassword = "";
 	        
-	        isHttps = checkBox.getSelection();
-	        trustAllCertificates = checkTrustAllCertificates.getSelection();
-	        bAssembleXsl = assembleXsl.getSelection();
+	        isHttps = projectDeployDialogComposite.checkBox.getSelection();
+	        trustAllCertificates = projectDeployDialogComposite.checkTrustAllCertificates.getSelection();
+	        bAssembleXsl = projectDeployDialogComposite.assembleXsl.getSelection();
         
 	        boolean doubleFound = false;
 	        
@@ -127,7 +115,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	        	DeploymentConfiguration deploymentConfiguration = null;
 	        	if (convertigoServer.equals(deploymentConfigurationName)) {
 	        		deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get(deploymentConfigurationName);
-	        		if (deploymentConfiguration != null) {
+	        		if (deploymentConfiguration != null && !(deploymentConfiguration instanceof DeploymentConfigurationReadOnly)) {
 		        		deploymentConfiguration.setBAssembleXsl(bAssembleXsl);
 		        		deploymentConfiguration.setBHttps(isHttps);
 		        		deploymentConfiguration.setUsername(convertigoUserName);
@@ -149,12 +137,13 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 			            bAssembleXsl
 			        );
 	        	
-	            list.add(convertigoServer);
+//	            list.add(convertigoServer);
 	            ConvertigoPlugin.deploymentConfigurationManager.add(dc);
 	            ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, dc.getServer());
-		        if (list.getItem(0).equals(ProjectDeployDialogComposite.messageList)) {
-		        	list.remove(0);
-		        }
+//		        if (list.getItem(0).equals(ProjectDeployDialogComposite.messageList)) {
+//		        	list.remove(0);
+//		        }
+	            projectDeployDialogComposite.fillList();
 	        }
 
 	        File projectDir = new File(Engine.PROJECTS_PATH + "/" + ConvertigoPlugin.projectManager.currentProject.getName() + "/_private");
@@ -185,6 +174,8 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	public void run() {
 		final Display display = getParentShell().getDisplay();
 		Thread progressBarThread = new Thread("Progress Bar thread") {
+			
+			@Override
 			public void run() {
 				int i = 0;
 				while (true) {
@@ -206,6 +197,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 					}
 				}
 			}
+			
 		};
 		
 		try {

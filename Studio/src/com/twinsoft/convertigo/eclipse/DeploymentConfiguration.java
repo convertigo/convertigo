@@ -34,21 +34,6 @@ public class DeploymentConfiguration implements Serializable {
     protected boolean bHttps = false;
     protected boolean bTrustAllCertificates;
 	protected boolean bAssembleXsl = false;
-
-    public DeploymentConfiguration(String server, String username, String userpassword, boolean bHttps) {
-        this.server = server;
-        this.username = username;
-        this.userpassword = userpassword;
-        this.bHttps = bHttps;
-    }
-    
-    public DeploymentConfiguration(String server, String username, String userpassword, boolean bHttps, boolean bTrustAllCertificates) {
-        this.server = server;
-        this.username = username;
-        this.userpassword = userpassword;
-        this.bHttps = bHttps;
-        this.bTrustAllCertificates = bTrustAllCertificates;
-    }
     
     public DeploymentConfiguration(String server, String username, String userpassword, boolean bHttps, boolean bTrustAllCertificates ,boolean bAssembleXsl) {
         this.server = server;
@@ -59,6 +44,7 @@ public class DeploymentConfiguration implements Serializable {
         this.bAssembleXsl = bAssembleXsl;
     }
 
+    @Override
     public String toString() {
         return server;
     }
@@ -146,6 +132,4 @@ public class DeploymentConfiguration implements Serializable {
 	public void setUserpassword(String userpassword) {
 		this.userpassword = userpassword;
 	}
-    
-    
 }
