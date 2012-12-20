@@ -22,7 +22,9 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -122,60 +124,76 @@ public class XMLSplitStep extends XMLElementStep {
 
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
+		boolean useDefaultValue = true;
 		NodeList list = getContextValues();
 		if (list != null) {
 			int len = list.getLength();
-			for (int i = 0; i < len; i++) {
-				Node node = list.item(i);
-				String nodeValue = getNodeValue(node);
-				String text = (nodeValue == null) ? getNodeText() : nodeValue;
-				
-				if (!text.equals("")) {
-					Pattern myPattern = Pattern.compile(regexp);
-					Matcher myMatcher = myPattern.matcher(text);
+			useDefaultValue = (len == 0);
+			if (!useDefaultValue) {
+				for (int i = 0; i < len; i++) {
+					Node node = list.item(i);
+					String nodeValue = getNodeValue(node);
+					String text = (nodeValue == null) ? getNodeText() : nodeValue;
 					
-					XMLVector<String> splitString = new XMLVector<String>();
-					int beginIndex = 0, startIndex, endIndex;
-					while (myMatcher.find()) {
-						startIndex = myMatcher.start();
-						endIndex = myMatcher.end();
-						if (beginIndex != startIndex) {
-							splitString.add(new String (text.substring(beginIndex, startIndex)));
-						}
-						if (keepSeparator) {
-							splitString.add(new String (text.substring(startIndex, endIndex)));
-						}
-						beginIndex = endIndex;
-					}
-					if (beginIndex != text.length()) {
-						splitString.add(new String (text.substring(beginIndex, text.length())));
-					}
-					
-					Element splits = null;
-					if (len > 1) {
-						splits = doc.createElement("splits");
-					}
-
-					// for all split string : create a node and add it
-					for (int j = 0 ; j < splitString.size() ; j++) {
-						String splitted = (String) splitString.elementAt(j);
-						Element split = doc.createElement(getTag(j)); 
-						split.appendChild(doc.createTextNode(splitted));
-						if (splits == null) {
-							stepNode.appendChild(split);
-						} else {
-							splits.appendChild(split);
-						}
-					}
-					
-					if (splits != null) {
-						stepNode.appendChild(splits);
+					List<Element> elements = split(doc, (len > 1), text);
+					for (Element element: elements) {
+						stepNode.appendChild(element);
 					}
 				}
 			}
 		}
+		if (useDefaultValue) {
+			String text = getNodeText();
+			List<Element> elements = split(doc, false, text);
+			for (Element element: elements) {
+				stepNode.appendChild(element);
+			}
+		}
 	}
 
+	private List<Element> split(Document doc, boolean withRoot, String text) {
+		List<Element> list = new ArrayList<Element>();
+		if (!text.equals("")) {
+			Pattern myPattern = Pattern.compile(regexp);
+			Matcher myMatcher = myPattern.matcher(text);
+			
+			XMLVector<String> splitString = new XMLVector<String>();
+			int beginIndex = 0, startIndex, endIndex;
+			while (myMatcher.find()) {
+				startIndex = myMatcher.start();
+				endIndex = myMatcher.end();
+				if (beginIndex != startIndex) {
+					splitString.add(new String (text.substring(beginIndex, startIndex)));
+				}
+				if (keepSeparator) {
+					splitString.add(new String (text.substring(startIndex, endIndex)));
+				}
+				beginIndex = endIndex;
+			}
+			if (beginIndex != text.length()) {
+				splitString.add(new String (text.substring(beginIndex, text.length())));
+			}
+			
+			Element root = null;
+			if (withRoot) {
+				root = doc.createElement("splits");
+				list.add(root);
+			}
+			
+			// for all split string : create a node and add it
+			for (int j = 0 ; j < splitString.size() ; j++) {
+				String splitted = (String) splitString.elementAt(j);
+				Element split = doc.createElement(getTag(j)); 
+				split.appendChild(doc.createTextNode(splitted));
+				if (withRoot)
+					root.appendChild(split);
+				else
+					list.add(split);
+			}
+		}
+		return list;
+	}
+	
 	@Override
 	public String getSchemaType(String tns) {
 		return tns +":"+ getStepNodeName() + priority +"StepType";
