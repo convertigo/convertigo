@@ -823,6 +823,10 @@ public class EnginePropertiesManager {
     }
     
     public static synchronized void saveProperties() throws IOException, EngineException {
+    	saveProperties(true);
+    }
+    
+    public static synchronized void saveProperties(boolean configureLog4J) throws IOException, EngineException {
     	OutputStream propsOutputStream = null;
 		String enginePropertiesPath = Engine.CONFIGURATION_PATH + PROPERTIES_FILE_NAME;
 		File enginePropertiesFile = new File(enginePropertiesPath);
@@ -847,8 +851,10 @@ public class EnginePropertiesManager {
     		else {
         		Engine.logEngine.debug("Convertigo engine properties saved!");
     		}
-
-            configureLog4J();		
+    		
+    		if (configureLog4J) {
+    			configureLog4J();
+    		}
     	}
         catch(IOException e) {
         	//properties = null; // Why ??    Part of fix for Ticket #2072
