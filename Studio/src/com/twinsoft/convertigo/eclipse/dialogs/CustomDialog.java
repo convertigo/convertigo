@@ -14,8 +14,6 @@ public class CustomDialog extends MyAbstractDialog {
 
 	private String question;
 	private List<ButtonSpec> buttonSpecs;
-	private static int width = 200;
-	private static int height = 150;
 
 	public CustomDialog(Shell parentShell, String title,
 			String question, int width, int height, ButtonSpec... buttonSpecs) {
