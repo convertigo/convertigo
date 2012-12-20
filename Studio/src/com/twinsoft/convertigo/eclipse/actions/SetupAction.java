@@ -49,7 +49,7 @@ public class SetupAction implements IWorkbenchWindowActionDelegate {
 			@Override
 			protected void configureShell(Shell shell) {
 				super.configureShell(shell);
-				shell.setSize(720, 690);
+				shell.setSize(730, 700);
 			}
 			
 		};
