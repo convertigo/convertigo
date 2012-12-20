@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.eclipse.views.loggers;
 import java.lang.reflect.Method;
 
 import org.apache.log4j.Level;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.ITableColorProvider;
@@ -33,7 +34,6 @@ import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerColumn;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
@@ -89,7 +89,7 @@ public class EngineLogViewLabelProvider extends CellLabelProvider implements
 	}
 
 	public Font getFont(Object element, int columnIndex) {
-		return new Font(Display.getCurrent(), "Courier", 11, SWT.NONE);
+		return JFaceResources.getFont(JFaceResources.TEXT_FONT);
 	}
 
 	public Image getColumnImage(Object element, int columnIndex) {
