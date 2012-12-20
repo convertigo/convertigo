@@ -247,10 +247,7 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator {
 		if (ProxyMethod.anonymous  == proxyMethod) {
 			proxyUser.setEnabled(false);
 			proxyPassword.setEnabled(false);
-		}else if (ProxyMethod.ntlm == proxyMethod) {
-			proxyUser.setEnabled(false);
-			proxyPassword.setEnabled(false);
-		}else if (ProxyMethod.basic == proxyMethod) {
+		} else if (ProxyMethod.basic == proxyMethod || ProxyMethod.ntlm == proxyMethod) {
 			proxyUser.setEnabled(true);
 			proxyPassword.setEnabled(true);
 		}

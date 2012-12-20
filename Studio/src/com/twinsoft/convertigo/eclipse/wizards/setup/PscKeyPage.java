@@ -1,6 +1,5 @@
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
-import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.eclipse.jface.resource.JFaceResources;
@@ -30,6 +29,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin.PscException;
+import com.twinsoft.convertigo.eclipse.DeploymentKey;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.RegisterCallback;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 
@@ -191,10 +191,16 @@ public class PscKeyPage extends WizardPage implements RegisterCallback, SummaryG
 	}
 
 	public String getSummary() {
-		StringBuffer summary = new StringBuffer("PSC key :\n");
+		StringBuffer summary = new StringBuffer("PSC server configuration for :\n");
 		
-		for (Entry<Object, Object> entry : decodedPSC.entrySet()) {
-			summary.append("\t" + entry.getKey() + " = " + entry.getValue() + "\n");
+		int i = 0;
+		while (++i > 0) {
+			String server = DeploymentKey.server.value(decodedPSC, i);
+			if (server != null) {
+				summary.append("\t" + server + "\n");
+			} else {
+				i = -1;
+			}
 		}	
 		
 		return summary.toString();

@@ -35,8 +35,6 @@ public class LicensePage extends WizardPage implements SummaryGenerator {
 		Font terminalFont = JFaceResources.getFont(JFaceResources.TEXT_FONT);
 		licenseText.setFont(terminalFont);
 		GridData gd = new GridData(GridData.FILL_BOTH);
-		gd.widthHint = 600;
-		gd.heightHint = 400;
 		licenseText.setLayoutData(gd);
 		
 		try {			
