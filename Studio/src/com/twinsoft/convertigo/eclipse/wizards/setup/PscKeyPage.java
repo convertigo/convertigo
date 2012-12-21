@@ -44,13 +44,16 @@ public class PscKeyPage extends WizardPage implements RegisterCallback, SummaryG
 	public PscKeyPage () {
 		super("PscKeyPage");
 		setTitle("Personal Studio Configuration");
-		setDescription("You should have received a valid PSC by mail\n" +
-					   "when you registered for a Convertigo Trial Cloud account...");
+		setDescription("Paste your PSC...");
 	}
 
 	@Override
 	public IWizard getWizard() {
 		IWizardPage previousPage = getPreviousPage();
+		
+		setErrorMessage(null);
+		setMessage(getDescription());
+		
 		if (previousPage instanceof RegistrationPage) {
 			RegistrationPage registrationPage = (RegistrationPage) previousPage;
 			if (registrationPage.isConnected()) {
@@ -59,6 +62,7 @@ public class PscKeyPage extends WizardPage implements RegisterCallback, SummaryG
 				}
 			} else {
 				infoLink.setText("Studio offline. Please register manually on " + RegistrationPage.registrationLink + " and paste your PSC here.");
+				setErrorMessage("Studio offline! Check your proxy settings");
 			}
 		} else {
 			infoLink.setText("Please paste your previous PSC here and click the 'Next >' button...");
@@ -179,10 +183,11 @@ public class PscKeyPage extends WizardPage implements RegisterCallback, SummaryG
 			
 			public void run() {
 				if (success) {
-					infoLink.setText("Please paste the PSC you received by mail in the following text area and click the 'Next >' button...");
+					infoLink.setText("Please click on the link you received by mail and paste the generated PSC in the following text area and click the 'Next >' button...");
 				} else {
-					infoLink.setText("Some error occure during the online registration : " + message + "\n" +
+					infoLink.setText("Some error occure during the online registration: " + message + "\n" +
 							"Try to fix in the previous screen or register manually on " + RegistrationPage.registrationLink);
+					setErrorMessage("Error during the only registration!");
 				}
 				infoLink.getParent().layout();
 			}
@@ -191,7 +196,7 @@ public class PscKeyPage extends WizardPage implements RegisterCallback, SummaryG
 	}
 
 	public String getSummary() {
-		StringBuffer summary = new StringBuffer("PSC server configuration for :\n");
+		StringBuffer summary = new StringBuffer("PSC server configuration for:\n");
 		
 		int i = 0;
 		while (++i > 0) {

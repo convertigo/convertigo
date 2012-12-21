@@ -440,8 +440,9 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 				setControlsEnabled(isConnected);
 				setPageComplete(!isConnected);
 				notConnectedLink.setVisible(!isConnected);
-				((GridData) notConnectedLink.getLayoutData()).exclude = false;
+				((GridData) notConnectedLink.getLayoutData()).exclude = isConnected;
 				if (!isConnected) {
+					setErrorMessage("No Internet connection! Please check your proxy settings.");
 					msg = "Unable to connect to " + registrationLink + "\n" +
 							"Please go on it to request a PSC and press next. \n→ " + message;
 				} else {

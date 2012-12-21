@@ -35,7 +35,7 @@ public class WorkspaceCreationPage extends WizardPage implements SummaryGenerato
 	}
 
 	public String getSummary() {
-		return "Workspace creation in :\n" +
+		return "Workspace creation in:\n" +
 				"\t" + Engine.PROJECTS_PATH + "\n";
 	}
 }

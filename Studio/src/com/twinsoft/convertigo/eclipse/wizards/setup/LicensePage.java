@@ -67,7 +67,7 @@ public class LicensePage extends WizardPage implements SummaryGenerator {
 	}
 
 	public String getSummary() {
-		return "License :\n" +
+		return "License:\n" +
 				"\taccepted\n";
 	}
 }

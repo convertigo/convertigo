@@ -27,17 +27,17 @@ public class WorkspaceMigrationPage extends WizardPage  implements SummaryGenera
 		
 		Label label = new Label(container, SWT.WRAP);
 		label.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		label.setText("We detected that The workspace chosen is based on a previous version of Convertigo.\n" +
+		label.setText("We detected that the workspace chosen is based on a previous version of Convertigo.\n" +
 				"This workspace will be migrated to the new workspace format when this wizard finishes.\n\n" +
 				"If you do not want to migrate your workspace, end the wizard and re-launch the studio to choose a different workspace.\n\n\n" +
-				"We will migration the new convertigo workspace in :\n\n" +
+				"We will migration the new convertigo workspace in\n\n" +
 				Engine.PROJECTS_PATH);
 		
 		setControl(container);
 	}
 	
 	public String getSummary() {
-		return "Workspace migration in :\n" +
+		return "Workspace migration in:\n" +
 				"\t" + Engine.PROJECTS_PATH + "\n";
 	}
 }
