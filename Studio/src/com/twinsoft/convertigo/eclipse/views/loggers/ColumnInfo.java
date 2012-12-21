@@ -22,7 +22,7 @@
 
 package com.twinsoft.convertigo.eclipse.views.loggers;
 
-class ColumnInfo {
+class ColumnInfo implements Cloneable {
 	private String name;
 	
 	public String getName() {
@@ -39,28 +39,33 @@ class ColumnInfo {
 		return size;
 	}
 	
-	private boolean visibility;
+	private boolean bVisible;
 
-	public void setVisibility(boolean visibility) {
-		this.visibility = visibility;
+	public void setVisible(boolean bVisible) {
+		this.bVisible = bVisible;
 	}
 
 	public boolean isVisible() {
-		return visibility;
+		return bVisible;
 	}
 	
-	public ColumnInfo(String name, boolean visibility, int size) {
+	public ColumnInfo(String name, boolean bVisible, int size) {
 		this.name = name;
-		this.visibility = visibility;
+		this.bVisible = bVisible;
 		this.size = size;
 	}
 
-	public static ColumnInfo parse(String name, String params) {
-		String[] _params = params.split(",");
-		return new ColumnInfo(name, Boolean.parseBoolean(_params[0]), Integer.parseInt(_params[1]));
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		ColumnInfo columnInfo = (ColumnInfo) super.clone();
+		columnInfo.name = name;
+		columnInfo.size = size;
+		columnInfo.bVisible = bVisible;
+
+		return columnInfo;
 	}
 
 	public String toString() {
-		return visibility + "," + size;
+		return name + "=" + bVisible + "," + size;
 	}
 }
