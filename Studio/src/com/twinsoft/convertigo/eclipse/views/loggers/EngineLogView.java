@@ -39,8 +39,9 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
-import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -73,6 +74,9 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.RetargetAction;
 import org.eclipse.ui.part.ViewPart;
 
@@ -90,15 +94,19 @@ public class EngineLogView extends ViewPart {
 	private List<LogLine> logLines = new LinkedList<LogLine>();
 	private Appender appender;
 	private int counter = 0;
-	private boolean scrollLock = false;
 
-	private Action clearLogsAction, restoreDefaultsAction, selectColumnsAction;
-	private RetargetAction scrollLockAction, optionsAction, searchAction;
+	private boolean scrollLock = false;
+	private boolean activateOnNewEvents = true;
+	private ColumnInfo[] columnInfos = DEFAULT_COLUMN_INFOS.clone();
+	private int[] columnOrder = DEFAULT_COLUMN_ORDER.clone();
+	private int limitLogLines = MAX_LOG_LINES;
+	
+	private static final int MAX_LOG_LINES = 2000;
+
+	private Action activateOnNewEventsAction, clearLogsAction, restoreDefaultsAction, selectColumnsAction;
+	private RetargetAction scrollLockAction, optionsAction, searchAction, limitLogLinesAction;
 
 	private EngineLogViewLabelProvider labelProvider;
-
-	private static final String PREFS_COLUMN_INFOS = "EngineLogView.column_infos.";
-	private static final String PREFS_COLUMN_ORDER = "EngineLogView.column_order";
 
 	private static final ColumnInfo[] DEFAULT_COLUMN_INFOS = { new ColumnInfo("Time", true, 180),
 			new ColumnInfo("Message", true, 400), new ColumnInfo("Level", false, 50),
@@ -120,11 +128,7 @@ public class EngineLogView extends ViewPart {
 	private TableViewer tableViewer;
 	private int selectedColumnIndex;
 
-	private IPreferenceStore preferenceStore;
-
 	public EngineLogView() {
-		preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
-
 		labelProvider = new EngineLogViewLabelProvider();
 		appender = new AppenderSkeleton() {
 
@@ -142,6 +146,10 @@ public class EngineLogView extends ViewPart {
 				return false;
 			}
 		};
+
+		// Force first activation of the view
+		ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage()
+				.bringToTop(this);
 	}
 
 	@Override
@@ -155,13 +163,98 @@ public class EngineLogView extends ViewPart {
 			appender.notifyAll();
 		}
 
+		saveState(memento);
+
 		super.dispose();
+	}
+
+	/*
+	 * View state persistence
+	 */
+
+	private IMemento memento;
+
+	@Override
+	public void init(IViewSite site, IMemento memento) throws PartInitException {
+		super.init(site, memento);
+		this.memento = memento;
+	}
+
+	@Override
+	public void saveState(IMemento memento) {
+		// Scroll lock
+		memento.putBoolean("scrollLock", scrollLock);
+
+		// Limit log lines
+		memento.putInteger("limitLogLines", limitLogLines);
+
+		// Activate on new events
+		memento.putBoolean("activateOnNewEvents", activateOnNewEvents);
+
+		// Column order
+		memento.putString("columnOrder", Arrays.toString(tableViewer.getTable().getColumnOrder()));
+
+		// Column information
+		for (ColumnInfo columnInfo : columnInfos) {
+			IMemento columnInfoMemento = memento.createChild("columnInfo");
+			columnInfoMemento.putString("name", columnInfo.getName());
+			columnInfoMemento.putBoolean("visible", columnInfo.isVisible());
+			columnInfoMemento.putInteger("size", columnInfo.getSize());
+		}
+
+		super.saveState(memento);
+	}
+
+	private void restoreState() {
+		if (memento == null)
+			return;
+
+		// Scroll lock
+		Boolean bScrollLock = memento.getBoolean("scrollLock");
+		if (bScrollLock != null)
+			scrollLock = bScrollLock.booleanValue();
+
+		// Limit log lines
+		Integer iLimitLogLines = memento.getInteger("limitLogLines");
+		if (iLimitLogLines != null)
+			limitLogLines = iLimitLogLines.intValue();
+
+		// Activate on new events
+		Boolean bActivateOnNewEvents = memento.getBoolean("activateOnNewEvents");
+		if (bActivateOnNewEvents != null)
+			activateOnNewEvents = bActivateOnNewEvents.booleanValue();
+
+		// Column order
+		String columnOrderAsString = memento.getString("columnOrder");
+		if (columnOrderAsString != null) {
+			columnOrderAsString = columnOrderAsString.substring(1, columnOrderAsString.length() - 1);
+			String[] columnOrders = columnOrderAsString.split(",");
+			for (int i = 0; i < columnOrders.length; i++) {
+				String column = columnOrders[i].trim();
+				try {
+					columnOrder[i] = Integer.parseInt(column);
+				} catch (Exception e) {
+					// Silently ignore (use default column order)
+				}
+			}
+		}
+
+		// Column information
+		IMemento[] mementoColumnInfos = memento.getChildren("columnInfo");
+		int i = 0;
+		for (IMemento mementoColumnInfo : mementoColumnInfos) {
+			columnInfos[i] = new ColumnInfo(mementoColumnInfo.getString("name"),
+					mementoColumnInfo.getBoolean("visible"), mementoColumnInfo.getInteger("size"));
+			i++;
+		}
 	}
 
 	private Composite mainComposite;
 
 	@Override
 	public void createPartControl(Composite parent) {
+		restoreState();
+
 		mainComposite = parent;
 
 		GridLayout layout = new GridLayout(1, false);
@@ -181,6 +274,7 @@ public class EngineLogView extends ViewPart {
 
 		createActions();
 		createToolbar();
+		createMenu();
 
 		createLogViewThread();
 	}
@@ -207,22 +301,6 @@ public class EngineLogView extends ViewPart {
 		compositeOptions.setLayout(layout);
 		layout.marginWidth = 3;
 
-		// Button selectColumns = new Button(compositeOptions, SWT.NONE);
-		// selectColumns.setText("Selected columns");
-		// final Menu selectedColumnsMenu = new Menu(selectColumns);
-		// selectColumns.addSelectionListener(new SelectionAdapter() {
-		// @Override
-		// public void widgetSelected(SelectionEvent e) {
-		// // Position the menu below and vertically aligned with the
-		// // the drop down button.
-		// final Button button = (Button) e.widget;
-		//
-		// Point point = button.toDisplay(new Point(e.x, e.y));
-		// selectedColumnsMenu.setLocation(point.x, point.y);
-		// selectedColumnsMenu.setVisible(true);
-		// }
-		// });
-		//
 		Label label = new Label(compositeOptions, SWT.NONE);
 		label.setText("Filter");
 
@@ -281,6 +359,8 @@ public class EngineLogView extends ViewPart {
 
 		infoSearch = new Label(compositeSearch, SWT.NONE);
 		infoSearch.setVisible(false);
+		GridData data = (GridData) infoSearch.getLayoutData();
+		data.exclude = true;
 
 		previousSearch = new Button(compositeSearch, SWT.NONE);
 		previousSearch.setText(" < ");
@@ -291,7 +371,8 @@ public class EngineLogView extends ViewPart {
 		nextSearch.setEnabled(false);
 
 		searchText.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
 				applySearch();
 			}
 		});
@@ -313,28 +394,47 @@ public class EngineLogView extends ViewPart {
 	private ArrayList<Integer> foundIndexes = new ArrayList<Integer>();
 
 	private void applySearch() {
+		String searchedText = searchText.getText();
+		if ("".equals(searchedText)) {
+			nextSearch.setEnabled(false);
+			previousSearch.setEnabled(false);
+			infoSearch.setVisible(false);
+			GridData data = (GridData) infoSearch.getLayoutData();
+			data.exclude = true;
+			compositeSearch.layout();
+			return;
+		}
+		
 		foundIndexes.clear();
-		for (int i = 0; i < tableViewer.getTable().getItemCount(); i++) {
-			if (tableViewer.getTable().getItem(i).getText(0).contains(searchText.getText()))
+		Table table = tableViewer.getTable();
+		int nLines = table.getItemCount();
+		for (int i = 0; i < nLines; i++) {
+			String cellText = table.getItem(i).getText(1);
+			if (cellText.contains(searchedText))
 				foundIndexes.add(i);
 		}
-		if (foundIndexes.isEmpty())
+		
+		if (foundIndexes.isEmpty()) {
 			infoSearch.setText("0 / 0");
+		}
 		else {
-			infoSearch.setText((currentFoundIndex + 1) + "/" + foundIndexes.size());
-			// On the first match
+			int nFoundOccurrences = foundIndexes.size();
+			infoSearch.setText((currentFoundIndex + 1) + "/" + nFoundOccurrences);
 			tableViewer.getTable().setSelection(foundIndexes.get(currentFoundIndex));
 			tableViewer.getTable().setFocus();
-			nextSearch.setEnabled(true);
+			nextSearch.setEnabled(nFoundOccurrences > 1);
 		}
+		
 		infoSearch.setVisible(true);
+		GridData data = (GridData) infoSearch.getLayoutData();
+		data.exclude = false;
 		compositeSearch.layout();
 	}
 
 	private void searchInLogs(int side) {
 		currentFoundIndex += side;
 		tableViewer.getTable().setSelection(foundIndexes.get(currentFoundIndex));
-
+		
 		// Disable "second" if is the beginning
 		if (foundIndexes.get(currentFoundIndex) == foundIndexes.get(0))
 			previousSearch.setEnabled(false);
@@ -348,6 +448,9 @@ public class EngineLogView extends ViewPart {
 			nextSearch.setEnabled(true);
 		infoSearch.setText((currentFoundIndex + 1) + "/" + foundIndexes.size());
 		tableViewer.getTable().setFocus();
+
+		// To force components resizing if needed
+		compositeSearch.layout();
 	}
 
 	/*
@@ -433,57 +536,14 @@ public class EngineLogView extends ViewPart {
 	}
 
 	private ColumnInfo getColumnInfo(String columnName) {
-		String columnInfoAsString = preferenceStore.getString(PREFS_COLUMN_INFOS + columnName);
-		if ("".equals(columnInfoAsString)) {
-			// Searching for the default column info
-			for (ColumnInfo columnInfo : DEFAULT_COLUMN_INFOS) {
-				if (columnInfo.getName().equals(columnName)) {
-					return new ColumnInfo(columnInfo.getName(), columnInfo.isVisible(), columnInfo.getSize());
-				}
-			}
-
-			throw new NoSuchElementException("Column info for '" + columnName + "' not found");
-		} else {
-			return ColumnInfo.parse(columnName, columnInfoAsString);
-		}
-	}
-
-	private void setColumnSize(String columnName, int size) {
-		ColumnInfo columnInfo = getColumnInfo(columnName);
-		columnInfo.setSize(size);
-		preferenceStore.setValue(PREFS_COLUMN_INFOS + columnName, columnInfo.toString());
-	}
-
-	private void setColumnVisibility(String columnName, boolean visibility) {
-		ColumnInfo columnInfo = getColumnInfo(columnName);
-		columnInfo.setVisibility(visibility);
-		preferenceStore.setValue(PREFS_COLUMN_INFOS + columnName, columnInfo.toString());
-	}
-
-	private int[] getColumnOrder() {
-		String columnOrderAsString = preferenceStore.getString(PREFS_COLUMN_ORDER);
-		if ("".equals(columnOrderAsString)) {
-			return DEFAULT_COLUMN_ORDER;
-		} else {
-			try {
-				int[] columnOrder = DEFAULT_COLUMN_ORDER;
-				columnOrderAsString = columnOrderAsString.substring(1, columnOrderAsString.length() - 1);
-				String[] sp = columnOrderAsString.split(",");
-				int i = 0;
-				for (String co : sp) {
-					columnOrder[i] = Integer.parseInt(co.trim());
-					i++;
-				}
-				return columnOrder;
-			} catch (Exception e) {
-				return DEFAULT_COLUMN_ORDER;
+		// Searching for the default column info
+		for (ColumnInfo columnInfo : columnInfos) {
+			if (columnInfo.getName().equals(columnName)) {
+				return columnInfo;
 			}
 		}
-	}
 
-	private void setColumnOrder(int[] columnOrder) {
-		String s = Arrays.toString(columnOrder);
-		preferenceStore.setValue(PREFS_COLUMN_ORDER, s);
+		throw new NoSuchElementException("Column info for '" + columnName + "' not found");
 	}
 
 	private void createActions() {
@@ -513,7 +573,22 @@ public class EngineLogView extends ViewPart {
 		searchAction.setEnabled(true);
 		searchAction.setChecked(false);
 
-		restoreDefaultsAction = new Action("Restore To Default Parameters") {
+		limitLogLinesAction = new RetargetAction("Toggle", "Limit log lines to " + MAX_LOG_LINES, IAction.AS_CHECK_BOX) {
+			public void runWithEvent(Event event) {
+				if (limitLogLines > 0) {
+					limitLogLines = 0;
+					limitLogLinesAction.setChecked(false);
+				}
+				else {
+					limitLogLinesAction.setChecked(true);
+					limitLogLines = MAX_LOG_LINES;
+				}
+			}
+		};
+		limitLogLinesAction.setChecked(true);
+		limitLogLinesAction.setEnabled(true);
+
+		restoreDefaultsAction = new Action("Restore to default parameters") {
 			public void run() {
 				// Stop the current log thread
 				logViewThread = null;
@@ -525,10 +600,8 @@ public class EngineLogView extends ViewPart {
 				clearLogs();
 
 				// Clean all columns definition
-				for (ColumnInfo columnInfo : DEFAULT_COLUMN_INFOS) {
-					preferenceStore.setToDefault(PREFS_COLUMN_INFOS + columnInfo.getName());
-				}
-				preferenceStore.setToDefault(PREFS_COLUMN_ORDER);
+				columnInfos = DEFAULT_COLUMN_INFOS.clone();
+				columnOrder = DEFAULT_COLUMN_ORDER.clone();
 
 				compositeTableViewer.dispose();
 				createTableViewer(mainComposite);
@@ -540,8 +613,9 @@ public class EngineLogView extends ViewPart {
 		};
 		restoreDefaultsAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display
 				.getDefault(), getClass().getResourceAsStream("images/restore_defaults.png"))));
+		restoreDefaultsAction.setEnabled(true);
 
-		clearLogsAction = new Action("Clear Log Viewer") {
+		clearLogsAction = new Action("Clear log viewer") {
 			public void run() {
 				clearLogs();
 			}
@@ -549,15 +623,12 @@ public class EngineLogView extends ViewPart {
 		clearLogsAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display.getDefault(),
 				getClass().getResourceAsStream("images/clear_logs.png"))));
 
-		selectColumnsAction = new Action("Select Columns") {
+		selectColumnsAction = new Action("Select columns") {
 			public void run() {
 				Menu selectColumnsMenu = new Menu(mainComposite);
 
 				int i = 0;
-				for (ColumnInfo columnInfo : DEFAULT_COLUMN_INFOS) {
-					// Get the real column info
-					columnInfo = getColumnInfo(columnInfo.getName());
-
+				for (ColumnInfo columnInfo : columnInfos) {
 					final String columnName = columnInfo.getName();
 					MenuItem item = new MenuItem(selectColumnsMenu, SWT.CHECK);
 					item.setText(columnName);
@@ -569,7 +640,7 @@ public class EngineLogView extends ViewPart {
 					item.addSelectionListener(new SelectionAdapter() {
 						public void widgetSelected(SelectionEvent e) {
 							boolean bVisible = ((MenuItem) e.widget).getSelection();
-							setColumnVisibility(columnName, bVisible);
+							_columnInfo.setVisible(bVisible);
 
 							TableColumn column = tableViewer.getTable().getColumn(_i);
 							column.setResizable(bVisible);
@@ -586,13 +657,23 @@ public class EngineLogView extends ViewPart {
 		selectColumnsAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(
 				Display.getDefault(), getClass().getResourceAsStream("images/select_columns.png"))));
 
-		scrollLockAction = new RetargetAction("Toggle", "Scroll Lock", IAction.AS_CHECK_BOX) {
+		activateOnNewEventsAction = new RetargetAction("Toggle", "Activate on new events",
+				IAction.AS_CHECK_BOX) {
+			public void run() {
+				activateOnNewEvents = !activateOnNewEvents;
+			}
+		};
+		activateOnNewEventsAction.setChecked(activateOnNewEvents);
+		activateOnNewEventsAction.setEnabled(true);
+
+		scrollLockAction = new RetargetAction("Toggle", "Scroll lock", IAction.AS_CHECK_BOX) {
 			public void runWithEvent(Event event) {
 				scrollLock = !scrollLock;
 			}
 		};
 		scrollLockAction.setImageDescriptor(ImageDescriptor.createFromImage(new Image(Display.getDefault(),
 				getClass().getResourceAsStream("images/scroll_lock.png"))));
+		scrollLockAction.setChecked(scrollLock);
 		scrollLockAction.setEnabled(true);
 	}
 
@@ -607,10 +688,17 @@ public class EngineLogView extends ViewPart {
 		IToolBarManager manager = getViewSite().getActionBars().getToolBarManager();
 		manager.add(optionsAction);
 		manager.add(searchAction);
-		manager.add(selectColumnsAction);
-		manager.add(restoreDefaultsAction);
 		manager.add(clearLogsAction);
 		manager.add(scrollLockAction);
+	}
+
+	private void createMenu() {
+		IMenuManager manager = getViewSite().getActionBars().getMenuManager();
+		manager.add(selectColumnsAction);
+		manager.add(restoreDefaultsAction);
+		manager.add(new Separator());
+		manager.add(limitLogLinesAction);
+		manager.add(activateOnNewEventsAction);
 	}
 
 	private void handleContextualTableViewerMenuSelection(int i) {
@@ -620,8 +708,6 @@ public class EngineLogView extends ViewPart {
 		if (!compositeOptions.isVisible()) {
 			optionsAction.setChecked(true);
 			compositeOptions.setVisible(true);
-			GridData data = (GridData) compositeOptions.getLayoutData();
-			data.exclude = false;
 
 			mainComposite.layout(true);
 		}
@@ -691,20 +777,21 @@ public class EngineLogView extends ViewPart {
 	}
 
 	private String getSelectedCellText(String columnName, LogLine line) {
-		
+
 		Class<LogLine> logLineClass = GenericUtils.cast(line.getClass());
-		
+
 		Object result;
 		try {
 			Method getMethod = logLineClass.getMethod("get" + columnName);
 			result = getMethod.invoke(line);
-			
+
 			// Case of empty cell
-			if (result == null) result = "";
+			if (result == null)
+				result = "";
 		} catch (Exception e) {
 			return null;
 		}
-		
+
 		return (String) result;
 	}
 
@@ -770,14 +857,12 @@ public class EngineLogView extends ViewPart {
 			table.getColumns()[0].dispose();
 		}
 
-		for (ColumnInfo columnInfo : DEFAULT_COLUMN_INFOS) {
-			// Get the real column info
-			columnInfo = getColumnInfo(columnInfo.getName());
+		for (ColumnInfo columnInfo : columnInfos) {
 			createTableViewerColumn(columnInfo);
 		}
 
 		// Set the column saved order
-		table.setColumnOrder(getColumnOrder());
+		table.setColumnOrder(columnOrder);
 	}
 
 	private TableViewerColumn createTableViewerColumn(ColumnInfo columnInfo) {
@@ -798,12 +883,12 @@ public class EngineLogView extends ViewPart {
 				// Update column size only if the column is visible
 				if (columnInfo.isVisible()) {
 					TableColumn tableColumn = (TableColumn) event.getSource();
-					setColumnSize(columnName, tableColumn.getWidth());
+					columnInfo.setSize(tableColumn.getWidth());
 				}
 			}
 
 			public void controlMoved(ControlEvent arg0) {
-				setColumnOrder(tableViewer.getTable().getColumnOrder());
+				columnOrder = tableViewer.getTable().getColumnOrder();
 			}
 		});
 
@@ -819,6 +904,8 @@ public class EngineLogView extends ViewPart {
 	}
 
 	private void createLogViewThread() {
+		final ViewPart engineLogView = this;
+
 		logViewThread = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -846,12 +933,12 @@ public class EngineLogView extends ViewPart {
 									tableViewer.reveal(tableViewer.getElementAt(tableViewer.getTable()
 											.getItemCount() - 1));
 								}
+
+								if (activateOnNewEvents)
+									ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
+											.getActivePage().bringToTop(engineLogView);
 							}
 						});
-
-						// We must release some CPU time in order to allow
-						// the GUI to be refreshed
-						// Thread.sleep(500);
 					}
 				} catch (InterruptedException e) {
 					ConvertigoPlugin.logException(e, "The engine log viewer thread has been interrupted");
@@ -932,6 +1019,10 @@ public class EngineLogView extends ViewPart {
 							logLine.getString(2), logLine.getString(3), logLine.getString(4), extra, false,
 							counter, logLine.getString(4), allExtras));
 					counter++;
+				}
+				
+				while (limitLogLines > 0 && logLines.size() > limitLogLines) {
+					logLines.remove(0);
 				}
 			}
 		} catch (IOException e) {
