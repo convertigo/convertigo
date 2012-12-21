@@ -226,20 +226,19 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator {
 			proxyHost.setEnabled(false);
 			proxyPort.setEnabled(false);
 			proxyAutoConfUrl.setEnabled(true);
-			proxyUser.setEnabled(false);
-			proxyPassword.setEnabled(false);
-			proxyMethod.setEnabled(false);
+			proxyMethod.setEnabled(true);
 			bypassDomains.setEnabled(false);
 		} else {
 			proxyHost.setEnabled(false);
 			proxyPort.setEnabled(false);
 			proxyAutoConfUrl.setEnabled(false);
-			proxyUser.setEnabled(false);
-			proxyPassword.setEnabled(false);
 			proxyMethod.setEnabled(false);
 			bypassDomains.setEnabled(false);
-			proxyUser.setEnabled(false);
-			proxyPassword.setEnabled(false);
+		}
+		if (proxyMethod.isEnabled()) {
+			proxyMethod.notifyListeners(SWT.Selection, null);
+		} else {
+			enableComponents(ProxyMethod.anonymous);
 		}
 	}
 	
