@@ -73,7 +73,7 @@ public class JdbcConnectionManager implements AbstractManager {
 
 	private BasicDataSource addDatabasePool(SqlConnector connector) {
 		BasicDataSource pool = new BasicDataSource();
-		pool.setDriverClassName(connector.getJdbcDriverClassName());
+		pool.setDriverClassName(connector.getRealJdbcDriverClassName());
 		pool.setUrl(connector.getRealJdbcURL());
 		pool.setUsername(connector.getJdbcUserName());
 		pool.setPassword(connector.getJdbcUserPassword());
@@ -117,23 +117,24 @@ public class JdbcConnectionManager implements AbstractManager {
 		
 		String query = connector.getSystemTablesQuery();
 		if (query.equals("")) {
+			String jdbcDriverClassName = connector.getJdbcDriverClassName();
 			/* SQLSERVER (limit to 1 row)*/
-			if ("net.sourceforge.jtds.jdbc.Driver".equals(connector.getJdbcDriverClassName()))
+			if ("net.sourceforge.jtds.jdbc.Driver".equals(jdbcDriverClassName))
 				query = "SELECT TOP 1 * FROM INFORMATION_SCHEMA.TABLES";
 			/* MYSQL (limit to 1 row)*/
-			else if ("com.mysql.jdbc.Driver".equals(connector.getJdbcDriverClassName()))
+			else if ("com.mysql.jdbc.Driver".equals(jdbcDriverClassName))
 				query = "SELECT * FROM INFORMATION_SCHEMA.TABLES LIMIT 1";
 			/* HSQLDB (limit to 1 row)*/
-			else if ("org.hsqldb.jdbcDriver".equals(connector.getJdbcDriverClassName()))
+			else if ("org.hsqldb.jdbcDriver".equals(jdbcDriverClassName))
 				query = "SELECT TOP 1 * FROM INFORMATION_SCHEMA.SYSTEM_TABLES";
 			/* DB2 (limit to 1 row)*/
-			else if ("com.ibm.db2.jcc.DB2Driver".equals(connector.getJdbcDriverClassName()))
+			else if ("com.ibm.db2.jcc.DB2Driver".equals(jdbcDriverClassName))
 				query = "SELECT * FROM SYSCAT.TABLES FETCH FIRST 1 ROWS";
 			/* AS400 (limit to 1 row)*/
-			else if ("com.ibm.as400.access.AS400JDBCDriver".equals(connector.getJdbcDriverClassName()))
+			else if ("com.ibm.as400.access.AS400JDBCDriver".equals(jdbcDriverClassName))
 				query = "SELECT * FROM SYSIBM.SQLSCHEMAS FETCH FIRST 1 ROWS ONLY";
 			/* ORACLE (limit 1 row) */
-			else if ("oracle.jdbc.driver.OracleDriver".equals(connector.getJdbcDriverClassName()))
+			else if ("oracle.jdbc.driver.OracleDriver".equals(jdbcDriverClassName))
 				query = "SELECT * FROM ALL_TABLES WHERE ROWNUM <= 1";
 			/* Initialize the query by default with no limitation on returned resultset */
 			else
