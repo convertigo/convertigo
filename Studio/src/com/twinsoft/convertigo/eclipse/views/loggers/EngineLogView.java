@@ -359,8 +359,6 @@ public class EngineLogView extends ViewPart {
 
 		infoSearch = new Label(compositeSearch, SWT.NONE);
 		infoSearch.setVisible(false);
-		GridData data = (GridData) infoSearch.getLayoutData();
-		data.exclude = true;
 
 		previousSearch = new Button(compositeSearch, SWT.NONE);
 		previousSearch.setText(" < ");
