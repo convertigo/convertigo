@@ -36,7 +36,7 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator {
 	public ConfigureProxyPage(ProxyManager proxyManager) {
 		super("Configuration proxy");
 		setTitle("Proxy settings");
-		setDescription("This page configures the proxy settings. By default, no proxy is configured.");
+		setDescription("This page configures the proxy settings. A Proxy configuration will be needed to let Convertigo Studio access the Internet in order to run demos or to be able to connect to any web site or web service available on the Internet.");
 		this.proxyManager = proxyManager;
 	}
 	
@@ -226,20 +226,19 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator {
 			proxyHost.setEnabled(false);
 			proxyPort.setEnabled(false);
 			proxyAutoConfUrl.setEnabled(true);
-			proxyUser.setEnabled(false);
-			proxyPassword.setEnabled(false);
-			proxyMethod.setEnabled(false);
+			proxyMethod.setEnabled(true);
 			bypassDomains.setEnabled(false);
 		} else {
 			proxyHost.setEnabled(false);
 			proxyPort.setEnabled(false);
 			proxyAutoConfUrl.setEnabled(false);
-			proxyUser.setEnabled(false);
-			proxyPassword.setEnabled(false);
 			proxyMethod.setEnabled(false);
 			bypassDomains.setEnabled(false);
-			proxyUser.setEnabled(false);
-			proxyPassword.setEnabled(false);
+		}
+		if (proxyMethod.isEnabled()) {
+			proxyMethod.notifyListeners(SWT.Selection, null);
+		} else {
+			enableComponents(ProxyMethod.anonymous);
 		}
 	}
 	
