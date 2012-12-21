@@ -57,6 +57,9 @@ import com.twinsoft.util.StringEx;
 public class SqlConnector extends Connector {
 
 	private static final long serialVersionUID = -8541954462382010491L;
+	
+	public static final String mariadbDriver = "org.mariadb.jdbc.Driver";
+	public static final String mysqlDriver = "com.mysql.jdbc.Driver";
 
 	/** The database connection. */
 	transient public Connection connection = null;
@@ -64,6 +67,8 @@ public class SqlConnector extends Connector {
 	transient private boolean needReset = false;
 	
 	transient private String realJdbcURL = null;
+	
+	transient private String realJdbcDriver = null;
 	
 	/** Holds keys/values of driver/url. */
 	transient private Map<String, String> jdbc = new HashMap<String, String>();
@@ -173,6 +178,7 @@ public class SqlConnector extends Connector {
 		} else text = "Connected to the database";
 		
 		// Attempt to load the database driver
+		String jdbcDriverClassName = getRealJdbcDriverClassName();
 		Class.forName(jdbcDriverClassName);
 		Engine.logBeans.debug("(SqlConnector) JDBC driver loaded (" + jdbcDriverClassName + ")");
 		
@@ -305,6 +311,24 @@ public class SqlConnector extends Connector {
 		super.finalize();
 	}
 
+	public String getRealJdbcDriverClassName() {
+		if (realJdbcDriver == null) {
+			if (mysqlDriver.equals(jdbcDriverClassName)) {
+				try {
+					Class.forName(jdbcDriverClassName);
+				} catch (Throwable t) {
+					realJdbcDriver = mariadbDriver;
+					String message = t.getMessage();
+					message = message == null ? "" : (": " + message);
+					Engine.logBeans.warn("(SqlConnector) JDBC driver loads " + mariadbDriver + " instead of the missing " + mysqlDriver + "." +
+							" Caused by " + t.getClass().getSimpleName() + message);
+				}
+			} else {
+				realJdbcDriver = jdbcDriverClassName;
+			}
+		}
+		return realJdbcDriver;
+	}
 	/**
 	 * Getter for property jdbcDriverClassName
 	 * @return
@@ -318,6 +342,7 @@ public class SqlConnector extends Connector {
 	 * @param string
 	 */
 	public void setJdbcDriverClassName(String string) {
+		realJdbcDriver = null;
 		if (connection != null) needReset = true;
 		
 		String url = "";
