@@ -56,11 +56,8 @@ class ColumnInfo implements Cloneable {
 	}
 
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
-		ColumnInfo columnInfo = (ColumnInfo) super.clone();
-		columnInfo.name = name;
-		columnInfo.size = size;
-		columnInfo.bVisible = bVisible;
+	protected Object clone() {
+		ColumnInfo columnInfo = new ColumnInfo(name, bVisible, size);
 
 		return columnInfo;
 	}

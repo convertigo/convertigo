@@ -26,7 +26,9 @@ import java.util.HashMap;
 
 public class LogLine {
 	private String category;
+	private String date;
 	private String time;
+	private String deltaTime;
 	private String thread;
 	private String message;
 	private String extra;
@@ -36,10 +38,12 @@ public class LogLine {
 	private String fullMessage;
 	private HashMap<String, String> allExtras;
 	
-	public LogLine(String category, String time, String level, String thread, String message, String extra, boolean isSubLine, int counter, String fullMessage, HashMap<String, String> allExtras) {
+	public LogLine(String category, String date, String time, String deltaTime, String level, String thread, String message, String extra, boolean isSubLine, int counter, String fullMessage, HashMap<String, String> allExtras) {
 		super();
 		this.category = category;
+		this.date = date;
 		this.time = time;
+		this.deltaTime = deltaTime;
 		this.thread = thread;
 		this.message = message;
 		this.extra = extra;
@@ -54,8 +58,16 @@ public class LogLine {
 		return category;
 	}
 
+	public String getDate() {
+		return date;
+	}
+
 	public String getTime() {
 		return time;
+	}
+
+	public String getDeltaTime() {
+		return deltaTime;
 	}
 
 	public String getThread() {

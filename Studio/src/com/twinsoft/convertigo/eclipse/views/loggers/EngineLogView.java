@@ -24,6 +24,9 @@ package com.twinsoft.convertigo.eclipse.views.loggers;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -32,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Appender;
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.spi.LoggingEvent;
@@ -97,10 +101,10 @@ public class EngineLogView extends ViewPart {
 
 	private boolean scrollLock = false;
 	private boolean activateOnNewEvents = true;
-	private ColumnInfo[] columnInfos = DEFAULT_COLUMN_INFOS.clone();
+	private ColumnInfo[] columnInfos = EngineLogView.clone(DEFAULT_COLUMN_INFOS);
 	private int[] columnOrder = DEFAULT_COLUMN_ORDER.clone();
 	private int limitLogLines = MAX_LOG_LINES;
-	
+
 	private static final int MAX_LOG_LINES = 2000;
 
 	private Action activateOnNewEventsAction, clearLogsAction, restoreDefaultsAction, selectColumnsAction;
@@ -108,7 +112,8 @@ public class EngineLogView extends ViewPart {
 
 	private EngineLogViewLabelProvider labelProvider;
 
-	private static final ColumnInfo[] DEFAULT_COLUMN_INFOS = { new ColumnInfo("Time", true, 180),
+	private static final ColumnInfo[] DEFAULT_COLUMN_INFOS = { new ColumnInfo("Date", false, 80),
+			new ColumnInfo("Time", true, 90), new ColumnInfo("DeltaTime", true, 60),
 			new ColumnInfo("Message", true, 400), new ColumnInfo("Level", false, 50),
 			new ColumnInfo("Category", true, 80), new ColumnInfo("Thread", true, 180),
 			new ColumnInfo("Project", true, 70), new ColumnInfo("Connector", true, 70),
@@ -117,14 +122,24 @@ public class EngineLogView extends ViewPart {
 			new ColumnInfo("User", false, 50), new ColumnInfo("ClientIP", false, 50),
 			new ColumnInfo("ClientHostName", false, 50) };
 
-	private static final int[] DEFAULT_COLUMN_ORDER = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+	private static final int[] DEFAULT_COLUMN_ORDER = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
+	private static ColumnInfo[] clone(ColumnInfo[] array) {
+		ColumnInfo[] clonedArray = array.clone();
+		for(int i = 0; i < array.length; i++) {
+			clonedArray[i] = (ColumnInfo) array[i].clone();
+		}
+		
+		return clonedArray;
+	}
+	
 	private Menu tableMenu;
 	private MenuItem addVariableItem;
 
 	private Text filterText, searchText;
 	private Label infoSearch;
-
+	private boolean searchCaseSensitive = false;
+	
 	private TableViewer tableViewer;
 	private int selectedColumnIndex;
 
@@ -162,8 +177,6 @@ public class EngineLogView extends ViewPart {
 		synchronized (appender) {
 			appender.notifyAll();
 		}
-
-		saveState(memento);
 
 		super.dispose();
 	}
@@ -315,6 +328,27 @@ public class EngineLogView extends ViewPart {
 				setLogFilter();
 			}
 		});
+		
+		Button applyButton = new Button(compositeOptions, SWT.NONE);
+		applyButton.setText("Apply");
+		applyButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				clearLogs();
+				setLogFilter();
+			}
+		});
+		
+		Button clearButton = new Button(compositeOptions, SWT.NONE);
+		clearButton.setText("Clear");
+		clearButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				filterText.setText("");
+				clearLogs();
+				setLogFilter();
+			}
+		});
 	}
 
 	private void setLogFilter() {
@@ -344,7 +378,7 @@ public class EngineLogView extends ViewPart {
 		layoutData.exclude = true;
 		compositeSearch.setLayoutData(layoutData);
 
-		GridLayout layout = new GridLayout(5, false);
+		GridLayout layout = new GridLayout(8, false);
 		compositeSearch.setLayout(layout);
 		layout.marginWidth = 3;
 
@@ -357,17 +391,6 @@ public class EngineLogView extends ViewPart {
 		layoutData.grabExcessHorizontalSpace = true;
 		searchText.setLayoutData(layoutData);
 
-		infoSearch = new Label(compositeSearch, SWT.NONE);
-		infoSearch.setVisible(false);
-
-		previousSearch = new Button(compositeSearch, SWT.NONE);
-		previousSearch.setText(" < ");
-		previousSearch.setEnabled(false);
-
-		nextSearch = new Button(compositeSearch, SWT.NONE);
-		nextSearch.setText(" > ");
-		nextSearch.setEnabled(false);
-
 		searchText.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -375,15 +398,53 @@ public class EngineLogView extends ViewPart {
 			}
 		});
 
+		infoSearch = new Label(compositeSearch, SWT.NONE);
+		infoSearch.setVisible(false);
+
+		previousSearch = new Button(compositeSearch, SWT.NONE);
+		previousSearch.setText(" < ");
+		previousSearch.setEnabled(false);
+		previousSearch.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				searchInLogs(-1);
+			}
+		});
+
+		nextSearch = new Button(compositeSearch, SWT.NONE);
+		nextSearch.setText(" > ");
+		nextSearch.setEnabled(false);
 		nextSearch.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				searchInLogs(1);
 			}
 		});
 
-		previousSearch.addSelectionListener(new SelectionAdapter() {
+		Button checkCase = new Button(compositeSearch, SWT.CHECK);
+		checkCase.setText("Case sensitive");
+		checkCase.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
-				searchInLogs(-1);
+				searchCaseSensitive = ((Button) e.widget).getSelection();
+				applySearch();
+			}
+		});
+		
+		Button applyButton = new Button(compositeSearch, SWT.NONE);
+		applyButton.setText("Apply");
+		applyButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				applySearch();
+			}
+		});
+		
+		Button clearButton = new Button(compositeSearch, SWT.NONE);
+		clearButton.setText("Clear");
+		clearButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				searchText.setText("");
+				applySearch();
 			}
 		});
 	}
@@ -402,27 +463,36 @@ public class EngineLogView extends ViewPart {
 			compositeSearch.layout();
 			return;
 		}
-		
+
 		foundIndexes.clear();
 		Table table = tableViewer.getTable();
 		int nLines = table.getItemCount();
+
+		if (!searchCaseSensitive) {
+			searchedText = searchedText.toLowerCase();
+		}
+
 		for (int i = 0; i < nLines; i++) {
-			String cellText = table.getItem(i).getText(1);
+			String cellText = table.getItem(i).getText(3);
+			
+			if (!searchCaseSensitive) {
+				cellText = cellText.toLowerCase();
+			}
+			
 			if (cellText.contains(searchedText))
 				foundIndexes.add(i);
 		}
-		
+
 		if (foundIndexes.isEmpty()) {
 			infoSearch.setText("0 / 0");
-		}
-		else {
+		} else {
 			int nFoundOccurrences = foundIndexes.size();
 			infoSearch.setText((currentFoundIndex + 1) + "/" + nFoundOccurrences);
 			tableViewer.getTable().setSelection(foundIndexes.get(currentFoundIndex));
 			tableViewer.getTable().setFocus();
 			nextSearch.setEnabled(nFoundOccurrences > 1);
 		}
-		
+
 		infoSearch.setVisible(true);
 		GridData data = (GridData) infoSearch.getLayoutData();
 		data.exclude = false;
@@ -431,8 +501,11 @@ public class EngineLogView extends ViewPart {
 
 	private void searchInLogs(int side) {
 		currentFoundIndex += side;
-		tableViewer.getTable().setSelection(foundIndexes.get(currentFoundIndex));
+		Table table = tableViewer.getTable();
 		
+		table.setSelection(foundIndexes.get(currentFoundIndex));
+		table.setFocus();
+
 		// Disable "second" if is the beginning
 		if (foundIndexes.get(currentFoundIndex) == foundIndexes.get(0))
 			previousSearch.setEnabled(false);
@@ -444,8 +517,8 @@ public class EngineLogView extends ViewPart {
 			nextSearch.setEnabled(false);
 		else
 			nextSearch.setEnabled(true);
+		
 		infoSearch.setText((currentFoundIndex + 1) + "/" + foundIndexes.size());
-		tableViewer.getTable().setFocus();
 
 		// To force components resizing if needed
 		compositeSearch.layout();
@@ -571,13 +644,13 @@ public class EngineLogView extends ViewPart {
 		searchAction.setEnabled(true);
 		searchAction.setChecked(false);
 
-		limitLogLinesAction = new RetargetAction("Toggle", "Limit log lines to " + MAX_LOG_LINES, IAction.AS_CHECK_BOX) {
+		limitLogLinesAction = new RetargetAction("Toggle", "Limit log lines to " + MAX_LOG_LINES,
+				IAction.AS_CHECK_BOX) {
 			public void runWithEvent(Event event) {
 				if (limitLogLines > 0) {
 					limitLogLines = 0;
 					limitLogLinesAction.setChecked(false);
-				}
-				else {
+				} else {
 					limitLogLinesAction.setChecked(true);
 					limitLogLines = MAX_LOG_LINES;
 				}
@@ -598,7 +671,7 @@ public class EngineLogView extends ViewPart {
 				clearLogs();
 
 				// Clean all columns definition
-				columnInfos = DEFAULT_COLUMN_INFOS.clone();
+				columnInfos = EngineLogView.clone(DEFAULT_COLUMN_INFOS);
 				columnOrder = DEFAULT_COLUMN_ORDER.clone();
 
 				compositeTableViewer.dispose();
@@ -627,7 +700,7 @@ public class EngineLogView extends ViewPart {
 
 				int i = 0;
 				for (ColumnInfo columnInfo : columnInfos) {
-					final String columnName = columnInfo.getName();
+					String columnName = columnInfo.getName();
 					MenuItem item = new MenuItem(selectColumnsMenu, SWT.CHECK);
 					item.setText(columnName);
 					item.setSelection(columnInfo.isVisible());
@@ -706,6 +779,8 @@ public class EngineLogView extends ViewPart {
 		if (!compositeOptions.isVisible()) {
 			optionsAction.setChecked(true);
 			compositeOptions.setVisible(true);
+			GridData data = (GridData) compositeOptions.getLayoutData();
+			data.exclude = false;
 
 			mainComposite.layout(true);
 		}
@@ -878,11 +953,8 @@ public class EngineLogView extends ViewPart {
 				// Get the current column info
 				ColumnInfo columnInfo = getColumnInfo(columnName);
 
-				// Update column size only if the column is visible
-				if (columnInfo.isVisible()) {
-					TableColumn tableColumn = (TableColumn) event.getSource();
-					columnInfo.setSize(tableColumn.getWidth());
-				}
+				TableColumn tableColumn = (TableColumn) event.getSource();
+				columnInfo.setSize(tableColumn.getWidth());
 			}
 
 			public void controlMoved(ControlEvent arg0) {
@@ -948,6 +1020,8 @@ public class EngineLogView extends ViewPart {
 		logViewThread.start();
 	}
 
+	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,S");
+	
 	private boolean getLogs() {
 		try {
 			JSONArray logs = logManager.getLines();
@@ -971,8 +1045,42 @@ public class EngineLogView extends ViewPart {
 			List<String> extraList = new LinkedList<String>();
 			List<String> messageList = new LinkedList<String>();
 			HashMap<String, String> allExtras = new HashMap<String, String>();
+			
 			for (int i = 0; i < logs.length(); i++) {
 				JSONArray logLine = (JSONArray) logs.get(i);
+				
+				String dateTime = logLine.getString(1);
+				String[] dateTimeParts = dateTime.split(" ");
+				String date = dateTimeParts[0];
+				String time = dateTimeParts[1];
+
+				String deltaTime;
+				
+				if (logLines.size() == 0) {
+					deltaTime = "--";
+				}
+				else {
+					try {
+						LogLine lastLine = logLines.get(logLines.size() - 1);
+						String sLastDate = lastLine.getDate() + " " + lastLine.getTime();
+						long lastDate = DATE_FORMAT.parse(sLastDate).getTime();
+						long currentDate = DATE_FORMAT.parse(dateTime).getTime();
+						
+						long delta = currentDate - lastDate;
+						if (delta < 1000) {
+							deltaTime = StringUtils.leftPad(delta + " ms", 8);
+						}
+						else if (delta < 10000) {
+							deltaTime = StringUtils.leftPad(Math.floor(delta / 10.0) / 100.0 + " s ", 8);
+						}
+						else {
+							deltaTime = StringUtils.leftPad((int) Math.floor(delta / 1000.0) + " s ", 8);
+						}
+					} catch (ParseException e) {
+						deltaTime = "n/a";
+					}
+				}
+
 				String extract, extra = "";
 				extraList.clear();
 				messageList.clear();
@@ -994,18 +1102,20 @@ public class EngineLogView extends ViewPart {
 					}
 				}
 				message = logLine.getString(4);
+
 				if (message.contains("\n")) {
 					if (messageList.size() > extraList.size()) {
 						boolean subLine = false;
 						for (int k = 0; k < messageList.size(); k++) {
 							if (k > 0)
 								subLine = true;
+
 							if (k < extraList.size() && extraList.size() != 0) {
-								logLines.add(new LogLine(logLine.getString(0), logLine.getString(1), logLine
+								logLines.add(new LogLine(logLine.getString(0), date, time, deltaTime, logLine
 										.getString(2), logLine.getString(3), messageList.get(k), extraList
 										.get(k), subLine, counter, logLine.getString(4), allExtras));
 							} else {
-								logLines.add(new LogLine(logLine.getString(0), logLine.getString(1), logLine
+								logLines.add(new LogLine(logLine.getString(0), date, time, deltaTime, logLine
 										.getString(2), logLine.getString(3), messageList.get(k), " ",
 										subLine, counter, logLine.getString(4), allExtras));
 							}
@@ -1013,12 +1123,12 @@ public class EngineLogView extends ViewPart {
 						counter++;
 					}
 				} else {
-					logLines.add(new LogLine(logLine.getString(0), logLine.getString(1),
-							logLine.getString(2), logLine.getString(3), logLine.getString(4), extra, false,
-							counter, logLine.getString(4), allExtras));
+					logLines.add(new LogLine(logLine.getString(0), date, time, deltaTime, logLine
+							.getString(2), logLine.getString(3), logLine.getString(4), extra, false, counter,
+							logLine.getString(4), allExtras));
 					counter++;
 				}
-				
+
 				while (limitLogLines > 0 && logLines.size() > limitLogLines) {
 					logLines.remove(0);
 				}
