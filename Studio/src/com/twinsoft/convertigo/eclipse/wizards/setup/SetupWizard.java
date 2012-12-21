@@ -111,7 +111,7 @@ public class SetupWizard extends Wizard {
 			proxyManager = new ProxyManager();
 			proxyManager.init();
 		} catch (EngineException e) {
-			ConvertigoPlugin.logInfo("Unexpected EngineException : " + e.getMessage());
+			ConvertigoPlugin.logInfo("Unexpected EngineException: " + e.getMessage());
 		}
 		
 		configureProxyPage = new ConfigureProxyPage(proxyManager);
@@ -148,40 +148,40 @@ public class SetupWizard extends Wizard {
 			for (File file : eclipseWorkspace.listFiles()) {
 				if (!file.getName().equals(".metadata")) {
 					try {
-						ConvertigoPlugin.logInfo("Migration in progress : moving " + file.getName() + " …");
+						ConvertigoPlugin.logInfo("Migration in progress: moving " + file.getName() + " …");
 						FileUtils.moveToDirectory(file, userWorkspace, false);
 					} catch (IOException e) {
 						projectsMoveFailed = projectsMoveFailed || file.getName().equals("projects");
-						ConvertigoPlugin.logInfo("Migration in progress : failed to move " + file.getName() + " ! (" + e.getMessage() + ")");
+						ConvertigoPlugin.logInfo("Migration in progress: failed to move " + file.getName() + " ! (" + e.getMessage() + ")");
 					}
 				}
 			}
 
 			if (!projectsMoveFailed) {
-				ConvertigoPlugin.logInfo("Migration in progress : move move back CEMS projects to the Eclipse workspace …");
+				ConvertigoPlugin.logInfo("Migration in progress: move move back CEMS projects to the Eclipse workspace …");
 				File exMetadata = new File(userWorkspace, "projects/.metadata");
 				try {
 					FileUtils.copyDirectoryToDirectory(exMetadata, eclipseWorkspace);
 					FileUtils.deleteQuietly(exMetadata);
 				} catch (IOException e1) {
-					ConvertigoPlugin.logInfo("Migration in progress : failed to merge .metadata ! (" + e1.getMessage() + ")");
+					ConvertigoPlugin.logInfo("Migration in progress: failed to merge .metadata ! (" + e1.getMessage() + ")");
 				}
 
 				for (File file : new File(userWorkspace, "projects").listFiles()) {
 					try {
-						ConvertigoPlugin.logInfo("Migration in progress : moving the file " + file.getName() + " into the Eclipse Workspace …");
+						ConvertigoPlugin.logInfo("Migration in progress: moving the file " + file.getName() + " into the Eclipse Workspace …");
 						FileUtils.moveToDirectory(file, eclipseWorkspace, false);
 					} catch (IOException e) {
-						ConvertigoPlugin.logInfo("Migration in progress : failed to move " + file.getName() + " ! (" + e.getMessage() + ")");
+						ConvertigoPlugin.logInfo("Migration in progress: failed to move " + file.getName() + " ! (" + e.getMessage() + ")");
 					}
 				}
 
 				ConvertigoPlugin.logInfo("Migration of workspace done !\n" +
-						"Migration of the folder : " + eclipseWorkspace.getAbsolutePath() + "\n" +
-						"Eclipse Workspace with your CEMS projects : " + eclipseWorkspace.getAbsolutePath() + "\n" +
-						"Convertigo Workspace with your CEMS configuration : " + userWorkspace.getAbsolutePath());
+						"Migration of the folder: " + eclipseWorkspace.getAbsolutePath() + "\n" +
+						"Eclipse Workspace with your CEMS projects: " + eclipseWorkspace.getAbsolutePath() + "\n" +
+						"Convertigo Workspace with your CEMS configuration: " + userWorkspace.getAbsolutePath());
 			} else {
-				ConvertigoPlugin.logInfo("Migration incomplet : cannot move back CEMS projects to the Eclipse workspace !");
+				ConvertigoPlugin.logInfo("Migration incomplet: cannot move back CEMS projects to the Eclipse workspace !");
 			}
 		}
 		
@@ -189,7 +189,7 @@ public class SetupWizard extends Wizard {
 		try {
 			FileUtils.writeStringToFile(pscFile, pscKeyPage.getCertificateKey(), "utf-8");
 		} catch (IOException e) {
-			ConvertigoPlugin.logError("Failed to write the PSC file : " + e.getMessage());
+			ConvertigoPlugin.logError("Failed to write the PSC file: " + e.getMessage());
 		}
 		
 		EnginePropertiesManager.unload();
@@ -248,14 +248,14 @@ public class SetupWizard extends Wizard {
 							isConnected = true;
 							message = "You are currently online";
 						} else {
-							message = "Bad response : HTTP status " + statusCode;
+							message = "Bad response: HTTP status " + statusCode;
 						}
 					} catch (HttpException e) {
-						message = "HTTP failure : " + e.getMessage();
+						message = "HTTP failure: " + e.getMessage();
 					} catch (IOException e) {
-						message = "IO failure : " + e.getMessage();
+						message = "IO failure: " + e.getMessage();
 					} catch (Exception e) {
-						message = "Generic failure : " + e.getClass().getSimpleName() + ", " + e.getMessage();
+						message = "Generic failure: " + e.getClass().getSimpleName() + ", " + e.getMessage();
 					}
 					
 					callback.onCheckConnected(isConnected, message);
@@ -316,17 +316,17 @@ public class SetupWizard extends Wizard {
 									Node nodeDetails = nd.item(Integer.parseInt(errorCode));
 									
 									ConvertigoPlugin.logError(nodeDetails.getTextContent());
-									message = "Failed to register : " + nodeDetails.getTextContent();
+									message = "Failed to register: " + nodeDetails.getTextContent();
 								}
 							} else {
 								success = true;
 								message = "debug";
 							}
 						} else {
-							message = "Unexpected HTTP status : " + statusCode;
+							message = "Unexpected HTTP status: " + statusCode;
 						}					
 					} catch (Exception e) {
-						message = "Generic failure : " + e.getClass().getSimpleName() + ", " + e.getMessage();
+						message = "Generic failure: " + e.getClass().getSimpleName() + ", " + e.getMessage();
 						ConvertigoPlugin.logException(e, "Error while trying to send registration");
 					}
 					callback.onRegister(success, message);

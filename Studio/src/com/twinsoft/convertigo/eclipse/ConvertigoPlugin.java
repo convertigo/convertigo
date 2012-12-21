@@ -666,7 +666,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				
 				public void run() {
 					try {
-						boolean success = false || SetupAction.runSetup();
+						boolean success = SetupAction.runSetup();
 						if (success) {
 							Engine.isStartFailed = false;
 							new Thread(afterPscOk, "Start embedded Tomcat").start();

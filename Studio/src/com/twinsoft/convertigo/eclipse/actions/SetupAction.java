@@ -50,10 +50,14 @@ public class SetupAction implements IWorkbenchWindowActionDelegate {
 			protected void configureShell(Shell shell) {
 				super.configureShell(shell);
 				shell.setSize(730, 700);
+				setReturnCode(WizardDialog.CANCEL);
 			}
 			
 		};
-		return wizardDialog.open() != WizardDialog.CANCEL;
+		
+		int ret = wizardDialog.open(); 
+		
+		return ret == WizardDialog.OK;
 	}
 
 	public void dispose() {

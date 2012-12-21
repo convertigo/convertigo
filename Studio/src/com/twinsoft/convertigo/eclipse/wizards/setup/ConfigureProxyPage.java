@@ -285,18 +285,18 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator {
 	}
 
 	public String getSummary() {
-		return "Proxy configuration :\n" +
-				"\tmode : " + proxyMode.getText() + "\n" +
+		return "Proxy configuration:\n" +
+				"\tmode: " + proxyMode.getText() + "\n" +
 				(proxyManager.proxyMode == ProxyMode.auto ? (
-					"\tpac url : " + proxyAutoConfUrl.getText() + "\n"
-				) : (
+					"\tpac url: " + proxyAutoConfUrl.getText() + "\n"
+				): (
 				proxyManager.proxyMode == ProxyMode.manual ? (
-					"\thost : " + proxyHost.getText() + "\n" +
-					"\tport : " + proxyPort.getText() + "\n" +
-					"\tbypass domain : " + bypassDomains.getText() + "\n" +
+					"\thost: " + proxyHost.getText() + "\n" +
+					"\tport: " + proxyPort.getText() + "\n" +
+					"\tbypass domain: " + bypassDomains.getText() + "\n" +
 					(proxyManager.proxyMethod != ProxyMethod.anonymous ? (
-						"\tuser : " + proxyUser.getText() + "\n" +
-						"\tpassword : *****\n"
+						"\tuser: " + proxyUser.getText() + "\n" +
+						"\tpassword: *****\n"
 					) : "")) : ""));
 	}
 }
