@@ -48,7 +48,7 @@ public class ProjectVersionUpdateDialogComposite extends MyAbstractDialogComposi
 		
 		Label label = new Label (this, SWT.NONE);
 		label.setText("You can update the version of your project before export or deployment.\n" +
-				"If you wish, please change the value below :");
+				"If you wish to, please change the value below :");
 		label.setLayoutData(labelData);
 		
 		GridData textData = new GridData ();

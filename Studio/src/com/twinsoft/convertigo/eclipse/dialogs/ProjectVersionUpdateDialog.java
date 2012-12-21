@@ -65,7 +65,9 @@ public class ProjectVersionUpdateDialog extends Dialog {
 	@Override
 	protected Control createButtonBar(Composite parent) {
 		Control buttonBar =  super.createButtonBar(parent);
+		getButton(IDialogConstants.OK_ID).setText("Update");
 		getButton(IDialogConstants.OK_ID).setEnabled(false);
+		getButton(IDialogConstants.CANCEL_ID).setText("Do not update");
 		return buttonBar;
 	}
 	
