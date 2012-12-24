@@ -149,6 +149,14 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
     public static final String PREFERENCE_TRACEPLAYER_PORT = "traceplayer.port";
     public static final String PREFERENCE_IGNORE_NEWS = "news.ignore";
     
+    public static Display getDisplay() {
+        Display display = Display.getCurrent();
+        //may be null if outside the UI thread
+        if (display == null)
+           display = Display.getDefault();
+        return display;		
+    }
+    
     public static class PscException extends Exception {
 		private static final long serialVersionUID = -3828463232797723301L;
 
@@ -263,7 +271,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}
 
 	private static void messageBoxWithoutReturnCode(final String message, int options) {
-		Display display = Display.getCurrent();
+		Display display = getDisplay();
 		display.asyncExec(new Runnable() {
 			public void run() {
 				try {
@@ -278,7 +286,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 	private static int messageBox(String message, int options) {
 		try {
-			Display display = Display.getCurrent();
+			Display display = getDisplay();
 			Shell shell = display.getActiveShell();
 	    	MessageBox messageBox = new MessageBox(shell, options);
 	    	messageBox.setText("Convertigo");
@@ -296,7 +304,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public static void projectDeployErrorDialog(String message, String stackTrace) {
 		final String errorMessage = message;
 		final String causeStackTrace = stackTrace;
-		final Display display = Display.getDefault();
+		final Display display = getDisplay();
 		
 		display.asyncExec(new Runnable() {
 			
@@ -328,7 +336,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	private Button checkBox, closeButton;
 
 	private void displayWaitScreen() {
-		final Display display = Display.getDefault();
+		final Display display = getDisplay();
 		
 		display.asyncExec(new Runnable() {
 			public void run() {
@@ -661,7 +669,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		} catch (PscException e) {
 			studioLog.message("No valid PSC, the Engine will start after the registration wizard.\nFailure message : " + e.getMessage());
 			Engine.isStartFailed = true;
-			Display display = Display.getDefault();
+			Display display = getDisplay();
 			display.asyncExec(new Runnable() {
 				
 				public void run() {
@@ -854,7 +862,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
     public synchronized Image getStudioIcon(String iconPath) throws IOException {
     	Image image = icons.get(iconPath);
     	if (image == null) {
-    		icons.put(iconPath, image = new Image(Display.getCurrent(), FileLocator.find(getBundle(), new Path(iconPath), null).openStream()));
+    		icons.put(iconPath, image = new Image(getDisplay(), FileLocator.find(getBundle(), new Path(iconPath), null).openStream()));
     	}
     	return image;
     }
@@ -879,7 +887,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
         		iconName = "/com/twinsoft/convertigo/beans/core/images/default_color_32x32.png";
         	}
         	
-			Device device = Display.getCurrent();
+			Device device = getDisplay();
 			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
 			if (inputStream != null)
 				beanIcon = new Image(device, inputStream);
@@ -943,7 +951,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
         if (beanIcon == null) {
         	ConvertigoPlugin.studioLog.debug("Getting default icon: " + iconBaseName + iconType);
         	String iconName = "/com/twinsoft/convertigo/beans/core/images/"+ iconBaseName + iconType;
-			Device device = Display.getCurrent();
+			Device device = getDisplay();
 			InputStream inputStream = ConvertigoPlugin.class.getResourceAsStream(iconName);
 			beanIcon = new Image(device, inputStream);
             icons.put(iconBaseName + iconType, beanIcon);
