@@ -313,9 +313,10 @@ public class SqlConnector extends Connector {
 
 	public String getRealJdbcDriverClassName() {
 		if (realJdbcDriver == null) {
-			if (mysqlDriver.equals(jdbcDriverClassName)) {
+			realJdbcDriver = jdbcDriverClassName;
+			if (mysqlDriver.equals(realJdbcDriver)) {
 				try {
-					Class.forName(jdbcDriverClassName);
+					Class.forName(realJdbcDriver);
 				} catch (Throwable t) {
 					try {
 						Class.forName("java.sql.NClob");
@@ -328,8 +329,6 @@ public class SqlConnector extends Connector {
 						// Maria DB driver needs java.sql.NClob (java 1.6)
 					}
 				}
-			} else {
-				realJdbcDriver = jdbcDriverClassName;
 			}
 		}
 		return realJdbcDriver;
