@@ -1150,7 +1150,7 @@ table.ui-pg-table {
 	background: #fff 0 0;
 	-background: #666;
     margin: 10px;
-    width: 650px;
+   /* width: 650px;*/
 }
 
 /* accordion header */
@@ -1166,6 +1166,86 @@ table.ui-pg-table {
 	-webkit-border-radius: 10px 10px 0px 0px/ 10px 10px 0px 0px;
 	-khtml-border-radius: 10px 10px 0px 0px/ 10px 10px 0px 0px;
 	background: #f3f2f1 0 0;
+}
+
+/* list category  */
+.ui-widget-content {
+	border:0;
+}
+.ui-tabs-vertical { 
+	width: 970px; 
+}
+.ui-tabs-vertical .ui-tabs-nav { 
+	margin:0;
+	padding:0;
+	list-style: none;
+	padding: .2em .1em .2em .2em; 
+	float: left; 
+	width: 320px; 
+}
+.ui-tabs-vertical .ui-tabs-nav li { 
+	clear: left; 
+	width: 100%; 
+	border-bottom-width: 1px !important; 
+	border-right-width: 0 !important; 
+	margin: 0 -1px .2em 0; 
+}
+.ui-tabs-vertical .ui-tabs-nav li a { 
+	display:block;
+	width:80%; 
+}
+.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active { 
+	margin: 0 -1px .2em 0;
+	padding-bottom: 0; 
+	padding-right: .1em; 
+	border-right-width: 1px; 
+	border-right-width: 1px; 
+}
+.ui-tabs-vertical .ui-tabs-panel { 
+	padding: 0em; 
+	float: right;
+}
+
+/* list category bouton tabs */
+li.ui-state-default, .ui-widget-content li.ui-state-default, .ui-widget-header li.ui-state-default {
+	border: 0px solid #DDD;
+	background: #F3F2F1;
+	font-weight: bold;
+	color: #727272;
+}
+li.ui-state-active, .ui-widget-content li.ui-state-active, .ui-widget-header li.ui-state-active {
+	border: 0px solid #EEE;
+	background: #dfdfdf url("../images/icon_arrow_grey.png") no-repeat 14px 12px;
+	font-weight: bold;
+	color: #00A478;
+}
+li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui-state-hover {
+	border: 0px solid #EEE;
+	background: #dfdfdf url("../images/icon_arrow_grey.png") no-repeat 14px 12px;
+	font-weight: bold;
+	color: #00A478;
+}
+.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited {
+	color: #727272;
+	text-decoration: none;
+}
+.ui-tabs .ui-tabs-nav li.ui-tabs-active a, .ui-tabs .ui-tabs-nav li.ui-state-hover a {
+	cursor: pointer;
+	padding-left:28px;
+}
+.config-accordion > ul > li {
+	list-style: none;
+	margin: 0 10px 0 0;
+	padding: 5px 10px;
+	font-size: 14px;
+	font-weight: bold;
+	border: 1px solid #fff;
+	border-bottom: 1px solid #ddd;
+	cursor: pointer;
+	-moz-border-radius: 10px 10px 10px 10px/ 10px 10px 10px 10px;
+	-webkit-border-radius: 10px 10px 10px 10px/ 10px 10px 10px 10px;
+	-khtml-border-radius: 10px 10px 10px 10px/ 10px 10px 10px 10px;
+	background-color: #f3f2f1;
 }
 
 /* currently active header */
@@ -1186,10 +1266,10 @@ table.ui-pg-table {
 .config-accordion .config-pane {
 	border: 1px solid #f3f2f1;
 	border-width: 0;
-	display: none;
+	/*display: none;*/
 	color: #fff;
 	font-size: 12px;
-	padding: 10px;
+	padding: 2px;
 }
 
 /* a title inside pane */
@@ -1228,6 +1308,7 @@ table.ui-pg-table {
 
 .config-accordion-mainTable,.config-accordion-advancedTable {
 	border-spacing: 10px;
+	margin-bottom: 10px;
 }
 
 .config-accordion-advanced-properties {
