@@ -63,7 +63,7 @@ public class GetNodesStatement extends XpathableStatement {
 		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
 				HtmlConnector htmlConnector = getConnector();
-				Document xmlDocument = htmlConnector.getCurrentXmlDocument();
+				Document xmlDocument = htmlConnector.getHtmlParser().getDom(htmlConnector.context);
 				TwsCachedXPathAPI xpathApi = htmlConnector.context.getXpathApi();
 				
 				if ((xmlDocument == null) || (xpathApi == null)) {
