@@ -317,11 +317,16 @@ public class SqlConnector extends Connector {
 				try {
 					Class.forName(jdbcDriverClassName);
 				} catch (Throwable t) {
-					realJdbcDriver = mariadbDriver;
-					String message = t.getMessage();
-					message = message == null ? "" : (": " + message);
-					Engine.logBeans.warn("(SqlConnector) JDBC driver loads " + mariadbDriver + " instead of the missing " + mysqlDriver + "." +
-							" Caused by " + t.getClass().getSimpleName() + message);
+					try {
+						Class.forName("java.sql.NClob");
+						realJdbcDriver = mariadbDriver;
+						String message = t.getMessage();
+						message = message == null ? "" : (": " + message);
+						Engine.logBeans.warn("(SqlConnector) JDBC driver loads " + mariadbDriver + " instead of the missing " + mysqlDriver + "." +
+								" Caused by " + t.getClass().getSimpleName() + message);
+					} catch (ClassNotFoundException e) {
+						// Maria DB driver needs java.sql.NClob (java 1.6)
+					}
 				}
 			} else {
 				realJdbcDriver = jdbcDriverClassName;
