@@ -14,10 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * $URL: http://sourceus/svn/convertigo/CEMS_opensource/branches/6.2.x/Studio/tomcat/webapps/convertigo/admin/widgets/configuration_List.js $
+ * $Author: laetitiam $
+ * $Revision: 33134 $
+ * $Date: 2012-12-26 15:22:44 +0100 (mer., 26 déc. 2012) $
  */
 
 var propertyMap = {};
@@ -42,6 +42,7 @@ function configuration_List_init () {
 	});
 
 	var $template = $("#config-template");
+	var $ul = $("<ul/>").attr("id","config-category-list");
 	callService("configuration.List", function (xml) {
 		$(xml).find("category").each(function () {
 			var $x_category = $(this);
@@ -53,8 +54,13 @@ function configuration_List_init () {
 				$category.find(".config-pane>button").remove();
 			}
 			
-			$category.find(".config-category-title:first").text($x_category.attr("displayName"));
-			
+			$category.attr("id","tab-" + $x_category.attr("name"));			
+			//$category.find(".config-category-title:first").text($x_category.attr("displayName"));
+			$ul.append(
+					$("<li/>").append(
+							$("<a/>").attr("href","#tab-" + $x_category.attr("name")).text($x_category.attr("displayName"))
+					)
+			);
 			$x_category.find(">property").each(function () {
 				var $x_property = $(this);
 				var id = "config_key_" + $x_property.attr("name");
@@ -112,15 +118,20 @@ function configuration_List_init () {
 					$category_advanced.append($property);
 				}
 			});
-			
+		
 			$("#configAccordion").append($category);
-			
+			$("#configAccordion").append($ul);
 			
 		});
 
-		$(".config-category-title, .config-toggle-advanced-properties").click(function () {
+		$( "#configAccordion" ).tabs().addClass( "ui-tabs-vertical ui-helper-clearfix" );
+		$( "#configAccordion ul" ).removeClass( "ui-corner-all ui-widget-header");
+	    $( "#configAccordion li" ).removeClass( "ui-corner-top" ).addClass( "ui-corner-left" );
+		
+		
+		$(".config-toggle-advanced-properties").click(function () {
 			$(this).next().slideToggle("slow");
-		}).first(".config-category-title").click();
+		}).first(".config-category");
 
 		$("input.config-text, input.config-password").keyup(function () {
 			$(".config-update").button("enable");			
