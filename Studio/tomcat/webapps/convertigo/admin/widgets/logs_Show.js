@@ -43,6 +43,8 @@ var lineFormatMaxNbChars = 90;
 var lineFormatDeltaChars = 10;
 var previousTimestamp = 0;
 
+var latestLogJqXHR;
+
 var purgeDates = [];
 
 function logs_Show_init(options) {	
@@ -101,7 +103,6 @@ function logs_Show_init(options) {
 	
 	$logDivTable.scroll(onLogDivTableScroll);
 	
-	$("#logOptionsRealTimeAutoScroll").attr("disabled", "disabled");
 	$("#logOptionsRealTime").click(onLogOptionsRealTimeClick);
 	$("#logOptionsUpdate").click(onLogOptionsUpdateClick);
 	$("#logOptionsRealTimeAutoScroll").click(onLogOptionsRealTimeAutoScrollClick);
@@ -212,7 +213,9 @@ function onLogOptionsRealTimeClick() {
 	bRealTime = this.checked;
 	$("#logOptionsDivDate").fadeToggle();
 	if (bRealTime) {
-		$("#logOptionsRealTimeAutoScroll").button("enable");
+		$("#logOptionsRealTimeAutoScroll").button("enable").attr("checked", "checked").button("refresh");
+		onLogOptionsRealTimeAutoScrollClick();
+		
 		$("#logOptionsUpdate").button("disable");
 		$("#logOptionsGoToEnd").button("disable");
 		$logTableBody.empty();
@@ -220,7 +223,7 @@ function onLogOptionsRealTimeClick() {
 		getLines();
 	}
 	else {
-		$("#logOptionsRealTimeAutoScroll").button("disable");
+		$("#logOptionsRealTimeAutoScroll").button("disable").removeAttr("checked").button("refresh");
 		$("#logOptionsUpdate").button("enable");
 		$("#logOptionsGoToEnd").button("enable");
 	}
@@ -232,7 +235,7 @@ function onLogOptionsUpdateClick() {
 }
 
 function onLogOptionsRealTimeAutoScrollClick() {
-	realtimeAutoScroll = $("#logOptionsRealTimeAutoScroll").attr("checked");
+	realtimeAutoScroll = $("#logOptionsRealTimeAutoScroll").attr("checked") == "checked";
 }
 
 function onLogOptionsFullScreenClick() {
@@ -399,7 +402,7 @@ function resetOptions() {
 	$(".log-reset-to-checked").attr("checked", "checked");
 	$(".log-reset-to-unchecked").removeAttr("checked");
 	
-	$("#logOptionsRealTimeAutoScroll").attr("disabled", "disabled");
+	$("#logOptionsRealTimeAutoScroll").removeAttr("checked").button("disable").button("refresh");
 	$("#logOptionsDivDate:not(:visible)").fadeToggle();
 	if ($(".log-column-level:visible").length > 0) {
 		toggleColumnVisibility("level");
@@ -449,7 +452,12 @@ function addContextMenuToNewLines(startIndex) {
 }
 
 
-function onLogGetSuccess(json) {
+function onLogGetSuccess(json, textStatus, jqXHR) {
+	if (latestLogJqXHR != jqXHR) {
+		// parallel getLines, keep the latest
+		return;
+	}
+	
 	var i = currentNbLine;
 	var linesToAdd = "";
 	for ( var line in json.lines) {
@@ -521,7 +529,7 @@ function getLines() {
 	if (Date.parse(d1) >= Date.parse(d2)) {
 		showError("End date must be greater than start date");
 	} else {
-		callJSONService(
+		latestLogJqXHR = callJSONService(
 			"logs.Get",
 			onLogGetSuccess, {
 				filter : filter,
