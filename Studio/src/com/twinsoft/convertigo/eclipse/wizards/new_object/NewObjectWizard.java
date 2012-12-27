@@ -115,6 +115,7 @@ public class NewObjectWizard extends Wizard {
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.wizard.Wizard#addPages()
 	 */
+    @Override
 	public void addPages() {
 		try {
 			String objectExplorerPageTitle = "", objectExplorerPageMessage = "";
@@ -222,6 +223,7 @@ public class NewObjectWizard extends Wizard {
 		return dbo;
 	}
 	
+	@Override
 	public boolean canFinish() {
 		return (getContainer().getCurrentPage().getNextPage() == null && getContainer().getCurrentPage().isPageComplete());
 	}
@@ -425,7 +427,7 @@ public class NewObjectWizard extends Wizard {
 			HtmlTransaction transaction = new HtmlTransaction();
 			transaction.hasChanged = true;
 			transaction.bNew = true;
-			transaction.setName("Default_transaction");
+			transaction.setName("XMLize");
 			htmlConnector.add(transaction);
 			htmlConnector.setDefaultTransaction(transaction);
 		}
