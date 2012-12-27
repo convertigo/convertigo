@@ -1246,6 +1246,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 							.removeDatabaseObjectListener(this);
 				}
 			} catch (Exception e) {
+				ConvertigoPlugin.logException(
+											e, "Failure when loading objects");
 			} finally {
 				// Updating the tree viewer
 				Display.getDefault().syncExec(new Runnable() {
@@ -2327,7 +2329,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 		DatabaseObjectTreeObject databaseObjectTreeObject = databaseObjectTreeObjectCache
 				.get(databaseObject);
 		if (databaseObjectTreeObject != null) {
-			if (databaseObjectTreeObject.getObject().equals(databaseObject)) {
+			if (databaseObjectTreeObject.getObject().equals(databaseObject) && databaseObjectTreeObject.parent != null) {
 				return databaseObjectTreeObject;
 			} else {
 				databaseObjectTreeObjectCache.remove(databaseObject);
