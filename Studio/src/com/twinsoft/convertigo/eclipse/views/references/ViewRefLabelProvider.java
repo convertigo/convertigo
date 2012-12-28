@@ -22,7 +22,6 @@ package com.twinsoft.convertigo.eclipse.views.references;
  */
 
 import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
 
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -67,7 +66,7 @@ public class ViewRefLabelProvider implements ILabelProvider {
 			try {
 				databaseObjectBeanInfo = CachedIntrospector.getBeanInfo(databaseObject.getClass());
 				iconName = MySimpleBeanInfo.getIconName(databaseObjectBeanInfo, BeanInfo.ICON_COLOR_16x16);
-			} catch (IntrospectionException e) {
+			} catch (Exception e) {
 			}
 
 			if (iconName == null) {
