@@ -197,7 +197,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		}
 	}
 
-	private transient boolean isRenaming = false;
+	private boolean isRenaming = false;
 	
 	@Override
 	protected void rename_(String newName, boolean bDialog) throws ConvertigoException, CoreException {
@@ -265,6 +265,8 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						Engine.theApp.databaseObjectsManager.exportProject(project);
 						
 						hasBeenModified(false);
+						isRenaming = false;
+						
 						ConvertigoPlugin.logInfo("Project '" + projectName + "' saved!");
 						
 						getIProject().refreshLocal(IResource.DEPTH_ONE, null);
@@ -279,7 +281,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			}
 		}
 		
-		isRenaming = false;
 		return ret;
 	}
 
