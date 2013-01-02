@@ -346,7 +346,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				try {
 					
 					final Shell shell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
-					final long[] timeout = {System.currentTimeMillis() + 8000};
+					final long[] timeout = {System.currentTimeMillis() + 10000};
 					
 					GridLayout gridLayout = new GridLayout();
 					gridLayout.numColumns = 1;
@@ -392,7 +392,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 						}
 						
 						public void changed(ProgressEvent event) {
-							timeout[0] = 0;
 						}
 					});
 				
@@ -442,7 +441,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					
 					while (!shell.isDisposed() && !Engine.isStartFailed && !Engine.isStarted) {
 						if (!display.readAndDispatch()) {
-							Thread.sleep(250);
+							Thread.sleep(100);
 						}
 					}
 					
@@ -477,7 +476,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					
 					while (!shell.isDisposed() && System.currentTimeMillis() < timeout[0]) {
 						if (!display.readAndDispatch()) {
-							Thread.sleep(250);
+							Thread.sleep(100);
 						}
 					}
 					
