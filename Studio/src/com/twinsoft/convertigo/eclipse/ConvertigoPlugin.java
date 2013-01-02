@@ -58,6 +58,8 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
@@ -344,6 +346,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				try {
 					
 					final Shell shell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
+					final long[] timeout = {System.currentTimeMillis() + 8000};
 					
 					GridLayout gridLayout = new GridLayout();
 					gridLayout.numColumns = 1;
@@ -382,7 +385,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					ProgressBar progressBar = new ProgressBar(compositeBar, SWT.INDETERMINATE);
 					
 					//initialize browser
-					initializeBrowser(shell);
+					initializeBrowser(shell, new ProgressListener() {
+						
+						public void completed(ProgressEvent event) {
+							timeout[0] = 0;
+						}
+						
+						public void changed(ProgressEvent event) {
+							timeout[0] = 0;
+						}
+					});
 				
 					Composite toolComposite = new Composite(shell, SWT.NONE);
 					gridLayout = new GridLayout();
@@ -406,6 +418,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					
 					closeButton = new Button(toolComposite, SWT.PUSH);
 					closeButton.setText("Wait...");
+					closeButton.setEnabled(false);
 					closeButton.setImage(image);
 					
 					gridData = new GridData();
@@ -429,8 +442,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					
 					while (!shell.isDisposed() && !Engine.isStartFailed && !Engine.isStarted) {
 						if (!display.readAndDispatch()) {
-							closeButton.setEnabled(false);
-							display.sleep();
+							Thread.sleep(250);
 						}
 					}
 					
@@ -446,15 +458,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					gridData.heightHint = 75;
 					compositeHeader.setLayoutData(gridData);
 					
-					closeButton.setText("Close");
-					closeButton.setEnabled(true);
-					
-					shell.layout();
-					
 					closeButton.addSelectionListener(new SelectionListener() {
-						public void widgetDefaultSelected(SelectionEvent e) {
-							// TODO Auto-generated method stub		
+						
+						public void widgetDefaultSelected(SelectionEvent e) {		
 						}
+						
 						public void widgetSelected(SelectionEvent e) {
 							if (checkBox.getSelection()) {
 								ConvertigoPlugin.setProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS, "true");
@@ -464,7 +472,19 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 							}
 							shell.close();
 						}
+						
 					});
+					
+					while (!shell.isDisposed() && System.currentTimeMillis() < timeout[0]) {
+						if (!display.readAndDispatch()) {
+							Thread.sleep(250);
+						}
+					}
+					
+					closeButton.setText("Close");
+					closeButton.setEnabled(true);
+					
+					shell.layout();
 					
 					if (ConvertigoPlugin.getProperty(ConvertigoPlugin.PREFERENCE_IGNORE_NEWS).equalsIgnoreCase("true")) {
 						shell.close();
@@ -480,7 +500,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		});
 	}
 
-	private void initializeBrowser(Composite parent) throws IOException {
+	private void initializeBrowser(Composite parent, ProgressListener progressListener) throws IOException {
 		
 		final Browser browser;
 		try {
@@ -504,6 +524,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		url += deploymentConfiguration == null ? "" : "&user=" + URLEncoder.encode(deploymentConfiguration.getUsername(), "utf8");
 		url += "&version=" + URLEncoder.encode(ProductVersion.fullProductVersion, "utf8");
 		
+		browser.addProgressListener(progressListener);
 		browser.setUrl(url);
 	}
 	
@@ -599,6 +620,25 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					} catch (Exception e) {
 						logException(e, "Unable to load deployment configurations");
 					}
+					
+					try {
+						Properties properties = getPsc();
+						for (int i = 1; i < Integer.MAX_VALUE; i++) {
+							if (i > 1 && !properties.containsKey(DeploymentKey.adminUser.key(i))) {
+								break;
+							}
+							deploymentConfigurationManager.add(new DeploymentConfigurationReadOnly(
+									DeploymentKey.server.value(properties, i),
+									DeploymentKey.adminUser.value(properties, i),
+									DeploymentKey.adminPassword.value(properties, i),
+									Boolean.parseBoolean(DeploymentKey.sslHttps.value(properties, i)),
+									Boolean.parseBoolean(DeploymentKey.sslTrustCert.value(properties, i)),
+									Boolean.parseBoolean(DeploymentKey.assembleXsl.value(properties, i)))
+							);
+						}
+					} catch (Exception e) {
+						logException(e, "Unable to load deployment configurations from PSC");
+					}
 
 					displayWaitScreen();
 
@@ -629,21 +669,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 							try {
 								deploymentConfigurationManager.doMigration();
-								
-								Properties properties = getPsc();
-								for (int i = 1; i < Integer.MAX_VALUE; i++) {
-									if (i > 1 && !properties.containsKey(DeploymentKey.adminUser.key(i))) {
-										break;
-									}
-									deploymentConfigurationManager.add(new DeploymentConfigurationReadOnly(
-											DeploymentKey.server.value(properties, i),
-											DeploymentKey.adminUser.value(properties, i),
-											DeploymentKey.adminPassword.value(properties, i),
-											Boolean.parseBoolean(DeploymentKey.sslHttps.value(properties, i)),
-											Boolean.parseBoolean(DeploymentKey.sslTrustCert.value(properties, i)),
-											Boolean.parseBoolean(DeploymentKey.assembleXsl.value(properties, i)))
-									);
-								}
 							} catch (Exception e) {
 								logException(e, "Unable to migrate deployment configurations");
 							}
