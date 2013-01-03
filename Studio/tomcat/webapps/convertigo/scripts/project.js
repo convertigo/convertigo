@@ -299,13 +299,15 @@ function launchPhoneGapBuild() {
 	var applicationID = $("#build_application_id").val();
 
 	$("body").css("cursor", "progress");
-	
+	$(".device_status").attr("title","build requested").empty();
+	$("#main .btn_build").button("disable");
 	$.ajax({
 		type : "POST",
 		url : "admin/services/mobiles.LaunchBuild",
 		data : { "application" : vars.projectName, "endpoint" : endpoint, "applicationID" : applicationID },
 		dataType : "xml",
 		success : function(xml) {
+			$("#main .btn_build").button("enable");
 			$("body").css("cursor", "auto");
 			$("#main .install.qrcode_content").each(function() {
 				$(this).find(".build_status").attr("value","starting");
@@ -314,6 +316,7 @@ function launchPhoneGapBuild() {
 			setTimeout(function() {$("#main .install.qrcode_content").each(getPhoneGapBuildStatus);}, 1000);
 		},
 		error : function(xml) {
+			$("#main .btn_build").button("enable");
 			$("body").css("cursor", "auto");
 			var $message = $(xml.responseXML).find("message").text();
 			alert("Build Error:\n" + $message);
@@ -490,6 +493,11 @@ $(document).ready(function() {
 			$(".acc>li>h6").unbind('click');
 			
 			var $project = $(xml).find("project:first");
+			
+			if ($project.attr("mobileProjectName")) {
+				$("#build_application_name").val($project.attr("mobileProjectName"));
+			}
+			
 			$(".project_comment").text($project.attr("comment"));
 			$project.find(">connector").each(function (i) {
 				var $connector = $(this);

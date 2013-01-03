@@ -32,7 +32,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
@@ -56,6 +58,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
@@ -201,15 +204,17 @@ public class LaunchBuild extends XmlService {
 			PostMethod method;
 			int methodStatusCode;
 			InputStream methodBodyContentInputStream;
+			
+			String finalApplicationName = GetBuildStatus.getFinalApplicationName(application);
+			
+			Map<String, String[]> params = new HashMap<String, String[]>();
+			params.put("application", new String[]{finalApplicationName});
+			params.put("username", new String[]{mobileBuilderPlatformUsername});
+			params.put("password", new String[]{mobileBuilderPlatformPassword});
 
 			// Launch the mobile build
-			url = mobileBuilderPlatformURL + "/build?application=" + application + "&username="
-					+ mobileBuilderPlatformUsername + "&password=" + mobileBuilderPlatformPassword;
+			url = mobileBuilderPlatformURL + "/build?" + URLUtils.mapToQuery(params);
 			method = new PostMethod(url);
-			// method.setRequestBody(new NameValuePair[] {
-			// new NameValuePair("application", application),
-			// new NameValuePair("username", mobileBuilderPlatformUsername),
-			// new NameValuePair("password", mobileBuilderPlatformPassword) });
 
 			File mobileArchiveFile = new File(mobileArchiveFileName);
 			FileRequestEntity entity = new FileRequestEntity(mobileArchiveFile, null);
@@ -221,7 +226,7 @@ public class LaunchBuild extends XmlService {
 			String sResult = new String(httpBytes, "UTF-8");
 
 			if (methodStatusCode != HttpStatus.SC_OK) {
-				throw new ServiceException("Unable to build application '" + application + "'; reason: " + sResult);
+				throw new ServiceException("Unable to build application '" + finalApplicationName + "'; reason: " + sResult);
 			}
 
 			JSONObject jsonObject = new JSONObject(sResult);
