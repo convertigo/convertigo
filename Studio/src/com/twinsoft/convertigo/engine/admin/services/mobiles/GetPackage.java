@@ -32,19 +32,14 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-import com.twinsoft.convertigo.beans.core.MobileDevice;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(
 		name = "GetBuildUrl",
@@ -58,15 +53,8 @@ public class GetPackage extends DownloadService {
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws  Exception {
 		String application = request.getParameter("application");
 		String platform = request.getParameter("platform");
-
-		// Get the final application name from config.xml
-		String mobileResourcesPath = Engine.PROJECTS_PATH + "/" + application + "/"
-				+ MobileDevice.RESOURCES_PATH;
-
-		Document configXmlDocument = XMLUtils.loadXml(mobileResourcesPath + "/config.xml");
-		NodeList nodeList = configXmlDocument.getElementsByTagName("name");
-		Element nameElement = (Element) nodeList.item(0);
-		String finalApplicationName = nameElement.getTextContent();
+		
+		String finalApplicationName = GetBuildStatus.getFinalApplicationName(application);
 		
 		String mobileBuilderPlatformURL = EnginePropertiesManager
 				.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);

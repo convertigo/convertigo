@@ -22,9 +22,11 @@
 
 package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.NameValuePair;
@@ -34,6 +36,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.engine.Engine;
@@ -52,14 +55,7 @@ public class GetBuildStatus extends XmlService {
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		String application = request.getParameter("application");
 		
-		// Get the final application name from config.xml
-		String mobileResourcesPath = Engine.PROJECTS_PATH + "/" + application + "/"
-				+ MobileDevice.RESOURCES_PATH;
-
-		Document configXmlDocument = XMLUtils.loadXml(mobileResourcesPath + "/config.xml");
-		NodeList nodeList = configXmlDocument.getElementsByTagName("name");
-		Element nameElement = (Element) nodeList.item(0);
-		String finalApplicationName = nameElement.getTextContent();
+		String finalApplicationName = getFinalApplicationName(application);
 		
 		String platform = request.getParameter("platform");
 
@@ -126,4 +122,14 @@ public class GetBuildStatus extends XmlService {
 		document.getDocumentElement().appendChild(statusElement);
 	}
 
+	static public String getFinalApplicationName(String application) throws ParserConfigurationException, SAXException, IOException {
+		// Get the final application name from config.xml
+		String mobileResourcesPath = Engine.PROJECTS_PATH + "/" + application + "/"
+				+ MobileDevice.RESOURCES_PATH;
+
+		Document configXmlDocument = XMLUtils.loadXml(mobileResourcesPath + "/config.xml");
+		NodeList nodeList = configXmlDocument.getElementsByTagName("name");
+		Element nameElement = (Element) nodeList.item(0);
+		return nameElement.getTextContent();
+	}
 }
