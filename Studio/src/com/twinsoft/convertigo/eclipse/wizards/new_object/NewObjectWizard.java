@@ -410,7 +410,7 @@ public class NewObjectWizard extends Wizard {
 			JavelinTransaction transaction = new JavelinTransaction();
 			transaction.hasChanged = true;
 			transaction.bNew = true;
-			transaction.setName("Default_transaction");
+			transaction.setName("XMLize");
 			javelinConnector.add(transaction);
 			javelinConnector.setDefaultTransaction(transaction);
 		}
