@@ -643,9 +643,12 @@ public class Engine {
 					final String display = System.getenv("DISPLAY");
 					if (display != null) {
 						try {
-							int port = Integer.parseInt(display.replaceAll(".*:(\\d*)", "$1")) + 5900;
+							String port = System.getProperty("xvnc.port");
+							if (port == null) {
+								port = "" + (Integer.parseInt(display.replaceAll(".*:(\\d*)", "$1")) + 5900);
+								System.setProperty("xvnc.port", port);
+							}
 							Engine.logEngine.debug("Xvnc should listen on " + port + " port");
-							System.setProperty("xvnc.port", "" + port);
 						} catch (Exception e) {}
 						try {							
 							File vncDir = new File(Engine.WEBAPP_PATH + "/WEB-INF/xvnc");
