@@ -167,6 +167,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE = 1300;
 	public static final int SAMPLE_MOBILE_JQUERYMOBILE_VACATION = 1310;
 	public static final int SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED = 1311;
+	public static final int SAMPLE_SEQUENCER_1 = 1400;
 
 	// to import blank project
 	public static final String JAVELIN_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME = "template_javelin.car";
@@ -214,6 +215,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String SQL_HSQLDB_PROJECT_FILE_NAME = "sample_database_HSQLDB.car";
 	public static final String SQL_XLS_PROJECT_FILE_NAME = "sample_database_XLS.car";
 	public static final String SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME = "sample_HelloWorld.car";
+	public static final String SEQUENCER_1_PROJECT_FILE_NAME = "sample_sequencer.car";
 
 	/**
 	 * Constructor for SampleNewWizard.
@@ -234,6 +236,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public void addPages() {
 		switch (templateId) {
 		case SAMPLE_HELLO_WORLD:
+		case SAMPLE_SEQUENCER_1:
 		case SAMPLE_SQL_HSQLDB:
 		case SAMPLE_SQL_XLS:
 		case SAMPLE_REFMANUAL_SITECLIPPER:
@@ -467,6 +470,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				return;
 
 			case SAMPLE_HELLO_WORLD:
+			case SAMPLE_SEQUENCER_1:
 			case SAMPLE_SQL_HSQLDB:
 			case SAMPLE_SQL_XLS:
 			case SAMPLE_REFMANUAL_SITECLIPPER:
@@ -1222,6 +1226,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME;
 			projectName = SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME.substring(0,
 					SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_SEQUENCER_1:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SEQUENCER_1_PROJECT_FILE_NAME;
+			projectName = SEQUENCER_1_PROJECT_FILE_NAME.substring(0,
+					SEQUENCER_1_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_SQL_HSQLDB:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SQL_HSQLDB_PROJECT_FILE_NAME;
