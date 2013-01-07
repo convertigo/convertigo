@@ -719,26 +719,27 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 
 	private ConnectorNode getConnectorNode (AbstractParentNode root, Connector connector) {
 		ConnectorNode connectorNode = null;
-		String connectorName = connector.getName();
-		
-		if (connector instanceof HtmlConnector) {
-			connectorNode = new HtmlConnectorNode(root, connectorName, connector);
-		} else if (connector instanceof ProxyHttpConnector) {
-			connectorNode = new ProxyHttpConnectorNode(root, connectorName, connector);
-		} else if (connector instanceof JavelinConnector) {
-			connectorNode = new JavelinConnectorNode(root, connectorName, connector);
-		} else if (connector instanceof HttpConnector) {
-			connectorNode = new HttpConnectorNode(root, connectorName, connector);
-		} else if (connector instanceof SiteClipperConnector) {
-			connectorNode = new SiteClipperConnectorNode(root, connectorName, connector);
-		} else if (connector instanceof SqlConnector) {
-			connectorNode = new SqlConnectorNode(root, connectorName, connector);
-		} else if (connector instanceof CicsConnector) {
-			connectorNode = new CicsConnectorNode(root, connectorName, connector);
-		} else {
-			connectorNode = new ConnectorNode(root, connectorName, connector);
+		if (connector != null) {
+			String connectorName = connector.getName();
+			
+			if (connector instanceof HtmlConnector) {
+				connectorNode = new HtmlConnectorNode(root, connectorName, connector);
+			} else if (connector instanceof ProxyHttpConnector) {
+				connectorNode = new ProxyHttpConnectorNode(root, connectorName, connector);
+			} else if (connector instanceof JavelinConnector) {
+				connectorNode = new JavelinConnectorNode(root, connectorName, connector);
+			} else if (connector instanceof HttpConnector) {
+				connectorNode = new HttpConnectorNode(root, connectorName, connector);
+			} else if (connector instanceof SiteClipperConnector) {
+				connectorNode = new SiteClipperConnectorNode(root, connectorName, connector);
+			} else if (connector instanceof SqlConnector) {
+				connectorNode = new SqlConnectorNode(root, connectorName, connector);
+			} else if (connector instanceof CicsConnector) {
+				connectorNode = new CicsConnectorNode(root, connectorName, connector);
+			} else {
+				connectorNode = new ConnectorNode(root, connectorName, connector);
+			}
 		}
-		
 		return connectorNode;
 	}
 	
@@ -915,18 +916,16 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 	
 	
 	private void getSequenceReferencingRequires (Step step, Sequence sequenceSelected, ProjectExplorerView projectExplorerView, RequiresNode requiresNode, List<String> transactionList, List<String> sequenceList) {
-
 		try {			
 			if (step instanceof SequenceStep) {
 				SequenceStep sequenceStep = (SequenceStep) step;
 				String projectName = sequenceStep.getProjectName();
-				Project project;
-				project = getProject(projectName, projectExplorerView);
-				ProjectNode projectNode = new ProjectNode(requiresNode, projectName, project);
 				String sequenceName = sequenceStep.getSequenceName();
 				
-				Sequence sequence = null;
+				Project project = getProject(projectName, projectExplorerView);
+				ProjectNode projectNode = new ProjectNode(requiresNode, projectName, project);
 				
+				Sequence sequence = null;
 				try {
 					if (project != null)
 						sequence =  project.getSequenceByName(sequenceStep.getSequenceName());
@@ -945,33 +944,37 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			} else if (step instanceof TransactionStep) {
 				TransactionStep transactionStep = (TransactionStep) step;
 				String projectName = transactionStep.getProjectName();
-				Project project;
-				project = getProject(projectName, projectExplorerView);
-				
 				String connectorName = transactionStep.getConnectorName();
-				Connector connector = project.getConnectorByName(connectorName);
+				String transactionName = transactionStep.getTransactionName();
 				
-				ProjectNode projectFolder = new ProjectNode(requiresNode, projectName, project);
+				Project project = getProject(projectName, projectExplorerView);
+				ProjectNode projectNode = new ProjectNode(requiresNode, projectName, project);
 				
-				TransactionNode transactionNode = null;
-				ConnectorNode connectorNode = null;
-				
-				connectorNode = getConnectorNode(projectFolder, connector);
-				
-				String transactionName = transactionStep.getTransactionName();	
-				Transaction transaction = project.getConnectorByName(connectorName).getTransactionByName(transactionName);
-					
-						
-				if (transactionNode == null) {
-					transactionNode = new TransactionNode(projectFolder, transactionName, transaction);
+				Connector connector = null;
+				Transaction transaction = null;
+				try {
+					if (project != null) {
+						connector =  project.getConnectorByName(connectorName);
+						if (connector != null) {
+							transaction = connector.getTransactionByName(transactionName);
+						}
+					}
+				} catch (EngineException e) {
+					connector = null;
+					transaction = null;
 				}
-				transactionNode = new TransactionNode(projectFolder, transactionName, transaction);
-				projectFolder.addChild(connectorNode);
+				
+				ConnectorNode connectorNode = getConnectorNode(projectNode, connector);
+				if (connectorNode == null)
+					connectorNode = new ConnectorNode(projectNode, connectorName, connector);
+				projectNode.addChild(connectorNode);
+				
+				TransactionNode transactionNode = new TransactionNode(projectNode, transactionName, transaction);
 				connectorNode.addChild(transactionNode);
 				
 				if (!transactionList.contains(projectName+connectorName+transactionName)) {
 					transactionList.add(projectName+connectorName+transactionName);
-					requiresNode.addChild(projectFolder);
+					requiresNode.addChild(projectNode);
 				}
 				
 			} else if (isStepContainer(step)) {
@@ -981,7 +984,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				getSequenceReferencingRequires(s, sequenceSelected, projectExplorerView, requiresNode, transactionList, sequenceList);
 				}
 			}
-		} catch (EngineException e) {
+		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unable to load the project", true);
 		}
 	}
