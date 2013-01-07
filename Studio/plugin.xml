@@ -310,12 +310,14 @@
    </extension>
    <extension
          point="org.eclipse.ui.newWizards">
+<!-- Main categories -->
       <category
             id="com.twinsoft.convertigo.eclipse.convertigo"
             name="Convertigo Projects"/>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
             name="Convertigo Samples and Demos"/>
+<!-- Categories for Convertigo Projects -->
       <category
             id="com.twinsoft.convertigo.eclipse.convertigolegacyweb"
             name="Legacy publishing (webization)"
@@ -362,7 +364,7 @@
             id="com.twinsoft.convertigo.eclipse.convertigomobile"
             name="Mobile"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>  
-<!-- samples and demos categories -->
+<!-- Categories for Convertigo Samples and Demos -->
       <category
             id="com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
             name="Documentation samples"
@@ -378,6 +380,10 @@
       <category
             id="com.twinsoft.convertigo.eclipse.convertigosqlsamples"
             name="SQL Connector samples"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigosequencersamples"
+            name="Sequencer samples"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigodemos"
@@ -806,6 +812,18 @@
              project="true">
           <description>Imports an Excel file database sample project.</description>
        </wizard>
+<!-- Sequencer sample projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigosequencersamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSequencer1SampleWizard"
+             icon="icons/studio/sequence_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSequencer1SampleWizard"
+             name="Sequencer sample project with SQL and HTML connectors"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports a sequencer sample project based on two datasources: a SQL database accessed through a SQL connector and a website accessed trough an HTML connector.</description>
+       </wizard>       
+       
 <!-- Web services projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservices"
