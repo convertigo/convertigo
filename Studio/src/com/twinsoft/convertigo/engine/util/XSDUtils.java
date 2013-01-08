@@ -374,7 +374,7 @@ public class XSDUtils {
 		
 		private NamespaceMap addNamespaces(XmlSchema xmlSchema, Map<String, String> map) {
 			Map<String, String> namespacesMap = GenericUtils.cast(new NamespaceMap());
-			NamespacePrefixList namespacePrefixList = loadedSchema.getNamespaceContext();
+			NamespacePrefixList namespacePrefixList = xmlSchema.getNamespaceContext();
 			String[] prefixes = namespacePrefixList.getDeclaredPrefixes();
 			for (int i=0; i<prefixes.length; i++) {
 				String prefix = prefixes[i];
@@ -1702,7 +1702,9 @@ public class XSDUtils {
 				while (it.hasNext()) {
 					XmlSchemaObject ob = it.next();
 					if (ob instanceof XmlSchemaImport) {
-						newSchema.getItems().add((XmlSchemaImport)ob);
+						XmlSchemaImport xmlSchemaImport = (XmlSchemaImport)ob;
+						if (!xmlSchemaImport.getNamespace().equals(Constants.URI_2001_SCHEMA_XSD))
+							newSchema.getItems().add(xmlSchemaImport);
 					}
 				}
 				
@@ -1712,14 +1714,34 @@ public class XSDUtils {
 				if (sw != null) sw.close();
 				
 				String schema = sw.getBuffer().toString();
-				int index = schema.indexOf("</xsd:schema>");
+				
+				String prefix;
+				char c;
+				int x;
+				try {
+					prefix = "";
+					x = schema.indexOf("=\"http://www.w3.org/2001/XMLSchema\"");
+					while ((x>1) && ((c = schema.charAt(x-1))!= ':')) {
+						prefix = c + prefix;
+						if (prefix.indexOf(' ')!=-1) {
+							prefix = "";
+							break;
+						}
+						x--;
+					}
+				}
+				catch (Exception e) {prefix= "";}
+				
+				prefix = prefix.equals("") ? prefix: prefix+":";
+				
+				int index = schema.indexOf("</"+prefix+"schema>");
 				if (index != -1) {// schema with imports
-					schema = schema.substring(0,index) + sTypes + "</xsd:schema>";
+					schema = schema.substring(0,index) + sTypes + "</"+prefix+"schema>";
 				}
 				else {// schema with no imports
 					index = schema.indexOf("/>");
 					if (index != -1) {
-						schema = schema.substring(0,index) + ">" + sTypes + "</xsd:schema>";
+						schema = schema.substring(0,index) + ">" + sTypes + "</"+prefix+"schema>";
 					}
 				}
 				//System.out.println("\nschema:\n"+ schema);

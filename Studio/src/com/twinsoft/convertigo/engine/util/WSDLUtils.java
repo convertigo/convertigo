@@ -61,6 +61,7 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -151,7 +152,7 @@ public class WSDLUtils {
 						
 						// Write schema to file
 						String ns = xmlSchema.getTargetNamespace();
-						if ((ns!=null) && !ns.equals("")) {
+						if ((ns!=null) && !ns.equals("") && (!ns.equals(Constants.URI_2001_SCHEMA_XSD))) {
 							String xsdFileName = StringUtils.normalize(ns) + ".xsd";
 							String xsdFilePath = schemasDir + "/"+ xsdFileName;
 							FileOutputStream fos = null;

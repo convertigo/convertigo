@@ -45,6 +45,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -133,7 +134,8 @@ public class WsReference {
 			String prefix = (String)it.next();
 			String ns = (String)nsmap.get(prefix);
 			String location = StringUtils.normalize(ns) + ".xsd";
-			immap.put(ns, location);
+			if (!ns.equals(Constants.URI_2001_SCHEMA_XSD))
+				immap.put(ns, location);
 		}
 		xsd.addImportObjects(immap);
 		
