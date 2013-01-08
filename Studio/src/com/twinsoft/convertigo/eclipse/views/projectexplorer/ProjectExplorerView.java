@@ -1707,6 +1707,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider,
 									this.projectLoadingJob = new ProjectLoadingJob(
 											databaseObjectTreeObject.viewer,
 											unloadedProjectTreeObject);
+									this.projectLoadingJob.loadTrace(
+											databaseObjectTreeObject, new File(
+													Engine.PROJECTS_PATH + "/"
+															+ projectName
+															+ "/Traces/"
+															+ connector.getName()));
 								}
 							}
 							if (projectLoadingJob != null) {
