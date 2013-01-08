@@ -588,7 +588,10 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 	public void setSourceSequence(String sourceSequence) {
 		this.sourceSequence = sourceSequence;
 		StringTokenizer st = new StringTokenizer(sourceSequence, SequenceStep.SOURCE_SEPARATOR);
-		projectName = st.nextToken();
-		sequenceName = st.nextToken();
+		try {
+			projectName = st.nextToken();
+			sequenceName = st.nextToken();
+		}
+		catch (Exception e) {}
 	}	
 }

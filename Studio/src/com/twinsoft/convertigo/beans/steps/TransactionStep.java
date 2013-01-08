@@ -773,8 +773,11 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 	public void setSourceTransaction(String sourceTransaction) {
 		this.sourceTransaction = sourceTransaction;
 		StringTokenizer st = new StringTokenizer(sourceTransaction, TransactionStep.SOURCE_SEPARATOR);
-		projectName = st.nextToken();
-		connectorName = st.nextToken();
-		transactionName = st.nextToken();
+		try {
+			projectName = st.nextToken();
+			connectorName = st.nextToken();
+			transactionName = st.nextToken();
+		}
+		catch (Exception e) {}
 	}
 }
