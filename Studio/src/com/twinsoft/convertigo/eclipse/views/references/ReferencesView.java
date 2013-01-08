@@ -667,14 +667,30 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				String projectName = transactionStep.getProjectName();
 				
 				Project project = getProject(projectName, projectExplorerView);
-				Connector connector = project.getConnectorByName(connectorName);
-				Transaction transaction = connector.getTransactionByName(transactionName);
-				
 				ProjectNode projectNode = new ProjectNode(requiresNode,projectName, project);
-				ConnectorNode connectorNode = getConnectorNode(projectNode, connector);
-				connectorNode.addChild(new TransactionNode(connectorNode, transactionName, transaction));
 				
+				Connector connector = null;
+				Transaction transaction = null;
+				try {
+					if (project != null) {
+						connector =  project.getConnectorByName(connectorName);
+						if (connector != null) {
+							transaction = connector.getTransactionByName(transactionName);
+						}
+					}
+				} catch (EngineException e) {
+					connector = null;
+					transaction = null;
+				}
+				
+				ConnectorNode connectorNode = getConnectorNode(projectNode, connector);
+				if (connectorNode == null)
+					connectorNode = new ConnectorNode(projectNode, connectorName, connector);
 				projectNode.addChild(connectorNode);
+				
+				TransactionNode transactionNode = new TransactionNode(projectNode, transactionName, transaction);
+				connectorNode.addChild(transactionNode);
+				
 				requiresNode.addChild(projectNode);
 				transactionStepNode.addChild(requiresNode);		
 				root.addChild(transactionStepNode);
@@ -689,9 +705,9 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				String projectName = sequenceStep.getProjectName();
 				
 				Project project = getProject(projectName, projectExplorerView);
+				ProjectNode projectNode = new ProjectNode(requiresNode, projectName, project);
 				
 				Sequence sequence = null;
-				
 				try {
 					if (project != null)
 						sequence = project.getSequenceByName(sequenceName);
@@ -699,7 +715,6 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 					sequence = null;
 				}
 				
-				ProjectNode projectNode = new ProjectNode(requiresNode, projectName, project);
 				projectNode.addChild(new SequenceNode(projectNode, sequenceName, sequence));
 				requiresNode.addChild(projectNode);
 				sequenceStepNode.addChild(requiresNode);
@@ -712,7 +727,7 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			treeViewer.setInput(root);
 			treeViewer.expandAll();
 		
-		} catch (EngineException e) {
+		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);
 		}
 	}
