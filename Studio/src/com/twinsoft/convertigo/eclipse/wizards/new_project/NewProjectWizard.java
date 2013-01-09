@@ -152,6 +152,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int LIBRARY_GOOGLE_MAPS = 800;
 	public static final int LIBRARY_GOOGLE_SPREADSHEETS = 801;
 	public static final int LIBRARY_GOOGLE_DOCS = 802;
+	public static final int LIBRARY_KEYRING = 803;
 	public static final int DEMOS_SALESFORCE = 900;
 	public static final int DEMOS_USDIRECTORY = 901;
 	public static final int DEMOS_LEGACYCRM = 902;
@@ -202,6 +203,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleMaps.car";
 	public static final String GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleSpreadsheets.car";
 	public static final String GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleDocs.car";
+	public static final String KEYRING_LIBRARY_PROJECT_FILE_NAME = "lib_Keyring.car";
 	public static final String SALESFORCE_DEMO_PROJECT_FILE_NAME = "demo_SalesForce.car";
 	public static final String USDIRECTORY_DEMO_PROJECT_FILE_NAME = "demo_usDirectory.car";
 	public static final String LEGACYCRM_DEMO_PROJECT_FILE_NAME = "demo_legacyCRM.car";
@@ -257,6 +259,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_GOOGLE_MAPS:
 		case LIBRARY_GOOGLE_SPREADSHEETS:
 		case LIBRARY_GOOGLE_DOCS:
+		case LIBRARY_KEYRING:
 		case DEMOS_SALESFORCE:
 		case DEMOS_USDIRECTORY:
 		case DEMOS_LEGACYCRM:
@@ -497,6 +500,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case LIBRARY_GOOGLE_MAPS:
 			case LIBRARY_GOOGLE_SPREADSHEETS:
 			case LIBRARY_GOOGLE_DOCS:
+			case LIBRARY_KEYRING:
 			case DEMOS_SALESFORCE:
 			case DEMOS_USDIRECTORY:
 			case DEMOS_LEGACYCRM:
@@ -1370,6 +1374,12 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME;
 			projectName = GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME.substring(0,
 					GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case LIBRARY_KEYRING:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
+					+ KEYRING_LIBRARY_PROJECT_FILE_NAME;
+			projectName = KEYRING_LIBRARY_PROJECT_FILE_NAME.substring(0,
+					KEYRING_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case DEMOS_SALESFORCE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SALESFORCE_DEMO_PROJECT_FILE_NAME;
