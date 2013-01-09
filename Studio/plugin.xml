@@ -837,7 +837,7 @@
              name="Google Maps"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the convertigo Google Maps library project.</description>
+          <description>Imports the Convertigo Google Maps library project.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
@@ -847,7 +847,7 @@
              name="Google Spreadsheets"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports the convertigo Google Spreadsheets library project.</description>
+          <description>Imports the Convertigo Google Spreadsheets library project.</description>
        </wizard>
        <!--<wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
@@ -859,6 +859,16 @@
              project="true">
           <description>Imports the convertigo Google Docs library project</description>
        </wizard>-->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryKeyringWizard"
+             icon="icons/studio/library_keyring_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryKeyringWizard"
+             name="Keyring library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Keyring library project.</description>
+       </wizard>
 <!-- Mashup demo projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
