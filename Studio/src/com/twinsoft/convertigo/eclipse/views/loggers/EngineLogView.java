@@ -730,7 +730,7 @@ public class EngineLogView extends ViewPart {
 
 		activateOnNewEventsAction = new RetargetAction("Toggle", "Activate on new events",
 				IAction.AS_CHECK_BOX) {
-			public void run() {
+			public void runWithEvent(Event event) {
 				activateOnNewEvents = !activateOnNewEvents;
 			}
 		};
@@ -1000,8 +1000,10 @@ public class EngineLogView extends ViewPart {
 							public void run() {
 								tableViewer.refresh();
 								if (!scrollLock) {
-									tableViewer.reveal(tableViewer.getElementAt(tableViewer.getTable()
-											.getItemCount() - 1));
+									Object element = tableViewer.getElementAt(tableViewer.getTable()
+											.getItemCount() - 1);
+									if (element != null)
+										tableViewer.reveal(element);
 								}
 
 								if (activateOnNewEvents)
