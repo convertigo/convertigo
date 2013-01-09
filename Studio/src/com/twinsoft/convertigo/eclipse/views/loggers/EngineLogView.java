@@ -730,7 +730,7 @@ public class EngineLogView extends ViewPart {
 
 		activateOnNewEventsAction = new RetargetAction("Toggle", "Activate on new events",
 				IAction.AS_CHECK_BOX) {
-			public void run() {
+			public void runWithEvent(Event event) {
 				activateOnNewEvents = !activateOnNewEvents;
 			}
 		};
