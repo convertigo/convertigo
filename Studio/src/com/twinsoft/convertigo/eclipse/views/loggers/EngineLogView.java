@@ -1000,8 +1000,10 @@ public class EngineLogView extends ViewPart {
 							public void run() {
 								tableViewer.refresh();
 								if (!scrollLock) {
-									tableViewer.reveal(tableViewer.getElementAt(tableViewer.getTable()
-											.getItemCount() - 1));
+									Object element = tableViewer.getElementAt(tableViewer.getTable()
+											.getItemCount() - 1);
+									if (element != null)
+										tableViewer.reveal(element);
 								}
 
 								if (activateOnNewEvents)
