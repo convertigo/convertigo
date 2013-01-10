@@ -495,12 +495,11 @@ public class WebServiceTranslator implements Translator {
             String soapElementName = context.sequenceName != null ? context.sequenceName:context.connectorName + "__" +context.transactionName;
             soapElementName += "Response";
             
-            if (Project.XSD_FORM_QUALIFIED.equals(context.project.getSchemaElementForm())) {
-            	soapMethodResponseElement = sb.addChildElement(soapElementName);
+			soapMethodResponseElement = sb.addChildElement(se.createName(soapElementName, context.projectName
+					+ "_ns", targetNameSpace));
+
+        	if (Project.XSD_FORM_QUALIFIED.equals(context.project.getSchemaElementForm())) {
             	soapMethodResponseElement.addAttribute(se.createName("xmlns"), targetNameSpace);
-            }
-            else {
-            	soapMethodResponseElement = sb.addChildElement(se.createName(soapElementName,context.projectName + "_ns",targetNameSpace));
             }
             
             // Add a 'response' root child element or not
