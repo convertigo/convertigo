@@ -161,10 +161,6 @@ public class EngineLogView extends ViewPart {
 				return false;
 			}
 		};
-
-		// Force first activation of the view
-		ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage()
-				.bringToTop(this);
 	}
 
 	@Override
