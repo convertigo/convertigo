@@ -32,8 +32,7 @@ import com.twinsoft.convertigo.engine.ProxyManager;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SetupWizard extends Wizard {
-	public static final String registrationServiceUrl = "https://c8o_dev.convertigo.net/cems/projects/studioRegistration/.xml";
-//	public static final String registrationServiceUrl = "https://cosinus.twinsoft.fr:18081/convertigo/projects/studioRegistration/.xml";
+	public static final String registrationServiceUrl = "https://c8o-dev.convertigo.net/cems/projects/studioRegistration/.xml";
 	
 	private static final Pattern scheme_host_pattern = Pattern.compile("https://(.*?)(?::([\\d]*))?(/.*|$)");
 	
