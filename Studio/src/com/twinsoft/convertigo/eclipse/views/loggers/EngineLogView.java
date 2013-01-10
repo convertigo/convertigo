@@ -161,10 +161,6 @@ public class EngineLogView extends ViewPart {
 				return false;
 			}
 		};
-
-		// Force first activation of the view
-		ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage()
-				.bringToTop(this);
 	}
 
 	@Override
@@ -288,7 +284,7 @@ public class EngineLogView extends ViewPart {
 		createActions();
 		createToolbar();
 		createMenu();
-
+				
 		createLogViewThread();
 	}
 
@@ -973,9 +969,13 @@ public class EngineLogView extends ViewPart {
 		tableViewer.getControl().setFocus();
 	}
 
-	private void createLogViewThread() {
+	private void createLogViewThread() {				
 		final ViewPart engineLogView = this;
-
+		
+		// Force first activation of the view
+		ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage()
+				.bringToTop(this);
+		
 		logViewThread = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -1017,9 +1017,11 @@ public class EngineLogView extends ViewPart {
 				}
 			}
 		});
+		
 		logViewThread.setDaemon(true);
 		logViewThread.setName("EngineLogViewerThread");
 		logViewThread.start();
+
 	}
 
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,S");
