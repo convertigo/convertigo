@@ -228,7 +228,7 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 	public void prepareForTransaction(Context context) throws EngineException {
 		Engine.logBeans.trace("(HtmlConnector) Retrieving or Initializing HtmlParser");
 		
-		// Retrieve HtmlParser from context (only in Engine mode)
+		// Engine mode : retrieve HtmlParser from context
 		if (Engine.isEngineMode()) {
 			if(this.htmlParser==null){
 				Engine.logBeans.trace("(HtmlConnector) Creating new HtmlParser for context id "+ context.contextID);
@@ -236,7 +236,12 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 				this.addHttpStateListener(htmlParser);
 				setHtmlParser(htmlParser);
 			} else Engine.logBeans.trace("(HtmlConnector) Using HtmlParser of HTML Connector for context id "+ context.contextID);
-		} else {
+		}
+		// Studio mode
+		else {
+			if(this.htmlParser==null){
+				throw new EngineException("Studio mode: the HTML connector must be open in order to execute transactions");
+			}
 			Engine.logBeans.trace("(HtmlConnector) Using HtmlParser of Studio for context id "+ context.contextID);
 		}
 

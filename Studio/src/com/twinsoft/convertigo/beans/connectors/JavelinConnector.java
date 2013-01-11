@@ -215,8 +215,11 @@ public class JavelinConnector extends ConnectorWithScreenClasses {
 			if(session!=null) session.resetSomethingChange();
 			
 			if (Engine.isStudioMode()) {
-				Engine.logBeans.debug("(JavelinConnector) Using the studio Javelin object");
-				return;
+				if (javelin != null) {
+					Engine.logBeans.debug("(JavelinConnector) Using the studio Javelin object");
+					return;
+				}
+				throw new EngineException("Studio mode: the Legacy connector must be open in order to execute transactions");
 			}
 
 			Engine.logBeans.debug("(JavelinConnector) Retrieving the Javelin object");
