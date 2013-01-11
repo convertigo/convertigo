@@ -643,7 +643,7 @@
              project="true">
           <description>Imports the Mobilizer sample project to use with "My first Convertigo Mobilizer project" tutorial.</description>
        </wizard>
-       <wizard
+       <!--<wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleSiteClipperWizard"
              icon="icons/studio/siteclipperconnector_color_32x32.gif"
@@ -652,7 +652,7 @@
              preferredPerspectives="convertigo"
              project="true">
           <description>Imports the Site clipper sample project to use with "My first Convertigo Site Clipper project" tutorial.</description>
-       </wizard>
+       </wizard>-->
 <!-- Reference Manual sample projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
