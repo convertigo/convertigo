@@ -52,7 +52,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 
 	public RegistrationPage() {
 		super("RegistrationPage");
-		setTitle("Convertigo trial cloud account creation");
+		setTitle("Convertigo Trial Cloud account creation");
 		setDescription("Convertigo provides a free convertigo cloud account for you test and run your projects.");
 	}
 	
@@ -62,7 +62,6 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 	
 	public void createControl(Composite parent) {
 		final Color colorcondition = new  Color(parent.getDisplay(), 204,0,0);
-		final Color colorpart = new  Color(parent.getDisplay(), 51,102,255);
 		
 		final int nbCol = 3;
 		
@@ -83,7 +82,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 		FontData fontDefaultData = label.getFont().getFontData()[0];
 		fontDefaultData.setStyle(SWT.BOLD);
 		final Font fontBold = new Font(parent.getDisplay(), fontDefaultData);
-		fontDefaultData.setHeight(fontDefaultData.getHeight() * 2);
+		fontDefaultData.setHeight(Math.round(fontDefaultData.getHeight() * 1.4f));
 		final Font fontTitle = new Font(parent.getDisplay(), fontDefaultData);
 		
 		Link link = new Link(container, SWT.WRAP);
@@ -111,7 +110,6 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 		
 		label = new Label (container, SWT.NONE);
 		label.setFont(fontTitle);
-		label.setForeground(colorpart);
 		label.setLayoutData(layoutDataTitle);
 		label.setText("Personal Data");
 		
@@ -184,7 +182,6 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 		
 		label = new Label (container, SWT.NONE);
 		label.setFont(fontTitle);
-		label.setForeground(colorpart);
 		label.setLayoutData(layoutDataTitle);
 		label.setText("Forum account");
 		
