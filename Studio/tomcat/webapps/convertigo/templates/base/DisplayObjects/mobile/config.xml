@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0"
+	id="com.convertigo.mobile.template" version="1.0.0">
+
+	<name>Convertigo Mobile Template</name>
+
+	<description>Template for Mobile Project</description>
+
+	<author href="http://www.convertigo.com" email="sales@convertigo.com">Convertigo
+	</author>
+
+	<gap:platforms>
+		<gap:platform minVersion="2.1" name="android"/>
+		<gap:platform name="webos"/>
+		<gap:platform name="iOS"/>
+		<gap:platform name="symbian.wrt"/>
+		<gap:platform name="blackberry" project="widgets"/>
+	</gap:platforms>
+	
+	<preference name="phonegap-version" value="2.1.0" />
+    <preference name="orientation"      value="default" />
+    <preference name="target-device"    value="universal" />
+    <preference name="fullscreen"       value="false" />
+
+	<icon src="icon.png"/>
+	<icon src="res/icon/android/icon36ldpi.png"   gap:platform="android"    gap:density="ldpi" />
+    <icon src="res/icon/android/icon48mdpi.png"   gap:platform="android"    gap:density="mdpi" />
+    <icon src="res/icon/android/icon72hdpi.png"   gap:platform="android"    gap:density="hdpi" />
+    <icon src="res/icon/android/icon96xhdpi.png"  gap:platform="android"    gap:density="xhdpi" />
+    <icon src="res/icon/bb/icon80.png"     		  gap:platform="blackberry" />
+    <icon src="res/icon/bb/icon80.png"     		  gap:platform="blackberry" gap:state="hover"/>
+    <icon src="res/icon/ios/icon57.png"           gap:platform="ios"        width="57" height="57" />
+    <icon src="res/icon/ios/icon72.png"           gap:platform="ios"        width="72" height="72" />
+    <icon src="res/icon/ios/icon572x.png"         gap:platform="ios"        width="114" height="114" />
+    <icon src="res/icon/ios/icon722x.png"         gap:platform="ios"        width="144" height="144" />
+    <icon src="res/icon/webos/icon64.png"         gap:platform="webos" />
+    <icon src="res/icon/winphone/icon48.png"      gap:platform="winphone" />
+    <icon src="res/icon/winphone/icon173tile.png" gap:platform="winphone"   gap:role="background" />
+	
+	<gap:splash src="res/splash/android/ldpi.png"  			 gap:platform="android" gap:density="ldpi" />
+    <gap:splash src="res/splash/android/mdpi.png"  			 gap:platform="android" gap:density="mdpi" />
+    <gap:splash src="res/splash/android/hdpi.png"  			 gap:platform="android" gap:density="hdpi" />
+    <gap:splash src="res/splash/android/xhdpi.png" 			 gap:platform="android" gap:density="xhdpi" />
+    <gap:splash src="res/splash/bb/splash225.png"       	 gap:platform="blackberry" />
+    <gap:splash src="res/splash/ios/splashiPhone.png"   	 gap:platform="ios"     width="320" height="480" />
+    <gap:splash src="res/splash/ios/splashiPhone2x.png" 	 gap:platform="ios"     width="640" height="960" />
+    <gap:splash src="res/splash/ios/splashiPad.png"     	 gap:platform="ios"     width="768" height="1024" />
+    <gap:splash src="res/splash/ios/splashiPadLandscape.png" gap:platform="ios"     width="1024" height="768" />
+    <gap:splash src="res/splash/winphone/splash.jpg" 		 gap:platform="winphone" />
+
+	<feature name="http://api.phonegap.com/1.0/device" />
+	<feature name="http://api.phonegap.com/1.0/camera"/>
+	<feature name="http://api.phonegap.com/1.0/contacts"/>
+	<feature name="http://api.phonegap.com/1.0/file"/>
+	<feature name="http://api.phonegap.com/1.0/geolocation"/>
+	<feature name="http://api.phonegap.com/1.0/media"/>
+	<feature name="http://api.phonegap.com/1.0/network"/>
+	<feature name="http://api.phonegap.com/1.0/notification"/>
+	<feature id="blackberry.system" required="true" version="1.0.0.0"/>
+	<feature id="phonegap" required="true" version="0.9.4"/>
+	<feature id="blackberry.find" required="true" version="1.0.0.0"/>
+	<feature id="blackberry.identity" required="true" version="1.0.0.0"/>
+	<feature id="blackberry.pim.Address" required="true" version="1.0.0.0"/>
+	<feature id="blackberry.pim.Contact" required="true" version="1.0.0.0"/>
+	<feature id="blackberry.io.file" required="true" version="1.0.0.0"/>
+	<feature id="blackberry.utils" required="true" version="1.0.0.0"/>
+	<feature id="blackberry.io.dir" required="true" version="1.0.0.0"/>
+	<feature id="blackberry.app" required="true" version="1.0.0.0"/>
+	<feature id="blackberry.app.event" required="true" version="1.0.0.0"/>
+
+	<!--
+		Expose access to all URIs, including the file and http protocols
+	-->
+	<access origin="*" subdomains="true"/>
+	<access origin="file:///store/home" subdomains="true"/>
+	<access origin="file:///SDCard" subdomains="true"/>
+
+	<content src="index.html"/>
+
+</widget>
