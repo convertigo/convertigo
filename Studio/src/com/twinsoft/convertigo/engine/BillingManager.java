@@ -27,6 +27,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Properties;
 
+import org.hibernate.exception.JDBCConnectionException;
+
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.billing.BillingException;
 import com.twinsoft.convertigo.engine.billing.HibernateTicketManager;
@@ -73,8 +75,11 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 							if (ticket != null) {
 								manager.addTicket(ticket);
 							}
+						} catch (JDBCConnectionException e) {
+							Throwable cause = e.getCause();
+							Engine.logBillers.info("JDBCConnectionException on ticket insertion" + (cause == null ? "" : " (cause by " + cause.getClass().getSimpleName() + ")") + ": " + ticket);
 						} catch (Exception e) {
-							Engine.logEngine.error("Something failed in ticket insertion : " + ticket, e);
+							Engine.logBillers.error("Something failed in ticket insertion : " + ticket, e);
 						}
 					}
 				}
