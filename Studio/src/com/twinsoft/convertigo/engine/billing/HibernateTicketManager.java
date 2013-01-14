@@ -71,16 +71,19 @@ public class HibernateTicketManager implements ITicketManager {
 		this.log.info("(HibernateTicketManager) initialized");
 	}
 
-	public void addTicket(Ticket ticket) throws BillingException {
+	public synchronized void addTicket(Ticket ticket) throws BillingException {
 		if (log.isDebugEnabled()) {
 			log.debug("(HibernateTicketManager) addTicket " + ticket);
 		}
 		StatelessSession session = getSession();
-		session.insert(ticket);
-		session.close();
+		try {
+			session.insert(ticket);
+		} finally {
+			session.close();
+		}
 	}
 
-	public Ticket peekTicket() throws BillingException {
+	public synchronized Ticket peekTicket() throws BillingException {
 		StatelessSession session = getSession();
 		Ticket ticket = (Ticket) session.createCriteria(Ticket.class).setMaxResults(1).uniqueResult();;
 		if (log.isDebugEnabled()) {
@@ -90,7 +93,7 @@ public class HibernateTicketManager implements ITicketManager {
 		return ticket;
 	}
 
-	public void removeTicket(Ticket ticket) throws BillingException {
+	public synchronized void removeTicket(Ticket ticket) throws BillingException {
 		if (log.isDebugEnabled()) {
 			log.debug("(HibernateTicketManager) removeTicket " + ticket);
 		}
@@ -103,15 +106,16 @@ public class HibernateTicketManager implements ITicketManager {
 		return new Ticket();
 	}
 	
-	public void destroy() throws BillingException {
+	public synchronized void destroy() throws BillingException {
 		if (sessionFactory != null) {
 			sessionFactory.close();
 		}
 	}
 	
-	private StatelessSession getSession() throws BillingException {
-		if (sessionFactory == null)
+	private synchronized StatelessSession getSession() throws BillingException {
+		if (sessionFactory == null) {
 			throw new BillingException("Unable to retrieve a session : factory is null");
+		}
 		return sessionFactory.openStatelessSession();
 	}
 }
