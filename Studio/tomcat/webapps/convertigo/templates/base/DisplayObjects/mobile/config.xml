@@ -2,13 +2,17 @@
 <widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0"
 	id="com.convertigo.mobile.template" version="1.0.0">
 
+	<!-- This name is also the application name on your device -->
 	<name>Convertigo Mobile Template</name>
 
 	<description>Template for Mobile Project</description>
 
 	<author href="http://www.convertigo.com" email="sales@convertigo.com">Convertigo
 	</author>
-
+	
+<!-- See the following page for more documentation about config.xml:
+	 https://build.phonegap.com/docs/config-xml  -->
+	 
 	<gap:platforms>
 		<gap:platform minVersion="2.1" name="android"/>
 		<gap:platform name="webos"/>
@@ -37,44 +41,43 @@
     <icon src="res/icon/winphone/icon48.png"      gap:platform="winphone" />
     <icon src="res/icon/winphone/icon173tile.png" gap:platform="winphone"   gap:role="background" />
 	
-	<gap:splash src="res/splash/android/ldpi.png"  			 gap:platform="android" gap:density="ldpi" />
-    <gap:splash src="res/splash/android/mdpi.png"  			 gap:platform="android" gap:density="mdpi" />
-    <gap:splash src="res/splash/android/hdpi.png"  			 gap:platform="android" gap:density="hdpi" />
-    <gap:splash src="res/splash/android/xhdpi.png" 			 gap:platform="android" gap:density="xhdpi" />
-    <gap:splash src="res/splash/bb/splash225.png"       	 gap:platform="blackberry" />
-    <gap:splash src="res/splash/ios/splashiPhone.png"   	 gap:platform="ios"     width="320" height="480" />
-    <gap:splash src="res/splash/ios/splashiPhone2x.png" 	 gap:platform="ios"     width="640" height="960" />
-    <gap:splash src="res/splash/ios/splashiPad.png"     	 gap:platform="ios"     width="768" height="1024" />
-    <gap:splash src="res/splash/ios/splashiPadLandscape.png" gap:platform="ios"     width="1024" height="768" />
-    <gap:splash src="res/splash/winphone/splash.jpg" 		 gap:platform="winphone" />
+	<gap:splash src="res/splash/android/ldpi.png"  			     gap:platform="android" gap:density="ldpi" />
+	<gap:splash src="res/splash/android/ldpiLandscape.png"	     gap:platform="android" gap:density="ldpi" />
+    <gap:splash src="res/splash/android/mdpi.png"  			     gap:platform="android" gap:density="mdpi" />
+    <gap:splash src="res/splash/android/mdpiLandscape.png"       gap:platform="android" gap:density="mdpi" />
+    <gap:splash src="res/splash/android/hdpi.png"  			     gap:platform="android" gap:density="hdpi" />
+    <gap:splash src="res/splash/android/hdpiLandscape.png"       gap:platform="android" gap:density="hdpi" />
+    <gap:splash src="res/splash/android/xhdpiLandscape.png"      gap:platform="android" gap:density="xhdpi" />
+    <gap:splash src="res/splash/android/xhdpi.png" 			     gap:platform="android" gap:density="xhdpi" />
+    <gap:splash src="res/splash/bb/splash225.png"       	     gap:platform="blackberry" />
+    <gap:splash src="res/splash/ios/splashiPhone.png"   	     gap:platform="ios"     width="320" height="480" />
+    <gap:splash src="res/splash/ios/splashiPhoneLandscape.png"   gap:platform="ios"     width="480" height="320" />
+    <gap:splash src="res/splash/ios/splashiPhone2x.png" 	     gap:platform="ios"     width="640" height="960" />
+    <gap:splash src="res/splash/ios/splashiPhoneLandscape2x.png" gap:platform="ios"     width="960" height="640" />
+    <gap:splash src="res/splash/ios/splashiPad.png"     	     gap:platform="ios"     width="768" height="1024" />
+    <gap:splash src="res/splash/ios/splashiPadLandscape.png"     gap:platform="ios"     width="1024" height="768" />
+    <gap:splash src="res/splash/ios/splashiPad2x.png"     	     gap:platform="ios"     width="1536" height="2008" />
+    <gap:splash src="res/splash/ios/splashiPadLandscape2x.png"   gap:platform="ios"     width="2008" height="1536" />
+    <gap:splash src="res/splash/winphone/splash.jpg" 		     gap:platform="winphone" />
 
-	<feature name="http://api.phonegap.com/1.0/device" />
-	<feature name="http://api.phonegap.com/1.0/camera"/>
-	<feature name="http://api.phonegap.com/1.0/contacts"/>
-	<feature name="http://api.phonegap.com/1.0/file"/>
-	<feature name="http://api.phonegap.com/1.0/geolocation"/>
-	<feature name="http://api.phonegap.com/1.0/media"/>
-	<feature name="http://api.phonegap.com/1.0/network"/>
-	<feature name="http://api.phonegap.com/1.0/notification"/>
-	<feature id="blackberry.system" required="true" version="1.0.0.0"/>
-	<feature id="phonegap" required="true" version="0.9.4"/>
-	<feature id="blackberry.find" required="true" version="1.0.0.0"/>
-	<feature id="blackberry.identity" required="true" version="1.0.0.0"/>
-	<feature id="blackberry.pim.Address" required="true" version="1.0.0.0"/>
-	<feature id="blackberry.pim.Contact" required="true" version="1.0.0.0"/>
-	<feature id="blackberry.io.file" required="true" version="1.0.0.0"/>
-	<feature id="blackberry.utils" required="true" version="1.0.0.0"/>
-	<feature id="blackberry.io.dir" required="true" version="1.0.0.0"/>
-	<feature id="blackberry.app" required="true" version="1.0.0.0"/>
-	<feature id="blackberry.app.event" required="true" version="1.0.0.0"/>
+	<!-- If you do not want any permissions to be added to your app, add the
+    following tag to your config.xml; you will still have the INTERNET
+    permission on your app, which PhoneGap requires. -->
+	<preference name="permissions" value="none"/> 
+	
+	<!-- Currently supported through this interface and to enable individual permissions use the following examples: -->
+	<!-- <feature name="http://api.phonegap.com/1.0/device" />-->
+	<!-- <feature name="http://api.phonegap.com/1.0/camera"/>-->
+	<!-- <feature name="http://api.phonegap.com/1.0/contacts"/>-->
+	<!-- <feature name="http://api.phonegap.com/1.0/file"/>-->
+	<!-- <feature name="http://api.phonegap.com/1.0/geolocation"/>-->
+	<!-- <feature name="http://api.phonegap.com/1.0/media"/>-->
+	<!-- <feature name="http://api.phonegap.com/1.0/network"/>-->
+	<!-- <feature name="http://api.phonegap.com/1.0/notification"/>-->
 
 	<!--
 		Expose access to all URIs, including the file and http protocols
 	-->
 	<access origin="*" subdomains="true"/>
-	<access origin="file:///store/home" subdomains="true"/>
-	<access origin="file:///SDCard" subdomains="true"/>
-
-	<content src="index.html"/>
 
 </widget>
