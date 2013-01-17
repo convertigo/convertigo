@@ -730,6 +730,7 @@
             project="true">
             <description>Imports a full-featured Mobile sample project based on jQueryMobile framework.</description> 
        </wizard>
+<!--       
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerPdfWizard"
@@ -740,6 +741,7 @@
              project="true">
           <description>Imports a Sencha based sample project which downloads a PDF file from Convertigo web site.</description>
        </wizard>
+-->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerWebToPdfWizard"
