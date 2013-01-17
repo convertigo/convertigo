@@ -885,13 +885,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			try {
 				int i = sPropertyObjectValue.indexOf("${");
 
-				// If a symbol has been found, check the existence of the symbol
-				// file
-				if (!System.getProperties().containsKey("convertigo_global_symbols")) {
-					DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure = "Global symbols file not defined (use the JVM parameter \"-Dconvertigo_global_symbols=<path of your global symbols file>\")";
-					return compiledObjectValue;
-				}
-
 				int k = 0;
 				while ((i != -1) && (i < sPropertyObjectValue.length())) {
 					compiledObjectValue += sPropertyObjectValue.substring(k, i);

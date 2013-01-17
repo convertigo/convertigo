@@ -81,15 +81,11 @@ public class CompilableValueValidator implements ICellEditorValidator {
 				String symbolValue = getSymbolValue(symbolName);
 				if (symbolValue == null) {
 					if (symbolDefaultValue == null) {
-						String cgs = System.getProperty("convertigo_global_symbols");
-						if (cgs == null)
-							throw new Exception("Symbol \"" + symbolName + "\" has not been found : missing JVM argument for the \"convertigo_global_symbols\" property!");
-						else {
-							if (new File(cgs).exists())
-								throw new Exception("Symbol \"" + symbolName + "\" has not been defined in \"" + cgs + "\"!");
-							else
-								throw new Exception("Symbol \"" + symbolName + "\" has not been found : \"" + cgs + "\" file is missing!");
-						}
+						String cgs = Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath();
+						if (new File(cgs).exists())
+							throw new Exception("Symbol \"" + symbolName + "\" has not been defined in \"" + cgs + "\"!");
+						else
+							throw new Exception("Symbol \"" + symbolName + "\" has not been found : \"" + cgs + "\" file is missing!");
 					}
 					else
 						symbolValue = symbolDefaultValue;

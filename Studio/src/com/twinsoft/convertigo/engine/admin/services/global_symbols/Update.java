@@ -55,5 +55,7 @@ public class Update extends XmlService {
         	prop.setProperty(symbolName, value);
         }
     	prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");
+    	
+    	Engine.theApp.databaseObjectsManager.updateSymbols(prop);
 	}
 }
