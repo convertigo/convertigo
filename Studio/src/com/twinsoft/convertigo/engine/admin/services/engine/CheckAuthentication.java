@@ -30,6 +30,7 @@ import javax.servlet.http.HttpSession;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -49,17 +50,16 @@ public class CheckAuthentication extends XmlService {
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		HttpSession httpSession = request.getSession();
-		String sessionId = httpSession.getId();
 		
 		// Handle anonymous access for test platform user
 		if (EnginePropertiesManager.getProperty(PropertyName.TEST_PLATFORM_USERNAME).length() == 0) {
-			if (!Engine.authenticatedSessionManager.isAuthenticated(sessionId)) {
-				Engine.authenticatedSessionManager.addAuthenticatedSession(sessionId, new Role[] { Role.TEST_PLATFORM });
+			if (!Engine.authenticatedSessionManager.isAuthenticated(httpSession)) {
+				Engine.authenticatedSessionManager.addAuthenticatedSession(httpSession, new Role[] { Role.TEST_PLATFORM });
 			}
 		}
 		
-		boolean bAuthenticated = Engine.authenticatedSessionManager.isAuthenticated(sessionId);
-		Role[] roles = Engine.authenticatedSessionManager.getRoles(sessionId);
+		boolean bAuthenticated = Engine.authenticatedSessionManager.isAuthenticated(httpSession);
+		Role[] roles = Engine.authenticatedSessionManager.getRoles(httpSession);
 		if (roles != null) {
 			Engine.logAdmin.info("Added roles: " + Arrays.toString(roles));
 			ServiceUtils.addRoleNodes(document.getDocumentElement(), roles);
@@ -67,7 +67,7 @@ public class CheckAuthentication extends XmlService {
 		
 		if (bAuthenticated) {
 			Engine.logAdmin.info("Check authentication success");
-			ServiceUtils.addMessage(document, document.getDocumentElement(), httpSession.getAttribute("user").toString(), "user", false);
+			ServiceUtils.addMessage(document, document.getDocumentElement(), "" + httpSession.getAttribute(SessionKey.ADMIN_USER.toString()), "user", false);
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "true", "authenticated", false);
 		} else {
 			Engine.logAdmin.info("Check authentication failed (no role defined)");
