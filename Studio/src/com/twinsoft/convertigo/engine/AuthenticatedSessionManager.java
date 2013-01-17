@@ -1,54 +1,52 @@
 package com.twinsoft.convertigo.engine;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.collections.ListUtils;
 
-import com.twinsoft.convertigo.engine.AuthenticationException;
-
 public class AuthenticatedSessionManager implements AbstractManager {
-
+	public static enum SessionKey {ADMIN_ROLES, ADMIN_USER};
 	public static enum Role { ANONYMOUS, AUTHENTICATED, WEB_ADMIN, TRIAL, MANAGER, MONITOR_AGENT, TEST_PLATFORM };
 
-	private Map<String, Role[]> authenticatedSessions;
-	
 	public void init() throws EngineException {
-		authenticatedSessions = new HashMap<String, Role[]>();
 	}
 
 	public void destroy() throws EngineException {
-		authenticatedSessions = null;
 	}
 
-	public void addAuthenticatedSession(String sessionId, Role[] roles) {
-		authenticatedSessions.put(sessionId,  roles);
-		Engine.logAdmin.debug("Added roles " + roles + " to session " + sessionId);
+	public void addAuthenticatedSession(HttpSession httpSession, Role[] roles) {
+		httpSession.setAttribute(SessionKey.ADMIN_ROLES.toString(), roles);
+		Engine.logAdmin.debug("Added roles " + roles + " to session " + httpSession.getId());
 	}
 	
-	public void removeAuthenticatedSession(String sessionId) {
-		authenticatedSessions.remove(sessionId);
-		Engine.logAdmin.debug("Removed authenticated sdession from session " + sessionId);
+	public void removeAuthenticatedSession(HttpSession httpSession) {
+		for (SessionKey key : SessionKey.values()) {
+			httpSession.removeAttribute(key.toString());
+		}
+		Engine.logAdmin.debug("Removed authenticated sdession from session " + httpSession.getId());
 	}
 
-	public boolean hasRole(String sessionId, Role role) {
-		Role[] roles = authenticatedSessions.get(sessionId);
+	public boolean hasRole(HttpSession httpSession, Role role) {
+		Role[] roles = (Role[]) httpSession.getAttribute(SessionKey.ADMIN_ROLES.toString());
 		boolean bResult = AuthenticatedSessionManager.hasRole(roles, role);
-		Engine.logAdmin.debug("Session " + sessionId + " has " + (bResult ? "" : "not ") + "role " + role);
+		Engine.logAdmin.debug("Session " + httpSession.getId() + " has " + (bResult ? "" : "not ") + "role " + role);
 		return bResult;
 	}
 	
-	public boolean isAuthenticated(String sessionId) {
-		Role[] roles = authenticatedSessions.get(sessionId);
-		if (roles == null) return false;
+	public boolean isAuthenticated(HttpSession httpSession) {
+		Role[] roles = roles(httpSession);
+		if (roles == null) {
+			return false;
+		}
 		
 		return AuthenticatedSessionManager.hasRole(roles, Role.AUTHENTICATED);
 	}
 	
-	public boolean isAnonymous(String sessionId) {
-		Role[] roles = authenticatedSessions.get(sessionId);
+	public boolean isAnonymous(HttpSession httpSession) {
+		Role[] roles = roles(httpSession);
 		return (roles == null || !AuthenticatedSessionManager.hasRole(roles, Role.AUTHENTICATED));
 	}
 	
@@ -56,19 +54,20 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		return (roles != null && Arrays.asList(roles).contains(role));
 	}
 
-	public Role[] getRoles(String sessionId) {
-		Role[] roles = authenticatedSessions.get(sessionId);
+	public Role[] getRoles(HttpSession httpSession) {
+		Role[] roles = roles(httpSession);
 		roles = (roles == null ? null : roles.clone());
-		Engine.logAdmin.debug("Getting roles for session " + sessionId + ": " + roles);
+		Engine.logAdmin.debug("Getting roles for session " + httpSession.getId() + ": " + roles);
 		return roles;
 	}
 	
-	public void checkRoles(String sessionId, Role[] requiredRoles) throws AuthenticationException {
+	public void checkRoles(HttpSession httpSession, Role[] requiredRoles) throws AuthenticationException {
 		List<Role> lRequiredRoles = Arrays.asList(requiredRoles);
 		
-		Role[] userRoles = authenticatedSessions.get(sessionId);
-		if (userRoles == null)
+		Role[] userRoles = roles(httpSession);
+		if (userRoles == null) {
 			throw new AuthenticationException("Authentication failure: no role defined");
+		}
 		
 		List<Role> lUserRoles = Arrays.asList(userRoles);
 		
@@ -76,9 +75,15 @@ public class AuthenticatedSessionManager implements AbstractManager {
 		Engine.logAdmin.debug("Required roles: " + lRequiredRoles);
 
 		// Check if the user has one (or more) role(s) in common with the required roles list
-		if (ListUtils.intersection(lUserRoles, lRequiredRoles).size() > 0) return;
+		if (ListUtils.intersection(lUserRoles, lRequiredRoles).size() > 0) {
+			return;
+		}
 		
 		throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
+	}
+	
+	private Role[] roles(HttpSession httpSession) {
+		return (Role[]) httpSession.getAttribute(SessionKey.ADMIN_ROLES.toString());
 	}
 
 }

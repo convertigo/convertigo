@@ -38,6 +38,7 @@ import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.SessionKey;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 import com.twinsoft.convertigo.engine.util.SimpleCipher;
 
@@ -68,7 +69,6 @@ public class Authenticate extends XmlService {
 		boolean logIn = "login".equals(ServiceUtils.getRequiredParameter(request, "authType"));
 
 		HttpSession httpSession = request.getSession();
-		String sessionId = httpSession.getId();
 		
 		// Login
 		if (logIn) {
@@ -114,13 +114,13 @@ public class Authenticate extends XmlService {
 			}
 
 			if (roles == null) {
-				Engine.authenticatedSessionManager.removeAuthenticatedSession(sessionId);
+				Engine.authenticatedSessionManager.removeAuthenticatedSession(httpSession);
 				ServiceUtils.addMessage(document, document.getDocumentElement(), "", "error");		
 			} else {
-				Engine.authenticatedSessionManager.addAuthenticatedSession(sessionId, roles);
+				Engine.authenticatedSessionManager.addAuthenticatedSession(httpSession, roles);
 
 				ServiceUtils.addMessage(document, document.getDocumentElement(), "", "success");
-				ServiceUtils.addMessage(document, document.getDocumentElement(), httpSession.getAttribute("user").toString(), "user", false);
+				ServiceUtils.addMessage(document, document.getDocumentElement(), "" + httpSession.getAttribute(SessionKey.ADMIN_USER.toString()), "user", false);
 				ServiceUtils.addRoleNodes(document.getDocumentElement(), roles);
 				
 				Engine.logAdmin.info("User '" + user + "' has been successfully authenticated");
@@ -128,7 +128,7 @@ public class Authenticate extends XmlService {
 		}
 		// Logout
 		else {
-			Engine.authenticatedSessionManager.removeAuthenticatedSession(sessionId);
+			Engine.authenticatedSessionManager.removeAuthenticatedSession(httpSession);
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "", "success");
 		}
 	}
