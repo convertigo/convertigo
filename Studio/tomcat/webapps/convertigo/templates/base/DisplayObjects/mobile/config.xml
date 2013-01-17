@@ -42,12 +42,8 @@
     <icon src="res/icon/winphone/icon173tile.png" gap:platform="winphone"   gap:role="background" />
 	
 	<gap:splash src="res/splash/android/ldpi.png"  			     gap:platform="android" gap:density="ldpi" />
-	<gap:splash src="res/splash/android/ldpiLandscape.png"	     gap:platform="android" gap:density="ldpi" />
     <gap:splash src="res/splash/android/mdpi.png"  			     gap:platform="android" gap:density="mdpi" />
-    <gap:splash src="res/splash/android/mdpiLandscape.png"       gap:platform="android" gap:density="mdpi" />
     <gap:splash src="res/splash/android/hdpi.png"  			     gap:platform="android" gap:density="hdpi" />
-    <gap:splash src="res/splash/android/hdpiLandscape.png"       gap:platform="android" gap:density="hdpi" />
-    <gap:splash src="res/splash/android/xhdpiLandscape.png"      gap:platform="android" gap:density="xhdpi" />
     <gap:splash src="res/splash/android/xhdpi.png" 			     gap:platform="android" gap:density="xhdpi" />
     <gap:splash src="res/splash/bb/splash225.png"       	     gap:platform="blackberry" />
     <gap:splash src="res/splash/ios/splashiPhone.png"   	     gap:platform="ios"     width="320" height="480" />
