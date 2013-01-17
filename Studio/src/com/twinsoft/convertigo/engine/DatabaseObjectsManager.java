@@ -102,7 +102,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public void init() throws EngineException {
 		projects = new HashMap<String, Project>();
-		symbolsMap = new HashMap<String, String>(128);
 		symbolsMapInit();
 	}
 
@@ -110,16 +109,15 @@ public class DatabaseObjectsManager implements AbstractManager {
 		globalSymbolsFilePath = System.getProperty("convertigo_global_symbols",  
 				System.getProperty("convertigo.cems.global_symbols_file", 
                         Engine.CONFIGURATION_PATH + "/global_symbols.properties")); 		
-		String filePath = System.getProperty("convertigo_global_symbols");
 		Properties prop = new Properties();
 
 		try { 
 			prop.load(new FileInputStream(globalSymbolsFilePath));
 		} catch (FileNotFoundException e) {
 			Engine.logDatabaseObjectManager.warn("The symbols file specified in JVM argument as \""
-					+ filePath + "\" does not exist! Creating a new one...");
+					+ globalSymbolsFilePath + "\" does not exist! Creating a new one...");
 			
-			//Create the global_symbols.properties file into the default workspace
+			// Create the global_symbols.properties file into the default workspace
 			File globalSymbolsProperties = new File(Engine.CONFIGURATION_PATH + "/global_symbols.properties");
 			try {
 				prop.store(new FileOutputStream(globalSymbolsProperties.getAbsolutePath()), "global symbols");
@@ -130,24 +128,31 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 		} catch (IOException e) {
 			Engine.logDatabaseObjectManager.error(
-					"Error while reading symbols file specified in JVM argument as \"" + filePath
+					"Error while reading symbols file specified in JVM argument as \"" + globalSymbolsFilePath
 							+ "\"; symbols won't be calculated.", e);
 			return;
 		}
 
-		// Enumeration of the properties
-		Enumeration<?> propsEnum = prop.propertyNames();
-		String propertyName, propertyValue;
-
-		while (propsEnum.hasMoreElements()) {
-			propertyName = (String) propsEnum.nextElement();
-			propertyValue = prop.getProperty(propertyName, "");
-			symbolsMap.put(propertyName, propertyValue);
-		}
+		updateSymbols(prop);
+		
 		Engine.logEngine.info("Symbols file \"" + globalSymbolsFilePath
 				+ "\" loaded!");
 	}
 
+	public void updateSymbols(Properties map) {
+		symbolsMap = new HashMap<String, String>(128);
+		
+		// Enumeration of the properties
+		Enumeration<?> propsEnum = map.propertyNames();
+		String propertyName, propertyValue;
+
+		while (propsEnum.hasMoreElements()) {
+			propertyName = (String) propsEnum.nextElement();
+			propertyValue = map.getProperty(propertyName, "");
+			symbolsMap.put(propertyName, propertyValue);
+		}
+	}
+	
 	public void destroy() throws EngineException {
 		projects = null;
 		symbolsMap = null;
