@@ -140,7 +140,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	public void updateSymbols(Properties map) {
-		symbolsMap = new HashMap<String, String>(128);
+		symbolsMap = new HashMap<String, String>(map.size());
 		
 		// Enumeration of the properties
 		Enumeration<?> propsEnum = map.propertyNames();
@@ -150,6 +150,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 			propertyName = (String) propsEnum.nextElement();
 			propertyValue = map.getProperty(propertyName, "");
 			symbolsMap.put(propertyName, propertyValue);
+		}
+		
+		synchronized (projects) {
+			projects.clear();
 		}
 	}
 	
