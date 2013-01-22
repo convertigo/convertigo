@@ -25,12 +25,11 @@ package com.twinsoft.convertigo.engine;
 
 public class ProductVersion {
 
-    public static String majorProductVersion = "6";
-    public static String minorProductVersion = "3";
+    public static String majorProductVersion = "7";
+    public static String minorProductVersion = "0";
     public static String servicePack = "0";
     public static String tag = "beta";
     public static String revision = null;
-    public static String codeName = "tdb";
     
     public static String productVersion =
     	ProductVersion.majorProductVersion + "." +
