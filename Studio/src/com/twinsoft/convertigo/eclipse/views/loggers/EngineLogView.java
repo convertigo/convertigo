@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Appender;
@@ -47,7 +49,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -80,6 +81,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.RetargetAction;
 import org.eclipse.ui.part.ViewPart;
@@ -95,7 +97,8 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 public class EngineLogView extends ViewPart {
 	private Thread logViewThread;
 	private LogManager logManager;
-	private List<LogLine> logLines = new LinkedList<LogLine>();
+	private long lastLogTime = -1;
+	private Queue<LogLine> logLines = new ConcurrentLinkedQueue<LogLine>();
 	private Appender appender;
 	private int counter = 0;
 
@@ -106,7 +109,8 @@ public class EngineLogView extends ViewPart {
 	private int limitLogLines = MAX_LOG_LINES;
 
 	private static final int MAX_LOG_LINES = 2000;
-
+	private static final int MAX_BUFFER_LINES = 50;
+	
 	private Action activateOnNewEventsAction, clearLogsAction, restoreDefaultsAction, selectColumnsAction;
 	private RetargetAction scrollLockAction, optionsAction, searchAction, limitLogLinesAction;
 
@@ -346,7 +350,7 @@ public class EngineLogView extends ViewPart {
 			}
 		});
 	}
-
+	
 	private void setLogFilter() {
 		try {
 			logManager.setFilter(filterText.getText());
@@ -559,8 +563,6 @@ public class EngineLogView extends ViewPart {
 		table.setHeaderVisible(true);
 		table.pack();
 		tableViewer.setLabelProvider(labelProvider);
-		tableViewer.setContentProvider(new ArrayContentProvider());
-		tableViewer.setInput(logLines);
 		tableViewer.addDoubleClickListener(new IDoubleClickListener() {
 			public void doubleClick(DoubleClickEvent event) {
 				ISelection selection = event.getSelection();
@@ -684,6 +686,7 @@ public class EngineLogView extends ViewPart {
 
 		clearLogsAction = new Action("Clear log viewer") {
 			public void run() {
+				logManager.setDateStart(new Date());
 				clearLogs();
 			}
 		};
@@ -746,8 +749,8 @@ public class EngineLogView extends ViewPart {
 
 	private void clearLogs() {
 		logLines.clear();
-		tableViewer.getTable().clearAll();
-		tableViewer.refresh();
+		tableViewer.getTable().removeAll();
+		lastLogTime = -1;
 		counter = 0;
 	}
 
@@ -843,6 +846,18 @@ public class EngineLogView extends ViewPart {
 			}
 		});
 		addVariableItem.setEnabled(false);
+		
+		// Add "clear log" command
+		new MenuItem(tableMenu, SWT.SEPARATOR);
+		item = new MenuItem(tableMenu, SWT.PUSH);
+		item.setText("Clear logs");
+		item.setImage(new Image(Display.getDefault(), getClass().getResourceAsStream(
+				"images/clear_logs.png")));
+		item.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				clearLogsAction.run();
+			}
+		});
 	}
 
 	private String getSelectedCellText(String columnName, LogLine line) {
@@ -954,7 +969,10 @@ public class EngineLogView extends ViewPart {
 			}
 
 			public void controlMoved(ControlEvent arg0) {
-				columnOrder = tableViewer.getTable().getColumnOrder();
+				int[] newColumnOrder = tableViewer.getTable().getColumnOrder(); 
+				if (newColumnOrder.length == columnOrder.length) {
+					columnOrder = newColumnOrder;
+				}
 			}
 		});
 
@@ -987,25 +1005,36 @@ public class EngineLogView extends ViewPart {
 					logManager = new LogManager();
 					logManager.setContinue(true);
 					logManager.setDateStart(new Date(Engine.startStopDate - 10000));
-					logManager.setMaxLines(50);
+					logManager.setMaxLines(MAX_BUFFER_LINES);
 
 					// Get the newest available lines
 					while (getLogs()) {
 						// Refresh the list view
 						Display.getDefault().asyncExec(new Runnable() {
+						
 							public void run() {
-								tableViewer.refresh();
-								if (!scrollLock) {
-									Object element = tableViewer.getElementAt(tableViewer.getTable()
-											.getItemCount() - 1);
-									if (element != null)
-										tableViewer.reveal(element);
+								try {
+									for (int i = MAX_BUFFER_LINES; i > 0; i--) {
+										tableViewer.add(logLines.remove());
+									}
+								} catch (NoSuchElementException e) {}
+								
+								while (limitLogLines > 0 && tableViewer.getTable().getItemCount() > limitLogLines) {
+									tableViewer.getTable().remove(0);
 								}
-
-								if (activateOnNewEvents)
-									ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow()
-											.getActivePage().bringToTop(engineLogView);
+								
+								if (!scrollLock) {
+									tableViewer.getTable().setTopIndex(tableViewer.getTable().getItemCount() - 1);
+								}
+								
+								if (activateOnNewEvents) {
+									IWorkbenchWindow workbenchWindow = ConvertigoPlugin.getDefault().getWorkbench().getActiveWorkbenchWindow();
+									if (workbenchWindow != null) {
+										workbenchWindow.getActivePage().bringToTop(engineLogView);
+									}
+								}
 							}
+							
 						});
 					}
 				} catch (InterruptedException e) {
@@ -1032,14 +1061,14 @@ public class EngineLogView extends ViewPart {
 						interrupted = true;
 					}
 				}
-
+				
 				// Detect if the view has been closed
-				if (Thread.currentThread() != logViewThread)
+				if (Thread.currentThread() != logViewThread) {
 					return false;
-
+				}
 				logs = logManager.getLines();
 			}
-
+			
 			List<String> extraList = new LinkedList<String>();
 			List<String> messageList = new LinkedList<String>();
 			HashMap<String, String> allExtras = new HashMap<String, String>();
@@ -1051,20 +1080,15 @@ public class EngineLogView extends ViewPart {
 				String[] dateTimeParts = dateTime.split(" ");
 				String date = dateTimeParts[0];
 				String time = dateTimeParts[1];
-
+	
 				String deltaTime;
-				
-				if (logLines.size() == 0) {
-					deltaTime = "--";
-				}
-				else {
-					try {
-						LogLine lastLine = logLines.get(logLines.size() - 1);
-						String sLastDate = lastLine.getDate() + " " + lastLine.getTime();
-						long lastDate = DATE_FORMAT.parse(sLastDate).getTime();
-						long currentDate = DATE_FORMAT.parse(dateTime).getTime();
-						
-						long delta = currentDate - lastDate;
+				try {
+					long currentDate = DATE_FORMAT.parse(dateTime).getTime();
+					if (lastLogTime < 0) {
+						deltaTime = "--";
+					} else {
+						long delta = currentDate - lastLogTime;
+						lastLogTime = currentDate;
 						if (delta < 1000) {
 							deltaTime = StringUtils.leftPad(delta + " ms", 8);
 						}
@@ -1074,11 +1098,12 @@ public class EngineLogView extends ViewPart {
 						else {
 							deltaTime = StringUtils.leftPad((int) Math.floor(delta / 1000.0) + " s ", 8);
 						}
-					} catch (ParseException e) {
-						deltaTime = "n/a";
 					}
+					lastLogTime = currentDate;
+				} catch (ParseException e) {
+					deltaTime = "n/a";
 				}
-
+				
 				String extract, extra = "";
 				extraList.clear();
 				messageList.clear();
@@ -1100,14 +1125,15 @@ public class EngineLogView extends ViewPart {
 					}
 				}
 				message = logLine.getString(4);
-
+				
 				if (message.contains("\n")) {
 					if (messageList.size() > extraList.size()) {
 						boolean subLine = false;
 						for (int k = 0; k < messageList.size(); k++) {
-							if (k > 0)
+							if (k > 0) {
 								subLine = true;
-
+							}
+							
 							if (k < extraList.size() && extraList.size() != 0) {
 								logLines.add(new LogLine(logLine.getString(0), date, time, deltaTime, logLine
 										.getString(2), logLine.getString(3), messageList.get(k), extraList
@@ -1125,10 +1151,6 @@ public class EngineLogView extends ViewPart {
 							.getString(2), logLine.getString(3), logLine.getString(4), extra, false, counter,
 							logLine.getString(4), allExtras));
 					counter++;
-				}
-
-				while (limitLogLines > 0 && logLines.size() > limitLogLines) {
-					logLines.remove(0);
 				}
 			}
 		} catch (IOException e) {

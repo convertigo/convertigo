@@ -54,6 +54,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
@@ -1313,10 +1314,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 
 	public void closeAllEditors() {
 		Project project = getObject();
-		IWorkbenchPage activePage = PlatformUI
-										.getWorkbench()
-										.getActiveWorkbenchWindow()
-										.getActivePage();
+		IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		IWorkbenchPage activePage = workbenchWindow != null ? workbenchWindow.getActivePage() : null;
+		
 		if (activePage != null) {
 			IEditorReference[] editorRefs = activePage.getEditorReferences();
 			for (int i=0;i<editorRefs.length;i++) {
