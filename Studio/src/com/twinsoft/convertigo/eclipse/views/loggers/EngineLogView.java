@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.eclipse.views.loggers;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -31,8 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -1014,7 +1011,7 @@ public class EngineLogView extends ViewPart {
 						
 							public void run() {
 								try {
-									for (int i = MAX_BUFFER_LINES; i > 0; i--) {
+									while (true) {
 										tableViewer.add(logLines.remove());
 									}
 								} catch (NoSuchElementException e) {}
@@ -1069,8 +1066,6 @@ public class EngineLogView extends ViewPart {
 				logs = logManager.getLines();
 			}
 			
-			List<String> extraList = new LinkedList<String>();
-			List<String> messageList = new LinkedList<String>();
 			HashMap<String, String> allExtras = new HashMap<String, String>();
 			
 			for (int i = 0; i < logs.length(); i++) {
@@ -1104,59 +1099,37 @@ public class EngineLogView extends ViewPart {
 					deltaTime = "n/a";
 				}
 				
-				String extract, extra = "";
-				extraList.clear();
-				messageList.clear();
-				for (int j = 5; j < logLine.length(); j++) {
-					extract = logLine.getString(j) + ";";
-					allExtras.put(extract.substring(0, extract.indexOf("=")),
-							extract.substring(extract.indexOf("=") + 1, extract.indexOf(";")));
-					extra = logLine.getString(j) + ";";
-					extraList.add(logLine.getString(j));
+				int len = logLine.length();
+				for (int j = 5; j < len; j++) {
+					String extra = logLine.getString(j);
+					int k = extra.indexOf("=");
+					allExtras.put(extra.substring(0, k), extra.substring(k + 1));
 				}
+
+				// Build the message lines
 				String message = logLine.getString(4);
-				int position = 0;
-				if (message.contains("\n")) {
-					messageList.add(message.substring(0, message.indexOf("\n") + "\n".length()));
-					while ((message.contains("\n")) && (!"\n".equals(""))) {
-						position = message.indexOf("\n");
-						message = message.substring(position + "\n".length(), message.length());
-						messageList.add(message.substring(0, message.indexOf("\n") + "\n".length()));
+				String[] messageLines = message.split("\n");
+				if (messageLines.length > 1) {
+					boolean firstLine = true;
+					for (String messageLine : messageLines) {
+						logLines.add(new LogLine(logLine.getString(0), date, time, deltaTime, logLine
+								.getString(2), logLine.getString(3), messageLine, !firstLine, counter,
+								logLine.getString(4), allExtras));
+						counter++;
+						firstLine = false;
 					}
 				}
-				message = logLine.getString(4);
-				
-				if (message.contains("\n")) {
-					if (messageList.size() > extraList.size()) {
-						boolean subLine = false;
-						for (int k = 0; k < messageList.size(); k++) {
-							if (k > 0) {
-								subLine = true;
-							}
-							
-							if (k < extraList.size() && extraList.size() != 0) {
-								logLines.add(new LogLine(logLine.getString(0), date, time, deltaTime, logLine
-										.getString(2), logLine.getString(3), messageList.get(k), extraList
-										.get(k), subLine, counter, logLine.getString(4), allExtras));
-							} else {
-								logLines.add(new LogLine(logLine.getString(0), date, time, deltaTime, logLine
-										.getString(2), logLine.getString(3), messageList.get(k), " ",
-										subLine, counter, logLine.getString(4), allExtras));
-							}
-						}
-						counter++;
-					}
-				} else {
+				else {
 					logLines.add(new LogLine(logLine.getString(0), date, time, deltaTime, logLine
-							.getString(2), logLine.getString(3), logLine.getString(4), extra, false, counter,
+							.getString(2), logLine.getString(3), logLine.getString(4), false, counter,
 							logLine.getString(4), allExtras));
 					counter++;
 				}
 			}
-		} catch (IOException e) {
-			ConvertigoPlugin.logException(e, "Error while loading the Engine logs", true);
 		} catch (JSONException e) {
 			ConvertigoPlugin.logException(e, "Unable to process received Engine logs", true);
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Error while loading the Engine logs", true);
 		}
 		logManager.setContinue(true);
 		return true;
