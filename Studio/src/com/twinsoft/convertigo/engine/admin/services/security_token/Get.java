@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.engine.admin.services.security_token;
 
+import java.util.Hashtable;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -33,6 +36,7 @@ import com.twinsoft.convertigo.engine.SecurityToken;
 import com.twinsoft.convertigo.engine.admin.services.TextService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceParameterDefinition;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 @ServiceDefinition(
 		name = "Get",
@@ -65,7 +69,20 @@ public class Get extends TextService {
 		String userID = request.getParameter("userID");
 		if ((userID == null) || (userID.length() == 0)) throw new EngineException("Invalid user ID");
 		
-		SecurityToken token = Engine.theApp.securityTokenManager.generateToken(userID);
+		Engine.logAdmin.debug("security_token.Get: userID=" + userID);
+		
+		// Get extra data if present
+		Map<String, String> data = new Hashtable<String, String>();
+		Map<String, String> parameters = GenericUtils.cast(request.getParameterMap());
+		for (String parameter : parameters.keySet()) {
+			if (parameter.startsWith("data.")) {
+				String value = request.getParameter(parameter);
+				data.put(parameter.substring(5), value);
+				Engine.logAdmin.debug("security_token.Get: " + parameter + "=" + value);
+			}
+		}
+		
+		SecurityToken token = Engine.theApp.securityTokenManager.generateToken(userID, data);
 		
 		return token.tokenID;
 	}

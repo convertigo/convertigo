@@ -449,10 +449,19 @@ public abstract class GenericRequester extends Requester {
 				SecurityToken securityToken = Engine.theApp.securityTokenManager.consumeToken(parameterValue);
 				Engine.logContext.debug("The security token is \"" + securityToken + "\".");
 				
+				// Update the context with the security token information
 				context.portalUserName = securityToken.userID;
 				if (context.httpSession != null) {
 					context.httpSession.setAttribute("authenticatedUser", context.portalUserName);
 					Engine.logContext.debug("Authenticated user added in the HTTP session");
+				}
+				
+				if (!securityToken.data.isEmpty()) {
+					for (String key : securityToken.data.keySet()) {
+						String value = securityToken.data.get(key);
+						context.set(key, value);
+						Engine.logContext.debug("Added security data in the context: " + key + "=" + value);
+					}
 				}
 			}
 		}
