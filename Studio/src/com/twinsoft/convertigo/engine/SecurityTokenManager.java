@@ -55,12 +55,12 @@ public class SecurityTokenManager implements AbstractManager {
 		return token;
 	}
 	
-	public SecurityToken generateToken(String userID) {
+	public SecurityToken generateToken(String userID, Map<String, String> data) {
 		String tokenID = new BigInteger(130, random).toString(32);
 		
 		long now = System.currentTimeMillis();
 		long tokenLifeTime = Long.parseLong(EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_LIFE_TIME));
-		SecurityToken token = new SecurityToken(tokenID, userID, now + tokenLifeTime * 1000);
+		SecurityToken token = new SecurityToken(tokenID, userID, now + tokenLifeTime * 1000, data);
 		
 		tokens.put(tokenID, token);
 		

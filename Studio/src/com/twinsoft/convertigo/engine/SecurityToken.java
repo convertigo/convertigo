@@ -1,5 +1,7 @@
 package com.twinsoft.convertigo.engine;
 
+import java.util.Map;
+
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class SecurityToken {
@@ -7,11 +9,13 @@ public class SecurityToken {
 	public final String tokenID;
 	public final String userID;
 	public final long expiryDate;
+	public final Map<String, String> data;
 
-	public SecurityToken(String tokenID, String userID, long expiryDate) {
+	public SecurityToken(String tokenID, String userID, long expiryDate, Map<String, String> data) {
 		this.tokenID = tokenID;
 		this.userID = userID;
 		this.expiryDate = expiryDate;
+		this.data = data;
 	}
 
 	public boolean isExpired() {
@@ -27,6 +31,7 @@ public class SecurityToken {
 	}
 
 	public String toString() {
-		return "TokenID: " + tokenID + ", UserID: " + userID + ", expiryDate: " + expiryDate;
+		return "TokenID: " + tokenID + ", userID: " + userID + ", expiryDate: " + expiryDate
+				+ ", data: " + data.toString();
 	}
 }
