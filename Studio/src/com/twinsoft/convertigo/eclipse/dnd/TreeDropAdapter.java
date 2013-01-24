@@ -228,22 +228,33 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							if (!(targetTreeObject instanceof IPropertyTreeObject)) {
 								Element rootElement = document.getDocumentElement();
 								NodeList nodeList = rootElement.getChildNodes();
+								boolean unauthorized = false;
 								int len = nodeList.getLength();
 								Node node;
+								
+								// case of folder, retrieve owner object
+								targetTreeObject = explorerView.getFirstSelectedDatabaseObjectTreeObject(targetTreeObject);
 								
 								if (detail == DND.DROP_COPY) {
 									for (int i = 0 ; i < len ; i++) {
 										node = (Node) nodeList.item(i);
 										if (node.getNodeType() != Node.TEXT_NODE) {
-											paste(node, targetTreeObject);
+											// Special objects paste (e.g.: to create call steps)
+											if (!paste(node, targetTreeObject)) {
+												unauthorized = true; // Real unauthorized databaseObject paste
+											}
 										}
 									}
 									reloadTreeObject(explorerView, targetTreeObject);
-									return true;
 								}
 								else {
-									return false;
+									unauthorized = true; // Real unauthorized databaseObject paste
 								}
+								
+								if (unauthorized) {
+									throw e;
+								}
+								return true;
 							}
 						} catch (Exception ex) {
 							ConvertigoPlugin.errorMessageBox(ex.getMessage());
@@ -323,7 +334,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		return null;
 	}
 	
-	private void paste(Node node, TreeObject targetTreeObject) throws EngineException {
+	private boolean paste(Node node, TreeObject targetTreeObject) throws EngineException {
 		if (targetTreeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject parent = ((DatabaseObjectTreeObject) targetTreeObject).getObject();
 			
@@ -333,9 +344,9 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			if (parent instanceof Sequence || parent instanceof StepWithExpressions) {
 				
 				if (parent instanceof XMLElementStep)
-					return;
+					return false;
 				if (parent instanceof IThenElseContainer)
-					return;
+					return false;
 				
 				// Add a TransactionStep
 				if (databaseObject instanceof Transaction) {
@@ -361,7 +372,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 							transactionStep.addVariable(stepVariable);
 						}
 					}
-					
+					return true;
 				}
 				// Add a SequenceStep
 				else if (databaseObject instanceof Sequence) {
@@ -383,9 +394,11 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						stepVariable.setVisibility(variable.getVisibility());
 						sequenceStep.addVariable(stepVariable);
 					}
+					return true;
 				}
 			}
 		}
+		return false;
 	}
 
 	/* (non-Javadoc)

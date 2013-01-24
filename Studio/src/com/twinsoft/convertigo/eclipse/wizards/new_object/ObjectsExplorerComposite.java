@@ -58,19 +58,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 
-import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
-import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
-import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.ScreenClass;
-import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Statement;
-import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
-import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
@@ -79,6 +68,7 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboParent;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class ObjectsExplorerComposite extends Composite {
@@ -334,77 +324,6 @@ public class ObjectsExplorerComposite extends Composite {
 		}
 	}
 
-	private void getTechnology() {
-		DatabaseObject parent = parentObject;
-		if (parent != null) {
-			// case of Variable
-			if (Variable.class.isAssignableFrom(databaseObjectClass)) {
-				technology = parent.getClass().getName();
-				return;
-			}
-
-			// parent is a connector
-			if (parent instanceof Connector) {
-				technology = ((Connector) parent).getClass().getName();
-				return;
-			}
-
-			// parent is a sequence
-			if (parent instanceof Sequence) {
-				technology = ((Sequence) parent).getClass().getName();
-				return;
-			}
-
-			// parent is a statement
-			if (parent instanceof Statement) {
-				technology = "com.twinsoft.convertigo.beans.statements.BlockStatement";
-				return;
-			}
-
-			// parent is a step
-			if (parent instanceof Step) {
-				technology = "com.twinsoft.convertigo.beans.steps.BlockStep";
-				if (getClassName(parent.getClass()).startsWith("XML")) {
-					technology = parent.getClass().getName();
-				}
-				return;
-			}
-
-			// parent is a transaction
-			if (parent instanceof Transaction) {
-				if (parent instanceof HtmlTransaction) {
-					technology = "com.twinsoft.convertigo.beans.transactions.HtmlTransaction";
-					return;
-				} else if (parent instanceof SiteClipperTransaction) {
-					technology = "com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction";
-					return;
-				}
-			}
-
-			// parent is a screenclass
-			if (parent instanceof ScreenClass) {
-				while ((parent = parent.getParent()) instanceof ScreenClass) {
-					;
-				}
-				if (parent instanceof JavelinConnector)
-					technology = ((JavelinConnector) parent).getEmulatorTechnology();
-				if (parent instanceof HtmlConnector)
-					technology = "com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass";
-				if (parent instanceof SiteClipperConnector)
-					technology = "com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass";
-			}
-		}
-	}
-
-	public static String getClassName(Class<?> c) {
-		String FQClassName = c.getName();
-		int firstChar;
-		firstChar = FQClassName.lastIndexOf('.') + 1;
-		if (firstChar > 0)
-			FQClassName = FQClassName.substring(firstChar);
-		return FQClassName;
-	}
-
 	public BeanInfo getCurrentSelectedBeanInfo() {
 		BeanInfo bi = null;
 		if (currentSelectedObject != null) {
@@ -448,7 +367,7 @@ public class ObjectsExplorerComposite extends Composite {
 		gridLayout.horizontalSpacing = 10;
 
 		// retrieve 'project' technology
-		getTechnology();
+		technology = DboUtils.getTechnology(parentObject, databaseObjectClass);
 
 		// find associated database objects
 		findDatabaseObjects();
