@@ -406,23 +406,21 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 		String stepTypeSchema = "";
 		stepTypeSchema += "\t<xsd:complexType name=\""+ getSchemaTypeName(tns) +"\">\n";
 		stepTypeSchema += "\t<xsd:sequence>\n";
-    	stepTypeSchema += "\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"unbounded\" name=\"date\">\n";
-    	stepTypeSchema += "\t\t\t<xsd:complexType>\n";
     	if (split) {
+        	stepTypeSchema += "\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"unbounded\" name=\"date\">\n";
+        	stepTypeSchema += "\t\t\t<xsd:complexType>\n";
     		stepTypeSchema += "\t\t\t<xsd:sequence>\n";
     		stepTypeSchema += "\t\t\t<xsd:element name=\"dayOfWeek\" type=\"xsd:string\" />\n";
     		stepTypeSchema += "\t\t\t<xsd:element name=\"day\" type=\"xsd:string\" />\n";
     		stepTypeSchema += "\t\t\t<xsd:element name=\"month\" type=\"xsd:string\" />\n";
     		stepTypeSchema += "\t\t\t<xsd:element name=\"year\" type=\"xsd:string\" />\n";
     		stepTypeSchema += "\t\t\t</xsd:sequence>\n";
+        	stepTypeSchema += "\t\t\t</xsd:complexType>\n";
+        	stepTypeSchema += "\t\t</xsd:element>\n";
     	}
     	else {
-    		stepTypeSchema += "\t\t\t<xsd:simpleContent>\n";
-    		stepTypeSchema += "\t\t\t<xsd:extension base=\""+ getSchemaDataType(tns) +"\"/>\n";
-    		stepTypeSchema += "\t\t\t</xsd:simpleContent>\n";
+        	stepTypeSchema += "\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"unbounded\" name=\"date\" type=\""+ getSchemaDataType(tns) +"\" />\n";
     	}
-    	stepTypeSchema += "\t\t\t</xsd:complexType>\n";
-    	stepTypeSchema += "\t\t</xsd:element>\n";
     	stepTypeSchema += "\t</xsd:sequence>\n";
 		stepTypeSchema += "\t</xsd:complexType>\n";
 		
