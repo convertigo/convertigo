@@ -115,7 +115,7 @@ public class Migration7_0_0 {
 									StringReader reader = new StringReader(writer.toString());
 									return new InputSource(reader);
 								} catch (Exception e) {
-									Engine.logDatabaseObjectManager.warn("[Migration 6.3.0] Unable to find schema location \""+schemaLocation+"\"",e);
+									Engine.logDatabaseObjectManager.warn("[Migration 7.0.0] Unable to find schema location \""+schemaLocation+"\"",e);
 									return null;
 								}
 							}
@@ -226,7 +226,7 @@ public class Migration7_0_0 {
 							SchemaUtils.saveSchema(transactionXsdFilePath, transactionSchema);
 						}
 						catch (Exception e) {
-							Engine.logDatabaseObjectManager.error("[Migration 6.3.0] An error occured while migrating transaction \""+transaction.getName()+"\"",e);
+							Engine.logDatabaseObjectManager.error("[Migration 7.0.0] An error occured while migrating transaction \""+transaction.getName()+"\"",e);
 						}
 						
 						if (transaction instanceof TransactionWithVariables) {
@@ -273,7 +273,7 @@ public class Migration7_0_0 {
 			
 		}
 		catch (Exception e) {
-			Engine.logDatabaseObjectManager.error("[Migration 6.3.0] An error occured while migrating project \""+projectName+"\"",e);
+			Engine.logDatabaseObjectManager.error("[Migration 7.0.0] An error occured while migrating project \""+projectName+"\"",e);
 		}
 	}
 	

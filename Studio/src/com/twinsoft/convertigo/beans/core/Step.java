@@ -152,15 +152,15 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			throw new Exception("Missing \"newPriority\" attribute");
 		}
 		
-		/*TODO : REMOVE THIS PART BEFORE THE 6.3.0 RELEASE !!!!
+		/*TODO : REMOVE THIS PART BEFORE THE 7.0.0 RELEASE !!!!
 		 * R
 		 *  E
 		 *   M
 		 *    O
 		 *     V
 		 *      E
-		 * Minor migration for 6.3.0 dev project (already migrated)
-		 * The real migration is in Migration6_3_0.java 
+		 * Minor migration for 7.0.0 dev project (already migrated)
+		 * The real migration is in Migration7_0_0.java 
 		 */
 		if (this instanceof ISimpleTypeAffectation
 				&& xmlSimpleTypeAffectation != null && xmlSimpleTypeAffectation.getQName().getLocalPart().length() == 0) {
