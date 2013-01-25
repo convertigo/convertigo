@@ -625,6 +625,10 @@
                     <parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector"/>
                 </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction">
+                    <parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector"/>
+                </bean>
             </beans>
         </category>
 	</group>
