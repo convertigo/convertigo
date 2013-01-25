@@ -49,6 +49,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -576,18 +577,14 @@ public class ClipboardManager2 {
 		// Verifying if a sheet with the same browser does not already exist
 		if (object instanceof Sheet) {
 			String browser = ((Sheet) object).getBrowser();
-			Sheet sheet;
+			Sheet sheet = null;
 			if (parentDatabaseObject instanceof ScreenClass) {
-				sheet = ((ScreenClass) parentDatabaseObject).getSheet(browser);
-			} else {
-				sheet = ((Transaction) parentDatabaseObject).getSheet(browser);
+				sheet = ((ScreenClass) parentDatabaseObject).getLocalSheet(browser);
+			} else if (parentDatabaseObject instanceof RequestableObject) {
+				sheet = ((RequestableObject) parentDatabaseObject).getSheet(browser);
 			}
 			if (sheet != null) {
-				String message = java.text.MessageFormat.format(
-						java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/studio/res/actions/ClipboardPasteAction").getString("unable_to_paste_database_object.screen_class_already_has_such_sheet"),
-						new Object[] { browser, parentDatabaseObject.getName() }
-						);
-				throw new EngineException(message);
+				throw new EngineException("You cannot cut and paste the sheet because a sheet is already defined for the browser \"" + browser + "\" in the screen class \"" + parentDatabaseObject.getName() + "\".");
 			}
 		}
 		
