@@ -77,7 +77,7 @@ import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaWalker;
 
-public class Migration6_3_0 {
+public class Migration7_0_0 {
 
 	public static void migrate(String projectName) {
 		try {
