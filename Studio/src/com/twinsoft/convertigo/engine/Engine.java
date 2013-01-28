@@ -73,8 +73,13 @@ import com.twinsoft.tas.ParsingException;
 import com.twinsoft.util.Log;
 import com.twinsoft.util.TWSKey;
 
-public class Engine {	
-	public static String USER_WORKSPACE_PATH = System.getProperty("convertigo.cems.user_workspace_path", System.getProperty("user.home") + "/convertigo");
+public class Engine {
+	
+	public static final String JVM_PROPERTY_USER_WORKSPACE = "convertigo.cems.user_workspace_path";
+	public static final String JVM_PROPERTY_GLOBAL_SYMBOLS_FILE = "convertigo.cems.global_symbols_file";
+	public static final String JVM_PROPERTY_GLOBAL_SYMBOLS_FILE_COMPATIBILITY = "convertigo_global_symbols";
+	
+	public static String USER_WORKSPACE_PATH = System.getProperty(JVM_PROPERTY_USER_WORKSPACE, System.getProperty("user.home") + "/convertigo");
 	public static String PROJECTS_PATH = "";
 	public static String CERTIFICATES_PATH = "";
 	public static String LOG_PATH = "";
