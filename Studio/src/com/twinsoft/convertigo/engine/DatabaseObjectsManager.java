@@ -106,8 +106,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 
 	private void symbolsMapInit() {
-		globalSymbolsFilePath = System.getProperty("convertigo_global_symbols",  
-				System.getProperty("convertigo.cems.global_symbols_file", 
+		globalSymbolsFilePath = System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE_COMPATIBILITY,  
+				System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE, 
                         Engine.CONFIGURATION_PATH + "/global_symbols.properties")); 		
 		Properties prop = new Properties();
 
