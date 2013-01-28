@@ -325,7 +325,7 @@ public class XmlSchemaWalker {
 			
 			@Override
 			public void walkByTypeName(XmlSchema xmlSchema, QName qname) {
-				XmlSchemaType obj = xmlSchema.getTypeByName(qname);
+				XmlSchemaType obj = SchemaMeta.getCollection(xmlSchema).getTypeByQName(qname);
 				if (obj != null) {
 					if (!linkedMap.containsKey(qname)) {
 						linkedMap.put(qname, obj);
@@ -336,7 +336,7 @@ public class XmlSchemaWalker {
 
 			@Override
 			public void walkByElementRef(XmlSchema xmlSchema, QName qname) {
-				XmlSchemaElement obj = xmlSchema.getElementByName(qname);
+				XmlSchemaElement obj = SchemaMeta.getCollection(xmlSchema).getElementByQName(qname);
 				if (obj != null) {
 					if (!linkedMap.containsKey(qname)) {
 						linkedMap.put(qname, obj);
@@ -347,7 +347,8 @@ public class XmlSchemaWalker {
 
 			@Override
 			public void walkByAttributeGroupRef(XmlSchema xmlSchema, QName qname) {
-				XmlSchemaAttributeGroup obj = (XmlSchemaAttributeGroup) xmlSchema.getAttributeGroups().getItem(qname);
+				XmlSchema schema = SchemaMeta.getCollection(xmlSchema).schemaForNamespace(qname.getNamespaceURI());
+				XmlSchemaAttributeGroup obj = (XmlSchemaAttributeGroup) schema.getAttributeGroups().getItem(qname);
 				if (obj != null) {
 					if (!linkedMap.containsKey(qname)) {
 						linkedMap.put(qname, obj);
@@ -358,7 +359,7 @@ public class XmlSchemaWalker {
 
 			@Override
 			public void walkByAttributeRef(XmlSchema xmlSchema, QName qname) {
-				XmlSchemaAttribute obj = xmlSchema.getAttributeByName(qname);
+				XmlSchemaAttribute obj = SchemaMeta.getCollection(xmlSchema).getAttributeByQName(qname);
 				if (obj != null) {
 					if (!linkedMap.containsKey(qname)) {
 						linkedMap.put(qname, obj);
@@ -369,7 +370,8 @@ public class XmlSchemaWalker {
 
 			@Override
 			public void walkByGroupRef(XmlSchema xmlSchema, QName qname) {
-				XmlSchemaGroup obj = (XmlSchemaGroup) xmlSchema.getGroups().getItem(qname);
+				XmlSchema schema = SchemaMeta.getCollection(xmlSchema).schemaForNamespace(qname.getNamespaceURI());
+				XmlSchemaGroup obj = (XmlSchemaGroup) schema.getGroups().getItem(qname);
 				if (obj != null) {
 					if (!linkedMap.containsKey(qname)) {
 						linkedMap.put(qname, obj);

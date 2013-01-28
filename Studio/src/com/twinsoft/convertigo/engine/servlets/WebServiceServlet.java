@@ -33,9 +33,12 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -72,7 +75,12 @@ import javax.xml.soap.SOAPPart;
 import org.apache.axiom.om.OMNode;
 import org.apache.axiom.om.impl.dom.TextImpl;
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaGroup;
+import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -102,9 +110,11 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.MimeType;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaWalker;
 
 public class WebServiceServlet extends GenericServlet {
 
@@ -256,28 +266,6 @@ public class WebServiceServlet extends GenericServlet {
 		// Add WSDL Types
 		Types types = definition.createTypes();
 		definition.setTypes(types);
-		try {
-			// Add all schemas of project
-			XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName);
-			for (XmlSchema xmlSchema: xmlSchemaCollection.getXmlSchemas()) {
-				if (xmlSchema.getTargetNamespace().equals(Constants.URI_2001_SCHEMA_XSD)) continue;
-				Schema wsdlSchema = (Schema)definition.getExtensionRegistry().createExtension(Types.class, SchemaConstants.Q_ELEM_XSD_2001);
-				Element schemaElt = xmlSchema.getSchemaDocument().getDocumentElement();
-				// Remove 'schemaLocation' attribute on imports
-				NodeList importList = schemaElt.getElementsByTagNameNS(Constants.URI_2001_SCHEMA_XSD, "import");
-				if (importList.getLength() > 0) {
-					for (int i=0; i < importList.getLength(); i++) {
-						Element importElt = (Element)importList.item(i);
-						importElt.removeAttribute("schemaLocation");
-					}
-				}
-				wsdlSchema.setElement(schemaElt);
-				types.addExtensibilityElement(wsdlSchema);
-			}
-			
-		} catch (Exception e1) {
-			e1.printStackTrace();
-		}
 		
 		// Add WSDL service
 		Service service = definition.createService();
@@ -313,19 +301,74 @@ public class WebServiceServlet extends GenericServlet {
 		service.addPort(port);
     	
 		// Add all WSDL operations
+		List<QName> partElementQNames = new ArrayList<QName>(); // remember qnames for accessibility
 		if (project != null) {
 			for (Connector connector : project.getConnectorsList()) {
 				for (Transaction transaction : connector.getTransactionsList()) {
 					if (transaction.isPublicAccessibility()) {
-						addWsdlOperation(definition, transaction);
+						addWsdlOperation(definition, transaction, partElementQNames);
 					}
 				}
 			}
 			for (Sequence sequence : project.getSequencesList()) {
 				if (sequence.isPublicAccessibility()) {
-					addWsdlOperation(definition, sequence);
+					addWsdlOperation(definition, sequence, partElementQNames);
 				}
 			}
+		}
+		
+		// Add all schemas of project under WSDL Types
+		try {
+			// Retrieve the only needed schema objects map
+			XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName);
+			XmlSchema projectSchema = xmlSchemaCollection.getXmlSchema(targetNamespace)[0];
+			LinkedHashMap<QName, XmlSchemaObject> map = new LinkedHashMap<QName, XmlSchemaObject>();
+			XmlSchemaWalker dw = XmlSchemaWalker.newDependencyWalker(map, true, true);
+			for (QName qname: partElementQNames) {
+				dw.walkByElementRef(projectSchema, qname);
+			}
+				if (Engine.logEngine.isTraceEnabled()) {
+					String message = "";
+					for (QName qname: map.keySet()) {
+						message += "\n\t"+ qname.toString();
+					}
+					Engine.logEngine.trace("(WebServiceServlet) needed schema objects :"+ message);
+				}
+
+			// Read schemas into a new Collection in order to modify them
+			XmlSchemaCollection wsdlSchemaCollection = new XmlSchemaCollection();
+			for (XmlSchema xmlSchema: xmlSchemaCollection.getXmlSchemas()) {
+				if (xmlSchema.getTargetNamespace().equals(Constants.URI_2001_SCHEMA_XSD)) continue;
+				wsdlSchemaCollection.read(xmlSchema.getSchemaDocument().getDocumentElement());
+			}
+			
+			// Modify schemas and add them
+			for (XmlSchema xmlSchema: wsdlSchemaCollection.getXmlSchemas()) {
+				if (xmlSchema.getTargetNamespace().equals(Constants.URI_2001_SCHEMA_XSD)) continue;
+				
+				// Reduce schema to needed objects
+				reduceSchema(xmlSchema, map.keySet());
+				
+				// Retrieve schema Element
+				Schema wsdlSchema = (Schema)definition.getExtensionRegistry().createExtension(Types.class, SchemaConstants.Q_ELEM_XSD_2001);
+				Element schemaElt = xmlSchema.getSchemaDocument().getDocumentElement();
+				
+				// Remove 'schemaLocation' attribute on imports
+				NodeList importList = schemaElt.getElementsByTagNameNS(Constants.URI_2001_SCHEMA_XSD, "import");
+				if (importList.getLength() > 0) {
+					for (int i=0; i < importList.getLength(); i++) {
+						Element importElt = (Element)importList.item(i);
+						importElt.removeAttribute("schemaLocation");
+					}
+				}
+				
+				// Add schema Element
+				wsdlSchema.setElement(schemaElt);
+				types.addExtensibilityElement(wsdlSchema);
+			}
+			
+		} catch (Exception e1) {
+			Engine.logEngine.error("An error occured while adding schemas for WSDL", e1);
 		}
 		
 		// Write WSDL to string
@@ -334,13 +377,80 @@ public class WebServiceServlet extends GenericServlet {
 		try {
 			wsdlWriter.writeWSDL(definition, sw);
 		} catch (WSDLException e) {
-			e.printStackTrace();
+			Engine.logEngine.error("An error occured while generating WSDL", e);
 		}
 		String wsdl = sw.toString();
         return wsdl;
     }
     
-    private static void addWsdlOperation(Definition definition, RequestableObject requestable) {
+	private static void reduceSchema(XmlSchema xmlSchema, Set<QName> qnames) {
+		if (qnames == null)
+			return;
+		if (xmlSchema == null)
+			return;
+		
+		XmlSchemaObject ob = null;
+		QName qname = null;
+		
+		String tns = xmlSchema.getTargetNamespace();
+		
+		String message = "";
+		Iterator<XmlSchemaObject> it = GenericUtils.cast(xmlSchema.getItems().getIterator());
+		while (it.hasNext()) {
+			ob = it.next();
+			if (ob instanceof XmlSchemaType) {
+				qname = ((XmlSchemaType)ob).getQName();
+				if (qname == null) {
+					qname = new QName(tns, ((XmlSchemaType)ob).getName());
+				}
+			}
+			else if (ob instanceof XmlSchemaElement) {
+				qname = ((XmlSchemaElement)ob).getQName();
+				if (qname == null) {
+					qname = new QName(tns, ((XmlSchemaElement)ob).getName());
+				}
+			}
+			else if (ob instanceof XmlSchemaGroup) {
+				qname = ((XmlSchemaGroup)ob).getName();
+			}
+			else if (ob instanceof XmlSchemaAttribute) {
+				qname = ((XmlSchemaAttribute)ob).getQName();
+				if (qname == null) {
+					qname = new QName(tns, ((XmlSchemaAttribute)ob).getName());
+				}
+			}
+			else {
+				qname = null;
+			}
+			
+			if (qname!=null) {
+				if (!qnames.contains(qname)) {
+					it.remove();
+					message += "\n\tremoved: "+qname.toString();
+				}
+				else {
+					message += "\n\tkept: "+qname.toString();
+				}
+			}
+			else {
+				message += "\n\tfound: "+ob.toString();
+			}
+		}
+		
+		if (Engine.logEngine.isTraceEnabled()) {
+			Engine.logEngine.trace("(WebServiceServlet) reduceSchema for "+ xmlSchema.getTargetNamespace() + message);
+			//xmlSchema.write(System.out, options);
+		}
+	}
+    
+    private static void addPartElementQName(List<QName> qnames, QName qname) {
+    	if (qname == null)
+    		return;
+    	if (!qnames.contains(qname))
+    		qnames.add(qname);
+    }
+    
+    private static void addWsdlOperation(Definition definition, RequestableObject requestable, List<QName> qnames) {
     	String targetNamespace = definition.getTargetNamespace();
     	String projectName = requestable.getProject().getName();
     	String operationName = requestable.getXsdTypePrefix() + requestable.getName();
@@ -350,10 +460,12 @@ public class WebServiceServlet extends GenericServlet {
 		QName requestQName = new QName(targetNamespace, operationName + "Request");
 		QName partElementRequestQName = new QName(targetNamespace, operationName);
 		addWsdlMessage(definition, requestQName, partElementRequestQName);
+		addPartElementQName(qnames, partElementRequestQName);
 
 		QName responseQName = new QName(targetNamespace, operationName + "Response");
 		QName partElementResponseQName = new QName(targetNamespace, operationName + "Response");
 		addWsdlMessage(definition, responseQName, partElementResponseQName);
+		addPartElementQName(qnames, partElementResponseQName);
 		
 		// Adds portType operation
 		QName portTypeQName = new QName(targetNamespace, projectName + "PortType");
