@@ -266,7 +266,7 @@ public class HttpConnector extends Connector {
 
 		AbstractHttpTransaction httpTransaction = null;
 		try {
-			httpTransaction = (HttpTransaction) context.requestedObject;
+			httpTransaction = (AbstractHttpTransaction) context.requestedObject;
 		} catch (ClassCastException e) {
 			throw new EngineException("Requested object is not a transaction", e);
 		}
@@ -877,22 +877,22 @@ public class HttpConnector extends Connector {
 			}
 
 			// Retrieve HTTP method
-			int httpVerb = ((HttpTransaction) context.transaction).getHttpVerb();
-			String sHttpVerb = HttpTransaction.HTTP_VERBS[httpVerb];
+			int httpVerb = ((AbstractHttpTransaction) context.transaction).getHttpVerb();
+			String sHttpVerb = AbstractHttpTransaction.HTTP_VERBS[httpVerb];
 			Engine.logBeans.debug("(HttpConnector) HTTP verb: " + sHttpVerb);
-			if (httpVerb == HttpTransaction.HTTP_VERB_GET) {
+			if (httpVerb == AbstractHttpTransaction.HTTP_VERB_GET) {
 				method = new GetMethod(sUrl);
-			} else if (httpVerb == HttpTransaction.HTTP_VERB_POST) {
+			} else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_POST) {
 				method = new PostMethod(sUrl);
-			} else if (httpVerb == HttpTransaction.HTTP_VERB_PUT) {
+			} else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_PUT) {
 				method = new PutMethod(sUrl);
-			} else if (httpVerb == HttpTransaction.HTTP_VERB_DELETE) {
+			} else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_DELETE) {
 				method = new DeleteMethod(sUrl);
-			} else if (httpVerb == HttpTransaction.HTTP_VERB_HEAD) {
+			} else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_HEAD) {
 				method = new HeadMethod(sUrl);
-			} else if (httpVerb == HttpTransaction.HTTP_VERB_OPTIONS) {
+			} else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_OPTIONS) {
 				method = new OptionsMethod(sUrl);
-			} else if (httpVerb == HttpTransaction.HTTP_VERB_TRACE) {
+			} else if (httpVerb == AbstractHttpTransaction.HTTP_VERB_TRACE) {
 				method = new TraceMethod(sUrl);
 			}
 
@@ -920,7 +920,7 @@ public class HttpConnector extends Connector {
 
 			// Setting POST parameters if any
 			Engine.logBeans.debug("(HttpConnector) Setting post data");
-			if (httpVerb == HttpTransaction.HTTP_VERB_POST) {
+			if (httpVerb == AbstractHttpTransaction.HTTP_VERB_POST) {
 				PostMethod postMethod = (PostMethod) method;
 				if (content_type.equalsIgnoreCase("text/xml")) {
 					postMethod.setRequestEntity(new StringRequestEntity(postQuery, "text/xml", "UTF-8"));
@@ -1515,7 +1515,7 @@ public class HttpConnector extends Connector {
 	}
 
 	@Override
-	public HttpTransaction newTransaction() {
+	public AbstractHttpTransaction newTransaction() {
 		return new HttpTransaction();
 	}
 	

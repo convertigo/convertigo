@@ -46,8 +46,8 @@ import com.twinsoft.convertigo.beans.core.IContainerOrdered;
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
-import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.variables.HttpStatementMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.HttpStatementVariable;
 import com.twinsoft.convertigo.engine.Engine;
@@ -872,12 +872,12 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 	}
 	
 	public String getMethod() {
-		return HttpTransaction.HTTP_VERBS[httpVerb];
+		return AbstractHttpTransaction.HTTP_VERBS[httpVerb];
 	}
 	
 	public void setMethod(String method) {
-		for (int i = 0 ; i < HttpTransaction.HTTP_VERBS.length ; i++) {
-			if (method.toUpperCase().equals(HttpTransaction.HTTP_VERBS[i])) {
+		for (int i = 0 ; i < AbstractHttpTransaction.HTTP_VERBS.length ; i++) {
+			if (method.toUpperCase().equals(AbstractHttpTransaction.HTTP_VERBS[i])) {
 				httpVerb = i;
 				return;
 			}

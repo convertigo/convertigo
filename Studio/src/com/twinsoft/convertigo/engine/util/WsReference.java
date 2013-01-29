@@ -66,7 +66,7 @@ import com.eviware.soapui.settings.WsdlSettings;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
@@ -324,7 +324,7 @@ public class WsReference {
 		   	transactionName = StringUtils.normalize("C"+operationName);
 	   		xmlHttpTransaction = new XmlHttpTransaction();
 	   		xmlHttpTransaction.bNew = true;
-	   		xmlHttpTransaction.setHttpVerb(HttpTransaction.HTTP_VERB_POST);
+	   		xmlHttpTransaction.setHttpVerb(AbstractHttpTransaction.HTTP_VERB_POST);
 	   		xmlHttpTransaction.setName(transactionName);
 	   		xmlHttpTransaction.setComment(comment);
 	   		setTaskLabel("Creating transaction \""+transactionName+"\"...");

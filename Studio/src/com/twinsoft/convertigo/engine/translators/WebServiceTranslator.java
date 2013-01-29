@@ -48,7 +48,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
-import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.AttachmentManager;
 import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
@@ -568,7 +568,7 @@ public class WebServiceTranslator implements Translator {
 		else if (nodeType.equals("attachment")){
 			childSoapElement = soapElement.addChildElement(elementToAdd.getNodeName());
 			
-			if(context.requestedObject instanceof HttpTransaction){
+			if(context.requestedObject instanceof AbstractHttpTransaction){
 				AttachmentDetails attachment = AttachmentManager.getAttachment(elementToAdd);
 				if(attachment!=null){
 					byte[] raw = attachment.getData();

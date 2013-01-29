@@ -33,7 +33,11 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.RequestableStep;
+import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.HttpStatementMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.HttpStatementVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable;
@@ -576,7 +580,7 @@ public class Migration5_0_0 {
 	
 						if (VersionUtils.compare(version, "3.1.8") < 0) {
 							// Case of HttpTransaction
-							if (com.twinsoft.convertigo.beans.transactions.HttpTransaction.class.isAssignableFrom(beanClass)) {
+							if (AbstractHttpTransaction.class.isAssignableFrom(beanClass)) {
 								Element httpVariables = MigrationUtils.findChildElementByAttributeValue(children, "property", "httpVariables");
 								if (httpVariables != null) {
 									Element httpVariablesNode = (Element) XMLUtils.findChildNode(httpVariables, Node.ELEMENT_NODE);
@@ -730,7 +734,7 @@ public class Migration5_0_0 {
 		try {
 			beanClass = GenericUtils.cast(Class.forName(classname));
 			
-	    	if (com.twinsoft.convertigo.beans.transactions.HttpTransaction.class.isAssignableFrom(beanClass)) {
+	    	if (AbstractHttpTransaction.class.isAssignableFrom(beanClass)) {
 	    		Boolean isMulti = (Boolean)xmlv.elementAt(4);
 	    		RequestableHttpVariable variable;
 	    		variable = (isMulti ? new RequestableHttpMultiValuedVariable():new RequestableHttpVariable());
@@ -746,8 +750,8 @@ public class Migration5_0_0 {
 				variable.hasChanged = true;
 				return variable;
 			}
-	    	else if (com.twinsoft.convertigo.beans.core.TransactionWithVariables.class.isAssignableFrom(beanClass) ||
-	    			com.twinsoft.convertigo.beans.core.Sequence.class.isAssignableFrom(beanClass)) {
+	    	else if (TransactionWithVariables.class.isAssignableFrom(beanClass) ||
+	    			Sequence.class.isAssignableFrom(beanClass)) {
 	    		Boolean isMulti = (Boolean)xmlv.elementAt(4);
 				RequestableVariable variable = (isMulti ? new RequestableMultiValuedVariable():new RequestableVariable());
 				variable.setName((String)xmlv.elementAt(0));
@@ -760,7 +764,7 @@ public class Migration5_0_0 {
 				variable.hasChanged = true;
 				return variable;
 	    	}
-	    	else if (com.twinsoft.convertigo.beans.core.RequestableStep.class.isAssignableFrom(beanClass)) {
+	    	else if (RequestableStep.class.isAssignableFrom(beanClass)) {
 				StepVariable variable = new StepVariable();
 				variable.setName((String)xmlv.elementAt(0));
 				variable.setDescription((String)xmlv.elementAt(1));
