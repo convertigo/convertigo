@@ -24,12 +24,16 @@ package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.httpclient.HostConfiguration;
+import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.NameValuePair;
+import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
 
@@ -62,14 +66,19 @@ public class GetPackage extends DownloadService {
 				.getProperty(PropertyName.MOBILE_BUILDER_USERNAME);
 		String mobileBuilderPlatformPassword = EnginePropertiesManager
 				.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
-
-		String url;
+		
 		PostMethod method;
 		int methodStatusCode;
 		InputStream methodBodyContentInputStream;
 
-		url = mobileBuilderPlatformURL + "/getpackage";
-		method = new PostMethod(url);
+		URL url = new URL(mobileBuilderPlatformURL + "/getpackage");
+
+		HostConfiguration hostConfiguration = new HostConfiguration();
+		hostConfiguration.setHost(new URI(url.toString(), true));
+		HttpState httpState = new HttpState();
+		Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
+		
+		method = new PostMethod(url.toString());
 
 		try {
 			method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -79,7 +88,7 @@ public class GetPackage extends DownloadService {
 					new NameValuePair("username", mobileBuilderPlatformUsername),
 					new NameValuePair("password", mobileBuilderPlatformPassword) });
 
-			methodStatusCode = Engine.theApp.httpClient.executeMethod(method);
+			methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 			methodBodyContentInputStream = method.getResponseBodyAsStream();
 
 			if (methodStatusCode != HttpStatus.SC_OK) {

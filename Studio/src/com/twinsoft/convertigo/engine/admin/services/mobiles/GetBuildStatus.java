@@ -24,12 +24,16 @@ package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.httpclient.HostConfiguration;
+import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.NameValuePair;
+import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONObject;
@@ -39,6 +43,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.MobileDevice;
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -46,7 +51,6 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 
 @ServiceDefinition(name = "GetBuildStatus", roles = { Role.ANONYMOUS }, parameters = {}, returnValue = "")
 public class GetBuildStatus extends XmlService {
@@ -59,7 +63,6 @@ public class GetBuildStatus extends XmlService {
 		
 		String platform = request.getParameter("platform");
 
-		String url;
 		PostMethod method;
 		int methodStatusCode;
 		InputStream methodBodyContentInputStream;
@@ -71,8 +74,14 @@ public class GetBuildStatus extends XmlService {
 		String mobileBuilderPlatformPassword = EnginePropertiesManager
 				.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
 
-		url = mobileBuilderPlatformURL + "/getstatus";
-		method = new PostMethod(url);
+		URL url = new URL(mobileBuilderPlatformURL + "/getstatus");
+		
+		HostConfiguration hostConfiguration = new HostConfiguration();
+		hostConfiguration.setHost(new URI(url.toString(), true));
+		HttpState httpState = new HttpState();
+		Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
+		
+		method = new PostMethod(url.toString());
 
 		JSONObject jsonResult;
 		try {
@@ -81,8 +90,9 @@ public class GetBuildStatus extends XmlService {
 					new NameValuePair("application", finalApplicationName),
 					new NameValuePair("username", mobileBuilderPlatformUsername),
 					new NameValuePair("password", mobileBuilderPlatformPassword) });
-
-			methodStatusCode = Engine.theApp.httpClient.executeMethod(method);
+			
+			
+			methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 
 			methodBodyContentInputStream = method.getResponseBodyAsStream();
 			byte[] httpBytes = IOUtils.toByteArray(methodBodyContentInputStream);

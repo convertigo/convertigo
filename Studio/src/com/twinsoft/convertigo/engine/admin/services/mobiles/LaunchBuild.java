@@ -32,6 +32,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,10 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.httpclient.HostConfiguration;
+import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.FileUtils;
@@ -199,8 +203,7 @@ public class LaunchBuild extends XmlService {
 					.getProperty(PropertyName.MOBILE_BUILDER_USERNAME);
 			String mobileBuilderPlatformPassword = EnginePropertiesManager
 					.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
-
-			String url;
+			
 			PostMethod method;
 			int methodStatusCode;
 			InputStream methodBodyContentInputStream;
@@ -213,14 +216,20 @@ public class LaunchBuild extends XmlService {
 			params.put("password", new String[]{mobileBuilderPlatformPassword});
 
 			// Launch the mobile build
-			url = mobileBuilderPlatformURL + "/build?" + URLUtils.mapToQuery(params);
-			method = new PostMethod(url);
+			URL url = new URL(mobileBuilderPlatformURL + "/build?" + URLUtils.mapToQuery(params));
+			
+			HostConfiguration hostConfiguration = new HostConfiguration();
+			hostConfiguration.setHost(new URI(url.toString(), true));
+			HttpState httpState = new HttpState();
+			Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
+			
+			method = new PostMethod(url.toString());
 
 			File mobileArchiveFile = new File(mobileArchiveFileName);
 			FileRequestEntity entity = new FileRequestEntity(mobileArchiveFile, null);
 			method.setRequestEntity(entity);
 
-			methodStatusCode = Engine.theApp.httpClient.executeMethod(method);
+			methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 			methodBodyContentInputStream = method.getResponseBodyAsStream();
 			byte[] httpBytes = IOUtils.toByteArray(methodBodyContentInputStream);
 			String sResult = new String(httpBytes, "UTF-8");
