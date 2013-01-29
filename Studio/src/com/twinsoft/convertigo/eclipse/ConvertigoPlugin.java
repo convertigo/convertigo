@@ -225,6 +225,10 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		logWarning(null, message, true);
 	}
 	
+	public static void logWarning(String message, boolean dialog) {
+		logWarning(null, message, dialog);
+	}
+	
 	public static void logWarning(Throwable e, String message) {
 		logWarning(e, message + ((e!=null)? "\n" + e.getMessage():""), true);
 	}
