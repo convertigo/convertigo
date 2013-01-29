@@ -38,27 +38,27 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 
 			properties = new PropertyDescriptor[5];
 			
-			properties[0] = new PropertyDescriptor("subDir", HttpTransaction.class, "getSubDir", "setSubDir");
+			properties[0] = new PropertyDescriptor("subDir", AbstractHttpTransaction.class, "getSubDir", "setSubDir");
 			properties[0].setDisplayName(getExternalizedString("property.subDir.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.subDir.short_description"));
 
-			properties[1] = new PropertyDescriptor("handleCookie", HttpTransaction.class, "isHandleCookie", "setHandleCookie");
+			properties[1] = new PropertyDescriptor("handleCookie", AbstractHttpTransaction.class, "isHandleCookie", "setHandleCookie");
 			properties[1].setDisplayName(getExternalizedString("property.handleCookie.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.handleCookie.short_description"));
 			properties[1].setExpert(true);
 
-			properties[2] = new PropertyDescriptor("httpParameters", HttpTransaction.class, "getHttpParameters", "setHttpParameters");
+			properties[2] = new PropertyDescriptor("httpParameters", AbstractHttpTransaction.class, "getHttpParameters", "setHttpParameters");
 			properties[2].setDisplayName(getExternalizedString("property.httpParameters.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.httpParameters.short_description"));
 			properties[2].setExpert(true);
 			properties[2].setPropertyEditorClass(getEditorClass("HttpParametersEditor"));
 
-			properties[3] = new PropertyDescriptor("requestTemplate", HttpTransaction.class, "getRequestTemplate", "setRequestTemplate");
+			properties[3] = new PropertyDescriptor("requestTemplate", AbstractHttpTransaction.class, "getRequestTemplate", "setRequestTemplate");
 			properties[3].setDisplayName(getExternalizedString("property.requestTemplate.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.requestTemplate.short_description"));
 			properties[3].setExpert(true);
 
-			properties[4] = new PropertyDescriptor("httpVerb", HttpTransaction.class, "getHttpVerb", "setHttpVerb");
+			properties[4] = new PropertyDescriptor("httpVerb", AbstractHttpTransaction.class, "getHttpVerb", "setHttpVerb");
 			properties[4].setDisplayName(getExternalizedString("property.httpVerb.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.httpVerb.short_description"));
 			properties[4].setPropertyEditorClass(getEditorClass("HttpVerbEditor"));

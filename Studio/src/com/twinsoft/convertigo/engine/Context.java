@@ -69,7 +69,7 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.engine.cache.CacheEntry;
 import com.twinsoft.convertigo.engine.parsers.HtmlParser;
 import com.twinsoft.convertigo.engine.parsers.XulRecorder;
@@ -350,8 +350,8 @@ public class Context extends AbstractContext {
 		// IndexOutOfBoundException:  4096 in coyote.
 		// To overcome this situation, now you can configure HandleCookies to false in the transaction to prevent cookies to be reflected
 		// to the client.
-		if (requestedObject instanceof HttpTransaction ) {
-			if (!((HttpTransaction)requestedObject).isHandleCookie())
+		if (requestedObject instanceof AbstractHttpTransaction ) {
+			if (!((AbstractHttpTransaction)requestedObject).isHandleCookie())
 				return new Vector<String>();
 		}
 		

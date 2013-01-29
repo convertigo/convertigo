@@ -14,7 +14,7 @@ import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.mozilla.javascript.Scriptable;
 
-import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -30,7 +30,7 @@ public class HTTPUploadStatement extends HTTPStatement {
 	public HTTPUploadStatement() {
 		super();
 		
-		setHttpVerb(HttpTransaction.HTTP_VERB_POST);
+		setHttpVerb(AbstractHttpTransaction.HTTP_VERB_POST);
 	}
 	
 	public String getFilename() {
@@ -82,7 +82,7 @@ public class HTTPUploadStatement extends HTTPStatement {
 				throw new EngineException("(HTTPUploadStatement) The filename expresion must return the file path in string.");
 			}
 			
-			setHttpVerb(HttpTransaction.HTTP_VERB_POST);
+			setHttpVerb(AbstractHttpTransaction.HTTP_VERB_POST);
 			return super.execute(javascriptContext, scope);
 		}
 		return false;
