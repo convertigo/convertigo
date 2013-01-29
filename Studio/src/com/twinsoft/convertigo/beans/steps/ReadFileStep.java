@@ -150,6 +150,31 @@ public abstract class ReadFileStep extends Step {
 		return false;
 	}
 	
+	public String migrateSourceXpathFor620(String xpath) {
+		Context javascriptContext = null;
+		Scriptable scope = null;
+		try {
+			javascriptContext = org.mozilla.javascript.Context.enter();
+			scope = javascriptContext.initStandardObjects();
+			String filePath = evaluateDataFileName(javascriptContext, scope);
+			xpath = migrateSourceXpathFor620(filePath, xpath);
+			if (xpath.startsWith("/")) {
+				xpath = xpath.replaceFirst("/", "./");
+			}
+		}
+		catch (Exception e) {}
+		finally {
+			org.mozilla.javascript.Context.exit();
+			javascriptContext = null;
+			scope = null;
+		}
+		return xpath;
+	}
+	
+	protected String migrateSourceXpathFor620(String filePath, String xpath) throws Exception {
+		return xpath;
+	}
+	
 	private void flushDocument(Document xmlDoc) {
 		if (sequence.runningThread.bContinue) {
 			if (isOutput()) sequence.flushStepDocument(executeTimeID, xmlDoc);

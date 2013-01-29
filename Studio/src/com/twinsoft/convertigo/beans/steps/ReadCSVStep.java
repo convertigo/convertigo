@@ -395,4 +395,12 @@ public class ReadCSVStep extends ReadFileStep {
 
 		return element;
 	}
+	
+	@Override
+	protected String migrateSourceXpathFor620(String filePath, String xpath) throws Exception {
+		if (xpath.startsWith("./")) {
+			xpath = xpath.replaceFirst("./", "./document/");
+		}
+		return xpath;
+	}
 }

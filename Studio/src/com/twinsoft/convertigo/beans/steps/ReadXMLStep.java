@@ -176,5 +176,20 @@ public class ReadXMLStep extends ReadFileStep {
 		
 		return element;
 	}
+	
+	@Override
+	protected String migrateSourceXpathFor620(String filePath, String xpath) throws Exception {
+		File xmlFile = new File(getAbsoluteFilePath(filePath));
+		if (xmlFile.exists()) {
+			Document xmlDoc = XMLUtils.parseDOM(xmlFile);
+			if (!hasXmlRoot(xmlDoc)) {
+				if (xpath.startsWith("./")) {
+					xpath = xpath.replaceFirst("./", "./document/");
+				}
+			}
+		}
+		return xpath;
+	}
+	
 }
 	
