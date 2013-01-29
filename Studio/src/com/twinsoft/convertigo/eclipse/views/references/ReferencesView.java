@@ -205,10 +205,15 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 			IsUsedByNode isUsedByNode = new IsUsedByNode(root, "Is used by");
 			
 			for (String projectName : projectNames) {
-				Project project;
-				project = getProject(projectName, projectExplorerView);
-
 				if (!(projectName.equals(projectNameSelected))) {
+					Project project = getProject(projectName, projectExplorerView);
+					if (project == null) {
+						// Unable to load the project, just ignore it
+						ConvertigoPlugin.logWarning(
+								"[References View] Unable to load the project \"" + projectName + "\"", false);
+						continue;
+					}
+
 					ProjectNode projectFolderExports = new ProjectNode(root,
 							projectName, project);
 
