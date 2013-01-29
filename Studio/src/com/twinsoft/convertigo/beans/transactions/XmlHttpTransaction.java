@@ -44,7 +44,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class XmlHttpTransaction extends HttpTransaction implements IElementRefAffectation {
+public class XmlHttpTransaction extends AbstractHttpTransaction implements IElementRefAffectation {
 
 	private String xmlEncoding = "ISO-8859-1";
 	
@@ -96,6 +96,7 @@ public class XmlHttpTransaction extends HttpTransaction implements IElementRefAf
 		this.ignoreSoapEnveloppe = ignoreSoapEnveloppe;
 	}
 
+	@Override
 	public void makeDocument(byte[] httpData) throws Exception {
 		Engine.logBeans.trace("makeDocument : " + getEncodingCharSet());
 		

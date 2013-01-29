@@ -29,7 +29,7 @@ import java.io.IOException;
 
 import org.w3c.dom.Element;
 
-import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.engine.util.Base64v21;
 
 public class AttachmentManager {
@@ -52,9 +52,9 @@ public class AttachmentManager {
     	inprogress
     }
     
-    private HttpTransaction transaction = null;
+    private AbstractHttpTransaction transaction = null;
     
-    public AttachmentManager(HttpTransaction transaction) {
+    public AttachmentManager(AbstractHttpTransaction transaction) {
     	this.transaction = transaction;
     }
     
