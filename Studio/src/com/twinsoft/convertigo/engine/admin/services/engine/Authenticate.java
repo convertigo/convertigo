@@ -76,7 +76,7 @@ public class Authenticate extends XmlService {
 			String user = ServiceUtils.getRequiredParameter(request, "authUserName");
 			String password = ServiceUtils.getRequiredParameter(request, "authPassword");
 
-			httpSession.setAttribute("user", user);
+			httpSession.setAttribute(SessionKey.ADMIN_USER.toString(), user);
 			Engine.logAdmin.info("User '" + user + "' is trying to login");
 
 			Role[] roles = null;
