@@ -301,6 +301,12 @@
                id="com.twinsoft.convertigo.Administration"
                label="&amp;Administration"
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.SetupAction"
+               icon="icons/setupwizard_16x16.gif"
+               id="com.twinsoft.convertigo.Setup"
+               label="&amp;PSC Configuration"
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
       </actionSet>
    </extension>
    <extension

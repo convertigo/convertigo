@@ -1,5 +1,6 @@
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
+import java.io.IOException;
 import java.util.Properties;
 
 import org.eclipse.jface.resource.JFaceResources;
@@ -177,7 +178,15 @@ public class PscKeyPage extends WizardPage implements RegisterCallback, SummaryG
 	public String getCertificateKey() {
 		return pscKey.getText().trim();
 	}
-
+	
+	public void setAnonymousCertificateKey() {
+		try {
+			pscKey.setText(ConvertigoPlugin.makeAnonymousPsc());
+		} catch (IOException e) {
+			ConvertigoPlugin.logWarning(e, "Unable to make an anonymous PSC");
+		}
+	}
+	
 	public void onRegister(final boolean success, final String message) {
 		Display.getDefault().asyncExec(new Runnable() {
 			
