@@ -777,7 +777,7 @@ public class HttpConnector extends Connector {
 	 */
 	@Override
 	protected void addTransaction(Transaction transaction) throws EngineException {
-		if (!(transaction instanceof HttpTransaction))
+		if (!(transaction instanceof AbstractHttpTransaction))
 			throw new EngineException("You cannot add to a HTTP connector a database object of type "
 					+ transaction.getClass().getName());
 		super.addTransaction(transaction);
