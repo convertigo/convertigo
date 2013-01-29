@@ -30,7 +30,7 @@ public class JsonHttpTransactionBeanInfo extends MySimpleBeanInfo {
 	public JsonHttpTransactionBeanInfo() {
 		try {
 			beanClass = JsonHttpTransaction.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.transactions.HttpTransaction.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/jsonhttptransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/jsonhttptransaction_color_32x32.png";

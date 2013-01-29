@@ -30,7 +30,7 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class XmlHttpTransaction extends HttpTransaction {
+public class XmlHttpTransaction extends AbstractHttpTransaction {
 
 	private String xmlEncoding = "ISO-8859-1";
 	
@@ -81,6 +81,7 @@ public class XmlHttpTransaction extends HttpTransaction {
 		this.ignoreSoapEnveloppe = ignoreSoapEnveloppe;
 	}
 
+	@Override
 	public void makeDocument(byte[] httpData) throws Exception {
 		Engine.logBeans.trace("makeDocument : " + getEncodingCharSet());
 		

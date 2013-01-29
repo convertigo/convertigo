@@ -80,6 +80,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
@@ -263,7 +264,7 @@ public class HttpConnector extends Connector {
 			}
 		}
 
-		HttpTransaction httpTransaction = null;
+		AbstractHttpTransaction httpTransaction = null;
 		try {
 			httpTransaction = (HttpTransaction) context.requestedObject;
 		} catch (ClassCastException e) {
@@ -737,7 +738,7 @@ public class HttpConnector extends Connector {
 
 	protected static final int BUFFER_SIZE = 8192;
 
-	protected Object getVariableValue(HttpTransaction httpTransaction, String variableName) {
+	protected Object getVariableValue(AbstractHttpTransaction httpTransaction, String variableName) {
 		Object variableValue = null;
 		
 		int variableVisibility = httpTransaction.getVariableVisibility(variableName);
@@ -1231,7 +1232,7 @@ public class HttpConnector extends Connector {
 		}
 	}
 
-	private String getRequestEncoding(HttpTransaction httpTransaction) {
+	private String getRequestEncoding(AbstractHttpTransaction httpTransaction) {
 		if (httpTransaction instanceof XmlHttpTransaction) {
 			return (((XmlHttpTransaction) httpTransaction).getXmlEncoding());
 		}

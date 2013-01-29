@@ -30,7 +30,7 @@ public class XmlHttpTransactionBeanInfo extends MySimpleBeanInfo {
 	public XmlHttpTransactionBeanInfo() {
 		try {
 			beanClass = XmlHttpTransaction.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.transactions.HttpTransaction.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/xmlhttptransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/xmlhttptransaction_color_32x32.png";
@@ -56,9 +56,6 @@ public class XmlHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[2].setDisplayName(getExternalizedString("property.ignoreSoapEnveloppe.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.ignoreSoapEnveloppe.short_description"));
 			properties[2].setExpert(true);
-			
-			PropertyDescriptor property = getPropertyDescriptor("dataEncoding");
-            property.setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

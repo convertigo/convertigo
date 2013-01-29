@@ -33,7 +33,7 @@ import org.w3c.dom.Text;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
-public class JsonHttpTransaction extends HttpTransaction {
+public class JsonHttpTransaction extends AbstractHttpTransaction {
 
 	private static final long serialVersionUID = 1494278577299328199L;
 
