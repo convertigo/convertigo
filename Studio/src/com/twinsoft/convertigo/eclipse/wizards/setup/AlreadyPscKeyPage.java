@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Label;
 
 public class AlreadyPscKeyPage extends WizardPage {
 	private boolean alreadyPsc = false;
+	private boolean anonPsc = false;
 	
 	public AlreadyPscKeyPage() {
 		super("AlreadyPscKeyPage");
@@ -34,6 +35,7 @@ public class AlreadyPscKeyPage extends WizardPage {
 			
 			public void widgetSelected(SelectionEvent e) {
 				alreadyPsc = e.widget.getData("PSC") != null;
+				anonPsc = e.widget.getData("ANON") != null;
 				setPageComplete(true);				
 			}
 			
@@ -51,7 +53,13 @@ public class AlreadyPscKeyPage extends WizardPage {
 		choice = new Button(container, SWT.RADIO);
 		choice.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 		choice.addSelectionListener(choiceDone);
-		choice.setText("I do not have a PSC");
+		choice.setText("I do not have a PSC and I want to register");
+		
+		choice = new Button(container, SWT.RADIO);
+		choice.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		choice.addSelectionListener(choiceDone);
+		choice.setText("I do not have a PSC and I won't register now");
+		choice.setData("ANON", "");
 		
 		setControl(container);
 		setPageComplete(false);
@@ -59,11 +67,15 @@ public class AlreadyPscKeyPage extends WizardPage {
 	
 	@Override
 	public IWizardPage getNextPage() {
-		RegistrationPage registrationPage = (RegistrationPage) getWizard().getPage("RegistrationPage");
-		if (alreadyPsc) {
-			registrationPage.ignore();
-			return registrationPage.getNextPage();
+		WizardPage wizardPage = (WizardPage) getWizard().getPage("RegistrationPage");
+		if (alreadyPsc || anonPsc) {
+			wizardPage.setPageComplete(true);
+			wizardPage = (WizardPage) wizardPage.getNextPage();
+			if (anonPsc && wizardPage instanceof PscKeyPage) {
+				((PscKeyPage) wizardPage).setAnonymousCertificateKey();
+				wizardPage = (WizardPage) wizardPage.getNextPage();
+			}
 		}
-		return registrationPage;
+		return wizardPage;
 	}
 }

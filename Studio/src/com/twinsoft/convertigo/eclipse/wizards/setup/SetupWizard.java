@@ -191,7 +191,11 @@ public class SetupWizard extends Wizard {
 			ConvertigoPlugin.logError("Failed to write the PSC file: " + e.getMessage());
 		}
 		
-		EnginePropertiesManager.unload();
+		if (!Engine.isStarted) {
+			EnginePropertiesManager.unload();
+		} else {
+			ConvertigoPlugin.configureDeployConfiguration();
+		}
 		
 		return true;
 	}

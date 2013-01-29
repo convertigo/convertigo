@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.eclipse;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -140,9 +141,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public static ClipboardManager2 clipboardManager2 = null;
 	
 	public static DeploymentConfigurationManager deploymentConfigurationManager = null;
-	
-	private static Properties pscProperties = null;
-	
+		
     public static final String SYSTEM_PROP_PREFIX = "convertigo.studio.";
     
     public static final String PREFERENCE_LOG_LEVEL = "log.level";
@@ -329,7 +328,38 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			
 		});
 	}
-
+	
+	public static void configureDeployConfiguration() {
+		// The embedded Tomcat has been created, so all engine paths have been computed.
+		deploymentConfigurationManager = new DeploymentConfigurationManager();
+		
+		try {
+			deploymentConfigurationManager.load();
+		} catch (Exception e) {
+			logException(e, "Unable to load deployment configurations");
+		}
+		
+		try {
+			
+			Properties properties = decodePsc();
+			for (int i = 1; i < Integer.MAX_VALUE; i++) {
+				if (i > 1 && !properties.containsKey(DeploymentKey.adminUser.key(i))) {
+					break;
+				}
+				deploymentConfigurationManager.add(new DeploymentConfigurationReadOnly(
+						DeploymentKey.server.value(properties, i),
+						DeploymentKey.adminUser.value(properties, i),
+						DeploymentKey.adminPassword.value(properties, i),
+						Boolean.parseBoolean(DeploymentKey.sslHttps.value(properties, i)),
+						Boolean.parseBoolean(DeploymentKey.sslTrustCert.value(properties, i)),
+						Boolean.parseBoolean(DeploymentKey.assembleXsl.value(properties, i)))
+				);
+			}
+		} catch (Exception e) {
+			logException(e, "Unable to load deployment configurations from PSC");
+		}
+	}
+	
 	/**
 	 * The constructor.
 	 */
@@ -614,34 +644,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					tomcatHome = tomcatHome.substring(index);
 
 					embeddedTomcat = new EmbeddedTomcat(tomcatHome);
-
-					// The embedded Tomcat has been created, so all engine paths have been computed.
-					deploymentConfigurationManager = new DeploymentConfigurationManager();
 					
-					try {
-						deploymentConfigurationManager.load();
-					} catch (Exception e) {
-						logException(e, "Unable to load deployment configurations");
-					}
-					
-					try {
-						Properties properties = getPsc();
-						for (int i = 1; i < Integer.MAX_VALUE; i++) {
-							if (i > 1 && !properties.containsKey(DeploymentKey.adminUser.key(i))) {
-								break;
-							}
-							deploymentConfigurationManager.add(new DeploymentConfigurationReadOnly(
-									DeploymentKey.server.value(properties, i),
-									DeploymentKey.adminUser.value(properties, i),
-									DeploymentKey.adminPassword.value(properties, i),
-									Boolean.parseBoolean(DeploymentKey.sslHttps.value(properties, i)),
-									Boolean.parseBoolean(DeploymentKey.sslTrustCert.value(properties, i)),
-									Boolean.parseBoolean(DeploymentKey.assembleXsl.value(properties, i)))
-							);
-						}
-					} catch (Exception e) {
-						logException(e, "Unable to load deployment configurations from PSC");
-					}
+					configureDeployConfiguration();
 
 					displayWaitScreen();
 
@@ -1418,16 +1422,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		return this.shuttingDown;
 	}
 	
-	static public Properties getPsc() {
-		try {
-			return pscProperties != null ? pscProperties : decodePsc();
-		} catch (PscException e) {
-			return null;
-		} 
-	}
-	
 	static private Properties decodePsc() throws PscException {
-		return pscProperties = decodePscFromWorkspace(Engine.USER_WORKSPACE_PATH);
+		return decodePscFromWorkspace(Engine.USER_WORKSPACE_PATH);
 	}
 	
 	static public Properties decodePscFromWorkspace(String convertigoWorkspace) throws PscException {
@@ -1519,5 +1515,22 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			
 			return properties;
 		}
+	}
+	
+	static public String makeAnonymousPsc() throws IOException {
+		Properties properties = new Properties();
+		String anonEmail = Long.toString(System.currentTimeMillis(), Character.MAX_RADIX) +
+				Long.toString(Math.round(Math.random()) % Character.MAX_RADIX, Character.MAX_RADIX) +
+				"@anonym.ous";
+		
+		DeploymentKey.adminUser.setValue(properties, 1, anonEmail);
+		DeploymentKey.adminPassword.setValue(properties, 1, SimpleCipher.encode(anonEmail));
+		
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		properties.store(os, " PSC file");
+		String psc = new String(os.toByteArray(), "iso8859-1");
+		psc = Crypto2.encodeToHexString("registration", psc);
+		
+		return psc;
 	}
 }

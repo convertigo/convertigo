@@ -56,10 +56,6 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 		setDescription("Convertigo provides a free convertigo cloud account for you test and run your projects.");
 	}
 	
-	public void ignore() {
-		setPageComplete(true);
-	}
-	
 	public void createControl(Composite parent) {
 		final Color colorcondition = new  Color(parent.getDisplay(), 204,0,0);
 		
