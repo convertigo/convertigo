@@ -26,7 +26,7 @@ function configuration_List_update () {
 	if($("#logLevelCopyFromConfigurationButton").html()!=null){
 		if($("#logLevelCopyFromConfigurationButton").html().length > 0){		
 			var $configTable=$("#logLevelCopyFromConfiguration").find("tbody");	
-			$("div.config-category").has("h2:contains('Log management')").find("table").first().html($configTable);			
+			$("#tab-Logs").find("table:first").append($configTable);			
 			var $buttonUpdate=$("#logLevelCopyFromConfigurationButton").find("button");
 			$("#configFirstUpdateButtonLocation").append($buttonUpdate);					
 		}
