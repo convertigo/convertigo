@@ -26,9 +26,9 @@ public class AlreadyPscKeyPage extends WizardPage {
 		container.setLayout(new GridLayout(1, true));
 		
 		Label description = new Label(container, SWT.WRAP);
-		description.setText("A Personal Studio Configuration is required to start Convertigo Studio.\n" +
+		description.setText("A Personal Studio Configuration (PSC) is required to start Convertigo Studio.\n" +
 				"A PSC automatically configures your Studio for project deployments on Convertigo Cloud.\n\n" +
-				"Note that previous Convertigo “personal registration certificates” are also valid PSCs.\n\n");
+				"Note that previous Convertigo \"personal registration certificates\" are also valid PSCs.\n\n");
 		description.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
 		SelectionListener choiceDone = new SelectionListener() {
@@ -53,12 +53,12 @@ public class AlreadyPscKeyPage extends WizardPage {
 		choice = new Button(container, SWT.RADIO);
 		choice.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 		choice.addSelectionListener(choiceDone);
-		choice.setText("I do not have a PSC and I want to register");
+		choice.setText("I do not have a PSC and I want to register now");
 		
 		choice = new Button(container, SWT.RADIO);
 		choice.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 		choice.addSelectionListener(choiceDone);
-		choice.setText("I do not have a PSC and I won't register now");
+		choice.setText("I do not have a PSC and I will register later (select Convertigo menu, then Configure Studio to run this wizard again)");
 		choice.setData("ANON", "");
 		
 		setControl(container);
