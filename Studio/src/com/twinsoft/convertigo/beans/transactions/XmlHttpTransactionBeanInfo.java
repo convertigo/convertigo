@@ -64,9 +64,6 @@ public class XmlHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[3].setExpert(true);
 			properties[3].setHidden(false);
 			properties[3].setPropertyEditorClass(getEditorClass("XmlQNameEditor"));
-			
-			PropertyDescriptor property = getPropertyDescriptor("dataEncoding");
-            property.setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
