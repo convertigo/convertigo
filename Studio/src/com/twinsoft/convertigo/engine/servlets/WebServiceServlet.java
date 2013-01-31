@@ -34,10 +34,12 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.ServletException;
@@ -84,6 +86,8 @@ import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
@@ -338,33 +342,82 @@ public class WebServiceServlet extends GenericServlet {
 			// Read schemas into a new Collection in order to modify them
 			XmlSchemaCollection wsdlSchemaCollection = new XmlSchemaCollection();
 			for (XmlSchema xmlSchema: xmlSchemaCollection.getXmlSchemas()) {
-				if (xmlSchema.getTargetNamespace().equals(Constants.URI_2001_SCHEMA_XSD)) continue;
-				wsdlSchemaCollection.read(xmlSchema.getSchemaDocument().getDocumentElement());
+				String tns = xmlSchema.getTargetNamespace();
+				if (tns.equals(Constants.URI_2001_SCHEMA_XSD)) continue;
+				
+				if (wsdlSchemaCollection.schemaForNamespace(tns) == null) {
+					wsdlSchemaCollection.read(xmlSchema.getSchemaDocument().getDocumentElement());
+				}
 			}
 			
 			// Modify schemas and add them
+			Map<String, Schema> schemaMap = new HashMap<String, Schema>();
 			for (XmlSchema xmlSchema: wsdlSchemaCollection.getXmlSchemas()) {
 				if (xmlSchema.getTargetNamespace().equals(Constants.URI_2001_SCHEMA_XSD)) continue;
+				
+				String tns = xmlSchema.getTargetNamespace();
 				
 				// Reduce schema to needed objects
 				reduceSchema(xmlSchema, map.keySet());
 				
 				// Retrieve schema Element
-				Schema wsdlSchema = (Schema)definition.getExtensionRegistry().createExtension(Types.class, SchemaConstants.Q_ELEM_XSD_2001);
-				Element schemaElt = xmlSchema.getSchemaDocument().getDocumentElement();
-				
-				// Remove 'schemaLocation' attribute on imports
-				NodeList importList = schemaElt.getElementsByTagNameNS(Constants.URI_2001_SCHEMA_XSD, "import");
-				if (importList.getLength() > 0) {
-					for (int i=0; i < importList.getLength(); i++) {
-						Element importElt = (Element)importList.item(i);
-						importElt.removeAttribute("schemaLocation");
+				Schema wsdlSchema = schemaMap.get(tns);
+				if (wsdlSchema == null) {
+					wsdlSchema = (Schema)definition.getExtensionRegistry().createExtension(Types.class, SchemaConstants.Q_ELEM_XSD_2001);
+					Element schemaElt = xmlSchema.getSchemaDocument().getDocumentElement();
+					
+					// Remove 'schemaLocation' attribute on imports
+					NodeList importList = schemaElt.getElementsByTagNameNS(Constants.URI_2001_SCHEMA_XSD, "import");
+					if (importList.getLength() > 0) {
+						for (int i=0; i < importList.getLength(); i++) {
+							Element importElt = (Element)importList.item(i);
+							importElt.removeAttribute("schemaLocation");
+						}
+					}
+					// Remove includes
+					NodeList includeList = schemaElt.getElementsByTagNameNS(Constants.URI_2001_SCHEMA_XSD, "include");
+					if (includeList.getLength() > 0) {
+						for (int i=0; i < includeList.getLength(); i++) {
+							schemaElt.removeChild(includeList.item(i));
+						}
+					}
+					
+					// Add schema Element
+					schemaMap.put(tns, wsdlSchema);
+					wsdlSchema.setElement(schemaElt);
+					types.addExtensibilityElement(wsdlSchema);
+				}
+				else { // case of schema include (same targetNamespace)
+					Element schemaElt = wsdlSchema.getElement();
+					
+					// Add missing attributes
+					NamedNodeMap attributeMap = xmlSchema.getSchemaDocument().getDocumentElement().getAttributes();
+					for (int i=0; i< attributeMap.getLength(); i++) {
+						Node node = attributeMap.item(i);
+						if (schemaElt.getAttributes().getNamedItem(node.getNodeName()) == null) {
+							schemaElt.setAttribute(node.getNodeName(), node.getNodeValue());
+						}
+					}
+					
+					// Add children
+					NodeList children = xmlSchema.getSchemaDocument().getDocumentElement().getChildNodes();
+					for (int i=0; i< children.getLength(); i++) {
+						Node node = children.item(i);
+						// Special cases
+						if (node.getNodeType() == Node.ELEMENT_NODE) {
+							// Do not add include
+							if (((Element)node).getTagName().endsWith("include"))
+								continue;
+							// Add import at first
+							if (((Element)node).getTagName().endsWith("import")) {
+								schemaElt.insertBefore(schemaElt.getOwnerDocument().importNode(node, true), schemaElt.getFirstChild());
+								continue;
+							}
+						}
+						// Others
+						schemaElt.appendChild(schemaElt.getOwnerDocument().importNode(node, true));
 					}
 				}
-				
-				// Add schema Element
-				wsdlSchema.setElement(schemaElt);
-				types.addExtensibilityElement(wsdlSchema);
 			}
 			
 		} catch (Exception e1) {
