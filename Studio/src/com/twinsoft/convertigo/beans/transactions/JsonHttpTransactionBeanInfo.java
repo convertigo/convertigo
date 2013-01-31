@@ -35,9 +35,12 @@ public class JsonHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/jsonhttptransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/jsonhttptransaction_color_32x32.png";
 
-			properties = new PropertyDescriptor[2];
-			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/JsonHttpTransaction");
+			
+			displayName = getExternalizedString("display_name");
+			shortDescription = getExternalizedString("short_description");
+
+			properties = new PropertyDescriptor[3];
 			
 			properties[0] = new PropertyDescriptor("jsonEncoding", JsonHttpTransaction.class, "getJsonEncoding", "setJsonEncoding");
 			properties[0].setDisplayName(getExternalizedString("property.jsonEncoding.display_name"));
@@ -48,9 +51,12 @@ public class JsonHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[1].setDisplayName(getExternalizedString("property.includeDataType.display_name"));
 			properties[1].setShortDescription(getExternalizedString("property.includeDataType.short_description"));
 			properties[1].setExpert(true);
-
-			displayName = getExternalizedString("display_name");
-			shortDescription = getExternalizedString("short_description");
+			
+			properties[2] = new PropertyDescriptor("jsonArrayTranslationPolicy", JsonHttpTransaction.class, "getJsonArrayTranslationPolicy", "setJsonArrayTranslationPolicy");
+			properties[2].setDisplayName(getExternalizedString("property.jsonArrayTranslationPolicy.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.jsonArrayTranslationPolicy.short_description"));
+			properties[2].setExpert(true);
+			properties[2].setPropertyEditorClass(getEditorClass("JsonArrayTranslationPolicyEditor"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
