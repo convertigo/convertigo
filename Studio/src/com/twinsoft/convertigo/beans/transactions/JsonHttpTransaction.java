@@ -31,6 +31,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class JsonHttpTransaction extends AbstractHttpTransaction {
@@ -61,6 +62,20 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 	public void setIncludeDataType(boolean includeDataType) {
 		this.includeDataType = includeDataType;
 	}
+	
+	public static final String[] JSON_ARRAY_TRANSLATION_POLICY = { "hierarchical", "compact" };
+    public static int JSON_ARRAY_TRANSLATION_POLICY_HIERARCHICAL = 0;
+    public static int JSON_ARRAY_TRANSLATION_POLICY_COMPACT = 1;
+    
+	private int jsonArrayTranslationPolicy = JSON_ARRAY_TRANSLATION_POLICY_HIERARCHICAL;
+
+	public int getJsonArrayTranslationPolicy() {
+		return jsonArrayTranslationPolicy;
+	}
+
+	public void setJsonArrayTranslationPolicy(int jsonArrayTranslationPolicy) {
+		this.jsonArrayTranslationPolicy = jsonArrayTranslationPolicy;
+	}
 
 	@Override
 	public void makeDocument(byte[] httpData) throws Exception {
@@ -72,59 +87,89 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 
     	Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
 
-    	JSONObject json = new JSONObject(jsonData);
-		Iterator<String> keys = GenericUtils.cast(json.keys());
-		while (keys.hasNext()) {
-			String key = keys.next();
-			Element subElement = context.outputDocument.createElement(key);
-			outputDocumentRootElement.appendChild(subElement);			
-			jsonToXml(json.get(key), subElement);
+    	try {
+    		// Try to find whether the top JSON structure is a JSON object or a JSON array
+        	char firstToken = jsonData.trim().charAt(0);
+
+        	// JSON Object
+        	if (firstToken == '{') {
+            	JSONObject jsonObject = new JSONObject(jsonData);
+   				jsonToXml(jsonObject, null, outputDocumentRootElement);
+        	}
+        	// JSON Array
+        	else if (firstToken == '[') {
+            	JSONArray jsonArray = new JSONArray(jsonData);
+    			jsonToXml(jsonArray, null, outputDocumentRootElement);
+        	}
+        	else {
+    			throw new EngineException("Invalid JSON data: not a JSON object neither a JSON array; JSON analyzed:\n" + jsonData);
+        	}
+		} catch (IndexOutOfBoundsException  e) {
+			// This is an empty JSON data
+			// Just ignore
 		}
     }
 
-	private void jsonToXml(Object object, Element element) throws JSONException {
+	private void jsonToXml(Object object, String objectKey, Element parentElement) throws JSONException {
 		// String, numeric, boolean value case
 		if (object instanceof Character || object instanceof String ||
 				object instanceof Byte || object instanceof Integer ||
 				object instanceof Float || object instanceof Double ||
 				object instanceof Boolean) {
+			Element element = context.outputDocument.createElement(objectKey == null ? "value" : objectKey);
+			parentElement.appendChild(element);
+			
+			Text text = context.outputDocument.createTextNode(object.toString());
+			element.appendChild(text);
+
 			if (includeDataType) {
 				String objectType = object.getClass().toString();
 				if (objectType.startsWith("class java.lang."))
 					objectType = objectType.substring(16);
-				element.setAttribute("type", objectType);
+				element.setAttribute("type", objectType.toLowerCase());
 			}
-			Text text = context.outputDocument.createTextNode(object.toString());
-			element.appendChild(text);
 		}
 		// Array value case
 		else if (object instanceof JSONArray) {
 			JSONArray array = (JSONArray) object;
 			int len = array.length();
-			if (includeDataType) {
-				element.setAttribute("type", "array");
-				element.setAttribute("length",  "" + len);
+
+			Element arrayElement = parentElement;
+			String arrayItemObjectKey = null;
+			if (jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_HIERARCHICAL) {
+				arrayElement = context.outputDocument.createElement(objectKey == null ? "array" : objectKey);
+				parentElement.appendChild(arrayElement);
+
+				if (includeDataType) {
+					arrayElement.setAttribute("type", "array");
+					arrayElement.setAttribute("length",  "" + len);
+				}
 			}
+			else if (jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT) {
+				// Nothing to do
+				arrayItemObjectKey = objectKey;
+			}
+			
 			for (int i = 0; i < len; i++) {
 				Object itemArray = array.get(i);
-				Element itemElement = context.outputDocument.createElement("item");
-				element.appendChild(itemElement);			
-				jsonToXml(itemArray, itemElement);
-				
+				jsonToXml(itemArray, arrayItemObjectKey, arrayElement);				
 			}
 		}
 		// JSON object value case
 		else if (object instanceof JSONObject) {
 			JSONObject json = (JSONObject) object;
+
+			Element element = context.outputDocument.createElement(objectKey == null ? "object" : objectKey);
+			parentElement.appendChild(element);
+			
 			if (includeDataType) {
-				element.setAttribute("type",  "object");
+				element.setAttribute("type", "object");
 			}
+			
 			Iterator<String> keys = GenericUtils.cast(json.keys());
 			while (keys.hasNext()) {
 				String key = keys.next();
-				Element subElement = context.outputDocument.createElement(key);
-				element.appendChild(subElement);			
-				jsonToXml(json.get(key), subElement);
+				jsonToXml(json.get(key), key, element);
 			}
 		}
 	}
