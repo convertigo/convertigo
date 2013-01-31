@@ -23,7 +23,7 @@
 	<classpathentry kind="lib" path="lib/internal/comm.jar"/>
 	<classpathentry kind="lib" path="lib/MozillaGlue.jar"/>
 	<classpathentry kind="lib" path="lib/MozillaInterfaces.jar"/>
-	<classpathentry kind="lib" path="lib/jettison-1.2.jar"/>
+	<classpathentry kind="lib" path="lib/jettison-1.2.jar" sourcepath="/ExternalJavaSources/jettison-1.3-sources.jar"/>
 	<classpathentry kind="lib" path="lib/ctgclient.jar"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-lang-2.5.jar"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-fileupload-1.2.2.jar"/>
