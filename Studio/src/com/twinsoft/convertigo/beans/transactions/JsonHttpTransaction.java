@@ -146,7 +146,6 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 				}
 			}
 			else if (jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT) {
-				// Nothing to do
 				arrayItemObjectKey = objectKey;
 			}
 			
@@ -160,7 +159,18 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 			JSONObject json = (JSONObject) object;
 
 			Element element = context.outputDocument.createElement(objectKey == null ? "object" : objectKey);
-			parentElement.appendChild(element);
+			
+			if (jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT) {
+				if (objectKey == null) {
+					element = parentElement;
+				}
+				else {
+					parentElement.appendChild(element);
+				}
+			}
+			else {
+				parentElement.appendChild(element);
+			}
 			
 			if (includeDataType) {
 				element.setAttribute("type", "object");
@@ -174,4 +184,3 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 		}
 	}
 }
-
