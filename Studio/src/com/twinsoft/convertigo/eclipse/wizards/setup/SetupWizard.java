@@ -271,7 +271,7 @@ public class SetupWizard extends Wizard {
 		th.start();
 	}
 	
-	public void register(final String username, final String password, final String firstname, final String lastname, final String email, final String country, final String company, final RegisterCallback callback) {
+	public void register(final String username, final String password, final String firstname, final String lastname, final String email, final String country, final String company, final String companyHeadcount, final RegisterCallback callback) {
 		Thread th = new Thread(new Runnable() {
 
 			public void run() {				
@@ -294,6 +294,7 @@ public class SetupWizard extends Wizard {
 						method.setParameter("email", email);
 						method.setParameter("country", country);
 						method.setParameter("company", company);
+						method.setParameter("companyHeadcount", companyHeadcount);
 						
 						// execute HTTP post with parameters
 						int statusCode = client.executeMethod(method);
