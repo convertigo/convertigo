@@ -164,6 +164,20 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 		
 		label = new Label(container, SWT.NONE);
 		label.setFont(fontBold);
+		label.setText("Company headcount");
+		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		
+		label = new Label(container, SWT.NONE);
+		label.setLayoutData(lData);
+		
+		Combo companyHeadcount = new Combo(container, SWT.READ_ONLY);
+		companyHeadcount.setLayoutData(layoutData);
+		
+		companyHeadcount.add("Unknown");
+		companyHeadcount.select(0);
+		
+		label = new Label(container, SWT.NONE);
+		label.setFont(fontBold);
 		label.setText("Country");
 		label.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 		
@@ -346,6 +360,19 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 			}
 		} catch (IOException e1) {
 			country.add("Failed to load countries …");
+		}
+		
+		for (String line : new String[] {
+			"< 10",
+			"11- 50",
+			"51- 100",
+			"101-500",
+			"501- 1000",
+			"1001-5000",
+			"5001-10000",
+			"> 10000"
+		}) {
+			companyHeadcount.add(line);
 		}
 		
 		// Required to avoid an error in the system
