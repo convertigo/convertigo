@@ -33,18 +33,18 @@ import org.w3c.dom.Text;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class JsonHttpTransaction extends AbstractHttpTransaction {
 
 	private static final long serialVersionUID = 1494278577299328199L;
 
-	public JsonHttpTransaction()
-	{
+	public JsonHttpTransaction() {
 		super();
 	}
 
 	private String jsonEncoding = "UTF-8";
-	
+
 	public String getJsonEncoding() {
 		return jsonEncoding;
 	}
@@ -52,7 +52,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 	public void setJsonEncoding(String jsonEncoding) {
 		this.jsonEncoding = jsonEncoding;
 	}
-	
+
 	private boolean includeDataType = true;
 
 	public boolean getIncludeDataType() {
@@ -62,11 +62,11 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 	public void setIncludeDataType(boolean includeDataType) {
 		this.includeDataType = includeDataType;
 	}
-	
+
 	public static final String[] JSON_ARRAY_TRANSLATION_POLICY = { "hierarchical", "compact" };
-    public static int JSON_ARRAY_TRANSLATION_POLICY_HIERARCHICAL = 0;
-    public static int JSON_ARRAY_TRANSLATION_POLICY_COMPACT = 1;
-    
+	public static int JSON_ARRAY_TRANSLATION_POLICY_HIERARCHICAL = 0;
+	public static int JSON_ARRAY_TRANSLATION_POLICY_COMPACT = 1;
+
 	private int jsonArrayTranslationPolicy = JSON_ARRAY_TRANSLATION_POLICY_HIERARCHICAL;
 
 	public int getJsonArrayTranslationPolicy() {
@@ -81,44 +81,60 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 	public void makeDocument(byte[] httpData) throws Exception {
 		String jsonEncoding = getJsonEncoding();
 		Engine.logBeans.trace("JSON encoding : " + jsonEncoding);
-		
+
 		String jsonData = new String(httpData, jsonEncoding);
 		Engine.logBeans.debug("JSON text: " + jsonData);
 
-    	Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
+		Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
 
-    	try {
-    		// Try to find whether the top JSON structure is a JSON object or a JSON array
-        	char firstToken = jsonData.trim().charAt(0);
+		try {
+			// Try to find whether the top JSON structure is a JSON object or a
+			// JSON array
+			char firstToken = jsonData.trim().charAt(0);
 
-        	// JSON Object
-        	if (firstToken == '{') {
-            	JSONObject jsonObject = new JSONObject(jsonData);
-   				jsonToXml(jsonObject, null, outputDocumentRootElement);
-        	}
-        	// JSON Array
-        	else if (firstToken == '[') {
-            	JSONArray jsonArray = new JSONArray(jsonData);
-    			jsonToXml(jsonArray, null, outputDocumentRootElement);
-        	}
-        	else {
-    			throw new EngineException("Invalid JSON data: not a JSON object neither a JSON array; JSON analyzed:\n" + jsonData);
-        	}
-		} catch (IndexOutOfBoundsException  e) {
+			// JSON Object
+			if (firstToken == '{') {
+				Engine.logBeans.debug("Detected JSON object");
+				JSONObject jsonObject = new JSONObject(jsonData);
+				jsonToXml(jsonObject, null, outputDocumentRootElement);
+			}
+			// JSON Array
+			else if (firstToken == '[') {
+				Engine.logBeans.debug("Detected JSON array");
+				JSONArray jsonArray = new JSONArray(jsonData);
+				jsonToXml(jsonArray, null, outputDocumentRootElement);
+			} else {
+				throw new EngineException(
+						"Invalid JSON structure: neither a JSON object nor a JSON array; analyzed JSON:\n"
+								+ jsonData);
+			}
+		} catch (IndexOutOfBoundsException e) {
 			// This is an empty JSON data
 			// Just ignore
 		}
-    }
+	}
 
 	private void jsonToXml(Object object, String objectKey, Element parentElement) throws JSONException {
+		Engine.logBeans.debug("Converting JSON to XML: object=" + object.toString() + "; objectKey=\""
+				+ objectKey + "\"");
+
+		// Normalize object key
+		String originalObjectKey = objectKey;
+		if (objectKey != null) {
+			objectKey = StringUtils.normalize(objectKey);
+		}
+
 		// String, numeric, boolean value case
-		if (object instanceof Character || object instanceof String ||
-				object instanceof Byte || object instanceof Integer ||
-				object instanceof Float || object instanceof Double ||
-				object instanceof Boolean) {
+		if (object instanceof Character || object instanceof String || object instanceof Byte
+				|| object instanceof Integer || object instanceof Float || object instanceof Double
+				|| object instanceof Boolean) {
 			Element element = context.outputDocument.createElement(objectKey == null ? "value" : objectKey);
+			if (objectKey != null && !objectKey.equals(originalObjectKey)) {
+				element.setAttribute("originalKeyName", originalObjectKey);
+			}
+
 			parentElement.appendChild(element);
-			
+
 			Text text = context.outputDocument.createTextNode(object.toString());
 			element.appendChild(text);
 
@@ -138,20 +154,22 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 			String arrayItemObjectKey = null;
 			if (jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_HIERARCHICAL) {
 				arrayElement = context.outputDocument.createElement(objectKey == null ? "array" : objectKey);
+				if (objectKey != null && !objectKey.equals(originalObjectKey)) {
+					arrayElement.setAttribute("originalKeyName", originalObjectKey);
+				}
 				parentElement.appendChild(arrayElement);
 
 				if (includeDataType) {
 					arrayElement.setAttribute("type", "array");
-					arrayElement.setAttribute("length",  "" + len);
+					arrayElement.setAttribute("length", "" + len);
 				}
-			}
-			else if (jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT) {
+			} else if (jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT) {
 				arrayItemObjectKey = objectKey;
 			}
-			
+
 			for (int i = 0; i < len; i++) {
 				Object itemArray = array.get(i);
-				jsonToXml(itemArray, arrayItemObjectKey, arrayElement);				
+				jsonToXml(itemArray, arrayItemObjectKey, arrayElement);
 			}
 		}
 		// JSON object value case
@@ -159,23 +177,24 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 			JSONObject json = (JSONObject) object;
 
 			Element element = context.outputDocument.createElement(objectKey == null ? "object" : objectKey);
-			
+			if (objectKey != null && !objectKey.equals(originalObjectKey)) {
+				element.setAttribute("originalKeyName", originalObjectKey);
+			}
+
 			if (jsonArrayTranslationPolicy == JSON_ARRAY_TRANSLATION_POLICY_COMPACT) {
 				if (objectKey == null) {
 					element = parentElement;
-				}
-				else {
+				} else {
 					parentElement.appendChild(element);
 				}
-			}
-			else {
+			} else {
 				parentElement.appendChild(element);
 			}
-			
+
 			if (includeDataType) {
 				element.setAttribute("type", "object");
 			}
-			
+
 			Iterator<String> keys = GenericUtils.cast(json.keys());
 			while (keys.hasNext()) {
 				String key = keys.next();
