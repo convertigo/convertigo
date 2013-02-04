@@ -40,6 +40,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 	private Text lastname;
 	private Text email;
 	private Text company;
+	private Combo companyHeadcount;
 	private Combo country;
 	private Text username;
 	private Text password;
@@ -170,7 +171,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 		label = new Label(container, SWT.NONE);
 		label.setLayoutData(lData);
 		
-		Combo companyHeadcount = new Combo(container, SWT.READ_ONLY);
+		companyHeadcount = new Combo(container, SWT.READ_ONLY);
 		companyHeadcount.setLayoutData(layoutData);
 		
 		companyHeadcount.add("Unknown");
@@ -254,7 +255,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 		};
 		
 		texts = Arrays.asList(firstname, lastname, email, company, username, password, passwordAgain);
-		controls = Arrays.asList(firstname, lastname, email, company, (Control) country, username, password, passwordAgain);
+		controls = Arrays.asList(firstname, lastname, email, company, (Control) companyHeadcount, (Control) country, username, password, passwordAgain);
 		
 		for (Text txt : texts) {
 			txt.addModifyListener(unAccept);
@@ -488,6 +489,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 					email.getText(),
 					country.getText(),
 					company.getText(),
+					companyHeadcount.getText(),
 					callback
 			);
 			return true;
