@@ -19,7 +19,7 @@ public class AlreadyPscKeyPage extends WizardPage {
 	public AlreadyPscKeyPage() {
 		super("AlreadyPscKeyPage");
 		setTitle("Personal Studio Configuration");
-		setDescription("Already own a PSC ?");
+		setDescription("Already own a PSC?");
 	}
 
 	public void createControl(Composite parent) {
@@ -28,7 +28,7 @@ public class AlreadyPscKeyPage extends WizardPage {
 		
 		Label description = new Label(container, SWT.WRAP);
 		description.setText("A Personal Studio Configuration (PSC) is required to start Convertigo Studio.\n" +
-				"A PSC automatically configures your Studio for project deployments on Convertigo Cloud.\n\n" +
+				"A PSC automatically configures your Studio for project deployments on Convertigo Cloud and Convertigo Servers.\n\n" +
 				"Note that previous Convertigo \"personal registration certificates\" are also valid PSCs.\n\n");
 		description.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		
@@ -62,15 +62,16 @@ public class AlreadyPscKeyPage extends WizardPage {
 		choice = new Button(container, SWT.RADIO);
 		choice.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 		choice.addSelectionListener(choiceDone);
-		choice.setText("I do not have a PSC and I will register later (select Convertigo menu, then Configure Studio to run this wizard again)");
+		choice.setText("I do not have a PSC and I will register later (select \"Convertigo\" menu, then \"Configure Studio\" to run this wizard again)");
 		choice.setData("ANON", "");
 		
 		Link details = new Link(container, SWT.WRAP);
 		details.setText(
-				"\nIncluded with Convertigo Community Edition, you get access to a free « Convertigo Cloud » account. This cloud is called  <a href=\"http://trial.convertigo.net\">http://trial.convertigo.net</a> and you will be able to deploy your projects on it for free.\n\n" +
-				"Choose the \"I do not have a PSC\" option and fill in the creation form in the next page. This form creates automatically the Trial Cloud account as well as a free Convertigo Support Forum account and sends you a PSC by email.\n\n" +
-				"You can access the support forum by clicking this link: <a href=\"http://www.convertigo.com/en/how-to/developer-forum.html\">http://www.convertigo.com/en/how-to/developer-forum.html</a>.\n\n" +
-				"Choosing not to register will prevent you from getting access to the cloud and the support forum.\n");
+				"\nIncluded with Convertigo Community Edition, you get access to a free « Convertigo Cloud » account. This cloud is named Convertigo Trial Cloud and can be accessed at the following URL: <a href=\"http://trial.convertigo.net\">http://trial.convertigo.net</a>. You will be able to deploy your projects on this shared cloud for free.\n\n" +
+				"Choose the \"I do not have a PSC and I want to register now\" option and fill in the creation form in the next page. This form automatically creates for you a Convertigo Trial Cloud account as well as a free Convertigo Support Forum account. \n\n" +
+				"You can access the Convertigo Support Forum by clicking this link: <a href=\"http://www.convertigo.com/en/how-to/developer-forum.html\">http://www.convertigo.com/en/how-to/developer-forum.html</a>.\n\n" +
+				"As a result of the registration process, you will receive a PSC by email that will configure your Studio for projects deployment on Convertigo Trial Cloud. \n\n" +
+				"Choosing not to register will prevent you from getting access to the Trial Cloud and the Support Forum.\n");
 		details.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		details.addSelectionListener(new SelectionListener() {
 			
@@ -84,7 +85,7 @@ public class AlreadyPscKeyPage extends WizardPage {
 		});
 		
 		areYouSure[0] = new Label(container, SWT.WRAP);
-		areYouSure[0].setText("Are you sure do not want to register to get your PSC ?");
+		areYouSure[0].setText("Are you sure you do not want to register to get your PSC ?");
 		areYouSure[0].setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		areYouSure[0].setVisible(false);
 		
