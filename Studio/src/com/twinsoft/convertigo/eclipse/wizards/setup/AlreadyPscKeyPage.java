@@ -85,7 +85,7 @@ public class AlreadyPscKeyPage extends WizardPage {
 		});
 		
 		areYouSure[0] = new Label(container, SWT.WRAP);
-		areYouSure[0].setText("Are you sure do not want to register to get your PSC ?");
+		areYouSure[0].setText("Are you sure you do not want to register to get your PSC ?");
 		areYouSure[0].setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		areYouSure[0].setVisible(false);
 		
