@@ -37,10 +37,11 @@ public class AlreadyPscKeyPage extends WizardPage {
 		SelectionListener choiceDone = new SelectionListener() {
 			
 			public void widgetSelected(SelectionEvent e) {
+				((PscKeyPage) getWizard().getPage("PscKeyPage")).clearCertificateKey();
 				alreadyPsc = e.widget.getData("PSC") != null;
 				anonPsc = e.widget.getData("ANON") != null;
 				areYouSure[0].setVisible(anonPsc);
-				setPageComplete(true);				
+				setPageComplete(true);
 			}
 			
 			public void widgetDefaultSelected(SelectionEvent e) {
