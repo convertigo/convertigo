@@ -179,6 +179,10 @@ public class PscKeyPage extends WizardPage implements RegisterCallback, SummaryG
 		return pscKey.getText().trim();
 	}
 	
+	public void clearCertificateKey() {
+		pscKey.setText("");
+	}
+	
 	public void setAnonymousCertificateKey() {
 		try {
 			pscKey.setText(ConvertigoPlugin.makeAnonymousPsc());
@@ -210,9 +214,12 @@ public class PscKeyPage extends WizardPage implements RegisterCallback, SummaryG
 		int i = 0;
 		while (++i > 0) {
 			String server = DeploymentKey.server.value(decodedPSC, i);
-			if (server != null) {
+			if (server != null && !server.equals("")) {
 				summary.append("\t" + server + "\n");
 			} else {
+				if (i == 1) {
+					summary = new StringBuffer();
+				}
 				i = -1;
 			}
 		}	

@@ -346,14 +346,16 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				if (i > 1 && !properties.containsKey(DeploymentKey.adminUser.key(i))) {
 					break;
 				}
-				deploymentConfigurationManager.add(new DeploymentConfigurationReadOnly(
-						DeploymentKey.server.value(properties, i),
-						DeploymentKey.adminUser.value(properties, i),
-						DeploymentKey.adminPassword.value(properties, i),
-						Boolean.parseBoolean(DeploymentKey.sslHttps.value(properties, i)),
-						Boolean.parseBoolean(DeploymentKey.sslTrustCert.value(properties, i)),
-						Boolean.parseBoolean(DeploymentKey.assembleXsl.value(properties, i)))
-				);
+				if (!"".equals(DeploymentKey.server.value(properties, i))) {
+					deploymentConfigurationManager.add(new DeploymentConfigurationReadOnly(
+							DeploymentKey.server.value(properties, i),
+							DeploymentKey.adminUser.value(properties, i),
+							DeploymentKey.adminPassword.value(properties, i),
+							Boolean.parseBoolean(DeploymentKey.sslHttps.value(properties, i)),
+							Boolean.parseBoolean(DeploymentKey.sslTrustCert.value(properties, i)),
+							Boolean.parseBoolean(DeploymentKey.assembleXsl.value(properties, i)))
+					);
+				}
 			}
 		} catch (Exception e) {
 			logException(e, "Unable to load deployment configurations from PSC");
@@ -551,10 +553,14 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		gridData.grabExcessVerticalSpace = true;
 		browser.setLayoutData(gridData);
 		
-		DeploymentConfiguration deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get("trial.convertigo.net/cems");
+		String username = "n/a";
+		try {
+			Properties properties = decodePsc();
+			username = DeploymentKey.adminUser.value(properties, 1);
+		} catch (Exception e) {}
 
 		String url = "http://www.convertigo.com/index.php?option=com_content&view=article&id=269&Itemid=364&lang=en&ConvertigoStudio=true";
-		url += deploymentConfiguration == null ? "" : "&user=" + URLEncoder.encode(deploymentConfiguration.getUsername(), "utf8");
+		url += "&user=" + URLEncoder.encode(username, "utf8");
 		url += "&version=" + URLEncoder.encode(ProductVersion.fullProductVersion, "utf8");
 		
 		browser.addProgressListener(progressListener);
@@ -1524,7 +1530,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 				"@anonym.ous";
 		
 		DeploymentKey.adminUser.setValue(properties, 1, anonEmail);
-		DeploymentKey.adminPassword.setValue(properties, 1, SimpleCipher.encode(anonEmail));
+		DeploymentKey.adminPassword.setValue(properties, 1, "");
+		DeploymentKey.server.setValue(properties, 1, "");
 		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		properties.store(os, " PSC file");
