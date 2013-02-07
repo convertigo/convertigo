@@ -30,7 +30,6 @@ public class ProductVersion {
     public static String servicePack = "1";
     public static String tag = null;
     public static String revision = null;
-    public static String codeName = "nitrogen";
     
     public static String productVersion =
     	ProductVersion.majorProductVersion + "." +
