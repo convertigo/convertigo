@@ -26,6 +26,8 @@ import java.io.*;
 import java.util.*;
 import java.util.zip.*;
 
+import org.apache.commons.io.IOUtils;
+
 import com.twinsoft.convertigo.engine.*;
 
 public class ZipUtils {
@@ -114,41 +116,25 @@ public class ZipUtils {
 
 		Engine.logEngine.trace("files=" + files);
 
-		int len = files.length;
-		int nbe = 0, count;
-		ZipEntry entry;
-		FileInputStream fi;
-		BufferedInputStream origin;
-		byte data[] = new byte[4096];
-		String file;
-		File f;
-		String sDirEntry, sRelativeDirEntry;
-		for (int i = 0 ; i < len ; i++) {
-			file = files[i];
-			sDirEntry = sDir + "/" + file;
-			if(sRelativeDir != null) {
-				sRelativeDirEntry = sRelativeDir + "/" + file;
-			}
-			else {
-				sRelativeDirEntry = file;
-			}
+		int nbe = 0;
+		for (String file : files) {
+			String sDirEntry = sDir + "/" + file;
+			String sRelativeDirEntry = sRelativeDir != null ? (sRelativeDir + "/" + file) :  file;
 
-			f = new File(sDirEntry);
+			File f = new File(sDirEntry);
 			if (!f.isDirectory()) {
 				Engine.logEngine.trace("+ " + sDirEntry);
-				fi = new FileInputStream(sDirEntry);
-				origin = new BufferedInputStream(fi, 4096);
+				InputStream fi = new FileInputStream(f);
 				
 				try {
-					entry = new ZipEntry(sRelativeDirEntry);
+					ZipEntry entry = new ZipEntry(sRelativeDirEntry);
+					entry.setTime(f.lastModified());
 					zos.putNextEntry(entry);
-					while ((count = origin.read(data, 0, 4096)) != -1) {
-						zos.write(data, 0, count);
-					}
+					IOUtils.copy(fi, zos);
 					nbe++;
 				}
 				finally {
-					origin.close();
+					fi.close();
 				}
 			}
 			else {
@@ -202,6 +188,7 @@ public class ZipUtils {
 
 				try {
 					entry = new ZipEntry(sRelativeDirEntry);
+					entry.setTime(f.lastModified());
 					zos.putNextEntry(entry);
 					while ((count = origin.read(data, 0, 4096)) != -1) {
 						zos.write(data, 0, count);
@@ -259,6 +246,7 @@ public class ZipUtils {
             int count;
             byte data[] = new byte[4096];
             entry = new ZipEntry(entryName);
+            entry.setTime(new File(fileToAdd).lastModified());
             zos.putNextEntry(entry);
             while ((count = origin.read(data, 0, 4096)) != -1) {
                 zos.write(data, 0, count);
@@ -284,69 +272,57 @@ public class ZipUtils {
 			ftmp.mkdirs();
 			Engine.logEngine.debug("Root directory created");
 		}
-
-		FileInputStream fis = new FileInputStream(zipFileName);
-		ZipInputStream zis = new ZipInputStream(new BufferedInputStream(fis));
+		
+		ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(zipFileName)));
 		
 		try {
-			BufferedOutputStream dest = null;
 			ZipEntry entry;
-			int count,prefixSize;
-			byte data[];
-			String entryName;
-			if(prefixDir!=null){
-				prefixSize=prefixDir.length();
-			}else{
-				prefixSize=0;
-			}
+			int prefixSize = prefixDir != null ? prefixDir.length() : 0;
 			
-			while((entry = zis.getNextEntry()) != null) {
+			while ((entry = zis.getNextEntry()) != null) {
 				// Ignoring directories
-				if (entry.isDirectory()) continue;
-
-				entryName = entry.getName();
-				Engine.logEngine.debug("+ Analyzing the entry: " + entryName);	            
-				
-				try {
-					// Ignore entry if does not belong to the project directory
-					if ((prefixDir == null) || entryName.startsWith(prefixDir)) {
-						
-						// Ignore entry from _data or _private directory
-						if ((entryName.indexOf("/_data/") != prefixSize ) && (entryName.indexOf("/_private/") != prefixSize)) {
-							Engine.logEngine.debug("  The entry is accepted");
-							String s1 = rootDir + "/" + entryName;
-							String dir = s1.substring(0, s1.lastIndexOf('/'));
-		                
-							// Creating the directory if needed
-							ftmp = new File(dir);
-							if (!ftmp.exists()) {
-								ftmp.mkdirs();
-								Engine.logEngine.debug("  Directory created");
-							}
-
-							// Writing the files to the disk
-							data = new byte[512];
-							FileOutputStream fos = new FileOutputStream(rootDir + "/" + entryName);
-							dest = new BufferedOutputStream(fos, data.length);
-							try {
-								while ((count = zis.read(data, 0, data.length)) != -1) {
-									dest.write(data, 0, count);
+				if (entry.isDirectory()) {
+					
+				} else {
+					
+					String entryName = entry.getName();
+					Engine.logEngine.debug("+ Analyzing the entry: " + entryName);	            
+					
+					try {
+						// Ignore entry if does not belong to the project directory
+						if ((prefixDir == null) || entryName.startsWith(prefixDir)) {
+							
+							// Ignore entry from _data or _private directory
+							if ((entryName.indexOf("/_data/") != prefixSize ) && (entryName.indexOf("/_private/") != prefixSize)) {
+								Engine.logEngine.debug("  The entry is accepted");
+								String s1 = rootDir + "/" + entryName;
+								String dir = s1.substring(0, s1.lastIndexOf('/'));
+								
+								// Creating the directory if needed
+								ftmp = new File(dir);
+								if (!ftmp.exists()) {
+									ftmp.mkdirs();
+									Engine.logEngine.debug("  Directory created");
 								}
+								
+								// Writing the files to the disk
+								File file = new File(rootDir + "/" + entryName);
+								FileOutputStream fos = new FileOutputStream(file);
+								try {
+									IOUtils.copy(zis, fos);
+								} finally {
+									fos.close();
+								}
+								file.setLastModified(entry.getTime());
+								Engine.logEngine.debug("  File written to: " + rootDir + "/" + entryName);
 							}
-							finally {
-								dest.flush();
-								dest.close();
-							}
-							Engine.logEngine.debug("  File written to: " + rootDir + "/" + entryName);
 						}
+					} catch(IOException e) {
+						Engine.logEngine.error("Unable to expand the ZIP entry \"" + entryName + "\": " + e.getMessage(), e);
 					}
 				}
-				catch(IOException e) {
-					Engine.logEngine.error("Unable to expand the ZIP entry \"" + entryName + "\": " + e.getMessage(), e);
-				}
 			}
-		}
-		finally {
+		} finally {
 			zis.close();
 		}
 	}
