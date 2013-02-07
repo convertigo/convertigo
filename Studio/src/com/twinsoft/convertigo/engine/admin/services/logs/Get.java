@@ -52,7 +52,7 @@ public class Get extends JSonService {
 	static private final String attr_start = Get.class.getCanonicalName()+".start";
 	static private final String attr_appender = Get.class.getCanonicalName()+".appender.";
 	
-	protected void getServiceResult(HttpServletRequest request, JSONObject reponse) throws Exception {
+	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
         HttpSession session = request.getSession();
         LogManager logmanager = LogServiceHelper.getLogManager(request);
         Long start = System.currentTimeMillis();
@@ -114,7 +114,7 @@ public class Get extends JSonService {
 						}
 	    	        	lines = logmanager.getLines();
 	    	        }
-	    	        reponse.put("lines", lines);
+	    	        response.put("lines", lines);
 	            } finally {
 	            	if (appender != null) {
 	            		Engine.logConvertigo.removeAppender(appender);
@@ -130,8 +130,8 @@ public class Get extends JSonService {
 	        		lines = logmanager.getLines();
 	        	}
 	        	
-				reponse.put("lines", lines);
-				reponse.put("hasMoreResults", logmanager.hasMoreResults());
+				response.put("lines", lines);
+				response.put("hasMoreResults", logmanager.hasMoreResults());
 	        }
 		}
 	}
