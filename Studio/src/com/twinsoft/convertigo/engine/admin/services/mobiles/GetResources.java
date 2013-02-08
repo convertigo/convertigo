@@ -23,9 +23,15 @@
 package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Collection;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.io.FileUtils;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -33,6 +39,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 @ServiceDefinition(
 		name = "GetResources",
@@ -56,11 +63,25 @@ public class GetResources extends JSonService {
 		}
 		
 		response.put("needUpdate", "yes");
-		
 		listFiles(new File(Engine.PROJECTS_PATH + "/" + application + "/_private/flashupdate"), response);
 	}
 	
-	private void listFiles(File directory, JSONObject response) {
+	private void listFiles(File directory, JSONObject response) throws JSONException, IOException {
 		
+		File canonicalDir = directory.getCanonicalFile();
+		URI uriDirectory = canonicalDir.toURI();
+		Collection<File> filesFound = GenericUtils.cast(FileUtils.listFiles(canonicalDir, null, true));
+		JSONArray jArray = new JSONArray();
+		
+		 for (File f : filesFound) {
+			 File canonnicalF = f.getCanonicalFile();
+			 JSONObject jObj = new JSONObject();
+			 URI uriFile = canonnicalF.toURI();
+			 jObj.put("uri", uriFile.toString().substring(uriDirectory.toString().length()));
+			 jObj.put("date", canonnicalF.lastModified());
+			 jObj.put("size", canonnicalF.length());
+			 jArray.put(jObj);
+		 }
+		 response.put("file", jArray);
 	}
 }
