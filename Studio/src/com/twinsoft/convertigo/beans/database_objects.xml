@@ -79,25 +79,6 @@
 				</bean>
 			</beans>
 		</category>
-		<category name="Devices">
-			<beans groupname="Mobile devices">
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.Android">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
-				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
-				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPad">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
-				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPhone3">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
-				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPhone4">
-					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
-				</bean>
-			</beans>
-		</category>
 		<category name="References">
 			<beans groupname="Schema references">
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference">
@@ -116,6 +97,35 @@
 			<beans groupname="Web Service references">
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.WebServiceReference">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				</bean>
+			</beans>
+		</category>
+	</group>
+	
+	<group name="Mobile Application">
+		<category>
+			<beans>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+			</beans>
+		</category>
+		<category name="Devices">
+			<beans groupname="Mobile devices">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.Android">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPad">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPhone3">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPhone4">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
 			</beans>
 		</category>

@@ -99,11 +99,6 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 	transient private List<Sequence> vSequences = new LinkedList<Sequence>();
 	
 	/**
-	 * The list of available mobile device for this project.
-	 */
-	transient private List<MobileDevice> vMobileDevices = new LinkedList<MobileDevice>();
-
-	/**
 	 * The list of available references for this project.
 	 */
 	transient private List<Reference> vReferences = new LinkedList<Reference>();
@@ -242,8 +237,8 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 			addConnector((Connector) databaseObject);
 		} else if (databaseObject instanceof Sequence) {
 			addSequence((Sequence) databaseObject);
-		} else if (databaseObject instanceof MobileDevice) {
-			addMobileDevice((MobileDevice) databaseObject);
+		} else if (databaseObject instanceof MobileApplication) {
+			addMobileApplication((MobileApplication) databaseObject);
 		} else if (databaseObject instanceof Reference) {
 			addReference((Reference) databaseObject);
 		} else {
@@ -257,8 +252,8 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 			removeConnector((Connector) databaseObject);
 		} else if (databaseObject instanceof Sequence) {
 			removeSequence((Sequence) databaseObject);
-		} else if (databaseObject instanceof MobileDevice) {
-			removeMobileDevice((MobileDevice) databaseObject);
+		} else if (databaseObject instanceof MobileApplication) {
+			removeMobileApplication((MobileApplication) databaseObject);
 		} else if (databaseObject instanceof Reference) {
 			removeReference((Reference) databaseObject);
 		} else {
@@ -324,34 +319,6 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 		throw new EngineException("There is no sequence named \"" + sequenceName + "\" found into this project.");
 	}
 
-	/**
-	 * Adds a mobile device.
-	 */
-	protected void addMobileDevice(MobileDevice device) throws EngineException {
-		checkSubLoaded();
-		String newDatabaseObjectName = getChildBeanName(vMobileDevices, device.getName(), device.bNew);
-		device.setName(newDatabaseObjectName);
-		vMobileDevices.add(device);
-		super.add(device);
-	}
-
-	public void removeMobileDevice(MobileDevice device) throws EngineException {
-		checkSubLoaded();
-		vMobileDevices.remove(device);
-	}
-
-	public List<MobileDevice> getMobileDeviceList() {
-		checkSubLoaded();
-		return sort(vMobileDevices);
-	}
-
-	public MobileDevice getMobileDeviceByName(String deviceName) throws EngineException {
-		checkSubLoaded();
-		for (MobileDevice device : vMobileDevices)
-			if (device.getName().equalsIgnoreCase(deviceName)) return device;
-		throw new EngineException("There is no mobile device named \"" + deviceName + "\" found into this project.");
-	}
-    
 	/**
 	 * Adds a reference.
 	 */
@@ -422,7 +389,7 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 		clonedObject.vReferences = new LinkedList<Reference>();
 		clonedObject.vConnectors = new LinkedList<Connector>();
 		clonedObject.vSequences = new LinkedList<Sequence>();
-		clonedObject.vMobileDevices = new LinkedList<MobileDevice>();
+		clonedObject.mobileApplication = null;
 		return clonedObject;
 	}
 	
@@ -457,14 +424,32 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 	        	Engine.logDatabaseObjectManager.info("Basic index.html copied");
 		 }
     }
+    
+    private transient MobileApplication mobileApplication = null;
+    
+    public MobileApplication getMobileApplication() {
+    	return mobileApplication;
+    }
+    
+    public void addMobileApplication(MobileApplication mobileApplication) throws EngineException {
+    	if (this.mobileApplication != null) {
+    		throw new EngineException("The project \"" + getName() + "\" already contains a mobile application! Please delete it first.");
+    	}
+    	this.mobileApplication = mobileApplication;
+		super.add(mobileApplication);
+    }
+    
+    public void removeMobileApplication(MobileApplication mobileApplication) {
+    	this.mobileApplication = mobileApplication;
+    }
 
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
 		rep.addAll(getConnectorsList());
 		rep.addAll(getSequencesList());
-		rep.addAll(getMobileDeviceList());
 		rep.addAll(getReferenceList());
+		if (mobileApplication != null) rep.add(mobileApplication);
 		return rep;
 	}
 
