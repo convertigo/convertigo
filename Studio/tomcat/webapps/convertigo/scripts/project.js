@@ -475,7 +475,7 @@ $(document).ready(function() {
 	});
 	
 	initCommon(function () {
-		call("projects.GetRequestables", {projectName : vars.projectName}, function (xml) {
+		call("projects.GetTestPlatform", {projectName : vars.projectName}, function (xml) {
 			$("#acc .connector").remove();
 			$("#acc .device").remove();
 			$("#acc .sequences .requestables").empty();
@@ -512,21 +512,12 @@ $(document).ready(function() {
 					$("#build_application_name").val($project.attr("mobileProjectName"));
 				}
 				
-				// Compute endpoint
+				// Endpoint
 				var endpoint = $mobileApplication.attr("endpoint");
-				if (!endpoint) {
-					endpoint = window.location.href;
-					endpoint = endpoint.substring(0, endpoint.indexOf("project.html"));
-				}
 				$("#build_endpoint").text(endpoint);
 
-				// Compute application ID
+				// Application ID
 				var applicationID = $mobileApplication.attr("applicationID");
-				if (!applicationID) {
-					applicationID = vars.projectName.replace(new RegExp("[^a-zA-Z0-9]", "g"), "");
-					applicationID = applicationID.replace(new RegExp("_", "g"), "");
-					applicationID = "com.convertigo.mobile." + applicationID;
-				}
 				$("#build_application_id").text(applicationID);
 
 				// Add mobile devices
