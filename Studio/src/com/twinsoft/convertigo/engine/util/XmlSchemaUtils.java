@@ -283,8 +283,8 @@ public class XmlSchemaUtils {
 			Source[] sources = new Source[schemas.length];
 			for (int i = 0; i < schemas.length; i++) {
 				Document doc = schemas[i].getSchemaDocument();
-				doc.getDocumentElement().setAttribute("elementFormDefault", Project.XSD_FORM_QUALIFIED);
-				doc.getDocumentElement().setAttribute("attributeFormDefault", Project.XSD_FORM_QUALIFIED);
+				doc.getDocumentElement().setAttribute("elementFormDefault", Project.XSD_FORM_UNQUALIFIED);
+				doc.getDocumentElement().setAttribute("attributeFormDefault", Project.XSD_FORM_UNQUALIFIED);
 				sources[i] = new DOMSource(doc);
 			}
 			Schema vSchema = factory.newSchema(sources);

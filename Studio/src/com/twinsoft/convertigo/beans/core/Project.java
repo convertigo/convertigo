@@ -81,7 +81,7 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 	/**
 	 * The schema element form
 	 */
-	private String schemaElementForm = XSD_FORM_QUALIFIED;
+	private String schemaElementForm = XSD_FORM_UNQUALIFIED;
 	
 	/**
 	 * The default connector for this project.
@@ -228,7 +228,7 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 	 * @param schemaElementForm the schemaElementForm to set
 	 */
 	public void setSchemaElementForm(String schemaElementForm) {
-		this.schemaElementForm = schemaElementForm;
+		this.schemaElementForm = XSD_FORM_UNQUALIFIED; // schemaElementForm
 	}
 	
 	@Override

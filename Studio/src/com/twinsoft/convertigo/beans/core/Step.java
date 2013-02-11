@@ -402,12 +402,13 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		Document doc = getOutputDocument();
 		Node importedNode = null;
 		
-		if (nodeToImport.getNamespaceURI() == null) {
-			String tns = getComplexTypeAffectation().getNamespaceURI();
-			if (tns.length() > 0) {
-				nodeToImport = XMLUtils.setNamespace(nodeToImport, tns);
-			}
-		}
+//		// To qualify node
+//		if (nodeToImport.getNamespaceURI() == null) {
+//			String tns = getComplexTypeAffectation().getNamespaceURI();
+//			if (tns.length() > 0) {
+//				nodeToImport = XMLUtils.setNamespace(nodeToImport, tns);
+//			}
+//		}
 		
 		if (!inError()) {
 			if (isXmlOrOutput()) {

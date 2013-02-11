@@ -480,9 +480,14 @@ public class WebServiceTranslator implements Translator {
 
             sb.setEncodingStyle("http://schemas.xmlsoap.org/soap/encoding/");
 
-        	String targetNameSpace = context.project.getTargetNamespace();
-
-        	//se.addNamespaceDeclaration(context.projectName + "_ns", targetNameSpace);
+    		String targetNamespace = context.project.getTargetNamespace();
+    		String prefix = "ns";
+    		try {
+    			prefix = Engine.theApp.schemaManager.getSchemasForProject(context.projectName).getNamespaceContext().getPrefix(targetNamespace);
+    		} catch (Exception e) {}
+    		
+        	
+        	//se.addNamespaceDeclaration(prefix, targetNameSpace);
             se.addNamespaceDeclaration("soapenc", "http://schemas.xmlsoap.org/soap/encoding/");
             se.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
             se.addNamespaceDeclaration("xsd", "http://www.w3.org/2001/XMLSchema");
@@ -495,11 +500,10 @@ public class WebServiceTranslator implements Translator {
             String soapElementName = context.sequenceName != null ? context.sequenceName:context.connectorName + "__" +context.transactionName;
             soapElementName += "Response";
             
-			soapMethodResponseElement = sb.addChildElement(se.createName(soapElementName, context.projectName
-					+ "_ns", targetNameSpace));
+			soapMethodResponseElement = sb.addChildElement(se.createName(soapElementName, prefix, targetNamespace));
 
         	if (Project.XSD_FORM_QUALIFIED.equals(context.project.getSchemaElementForm())) {
-            	soapMethodResponseElement.addAttribute(se.createName("xmlns"), targetNameSpace);
+            	soapMethodResponseElement.addAttribute(se.createName("xmlns"), targetNamespace);
             }
             
             // Add a 'response' root child element or not
@@ -515,6 +519,12 @@ public class WebServiceTranslator implements Translator {
             }
             else {
             	soapResponseElement = soapMethodResponseElement.addChildElement("response");
+            }
+            
+            if (soapResponseElement.getLocalName().equals("response")) {
+        		if (document.getDocumentElement().hasAttributes()) {
+        			addAttributes(responseMessage, se, context, document.getDocumentElement().getAttributes(), soapResponseElement);
+        		}
             }
             
             NodeList childNodes = document.getDocumentElement().getChildNodes();
@@ -544,6 +554,39 @@ public class WebServiceTranslator implements Translator {
         return responseMessage == null ? sResponseMessage.getBytes(encodingCharSet) : responseMessage; 
 	}
 
+	private void addAttributes(SOAPMessage responseMessage, SOAPEnvelope soapEnvelope, Context context, NamedNodeMap attributes, SOAPElement soapElement) throws SOAPException {
+		SOAPElement soapMethodResponseElement = (SOAPElement)soapEnvelope.getBody().getFirstChild();
+		String targetNamespace = soapMethodResponseElement.getNamespaceURI();
+		String prefix = soapMethodResponseElement.getPrefix();
+		
+		int len = attributes.getLength();
+		Attr attribute;
+		for (int i = 0 ; i < len ; i++) {
+			attribute = (Attr) attributes.item(i);
+			String attributePrefix = attribute.getPrefix();
+			String attributeValue = attribute.getNodeValue();
+					
+			if (attributePrefix == null) {
+				String attributeName = attribute.getNodeName();
+				if (Project.XSD_FORM_QUALIFIED.equals(context.project.getSchemaElementForm())) {
+					soapElement.addAttribute(
+							soapEnvelope.createName(attributeName, prefix, targetNamespace),
+							attributeValue);
+				}
+				else {
+					soapElement.addAttribute(soapEnvelope.createName(attributeName),
+						attributeValue);
+				}
+			} else {
+				String attributeName = attribute.getLocalName();
+				String namespaceURI = attribute.getNamespaceURI();
+				soapElement.addAttribute(
+						soapEnvelope.createName(attributeName, attributePrefix, namespaceURI),
+						attributeValue);
+			}
+		}
+	}
+	
 	private void addElement(SOAPMessage responseMessage, SOAPEnvelope soapEnvelope, Context context, Element elementToAdd, SOAPElement soapElement) throws SOAPException {
     	String nodeType = elementToAdd.getAttribute("type");
 		SOAPElement childSoapElement = soapElement;
@@ -596,27 +639,7 @@ public class WebServiceTranslator implements Translator {
 		}
 		
 		if (elementAdded && elementToAdd.hasAttributes()) {
-			NamedNodeMap attributes = elementToAdd.getAttributes();
-			int len = attributes.getLength();
-			Attr attribute;
-			for (int i = 0 ; i < len ; i++) {
-				attribute = (Attr) attributes.item(i);
-				String namespace = attribute.getPrefix();
-				String attributeValue = attribute.getNodeValue();
-						
-				// TODO: delete attributes for InfoPath
-				if (namespace == null) {
-					String attributeName = attribute.getNodeName();
-					childSoapElement.addAttribute(soapEnvelope.createName(attributeName),
-							attributeValue);
-				} else {
-					String attributeName = attribute.getLocalName();
-					String namespaceURI = attribute.getNamespaceURI();
-					childSoapElement.addAttribute(
-							soapEnvelope.createName(attributeName, namespace, namespaceURI),
-							attributeValue);
-				}
-			}
+			addAttributes(responseMessage, soapEnvelope, context, elementToAdd.getAttributes(), childSoapElement);
 		}
 
 		if (elementToAdd.hasChildNodes()) {

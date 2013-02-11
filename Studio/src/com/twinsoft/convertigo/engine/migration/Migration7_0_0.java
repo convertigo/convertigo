@@ -41,6 +41,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.io.FileUtils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
@@ -207,18 +208,25 @@ public class Migration7_0_0 {
 								}
 							}
 							
+							QName responseTypeQName = new QName(project.getTargetNamespace(), transaction.getXsdResponseTypeName());
 							
 							// Add required schema objects
 							for (QName qname: map.keySet()) {
 								if (qname.getNamespaceURI().equals(targetNamespace)) {
-									transactionSchema.getItems().add(map.get(qname));
+									XmlSchemaObject ob = map.get(qname);
+									
+									// Add missing response attributes
+									if (qname.equals(responseTypeQName)) {
+										Transaction.addSchemaResponseAttr((XmlSchemaComplexType) ob);										
+									}
+									transactionSchema.getItems().add(ob);
 								}
 							}
 							
 							// Add missing ResponseType (with document)
-							QName responseTypeQName = new QName(project.getTargetNamespace(), transaction.getXsdResponseTypeName());
-							if (map.containsKey(responseTypeQName))
+							if (map.containsKey(responseTypeQName)) {
 								Transaction.addSchemaResponseType(transactionSchema, transaction);
+							}
 							
 							// Save schema to file
 							String transactionXsdFilePath = transaction.getSchemaFilePath();

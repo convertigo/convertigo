@@ -26,8 +26,10 @@ import java.net.URL;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaForm;
 
 import com.twinsoft.convertigo.beans.core.ISchemaReader;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 
@@ -39,7 +41,13 @@ public abstract class XsdSchemaReference extends RemoteFileReference implements 
 		try {
 			URL xsdURL = getReferenceUrl();
 			if (xsdURL != null) {
-				return SchemaUtils.loadSchema(xsdURL, collection);
+				// loads schema
+				XmlSchema xmlSchema = SchemaUtils.loadSchema(xsdURL, collection);
+				
+				// overwrites elementFormDefault, attributeFormDefault
+				xmlSchema.setElementFormDefault(new XmlSchemaForm(Project.XSD_FORM_UNQUALIFIED));
+				xmlSchema.setElementFormDefault(new XmlSchemaForm(Project.XSD_FORM_UNQUALIFIED));
+				return xmlSchema;
 			}
 		} catch (Exception e) {
 			Engine.logBeans.error(e.getMessage());

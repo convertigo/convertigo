@@ -85,9 +85,6 @@ import com.twinsoft.util.StringEx;
 public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator, IComplexTypeAffectation {
 
 	private static final long serialVersionUID = 8218719500689068156L;
-	private enum DOC_ATTR {
-		connector, context, contextId, fromcache, generated, project, sequence, signature, transaction, version
-	};
 	
     public static final String EVENT_SEQUENCE_STARTED = "SequenceStarted";
     public static final String EVENT_SEQUENCE_FINISHED = "SequenceFinished";

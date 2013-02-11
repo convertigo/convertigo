@@ -706,13 +706,16 @@ public class SchemaManager implements AbstractManager {
 			XmlSchemaCollection collection = SchemaMeta.getCollection(schema);
 			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 			
-			Element elt = doc.createElement(requestableName + "Response");
+			String ns = schema.getTargetNamespace();
+			String prefix = collection.getNamespaceContext().getPrefix(ns);
+			Element elt = doc.createElementNS(ns, prefix+":"+requestableName + "Response");
 			doc.appendChild(elt);
 			
-			elt.appendChild(doc.renameNode(doc.importNode(document.getDocumentElement(), true), null, "response"));
+			elt.appendChild(doc.renameNode(doc.importNode(document.getDocumentElement(), true), "", "response"));
 			
-			XMLUtils.spreadNamespaces(doc, schema.getTargetNamespace());
-
+			XMLUtils.spreadNamespaces(doc, "", false);
+			//System.out.println(XMLUtils.prettyPrintDOM(doc));
+			
 			XmlSchemaUtils.validate(collection, doc);
 		} catch (SAXException e) {
 			throw e;

@@ -891,7 +891,7 @@ public class XMLUtils {
 		return res;
 	}
 	
-	public static void spreadNamespaces(Node node, String tns) {
+	public static void spreadNamespaces(Node node, String tns, boolean overwrite) {
 		Document doc = node instanceof Document ? (Document) node : node.getOwnerDocument();
 		boolean isParent = false;
 		while (node != null) {
@@ -900,7 +900,9 @@ public class XMLUtils {
 				if (node.getNamespaceURI() == null) {
 					node = doc.renameNode(node, tns, node.getNodeName());
 				} else {
-					tns = node.getNamespaceURI();
+					if (overwrite) {
+						tns = node.getNamespaceURI();
+					}
 				}
 				NamedNodeMap nodeMap = node.getAttributes();
 				int nodeMapLengthl = nodeMap.getLength();
@@ -914,7 +916,9 @@ public class XMLUtils {
 			isParent = (isParent || (next = node.getFirstChild()) == null) && (next = node.getNextSibling()) == null;
 			node = isParent ? node.getParentNode() : next;
 			if (isParent && node != null) {
-				tns = node.getNamespaceURI();
+				if (overwrite) {
+					tns = node.getNamespaceURI();
+				}
 			}
 		}
 	}

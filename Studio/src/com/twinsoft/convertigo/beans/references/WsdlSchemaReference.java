@@ -44,6 +44,7 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.ISchemaReader;
 import com.twinsoft.convertigo.beans.core.IWsdlReader;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -67,7 +68,11 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 				while (iterator.hasNext()) {
 					ExtensibilityElement extensibilityElement = (ExtensibilityElement)iterator.next();
 					if (extensibilityElement instanceof Schema) {
+						// overwrites elementFormDefault, attributeFormDefault
 						Element element = ((Schema)extensibilityElement).getElement();
+						element.setAttribute("elementFormDefault", Project.XSD_FORM_UNQUALIFIED);
+						element.setAttribute("attributeFormDefault", Project.XSD_FORM_UNQUALIFIED);
+						
 						XmlSchema xmlSchema = c.read(element);
 						String schemaNamespace = xmlSchema.getTargetNamespace();
 						namespaceList.add(schemaNamespace);

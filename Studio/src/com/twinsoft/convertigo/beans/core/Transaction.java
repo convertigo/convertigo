@@ -29,12 +29,15 @@ import javax.xml.namespace.QName;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAnnotated;
 import org.apache.ws.commons.schema.XmlSchemaAnnotation;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaDocumentation;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
+import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.Function;
@@ -603,6 +606,8 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 			new File(getSchemaFileDirPath()).mkdirs();
     		try {
 				XmlSchema xmlSchema = SchemaUtils.loadSchema(xsdDom, new XmlSchemaCollection());
+				QName responseTypeQName = new QName(xmlSchema.getTargetNamespace(), responseType);
+				addSchemaResponseAttr((XmlSchemaComplexType) xmlSchema.getSchemaTypes().getItem(responseTypeQName));
 				SchemaUtils.saveSchema(getSchemaFilePath(), xmlSchema);
     		}
     		catch (Exception e) {
@@ -732,10 +737,23 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		
 		XmlSchemaComplexType xmlSchemaComplexType = new XmlSchemaComplexType(xmlSchema);
 		xmlSchemaComplexType.setName(localName);
-		
+		addSchemaResponseAttr(xmlSchemaComplexType);
 		xmlSchema.getItems().add(xmlSchemaComplexType);
 		
 		return xmlSchemaComplexType;
+	}
+	
+	public static void addSchemaResponseAttr(XmlSchemaComplexType xmlSchemaComplexType) {
+		if (xmlSchemaComplexType != null) {
+			XmlSchemaObjectCollection attributes = xmlSchemaComplexType.getAttributes();
+			for (DOC_ATTR attr : DOC_ATTR.values()) {
+				XmlSchemaAttribute attribute = new XmlSchemaAttribute();
+				attribute.setName(attr.name());
+				attribute.setSchemaTypeName(Constants.XSD_STRING);
+				//attribute.setUse(XmlSchemaUtils.attributeUseRequired);
+				attributes.add(attribute);
+			}
+		}
 	}
 	
 	public boolean isGenerateSchema() {

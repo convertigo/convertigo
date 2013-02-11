@@ -68,6 +68,9 @@ import com.twinsoft.util.StringEx;
 public abstract class RequestableObject extends DatabaseObject implements ISheetContainer {
 
 	private static final long serialVersionUID = -8343815173166853025L;
+	protected enum DOC_ATTR {
+		connector, context, contextId, fromcache, generated, project, screenclass, sequence, signature, transaction, version
+	};
 
 	public static int nbCurrentWorkerThreads = 0;
 	

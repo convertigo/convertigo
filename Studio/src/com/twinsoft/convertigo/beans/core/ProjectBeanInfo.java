@@ -75,6 +75,7 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			properties[5].setShortDescription(getExternalizedString("property.schemaElementForm.short_description"));
 			properties[5].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
 			properties[5].setExpert(true);
+			properties[5].setHidden(true);
 			
             properties[6] = new PropertyDescriptor("version", beanClass, "getVersion", "setVersion");
             properties[6].setDisplayName(getExternalizedString("property.version.display_name"));
