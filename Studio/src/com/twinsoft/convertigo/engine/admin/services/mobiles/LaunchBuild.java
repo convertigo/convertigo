@@ -52,6 +52,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6;
@@ -116,11 +117,15 @@ public class LaunchBuild extends XmlService {
 			// Check forbidden characters in resources file names (only alphanumeric
 			// chars) if a BlackBerry build is required
 			Project project = Engine.theApp.databaseObjectsManager.getProjectByName(application);
-			List<MobileDevice> mobileDevices = project.getMobileDeviceList();
-			for (MobileDevice mobileDevice : mobileDevices) {
-				if (mobileDevice instanceof BlackBerry6) {
-					checkAlphaNumericCharsInFileNames(new File(tmpMobileWwwPath));
-					break;
+			MobileApplication mobileApplication = project.getMobileApplication();
+			boolean hasMobileDevice = mobileApplication != null;
+			if (hasMobileDevice) {
+				List<MobileDevice> mobileDevices = mobileApplication.getMobileDeviceList();
+				for (MobileDevice mobileDevice : mobileDevices) {
+					if (mobileDevice instanceof BlackBerry6) {
+						checkAlphaNumericCharsInFileNames(new File(tmpMobileWwwPath));
+						break;
+					}
 				}
 			}
 			

@@ -6,6 +6,7 @@ import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -55,15 +56,24 @@ public class WalkHelper {
 				}
 			}
 
-			if (before(databaseObject, MobileDevice.class)) {
-				for (MobileDevice device : project.getMobileDeviceList()) {
-					walk(device);
+			if (before(databaseObject, MobileApplication.class)) {
+				MobileApplication mobileApplication = project.getMobileApplication();
+				if (mobileApplication != null) {
+					walk(mobileApplication);
 				}
 			}
 			
 			if (before(databaseObject, Reference.class)) {
 				for (Reference reference : project.getReferenceList()) {
 					walk(reference);
+				}
+			}
+		} else if (databaseObject instanceof MobileApplication) {
+			MobileApplication mobileApplication = (MobileApplication) databaseObject;
+
+			if (before(databaseObject, MobileDevice.class)) {
+				for (MobileDevice device : mobileApplication.getMobileDeviceList()) {
+					walk(device);
 				}
 			}
 		} else if (databaseObject instanceof Sequence) {
