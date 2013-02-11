@@ -464,17 +464,6 @@ $(document).ready(function() {
 	
 	window.document.title = vars.projectName + " project";
 
-	// Compute endpoint
-	var endpoint = window.location.href;
-	endpoint = endpoint.substring(0, endpoint.indexOf("project.html"));
-	$("#build_endpoint").val(endpoint);
-
-	// Compute application ID
-	var applicationID = vars.projectName.replace(new RegExp("[^a-zA-Z0-9]", "g"), "");
-	applicationID = applicationID.replace(new RegExp("_", "g"), "");
-	var applicationID = "com.convertigo.mobile." + applicationID;
-	$("#build_application_id").val(applicationID);
-	
 	$("#cliplet_div_bar img").click(function () {
 		$("#cliplet_div").slideUp(250, function () {
 			$("#window_exe_content").empty();
@@ -493,10 +482,6 @@ $(document).ready(function() {
 			$(".acc>li>h6").unbind('click');
 			
 			var $project = $(xml).find("project:first");
-			
-			if ($project.attr("mobileProjectName")) {
-				$("#build_application_name").val($project.attr("mobileProjectName"));
-			}
 			
 			$(".project_comment").text($project.attr("comment"));
 			$project.find(">connector").each(function (i) {
@@ -519,12 +504,39 @@ $(document).ready(function() {
 					addRequestable($(this), $(".sequences:first .requestables:first"));
 				});
 			}
-			var $devices = $project.find(">mobiledevice");
-			if ($devices.length > 0) {
-				$(".mobiles:first").removeClass("hidden");
-				$devices.each(function () {
-					addMobileDevice($(this), $(".mobiles:first .requestables:first"));
-				});
+
+			// Mobile application
+			var $mobileApplication = $project.find(">mobileapplication");
+			if ($mobileApplication.length > 0) {
+				if ($mobileApplication.attr("mobileProjectName")) {
+					$("#build_application_name").val($project.attr("mobileProjectName"));
+				}
+				
+				// Compute endpoint
+				var endpoint = $mobileApplication.attr("endpoint");
+				if (!endpoint) {
+					endpoint = window.location.href;
+					endpoint = endpoint.substring(0, endpoint.indexOf("project.html"));
+				}
+				$("#build_endpoint").text(endpoint);
+
+				// Compute application ID
+				var applicationID = $mobileApplication.attr("applicationID");
+				if (!applicationID) {
+					applicationID = vars.projectName.replace(new RegExp("[^a-zA-Z0-9]", "g"), "");
+					applicationID = applicationID.replace(new RegExp("_", "g"), "");
+					applicationID = "com.convertigo.mobile." + applicationID;
+				}
+				$("#build_application_id").text(applicationID);
+
+				// Add mobile devices
+				var $devices = $mobileApplication.find(">mobiledevice");
+				if ($devices.length > 0) {
+					$(".mobiles:first").removeClass("hidden");
+					$devices.each(function () {
+						addMobileDevice($(this), $(".mobiles:first .requestables:first"));
+					});
+				}
 			}
 			
 			$("#main a.device_link").each(setLinkForMobileDevice);
