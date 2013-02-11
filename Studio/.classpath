@@ -25,7 +25,7 @@
 	<classpathentry kind="lib" path="lib/MozillaInterfaces.jar"/>
 	<classpathentry kind="lib" path="lib/jettison-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/ctgclient.jar"/>
-	<classpathentry kind="lib" path="lib/apache/commons/commons-lang-2.5.jar"/>
+	<classpathentry kind="lib" path="lib/apache/commons/commons-lang-2.5.jar" sourcepath="/ExternalJavaSources/commons-lang-2.5-src.zip"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-fileupload-1.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/apache/xmlgraphics/xmlgraphics-commons-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/internal/bull-v24323.jar"/>
@@ -62,7 +62,7 @@
 	<classpathentry kind="lib" path="lib/xerces-2_11_0/xml-apis.jar"/>
 	<classpathentry kind="lib" path="tomcat/lib/catalina.jar" sourcepath="/ExternalJavaSources/apache-tomcat-6.0.20-src"/>
 	<classpathentry kind="lib" path="tomcat/lib/jsp-api.jar"/>
-	<classpathentry kind="lib" path="tomcat/lib/servlet-api.jar" sourcepath="/ExternalJavaSources/servlet-api"/>
+	<classpathentry kind="lib" path="tomcat/lib/servlet-api.jar" sourcepath="/ExternalJavaSources/apache-tomcat-6.0.36-src.zip"/>
 	<classpathentry kind="lib" path="tomcat/lib/tomcat-coyote.jar"/>
 	<classpathentry kind="lib" path="tomcat/lib/tomcat-dbcp.jar"/>
 	<classpathentry kind="lib" path="lib/rhino-1.7-R4.jar" sourcepath="/ExternalJavaSources/rhino-1.7R4"/>
