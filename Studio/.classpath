@@ -27,6 +27,7 @@
 	<classpathentry kind="lib" path="lib/ctgclient.jar"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-lang-2.5.jar" sourcepath="/ExternalJavaSources/commons-lang-2.5-src.zip"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-fileupload-1.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/apache/commons/commons-io-2.2.jar"/>
 	<classpathentry kind="lib" path="lib/apache/xmlgraphics/xmlgraphics-commons-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/internal/bull-v24323.jar"/>
 	<classpathentry kind="lib" path="lib/internal/phaos.jar"/>
@@ -102,7 +103,6 @@
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-codec-1.3.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-fileupload-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-httpclient-3.1.jar"/>
-	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-io-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/geronimo-annotation_1.0_spec-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/geronimo-jaxws_2.2_spec-1.0.jar"/>

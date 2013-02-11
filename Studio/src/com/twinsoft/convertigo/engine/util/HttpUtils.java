@@ -31,6 +31,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -40,6 +41,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 
 public class HttpUtils {
+	private final static Pattern c8o_request_pattern = Pattern.compile("(.*?)/(?:projects/|admin/).*");
 
 	/**
 	 * Calls a convertigo transaction from the same server and port than
@@ -210,5 +212,11 @@ public class HttpUtils {
 			return url;
 		}
 		return request.getRequestURL().toString();
+	}
+	
+	public static String convertigoRequestURL(HttpServletRequest request) {
+		String url = originalRequestURL(request);
+		url = c8o_request_pattern.matcher(url).replaceFirst("$1");
+		return url;
 	}
 }

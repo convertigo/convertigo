@@ -725,10 +725,13 @@ public class XMLUtils {
 	    return returnString;
 	}
 
-	public static Document loadXml(String filePath) throws ParserConfigurationException, SAXException,
-			IOException {
-		Document document = getDefaultDocumentBuilder().parse(new File(filePath));
+	public static Document loadXml(File file) throws ParserConfigurationException, SAXException, IOException {
+		Document document = getDefaultDocumentBuilder().parse(file);
 		return document;
+	}
+	
+	public static Document loadXml(String filePath) throws ParserConfigurationException, SAXException, IOException {
+		return loadXml(new File(filePath));
 	}
 
 	public static Document createDom(String xmlEngine) throws ParserConfigurationException {

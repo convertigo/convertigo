@@ -509,7 +509,7 @@ $(document).ready(function() {
 			var $mobileApplication = $project.find(">mobileapplication");
 			if ($mobileApplication.length > 0) {
 				if ($mobileApplication.attr("mobileProjectName")) {
-					$("#build_application_name").val($project.attr("mobileProjectName"));
+					$("#build_application_name").text($mobileApplication.attr("mobileProjectName"));
 				}
 				
 				// Endpoint

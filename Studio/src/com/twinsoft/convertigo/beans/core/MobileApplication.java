@@ -25,7 +25,12 @@ package com.twinsoft.convertigo.beans.core;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 /**
  * This class manages a host application.
@@ -155,5 +160,27 @@ public class MobileApplication extends DatabaseObject {
 		for (MobileDevice device : vMobileDevices)
 			if (device.getName().equalsIgnoreCase(deviceName)) return device;
 		throw new EngineException("There is no mobile device named \"" + deviceName + "\" found into this project.");
+	}
+	
+	public String getComputedApplicationId() {
+		String applicationId = this.applicationId;
+		if ("".equals(applicationId)) {
+			applicationId = "com.convertigo.mobile." + getProject().getName();
+		}
+		else {
+			// The user can have setup an application ID that could be non valid:
+			// application ID can only contains alpha numeric ASCII characters.
+			applicationId = com.twinsoft.convertigo.engine.util.StringUtils.normalize(applicationId);
+			applicationId = StringUtils.remove(applicationId, "_");
+		}
+		return applicationId;
+	}
+	
+	public String getComputedEndpoint(HttpServletRequest request) {
+		String endpoint = this.endpoint;
+		if ("".equals(endpoint)) {
+			endpoint = HttpUtils.convertigoRequestURL(request);
+		}
+		return endpoint;
 	}
 }
