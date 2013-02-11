@@ -37,13 +37,13 @@ import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ConnectorTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.SequenceTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class SequenceExecuteSelectedAction extends MyAbstractAction {

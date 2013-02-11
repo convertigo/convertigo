@@ -33,10 +33,10 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class DatabaseObjectFindDialog extends MyAbstractDialog {
 

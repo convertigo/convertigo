@@ -32,7 +32,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
 public abstract class AbstractDialogCellEditor extends DialogCellEditor {
     protected String dialogTitle = "Table editor";

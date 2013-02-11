@@ -30,9 +30,9 @@ import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ObjectsFolderTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class CreateSheetAction extends DatabaseObjectCreateAction {
 

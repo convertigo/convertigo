@@ -115,6 +115,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ITablesProperty;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -163,6 +164,36 @@ import com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteDefaultAc
 import com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.UndoAction;
 import com.twinsoft.convertigo.eclipse.trace.TracePlayerThread;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.HandlersDeclarationTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IEditableTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IPropertyTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileDeviceTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ReferenceTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ScreenClassTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SheetTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TemplateTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TestCaseTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TraceTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.XMLRecordDescriptionTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.XMLTableDescriptionTreeObject;
 import com.twinsoft.convertigo.engine.DatabaseObjectImportedEvent;
 import com.twinsoft.convertigo.engine.DatabaseObjectListener;
 import com.twinsoft.convertigo.engine.DatabaseObjectLoadedEvent;
@@ -202,6 +233,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_DBO_STEP_WITH_EXPRESSIONS = 0x10E;
 	public static final int TREE_OBJECT_TYPE_DBO_SEQUENCE = 0x10F;
 	public static final int TREE_OBJECT_TYPE_DBO_TESTCASE = 0x110;
+	public static final int TREE_OBJECT_TYPE_DBO_MOBILEAPPLICATION = 0x112;
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILEDEVICE = 0x111;
 
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE = 0x300;
@@ -586,7 +618,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 
-	protected List<TreeObject> addedTreeObjects = new ArrayList<TreeObject>();
+	public List<TreeObject> addedTreeObjects = new ArrayList<TreeObject>();
 
 	public void fireTreeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		// Guaranteed to return a non-null array
@@ -1240,8 +1272,10 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_SEQUENCES;
 							databaseObjectTreeObject = new SequenceTreeObject(viewer, (Sequence) databaseObject, false);
 
+						} else if (databaseObject instanceof MobileApplication) {
+							databaseObjectTreeObject = new MobileApplicationTreeObject(viewer, (MobileApplication) databaseObject, false);
+
 						} else if (databaseObject instanceof MobileDevice) {
-							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_MOBILEDEVICES;
 							databaseObjectTreeObject = new MobileDeviceTreeObject(viewer, (MobileDevice) databaseObject, false);
 
 						} else if (databaseObject instanceof Reference) {
@@ -1999,9 +2033,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_CONNECTORS) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_CONNECTORS;
 			}
-			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_MOBILEDEVICES) {
-				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_MOBILEDEVICES;
-			}
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_TRANSACTIONS) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_TRANSACTIONS;
 			}
@@ -2071,6 +2102,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			}
 			else if (databaseObject instanceof Sequence) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SEQUENCE;
+			}
+			else if (databaseObject instanceof MobileApplication) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILEAPPLICATION;
 			}
 			else if (databaseObject instanceof MobileDevice) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILEDEVICE;

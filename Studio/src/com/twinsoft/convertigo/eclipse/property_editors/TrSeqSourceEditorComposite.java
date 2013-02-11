@@ -47,9 +47,9 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 

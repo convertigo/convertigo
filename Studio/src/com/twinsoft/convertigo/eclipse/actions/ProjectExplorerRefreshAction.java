@@ -32,7 +32,7 @@ import org.eclipse.ui.IViewPart;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class ProjectExplorerRefreshAction extends MyAbstractAction implements IViewActionDelegate {
 	

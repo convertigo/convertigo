@@ -27,7 +27,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 public class PropertyData {
 	private XMLVector<Object> object = null;
 	private Class<? extends TreeParent> ownerClass = null;
-	protected PropertyData(Class<? extends TreeParent> ownerClass, XMLVector<Object> object) {
+	public PropertyData(Class<? extends TreeParent> ownerClass, XMLVector<Object> object) {
 		this.object = object;
 		this.ownerClass = ownerClass;
 	}

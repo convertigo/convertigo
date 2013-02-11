@@ -37,7 +37,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectVersionUpdateDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 

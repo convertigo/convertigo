@@ -39,10 +39,10 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.editors.CompositeListener;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ConnectorTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public abstract class AbstractConnectorComposite extends Composite implements ISelectionChangedListener, ILearnable {

@@ -24,7 +24,7 @@ package com.twinsoft.convertigo.eclipse.property_editors;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
 public class PropertyWithTagsEditorAdvance extends PropertyWithTagsEditor {
 	public static String[] getTags(DatabaseObjectTreeObject databaseObjectTreeObject) {

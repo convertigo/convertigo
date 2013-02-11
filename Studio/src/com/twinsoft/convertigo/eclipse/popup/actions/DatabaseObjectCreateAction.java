@@ -32,9 +32,9 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.NewObjectWizard;
 
 public class DatabaseObjectCreateAction extends MyAbstractAction {

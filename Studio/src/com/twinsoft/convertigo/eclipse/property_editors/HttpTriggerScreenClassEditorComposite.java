@@ -33,7 +33,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.parsers.triggers.ScreenClassTrigger;
 import com.twinsoft.convertigo.engine.parsers.triggers.TriggerXMLizer;
 

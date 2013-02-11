@@ -32,10 +32,10 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.IEditableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IEditableTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class TransactionEditHandlersAction extends MyAbstractAction   {
 

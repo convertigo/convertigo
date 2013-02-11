@@ -31,13 +31,13 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.FolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableColumnTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableRowTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class DeletePropertyTableColumnAction extends MyAbstractAction {
 

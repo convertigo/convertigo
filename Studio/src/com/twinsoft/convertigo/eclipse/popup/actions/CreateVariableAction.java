@@ -27,8 +27,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ObjectsFolderTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class CreateVariableAction extends DatabaseObjectCreateAction {
 

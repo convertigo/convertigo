@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.eclipse.property_editors;
 
 import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
 public class HttpVerbEditor extends PropertyWithTagsEditor {
 

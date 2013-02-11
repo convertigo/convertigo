@@ -10,7 +10,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.views.properties.ComboBoxLabelProvider;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
 public class DynamicComboBoxPropertyDescriptor extends PropertyDescriptor {
 

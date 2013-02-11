@@ -24,8 +24,8 @@ package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class CreateConnectorAction extends DatabaseObjectCreateAction {
 

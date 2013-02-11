@@ -30,9 +30,9 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.MultipleDeletionDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.UnloadedProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.engine.Engine;;
 
 public class UnloadedProjectDeleteAction extends MyAbstractAction {

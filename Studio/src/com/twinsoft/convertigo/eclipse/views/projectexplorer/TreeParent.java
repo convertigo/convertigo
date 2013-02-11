@@ -28,14 +28,11 @@ import java.util.List;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public abstract class TreeParent extends TreeObject {
 	private List<TreeObject> children;
-	
-	protected TreeParent() {
-		
-	}
 	
 	public TreeParent(Viewer viewer, Object object) {
 		super(viewer, object);

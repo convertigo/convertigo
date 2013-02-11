@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariabl
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class StatementAddVariableToTransactionAction extends MyAbstractAction {
 

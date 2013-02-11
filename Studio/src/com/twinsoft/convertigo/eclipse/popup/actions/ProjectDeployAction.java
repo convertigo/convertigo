@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployDialogComposite;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectVersionUpdateDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 
 public class ProjectDeployAction extends MyAbstractAction {
 

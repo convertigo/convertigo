@@ -30,7 +30,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.CustomAdditionsWizard;
 
 public class CustomAdditionsAction extends MyAbstractAction {

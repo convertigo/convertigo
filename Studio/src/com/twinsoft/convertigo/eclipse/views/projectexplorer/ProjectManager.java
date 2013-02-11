@@ -27,6 +27,7 @@ import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 
 public class ProjectManager {
     

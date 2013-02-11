@@ -29,9 +29,9 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ObjectsFolderTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class CreatePoolAction extends DatabaseObjectCreateAction {
 

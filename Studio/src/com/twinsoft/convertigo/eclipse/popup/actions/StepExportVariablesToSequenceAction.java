@@ -33,8 +33,8 @@ import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.SequenceTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class StepExportVariablesToSequenceAction extends MyAbstractAction {
 

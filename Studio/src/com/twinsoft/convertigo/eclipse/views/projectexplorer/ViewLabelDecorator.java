@@ -30,6 +30,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+
 class ViewLabelDecorator implements ILabelDecorator {
 	
 	public ViewLabelDecorator() {

@@ -45,11 +45,11 @@ import com.twinsoft.convertigo.beans.variables.StepVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.VariableTreeObject2;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2;
 
 public class ChangeToMultiValuedVariableAction extends MyAbstractAction {
 

@@ -38,10 +38,10 @@ import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.TransactionWSDLTypesDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.IEditableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IEditableTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class CreateWSDLTypeFromXMLAction extends MyAbstractAction {

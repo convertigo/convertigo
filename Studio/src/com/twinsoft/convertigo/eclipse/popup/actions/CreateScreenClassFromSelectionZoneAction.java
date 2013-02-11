@@ -40,7 +40,7 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorPart;
 import com.twinsoft.convertigo.eclipse.editors.connector.JavelinConnectorComposite;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ScreenClassTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ScreenClassTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.util.JavelinUtils;

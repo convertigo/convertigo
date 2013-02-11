@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.eclipse.property_editors;
 
 import com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 
 public class JsonArrayTranslationPolicyEditor extends PropertyWithTagsEditor {
 

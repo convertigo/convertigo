@@ -42,6 +42,17 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.HandlersDeclarationTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ResourceTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TemplateTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TraceTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2;
 
 class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorProvider {
 

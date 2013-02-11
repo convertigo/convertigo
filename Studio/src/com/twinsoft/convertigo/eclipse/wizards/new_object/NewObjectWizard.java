@@ -51,6 +51,8 @@ import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
@@ -140,57 +142,65 @@ public class NewObjectWizard extends Wizard {
 				objectExplorerPageTitle = "New Project";
 				objectExplorerPageMessage = "Please select a project template.";
 			}
-			if (beanClass.equals(Sequence.class)) {
+			else if (beanClass.equals(Sequence.class)) {
 				objectExplorerPageTitle = "New Sequence";
 				objectExplorerPageMessage = "Please select a sequence template.";
 			}
-			if (beanClass.equals(Connector.class)) {
+			else if (beanClass.equals(Connector.class)) {
 				objectExplorerPageTitle = "New Connector";
 				objectExplorerPageMessage = "Please select a connector template.";
 			}
-			if (beanClass.equals(Transaction.class)) {
+			else if (beanClass.equals(Transaction.class)) {
 				objectExplorerPageTitle = "New Transaction";
 				objectExplorerPageMessage = "Please select a transaction template.";
 			}
-			if (beanClass.equals(Pool.class)) {
+			else if (beanClass.equals(Pool.class)) {
 				objectExplorerPageTitle = "New Pool";
 				objectExplorerPageMessage = "Please select a pool template.";
 			}
-			if (beanClass.equals(ScreenClass.class)) {
+			else if (beanClass.equals(ScreenClass.class)) {
 				objectExplorerPageTitle = "New Screen Class";
 				objectExplorerPageMessage = "Please select a screen class template.";
 			}
-			if (beanClass.equals(Criteria.class)) {
+			else if (beanClass.equals(Criteria.class)) {
 				objectExplorerPageTitle = "New Criteria";
 				objectExplorerPageMessage = "Please select a criteria template.";
 			}
-			if (beanClass.equals(ExtractionRule.class)) {
+			else if (beanClass.equals(ExtractionRule.class)) {
 				objectExplorerPageTitle = "New Extraction Rule";
 				objectExplorerPageMessage = "Please select an extraction rule template.";
 			}
-			if (beanClass.equals(Sheet.class)) {
+			else if (beanClass.equals(Sheet.class)) {
 				objectExplorerPageTitle = "New Sheet";
 				objectExplorerPageMessage = "Please select a sheet template.";
 			}
-			if (beanClass.equals(Statement.class)) {
+			else if (beanClass.equals(Statement.class)) {
 				objectExplorerPageTitle = "New Statement";
 				objectExplorerPageMessage = "Please select a statement template.";
 			}
-			if (beanClass.equals(Step.class)) {
+			else if (beanClass.equals(Step.class)) {
 				objectExplorerPageTitle = "New Step";
 				objectExplorerPageMessage = "Please select a step template.";
 			}
-			if (beanClass.equals(Variable.class)) {
+			else if (beanClass.equals(Variable.class)) {
 				objectExplorerPageTitle = "New Variable";
 				objectExplorerPageMessage = "Please select a variable template.";
 			}
-			if (beanClass.equals(TestCase.class)) {
+			else if (beanClass.equals(TestCase.class)) {
 				objectExplorerPageTitle = "New Test case";
 				objectExplorerPageMessage = "Please select a test case template.";
 			}
-			if (beanClass.equals(Reference.class)) {
+			else if (beanClass.equals(Reference.class)) {
 				objectExplorerPageTitle = "New Reference";
 				objectExplorerPageMessage = "Please select a reference template.";
+			}
+			else if (beanClass.equals(MobileApplication.class)) {
+				objectExplorerPageTitle = "New Mobile Application";
+				objectExplorerPageMessage = "Please select a mobile application template.";
+			}
+			else if (beanClass.equals(MobileDevice.class)) {
+				objectExplorerPageTitle = "New Mobile Device";
+				objectExplorerPageMessage = "Please select a mobile device template.";
 			}
 			
 			addBeanPages(objectExplorerPageTitle, objectExplorerPageMessage, beanClass);

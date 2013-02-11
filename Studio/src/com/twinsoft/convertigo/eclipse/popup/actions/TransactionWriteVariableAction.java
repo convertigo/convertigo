@@ -38,8 +38,8 @@ import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorPart;
 import com.twinsoft.convertigo.eclipse.editors.connector.JavelinConnectorComposite;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.VariableTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.twinj.Javelin;
 

@@ -15,12 +15,12 @@ import com.twinsoft.convertigo.beans.statements.IfStatement;
 import com.twinsoft.convertigo.beans.statements.IfThenElseStatement;
 import com.twinsoft.convertigo.beans.statements.ThenStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreePath;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class ChangeToIfStatementAction extends MyAbstractAction {
 

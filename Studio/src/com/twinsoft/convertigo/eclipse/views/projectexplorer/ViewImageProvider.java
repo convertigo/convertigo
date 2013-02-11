@@ -33,6 +33,13 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2;
 
 public class ViewImageProvider {
 

@@ -1001,11 +1001,23 @@
          point="org.eclipse.ui.popupMenus">
       <objectContribution
             id="convertigo.criteriaContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.CriteriaTreeObject">
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject">
+      </objectContribution>
+      <objectContribution
+            id="convertigo.mobileApplicationContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileDeviceAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newMobileDevice"
+               label="Mobile device"
+               menubarPath="convertigo.menu.new/content">
+         </action>
       </objectContribution>
       <objectContribution
             id="convertigo.screenclassContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.ScreenClassTreeObject">
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ScreenClassTreeObject">
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateInheritedScreenClassAction"
                enablesFor="1"
@@ -1043,7 +1055,7 @@
       </objectContribution>
       <objectContribution
             id="convertigo.objectContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject">
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject">
          <visibility>
             <objectState
                   name="isInherited"
@@ -1106,18 +1118,18 @@
       </objectContribution>
       <objectContribution
             id="convertigo.objectPriorityContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject">
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject">
          <visibility>
             <and>
                <objectState
                      name="isInherited"
                      value="false"/>
                <or>
-                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.CriteriaTreeObject"/>
-                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.ExtractionRuleTreeObject"/>
-                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject"/>
                   <objectClass
-                        name="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+                        name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
                   </objectClass>
                </or>
             </and>
@@ -1139,7 +1151,7 @@
       </objectContribution>
       <objectContribution
             id="convertigo.explorerContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.UnloadedProjectTreeObject">
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject">
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectOpenAction"
                enablesFor="+"
@@ -1166,7 +1178,7 @@
       </objectContribution>
       <objectContribution
             id="convertigo.transactionContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject">
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject">
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionCreateHandlerAction"
                enablesFor="1"
@@ -1248,7 +1260,7 @@
       </objectContribution>
       <objectContribution
             id="convertigo.transactionCopybookContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject">
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject">
          <visibility>
             <objectState
                   name="objectClassName"
@@ -1264,7 +1276,7 @@
       </objectContribution>
       <objectContribution
             id="convertigo.projectContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject">
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CustomAdditionsAction"
                enablesFor="1"
@@ -1278,6 +1290,14 @@
                id="convertigo.action.closeProject"
                label="Close"
                menubarPath="save"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileApplicationAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newMobileApplication"
+               label="Mobile application"
+               menubarPath="convertigo.menu.new/content">
+         </action>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateReferenceAction"
                enablesFor="1"
@@ -1382,7 +1402,7 @@
       </objectContribution>
       <objectContribution
             id="convertigo.connectorContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.ConnectorTreeObject">
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject">
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreatePoolAction"
                enablesFor="1"
@@ -1413,7 +1433,7 @@
       </objectContribution>
       <objectContribution
             id="convertigo.sheetContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.SheetTreeObject">
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SheetTreeObject">
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.SheetEditAction"
                enablesFor="1"
@@ -1423,7 +1443,7 @@
       </objectContribution>
       <objectContribution
             id="convertigo.transactionStatementContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject">
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject">
          <visibility>
             <objectState
                   name="objectClassName"
@@ -1439,7 +1459,7 @@
       </objectContribution>
 		<objectContribution
 		      id="convertigo.statementContribution"
-		      objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject">
+		      objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
 		   <action
 		         class="com.twinsoft.convertigo.eclipse.popup.actions.EnableStatementAction"
 		         enablesFor="+"
@@ -1467,7 +1487,7 @@
 		</objectContribution>
 		<objectContribution
                   id="convertigo.statementChangeToContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
                <visibility>
                   <objectState
                         name="canChangeTo"
@@ -1534,7 +1554,7 @@
     		</objectContribution>
       <objectContribution
             id="convertigo.statementWEContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject">
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
          <visibility>
             <objectState
                   name="isStatementWithExpressions"
@@ -1550,7 +1570,7 @@
       </objectContribution>
             <objectContribution
             id="convertigo.folderContribution"
-            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.ObjectsFolderTreeObject">
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject">
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateTransactionAction"
                enablesFor="1"
@@ -1734,7 +1754,7 @@
       </objectContribution>
             <objectContribution
                   id="convertigo.extractionruleContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.ExtractionRuleTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject">
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.EnableExtractionRuleAction"
                      enablesFor="+"
@@ -1762,7 +1782,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.variableContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.VariableTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject">
                <visibility>
                   <objectState
                         name="isChildOfJavelinTransaction"
@@ -1785,7 +1805,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.variable2Contribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.VariableTreeObject2">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2">
                <menu
                      id="convertigo.menu.variable.changeTo"
                      label="Change to"
@@ -1821,7 +1841,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.httpStatementContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
                <visibility>
                   <objectState
                         name="isHttpStatement"
@@ -1844,7 +1864,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.traceContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.TraceTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TraceTreeObject">
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.TraceDeleteAction"
                      enablesFor="1"
@@ -1872,7 +1892,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.stepContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.EnableStepAction"
                      enablesFor="+"
@@ -1929,7 +1949,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.stepWEContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
                <visibility>
                   <objectState
                         name="isStepWithExpressions"
@@ -1995,7 +2015,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.stepChangeToContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
                <visibility>
                   <objectState
                         name="canChangeTo"
@@ -2114,7 +2134,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.sequenceContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.SequenceTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject">
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStepAction"
                      enablesFor="1"
@@ -2179,7 +2199,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.transactionStepContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
                <visibility>
                   <objectState
                         name="isTransactionStep"
@@ -2211,7 +2231,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.sequenceStepContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
                <visibility>
                   <objectState
                         name="isSequenceStep"
@@ -2243,7 +2263,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.objectTableProperty"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject">
                <visibility>
                   <objectState
                         name="isInherited"
@@ -2299,7 +2319,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.objectTableRowProperty"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableRowTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject">
                <visibility>
                   <objectState
                         name="isInherited"
@@ -2384,7 +2404,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.objectTableColProperty"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableColumnTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject">
                <visibility>
                   <objectState
                         name="isInherited"
@@ -2445,7 +2465,7 @@
             </objectContribution>
             <objectContribution
                   id="convertigo.testCaseContribution"
-                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.TestCaseTreeObject">
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TestCaseTreeObject">
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
                      enablesFor="1"
@@ -2570,7 +2590,7 @@
          <description>Decorates Convertigo projects that can not be successfully loaded.</description>
          <enablement>
             <and>
-                <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.UnloadedProjectTreeObject"/>
+                <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject"/>
                 <objectState name="isLoadable" value="false"/>
             </and>
          </enablement>
@@ -2602,7 +2622,7 @@
                style="push"
                toolbarPath="additions"
                tooltip="Refresh the projects treeview from the repository">
-            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject"/>
          </action>
          <action
                class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerSaveAllAction"
@@ -2628,20 +2648,20 @@
                style="push"
                toolbarPath="additions"
                tooltip="Increase selected object(s) priority">
-            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.CriteriaTreeObject"/>
-            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.ExtractionRuleTreeObject"/>
-            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject"/>
             <selection
-                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
             </selection>
             <selection
-                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.VariableTreeObject2">
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2">
             </selection>
             <selection
-                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableRowTreeObject">
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject">
             </selection>
             <selection
-                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableColumnTreeObject">
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject">
             </selection>
          </action>
          <action
@@ -2656,20 +2676,20 @@
                style="push"
                toolbarPath="additions"
                tooltip="Decrease selected object(s) priority">
-            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.CriteriaTreeObject"/>
-            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.ExtractionRuleTreeObject"/>
-            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject"/>
             <selection
-                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject">
             </selection>
             <selection
-                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.VariableTreeObject2">
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2">
             </selection>
             <selection
-                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableRowTreeObject">
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject">
             </selection>
             <selection
-                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableColumnTreeObject">
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject">
             </selection>
          </action>
          <action

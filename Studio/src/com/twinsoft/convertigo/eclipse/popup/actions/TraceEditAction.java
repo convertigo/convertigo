@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TraceTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TraceTreeObject;
 
 public class TraceEditAction extends MyAbstractAction {
 

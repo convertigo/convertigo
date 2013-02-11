@@ -38,12 +38,12 @@ import com.twinsoft.convertigo.beans.steps.IfFileExistStep;
 import com.twinsoft.convertigo.beans.steps.IfFileExistThenElseStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreePath;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StepTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class ChangeToIfFileExistStepAction extends MyAbstractAction {
 
