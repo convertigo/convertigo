@@ -1759,7 +1759,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaAttribute());
 			attribute.setName(attr.name());
 			attribute.setSchemaTypeName(Constants.XSD_STRING);
-			attribute.setUse(XmlSchemaUtils.attributeUseRequired);
+			//attribute.setUse(XmlSchemaUtils.attributeUseRequired);
 			attributes.add(attribute);
 		}
 		XmlSchemaUtils.add(schema, cType);
