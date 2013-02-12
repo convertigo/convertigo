@@ -36,9 +36,11 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaDocumentation;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaGroupBase;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.EcmaError;
@@ -764,29 +766,32 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 			}
 			
 			List<String> elementList = new ArrayList<String>();
-			XmlSchemaSequence xmlSchemaSequence = (XmlSchemaSequence)xmlSchemaComplexType.getParticle();
-			if (xmlSchemaSequence == null) {
-				xmlSchemaSequence = new XmlSchemaSequence();
-				xmlSchemaComplexType.setParticle(xmlSchemaSequence);
+			XmlSchemaParticle xmlSchemaParticle = xmlSchemaComplexType.getParticle();
+			if (xmlSchemaParticle == null) {
+				xmlSchemaParticle = new XmlSchemaSequence();
+				xmlSchemaComplexType.setParticle(xmlSchemaParticle);
 			}
-			else {
-				XmlSchemaObjectCollection xmlSchemaCollection = xmlSchemaSequence.getItems();
+			
+			if (xmlSchemaParticle instanceof XmlSchemaGroupBase) {
+				XmlSchemaGroupBase xmlSchemaGroupBase = (XmlSchemaGroupBase)xmlSchemaParticle;
+				
+				XmlSchemaObjectCollection xmlSchemaCollection = xmlSchemaGroupBase.getItems();
 				for (int i=0; i< xmlSchemaCollection.getCount(); i++) {
 					XmlSchemaObject xmlSchemaObject = xmlSchemaCollection.getItem(i);
 					if (xmlSchemaObject instanceof XmlSchemaElement) {
 						elementList.add(((XmlSchemaElement)xmlSchemaObject).getName());
 					}
 				}
-			}
-			
-			// Add error element
-			if (!elementList.contains("error")) {
-				XmlSchemaElement eError= new XmlSchemaElement();
-				eError.setName("error");
-				eError.setMinOccurs(0);
-				eError.setMaxOccurs(1);
-				eError.setSchemaTypeName(new QName(xmlSchema.getTargetNamespace(), "ConvertigoError"));
-				xmlSchemaSequence.getItems().add(eError);
+				
+				// Add error element
+				if (!elementList.contains("error")) {
+					XmlSchemaElement eError= new XmlSchemaElement();
+					eError.setName("error");
+					eError.setMinOccurs(0);
+					eError.setMaxOccurs(1);
+					eError.setSchemaTypeName(new QName(xmlSchema.getTargetNamespace(), "ConvertigoError"));
+					xmlSchemaGroupBase.getItems().add(eError);
+				}
 			}
 			
 			// Add attributes

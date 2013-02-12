@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -84,19 +85,10 @@ public class ProjectUtils {
 			File newFile = new File(newPath);
 			if (!newFile.exists()) {
 				if (oldFile.renameTo(newFile)) {
-					String line;
-					StringBuffer sb = new StringBuffer();
-					
-					BufferedReader br = new BufferedReader(new FileReader(newPath));
-					while((line = br.readLine()) != null) {
-						line = line.replaceAll("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\"");
-						sb.append(line+"\n");
-					}
-					br.close();
-					
-					BufferedWriter out= new BufferedWriter(new FileWriter(newPath));
-					out.write(sb.toString());
-					out.close();
+					List<Replacement> replacements = new ArrayList<Replacement>();
+					replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\""));
+					replacements.add(new Replacement("value=\""+sourceProjectName+"\\.", "value=\""+targetProjectName+"\\.")); // for call steps
+					makeReplacementsInFile(replacements, newPath);
 				}
 				else {
 					throw new Exception("Unable to rename \""+oldPath+"\" to \""+newPath+"\"");
@@ -119,19 +111,10 @@ public class ProjectUtils {
 			File newFile = new File(newPath);
 			if (!newFile.exists()) {
 				if (oldFile.renameTo(newFile)) {
-					String line;
-					StringBuffer sb = new StringBuffer();
-					
-					BufferedReader br = new BufferedReader(new FileReader(newPath));
-					while((line = br.readLine()) != null) {
-						line = makeXsdProjectReplacements(line, sourceProjectName, targetProjectName);
-						sb.append(line+"\n");
-					}
-					br.close();
-					
-					BufferedWriter out= new BufferedWriter(new FileWriter(newPath));
-					out.write(sb.toString());
-					out.close();
+					List<Replacement> replacements = new ArrayList<Replacement>();
+					replacements.add(new Replacement("/"+sourceProjectName, "/"+targetProjectName));
+					replacements.add(new Replacement(sourceProjectName+"_ns", targetProjectName+"_ns"));
+					makeReplacementsInFile(replacements, newPath);
 				}
 				else {
 					throw new Exception("Unable to rename \""+oldPath+"\" to \""+newPath+"\"");
@@ -140,9 +123,6 @@ public class ProjectUtils {
 			else {
 				throw new Exception("File \""+newPath+"\" already exists");
 			}
-		}
-		else {
-			throw new Exception("File \""+oldPath+"\" does not exist");
 		}
 	}
 	
@@ -154,19 +134,16 @@ public class ProjectUtils {
 			File newFile = new File(newPath);
 			if (!newFile.exists()) {
 				if (oldFile.renameTo(newFile)) {
-					String line;
-					StringBuffer sb = new StringBuffer();
-					
-					BufferedReader br = new BufferedReader(new FileReader(newPath));
-					while((line = br.readLine()) != null) {
-						line = makeWsdlProjectReplacements(line, sourceProjectName, targetProjectName);
-						sb.append(line+"\n");
-					}
-					br.close();
-					
-					BufferedWriter out= new BufferedWriter(new FileWriter(newPath));
-					out.write(sb.toString());
-					out.close();
+					List<Replacement> replacements = new ArrayList<Replacement>();
+					replacements.add(new Replacement("/"+sourceProjectName, "/"+targetProjectName));
+					replacements.add(new Replacement(sourceProjectName+"_ns", targetProjectName+"_ns"));
+					replacements.add(new Replacement(sourceProjectName+".xsd", targetProjectName+".xsd"));
+					replacements.add(new Replacement(sourceProjectName+"Port", targetProjectName+"Port"));
+					replacements.add(new Replacement(sourceProjectName+"SOAP", targetProjectName+"SOAP"));
+					replacements.add(new Replacement("soapAction=\""+sourceProjectName+"\\?", "soapAction=\""+targetProjectName+"\\?"));
+					replacements.add(new Replacement("definitions name=\""+sourceProjectName+"\"", "definitions name=\""+targetProjectName+"\""));
+					replacements.add(new Replacement("service name=\""+sourceProjectName+"\"", "service name=\""+targetProjectName+"\""));
+					makeReplacementsInFile(replacements, newPath);
 				}
 				else {
 					throw new Exception("Unable to rename \""+oldPath+"\" to \""+newPath+"\"");
@@ -176,58 +153,40 @@ public class ProjectUtils {
 				throw new Exception("File \""+newPath+"\" already exists");
 			}
 		}
-		else {
-			throw new Exception("File \""+oldPath+"\" does not exist");
-		}
 	}
 	
 	public static void renameConnector(String filePath, String oldName, String newName) throws Exception {
 		if (filePath.endsWith(".wsdl") || filePath.endsWith(".xsd")) {
-			File wsdlFile = new File(filePath);
-			if (wsdlFile.exists()) {
-				String line;
-				StringBuffer sb = new StringBuffer();
-				
-				BufferedReader br = new BufferedReader(new FileReader(filePath));
-				while((line = br.readLine()) != null) {
-					line = makeConnectorReplacements(line, oldName, newName);
-					sb.append(line+"\n");
-				}
-				br.close();
-				
-				BufferedWriter out= new BufferedWriter(new FileWriter(filePath));
-				out.write(sb.toString());
-				out.close();
-			}
-			else {
-				throw new Exception("File \""+filePath+"\" does not exist");
-			}
+			List<Replacement> replacements = new ArrayList<Replacement>();
+			replacements.add(new Replacement(oldName+"__", newName+"__"));
+			makeReplacementsInFile(replacements, filePath);
 		}
 	}
 	
-	private static String makeConnectorReplacements(String line, String oldName, String newName) {
-		line = line.replaceAll(oldName+"__", newName+"__");
-		return line;
+	public static void makeReplacementsInFile(List<Replacement> replacements, String filePath) throws Exception {
+		File file = new File(filePath);
+		if (file.exists()) {
+			String line;
+			StringBuffer sb = new StringBuffer();
+			
+			BufferedReader br = new BufferedReader(new FileReader(filePath));
+			while((line = br.readLine()) != null) {
+				for (Replacement replacement: replacements) {
+					line = line.replaceAll(replacement.getSource(), replacement.getTarget());
+				}
+				sb.append(line+"\n");
+			}
+			br.close();
+			
+			BufferedWriter out= new BufferedWriter(new FileWriter(filePath));
+			out.write(sb.toString());
+			out.close();
+		}
+		else {
+			throw new Exception("File \""+filePath+"\" does not exist");
+		}
 	}
 
-	private static String makeXsdProjectReplacements(String line, String sourceProjectName, String targetProjectName) {
-		line = line.replaceAll("/"+sourceProjectName, "/"+targetProjectName);
-		line = line.replaceAll(sourceProjectName+"_ns", targetProjectName+"_ns");
-		return line;
-	}
-	
-	private static String makeWsdlProjectReplacements(String line, String sourceProjectName, String targetProjectName) {
-		line = line.replaceAll("/"+sourceProjectName, "/"+targetProjectName);
-		line = line.replaceAll(sourceProjectName+"_ns", targetProjectName+"_ns");
-		line = line.replaceAll(sourceProjectName+".xsd", targetProjectName+".xsd");
-		line = line.replaceAll(sourceProjectName+"Port", targetProjectName+"Port");
-		line = line.replaceAll(sourceProjectName+"SOAP", targetProjectName+"SOAP");
-		line = line.replaceAll("soapAction=\""+sourceProjectName+"\\?", "soapAction=\""+targetProjectName+"\\?");
-		line = line.replaceAll("definitions name=\""+sourceProjectName+"\"", "definitions name=\""+targetProjectName+"\"");
-		line = line.replaceAll("service name=\""+sourceProjectName+"\"", "service name=\""+targetProjectName+"\"");
-		return line;
-	}	
-	
 	public static void getFullProjectDOM(Document document,String projectName, StreamSource xslFilter) throws TransformerFactoryConfigurationError, EngineException, TransformerException{
 		Element root = document.getDocumentElement();
 		getFullProjectDOM(document,projectName);
@@ -249,8 +208,6 @@ public class ProjectUtils {
 
 		constructDom(document, projectTag, project);
 	}
-	
-	
 	
 	private static void constructDom(Document document, Element root, DatabaseObject father, ExportOption... exportOptions) throws EngineException {		
 		if (father instanceof HtmlTransaction) {
@@ -274,4 +231,5 @@ public class ProjectUtils {
 			constructDom(document, tag, dbo, exportOptions);
 		}
 	}
+	
 }

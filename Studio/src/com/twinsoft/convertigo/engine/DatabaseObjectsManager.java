@@ -628,13 +628,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 					ProjectUtils.renameXmlProject(Engine.PROJECTS_PATH, archiveProjectName, projectName);
 					Engine.logDatabaseObjectManager.debug("Project renamed from \"" + archiveProjectName
 							+ "\" to \"" + projectName + "\"");
-//					// rename/modify project wsdl&xsd files
-//					try {
-//						ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, archiveProjectName, projectName);
-//						ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, archiveProjectName, projectName);
-//						Engine.logDatabaseObjectManager.debug("Project wsdl & xsd files modified");
-//					} catch (Exception e) {
-//					}
+					
+					// rename/modify project wsdl & xsd files (for old car < 7.0.0)
+					try {
+						ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, archiveProjectName, projectName);
+						ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, archiveProjectName, projectName);
+						Engine.logDatabaseObjectManager.debug("Project wsdl & xsd files modified");
+					} catch (Exception e) {
+					}
 				}
 			}
 
