@@ -291,7 +291,8 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 		XmlSchemaComplexType xmlSchemaComplexType = super.addSchemaResponseDataType(xmlSchema);
 		XmlQName xmlQName = getXmlElementRefAffectation();
 		if (!xmlQName.isEmpty()) {
-			XmlSchemaSequence xmlSchemaSequence = new XmlSchemaSequence();
+			XmlSchemaSequence xmlSchemaSequence = (XmlSchemaSequence)xmlSchemaComplexType.getParticle();
+			if (xmlSchemaSequence == null) xmlSchemaSequence = new XmlSchemaSequence();
 			XmlSchemaElement xmlSchemaElement = new XmlSchemaElement();
 			xmlSchemaElement.setRefName(xmlQName.getQName());
 			xmlSchemaSequence.getItems().add(xmlSchemaElement);

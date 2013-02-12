@@ -214,12 +214,12 @@ public class Migration7_0_0 {
 							for (QName qname: map.keySet()) {
 								if (qname.getNamespaceURI().equals(targetNamespace)) {
 									XmlSchemaObject ob = map.get(qname);
-									
-									// Add missing response attributes
-									if (qname.equals(responseTypeQName)) {
-										Transaction.addSchemaResponseAttr((XmlSchemaComplexType) ob);										
-									}
 									transactionSchema.getItems().add(ob);
+									
+									// Add missing response error and attributes
+									if (qname.equals(responseTypeQName)) {
+										Transaction.addSchemaResponseObjects(transactionSchema, (XmlSchemaComplexType) ob);
+									}
 								}
 							}
 							

@@ -23,6 +23,8 @@
 package com.twinsoft.convertigo.beans.core;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -35,6 +37,7 @@ import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaDocumentation;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
+import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.apache.ws.commons.schema.constants.Constants;
@@ -606,8 +609,14 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 			new File(getSchemaFileDirPath()).mkdirs();
     		try {
 				XmlSchema xmlSchema = SchemaUtils.loadSchema(xsdDom, new XmlSchemaCollection());
+				
 				QName responseTypeQName = new QName(xmlSchema.getTargetNamespace(), responseType);
-				addSchemaResponseAttr((XmlSchemaComplexType) xmlSchema.getSchemaTypes().getItem(responseTypeQName));
+				XmlSchemaComplexType cType = (XmlSchemaComplexType) xmlSchema.getSchemaTypes().getItem(responseTypeQName);
+				if (cType == null)
+					addSchemaResponseDataType(xmlSchema);
+				else
+					addSchemaResponseObjects(xmlSchema, cType);
+				
 				SchemaUtils.saveSchema(getSchemaFilePath(), xmlSchema);
     		}
     		catch (Exception e) {
@@ -737,25 +746,62 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		
 		XmlSchemaComplexType xmlSchemaComplexType = new XmlSchemaComplexType(xmlSchema);
 		xmlSchemaComplexType.setName(localName);
-		addSchemaResponseAttr(xmlSchemaComplexType);
+		addSchemaResponseObjects(xmlSchema, xmlSchemaComplexType);
 		xmlSchema.getItems().add(xmlSchemaComplexType);
 		
 		return xmlSchemaComplexType;
 	}
 	
-	public static void addSchemaResponseAttr(XmlSchemaComplexType xmlSchemaComplexType) {
+	public static void addSchemaResponseObjects(XmlSchema xmlSchema, XmlSchemaComplexType xmlSchemaComplexType) {
 		if (xmlSchemaComplexType != null) {
+			List<String> attrList = new ArrayList<String>();
 			XmlSchemaObjectCollection attributes = xmlSchemaComplexType.getAttributes();
+			for (int i=0; i< attributes.getCount(); i++) {
+				XmlSchemaObject xmlSchemaObject = attributes.getItem(i);
+				if (xmlSchemaObject instanceof XmlSchemaAttribute) {
+					attrList.add(((XmlSchemaAttribute)xmlSchemaObject).getName());
+				}
+			}
+			
+			List<String> elementList = new ArrayList<String>();
+			XmlSchemaSequence xmlSchemaSequence = (XmlSchemaSequence)xmlSchemaComplexType.getParticle();
+			if (xmlSchemaSequence == null) {
+				xmlSchemaSequence = new XmlSchemaSequence();
+				xmlSchemaComplexType.setParticle(xmlSchemaSequence);
+			}
+			else {
+				XmlSchemaObjectCollection xmlSchemaCollection = xmlSchemaSequence.getItems();
+				for (int i=0; i< xmlSchemaCollection.getCount(); i++) {
+					XmlSchemaObject xmlSchemaObject = xmlSchemaCollection.getItem(i);
+					if (xmlSchemaObject instanceof XmlSchemaElement) {
+						elementList.add(((XmlSchemaElement)xmlSchemaObject).getName());
+					}
+				}
+			}
+			
+			// Add error element
+			if (!elementList.contains("error")) {
+				XmlSchemaElement eError= new XmlSchemaElement();
+				eError.setName("error");
+				eError.setMinOccurs(0);
+				eError.setMaxOccurs(1);
+				eError.setSchemaTypeName(new QName(xmlSchema.getTargetNamespace(), "ConvertigoError"));
+				xmlSchemaSequence.getItems().add(eError);
+			}
+			
+			// Add attributes
 			for (DOC_ATTR attr : DOC_ATTR.values()) {
-				XmlSchemaAttribute attribute = new XmlSchemaAttribute();
-				attribute.setName(attr.name());
-				attribute.setSchemaTypeName(Constants.XSD_STRING);
-				//attribute.setUse(XmlSchemaUtils.attributeUseRequired);
-				attributes.add(attribute);
+				if (!attrList.contains(attr.name())) {
+					XmlSchemaAttribute attribute = new XmlSchemaAttribute();
+					attribute.setName(attr.name());
+					attribute.setSchemaTypeName(Constants.XSD_STRING);
+					//attribute.setUse(XmlSchemaUtils.attributeUseRequired);
+					attributes.add(attribute);
+				}
 			}
 		}
 	}
-	
+
 	public boolean isGenerateSchema() {
 		return true;
 	}
