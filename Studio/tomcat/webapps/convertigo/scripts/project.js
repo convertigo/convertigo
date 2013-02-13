@@ -527,6 +527,11 @@ $(document).ready(function() {
 					$devices.each(function () {
 						addMobileDevice($(this), $(".mobiles:first .requestables:first"));
 					});
+					
+					if ($.browser.webkit) {
+						$("#window_exe_increase").removeClass("hidden");
+						$("#window_exe_decrease").removeClass("hidden");
+					}
 				}
 			}
 			
@@ -689,11 +694,6 @@ $(document).ready(function() {
 			$("#window_exe_close").click(function () {
 				$("#window_exe_content").empty();
 			});
-			
-			if ($.browser.webkit && ($devices.length > 0)) {
-				$("#window_exe_increase").removeClass("hidden");
-				$("#window_exe_decrease").removeClass("hidden");
-			}
 			
 			$("#window_exe_increase").click(function () {
 				if (vars.last_url) {
