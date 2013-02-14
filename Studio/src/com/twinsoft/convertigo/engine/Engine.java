@@ -355,6 +355,11 @@ public class Engine {
 					Engine.logEngine.info("Cloud customer: " + cloud_customer_name);
 				}
 
+				// Check environment and native dependencies
+				if (!isStudioMode()) {
+					StartupDiagnostics.run();
+				}
+				
 				// Initializing the engine
 				Engine.theApp = new Engine();
 				
