@@ -1183,6 +1183,28 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	public void write(String databaseObjectQName) throws EngineException {
 		write();
 	}
+	
+	/** Holds value of property version. */
+	private String version = "";
+
+	/**
+	 * Setter for property version.
+	 * 
+	 * @param version
+	 *            New value of property version.
+	 */
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	/**
+	 * Getter for property version.
+	 * 
+	 * @return Value of property version.
+	 */
+	public String getVersion() {
+		return this.version;
+	}
 
 	/** Holds value of property comment. */
 	private String comment = "";

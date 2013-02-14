@@ -38,7 +38,17 @@ $(document).ready(function () {
 				var $project = $(this);
 				var $project_div = $("#templates .project").clone();
 				$.each($project[0].attributes, function () {
-					$project_div.find(".project_" + this.name).text(this.value);
+					if( this.name == "version" ){
+						if(this.value == ""){
+							$(".project_version").hide();
+						}else{
+							$(".project_version").show();
+							$project_div.find(".project_" + this.name).text("(" + this.value + ")");
+						}
+					}else{
+						$(".project_version").show();
+						$project_div.find(".project_" + this.name).text(this.value);
+					}
 				});
 				$project_div.find(".project_link").attr("href", "project.html#" + $project.attr("name"));
 				$project_div.find(".project_wsdl").attr("href", "projects/" + $project.attr("name") + "/.wsl?wsdl");

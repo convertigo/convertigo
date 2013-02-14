@@ -484,6 +484,8 @@ $(document).ready(function() {
 			var $project = $(xml).find("project:first");
 			
 			$(".project_comment").text($project.attr("comment"));
+			if ($project.attr("version") != "")
+				$(".project_version").text("(" + $project.attr("version") + ")");
 			$project.find(">connector").each(function (i) {
 				var $connector = $(this);
 				var $connector_div = $("#templates .connector").clone();
