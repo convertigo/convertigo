@@ -2,8 +2,11 @@ package com.twinsoft.convertigo.engine;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.List;
@@ -17,7 +20,7 @@ import org.apache.log4j.PropertyConfigurator;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
-public class CheckEnvironment {
+public class StartupDiagnostics {
 
 	public static void main(String[] args) {
 		Properties log4jProperties = new Properties();
@@ -29,7 +32,7 @@ public class CheckEnvironment {
 
 		LogManager.resetConfiguration();
 		PropertyConfigurator.configure(log4jProperties);
-		Engine.logEngine = Logger.getLogger(CheckEnvironment.class);
+		Engine.logEngine = Logger.getLogger(StartupDiagnostics.class);
 
 		Engine.WEBAPP_PATH = "/devplatform/tomcat-qualif/webapps/convertigo/";
 
@@ -41,15 +44,41 @@ public class CheckEnvironment {
 	private static final String TEST_FAILED = "FAILED\n";
 
 	protected static void run() {
-		Engine.logEngine.info("----------------------------------------------------------------------");
-
 		String testsSummary = "";
 		try {
-			Engine.logEngine.info("Checking native dependencies...");
+			Engine.logEngine.info("*** STARTUP DIAGNOSTICS ***");
 
 			String os = System.getProperty("os.name");
-			Engine.logEngine.info("Detected OS: " + os);
+			String osArchitecture = System.getProperty("os.arch");
+			Engine.logEngine.info("Detected OS: " + os + " "
+					+ ("i386".equals(osArchitecture) ? "(32 bits)" : "(64 bits)"));
 
+			testsSummary += " - WAR architecture ........................... ";
+			File buildInfoFile = new File(Engine.WEBAPP_PATH + "/WEB-INF/build.txt");
+			try {
+				InputStream buildInfoFIS = new FileInputStream(buildInfoFile);
+				
+				Properties buildProperties = new Properties();
+				buildProperties.load(buildInfoFIS);
+
+				String buildFileName = buildProperties.getProperty("build.filename");
+				if (buildFileName == null) {
+					Engine.logEngine.warn("The build info file (" + buildInfoFile.getPath() + ") does not contain build file name info!");
+					testsSummary += TEST_WARN;
+				}
+				else {
+					Engine.logEngine.info("WAR file name: " + buildFileName);
+					String archSuffix = ("i386".equals(osArchitecture) ? "32.war" : "64.war");
+					testsSummary += (buildFileName.endsWith(archSuffix) ? TEST_SUCCESS : TEST_FAILED);
+				}
+			} catch (FileNotFoundException e) {
+				Engine.logEngine.warn("The build info file (" + buildInfoFile.getPath() + ") does not exist!");
+				testsSummary += TEST_WARN;
+			} catch (Exception e) {
+				Engine.logEngine.warn("Unable to read the build info file (" + buildInfoFile.getPath() + ")!", e);
+				testsSummary += TEST_WARN;
+			}
+			
 			boolean isLinux = os.startsWith("Linux");
 			// boolean isWindows = os.startsWith("Windows");
 			boolean isMacOS = os.startsWith("Mac OS X");
@@ -64,7 +93,7 @@ public class CheckEnvironment {
 			Engine.logEngine.info("Java working dir: " + workingDir);
 
 			// Checking running user
-			testsSummary += " - Test running user .......................... ";
+			testsSummary += " - Running user ............................... ";
 
 			String userName = System.getProperty("user.name");
 			Engine.logEngine.info("Java running user: " + userName);
@@ -92,9 +121,9 @@ public class CheckEnvironment {
 			}
 
 			// Checking user home
-			testsSummary += " - Test user home directory ................... ";
+			testsSummary += " - User home directory ........................ ";
 			String userHome = System.getProperty("user.home");
-			Engine.logEngine.info("User home: " + userHome);
+			Engine.logEngine.info("Java user home: " + userHome);
 
 			if (isLinux || isMacOS) {
 				String sysEnvHome = System.getenv("HOME");
@@ -126,10 +155,10 @@ public class CheckEnvironment {
 								Engine.logEngine.warn("Unable to find the user home in /etc/passwd");
 								testsSummary += TEST_WARN;
 							} else {
-								Engine.logEngine.info("/etc/passwd User home: " + userHome);
+								Engine.logEngine.info("User home as defined in /etc/passwd: " + userHome);
 								if (!etcPasswdUserHome.equals(userHome)) {
 									Engine.logEngine
-											.error("The user home in /etc/passwd differs from the user home!");
+											.error("The user home defined in /etc/passwd differs from the user home!");
 									testsSummary += TEST_FAILED;
 								} else {
 									testsSummary += TEST_SUCCESS;
@@ -152,7 +181,7 @@ public class CheckEnvironment {
 			// working files such as .eclipse...
 			testsSummary += " - Test user home directory write access ...... ";
 			try {
-				CheckEnvironment.testWriteAccess(new File(userHome), true);
+				StartupDiagnostics.testWriteAccess(new File(userHome), true);
 				testsSummary += TEST_SUCCESS;
 			} catch (IOException e) {
 				Engine.logEngine.error("The user home directory is not writeable!");
@@ -162,13 +191,14 @@ public class CheckEnvironment {
 			// Check JBoss tmp dir
 			String jbossTmpDir = System.getProperty("jboss.server.temp.dir");
 			if (jbossTmpDir != null) {
-				testsSummary += " - JBoss tmp directory write access .............. ";
+				testsSummary += " - JBoss tmp directory write access ........... ";
 
 				Engine.logEngine.info("JBoss detected");
+				Engine.logEngine.info("JBoss tmp dir: " + jbossTmpDir);
 
-				// Test write access in jboss tmp dir
+				// Test write access in JBoss tmp dir
 				try {
-					CheckEnvironment.testWriteAccess(new File(jbossTmpDir), true);
+					StartupDiagnostics.testWriteAccess(new File(jbossTmpDir), true);
 					testsSummary += TEST_SUCCESS;
 				} catch (IOException e) {
 					Engine.logEngine.error("The JBoss tmp directory is not writeable!");
@@ -179,13 +209,14 @@ public class CheckEnvironment {
 			// Check Tomcat tmp dir
 			String tomcatTmpDir = System.getenv("CATALINA_TMPDIR");
 			if (tomcatTmpDir != null) {
-				testsSummary += " - Tomcat tmp directory write access ............. ";
+				testsSummary += " - Tomcat tmp directory write access .......... ";
 
 				Engine.logEngine.info("Tomcat detected");
+				Engine.logEngine.info("Tomcat tmp dir: " + tomcatTmpDir);
 
-				// Test write access in tomcat tmp dir
+				// Test write access in Tomcat tmp dir
 				try {
-					CheckEnvironment.testWriteAccess(new File(jbossTmpDir), true);
+					StartupDiagnostics.testWriteAccess(new File(tomcatTmpDir), true);
 					testsSummary += TEST_SUCCESS;
 				} catch (IOException e) {
 					Engine.logEngine.error("The Tomcat tmp directory is not writeable!");
@@ -204,7 +235,7 @@ public class CheckEnvironment {
 			// Test write access in system tmp dir
 			File testTmpDir = null;
 			try {
-				testTmpDir = CheckEnvironment.testWriteAccess(new File(sysTempDir), true);
+				testTmpDir = StartupDiagnostics.testWriteAccess(new File(sysTempDir), true);
 				testsSummary += TEST_SUCCESS;
 			} catch (IOException e) {
 				Engine.logEngine.error("The system tmp directory is not writeable!");
@@ -214,9 +245,9 @@ public class CheckEnvironment {
 
 			// Checking DISPLAY
 			if (isLinux) {
-				testsSummary += " - Test DISPLAY ............................... ";
+				testsSummary += " - DISPLAY environment variable ............... ";
 				String display = System.getenv("DISPLAY");
-				Engine.logEngine.info("DISPLAY: " + display);
+				Engine.logEngine.info("DISPLAY=" + display);
 				
 				if (display == null) {
 					Engine.logEngine.error("The DISPLAY environment variable is not set!");
@@ -231,6 +262,7 @@ public class CheckEnvironment {
 			File xulrunnerLibDir = new File(Engine.WEBAPP_PATH + "/WEB-INF/xulrunner/");
 
 			if (isLinux) {
+				Engine.logEngine.info("XulRunner libraries directory: " + xulrunnerLibDir.getPath());
 				LddLibrariesResult lddLibrariesResult = lddLibraries(xulrunnerLibDir,
 						xulrunnerLibDir.toString(), null);
 				Engine.logEngine.info("Checking XulRunner libraries dependencies:\n"
@@ -251,7 +283,6 @@ public class CheckEnvironment {
 				// SWT libraries dependencies
 				testsSummary += " - SWT libraries dependencies ................. ";
 
-				// TODO: remove next line (debugging purpose only)
 				File convertigoLib = new File(Engine.WEBAPP_PATH + "/WEB-INF/lib/");
 
 				String[] swtFoundJars = convertigoLib.list(new FilenameFilter() {
@@ -266,7 +297,7 @@ public class CheckEnvironment {
 				} else {
 					String swtJar = swtFoundJars[0];
 
-					Engine.logEngine.debug("Found SWT jar: " + swtJar);
+					Engine.logEngine.info("Found SWT jar: " + swtJar);
 
 					File swtJarFile = new File(convertigoLib, swtJar);
 					try {
@@ -287,8 +318,9 @@ public class CheckEnvironment {
 					// Check the SWT libraries dependencies
 					if (isLinux) {
 						LddLibrariesResult lddLibrariesResult = lddLibraries(testTmpDir,
-								xulrunnerLibDir.toString() + ":" + javaLibraryPath + ":" + javaHome
-										+ "/lib/i386/headless", ".*((gnome)|(glx)).*");
+								xulrunnerLibDir.toString() + ":" + javaLibraryPath + ":"
+										+ javaHome + "/lib/" + osArchitecture + "/headless",
+										".*((gnome)|(glx)|(webkit)|(mozilla)|(cairo)|(xpcominit)|(atk)).*");
 						Engine.logEngine.info("Checking SWT libraries dependencies:\n"
 								+ lddLibrariesResult.response);
 						if (lddLibrariesResult.linkErrorFound) {
@@ -308,13 +340,12 @@ public class CheckEnvironment {
 			}
 
 			if (testsSummary.indexOf("FAILED") == -1 && testsSummary.indexOf("WARN") == -1) {
-				testsSummary += "Bravo! All tests passed :o)";
+				testsSummary += " :::  Bravo! All environment tests succeeded :o)  :::";
 			}
 		} catch (Throwable e) {
 			Engine.logEngine.error("Error while checking environment", e);
 		} finally {
-			Engine.logEngine.info("*** ENVIRONMENT TESTS SUMMARY ***\n" + testsSummary);
-			Engine.logEngine.info("----------------------------------------------------------------------");
+			Engine.logEngine.info("*** ENVIRONMENT DIAGNOSTICS SUMMARY ***\n" + testsSummary);
 		}
 	}
 
@@ -325,7 +356,8 @@ public class CheckEnvironment {
 	}
 
 	private static LddLibrariesResult lddLibraries(File libDir, String lddLibraryPath, String excludePattern) {
-		Engine.logEngine.debug("Launching ldd in " + libDir.toString());
+		Engine.logEngine.info("Launching ldd in " + libDir.toString());
+		Engine.logEngine.info("LD_LIBRARY_PATH=" + lddLibraryPath);
 
 		Collection<File> libs = FileUtils.listFiles(libDir, new String[] { "so" }, false);
 
@@ -336,7 +368,7 @@ public class CheckEnvironment {
 			lddLibrariesResult.response += "   " + libName;
 
 			if (excludePattern != null && Pattern.matches(excludePattern, libName)) {
-				lddLibrariesResult.response += "   *** ignored (library not needed) ***\n";
+				lddLibrariesResult.response += "      *** ignored (library not needed) ***\n";
 			} else {
 				lddLibrariesResult.response += "\n";
 				try {

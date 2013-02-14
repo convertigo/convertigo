@@ -370,7 +370,7 @@ public class Engine {
 
 				// Check environment and native dependencies
 				if (!isStudioMode()) {
-					CheckEnvironment.run();
+					StartupDiagnostics.run();
 				}
 				
 				// Initializing the engine
