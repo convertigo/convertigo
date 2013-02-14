@@ -49,6 +49,9 @@ import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.resolver.DefaultURIResolver;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
@@ -56,6 +59,7 @@ import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -75,10 +79,33 @@ import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaWalker;
 
 public class Migration7_0_0 {
+
+	public static Element migrate(Document document, Element projectNode) throws EngineException {
+		try {
+			NodeList mobileDevicesNodeList = XMLUtils.findElements(projectNode, "/mobiledevice");
+			if (mobileDevicesNodeList != null) {
+				MobileApplication mobileApplication = new MobileApplication();
+				Element mobileApplicationElement = mobileApplication.toXml(document);
+				projectNode.appendChild(mobileApplicationElement);
+				
+				Node[] mobileDeviceNodes = XMLUtils.toNodeArray(mobileDevicesNodeList);
+				for (Node mobileDeviceNode : mobileDeviceNodes) {
+					projectNode.removeChild(mobileDeviceNode);
+					mobileApplicationElement.appendChild(mobileDeviceNode);
+				}
+			}
+    	}
+    	catch (Exception e) {
+    		throw new EngineException("[Migration 7.0.0] Unable to migrate project",e);
+    	}
+		
+		return projectNode;
+	}
 
 	public static void migrate(String projectName) {
 		try {

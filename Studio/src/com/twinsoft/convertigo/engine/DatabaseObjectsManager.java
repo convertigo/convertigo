@@ -835,7 +835,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			// Performs necessary XML migration
 			Element projectNode = performXmlMigration(document);
-
+			
 			Element rootElement = document.getDocumentElement();
 			Element projectElement = (Element) XMLUtils.findChildNode(rootElement, Node.ELEMENT_NODE);
 
@@ -848,9 +848,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			Element pName = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "name");
 			String projectName = (String) XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(pName, Node.ELEMENT_NODE));
 
-			
-			
-			// Import will perform necessary beans migration (see deserialisation)
+			// Import will perform necessary beans migration (see deserialization)
 			Project project = (Project) importDatabaseObject(projectNode, null);
 			
 			synchronized (projects) {
@@ -945,6 +943,19 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 				if (Engine.logDatabaseObjectManager.isTraceEnabled())
 					Engine.logDatabaseObjectManager.trace("XML migrated to m001:\n"
+							+ (XMLUtils.prettyPrintDOM(document)));
+
+				Engine.logDatabaseObjectManager.info("Project's XML file migrated!");
+			}
+
+			// Migration to version 7.0.0 (mobile application)
+			if (VersionUtils.compare(version, "7.0.0") < 0) {
+				Engine.logDatabaseObjectManager.info("XML project's file migration to 7.0.0 schema (mobile application)...");
+
+				projectNode = Migration7_0_0.migrate(document, projectNode);
+
+				if (Engine.logDatabaseObjectManager.isTraceEnabled())
+					Engine.logDatabaseObjectManager.trace("XML migrated to v7.0.0:\n"
 							+ (XMLUtils.prettyPrintDOM(document)));
 
 				Engine.logDatabaseObjectManager.info("Project's XML file migrated!");
