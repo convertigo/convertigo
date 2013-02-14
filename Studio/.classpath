@@ -27,7 +27,7 @@
 	<classpathentry kind="lib" path="lib/ctgclient.jar"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-lang-2.5.jar" sourcepath="/ExternalJavaSources/commons-lang-2.5-src.zip"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-fileupload-1.2.2.jar"/>
-	<classpathentry kind="lib" path="lib/apache/commons/commons-io-2.2.jar"/>
+	<classpathentry kind="lib" path="lib/apache/commons/commons-io-2.2.jar" sourcepath="/ExternalJavaSources/commons-io-2.0.1-sources.zip"/>
 	<classpathentry kind="lib" path="lib/apache/xmlgraphics/xmlgraphics-commons-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/internal/bull-v24323.jar"/>
 	<classpathentry kind="lib" path="lib/internal/phaos.jar"/>
@@ -122,7 +122,7 @@
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/jibx-run-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/jsr311-api-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/juli-6.0.16.jar"/>
-	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/log4j-1.2.15.jar"/>
+	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/log4j-1.2.15.jar" sourcepath="/ExternalJavaSources/apache-log4j-1.2.15-src.zip"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/mail-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/mex-1.6.2-impl.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/neethi-3.0.2.jar"/>

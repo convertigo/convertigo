@@ -368,6 +368,11 @@ public class Engine {
 					Engine.logEngine.info("Cloud customer: " + cloud_customer_name);
 				}
 
+				// Check environment and native dependencies
+				if (!isStudioMode()) {
+					CheckEnvironment.run();
+				}
+				
 				// Initializing the engine
 				Engine.theApp = new Engine();
 				
@@ -704,7 +709,7 @@ public class Engine {
 			Engine.logEngine.info("Convertigo engine already started");
 		}
 	}
-
+	
 	public static synchronized void stop() throws EngineException {
 		if (Engine.theApp != null) {
 			if (!MigrationManager.isMigrationFinished())
