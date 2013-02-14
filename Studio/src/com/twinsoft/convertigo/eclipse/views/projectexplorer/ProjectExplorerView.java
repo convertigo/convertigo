@@ -1038,6 +1038,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 										structuredSelection);
 						}
 						if (needProjectReload) {
+							Engine.theApp.databaseObjectsManager.clearCache(newName);
 							reloadProject(theTreeObject);
 							refreshTree();
 						}

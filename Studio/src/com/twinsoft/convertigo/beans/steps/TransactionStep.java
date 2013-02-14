@@ -67,6 +67,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
@@ -725,6 +726,16 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		return label;
 	}
 
+	@Override
+	public String toString() {
+		String text = this.getComment();
+		String label = "";
+		try {
+			label += getLabel();
+		} catch (EngineException e) { }
+		return StringUtils.normalize("Call_"+getSourceTransaction()) + (label.equals("") ? "":" ") + label + (!text.equals("") ? " // "+text:"");
+	}
+	
 	@Override
 	public String getSchemaType(String tns) {
 		return tns + ":" + getStepNodeName() + priority + "StepType";

@@ -22,9 +22,6 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -36,27 +33,14 @@ import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
-import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.steps.BlockStep;
-import com.twinsoft.convertigo.beans.steps.BranchStep;
-import com.twinsoft.convertigo.beans.steps.ElseStep;
-import com.twinsoft.convertigo.beans.steps.ThenStep;
-import com.twinsoft.convertigo.beans.steps.TransactionStep;
-import com.twinsoft.convertigo.beans.steps.XMLComplexStep;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditorInput;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
-import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -104,7 +88,6 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 			// If a bean name has changed
 			if ("name".equals(propertyName)) {
 				handlesBeanNameChanged(treeObjectEvent);
-				stepNameChanged(treeObjectEvent);
 				
 			}
 			else if ("sqlQuery".equals(propertyName)) {
@@ -116,162 +99,6 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
     				}
 				}
 			}
-			else if ("sourceTransaction".equals(propertyName)) {
-				if (databaseObject instanceof TransactionStep) {
-					stepSourceNameChanged(databaseObject, treeObjectEvent);
-				}
-			}
-		}
-	}
-	
-	private void stepSourceNameChanged (DatabaseObject databaseObject, TreeObjectEvent treeObjectEvent) {		
-
-		Object oldValue = treeObjectEvent.oldValue;
-		
-		String oldName = (String)oldValue;
-		String[] oldSource = oldName.split("\\.");
-		
-		TransactionStep transactionStep = (TransactionStep) databaseObject;
-		
-		if (transactionStep.getName().startsWith("Call_" + oldSource[0] + "_" + oldSource[1] + "_" + oldSource[2])) {
-			
-			String transactionSourceName = transactionStep.getTransactionName();
-			String projectSourceName = transactionStep.getProjectName();
-			String connectorSourceName = transactionStep.getConnectorName();
-			
-			try {
-				ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-				
-				String newName = "Call_" + projectSourceName + "_" + connectorSourceName + "_" + transactionSourceName;
-				
-				DatabaseObject parent = transactionStep.getParent();
-				List<DatabaseObject> listChildrens = parent.getAllChildren();
-				List<String> listtransactionstepNames = new ArrayList<String>();
-				
-				int i = 0;
-				for (DatabaseObject child : listChildrens) {
-					if (child instanceof TransactionStep) {
-						TransactionStep transactionChild = (TransactionStep)child;
-						String name = transactionChild.getName();
-						if (name.startsWith(newName)) {
-							listtransactionstepNames.add(name);
-							i++;
-						}
-					}
-				}
-				
-				String name = newName;
-				for (int j=0; j<=i; j++) {
-					if (isNameContainer(listtransactionstepNames, name)) {
-						if (j != 0) {
-							name = newName + j;
-						}
-					} 
-				}	
-				transactionStep.setName(name);
-				projectExplorerView.refreshTree();
-				
-			} catch (EngineException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} 
-		}
-	}
-	
-	private boolean isNameContainer (List<String> listName, String name) {
-		for (String sequenceStepName : listName) {
-			if (sequenceStepName.equals(name)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	protected void stepNameChanged (TreeObjectEvent treeObjectEvent) {
-		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
-		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
-		Object oldValue = treeObjectEvent.oldValue;
-		Object newValue = treeObjectEvent.newValue;
-		
-		if (databaseObject instanceof Transaction) {			
-			try {
-				List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
-				ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-				
-				for (String projectName : projectNames) {
-					Project project = null;
-					TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer
-							.getContentProvider()).getProjectRootObject(projectName);
-					if (projectTreeObject instanceof UnloadedProjectTreeObject) {
-						project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-					} else {
-						project = projectExplorerView.getProject(projectName);
-					}
-					
-					List<Sequence> sequences = project.getSequencesList();
-					for (Sequence sequence : sequences) {
-						List<Step> steps = sequence.getSteps();
-						for (Step step : steps) {
-							nameChanged(step, projectExplorerView, oldValue, newValue);
-						}
-					}
-				}
-			} catch (EngineException e) {
-				ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);
-			}
-		}
-	}
-	
-	private boolean isStepContainer(Step step) {
-		return (step instanceof BlockStep || step instanceof BranchStep || step instanceof ThenStep || step instanceof ElseStep || step instanceof XMLComplexStep);
-	}
-	
-	private List<Step> getStepList (Step step) {
-		List<Step> steps = null;
-		
-		if (step instanceof BlockStep) {
-			steps = ((BlockStep) step).getAllSteps();
-		} else if (step instanceof BranchStep) {
-			steps = ((BranchStep) step).getAllSteps();
-		} else if (step instanceof ThenStep) {
-			steps = ((ThenStep) step).getAllSteps();
-		} else if (step instanceof ElseStep) {
-			steps = ((ElseStep) step).getAllSteps();
-		} else if (step instanceof XMLComplexStep) {
-			steps = ((XMLComplexStep) step).getAllSteps();
-		}
-		
-		return steps;
-	}
-
-	private void nameChanged (Step step, ProjectExplorerView projectExplorerView, Object oldValue, Object newValue) {
-		try {
-			if (step instanceof TransactionStep) {
-				TransactionStep transactionStep = (TransactionStep) step;
-				String name = transactionStep.getName();
-				Transaction transaction = getObject();
-				String projectNameTransaction = (transaction.getProject()).getName();
-				String connectorNameTransaction = (transaction.getConnector()).getName();
-				String oldName = "Call_" + projectNameTransaction + "_" + connectorNameTransaction + "_" + oldValue;
-				String newName = "Call_" + projectNameTransaction + "_" + connectorNameTransaction + "_" + newValue;
-				if (name.startsWith(oldName)) {
-					if (transactionStep.getSourceTransaction().endsWith((String) newValue)) {
-						if (name.length()> oldName.length()) {
-							String subString = name.substring(oldName.length());
-							newName += subString;
-						}
-						transactionStep.setName(newName);
-						projectExplorerView.refreshTree();
-					}
-				}
-			} else if (isStepContainer(step) ) {
-				List<Step> steps = getStepList(step);
-				for (Step s : steps) {
-					nameChanged(s, projectExplorerView, oldValue, newValue);
-				}
-			}
-		} catch (EngineException e) {
-			ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);
 		}
 	}
 	
