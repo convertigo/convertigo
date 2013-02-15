@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -45,6 +46,12 @@ public class StartupDiagnostics {
 
 	protected static void run() {
 		String testsSummary = "";
+		Level currentLevel = Engine.logEngine.getEffectiveLevel();
+
+		// To avoid debug traces due to the ZipUtils helper routines,
+		// set the engine logger level to INFO.
+		Engine.logEngine.setLevel(Level.INFO);
+
 		try {
 			Engine.logEngine.info("*** STARTUP DIAGNOSTICS ***");
 
@@ -336,7 +343,9 @@ public class StartupDiagnostics {
 					}
 				}
 			} finally {
-				testTmpDir.delete();
+				if (FileUtils.deleteQuietly(testTmpDir)) {
+					Engine.logEngine.warn("Unable to delete tmp test dir: " + testTmpDir.getPath());
+				}
 			}
 
 			if (testsSummary.indexOf("FAILED") == -1 && testsSummary.indexOf("WARN") == -1) {
@@ -346,6 +355,8 @@ public class StartupDiagnostics {
 			Engine.logEngine.error("Error while checking environment", e);
 		} finally {
 			Engine.logEngine.info("*** ENVIRONMENT DIAGNOSTICS SUMMARY ***\n" + testsSummary);
+			// Restore engine logger level
+			Engine.logEngine.setLevel(currentLevel);
 		}
 	}
 
