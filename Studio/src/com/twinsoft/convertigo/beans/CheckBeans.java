@@ -181,7 +181,6 @@ public class CheckBeans {
 	private static List<String> icons = new ArrayList<String>();
 
 	private static void browsePackages(final String currentPackage) {
-		@SuppressWarnings("unchecked")
 		Collection<File> javaFiles = FileUtils.listFiles(new File(currentPackage), new String[] { "java" }, true);
 		for (File file : javaFiles) {
 			String javaClassName = file.getPath();
@@ -193,7 +192,6 @@ public class CheckBeans {
 			}
 		}
 
-		@SuppressWarnings("unchecked")
 		Collection<File> iconFiles = FileUtils.listFiles(new File(currentPackage), new String[] { "png" }, true);
 		for (File file : iconFiles) {
 			String iconPath = file.getPath();

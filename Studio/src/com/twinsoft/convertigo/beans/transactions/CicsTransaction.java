@@ -697,13 +697,18 @@ public class CicsTransaction extends Transaction {
 	public void writeToHTMLFile(String strFilePath, String htmlText) {
 		try {
 			FileOutputStream output = null;
-			String projectsDir = Engine.PROJECTS_PATH;
-			if (strFilePath == null)
-				strFilePath = projectsDir + "/" + parent.getParent().getName() + "/" + getName() + ".htm";
-			if (output == null)
+			try {
+				String projectsDir = Engine.PROJECTS_PATH;
+				if (strFilePath == null)
+					strFilePath = projectsDir + "/" + parent.getParent().getName() + "/" + getName() + ".htm";
+				
 				output = new FileOutputStream(strFilePath);
-			
-			output.write(htmlText.getBytes());
+				output.write(htmlText.getBytes());
+			} finally {
+				if (output != null)
+					output.close();
+			}
+
 		}
 		catch (Exception e) {
 			Engine.logBeans.error("Unexpected exception", e);

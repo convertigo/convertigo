@@ -109,30 +109,35 @@ public class WriteXMLStep extends WriteFileStep {
 						//String content = XMLUtils.prettyPrintElement(element, true, true);
 
 						/* detect current xml encoding */
-						FileChannel fc = new RandomAccessFile(fullPathName, "rw").getChannel();
-						ByteBuffer buf = ByteBuffer.allocate(128);
-						int nb = fc.read(buf);
-						String sbuf = new String(buf.array(), 0, nb, "ASCII");
-						String enc = sbuf.replaceFirst("^.*encoding=\"", "").replaceFirst("\"[\\d\\D]*$", "");
-						if(!Charset.isSupported(enc)) enc = encoding;
-						buf.clear();
-						
-						/* retrieve last header tag*/
-						long pos = fc.size()-buf.capacity();
-						if( pos < 0 ) pos = 0;
-						nb = fc.read(buf, pos);
-						sbuf = new String(buf.array(), 0, nb, enc);
-						int lastTagIndex = sbuf.lastIndexOf("</");
-						if(lastTagIndex==-1){
-							int iend = sbuf.lastIndexOf("/>");
-							if(iend!=-1){
-								lastTagIndex = sbuf.lastIndexOf("<", iend);
-								String tagname = sbuf.substring(lastTagIndex+1, iend);
-								content = new StringBuffer( "<"+tagname+">\n"+content.toString()+"</"+tagname+">" );
-							}else throw new EngineException("Malformed XML file");
-						}else content.append(sbuf.substring(lastTagIndex));
-						fc.write(ByteBuffer.wrap(content.toString().getBytes(enc)), pos+lastTagIndex);
-						fc.close();
+						RandomAccessFile randomAccessFile = null;
+						try {
+							randomAccessFile = new RandomAccessFile(fullPathName, "rw");
+							FileChannel fc = randomAccessFile.getChannel();
+							ByteBuffer buf = ByteBuffer.allocate(128);
+							int nb = fc.read(buf);
+							String sbuf = new String(buf.array(), 0, nb, "ASCII");
+							String enc = sbuf.replaceFirst("^.*encoding=\"", "").replaceFirst("\"[\\d\\D]*$", "");
+							if(!Charset.isSupported(enc)) enc = encoding;
+							buf.clear();
+							
+							/* retrieve last header tag*/
+							long pos = fc.size()-buf.capacity();
+							if( pos < 0 ) pos = 0;
+							nb = fc.read(buf, pos);
+							sbuf = new String(buf.array(), 0, nb, enc);
+							int lastTagIndex = sbuf.lastIndexOf("</");
+							if(lastTagIndex==-1){
+								int iend = sbuf.lastIndexOf("/>");
+								if(iend!=-1){
+									lastTagIndex = sbuf.lastIndexOf("<", iend);
+									String tagname = sbuf.substring(lastTagIndex+1, iend);
+									content = new StringBuffer( "<"+tagname+">\n"+content.toString()+"</"+tagname+">" );
+								}else throw new EngineException("Malformed XML file");
+							}else content.append(sbuf.substring(lastTagIndex));
+							fc.write(ByteBuffer.wrap(content.toString().getBytes(enc)), pos+lastTagIndex);
+						} catch (Exception e) {
+							if (randomAccessFile != null) randomAccessFile.close();
+						}
 /*						}else
 					try {
 						Document doc = XMLUtils.parseDOM(fullPathName);
