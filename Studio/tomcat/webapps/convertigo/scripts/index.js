@@ -39,14 +39,10 @@ $(document).ready(function () {
 				var $project_div = $("#templates .project").clone();
 				$.each($project[0].attributes, function () {
 					if( this.name == "version" ){
-						if(this.value == ""){
-							$(".project_version").hide();
-						}else{
-							$(".project_version").show();
+						if(this.value != ""){
 							$project_div.find(".project_" + this.name).text("(" + this.value + ")");
 						}
 					}else{
-						$(".project_version").show();
 						$project_div.find(".project_" + this.name).text(this.value);
 					}
 				});
