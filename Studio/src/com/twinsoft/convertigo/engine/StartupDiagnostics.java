@@ -13,31 +13,12 @@ import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.log4j.Level;
 
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class StartupDiagnostics {
-
-	public static void main(String[] args) {
-		Properties log4jProperties = new Properties();
-		log4jProperties.put("log4j.rootLogger", "INFO, stdout");
-		log4jProperties.put("log4j.appender.stdout", "org.apache.log4j.ConsoleAppender");
-		log4jProperties.put("log4j.appender.stdout.Target", "System.out");
-		log4jProperties.put("log4j.appender.stdout.layout", "org.apache.log4j.PatternLayout");
-		log4jProperties.put("log4j.appender.stdout.layout.ConversionPattern", "%-5p %d   %m%n");
-
-		LogManager.resetConfiguration();
-		PropertyConfigurator.configure(log4jProperties);
-		Engine.logEngine = Logger.getLogger(StartupDiagnostics.class);
-
-		Engine.WEBAPP_PATH = "/devplatform/tomcat-qualif/webapps/convertigo/";
-
-		run();
-	}
 
 	private static final String TEST_SUCCESS = "OK\n";
 	private static final String TEST_WARN = "WARN\n";
@@ -45,6 +26,12 @@ public class StartupDiagnostics {
 
 	protected static void run() {
 		String testsSummary = "";
+		Level currentLevel = Engine.logEngine.getEffectiveLevel();
+
+		// To avoid debug traces due to the ZipUtils helper routines,
+		// set the engine logger level to INFO.
+		Engine.logEngine.setLevel(Level.INFO);
+
 		try {
 			Engine.logEngine.info("*** STARTUP DIAGNOSTICS ***");
 
@@ -336,7 +323,9 @@ public class StartupDiagnostics {
 					}
 				}
 			} finally {
-				testTmpDir.delete();
+				if (FileUtils.deleteQuietly(testTmpDir)) {
+					Engine.logEngine.warn("Unable to delete tmp test dir: " + testTmpDir.getPath());
+				}
 			}
 
 			if (testsSummary.indexOf("FAILED") == -1 && testsSummary.indexOf("WARN") == -1) {
@@ -346,6 +335,8 @@ public class StartupDiagnostics {
 			Engine.logEngine.error("Error while checking environment", e);
 		} finally {
 			Engine.logEngine.info("*** ENVIRONMENT DIAGNOSTICS SUMMARY ***\n" + testsSummary);
+			// Restore engine logger level
+			Engine.logEngine.setLevel(currentLevel);
 		}
 	}
 
