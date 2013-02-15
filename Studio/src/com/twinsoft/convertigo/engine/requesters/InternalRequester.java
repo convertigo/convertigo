@@ -55,7 +55,7 @@ public class InternalRequester extends GenericRequester {
 		// Find the project name
 		try {
 			projectName = request.get(Parameter.Project.getName())[0];
-			Engine.logContext.debug("(ServletRequester) project name: " + projectName);
+			Engine.logContext.debug("(InternalRequester) project name: " + projectName);
 		} catch (NullPointerException e) {
 			// Just ignore
 		}
@@ -63,7 +63,7 @@ public class InternalRequester extends GenericRequester {
 		// Find the pool name
 		try {
 			poolName = request.get(Parameter.Pool.getName())[0];
-			Engine.logContext.debug("(ServletRequester) pool name: " + poolName);
+			Engine.logContext.debug("(InternalRequester) pool name: " + poolName);
 		} catch (NullPointerException e) {
 			// Just ignore
 		}
@@ -71,7 +71,7 @@ public class InternalRequester extends GenericRequester {
 		// Find the sequence name
 		try {
 			sequenceName = request.get(Parameter.Sequence.getName())[0];
-			Engine.logContext.debug("(ServletRequester) sequence name: " + sequenceName);
+			Engine.logContext.debug("(InternalRequester) sequence name: " + sequenceName);
 		} catch (NullPointerException e) {
 			// Just ignore
 		}
@@ -79,7 +79,7 @@ public class InternalRequester extends GenericRequester {
 		// Find the connector name
 		try {
 			connectorName = request.get(Parameter.Connector.getName())[0];
-			Engine.logContext.debug("(ServletRequester) connector name: " + connectorName);
+			Engine.logContext.debug("(InternalRequester) connector name: " + connectorName);
 		} catch (NullPointerException e) {
 			// Just ignore
 		}
