@@ -131,6 +131,7 @@ public class MyJScriptCompletionProcessor implements IContentAssistProcessor
             		sb.append(line);
             	}
         		helpFileContent = sb.toString();
+        		br.close();
         		
         		/*String[] defs = helpFileContent.split("<HR>");
         		for (int i=0; i<defs.length; i++)
