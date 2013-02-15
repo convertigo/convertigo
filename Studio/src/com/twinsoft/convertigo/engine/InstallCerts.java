@@ -86,6 +86,8 @@ public class InstallCerts {
 						}
 					}
 				}
+				
+				br.close();
 			}
 			else {
 				String fileName = args[0];

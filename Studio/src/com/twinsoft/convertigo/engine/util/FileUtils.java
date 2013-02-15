@@ -102,26 +102,30 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 	}
 	
 	public static void loadProperties(Map<String, String> map, File file, String encoding) throws IOException {
-		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding));
-		String key = null;
-		String line;
-		int cpt = 1;
-		while ((line = br.readLine()) != null) {
-			if (line.length() != 0) {
-				if (cpt % 3 == 1) {
-					key = line;
-				} else if (cpt % 3 == 2) {
-					map.put(key, line);
+		BufferedReader br = null;
+		try {
+			br = new BufferedReader(new InputStreamReader(new FileInputStream(file), encoding));
+			String key = null;
+			String line;
+			int cpt = 1;
+			while ((line = br.readLine()) != null) {
+				if (line.length() != 0) {
+					if (cpt % 3 == 1) {
+						key = line;
+					} else if (cpt % 3 == 2) {
+						map.put(key, line);
+					} else {
+						throw new IOException("The line number " + cpt + " must be empty (" + line + ")");
+					}
 				} else {
-					throw new IOException("The line number " + cpt + " must be empty (" + line + ")");
+					if (cpt % 3 != 0) {
+						throw new IOException("The line number " + cpt + " must not be empty (last key =" + key + ")");
+					}
 				}
-			} else {
-				if (cpt % 3 != 0) {
-					throw new IOException("The line number " + cpt + " must not be empty (last key =" + key + ")");
-				}
+				cpt++;
 			}
-			cpt++;
+		} finally {
+			if (br != null) br.close();
 		}
-		br.close();
 	}
 }

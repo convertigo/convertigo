@@ -135,8 +135,14 @@ public class AttachmentManager {
 				final String contentType = eAttachment.getAttribute("content-type");
 				final byte[][] data = new byte[1][];
 				if ((attr = eAttachment.getAttribute("local-url")) != null && attr.length() > 0) {
-					FileInputStream fis = new FileInputStream(attr);
-					fis.read(data[0] = new byte[fis.available()]);
+					FileInputStream fis = null;
+					try {
+						fis = new FileInputStream(attr);
+						fis.read(data[0] = new byte[fis.available()]);
+					} finally {
+						if (fis != null) fis.close();
+					}
+					
 				} else if ((attr = eAttachment.getAttribute("encoding")) != null && attr.length() > 0) {
 					if ("base64".equals(attr)) {
 						data[0] = Base64v21.decode(eAttachment.getTextContent());

@@ -56,6 +56,7 @@ public class TraceReader {
 
 	public TraceReader(String s) throws IOException {
 		FileReader fr = null;
+		BufferedReader br = null;
 		try {
 			File f = new File(s);
 			try {
@@ -67,7 +68,7 @@ public class TraceReader {
 			
 			// Bugfix #891
 			// Get the trace file in memory to avoid file lock
-			BufferedReader br = new BufferedReader(fr);
+			br = new BufferedReader(fr);
 			StringBuffer buffer = new StringBuffer("");
 			String line;
 			while ((line = br.readLine()) != null) {
@@ -79,6 +80,7 @@ public class TraceReader {
 		}
 		finally {
 			if (fr != null) fr.close();
+			if (br != null) br.close();
 		}
 	}
 

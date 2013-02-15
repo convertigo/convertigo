@@ -148,6 +148,8 @@ public class EngineStatistics extends Statistics {
 		formatter
 				.format(" ========================================================");
 
+		formatter.close();
+		
 		return stats.toString();
 	}
 
