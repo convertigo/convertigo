@@ -67,6 +67,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -701,25 +702,30 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 			} else {
 				// Check for project
 				try {
-					Project p = getTargetProject(projectName);
-					if (p == null) {
-						label = "! broken project!";
-					} else {
-						// Check for connector
-						Connector connector = (connectorName.equals("") ? p.getDefaultConnector() : p
-								.getConnectorByName(connectorName));
-						if (connector == null) {
-							label = "! broken connector !";
+					if (ProjectUtils.existProjectSchemaReference(getProject(), projectName)) {
+						Project p = getTargetProject(projectName);
+						if (p == null) {
+							label = "! broken project!";
 						} else {
-							Transaction transaction = (transactionName.equals("") ? connector
-									.getDefaultTransaction() : connector.getTransactionByName(transactionName));
-							if (transaction == null) {
-								label = "! broken transaction !";
+							// Check for connector
+							Connector connector = (connectorName.equals("") ? p.getDefaultConnector() : p
+									.getConnectorByName(connectorName));
+							if (connector == null) {
+								label = "! broken connector !";
+							} else {
+								Transaction transaction = (transactionName.equals("") ? connector
+										.getDefaultTransaction() : connector.getTransactionByName(transactionName));
+								if (transaction == null) {
+									label = "! broken transaction !";
+								}
 							}
 						}
 					}
+					else {
+						label = "! broken reference !";
+					}
 				} catch (Exception e) {
-					label = "! broken project!";
+					label = "! broken project !";
 				}
 			}
 		}

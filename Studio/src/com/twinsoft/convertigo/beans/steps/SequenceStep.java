@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
+import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -519,17 +520,22 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 			else {
 				// Check for project
 				try {
-					Project p = getTargetProject(projectName);
-					if (p == null) {
-						label = "! broken project !";
+					if (ProjectUtils.existProjectSchemaReference(getProject(), projectName)) {
+						Project p = getTargetProject(projectName);
+						if (p == null) {
+							label = "! broken project !";
+						}
+						else {
+							//Check for sequence
+							List<Sequence> v = p.getSequencesList();
+							Sequence seq = (sequenceName.equals("") ? (v.isEmpty() ? null: (Sequence)v.get(0)):p.getSequenceByName(sequenceName));
+							if (seq == null) {
+								label = "! broken sequence !";
+							}
+						}
 					}
 					else {
-						//Check for sequence
-						List<Sequence> v = p.getSequencesList();
-						Sequence seq = (sequenceName.equals("") ? (v.isEmpty() ? null: (Sequence)v.get(0)):p.getSequenceByName(sequenceName));
-						if (seq == null) {
-							label = "! broken sequence !";
-						}
+						label = "! broken reference !";
 					}
 				}
 				catch (Exception e) {

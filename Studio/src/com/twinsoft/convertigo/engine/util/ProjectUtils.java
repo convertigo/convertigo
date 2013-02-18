@@ -47,8 +47,10 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -76,7 +78,32 @@ public class ProjectUtils {
         	}
     	}
 	}
-	
+
+	public static void renameProjectFile(String projectsDir, String sourceProjectName, String targetProjectName) throws Exception {
+		String oldPath = projectsDir + "/" + targetProjectName + "/" + sourceProjectName + ".xml";
+		File oldFile = new File(oldPath);
+		if (oldFile.exists()) {
+			String newPath = projectsDir + "/" + targetProjectName + "/" + targetProjectName + ".xml";
+			File newFile = new File(newPath);
+			if (!newFile.exists()) {
+				if (oldFile.renameTo(newFile)) {
+					List<Replacement> replacements = new ArrayList<Replacement>();
+					replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\""));
+					makeReplacementsInFile(replacements, newPath, "<!--<Project");
+				}
+				else {
+					throw new Exception("Unable to rename \""+oldPath+"\" to \""+newPath+"\"");
+				}
+			}
+			else {
+				throw new Exception("File \""+newPath+"\" already exists");
+			}
+		}
+		else {
+			throw new Exception("File \""+oldPath+"\" does not exist");
+		}
+	}
+
 	public static void renameXmlProject(String projectsDir, String sourceProjectName, String targetProjectName) throws Exception {
 		String oldPath = projectsDir + "/" + targetProjectName + "/" + sourceProjectName + ".xml";
 		File oldFile = new File(oldPath);
@@ -164,6 +191,10 @@ public class ProjectUtils {
 	}
 	
 	public static void makeReplacementsInFile(List<Replacement> replacements, String filePath) throws Exception {
+		makeReplacementsInFile(replacements, filePath, null);
+	}
+	
+	public static void makeReplacementsInFile(List<Replacement> replacements, String filePath, String lineBegin) throws Exception {
 		File file = new File(filePath);
 		if (file.exists()) {
 			String line;
@@ -172,7 +203,9 @@ public class ProjectUtils {
 			BufferedReader br = new BufferedReader(new FileReader(filePath));
 			while((line = br.readLine()) != null) {
 				for (Replacement replacement: replacements) {
-					line = line.replaceAll(replacement.getSource(), replacement.getTarget());
+					if ((lineBegin == null) || (line.startsWith(lineBegin))) {
+						line = line.replaceAll(replacement.getSource(), replacement.getTarget());
+					}
 				}
 				sb.append(line+"\n");
 			}
@@ -232,4 +265,15 @@ public class ProjectUtils {
 		}
 	}
 	
+	public static boolean existProjectSchemaReference(Project project, String projectName) {
+		if (projectName.equals(project.getName()))
+			return true;
+		for (Reference reference : project.getReferenceList()) {
+			if (reference instanceof ProjectSchemaReference) {
+				if (((ProjectSchemaReference)reference).getProjectName().equals(projectName))
+					return true;
+			}
+		}
+		return false;
+	}
 }
