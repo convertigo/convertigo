@@ -81,4 +81,21 @@ public class ProjectSchemaReference extends ImportXsdSchemaReference {
 		return schemaImport;
 		
 	}
+	
+	@Override
+	public String toString() {
+		String text = this.getComment();
+		String label = "";
+		try {
+			// Check for project
+			Project p = Engine.theApp.databaseObjectsManager.getProjectByName(getProjectName());
+			if (p == null) {
+				label = "! broken project !";
+			}
+		}
+		catch (Exception e) {
+			label = "! broken project !";
+		}
+		return getProjectName() + (label.equals("") ? "":" ") + label + (!text.equals("") ? " // "+text:"");
+	}
 }
