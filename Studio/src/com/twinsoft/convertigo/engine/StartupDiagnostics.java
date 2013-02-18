@@ -14,16 +14,53 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class StartupDiagnostics {
 
+	public static void main(String[] args) {
+		Properties log4jProperties = new Properties();
+		log4jProperties.put("log4j.rootLogger", "INFO, stdout");
+		log4jProperties.put("log4j.appender.stdout", "org.apache.log4j.ConsoleAppender");
+		log4jProperties.put("log4j.appender.stdout.Target", "System.out");
+		log4jProperties.put("log4j.appender.stdout.layout", "org.apache.log4j.PatternLayout");
+		log4jProperties.put("log4j.appender.stdout.layout.ConversionPattern", "%-5p %d   %m%n");
+
+		LogManager.resetConfiguration();
+		PropertyConfigurator.configure(log4jProperties);
+		Engine.logEngine = Logger.getLogger(StartupDiagnostics.class);
+
+		Engine.WEBAPP_PATH = "/devplatform/tomcat-qualif/webapps/convertigo/";
+
+		run();
+	}
+
 	private static final String TEST_SUCCESS = "OK\n";
 	private static final String TEST_WARN = "WARN\n";
 	private static final String TEST_FAILED = "FAILED\n";
 
+	private static enum Architecture {
+		x32bits, x64bits, unknown
+	}
+	
+	private static Architecture getArchitecture() {
+		String osArchitecture = System.getProperty("os.arch");
+		if ("i386".equals(osArchitecture) || "x86".equals(osArchitecture)) {
+			return Architecture.x32bits;
+		}
+		else if ("ia64".equals(osArchitecture) || "amd64".equals(osArchitecture)) {
+			return Architecture.x64bits;
+		}
+		else {
+			return Architecture.unknown;
+		}
+	}
+	
 	protected static void run() {
 		String testsSummary = "";
 		Level currentLevel = Engine.logEngine.getEffectiveLevel();
@@ -36,9 +73,10 @@ public class StartupDiagnostics {
 			Engine.logEngine.info("*** STARTUP DIAGNOSTICS ***");
 
 			String os = System.getProperty("os.name");
-			String osArchitecture = System.getProperty("os.arch");
+			Architecture architecture = getArchitecture();
 			Engine.logEngine.info("Detected OS: " + os + " "
-					+ ("i386".equals(osArchitecture) ? "(32 bits)" : "(64 bits)"));
+					+ (architecture == Architecture.x32bits ? "(32 bits)" :
+						architecture == Architecture.x64bits ? "(64 bits)" : "(unknown architecture)"));
 
 			testsSummary += " - WAR architecture ........................... ";
 			File buildInfoFile = new File(Engine.WEBAPP_PATH + "/WEB-INF/build.txt");
@@ -55,7 +93,8 @@ public class StartupDiagnostics {
 				}
 				else {
 					Engine.logEngine.info("WAR file name: " + buildFileName);
-					String archSuffix = ("i386".equals(osArchitecture) ? "32.war" : "64.war");
+					String archSuffix = ((architecture == Architecture.x32bits ? "32.war" :
+						architecture == Architecture.x64bits ? "64.war" : ""));
 					testsSummary += (buildFileName.endsWith(archSuffix) ? TEST_SUCCESS : TEST_FAILED);
 				}
 			} catch (FileNotFoundException e) {
@@ -304,6 +343,9 @@ public class StartupDiagnostics {
 
 					// Check the SWT libraries dependencies
 					if (isLinux) {
+						String osArchitecture = ((architecture == Architecture.x32bits ? "i386" :
+							architecture == Architecture.x64bits ? "amd64" : ""));
+
 						LddLibrariesResult lddLibrariesResult = lddLibraries(testTmpDir,
 								xulrunnerLibDir.toString() + ":" + javaLibraryPath + ":"
 										+ javaHome + "/lib/" + osArchitecture + "/headless",
