@@ -341,7 +341,7 @@ public class Migration7_0_0 {
 				String targetProjectName = location.substring(3, location.indexOf("/",3));
 				ProjectSchemaReference reference = new ProjectSchemaReference();
 				reference.setProjectName(targetProjectName);
-				reference.setName(targetProjectName + "_schema");
+				reference.setName(targetProjectName + "_reference");
 				referenceMap.put(namespaceURI, reference);
 			}
 			// other reference
