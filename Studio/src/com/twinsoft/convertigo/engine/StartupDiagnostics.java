@@ -343,7 +343,7 @@ public class StartupDiagnostics {
 					}
 				}
 			} finally {
-				if (FileUtils.deleteQuietly(testTmpDir)) {
+				if (!FileUtils.deleteQuietly(testTmpDir)) {
 					Engine.logEngine.warn("Unable to delete tmp test dir: " + testTmpDir.getPath());
 				}
 			}
