@@ -37,6 +37,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
@@ -57,10 +58,6 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
 public class LaunchBuild extends XmlService {
 
 	private static final Object buildLock = new Object();
-	
-//	private String originalMobileResourcesPath;
-//	private String tmpMobileResourcesPath;
-//	private String tmpMobileWwwPath;
 
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
@@ -70,6 +67,17 @@ public class LaunchBuild extends XmlService {
 			final MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(application, "_private/mobile/www");
 			
 			mobileResourceHelper.prepareFiles(request);
+			
+			JSONObject json = new JSONObject();
+			mobileResourceHelper.listFiles(json);
+			FileUtils.write(new File(mobileResourceHelper.destDir, "files.json"), json.toString());
+			
+			json = new JSONObject();
+			json.put("applicationId", mobileResourceHelper.mobileApplication.getComputedApplicationId());
+			json.put("projectName", mobileResourceHelper.mobileApplication.getProject().getName());
+			json.put("endPoint", mobileResourceHelper.mobileApplication.getComputedEndpoint(request));
+			FileUtils.write(new File(mobileResourceHelper.destDir, "env.json"), json.toString());
+			
 						
 			File configFile = new File(mobileResourceHelper.mobileDir, "config.xml");
 			

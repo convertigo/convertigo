@@ -1,0 +1,38 @@
+body {
+	background-color: black;
+	color: white;
+	text-align: center;
+}
+
+canvas {
+	border-style: solid;
+	border-color: black;
+}
+
+#checkingUpdate, #progress, #requireUserConfirmation {
+	display: none;
+}
+
+#progress, #requireUserConfirmation {
+	padding-top: 10px;
+	width: 200px;
+	margin: auto;
+}
+
+#progressMsg {
+	margin-top: -135px;
+}
+
+#progressMsg hr {
+	width: 33%;
+}
+
+#requireUserConfirmation button {
+	background-color: black;
+	border-color: white;
+	border-style: solid;
+	color: white;
+	font-weight: bolder;
+	width: 45%;
+	height: 40px;
+}

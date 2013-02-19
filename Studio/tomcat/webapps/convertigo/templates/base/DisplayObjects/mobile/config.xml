@@ -21,7 +21,7 @@
 		<gap:platform name="blackberry" project="widgets"/>
 	</gap:platforms>
 	
-	<preference name="phonegap-version" value="2.1.0" />
+	<preference name="phonegap-version" value="2.3.0" />
     <preference name="orientation"      value="default" />
     <preference name="target-device"    value="universal" />
     <preference name="fullscreen"       value="false" />
@@ -62,7 +62,7 @@
 	<preference name="permissions" value="none"/> 
 	
 	<!-- Currently supported through this interface and to enable individual permissions use the following examples: -->
-	<!-- <feature name="http://api.phonegap.com/1.0/device" />-->
+	<feature name="http://api.phonegap.com/1.0/device" />
 	<!-- <feature name="http://api.phonegap.com/1.0/camera"/>-->
 	<!-- <feature name="http://api.phonegap.com/1.0/contacts"/>-->
 	<!-- <feature name="http://api.phonegap.com/1.0/file"/>-->

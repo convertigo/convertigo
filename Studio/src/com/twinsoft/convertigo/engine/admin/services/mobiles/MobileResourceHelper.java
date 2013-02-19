@@ -12,6 +12,9 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileDevice;
@@ -79,11 +82,16 @@ public class MobileResourceHelper {
 						+ "digits (0-9), a period (.) and a hyphen (-).");
 			}
 			
-			boolean needCheckAlphaNumericCharsInFileNames = false;
-			
 			for (MobileDevice mobileDevice : mobileApplication.getMobileDeviceList()) {
 				if (mobileDevice instanceof BlackBerry6) {
-					needCheckAlphaNumericCharsInFileNames = true;
+					for (File file : FileUtils.listFilesAndDirs(destDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
+						if (!alphaNumPattern.matcher(file.getName()).matches()) {
+							throw new ServiceException("The file or directory '" + file.getAbsolutePath()
+									+ "' contains non alpha-numeric characters. "
+									+ "BlackBerry build does not allow non alpha-numeric characters in file/directory names. "
+									+ "You must rename it with alpha-numeric characters only.");
+						}
+					}
 					break;
 				}
 			}
@@ -91,15 +99,13 @@ public class MobileResourceHelper {
 			// Delete no existing files
 			FileUtils.deleteQuietly(destDir);
 			FileUtils.copyDirectory(mobileDir, destDir, fileFilterForCopy, true);
-			destDir.setLastModified(System.currentTimeMillis());
-			
-			
-			File indexHtmlFile = new File(destDir, "index.html");
-			String sIndexHtml = FileUtils.readFileToString(indexHtmlFile);
-			
+
 			File serverJsFile = new File(destDir, "sources/server.js");
 			
 			if (serverJsFile.exists()) {
+				File indexHtmlFile = new File(destDir, "index.html");
+				String sIndexHtml = FileUtils.readFileToString(indexHtmlFile);
+				
 				String sServerJsHtml = FileUtils.readFileToString(serverJsFile);
 				sServerJsHtml = sServerJsHtml.replaceAll("/\\* DO NOT REMOVE THIS LINE endpoint \\: '' \\*/", "endpoint : '" + endPoint + "'");
 				writeStringToFile(serverJsFile, sServerJsHtml);
@@ -119,81 +125,82 @@ public class MobileResourceHelper {
 					FileUtils.copyFile(new File(Engine.WEBAPP_PATH + origin), destFile, true);
 					sIndexHtml = sIndexHtml.replaceAll(Pattern.quote("../../../.." + origin), "js/mobilelib.js");
 				}
-			} else {
-				StringBuffer sbIndexHtml = new StringBuffer();
-				BufferedReader br = new BufferedReader(new StringReader(sIndexHtml));
-				String line = br.readLine();
-				while (line != null) {
-					if (!line.contains("<!--") && line.contains("\"../../../../")) {
-						String file = line.replaceFirst(".*\"\\.\\./\\.\\./\\.\\./\\.\\./(.*?)\".*", "$1");
-						File inFile = new File(Engine.WEBAPP_PATH + "/" + file);
-						
-						boolean needImages = file.matches(".*jquery\\.mobile\\..*?min.css");
-						
-						file = file.replace("scripts/", "js/");
-						File outFile = new File(destDir, file);
-						outFile.getParentFile().mkdirs();
-						FileUtils.copyFile(inFile, outFile);
-						line = line.replaceFirst("\"\\.\\./\\.\\./\\.\\./\\.\\./.*?\"", "\"" + file + "\"");
-						
-						if (needImages) {
-							File inImages = new File(inFile.getParentFile(), "images");
-							File outImages = new File(outFile.getParentFile(), "images");
-							FileUtils.copyDirectory(inImages, outImages, defaultFilter, true);
-						}
-						
-						if (file.matches(".*/jquery\\.mobilelib\\..*?js")) {
-							serverJsFile = outFile;
-							String sJs = FileUtils.readFileToString(serverJsFile);
-							sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "/\"");
-							writeStringToFile(serverJsFile, sJs);
-						}
-					}
-					sbIndexHtml.append(line + "\n");
-					line = br.readLine();
-				}
 				
-				sIndexHtml = sbIndexHtml.toString();				
-			}
-			
-			if (needCheckAlphaNumericCharsInFileNames) {
-				for (File file : FileUtils.listFilesAndDirs(destDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
-					if (!alphaNumPattern.matcher(file.getName()).matches()) {
-						throw new ServiceException("The file or directory '" + file.getAbsolutePath()
-								+ "' contains non alpha-numeric characters. "
-								+ "BlackBerry build does not allow non alpha-numeric characters in file/directory names. "
-								+ "You must rename it with alpha-numeric characters only.");
+				writeStringToFile(indexHtmlFile, sIndexHtml);
+			} else {
+				for (File htmlFile :FileUtils.listFiles(destDir, new String[] {"html"}, true)) {
+					String htmlContent = FileUtils.readFileToString(htmlFile);
+					StringBuffer sbIndexHtml = new StringBuffer();
+					BufferedReader br = new BufferedReader(new StringReader(htmlContent));
+					String line = br.readLine();
+					while (line != null) {
+						if (!line.contains("<!--") && line.contains("\"../../../../")) {
+							String file = line.replaceFirst(".*\"\\.\\./\\.\\./\\.\\./\\.\\./(.*?)\".*", "$1");
+							File inFile = new File(Engine.WEBAPP_PATH + "/" + file);
+							
+							if (inFile.exists()) {
+								boolean needImages = file.matches(".*jquery\\.mobile\\..*?min.css");
+								
+								file = file.replace("scripts/", "js/");
+								File outFile = new File(destDir, file);
+								outFile.getParentFile().mkdirs();
+								FileUtils.copyFile(inFile, outFile);
+								line = line.replaceFirst("\"\\.\\./\\.\\./\\.\\./\\.\\./.*?\"", "\"" + file + "\"");
+								
+								if (needImages) {
+									File inImages = new File(inFile.getParentFile(), "images");
+									File outImages = new File(outFile.getParentFile(), "images");
+									FileUtils.copyDirectory(inImages, outImages, defaultFilter, true);
+								}
+								
+								if (file.matches(".*/jquery\\.mobilelib\\..*?js")) {
+									String sJs = FileUtils.readFileToString(outFile);
+									sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "/\"");
+									writeStringToFile(outFile, sJs);
+								}
+							}
+						}
+						sbIndexHtml.append(line + "\n");
+						line = br.readLine();
 					}
+					
+					htmlContent = sbIndexHtml.toString();
+
+					writeStringToFile(htmlFile, htmlContent);
 				}
 			}
 			
-			writeStringToFile(indexHtmlFile, sIndexHtml);
+			long latestFile = 0;
+			for (File file : FileUtils.listFiles(destDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
+				long curFile = file.lastModified();
+				if (latestFile < curFile) {
+					latestFile = curFile;
+				}
+			}
+			destDir.setLastModified(latestFile);
 		} catch (ServiceException e) {
 			throw e;
 		} catch (Exception e) {
 			throw new ServiceException(e.getClass().getName(), e);
 		}
 	}
-
-//	public Project getProject() {
-//		return project;
-//	}
-//	
-//	public MobileApplication getMobileApplication() {
-//		return mobileApplication;
-//	}
-//
-//	public File getProjectDir() {
-//		return projectDir;
-//	}
-//
-//	public File getMobileDir() {
-//		return mobileDir;
-//	}
-//
-//	public File getDestDir() {
-//		return destDir;
-//	}
+	
+	public void listFiles(JSONObject response) throws JSONException, IOException {
+		File canonicalDir = destDir.getCanonicalFile();
+		int uriDirectoryLength = canonicalDir.getAbsolutePath().length();
+		JSONArray jArray = new JSONArray();
+		
+		for (File f : FileUtils.listFiles(canonicalDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
+			File canonnicalF = f.getCanonicalFile();
+			JSONObject jObj = new JSONObject();
+			jObj.put("uri", canonnicalF.getAbsolutePath().substring(uriDirectoryLength));
+			jObj.put("date", canonnicalF.lastModified());
+			jObj.put("size", canonnicalF.length());
+			jArray.put(jObj);
+		}
+		response.put("files", jArray);
+		response.put("date", destDir.lastModified());
+	}
 	
 	private void writeStringToFile(File file, String content) throws IOException {
 		long lastModified = file.exists() ? file.lastModified() : System.currentTimeMillis();

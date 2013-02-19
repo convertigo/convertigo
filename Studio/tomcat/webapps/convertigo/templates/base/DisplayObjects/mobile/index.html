@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>Convertigo FlashUpdate</title>
+		<link href="../../../../css/flashupdate.css" rel="stylesheet" type="text/css" />
+		<script src="cordova.js" type="text/javascript"></script>
+		<script src="../../../../scripts/jquery.min.js" type="text/javascript"></script>
+		<script src="../../../../scripts/flashupdate.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<h1>Launching <span class="dataProjectName"></span></h1>
+		<h2 id="checkingUpdate">Checking for updates</h2>
+		<div id="requireUserConfirmation">
+			<h2>Update available<br/>Do update ?</h2>
+			<button value="yes">yes</button>&nbsp;<button value="no">no</button>
+		</div>
+		<div id="progress">
+ 			<h2>Updating missing files …</h2>
+			<canvas width="200" height="200"></canvas>
+			<div id="progressMsg">
+ 				<div><span id="progressCur"></span> KB</div>
+ 				<hr/>
+ 				<div><span id="progressTotal"></span> KB</div>
+			</div>
+		</div>
+	</body>
+</html>

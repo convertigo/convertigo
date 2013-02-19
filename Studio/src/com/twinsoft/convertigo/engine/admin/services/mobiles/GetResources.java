@@ -24,16 +24,11 @@ package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
-import java.net.URI;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -108,27 +103,9 @@ public class GetResources extends JSonService {
 				});
 			}
 			
-			listFiles(mobileResourceHelper.destDir, response);
+			mobileResourceHelper.listFiles(response);
 		} else {
 			response.put(Keys.flashUpdateEnabled.toString(), false);
 		}
-	}
-	
-	private void listFiles(File directory, JSONObject response) throws JSONException, IOException {
-		File canonicalDir = directory.getCanonicalFile();
-		int uriDirectoryLength = canonicalDir.toURI().toString().length();
-		JSONArray jArray = new JSONArray();
-		
-		 for (File f : FileUtils.listFiles(canonicalDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
-			 File canonnicalF = f.getCanonicalFile();
-			 JSONObject jObj = new JSONObject();
-			 URI uriFile = canonnicalF.toURI();
-			 jObj.put("uri", uriFile.toString().substring(uriDirectoryLength));
-			 jObj.put("date", canonnicalF.lastModified());
-			 jObj.put("size", canonnicalF.length());
-			 jArray.put(jObj);
-		 }
-		 response.put("files", jArray);
-	}
-	 
+	}	 
 }
