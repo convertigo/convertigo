@@ -118,6 +118,15 @@ public class StartupDiagnostics {
 			String workingDir = System.getProperty("user.dir");
 			Engine.logEngine.info("Java working dir: " + workingDir);
 
+			testsSummary += " - Test Java working directory write access ... ";
+			try {
+				StartupDiagnostics.testWriteAccess(new File(workingDir), true);
+				testsSummary += TEST_SUCCESS;
+			} catch (IOException e) {
+				Engine.logEngine.error("The Java working directory is not writeable!");
+				testsSummary += TEST_FAILED;
+			}
+
 			// Checking running user
 			testsSummary += " - Running user ............................... ";
 
