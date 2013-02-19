@@ -372,6 +372,11 @@ public class ClipboardManager2 {
 				}
 			}
 			
+			// Special case of project
+			if (databaseObject instanceof Project) {
+				return databaseObject;
+			}
+			
 			boolean bContinue = true;
 			int index = 0;
 			long oldPriority = databaseObject.priority;

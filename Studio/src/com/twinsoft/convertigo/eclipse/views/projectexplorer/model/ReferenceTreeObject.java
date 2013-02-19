@@ -24,7 +24,11 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import org.eclipse.jface.viewers.Viewer;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 
 public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 
@@ -44,6 +48,56 @@ public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 	@Override
 	public boolean testAttribute(Object target, String name, String value) {
 		return super.testAttribute(target, name, value);
+	}
+
+	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
+		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
+		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
+		Object oldValue = treeObjectEvent.oldValue;
+		Object newValue = treeObjectEvent.newValue;
+		int update = treeObjectEvent.update;
+		
+		// Updates project name references
+		if (update != TreeObjectEvent.UPDATE_NONE) {
+			boolean isLocalProject = false;
+			boolean isSameValue = false;
+			boolean shouldUpdate = false;
+			
+			if (getObject() instanceof ProjectSchemaReference) {
+				ProjectSchemaReference reference = (ProjectSchemaReference)getObject();
+				
+				// Case of project rename
+				if (databaseObject instanceof Project) {
+					isLocalProject = reference.getProject().equals(databaseObject);
+					isSameValue = reference.getProjectName().equals(oldValue);
+					shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
+					if (isSameValue && shouldUpdate) {
+						reference.setProjectName((String)newValue);
+						hasBeenModified(true);
+						viewer.refresh();
+						
+						getDescriptors();// refresh editors (e.g labels in combobox)
+					}
+				}
+			}
+		}
+	}
+	
+	@Override
+	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
+		super.treeObjectPropertyChanged(treeObjectEvent);
+		
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		if (treeObject instanceof DatabaseObjectTreeObject) {
+			//DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
+			String propertyName = treeObjectEvent.propertyName;
+			propertyName = ((propertyName == null) ? "":propertyName);
+			
+			// If a bean name has changed
+			if (propertyName.equals("name")) {
+				handlesBeanNameChanged(treeObjectEvent);
+			}
+		}
 	}
 	
 }

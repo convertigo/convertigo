@@ -62,7 +62,6 @@ import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.CarUtils;
-import com.twinsoft.convertigo.engine.util.ProjectUtils;
 
 public class ClipboardAction extends MyAbstractAction {
 
@@ -236,33 +235,24 @@ public class ClipboardAction extends MyAbstractAction {
                 	// Paste
                     ConvertigoPlugin.clipboardManager2.paste(source, targetObject, true);
 
-                    // case of project copy
+                    // Case of project copy
                     if (ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_PROJECT) {
                     	Object[] pastedObjects = ConvertigoPlugin.clipboardManager2.pastedObjects;
                     	for (int i=0; i<pastedObjects.length; i++) {
                     		Object object = pastedObjects[i];
                     		if ((object != null) && (object instanceof Project)) {
                     			Project project = (Project)object;
+                    			String oldName = project.getName();
                     			try {
-                    				project = importProjectTempArchive(project.getOldName(), explorerView);
-                    				if (project != null) {
-                    					explorerView.importProjectTreeObject(project.getName());
+                    				Project importedProject = importProjectTempArchive(oldName, explorerView);
+                    				if (importedProject != null) {
+                    					String newName = importedProject.getName();
+                    					explorerView.importProjectTreeObject(newName, true, oldName);
                     				}
-                    				else throw new EngineException("Unable to import project archive");
+                    				else throw new EngineException("Unable to import project temporary archive");
                     			}
-                    			catch (Exception e1) {
-                        			project = (Project) object;
-                        			String oldName = project.getOldName();
-                        			String newName = project.getName();
-                        			
-                    				// Create index.html
-                    				try {
-                    					ProjectUtils.copyIndexFile(newName);
-    	            				} catch (Exception e) {
-    	            					throw new ConvertigoException(e.getMessage());
-    	            				}
-                    				
-                            		explorerView.importProjectTreeObject(newName, true, oldName);
+                    			catch (Exception e) {
+                    				throw new EngineException("Unable to paste project", e);
                     			}
                     		}
                     	}
@@ -401,28 +391,30 @@ public class ClipboardAction extends MyAbstractAction {
 	
 	private static Project importProjectTempArchive(String projectName, ProjectExplorerView explorerView) throws EngineException {
 		try {
+			// Get an available target project name
+			int index = 1;
+			String targetProjectName = projectName;
+			while (explorerView.getProjectRootObject(targetProjectName) != null) {
+				targetProjectName = projectName + index++;
+			}
+			
+			// Get the original temporary project archive
 			File importDirectory = new File(Engine.USER_WORKSPACE_PATH + "/temp");
 			if (!importDirectory.exists()) importDirectory.mkdir();
-			
 			String importDirectoryPath, importArchiveFilename;
 			importDirectoryPath = importDirectory.getCanonicalPath();
 			importArchiveFilename = importDirectoryPath + "/" + projectName +".car";
 			
-			File f = new File(importArchiveFilename);
-			if (f.exists()) {
-				int index = 1;
-				String targetProjectName = projectName;
-				while (explorerView.getProjectRootObject(targetProjectName) != null) {
-					targetProjectName = projectName + index++;
-				}
-				
-				Project importedProject = Engine.theApp.databaseObjectsManager.deployProject(importArchiveFilename, targetProjectName, true);
-				f.delete();
-				return importedProject;
-			}
+			// Deploy archive to target project
+			Project importedProject = Engine.theApp.databaseObjectsManager.deployProject(importArchiveFilename, targetProjectName, true, true);
+			
+			// Try to delete archive
+			try { new File(importArchiveFilename).delete(); }
+			catch (Exception e) {}
+			
+			return importedProject;
 		} catch (Exception e) {
 			throw new EngineException("Unable to import project archive",e);
 		}
-		return null;
 	}
 }

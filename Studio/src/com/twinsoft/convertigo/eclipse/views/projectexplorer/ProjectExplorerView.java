@@ -130,6 +130,7 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.steps.FunctionStep;
@@ -646,25 +647,26 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				String newName = (String) treeObjectEvent.newValue;
 				boolean updateReferences = false;
 				int update = 0;
-				if (loadedProjectsContainsSequence()) {
+				if (loadedProjectsHaveReferences()) {
 					Shell shell = Display.getDefault().getActiveShell();
 					CustomDialog customDialog = new CustomDialog(
 							shell,
-							"Update object references in steps",
-							"Do you want to update project references in steps?\n You can replace '"
+							"Update object references",
+							"Do you want to update "
+									+ "project"
+									+ " references ?\n You can replace '"
 									+ oldName
 									+ "' by '"
 									+ newName
-									+ "' in all loaded projects or replace '"
+									+ "' in all loaded projects \n or replace '"
 									+ oldName
 									+ "' by '"
 									+ newName
-									+ "' in current project only.\n- click Cancel for none update.",
-									670, 170,
-							new ButtonSpec("Replace in all loaded projects",
-									true),
+									+ "' in current project only.",
+									670, 200,
+							new ButtonSpec("Replace in all loaded projects", true),
 							new ButtonSpec("Replace in current project", false),
-							new ButtonSpec("Do not replace", false));
+							new ButtonSpec("Do not replace anywhere", false));
 					int response = customDialog.open();
 					if (response == 0) {
 						updateReferences = true;
@@ -681,14 +683,30 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					fireTreeObjectPropertyChanged(treeObjectEvent);
 					((ProjectTreeObject) treeObject).save(false);
 				}
-			} else {
-				List<String> list = ((ProjectTreeObject) treeObject).getMissingTargetProjectList();
-				if (!list.isEmpty()) {
-					String message = "Some target project(s) are missing :\n";
-					for (String s: list) {
-						message += "   > \"" + s + "\" project\n";
+			}
+			
+			// Alert user if project is broken
+			List<String> list = ((ProjectTreeObject) treeObject).getNeedeedProjectList();
+			if (!list.isEmpty()) {
+				boolean error = false;
+				Project project = ((ProjectTreeObject) treeObject).getObject();
+				String message = "For \"" + project.getName() + "\" project :\n";
+				for (String targetProjectName: list) {
+					boolean missingRef = !ProjectUtils.existProjectSchemaReference(project, targetProjectName);
+					boolean missingProject = false;
+					try {
+						missingProject = Engine.theApp.databaseObjectsManager.getProjectByName(targetProjectName) == null;
+					} catch (Exception e) {
+						missingProject = true;
 					}
-					message += "Please import missing project(s),\nor correct your sequence(s) before clean.";
+					if (missingRef || missingProject) {
+						error = true;
+						if (missingRef) message += "  > The reference to project \"" + targetProjectName + "\" is missing\n";
+						if (missingProject) message += "  > The project \"" + targetProjectName + "\" is missing\n";
+					}
+				}
+				if (error) {
+					message += "\nPlease create missing reference(s) and import missing project(s),\nor correct your sequence(s).";
 					ConvertigoPlugin.logError(message, true);
 				}
 			}
@@ -958,6 +976,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						}
 						
 						if (needRefresh) {
+							boolean updateDlg = false;
 							boolean updateReferences = false;
 							int update = 0;
 							// Updates references in SequenceStep/TransactionStep if needed
@@ -965,23 +984,26 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								String objectType = "";
 								if (theTreeObject instanceof ProjectTreeObject) {
 									objectType = "project";
+									updateDlg = true;
 								} else if (theTreeObject instanceof SequenceTreeObject) {
 									objectType = "sequence";
+									updateDlg = true;
 								} else if (theTreeObject instanceof ConnectorTreeObject) {
 									objectType = "connector";
+									updateDlg = true;
 								} else if (theTreeObject instanceof TransactionTreeObject) {
 									objectType = "transaction";
+									updateDlg = true;
 								}
 								
-								if (loadedProjectsContainsSequence()) {
-									Shell shell = Display.getDefault()
-											.getActiveShell();
+								if (updateDlg) {
+									Shell shell = Display.getDefault().getActiveShell();
 									CustomDialog customDialog = new CustomDialog(
 											shell,
-											"Update object references in steps",
+											"Update object references",
 											"Do you want to update "
 													+ objectType
-													+ " references in steps?\n You can replace '"
+													+ " references ?\n You can replace '"
 													+ oldName
 													+ "' by '"
 													+ newName
@@ -990,7 +1012,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 													+ "' by '"
 													+ newName
 													+ "' in current project only.",
-													670, 170,
+													670, 200,
 											new ButtonSpec("Replace in all loaded projects", true),
 											new ButtonSpec("Replace in current project", false),
 											new ButtonSpec("Do not replace anywhere", false));
@@ -1201,6 +1223,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/Traces");
 		if (!file.exists())
 			file.mkdir();
+		
+		file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/xsd/internal");
+		if (!file.exists())
+			file.mkdirs();
+		
+		file = new File(Engine.PROJECTS_PATH + "/" + projectName + "/wsdl");
+		if (!file.exists())
+			file.mkdir();
 	}
 	
 	private void createFiles(String projectName) {
@@ -1363,7 +1393,32 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						// Creates directories and files
 						createDirsAndFiles(project.getName());
 
+						// Creates or Refresh xsd and wsdl folders
+						IFolder xsdFolder, wsdlFolder = null;
+						IFolder xsdInternalFolder = null;
+						try {
+							wsdlFolder = ((ProjectTreeObject)parentTreeObject).getFolder("wsdl");
+							if (!wsdlFolder.exists())
+								wsdlFolder.create(true, true, null);
+							else
+								wsdlFolder.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+							
+							xsdFolder = ((ProjectTreeObject)parentTreeObject).getFolder("xsd");
+							if (!xsdFolder.exists())
+								xsdFolder.create(true, true, null);
+							else {
+								xsdInternalFolder = xsdFolder.getFolder("internal");
+								if (!xsdInternalFolder.exists())
+									xsdInternalFolder.create(true, true, null);
+								xsdFolder.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+							}
+						}
+						catch (Exception e) {
+							e.printStackTrace();
+						}
+						
 						// Connectors
+						IFolder xsdConnectorInternalFolder = null;
 						Collection<Connector> connectors = project.getConnectorsList();
 						if (connectors.size() != 0) {
 							// Set default connector if none
@@ -1385,6 +1440,20 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 								try {
 									ifolder.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 								} catch (CoreException e) {
+								}
+							}
+							
+							// Creates or Refresh internal xsd connector folders
+							for (Connector connector : connectors) {
+								try {
+									xsdConnectorInternalFolder = xsdInternalFolder.getFolder(connector.getName());
+									if (!xsdConnectorInternalFolder.exists())
+										xsdConnectorInternalFolder.create(true, true, null);
+									else
+										xsdConnectorInternalFolder.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+								}
+								catch (Exception e) {
+									e.printStackTrace();
 								}
 							}
 						}
@@ -1696,17 +1765,26 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 	}
 	
-	private boolean loadedProjectsContainsSequence() {
+	private boolean loadedProjectsHaveReferences() {
 		ViewContentProvider provider = (ViewContentProvider)viewer.getContentProvider();
 		if (provider != null) {
 			Object[] objects = provider.getElements(getViewSite());
 			for (int i=0; i<objects.length; i++) {
 				TreeObject treeObject = (TreeObject)objects[i];
 				if (treeObject instanceof ProjectTreeObject) {
+					// Check for references on projects
 					ProjectTreeObject projectTreeObject = (ProjectTreeObject)treeObject;
-					List<Sequence> vSequences = ((Project)projectTreeObject.getObject()).getSequencesList();
-					int size = vSequences.size();
-					if (size > 0) {
+					List<Reference> references = ((Project)projectTreeObject.getObject()).getReferenceList();
+					if (references.size() > 0) {
+						for (Reference reference: references) {
+							if (reference instanceof ProjectSchemaReference) {
+								return true;
+							}
+						}
+					}
+					// Check for sequences (potential call steps)
+					List<Sequence> sequences = ((Project)projectTreeObject.getObject()).getSequencesList();
+					if (sequences.size() > 0) {
 						return true;
 					}
 				}
@@ -2215,9 +2293,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		return project;
 	}
 
-	public ProjectTreeObject getProjectRootObject(String projectName) throws EngineException {
-		ProjectTreeObject project = (ProjectTreeObject) ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(projectName);
-		return project;
+	public TreeObject getProjectRootObject(String projectName) throws EngineException {
+		return ((ViewContentProvider) viewer.getContentProvider()).getProjectRootObject(projectName);
 	}
 
 	/**

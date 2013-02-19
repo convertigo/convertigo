@@ -53,6 +53,10 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 	public static final String XSD_FORM_QUALIFIED = "qualified";
 	public static final String XSD_FORM_UNQUALIFIED = "unqualified";
 	
+	public static final String XSD_FOLDER_NAME = "xsd";
+	public static final String XSD_INTERNAL_FOLDER_NAME = "internal";
+	public static final String WSDL_FOLDER_NAME = "wsdl";
+	
 	public final static String CONVERTIGO_PROJECTS_NAMESPACEURI = "http://www.convertigo.com/convertigo/projects/";
 	
     /**
@@ -458,15 +462,15 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 	}
 	
 	public String getXsdDirPath() {
-		return Engine.PROJECTS_PATH + "/" + getName() + "/xsd";
+		return Engine.PROJECTS_PATH + "/" + getName() + "/" + XSD_FOLDER_NAME;
 	}
 
 	public String getXsdInternalDirPath() {
-		return getXsdDirPath() + "/internal";
+		return getXsdDirPath() + "/" + XSD_INTERNAL_FOLDER_NAME;
 	}
 	
 	public String getWsdlDirPath() {
-		return Engine.PROJECTS_PATH + "/" + getName() + "/wsdl";
+		return Engine.PROJECTS_PATH + "/" + getName() + "/" + WSDL_FOLDER_NAME;
 	}
 	
 	@Override

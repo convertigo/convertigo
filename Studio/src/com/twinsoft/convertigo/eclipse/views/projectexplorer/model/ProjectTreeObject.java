@@ -178,7 +178,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
     	// save only objects which have changed
    		save(bDialog);
     	
-    	Engine.theApp.databaseObjectsManager.renameProject(project, newName);
+    	Engine.theApp.databaseObjectsManager.renameProject(project, newName, true);
         
 		// delete old resources plugin
 		ConvertigoPlugin.getDefault().deleteProjectPluginResource(oldName);
@@ -299,6 +299,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		if (treeObject instanceof DatabaseObjectTreeObject) {
+			
 		}
 	}
 	
@@ -309,6 +310,60 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		if (!(treeObject.equals(this)) && (treeObject.getParents().contains(this))) {
 			if (treeObject instanceof DatabaseObjectTreeObject) {
+				DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
+				String dboName = databaseObject.getName();
+				
+				// Case of a connector deletion
+				if (databaseObject instanceof Connector) {
+					// connector in this project
+					if (treeObject.getProjectTreeObject().equals(this)) {
+						String path = Project.XSD_FOLDER_NAME +"/"
+									+ Project.XSD_INTERNAL_FOLDER_NAME;
+						
+						IFolder parentFolder = getProjectTreeObject().getFolder(path);
+						IFolder folder = parentFolder.getFolder(dboName);
+						if (folder.exists()) {
+							IPath folderPath = folder.getLocation().makeAbsolute();
+							try {
+								// delete folder
+								folder.delete(true, null);
+								
+								// refresh folder
+								parentFolder.refreshLocal(IResource.DEPTH_ONE, null);
+								
+								Engine.theApp.schemaManager.clearCache(getName());
+							} catch (Exception e) {
+								ConvertigoPlugin.logWarning(e, "Could not delete folder \""+ folderPath +"\"!");
+							}
+						}
+					}
+				}
+				// Case of a transaction deletion
+				if (databaseObject instanceof Transaction) {
+					// transaction in this project
+					if (treeObject.getProjectTreeObject().equals(this)) {
+						String path = Project.XSD_FOLDER_NAME +"/"
+									+ Project.XSD_INTERNAL_FOLDER_NAME;
+						
+						ConnectorTreeObject cto = ((TransactionTreeObject)treeObject).getConnectorTreeObject();
+						IFolder parentFolder = getProjectTreeObject().getFolder(path).getFolder(cto.getName());
+						IFile file = parentFolder.getFile(dboName+".xsd");
+						if (file.exists()) {
+							IPath filePath = file.getLocation().makeAbsolute();
+							try {
+								// delete file
+								file.delete(true, null);
+								
+								// refresh folder
+								parentFolder.refreshLocal(IResource.DEPTH_ONE, null);
+								
+								Engine.theApp.schemaManager.clearCache(getName());
+							} catch (Exception e) {
+								ConvertigoPlugin.logWarning(e, "Could not delete file \""+ filePath +"\"!");
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -366,18 +421,12 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
 		//Object oldValue = treeObjectEvent.oldValue;
 		//Object newValue = treeObjectEvent.newValue;
+		//int update = treeObjectEvent.update;
 		
-		if (!(treeObject.equals(this))) {
-			if (databaseObject instanceof Project) {
-				//TODO: Modify References on project, ...
-			}
-			else if (databaseObject instanceof Connector) {
-				//TODO: Move schema file + replace 'connector__transaction' in file
-			}
-			else if ((databaseObject instanceof Transaction) || (databaseObject instanceof Sequence)) {
-				//TODO: Move schema file + replace 'connector__transaction' in file
-			}
+		if (!databaseObject.getProject().equals(getObject())) {
+			Engine.theApp.schemaManager.clearCache(getName());
 		}
+		
 	}
 	
 	public void launchEditor(String editorType) {
@@ -401,6 +450,42 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		}
 	}
 	
+	public List<String> getNeedeedProjectList() {
+		List<String> projectList = new ArrayList<String>();
+		Project p = getObject();
+		for (Sequence s: p.getSequencesList()) {
+			getNeededProjects(projectList, s.getSteps());
+		}
+		return projectList;
+	}
+	
+	private void getNeededProjects(List<String> projectList, List<Step> steps) {
+		String targetProjectName;
+		for (Step step: steps) {
+			if (step instanceof StepWithExpressions) {
+				getNeededProjects(projectList, ((StepWithExpressions)step).getSteps());
+			}
+			else {
+				if (step instanceof TransactionStep) {
+					TransactionStep transactionStep = ((TransactionStep)step);
+					targetProjectName = transactionStep.getProjectName();
+					if (!targetProjectName.equals(getName())) {
+						if (!projectList.contains(targetProjectName))
+							projectList.add(targetProjectName);
+					}
+				}
+				else if (step instanceof SequenceStep) {
+					SequenceStep sequenceStep = ((SequenceStep)step);
+					targetProjectName = sequenceStep.getProjectName();
+					if (!targetProjectName.equals(getName())) {
+						if (!projectList.contains(targetProjectName))
+							projectList.add(targetProjectName);
+					}
+				}
+			}
+		}
+	}
+	
 	public List<String> getMissingTargetProjectList() {
 		List<String> missingList = new ArrayList<String>();
 		Project p = getObject();
@@ -409,7 +494,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		}
 		return missingList;
 	}
-	
+
 	private void checkForImports(List<String> missingList, List<Step> steps) {
 		String targetProjectName;
 		for (Step step: steps) {

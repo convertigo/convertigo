@@ -127,7 +127,7 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 		Object newValue = treeObjectEvent.newValue;
 		int update = treeObjectEvent.update;
 		
-		// Updates project, connector and transaction names references
+		// Updates project, connector, sequence, transaction names references
 		if (update != TreeObjectEvent.UPDATE_NONE) {
 			boolean isLocalProject = false;
 			boolean isSameValue = false;

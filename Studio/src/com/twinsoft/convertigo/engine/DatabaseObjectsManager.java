@@ -71,6 +71,7 @@ import com.twinsoft.convertigo.engine.migration.Migration5_0_4;
 import com.twinsoft.convertigo.engine.migration.Migration7_0_0;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
+import com.twinsoft.convertigo.engine.util.Replacement;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -532,6 +533,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public Project deployProject(String projectArchiveFilename, String targetProjectName, boolean bForce)
 			throws EngineException {
+		return deployProject(projectArchiveFilename, targetProjectName, bForce, false);
+	}
+	
+	public Project deployProject(String projectArchiveFilename, String targetProjectName, boolean bForce, boolean keepOldReferences)
+			throws EngineException {
 		String projectName, archiveProjectName = "<unknown>";
 		String deployDirPath, projectDirPath;
 
@@ -624,8 +630,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 					File newdir = new File(Engine.PROJECTS_PATH + "/" + projectName);
 					dir.renameTo(newdir);
 					Engine.logDatabaseObjectManager.debug("Project directory renamed to: " + newdir);
-					// rename project
-					ProjectUtils.renameXmlProject(Engine.PROJECTS_PATH, archiveProjectName, projectName);
+					
+					// rename project in xml file
+					if (keepOldReferences) {
+						ProjectUtils.renameProjectFile(Engine.PROJECTS_PATH, archiveProjectName, projectName);
+					}
+					else {
+						ProjectUtils.renameXmlProject(Engine.PROJECTS_PATH, archiveProjectName, projectName);						
+					}
 					Engine.logDatabaseObjectManager.debug("Project renamed from \"" + archiveProjectName
 							+ "\" to \"" + projectName + "\"");
 					
@@ -635,6 +647,19 @@ public class DatabaseObjectsManager implements AbstractManager {
 						ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, archiveProjectName, projectName);
 						Engine.logDatabaseObjectManager.debug("Project wsdl & xsd files modified");
 					} catch (Exception e) {
+					}
+					
+					// update transaction schema files with new project's name
+					List<Replacement> replacements = new ArrayList<Replacement>();
+					replacements.add(new Replacement("/"+archiveProjectName, "/"+projectName));
+					replacements.add(new Replacement(archiveProjectName+"_ns", projectName+"_ns"));
+					for (File schema : CarUtils.deepListFiles(Engine.PROJECTS_PATH + "/" + projectName + "/xsd/internal", ".xsd")) {
+						try {
+							ProjectUtils.makeReplacementsInFile(replacements, schema.getAbsolutePath().toString());
+							Engine.logDatabaseObjectManager.debug("Successfully updated schema file \""+ schema.getAbsolutePath() +"\"");
+						} catch (Exception e) {
+							Engine.logDatabaseObjectManager.warn("Unable to update schema file \""+ schema.getAbsolutePath() +"\"");
+						}
 					}
 				}
 			}
@@ -947,7 +972,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 				Engine.logDatabaseObjectManager.info("Project's XML file migrated!");
 			}
-
+			
 			// Migration to version 7.0.0 (mobile application)
 			if (VersionUtils.compare(version, "7.0.0") < 0) {
 				Engine.logDatabaseObjectManager.info("XML project's file migration to 7.0.0 schema (mobile application)...");
@@ -1149,11 +1174,15 @@ public class DatabaseObjectsManager implements AbstractManager {
 	}
 	
 	public void renameProject(Project project, String newName) throws ConvertigoException {
+		renameProject(project, newName, false);
+	}
+	
+	public void renameProject(Project project, String newName, boolean keepOldReferences) throws ConvertigoException {
 		String oldName = project.getName();
 		
 		if (!oldName.equals(newName)) {
-			File file = new File(Engine.PROJECTS_PATH + "/" + oldName);
 			// Rename dir
+			File file = new File(Engine.PROJECTS_PATH + "/" + oldName);
 			if (!file.renameTo(new File(Engine.PROJECTS_PATH + "/" + newName))) {
 				throw new EngineException(
 						"Unable to rename the object path \""
@@ -1167,40 +1196,47 @@ public class DatabaseObjectsManager implements AbstractManager {
 								+ "\".\n This directory already exists or is probably locked by another application.");
 			}
 
+			// update transaction schema files with new project's name
+			List<Replacement> replacements = new ArrayList<Replacement>();
+			replacements.add(new Replacement("/"+oldName, "/"+newName));
+			replacements.add(new Replacement(oldName+"_ns", newName+"_ns"));
+			for (Connector connector: project.getConnectorsList()) {
+				for (Transaction transaction: connector.getTransactionsList()) {
+					String oldSchemaFilePath = transaction.getSchemaFilePath();
+					String newSchemaFilePath = oldSchemaFilePath.replaceAll(oldName, newName);
+					if (new File(newSchemaFilePath).exists()) {
+						try {
+							ProjectUtils.makeReplacementsInFile(replacements, newSchemaFilePath);
+						} catch (Exception e) {
+							Engine.logBeans.error("Could rename \""+oldName+"\" to \""+newName+"\" in schema file \""+newSchemaFilePath+"\" !", e);
+						}
+					}
+				}
+			}
+			
 			clearCache(project);
 			project.setName(newName);
 			project.hasChanged = true;
 			exportProject(project);
 			
-//			// Rename old .xsd file
-//			try {
-//				ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, oldName, newName);
-//			} catch (Exception e) {
-//				throw new ConvertigoException(e.getMessage());
-//			}
-//			
-//			// Rename old .wsdl file
-//			try {
-//				ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, oldName, newName);
-//			} catch (Exception e) {
-//				throw new ConvertigoException(e.getMessage());
-//			}
-//
-//			// Delete old .temp.xsd file
-//			File xsdTemp = new File(Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".temp.xsd");
-//	        if (xsdTemp.exists() && !xsdTemp.delete()) {
-//				throw new ConvertigoException("Unable to delete the xsd file \"" + oldName + ".temp.xsd\".");
-//			}
-//			
-//			// Delete old .temp.wsdl file
-//			File wsdlTemp = new File(Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".temp.wsdl");
-//	        if (wsdlTemp.exists() && !wsdlTemp.delete()) {
-//				throw new ConvertigoException("Unable to delete the wsdl file \"" + oldName + ".temp.wsdl\".");
-//			}
+		    // Make reference replacements in xml file
+			String xmlFilePath = Engine.PROJECTS_PATH + "/" + newName + "/" + newName + ".xml";
+			if (new File(xmlFilePath).exists()) {
+				replacements = new ArrayList<Replacement>();
+				replacements.add(new Replacement("value=\""+oldName+"\"", "value=\""+newName+"\""));
+				replacements.add(new Replacement("value=\""+oldName+"\\.", "value=\""+newName+"\\.")); // for call steps
+				try {
+					if (keepOldReferences)
+						ProjectUtils.makeReplacementsInFile(replacements, xmlFilePath, "<!--<Project");
+					else
+						ProjectUtils.makeReplacementsInFile(replacements, xmlFilePath);
+				} catch (Exception e) {
+				}
+			}
 			
 			// Delete the old .xml file
-	        String xmlFilePath = Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".xml";
-	        File xmlFile = new File(xmlFilePath);
+	        String oldXmlFilePath = Engine.PROJECTS_PATH + "/" + newName + "/" + oldName + ".xml";
+	        File xmlFile = new File(oldXmlFilePath);
 	        if (!xmlFile.exists()) {
 	        	throw new ConvertigoException("The xml file \"" + oldName + ".xml\" doesn't exist.");
 	        }

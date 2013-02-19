@@ -108,7 +108,7 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
 					return; // avoid sequence recursion
 				
 				try {
-					ProjectTreeObject projectTreeObject = explorerView.getProjectRootObject(projectName);
+					ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getProjectRootObject(projectName);
 					Sequence subSequence = projectTreeObject.getObject().getSequenceByName(sequenceStep.getSequenceName());
 					SequenceTreeObject subSequenceTreeObject = (SequenceTreeObject)explorerView.findTreeObjectByUserObject(subSequence);
 					openEditors(explorerView, subSequenceTreeObject); // recurse on sequence
@@ -123,7 +123,7 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
 					loadProject(explorerView, projectName); // load project if necessary
 				
 				try {
-					ProjectTreeObject projectTreeObject = explorerView.getProjectRootObject(projectName);
+					ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getProjectRootObject(projectName);
 					Connector connector = projectTreeObject.getObject().getConnectorByName(transactionStep.getConnectorName());
 					ConnectorTreeObject connectorTreeObject = (ConnectorTreeObject)explorerView.findTreeObjectByUserObject(connector);
 					connectorTreeObject.openConnectorEditor(); // open connector editor

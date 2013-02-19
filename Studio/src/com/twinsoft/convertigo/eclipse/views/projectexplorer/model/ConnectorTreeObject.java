@@ -22,7 +22,14 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -33,10 +40,14 @@ import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.ProjectUtils;
+import com.twinsoft.convertigo.engine.util.Replacement;
 
 public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 
@@ -210,6 +221,46 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
     					ConvertigoPlugin.logWarning(e, "Could not refresh in tree Connector \""+databaseObject.getName()+"\" !");
     				}
 					
+				}
+			}
+		}
+		
+		// Case of this connector rename : update all transaction schemas
+		if (treeObject.equals(this)) {
+			String path = Project.XSD_FOLDER_NAME +"/"
+						+ Project.XSD_INTERNAL_FOLDER_NAME;
+			
+			String oldPath = path + "/" + (String)oldValue;
+			String newPath = path + "/" + (String)newValue;
+			
+			IFolder folder = getProjectTreeObject().getFolder(oldPath);
+			if (folder.exists()) {
+				try {
+					// rename folder (xsd/internal/connector)
+					folder.move(new Path((String)newValue), true, null);
+					
+					// make replacements in schema file
+					List<Replacement> replacements = new ArrayList<Replacement>();
+					replacements.add(new Replacement((String)oldValue+"__", (String)newValue+"__"));
+					IFolder newFolder = folder.getParent().getFolder(new Path((String)newValue));
+					for (Transaction transaction : getObject().getTransactionsList()) {
+						IFile file = newFolder.getFile(new Path(transaction.getName()+".xsd"));
+						if (file.exists()) {
+							String filePath = file.getLocation().makeAbsolute().toString();
+							try {
+								ProjectUtils.makeReplacementsInFile(replacements, filePath);
+							} catch (Exception e) {
+								ConvertigoPlugin.logWarning(e, "Could rename \""+oldValue+"\" to \""+newValue+"\" in schema file \""+filePath+"\" !");
+							}
+						}
+					}
+					
+					// refresh folder
+					folder.refreshLocal(IResource.DEPTH_ONE, null);
+					
+					Engine.theApp.schemaManager.clearCache(getProjectTreeObject().getName());
+				} catch (Exception e) {
+					ConvertigoPlugin.logWarning(e, "Could not rename folder from \""+oldPath+"\" to \""+newPath+"\" !");
 				}
 			}
 		}

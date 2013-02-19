@@ -22,9 +22,14 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
@@ -33,6 +38,7 @@ import org.eclipse.ui.PlatformUI;
 
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
@@ -41,8 +47,11 @@ import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.util.ProjectUtils;
+import com.twinsoft.convertigo.engine.util.Replacement;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.util.StringEx;
 
@@ -113,6 +122,7 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 			String newName = StringUtils.normalize((String)newValue);
 
 			Transaction transaction = getObject();
+			
 			// Modify Screenclass name in Transaction handlers
 			if (!(transaction instanceof HtmlTransaction)) {
             	
@@ -148,6 +158,43 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 	    					ConvertigoPlugin.logWarning(e, "Could not reload in tree Transaction \""+databaseObject.getName()+"\" !");
 	    				}
 	            	}
+				}
+			}
+		}
+		
+		// Case of this transaction rename : update transaction's schema
+		if (treeObject.equals(this)) {
+			String path = Project.XSD_FOLDER_NAME +"/"
+						+ Project.XSD_INTERNAL_FOLDER_NAME + "/"
+						+ getConnectorTreeObject().getName();
+			
+			String oldPath = path + "/" + (String)oldValue + ".xsd";
+			String newPath = path + "/" + (String)newValue + ".xsd";
+			
+			IFile file = getProjectTreeObject().getFile(oldPath);
+			if (file.exists()) {
+				try {
+					// rename file (xsd/internal/connector/transaction.xsd)
+					file.move(new Path((String)newValue+".xsd"), true, null);
+					
+					// make replacements in schema files
+					List<Replacement> replacements = new ArrayList<Replacement>();
+					replacements.add(new Replacement("__"+(String)oldValue, "__"+(String)newValue));
+					IFile newFile = file.getParent().getFile(new Path((String)newValue+".xsd"));
+					String newFilePath = newFile.getLocation().makeAbsolute().toString();
+					try {
+						ProjectUtils.makeReplacementsInFile(replacements, newFilePath);
+					} catch (Exception e) {
+						ConvertigoPlugin.logWarning(e, "Could not rename \""+oldValue+"\" to \""+newValue+"\" in schema file \""+newPath+"\" !");
+					}
+					
+					// refresh file
+					file.refreshLocal(IResource.DEPTH_ZERO, null);
+					
+					Engine.theApp.schemaManager.clearCache(getProjectTreeObject().getName());
+					
+				} catch (Exception e) {
+					ConvertigoPlugin.logWarning(e, "Could not rename schema file from \""+oldPath+"\" to \""+newPath+"\" !");
 				}
 			}
 		}
