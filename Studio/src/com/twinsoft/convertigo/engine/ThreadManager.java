@@ -87,7 +87,7 @@ public class ThreadManager extends AbstractRunnableManager {
 		long[] tids = threadMXBean.getAllThreadIds();
 		ThreadInfo[] tinfos = threadMXBean.getThreadInfo(tids, Integer.MAX_VALUE);
 		for (ThreadInfo ti : tinfos) {
-			message += getThreadInfo(ti);
+			if (ti != null) message += getThreadInfo(ti);
 		}
 		
 		return message;
