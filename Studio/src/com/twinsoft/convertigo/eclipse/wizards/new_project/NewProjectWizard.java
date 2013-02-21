@@ -1155,30 +1155,32 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			monitor.worked(1);
 
 //TODO: Remove this code when template projects will be migrated
-			// Update XSD file
 			try {
-				ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, oldProjectName, newProjectName);
-				ProjectUtils.renameConnector(newProjectDir + "/" + newProjectName + ".xsd", oldConnectorName,
-						newConnectorName);
-
-				monitor.setTaskName("Project XSD file updated");
-				monitor.worked(1);
-			} catch (Exception e) {
-				throw new ConvertigoException("Unable update the .xsd file \"" + oldProjectName + ".xsd\".", e);
-			}
-
-			// Update WSDL file
-			try {
-				ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, oldProjectName, newProjectName);
-				ProjectUtils.renameConnector(newProjectDir + "/" + newProjectName + ".wsdl", oldConnectorName,
-						newConnectorName);
-
-				monitor.setTaskName("Project WSDL file updated");
-				monitor.worked(1);
-			} catch (Exception e) {
-				throw new ConvertigoException("Unable update the .wsdl file \"" + oldProjectName + ".wsdl\".",
-						e);
-			}
+				// Update XSD file
+				try {
+					ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, oldProjectName, newProjectName);
+					ProjectUtils.renameConnector(newProjectDir + "/" + newProjectName + ".xsd", oldConnectorName,
+							newConnectorName);
+	
+					monitor.setTaskName("Project XSD file updated");
+					monitor.worked(1);
+				} catch (Exception e) {
+					throw new ConvertigoException("Unable update the .xsd file \"" + oldProjectName + ".xsd\".", e);
+				}
+	
+				// Update WSDL file
+				try {
+					ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, oldProjectName, newProjectName);
+					ProjectUtils.renameConnector(newProjectDir + "/" + newProjectName + ".wsdl", oldConnectorName,
+							newConnectorName);
+	
+					monitor.setTaskName("Project WSDL file updated");
+					monitor.worked(1);
+				} catch (Exception e) {
+					throw new ConvertigoException("Unable update the .wsdl file \"" + oldProjectName + ".wsdl\".",
+							e);
+				}
+			} catch (ConvertigoException e) { }
 // End TODO
 			// Import the project from the new .xml file
 			project = Engine.theApp.databaseObjectsManager.importProject(newProjectDir + "/" + newProjectName
