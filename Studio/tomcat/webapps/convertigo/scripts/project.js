@@ -534,6 +534,21 @@ $(document).ready(function() {
 						$("#window_exe_increase").removeClass("hidden");
 						$("#window_exe_decrease").removeClass("hidden");
 					}
+					$("h6:first").click();
+				} else {
+					$(".connector_name").each(function(){
+						if ($(this).text() == $project.attr("defaultConnector")) {
+							$(this).click();
+							return false;
+						}
+					});
+					
+					$(".requestable_name").each(function(){
+						if ($(this).text() == $project.attr("defaultTransaction")) {
+							$(this).click();
+							return false;
+						}
+					});
 				}
 			}
 			
@@ -721,24 +736,6 @@ $(document).ready(function() {
 					 }
 				 });
 			}).next().hide();
-			
-			if ($devices.length) {
-				$("h6:first").click();
-			} else {
-				$(".connector_name").each(function(){
-					if ($(this).text() == $project.attr("defaultConnector")) {
-						$(this).click();
-						return false;
-					}
-				});
-				
-				$(".requestable_name").each(function(){
-					if ($(this).text() == $project.attr("defaultTransaction")) {
-						$(this).click();
-						return false;
-					}
-				});
-			}
 			
 			$(".accordion_deploy").click(function () {
 				$(".acc>li>h6").not(".acc-selected").click();
