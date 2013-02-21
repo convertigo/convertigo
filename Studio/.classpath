@@ -27,7 +27,7 @@
 	<classpathentry kind="lib" path="lib/ctgclient.jar"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-lang-2.5.jar" sourcepath="/ExternalJavaSources/commons-lang-2.5-src.zip"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-fileupload-1.2.2.jar"/>
-	<classpathentry kind="lib" path="lib/apache/commons/commons-io-2.2.jar" sourcepath="/ExternalJavaSources/commons-io-2.0.1-sources.zip"/>
+	<classpathentry kind="lib" path="lib/apache/commons/commons-io-2.2.jar" sourcepath="/ExternalJavaSources/commons-io-2.2-src.zip"/>
 	<classpathentry kind="lib" path="lib/apache/xmlgraphics/xmlgraphics-commons-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/internal/bull-v24323.jar"/>
 	<classpathentry kind="lib" path="lib/internal/phaos.jar"/>

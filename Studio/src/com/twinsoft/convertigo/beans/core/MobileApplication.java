@@ -35,9 +35,29 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 /**
  * This class manages a host application.
  */
-public class MobileApplication extends DatabaseObject {
+public class MobileApplication extends DatabaseObject implements ITagsProperty {
 
 	private static final long serialVersionUID = 5414379401296015511L;
+	
+	public enum FlashUpdateBuildMode {
+		full,
+		light;
+		
+		final static String[] buildModes = new String[] {
+			full.name(),
+			light.name()
+		};
+	}
+
+	private boolean enableFlashUpdate = true;
+	
+	private String buildMode = FlashUpdateBuildMode.full.name();
+	
+	private boolean requireUserConfirmation = false;
+	
+	private String applicationId = "";
+	
+	private String endpoint = "";
 
 	 public MobileApplication() {
         super();
@@ -52,12 +72,16 @@ public class MobileApplication extends DatabaseObject {
 		this.enableFlashUpdate = enableFlashUpdate;
 	}
 
-	public int getBuildMode() {
+	public String getBuildMode() {
 		return buildMode;
 	}
 
-	public void setBuildMode(int buildMode) {
+	public void setBuildMode(String buildMode) {
 		this.buildMode = buildMode;
+	}
+	
+	public FlashUpdateBuildMode getBuildModeEnum() {
+		return FlashUpdateBuildMode.valueOf(this.buildMode);
 	}
 
 	public boolean getRequireUserConfirmation() {
@@ -83,21 +107,6 @@ public class MobileApplication extends DatabaseObject {
 	public void setEndpoint(String endpoint) {
 		this.endpoint = endpoint;
 	}
-
-	private boolean enableFlashUpdate = true; 
-
-	public static final String[] FLASHUPDATE_BUILD_MODES = { "full", "light" };
-	
-	public static final int FLASHUPDATE_BUILD_MODE_FULL = 0;
-	public static final int FLASHUPDATE_BUILD_MODE_LIGHT = 1;
-	
-	private int buildMode = FLASHUPDATE_BUILD_MODE_FULL;
-	
-	private boolean requireUserConfirmation = false;
-	
-	private String applicationId = "";
-	
-	private String endpoint = "";
 	
 	@Override
 	public MobileApplication clone() throws CloneNotSupportedException {
@@ -182,5 +191,12 @@ public class MobileApplication extends DatabaseObject {
 			endpoint = HttpUtils.convertigoRequestURL(request);
 		}
 		return endpoint;
+	}
+
+	public String[] getTagsForProperty(String propertyName) {
+		if ("buildMode".equals(propertyName)) {
+			return FlashUpdateBuildMode.buildModes;
+		}
+		return new String[0];
 	}
 }

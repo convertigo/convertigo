@@ -32,7 +32,7 @@ downloadFiles ?
 
 var F = {
 	reTailUrl: new RegExp("(.*)/.*?html.*"),
-	local: false,
+	local: null,
 	currentFiles: null,
 	remoteFiles: null,
 	fileSystem: null,
@@ -43,6 +43,8 @@ var F = {
 	endPoint: null,
 	projectName: null,
 	localBase: null,
+	firstLaunch: true,
+	clickEvent: typeof(document.ontouchstart) == "undefined" ? "click" : "touchstart",
 	
 	debug: function (msg) {
 		F.debugStream += msg + "\n";
@@ -60,6 +62,17 @@ var F = {
 	},
 	
 	init: function () {
+		if (F.local == null) {
+			if (F.local = window.location.hash.length != 0) {
+				var env = window.location.hash.substring(1);
+				F.debug("Retrieve env");
+				env = JSON.parse(env);
+				$.extend(F, env);
+			}
+			if (F.firstLaunch) {
+				$("#main").show();
+			}
+		}
 		if (F.fileSystem == null) {
 			window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function (fileSystem) {
 				try {
@@ -103,16 +116,8 @@ var F = {
 	isLocal: function () {
 		F.debug("isLocal");
 		
-		if (F.local = window.location.hash.length != 0) {
-			try {
-				var env = window.location.hash.substring(1);
-				F.debug("Retrieve env");
-				env = JSON.parse(env);
-				$.extend(F, env);
-				F.isFlashUpdate();
-			} catch (err) {
-				F.error("Unable to retrieve 'env'", err);
-			}
+		if (F.local) {
+			F.isFlashUpdate();
 		} else {
 			F.getEnv();
 		}
@@ -129,7 +134,12 @@ var F = {
 				try {
 					$.extend(F, data);
 					F.remoteBase = F.endPoint + "/projects/" + F.projectName + "/_private/flashupdate";
-					F.localBase = "/data/data/" + F.applicationId + "/flashupdate";
+					
+					if (device.platform == "Android") {
+						F.localBase = "/data/data/" + F.applicationId + "/flashupdate";
+					} else {
+						F.localBase = F.fileSystem.root.fullPath + "/flashupdate"
+					}
 					
 					F.hasLocal();
 				} catch (err) {
@@ -178,7 +188,16 @@ var F = {
 	redirectLocal: function () {
 		F.debug("redirectLocal");
 		
+		var env = {
+			remoteBase: F.remoteBase,
+			endPoint: F.endPoint,
+			projectName: F.projectName,
+			localBase: F.localBase,
+			firstLaunch: F.firstLaunch
+		};
+		
 		if (F.local) {
+			window.location.href = "file://" + F.localBase + "/index.html#" + JSON.stringify(env);
 			window.location.reload();
 		} else {
 			var url = window.location.href.replace(F.reTailUrl, "$1/cordova.js");
@@ -189,14 +208,7 @@ var F = {
 					try {
 						F.write(F.localBase + "/cordova.js", text, function () {
 							F.debug("cordova.js writen");
-							var env = {
-								remoteBase: F.remoteBase,
-								endPoint: F.endPoint,
-								projectName: F.projectName,
-								localBase: F.localBase
-							}
-							env = JSON.stringify(env);
-							window.location.href = "file://" + F.localBase + "/index.html#" + env;
+							window.location.href = "file://" + F.localBase + "/index.html#" + JSON.stringify(env);
 						}, function (err) {
 							F.error("write failed", err);
 						});
@@ -243,7 +255,13 @@ var F = {
 		} else {
 			$("#checkingUpdate").hide();
 			
-			if (F.remoteFiles.flashUpdateEnabled) {
+			if (F.currentFiles.lightBuild) {
+				if (F.remoteFiles.flashUpdateEnabled) {
+					F.doUpdate();
+				} else {
+					F.error("Application is in light build mode and the flashupdate is disabled !")
+				}
+			} else if (F.remoteFiles.flashUpdateEnabled) {
 				F.isRemoteNewer();
 			} else {
 				F.redirectApp();
@@ -255,6 +273,11 @@ var F = {
 		F.debug("isRemoteNewer currentFiles: " + F.currentFiles.date + " remoteFiles: " + F.remoteFiles.date);
 		
 		if (F.currentFiles.date < F.remoteFiles.date) {
+			if (!F.firstLaunch) {
+				$("#main").show();
+			} else {
+				F.firstLaunch = false;
+			}
 			if (F.remoteFiles.requireUserConfirmation) {
 				F.requireUserConfirmation();
 			} else {
@@ -268,7 +291,7 @@ var F = {
 	requireUserConfirmation: function () {
 		F.debug("requireUserConfirmation");
 		
-		$("#requireUserConfirmation").one("click", "button", function () {
+		$("#requireUserConfirmation").one(F.clickEvent, "button", function () {
 			try {
 				if ($(this).val() == "yes") {
 					$("#requireUserConfirmation").hide();
@@ -451,7 +474,7 @@ var F = {
 
 $(function () {
 	if (typeof(cordova) == "undefined") {
-//		F.redirectApp();
+		F.redirectApp();
 	} else {
 		document.addEventListener("deviceready", function() {
 			try {

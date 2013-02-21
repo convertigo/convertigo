@@ -9,7 +9,7 @@ canvas {
 	border-color: black;
 }
 
-#checkingUpdate, #progress, #requireUserConfirmation {
+#main, #checkingUpdate, #progress, #requireUserConfirmation {
 	display: none;
 }
 

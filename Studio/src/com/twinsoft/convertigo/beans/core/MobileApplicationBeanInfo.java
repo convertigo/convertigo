@@ -48,7 +48,7 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
             properties[1] = new PropertyDescriptor("buildMode", MobileApplication.class, "getBuildMode", "setBuildMode");
             properties[1].setDisplayName(getExternalizedString("property.buildMode.display_name"));
             properties[1].setShortDescription(getExternalizedString("property.buildMode.short_description"));
-            properties[1].setPropertyEditorClass(getEditorClass("FlashUpdateBuildModeEditor"));
+            properties[1].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));;
 
             properties[2] = new PropertyDescriptor("requireUserConfirmation", MobileApplication.class, "getRequireUserConfirmation", "setRequireUserConfirmation");
             properties[2].setDisplayName(getExternalizedString("property.requireUserConfirmation.display_name"));

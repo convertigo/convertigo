@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.net.URL;
@@ -43,6 +44,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.core.MobileApplication.FlashUpdateBuildMode;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -66,9 +68,37 @@ public class LaunchBuild extends XmlService {
 			
 			final MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(application, "_private/mobile/www");
 			
-			mobileResourceHelper.prepareFiles(request);
+			FlashUpdateBuildMode buildMode = mobileResourceHelper.mobileApplication.getBuildModeEnum();
 			
 			JSONObject json = new JSONObject();
+			
+			if (buildMode == FlashUpdateBuildMode.full) {
+				mobileResourceHelper.prepareFiles(request);
+			} else if (buildMode == FlashUpdateBuildMode.light) {
+				mobileResourceHelper.prepareFiles(request, new FileFilter() {
+					
+					public boolean accept(File pathname) {
+						try {
+							boolean ok = MobileResourceHelper.defaultFilter.accept(pathname) && (
+								new File(mobileResourceHelper.mobileDir, "index.html").equals(pathname) ||
+								new File(mobileResourceHelper.mobileDir, "config.xml").equals(pathname) ||
+								new File(mobileResourceHelper.mobileDir, "icon.png").equals(pathname) ||
+								new File(mobileResourceHelper.mobileDir, "flashupdate").equals(pathname) ||
+								FileUtils.directoryContains(new File(mobileResourceHelper.mobileDir, "flashupdate"), pathname) ||
+								new File(mobileResourceHelper.mobileDir, "res").equals(pathname) ||
+								FileUtils.directoryContains(new File(mobileResourceHelper.mobileDir, "res"), pathname));
+							return ok;
+						} catch(Exception e) {
+							return false;
+						}
+					}
+					
+				});
+				json.put("lightBuild", true);
+			} else {
+				throw new ServiceException("Unknow build mode: " + buildMode);
+			}
+			
 			mobileResourceHelper.listFiles(json);
 			FileUtils.write(new File(mobileResourceHelper.destDir, "files.json"), json.toString());
 			
