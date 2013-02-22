@@ -72,8 +72,8 @@ public class MobileResourceHelper {
 	
 	public void prepareFiles(HttpServletRequest request, FileFilter fileFilterForCopy) throws ServiceException {
 		try {
-			String endPoint = mobileApplication.getComputedEndpoint(request);
-			String applicationID = mobileApplication.getComputedApplicationId(); 
+			String endPoint = mobileApplication.getComputedEndpoint(request) + "/projects/" + project.getName();
+			String applicationID = mobileApplication.getComputedApplicationId();
 			
 			// Check forbidden characters in application ID (a-zA-Z0-9.-)
 			if (!Pattern.matches("[\\.\\w]*", applicationID)) {
