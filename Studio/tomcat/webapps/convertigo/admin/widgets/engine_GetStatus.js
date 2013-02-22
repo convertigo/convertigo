@@ -55,11 +55,14 @@ function engine_GetStatus_update() {
 			$("#statusStoppedLed").attr("src", "images/convertigo-administration-picto-bullet-gray.png");
 		} else {
 			$("#statusStartedLed").attr("src", "images/convertigo-administration-picto-bullet-gray.png");
-			$("#statusStoppedLed").attr("src", "images/convertigo-administration-picto-bullet-red.png");		}
+			$("#statusStoppedLed").attr("src", "images/convertigo-administration-picto-bullet-red.png");}
 
 		$("#statusStartStopVerb").html($(xml).find("engineState").text());
-		$("#statusStartDateRunning").html($(xml).find("startStopDate").text());
-		$("#statusStartDateRunningIE").html($(xml).find("runningElapse").text());		
+		var startDate = new Date(parseInt($(xml).find("startStopDate").text()));
+		$("#statusStartDate").text(startDate);
+		$("#statusUptimeHours").text($(xml).find("runningElapse").attr("hours"));
+		$("#statusUptimeMinutes").text($(xml).find("runningElapse").attr("minutes"));
+		$("#statusUptimeSeconds").text($(xml).find("runningElapse").attr("seconds"));
 		$("#statusProduct").html($(xml).find("version").attr("product"));
 		$("#statusBuild").html($(xml).find("version").attr("build"));
 		$("#statusEngine").html($(xml).find("version").attr("engine"));
@@ -68,7 +71,7 @@ function engine_GetStatus_update() {
 		$("#statusBuildFilename").html($(xml).find("build").attr("filename"));	
 		instanceUpdateDate++;
 		init_date_started_from(instanceUpdateDate);		
-	});	
+	});
 }
 
 
@@ -88,9 +91,9 @@ function init_date_started_from(instance){
 function engine_GetStatus_update_hour(dateSince1970,instance){	
 	var newDate=(new Date()).getTime();	
 	var diff=newDate-dateSince1970;
-	diff/=1000;//time in seconds	
+	diff/=1000;//time in seconds
 	var seconds=parseInt(diff%60);
-	diff/=60;//time in minutes	
+	diff/=60;//time in minutes
 	var minutes=parseInt(diff%60);
 	diff/=60;//time in hours
 	var hours=parseInt(diff%24);
