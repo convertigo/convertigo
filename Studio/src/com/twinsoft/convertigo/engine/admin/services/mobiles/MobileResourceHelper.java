@@ -82,6 +82,10 @@ public class MobileResourceHelper {
 						+ "digits (0-9), a period (.) and a hyphen (-).");
 			}
 			
+			// Delete no existing files
+			FileUtils.deleteQuietly(destDir);
+			FileUtils.copyDirectory(mobileDir, destDir, fileFilterForCopy, true);
+
 			for (MobileDevice mobileDevice : mobileApplication.getMobileDeviceList()) {
 				if (mobileDevice instanceof BlackBerry6) {
 					for (File file : FileUtils.listFilesAndDirs(destDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
@@ -96,10 +100,6 @@ public class MobileResourceHelper {
 				}
 			}
 			
-			// Delete no existing files
-			FileUtils.deleteQuietly(destDir);
-			FileUtils.copyDirectory(mobileDir, destDir, fileFilterForCopy, true);
-
 			File serverJsFile = new File(destDir, "sources/server.js");
 			
 			if (serverJsFile.exists()) {
