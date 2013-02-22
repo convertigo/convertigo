@@ -109,6 +109,11 @@ public class StartupDiagnostics {
 			// boolean isWindows = os.startsWith("Windows");
 			boolean isMacOS = os.startsWith("Mac OS X");
 
+			if (isLinux) {
+				String sysLdLibraryPath = System.getenv("LD_LIBRARY_PATH");
+				Engine.logEngine.info("System LD_LIBRARY_PATH: " + sysLdLibraryPath);
+			}			
+			
 			String javaHome = System.getProperty("java.home");
 			Engine.logEngine.info("Java home: " + javaHome);
 
@@ -117,6 +122,15 @@ public class StartupDiagnostics {
 
 			String workingDir = System.getProperty("user.dir");
 			Engine.logEngine.info("Java working dir: " + workingDir);
+
+			testsSummary += " - Test Java working directory write access ... ";
+			try {
+				StartupDiagnostics.testWriteAccess(new File(workingDir), true);
+				testsSummary += TEST_SUCCESS;
+			} catch (IOException e) {
+				Engine.logEngine.error("The Java working directory is not writeable!");
+				testsSummary += TEST_FAILED;
+			}
 
 			// Checking running user
 			testsSummary += " - Running user ............................... ";
