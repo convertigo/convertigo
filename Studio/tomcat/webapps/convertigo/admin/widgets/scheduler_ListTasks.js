@@ -143,7 +143,7 @@ function scheduler_ListTasks_init () {
 		$connectorSelect.add($sequenceSelect).hide().empty().append($("#schedulerTemplate .schedulerEmptyOption").clone());
 		
 		if (projectName != null && projectName.length > 0) {
-			callService("projects.GetRequestables", function (xml) {
+			callService("projects.GetTestPlatform", function (xml) {
 				$last_project_xml = $(xml);
 				$last_project_xml.find("project > connector").each(function () {
 					$connectorSelect.append($("<option/>").text($(this).attr("name")));			
