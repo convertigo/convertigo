@@ -23,9 +23,7 @@
 package com.twinsoft.convertigo.engine.admin.services.engine;
 
 import java.io.InputStream;
-import java.text.DateFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
@@ -53,13 +51,11 @@ public class GetStatus extends XmlService {
         
         long currentTimeMillis = System.currentTimeMillis();
         Date startStopDate = new Date(Engine.startStopDate);
-        String sStartStopDate = DateFormat.getDateInstance(DateFormat.LONG, Locale.getDefault()).format(startStopDate) + " - " + DateFormat.getTimeInstance(DateFormat.MEDIUM, Locale.getDefault()).format(startStopDate);
-        long runningElapse = currentTimeMillis - Engine.startStopDate;
-        String sRunningElapse =
-        	(runningElapse / (24*60*60*1000)) + " day(s), " +
-        	((runningElapse / (60*60*1000)) % 24) + " hour(s), " +
-        	((runningElapse / (60*1000)) % 60) + " minute(s), " +
-        	((runningElapse / 1000) % 60) + " second(s)";
+        long lStartStopDate = startStopDate.getTime();
+        long lRunningElapseDays = (currentTimeMillis - Engine.startStopDate / (24*60*60*1000));
+        long lRunningElapseHours = ((currentTimeMillis - Engine.startStopDate / (60*60*1000)) % 24);
+        long lRunningElapseMin = ((currentTimeMillis - Engine.startStopDate / (60*1000)) % 60);
+        long lRunningElapseSec = ((currentTimeMillis - Engine.startStopDate / 1000) % 60);
 
         Element versionElement = document.createElement("version");
         versionElement.setAttribute("product", com.twinsoft.convertigo.engine.Version.fullProductVersion);
@@ -96,12 +92,16 @@ public class GetStatus extends XmlService {
         rootElement.appendChild(EngineState);
         
         Element startStopDateElement = document.createElement("startStopDate");
-        Text textNode = document.createTextNode(sStartStopDate);
+        Text textNode = document.createTextNode(String.valueOf(lStartStopDate));
         startStopDateElement.appendChild(textNode);
         rootElement.appendChild(startStopDateElement);
         
         Element runningElapseElement = document.createElement("runningElapse");
-        textNode = document.createTextNode(sRunningElapse);
+        runningElapseElement.setAttribute("days", String.valueOf(lRunningElapseDays));
+        runningElapseElement.setAttribute("hours", String.valueOf(lRunningElapseHours));
+        runningElapseElement.setAttribute("minutes", String.valueOf(lRunningElapseMin));
+        runningElapseElement.setAttribute("seconds", String.valueOf(lRunningElapseSec));
+        textNode = document.createTextNode("");
         runningElapseElement.appendChild(textNode);
         rootElement.appendChild(runningElapseElement);
         

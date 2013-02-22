@@ -60,6 +60,7 @@ function engine_GetStatus_update() {
 		$("#statusStartStopVerb").html($(xml).find("engineState").text());
 		var startDate = new Date(parseInt($(xml).find("startStopDate").text()));
 		$("#statusStartDate").text(startDate);
+		$("#statusUptimeDays").text($(xml).find("runningElapse").attr("days"));
 		$("#statusUptimeHours").text($(xml).find("runningElapse").attr("hours"));
 		$("#statusUptimeMinutes").text($(xml).find("runningElapse").attr("minutes"));
 		$("#statusUptimeSeconds").text($(xml).find("runningElapse").attr("seconds"));
