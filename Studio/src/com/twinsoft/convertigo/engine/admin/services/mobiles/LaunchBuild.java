@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.transform.TransformerException;
 
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpState;
@@ -40,11 +41,13 @@ import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.xpath.XPathAPI;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.MobileApplication.FlashUpdateBuildMode;
+import com.twinsoft.convertigo.beans.core.MobileApplication.PhoneGapFeatures;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -61,6 +64,16 @@ public class LaunchBuild extends XmlService {
 
 	private static final Object buildLock = new Object();
 
+	private Element setTextValue(Element context, String name, String textContent) throws TransformerException {
+		Element elt = (Element) XPathAPI.selectSingleNode(context, name);
+		if (elt == null) {
+			elt = context.getOwnerDocument().createElement(name);
+			context.appendChild(elt);
+		}
+		elt.setTextContent(textContent);
+		return elt;
+	}
+	
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		synchronized(buildLock) {
@@ -69,6 +82,7 @@ public class LaunchBuild extends XmlService {
 			final MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(application, "_private/mobile/www");
 			
 			FlashUpdateBuildMode buildMode = mobileResourceHelper.mobileApplication.getBuildModeEnum();
+			String finalApplicationName = mobileResourceHelper.mobileApplication.getComputedApplicationName();
 			
 			JSONObject json = new JSONObject();
 			
@@ -104,17 +118,31 @@ public class LaunchBuild extends XmlService {
 			
 			json = new JSONObject();
 			json.put("applicationId", mobileResourceHelper.mobileApplication.getComputedApplicationId());
+			json.put("applicationName", finalApplicationName);
 			json.put("projectName", mobileResourceHelper.mobileApplication.getProject().getName());
 			json.put("endPoint", mobileResourceHelper.mobileApplication.getComputedEndpoint(request));
 			FileUtils.write(new File(mobileResourceHelper.destDir, "env.json"), json.toString());
 			
 						
-			File configFile = new File(mobileResourceHelper.mobileDir, "config.xml");
+			File configFile = new File(mobileResourceHelper.destDir, "config.xml");
 			
 			// Update config.xml
 			Document configXmlDocument = XMLUtils.loadXml(configFile);
 			Element configXmlDocumentElement = configXmlDocument.getDocumentElement();
 			configXmlDocumentElement.setAttribute("id", mobileResourceHelper.mobileApplication.getComputedApplicationId());
+			setTextValue(configXmlDocumentElement, "name", finalApplicationName);
+			setTextValue(configXmlDocumentElement, "description", mobileResourceHelper.mobileApplication.getApplicationDescription());
+			Element author = setTextValue(configXmlDocumentElement, "author", mobileResourceHelper.mobileApplication.getApplicationAuthorName());
+			author.setAttribute("email", mobileResourceHelper.mobileApplication.getApplicationAuthorEmail());
+			author.setAttribute("href", mobileResourceHelper.mobileApplication.getApplicationAuthorSite());
+			
+			for (PhoneGapFeatures feature : PhoneGapFeatures.values()) {
+				if (mobileResourceHelper.mobileApplication.isFeature(feature)) {
+					Element eFeature = configXmlDocument.createElement("feature");
+					eFeature.setAttribute("name", "http://api.phonegap.com/1.0/" + feature.name());
+					configXmlDocumentElement.appendChild(eFeature);
+				}
+			}
 
 			FileWriter fileWriter = new FileWriter(configFile);
 			XMLUtils.prettyPrintDOMWithEncoding(configXmlDocument, "UTF-8", fileWriter);
@@ -135,8 +163,6 @@ public class LaunchBuild extends XmlService {
 			PostMethod method;
 			int methodStatusCode;
 			InputStream methodBodyContentInputStream;
-			
-			String finalApplicationName = GetBuildStatus.getFinalApplicationName(application);
 			
 			Map<String, String[]> params = new HashMap<String, String[]>();
 			params.put("application", new String[]{finalApplicationName});

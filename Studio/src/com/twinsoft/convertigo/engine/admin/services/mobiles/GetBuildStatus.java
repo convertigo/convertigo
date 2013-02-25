@@ -22,12 +22,10 @@
 
 package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpState;
@@ -39,18 +37,16 @@ import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
-import com.twinsoft.convertigo.beans.core.MobileDevice;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @ServiceDefinition(name = "GetBuildStatus", roles = { Role.ANONYMOUS }, parameters = {}, returnValue = "")
 public class GetBuildStatus extends XmlService {
@@ -132,14 +128,11 @@ public class GetBuildStatus extends XmlService {
 		document.getDocumentElement().appendChild(statusElement);
 	}
 
-	static public String getFinalApplicationName(String application) throws ParserConfigurationException, SAXException, IOException {
-		// Get the final application name from config.xml
-		String mobileResourcesPath = Engine.PROJECTS_PATH + "/" + application + "/"
-				+ MobileDevice.RESOURCES_PATH;
-
-		Document configXmlDocument = XMLUtils.loadXml(mobileResourcesPath + "/config.xml");
-		NodeList nodeList = configXmlDocument.getElementsByTagName("name");
-		Element nameElement = (Element) nodeList.item(0);
-		return nameElement.getTextContent();
+	static public String getFinalApplicationName(String application) throws EngineException {
+		MobileApplication mobileApplication = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(application).getMobileApplication();
+		if (mobileApplication != null) {
+			return mobileApplication.getComputedApplicationName();
+		}
+		return application;
 	}
 }

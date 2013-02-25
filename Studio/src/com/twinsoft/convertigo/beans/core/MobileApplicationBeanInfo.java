@@ -39,7 +39,7 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[5];
+			properties = new PropertyDescriptor[18];
 			
             properties[0] = new PropertyDescriptor("enableFlashUpdate", MobileApplication.class, "getEnableFlashUpdate", "setEnableFlashUpdate");
             properties[0].setDisplayName(getExternalizedString("property.enableFlashUpdate.display_name"));
@@ -61,6 +61,66 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
             properties[4] = new PropertyDescriptor("endpoint", MobileApplication.class, "getEndpoint", "setEndpoint");
             properties[4].setDisplayName(getExternalizedString("property.endpoint.display_name"));
             properties[4].setShortDescription(getExternalizedString("property.endpoint.short_description"));
+            
+            properties[5] = new PropertyDescriptor("applicationName", MobileApplication.class, "getApplicationName", "setApplicationName");
+            properties[5].setDisplayName(getExternalizedString("property.applicationName.display_name"));
+            properties[5].setShortDescription(getExternalizedString("property.applicationName.short_description"));
+            
+            properties[6] = new PropertyDescriptor("applicationDescription", MobileApplication.class, "getApplicationDescription", "setApplicationDescription");
+            properties[6].setDisplayName(getExternalizedString("property.applicationDescription.display_name"));
+            properties[6].setShortDescription(getExternalizedString("property.applicationDescription.short_description"));
+            
+            properties[7] = new PropertyDescriptor("applicationAuthorName", MobileApplication.class, "getApplicationAuthorName", "setApplicationAuthorName");
+            properties[7].setDisplayName(getExternalizedString("property.applicationAuthorName.display_name"));
+            properties[7].setShortDescription(getExternalizedString("property.applicationAuthorName.short_description"));
+            
+            properties[8] = new PropertyDescriptor("applicationAuthorEmail", MobileApplication.class, "getApplicationAuthorEmail", "setApplicationAuthorEmail");
+            properties[8].setDisplayName(getExternalizedString("property.applicationAuthorEmail.display_name"));
+            properties[8].setShortDescription(getExternalizedString("property.applicationAuthorEmail.short_description"));
+            
+            properties[9] = new PropertyDescriptor("applicationAuthorSite", MobileApplication.class, "getApplicationAuthorSite", "setApplicationAuthorSite");
+            properties[9].setDisplayName(getExternalizedString("property.applicationAuthorSite.display_name"));
+            properties[9].setShortDescription(getExternalizedString("property.applicationAuthorSite.short_description"));
+            
+            properties[10] = new PropertyDescriptor("applicationFeatureDevice", MobileApplication.class, "isApplicationFeatureDevice", "setApplicationFeatureDevice");
+            properties[10].setDisplayName(getExternalizedString("property.applicationFeatureDevice.display_name"));
+            properties[10].setShortDescription(getExternalizedString("property.applicationFeatureDevice.short_description"));
+            properties[10].setExpert(true);
+            
+            properties[11] = new PropertyDescriptor("applicationFeatureCamera", MobileApplication.class, "isApplicationFeatureCamera", "setApplicationFeatureCamera");
+            properties[11].setDisplayName(getExternalizedString("property.applicationFeatureCamera.display_name"));
+            properties[11].setShortDescription(getExternalizedString("property.applicationFeatureCamera.short_description"));
+            properties[11].setExpert(true);
+            
+            properties[12] = new PropertyDescriptor("applicationFeatureContacts", MobileApplication.class, "isApplicationFeatureContacts", "setApplicationFeatureContacts");
+            properties[12].setDisplayName(getExternalizedString("property.applicationFeatureContacts.display_name"));
+            properties[12].setShortDescription(getExternalizedString("property.applicationFeatureContacts.short_description"));
+            properties[12].setExpert(true);
+            
+            properties[13] = new PropertyDescriptor("applicationFeatureFile", MobileApplication.class, "isApplicationFeatureFile", "setApplicationFeatureFile");
+            properties[13].setDisplayName(getExternalizedString("property.applicationFeatureFile.display_name"));
+            properties[13].setShortDescription(getExternalizedString("property.applicationFeatureFile.short_description"));
+            properties[13].setExpert(true);
+            
+            properties[14] = new PropertyDescriptor("applicationFeatureGeolocation", MobileApplication.class, "isApplicationFeatureGeolocation", "setApplicationFeatureGeolocation");
+            properties[14].setDisplayName(getExternalizedString("property.applicationFeatureGeolocation.display_name"));
+            properties[14].setShortDescription(getExternalizedString("property.applicationFeatureGeolocation.short_description"));
+            properties[14].setExpert(true);
+            
+            properties[15] = new PropertyDescriptor("applicationFeatureMedia", MobileApplication.class, "isApplicationFeatureMedia", "setApplicationFeatureMedia");
+            properties[15].setDisplayName(getExternalizedString("property.applicationFeatureMedia.display_name"));
+            properties[15].setShortDescription(getExternalizedString("property.applicationFeatureMedia.short_description"));
+            properties[15].setExpert(true);
+            
+            properties[16] = new PropertyDescriptor("applicationFeatureNetwork", MobileApplication.class, "isApplicationFeatureNetwork", "setApplicationFeatureNetwork");
+            properties[16].setDisplayName(getExternalizedString("property.applicationFeatureNetwork.display_name"));
+            properties[16].setShortDescription(getExternalizedString("property.applicationFeatureNetwork.short_description"));
+            properties[16].setExpert(true);
+            
+            properties[17] = new PropertyDescriptor("applicationFeatureNotification", MobileApplication.class, "isApplicationFeatureNotification", "setApplicationFeatureNotification");
+            properties[17].setDisplayName(getExternalizedString("property.applicationFeatureNotification.display_name"));
+            properties[17].setShortDescription(getExternalizedString("property.applicationFeatureNotification.short_description"));
+            properties[17].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

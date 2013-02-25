@@ -48,7 +48,18 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 			light.name()
 		};
 	}
-
+	
+	public enum PhoneGapFeatures {
+		device,
+		camera,
+		contacts,
+		file,
+		geolocation,
+		media,
+		network,
+		notification
+	}
+	
 	private boolean enableFlashUpdate = true;
 	
 	private String buildMode = FlashUpdateBuildMode.full.name();
@@ -56,6 +67,19 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 	private boolean requireUserConfirmation = false;
 	
 	private String applicationId = "";
+	private String applicationName = "";
+	private String applicationDescription = "";
+	private String applicationAuthorName = "Convertigo";
+	private String applicationAuthorEmail = "sales@convertigo.com";
+	private String applicationAuthorSite = "http://www.convertigo.com";
+	private boolean applicationFeatureDevice = false;
+	private boolean applicationFeatureCamera = false;
+	private boolean applicationFeatureContacts = false;
+	private boolean applicationFeatureFile = false;
+	private boolean applicationFeatureGeolocation = false;
+	private boolean applicationFeatureMedia = false;
+	private boolean applicationFeatureNetwork = false;
+	private boolean applicationFeatureNotification= false;
 	
 	private String endpoint = "";
 
@@ -198,5 +222,127 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 			return FlashUpdateBuildMode.buildModes;
 		}
 		return new String[0];
+	}
+
+	public String getApplicationName() {
+		return applicationName;
+	}
+
+	public void setApplicationName(String applicationName) {
+		this.applicationName = applicationName;
+	}
+	
+	public String getComputedApplicationName() {
+		return applicationName.length() > 0 ? applicationName : getProject().getName();
+	}
+	
+	public String getApplicationDescription() {
+		return applicationDescription;
+	}
+
+	public void setApplicationDescription(String applicationDescription) {
+		this.applicationDescription = applicationDescription;
+	}
+
+	public String getApplicationAuthorName() {
+		return applicationAuthorName;
+	}
+
+	public void setApplicationAuthorName(String applicationAuthorName) {
+		this.applicationAuthorName = applicationAuthorName;
+	}
+
+	public String getApplicationAuthorEmail() {
+		return applicationAuthorEmail;
+	}
+
+	public void setApplicationAuthorEmail(String applicationAuthorEmail) {
+		this.applicationAuthorEmail = applicationAuthorEmail;
+	}
+
+	public String getApplicationAuthorSite() {
+		return applicationAuthorSite;
+	}
+
+	public void setApplicationAuthorSite(String applicationAuthorSite) {
+		this.applicationAuthorSite = applicationAuthorSite;
+	}
+
+	public boolean isApplicationFeatureDevice() {
+		return applicationFeatureDevice;
+	}
+
+	public void setApplicationFeatureDevice(boolean applicationFeatureDevice) {
+		this.applicationFeatureDevice = applicationFeatureDevice;
+	}
+
+	public boolean isApplicationFeatureCamera() {
+		return applicationFeatureCamera;
+	}
+
+	public void setApplicationFeatureCamera(boolean applicationFeatureCamera) {
+		this.applicationFeatureCamera = applicationFeatureCamera;
+	}
+
+	public boolean isApplicationFeatureContacts() {
+		return applicationFeatureContacts;
+	}
+
+	public void setApplicationFeatureContacts(boolean applicationFeatureContacts) {
+		this.applicationFeatureContacts = applicationFeatureContacts;
+	}
+
+	public boolean isApplicationFeatureFile() {
+		return applicationFeatureFile;
+	}
+
+	public void setApplicationFeatureFile(boolean applicationFeatureFile) {
+		this.applicationFeatureFile = applicationFeatureFile;
+	}
+
+	public boolean isApplicationFeatureGeolocation() {
+		return applicationFeatureGeolocation;
+	}
+
+	public void setApplicationFeatureGeolocation(boolean applicationFeatureGeolocation) {
+		this.applicationFeatureGeolocation = applicationFeatureGeolocation;
+	}
+
+	public boolean isApplicationFeatureMedia() {
+		return applicationFeatureMedia;
+	}
+
+	public void setApplicationFeatureMedia(boolean applicationFeatureMedia) {
+		this.applicationFeatureMedia = applicationFeatureMedia;
+	}
+
+	public boolean isApplicationFeatureNetwork() {
+		return applicationFeatureNetwork;
+	}
+
+	public void setApplicationFeatureNetwork(boolean applicationFeatureNetwork) {
+		this.applicationFeatureNetwork = applicationFeatureNetwork;
+	}
+
+	public boolean isApplicationFeatureNotification() {
+		return applicationFeatureNotification;
+	}
+
+	public void setApplicationFeatureNotification(boolean applicationFeatureNotification) {
+		this.applicationFeatureNotification = applicationFeatureNotification;
+	}
+	
+	public boolean isFeature(PhoneGapFeatures feature) {
+		switch (feature) {
+		case camera: return applicationFeatureCamera;
+		case contacts: return applicationFeatureContacts;
+		case device: return applicationFeatureDevice;
+		case file: return applicationFeatureFile;
+		case geolocation: return applicationFeatureGeolocation;
+		case media: return applicationFeatureMedia;
+		case network: return applicationFeatureNetwork;
+		case notification: return applicationFeatureNotification;
+		}
+		return false;
 	}
 }
