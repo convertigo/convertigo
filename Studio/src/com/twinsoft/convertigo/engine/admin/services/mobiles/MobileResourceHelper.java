@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URLDecoder;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
@@ -187,13 +188,13 @@ public class MobileResourceHelper {
 	
 	public void listFiles(JSONObject response) throws JSONException, IOException {
 		File canonicalDir = destDir.getCanonicalFile();
-		int uriDirectoryLength = canonicalDir.getAbsolutePath().length();
+		int uriDirectoryLength = canonicalDir.toURI().toString().length();
 		JSONArray jArray = new JSONArray();
 		
 		for (File f : FileUtils.listFiles(canonicalDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
 			File canonnicalF = f.getCanonicalFile();
 			JSONObject jObj = new JSONObject();
-			jObj.put("uri", canonnicalF.getAbsolutePath().substring(uriDirectoryLength));
+			jObj.put("uri", URLDecoder.decode(canonnicalF.toURI().toString().substring(uriDirectoryLength), "UTF-8"));
 			jObj.put("date", canonnicalF.lastModified());
 			jObj.put("size", canonnicalF.length());
 			jArray.put(jObj);
