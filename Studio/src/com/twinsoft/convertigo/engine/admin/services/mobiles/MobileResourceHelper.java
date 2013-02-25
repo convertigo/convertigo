@@ -188,7 +188,7 @@ public class MobileResourceHelper {
 	
 	public void listFiles(JSONObject response) throws JSONException, IOException {
 		File canonicalDir = destDir.getCanonicalFile();
-		int uriDirectoryLength = canonicalDir.toURI().toString().length();
+		int uriDirectoryLength = canonicalDir.toURI().toString().length() - 1;
 		JSONArray jArray = new JSONArray();
 		
 		for (File f : FileUtils.listFiles(canonicalDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
