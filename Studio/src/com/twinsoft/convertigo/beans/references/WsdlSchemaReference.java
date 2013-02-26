@@ -38,14 +38,14 @@ import javax.wsdl.xml.WSDLReader;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
-import org.apache.ws.commons.schema.XmlSchemaImport;
-import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.resolver.DefaultURIResolver;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.ISchemaReader;
 import com.twinsoft.convertigo.beans.core.IWsdlReader;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.SchemaManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public abstract class WsdlSchemaReference extends RemoteFileReference implements ISchemaReference, ISchemaReader, IWsdlReader {
@@ -59,21 +59,30 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 			XmlSchema mainSchema = null;
 			
 			// First read all schemas from WSDL in a new Collection
-			XmlSchemaCollection c = new XmlSchemaCollection();
 			List<Definition> definitions = readWsdl();
+			XmlSchemaCollection c = new XmlSchemaCollection();
 			for (Definition definition: definitions) {
+				String baseURI = definition.getDocumentBaseURI();
+				if (baseURI != null) c.setBaseUri(baseURI);
 				Types types = definition.getTypes();
 				List<?> list = types.getExtensibilityElements();
 				Iterator<?> iterator = list.iterator();
 				while (iterator.hasNext()) {
 					ExtensibilityElement extensibilityElement = (ExtensibilityElement)iterator.next();
 					if (extensibilityElement instanceof Schema) {
-						// overwrites elementFormDefault, attributeFormDefault
 						Element element = ((Schema)extensibilityElement).getElement();
+						
+						// overwrites elementFormDefault, attributeFormDefault
 						element.setAttribute("elementFormDefault", Project.XSD_FORM_UNQUALIFIED);
 						element.setAttribute("attributeFormDefault", Project.XSD_FORM_UNQUALIFIED);
 						
+						// read schema
 						XmlSchema xmlSchema = c.read(element);
+						
+						// check for targetNamespace
+						if (xmlSchema.getTargetNamespace() == null)
+							xmlSchema.setTargetNamespace(definition.getTargetNamespace());
+						
 						String schemaNamespace = xmlSchema.getTargetNamespace();
 						namespaceList.add(schemaNamespace);
 						if (definition.getTargetNamespace().equals(schemaNamespace)) {
@@ -82,8 +91,10 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 					}
 				}
 			}
-			
+
 			// Then load schemas into our Collection
+			String baseURI = ((DefaultURIResolver)c.getSchemaResolver()).getCollectionBaseURI();
+			if (baseURI != null) collection.setBaseUri(baseURI);
 			for (XmlSchema xs : c.getXmlSchemas()) {
 				if (namespaceList.contains(xs.getTargetNamespace())) {
 					collection.read(xs.getSchemaDocument(),null);
@@ -95,33 +106,14 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 				String tns = xmlSchema.getTargetNamespace();
 				if (namespaceList.contains(tns)) {
 					
-					// Add missing 'import' in our Collection schemas
+					// Add missing 'import' in collection schemas (for validation)
 					String[] declaredPrefixes = xmlSchema.getNamespaceContext().getDeclaredPrefixes();
-					//System.out.println("For {"+tns+"}:");
 					for (int i=0; i <declaredPrefixes.length; i++) {
 						String prefix = declaredPrefixes[i];
 						String ns = xmlSchema.getNamespaceContext().getNamespaceURI(prefix);
 						if (!ns.equals(tns)) {
 							if (namespaceList.contains(ns)) {
-								boolean imported = false;
-								Iterator<?> it = xmlSchema.getItems().getIterator();
-								while (it.hasNext()) {
-									XmlSchemaObject ob = (XmlSchemaObject)it.next();
-									if (ob instanceof XmlSchemaImport) {
-										XmlSchemaImport xmlSchemaImport = ((XmlSchemaImport)ob);
-										String ins = xmlSchemaImport.getNamespace();
-										imported = ins.equals(ns);
-										if (imported) break;
-									}
-								}
-								if (!imported) {
-									//System.out.println("- adding import for {"+ns+"}");
-									XmlSchemaImport xmlSchemaImport = new XmlSchemaImport();
-									xmlSchemaImport.setNamespace(ns);
-									XmlSchema importedSchema = collection.schemaForNamespace(ns);
-									xmlSchemaImport.setSchema(importedSchema);
-									xmlSchema.getItems().add(xmlSchemaImport);
-								}
+								SchemaManager.addXmlSchemaImport(collection, xmlSchema, ns);
 							}
 						}
 					}
@@ -136,10 +128,11 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 			return mainSchema;
 		}
 		catch (Exception e) {
-			Engine.logBeans.error(e.getMessage());
+			Engine.logBeans.error(e.getMessage(), e);
 		}
 		return null;
 	}
+	
 
 	public List<Definition> readWsdl() {
 		List<Definition> list = new ArrayList<Definition>();
@@ -154,7 +147,7 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 			}
 		}
 		catch (Exception e) {
-			Engine.logBeans.error(e.getMessage());
+			Engine.logBeans.error(e.getMessage(), e);
 		}
 		return list;
 	}
@@ -171,4 +164,5 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 		list.add(definition);
 		return list;
 	}
+
 }

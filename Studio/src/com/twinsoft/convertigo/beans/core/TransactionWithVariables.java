@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import javax.xml.namespace.QName;
-
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -849,9 +847,10 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 						xmlSchemaElement.setMaxOccurs(Long.MAX_VALUE);
 					}
 					
-					String[] qn = variable.getSchemaType().split(":");
-					QName typeName = new QName(xmlSchema.getNamespaceContext().getNamespaceURI(qn[0]), qn[1], qn[0]);
-					xmlSchemaElement.setSchemaTypeName(typeName);
+					//String[] qn = variable.getSchemaType().split(":");
+					//QName typeName = new QName(xmlSchema.getNamespaceContext().getNamespaceURI(qn[0]), qn[1], qn[0]);
+					//xmlSchemaElement.setSchemaTypeName(typeName);
+					xmlSchemaElement.setSchemaTypeName(variable.getTypeAffectation());
 					
 					addSchemaCommentAnnotation(xmlSchemaElement, variable.getComment());
 					

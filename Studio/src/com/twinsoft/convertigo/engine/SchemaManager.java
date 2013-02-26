@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +120,7 @@ public class SchemaManager implements AbstractManager {
 				
 				// static and read-only generation : references, transactions, sequences declaration
 				new WalkHelper() {
-
+					
 					@Override
 					protected void walk(DatabaseObject databaseObject) throws Exception {
 
@@ -128,13 +129,15 @@ public class SchemaManager implements AbstractManager {
 								if (databaseObject instanceof ISchemaImportGenerator) {
 									// Import case
 									XmlSchemaImport schemaImport = ((ISchemaImportGenerator) databaseObject).getXmlSchemaObject(collection, schema);
-									SchemaMeta.setXmlSchemaObject(schema, databaseObject, schemaImport);
-									XmlSchemaUtils.add(schema, schemaImport);
+									if (schemaImport != null) {
+										SchemaMeta.setXmlSchemaObject(schema, databaseObject, schemaImport);
+										XmlSchemaUtils.add(schema, schemaImport);
+									}
 								} else if (databaseObject instanceof ISchemaIncludeGenerator) {
 									// Include case
 									if (databaseObject instanceof Transaction) {
 										XmlSchemaInclude schemaInclude = ((ISchemaIncludeGenerator)databaseObject).getXmlSchemaObject(new XmlSchemaCollection(), schema);
-										SchemaMeta.setXmlSchemaObject(schema, databaseObject, schemaInclude);
+										//SchemaMeta.setXmlSchemaObject(schema, databaseObject, schemaInclude);
 										addSchemaIncludeObjects(databaseObject, schemaInclude.getSchema());
 									} else {
 										XmlSchemaInclude schemaInclude = ((ISchemaIncludeGenerator)databaseObject).getXmlSchemaObject(collection, schema);
@@ -223,12 +226,30 @@ public class SchemaManager implements AbstractManager {
 				new WalkHelper() {
 					List<XmlSchemaParticle> particleChildren;
 					List<XmlSchemaAttribute> attributeChildren;
-
+					
 					@Override
 					protected void walk(DatabaseObject databaseObject) throws Exception {
-						if (databaseObject instanceof Sequence) {
-							// sequence case
-							
+						// Transaction case
+						if (databaseObject instanceof Transaction) {
+							Transaction transaction = (Transaction)databaseObject;
+							String ns = schema.getTargetNamespace();
+							List<QName> partElementQNames = new ArrayList<QName>();
+							partElementQNames.add(new QName(ns, transaction.getXsdRequestElementName()));
+							partElementQNames.add(new QName(ns, transaction.getXsdResponseElementName()));
+							LinkedHashMap<QName, XmlSchemaObject> map = new LinkedHashMap<QName, XmlSchemaObject>();
+							XmlSchemaWalker dw = XmlSchemaWalker.newDependencyWalker(map, true, true);
+							for (QName qname: partElementQNames) {
+								dw.walkByElementRef(schema, qname);
+							}
+							for (QName qname: map.keySet()) {
+								String nsURI = qname.getNamespaceURI();
+								if (nsURI.equals(ns)) continue;
+								if (nsURI.equals(Constants.URI_2001_SCHEMA_XSD)) continue;
+								addXmlSchemaImport(collection, schema, nsURI);
+							}
+						}
+						// Sequence case
+						else if (databaseObject instanceof Sequence) {
 							Sequence sequence = (Sequence) databaseObject;
 							particleChildren = new LinkedList<XmlSchemaParticle>();
 							attributeChildren = new LinkedList<XmlSchemaAttribute>();
@@ -259,9 +280,9 @@ public class SchemaManager implements AbstractManager {
 								cType.getAttributes().add(attribute);
 							}
 							
-						} else if (databaseObject instanceof Step) {
-							// step case
-							
+						}
+						// Step case
+						else if (databaseObject instanceof Step) {
 							Step step = (Step) databaseObject;
 							if (!step.isEnable()) {
 								// stop walking for disabled steps
@@ -408,7 +429,9 @@ public class SchemaManager implements AbstractManager {
 									elt.setSchemaTypeName(qName);
 									particleChildren.add(elt);
 								}
-							} else {
+							}
+							// Other case
+							else {
 								// doesn't generate schema, just deep walk
 								super.walk(step);
 							}
@@ -426,8 +449,11 @@ public class SchemaManager implements AbstractManager {
 					protected boolean before(DatabaseObject databaseObject, Class<? extends DatabaseObject> dboClass) {
 						// just walk ISchemaGenerator DBO
 						return Step.class.isAssignableFrom(dboClass) || 
-								Sequence.class.isAssignableFrom(dboClass);
+								Sequence.class.isAssignableFrom(dboClass) ||
+								Transaction.class.isAssignableFrom(dboClass) ||
+								Connector.class.isAssignableFrom(dboClass);
 					}
+					
 				}.init(project);
 				
 				// defined prefixes for this schema
@@ -446,7 +472,7 @@ public class SchemaManager implements AbstractManager {
 					SchemaMeta.setPrefix(xs, prefix);
 					SchemaMeta.setCollection(xs, collection);
 					nsMap.add(prefix, tns);
-
+					
 					new XmlSchemaWalker.XmlSchemaWalkerWatcher() {
 
 						@Override
@@ -457,8 +483,8 @@ public class SchemaManager implements AbstractManager {
 
 					}.init(xs);
 				}
-				schema.setNamespaceContext(nsMap);
 				collection.setNamespaceContext(nsMap);
+				schema.setNamespaceContext(nsMap);
 
 				long timeStop = System.currentTimeMillis();
 
@@ -484,6 +510,35 @@ public class SchemaManager implements AbstractManager {
 
 			return schema;
 		}
+	}
+	
+	public static void addXmlSchemaImport(XmlSchemaCollection collection, XmlSchema xmlSchema, String ns) {
+		try {
+			if (ns.equals(Constants.URI_2001_SCHEMA_XSD))
+				return;
+			
+			boolean imported = false;
+			Iterator<?> it = xmlSchema.getItems().getIterator();
+			while (it.hasNext()) {
+				XmlSchemaObject ob = (XmlSchemaObject)it.next();
+				if (ob instanceof XmlSchemaImport) {
+					XmlSchemaImport xmlSchemaImport = ((XmlSchemaImport)ob);
+					String ins = xmlSchemaImport.getNamespace();
+					imported = ins.equals(ns);
+					if (imported) break;
+				}
+			}
+			if (!imported) {
+				//System.out.println("For "+xmlSchema.getTargetNamespace()+", adding import for {"+ns+"}");
+				XmlSchemaImport xmlSchemaImport = new XmlSchemaImport();
+				xmlSchemaImport.setNamespace(ns);
+				XmlSchema importedSchema = collection.schemaForNamespace(ns);
+				xmlSchemaImport.setSchema(importedSchema);
+				xmlSchema.getIncludes().add(xmlSchemaImport);
+				xmlSchema.getItems().add(xmlSchemaImport);
+			}
+		}
+		catch (Exception e) {}
 	}
 	
 	private static void addConvertigoErrorObjects(XmlSchema schema) {

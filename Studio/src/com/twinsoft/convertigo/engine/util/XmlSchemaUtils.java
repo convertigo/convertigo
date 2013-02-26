@@ -1,7 +1,12 @@
 package com.twinsoft.convertigo.engine.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringReader;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -27,6 +32,8 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaGroup;
+import org.apache.ws.commons.schema.XmlSchemaImport;
+import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
@@ -34,9 +41,12 @@ import org.apache.ws.commons.schema.XmlSchemaSimpleType;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.XmlSchemaUse;
 import org.apache.ws.commons.schema.constants.Constants;
+import org.apache.ws.commons.schema.resolver.DefaultURIResolver;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.ls.LSInput;
+import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -266,9 +276,95 @@ public class XmlSchemaUtils {
 		validate(collection, new DOMSource(document));
 	}
 	
+	private static LSInput createLSInputImpl() {
+		return new LSInput() {
+			
+			protected String fPublicId;
+			
+		    protected String fSystemId;
+		
+		    protected String fBaseSystemId;
+		
+		    protected InputStream fByteStream;
+		
+		    protected Reader fCharStream;
+		
+		    protected String fData;
+		
+		    protected String fEncoding;
+		
+		    protected boolean fCertifiedText;
+		
+		    public InputStream getByteStream() {
+		        return fByteStream;
+		    }
+		
+		    public void setByteStream(InputStream byteStream) {
+		        fByteStream = byteStream;
+		    }
+		
+		    public Reader getCharacterStream() {
+		        return fCharStream;
+		    }
+		
+		    public void setCharacterStream(Reader characterStream) {
+		        fCharStream = characterStream;
+		    }
+		
+		    public String getStringData() {
+		        return fData;
+		    }
+		
+		    public void setStringData(String stringData) {
+		        fData = stringData;
+		    }
+		
+		    public String getEncoding() {
+		        return fEncoding;
+		    }
+		
+		    public void setEncoding(String encoding) {
+		        fEncoding = encoding;
+		    }
+		
+		    public String getPublicId() {
+		        return fPublicId;
+		    }
+		
+		    public void setPublicId(String publicId) {
+		        fPublicId = publicId;
+		    }
+		
+		    public String getSystemId() {
+		        return fSystemId;
+		    }
+		
+		    public void setSystemId(String systemId) {
+		        fSystemId = systemId;
+		    }
+		
+		    public String getBaseURI() {
+		        return fBaseSystemId;
+		    }
+		
+		    public void setBaseURI(String baseURI) {
+		        fBaseSystemId = baseURI;
+		    }
+		
+		    public boolean getCertifiedText() {
+		        return fCertifiedText;
+		    }
+		
+		    public void setCertifiedText(boolean certifiedText) {
+		        fCertifiedText = certifiedText;
+		    }
+		};
+	}
+	
+	
 	private static void validate(XmlSchemaCollection collection, Source source) throws SAXException {
 		try {
-			XmlSchema[] schemas = collection.getXmlSchemas();
+			final XmlSchema[] schemas = collection.getXmlSchemas();
 			
 			Arrays.sort(schemas, new Comparator<XmlSchema>() {
 
@@ -280,13 +376,91 @@ public class XmlSchemaUtils {
 				
 			});
 			
+			final String collectionBaseURI = ((DefaultURIResolver)collection.getSchemaResolver()).getCollectionBaseURI();
+			
 			Source[] sources = new Source[schemas.length];
 			for (int i = 0; i < schemas.length; i++) {
 				Document doc = schemas[i].getSchemaDocument();
 				doc.getDocumentElement().setAttribute("elementFormDefault", Project.XSD_FORM_UNQUALIFIED);
 				doc.getDocumentElement().setAttribute("attributeFormDefault", Project.XSD_FORM_UNQUALIFIED);
-				sources[i] = new DOMSource(doc);
+				sources[i] = new DOMSource(doc, collectionBaseURI);
 			}
+			
+			factory.setResourceResolver(new LSResourceResolver() {
+				public LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId, String baseURI) {
+					System.out.println("==== Resolving '" + type + "' '" + namespaceURI + "' '" + publicId + "' '" + systemId + "' '" +baseURI + "'");
+					LSInput impl = createLSInputImpl();
+					InputStream ins = null;
+					
+					String resURL = null;
+					String sourceURI = null;
+					String schemaLocation = "";
+					
+					try {
+						if (baseURI != null) {
+							schemaLocation = baseURI.substring(0, baseURI.lastIndexOf("/") + 1);
+						}
+						else {
+							schemaLocation = collectionBaseURI.substring(0, collectionBaseURI.lastIndexOf("/") + 1);
+						}
+					}
+					catch (Exception e) {}
+					
+					if (systemId != null) {
+						if (systemId.indexOf(schemaLocation) < 0) {
+							resURL = schemaLocation + systemId;
+						} else {
+							resURL = systemId;
+						}
+						
+						sourceURI = resURL;
+						
+					} else if (namespaceURI != null) {
+						resURL = namespaceURI;
+					}
+					
+					try {
+						URL url = new URL(sourceURI);
+						ins = url.openStream();
+					} catch (Exception e) {
+						//ignore
+					}
+					
+					if ((ins == null) && (namespaceURI != null)) {
+						for (XmlSchema xs : schemas/*collection.getXmlSchemas()*/) {
+							sourceURI = xs.getSourceURI();
+							if ((systemId == null) || ((systemId != null) && (sourceURI != null) && (sourceURI.endsWith(systemId)))) {
+								if (namespaceURI.equals(xs.getTargetNamespace())) {
+									XmlSchemaObjectCollection xoc = xs.getItems();
+									for (int i=0; i<xoc.getCount(); i++) {
+										XmlSchemaObject xo = xoc.getItem(i);
+										if (xo instanceof XmlSchemaInclude) {
+											XmlSchemaInclude sci = (XmlSchemaInclude)xo;
+											XmlSchema included = sci.getSchema();
+											XmlSchemaObjectCollection c = included.getItems();
+											for (int j=0; j<c.getCount(); j++) {
+												XmlSchemaObject ob = c.getItem(j);
+												xs.getItems().add(ob);
+											}
+										}
+									}
+
+									ByteArrayOutputStream out = new ByteArrayOutputStream();
+									xs.write(out);
+									ins = new ByteArrayInputStream(out.toByteArray());
+									//System.out.println(out.toString());
+								}
+							}
+						}
+					}
+					if (ins != null) {
+						impl.setByteStream(ins);
+						return impl;
+					}
+					return null;
+				}
+			});
+			
 			Schema vSchema = factory.newSchema(sources);
 			Validator validator = vSchema.newValidator();
 			validator.validate(source);
@@ -372,7 +546,13 @@ public class XmlSchemaUtils {
 	}
 
 	public static void add(XmlSchema schema, XmlSchemaObject object) {
-		if (object instanceof XmlSchemaElement) {
+		if (object instanceof XmlSchemaImport) {
+			schema.getIncludes().add(object);
+			schema.getItems().add(object);
+		} else if (object instanceof XmlSchemaInclude) {
+			schema.getIncludes().add(object);
+			schema.getItems().add(object);
+		} else if (object instanceof XmlSchemaElement) {
 			add(schema, (XmlSchemaElement) object);
 		} else if (object instanceof XmlSchemaType) {
 			add(schema, (XmlSchemaType) object);
@@ -382,8 +562,9 @@ public class XmlSchemaUtils {
 			add(schema, (XmlSchemaAttributeGroup) object);
 		} else if (object instanceof XmlSchemaAttribute) {
 			add(schema, (XmlSchemaAttribute) object);
+		} else {
+			schema.getItems().add(object);
 		}
-		schema.getItems().add(object);
 	}
 	
 	public static void add(XmlSchema schema, XmlSchemaElement element) {
