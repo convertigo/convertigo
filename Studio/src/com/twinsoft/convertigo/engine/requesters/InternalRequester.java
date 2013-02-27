@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -119,7 +120,7 @@ public class InternalRequester extends GenericRequester {
     public void initContext(Context context) throws Exception {
     	super.initContext(context);
 
-    	Map<String, String[]> request = GenericUtils.cast(inputData);
+    	Map<String, Object> request = GenericUtils.cast(inputData);
 
 		// We transform the HTTP post data into XML data.
 		Set<String> parameterNames = request.keySet();
@@ -127,12 +128,27 @@ public class InternalRequester extends GenericRequester {
 
 		for (String parameterName : parameterNames) {
 			String parameterValue;
-			String[] parameterValues;
 
 			// Handle only convertigo parameters
 			if (parameterName.startsWith("__")) {
-				parameterValues = (String[]) request.get(parameterName);
-				parameterValue = parameterValues[0];
+				Object parameterObjectValue = request.get(parameterName);
+				// Case of convertigo parameter passed as CallTr/CallSeq variable
+				if (parameterObjectValue instanceof String) {
+					parameterValue = (String) parameterObjectValue;
+				}
+				// Case of sourced parameter
+				else if (parameterObjectValue instanceof NodeList) {
+					NodeList parameterValueNodeList = (NodeList) parameterObjectValue;
+					parameterValue = parameterValueNodeList.item(0).getNodeValue();
+				}
+				// Case of legacy convertigo parameter
+				else if (parameterObjectValue instanceof String[]) {
+					String[] parameterValues = (String[]) parameterObjectValue;
+					parameterValue = parameterValues[0];
+				}
+				else {
+					parameterValue = parameterObjectValue.toString();
+				}
 				
 				handleParameter(context, parameterName, parameterValue);
 				
