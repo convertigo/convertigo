@@ -79,7 +79,6 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepSourceListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
@@ -97,7 +96,6 @@ public class SourcePickerView extends ViewPart implements IStepSourceEditor, Ste
 	private Document currentDom = null;
 	private String regexpForPredicates = "\\[\\D{1,}\\]";
 	private DatabaseObject selectedDbo = null;
-	private XmlSchema schema = null;
 	
 	private final String show_step_source 		= "   Show step's source   ";
 	private final String show_variable_source 	= "Show variable's source";
@@ -440,14 +438,6 @@ public class SourcePickerView extends ViewPart implements IStepSourceEditor, Ste
 	private void showStep(DatabaseObject dbo, boolean showSource) {
 		if (selectedDbo == null) return;
 		
-		try {
-			Project project = selectedDbo.getProject();
-			schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), true);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
 		String priority, xpath;
 		DatabaseObject dboToShow = null;
 		if (showSource) {
@@ -506,24 +496,16 @@ public class SourcePickerView extends ViewPart implements IStepSourceEditor, Ste
 		}
 	}
 	
-	private Step getTargetStep(Step step) throws EngineException {
-		if (step != null && (step instanceof IStepSourceContainer)) {
-			com.twinsoft.convertigo.beans.core.StepSource source = new com.twinsoft.convertigo.beans.core.StepSource(step,((IStepSourceContainer)step).getSourceDefinition());
-			if (source != null && !source.isEmpty()) {
-				return source.getStep();
-			}
-		}
-		return step;
-	}
-	
 	private void displayTargetWsdlDom(DatabaseObject dbo) {
 		try {
 			if (dbo instanceof Step) {
 				Step step = (Step)dbo;
 				String xpath = getSourceXPath();
 				String anchor = step.getAnchor();
-//				XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, step);
-				XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, getTargetStep(step));
+				
+				Project project = step.getProject();
+				XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), true);
+				XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, step);
 				Document stepDoc = XmlSchemaUtils.getDomInstance(xso);
 //				Document stepDoc = step.getWsdlDom();
 				if (stepDoc != null) { // stepDoc can be null for non "xml" step : e.g jIf
