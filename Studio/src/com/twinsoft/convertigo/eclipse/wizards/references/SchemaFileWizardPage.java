@@ -58,7 +58,7 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 		super(pageName);
 		this.parentObject = parentObject;
 		setTitle("Schema File");
-		setDescription("Please enter an url OR choose a local file.");
+		setDescription("Please enter an url OR choose a file.");
 	}
 
 	public String[] getFilterExtension() {
@@ -111,6 +111,7 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 		editor.setFilterExtensions(filterExtension);
 		editor.setFilterNames(filterNames);
 		editor.setFilterPath(Engine.PROJECTS_PATH +"/"+ getProjectName());
+		editor.getTextControl(fileSelectionArea).setEnabled(false);
 		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {
 				IPath path = new Path(SchemaFileWizardPage.this.editor.getStringValue());
@@ -141,65 +142,64 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 	
 	private void dialogChanged() {
 		String message = null;
-		if (!urlPath.equals("") && filePath.equals("") ||
-			urlPath.equals("") && !filePath.equals("")) {
-			if (!urlPath.equals("")) {
+		if (!urlPath.equals("")) {
+			try {
+				new URL(urlPath);
 				try {
-					new URL(urlPath);
-				}
-				catch (Exception e) {
-					message = "Please enter a valid URL";
+					setDboUrlPath(urlPath);
+				} catch (NullPointerException e) {
+					message = "New Bean has not been instantiated";
 				}
 			}
-			else if (!filePath.equals("")) {
-				File file = new File(filePath);
-				if (!file.exists()) {
-					message = "Please select an existing file";
-				}
-				else {
-					message = "Please select a compatible file";
-					String[] filterExtensions = filterExtension[0].split(";");
-					for (String fileFilter: filterExtensions) {
-						String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));
-						if (filePath.endsWith(fileExtension)) {
-							message = null;
+			catch (Exception e) {
+				message = "Please enter a valid URL";
+			}
+		}
+		else if (!filePath.equals("")) {
+			File file = new File(filePath);
+			if (!file.exists()) {
+				message = "Please select an existing file";
+			}
+			else {
+				String[] filterExtensions = filterExtension[0].split(";");
+				for (String fileFilter: filterExtensions) {
+					String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));
+					if (filePath.endsWith(fileExtension)) {
+						try {
+							String xsdFilePath = new File(filePath).getCanonicalPath();
+							String projectPath = (new File(Engine.PROJECTS_PATH +"/"+ getProjectName())).getCanonicalPath();
+							String workspacePath = (new File(Engine.USER_WORKSPACE_PATH)).getCanonicalPath();
+							
+							boolean isExternal = !xsdFilePath.startsWith(projectPath) && !xsdFilePath.startsWith(workspacePath);
+							
+							if (isExternal) {
+								SchemaFileWizardPage.this.url.setText(file.toURI().toURL().toString());
+							}
+							else {
+								if (xsdFilePath.startsWith(projectPath))
+									xsdFilePath = "./" + xsdFilePath.substring(projectPath.length());
+								else if (xsdFilePath.startsWith(workspacePath))
+									xsdFilePath = "." + xsdFilePath.substring(workspacePath.length());
+								xsdFilePath = xsdFilePath.replaceAll("\\\\", "/");
+								
+								try {
+									setDboFilePath(xsdFilePath);
+								} catch (NullPointerException e) {
+									message = "New Bean has not been instantiated";
+								}
+							}
+						} catch (Exception e) {
+							message = e.getMessage();
 						}
-					}
-				}
-			}
-			
-			if (message == null) {
-				try {
-					String localPath = "".equals(filePath) ? "":(new File(filePath)).getCanonicalPath();
-					String projectPath = (new File(Engine.PROJECTS_PATH +"/"+ getProjectName())).getCanonicalPath();
-					String workspacePath = (new File(Engine.USER_WORKSPACE_PATH)).getCanonicalPath();
-					
-					if (!localPath.equals("") && 
-						!localPath.startsWith(projectPath) && 
-						!localPath.startsWith(workspacePath)) {
-							message = "Please select a local file";
 					}
 					else {
-						if (localPath.startsWith(projectPath))
-							localPath = "./" + localPath.substring(projectPath.length());
-						else if (localPath.startsWith(workspacePath))
-							localPath = "." + localPath.substring(workspacePath.length());
-						localPath = localPath.replaceAll("\\\\", "/");
-						
-						try {
-							setDboFilePath(localPath);
-							setDboUrlPath(urlPath);
-						} catch (NullPointerException e) {
-							message = "New Bean has not been instantiated";
-						}
+						message = "Please select a compatible file";
 					}
-				} catch (Exception e) {
-					message = e.getMessage();
 				}
 			}
 		}
 		else {
-			message = "Please enter an url OR choose a local file";
+			message = "Please enter an url OR choose a file";
 		}
 		
 		updateStatus(message);
