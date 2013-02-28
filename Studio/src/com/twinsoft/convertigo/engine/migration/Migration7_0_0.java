@@ -164,6 +164,7 @@ public class Migration7_0_0 {
 								String reqn = xmlHttpTransaction.getResponseElementQName();
 								if (!reqn.equals("")) {
 									boolean useRef = reqn.indexOf(";") == -1;
+									// Doc/Literal case
 									if (useRef) {
 										try {
 											String[] qn = reqn.split(":");
@@ -171,6 +172,24 @@ public class Migration7_0_0 {
 											xmlHttpTransaction.setXmlElementRefAffectation(new XmlQName(refName));
 										}
 										catch (Exception e) {}
+									}
+									// RPC case
+									else {
+							    		int index, index2;
+							    		try {
+								    		index = reqn.indexOf(";");
+							    			String opName = reqn.substring(0, index);
+							    			if ((index2 = reqn.indexOf(";", index+1)) != -1) {
+							        			String eltName = reqn.substring(index+1,index2);
+							        			String eltType = reqn.substring(index2+1);
+							        			String[] qn = eltType.split(":");
+							        			
+							        			QName typeName = new QName(projectSchema.getNamespaceContext().getNamespaceURI(qn[0]), qn[1]);
+							        			String responseElementQName = opName + ";" + eltName +";" + "{"+typeName.getNamespaceURI()+"}"+typeName.getLocalPart();
+							        			xmlHttpTransaction.setResponseElementQName(responseElementQName);
+							    			}
+							    		}
+							    		catch (Exception e) {}
 									}
 								}
 							}

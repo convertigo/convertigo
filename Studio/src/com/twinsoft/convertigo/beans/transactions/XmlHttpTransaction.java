@@ -33,6 +33,7 @@ import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -290,11 +291,44 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 	protected XmlSchemaComplexType addSchemaResponseDataType(XmlSchema xmlSchema) {
 		XmlSchemaComplexType xmlSchemaComplexType = super.addSchemaResponseDataType(xmlSchema);
 		XmlQName xmlQName = getXmlElementRefAffectation();
-		if (!xmlQName.isEmpty()) {
+		boolean bRPC = getResponseElementQName().indexOf(";") != -1;
+		if (!xmlQName.isEmpty() || bRPC) {
 			XmlSchemaSequence xmlSchemaSequence = (XmlSchemaSequence)xmlSchemaComplexType.getParticle();
 			if (xmlSchemaSequence == null) xmlSchemaSequence = new XmlSchemaSequence();
 			XmlSchemaElement xmlSchemaElement = new XmlSchemaElement();
-			xmlSchemaElement.setRefName(xmlQName.getQName());
+			if (bRPC) {
+				// response is based on an element defined with a type
+	    		String reqn = getResponseElementQName();// operationResponse element name; element name; element type
+				String opName = getName()+"Response", eltName = "response", eltType = "{"+Constants.URI_2001_SCHEMA_XSD+"}string";
+	    		QName typeName = Constants.XSD_STRING;
+				int i, j, k, z;
+	    		if ((i = reqn.indexOf(";")) != -1) {
+	    			opName = reqn.substring(0, i);
+	    			if ((j = reqn.indexOf(";", i+1)) != -1) {
+	        			eltName = reqn.substring(i+1,j);
+	        			eltType = reqn.substring(j+1);
+	        			if ((k = eltType.indexOf("{")) != -1) {
+		        			if ((z = eltType.indexOf("}")) != -1) {
+		        				String ns = eltType.substring(k+1, z);
+		        				String local = eltType.substring(z+1);
+		        				typeName = new QName(ns,local);
+		        			}
+	        			}
+	    			}
+	    		}
+				
+				xmlSchemaElement.setName(opName);
+				XmlSchemaComplexType cType = new XmlSchemaComplexType(xmlSchema);
+				XmlSchemaSequence seq = new XmlSchemaSequence();
+				XmlSchemaElement elem = new XmlSchemaElement();
+				elem.setName(eltName);
+				elem.setSchemaTypeName(typeName);
+				seq.getItems().add(elem);
+				cType.setParticle(seq);
+				xmlSchemaElement.setSchemaType(cType);
+			}
+			else
+				xmlSchemaElement.setRefName(xmlQName.getQName());
 			xmlSchemaSequence.getItems().add(xmlSchemaElement);
 			xmlSchemaComplexType.setParticle(xmlSchemaSequence);
 		}

@@ -383,55 +383,39 @@ public class WsReference {
    			xmlHttpTransaction.setHttpParameters(parameters);
    			
    			// Set SOAP response element
-	   		String responseQName = "", qprefix = "", qlocal = "";
    			QName qname = null;
    			boolean bRPC = false;
-   			
    			String style = operation.getStyle();
    			if (style.toUpperCase().equals("RPC")) bRPC = true;
    			if (bRPC) {
-				MessagePart[] parts = operation.getDefaultResponseParts();
-				if (parts.length>0) {
-					String ename = parts[0].getName();
-					if (parts[0].getPartType().name().equals("CONTENT")) {
-						MessagePart.ContentPart mpcp = (MessagePart.ContentPart)parts[0];
-					   	try {
+   				try {
+					MessagePart[] parts = operation.getDefaultResponseParts();
+					if (parts.length>0) {
+						String ename = parts[0].getName();
+						if (parts[0].getPartType().name().equals("CONTENT")) {
+							MessagePart.ContentPart mpcp = (MessagePart.ContentPart)parts[0];
 							qname = mpcp.getSchemaType().getName();
-							qlocal = qname.getLocalPart();
-				   			qprefix = xmlSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());
-						} catch (Exception e) {}
-						
-						if ((qname != null)&&(qprefix != null)) {
-							// response is based on an element defined with a type
-							// operationResponse element name; element name; element type
-							responseQName = operationName + "Response;" + ename + ";" + qprefix + ":" + qlocal;
+							if (qname != null) {
+								// response is based on an element defined with a type
+								// operationResponse element name; element name; element type
+								String responseQName = operationName + "Response;" + ename + ";" + "{"+qname.getNamespaceURI()+"}" + qname.getLocalPart();
+								xmlHttpTransaction.setResponseElementQName(responseQName);
+							}
 						}
 					}
-				}
+   				}
+   				catch (Exception e) {}
    			}
    			else {
-   			   	try {
-   					qname = operation.getResponseBodyElementQName();
-   					qlocal = qname.getLocalPart();
-		   			qprefix = xmlSchema.getNamespaceContext().getPrefix(qname.getNamespaceURI());
-   				} catch (Exception e) {}
-   				
-   				if ((qname != null)&&(qprefix != null)) {
-   					// response is based on a referenced element
-   					// element type
-   					responseQName = qprefix + ":" + qlocal;
-   				}
-   			}
-			xmlHttpTransaction.setResponseElementQName(responseQName);
-   			
-			try {
-				qname = operation.getResponseBodyElementQName();
-				if (qname != null) {
-					QName refName = new QName(qname.getNamespaceURI(),qname.getLocalPart());
-					xmlHttpTransaction.setXmlElementRefAffectation(new XmlQName(refName));
+				try {
+					qname = operation.getResponseBodyElementQName();
+					if (qname != null) {
+						QName refName = new QName(qname.getNamespaceURI(),qname.getLocalPart());
+						xmlHttpTransaction.setXmlElementRefAffectation(new XmlQName(refName));
+					}
 				}
+				catch (Exception e) {}
 			}
-			catch (Exception e) {}
 			
    			// Create request/response
 		   	request = operation.addNewRequest("Test"+transactionName);
