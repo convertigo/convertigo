@@ -47,6 +47,7 @@ public class XMLHttpUrl extends HtmlExtractionRule {
 		this.tagName = tagName;
 	}
 	
+	@Override
 	public boolean apply(Document xmlDom, Context context) {
 		try {
 			Document doc = context.outputDocument;

@@ -635,21 +635,23 @@ public class Engine {
 				
 				// XUL initialization
 				String xulrunner_url = System.getProperty("org.eclipse.swt.browser.XULRunnerPath");
-				if (xulrunner_url == null || xulrunner_url.equals(""))
+				if (xulrunner_url == null || xulrunner_url.equals("")) {
 					xulrunner_url = EnginePropertiesManager.getProperty(PropertyName.XULRUNNER_URL);
+				}
 
 				File f = new File(xulrunner_url);
 				if (f.exists()) {
 					xulrunner_url = f.getAbsolutePath();
-					Engine.logEngine.debug("initMozillaSWT: org.eclipse.swt.browser.XULRunnerPath="
-							+ xulrunner_url);
+					Engine.logEngine.debug("initMozillaSWT: org.eclipse.swt.browser.XULRunnerPath=" + xulrunner_url);
 					System.setProperty("org.eclipse.swt.browser.XULRunnerPath", xulrunner_url);
-				} else
-					Engine.logEngine.error("Error in initMozillaSWT: " + xulrunner_url
-							+ " doesn't exist, fix it with xulrunner.url");
+				} else {
+					Engine.logEngine.error("Error in initMozillaSWT: " + xulrunner_url + " doesn't exist, fix it with xulrunner.url");
+				}
 
 				if (Engine.isEngineMode() && Engine.isLinux()
 						&& "true".equals(EnginePropertiesManager.getProperty(PropertyName.LINUX_LAUNCH_XVNC))) {
+					
+					Engine.logEngine.debug("initMozillaSWT: org.eclipse.swt.browser.XULRunnerPath=" + xulrunner_url);
 					final String display = System.getenv("DISPLAY");
 					if (display != null) {
 						try {
@@ -687,15 +689,14 @@ public class Engine {
 									new ProcessBuilder(wm.getAbsolutePath()).start();
 									Engine.logEngine.debug("Xvnc successfully started !");
 								}
-							} else
-								Engine.logEngine.info(vncDir.getAbsolutePath()
-										+ " not found or incomplet, can't start Xvnc");
+							} else {
+								Engine.logEngine.info(vncDir.getAbsolutePath() + " not found or incomplet, can't start Xvnc");
+							}
 						} catch (Exception e) {
-							Engine.logEngine.error("failed to launch Xvnc", e);
+							Engine.logEngine.info("failed to launch Xvnc (maybe already launched", e);
 						}
 					} else
-						Engine.logEngine
-								.warn("Trying to start Xvnc on Linux without DISPLAY environment variable !");
+						Engine.logEngine.warn("Trying to start Xvnc on Linux without DISPLAY environment variable !");
 				}
 
 				isStarted = true;

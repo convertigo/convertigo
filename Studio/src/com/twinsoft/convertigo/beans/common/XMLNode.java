@@ -42,7 +42,8 @@ public class XMLNode extends HtmlExtractionRule {
 	public XMLNode() {
 		super();
 	}
-
+	
+	@Override
 	protected void appendToOutputDom(NodeList nodeList, Document outputDom) {
 		Element elt, doc;
 		Node node = null;

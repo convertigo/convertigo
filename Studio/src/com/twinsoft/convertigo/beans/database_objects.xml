@@ -485,6 +485,15 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                 </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.WriteBase64Step">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.CopyStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
@@ -746,6 +755,9 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
 				</bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLHttpUrl">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLPrintScreen">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
 				</bean>
 			</beans>
