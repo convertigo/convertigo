@@ -41,7 +41,7 @@ public class XMLPrintScreenBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
-			properties = new PropertyDescriptor[8];
+			properties = new PropertyDescriptor[9];
 			
 			properties[0] = new PropertyDescriptor("tagName", beanClass, "getTagName", "setTagName");
 			properties[0].setDisplayName(getExternalizedString("property.tagName.display_name"));
@@ -76,6 +76,11 @@ public class XMLPrintScreenBeanInfo extends MySimpleBeanInfo {
 			properties[7] = new PropertyDescriptor("includeDataUrl", beanClass, "isIncludeDataUrl", "setIncludeDataUrl");
 			properties[7].setDisplayName(getExternalizedString("property.includeDataUrl.display_name"));
 			properties[7].setShortDescription(getExternalizedString("property.includeDataUrl.short_description"));
+			
+			properties[8] = new PropertyDescriptor("minDelay", beanClass, "getMinDelay", "setMinDelay");
+			properties[8].setDisplayName(getExternalizedString("property.minDelay.display_name"));
+			properties[8].setShortDescription(getExternalizedString("property.minDelay.short_description"));
+			properties[8].setExpert(true);
 			
 			PropertyDescriptor property = getPropertyDescriptor("xpath");
 			property.setHidden(true);

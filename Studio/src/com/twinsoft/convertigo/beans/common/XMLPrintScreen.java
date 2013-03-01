@@ -45,6 +45,7 @@ public class XMLPrintScreen extends HtmlExtractionRule implements ITagsProperty 
 	private float scale = 1.0f;
 	private String imageFormat = ImageFormat.png.name();
 	private boolean includeDataUrl = true;
+	private long minDelay = 100;
 	
 	public XMLPrintScreen() {
 		super();
@@ -62,7 +63,7 @@ public class XMLPrintScreen extends HtmlExtractionRule implements ITagsProperty 
 	public boolean apply(Document xmlDom, Context context) {
 		try {
 			HtmlConnector htmlConnector = (HtmlConnector) context.getConnector();
-			PrintScreenResponse printScreenResponse = htmlConnector.getHtmlParser().makePrintScreen(context, new PrintScreenRequest(height, width, top, left, scale, getImageFormatEnum()));
+			PrintScreenResponse printScreenResponse = htmlConnector.getHtmlParser().makePrintScreen(context, new PrintScreenRequest(height, width, top, left, scale, getImageFormatEnum(), true, minDelay));
 			
 			if (printScreenResponse != null) {
 				Document doc = context.outputDocument;
@@ -169,5 +170,13 @@ public class XMLPrintScreen extends HtmlExtractionRule implements ITagsProperty 
 
 	public void setIncludeDataUrl(boolean includeDataUrl) {
 		this.includeDataUrl = includeDataUrl;
+	}
+
+	public long getMinDelay() {
+		return minDelay;
+	}
+
+	public void setMinDelay(long minDelay) {
+		this.minDelay = minDelay;
 	}
 }
