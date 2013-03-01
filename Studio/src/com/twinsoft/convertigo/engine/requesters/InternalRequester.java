@@ -26,10 +26,13 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Set;
 
+import org.mozilla.javascript.NativeJavaObject;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -51,36 +54,36 @@ public class InternalRequester extends GenericRequester {
     protected String subPath = null;
     
     protected void initInternalVariables() throws EngineException {
-		Map<String, String[]> request = GenericUtils.cast(inputData);
+		Map<String, Object> request = GenericUtils.cast(inputData);
 
 		// Find the project name
 		try {
-			projectName = request.get(Parameter.Project.getName())[0];
-			Engine.logContext.debug("(ServletRequester) project name: " + projectName);
+			projectName = getParameterValue(request.get(Parameter.Project.getName()));
+			Engine.logContext.debug("(InternalRequester) project name: " + projectName);
 		} catch (NullPointerException e) {
 			// Just ignore
 		}
 
 		// Find the pool name
 		try {
-			poolName = request.get(Parameter.Pool.getName())[0];
-			Engine.logContext.debug("(ServletRequester) pool name: " + poolName);
+			poolName = getParameterValue(request.get(Parameter.Pool.getName()));
+			Engine.logContext.debug("(InternalRequester) pool name: " + poolName);
 		} catch (NullPointerException e) {
 			// Just ignore
 		}
 
 		// Find the sequence name
 		try {
-			sequenceName = request.get(Parameter.Sequence.getName())[0];
-			Engine.logContext.debug("(ServletRequester) sequence name: " + sequenceName);
+			sequenceName = getParameterValue(request.get(Parameter.Sequence.getName()));
+			Engine.logContext.debug("(InternalRequester) sequence name: " + sequenceName);
 		} catch (NullPointerException e) {
 			// Just ignore
 		}
 
 		// Find the connector name
 		try {
-			connectorName = request.get(Parameter.Connector.getName())[0];
-			Engine.logContext.debug("(ServletRequester) connector name: " + connectorName);
+			connectorName = getParameterValue(request.get(Parameter.Connector.getName()));
+			Engine.logContext.debug("(InternalRequester) connector name: " + connectorName);
 		} catch (NullPointerException e) {
 			// Just ignore
 		}
@@ -132,23 +135,7 @@ public class InternalRequester extends GenericRequester {
 			// Handle only convertigo parameters
 			if (parameterName.startsWith("__")) {
 				Object parameterObjectValue = request.get(parameterName);
-				// Case of convertigo parameter passed as CallTr/CallSeq variable
-				if (parameterObjectValue instanceof String) {
-					parameterValue = (String) parameterObjectValue;
-				}
-				// Case of sourced parameter
-				else if (parameterObjectValue instanceof NodeList) {
-					NodeList parameterValueNodeList = (NodeList) parameterObjectValue;
-					parameterValue = parameterValueNodeList.item(0).getNodeValue();
-				}
-				// Case of legacy convertigo parameter
-				else if (parameterObjectValue instanceof String[]) {
-					String[] parameterValues = (String[]) parameterObjectValue;
-					parameterValue = parameterValues[0];
-				}
-				else {
-					parameterValue = parameterObjectValue.toString();
-				}
+				parameterValue = getParameterValue(parameterObjectValue);
 				
 				handleParameter(context, parameterName, parameterValue);
 				
@@ -169,6 +156,36 @@ public class InternalRequester extends GenericRequester {
 		}
 		
 		Engine.logContext.debug("Context initialized!");
+	}
+
+	private static String getParameterValue(Object parameterObjectValue) {
+		if (parameterObjectValue instanceof NativeJavaObject) {
+			parameterObjectValue = ((NativeJavaObject) parameterObjectValue).unwrap();
+		}
+		
+		if (parameterObjectValue.getClass().isArray()) {
+			String[] parameterValues = (String[]) parameterObjectValue;
+			if (parameterValues.length > 0) {
+				return parameterValues[0];			}
+			else return null;
+		} else if (parameterObjectValue instanceof Node) {
+			Node node = (Node) parameterObjectValue;
+			return node.getNodeValue();
+		} else if (parameterObjectValue instanceof NodeList) {
+			NodeList nl = (NodeList) parameterObjectValue;
+			if (nl.getLength() > 0) {
+				return nl.item(0).getNodeValue();
+			}
+			else return null;
+		} else if (parameterObjectValue instanceof XMLVector) {
+			XMLVector<Object> parameterValues = GenericUtils.cast(parameterObjectValue);
+			if (parameterValues.size() > 0) {
+				return getParameterValue(parameterValues.get(0));
+			}
+			else return null;
+		} else {
+			return parameterObjectValue.toString();
+		}
 	}
 
 	public Translator getTranslator() {
