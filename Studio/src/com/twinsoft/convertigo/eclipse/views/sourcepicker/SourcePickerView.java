@@ -79,6 +79,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepSourceListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
@@ -496,6 +497,16 @@ public class SourcePickerView extends ViewPart implements IStepSourceEditor, Ste
 		}
 	}
 	
+	private Step getTargetStep(Step step) throws EngineException {
+		if (step != null && (step instanceof IStepSourceContainer)) {
+			com.twinsoft.convertigo.beans.core.StepSource source = new com.twinsoft.convertigo.beans.core.StepSource(step,((IStepSourceContainer)step).getSourceDefinition());
+			if (source != null && !source.isEmpty()) {
+				return source.getStep();
+			}
+		}
+		return step;
+	}
+	
 	private void displayTargetWsdlDom(DatabaseObject dbo) {
 		try {
 			if (dbo instanceof Step) {
@@ -503,9 +514,14 @@ public class SourcePickerView extends ViewPart implements IStepSourceEditor, Ste
 				String xpath = getSourceXPath();
 				String anchor = step.getAnchor();
 				
+				Step targetStep = null;
+				if (step instanceof IteratorStep) {
+					targetStep = getTargetStep(step);
+				}
+				
 				Project project = step.getProject();
 				XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), true);
-				XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, step);
+				XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep == null ? step:targetStep);
 				Document stepDoc = XmlSchemaUtils.getDomInstance(xso);
 //				Document stepDoc = step.getWsdlDom();
 				if (stepDoc != null) { // stepDoc can be null for non "xml" step : e.g jIf
