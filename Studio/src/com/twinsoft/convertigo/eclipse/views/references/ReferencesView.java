@@ -148,112 +148,106 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 	}
 	
 	private void handleProjectSelection(Object firstElement) {
-		try {
-			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
-			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-			
-			Project projectSelected = null;
-			ProjectTreeObject projectTreeObjectSelected = null;
-			UnloadedProjectTreeObject unloadedProjectTreeObjectSelected = null;
-			
-			if (firstElement instanceof ProjectTreeObject) {
-				projectTreeObjectSelected = (ProjectTreeObject) firstElement;
-				projectSelected = projectTreeObjectSelected.getObject();
-			} else if (firstElement instanceof UnloadedProjectTreeObject) {
-				unloadedProjectTreeObjectSelected = (UnloadedProjectTreeObject) firstElement;
-				String projectNameSelected = unloadedProjectTreeObjectSelected.getName();
-				projectSelected = getProject(projectNameSelected, projectExplorerView);
-			}
-			
-			String projectNameSelected = projectSelected.getName();
-			
-			treeViewer.setInput(null);
-			
-			// Get the referencing sequences and transactions
-			List<Sequence> sequences = projectSelected.getSequencesList();
-			
-			RootNode root = new RootNode();
-			ProjectNode projectNode = new ProjectNode(root, projectNameSelected, projectSelected);
-			root.addChild(projectNode);
-			
-			// Get all the projects needed to successfully execute the selected project
-			// i.e. get all CallTransaction and CallSequence steps from the selected project
-			// that refer to other projects
-			RequiresNode requiresNode = new RequiresNode(root, "Requires");
-			
-			// Search for external sequence or transaction referenced by CallSequence or CallTransaction
-			// from the selected project
-			List<String> transactionList = new ArrayList<String>();
-			List<String> sequenceList = new ArrayList<String>();
-			for (Sequence sequence : sequences) {
-				List<Step> steps = sequence.getSteps();
-				for (Step step : steps) {
-					getRequiredRequestables(step, projectSelected, projectExplorerView, requiresNode, transactionList, sequenceList);
-				}
-			}
-			
-			if (requiresNode.hasChildren()){
-				projectNode.addChild(requiresNode);
-			}
-			else {
-				projectNode.addChild(new InformationNode(projectNode, "This project does not require any other project"));
-			}
-			
-			// Get all the projects using the selected project
-			// i.e. get all CallTransaction and CallSequence steps that refer to transactions
-			// or sequences from the selected project
-			IsUsedByNode isUsedByNode = new IsUsedByNode(root, "Is used by");
-			
-			for (String projectName : projectNames) {
-				if (!(projectName.equals(projectNameSelected))) {
-					Project project = getProject(projectName, projectExplorerView);
-					if (project == null) {
-						// Unable to load the project, just ignore it
-						ConvertigoPlugin.logWarning(
-								"[References View] Unable to load the project \"" + projectName + "\"", false);
-						continue;
-					}
-
-					ProjectNode projectFolderExports = new ProjectNode(root,
-							projectName, project);
-
-					List<Sequence> sequencesList = project.getSequencesList();
-					for (Sequence sequence : sequencesList) {
-						// Search for CallTransaction and CallSequence
-						// referencing a transaction or sequence
-						// from the selected project
-						List<Step> stepList = sequence.getSteps();
-						SequenceNode sequenceNode = new SequenceNode(root,
-								sequence.getName(), sequence);
-						for (Step step : stepList) {
-							getUsedRequestables(step,
-									projectSelected, sequenceNode);
-						}
-						if (sequenceNode.hasChildren()) {
-							projectFolderExports.addChild(sequenceNode);
-						}
-					}
-
-					if (projectFolderExports.hasChildren()) {
-						isUsedByNode.addChild(projectFolderExports);
-					}
-				}
-			}
-			if (isUsedByNode.hasChildren()) {
-				projectNode.addChild(isUsedByNode);
-			} else {
-				projectNode.addChild(new InformationNode(projectNode,
-						"This project is not used by any other project"));
-			}
-
-			treeViewer.setInput(null);
-			treeViewer.setInput(root);
-			treeViewer.expandAll();
-
-		} catch (EngineException e) {
-			ConvertigoPlugin.logException(e,
-					"Error while analyzing the projects hierarchy", true);
+		List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		
+		Project projectSelected = null;
+		ProjectTreeObject projectTreeObjectSelected = null;
+		UnloadedProjectTreeObject unloadedProjectTreeObjectSelected = null;
+		
+		if (firstElement instanceof ProjectTreeObject) {
+			projectTreeObjectSelected = (ProjectTreeObject) firstElement;
+			projectSelected = projectTreeObjectSelected.getObject();
+		} else if (firstElement instanceof UnloadedProjectTreeObject) {
+			unloadedProjectTreeObjectSelected = (UnloadedProjectTreeObject) firstElement;
+			String projectNameSelected = unloadedProjectTreeObjectSelected.getName();
+			projectSelected = getProject(projectNameSelected, projectExplorerView);
 		}
+		
+		String projectNameSelected = projectSelected.getName();
+		
+		treeViewer.setInput(null);
+		
+		// Get the referencing sequences and transactions
+		List<Sequence> sequences = projectSelected.getSequencesList();
+		
+		RootNode root = new RootNode();
+		ProjectNode projectNode = new ProjectNode(root, projectNameSelected, projectSelected);
+		root.addChild(projectNode);
+		
+		// Get all the projects needed to successfully execute the selected project
+		// i.e. get all CallTransaction and CallSequence steps from the selected project
+		// that refer to other projects
+		RequiresNode requiresNode = new RequiresNode(root, "Requires");
+		
+		// Search for external sequence or transaction referenced by CallSequence or CallTransaction
+		// from the selected project
+		List<String> transactionList = new ArrayList<String>();
+		List<String> sequenceList = new ArrayList<String>();
+		for (Sequence sequence : sequences) {
+			List<Step> steps = sequence.getSteps();
+			for (Step step : steps) {
+				getRequiredRequestables(step, projectSelected, projectExplorerView, requiresNode, transactionList, sequenceList);
+			}
+		}
+		
+		if (requiresNode.hasChildren()){
+			projectNode.addChild(requiresNode);
+		}
+		else {
+			projectNode.addChild(new InformationNode(projectNode, "This project does not require any other project"));
+		}
+		
+		// Get all the projects using the selected project
+		// i.e. get all CallTransaction and CallSequence steps that refer to transactions
+		// or sequences from the selected project
+		IsUsedByNode isUsedByNode = new IsUsedByNode(root, "Is used by");
+		
+		for (String projectName : projectNames) {
+			if (!(projectName.equals(projectNameSelected))) {
+				Project project = getProject(projectName, projectExplorerView);
+				if (project == null) {
+					// Unable to load the project, just ignore it
+					ConvertigoPlugin.logWarning(
+							"[References View] Unable to load the project \"" + projectName + "\"", false);
+					continue;
+				}
+
+				ProjectNode projectFolderExports = new ProjectNode(root,
+						projectName, project);
+
+				List<Sequence> sequencesList = project.getSequencesList();
+				for (Sequence sequence : sequencesList) {
+					// Search for CallTransaction and CallSequence
+					// referencing a transaction or sequence
+					// from the selected project
+					List<Step> stepList = sequence.getSteps();
+					SequenceNode sequenceNode = new SequenceNode(root,
+							sequence.getName(), sequence);
+					for (Step step : stepList) {
+						getUsedRequestables(step,
+								projectSelected, sequenceNode);
+					}
+					if (sequenceNode.hasChildren()) {
+						projectFolderExports.addChild(sequenceNode);
+					}
+				}
+
+				if (projectFolderExports.hasChildren()) {
+					isUsedByNode.addChild(projectFolderExports);
+				}
+			}
+		}
+		if (isUsedByNode.hasChildren()) {
+			projectNode.addChild(isUsedByNode);
+		} else {
+			projectNode.addChild(new InformationNode(projectNode,
+					"This project is not used by any other project"));
+		}
+
+		treeViewer.setInput(null);
+		treeViewer.setInput(root);
+		treeViewer.expandAll();
 	}
 	
 	private void handleScreenClassSelection(Object firstElement) {
@@ -458,75 +452,70 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 		
 //		String sequenceProjectName = sequenceSelected.getProject().getName();
 		
-		try {
-			List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
-			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
+		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		
+		treeViewer.setInput(null);
+		
+		// Get the referencing sequence steps
+		List<String> referencingSequence = new ArrayList<String>();
+		
+		RootNode root = new RootNode();
+		
+		SequenceNode sequenceFolder = new SequenceNode(root, sequenceSelectedName, sequenceSelected);
+		root.addChild(sequenceFolder);
+		
+		IsUsedByNode isUsedByNode = new IsUsedByNode(sequenceFolder, "Is used by");
+		
+		// Searching all objects that reference the selected sequence
+		for (String projectName : projectNames) {
+			Project project = getProject(projectName, projectExplorerView);
 			
-			treeViewer.setInput(null);
+			ProjectNode projectFolder = null;
+			projectFolder = new ProjectNode(isUsedByNode, project.getName(), project);
+			List<Sequence> sequences = project.getSequencesList();
+			referencingSequence.clear();
 			
-			// Get the referencing sequence steps
-			List<String> referencingSequence = new ArrayList<String>();
-			
-			RootNode root = new RootNode();
-			
-			SequenceNode sequenceFolder = new SequenceNode(root, sequenceSelectedName, sequenceSelected);
-			root.addChild(sequenceFolder);
-			
-			IsUsedByNode isUsedByNode = new IsUsedByNode(sequenceFolder, "Is used by");
-			
-			// Searching all objects that reference the selected sequence
-			for (String projectName : projectNames) {
-				Project project = getProject(projectName, projectExplorerView);
+			for (Sequence sequence : sequences) {
+				List<Step> steps = sequence.getSteps();
 				
-				ProjectNode projectFolder = null;
-				projectFolder = new ProjectNode(isUsedByNode, project.getName(), project);
-				List<Sequence> sequences = project.getSequencesList();
-				referencingSequence.clear();
-				
-				for (Sequence sequence : sequences) {
-					List<Step> steps = sequence.getSteps();
-					
-					for (Step step : steps) {
-						SequenceNode sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
-						getSequenceReferencingIsUsedBy(step, sequenceSelected, sequenceNode);
-						if (sequenceNode.hasChildren()) {
-							projectFolder.addChild(sequenceNode);
-						}
+				for (Step step : steps) {
+					SequenceNode sequenceNode = new SequenceNode(projectFolder, sequence.getName(), sequence);
+					getSequenceReferencingIsUsedBy(step, sequenceSelected, sequenceNode);
+					if (sequenceNode.hasChildren()) {
+						projectFolder.addChild(sequenceNode);
 					}
 				}
-				if (projectFolder.hasChildren()) {
-					isUsedByNode.addChild(projectFolder);
-				}
 			}
-			
-			List<Step> steps = sequenceSelected.getSteps();
-			
-			RequiresNode requiresNode = new RequiresNode(root, "Requires");			
-			
-			// Searching all objects that are referenced by the selected sequence
-			List<String> transactionList = new ArrayList<String>();
-			List<String> sequenceList = new ArrayList<String>();
-			
-			for (Step step : steps) {
-				getSequenceReferencingRequires(step, sequenceSelected, projectExplorerView, requiresNode, transactionList, sequenceList);
+			if (projectFolder.hasChildren()) {
+				isUsedByNode.addChild(projectFolder);
 			}
-			
-			if (requiresNode.hasChildren()) {
-				sequenceFolder.addChild(requiresNode);
-			}
-			if (isUsedByNode.hasChildren()) {
-				sequenceFolder.addChild(isUsedByNode);
-			}
-			if (!sequenceFolder.hasChildren()) {
-				sequenceFolder.addChild(new InformationNode(sequenceFolder, "This sequence is not used in any sequence"));
-			}
-
-			treeViewer.setInput(root);
-			treeViewer.expandAll();
-			
-		} catch (EngineException e) {
-			ConvertigoPlugin.logException(e, "Error while analyzing the projects hierarchy", true);
 		}
+		
+		List<Step> steps = sequenceSelected.getSteps();
+		
+		RequiresNode requiresNode = new RequiresNode(root, "Requires");			
+		
+		// Searching all objects that are referenced by the selected sequence
+		List<String> transactionList = new ArrayList<String>();
+		List<String> sequenceList = new ArrayList<String>();
+		
+		for (Step step : steps) {
+			getSequenceReferencingRequires(step, sequenceSelected, projectExplorerView, requiresNode, transactionList, sequenceList);
+		}
+		
+		if (requiresNode.hasChildren()) {
+			sequenceFolder.addChild(requiresNode);
+		}
+		if (isUsedByNode.hasChildren()) {
+			sequenceFolder.addChild(isUsedByNode);
+		}
+		if (!sequenceFolder.hasChildren()) {
+			sequenceFolder.addChild(new InformationNode(sequenceFolder, "This sequence is not used in any sequence"));
+		}
+
+		treeViewer.setInput(root);
+		treeViewer.expandAll();
 	}
 
 	private void handleConnectorSelection(Object firstElement) {

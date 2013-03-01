@@ -202,33 +202,25 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return new Vector<String>(getAllProjectNamesList());
 	}
 
-	public List<String> getAllProjectNamesList() throws EngineException {
-		try {
-			Engine.logDatabaseObjectManager.trace("Retrieving all project names from \""
-					+ Engine.PROJECTS_PATH + "\"");
-			File projectsDir = new File(Engine.PROJECTS_PATH);
-			SortedSet<String> projectNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-			
-			for (File projectDir : projectsDir.listFiles()) {
-				if (projectDir.isDirectory() && new File(projectDir, projectDir.getName() + ".xml").exists()) {
-					projectNames.add(projectDir.getName());
-				}
+	public List<String> getAllProjectNamesList() {
+		Engine.logDatabaseObjectManager.trace("Retrieving all project names from \""
+				+ Engine.PROJECTS_PATH + "\"");
+		File projectsDir = new File(Engine.PROJECTS_PATH);
+		SortedSet<String> projectNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+		
+		for (File projectDir : projectsDir.listFiles()) {
+			if (projectDir.isDirectory() && new File(projectDir, projectDir.getName() + ".xml").exists()) {
+				projectNames.add(projectDir.getName());
 			}
-			
-			Engine.logDatabaseObjectManager.trace("Project names found: " + projectNames.toString());
-			return new ArrayList<String>(projectNames);
-		} catch (Exception e) {
-			throw new EngineException("Unable to retrieve the project names list.", e);
 		}
+		
+		Engine.logDatabaseObjectManager.trace("Project names found: " + projectNames.toString());
+		return new ArrayList<String>(projectNames);
 	}
 
 	public String[] getAllProjectNamesArray() {
-		try {
-			Collection<String> c = getAllProjectNamesList();
-			return c.toArray(new String[c.size()]);
-		} catch (EngineException e) {
-			return new String[0];
-		}
+		Collection<String> c = getAllProjectNamesList();
+		return c.toArray(new String[c.size()]);
 	}
 
 	protected void checkForEngineMigrationProcess(String projectName) throws ProjectInMigrationProcessException {
