@@ -63,6 +63,7 @@ import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XSDExtractor;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 /**
  * This is the base interface from a Convertigo transaction. A transaction is
@@ -681,7 +682,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		
 		addSchemaCommentAnnotation(xmlSchemaElement, getComment());
 		
-		xmlSchema.getItems().add(xmlSchemaElement);
+		XmlSchemaUtils.add(xmlSchema, xmlSchemaElement);
 		
 		return xmlSchemaElement;
 	}
@@ -692,7 +693,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		XmlSchemaComplexType xmlSchemaComplexType = new XmlSchemaComplexType(xmlSchema);
 		xmlSchemaComplexType.setName(localName);
 		
-		xmlSchema.getItems().add(xmlSchemaComplexType);
+		XmlSchemaUtils.add(xmlSchema, xmlSchemaComplexType);
 		
 		return xmlSchemaComplexType;
 	}
@@ -715,7 +716,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		xmlSchemaComplexType.setParticle(xmlSchemaSequence);
 		xmlSchemaElement.setSchemaType(xmlSchemaComplexType);
 		
-		xmlSchema.getItems().add(xmlSchemaElement);
+		XmlSchemaUtils.add(xmlSchema, xmlSchemaElement);
 		
 		return xmlSchemaElement;
 	}
@@ -738,7 +739,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		xmlSchemaSequence.getItems().add(documentElement);
 		xmlSchemaComplexType.setParticle(xmlSchemaSequence);
 		
-		xmlSchema.getItems().add(xmlSchemaComplexType);
+		XmlSchemaUtils.add(xmlSchema, xmlSchemaComplexType);
 		
 		return xmlSchemaComplexType;
 	}
@@ -749,7 +750,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		XmlSchemaComplexType xmlSchemaComplexType = new XmlSchemaComplexType(xmlSchema);
 		xmlSchemaComplexType.setName(localName);
 		addSchemaResponseObjects(xmlSchema, xmlSchemaComplexType);
-		xmlSchema.getItems().add(xmlSchemaComplexType);
+		XmlSchemaUtils.add(xmlSchema, xmlSchemaComplexType);
 		
 		return xmlSchemaComplexType;
 	}
@@ -844,7 +845,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 //			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 //			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 //			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-//			transformer.transform(new DOMSource(xmlSchema.getSchemaDocument()), new StreamResult(System.out));
+//			transformer.transform(new DOMSource(transactionSchema.getSchemaDocument()), new StreamResult(System.out));
 			xmlSchemaInclude.setSchema(transactionSchema);
 		}
 		return xmlSchemaInclude;

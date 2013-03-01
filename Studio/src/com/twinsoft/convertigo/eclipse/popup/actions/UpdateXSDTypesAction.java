@@ -33,17 +33,20 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.w3c.dom.Document;
 
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
+import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.TransactionXSDTypesDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -160,6 +163,22 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
        	                        document.getDocumentElement().setAttribute("transaction", prefix + requestableName);
                         	}
                         	
+                        	if (requestable instanceof XmlHttpTransaction) {
+                        		XmlHttpTransaction xmlHttpTransaction = (XmlHttpTransaction)requestable;
+                        		XmlQName xmlQName = xmlHttpTransaction.getXmlElementRefAffectation();
+                        		String reqn = xmlHttpTransaction.getResponseElementQName();
+                        		if (extract && ((!xmlQName.isEmpty()) || (!reqn.equals("")))) {
+                        			if (!xmlQName.isEmpty()) {
+                        				ConvertigoPlugin.infoMessageBox("You should first unset 'Assigned element QName' property.");
+                        				return;
+                        			}
+                        			if (!reqn.equals("")) {
+                        				ConvertigoPlugin.infoMessageBox("You should first unset 'Schema of XML response root element' property.");
+                        				return;
+                        			}
+                        		}
+                        	}
+                        	
     	                    result = requestable.generateXsdTypes(document, extract);
                         }
                     }
@@ -184,11 +203,25 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
                     if ((result != null) && (!result.equals(""))) {
                     	String xsdTypes = result;
                     	if (requestable instanceof Transaction) {
-                    		((Transaction)requestable).writeSchemaToFile(xsdTypes);
+                    		if (requestable instanceof XmlHttpTransaction) {
+                        		XmlHttpTransaction xmlHttpTransaction = (XmlHttpTransaction)requestable;
+                        		XmlQName xmlQName = xmlHttpTransaction.getXmlElementRefAffectation();
+                        		String reqn = xmlHttpTransaction.getResponseElementQName();
+                        		if (!extract && ((!xmlQName.isEmpty()) || (!reqn.equals("")))) {
+                        			;//ignore
+                        		}
+                        		else
+                        			((Transaction)requestable).writeSchemaToFile(xsdTypes);
+                    		}
+                    		else
+                    			((Transaction)requestable).writeSchemaToFile(xsdTypes);
                     	}
                     	
                     	requestable.hasChanged = true;
                     	explorerView.refreshFirstSelectedTreeObject();
+                    	
+                    	// fire event for schema regeneration in schema view
+                    	explorerView.fireTreeObjectPropertyChanged(new TreeObjectEvent(treeObject));
                     }
             	}
         	}

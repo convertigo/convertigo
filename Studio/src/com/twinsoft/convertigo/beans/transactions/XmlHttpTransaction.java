@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XmlHttpTransaction extends AbstractHttpTransaction implements IElementRefAffectation {
 
@@ -181,44 +182,56 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 	
 	@Override
 	protected String extractXsdType(Document document) throws Exception {
+		XmlQName xmlQName = getXmlElementRefAffectation();
     	String reqn = getResponseElementQName();
-    	if (!reqn.equals("")) return generateWsdlType(document);
+    	if (!reqn.equals("") || !xmlQName.isEmpty())
+    		return generateWsdlType(document);
 		return super.extractXsdType(document);
 	}
 
 	@Override
 	public String generateWsdlType(Document document) throws Exception {
+		XmlQName xmlQName = getXmlElementRefAffectation();
     	String reqn = getResponseElementQName();
-    	if (!reqn.equals("")) {
-    		String opName = getName()+"Response", eltName = "response", eltType = "xsd:string";
-    		boolean useRef = true;
-    		int index, index2;
-    		if ((index = reqn.indexOf(";")) != -1) {
-    			useRef = false;
-    			opName = reqn.substring(0, index);
-    			if ((index2 = reqn.indexOf(";", index+1)) != -1) {
-        			eltName = reqn.substring(index+1,index2);
-        			eltType = reqn.substring(index2+1);
-    			}
+    	if (!reqn.equals("") || !xmlQName.isEmpty()) {
+//    		String opName = getName()+"Response", eltName = "response", eltType = "xsd:string";
+//    		boolean useRef = true;
+//    		int index, index2;
+//    		if ((index = reqn.indexOf(";")) != -1) {
+//    			useRef = false;
+//    			opName = reqn.substring(0, index);
+//    			if ((index2 = reqn.indexOf(";", index+1)) != -1) {
+//        			eltName = reqn.substring(index+1,index2);
+//        			eltType = reqn.substring(index2+1);
+//    			}
+//    		}
+//    		
+//    		String prefix = getXsdTypePrefix();
+//    		String xsdType = "";
+//    		xsdType += "<xsd:complexType name=\""+ prefix + getName() +"Response" +"\" >\n";
+//    		xsdType += "  <xsd:sequence>\n";
+//    		if (useRef)
+//    			xsdType += "    <xsd:element ref=\""+ reqn +"\"/>\n";
+//    		else {
+//    			xsdType += "    <xsd:element name=\""+ opName +"\">\n";
+//    			xsdType += "      <xsd:complexType>\n";
+//    			xsdType += "        <xsd:sequence>\n";
+//    			xsdType += "          <xsd:element name=\""+ eltName +"\" type=\""+ eltType +"\"/>\n";
+//    			xsdType += "        </xsd:sequence>\n";
+//    			xsdType += "      </xsd:complexType>\n";
+//    			xsdType += "    </xsd:element>\n";
+//    		}
+//    		xsdType += "  </xsd:sequence>\n";
+//    		xsdType += "</xsd:complexType>\n";
+    		String xsdType = "<xsd:complexType name=\""+ getXsdResponseElementName() +"\" />\n";
+    		try {
+	    		XmlSchema xmlSchema = createSchema();
+	    		XmlSchemaComplexType cType = (XmlSchemaComplexType) xmlSchema.getTypeByName(getXsdResponseTypeName());
+	    		xsdType = cType.toString("xsd", 0);
     		}
-    		
-    		String prefix = getXsdTypePrefix();
-    		String xsdType = "";
-    		xsdType += "<xsd:complexType name=\""+ prefix + getName() +"Response" +"\" >\n";
-    		xsdType += "  <xsd:sequence>\n";
-    		if (useRef)
-    			xsdType += "    <xsd:element ref=\""+ reqn +"\"/>\n";
-    		else {
-    			xsdType += "    <xsd:element name=\""+ opName +"\">\n";
-    			xsdType += "      <xsd:complexType>\n";
-    			xsdType += "        <xsd:sequence>\n";
-    			xsdType += "          <xsd:element name=\""+ eltName +"\" type=\""+ eltType +"\"/>\n";
-    			xsdType += "        </xsd:sequence>\n";
-    			xsdType += "      </xsd:complexType>\n";
-    			xsdType += "    </xsd:element>\n";
+    		catch (Exception e) {
+    			e.printStackTrace();
     		}
-    		xsdType += "  </xsd:sequence>\n";
-    		xsdType += "</xsd:complexType>\n";
     		return xsdType;
     	}
     	return super.generateWsdlType(document);
@@ -253,40 +266,61 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 	
 	@Override
 	public void writeSchemaToFile(String xsdTypes) {
-		try {
-			XmlSchema xmlSchema = createSchema();
+		XmlQName xmlQName = getXmlElementRefAffectation();
+		boolean bRPC = getResponseElementQName().indexOf(";") != -1;
+		if (!xmlQName.isEmpty() || bRPC) {
 			try {
-				if (!getXmlElementRefAffectation().isEmpty()) {
-					String ns = getElementRefAffectation().getNamespaceURI();
-					XmlSchemaCollection collection = Engine.theApp.schemaManager.getSchemasForProject(getProject().getName());
-					XmlSchema referenced = collection.schemaForNamespace(ns);
-					if (referenced != null) {
-						if (ns.equals(xmlSchema.getTargetNamespace())) {
-							XmlSchemaInclude xmlSchemaInclude = new XmlSchemaInclude();
-							xmlSchemaInclude.setSchemaLocation(referenced.getSourceURI());
-							xmlSchemaInclude.setSchema(referenced);
-							xmlSchema.getItems().add(xmlSchemaInclude);
-						}
-						else {
-							XmlSchemaImport xmlSchemaImport = new XmlSchemaImport();
-							xmlSchemaImport.setNamespace(referenced.getTargetNamespace());
-							xmlSchemaImport.setSchemaLocation(referenced.getSourceURI());
-							xmlSchemaImport.setSchema(referenced);
-							xmlSchema.getItems().add(xmlSchemaImport);
-						}
+				XmlSchema xmlSchema = createSchema();
+				String ns = getElementRefAffectation().getNamespaceURI();
+				XmlSchemaCollection collection = Engine.theApp.schemaManager.getSchemasForProject(getProject().getName());
+				XmlSchema referenced = collection.schemaForNamespace(ns);
+				if (referenced != null) {
+					if (ns.equals(xmlSchema.getTargetNamespace())) {
+						XmlSchemaInclude xmlSchemaInclude = new XmlSchemaInclude();
+						xmlSchemaInclude.setSchemaLocation(referenced.getSourceURI());
+						xmlSchemaInclude.setSchema(referenced);
+						XmlSchemaUtils.add(xmlSchema, xmlSchemaInclude);
+					}
+					else {
+						XmlSchemaImport xmlSchemaImport = new XmlSchemaImport();
+						xmlSchemaImport.setNamespace(referenced.getTargetNamespace());
+						xmlSchemaImport.setSchemaLocation(referenced.getSourceURI());
+						xmlSchemaImport.setSchema(referenced);
+						XmlSchemaUtils.add(xmlSchema, xmlSchemaImport);
 					}
 				}
-    		}
-    		catch (Exception e) {}
-    		
-			new File(getSchemaFileDirPath()).mkdirs();
-			SchemaUtils.saveSchema(getSchemaFilePath(), xmlSchema);
+				new File(getSchemaFileDirPath()).mkdirs();
+				SchemaUtils.saveSchema(getSchemaFilePath(), xmlSchema);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
-		catch (Exception e) {
-			e.printStackTrace();
+		else {
+			super.writeSchemaToFile(xsdTypes);
 		}
 	}
 	
+	
+	@Override
+	public XmlSchemaInclude getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaInclude xmlSchemaInclude = super.getXmlSchemaObject(collection, schema);	
+		
+		XmlQName xmlQName = getXmlElementRefAffectation();
+		String reqn = getResponseElementQName();
+		if (!xmlQName.isEmpty() || !reqn.equals("")) {
+			XmlSchema transactionSchema =  createSchema();
+			if (transactionSchema != null) {
+//				Transformer transformer = TransformerFactory.newInstance().newTransformer();
+//				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+//				transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+//				transformer.transform(new DOMSource(transactionSchema.getSchemaDocument()), new StreamResult(System.out));
+				xmlSchemaInclude.setSchema(transactionSchema);
+			}
+		}
+		return xmlSchemaInclude;
+	}
+
 	@Override
 	protected XmlSchemaComplexType addSchemaResponseDataType(XmlSchema xmlSchema) {
 		XmlSchemaComplexType xmlSchemaComplexType = super.addSchemaResponseDataType(xmlSchema);
@@ -327,8 +361,10 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 				cType.setParticle(seq);
 				xmlSchemaElement.setSchemaType(cType);
 			}
-			else
+			else {
+				xmlSchemaElement.setName("");
 				xmlSchemaElement.setRefName(xmlQName.getQName());
+			}
 			xmlSchemaSequence.getItems().add(xmlSchemaElement);
 			xmlSchemaComplexType.setParticle(xmlSchemaSequence);
 		}
