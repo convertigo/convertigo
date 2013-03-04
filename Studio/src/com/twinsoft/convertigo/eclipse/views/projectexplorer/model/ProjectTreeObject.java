@@ -144,25 +144,28 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	}
 
 	private void clearSourcePickerView() {
-		IWorkbenchPage activePage = PlatformUI
-				.getWorkbench()
-				.getActiveWorkbenchWindow()
-				.getActivePage();
-		
-		if (activePage != null) {
-			IViewPart viewPart = activePage.findView("com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView");
-			if (viewPart != null) {
-				SourcePickerView spv = (SourcePickerView)viewPart;
-				DatabaseObject dbo = (DatabaseObject)spv.getObject();
-				boolean bClose = true;
-				try {
-					bClose = dbo.getProject().equals(getObject());
-				} catch (Exception e) {}
-				if (bClose) {
-					spv.close();
+		try {
+			IWorkbenchPage activePage = PlatformUI
+					.getWorkbench()
+					.getActiveWorkbenchWindow()
+					.getActivePage();
+			
+			if (activePage != null) {
+				IViewPart viewPart = activePage.findView("com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView");
+				if (viewPart != null) {
+					SourcePickerView spv = (SourcePickerView)viewPart;
+					DatabaseObject dbo = (DatabaseObject)spv.getObject();
+					boolean bClose = true;
+					try {
+						bClose = dbo.getProject().equals(getObject());
+					} catch (Exception e) {}
+					if (bClose) {
+						spv.close();
+					}
 				}
 			}
 		}
+		catch (Exception e) {}
 	}
 
 	@Override

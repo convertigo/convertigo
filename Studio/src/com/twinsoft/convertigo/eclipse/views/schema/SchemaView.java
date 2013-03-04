@@ -316,9 +316,12 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	@Override
 	public void dispose() {
 		workingThread = null;
-		getSite().getPage().removeSelectionListener(this);
-		Engine.theApp.removeEngineListener(engineListener);
-		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().removePartListener(this);
+		try {
+			getSite().getPage().removeSelectionListener(this);
+			Engine.theApp.removeEngineListener(engineListener);
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().removePartListener(this);
+		}
+		catch (Exception e) {};
 		content.dispose();
 		super.dispose();
 	}
