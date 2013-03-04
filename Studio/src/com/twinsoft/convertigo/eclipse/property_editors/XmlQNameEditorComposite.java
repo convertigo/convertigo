@@ -229,7 +229,7 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 			public void modifyText(ModifyEvent e) {
 				String txt = tLocalName.getText();
 				if (txt.length() == 0) {
-					bNone.notifyListeners(SWT.Selection, null);
+					//bNone.notifyListeners(SWT.Selection, null); // commented to prevent stack over flow
 				} else {
 					tNamespace.setText(currentNamespace);
 					QName qName = new QName(currentNamespace, txt);
