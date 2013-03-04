@@ -88,6 +88,9 @@ public class UnifiedInputStream extends InputStream {
 
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException {
+		if (len > b.length) {
+			len = b.length;
+		}
 		int n = current_file.read(b, off, len);
 		if (n != -1) {
 			current_position += n;
