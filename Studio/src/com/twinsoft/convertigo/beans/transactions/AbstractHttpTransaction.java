@@ -62,6 +62,10 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     /** Holds value of property handleCookie. */
     private boolean handleCookie = true;
     
+    /** Holds value of property statusCodeInfo. */
+    private boolean httpInfo = false;
+    private String httpInfoTagName = "HTTP info";
+    
 	public static final String[] HTTP_VERBS = { "GET", "POST", "PUT", "DELETE", "HEAD", "TRACE", "OPTIONS"};
     public static int HTTP_VERB_GET = 0;
     public static int HTTP_VERB_POST = 1;
@@ -184,11 +188,11 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     @Override
 	public void runCore() throws EngineException {
 		HttpConnector connector = (HttpConnector) parent;			
-
+		byte[] httpData = null;
 		try {
             String t = context.statistics.start(EngineStatistics.APPLY_USER_REQUEST);
 
-            byte[] httpData = null;
+           
             try {
     			Engine.logBeans.debug("(HttpTransaction) Retrieving data...");
     			httpData = connector.getData(context);
@@ -207,7 +211,28 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 			score +=1;
 		}
 		catch(EngineException e) {
-			throw e;
+			//If we have an error we put the pure HTTP data
+			if( httpData != null && getHttpInfo() == true){
+				Element err = connector.HTTPInfoElement.getOwnerDocument().createElement("errors");
+				Element puredata = connector.HTTPInfoElement.getOwnerDocument().createElement("puredata");
+				err.setAttribute("class", e.getClass().getCanonicalName());
+				err.setTextContent((String) e.getLocalizedMessage());
+				try{
+					//if we have a text
+					if(requester.context.contentType.contains("text"))
+						puredata.setTextContent(new String ( httpData, requester.context.contentType.substring(requester.context.contentType.indexOf("=") + 1 )));
+					//else a binary content
+					else
+						puredata.setTextContent(new String ( httpData ));
+						//http://qualifpc:18080/convertigo/admin/services/logs.Get
+					
+				}catch(Exception e2){
+					throw new EngineException("An unexpected exception occured while trying to encode the HTTP data.", e2);
+				}
+				connector.HTTPInfoElement.appendChild(err);
+				connector.HTTPInfoElement.appendChild(puredata);
+			}else
+				throw e;
 		}
 		catch(MalformedURLException e) {
 			throw new EngineException("The URL is malformed: " + connector.sUrl + "\nPlease check your project and/or transaction settings...", e);
@@ -358,6 +383,34 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 		this.requestTemplate = requestTemplate;
 	}
 	
+	/** Getter for property httpInfo.
+     * @return Value of property httpInfo.
+     */
+	public boolean getHttpInfo(){
+		return httpInfo;
+	}
+	
+    /** Setter for property httpInfo.
+     * @param httpInfo New value of property httpInfo.
+     */
+	public void setHttpInfo(boolean httpInfo) {
+		this.httpInfo = httpInfo;
+	}
+	
+	/** Getter for property httpInfoTagName.
+     * @return Value of property httpInfoTagName.
+     */
+	public String getHttpInfoTagName() {
+		return httpInfoTagName;
+	}
+	
+    /** Setter for property httpInfoTagName.
+     * @param httpInfoTagName New value of property httpInfoTagName.
+     */
+	public void setHttpInfoTagName(String httpInfoTagName) {
+		this.httpInfoTagName = httpInfoTagName;
+	}
+	
     @Override
     public void add(DatabaseObject databaseObject) throws EngineException {
         if (databaseObject instanceof RequestableVariable) {
@@ -381,4 +434,6 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
         	super.remove(databaseObject);
         }
     }
+
+	
 }

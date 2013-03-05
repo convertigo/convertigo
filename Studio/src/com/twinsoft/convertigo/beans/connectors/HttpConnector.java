@@ -129,11 +129,13 @@ public class HttpConnector extends Connector {
 	transient public URL url;
 	transient private String referer = "";
 	transient private String charset = null;
+	transient public Element HTTPInfoElement;
 	
 	public static final String HTTP_HEADER_FORWARD_POLICY_REPLACE = "Replace";
 	public static final String HTTP_HEADER_FORWARD_POLICY_IGNORE = "Ignore";
 	public static final String HTTP_HEADER_FORWARD_POLICY_MERGE = "Merge";
 	transient private Map<String, String> httpHeaderForwardMap = null;
+	private AbstractHttpTransaction aht;
 
 	public HttpConnector() {
 		super();
@@ -981,6 +983,7 @@ public class HttpConnector extends Connector {
 			MalformedURLException, EngineException {
 		Header[] requestHeaders, responseHeaders = null;
 		byte[] result = null;
+		Header location = null;
 		String contents = null;
 		int statuscode = -1;
 
@@ -995,7 +998,7 @@ public class HttpConnector extends Connector {
 			if (Engine.logBeans.isTraceEnabled())
 				Engine.logBeans.trace("(HttpConnector) Request headers :\n"
 						+ Arrays.asList(requestHeaders).toString());
-
+			
 			statuscode = doExecuteMethod(method, context);
 
 			Engine.logBeans.debug("(HttpConnector) Status: " + method.getStatusLine().toString());
@@ -1061,8 +1064,6 @@ public class HttpConnector extends Connector {
 						|| (statuscode == HttpStatus.SC_MOVED_PERMANENTLY)
 						|| (statuscode == HttpStatus.SC_SEE_OTHER)
 						|| (statuscode == HttpStatus.SC_TEMPORARY_REDIRECT)) {
-
-					Header location = null;
 
 					location = method.getResponseHeader("Location");
 					if (location != null) {
@@ -1137,6 +1138,42 @@ public class HttpConnector extends Connector {
 					 */
 				}
 			}
+			//Added by julienda - #3433 - 04/03/2013
+			aht = (AbstractHttpTransaction) context.transaction;
+			if(aht.getHttpInfo()){
+
+				Element HTTPStatusCodeElement, HTTPHeadersElement;
+				Document doc = context.outputDocument;
+				//Remove the node HTTPInfo if we have a redirect 
+				if( doc.getElementsByTagName(aht.getHttpInfoTagName()) != null ){
+					NodeList nlst = doc.getElementsByTagName(aht.getHttpInfoTagName());
+					for (int i = 0 ; i < nlst.getLength(); i++){
+						Element elt	= (Element) doc.getElementsByTagName(aht.getHttpInfoTagName()).item(i);
+						elt.getParentNode().removeChild(elt);
+					}
+				}
+				//Parent Element
+				HTTPInfoElement = doc.createElement(aht.getHttpInfoTagName());
+				
+				//Add status code
+				HTTPStatusCodeElement = doc.createElement("statusCode");				
+				HTTPStatusCodeElement.setTextContent(statuscode+"");
+				HTTPInfoElement.appendChild(HTTPStatusCodeElement);
+				
+				//We add headers informations
+				if( Arrays.asList(requestHeaders).toString() != null ){
+					HTTPHeadersElement = doc.createElement("headers");
+					List<Header> lt = Arrays.asList(requestHeaders);
+					for (int i = 0; i < lt.size(); i++){
+						Element elt = doc.createElement("header");
+						elt.setAttribute("name", lt.get(i).toString().substring( 0, lt.get(i).toString().indexOf(":") ) );
+						elt.setAttribute("value", lt.get(i).toString().substring( lt.get(i).toString().indexOf(":")+2 ) );
+						HTTPHeadersElement.appendChild(elt);
+					}				
+					HTTPInfoElement.appendChild(HTTPHeadersElement);
+				}
+				doc.getDocumentElement().appendChild(HTTPInfoElement);
+			}				
 		} finally {
 			method.releaseConnection();
 		}
