@@ -401,28 +401,28 @@ function formatterCertificateStore(cellvalue, options, rowObject) {
 
 function UpdateAuthAndUser($line){
 	
-		 var virtualServeur=$line.find("td[aria-describedby=certificatesUserMappings_virtualServer] > input").val();
-		 var imputationGroup=$line.find("td[aria-describedby=certificatesUserMappings_authorizationGroup] > input").val();				
+		 var virtualServeur=$line.find("td[aria-describedby='certificatesUserMappings_virtualServer'] > input").val();
+		 var imputationGroup=$line.find("td[aria-describedby='certificatesUserMappings_authorizationGroup'] > input").val();				
 		 var $cell;
 		 var val;
 		 
 		 if(virtualServeur!=undefined){					 
 			 
 			 if(imputationGroup.length<=0 || imputationGroup==VIRTUAL_SERVER_MESSAGE){
-				 $line.find("td[aria-describedby=certificatesUserMappings_user] > input").attr("disabled","true").val(GROUP_MESSAGE);
+				 $line.find("td[aria-describedby='certificatesUserMappings_user'] > input").attr("disabled","true").val(GROUP_MESSAGE);
 			 }
 			 else{
-				 $cell=$line.find("td[aria-describedby=certificatesUserMappings_user] > input");
+				 $cell=$line.find("td[aria-describedby='certificatesUserMappings_user'] > input");
 				 $cell.removeAttr("disabled");
 				 val= $cell.val();
 				 if(val==GROUP_MESSAGE)
 					 $cell.val("");
 			 }
 			 if(virtualServeur.length<=0){
-				 $line.find("td[aria-describedby=certificatesUserMappings_authorizationGroup] > input").attr("disabled","true").val(VIRTUAL_SERVER_MESSAGE);
+				 $line.find("td[aria-describedby='certificatesUserMappings_authorizationGroup'] > input").attr("disabled","true").val(VIRTUAL_SERVER_MESSAGE);
 			 }else{				
 				 
-				 $cell=$line.find("td[aria-describedby=certificatesUserMappings_authorizationGroup] > input");
+				 $cell=$line.find("td[aria-describedby='certificatesUserMappings_authorizationGroup'] > input");
 				 $cell.removeAttr("disabled");
 				 val= $cell.val();
 				 if(val==VIRTUAL_SERVER_MESSAGE)
@@ -476,15 +476,15 @@ function updateCertificate(certificate){
 	}
 	else{
 		lineId="new";
-		certificateName=$("tr[id="+lineId+"] > td[aria-describedby=certificatesList_certificateStore] > select").val();
+		certificateName=$("tr[id='"+lineId+"'] > td[aria-describedby='certificatesList_certificateStore'] > select").val();
 	}
 	
 	if(certificateName==NEW_CERTIFICATE_MESSAGE_VALUE){
 		showError("Please choose a valid certificate.");
 	}else{
-		var password=$("tr[id="+lineId+"] > td[aria-describedby=certificatesList_password] > input").val();
-		var type=$("tr[id="+lineId+"] > td[aria-describedby=certificatesList_type] > select").val();
-		var group=$("tr[id="+lineId+"] > td[aria-describedby=certificatesList_group] >input ").val();		
+		var password=$("tr[id='"+lineId+"'] > td[aria-describedby='certificatesList_password'] > input").val();
+		var type=$("tr[id='"+lineId+"'] > td[aria-describedby='certificatesList_type'] > select").val();
+		var group=$("tr[id='"+lineId+"'] > td[aria-describedby='certificatesList_group'] >input ").val();		
 		callService("certificates.Configure", function(){
 			showInfo("The certificate "+certificateName+" has been successfully updated.");
 			certificates_List_update();}
@@ -523,7 +523,7 @@ function deleteMappingWithoutUpdate(project,certificateName,tas,server,authgroup
 }
 
 function createDeleteMappingParams(project,certificateName,tas,server,authgroup,user){
-	var type=$("tr[id="+certificateName+"] > td[aria-describedby=certificatesList_type] >select").val();	
+	var type=$("tr[id='"+certificateName+"'] > td[aria-describedby='certificatesList_type'] >select").val();	
 	var params="projects."+project+"."+type+".store";	
 	var rad="";
 	if(tas!=undefined){
@@ -546,7 +546,7 @@ function createDeleteMappingParams(project,certificateName,tas,server,authgroup,
 function configureMapping(table,project,certificate){	
 	
 	var noPoint=true;
-	$("table[id=certificatesUserMappings] td >input").each(function(){
+	$("table[id='certificatesUserMappings'] td >input").each(function(){
 		if($(this).val().indexOf(".")!=-1){
 			noPoint=false;
 		}
@@ -558,7 +558,7 @@ function configureMapping(table,project,certificate){
 		var projectName;
 		var certificate_project;
 		if(project==NEW_MAPPING_MESSAGE_VALUE){
-			projectName=$("tr[id='new'] > td[aria-describedby="+table+"_projectName] >select").val();	
+			projectName=$("tr[id='new'] > td[aria-describedby='"+table+"_projectName'] >select").val();	
 			certificate_project="new";
 		}else{
 			projectName=project;
@@ -570,7 +570,7 @@ function configureMapping(table,project,certificate){
 		}else{	
 			
 			
-			var certificateName=$("tr[id="+certificate_project+"] > td[aria-describedby="+table+"_certificateStore] >select").val();	
+			var certificateName=$("tr[id='"+certificate_project+"'] > td[aria-describedby='"+table+"_certificateStore'] >select").val();	
 			
 			var kind;
 			if(table!="certificatesAnonymousMappings"){
@@ -585,9 +585,9 @@ function configureMapping(table,project,certificate){
 				};
 			if(kind=="tas"){
 				//carioca
-				var virtualServer=$("tr[id="+certificate_project+"] > td[aria-describedby="+table+"_virtualServer] >input").val();
-				var group=$("tr[id="+certificate_project+"] > td[aria-describedby="+table+"_authorizationGroup] >input").val();
-				var user=$("tr[id="+certificate_project+"] > td[aria-describedby="+table+"_user] >input").val();
+				var virtualServer=$("tr[id='"+certificate_project+"'] > td[aria-describedby='"+table+"_virtualServer'] >input").val();
+				var group=$("tr[id='"+certificate_project+"'] > td[aria-describedby='"+table+"_authorizationGroup'] >input").val();
+				var user=$("tr[id='"+certificate_project+"'] > td[aria-describedby='"+table+"_user'] >input").val();
 				if(virtualServer.length>0){
 					params["virtualServer_0"]=virtualServer;
 					if(group.length>0){
