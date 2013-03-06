@@ -28,6 +28,7 @@ import java.net.MalformedURLException;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.JavaScriptException;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -64,7 +65,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     
     /** Holds value of property statusCodeInfo. */
     private boolean httpInfo = false;
-    private String httpInfoTagName = "HTTP info";
+    private String httpInfoTagName = "HttpInfo";
     
 	public static final String[] HTTP_VERBS = { "GET", "POST", "PUT", "DELETE", "HEAD", "TRACE", "OPTIONS"};
     public static int HTTP_VERB_GET = 0;
@@ -212,27 +213,34 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 		}
 		catch(EngineException e) {
 			//If we have an error we put the pure HTTP data
-			if( httpData != null && getHttpInfo() == true){
-				Element err = connector.HTTPInfoElement.getOwnerDocument().createElement("errors");
-				Element puredata = connector.HTTPInfoElement.getOwnerDocument().createElement("puredata");
+			if (httpData != null && getHttpInfo()) {
+				Engine.logEngine.warn("(AbstractHttpTransaction) EngineException during transaction execution", e);
+				
+				Document document = connector.HTTPInfoElement.getOwnerDocument();
+				Element err = document.createElement("errors");
+				Element puredata = document.createElement("puredata");
+
 				err.setAttribute("class", e.getClass().getCanonicalName());
-				err.setTextContent((String) e.getLocalizedMessage());
+				err.setTextContent(e.getLocalizedMessage());
 				try{
 					//if we have a text
-					if(requester.context.contentType.contains("text"))
-						puredata.setTextContent(new String ( httpData, requester.context.contentType.substring(requester.context.contentType.indexOf("=") + 1 )));
+					String stringData;
+					if (requester.context.contentType.contains("text")) {
+						stringData = new String ( httpData, requester.context.contentType.substring(requester.context.contentType.indexOf("=") + 1 ));
 					//else a binary content
-					else
-						puredata.setTextContent(new String ( httpData ));
+					} else {
+						stringData = new String ( httpData );
+					}
 						//http://qualifpc:18080/convertigo/admin/services/logs.Get
-					
+					puredata.appendChild(document.createCDATASection(stringData));
 				}catch(Exception e2){
-					throw new EngineException("An unexpected exception occured while trying to encode the HTTP data.", e2);
+					throw new EngineException("An unexpected exception occured while trying to decode the HTTP data.", e2);
 				}
 				connector.HTTPInfoElement.appendChild(err);
 				connector.HTTPInfoElement.appendChild(puredata);
-			}else
+			} else {
 				throw e;
+			}
 		}
 		catch(MalformedURLException e) {
 			throw new EngineException("The URL is malformed: " + connector.sUrl + "\nPlease check your project and/or transaction settings...", e);

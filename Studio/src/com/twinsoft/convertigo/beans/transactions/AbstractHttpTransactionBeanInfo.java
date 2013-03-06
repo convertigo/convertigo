@@ -70,6 +70,7 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[6] = new PropertyDescriptor("httpInfoTagName", AbstractHttpTransaction.class, "getHttpInfoTagName", "setHttpInfoTagName");
 			properties[6].setDisplayName(getExternalizedString("property.httpInfoTagName.display_name"));
 			properties[6].setShortDescription(getExternalizedString("property.httpInfoTagName.short_description"));
+            properties[6].setValue("normalizable", Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

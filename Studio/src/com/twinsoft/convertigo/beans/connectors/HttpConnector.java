@@ -135,7 +135,6 @@ public class HttpConnector extends Connector {
 	public static final String HTTP_HEADER_FORWARD_POLICY_IGNORE = "Ignore";
 	public static final String HTTP_HEADER_FORWARD_POLICY_MERGE = "Merge";
 	transient private Map<String, String> httpHeaderForwardMap = null;
-	private AbstractHttpTransaction aht;
 
 	public HttpConnector() {
 		super();
@@ -983,7 +982,6 @@ public class HttpConnector extends Connector {
 			MalformedURLException, EngineException {
 		Header[] requestHeaders, responseHeaders = null;
 		byte[] result = null;
-		Header location = null;
 		String contents = null;
 		int statuscode = -1;
 
@@ -1065,7 +1063,7 @@ public class HttpConnector extends Connector {
 						|| (statuscode == HttpStatus.SC_SEE_OTHER)
 						|| (statuscode == HttpStatus.SC_TEMPORARY_REDIRECT)) {
 
-					location = method.getResponseHeader("Location");
+					Header location = method.getResponseHeader("Location");
 					if (location != null) {
 						newuri = location.getValue();
 						if ((newuri == null) || (newuri.equals(""))) {
@@ -1139,38 +1137,38 @@ public class HttpConnector extends Connector {
 				}
 			}
 			//Added by julienda - #3433 - 04/03/2013
-			aht = (AbstractHttpTransaction) context.transaction;
-			if(aht.getHttpInfo()){
-
-				Element HTTPStatusCodeElement, HTTPHeadersElement;
+			AbstractHttpTransaction abstractHttpTransaction = (AbstractHttpTransaction) context.transaction;
+			
+			if (abstractHttpTransaction.getHttpInfo()) {
 				Document doc = context.outputDocument;
-				//Remove the node HTTPInfo if we have a redirect 
-				if( doc.getElementsByTagName(aht.getHttpInfoTagName()) != null ){
-					NodeList nlst = doc.getElementsByTagName(aht.getHttpInfoTagName());
-					for (int i = 0 ; i < nlst.getLength(); i++){
-						Element elt	= (Element) doc.getElementsByTagName(aht.getHttpInfoTagName()).item(i);
-						elt.getParentNode().removeChild(elt);
-					}
+				
+				//Remove the node HTTPInfo if we have a redirect
+				NodeList nodeList = XMLUtils.findElements(context.outputDocument.getDocumentElement(), abstractHttpTransaction.getHttpInfoTagName());
+				if (nodeList != null) {
+					XMLUtils.removeNodeListContent(nodeList);
 				}
+				
 				//Parent Element
-				HTTPInfoElement = doc.createElement(aht.getHttpInfoTagName());
+				HTTPInfoElement = doc.createElement(abstractHttpTransaction.getHttpInfoTagName());
 				
 				//Add status code
-				HTTPStatusCodeElement = doc.createElement("statusCode");				
-				HTTPStatusCodeElement.setTextContent(statuscode+"");
-				HTTPInfoElement.appendChild(HTTPStatusCodeElement);
-				
+				Element httpStatusCodeElement = doc.createElement("statusCode");				
+				httpStatusCodeElement.setTextContent(Integer.toString(statuscode));
+				HTTPInfoElement.appendChild(httpStatusCodeElement);
+
 				//We add headers informations
-				if( Arrays.asList(requestHeaders).toString() != null ){
-					HTTPHeadersElement = doc.createElement("headers");
-					List<Header> lt = Arrays.asList(requestHeaders);
-					for (int i = 0; i < lt.size(); i++){
+
+				List<Header> headers = Arrays.asList(requestHeaders);
+				if (!headers.isEmpty()) {
+					Element httpHeadersElement = doc.createElement("headers");
+
+					for (int i = 0; i < headers.size(); i++){
 						Element elt = doc.createElement("header");
-						elt.setAttribute("name", lt.get(i).toString().substring( 0, lt.get(i).toString().indexOf(":") ) );
-						elt.setAttribute("value", lt.get(i).toString().substring( lt.get(i).toString().indexOf(":")+2 ) );
-						HTTPHeadersElement.appendChild(elt);
+						elt.setAttribute("name", headers.get(i).toString().substring( 0, headers.get(i).toString().indexOf(":") ) );
+						elt.setAttribute("value", headers.get(i).toString().substring( headers.get(i).toString().indexOf(":")+2 ) );
+						httpHeadersElement.appendChild(elt);
 					}				
-					HTTPInfoElement.appendChild(HTTPHeadersElement);
+					HTTPInfoElement.appendChild(httpHeadersElement);
 				}
 				doc.getDocumentElement().appendChild(HTTPInfoElement);
 			}				

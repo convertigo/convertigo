@@ -809,6 +809,16 @@ public class XMLUtils {
 			node.removeChild(nl.item(i));
 	}
 
+	public static void removeNode(Node node) {
+		node.getParentNode().removeChild(node);
+	}
+
+	public static void removeNodeListContent(NodeList nodeList) {
+		while (nodeList.getLength() > 0) {
+			removeNode(nodeList.item(0));
+		}
+	}
+
 	static public Document parseDOM(InputStream is) throws SAXException, IOException, EngineException {
 		Document doc = getDefaultDocumentBuilder().parse(is);
 		doc.normalizeDocument();
