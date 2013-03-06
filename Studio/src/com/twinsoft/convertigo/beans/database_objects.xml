@@ -105,7 +105,7 @@
 	<group name="Mobile Application">
 		<category>
 			<beans>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.core.MobileApplication">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
                 </bean>
 			</beans>
@@ -757,7 +757,7 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLHttpUrl">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.common.XMLPrintScreen">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLPrintScreen">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
 				</bean>
 			</beans>
