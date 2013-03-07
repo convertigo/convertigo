@@ -105,7 +105,7 @@
 	<group name="Mobile Application">
 		<category>
 			<beans>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.core.MobileApplication">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
                 </bean>
 			</beans>
@@ -176,7 +176,19 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
-                </bean>         
+                </bean>
+       	<!--Start modification - STEPS -->
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep">
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfThenElseStep"/>       
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IsInThenElseStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep">               		
+                	<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfThenElseStep"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IsInThenElseStep"/>
+                </bean>
+        <!--End modification - STEPS -->         
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.IsInStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
@@ -757,7 +769,7 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLHttpUrl">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
 				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLPrintScreen">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.common.XMLPrintScreen">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
 				</bean>
 			</beans>
@@ -824,6 +836,16 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
                 </bean>
+        <!--Start modification-->
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement">
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement"/>         		
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement">               		
+                	<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement"/>
+                </bean>
+        <!--End modification-->
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
@@ -996,8 +1018,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-				</bean>
-				
+				</bean>			
 			</beans>
 		</category>
 	</group>
