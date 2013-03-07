@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
-import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,6 +50,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class ProjectsDataFilter implements Filter {
 	private static Pattern p_projects = Pattern.compile("/projects(/.*)");
+	private static Pattern p_forbidden = Pattern.compile("^/(?:(?:[^/]+$)|(?:(.*?)/\\1\\.xml)|(?:(?:.*?)/_private(?:$|(?!/flashupdate).*)))$");
 	
     public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain chain) throws IOException, ServletException {
     	Engine.logContext.debug("Entering projects data servlet filter");
@@ -83,37 +82,20 @@ public class ProjectsDataFilter implements Filter {
     	URL url = new URL(request.getRequestURL().toString());
     	
     	try {
-			requestURI = url.toURI().normalize().getPath();
-		} catch (URISyntaxException e) {
-			// should never occur
-		}
+    		requestURI = url.toURI().normalize().getPath();
+    	} catch (URISyntaxException e) {
+    		// should never occur
+    	}
     	
     	Matcher m_projects = p_projects.matcher(requestURI);
     	String pathInfo = (m_projects.find()) ? m_projects.group(1) : "";
 
     	String requestedObject = Engine.PROJECTS_PATH + pathInfo;
     	Engine.logContext.debug("requestedObject=" + requestedObject);
-
-    	List<String> allProjectList = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
-    	StringTokenizer tokenizer = new StringTokenizer(pathInfo, "/");
     	
-    	for (int index = 0 ; index < allProjectList.size() ; index++)
-    	{
-    		// Resolving anything (file or directory) in '/convertigo/projects/' (except known projects) is forbidden
-			if (requestURI.startsWith("/convertigo/projects/") && tokenizer.countTokens() == 1 && !allProjectList.contains(pathInfo.replace("/", ""))) {
-				response.sendError(HttpServletResponse.SC_FORBIDDEN);
-				return;
-			}
-			// Resolving a project's .xml file is forbidden
-			else if (requestURI.endsWith("projects/" + allProjectList.get(index) + "/" + allProjectList.get(index) + ".xml") || requestURI.endsWith("projects/" + allProjectList.get(index) + "/" + allProjectList.get(index) + ".xml/")) {
-				response.sendError(HttpServletResponse.SC_FORBIDDEN);
-				return;
-			}
-			// Resolving a '_private' directory (or its contents) from a project's directory is forbidden
-			else if (requestURI.startsWith("/convertigo/projects/" + allProjectList.get(index) + "/_private") || requestURI.startsWith("/convertigo/projects/" + allProjectList.get(index) + "/_private/")) {
-				response.sendError(HttpServletResponse.SC_FORBIDDEN);
-				return;
-			}
+    	if (p_forbidden.matcher(pathInfo).matches()) {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN);
+			return;
     	}
     	
     	if (requestedObject.endsWith("/index.jsp")) {
