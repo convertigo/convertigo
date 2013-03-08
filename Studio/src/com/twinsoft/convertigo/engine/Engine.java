@@ -84,6 +84,7 @@ public class Engine {
 	public static String CERTIFICATES_PATH = "";
 	public static String LOG_PATH = "";
 	public static String XSL_PATH = "";
+	public static String DTD_PATH = "";
 	public static String TEMPLATES_PATH = "";
 	public static String WEBAPP_PATH = "";
 	public static String CACHE_PATH = "";
@@ -284,6 +285,7 @@ public class Engine {
 
 		Engine.WEBAPP_PATH = new File(webappPath).getCanonicalPath();
 		Engine.XSL_PATH = new File(Engine.WEBAPP_PATH + "/xsl").getCanonicalPath();
+		Engine.DTD_PATH = new File(Engine.WEBAPP_PATH + "/dtd").getCanonicalPath();
 		Engine.TEMPLATES_PATH = new File(Engine.WEBAPP_PATH + "/templates").getCanonicalPath();
 		
 		bInitPathsDone = true;

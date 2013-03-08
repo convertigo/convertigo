@@ -25,7 +25,6 @@ package com.twinsoft.convertigo.engine.requesters;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -35,21 +34,27 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.Vector;
 
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.apache.regexp.RE;
 import org.apache.regexp.REUtil;
+import org.apache.xml.resolver.tools.CatalogResolver;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
 
 import com.ms.xml.ParseError;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -742,7 +747,10 @@ public abstract class GenericRequester extends Requester {
 				File xslFile =  new File(context.absoluteSheetUrl);
 				if (!xslFile.exists()) {
 					Engine.logContext.debug("The local xsl file (\"" + context.absoluteSheetUrl + "\") does not exist. Trying search in Convertigo XSL directory...");
-					context.absoluteSheetUrl = Engine.XSL_PATH + "/" + context.sheetUrl;
+					if (context.sheetUrl.startsWith("../../xsl/"))
+						context.absoluteSheetUrl = Engine.XSL_PATH + "/" + context.sheetUrl.substring(10);
+					else
+						context.absoluteSheetUrl = Engine.XSL_PATH + "/" + context.sheetUrl;
 					Engine.logContext.debug("Url: " + context.absoluteSheetUrl);
 					xslFile =  new File(context.absoluteSheetUrl);
 					if (!xslFile.exists()) {
@@ -754,13 +762,13 @@ public abstract class GenericRequester extends Requester {
 
 				Engine.logContext.debug("Retrieving content type from the XSL...");
 
-				inputSource = new InputSource(new FileInputStream(context.absoluteSheetUrl));
-
-				/*String relativeUriResolver = "file://" + Engine.PROJECTS_DIRECTORY + "/" + project.getName() + "/";
-				Engine.logContext.debug("Relative URI resolver: " + relativeUriResolver);
-				is.setSystemId(relativeUriResolver);*/
-
-				Document document = XMLUtils.getDefaultDocumentBuilder().parse(inputSource);
+				//inputSource = new InputSource(new FileInputStream(context.absoluteSheetUrl));
+				inputSource = new InputSource(new File(context.absoluteSheetUrl).toURI().toASCIIString());
+				
+				DocumentBuilder documentBuilder = XMLUtils.getDefaultDocumentBuilder();
+				documentBuilder.setEntityResolver(XMLUtils.getEntityResolver());
+				
+				Document document = documentBuilder.parse(inputSource);
 				NodeList nodeList = document.getElementsByTagName("xsl:output");
 				String contentType = "text/html";
 				if (nodeList.getLength() != 0) {
@@ -829,7 +837,8 @@ public abstract class GenericRequester extends Requester {
             // Xalan XSLT engine
             if (xsltEngine.startsWith("xalan")) {
             	
-                StreamSource streamSource = null;
+                //StreamSource streamSource = null;
+                InputSource inputSource = null;
                 TransformerFactory tFactory = null;
                 try {
                     // XSLT
@@ -837,11 +846,8 @@ public abstract class GenericRequester extends Requester {
                         tFactory = new org.apache.xalan.processor.TransformerFactoryImpl();
                         Engine.logContext.debug("XSLT engine class: org.apache.xalan.processor.TransformerFactoryImpl");
 
-                        streamSource = new StreamSource(new File(context.absoluteSheetUrl).toURI().toASCIIString());
-//                        String relativeUriResolver = "file:///" + Engine.PROJECTS_DIRECTORY + "/" + projectName + "/";
-//                        Engine.logContext.debug("Relative URI resolver: " + relativeUriResolver);
-//                        if (context.sheetUrl.startsWith("http")) streamSource.setSystemId(relativeUriResolver);
-//                        streamSource.setSystemId(Engine.PROJECTS_DIRECTORY + "/" + projectName + "/");
+                        //streamSource = new StreamSource(new File(context.absoluteSheetUrl).toURI().toASCIIString());
+                        inputSource = new InputSource(new File(context.absoluteSheetUrl).toURI().toASCIIString());
                     }
                     // XSLTC
                     else if (xsltEngine.equals("xalan/xsltc") || xsltEngine.equals("xalan")) {
@@ -857,18 +863,34 @@ public abstract class GenericRequester extends Requester {
                         tFactory.setAttribute("auto-translet", Boolean.TRUE);
                         tFactory.setAttribute("enable-inlining", Boolean.FALSE);
 
-                        String transletOutput = (context.project == null ? Engine.PROJECTS_PATH : Engine.PROJECTS_PATH + "/" + context.projectName) + "/_private/xsltc/";
-                        transletOutput = new File(transletOutput).toURI().toASCIIString();
+                        //String transletOutput = (context.project == null ? Engine.PROJECTS_PATH : Engine.PROJECTS_PATH + "/" + context.projectName) + "/_private/xsltc/";
+                        //transletOutput = new File(transletOutput).toURI().toASCIIString();
+                        String transletOutput = (context.project == null ? Engine.PROJECTS_PATH : Engine.PROJECTS_PATH + "/" + context.projectName) + "/_private/xsltc";
+                        transletOutput = new File(transletOutput).getCanonicalPath();
                         tFactory.setAttribute("destination-directory", transletOutput);
                         Engine.logContext.debug("Translet output: " + transletOutput);
 
-                        streamSource = new StreamSource(new File(context.absoluteSheetUrl).toURI().toASCIIString());
+                        //streamSource = new StreamSource(new File(context.absoluteSheetUrl).toURI().toASCIIString());
+                        inputSource = new InputSource(new File(context.absoluteSheetUrl).toURI().toASCIIString());
                     }
                     else {
                         throw new EngineException("Unknown XSLT engine (" + xsltEngine + "), please check your Convertigo engine properties!");
                     }
-
-                    Transformer transformer = tFactory.newTransformer(streamSource);
+                    
+                    CatalogResolver cr = XMLUtils.getCatalogResolver();
+                    
+                    tFactory.setURIResolver(cr); // set URI resolver (for xsl include or import)
+                    
+                    SAXParserFactory spf = SAXParserFactory.newInstance();
+                    SAXParser sp = spf.newSAXParser();
+                    XMLReader xmlr = sp.getXMLReader();
+                    xmlr.setEntityResolver(cr);	// set Entity resolver (for dtd)
+                    
+                    SAXSource ss = new SAXSource(xmlr, inputSource);
+                    
+                    //Transformer transformer = tFactory.newTransformer(streamSource);
+                    Transformer transformer = tFactory.newTransformer(ss);
+                    
                     StringWriter sw = new StringWriter();
                     Element element = document.getDocumentElement();                    
                     
@@ -884,10 +906,18 @@ public abstract class GenericRequester extends Requester {
         			transformer.transform(new StreamSource(byteInput), new StreamResult(sw));
 
                     result = sw.getBuffer().toString();
+                    
+                }
+                catch (Exception e) {
+                	throw e;
                 }
                 finally {
-                    if (streamSource != null) {
-                        InputStream inputStream = streamSource.getInputStream();
+                    //if (streamSource != null) {
+                    //    InputStream inputStream = streamSource.getInputStream();
+                    //    if (inputStream != null) inputStream.close();
+                    //}
+                    if (inputSource != null) {
+                        InputStream inputStream = inputSource.getByteStream();
                         if (inputStream != null) inputStream.close();
                     }
                 }

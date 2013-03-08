@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -44,12 +45,15 @@ import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
+import org.apache.xml.resolver.Catalog;
+import org.apache.xml.resolver.tools.CatalogResolver;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
@@ -57,6 +61,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -839,6 +844,62 @@ public class XMLUtils {
 		return dom;
 	}
 
+	public static EntityResolver getEntityResolver() {
+		return new EntityResolver() {
+			public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+				if ("-//W3C//ENTITIES Latin 1 for XHTML//EN".equals(publicId))
+					return new InputSource(new FileInputStream(Engine.DTD_PATH + "/xhtml-lat1.ent"));
+				if ("-//W3C//ENTITIES Special for XHTML//EN".equals(publicId))
+					return new InputSource(new FileInputStream(Engine.DTD_PATH + "/xhtml-special.ent"));
+				if ("-//W3C//ENTITIES Symbols for XHTML//EN".equals(publicId))
+					return new InputSource(new FileInputStream(Engine.DTD_PATH + "/xhtml-symbol.ent"));
+				if ("-//W3C//DTD XHTML 1.0 Strict//EN".equals(publicId))
+					return new InputSource(new FileInputStream(Engine.DTD_PATH + "/xhtml1-strict.dtd"));
+				if ("-//W3C//DTD XHTML 1.0 Transitional//EN".equals(publicId))
+					return new InputSource(new FileInputStream(Engine.DTD_PATH + "/xhtml1-transitional.dtd"));
+				return new InputSource(new FileInputStream(systemId));
+			}
+		};
+	}
+	
+	public static CatalogResolver getCatalogResolver() {
+		return new CatalogResolver() {
+
+			@Override
+			public Catalog getCatalog() {
+				return super.getCatalog();
+			}
+
+			@Override
+			public String getResolvedEntity(String publicId, String systemId) {
+				return super.getResolvedEntity(publicId, systemId);
+			}
+
+			@Override
+			public Source resolve(String href, String base) throws TransformerException {
+				return super.resolve(href, base);
+			}
+
+			@Override
+			public InputSource resolveEntity(String publicId, String systemId) {
+				try {
+					if ("-//W3C//ENTITIES Latin 1 for XHTML//EN".equals(publicId))
+						return new InputSource(new FileInputStream(Engine.DTD_PATH + "/xhtml-lat1.ent"));
+					if ("-//W3C//ENTITIES Special for XHTML//EN".equals(publicId))
+						return new InputSource(new FileInputStream(Engine.DTD_PATH + "/xhtml-special.ent"));
+					if ("-//W3C//ENTITIES Symbols for XHTML//EN".equals(publicId))
+						return new InputSource(new FileInputStream(Engine.DTD_PATH + "/xhtml-symbol.ent"));
+					if ("-//W3C//DTD XHTML 1.0 Strict//EN".equals(publicId))
+						return new InputSource(new FileInputStream(Engine.DTD_PATH + "/xhtml1-strict.dtd"));
+					if ("-//W3C//DTD XHTML 1.0 Transitional//EN".equals(publicId))
+						return new InputSource(new FileInputStream(Engine.DTD_PATH + "/xhtml1-transitional.dtd"));
+				}
+				catch (FileNotFoundException e) {}
+				return super.resolveEntity(publicId, systemId);
+			}
+        };
+	}
+	
 	public static String getCDataText(String s) {
 		String cdataText = "";
 		try {

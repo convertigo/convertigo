@@ -51,7 +51,9 @@ public class ClientXsltServletRequester extends ServletRequester {
         }
 
         if (context.absoluteSheetUrl.startsWith(Engine.XSL_PATH + "/")) {
-			context.sheetUrl = "../../xsl/" + context.sheetUrl;
+        	if (!context.sheetUrl.startsWith("../../xsl/")) {
+        		context.sheetUrl = "../../xsl/" + context.sheetUrl;
+        	}
         }
 
 		// Adding the stylesheet processing instruction
