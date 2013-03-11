@@ -543,7 +543,13 @@ abstract public class XpathEvaluatorComposite extends Composite {
 					parentTreeItem = treeItem.getParentItem().getParentItem();
 					parentNode = (Node)parentTreeItem.getData();
 					parentNodeName = XMLUtils.xpathEscapeColon(parentNode.getNodeName());	
-					xpath = XMLUtils.calcXpath(parentNode, null) + "[@" + node.getNodeName().trim() + "=\""+node.getNodeValue().trim()+"\"]";
+					
+
+					String nodeValue = node.getNodeValue().trim();
+					//TODO: fix problems when we have simple or/and double quotes
+					nodeValue = generateXpath(nodeValue);
+					
+					xpath = XMLUtils.calcXpath(parentNode, null) + "[@" + node.getNodeName().trim() + "=\""+nodeValue+"\"]";
 					bRecurse = ((lastParentTreeItem == null) || (!parentTreeItem.equals(lastParentTreeItem)));
 					if (bRecurse) {
 						if (lastParentTreeItem == null) {
@@ -567,7 +573,7 @@ abstract public class XpathEvaluatorComposite extends Composite {
 					else if (parentTreeItem.equals(lastParentTreeItem)) {
 						selectionXpath += bFirstAttr && bFirstText ? "[":" and ";
 					}
-					selectionXpath += "@" + node.getNodeName().trim() + "=\""+node.getNodeValue().trim()+"\"";
+					selectionXpath += "@" + node.getNodeName().trim() + "="+nodeValue;
 					bFirstAttr = false;
 				}
 			}
@@ -579,6 +585,28 @@ abstract public class XpathEvaluatorComposite extends Composite {
 		return selectionXpath;
 	}
 	
+	private String generateXpath(String nodeValue) {
+		String ndValue = nodeValue;
+		
+		if(ndValue.contains("\"") && !ndValue.contains("'")){			//if we have no simple and double quotes (add simple quotes around)
+			ndValue = "'"+nodeValue+"'";
+		}else if(ndValue.contains("\"") && ndValue.contains("'")){		//if we have simple and double quotes (use concat function)
+			
+			String [] ndValueTab = nodeValue.split("\"");
+			String concatStr = "concat(";
+			for (int i = 0; i < ndValueTab.length; i++){
+				concatStr+="\""+ndValueTab[i]+"\", '\"',";
+			}
+			concatStr = concatStr.substring(0, concatStr.length()-6);
+			concatStr += ")";
+			ndValue = concatStr;
+		}else{															//else we add double quotes around
+			ndValue = "\""+nodeValue+"\"";
+		}
+		
+		return ndValue;
+	}
+
 	private String getFilter(Element element) {
 		String filter = "";
 		if (element != null) {
