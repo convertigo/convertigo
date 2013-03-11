@@ -763,15 +763,19 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     			javascriptContext = org.mozilla.javascript.Context.enter();
     			scope = javascriptContext.initStandardObjects();
     			
+        		Engine.logContext.debug("Preparing for requestable...");
             	prepareForRequestable(context, javascriptContext, scope);
             	
         		if (!runningThread.bContinue)
         			return;
 
+        		Engine.logContext.debug("Handling requestable started event...");
 				handleRequestableEvent(RequestableObject.EVENT_REQUESTABLE_STARTED, javascriptContext);
 
-            	if (hasToRunCore())
+            	if (hasToRunCore()) {
+            		Engine.logContext.debug("runCore()");
             		runCore();
+            	}
 
                 if (!runningThread.bContinue)
                 	return;
