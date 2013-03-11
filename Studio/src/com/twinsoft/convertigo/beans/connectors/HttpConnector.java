@@ -129,7 +129,7 @@ public class HttpConnector extends Connector {
 	transient public URL url;
 	transient private String referer = "";
 	transient private String charset = null;
-	transient public Element HTTPInfoElement;
+	transient public Element httpInfoElement;
 	
 	public static final String HTTP_HEADER_FORWARD_POLICY_REPLACE = "Replace";
 	public static final String HTTP_HEADER_FORWARD_POLICY_IGNORE = "Ignore";
@@ -1149,12 +1149,19 @@ public class HttpConnector extends Connector {
 				}
 				
 				//Parent Element
-				HTTPInfoElement = doc.createElement(abstractHttpTransaction.getHttpInfoTagName());
+				httpInfoElement = doc.createElement(abstractHttpTransaction.getHttpInfoTagName());
 				
+				//Add requested URL
+				Element urlElement = doc.createElement("url");
+				urlElement.setTextContent(method.getURI().toString());
+				httpInfoElement.appendChild(urlElement);
+
 				//Add status code
-				Element httpStatusCodeElement = doc.createElement("statusCode");				
-				httpStatusCodeElement.setTextContent(Integer.toString(statuscode));
-				HTTPInfoElement.appendChild(httpStatusCodeElement);
+				Element httpStatusElement = doc.createElement("status");
+					
+				httpStatusElement.setAttribute("code", Integer.toString(statuscode));
+				httpStatusElement.setAttribute("text", method.getStatusText());
+				httpInfoElement.appendChild(httpStatusElement);
 
 				//We add headers informations
 
@@ -1168,9 +1175,9 @@ public class HttpConnector extends Connector {
 						elt.setAttribute("value", headers.get(i).toString().substring( headers.get(i).toString().indexOf(":")+2 ) );
 						httpHeadersElement.appendChild(elt);
 					}				
-					HTTPInfoElement.appendChild(httpHeadersElement);
+					httpInfoElement.appendChild(httpHeadersElement);
 				}
-				doc.getDocumentElement().appendChild(HTTPInfoElement);
+				doc.getDocumentElement().appendChild(httpInfoElement);
 			}				
 		} finally {
 			method.releaseConnection();

@@ -216,7 +216,7 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 			if (httpData != null && getHttpInfo()) {
 				Engine.logEngine.warn("(AbstractHttpTransaction) EngineException during transaction execution", e);
 				
-				Document document = connector.HTTPInfoElement.getOwnerDocument();
+				Document document = connector.httpInfoElement.getOwnerDocument();
 				Element err = document.createElement("errors");
 				Element puredata = document.createElement("puredata");
 
@@ -236,8 +236,8 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
 				}catch(Exception e2){
 					throw new EngineException("An unexpected exception occured while trying to decode the HTTP data.", e2);
 				}
-				connector.HTTPInfoElement.appendChild(err);
-				connector.HTTPInfoElement.appendChild(puredata);
+				connector.httpInfoElement.appendChild(err);
+				connector.httpInfoElement.appendChild(puredata);
 			} else {
 				throw e;
 			}
