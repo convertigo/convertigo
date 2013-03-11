@@ -50,7 +50,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class ProjectsDataFilter implements Filter {
 	private static Pattern p_projects = Pattern.compile("/projects(/.*)");
-	private static Pattern p_forbidden = Pattern.compile("^/(?:(?:[^/]+$)|(?:(.*?)/\\1\\.xml)|(?:(?:.*?)/_private(?:$|(?!/flashupdate).*)))$");
+	private static Pattern p_forbidden = Pattern.compile("^/(?:([^/]+$)|(?:(.*?)/\\2\\.xml)|(?:(?:.*?)/_private(?:$|(?!/flashupdate).*)))$");
 	
     public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain chain) throws IOException, ServletException {
     	Engine.logContext.debug("Entering projects data servlet filter");
@@ -93,7 +93,8 @@ public class ProjectsDataFilter implements Filter {
     	String requestedObject = Engine.PROJECTS_PATH + pathInfo;
     	Engine.logContext.debug("requestedObject=" + requestedObject);
     	
-    	if (p_forbidden.matcher(pathInfo).matches()) {
+    	Matcher m_forbidden = p_forbidden.matcher(pathInfo); 
+    	if (m_forbidden.matches() && (m_forbidden.group(1) == null || !(new File(requestedObject).isDirectory()))) {
 			response.sendError(HttpServletResponse.SC_FORBIDDEN);
 			return;
     	}
