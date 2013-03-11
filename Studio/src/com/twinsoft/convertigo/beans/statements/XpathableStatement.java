@@ -67,7 +67,7 @@ abstract public class XpathableStatement extends Statement implements IXPathable
 	}	
 	
 	public void setPureXpath(String xpath){
-		xpath = "'"+xpath.replace("\\", "\\\\").replace("'", "\\'")+"'";
+		xpath = "'"+xpath.replace("\\", "\\\\").replace("'", "\\'").replace("\"", "\\\"")+"'";
 		setXpath(xpath);
 	}
 }
