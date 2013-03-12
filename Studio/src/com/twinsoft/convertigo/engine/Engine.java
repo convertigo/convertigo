@@ -338,7 +338,9 @@ public class Engine {
 			Engine.logStatistics = Logger.getLogger("cems.Statistics");
 			Engine.logScheduler = Logger.getLogger("cems.Scheduler");
 			Engine.logSiteClipper = Logger.getLogger("cems.SiteClipper");
+			/** #3437 : Disabled ExternalBrowser feature because it's not terminated
 			Engine.logExternalBrowser = Logger.getLogger("cems.ExternalBrowser");
+			*/
 			Engine.logAudit = Logger.getLogger("cems.Context.Audit");
 			
 			// Managers
@@ -628,8 +630,10 @@ public class Engine {
 				Engine.theApp.rsaManager.init();
 
 				// Initialization of the External Browser manager
+				/** #3437 : Disabled ExternalBrowser feature because it's not terminated
 				Engine.theApp.externalBrowserManager = new ExternalBrowserManager();
 				Engine.theApp.externalBrowserManager.init();
+				*/
 				
 				// Initialization of the Schema manager
 				Engine.theApp.schemaManager = new SchemaManager();
