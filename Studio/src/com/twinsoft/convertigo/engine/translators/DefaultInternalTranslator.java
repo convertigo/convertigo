@@ -65,13 +65,16 @@ public class DefaultInternalTranslator implements Translator {
 		for (Entry<String, Object> entry : request.entrySet()) {
 			String parameterName = entry.getKey();
 			Object parameterObject = entry.getValue();
-			String[] parameterValues = null; 
+			String[] parameterValues = null;  
 			String parameterValue = null;
 			if (parameterObject instanceof String[]) {
 				parameterValues = (String[]) parameterObject;
 				if (parameterValues.length > 0) {
 					parameterValue = parameterValues[0];
 				}
+			}
+			else if (parameterObject instanceof String) {
+				parameterValue = (String) parameterObject;
 			}
 			
 			Element parentItem = javelinActionElement;
