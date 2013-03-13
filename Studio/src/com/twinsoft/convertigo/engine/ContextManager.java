@@ -637,7 +637,14 @@ public class ContextManager extends AbstractRunnableManager {
 				if (!isRunning) return;
 				
 				Engine.logContextManager.trace("Analyzing project " + projectName);
-				Project project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+				Project project = null;
+				try {
+					project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+				} catch (Exception e) {
+					Engine.logContextManager.warn("Unable to load project '" + projectName
+							+ "'; avorting pool research for this project", e);
+					continue;
+				}
 
 				Collection<Connector> vConnectors = project.getConnectorsList();
 				Engine.logContextManager.trace("Connectors: " + vConnectors);
