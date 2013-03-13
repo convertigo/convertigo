@@ -536,6 +536,7 @@ public class ContextManager extends AbstractRunnableManager {
 		}
 
         while (isRunning) {
+            Engine.logContextManager.debug("Vulture task in progress");
         	long sleepTime = System.currentTimeMillis() + 30000;
             try {
 				Engine.theApp.usageMonitor.setUsageCounter("[Contexts] Number", contexts.size());
