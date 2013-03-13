@@ -203,8 +203,12 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 		else {
 			// The user can have setup an application ID that could be non valid:
 			// application ID can only contains alpha numeric ASCII characters.
-			applicationId = com.twinsoft.convertigo.engine.util.StringUtils.normalize(applicationId);
-			applicationId = StringUtils.remove(applicationId, "_");
+			String[] applicationIdParts = applicationId.split("\\.");
+			for (int i = 0; i < applicationIdParts.length; i++) {
+				applicationIdParts[i] = com.twinsoft.convertigo.engine.util.StringUtils.normalize(applicationIdParts[i]);
+				applicationIdParts[i] = StringUtils.remove(applicationIdParts[i], "_");
+			}
+			applicationId = com.twinsoft.convertigo.engine.util.StringUtils.join(applicationIdParts, ".");
 		}
 		return applicationId;
 	}

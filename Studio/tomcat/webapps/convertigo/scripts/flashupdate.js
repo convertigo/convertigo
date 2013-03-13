@@ -66,7 +66,7 @@ var F = {
 			if (F.local = window.location.hash.length != 0) {
 				var env = window.location.hash.substring(1);
 				F.debug("Retrieve env");
-				env = JSON.parse(env);
+				env = JSON.parse(decodeURI(env));
 				$.extend(F, env);
 			}
 			if (F.firstLaunch) {
@@ -197,7 +197,7 @@ var F = {
 		};
 		
 		if (F.local) {
-			window.location.href = "file://" + F.localBase + "/index.html#" + JSON.stringify(env);
+			window.location.href = "file://" + F.localBase + "/index.html#" + encodeURI(JSON.stringify(env));
 			window.location.reload();
 		} else {
 			var url = window.location.href.replace(F.reTailUrl, "$1/cordova.js");
@@ -208,7 +208,7 @@ var F = {
 					try {
 						F.write(F.localBase + "/cordova.js", text, function () {
 							F.debug("cordova.js writen");
-							window.location.href = "file://" + F.localBase + "/index.html#" + JSON.stringify(env);
+							window.location.href = "file://" + F.localBase + "/index.html#" + encodeURI(JSON.stringify(env));
 						}, function (err) {
 							F.error("write failed", err);
 						});
