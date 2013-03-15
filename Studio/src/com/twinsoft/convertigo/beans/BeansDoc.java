@@ -107,11 +107,14 @@ public class BeansDoc {
 					for (DboBean bean : beans) {
 						String databaseObjectClassName = bean.getClassName();
 						if(bean.isEnable()) {
-							if(bean.isDocumented()) {
+							switch (bean.getDocumentedMode()) {
+							case TRUE:
 								createBeanElement(databaseObjectClassName, documentBeansDoc, dbdBeans, true);
-							}
-							else {
+								break;
+							case FALSE:
 								createBeanElement(databaseObjectClassName, documentBeansDoc, dbdBeans, false);
+								break;
+							default: break;
 							}
 						}
 					}

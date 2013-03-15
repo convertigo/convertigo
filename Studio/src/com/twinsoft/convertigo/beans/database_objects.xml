@@ -177,12 +177,12 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                 </bean>
-                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep">
+                <bean enable="true" documented="ignore" classname="com.twinsoft.convertigo.beans.steps.ThenStep">
                		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep"/>
                		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfThenElseStep"/>       
                		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IsInThenElseStep"/>
                 </bean>
-                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep">               		
+                <bean enable="true" documented="ignore" classname="com.twinsoft.convertigo.beans.steps.ElseStep">               		
                 	<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep"/>
                		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfThenElseStep"/>
                		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IsInThenElseStep"/>
@@ -834,11 +834,11 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
                 </bean>
-                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ThenStatement">
+                <bean enable="true" documented="ignore" classname="com.twinsoft.convertigo.beans.statements.ThenStatement">
                		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement"/>
                		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement"/>         		
                 </bean>
-                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ElseStatement">               		
+                <bean enable="true" documented="ignore" classname="com.twinsoft.convertigo.beans.statements.ElseStatement">               		
                 	<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement"/>
                		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement"/>
                 </bean>

@@ -26,19 +26,24 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class DboBean {
+	public enum DocumentedMode {
+		TRUE,
+		FALSE,
+		IGNORE
+	}
 
 	private final String className;
 	private final boolean bEnable;
-	private final boolean bDocumented;
+	private final DocumentedMode documentedMode;
 	private final boolean bDefault;
 	private final Collection<DboParent> parents;
 	private final Collection<String> emulatorTechnologies;
 
-	public DboBean(String className, boolean bEnable, boolean bDocumented, boolean bDefault,
+	public DboBean(String className, boolean bEnable, DocumentedMode documentedMode, boolean bDefault,
 			Collection<DboParent> parents, Collection<String> emulatorTechnologies) {
 		this.className = className;
 		this.bEnable = bEnable;
-		this.bDocumented = bDocumented;
+		this.documentedMode = documentedMode;
 		this.bDefault = bDefault;
 		this.parents = Collections.unmodifiableCollection(parents);
 		this.emulatorTechnologies = Collections.unmodifiableCollection(emulatorTechnologies);
@@ -52,11 +57,15 @@ public class DboBean {
 		return bEnable;
 	}
 	
-	public Boolean isDocumented() {
-		return bDocumented;
+	public boolean isDocumented() {
+		return documentedMode == DocumentedMode.TRUE;
 	}
 	
-	public Boolean isDefault() {
+	public DocumentedMode getDocumentedMode() {
+		return documentedMode;
+	}
+	
+	public boolean isDefault() {
 		return bDefault;
 	}
 
