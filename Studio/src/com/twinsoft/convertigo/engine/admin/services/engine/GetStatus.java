@@ -33,6 +33,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
+import com.sun.tools.javac.util.Convert;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
@@ -51,10 +52,10 @@ public class GetStatus extends XmlService {
         
 		long currentTimeSec = System.currentTimeMillis() / 1000;
 		long startDateSec = Engine.startStopDate / 1000;
-        long runningElapseDays = (TimeUnit.SECONDS.toDays(currentTimeSec - startDateSec));
-        long runningElapseHours = (TimeUnit.SECONDS.toHours(currentTimeSec - startDateSec) % 24);
-        long runningElapseMin = (TimeUnit.SECONDS.toMinutes(currentTimeSec - startDateSec) % 60);
-        long runningElapseSec = (TimeUnit.SECONDS.toSeconds(currentTimeSec - startDateSec) % 60);
+        long runningElapseDays = (currentTimeSec - startDateSec) / 86400;
+        long runningElapseHours = ((currentTimeSec - startDateSec) / 3600) % 24;
+        long runningElapseMin = ((currentTimeSec - startDateSec) / 60) % 60;
+        long runningElapseSec = (currentTimeSec - startDateSec) % 60;
 
         Element versionElement = document.createElement("version");
         versionElement.setAttribute("product", com.twinsoft.convertigo.engine.Version.fullProductVersion);
