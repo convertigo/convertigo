@@ -461,7 +461,7 @@ public class EnginePropertiesManager {
 		
 		/** SSL */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
-		SSL_DEBUG ("ssl.debug", "false", "SSL debug output (requires JVM restart)", PropertyCategory.Ssl),
+		SSL_DEBUG ("ssl.debug", "false", "SSL debug output (requires JVM restart); only available for HTTP connectors (i.e. NOT useful for HTML connectors)", PropertyCategory.Ssl),
 		@PropertyOptions(propertyType = PropertyType.Array)
 		SSL_ISSUERS ("ssl.issuers", "", "SSL issuers", PropertyCategory.Ssl),
 
