@@ -120,6 +120,30 @@ public class Crypto2 {
 	}
 
 	/**
+	 * Encrypts a byte array using the DES algorithm.
+	 * 
+	 * @param passPhrase
+	 *            the passphrase used for cipher/decipher
+	 * @param data
+	 *            the byte array to encrypt.
+	 * 
+	 * @returns the encrypted byte array, or <code>null</code> if any error occurs.
+	 * 
+	 * @see #decodeFromHexString
+	 */
+	public static byte[] encodeToByteArray(String passphrase, byte[] data) {
+		try {
+			Crypto2 crypto = new Crypto2(passphrase);
+			byte[] ciphered = crypto.encrypt(data);
+			return ciphered;
+		} catch (Exception e) {
+			// Should never happen
+			logError("Unable to encode bytes", e);
+			return null;
+		}
+	}
+
+	/**
 	 * Decrypts a string using the DES algorithm.
 	 * 
 	 * @param passPhrase
@@ -148,6 +172,30 @@ public class Crypto2 {
 		} catch (Exception e) {
 			// Should never happen
 			logError("Unable to decode from hex string: '" + ciphered + "'", e);
+			return null;
+		}
+	}
+
+	/**
+	 * Decrypts a byte array using the DES algorithm.
+	 * 
+	 * @param passPhrase
+	 *            the passphrase used for cipher/decipher
+	 * @param ciphered
+	 *            the ciphered byte array to decrypt.
+	 * 
+	 * @returns the decrypted byte array, or <code>null</code> if any error occurs.
+	 * 
+	 * @see #decodeFromHexString
+	 */
+	public static byte[] decodeFromByteArray(String passphrase, byte[] ciphered) {
+		try {
+			Crypto2 crypto = new Crypto2(passphrase);
+			byte[] deciphered = crypto.decrypt(ciphered);
+			return deciphered;
+		} catch (Exception e) {
+			// Should never happen
+			logError("Unable to decode bytes: '" + ciphered + "'", e);
 			return null;
 		}
 	}
