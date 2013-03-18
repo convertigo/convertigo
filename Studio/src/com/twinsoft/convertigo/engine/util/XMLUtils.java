@@ -53,6 +53,7 @@ import org.apache.log4j.Logger;
 import org.apache.xerces.dom.AttrImpl;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -886,5 +887,22 @@ public class XMLUtils {
 			res[i] = nl.item(i);
 		}
 		return res;
+	}
+
+	/**
+	 * Check if a name is XML-compliant.
+	 * @param xmlName the XML name
+	 * @return true if the provided name is XML compliant or false otherwise
+	 */
+	public static boolean checkName(String xmlName) {
+		try {
+			createDom("java").createElement(xmlName);
+			return true;
+		} catch (DOMException e) {
+			return false;
+		} catch (ParserConfigurationException e) {
+			// Should never occur
+			return false;
+		}
 	}
 }

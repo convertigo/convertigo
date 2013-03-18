@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.common;
 
 import java.beans.*;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class ContainerBeanInfo extends MySimpleBeanInfo {
@@ -46,7 +47,7 @@ public class ContainerBeanInfo extends MySimpleBeanInfo {
             properties[PROPERTY_TagName] = new PropertyDescriptor ( "tagName", Container.class, "getTagName", "setTagName" );
             properties[PROPERTY_TagName].setDisplayName ( getExternalizedString("property.tagName.display_name") );
             properties[PROPERTY_TagName].setShortDescription ( getExternalizedString("property.tagName.short_description") );
-            properties[PROPERTY_TagName].setValue("normalizable", Boolean.TRUE);
+            properties[PROPERTY_TagName].setValue(DatabaseObject.PROPERTY_XMLNAME, Boolean.TRUE);
             
             properties[PROPERTY_ContainerDesc] = new PropertyDescriptor ( "containerDesc", Container.class, "getContainerDesc", "setContainerDesc" );
 			properties[PROPERTY_ContainerDesc].setDisplayName ( getExternalizedString("property.containerDesc.display_name") );

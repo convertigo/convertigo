@@ -2,6 +2,7 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.beans.PropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class InputVariablesStepBeanInfo extends MySimpleBeanInfo {
@@ -24,7 +25,7 @@ public class InputVariablesStepBeanInfo extends MySimpleBeanInfo {
             properties[0] = new PropertyDescriptor("nodeName", beanClass, "getNodeName", "setNodeName");
             properties[0].setDisplayName(getExternalizedString("property.nodeName.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.nodeName.short_description"));
-            properties[0].setValue("normalizable", Boolean.TRUE);
+            properties[0].setValue(DatabaseObject.PROPERTY_XMLNAME, Boolean.TRUE);
             properties[0].setValue(BLACK_LIST_NAME, Boolean.TRUE);
 		}
 		catch(Exception e) {

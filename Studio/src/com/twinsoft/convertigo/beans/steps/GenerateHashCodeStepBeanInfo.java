@@ -2,6 +2,7 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.beans.PropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class GenerateHashCodeStepBeanInfo extends MySimpleBeanInfo{
@@ -34,7 +35,7 @@ public class GenerateHashCodeStepBeanInfo extends MySimpleBeanInfo{
 	        properties[2] = new PropertyDescriptor("nodeName", beanClass, "getNodeName", "setNodeName");
             properties[2].setDisplayName(getExternalizedString("property.nodeName.display_name"));
             properties[2].setShortDescription(getExternalizedString("property.nodeName.short_description"));
-            properties[2].setValue("normalizable", Boolean.TRUE);
+            properties[2].setValue(DatabaseObject.PROPERTY_XMLNAME, Boolean.TRUE);
             properties[2].setValue(BLACK_LIST_NAME, Boolean.TRUE); 
 		}
 		catch(Exception e) {

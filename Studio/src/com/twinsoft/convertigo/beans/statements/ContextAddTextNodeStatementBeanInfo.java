@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.statements;
 
 import java.beans.PropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class ContextAddTextNodeStatementBeanInfo extends MySimpleBeanInfo {
@@ -46,7 +47,7 @@ public class ContextAddTextNodeStatementBeanInfo extends MySimpleBeanInfo {
             properties[0] = new PropertyDescriptor("tagname", beanClass, "getTagName", "setTagName");
             properties[0].setDisplayName(getExternalizedString("property.tagname.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.tagname.short_description"));
-            properties[0].setValue("normalizable", Boolean.TRUE);
+            properties[0].setValue(DatabaseObject.PROPERTY_XMLNAME, Boolean.TRUE);
             
             properties[1] = new PropertyDescriptor("expression", beanClass, "getExpression", "setExpression");
             properties[1].setDisplayName(getExternalizedString("property.expression.display_name"));
