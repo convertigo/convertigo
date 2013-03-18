@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.beans.PropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class WriteXMLStepBeanInfo extends MySimpleBeanInfo{
@@ -46,7 +47,7 @@ public class WriteXMLStepBeanInfo extends MySimpleBeanInfo{
 			properties[0] = new PropertyDescriptor("defaultRootTagname", beanClass, "getDefaultRootTagname", "setDefaultRootTagname");
 			properties[0].setDisplayName(getExternalizedString("property.defaultroottagname.display_name"));
 	        properties[0].setShortDescription(getExternalizedString("property.defaultroottagname.short_description"));
-	        properties[0].setValue("normalizable", Boolean.TRUE);
+	        properties[0].setValue(DatabaseObject.PROPERTY_XMLNAME, Boolean.TRUE);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

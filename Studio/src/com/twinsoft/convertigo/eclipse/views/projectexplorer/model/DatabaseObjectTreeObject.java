@@ -84,6 +84,7 @@ import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.StringUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 
 public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectListener, IPropertySource, IActionFilter {
@@ -630,13 +631,12 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	            }
 	            
 				// Check for property normalized value if needed
-				if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue("normalizable"))) {
+				if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(DatabaseObject.PROPERTY_XMLNAME))) {
 					// Ignore compilable property source value
 					if (compilablePropertySourceValue == null) {
 		        		if (value instanceof String) {
-		        			String normalizedValue = StringUtils.normalize(value.toString());
-		        			if (!value.equals(normalizedValue)) {
-			                    String message = "Property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\" isn't normalized.";
+		        			if (!XMLUtils.checkName(value.toString())) {
+			                    String message = "Property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\" isn't XML compliant.";
 			                    ConvertigoPlugin.logError(message, Boolean.TRUE);
 		        			}
 		        		}
@@ -771,14 +771,14 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
             	}
             }
 			
-			// Normalize property value if needed
-			if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue("normalizable"))) {
+			// Check XML name property value if needed
+			if (Boolean.TRUE.equals(databaseObjectPropertyDescriptor.getValue(DatabaseObject.PROPERTY_XMLNAME))) {
         		if (value instanceof String) {
-        			String normalizedValue = StringUtils.normalize(value.toString());
-        			if (!value.equals(normalizedValue)) {
-        				value = normalizedValue;
-	                    String message = "Property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\" has been normalized.";
+        			String sValue = value.toString();
+        			if (!XMLUtils.checkName(sValue)) {
+        				String message = "The property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\" is not a valid XML name: " + sValue;
 	                    ConvertigoPlugin.logWarning(message);
+	                    return;
         			}
         		}
 			}

@@ -56,6 +56,7 @@ import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.tools.CatalogResolver;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -1006,5 +1007,22 @@ public class XMLUtils {
 			root.appendChild(doc.createTextNode(string));
 		}
 		return root.getChildNodes();
+	}
+
+	/**
+	 * Check if a name is XML-compliant.
+	 * @param xmlName the XML name
+	 * @return true if the provided name is XML compliant or false otherwise
+	 */
+	public static boolean checkName(String xmlName) {
+		try {
+			createDom("java").createElement(xmlName);
+			return true;
+		} catch (DOMException e) {
+			return false;
+		} catch (ParserConfigurationException e) {
+			// Should never occur
+			return false;
+		}
 	}
 }

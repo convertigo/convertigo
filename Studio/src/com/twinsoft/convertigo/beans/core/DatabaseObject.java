@@ -75,6 +75,8 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public abstract class DatabaseObject implements Serializable, Cloneable {
 	private static final long serialVersionUID = -873065042105207891L;
 
+	public static final String PROPERTY_XMLNAME = "xmlname";
+
 	private static class SubLoader extends WalkHelper {
 		DatabaseObject databaseObject;
 
