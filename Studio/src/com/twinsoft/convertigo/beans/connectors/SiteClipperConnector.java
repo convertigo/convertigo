@@ -53,6 +53,7 @@ import java.util.zip.InflaterInputStream;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HostConfiguration;
@@ -181,6 +182,16 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			this.url_matcher = url_matcher;
 		}
 		
+		private Context context = null;
+		
+		public Context getContext() {
+			return context;
+		}
+		
+		public HttpSession getSession() {
+			return request.getSession();
+		}
+		
 		private void process() throws ServletException {
 			try {
 				LogParameters logParameters = new LogParameters();
@@ -208,7 +219,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				Engine.logSiteClipper.debug("(SiteClipperConnector) find contextName : " + contextName);
 				
 				try {
-					Context context = Engine.theApp.contextManager.get(null, contextName, sessionID, null, projectName, connectorName, null);
+					context = Engine.theApp.contextManager.get(null, contextName, sessionID, null, projectName, connectorName, null);
 					Engine.logSiteClipper.trace("(SiteClipperConnector) context id retrieved : " + context.contextID);
 					contextName = context.name;
 					
@@ -280,6 +291,10 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		
 		public String getRequest(QueryKey queryKey) {
 			return queryKey.value(parameters);
+		}
+		
+		public String getRequestParameter(String parameterName) {
+			return request.getParameter(parameterName);
 		}
 		
 		public HttpMethodType getRequestHttpMethodType() {
@@ -515,12 +530,21 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		}
 		
 		public Object evalJavascript(String expression) {
+			return evalJavascript(expression, new HashMap<String, Object>());
+		}
+		
+		public Object evalJavascript(String expression, Map<String, Object> objectsToAddInScope) {
 			if (sharedScope != null) {
 				try {
 					org.mozilla.javascript.Context ctx = org.mozilla.javascript.Context.enter();
 					if (clonedScope == null) {
 						clonedScope = RhinoUtils.copyScope(ctx, sharedScope);
 					}
+					
+					for (String objectName : objectsToAddInScope.keySet()) {
+						clonedScope.put(objectName, clonedScope, objectsToAddInScope.get(objectName));
+					}
+					
 					Object res = ctx.evaluateString(clonedScope, expression, "", 0, null);
 					return res;
 				} finally {
@@ -694,6 +718,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	private void doProcessRequest(Shuttle shuttle) throws IOException, ServletException, EngineException {
 		shuttle.statisticsTaskID = context.statistics.start(EngineStatistics.GET_DOCUMENT);
 		try {
+			shuttle.sharedScope = context.getSharedScope();
+
 			String domain = shuttle.getRequest(QueryPart.host) + shuttle.getRequest(QueryPart.port);
 			Engine.logSiteClipper.trace("(SiteClipperConnector) Prepare the request for the domain " + domain);
 			if (!shouldRewrite(domain)) {
@@ -798,7 +824,14 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 
 				HostConfiguration hostConfiguration = getHostConfiguration(shuttle);
 
-				Engine.theApp.httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
+//				try {
+					Engine.theApp.httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
+//				} catch (IOException e) {
+//					// Retry
+//					Engine.logSiteClipper.warn("(SiteClipperConnector) IOException during HTTP connection: " + e.getMessage());
+//					Engine.logSiteClipper.warn("(SiteClipperConnector) Retrying " + httpMethod.getPath());
+//					Engine.theApp.httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
+//				}
 			} else {
 				Engine.logSiteClipper.info("(SiteClipperconnector) Retrieve recorded response from Context");
 			}
@@ -806,8 +839,6 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			int status = httpMethod.getStatusCode();
 
 			shuttle.processState = ProcessState.response;
-
-			shuttle.sharedScope = context.getSharedScope();
 
 			Engine.logSiteClipper.debug("(SiteClipperConnector) Request terminated with status " + status);
 			shuttle.response.setStatus(status);
