@@ -92,7 +92,7 @@ public abstract class GenericRequester extends Requester {
 	public void checkAuthenticatedContext() throws EngineException {
         if (context.requestedObject.getAuthenticatedContextRequired()) {
 			Engine.logContext.debug("Authenticated context required");
-        	if (context.getAuthenticatedUser() == null) {
+        	if ("(anonymous)".equals(context.getAuthenticatedUser())) {
         		if (context.httpSession != null) {
             		Object authenticatedUser = context.httpSession.getAttribute("authenticatedUser");
             		if (authenticatedUser != null) {
