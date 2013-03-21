@@ -111,8 +111,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	public static int XML_ELEMENT_WITH_ATTRIBUTES = 3;
 
 	/** Holds value of property xmlGrouping. */
-	private boolean xmlGrouping = true;
-
+	private boolean xmlGrouping = false;
 
 	public SqlTransaction() {
 		super();
