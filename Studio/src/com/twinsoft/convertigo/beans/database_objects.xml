@@ -141,6 +141,16 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="ignore" classname="com.twinsoft.convertigo.beans.steps.ThenStep">
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfThenElseStep"/>       
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IsInThenElseStep"/>
+                </bean>
+                <bean enable="true" documented="ignore" classname="com.twinsoft.convertigo.beans.steps.ElseStep">               		
+                	<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfThenElseStep"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IsInThenElseStep"/>
                 </bean>         
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.IsInStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
@@ -771,6 +781,14 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
                 </bean>
+                <bean enable="true" documented="ignore" classname="com.twinsoft.convertigo.beans.statements.ThenStatement">
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement"/>         		
+                </bean>
+                <bean enable="true" documented="ignore" classname="com.twinsoft.convertigo.beans.statements.ElseStatement">               		
+                	<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement"/>
+                </bean>
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
@@ -943,8 +961,7 @@
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
-				</bean>
-				
+				</bean>			
 			</beans>
 		</category>
 	</group>

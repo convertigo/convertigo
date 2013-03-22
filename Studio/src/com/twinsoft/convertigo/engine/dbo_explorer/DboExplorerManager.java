@@ -34,6 +34,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.twinsoft.convertigo.engine.dbo_explorer.DboBean.DocumentedMode;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class DboExplorerManager {
@@ -105,7 +106,7 @@ public class DboExplorerManager {
 	private DboBean buildBean(Element elementBean) {
 		String className = elementBean.getAttribute("classname");
 		String sEnable = elementBean.getAttribute("enable");
-		String sDocumented = elementBean.getAttribute("documented");
+		String sDocumented = elementBean.getAttribute("documented").toUpperCase();
 		String sDefault = elementBean.getAttribute("default");
 		Boolean bEnable;
 		if ("true".equals(sEnable)) {
@@ -114,14 +115,15 @@ public class DboExplorerManager {
 		else {
 			bEnable = false;
 		}
-		Boolean bDocumented;
-		if ("true".equals(sDocumented)) {
-			bDocumented = true;
+		
+		DocumentedMode documentedMode;
+		try {
+			documentedMode = DocumentedMode.valueOf(sDocumented);
+		} catch (Exception e) {
+			documentedMode = DocumentedMode.FALSE;
 		}
-		else {
-			bDocumented = false;
-		}
-		Boolean bDefault;
+		
+		boolean bDefault;
 		if ("true".equals(sDefault)) {
 			bDefault = true;
 		} 
@@ -153,7 +155,7 @@ public class DboExplorerManager {
 			EmulatorTechnologies.add(emulatorTechnology);
 		}
 
-		DboBean bean = new DboBean(className, bEnable, bDocumented, bDefault, parents, EmulatorTechnologies);
+		DboBean bean = new DboBean(className, bEnable, documentedMode, bDefault, parents, EmulatorTechnologies);
 		return bean;
 	}
 

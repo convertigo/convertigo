@@ -1436,7 +1436,13 @@
                icon="icons/studio/new.gif"
                id="convertigo.action.newStatement"
                label="Statement"
-               menubarPath="convertigo.menu.new/content"/>
+               menubarPath="convertigo.menu.new/content">
+               <enablement>
+                 <objectState
+                       name="isThenElseStatement"
+                       value="false"/>
+               </enablement>
+          </action>
       </objectContribution>
 		<objectContribution
 		      id="convertigo.statementContribution"

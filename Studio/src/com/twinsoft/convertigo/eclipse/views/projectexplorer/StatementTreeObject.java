@@ -42,6 +42,7 @@ import com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement
 import com.twinsoft.convertigo.beans.statements.FunctionStatement;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
+import com.twinsoft.convertigo.beans.statements.IThenElseStatementContainer;
 import com.twinsoft.convertigo.beans.statements.IfStatement;
 import com.twinsoft.convertigo.beans.statements.IfThenElseStatement;
 import com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement;
@@ -290,6 +291,10 @@ public class StatementTreeObject extends DatabaseObjectTreeObject implements IEd
 		if (name.equals("isHttpStatement")) {
 			Boolean bool = Boolean.valueOf(value);
 			return bool.equals(Boolean.valueOf(getObject() instanceof HTTPStatement));
+		}
+		if (name.equals("isThenElseStatement")) {
+			Boolean bool = Boolean.valueOf(value);
+			return bool.equals(Boolean.valueOf(getObject() instanceof IThenElseStatementContainer));
 		}
 		if (name.equals("canChangeTo")) {
 			Boolean bool = Boolean.valueOf(value);
