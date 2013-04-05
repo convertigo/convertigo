@@ -14,10 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * $URL: http://sourceus/svn/convertigo/CEMS_opensource/branches/6.2.x/Studio/src/com/twinsoft/convertigo/eclipse/popup/actions/SequenceExecuteSelectedAction.java $
+ * $Author: nathalieh $
+ * $Revision: 30756 $
+ * $Date: 2012-06-07 18:14:23 +0200 (Thu, 07 Jun 2012) $
  */
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
@@ -46,9 +46,9 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.UnloadedProjectTree
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class SequenceExecuteSelectedAction extends MyAbstractAction {
+public class SequenceExecuteSelectedFromStubAction extends MyAbstractAction {
 
-	public SequenceExecuteSelectedAction() {
+	public SequenceExecuteSelectedFromStubAction() {
 		super();
 	}
 
@@ -65,6 +65,7 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
     		if (explorerView != null) {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
     			if ((treeObject != null) && (treeObject instanceof SequenceTreeObject)) {
+    				
     				SequenceTreeObject sequenceTreeObject = (SequenceTreeObject)treeObject;
     				openEditors(explorerView, sequenceTreeObject);
     				
@@ -74,7 +75,7 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
     				if (sequenceEditor != null) {
     					getActivePage().activate(sequenceEditor);
     					sequenceEditor.getSequenceEditorPart().clearBrowser();
-    					sequenceEditor.getDocument(sequence.getName(), false, withXslt);
+    					sequenceEditor.getDocument(sequence.getName(), true, withXslt);
     				}
     			}
     		}

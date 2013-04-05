@@ -56,7 +56,7 @@ public class DefaultServletTranslator implements Translator {
 		// We transform the HTTP post data into XML data.
 		Enumeration<?> parameterNames = request.getParameterNames();
 		
-		Element parentItem, item;
+		Element parentItem, item = null;
 		String parameterName, parameterValue;
 		String headerName, headerValue;
 		String[] parameterValues = null;
@@ -91,6 +91,11 @@ public class DefaultServletTranslator implements Translator {
 				item.setAttribute("name", parameterName);
 				item.setAttribute("value", parameterValue);
 				Engine.logContext.info("Javelin field: '" + parameterName + "' = '" + parameterValue + "'");
+			}
+			// This is a stub's value
+			else if(parameterName.equals(Parameter.Stub.getName()) && Boolean.parseBoolean(parameterValue)) {
+				context.isStubRequested = true;
+				continue;
 			}
 			// This is the document signature
 			else if (parameterName.equals(Parameter.JavelinSignature.getName())) {

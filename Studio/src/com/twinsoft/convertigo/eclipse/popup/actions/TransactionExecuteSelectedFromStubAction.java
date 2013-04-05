@@ -14,10 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * $URL: http://sourceus/svn/convertigo/CEMS_opensource/branches/6.2.x/Studio/src/com/twinsoft/convertigo/eclipse/popup/actions/TransactionExecuteSelectedAction.java $
+ * $Author: jibrilk $
+ * $Revision: 30409 $
+ * $Date: 2012-05-09 14:54:25 +0200 (Wed, 09 May 2012) $
  */
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
@@ -36,9 +36,9 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 
-public class TransactionExecuteSelectedAction extends MyAbstractAction {
+public class TransactionExecuteSelectedFromStubAction extends MyAbstractAction {
 
-	public TransactionExecuteSelectedAction() {
+	public TransactionExecuteSelectedFromStubAction() {
 		super();
 	}
 
@@ -66,7 +66,7 @@ public class TransactionExecuteSelectedAction extends MyAbstractAction {
     				if (connectorEditor != null) {
     					getActivePage().activate(connectorEditor);
     					connectorEditor.getConnectorEditorPart().clearBrowser();
-    					connectorEditor.getDocument(transaction.getName(), false, withXslt);
+    					connectorEditor.getDocument(transaction.getName(), true, withXslt);
     				}
     			}
     		}

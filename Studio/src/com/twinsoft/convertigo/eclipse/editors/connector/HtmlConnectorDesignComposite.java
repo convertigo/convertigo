@@ -1242,7 +1242,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 								if (connectorEditor == null)
 									transactionFinished(new EngineEvent(xmlizingTransaction));
 								else
-									connectorEditor.getDocument(xmlizingTransaction.getName(), false);
+									connectorEditor.getDocument(xmlizingTransaction.getName(), false, false);
 							}
 						});
 

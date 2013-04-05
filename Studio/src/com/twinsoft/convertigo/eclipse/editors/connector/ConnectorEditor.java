@@ -107,12 +107,12 @@ public class ConnectorEditor extends EditorPart {
 		return connectorEditorPart;
 	}
 	
-	public void getDocument(String transactionName, boolean withXslt) {
-		getDocument(transactionName, null, withXslt);
+	public void getDocument(String transactionName, boolean isStubRequested, boolean withXslt) {
+		getDocument(transactionName, null, isStubRequested, withXslt);
 	}
 	
-	public void getDocument(String transactionName, String testcaseName, boolean withXslt) {
-		connectorEditorPart.getDocument(transactionName, testcaseName, withXslt);
+	public void getDocument(String transactionName, String testcaseName, boolean isStubRequested, boolean withXslt) {
+		connectorEditorPart.getDocument(transactionName, testcaseName, isStubRequested, withXslt);
 	}
 	
 	public Document getLastGeneratedDocument() {
