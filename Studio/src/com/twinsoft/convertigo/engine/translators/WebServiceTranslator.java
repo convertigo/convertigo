@@ -76,22 +76,14 @@ public class WebServiceTranslator implements Translator {
 
 		Iterator<?> iterator = sb.getChildElements();
 		SOAPElement method, parameter;
-		Object element;
 		String methodName;
 
-		Element root = context.inputDocument.createElement("input");
-		Element transactionVariablesElement = context.inputDocument.createElement("transaction-variables");
-
-		context.inputDocument.appendChild(root);
-		root.appendChild(transactionVariablesElement);
+		InputDocumentBuilder inputDocumentBuilder = new InputDocumentBuilder(context);
 		
-		Element item;
-		List<RequestableVariable> variableList = null;		// jmc 12/06/26
-
 		while (iterator.hasNext()) {
-			variableList = null;
+			List<RequestableVariable> variableList = null; // jmc 12/06/26
 			
-			element = iterator.next();
+			Object element = iterator.next();
 			if (element instanceof SOAPElement) {
 				method = (SOAPElement) element;
 
@@ -160,7 +152,9 @@ public class WebServiceTranslator implements Translator {
 						parameter = (SOAPElement) element;
 						parameterName = parameter.getElementName().getLocalName();
 						parameterValue = parameter.getValue();
-						if (parameterValue == null) parameterValue = "";
+						if (parameterValue == null) {
+							parameterValue = "";
+						}
 						
 						if (variableList != null) {		// jmc 12/06/26 hide hidden variables in sequences
 							String str = (String) Visibility.Logs.replaceVariables(variableList, "" + parameterName + "=\"" + parameterValue + "\"") ;
@@ -252,20 +246,9 @@ public class WebServiceTranslator implements Translator {
 							context.noCache = (parameterValue.equalsIgnoreCase("true") ? true : false);
 							Engine.logBeans.debug("Ignoring cache required: " + parameterValue);
 						}
-						else if (parameterName.startsWith(Parameter.Testcase.getName())) {
-							item = context.inputDocument.createElement("variable");
-							item.setAttribute("name", parameterName);
-							item.setAttribute("value", parameterValue);
-							Engine.logBeans.debug("   Adding test case = '" + parameterValue + "'");
-							transactionVariablesElement.appendChild(item);
-						}
-						// User reference
-						else if (Parameter.UserReference.getName().equals(parameterName)) {
-							context.userReference = parameterValue;
-							Engine.logContext.info("User reference = '" + parameterValue + "'");
-						}
-						else if (parameterName.startsWith("__")) {
-							Engine.logBeans.debug("Convertigo internal variable ignored! (not handled)");
+						// common parameter handling
+						else if (inputDocumentBuilder.handleSpecialParameter(parameterName, parameterValue)) {
+							// handled
 						}
 						// Compatibility for Convertigo 2.x
 						else if (parameterName.equals("context")) {
@@ -353,13 +336,13 @@ public class WebServiceTranslator implements Translator {
 										soapArrayElement = (SOAPElement) element;
 										parameterValue = soapArrayElement.getValue();
 										if (parameterValue == null) parameterValue = "";
-										handleSimpleVariable(context.inputDocument, soapArrayElement, parameterName, parameterValue, transactionVariablesElement);
+										handleSimpleVariable(context.inputDocument, soapArrayElement, parameterName, parameterValue, inputDocumentBuilder.transactionVariablesElement);
 									}
 								}
 							}
 							// Deserializing simple variable
 							else {
-								handleSimpleVariable(context.inputDocument, parameter, parameterName, parameterValue, transactionVariablesElement);
+								handleSimpleVariable(context.inputDocument, parameter, parameterName, parameterValue, inputDocumentBuilder.transactionVariablesElement);
 							}
 						}
 					}
