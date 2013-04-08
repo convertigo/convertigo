@@ -28,6 +28,8 @@ import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ExpiredSecurityTokenException;
+import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
 import com.twinsoft.convertigo.engine.translators.PoolTranslator;
 import com.twinsoft.convertigo.engine.translators.Translator;
 
@@ -57,7 +59,7 @@ public class PoolRequester extends GenericRequester {
 	}
 
 	public Translator getTranslator() {
-		return new PoolTranslator();
+		return new PoolTranslator(this);
 	}
 
 	protected void initInternalVariables() throws EngineException {
@@ -67,7 +69,12 @@ public class PoolRequester extends GenericRequester {
 	protected Object addStatisticsAsData(Object result) {
 		return result;
 	}
+	
 	protected Object addStatisticsAsText(String stats, Object result) throws UnsupportedEncodingException{
 		return result;
+	}
+	
+	public void handleParameter(String parameterName, String parameterValue) throws NoSuchSecurityTokenException, ExpiredSecurityTokenException {
+		handleParameter(context, parameterName, parameterValue);
 	}
 }

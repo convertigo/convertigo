@@ -28,14 +28,20 @@ import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.Scriptable;
-import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.requesters.PoolRequester;
 
 public class PoolTranslator implements Translator {
+	
+	private PoolRequester poolRequester;
+
+	public PoolTranslator(PoolRequester poolRequester) {
+		this.poolRequester = poolRequester;
+	}
 
 	public void buildInputDocument(Context context, Object inputData) throws Exception {
         Engine.logBeans.debug("Making input document");
@@ -45,13 +51,7 @@ public class PoolTranslator implements Translator {
 		String poolName = context.pool.getName();
 		String poolContextID = ContextManager.getPoolContextID(projectName, connectorName, poolName, "" + context.poolContextNumber); 
         
-		Element root = context.inputDocument.createElement("input");
-		Element transactionVariablesElement = context.inputDocument.createElement("transaction-variables");
-		Element javelinActionElement = context.inputDocument.createElement("javelin-action");
-
-		context.inputDocument.appendChild(root);
-		root.appendChild(transactionVariablesElement);
-		root.appendChild(javelinActionElement);
+		InputDocumentBuilder inputDocumentBuilder = new InputDocumentBuilder(context);
         
 		String sContextNumber, variableName = "n/a", variableValue = "n/a";
 
@@ -92,11 +92,10 @@ public class PoolTranslator implements Translator {
 	
 						Engine.logBeans.debug("(ContextManager) " + poolContextID + " Add transation variable \"" + variableName + "\"=\"" + variableValue + "\"");
 			
-						Element item = context.inputDocument.createElement("variable");
-						item.setAttribute("name", variableName);
-						item.setAttribute("value", variableValue);
-						Engine.logBeans.debug("(ContextManager) Added transaction variable '" + variableName + "' = '" + variableValue + "'");
-						transactionVariablesElement.appendChild(item);
+						poolRequester.handleParameter(variableName, variableValue);
+						if (!inputDocumentBuilder.handleSpecialParameter(variableName, variableValue)) {
+							inputDocumentBuilder.addVariable(variableName, variableValue);
+						};
 					}
 				}
 				catch(NumberFormatException e) {
