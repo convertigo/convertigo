@@ -120,6 +120,13 @@ public abstract class AbstractContext {
 		}
 	}
 	
+	public void setAuthenticatedUser(String authenticatedUser){
+		if (authenticatedUser != null) {
+			portalUserName = authenticatedUser;		
+			httpSession.setAttribute( "authenticatedUser" , authenticatedUser );
+		}
+	}
+	
 	/**
 	 * The portal user name.
 	 */
