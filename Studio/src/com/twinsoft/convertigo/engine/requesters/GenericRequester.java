@@ -104,6 +104,7 @@ public abstract class GenericRequester extends Requester {
     					return;
             		}
         		}
+        		
         		throw new EngineException("Authentication required");
         	}
         }

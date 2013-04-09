@@ -123,6 +123,8 @@ public class Authenticate extends XmlService {
 				ServiceUtils.addMessage(document, document.getDocumentElement(), "" + httpSession.getAttribute(SessionKey.ADMIN_USER.toString()), "user", false);
 				ServiceUtils.addRoleNodes(document.getDocumentElement(), roles);
 				
+				httpSession.setAttribute("authenticatedUser", "c8o:admin");
+				
 				Engine.logAdmin.info("User '" + user + "' has been successfully authenticated");
 			}
 		}
