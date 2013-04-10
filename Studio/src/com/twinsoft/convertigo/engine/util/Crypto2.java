@@ -83,9 +83,17 @@ public class Crypto2 {
 		return result;
 	}
 
-	// Marker for new crypto lib (this character is outside the set of
+	// Marker for crypto v2 lib (this character is outside the set of
 	// hexadecimal characters used by encodeToHexString()).
-	private static final char NEW_CRYPTO_MARKER = 'x';
+	private static final char CRYPTO_V2_MARKER = 'x';
+
+	// Marker for crypto v1 lib (this character is outside the set of
+	// hexadecimal characters used by encodeToHexString()).
+	private static final char CRYPTO_V1_MARKER = 'y';
+
+	// Marker for old twinsoft DESKey crypto lib (this character is outside the set of
+	// hexadecimal characters used by encodeToHexString()).
+	private static final char CRYPTO_TWINSOFT_DESKEY_MARKER = 'z';
 
 	/**
 	 * Encrypts a string using the DES algorithm.
@@ -106,7 +114,7 @@ public class Crypto2 {
 			Crypto2 crypto = new Crypto2(passphrase);
 			byte[] data = sData.getBytes("UTF-8");
 			byte[] ciphered = crypto.encrypt(data);
-			String sCiphered = NEW_CRYPTO_MARKER + HexUtils.toHexString(ciphered);
+			String sCiphered = CRYPTO_V2_MARKER + HexUtils.toHexString(ciphered);
 			return sCiphered;
 		} catch (UnsupportedEncodingException e) {
 			// Should never happen
@@ -208,16 +216,37 @@ public class Crypto2 {
 
 	private static String decodeFromHexString(String ciphered, boolean bTripleDES) {
 		logDebug("Decoding: '" + ciphered + "'; bTripleDES (for old crypto): " + bTripleDES);
-		// New crypto lib
-		if (ciphered.charAt(0) == NEW_CRYPTO_MARKER) {
+		// Crypto v2 lib
+		if (ciphered.charAt(0) == CRYPTO_V2_MARKER) {
+			logDebug("Crypto v2 detected");
 			return Crypto2
 					.decodeFromHexString(
 							EnginePropertiesManager.getProperty(PropertyName.CRYPTO_PASSPHRASE),
 							ciphered);
 		}
-		// Old crypto lib
+		// Crypto v1 lib
+		else if (ciphered.charAt(0) == CRYPTO_V1_MARKER) {
+			logDebug("Crypto v1 detected");
+			if (bTripleDES) {
+				return com.twinsoft.convertigo.engine.util.Crypto.decodeFromHexString3(ciphered);
+			}
+			else {
+				return com.twinsoft.convertigo.engine.util.Crypto.decodeFromHexString(ciphered);
+			}
+		}
+		// Crypto twinsoft DESKey
+		else if (ciphered.charAt(0) == CRYPTO_TWINSOFT_DESKEY_MARKER) {
+			logDebug("Crypto twinsoft DESKey detected");
+			if (bTripleDES) {
+				return DESKey.decodeFromHexString3(ciphered);
+			}
+			else {
+				return DESKey.decodeFromHexString(ciphered);
+			}
+		}
+		// Fallback: try to detect crypto lib
 		else {
-			logDebug("Old crypto lib detected");
+			logDebug("Trying to detect crypto lib...");
 			
 			String decipheredValue;
 			String recipheredValue;
@@ -233,7 +262,9 @@ public class Crypto2 {
 			}
 
 			// Crypto from TWS lib (DESKey)?
-			if (!ciphered.equals(recipheredValue)) {
+			if (ciphered.equals(recipheredValue)) {
+				logDebug("Crypto v1 detected");
+			} else {
 				if (bTripleDES) {
 					decipheredValue = DESKey.decodeFromHexString3(ciphered);
 					recipheredValue = DESKey.encodeToHexString3(decipheredValue);
@@ -246,6 +277,8 @@ public class Crypto2 {
 				if (!ciphered.equals(recipheredValue)) {
 					throw new IllegalArgumentException("Unable to decode value '" + ciphered + "' with any known ciphering methods");
 				}
+				
+				logDebug("Crypto twinsoft DESKey detected");
 			}
 			
 			if (decipheredValue == null) {
