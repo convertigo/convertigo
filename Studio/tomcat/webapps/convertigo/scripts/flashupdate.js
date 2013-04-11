@@ -291,7 +291,7 @@ var F = {
 	requireUserConfirmation: function () {
 		F.debug("requireUserConfirmation");
 		
-		$("#requireUserConfirmation").one(F.clickEvent, "button", function () {
+		$("#requireUserConfirmation").one(F.clickEvent, "#requireUserConfirmationYes, #requireUserConfirmationNo", function () {
 			try {
 				if ($(this).val() == "yes") {
 					$("#requireUserConfirmation").hide();
@@ -386,9 +386,16 @@ var F = {
 		
 		$("#progress").show();
 		
-		var context = $("canvas")[0].getContext("2d");
+		var $canvas = $("#progressGauge");
+		var context = $canvas[0].getContext("2d");
 		context.lineWidth = 30;
-		context.strokeStyle = "white";
+		context.strokeStyle = $("#progressGaugeColor1").css("color");
+		
+		context.beginPath();
+		context.arc(100, 100, 70, 0, 2 * Math.PI, false);
+		context.stroke();
+		
+		context.strokeStyle = $("#progressGaugeColor2").css("color");
 		
 		var checkDone = function (file) {
 			try {
