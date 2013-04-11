@@ -81,10 +81,9 @@ class InputDocumentBuilder {
 			Engine.logContext.info("Javelin field: '" + parameterName + "' = '" + parameterValue + "'");
 		}
 		// This is a stub's value
-// TODO: uncomment for #3489 trunk report		
-//		else if(parameterName.equals(Parameter.Stub.getName()) && Boolean.parseBoolean(parameterValue)) {
-//			context.isStubRequested = true;
-//		}
+		else if (parameterName.equals(Parameter.Stub.getName()) && Boolean.parseBoolean(parameterValue)) {
+			context.isStubRequested = true;
+		}
 		// This is the document signature
 		else if (parameterName.equals(Parameter.JavelinSignature.getName())) {
 			Element item = context.inputDocument.createElement("document-signature");

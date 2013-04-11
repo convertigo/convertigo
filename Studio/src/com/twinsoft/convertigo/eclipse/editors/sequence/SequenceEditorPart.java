@@ -656,14 +656,14 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	}
 	
 	protected void getDocument() {
-        getDocument(null, false);
+        getDocument(null, false, false);
     }
 	
-	public void getDocument(String sequenceName, boolean withXslt) {
-		getDocument(sequenceName, null, withXslt);
+	public void getDocument(String sequenceName, boolean isStubRequested, boolean withXslt) {
+		getDocument(sequenceName, null, isStubRequested, withXslt);
 	}
 	
-	public void getDocument(String sequenceName, String testcaseName, boolean withXslt) {
+	public void getDocument(String sequenceName, String testcaseName, boolean isStubRequested, boolean withXslt) {
         String url = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
         
         url += "/projects/" + projectName;
@@ -686,6 +686,8 @@ public class SequenceEditorPart extends Composite implements EngineListener{
         			+ "&" + Parameter.Sequence.getName()+"="+ sequenceName;
         if (testcaseName != null)
         	url += "&"+Parameter.Testcase.getName()+"="+ testcaseName;
+        if (isStubRequested)
+        	url += "&"+Parameter.Stub.getName()+"="+ true;
         
         try {
         	browser.setUrl(url);

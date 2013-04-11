@@ -47,6 +47,7 @@ public enum Parameter {
 	Sequence("__sequence"),
 	SequenceInheritedTransactionContext("__inheritedContext"),
 	SessionId("__jSessionID"),
+	Stub("__stub"),
 	Supervision("__supervision"),
 	Testcase("__testcase"),
 	Transaction("__transaction"),

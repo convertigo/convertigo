@@ -66,7 +66,7 @@ public class TransactionExecuteSelectedAction extends MyAbstractAction {
     				if (connectorEditor != null) {
     					getActivePage().activate(connectorEditor);
     					connectorEditor.getConnectorEditorPart().clearBrowser();
-    					connectorEditor.getDocument(transaction.getName(), withXslt);
+    					connectorEditor.getDocument(transaction.getName(), false, withXslt);
     				}
     			}
     		}

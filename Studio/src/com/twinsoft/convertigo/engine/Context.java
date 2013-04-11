@@ -96,6 +96,7 @@ public class Context extends AbstractContext {
 	public boolean isXsltRequest = false;
 	
 	public boolean isAsync;
+	public boolean isStubRequested;
 	public int waitingRequests = 0;
 	
 	public boolean isNewSession;
@@ -177,6 +178,7 @@ public class Context extends AbstractContext {
 	public void reset() {
 		isXsltRequest = false;
 		isErrorDocument = false;
+		isStubRequested = false;
 		isNewSession = false;
 		
 		isCacheEnabled = true;

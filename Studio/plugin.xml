@@ -1227,14 +1227,14 @@
                enablesFor="1"
                id="convertigo.action.updateXSDFromXML"
                label="Update schema from current generated XML"
-               menubarPath="wsdl">
+               menubarPath="xsd">
          </action>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.UpdateXSDTypesAction"
                enablesFor="1"
                id="convertigo.action.updateXSD"
                label="Update schema from transaction&apos;s definition"
-               menubarPath="wsdl">
+               menubarPath="xsd">
          </action>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.SetDefaultTransactionAction"
@@ -1255,6 +1255,27 @@
                id="convertigo.action.generateForm"
                label="Generate Request Form Transaction"
                menubarPath="transaction">
+         </action>
+                  <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
+               enablesFor="1"
+               id="convertigo.action.createEmptyStub"
+               label="Create empty stub"
+               menubarPath="stub">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStubFromXMLAction"
+               enablesFor="1"
+               id="convertigo.action.createStubFromXML"
+               label="Create stub from current generated XML"
+               menubarPath="stub">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedFromStubAction"
+               icon="icons/studio/transaction_execute_selected.gif"
+               id="convertigo.action.executeSelectedTransactionFromStub"
+               label="Execute from stub"
+               menubarPath="execute">
          </action>
          
       </objectContribution>
@@ -2186,7 +2207,7 @@
                      enablesFor="0"
                      id="convertigo.action.seq.updateXSDFromXML"
                      label="Update schema from current generated XML"
-                     menubarPath="wsdl">
+                     menubarPath="xsd">
                </action>
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.UpdateXSDTypesAction"
@@ -2201,6 +2222,25 @@
                   id="convertigo.action.seq.importXSD"
                   label="Import step&apos;s structure from schema"
                   menubarPath="import">
+            </action>
+            <action
+                  class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStubFromXMLAction"
+                  enablesFor="1"
+                  id="convertigo.action.seq.createStubFromXML"
+                  label="Create stub from current generated XML">
+            </action>
+            <action
+                  class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
+                  enablesFor="1"
+                  id="convertigo.action.seq.createEmptyStub"
+                  label="Create empty stub">
+            </action>
+            <action
+                  class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedFromStubAction"
+                  icon="icons/studio/transaction_execute_selected.gif"
+                  id="convertigo.action.executeSelectedSequenceFromStub"
+                  label="Execute from stub"
+                  menubarPath="execute">
             </action>
             </objectContribution>
             <objectContribution

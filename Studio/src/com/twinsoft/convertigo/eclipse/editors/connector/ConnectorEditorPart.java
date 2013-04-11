@@ -1127,18 +1127,18 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	}
 
 	protected void getDocument() {
-		getDocument(null, false);
+		getDocument(null, false, false);
 	}
 
 	protected Context context;
 	private String contextID = null;
 	private String projectName = null;
 
-	public void getDocument(String transactionName, boolean withXslt) {
-		getDocument(transactionName, null, withXslt);
+	public void getDocument(String transactionName, boolean isStubRequested, boolean withXslt) {
+		getDocument(transactionName, null, isStubRequested, withXslt);
 	}
 
-	public void getDocument(String transactionName, String testcaseName, boolean withXslt) {
+	public void getDocument(String transactionName, String testcaseName, boolean isStubRequested, boolean withXslt) {
 		String url = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
 		boolean isIndexJsp = false;
 		url += "/projects/" + projectName;
@@ -1183,6 +1183,8 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			url += "&" + Parameter.Transaction.getName() + "=" + transactionName;
 		if (testcaseName != null)
 			url += "&" + Parameter.Testcase.getName() + "=" + testcaseName;
+		if (isStubRequested)
+        	url += "&"+Parameter.Stub.getName()+"="+ true;
 
 		try {
 			browser.setUrl(url);

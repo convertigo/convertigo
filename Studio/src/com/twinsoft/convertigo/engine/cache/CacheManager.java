@@ -22,11 +22,14 @@
 
 package com.twinsoft.convertigo.engine.cache;
 
+import java.io.IOException;
 import java.util.Date;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.ProcessingInstruction;
+import org.xml.sax.SAXException;
 
+import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.AbstractRunnableManager;
 import com.twinsoft.convertigo.engine.Context;
@@ -55,6 +58,29 @@ public abstract class CacheManager extends AbstractRunnableManager {
 		Document response = null;
 		CacheEntry cacheEntry;
 		String	supervision = null;
+		
+		if (context.isStubRequested) {
+			String stubFileName = null;
+			if (context.requestedObject instanceof Transaction) {
+				stubFileName = Engine.PROJECTS_PATH + "\\"
+						+ context.requestedObject.getProject().getName()
+						+ "\\stubs\\"
+						+ context.requestedObject.getParent().getName() + "."
+						+ context.requestedObject.getName() + ".xml";
+				
+			} else if (context.requestedObject instanceof Sequence) {
+				stubFileName = Engine.PROJECTS_PATH + "\\"
+						+ context.requestedObject.getProject().getName()
+						+ "\\stubs\\" + context.requestedObject.getName() + ".xml";
+			}
+			try {
+				return XMLUtils.parseDOM(stubFileName);
+			} catch (SAXException e) {
+				Engine.logCacheManager.error("Error while parsing "+stubFileName+" file");
+			} catch (IOException e) {
+				Engine.logCacheManager.error("Error while getting "+stubFileName+" file");
+			}
+		}
 
 		context.requestedObject.parseInputDocument(context);
 		if (context.httpServletRequest != null) {
