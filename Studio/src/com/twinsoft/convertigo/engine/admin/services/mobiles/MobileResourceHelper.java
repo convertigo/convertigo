@@ -104,6 +104,8 @@ public class MobileResourceHelper {
 			File serverJsFile = new File(destDir, "sources/server.js");
 			
 			if (serverJsFile.exists()) {
+				// Sencha 1 case
+				
 				File indexHtmlFile = new File(destDir, "index.html");
 				String sIndexHtml = FileUtils.readFileToString(indexHtmlFile);
 				
@@ -129,6 +131,8 @@ public class MobileResourceHelper {
 				
 				writeStringToFile(indexHtmlFile, sIndexHtml);
 			} else {
+				// jQuery Mobile case
+				
 				for (File htmlFile :FileUtils.listFiles(destDir, new String[] {"html"}, true)) {
 					String htmlContent = FileUtils.readFileToString(htmlFile);
 					StringBuffer sbIndexHtml = new StringBuffer();
@@ -140,7 +144,7 @@ public class MobileResourceHelper {
 							File inFile = new File(Engine.WEBAPP_PATH + "/" + file);
 							
 							if (inFile.exists()) {
-								boolean needImages = file.matches(".*jquery\\.mobile\\..*?min.css");
+								boolean needImages = file.matches(".*jquery\\.mobile\\..*?min\\.css");
 								
 								file = file.replace("scripts/", "js/");
 								File outFile = new File(destDir, file);
@@ -158,6 +162,11 @@ public class MobileResourceHelper {
 									String sJs = FileUtils.readFileToString(outFile);
 									sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "/\"");
 									writeStringToFile(outFile, sJs);
+								}
+								
+								if (file.matches(".*/flashupdate_.*?\\.css")) {
+									FileUtils.copyDirectory(new File(inFile.getParentFile(), "flashupdate_fonts"), new File(outFile.getParentFile(), "flashupdate_fonts"), defaultFilter, true);
+									FileUtils.copyDirectory(new File(inFile.getParentFile(), "flashupdate_images"), new File(outFile.getParentFile(), "flashupdate_images"), defaultFilter, true);
 								}
 							}
 						}
