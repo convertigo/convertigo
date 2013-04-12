@@ -29,6 +29,7 @@ import java.util.Set;
 import org.mozilla.javascript.NativeJavaObject;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -170,11 +171,12 @@ public class InternalRequester extends GenericRequester {
 			else return null;
 		} else if (parameterObjectValue instanceof Node) {
 			Node node = (Node) parameterObjectValue;
-			return node.getNodeValue();
+			return node instanceof Element ? ((Element) node).getTextContent() : node.getNodeValue();
 		} else if (parameterObjectValue instanceof NodeList) {
 			NodeList nl = (NodeList) parameterObjectValue;
 			if (nl.getLength() > 0) {
-				return nl.item(0).getNodeValue();
+				Node node = nl.item(0);
+				return node instanceof Element ? ((Element) node).getTextContent() : node.getNodeValue();
 			}
 			else return null;
 		} else if (parameterObjectValue instanceof XMLVector) {
