@@ -757,7 +757,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				shuttle.httpMethod = httpMethod;
 
 				SiteClipperScreenClass screenClass = getCurrentScreenClass();
-				Engine.logSiteClipper.debug("(SiteClipperConnector) Find current request screen class " + screenClass.getName());
+				Engine.logSiteClipper.info("(SiteClipperConnector) Request screen class: " + screenClass.getName());
 
 				for (String name : Collections.list(GenericUtils.<Enumeration<String>>cast(shuttle.request.getHeaderNames()))) {
 					if (requestHeadersToIgnore.contains(HeaderName.parse(name))) {
@@ -848,7 +848,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 
 			SiteClipperScreenClass screenClass = getCurrentScreenClass();
-			Engine.logSiteClipper.debug("(SiteClipperConnector) Find current response screen class " + screenClass.getName());
+			Engine.logSiteClipper.info("(SiteClipperConnector) Response screen class: " + screenClass.getName());
 
 			if (Engine.isStudioMode()) {
 				Engine.theApp.fireObjectDetected(new EngineEvent(screenClass));
