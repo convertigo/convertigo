@@ -381,21 +381,32 @@ public class Migration7_0_0 {
 		}
 	}
 	
+	private static boolean handleSourceDefinition(XMLVector<String> definition) {
+		if (!definition.isEmpty()) {
+			String xpath = definition.get(1);
+			definition.set(1, xpath = xpath.replaceAll("\\./sequence|\\./transaction", "."));
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	private static void handleSteps(XmlSchema projectSchema, Map<String, Reference> referenceMap, List<Step> stepList) {
 		for (Step step: stepList) {
-			if (step instanceof IStepSourceContainer) {
+			if (step instanceof XMLActionStep) {
+				XMLVector<XMLVector<Object>> sourcesDefinition = ((XMLActionStep) step).getSourcesDefinition();
+				for (XMLVector<Object> row : sourcesDefinition) {
+					if (row.size() > 1) {
+						XMLVector<String> definition = GenericUtils.cast(row.get(1));
+						handleSourceDefinition(definition);
+					}
+				}
+			} else if (step instanceof IStepSourceContainer) {
 				/** Case step's xpath has not been migrated when project has been deployed
 				 ** on a 5.0 server from a Studio with an older version **/
 				IStepSourceContainer stepSourceContainer = (IStepSourceContainer)step;
 				XMLVector<String> definition = stepSourceContainer.getSourceDefinition();
-				if (step instanceof XMLActionStep) {
-//					XMLActionStep xmlActionStep = (XMLActionStep) step;
-//					for (XMLVector<String> definition : xmlActionStep.getSourcesDefinition()) {
-//						handleSourceDefinition(definition);
-//					}
-				} else if (!definition.isEmpty()) {
-					String xpath = definition.get(1);
-					definition.set(1, xpath = xpath.replaceAll("\\./sequence|\\./transaction", "."));
+				if (handleSourceDefinition(definition)) {
 					stepSourceContainer.setSourceDefinition(definition);
 				}
 			}
