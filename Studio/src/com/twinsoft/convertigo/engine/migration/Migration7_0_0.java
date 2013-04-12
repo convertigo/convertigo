@@ -71,6 +71,7 @@ import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.steps.XMLActionStep;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
@@ -387,7 +388,12 @@ public class Migration7_0_0 {
 				 ** on a 5.0 server from a Studio with an older version **/
 				IStepSourceContainer stepSourceContainer = (IStepSourceContainer)step;
 				XMLVector<String> definition = stepSourceContainer.getSourceDefinition();
-				if (!definition.isEmpty()) {
+				if (step instanceof XMLActionStep) {
+//					XMLActionStep xmlActionStep = (XMLActionStep) step;
+//					for (XMLVector<String> definition : xmlActionStep.getSourcesDefinition()) {
+//						handleSourceDefinition(definition);
+//					}
+				} else if (!definition.isEmpty()) {
 					String xpath = definition.get(1);
 					definition.set(1, xpath = xpath.replaceAll("\\./sequence|\\./transaction", "."));
 					stepSourceContainer.setSourceDefinition(definition);
