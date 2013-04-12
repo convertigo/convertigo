@@ -112,7 +112,10 @@ public class SqlTransaction extends TransactionWithVariables {
 
 	/** Holds value of property xmlGrouping. */
 	private boolean xmlGrouping = false;
-
+	
+	//Use for stock parameter of the query
+	private ArrayList<String> params = new ArrayList<String>();
+	
 	public SqlTransaction() {
 		super();
 	}
@@ -249,6 +252,8 @@ public class SqlTransaction extends TransactionWithVariables {
 		
 		if (vParameters != null) {
 			StringEx s = new StringEx(sqlQuery);
+			// Clear the parameter list
+			params.clear();
 			for (String parameterName : vParameters) {
 				try {
 					Object variableValue = null;
@@ -305,8 +310,22 @@ public class SqlTransaction extends TransactionWithVariables {
 					if (variableValue != null && Visibility.Logs.isMasked(variableVisibility)) {
 						if (!variableValue.equals("")) logHiddenValues.add(parameterValue);
 					}
+					// s.replaceAll("{"+parameterName+"}",parameterValue);
 					
-					s.replaceAll("{"+parameterName+"}",parameterValue);
+					// If we have " around the parameter, ex : test = "{parameter}"
+					if( s.toString().indexOf("\"{"+parameterName+"}\"") != -1){
+						s.replaceAll("\"{"+parameterName+"}\"","?");
+					// If we have ' around the parameter, ex : test = '{parameter}'
+					}else if( s.toString().indexOf("'{"+parameterName+"}'") != -1){
+						s.replaceAll("'{"+parameterName+"}'","?");
+					// Example : test = {parameter}
+					}else{
+						s.replaceAll("{"+parameterName+"}","?");
+					}
+					
+					// Add the parameter into the ArrayList
+					params.add(parameterValue);
+				
 				} catch(ClassCastException e) {
 					Engine.logBeans.warn("(SqlTransaction) Ignoring parameter '" + parameterName+ "' because its value is not a string.");
 				}
@@ -343,7 +362,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		if (Engine.logBeans.isDebugEnabled())
 			Engine.logBeans.debug("(SqlTransaction) Preparing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
 		
-		preparedStatement = connector.prepareStatement(query);
+		preparedStatement = connector.prepareStatement(query, params);
 		return query;
 	}
 	
@@ -592,8 +611,8 @@ public class SqlTransaction extends TransactionWithVariables {
 			}
 				
 			// close statement and resulset if exist
-			preparedStatement.close();
-				
+			preparedStatement.close();		
+			
 			if (!runningThread.bContinue)
 				return;
 
@@ -619,8 +638,9 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 		finally {
 			try {
-				if (preparedStatement != null)
+				if (preparedStatement != null){
 					preparedStatement.close();
+				}
 			}
 			catch(SQLException e) {;}
 			preparedStatement = null;
