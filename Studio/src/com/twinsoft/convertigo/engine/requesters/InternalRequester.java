@@ -69,10 +69,6 @@ public class InternalRequester extends GenericRequester {
 		try {
 			poolName = getParameterValue(request.get(Parameter.Pool.getName()));
 			Engine.logContext.debug("(InternalRequester) pool name: " + poolName);
-			
-			if (poolName != null && poolName.length() > 0) {
-				request.remove(Parameter.Context.getName());
-			}
 		} catch (NullPointerException e) {
 			// Just ignore
 		}
@@ -97,9 +93,9 @@ public class InternalRequester extends GenericRequester {
 	public Context getContext() throws Exception {
 		Map<String, String[]> request = GenericUtils.cast(inputData);
 
-		initInternalVariables();
-
 		String contextName = getContextName();
+
+		initInternalVariables();
 		
 		String sessionID = request.get(Parameter.SessionId.getName())[0];
 		Engine.logContext.debug("(ServletRequester) Requested execution sessionID: " + sessionID);
