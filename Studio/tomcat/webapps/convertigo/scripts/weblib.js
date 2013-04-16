@@ -87,9 +87,15 @@ C8O = {
 					if (action == this.contentWindow.location.pathname) {
 						if (C8O.vars.xsl_side === "client") {
 							var xml = $iframe[0].contentWindow.document.XMLDocument;
-							C8O._onSuccess(xml ? xml : $iframe[0].contentWindow.document, "ok", {responseText : "No responseText for multipart, use XSL or xml_response."});
+							C8O._onSuccess(xml ? xml : $iframe[0].contentWindow.document, "success", {
+								C8O_data : data,
+								responseText : "No responseText for multipart, use XSL or xml_response."
+							});
 						} else {
-							C8O._onSuccess(null, "ok", {responseText : $iframe[0].contentWindow.document.outerHTML});
+							C8O._onSuccess(null, "success", {
+								C8O_data : data,
+								responseText : $iframe[0].contentWindow.document.outerHTML
+							});
 						}
 						$iframe.remove();
 					};
@@ -218,13 +224,14 @@ C8O = {
 	_call : function (data) {
 		C8O._define.last_call_params = data;
 		if (C8O._hook("call", data)) {
-			$.ajax({
+			var jqXHR = $.ajax({
 				data : data,
 				dataType : C8O.vars.xsl_side === "client" ? "xml":"text",
 				success : C8O._onSuccess,
 				type : C8O.vars.ajax_method,
 				url : C8O.vars.requester_prefix + (C8O.vars.xsl_side === "client" ? ".xml":".cxml")
 			});
+			jqXHR.C8O_data = data;
 			C8O._define.pendingXhrCpt++;
 		}
 	},
@@ -265,13 +272,13 @@ C8O = {
 		return $.extend(true, {}, object);
 	},
 	
-	_onSuccess : function (xml, status, xhr) {
+	_onSuccess : function (xml, status, jqXHR) {
 		if (--C8O._define.pendingXhrCpt <= 0) {
 			C8O._define.pendingXhrCpt = 0;
 			C8O.waitHide();
 		}
 		if (C8O.vars.xsl_side === "client") {
-			if (C8O._hook("xml_response", xml)) {
+			if (C8O._hook("xml_response", xml, jqXHR.C8O_data)) {
 				var redirect_location = $(xml.documentElement).attr("redirect_location");
 				if (!C8O.isUndefined(redirect_location)) {
 					if (C8O.vars.use_siteclipper_plugin === "true") {
@@ -293,13 +300,13 @@ C8O = {
 						type : "GET"
 					});
 				} else if ($.browser.msie) {
-					C8O._fillBody($("<pre>" + xhr.responseText.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>"));
+					C8O._fillBody($("<pre>" + jqXHR.responseText.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>"));
 				} else {
-					C8O._fillBody($("<pre/>").text(xhr.responseText));
+					C8O._fillBody($("<pre/>").text(jqXHR.responseText));
 				}
 			}
 		} else {
-			var aText = [xhr.responseText + ""];
+			var aText = [jqXHR.responseText + ""];
 			if (C8O._hook("text_response", aText)) {
 				C8O._fillBody(aText[0]);
 			}
