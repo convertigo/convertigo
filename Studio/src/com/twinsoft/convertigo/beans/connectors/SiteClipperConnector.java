@@ -823,15 +823,11 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				}
 
 				HostConfiguration hostConfiguration = getHostConfiguration(shuttle);
+				
+				httpMethod.getParams().setParameter("http.socket.timeout", new Integer(20000));
+				httpMethod.getParams().setParameter("http.connection.stalecheck", new Boolean(true));
 
-//				try {
-					Engine.theApp.httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
-//				} catch (IOException e) {
-//					// Retry
-//					Engine.logSiteClipper.warn("(SiteClipperConnector) IOException during HTTP connection: " + e.getMessage());
-//					Engine.logSiteClipper.warn("(SiteClipperConnector) Retrying " + httpMethod.getPath());
-//					Engine.theApp.httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
-//				}
+				Engine.theApp.httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
 			} else {
 				Engine.logSiteClipper.info("(SiteClipperconnector) Retrieve recorded response from Context");
 			}
