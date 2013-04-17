@@ -22,11 +22,13 @@
 
 package com.twinsoft.convertigo.engine.servlets;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -35,16 +37,22 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.xml.soap.SOAPMessage;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.w3c.dom.Document;
 
 import com.jacob.com.ComThread;
 import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.ServletRequester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
+import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -358,39 +366,110 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	public Object processRequest(HttpServletRequest request) throws Exception {
-		Requester requester = getRequester();
-		request.setAttribute("convertigo.requester", requester);
+		HttpServletRequestTwsWrapper twsRequest = request instanceof HttpServletRequestTwsWrapper ? (HttpServletRequestTwsWrapper) request : null;
+		File temporaryFile = null;
 
-		Object result = requester.processRequest(request);
-
-		request.setAttribute("convertigo.cookies", requester.context.getCookieStrings());
-
-		String trSessionId = requester.context.getSequenceTransactionSessionId();
-		if (trSessionId != null)
-			request.setAttribute("sequence.transaction.sessionid", trSessionId);
-
-		if (requester.context.requireEndOfContext) {
-			// request.setAttribute("convertigo.requireEndOfContext",
-			// requester);
-			request.setAttribute("convertigo.requireEndOfContext", Boolean.TRUE);
+		try {
+			// Check multipart request
+			if (ServletFileUpload.isMultipartContent(request)) {
+				Engine.logContext.debug("(ServletRequester.initContext) Multipart resquest");
+	
+				// Create a factory for disk-based file items
+				DiskFileItemFactory factory = new DiskFileItemFactory();
+	
+				// Set factory constraints
+				factory.setSizeThreshold(1000);
+	
+				temporaryFile = File.createTempFile("c8o-multipart-files", ".tmp");
+				int cptFile = 0;
+				temporaryFile.delete();
+				temporaryFile.mkdirs();
+				factory.setRepository(temporaryFile);
+				Engine.logContext.debug("(ServletRequester.initContext) Temporary folder for upload is : " + temporaryFile.getAbsolutePath());
+	
+				// Create a new file upload handler
+				ServletFileUpload upload = new ServletFileUpload(factory);
+	
+				// Set overall request size constraint
+				upload.setSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_REQUEST_SIZE));
+				upload.setFileSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_FILE_SIZE));
+	
+				// Parse the request
+				List<FileItem> items = GenericUtils.cast(upload.parseRequest(request));
+	
+				for (FileItem fileItem : items) {
+					String parameterName = fileItem.getFieldName();
+					String parameterValue;
+					if (fileItem.isFormField()) {
+						parameterValue = fileItem.getString();
+						Engine.logContext.trace("(ServletRequester.initContext) Value for field '" + parameterName + "' : " + parameterValue);
+					} else {
+						String name = fileItem.getName().replaceFirst("^.*(?:\\\\|/)(.*?)$", "$1");
+						if (name.length() > 0) {
+							File wDir = new File(temporaryFile, "" + (++cptFile));
+							wDir.mkdirs();
+							File wFile = new File(wDir, name);
+							fileItem.write(wFile);
+							fileItem.delete();
+							parameterValue = wFile.getAbsolutePath();
+							Engine.logContext.debug("(ServletRequester.initContext) Temporary uploaded file for field '" + parameterName + "' : " + parameterValue);
+						} else {
+							Engine.logContext.debug("(ServletRequester.initContext) No temporary uploaded file for field '" + parameterName + "', empty name");
+							parameterValue = "";
+						}
+					}
+	
+					if (twsRequest != null) {
+						twsRequest.addParameter(parameterName, parameterValue);
+					}
+				}
+			}
+			
+			Requester requester = getRequester();
+			request.setAttribute("convertigo.requester", requester);
+	
+			Object result = requester.processRequest(request);
+	
+			request.setAttribute("convertigo.cookies", requester.context.getCookieStrings());
+	
+			String trSessionId = requester.context.getSequenceTransactionSessionId();
+			if (trSessionId != null) {
+				request.setAttribute("sequence.transaction.sessionid", trSessionId);
+			}
+	
+			if (requester.context.requireEndOfContext) {
+				// request.setAttribute("convertigo.requireEndOfContext",
+				// requester);
+				request.setAttribute("convertigo.requireEndOfContext", Boolean.TRUE);
+			}
+	
+			if (request.getAttribute("convertigo.contentType") == null) { // if
+				// contentType
+				// set by
+				// webclipper
+				// servlet
+				// (#320)
+				request.setAttribute("convertigo.contentType", requester.context.contentType);
+			}
+			
+			request.setAttribute("convertigo.cacheControl", requester.context.cacheControl);
+			request.setAttribute("convertigo.context.contextID", requester.context.contextID);
+			request.setAttribute("convertigo.isErrorDocument", new Boolean(requester.context.isErrorDocument));
+			request.setAttribute("convertigo.context.removalRequired", new Boolean(requester.context.removalRequired()));
+			if (requester.context.requestedObject != null) { // #397 : charset HTTP
+				// header missing
+				request.setAttribute("convertigo.charset", requester.context.requestedObject.getEncodingCharSet());
+			}
+			
+			return result;
+		} finally {
+			if (temporaryFile != null) {
+				try {
+					Engine.logEngine.debug("(GenericServlet) Removing the temporary file : " + temporaryFile.getAbsolutePath());
+					FileUtils.deleteDirectory(temporaryFile);
+				} catch (IOException e) { }
+			}
 		}
-
-		if (request.getAttribute("convertigo.contentType") == null) // if
-			// contentType
-			// set by
-			// webclipper
-			// servlet
-			// (#320)
-			request.setAttribute("convertigo.contentType", requester.context.contentType);
-		request.setAttribute("convertigo.cacheControl", requester.context.cacheControl);
-		request.setAttribute("convertigo.context.contextID", requester.context.contextID);
-		request.setAttribute("convertigo.isErrorDocument", new Boolean(requester.context.isErrorDocument));
-		request.setAttribute("convertigo.context.removalRequired", new Boolean(requester.context
-				.removalRequired()));
-		if (requester.context.requestedObject != null) // #397 : charset HTTP
-			// header missing
-			request.setAttribute("convertigo.charset", requester.context.requestedObject.getEncodingCharSet());
-		return result;
 	}
 
 	public abstract Requester getRequester();

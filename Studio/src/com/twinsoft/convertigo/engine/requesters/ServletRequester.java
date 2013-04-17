@@ -22,17 +22,12 @@
 
 package com.twinsoft.convertigo.engine.requesters;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -45,7 +40,6 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.translators.DefaultServletTranslator;
 import com.twinsoft.convertigo.engine.translators.Translator;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.HttpServletRequestTwsWrapper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 
@@ -174,10 +168,6 @@ public abstract class ServletRequester extends GenericRequester {
 		super.initContext(context);
 
 		HttpServletRequest request = (HttpServletRequest) inputData;
-		HttpServletRequestTwsWrapper twsRequest = request instanceof HttpServletRequestTwsWrapper ? (HttpServletRequestTwsWrapper) request : null;
-
-		// Check multipart request
-		boolean isMultipartRequest = ServletFileUpload.isMultipartContent(request);
 
 		/* Fix: #1754 - Slower transaction execution with many session */
 		// HTTP session maintain its own context list in order to
@@ -204,89 +194,29 @@ public abstract class ServletRequester extends GenericRequester {
 		context.subPath = subPath;
 
 		boolean bConnectorGivenByUser = false;
-
-		if (isMultipartRequest) {
-			Engine.logContext.debug("(ServletRequester.initContext) Multipart resquest");
-
-			// Create a factory for disk-based file items
-			DiskFileItemFactory factory = new DiskFileItemFactory();
-
-			// Set factory constraints
-			factory.setSizeThreshold(1000);
-
-			File tmpDir = File.createTempFile("c8o-multipart-files", ".tmp");
-			context.addTemporaryFile(tmpDir);
-			int cptFile = 0;
-			tmpDir.delete();
-			tmpDir.mkdirs();
-			factory.setRepository(tmpDir);
-			Engine.logContext.debug("(ServletRequester.initContext) Temporary folder for upload is : " + tmpDir.getAbsolutePath());
-
-			// Create a new file upload handler
-			ServletFileUpload upload = new ServletFileUpload(factory);
-
-			// Set overall request size constraint
-			upload.setSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_REQUEST_SIZE));
-			upload.setFileSizeMax(EnginePropertiesManager.getPropertyAsLong(PropertyName.FILE_UPLOAD_MAX_FILE_SIZE));
-
-			// Parse the request
-			List<FileItem> items = GenericUtils.cast(upload.parseRequest(request));
-
-			for (FileItem fileItem : items) {
-				String parameterName = fileItem.getFieldName();
-				String parameterValue;
-				if (fileItem.isFormField()) {
-					parameterValue = fileItem.getString();
-					Engine.logContext.trace("(ServletRequester.initContext) Value for field '" + parameterName + "' : " + parameterValue);
-				} else {
-					String name = fileItem.getName().replaceFirst("^.*(?:\\\\|/)(.*?)$", "$1");
-					if (name.length() > 0) {
-						File wDir = new File(tmpDir, "" + (++cptFile));
-						wDir.mkdirs();
-						File wFile = new File(wDir, name);
-						fileItem.write(wFile);
-						fileItem.delete();
-						parameterValue = wFile.getAbsolutePath();
-						Engine.logContext.debug("(ServletRequester.initContext) Temporary uploaded file for field '" + parameterName + "' : " + parameterValue);
-					} else {
-						Engine.logContext.debug("(ServletRequester.initContext) No temporary uploaded file for field '" + parameterName + "', empty name");
-						parameterValue = "";
-					}
-				}
-
-				if (twsRequest != null) {
-					twsRequest.addParameter(parameterName, parameterValue);
-				}
-				handleParameter(context, parameterName, parameterValue);
-
-				if (parameterName.equals(Parameter.Connector.getName())) {
-					bConnectorGivenByUser = true;
-				}
-			}
-		} else {
-			Engine.logContext.debug("(Servlet requester.initContext) Query string: " + request.getQueryString());
-
-			// We transform the HTTP post data into XML data.
-			Enumeration<?> parameterNames = request.getParameterNames();
-
-			String parameterName, parameterValue;
-			String[] parameterValues = null;
-
-			while (parameterNames.hasMoreElements()) {
-				parameterName = (String) parameterNames.nextElement();
-
-				parameterValues = request.getParameterValues(parameterName);
-
-				parameterValue = parameterValues[0];
-
-				handleParameter(context, parameterName, parameterValue);
-
-				if (parameterName.equals(Parameter.Connector.getName())) {
-					bConnectorGivenByUser = true;
-				}
+		
+		Engine.logContext.debug("(Servlet requester.initContext) Query string: " + request.getQueryString());
+		
+		// We transform the HTTP post data into XML data.
+		Enumeration<?> parameterNames = request.getParameterNames();
+		
+		String parameterName, parameterValue;
+		String[] parameterValues = null;
+		
+		while (parameterNames.hasMoreElements()) {
+			parameterName = (String) parameterNames.nextElement();
+			
+			parameterValues = request.getParameterValues(parameterName);
+			
+			parameterValue = parameterValues[0];
+			
+			handleParameter(context, parameterName, parameterValue);
+			
+			if (parameterName.equals(Parameter.Connector.getName())) {
+				bConnectorGivenByUser = true;
 			}
 		}
-
+		
 		if (!bConnectorGivenByUser) {
 			if (context.project != null && context.project.getName().equals(context.projectName)) {
 				String defaultConnectorName = context.project.getDefaultConnector().getName();
@@ -351,9 +281,6 @@ public abstract class ServletRequester extends GenericRequester {
 	@Override
 	public Object postGetDocument(Document document) throws Exception {
 		Object result = super.postGetDocument(document);
-		
-		context.deleteTemporaryFiles();
-		
 		return result;
     }
 }

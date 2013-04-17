@@ -75,7 +75,6 @@ import com.twinsoft.convertigo.engine.parsers.HtmlParser;
 import com.twinsoft.convertigo.engine.parsers.XulRecorder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
-import com.twinsoft.convertigo.engine.util.FileUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.URLrewriter;
@@ -152,8 +151,6 @@ public class Context extends AbstractContext {
 	private Scriptable sharedScope = null;
 	
 	private XulRecorder xulRecorder = null;
-	
-	private List<File> temporaryFiles = null;
 	
 	public Context(String contextID) {
 		this.contextID = contextID;
@@ -646,24 +643,6 @@ public class Context extends AbstractContext {
 	public void stopXulRecording() {
 		if (xulRecorder != null) {
 			xulRecorder.stopRecording();
-		}
-	}
-	
-	synchronized public void addTemporaryFile(File file) {
-		if (temporaryFiles == null) {
-			temporaryFiles = new LinkedList<File>();
-		}
-		temporaryFiles.add(file);
-	}
-	
-	synchronized public void deleteTemporaryFiles() {
-		if (temporaryFiles != null) {
-			for (File file : temporaryFiles) {
-				try {
-					Engine.logContext.debug("(Context.deleteTemporaryFiles) Removing the temporary file : " + file.getAbsolutePath());
-					FileUtils.deleteDirectory(file);
-				} catch (IOException e) { }
-			}
 		}
 	}
 }
