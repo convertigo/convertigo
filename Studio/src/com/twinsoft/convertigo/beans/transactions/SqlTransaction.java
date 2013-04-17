@@ -114,7 +114,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	private boolean xmlGrouping = false;
 	
 	//Use for stock parameter of the query
-	private ArrayList<String> params = new ArrayList<String>();
+	transient private List<String> sqlActualParameters;
 	
 	public SqlTransaction() {
 		super();
@@ -129,6 +129,7 @@ public class SqlTransaction extends TransactionWithVariables {
     	clonedObject.vOldParameters = null;
     	clonedObject.paramsNeedEscape = null;
     	clonedObject.type = type;
+    	clonedObject.sqlActualParameters = null;
         return clonedObject;
     }
 	
@@ -253,7 +254,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		if (vParameters != null) {
 			StringEx s = new StringEx(sqlQuery);
 			// Clear the parameter list
-			params.clear();
+			sqlActualParameters = new ArrayList<String>();
 			for (String parameterName : vParameters) {
 				try {
 					Object variableValue = null;
@@ -324,7 +325,7 @@ public class SqlTransaction extends TransactionWithVariables {
 					}
 					
 					// Add the parameter into the ArrayList
-					params.add(parameterValue);
+					sqlActualParameters.add(parameterValue);
 				
 				} catch(ClassCastException e) {
 					Engine.logBeans.warn("(SqlTransaction) Ignoring parameter '" + parameterName+ "' because its value is not a string.");
@@ -362,7 +363,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		if (Engine.logBeans.isDebugEnabled())
 			Engine.logBeans.debug("(SqlTransaction) Preparing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
 		
-		preparedStatement = connector.prepareStatement(query, params);
+		preparedStatement = connector.prepareStatement(query, sqlActualParameters);
 		return query;
 	}
 	

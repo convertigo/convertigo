@@ -30,7 +30,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -254,7 +253,7 @@ public class SqlConnector extends Connector {
 		}
 	}
 
-	public PreparedStatement prepareStatement(String sqlQuery, ArrayList<String> params) throws SQLException, ClassNotFoundException, EngineException {
+	public PreparedStatement prepareStatement(String sqlQuery, List<String> params) throws SQLException, ClassNotFoundException, EngineException {
 		PreparedStatement preparedStatement = null;
 		if (isClosed() || needReset)
 			open();
@@ -283,7 +282,7 @@ public class SqlConnector extends Connector {
 		return preparedStatement;
 	}
 
-	private void prepareParameters(PreparedStatement preparedStatement, ArrayList<String> params) throws SQLException{
+	private void prepareParameters(PreparedStatement preparedStatement, List<String> params) throws SQLException{
 		// We loop and set parameters of the preparedStatement
 		for (int x = 0; x < params.size() ; x++){
 			preparedStatement.setString(x+1, params.get(x));	
