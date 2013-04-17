@@ -730,7 +730,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 
 			String uri = shuttle.getRequest(QueryPart.uri);
 
-			Engine.logSiteClipper.info("(SiteClipperConnector) Prepare the request for " + shuttle.request.getMethod() + " " + shuttle.getRequestUrl());
+			Engine.logSiteClipper.info("Preparing " + shuttle.request.getMethod() + " "
+					+ shuttle.getRequestUrl());
 
 			HttpMethod httpMethod = null;
 			XulRecorder xulRecorder = context.getXulRecorder();
@@ -757,7 +758,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				shuttle.httpMethod = httpMethod;
 
 				SiteClipperScreenClass screenClass = getCurrentScreenClass();
-				Engine.logSiteClipper.info("(SiteClipperConnector) Request screen class: " + screenClass.getName());
+				Engine.logSiteClipper.info("Request screen class: " + screenClass.getName());
 
 				for (String name : Collections.list(GenericUtils.<Enumeration<String>>cast(shuttle.request.getHeaderNames()))) {
 					if (requestHeadersToIgnore.contains(HeaderName.parse(name))) {
@@ -824,19 +825,22 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 
 				HostConfiguration hostConfiguration = getHostConfiguration(shuttle);
 				
-				httpMethod.getParams().setParameter("http.socket.timeout", new Integer(20000));
 				httpMethod.getParams().setParameter("http.connection.stalecheck", new Boolean(true));
+
+				Engine.logSiteClipper.info("Requesting " + httpMethod.getName() + " "
+						+ hostConfiguration.getHostURL()
+						+ httpMethod.getURI().toString() + (queryString == null ? "" : "?" + queryString));
 
 				Engine.theApp.httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
 			} else {
-				Engine.logSiteClipper.info("(SiteClipperconnector) Retrieve recorded response from Context");
+				Engine.logSiteClipper.info("Retrieve recorded response from Context");
 			}
 
 			int status = httpMethod.getStatusCode();
 
 			shuttle.processState = ProcessState.response;
 
-			Engine.logSiteClipper.debug("(SiteClipperConnector) Request terminated with status " + status);
+			Engine.logSiteClipper.info("Request terminated with status " + status);
 			shuttle.response.setStatus(status);
 
 			if (Engine.isStudioMode() && status == HttpServletResponse.SC_OK && shuttle.getResponseMimeType().startsWith("text/")) {
@@ -844,7 +848,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 
 			SiteClipperScreenClass screenClass = getCurrentScreenClass();
-			Engine.logSiteClipper.info("(SiteClipperConnector) Response screen class: " + screenClass.getName());
+			Engine.logSiteClipper.info("Response screen class: " + screenClass.getName());
 
 			if (Engine.isStudioMode()) {
 				Engine.theApp.fireObjectDetected(new EngineEvent(screenClass));
