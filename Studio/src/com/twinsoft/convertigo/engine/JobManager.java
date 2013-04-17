@@ -128,12 +128,14 @@ public class JobManager {
                 
             Element xStatus = document.createElement("status");
             String servletPath = (String) job.context.servletPath;
-            String refreshURL = servletPath.substring(servletPath.lastIndexOf('/') + 1) + "?"+Parameter.Async.getName()+"=true";
-            String contextId = job.context.contextID;
-            if (contextId.indexOf("_default") == -1) {
-            	refreshURL = refreshURL + "&"+Parameter.Context.getName()+"=" + contextId.substring(contextId.indexOf("_")+1, contextId.length());
+            if (servletPath != null) {
+                String refreshURL = servletPath.substring(servletPath.lastIndexOf('/') + 1) + "?"+Parameter.Async.getName()+"=true";
+                String contextId = job.context.contextID;
+                if (contextId.indexOf("_default") == -1) {
+                	refreshURL = refreshURL + "&"+Parameter.Context.getName()+"=" + contextId.substring(contextId.indexOf("_")+1, contextId.length());
+                }
+                xStatus.setAttribute("refresh-url", refreshURL);            	
             }
-            xStatus.setAttribute("refresh-url", refreshURL);
                 
             Engine.logJobManager.debug("Refresh url computed");
 
