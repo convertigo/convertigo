@@ -183,7 +183,7 @@ class InputDocumentBuilder {
 		// This is an internal parameter
 		else if (parameterName.startsWith("__")) {
 			// Probably handled somewhere else; ignoring it
-			Engine.logContext.debug("Convertigo internal variable ignored! (not handled)");
+			Engine.logContext.debug("Convertigo internal variable \"" + parameterName + "\" ignored! (not handled here)");
 		}
 		// This is a variable, eventually multi-valued.
 		else {
