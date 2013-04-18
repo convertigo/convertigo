@@ -60,7 +60,7 @@
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/bcel-5.1.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-cli-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-codec-1.3.jar"/>
-	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-httpclient-3.1.jar"/>
+	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-httpclient-3.1.jar" sourcepath="/ExternalJavaSources/commons-httpclient-3.1-src.zip"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-io-1.4.jar" sourcepath="/ExternalJavaSources/commons-io-2.0.1-sources.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/geronimo-annotation_1.0_spec-1.1.jar"/>
