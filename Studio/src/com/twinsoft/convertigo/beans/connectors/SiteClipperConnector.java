@@ -55,6 +55,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpMethod;
@@ -64,6 +65,7 @@ import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.apache.commons.io.IOUtils;
@@ -825,11 +827,13 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 
 				HostConfiguration hostConfiguration = getHostConfiguration(shuttle);
 
+				HttpMethodParams httpMethodParams = httpMethod.getParams();
+				httpMethodParams.setParameter("http.connection.stalecheck", new Boolean(true));
+				httpMethodParams.setParameter(HttpMethodParams.RETRY_HANDLER, new DefaultHttpMethodRetryHandler());
+
 				Engine.logSiteClipper.info("Requesting " + httpMethod.getName() + " "
 						+ hostConfiguration.getHostURL()
 						+ httpMethod.getURI().toString() + (queryString == null ? "" : "?" + queryString));
-
-				httpMethod.getParams().setParameter("http.connection.stalecheck", new Boolean(true));
 
 				Engine.theApp.httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
 			} else {
