@@ -25,6 +25,11 @@ package com.twinsoft.convertigo.beans.screenclasses;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.twinsoft.convertigo.beans.common.ISiteClipperRequestCriteria;
+import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
+import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector.ProcessState;
+import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector.Shuttle;
+import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.extractionrules.siteclipper.IRequestRule;
@@ -58,5 +63,28 @@ public class SiteClipperScreenClass extends ScreenClass {
 			}
 		}
 		return responseRules;
+	}
+	
+	@Override
+	public SiteClipperConnector getConnector() {
+		return (SiteClipperConnector) super.getConnector();
+	}
+	
+	@Override
+	public int getNumberOfLocalCriterias() {
+		// If we are in REQUEST mode, return the number of request criteria.
+		Shuttle shuttle = getConnector().getShuttle();
+		if (shuttle != null && shuttle.getProcessState() == ProcessState.request) {
+			List<Criteria> localCriteria = getLocalCriterias();
+			int nRequestLocalCriteria = 0;
+			for (Criteria criteria : localCriteria) {
+				if (criteria instanceof ISiteClipperRequestCriteria) nRequestLocalCriteria++;
+			}
+			return nRequestLocalCriteria;
+		}
+		
+		// If we are in RESPONSE mode or if we are not currently in a request,
+		// return the total number of local criteria.
+		return super.getNumberOfLocalCriterias();
 	}
 }
