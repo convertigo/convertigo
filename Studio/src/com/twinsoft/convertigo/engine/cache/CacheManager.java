@@ -74,11 +74,13 @@ public abstract class CacheManager extends AbstractRunnableManager {
 						+ "\\stubs\\" + context.requestedObject.getName() + ".xml";
 			}
 			try {
-				return XMLUtils.parseDOM(stubFileName);
+				response = XMLUtils.parseDOM(stubFileName);
+				response.getDocumentElement().setAttribute("fromStub", "true");
+				return response;
 			} catch (SAXException e) {
-				Engine.logCacheManager.warn("Error while parsing "+stubFileName+" file");
+				Engine.logCacheManager.error("Error while parsing "+stubFileName+" file");
 			} catch (IOException e) {
-				Engine.logCacheManager.warn("Error while getting "+stubFileName+" file");
+				Engine.logCacheManager.error("Error while getting "+stubFileName+" file");
 			}
 		}
 		
@@ -99,6 +101,7 @@ public abstract class CacheManager extends AbstractRunnableManager {
 
 			response = context.requestedObject.run(requester, context);
 			response.getDocumentElement().setAttribute("fromcache", "false");
+			response.getDocumentElement().setAttribute("fromStub", "false");
 		}
 		// Not cached transaction
 		else if (expiryDate <= 0) {
@@ -106,6 +109,7 @@ public abstract class CacheManager extends AbstractRunnableManager {
 			
 			response = context.requestedObject.run(requester, context);
 			response.getDocumentElement().setAttribute("fromcache", "false");
+			response.getDocumentElement().setAttribute("fromStub", "false");
 		}
 		// Cached transaction
 		else {
@@ -168,6 +172,7 @@ public abstract class CacheManager extends AbstractRunnableManager {
 							response = getStoredResponse(requester, cacheEntry);
 							if (response != null) {
 								response.getDocumentElement().setAttribute("fromcache", "true");
+								response.getDocumentElement().setAttribute("fromStub", "false");
 								ProcessingInstruction pi = response.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + context.requestedObject.getEncodingCharSet() + "\"");
 								response.insertBefore(pi, response.getFirstChild());
 								context.outputDocument = response; // response has been overridden - needed by billings!
@@ -193,6 +198,7 @@ public abstract class CacheManager extends AbstractRunnableManager {
 				if (Engine.logCacheManager.isTraceEnabled())
 					Engine.logCacheManager.trace("Cache manager: document returned:\n" + XMLUtils.prettyPrintDOM(response));
 				response.getDocumentElement().setAttribute("fromcache", "false");
+				response.getDocumentElement().setAttribute("fromStub", "false");
 
 				// Store the response only if the transaction handlers has not
 				// disabled the cache feature...
