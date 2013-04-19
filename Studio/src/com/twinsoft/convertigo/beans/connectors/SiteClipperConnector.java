@@ -829,11 +829,12 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				
 				HttpMethodParams httpMethodParams = httpMethod.getParams();
 				httpMethodParams.setParameter("http.connection.stalecheck", new Boolean(true));
-				httpMethodParams.setParameter(HttpMethodParams.RETRY_HANDLER, new DefaultHttpMethodRetryHandler());
+				httpMethodParams.setParameter(HttpMethodParams.RETRY_HANDLER,
+						new DefaultHttpMethodRetryHandler(3, true));
 
 				Engine.logSiteClipper.info("Requesting " + httpMethod.getName() + " "
 						+ hostConfiguration.getHostURL()
-						+ httpMethod.getURI().toString() + (queryString == null ? "" : "?" + queryString));
+						+ httpMethod.getURI().toString());
 
 				Engine.theApp.httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
 			} else {
