@@ -2224,23 +2224,23 @@
                   menubarPath="import">
             </action>
             <action
-                  class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStubFromXMLAction"
-                  enablesFor="1"
-                  id="convertigo.action.seq.createStubFromXML"
-                  label="Create stub from current generated XML">
-            </action>
-            <action
-                  class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
-                  enablesFor="1"
-                  id="convertigo.action.seq.createEmptyStub"
-                  label="Create empty stub">
-            </action>
-            <action
                   class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedFromStubAction"
                   icon="icons/studio/transaction_execute_selected.gif"
                   id="convertigo.action.executeSelectedSequenceFromStub"
                   label="Execute from stub"
                   menubarPath="execute">
+            </action>
+            <action
+                  class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
+                  id="convertigo.action.seq.createEmptyStub"
+                  label="Create empty stub"
+                  menubarPath="stub">
+            </action>
+            <action
+                  class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStubFromXMLAction"
+                  id="convertigo.action.seq.createStubFromXML"
+                  label="Create stub from current generated XML"
+                  menubarPath="stub">
             </action>
             </objectContribution>
             <objectContribution
