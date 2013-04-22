@@ -100,7 +100,7 @@ $.extend(true, C8O, {
 				C8O.renderWidgets($c8oListenContainer, $xmlData);
 
 				// Re attach any click handlers in case of new graphical components
-				C8O.attachEventHandlers();
+				C8O._attachEventHandlers();
 				
 				// Check all the iscroll divs and refresh them to resize the iscroll size. 
 				$("[data-iscroll]").each( function (index, element) {
@@ -353,7 +353,11 @@ $.extend(true, C8O, {
 		return res + txt;
 	},
 	
-	decodeStore: function(store) {
+	_define: {
+		re_attr_plus : new RegExp("^data-c8o-(?:use-(.*$)|variable-(.*$)|internal-(.*$))") // 1: use ; 2: variable ; 3: internal
+	},
+	
+	_decodeStore: function(store) {
 		// Requestable format:
 		// [<project name>].(([connector name].[<transaction name>]) | <sequence name>)[:<store name>]
 		var storeParts = store.split(":");
@@ -393,14 +397,14 @@ $.extend(true, C8O, {
 		
 	},
 	
-	attachEventHandlers: function() {
+	_attachEventHandlers: function() {
 		$("[data-c8o-call]").each( function (index, element) {
 			var $element = $(element);
 			
-			$element.off('click.c8o').on('click.c8o', function() {
+			var onC8oCall = function() {
 				var c8oCall = $element.attr("data-c8o-call");
 				if (c8oCall) {
-					var store = C8O.decodeStore(c8oCall);
+					var store = C8O._decodeStore(c8oCall);
 					
 					var c8oCallParams = {};
 					
@@ -435,21 +439,39 @@ $.extend(true, C8O, {
 						var formFields = C8O._parseQuery({}, $form.serialize());
 						$.extend(c8oCallParams, formFields);						
 					}
-					else {
-						// Search for 'data-c8o-variable' tagged elements in the link to use it
-						// to build data request to C8O
-						$element.find("[data-c8o-variable]").each(function (index, element) {
-							var $c8oVariable = $(element);
-							var name = $c8oVariable.attr("data-c8o-variable");
-							var value = $c8oVariable.text();
-							c8oCallParams[name] = value;
-						});
+					
+					// Search for 'data-c8o-variable' tagged elements in the link to use it
+					// to build data request to C8O
+					C8O._findAndSelf($element, "[data-c8o-variable]").each(function (index, element) {
+						var $c8oVariable = $(element);
+						var name = $c8oVariable.attr("data-c8o-variable");
+						var value = $c8oVariable.text();
+						c8oCallParams[name] = value;
+					});
+					
+					var attributes = C8O._getAttributes(element);
+					for (var attributeName in attributes) {
+						var attributeMatch = attributeName.match(C8O._define.re_attr_plus);
+						if (attributeMatch != null) {
+							if (attributeMatch[2] != null) {
+								c8oCallParams[attributeMatch[2]] = attributes[attributeName];
+							} else if (attributeMatch[3] != null) {
+								c8oCallParams["__" + attributeMatch[3]] = attributes[attributeName];
+							}
+						}
 					}
-
+					
 					// now call c8o with constructed arguments
 					C8O.call(c8oCallParams);
 				}
-			});
+				return false;
+			};
+			
+			if (element.tagName.toLowerCase() == "form") {
+				$element.off('submit.c8o').on('submit.c8o', onC8oCall);
+			} else {
+				$element.off('click.c8o').on('click.c8o', onC8oCall);
+			}
 		});
 	}
 });
@@ -460,7 +482,7 @@ $.extend(true, C8O, {
 C8O.addHook("document_ready", function () {
 	C8O.removeRecallParameter("__connector");
 //	$(document).on("pagebeforecreate", "[data-role = page]", function(event){
-		C8O.attachEventHandlers();
+		C8O._attachEventHandlers();
 		
 		var $document = $(document);
 

@@ -343,6 +343,10 @@ C8O = {
 		}
 	},
 	
+	_findAndSelf : function ($elt, selector) {
+		return $elt.filter(selector).add($elt.find(selector));
+	},
+	
 	_fillBody : function (content, resize) {
 		var $container = C8O.vars.target_id;
 		if (typeof($container) === "string") {
@@ -367,6 +371,20 @@ C8O = {
 			if ("true" === C8O.vars.auto_refresh && $("[twsid]:first").length > 0) {
 				C8O._checkDirty();
 			}
+		}
+	},
+	
+	_getAttributes : function (element) {
+		if (element.jquery) {
+			return element.length ?
+					C8O._getAttributes(element[0]) :
+					{};
+		} else {
+			var attributes = {};
+			for (var i = 0 ; i < element.attributes.length ; i++) {
+				attributes[element.attributes[i].nodeName] = element.attributes[i].nodeValue
+			}
+			return attributes;
 		}
 	},
 	
