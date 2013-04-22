@@ -24,7 +24,7 @@ $.extend(true, C8O, {
 		
 		for (var i in C8O.routingTable) {
 			var entry = C8O.routingTable[i];
-			if (c8oRequestable == entry.calledRequest) {
+			if (C8O.isMatching(entry.calledRequest, c8oRequestable)) {
 				for (var j in entry.actions) {
 					var action = entry.actions[j];
 					var transition =  action.transition;
@@ -33,7 +33,7 @@ $.extend(true, C8O, {
 						routeFound = action.condition($doc);
 					} else {
 						var element = $doc.find(action.condition);
-						routeFound = (element.length != 0);
+						routeFound = (element.length != 0 || $doc.is(action.condition));
 					}
 
 					if (routeFound) {
@@ -83,7 +83,7 @@ $.extend(true, C8O, {
 			// Check called requestable against the list of listen requestables
 			if (C8O.isMatching(listenRequestables, calledRequestable)) {
 				// Check listen condition if any
-				var listenCondition = $element.attr("data-c8O-listen-condition");
+				var listenCondition = $element.attr("data-c8o-listen-condition");
 				if (listenCondition) {
 					var condition = $xmlData.find("*").andSelf().filter(listenCondition);
 					if (condition.length == 0) {
@@ -458,7 +458,8 @@ $.extend(true, C8O, {
  *  Initialize C8O MVC Framework 
  */
 C8O.addHook("document_ready", function () {
-	$(document).on("pagebeforecreate", "[data-role = page]", function(event){
+	C8O.removeRecallParameter("__connector");
+//	$(document).on("pagebeforecreate", "[data-role = page]", function(event){
 		C8O.attachEventHandlers();
 		
 		var $document = $(document);
@@ -472,7 +473,7 @@ C8O.addHook("document_ready", function () {
 			var $c8oListenContainer = $(this);
 			C8O.manageTemplate($c8oListenContainer);
 		});
-	});
+//	});
 	
 });
 
