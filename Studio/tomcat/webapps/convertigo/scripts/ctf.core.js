@@ -83,13 +83,13 @@ $.extend(true, C8O, {
 			// Check called requestable against the list of listen requestables
 			if (C8O.isMatching(calledRequestable, listenRequestables)) {
 				// Check listen condition if any
-				var listenCondition = $element.attr("data-c8o-listen-condition");
-				if (listenCondition) {
-					var condition = $xmlData.find("*").andSelf().filter(listenCondition);
-					if (condition.length == 0) {
-						// The condition failed, so we abort the rendering
-						return;
-					}
+				if (!C8O._checkConditionDomSelectorOrJsFunction(
+						$element.attr("data-c8o-listen-condition"),
+						$element,
+						[ $xmlData ],
+						$xmlData)) {
+					// The condition failed, so we abort the rendering
+					return;
 				}
 
 				// Apply the template
@@ -133,51 +133,35 @@ $.extend(true, C8O, {
 	},
 
 	getRequestableObject: function(requestable) {
-	    if (requestable === "*") {
+		if (requestable === "*") {
 			return {
 				"fullTextName": requestable,
 				"type": "*",
-			};
-	    }
+			}
+		}
 	    
-		var i = requestable.indexOf(".");
-		if (i == -1) {
-			// TODO: handle error: no project defined
-			return {};
-		}
-		var project = requestable.substring(0, i);
-		
-		var j = requestable.indexOf(".", i + 1);
-		if (j == -1) {
-			// Sequence case
-			if (i == requestable.length - 1) {
-				// TODO: handle error: no sequence defined
-				return {};
+		var requestableParts = requestable.match(C8O._define.re_requestable);
+		if (requestableParts != null) {
+			if (requestableParts[3]) {
+				return {
+					"fullTextName": requestable,
+					"type": "transaction",
+					"project": requestableParts[1],
+					"connector": requestableParts[2],
+					"transaction": requestableParts[3]
+				};
+	    	}
+			else if (requestableParts[2]) {
+				return {
+					"fullTextName": requestable,
+					"type": "sequence",
+					"project": requestableParts[1],
+					"sequence": requestableParts[2]
+				};
 			}
-			var sequence = requestable.substring(j + 1);
-			return {
-				"fullTextName": requestable,
-				"type": "sequence",
-				"project": project,
-				"sequence": sequence
-			};
 		}
-		else {
-			// Transaction case
-			var connector = requestable.substring(i + 1, j);
-			var transaction = requestable.substring(j + 1);
-			if (j == requestable.length - 1) {
-				// TODO: handle error: no transaction defined
-				return {};
-			}
-			return {
-				"fullTextName": requestable,
-				"type": "transaction",
-				"project": project,
-				"connector": connector,
-				"transaction": transaction
-			};
-		}
+
+		// TODO: handle error: should never go there
 	},
 	
 	/**
@@ -450,7 +434,8 @@ $.extend(true, C8O, {
 	
 	_define: {
 		re_attr_plus : new RegExp("^data-c8o-(?:use-(.*$)|variable-(.*$)|internal-(.*$))"), // 1: use ; 2: variable ; 3: internal
-		re_call_mode : new RegExp("^(?:(click)|(auto)|(?:(timer:)(.*)))$") // 1: click ; 2: auto ; 3: timer ; 4: seconds for timer
+		re_call_mode : new RegExp("^(?:(click)|(auto)|(?:(timer:)(.*)))$"), // 1: click ; 2: auto ; 3: timer ; 4: seconds for timer
+		re_requestable : new RegExp("^(.*?)\\.(.*?)(?:\\.(.*))?$") // 1: project ; 2: sequence | connector ; 3: transaction
 	},
 	
 	_decodeStore: function(store) {
@@ -492,12 +477,52 @@ $.extend(true, C8O, {
 	handleAutoSaveInputs: function(target) {
 		
 	},
+
+	/**
+	 * Returns true if the given condition is true.
+	 * 
+	 * The condition can be:
+	 *    - a JQuery DOM selector in the $dom object
+	 *    - a Javascript function with the following signature:
+	 *       function(paramsArray)
+	 *       this equals thisObject
+	 */
+	_checkConditionDomSelectorOrJsFunction: function(condition, thisObject, paramsArray, $dom) {
+		if (condition) {
+			// Function condition
+			if (typeof(window[condition]) == "function") {
+				if (!window[condition].apply(thisObject, paramsArray)) {
+					// The condition failed, so we abort the rendering
+					return false;
+				}
+			}
+			// DOM selector condition
+			else {
+				if (C8O._findAndSelf($dom, condition + ":first").length == 0) {
+					// The condition failed, so we abort the rendering
+					return false;
+				}
+			}
+		}
+		
+		return true;
+	},
 	
 	_attachEventHandlers: function() {
 		$("[data-c8o-call]").each( function (index, element) {
 			var $element = $(element);
 			
 			var onC8oCall = function() {
+				// Check call condition if any
+				if (!C8O._checkConditionDomSelectorOrJsFunction(
+						$element.attr("data-c8o-call-condition"),
+						$element,
+						[],
+						$(window.document))) {
+					// The condition failed, so we abort the rendering
+					return;
+				}
+
 				var c8oCall = $element.attr("data-c8o-call");
 				if (c8oCall) {
 					var store = C8O._decodeStore(c8oCall);
