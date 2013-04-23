@@ -226,10 +226,10 @@ C8O = {
 		if (C8O._hook("call", data)) {
 			var jqXHR = $.ajax({
 				data : data,
-				dataType : C8O.vars.xsl_side === "client" ? "xml":"text",
+				dataType : C8O.vars.xsl_side === "client" ? "xml" : "text",
 				success : C8O._onSuccess,
 				type : C8O.vars.ajax_method,
-				url : C8O.vars.requester_prefix + (C8O.vars.xsl_side === "client" ? ".xml":".cxml")
+				url : C8O.vars.requester_prefix + (C8O.vars.xsl_side === "client" ? ".xml" : ".cxml")
 			});
 			jqXHR.C8O_data = data;
 			C8O._define.pendingXhrCpt++;

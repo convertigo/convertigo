@@ -449,7 +449,8 @@ $.extend(true, C8O, {
 	},
 	
 	_define: {
-		re_attr_plus : new RegExp("^data-c8o-(?:use-(.*$)|variable-(.*$)|internal-(.*$))") // 1: use ; 2: variable ; 3: internal
+		re_attr_plus : new RegExp("^data-c8o-(?:use-(.*$)|variable-(.*$)|internal-(.*$))"), // 1: use ; 2: variable ; 3: internal
+		re_call_mode : new RegExp("^(?:(click)|(auto)|(?:(timer:)(.*)))$") // 1: click ; 2: auto ; 3: timer ; 4: seconds for timer
 	},
 	
 	_decodeStore: function(store) {
@@ -531,8 +532,10 @@ $.extend(true, C8O, {
 						});
 						
 						// Search for input fields in the form
-						var formFields = C8O._parseQuery({}, $form.serialize());
-						$.extend(c8oCallParams, formFields);						
+						var formArray = $form.serializeArray();
+						for (var i = 0; i < formArray.length; i++) {
+							c8oCallParams[formArray[i].name] = formArray[i].value;
+						}						
 					}
 					
 					// Search for 'data-c8o-variable' tagged elements in the link to use it
@@ -562,10 +565,20 @@ $.extend(true, C8O, {
 				return false;
 			};
 			
-			if (element.tagName.toLowerCase() == "form") {
-				$element.off('submit.c8o').on('submit.c8o', onC8oCall);
-			} else {
-				$element.off('click.c8o').on('click.c8o', onC8oCall);
+			var c8oCallMode = ($element.attr("data-c8o-call-mode") || "click").match(C8O._define.re_call_mode);
+			if (c8oCallMode != null) {
+				$element.attr("data-c8o-call-mode", "done-" + c8oCallMode[0]);
+				if (c8oCallMode[1]) {
+					if (element.tagName.toLowerCase() == "form") {
+						$element.off('submit.c8o').on('submit.c8o', onC8oCall);
+					} else {
+						$element.off('click.c8o').on('click.c8o', onC8oCall);
+					}
+				} else if (c8oCallMode[2]) {
+					onC8oCall();
+				} else if (c8oCallMode[3] && $.isNumeric(c8oCallMode[4])) {
+					window.setTimeout(onC8oCall, c8oCallMode[4] * 1000);
+				}
 			}
 		});
 	}
