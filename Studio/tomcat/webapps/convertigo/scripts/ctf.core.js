@@ -24,7 +24,7 @@ $.extend(true, C8O, {
 		
 		for (var i in C8O.routingTable) {
 			var entry = C8O.routingTable[i];
-			if (C8O.isMatching(entry.calledRequest, c8oRequestable)) {
+			if (C8O.isMatching(c8oRequestable, entry.calledRequest)) {
 				for (var j in entry.actions) {
 					var action = entry.actions[j];
 					var transition =  action.transition;
@@ -81,7 +81,7 @@ $.extend(true, C8O, {
 			var listenRequestables = $element.attr('data-c8o-listen');
 			
 			// Check called requestable against the list of listen requestables
-			if (C8O.isMatching(listenRequestables, calledRequestable)) {
+			if (C8O.isMatching(calledRequestable, listenRequestables)) {
 				// Check listen condition if any
 				var listenCondition = $element.attr("data-c8o-listen-condition");
 				if (listenCondition) {
@@ -113,15 +113,110 @@ $.extend(true, C8O, {
 		});
 	},
 	
-	isMatching: function(listenRequestables, calledRequestable) {
-		var arrayListenRequestables = listenRequestables.split(",");
+	/**
+	 * Returns true if a given requestable is matching one of the requestables
+	 * in a list, false otherwise.
+	 */
+	isMatching: function(requestable, checkRequestablesList) {
+		var checkRequestablesArray = checkRequestablesList.split(",");
 		
-		// TODO: handle project.* or project.connector.*
-		return (
-				(listenRequestables === "*")
-				|| (listenRequestables === calledRequestable)
-				|| ($.inArray(calledRequestable, arrayListenRequestables) != -1)
-			);
+		for (var i = 0; i < checkRequestablesArray.length; i++) {
+			var checkRequestable = $.trim(checkRequestablesArray[i]);
+			var requestableObject = C8O.getRequestableObject(requestable);
+			var checkRequestableObject = C8O.getRequestableObject(checkRequestable);
+			if (C8O.isMatchingSingle(requestableObject, checkRequestableObject)) {
+				return true;
+			}
+		}
+		
+		return false;
+	},
+
+	getRequestableObject: function(requestable) {
+	    if (requestable === "*") {
+			return {
+				"fullTextName": requestable,
+				"type": "*",
+			};
+	    }
+	    
+		var i = requestable.indexOf(".");
+		if (i == -1) {
+			// TODO: handle error: no project defined
+			return {};
+		}
+		var project = requestable.substring(0, i);
+		
+		var j = requestable.indexOf(".", i + 1);
+		if (j == -1) {
+			// Sequence case
+			if (i == requestable.length - 1) {
+				// TODO: handle error: no sequence defined
+				return {};
+			}
+			var sequence = requestable.substring(j + 1);
+			return {
+				"fullTextName": requestable,
+				"type": "sequence",
+				"project": project,
+				"sequence": sequence
+			};
+		}
+		else {
+			// Transaction case
+			var connector = requestable.substring(i + 1, j);
+			var transaction = requestable.substring(j + 1);
+			if (j == requestable.length - 1) {
+				// TODO: handle error: no transaction defined
+				return {};
+			}
+			return {
+				"fullTextName": requestable,
+				"type": "transaction",
+				"project": project,
+				"connector": connector,
+				"transaction": transaction
+			};
+		}
+	},
+	
+	/**
+	 * Returns true if requestableObject is matching checkRequestableObject, false otherwise.
+	 */
+	isMatchingSingle: function(requestableObject, checkRequestableObject) {
+		// Universal case
+		if (checkRequestableObject.fullTextName === "*") {
+			return true;
+		}
+		// Fully qualified requestable (e.g. project.sequence, or project.connector.sequence)
+		else if (checkRequestableObject.fullTextName === requestableObject.fullTextName) {
+			return true;
+		}
+		else {
+			if (requestableObject.type === "sequence") {
+				// Any sequence (.* or project.*)
+				if (requestableObject.project != checkRequestableObject.project) return false;
+				if (checkRequestableObject.sequence === "*") return true;
+				
+				// Explicit sequence
+				return (requestableObject.sequence === checkRequestableObject.sequence);
+			}
+			else if (requestableObject.type === "transaction") {
+				// Any transaction (..* or project..* or project.connector.*)
+				if (requestableObject.project != checkRequestableObject.project) return false;
+				if (requestableObject.connector != checkRequestableObject.connector) return false;
+				if (checkRequestableObject.transaction === "*") return true;
+
+				// Explicit transaction
+				return (requestableObject.transaction === checkRequestableObject.transaction);
+			}
+			else {
+				// TODO: handle error: unknown requestable type
+			}
+		}
+		
+		// TODO: handle error: should never go there
+		return false;
 	},
 
 	templates : {},
