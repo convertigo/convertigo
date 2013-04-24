@@ -1,14 +1,4 @@
-$.extend(true, C8O, {
-	/**
-	 * Reg exp selector for templating engine
-	 */
-	re : {
-		selector : new RegExp("{(.*?)(?:@(.*?))?}"),
-		accolade : new RegExp("{.*?(?!\\\\).}"),
-		replaceSimpleQuote : new RegExp("(?:^|((?!\\\\).))'","g"), // replace with "$1\""
-		removeBackslash : new RegExp("(\\\\*)\\\\","g"), // replace with "$1"
-	},
-	
+$.extend(true, C8O, {	
 	/**
 	 * This will analyze C8O responses and route them to the correct page according to the
 	 * routingTable. 
@@ -313,8 +303,7 @@ $.extend(true, C8O, {
 	
 	renderElement: function($element, $doc) {
 		// Render iterated elements
-		$element.find("*").andSelf().filter("[data-c8o-each]").each(function() {
-//			$($element.get().reverse()).find("*").andSelf().filter("[data-c8o-each]").each(function() {
+		C8O._findAndSelf($element, "[data-c8o-each]").each(function() {
 			var $c8oEachContainer = $(this);
 
 			var $template = C8O.manageTemplate($c8oEachContainer);
@@ -332,25 +321,90 @@ $.extend(true, C8O, {
 		C8O.walk($element, $doc,
 			// C8O.renderText
 			function (txt, $data) {
-				var m = txt.match(C8O.re.selector);
-				while (m) {
-					if (m[1] === ".") {
-						var data = $data.text();
-						txt = txt.replace("{.}", data);
-						m = txt.match(C8O.re.selector);
-					}
-					else {
-						var $m = $data.find(m[1]);
-						if ($m.length > 0) {
-							var data = m[2] ? $m.attr(m[2]) : $m.text();
-							txt = txt.replace("{" + m[1] + "}", data);
-							m = txt.match(C8O.re.selector);
+//				var m = txt.match(C8O._define.re_selector);
+//				while (m) {
+//					if (m[1] === ".") {
+//						var data = $data.text();
+//						txt = txt.replace("{.}", data);
+//						m = txt.match(C8O._define.re_selector);
+//					}
+//					else {
+//						var $m = $data.find(m[1]);
+//						if ($m.length > 0) {
+//							var data = m[2] ? $m.attr(m[2]) : $m.text();
+//							txt = txt.replace("{" + m[1] + "}", data);
+//							m = txt.match(C8O._define.re_selector);
+//						}
+//						else 
+//							m = false;
+//					}
+//				}
+//				return txt;
+			
+				var find = txt.search(C8O._define.re_find_brackets);
+				var res = "";
+				while (find != -1) {
+					res += txt.substring(0, find);
+					txt = txt.substring(find);
+					var match = txt.match(C8O._define.re_find_brackets);
+					var rule = undefined;
+					if (match[2]) {
+						// JSON case
+						var part = (match[2] == "'") ? match[0].replace(C8O._define.re_replace_simple_quote, "$1\"") : match[0];
+						part = part.replace(C8O._define.re_replace_escaped_bracket_simple_quote, "$1");
+						try {
+							rule = $.parseJSON(part);
+						} catch (e) {
+							console.log("JSON parse failed on " + part + " : " + e);
 						}
-						else 
-							m = false;
 					}
+					if (C8O.isUndefined(rule)) {
+						rule = {find : match[1].replace(C8O._define.re_replace_escaped_bracket_simple_quote, "$1")};
+					}
+					
+					var value = undefined;
+					
+					try {
+						if (C8O.isDefined(rule.find)) {
+							var $elt = rule.find == "." ? $data : $data.find(rule.find);
+							if ($elt.length) {
+								if (C8O.isDefined(rule.attr)) {
+									value = $elt.attr(rule.attr);
+								} else {
+									value = $elt.text();
+								}
+							}
+						}
+					} catch (e) {
+						console.log("$data.find failed : " + e);
+					}
+					
+					if (C8O.isUndefined(value)) {
+						if (C8O.isDefined(rule.def)) {
+							value = rule.def;
+						} else {
+							value = "";
+						}
+					}
+					
+					if (C8O.isDefined(rule.formatter)) {
+						if (typeof(window[rule.formatter]) == "function") {
+							try {
+								var formatted = window[rule.formatter].call($element[0], value);
+								if (typeof(formatted) == "string") {
+									value = formatted;
+								}
+							} catch (e) {
+								console.log("call formatter failed : " + e);
+							}
+						}
+					}
+					
+					res += value;
+					txt = txt.substring(match[0].length);
+					find = txt.search(C8O._define.re_find_brackets);
 				}
-				return txt;
+				return res + txt;	
 			}
 		);
 	},
@@ -384,15 +438,15 @@ $.extend(true, C8O, {
 	},
 	
 	renderText: function (txt, $data) {
-		var find = txt.search(C8O.re.accolade);
+		var find = txt.search(C8O._define.re_accolade);
 		var res = "";
 		while (find != -1) {
 			res += txt.substring(0, find);
 			txt = txt.substring(find);
-			var match = txt.match(C8O.re.accolade)[0];
+			var match = txt.match(C8O._define.re_accolade)[0];
 			var rule = {};
 			try {
-				jmatch = match.replace(C8O.re.replaceSimpleQuote, "$1\"").replace(C8O.re.removeBackslash, "$1");
+				jmatch = match.replace(C8O._define.re_replaceSimpleQuote, "$1\"").replace(C8O._define.re_removeBackslash, "$1");
 				rule = $.parseJSON(jmatch);
 			} catch (e) {
 				if (match.length > 0) {
@@ -427,7 +481,7 @@ $.extend(true, C8O, {
 			
 			res += value;
 			txt = txt.substring(match.length);
-			find = txt.search(C8O.re.accolade);
+			find = txt.search(C8O._define.re_accolade);
 		}
 		return res + txt;
 	},
@@ -435,7 +489,17 @@ $.extend(true, C8O, {
 	_define: {
 		re_attr_plus : new RegExp("^data-c8o-(?:use-(.*$)|variable-(.*$)|internal-(.*$))"), // 1: use ; 2: variable ; 3: internal
 		re_call_mode : new RegExp("^(?:(click)|(auto)|(?:(timer:)(.*)))$"), // 1: click ; 2: auto ; 3: timer ; 4: seconds for timer
-		re_requestable : new RegExp("^(.*?)\\.(.*?)(?:\\.(.*))?$") // 1: project ; 2: sequence | connector ; 3: transaction
+		re_requestable : new RegExp("^(.*?)\\.(.*?)(?:\\.(.*))?$"), // 1: project ; 2: sequence | connector ; 3: transaction
+		/**
+		 * Reg exp selector for templating engine
+		 */
+		re_selector : new RegExp("{(.*?)(?:@(.*?))?}"),
+		re_accolade : new RegExp("{.*?(?!\\\\).}"),
+		re_replaceSimpleQuote : new RegExp("(?:^|((?!\\\\).))'","g"), // replace with "$1\""
+		re_removeBackslash : new RegExp("(\\\\*)\\\\","g"), // replace with "$1"
+		re_find_brackets : new RegExp("{(\\s*(?:('|\").*?\\2\\s*:)?.*?(?!\\\\).)}"), // 0: full ; 1: content ; 2: is json // {(\s*(?:('|").*?\2\s*:)?.*?(?!\\).)}
+		re_replace_escaped_bracket_simple_quote : new RegExp("\\\\(}|')", "g"), // replace with "$1"
+		re_replace_simple_quote : new RegExp("(^|(?!\\\\).)'", "g") // replace with "$1""
 	},
 	
 	_decodeStore: function(store) {
