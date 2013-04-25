@@ -32,7 +32,6 @@ import org.w3c.dom.Document;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
@@ -48,13 +47,11 @@ public class CreateStubFromXMLAction extends AbstractStubAction {
 	
 	public void selectionChanged(IAction action, ISelection selection) {
 		try {
-			boolean enable = false;
 			super.selectionChanged(action, selection);
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 			Object ob = treeObject.getObject();
-			enable = (ob instanceof TransactionWithVariables) && !(ob instanceof SiteClipperTransaction);
-			action.setEnabled(enable);
+			action.setEnabled(!(ob instanceof SiteClipperTransaction));
 		}
 		catch (Exception e) {}
 	}

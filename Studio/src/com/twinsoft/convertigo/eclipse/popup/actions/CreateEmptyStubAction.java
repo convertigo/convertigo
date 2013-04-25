@@ -33,7 +33,6 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -46,17 +45,15 @@ public class CreateEmptyStubAction extends AbstractStubAction {
 	
 	public void selectionChanged(IAction action, ISelection selection) {
 		try {
-			boolean enable = false;
 			super.selectionChanged(action, selection);
 			IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 			TreeObject treeObject = (TreeObject) structuredSelection.getFirstElement();
 			Object ob = treeObject.getObject();
-			enable = (ob instanceof TransactionWithVariables) && !(ob instanceof SiteClipperTransaction);
-			action.setEnabled(enable);
+			action.setEnabled(!(ob instanceof SiteClipperTransaction));
 		}
 		catch (Exception e) {}
 	}
-
+	
 	public Document getXML(TreeObject treeObject) throws Exception {
 		Document dom = XMLUtils.createDom("java");
 		Element documentElement = (Element) dom.createElement("document");
