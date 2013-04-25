@@ -18,9 +18,9 @@ $.extend(true, C8O, {
 				for (var j in entry.actions) {
 					var action = entry.actions[j];
 					var transition =  action.transition;
-					
-					if (typeof action.condition === "function") {
-						routeFound = action.condition($doc);
+					var fnCondition = C8O._getFunction(action.condition);
+					if (fnCondition != null) {
+						routeFound = fnCondition($doc);
 					} else {
 						var element = $doc.find(action.condition);
 						routeFound = (element.length != 0 || $doc.is(action.condition));
@@ -68,7 +68,7 @@ $.extend(true, C8O, {
 			var $element = $(element);
 			
 			// Get the binded attributes
-			var listenRequestables = $element.attr('data-c8o-listen');
+			var listenRequestables = $element.attr("data-c8o-listen");
 			
 			// Check called requestable against the list of listen requestables
 			if (C8O.isMatching(calledRequestable, listenRequestables)) {
@@ -86,6 +86,11 @@ $.extend(true, C8O, {
 				var $c8oListenContainer = $(this);
 				
 				C8O.manageTemplate($c8oListenContainer);
+				
+				var functionBeforeRendering = C8O._getFunction($element.attr("data-c8o-before-rendering"));
+				if (functionBeforeRendering != null) {
+					functionBeforeRendering.call(element, $xmlData);
+				}
 
 				C8O.renderWidgets($c8oListenContainer, $xmlData);
 
@@ -99,6 +104,11 @@ $.extend(true, C8O, {
 						$element.iscrollview("refresh");
 					}
 				});
+				
+				var functionAfterRendering = C8O._getFunction($element.attr("data-c8o-after-rendering"));
+				if (functionAfterRendering != null) {
+					functionAfterRendering.call(element, $xmlData);
+				}
 			}
 		});
 	},
@@ -389,16 +399,15 @@ $.extend(true, C8O, {
 						}
 					}
 					
-					if (C8O.isDefined(rule.formatter)) {
-						if (typeof(window[rule.formatter]) == "function") {
-							try {
-								var formatted = window[rule.formatter].call($element[0], value);
-								if (typeof(formatted) == "string") {
-									value = formatted;
-								}
-							} catch (e) {
-								console.log("call formatter failed : " + e);
+					var functionFormatter = C8O._getFunction(rule.formatter);
+					if (functionFormatter != null) {
+						try {
+							var formatted = functionFormatter.call($element[0], value);
+							if (typeof(formatted) == "string") {
+								value = formatted;
 							}
+						} catch (e) {
+							console.log("call formatter failed : " + e);
 						}
 					}
 					
@@ -556,8 +565,9 @@ $.extend(true, C8O, {
 	_checkConditionDomSelectorOrJsFunction: function(condition, thisObject, paramsArray, $dom) {
 		if (condition) {
 			// Function condition
-			if (typeof(window[condition]) == "function") {
-				if (!window[condition].apply(thisObject, paramsArray)) {
+			var functionCondition = C8O._getFunction(condition);
+			if (functionCondition != null) {
+				if (!functionCondition.apply(thisObject, paramsArray)) {
 					// The condition failed, so we abort the rendering
 					return false;
 				}

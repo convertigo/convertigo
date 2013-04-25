@@ -388,6 +388,24 @@ C8O = {
 		}
 	},
 	
+	_getFunction : function (functionObject) {
+		try {
+			if (typeof(functionObject) == "function") {
+				return functionObject;
+			} else {
+				var parts = functionObject.split(".");
+				var fn = window;
+				for (var i in parts) {
+					fn = fn[parts[i]];
+				}
+				
+				return typeof(fn) == "function" ? fn : null;
+			}
+		} catch (e) {
+			return null;
+		}
+	},
+	
 	_getQuery : function () {
 		var l = window.location,
 			q = l.search.length > 0 ? l.search.substring(1) : "",
