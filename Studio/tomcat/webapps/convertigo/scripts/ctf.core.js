@@ -1,4 +1,4 @@
-$.extend(true, C8O, {	
+$.extend(true, C8O, {
 	/**
 	 * This will analyze C8O responses and route them to the correct page according to the
 	 * routingTable. 
@@ -265,40 +265,42 @@ $.extend(true, C8O, {
 		//$html.find("[data-role='listview']").listview();
 		$html.trigger("create");
 	},
-	
-	// Attributes automatic replacement, with the following format:
-	// data-c8o-use="<attribute name>:<attribute value>"
-	// Useful for attributes such as src in IMG tags, or data-role in JQueryUI components
+
 	/**
-	 * special case for "src" attributes.
-	 * 
-	 * To avoid browser's get before the src attribute has been replaced, use instead the
-	 * "data-c8o-use" attribute. The templating engine will create dynamically "src" attributes
-	 * with data from data-src attribute.
+	 * Renders special attributes data-c8o-use-xxx
 	 */
 	renderUseAttributes: function($html) {
-		var c8oUse = $html.attr("[data-c8o-use]");
-		C8O.renderUseAttribute($html, c8oUse);
-
-		var $c8oUses = $html.find("[data-c8o-use]").each(function () {
+		// Find the use attribute marker in HTML elements
+		C8O._findAndSelf($html, "[data-c8o-use]").each(function () {
 			var $this = $(this);
-			var c8oUse = $this.attr("data-c8o-use");
-			C8O.renderUseAttribute($this, c8oUse);
+			// Find data-c8o-use-xxx attributes in the found HTML element
+			C8O.findUseAttributes($this);
 		});
 	},
 	
-	renderUseAttribute: function($html, c8oUse) {
-		if (c8oUse) {
-			var i = c8oUse.indexOf(":");
-			if (i != -1) {
-				var useAttribute = c8oUse.substring(0, i);
-				var useAttributeValue = c8oUse.substring(i+1);
-				if (useAttribute) {
-					$html.attr(useAttribute, useAttributeValue);
-					$html.removeAttr("data-c8o-use");
-				}
+	/**
+	 * Finds and renders all the data-c8o-use-xxx attributes in the given component.
+	 */
+	findUseAttributes: function($component) {
+		$($component[0].attributes).each(function () {
+			var attributeName = this.nodeName;
+			if (attributeName.indexOf("data-c8o-use-") == 0) {
+				attributeName = attributeName.substring(13);
+				//console.log("Found data-c8o-use-xxx attribute: " + attributeName);
+				var attributeValue = this.nodeValue;
+				C8O.renderUseAttribute($component, attributeName, attributeValue);
 			}
-		}
+		});
+	},
+	
+	/**
+	 * Renders the data-c8o-use-xxx attribute in the given component,
+	 * i.e. removes the data-c8o-use-xxx attribute from the given element
+	 * and adds a new attribute xxx with the given value.
+	 */
+	renderUseAttribute: function($component, attributeName, attributeValue) {
+		$component.removeAttr("data-c8o-use-" + attributeName);
+		$component.attr(attributeName, attributeValue);
 	},
 	
 	renderElement: function($element, $doc) {
