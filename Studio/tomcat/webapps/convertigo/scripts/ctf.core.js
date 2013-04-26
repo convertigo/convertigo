@@ -264,8 +264,10 @@ $.extend(true, C8O, {
 	 * $doc is the data to render in the widget
 	 */
 	renderWidgets: function ($html, $doc) {
+		var refs = C8O._handleRef($html, $doc);
+		
 		// Render simple elements
-		C8O.renderElement($html, $doc);
+		C8O.renderElement($html, refs);
 
 		// Render "use" attributes
 		C8O.renderUseAttributes($html);
@@ -313,111 +315,28 @@ $.extend(true, C8O, {
 		$component.attr(attributeName, attributeValue);
 	},
 	
-	renderElement: function($element, $doc) {
+	renderElement: function($element, refs) {		
 		// Render iterated elements
 		C8O._findAndSelf($element, "[data-c8o-each]").each(function() {
 			var $c8oEachContainer = $(this);
-
+			
 			var $template = C8O.manageTemplate($c8oEachContainer);
 
 			// Now we can iterate over the XML data
 			var c8oEachIterator = $c8oEachContainer.attr("data-c8o-each");
-			$doc.find(c8oEachIterator).each(function () {
+			refs._self.find(c8oEachIterator).each(function () {
+				var $data = $(this);
 				var $item = $template.clone();
-				C8O.renderElement($item, $(this));
+				
+				C8O._handleRef($c8oEachContainer, $data, refs);
+				
+				C8O.renderElement($item, refs);
 				$c8oEachContainer.append($item);
 			});
 		});
 
 		// Render simple elements
-		C8O.walk($element, $doc,
-			// C8O.renderText
-			function (txt, $data) {
-//				var m = txt.match(C8O._define.re_selector);
-//				while (m) {
-//					if (m[1] === ".") {
-//						var data = $data.text();
-//						txt = txt.replace("{.}", data);
-//						m = txt.match(C8O._define.re_selector);
-//					}
-//					else {
-//						var $m = $data.find(m[1]);
-//						if ($m.length > 0) {
-//							var data = m[2] ? $m.attr(m[2]) : $m.text();
-//							txt = txt.replace("{" + m[1] + "}", data);
-//							m = txt.match(C8O._define.re_selector);
-//						}
-//						else 
-//							m = false;
-//					}
-//				}
-//				return txt;
-			
-				var find = txt.search(C8O._define.re_find_brackets);
-				var res = "";
-				while (find != -1) {
-					res += txt.substring(0, find);
-					txt = txt.substring(find);
-					var match = txt.match(C8O._define.re_find_brackets);
-					var rule = undefined;
-					if (match[2]) {
-						// JSON case
-						var part = (match[2] == "'") ? match[0].replace(C8O._define.re_replace_simple_quote, "$1\"") : match[0];
-						part = part.replace(C8O._define.re_replace_escaped_bracket_simple_quote, "$1");
-						try {
-							rule = $.parseJSON(part);
-						} catch (e) {
-							console.log("JSON parse failed on " + part + " : " + e);
-						}
-					}
-					if (C8O.isUndefined(rule)) {
-						rule = {find : match[1].replace(C8O._define.re_replace_escaped_bracket_simple_quote, "$1")};
-					}
-					
-					var value = undefined;
-					
-					try {
-						if (C8O.isDefined(rule.find)) {
-							var $elt = rule.find == "." ? $data : $data.find(rule.find);
-							if ($elt.length) {
-								if (C8O.isDefined(rule.attr)) {
-									value = $elt.attr(rule.attr);
-								} else {
-									value = $elt.text();
-								}
-							}
-						}
-					} catch (e) {
-						console.log("$data.find failed : " + e);
-					}
-					
-					if (C8O.isUndefined(value)) {
-						if (C8O.isDefined(rule.def)) {
-							value = rule.def;
-						} else {
-							value = "";
-						}
-					}
-					
-					var functionFormatter = C8O._getFunction(rule.formatter);
-					if (functionFormatter != null) {
-						try {
-							var formatted = functionFormatter.call($element[0], value);
-							if (typeof(formatted) == "string") {
-								value = formatted;
-							}
-						} catch (e) {
-							console.log("call formatter failed : " + e);
-						}
-					}
-					
-					res += value;
-					txt = txt.substring(match[0].length);
-					find = txt.search(C8O._define.re_find_brackets);
-				}
-				return res + txt;	
-			}
-		);
+		C8O.walk($element, {$element: $element, refs: refs}, C8O.renderText);
 	},
 	
 	/**
@@ -448,28 +367,44 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	renderText: function (txt, $data) {
-		var find = txt.search(C8O._define.re_accolade);
+	renderText: function (txt, data) {
+		var $element = data.$element;
+		var refs = data.refs;
+		var find = txt.search(C8O._define.re_find_brackets);
 		var res = "";
 		while (find != -1) {
 			res += txt.substring(0, find);
 			txt = txt.substring(find);
-			var match = txt.match(C8O._define.re_accolade)[0];
-			var rule = {};
-			try {
-				jmatch = match.replace(C8O._define.re_replaceSimpleQuote, "$1\"").replace(C8O._define.re_removeBackslash, "$1");
-				rule = $.parseJSON(jmatch);
-			} catch (e) {
-				if (match.length > 0) {
-					rule = {find : match.substring(1, match.length - 1)}
+			var match = txt.match(C8O._define.re_find_brackets);
+			var rule = undefined;
+			if (match[2]) {
+				// JSON case
+				var part = (match[2] == "'") ? match[0].replace(C8O._define.re_replace_simple_quote, "$1\"") : match[0];
+				part = part.replace(C8O._define.re_replace_escaped_bracket_simple_quote, "$1");
+				try {
+					rule = $.parseJSON(part);
+				} catch (e) {
+					console.log("JSON parse failed on " + part + " : " + e);
 				}
+			}
+			if (C8O.isUndefined(rule)) {
+				rule = {find : match[1].replace(C8O._define.re_replace_escaped_bracket_simple_quote, "$1")};
 			}
 			
 			var value = undefined;
 			
 			try {
+				var $data = refs._self;
+				if (C8O.isDefined(rule.ref)) {
+					if (C8O.isDefined(refs[rule.ref])) {
+						$data = refs[rule.ref];
+					} else {
+						console.log("unknown ref " + rule.ref + " in parent iteration, use current iteration $data");
+					}
+				}
+				
 				if (C8O.isDefined(rule.find)) {
-					var $elt = $data.find(rule.find);
+					var $elt = rule.find == "." ? $data : $data.find(rule.find);
 					if ($elt.length) {
 						if (C8O.isDefined(rule.attr)) {
 							value = $elt.attr(rule.attr);
@@ -479,7 +414,7 @@ $.extend(true, C8O, {
 					}
 				}
 			} catch (e) {
-				console.log(e);
+				console.log("$data.find failed : " + e);
 			}
 			
 			if (C8O.isUndefined(value)) {
@@ -490,11 +425,23 @@ $.extend(true, C8O, {
 				}
 			}
 			
+			var functionFormatter = C8O._getFunction(rule.formatter);
+			if (functionFormatter != null) {
+				try {
+					var formatted = functionFormatter.call($element[0], value);
+					if (typeof(formatted) == "string") {
+						value = formatted;
+					}
+				} catch (e) {
+					console.log("call formatter failed : " + e);
+				}
+			}
+			
 			res += value;
-			txt = txt.substring(match.length);
-			find = txt.search(C8O._define.re_accolade);
+			txt = txt.substring(match[0].length);
+			find = txt.search(C8O._define.re_find_brackets);
 		}
-		return res + txt;
+		return res + txt;	
 	},
 	
 	_define: {
@@ -504,10 +451,6 @@ $.extend(true, C8O, {
 		/**
 		 * Reg exp selector for templating engine
 		 */
-		re_selector : new RegExp("{(.*?)(?:@(.*?))?}"),
-		re_accolade : new RegExp("{.*?(?!\\\\).}"),
-		re_replaceSimpleQuote : new RegExp("(?:^|((?!\\\\).))'","g"), // replace with "$1\""
-		re_removeBackslash : new RegExp("(\\\\*)\\\\","g"), // replace with "$1"
 		re_find_brackets : new RegExp("{(\\s*(?:('|\").*?\\2\\s*:)?.*?(?!\\\\).)}"), // 0: full ; 1: content ; 2: is json // {(\s*(?:('|").*?\2\s*:)?.*?(?!\\).)}
 		re_replace_escaped_bracket_simple_quote : new RegExp("\\\\(}|')", "g"), // replace with "$1"
 		re_replace_simple_quote : new RegExp("(^|(?!\\\\).)'", "g") // replace with "$1""
@@ -682,6 +625,18 @@ $.extend(true, C8O, {
 				}
 			}
 		});
+	},
+	
+	_handleRef: function ($element, $doc, refs) {
+		if (C8O.isUndefined(refs)) {
+			refs = {};
+		}
+		refs._self = $doc;
+		var refName = $element.attr("data-c8o-ref");
+		if (refName) {
+			refs[refName] = refs._self;
+		}
+		return refs;
 	}
 });
 
