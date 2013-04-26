@@ -225,8 +225,16 @@ $.extend(true, C8O, {
 		// name of the saved template.
 		var templateID = $element.attr("data-c8o-template-id");
 		if (templateID) {
-			// The widget has already been rendered. We must empty it and reinsert the template.
-			$element.empty();
+			var accumulate_mode = $element.attr("data-c8o-accumulate");
+			if (!accumulate_mode) {
+				accumulate_mode = "";
+			}
+			accumulate_mode = accumulate_mode.match(C8O._define.re_accumulate_mode);
+			
+			if (accumulate_mode[3] != null) {
+				// The widget has already been rendered. We must empty it and reinsert the template.
+				$element.empty();
+			}
 			var $template = C8O.getTemplate(templateID);
 
 			// If we are in an iterator template, we must return the template
@@ -235,8 +243,12 @@ $.extend(true, C8O, {
 				return $template;
 			}
 
-			// In other case, just append the new clean template
-			$element.append($template);
+			if (accumulate_mode[2] == null) {
+				// In other case, just append the new clean template
+				$element.append($template);
+			} else {
+				$element.prepend($template);
+			}
 		}
 		else {
 			// The widget has not yet been rendered: generate an unique template ID and save the
@@ -445,6 +457,7 @@ $.extend(true, C8O, {
 	},
 	
 	_define: {
+		re_accumulate_mode : new RegExp("^(?:(append)|(prepend)|(.*?))$"), // 1: append ; 2: preprend ; 3: replace
 		re_attr_plus : new RegExp("^data-c8o-(?:use-(.*$)|variable-(.*$)|internal-(.*$))"), // 1: use ; 2: variable ; 3: internal
 		re_call_mode : new RegExp("^(?:(click)|(auto)|(?:(timer:)(.*)))$"), // 1: click ; 2: auto ; 3: timer ; 4: seconds for timer
 		re_requestable : new RegExp("^(.*?)\\.(.*?)(?:\\.(.*))?$"), // 1: project ; 2: sequence | connector ; 3: transaction
