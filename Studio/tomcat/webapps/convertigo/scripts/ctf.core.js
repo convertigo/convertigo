@@ -241,7 +241,7 @@ $.extend(true, C8O, {
 		else {
 			// The widget has not yet been rendered: generate an unique template ID and save the
 			// template.
-			var $template = $element.children().clone();
+			var $template = $element.contents().clone();
 			templateID = C8O.addTemplate($template);
 			$element.attr("data-c8o-template-id", templateID);
 			
