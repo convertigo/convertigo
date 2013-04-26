@@ -106,7 +106,7 @@
       <library name="lib/internal/ibm-v28353.jar"/>
       <library name="lib/qrcode.jar"/>
       <library name="lib/mysql-connector.jar"/>
-      <library name="lib/mariadb-java-client-1.1.0.jar"/>
+      <library name="lib/mariadb-java-client-1.1.1.jar"/>
       <library name="lib/internal/html_parsers-v30936.jar"/>
       <library name="lib/internal/util-v28883.jar"/>
       <library name="lib/axis2-1.6.2/lib/activation-1.1.jar"/>
