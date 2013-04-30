@@ -252,8 +252,9 @@ public class SqlConnector extends Connector {
 			needReset = false;
 		}
 	}
-
-	public PreparedStatement prepareStatement(String sqlQuery, List<String> params) throws SQLException, ClassNotFoundException, EngineException {
+	
+	// public PreparedStatement prepareStatement(String sqlQuery) throws SQLException, ClassNotFoundException, EngineException { 
+	public PreparedStatement prepareStatement(String sqlQuery, Map<String, String> params, List<String> paramsName) throws SQLException, ClassNotFoundException, EngineException {
 		PreparedStatement preparedStatement = null;
 		if (isClosed() || needReset)
 			open();
@@ -276,16 +277,17 @@ public class SqlConnector extends Connector {
 				}
 			}
 		}
-		// Call the method prepareParameters with the preparedStatement and the ArrayList
-		prepareParameters(preparedStatement, params);
+		
+		// Call the method prepareParameters with the preparedStatement and the ArrayList 
+		prepareParameters(preparedStatement, params, paramsName); 
 		
 		return preparedStatement;
 	}
-
-	private void prepareParameters(PreparedStatement preparedStatement, List<String> params) throws SQLException{
-		// We loop and set parameters of the preparedStatement
-		for (int x = 0; x < params.size() ; x++){
-			preparedStatement.setString(x+1, params.get(x));	
+	
+	private void prepareParameters(PreparedStatement preparedStatement, Map<String, String> params, List<String> paramsName) throws SQLException{ 
+		// We loop and set parameters of the preparedStatement 
+		for (int x = 0 ; x < paramsName.size() ; x++) {
+			preparedStatement.setString(x+1, params.get(paramsName.get(x)));
 		}
 	}
 

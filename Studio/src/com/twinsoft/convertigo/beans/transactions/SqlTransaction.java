@@ -69,13 +69,17 @@ public class SqlTransaction extends TransactionWithVariables {
 	transient private PreparedStatement preparedStatement = null;
 	
 	/** The vectors of parameterNames for the query. */
-	transient private Set<String> vParameters = null;
-	transient private Set<String> vOldParameters = null;
-	
-	transient private Map<String, Boolean> paramsNeedEscape = null;
+	transient private Set<String> declaredParametersSet = null;
+	transient private Set<String> oldDeclaredParametersSet = null;
 	
 	/** The type of query. */
 	transient private int type = -1;
+	
+	/** Use for stock parameter of the query. */
+	transient private Map<String, String> parametersMap = new HashMap<String, String>();
+	
+	/** Use for get order of parameters */
+	transient private List<String> orderedParametersList = new ArrayList<String>();
 	
 	/** Holds value of property sqlQuery. */
 	private String sqlQuery = "";
@@ -113,9 +117,6 @@ public class SqlTransaction extends TransactionWithVariables {
 	/** Holds value of property xmlGrouping. */
 	private boolean xmlGrouping = false;
 	
-	//Use for stock parameter of the query
-	transient private List<String> sqlActualParameters;
-	
 	public SqlTransaction() {
 		super();
 	}
@@ -125,11 +126,9 @@ public class SqlTransaction extends TransactionWithVariables {
     	SqlTransaction clonedObject = (SqlTransaction) super.clone();
     	clonedObject.connector = null;
     	clonedObject.preparedStatement = null;
-    	clonedObject.vParameters = null;
-    	clonedObject.vOldParameters = null;
-    	clonedObject.paramsNeedEscape = null;
+    	clonedObject.declaredParametersSet = null;
+    	clonedObject.oldDeclaredParametersSet = null;
     	clonedObject.type = type;
-    	clonedObject.sqlActualParameters = null;
         return clonedObject;
     }
 	
@@ -171,7 +170,6 @@ public class SqlTransaction extends TransactionWithVariables {
 	private void initializeQuery(boolean updateDefinitions) {
 		if ((sqlQuery != null) && (isSubLoaded || (bNew && updateDefinitions))) {
 			int start= 0, bIndex=-1, eIndex=-1;
-			boolean needEscape = true;
 			
 			// retrieve query type
 			if (sqlQuery.toUpperCase().indexOf("SELECT") == 0)
@@ -191,18 +189,21 @@ public class SqlTransaction extends TransactionWithVariables {
 			else type = TYPE_UNKNOWN;
 			
 			// retrieve parameter names
-			vParameters = new HashSet<String>();
-			paramsNeedEscape = new HashMap<String, Boolean>();
-			while ((bIndex = sqlQuery.indexOf("{",start)) != -1) {
-				if ((eIndex = sqlQuery.indexOf("}",bIndex)) != -1) {
-					// retrieve parameter name
-					String parameterName = sqlQuery.substring(bIndex+1,eIndex);
-					// decide whether the parameter content needs to be escaped or not
-					needEscape = (sqlQuery.charAt(bIndex-1) == '\'' && sqlQuery.charAt(eIndex+1) == '\'');
-					// if parameter name has not been treated already and add parameter name to vParameters vector
-					if (vParameters.add(parameterName)) // add parameter content's need to be escaped to hashtable
-						paramsNeedEscape.put(parameterName, needEscape);
+			declaredParametersSet = new HashSet<String>();
 			
+			// Clear the parameterName order List
+			orderedParametersList.clear();
+			while ((bIndex = sqlQuery.indexOf("{", start)) != -1) {
+				if ((eIndex = sqlQuery.indexOf("}", bIndex)) != -1) {
+					// retrieve parameter name
+					String parameterName = sqlQuery.substring(bIndex+1, eIndex);
+					
+					// add the parameterName into the ArrayList if is a value and not a table name for example.
+					orderedParametersList.add(parameterName);
+
+					// add parameter content's to hashtable
+					declaredParametersSet.add(parameterName);
+					
 					// add a new variable with name equal to parameterName
 					if (updateDefinitions && (getVariable(parameterName) == null)) {
 						try {
@@ -228,10 +229,10 @@ public class SqlTransaction extends TransactionWithVariables {
 			}
 			
 			// modify variables definition if needed
-			if (!vParameters.equals(vOldParameters)) {
-				if (updateDefinitions && (vOldParameters != null))
-					for (String parameterName : vOldParameters)
-						if (!vParameters.contains(parameterName)) {
+			if (!declaredParametersSet.equals(oldDeclaredParametersSet)) {
+				if (updateDefinitions && (oldDeclaredParametersSet != null))
+					for (String parameterName : oldDeclaredParametersSet)
+						if (!declaredParametersSet.contains(parameterName)) {
 							Variable variable = getVariable(parameterName);
 							if (variable != null) {
 								try {
@@ -239,7 +240,7 @@ public class SqlTransaction extends TransactionWithVariables {
 								} catch (EngineException e) {}
 							}
 						}
-				vOldParameters = vParameters;
+				oldDeclaredParametersSet = declaredParametersSet;
 			}
 		}
 	}
@@ -248,14 +249,14 @@ public class SqlTransaction extends TransactionWithVariables {
 		if (sqlQuery.indexOf("{") == -1)
 			return sqlQuery;
 		
-		if (vParameters == null)
+		if (declaredParametersSet == null)
 			initializeQuery(false);
 		
-		if (vParameters != null) {
+		if (declaredParametersSet != null) {
 			StringEx s = new StringEx(sqlQuery);
-			// Clear the parameter list
-			sqlActualParameters = new ArrayList<String>();
-			for (String parameterName : vParameters) {
+			// Clear parameters Map
+			parametersMap.clear();
+			for (String parameterName : declaredParametersSet) {
 				try {
 					Object variableValue = null;
 					
@@ -299,34 +300,31 @@ public class SqlTransaction extends TransactionWithVariables {
 					
 					String parameterValue = variableValue.toString();
 					
-					if (paramsNeedEscape.get(parameterName)){
-						// handle escape of ' in values
-						if (parameterValue.indexOf("'") != -1) {
-							StringEx sVal = new StringEx(parameterValue);
-							sVal.replaceAll("'", "''");
-							parameterValue = sVal.toString();
-						}
-					}
-					
 					if (variableValue != null && Visibility.Logs.isMasked(variableVisibility)) {
 						if (!variableValue.equals("")) logHiddenValues.add(parameterValue);
 					}
-					// s.replaceAll("{"+parameterName+"}",parameterValue);
 					
-					// If we have " around the parameter, ex : test = "{parameter}"
-					if( s.toString().indexOf("\"{"+parameterName+"}\"") != -1){
-						s.replaceAll("\"{"+parameterName+"}\"","?");
-					// If we have ' around the parameter, ex : test = '{parameter}'
-					}else if( s.toString().indexOf("'{"+parameterName+"}'") != -1){
-						s.replaceAll("'{"+parameterName+"}'","?");
-					// Example : test = {parameter}
-					}else{
-						s.replaceAll("{"+parameterName+"}","?");
+					/*
+					 * Compute the parametrized form of the SQL request, i.e. for
+					 * instance SELECT * FROM table WHERE id=? and date > ?
+					 */
+
+					// String with double quotes
+				 	if (s.toString().indexOf("\"{" + parameterName + "}\"") != -1) {
+						s.replaceAll("\"{" + parameterName + "}\"", "?");
+					} 
+					
+					// String with simple quotes
+					if (s.toString()
+							.indexOf("'{" + parameterName + "}'") != -1) {
+						s.replaceAll("'{" + parameterName + "}'", "?");
 					}
-					
-					// Add the parameter into the ArrayList
-					sqlActualParameters.add(parameterValue);
-				
+					// Regular case for numbers
+					s.replaceAll("{" + parameterName + "}", "?");
+				 	
+				 	// Put the parameter into HashMap with the name(key) and the value
+				 	parametersMap.put(parameterName, parameterValue);
+					 	
 				} catch(ClassCastException e) {
 					Engine.logBeans.warn("(SqlTransaction) Ignoring parameter '" + parameterName+ "' because its value is not a string.");
 				}
@@ -363,7 +361,8 @@ public class SqlTransaction extends TransactionWithVariables {
 		if (Engine.logBeans.isDebugEnabled())
 			Engine.logBeans.debug("(SqlTransaction) Preparing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
 		
-		preparedStatement = connector.prepareStatement(query, sqlActualParameters);
+		// preparedStatement = connector.prepareStatement(query); 
+		preparedStatement = connector.prepareStatement(query, parametersMap, orderedParametersList);
 		return query;
 	}
 	
@@ -612,8 +611,8 @@ public class SqlTransaction extends TransactionWithVariables {
 			}
 				
 			// close statement and resulset if exist
-			preparedStatement.close();		
-			
+			preparedStatement.close();
+				
 			if (!runningThread.bContinue)
 				return;
 
@@ -639,9 +638,8 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 		finally {
 			try {
-				if (preparedStatement != null){
+				if (preparedStatement != null)
 					preparedStatement.close();
-				}
 			}
 			catch(SQLException e) {;}
 			preparedStatement = null;
