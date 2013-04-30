@@ -65,6 +65,7 @@ function authenticate(userName, password) {
 			if ($xml.find("success").length > 0 && checkRoleAdmin($xml)) {
 				$("form").unbind("submit").submit();
 			} else {
+				$("#dlgAuthFailed_message").html($xml.find("error").text().replace(/\n/g, "<br/>"));
 				$("#dlgAuthFailed").dialog('open');
 			};
 		}
