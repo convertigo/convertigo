@@ -39,6 +39,10 @@ public class FrontalUtils {
 		if (!Infogreffe.includeVariableIntoRequestString(projectName, transaction, variableName))
 			return false;
 
+		// Handle Altares (Intuiz) applications
+		if (!Altares.includeVariableIntoRequestString(projectName, transaction, variableName))
+			return false;
+
 		return true;
 	}
 }
