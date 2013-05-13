@@ -14,31 +14,12 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 
 import com.twinsoft.convertigo.engine.util.FileUtils;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class StartupDiagnostics {
-
-	public static void main(String[] args) {
-		Properties log4jProperties = new Properties();
-		log4jProperties.put("log4j.rootLogger", "INFO, stdout");
-		log4jProperties.put("log4j.appender.stdout", "org.apache.log4j.ConsoleAppender");
-		log4jProperties.put("log4j.appender.stdout.Target", "System.out");
-		log4jProperties.put("log4j.appender.stdout.layout", "org.apache.log4j.PatternLayout");
-		log4jProperties.put("log4j.appender.stdout.layout.ConversionPattern", "%-5p %d   %m%n");
-
-		LogManager.resetConfiguration();
-		PropertyConfigurator.configure(log4jProperties);
-		Engine.logEngine = Logger.getLogger(StartupDiagnostics.class);
-
-		Engine.WEBAPP_PATH = "/devplatform/tomcat-qualif/webapps/convertigo/";
-
-		run();
-	}
 
 	private static final String TEST_SUCCESS = "OK\n";
 	private static final String TEST_WARN = "WARN\n";
@@ -177,7 +158,7 @@ public class StartupDiagnostics {
 						// Checking /etc/passwd file under linux
 						try {
 							File etcPasswdFile = new File("/etc/passwd");
-							List<String> lines = FileUtils.readLines(etcPasswdFile);
+							List<String> lines = GenericUtils.cast(FileUtils.readLines(etcPasswdFile));
 	
 							String etcPasswdUserHome = null;
 							for (String line : lines) {
@@ -406,7 +387,7 @@ public class StartupDiagnostics {
 		Engine.logEngine.info("Launching ldd in " + libDir.toString());
 		Engine.logEngine.info("LD_LIBRARY_PATH=" + lddLibraryPath);
 
-		Collection<File> libs = FileUtils.listFiles(libDir, new String[] { "so" }, false);
+		Collection<File> libs = GenericUtils.cast(FileUtils.listFiles(libDir, new String[] { "so" }, false));
 
 		LddLibrariesResult lddLibrariesResult = new LddLibrariesResult();
 
