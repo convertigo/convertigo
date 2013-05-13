@@ -1244,12 +1244,12 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveCacheHeadersFromRequest">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RequestJavaScript">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RequestJavaScript">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
 				</bean>
 			</beans>
             <beans groupname="Response rules">
-                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ResponseJavaScript">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ResponseJavaScript">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
 				</bean>
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.AddHeaderToResponse">
