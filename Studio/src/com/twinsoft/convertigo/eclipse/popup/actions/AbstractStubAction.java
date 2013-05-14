@@ -23,7 +23,7 @@
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 
@@ -49,6 +49,7 @@ public abstract class AbstractStubAction extends MyAbstractAction {
 		super();
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
@@ -92,13 +93,14 @@ public abstract class AbstractStubAction extends MyAbstractAction {
 	}
 
 	public void writeStub(Document dom, File stubFile) throws IOException {
-		FileWriter fw = null;
+		FileOutputStream fos = null;
 		try {
-			fw = new FileWriter(stubFile);
-			XMLUtils.prettyPrintDOMWithEncoding(dom, "UTF-8", fw);
+			fos = new FileOutputStream(stubFile);
+			XMLUtils.prettyPrintDOMWithEncoding(dom, "UTF-8", fos);
 		} finally {
-			if (fw != null)
-				fw.close();
+			if (fos != null) {
+				fos.close();
+			}
 		}
 	}
 

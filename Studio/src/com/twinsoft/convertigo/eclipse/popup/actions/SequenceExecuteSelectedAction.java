@@ -51,7 +51,8 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
 	public SequenceExecuteSelectedAction() {
 		super();
 	}
-
+	
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
@@ -74,7 +75,7 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
     				if (sequenceEditor != null) {
     					getActivePage().activate(sequenceEditor);
     					sequenceEditor.getSequenceEditorPart().clearBrowser();
-    					sequenceEditor.getDocument(sequence.getName(), false, withXslt);
+    					sequenceEditor.getDocument(sequence.getName(), isStubRequested(), withXslt);
     				}
     			}
     		}
@@ -88,6 +89,10 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
         }
 	}
 
+	protected boolean isStubRequested() {
+		return false;
+	}
+	
 	protected void openEditors(ProjectExplorerView explorerView, TreeObject treeObject) {
 		if (treeObject instanceof SequenceTreeObject) {
 			SequenceTreeObject sequenceTreeObject = (SequenceTreeObject)treeObject;

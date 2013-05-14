@@ -22,12 +22,10 @@
 
 package com.twinsoft.convertigo.engine.cache;
 
-import java.io.IOException;
 import java.util.Date;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.ProcessingInstruction;
-import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
@@ -77,10 +75,9 @@ public abstract class CacheManager extends AbstractRunnableManager {
 				response = XMLUtils.parseDOM(stubFileName);
 				response.getDocumentElement().setAttribute("fromStub", "true");
 				return response;
-			} catch (SAXException e) {
-				Engine.logCacheManager.error("Error while parsing "+stubFileName+" file");
-			} catch (IOException e) {
-				Engine.logCacheManager.error("Error while getting "+stubFileName+" file");
+			} catch (Exception e) {
+				Engine.logCacheManager.error("Error while parsing " + stubFileName + " file");
+				throw new EngineException("Unable to load response from Stub", e);
 			}
 		}
 

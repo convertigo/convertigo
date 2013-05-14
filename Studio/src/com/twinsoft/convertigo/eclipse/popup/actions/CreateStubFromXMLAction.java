@@ -69,8 +69,9 @@ public class CreateStubFromXMLAction extends AbstractStubAction {
 			SequenceEditor sequenceEditor = projectTreeObject.getSequenceEditor((Sequence) requestable);
 			dom = sequenceEditor.getLastGeneratedDocument();
 		}
-		if (dom == null)
+		if (dom == null) {
 			throw new NoSuchElementException();
+		}
 		return dom;
 	}
 }

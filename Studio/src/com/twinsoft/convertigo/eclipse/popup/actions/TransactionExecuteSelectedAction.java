@@ -42,6 +42,7 @@ public class TransactionExecuteSelectedAction extends MyAbstractAction {
 		super();
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
@@ -66,7 +67,7 @@ public class TransactionExecuteSelectedAction extends MyAbstractAction {
     				if (connectorEditor != null) {
     					getActivePage().activate(connectorEditor);
     					connectorEditor.getConnectorEditorPart().clearBrowser();
-    					connectorEditor.getDocument(transaction.getName(), false, withXslt);
+    					connectorEditor.getDocument(transaction.getName(), isStubRequested(), withXslt);
     				}
     			}
     		}
@@ -80,4 +81,7 @@ public class TransactionExecuteSelectedAction extends MyAbstractAction {
         }
 	}
 
+	protected boolean isStubRequested() {
+		return false;
+	}
 }
