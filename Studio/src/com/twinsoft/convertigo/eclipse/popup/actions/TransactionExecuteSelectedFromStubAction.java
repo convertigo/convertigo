@@ -22,62 +22,15 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 
-import com.twinsoft.convertigo.beans.core.Connector;
-import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
-
-public class TransactionExecuteSelectedFromStubAction extends MyAbstractAction {
+public class TransactionExecuteSelectedFromStubAction extends TransactionExecuteSelectedAction {
 
 	public TransactionExecuteSelectedFromStubAction() {
 		super();
 	}
 
-	public void run() {
-		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
-		Shell shell = getParentShell();
-		shell.setCursor(waitCursor);
-		
-        try {
-        	boolean withXslt = false;
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null) {
-    			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-    			if ((treeObject != null) && (treeObject instanceof TransactionTreeObject)) {
-    				TransactionTreeObject transactionTreeObject = (TransactionTreeObject)treeObject;
-    				
-    				Transaction transaction = transactionTreeObject.getObject();
-    				transactionTreeObject.getConnectorTreeObject().openConnectorEditor();
-    				
-    				Connector connector = (Connector)transaction.getParent();
-    				ProjectTreeObject projectTreeObject = transactionTreeObject.getProjectTreeObject();
-    				ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
-    				if (connectorEditor != null) {
-    					getActivePage().activate(connectorEditor);
-    					connectorEditor.getConnectorEditorPart().clearBrowser();
-    					connectorEditor.getDocument(transaction.getName(), true, withXslt);
-    				}
-    			}
-    		}
-        }
-        catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to execute the selected transaction!");
-        }
-        finally {
-			shell.setCursor(null);
-			waitCursor.dispose();
-        }
+	@Override
+	protected boolean isStubRequested() {
+		return true;
 	}
-
 }

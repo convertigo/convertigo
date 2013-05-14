@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -41,6 +42,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -173,8 +175,16 @@ public class XMLUtils {
 	public static void prettyPrintDOM(Document doc, String defaultEncoding, Writer writer) {
 		prettyPrintDOMWithEncoding(doc, defaultEncoding, writer);
 	}
-
+	
 	public static void prettyPrintDOMWithEncoding(Document doc, String defaultEncoding, Writer writer) {
+		prettyPrintDOMWithEncoding(doc, defaultEncoding, new StreamResult(writer));
+	}
+	
+	public static void prettyPrintDOMWithEncoding(Document doc, String defaultEncoding, OutputStream outputStream) {
+		prettyPrintDOMWithEncoding(doc, defaultEncoding, new StreamResult(outputStream));
+	}
+	
+	public static void prettyPrintDOMWithEncoding(Document doc, String defaultEncoding, Result result) {
 		Node firstChild = doc.getFirstChild();
 		boolean omitXMLDeclaration = false;
 		String encoding = defaultEncoding; // default Encoding char set if non
@@ -200,11 +210,10 @@ public class XMLUtils {
 			t.setOutputProperty(OutputKeys.METHOD, "xml"); // xml, html, text
 			t.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 			t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, omitXMLDeclaration ? "yes" : "no");
-			t.transform(new DOMSource(doc), new StreamResult(writer));
+			t.transform(new DOMSource(doc), result);
 		} catch (Exception e) {
 			Engine.logEngine.error("Unexpected exception while pretty print DOM", e);
 		}
-
 	}
 
 	public static String prettyPrintDOM(Document doc) {

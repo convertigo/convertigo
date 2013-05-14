@@ -22,12 +22,10 @@
 
 package com.twinsoft.convertigo.engine.cache;
 
-import java.io.IOException;
 import java.util.Date;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.ProcessingInstruction;
-import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
@@ -75,12 +73,15 @@ public abstract class CacheManager extends AbstractRunnableManager {
 			}
 			try {
 				response = XMLUtils.parseDOM(stubFileName);
+				
 				response.getDocumentElement().setAttribute("fromStub", "true");
+				ProcessingInstruction pi = response.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + context.requestedObject.getEncodingCharSet() + "\"");
+				response.insertBefore(pi, response.getFirstChild());
+				
 				return response;
-			} catch (SAXException e) {
-				Engine.logCacheManager.error("Error while parsing "+stubFileName+" file");
-			} catch (IOException e) {
-				Engine.logCacheManager.error("Error while getting "+stubFileName+" file");
+			} catch (Exception e) {
+				Engine.logCacheManager.error("Error while parsing " + stubFileName + " file");
+				throw new EngineException("Unable to load response from Stub", e);
 			}
 		}
 		
@@ -105,7 +106,7 @@ public abstract class CacheManager extends AbstractRunnableManager {
 		}
 		// Not cached transaction
 		else if (expiryDate <= 0) {
-			Engine.logCacheManager.debug("The response is not cachable");
+			Engine.logCacheManager.trace("The response is not cachable");
 			
 			response = context.requestedObject.run(requester, context);
 			response.getDocumentElement().setAttribute("fromcache", "false");
