@@ -287,7 +287,7 @@ C8O = {
 						},
 						type : "GET"
 					});
-				} else if ($.browser.msie) {
+				} else if (!$.support.leadingWhitespace) {
 					C8O._fillBody($("<pre>" + xhr.responseText.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>"));
 				} else {
 					C8O._fillBody($("<pre/>").text(xhr.responseText));
@@ -570,8 +570,9 @@ try {
 
 $(document).ready(function () {
 	/** No XSLT engine (see #1336) : switch to server mode */
-	if (!window.XSLTProcessor && !$.browser.msie)
+	if (!window.XSLTProcessor && !window.ActiveXObject) {
 		C8O.vars.xsl_side = "server";
+	}
 	
 	/** weblib_wrapper can't access to C8O object with IE (see #1778) */
 	if (typeof(C8O_document_ready) !== "undefined") {

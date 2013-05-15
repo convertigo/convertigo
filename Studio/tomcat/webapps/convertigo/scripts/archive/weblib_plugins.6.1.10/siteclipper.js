@@ -59,7 +59,7 @@ C8O._init_siteclipper = function (params) {
 				};
 			}
 			
-			if ($.browser.msie) {
+			if (window.attachEvent) {
 				this.contentWindow.attachEvent('onunload', onunload);
 			} else {
 				$(this.contentWindow).bind("unload", onunload);
