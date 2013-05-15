@@ -87,6 +87,15 @@ $.extend(true, C8O, {
  */
 //C8O.addRecallParameter(parameter_name, parameter_value);
 
+/** 
+ *  appendValue function
+ *  append value in the data and automatically make an array on duplicated key entry
+ *  data : Object (key/value)
+ *  key : string, used as key of data
+ *  value : new or additional value for data[key]
+ */
+//C8O.appendValue(data, key, value);
+
 /**
  * call function
  * make an AJAX request to CEMS in order to execute
@@ -132,11 +141,21 @@ $.extend(true, C8O, {
 //C8O.doResize(height, options);
 
 /**
+ * formToData function
+ * extract a key/value Object for all fields of the form,
+ * key is the field name
+ * value is the text value or can be an array of text values the the same key is used more than once
+ * $form : a pure or jquery form element object
+ * return : key/value Object will all form data
+ */
+//C8O.formToData($form);
+
+/**
  * getLastCallParameter function
  * used for retrieve a parameter from the previous call
- *  or all parameter in a object key/value
- *  key : string of the parameter name
- *  return : string of the parameter value or undefined
+ * or all parameter in a object key/value
+ * key : string of the parameter name
+ * return : string of the parameter value or undefined
  *             or retrieve object with key/value of all parameters
  */
 //C8O.getLastCallParameter(key);

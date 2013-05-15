@@ -27,7 +27,7 @@ C8O = {
 	},
 	
 	ro_vars : {
-		plugins_path : "../../scripts/weblib_plugins/",
+		plugins_path : "../../scripts/archive/weblib_plugins.6.1.10/",
 		portal_username : "",
 		widget_name : ""
 	},
