@@ -55,6 +55,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XmlQName;
+import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -879,6 +880,21 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			throw ee;
 		}
 		return value;
+	}
+	
+	protected void evaluate(Context javascriptContext, Scriptable scope, SmartType smartType) throws EngineException {
+		smartType.setEvaluated(null);
+		
+		switch (smartType.getMode()) {
+		case PLAIN:
+			smartType.setEvaluated(smartType.getExpression());
+			break;
+		case JS:
+			evaluate(javascriptContext, scope, smartType.getExpression(), "smartType", false);
+			smartType.setEvaluated(evaluated);
+			evaluated = null;
+			break;
+		}
 	}
 	
 	protected void evaluate(Context javascriptContext, Scriptable scope, String source, String sourceName, boolean bDialog) throws EngineException {

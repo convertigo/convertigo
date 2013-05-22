@@ -36,7 +36,8 @@ public class TextEditorComposite extends AbstractDialogComposite {
 		super(parent, style, cellEditor);
 		initialize();
 		
-		String text = (String) cellEditor.databaseObjectTreeObject.getPropertyValue(cellEditor.propertyDescriptor.getId());
+//		 String text = (String) cellEditor.databaseObjectTreeObject.getPropertyValue(cellEditor.propertyDescriptor.getId());
+		String text = (String) cellEditor.getEditorData();
 		textArea.setText(text);
 	}
 

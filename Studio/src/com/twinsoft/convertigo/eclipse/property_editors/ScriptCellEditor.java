@@ -30,6 +30,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
+import com.twinsoft.convertigo.eclipse.ColorEnum;
+
 public class ScriptCellEditor extends TextCellEditor {
 
 	public ScriptCellEditor() {
@@ -46,6 +48,7 @@ public class ScriptCellEditor extends TextCellEditor {
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.TextCellEditor#createControl(org.eclipse.swt.widgets.Composite)
 	 */
+	@Override
 	protected Control createControl(Composite parent) {
 		super.createControl(parent);
         text.setFont(getFont());
@@ -56,13 +59,9 @@ public class ScriptCellEditor extends TextCellEditor {
 	/**
 	 * The background color to use for this cell editor.
 	 */
-	private Color background = null;
 	
 	private Color getBackground() {
-		if (background == null) {
-			background = new Color(Display.getCurrent(), 162, 194, 250);
-		}
-		return background;
+		return ColorEnum.JAVASCRIPTABLE.get();
 	}
 
 	/**
@@ -80,10 +79,8 @@ public class ScriptCellEditor extends TextCellEditor {
 	/* (non-Javadoc)
 	 * @see org.eclipse.jface.viewers.CellEditor#dispose()
 	 */
+	@Override
 	public void dispose() {
-		if (background != null) {
-			background.dispose();
-		}
 		if (font != null) {
 			font.dispose();
 		}

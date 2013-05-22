@@ -54,6 +54,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.Version;
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.engine.DatabaseObjectNotFoundException;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
@@ -950,6 +951,13 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				}
 				return xmlv;
 			} catch (Exception e) {
+			}
+		} else if (propertyObjectValue instanceof SmartType) {
+			SmartType smartType = (SmartType) propertyObjectValue;
+			if (smartType.isUseExpression()) {
+				smartType = smartType.clone();
+				smartType.setExpression((String) getCompiledValue(smartType.getExpression()));
+				return smartType;
 			}
 		}
 		return propertyObjectValue;

@@ -2,58 +2,167 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.Serializable;
 
-import org.apache.xpath.XPathAPI;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.common.XMLizable;
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Step;
+import com.twinsoft.convertigo.beans.core.StepSource;
+import com.twinsoft.convertigo.engine.EngineException;
 
-public class SmartType implements XMLizable, Serializable {
+public class SmartType implements XMLizable, Serializable, Cloneable {
 	private static final long serialVersionUID = 6063228569094166129L;
 	
-	enum Types {
-		plain,
-		js,
-		source
+	public enum Mode {
+		PLAIN("TX", "Plain text"),
+		JS("JS", "JavaScript expression"),
+		SOURCE("SC", "Source definition");
+		
+		String label;
+		String tooltip;
+		
+		Mode(String label, String tooltip) {
+			this.label = label;
+			this.tooltip = tooltip;
+		}
+		
+		public String label() {
+			return label;
+		}
+		
+		public String tooltip() {
+			return tooltip;
+		}
 	}
 	
-	private Types type = Types.plain;
+	private Mode mode = Mode.PLAIN;
+
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	private String expression = "";
+	transient Object evaluated = null;
 
 	public void readXml(Node node) throws Exception {
-        expression = XPathAPI.selectSingleNode(node, "./expression/text()").getNodeValue();
-        String sType = XPathAPI.selectSingleNode(node, "./type/text()").getNodeValue();
-        type = Types.valueOf(sType);
-        sourceDefinition.readXml(XPathAPI.selectSingleNode(node, "./sourceDefinition"));
+		try {
+			Element self = (Element) node;
+			mode = Mode.valueOf(self.getAttribute("mode"));
+			if (isUseExpression()) {
+				expression = self.getTextContent();
+			} else {
+				sourceDefinition.readXml(self.getFirstChild());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public Node writeXml(Document document) throws Exception {
-		Element self = document.createElement(getClass().getName());
-		Element sub = document.createElement("expression");
-		sub.setTextContent(expression);
-		sub = document.createElement("source");
-		sub.setTextContent(type.name());
-		sub = document.createElement("sourceDefinition");
-		sub.appendChild(sourceDefinition.writeXml(document));
+		Element self = document.createElement(getClass().getSimpleName());
+		self.setAttribute("mode", mode.name());
+		if (isUseExpression()) {
+			self.setTextContent(expression);
+		} else {
+			self.appendChild(sourceDefinition.writeXml(document));
+		}
 		return self;
 	}
 	
-	public String getSingleString(DatabaseObject owner, Context javascriptContext, Scriptable scope) {
-		String result;
-		switch (type) {
-		case plain:
-			result = expression;
-			break;
-		default:
-			result = expression;
-			break;
+	public String getSingleString(Step owner) throws EngineException {
+		String result = null;
+		
+		if (isUseExpression() && evaluated != null) {
+			if (evaluated instanceof String) {
+				result = (String) evaluated;
+			} else {
+				result = evaluated.toString();
+			}
+		} else if (isUseSource()) {
+			NodeList nodeList = new StepSource(owner, sourceDefinition).getContextValues();
+			if (nodeList != null && nodeList.getLength() > 0) {
+				Node node = nodeList.item(0);
+				result = node instanceof Element ? ((Element) node).getTextContent() : node.getNodeValue();
+			}
 		}
+		
 		return result;
+	}
+	
+	public Mode getMode() {
+		return mode;
+	}
+	
+	public void setMode(Mode mode) {
+		this.mode = mode;
+	}
+
+	public XMLVector<String> getSourceDefinition() {
+		return sourceDefinition;
+	}
+
+	public void setSourceDefinition(XMLVector<String> sourceDefinition) {
+		this.sourceDefinition = sourceDefinition;
+	}
+
+	public String getExpression() {
+		return expression;
+	}
+
+	public void setExpression(String expression) {
+		this.expression = expression;
+	}
+	
+	@Override
+	public String toString() {
+		return mode.label() + ": " + toStringContent();
+	}
+	
+	public String toStringContent() {
+		return mode == Mode.SOURCE ? sourceDefinition.toString() : expression.toString();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof SmartType) {
+			SmartType smartType = (SmartType) obj;
+			return expression.equals(smartType.expression) &&
+					mode.equals(smartType.mode) &&
+					sourceDefinition.equals(smartType.sourceDefinition);
+		}
+		return false;
+	}
+
+	@Override
+	public SmartType clone() {
+		try {
+			return (SmartType) super.clone();
+		} catch (CloneNotSupportedException e) {
+			return null;
+		}
+	}
+	
+	public void pack() {
+		if (mode == Mode.SOURCE) {
+			expression = "";
+		} else {
+			sourceDefinition.clear();
+		}
+	}
+	
+	public boolean isUseExpression() {
+		return mode == Mode.JS || mode == Mode.PLAIN;
+	}
+	
+	public boolean isUseSource() {
+		return mode == Mode.SOURCE;
+	}
+	
+	public Object getEvaluated() {
+		return evaluated;
+	}
+	
+	public void setEvaluated(Object evaluated) {
+		this.evaluated = evaluated;
 	}
 }

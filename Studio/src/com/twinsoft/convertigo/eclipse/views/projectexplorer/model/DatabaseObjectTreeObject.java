@@ -382,7 +382,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
         		propertyDescriptor = new DynamicInfoPropertyDescriptor(name, displayName, getInfo, this, name);
         	}
 	        else if (AbstractDialogCellEditor.class.isAssignableFrom(pec)) {
-	        	final DatabaseObjectTreeObject dbotoThis = this;
 				propertyDescriptor = new PropertyDescriptor(name, displayName) {
 					@Override
 				    public CellEditor createPropertyEditor(Composite parent) {
@@ -390,9 +389,10 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					    	Constructor<?> constructor = pec.getConstructor(new Class[] { Composite.class });
 					    	AbstractDialogCellEditor editor = (AbstractDialogCellEditor) constructor.newInstance(new Object[] { parent });
 					    	editor.propertyDescriptor = this;
-					    	editor.databaseObjectTreeObject = dbotoThis;
-					        if (getValidator() != null)
+					    	editor.databaseObjectTreeObject = DatabaseObjectTreeObject.this;
+					        if (getValidator() != null) {
 					            editor.setValidator(getValidator());
+					        }
 	
 					        return editor;
 				    	}
