@@ -184,7 +184,7 @@ C8O = {
 		}
 	},
 	
-	formToData($form) {
+	formToData : function ($form) {
 		if (!$form.jquery) {
 			$form = $($form);
 		}

@@ -327,7 +327,7 @@ $.extend(true, C8O, {
 		$component.attr(attributeName, attributeValue);
 	},
 	
-	renderElement: function($element, refs) {		
+	renderElement: function($element, refs) {
 		// Render iterated elements
 		C8O._findAndSelf($element, "[data-c8o-each]").each(function() {
 			var $c8oEachContainer = $(this);
@@ -336,7 +336,8 @@ $.extend(true, C8O, {
 
 			// Now we can iterate over the XML data
 			var c8oEachIterator = $c8oEachContainer.attr("data-c8o-each");
-			refs._self.find(c8oEachIterator).each(function () {
+			var $self = refs._self;
+			$self.find(c8oEachIterator).each(function () {
 				var $data = $(this);
 				var $item = $template.clone();
 				
@@ -345,6 +346,7 @@ $.extend(true, C8O, {
 				C8O.renderElement($item, refs);
 				$c8oEachContainer.append($item);
 			});
+			refs._self = $self;
 		});
 
 		// Render simple elements
@@ -541,103 +543,100 @@ $.extend(true, C8O, {
 	},
 	
 	_attachEventHandlers: function() {
-		$("[data-c8o-call]").each( function (index, element) {
+		$("[data-c8o-call]").filter("[data-c8o-call-mode=auto],[data-c8o-call-mode^=timer]").each( function (index, element) {
 			var $element = $(element);
+
+			var c8oCallMode = $element.attr("data-c8o-call-mode").match(C8O._define.re_call_mode);
 			
-			var onC8oCall = function() {
-				// Check call condition if any
-				if (!C8O._checkConditionDomSelectorOrJsFunction(
-						$element.attr("data-c8o-call-condition"),
-						$element,
-						[],
-						$(window.document))) {
-					// The condition failed, so we abort the rendering
-					return;
-				}
-
-				var c8oCall = $element.attr("data-c8o-call");
-				if (c8oCall) {
-					var store = C8O._decodeStore(c8oCall);
-					
-					var c8oCallParams = {};
-					
-					if (store.project)
-						c8oCallParams["__project"] = store.project;
-					if (store.connector)
-						c8oCallParams["__connector"] = store.connector;
-					if (store.transaction)
-						c8oCallParams["__transaction"] = store.transaction;
-					if (store.sequence)
-						c8oCallParams["__sequence"] = store.sequence;
-
-					var context = $element.attr("data-c8o-internal-context");
-					if (context) {
-						c8oCallParams["__context"] = context;
-					}
-
-					var c8oUserReference = $element.attr("data-c8o-internal-user_reference");
-					if (c8oUserReference) {
-						c8oCallParams["__user_reference"] = c8oUserReference;
-					}
-					
-					// Find whether the call compionent is inside a form
-					var $form = $element.closest("form");
-					if ($form.length > 0) {
-						// Cancel form submissions as we are going to handle them by ourselves
-						$form.submit(function () {
-						    return false;
-						});
-						
-						// Search for input fields in the form
-						var formArray = $form.serializeArray();
-						for (var i = 0; i < formArray.length; i++) {
-							c8oCallParams[formArray[i].name] = formArray[i].value;
-						}						
-					}
-					
-					// Search for 'data-c8o-variable' tagged elements in the link to use it
-					// to build data request to C8O
-					C8O._findAndSelf($element, "[data-c8o-variable]").each(function (index, element) {
-						var $c8oVariable = $(element);
-						var name = $c8oVariable.attr("data-c8o-variable");
-						var value = $c8oVariable.text();
-						c8oCallParams[name] = value;
-					});
-					
-					var attributes = C8O._getAttributes(element);
-					for (var attributeName in attributes) {
-						var attributeMatch = attributeName.match(C8O._define.re_attr_plus);
-						if (attributeMatch != null) {
-							if (attributeMatch[2] != null) {
-								c8oCallParams[attributeMatch[2]] = attributes[attributeName];
-							} else if (attributeMatch[3] != null) {
-								c8oCallParams["__" + attributeMatch[3]] = attributes[attributeName];
-							}
-						}
-					}
-					
-					// now call c8o with constructed arguments
-					C8O.call(c8oCallParams);
-				}
-				return false;
-			};
-			
-			var c8oCallMode = ($element.attr("data-c8o-call-mode") || "click").match(C8O._define.re_call_mode);
 			if (c8oCallMode != null) {
 				$element.attr("data-c8o-call-mode", "done-" + c8oCallMode[0]);
-				if (c8oCallMode[1]) {
-					if (element.tagName.toLowerCase() == "form") {
-						$element.off('submit.c8o').on('submit.c8o', onC8oCall);
-					} else {
-						$element.off('click.c8o').on('click.c8o', onC8oCall);
-					}
-				} else if (c8oCallMode[2]) {
-					onC8oCall();
+				if (c8oCallMode[2]) {
+					C8O._onC8oCall.call(this);
 				} else if (c8oCallMode[3] && $.isNumeric(c8oCallMode[4])) {
-					window.setTimeout(onC8oCall, c8oCallMode[4] * 1000);
+					window.setTimeout(C8O._onC8oCall, c8oCallMode[4] * 1000);
 				}
 			}
 		});
+	},
+	
+	_onC8oCall: function() {
+		var element = this;
+		var $element = $(element);
+		// Check call condition if any
+		if (!C8O._checkConditionDomSelectorOrJsFunction(
+				$element.attr("data-c8o-call-condition"),
+				$element,
+				[],
+				$(window.document))) {
+			// The condition failed, so we abort the rendering
+			return;
+		}
+
+		var c8oCall = $element.attr("data-c8o-call");
+		if (c8oCall) {
+			var store = C8O._decodeStore(c8oCall);
+			
+			var c8oCallParams = {};
+			
+			if (store.project)
+				c8oCallParams["__project"] = store.project;
+			if (store.connector)
+				c8oCallParams["__connector"] = store.connector;
+			if (store.transaction)
+				c8oCallParams["__transaction"] = store.transaction;
+			if (store.sequence)
+				c8oCallParams["__sequence"] = store.sequence;
+
+			var context = $element.attr("data-c8o-internal-context");
+			if (context) {
+				c8oCallParams["__context"] = context;
+			}
+
+			var c8oUserReference = $element.attr("data-c8o-internal-user_reference");
+			if (c8oUserReference) {
+				c8oCallParams["__user_reference"] = c8oUserReference;
+			}
+			
+			// Find whether the call compionent is inside a form
+			var $form = $element.closest("form");
+			if ($form.length > 0) {
+				// Cancel form submissions as we are going to handle them by ourselves
+				$form.submit(function () {
+				    return false;
+				});
+				
+				// Search for input fields in the form
+				var formArray = $form.serializeArray();
+				for (var i = 0; i < formArray.length; i++) {
+					c8oCallParams[formArray[i].name] = formArray[i].value;
+				}						
+			}
+			
+			// Search for 'data-c8o-variable' tagged elements in the link to use it
+			// to build data request to C8O
+			C8O._findAndSelf($element, "[data-c8o-variable]").each(function (index, element) {
+				var $c8oVariable = $(element);
+				var name = $c8oVariable.attr("data-c8o-variable");
+				var value = $c8oVariable.text();
+				c8oCallParams[name] = value;
+			});
+			
+			var attributes = C8O._getAttributes(element);
+			for (var attributeName in attributes) {
+				var attributeMatch = attributeName.match(C8O._define.re_attr_plus);
+				if (attributeMatch != null) {
+					if (attributeMatch[2] != null) {
+						c8oCallParams[attributeMatch[2]] = attributes[attributeName];
+					} else if (attributeMatch[3] != null) {
+						c8oCallParams["__" + attributeMatch[3]] = attributes[attributeName];
+					}
+				}
+			}
+			
+			// now call c8o with constructed arguments
+			C8O.call(c8oCallParams);
+		}
+		return false;
 	},
 	
 	_handleRef: function ($element, $doc, refs) {
@@ -658,6 +657,15 @@ $.extend(true, C8O, {
  */
 C8O.addHook("document_ready", function () {
 	C8O.removeRecallParameter("__connector");
+	
+	$(document).on("click.c8o submit.c8o", "[data-c8o-call]", function () {
+		var callMode = $(this).attr("data-c8o-call-mode");
+		if (C8O.isUndefined(callMode) || callMode == "click") {
+			return C8O._onC8oCall.call(this);
+		}
+	});
+	
+	// FOR JQM
 //	$(document).on("pagebeforecreate", "[data-role = page]", function(event){
 		C8O._attachEventHandlers();
 		
