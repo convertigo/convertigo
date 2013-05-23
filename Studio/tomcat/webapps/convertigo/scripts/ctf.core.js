@@ -551,16 +551,17 @@ $.extend(true, C8O, {
 			if (c8oCallMode != null) {
 				$element.attr("data-c8o-call-mode", "done-" + c8oCallMode[0]);
 				if (c8oCallMode[2]) {
-					C8O._onC8oCall.call(this);
+					C8O._onC8oCall(element);
 				} else if (c8oCallMode[3] && $.isNumeric(c8oCallMode[4])) {
-					window.setTimeout(C8O._onC8oCall, c8oCallMode[4] * 1000);
+					window.setTimeout(function () {
+						C8O._onC8oCall(element)
+					}, c8oCallMode[4] * 1000);
 				}
 			}
 		});
 	},
 	
-	_onC8oCall: function() {
-		var element = this;
+	_onC8oCall: function(element) {
 		var $element = $(element);
 		// Check call condition if any
 		if (!C8O._checkConditionDomSelectorOrJsFunction(
@@ -661,7 +662,7 @@ C8O.addHook("document_ready", function () {
 	$(document).on("click.c8o submit.c8o", "[data-c8o-call]", function () {
 		var callMode = $(this).attr("data-c8o-call-mode");
 		if (C8O.isUndefined(callMode) || callMode == "click") {
-			return C8O._onC8oCall.call(this);
+			return C8O._onC8oCall(this);
 		}
 	});
 	
