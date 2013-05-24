@@ -58,15 +58,18 @@ C8O = {
 		C8O._call(data);
 	},
 	
-	formToData : function ($form) {
+	formToData : function ($form, data) {
 		if (!$form.jquery) {
 			$form = $($form);
 		}
-		var data = {};
+		if (C8O.isUndefined(data)) {
+			data = {};
+		}
 		var formArray = ($form.jquery ? $form : $($form)).serializeArray();
 		for (var i in formArray) {
 			C8O.appendValue(data, formArray[i].name, formArray[i].value);
 		}
+		return data;
 	},
 	
 	getLastCallParameter : function (key) {

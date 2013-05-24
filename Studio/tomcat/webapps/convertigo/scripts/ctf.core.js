@@ -607,10 +607,7 @@ $.extend(true, C8O, {
 				});
 				
 				// Search for input fields in the form
-				var formArray = $form.serializeArray();
-				for (var i = 0; i < formArray.length; i++) {
-					c8oCallParams[formArray[i].name] = formArray[i].value;
-				}						
+				C8O.formToData($form, c8oCallParams);
 			}
 			
 			// Search for 'data-c8o-variable' tagged elements in the link to use it
