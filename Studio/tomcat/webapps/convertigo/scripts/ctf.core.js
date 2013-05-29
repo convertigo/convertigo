@@ -9,7 +9,7 @@ $.extend(true, C8O, {
 	 * If no page has to be switched, we render on the same page immediately
 	 */
 	_routeResponse: function(c8oRequestable, xml) {
-		var $doc = $(xml.documentElement);C8O.$doc = $doc;
+		var $doc = $(xml.documentElement);
 		var routeFound = false;
 		
 		for (var i in C8O.routingTable) {
