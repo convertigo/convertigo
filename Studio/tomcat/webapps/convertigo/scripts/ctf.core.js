@@ -349,11 +349,11 @@ $.extend(true, C8O, {
 				var rule = C8O._makeRule("{" + $c8oEachContainer.attr("data-c8o-each") + "}");
 				var $refData = C8O._getRefData(rule, refs);
 				var $self = refs._self;
-				$refData.find(rule.find).each(function (iter) {
+				$refData.find(rule.find).each(function (index) {
 					var $data = $(this);
 					var $item = $template.clone();
 					
-					$data.data("iter", iter);
+					$data.data("index", index);
 					
 					C8O._handleRef($c8oEachContainer, $data, refs);
 					
@@ -460,8 +460,8 @@ $.extend(true, C8O, {
 							}
 						}
 					}
-				} else if (rule.mode == "iter") {
-					value = $data.data("iter");
+				} else if (rule.mode == "index") {
+					value = $data.data("index");
 				}
 			} catch (e) {
 				console.log("$data.find failed : " + e);
