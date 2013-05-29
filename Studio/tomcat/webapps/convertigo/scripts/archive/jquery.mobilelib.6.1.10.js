@@ -110,13 +110,17 @@ C8O = {
 	_loadingStart : function () {
 		if (C8O._hook("loading_start")) {
 			$("#c8oloading").show();
-			$.mobile.showPageLoadingMsg();	
+			try {
+				$.mobile.showPageLoadingMsg();
+			} catch (e) {}
 		}
 	},
 	
 	_loadingStop : function () {
 		if (C8O._hook("loading_stop")) {
-			$.mobile.hidePageLoadingMsg();
+			try {
+				$.mobile.hidePageLoadingMsg();
+			} catch (e) {}
 			$("#c8oloading").hide();
 		}
 	},
