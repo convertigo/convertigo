@@ -37,7 +37,7 @@ C8O = {
 		} else if (C8O.isUndefined(data)) {
 			data = {};
 		} else if (!$.isPlainObject(data) && $(data).is("form")) {
-			data = C8O.formToData($form);
+			data = C8O.formToData(data);
 		}
 		
 		C8O._retrieve_vars(data);
