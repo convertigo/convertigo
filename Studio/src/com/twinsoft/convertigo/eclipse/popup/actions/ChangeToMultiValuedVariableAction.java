@@ -93,11 +93,25 @@ public class ChangeToMultiValuedVariableAction extends MyAbstractAction {
         					multi = new HttpStatementMultiValuedVariable();
         				
         				if (multi != null) {
-        					if (multi instanceof StepVariable)
+        					if (multi instanceof StepVariable){
         						((StepVariable)multi).setSourceDefinition(((StepVariable)simple).getSourceDefinition());
+        					}
+        					if (multi instanceof RequestableHttpVariable){
+        						// HttpName
+        						((RequestableHttpVariable)multi).setHttpName(((RequestableHttpVariable)simple).getHttpName());
+        						// HttpMethod
+        						((RequestableHttpVariable)multi).setHttpMethod(((RequestableHttpVariable)simple).getHttpMethod());
+        						
+        					}
         					Object value = simple.getValueOrNull();
         					multi.setValueOrNull(value);
         					multi.setVisibility(simple.getVisibility());
+        					
+        					// Comment
+        					multi.setComment(simple.getComment());
+    						// Description
+        					multi.setDescription(simple.getDescription());
+        					
         					multi.bNew = true;
         					multi.hasChanged = true;
         					
@@ -121,12 +135,14 @@ public class ChangeToMultiValuedVariableAction extends MyAbstractAction {
     						VariableTreeObject2 varTreeObject = new VariableTreeObject2(explorerView.viewer,multi);
     						treeParent.addChild(varTreeObject);
     						
-    		   				// Delete simple variable
+    						    						
+    						//Delete simple variable
     						simple.delete();
-    		   				
+    						
     		   				// Set correct name
     		   				multi.setName(simple.getName());
     		   				
+    		   				   		   				
 		        			parentTreeObject.hasBeenModified(true);
 			                explorerView.reloadTreeObject(parentTreeObject);
 			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(multi));

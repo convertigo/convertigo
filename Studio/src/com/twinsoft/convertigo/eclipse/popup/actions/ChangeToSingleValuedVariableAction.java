@@ -95,12 +95,25 @@ public class ChangeToSingleValuedVariableAction extends MyAbstractAction {
         					simple = new HttpStatementVariable();
         				
         				if (simple != null) {
-        					if (multi instanceof StepMultiValuedVariable)
+        					if (multi instanceof StepMultiValuedVariable){
         						((StepVariable)simple).setSourceDefinition(((StepVariable)multi).getSourceDefinition());
+        					}
+        					if (multi instanceof RequestableHttpVariable){
+        						// HttpName
+        						((RequestableHttpVariable)simple).setHttpName(((RequestableHttpVariable)multi).getHttpName());
+        						// HttpMethod
+        						((RequestableHttpVariable)simple).setHttpMethod(((RequestableHttpVariable)multi).getHttpMethod());
+        					}
         					XMLVector<Object> xmlv = GenericUtils.cast(multi.getValueOrNull());
         					Object value = (xmlv == null) ? null: (xmlv.isEmpty() ? "":xmlv.get(0).toString());
         					simple.setValueOrNull(value);
         					simple.setVisibility(multi.getVisibility());
+
+        					// Comment
+        					simple.setComment(multi.getComment());
+    						// Description
+        					simple.setDescription(multi.getDescription());
+        					
         					simple.bNew = true;
         					simple.hasChanged = true;
         					
