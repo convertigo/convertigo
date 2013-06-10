@@ -45,8 +45,8 @@ public abstract class XsdSchemaReference extends RemoteFileReference implements 
 				XmlSchema xmlSchema = SchemaUtils.loadSchema(xsdURL, collection);
 				
 				// overwrites elementFormDefault, attributeFormDefault
-				xmlSchema.setElementFormDefault(new XmlSchemaForm(Project.XSD_FORM_UNQUALIFIED));
-				xmlSchema.setElementFormDefault(new XmlSchemaForm(Project.XSD_FORM_UNQUALIFIED));
+				//xmlSchema.setElementFormDefault(new XmlSchemaForm(Project.XSD_FORM_UNQUALIFIED));
+				//xmlSchema.setAttributeFormDefault(new XmlSchemaForm(Project.XSD_FORM_UNQUALIFIED));
 				return xmlSchema;
 			}
 		} catch (Exception e) {

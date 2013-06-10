@@ -34,8 +34,10 @@ import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.apache.ws.commons.schema.constants.Constants;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -115,13 +117,20 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 			Element soapBodyResponseElement = null;
 			soapBodyResponseElement = getSoapBodyResponseElement(xmlHttpDocument.getDocumentElement());
 	        if (soapBodyResponseElement != null) {
+	        	NamedNodeMap attributes = ((Element)soapBodyResponseElement.getParentNode()).getAttributes();
 	        	NodeList childNodes = soapBodyResponseElement.getChildNodes();
 	    		int len = childNodes.getLength();
 	    		Node child, node;
 	            for (int i = 0 ; i < len ; i++) {
 	            	node = childNodes.item(i);
 	            	if (node instanceof Element) {
-	            		child = importNodeWithNoPrefix(context.outputDocument, node, true);
+	            		//child = importNodeWithNoPrefix(context.outputDocument, node, true);
+	            		child = context.outputDocument.importNode(node, true);
+	            		// add envelope attributes (e.g namespace declarations to avoid unbound prefixes for XSL transformation)
+						for (int j=0; j <attributes.getLength(); j++) {
+							Node attr = attributes.item(j);
+							((Element)child).setAttributeNode((Attr) context.outputDocument.importNode(attr, true));
+						}
 	            		context.outputDocument.getDocumentElement().appendChild(child);
 	            	}
 	            }

@@ -132,7 +132,6 @@ public enum Visibility {
 	public Object replaceVariables(List<? extends Variable> variableList, Object object) {
 		if (object == null) return null;
 		if (variableList == null) return object;
-		if (variableList.isEmpty()) return object;
 		
 		try {
 			// Case of queryString | postQuery : variable_name=variable_value&variable_name=variable_value

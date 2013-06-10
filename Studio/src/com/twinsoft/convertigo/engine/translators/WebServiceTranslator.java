@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.Name;
 import javax.xml.soap.SOAPBody;
@@ -35,6 +36,10 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -438,7 +443,8 @@ public class WebServiceTranslator implements Translator {
 		return false;
     }
 
-	public Object buildOutputData(Context context, Object convertigoResponse) throws Exception {
+    /* Old builOutputData method */
+	public Object __buildOutputData(Context context, Object convertigoResponse) throws Exception {
         Engine.logBeans.debug("[WebServiceTranslator] Encoding the SOAP response...");
         
         SOAPMessage responseMessage = null;
@@ -464,11 +470,7 @@ public class WebServiceTranslator implements Translator {
             sb.setEncodingStyle("http://schemas.xmlsoap.org/soap/encoding/");
 
     		String targetNamespace = context.project.getTargetNamespace();
-    		String prefix = "ns";
-    		try {
-    			prefix = Engine.theApp.schemaManager.getSchemasForProject(context.projectName).getNamespaceContext().getPrefix(targetNamespace);
-    		} catch (Exception e) {}
-    		
+    		String prefix = getPrefix(context.projectName, targetNamespace);
         	
         	//se.addNamespaceDeclaration(prefix, targetNameSpace);
             se.addNamespaceDeclaration("soapenc", "http://schemas.xmlsoap.org/soap/encoding/");
@@ -537,6 +539,170 @@ public class WebServiceTranslator implements Translator {
         return responseMessage == null ? sResponseMessage.getBytes(encodingCharSet) : responseMessage; 
 	}
 
+	private SOAPElement addSoapElement(Context context, SOAPEnvelope se, SOAPElement soapParent, Node node) throws Exception {
+		String prefix = node.getPrefix();
+		String namespace = node.getNamespaceURI();
+		String nodeName = node.getNodeName();
+		String localName = node.getLocalName();
+		String value = node.getNodeValue();
+		
+		boolean includeResponseElement = true;
+		if (context.sequenceName != null) {
+			includeResponseElement = ((Sequence) context.requestedObject).isIncludeResponseElement();
+		}
+		
+		SOAPElement soapElement = null;
+		if (node.getNodeType() == Node.ELEMENT_NODE) {
+			Element element = (Element)node;
+			
+			boolean toAdd = true;
+			if (!includeResponseElement && localName.equalsIgnoreCase("response")) {
+				toAdd = false;
+			}
+			if ("http://schemas.xmlsoap.org/soap/envelope/".equals(element.getParentNode().getNamespaceURI()) ||
+				"http://schemas.xmlsoap.org/soap/envelope/".equals(namespace) ||
+				nodeName.toLowerCase().endsWith(":envelope") ||
+				nodeName.toLowerCase().endsWith(":body")
+				//element.getParentNode().getNodeName().toUpperCase().indexOf("NS0:") != -1 ||
+				//nodeName.toUpperCase().indexOf("NS0:") != -1
+				)
+			{
+				toAdd = false;
+			}
+			
+			if (toAdd) {
+				if (prefix == null || prefix.equals("")) {
+					soapElement = soapParent.addChildElement(nodeName);
+				}
+				else {
+					soapElement = soapParent.addChildElement(se.createName(localName, prefix, namespace));
+				}
+			}
+			else {
+				soapElement = soapParent;
+			}
+			
+			if (soapElement != null) {
+				if (soapParent.equals(se.getBody()) && !soapParent.equals(soapElement)) {
+		        	if (Project.XSD_FORM_QUALIFIED.equals(context.project.getSchemaElementForm())) {
+		        		if (soapElement.getAttribute("xmlns") == null) {
+		        			soapElement.addAttribute(se.createName("xmlns"), context.project.getTargetNamespace());
+		        		}
+		        	}
+				}
+				
+				if (element.hasAttributes()) {
+					String attrType = element.getAttribute("type");
+	            	if (("attachment").equals(attrType)) {
+	    				if (context.requestedObject instanceof AbstractHttpTransaction){
+	    					AttachmentDetails attachment = AttachmentManager.getAttachment(element);
+	    					if (attachment != null){
+	    						byte[] raw = attachment.getData();
+	    						if(raw != null) soapElement.addTextNode(Base64v21.encodeBytes(raw));
+	    					}
+	    					
+	    					/* DON'T WORK YET *\
+	    					AttachmentPart ap = responseMessage.createAttachmentPart(new ByteArrayInputStream(raw), element.getAttribute("content-type"));
+	    					ap.setContentId(key);
+	    					ap.setContentLocation(element.getAttribute("url"));
+	    					responseMessage.addAttachmentPart(ap);
+	    					\* DON'T WORK YET */
+	    				}
+	    			}
+					
+					NamedNodeMap attributes = element.getAttributes();
+		            int len = attributes.getLength();
+		            for (int i = 0 ; i < len ; i++) {
+		            	Node item = attributes.item(i);
+		            	addSoapElement(context, se, soapElement, item);
+		            }
+				}
+				
+				if (element.hasChildNodes()) {
+		            NodeList childNodes = element.getChildNodes();
+		            int len = childNodes.getLength();
+		            for (int i = 0 ; i < len ; i++) {
+		            	Node item = childNodes.item(i);
+						switch (item.getNodeType()) {
+							case Node.ELEMENT_NODE:
+								addSoapElement(context, se, soapElement, item);
+								break;
+							case Node.CDATA_SECTION_NODE:
+							case Node.TEXT_NODE:
+								String text = item.getNodeValue();
+								text = (text == null) ? "":text;
+								soapElement.addTextNode(text);
+								break;
+							default:
+								break;
+						}
+		            }
+				}
+			}
+		}
+		else if (node.getNodeType() == Node.ATTRIBUTE_NODE) {
+			if (prefix == null || prefix.equals("")) {
+				soapElement = soapParent.addAttribute(se.createName(nodeName), value);
+			}
+			else {
+				soapElement = soapParent.addAttribute(se.createName(localName, prefix, namespace), value);
+			}
+		}
+		return soapElement;
+	}
+	
+	public Object buildOutputData(Context context, Object convertigoResponse) throws Exception {
+        Engine.logBeans.debug("[WebServiceTranslator] Encoding the SOAP response...");
+        
+        SOAPMessage responseMessage = null;
+        String sResponseMessage = "";
+		String encodingCharSet = "UTF-8";
+		if (context.requestedObject != null)
+			encodingCharSet = context.requestedObject.getEncodingCharSet();
+        
+        if (convertigoResponse instanceof Document) {
+			Engine.logBeans.debug("[WebServiceTranslator] The Convertigo response is a XML document.");
+            Document document = Engine.theApp.schemaManager.makeResponse((Document) convertigoResponse);
+            
+    		//MessageFactory messageFactory = MessageFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL);
+            MessageFactory messageFactory = MessageFactory.newInstance();
+            responseMessage = messageFactory.createMessage();
+            
+            responseMessage.setProperty(SOAPMessage.CHARACTER_SET_ENCODING, encodingCharSet);
+
+            SOAPPart sp = responseMessage.getSOAPPart();
+            SOAPEnvelope se = sp.getEnvelope();
+            SOAPBody sb = se.getBody();
+
+            sb.setEncodingStyle("http://schemas.xmlsoap.org/soap/encoding/");
+
+        	//se.addNamespaceDeclaration(prefix, targetNameSpace);
+            se.addNamespaceDeclaration("soapenc", "http://schemas.xmlsoap.org/soap/encoding/");
+            se.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
+            se.addNamespaceDeclaration("xsd", "http://www.w3.org/2001/XMLSchema");
+            
+            // Remove header as it not used. Seems that empty headers causes the WS client of Flex 4 to fail 
+            se.getHeader().detachNode();
+            
+            addSoapElement(context, se, sb, document.getDocumentElement());
+            
+    		sResponseMessage = SOAPUtils.toString(responseMessage, encodingCharSet);
+
+            // Correct missing "xmlns" (Bug AXA POC client .NET)
+    		//sResponseMessage = sResponseMessage.replaceAll("<soapenv:Envelope", "<soapenv:Envelope xmlns=\""+targetNameSpace+"\"");
+        }
+        else {
+			Engine.logBeans.debug("[WebServiceTranslator] The Convertigo response is not a XML document.");
+        	sResponseMessage = convertigoResponse.toString();
+        }
+        
+        if (Engine.logBeans.isDebugEnabled()) {
+			Engine.logBeans.debug("[WebServiceTranslator] SOAP response:\n" + sResponseMessage);
+        }
+        
+        return responseMessage == null ? sResponseMessage.getBytes(encodingCharSet) : responseMessage; 
+	}
+
 	private void addAttributes(SOAPMessage responseMessage, SOAPEnvelope soapEnvelope, Context context, NamedNodeMap attributes, SOAPElement soapElement) throws SOAPException {
 		SOAPElement soapMethodResponseElement = (SOAPElement)soapEnvelope.getBody().getFirstChild();
 		String targetNamespace = soapMethodResponseElement.getNamespaceURI();
@@ -546,32 +712,42 @@ public class WebServiceTranslator implements Translator {
 		Attr attribute;
 		for (int i = 0 ; i < len ; i++) {
 			attribute = (Attr) attributes.item(i);
-			String attributePrefix = attribute.getPrefix();
+			String attributeName = attribute.getName();
 			String attributeValue = attribute.getNodeValue();
-					
-			if (attributePrefix == null) {
-				String attributeName = attribute.getNodeName();
-				if (Project.XSD_FORM_QUALIFIED.equals(context.project.getSchemaElementForm())) {
+			String attributeNsUri = attribute.getNamespaceURI();
+			String attributePrefix = getPrefix(context.projectName, attributeNsUri);
+			
+			XmlSchemaAttribute xmlSchemaAttribute = getXmlSchemaAttributeByName(context.projectName, attributeName);
+			boolean isGlobal = xmlSchemaAttribute != null;
+			if (isGlobal) {
+				attributeNsUri = xmlSchemaAttribute.getQName().getNamespaceURI();
+				attributePrefix = getPrefix(context.projectName, attributeNsUri);
+			}
+			
+			if (Project.XSD_FORM_QUALIFIED.equals(context.project.getSchemaElementForm()) || isGlobal) {
+				if (attributePrefix == null) {
 					soapElement.addAttribute(
 							soapEnvelope.createName(attributeName, prefix, targetNamespace),
 							attributeValue);
 				}
 				else {
-					soapElement.addAttribute(soapEnvelope.createName(attributeName),
-						attributeValue);
+					soapElement.addAttribute(
+							soapEnvelope.createName(attributeName, attributePrefix, attributeNsUri),
+							attributeValue);
 				}
-			} else {
-				String attributeName = attribute.getLocalName();
-				String namespaceURI = attribute.getNamespaceURI();
-				soapElement.addAttribute(
-						soapEnvelope.createName(attributeName, attributePrefix, namespaceURI),
-						attributeValue);
+			}
+			else {
+				soapElement.addAttribute(soapEnvelope.createName(attributeName), attributeValue);
 			}
 		}
 	}
 	
 	private void addElement(SOAPMessage responseMessage, SOAPEnvelope soapEnvelope, Context context, Element elementToAdd, SOAPElement soapElement) throws SOAPException {
-    	String nodeType = elementToAdd.getAttribute("type");
+		SOAPElement soapMethodResponseElement = (SOAPElement)soapEnvelope.getBody().getFirstChild();
+		String targetNamespace = soapMethodResponseElement.getNamespaceURI();
+		String prefix = soapMethodResponseElement.getPrefix();
+    	
+		String nodeType = elementToAdd.getAttribute("type");
 		SOAPElement childSoapElement = soapElement;
 		
 		boolean elementAdded = true;
@@ -610,14 +786,41 @@ public class WebServiceTranslator implements Translator {
 			}
 		}
 		else {
+			String elementNodeName = elementToAdd.getNodeName();
+			String elementNodeNsUri = elementToAdd.getNamespaceURI();
+			String elementNodePrefix = getPrefix(context.projectName, elementNodeNsUri);
+			
+			XmlSchemaElement xmlSchemaElement = getXmlSchemaElementByName(context.projectName, elementNodeName);
+			boolean isGlobal =  xmlSchemaElement != null;
+			if (isGlobal) {
+				elementNodeNsUri = xmlSchemaElement.getQName().getNamespaceURI();
+				elementNodePrefix = getPrefix(context.projectName, elementNodeNsUri);
+			}
+			
 			// ignore original SOAP message response elements
-			if ((elementToAdd.getNodeName().toUpperCase().indexOf("SOAP-ENV:") != -1) || ((elementToAdd.getParentNode().getNodeName().toUpperCase().indexOf("SOAP-ENV:") != -1)) ||
-				(elementToAdd.getNodeName().toUpperCase().indexOf("SOAPENV:") != -1) || ((elementToAdd.getParentNode().getNodeName().toUpperCase().indexOf("SOAPENV:") != -1)) ||
-				(elementToAdd.getNodeName().toUpperCase().indexOf("NS0:") != -1) || ((elementToAdd.getParentNode().getNodeName().toUpperCase().indexOf("NS0:") != -1))) {
+//			if ((elementNodeName.toUpperCase().indexOf("SOAP-ENV:") != -1) || ((elementToAdd.getParentNode().getNodeName().toUpperCase().indexOf("SOAP-ENV:") != -1)) ||
+//				(elementNodeName.toUpperCase().indexOf("SOAPENV:") != -1) || ((elementToAdd.getParentNode().getNodeName().toUpperCase().indexOf("SOAPENV:") != -1)) ||
+//				(elementNodeName.toUpperCase().indexOf("NS0:") != -1) || ((elementToAdd.getParentNode().getNodeName().toUpperCase().indexOf("NS0:") != -1))) {
+//				elementAdded = false;
+//			}
+			if ("http://schemas.xmlsoap.org/soap/envelope/".equals(elementToAdd.getNamespaceURI()) ||
+				"http://schemas.xmlsoap.org/soap/envelope/".equals(elementToAdd.getParentNode().getNamespaceURI()) ||
+				elementToAdd.getParentNode().getNodeName().toUpperCase().indexOf("NS0:") != -1 ||
+				elementNodeName.toUpperCase().indexOf("NS0:") != -1) {
 				elementAdded = false;
 			}
 			else {
-				childSoapElement = soapElement.addChildElement(elementToAdd.getNodeName());
+				if (Project.XSD_FORM_QUALIFIED.equals(context.project.getSchemaElementForm()) || isGlobal) {
+					if (elementNodePrefix == null) {
+						childSoapElement = soapElement.addChildElement(soapEnvelope.createName(elementNodeName, prefix, targetNamespace));
+					}
+					else {
+						childSoapElement = soapElement.addChildElement(soapEnvelope.createName(elementNodeName, elementNodePrefix, elementNodeNsUri));
+					}
+				}
+				else {
+					childSoapElement = soapElement.addChildElement(elementNodeName);
+				}
 			}
 		}
 		
@@ -693,4 +896,39 @@ public class WebServiceTranslator implements Translator {
 		throw new EngineException("The WebServiceTranslator translator does not support the getProjectName() method");
 	}
 
+	private static XmlSchemaElement getXmlSchemaElementByName(String projectName, String name) {
+		XmlSchemaElement xmlSchemaElement = null;
+		XmlSchemaCollection xmlSchemaCollection;
+		try {
+			xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName);
+			for (XmlSchema xmlSchema : xmlSchemaCollection.getXmlSchemas()) {
+				xmlSchemaElement = xmlSchema.getElementByName(name);
+				if (xmlSchemaElement != null)
+					return xmlSchemaElement;
+			}
+		} catch (Exception e) {}
+		return null;
+	}
+
+	private static XmlSchemaAttribute getXmlSchemaAttributeByName(String projectName, String name) {
+		XmlSchemaAttribute xmlSchemaAttribute = null;
+		XmlSchemaCollection xmlSchemaCollection;
+		try {
+			xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName);
+			for (XmlSchema xmlSchema : xmlSchemaCollection.getXmlSchemas()) {
+				xmlSchemaAttribute = xmlSchema.getAttributeByName(new QName(xmlSchema.getTargetNamespace(), name));
+				if (xmlSchemaAttribute != null)
+					return xmlSchemaAttribute;
+			}
+		} catch (Exception e) {}
+		return null;
+	}
+	
+	private static String getPrefix(String projectName, String namespaceUri) {
+		String prefix = "";
+		try {
+			prefix = Engine.theApp.schemaManager.getSchemasForProject(projectName).getNamespaceContext().getPrefix(namespaceUri);
+		} catch (Exception e) {}
+		return prefix;
+	}
 }

@@ -32,8 +32,12 @@ import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -757,27 +761,322 @@ public class SchemaManager implements AbstractManager {
 	
 	public void validateResponse(String projectName, String requestableName, Document document) throws SAXException {
 		try {
+//			XmlSchema schema = getSchemaForProject(projectName);
+//			XmlSchemaCollection collection = SchemaMeta.getCollection(schema);
+//			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+//			
+//			String ns = schema.getTargetNamespace();
+//			String prefix = collection.getNamespaceContext().getPrefix(ns);
+//			Element elt = doc.createElementNS(ns, prefix+":"+requestableName + "Response");
+//			doc.appendChild(elt);
+//			
+//			elt.appendChild(doc.renameNode(doc.importNode(document.getDocumentElement(), true), "", "response"));
+//			
+//			XMLUtils.spreadNamespaces(doc, "", false);
+//			
+//			XmlSchemaUtils.validate(collection, doc);
+
 			XmlSchema schema = getSchemaForProject(projectName);
 			XmlSchemaCollection collection = SchemaMeta.getCollection(schema);
-			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+			Document compliantDoc = makeResponse(document);
+			if (Engine.logEngine.isTraceEnabled()) {
+				Engine.logEngine.trace("(SchemaManager) validate response\n"+ XMLUtils.prettyPrintDOM(compliantDoc));
+			}
+			XmlSchemaUtils.validate(collection, compliantDoc);
 			
-			String ns = schema.getTargetNamespace();
-			String prefix = collection.getNamespaceContext().getPrefix(ns);
-			Element elt = doc.createElementNS(ns, prefix+":"+requestableName + "Response");
-			doc.appendChild(elt);
-			
-			elt.appendChild(doc.renameNode(doc.importNode(document.getDocumentElement(), true), "", "response"));
-			
-			XMLUtils.spreadNamespaces(doc, "", false);
-			//System.out.println(XMLUtils.prettyPrintDOM(doc));
-			
-			XmlSchemaUtils.validate(collection, doc);
 		} catch (SAXException e) {
 			throw e;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public synchronized Document makeResponse(Document document) {
+		try {
+			Element documentElement = document.getDocumentElement();
+			if (documentElement != null) {
+				String project = documentElement.getAttribute("project");
+				String sequence = documentElement.getAttribute("sequence");
+				String connector = documentElement.getAttribute("connector");
+				String transaction = documentElement.getAttribute("transaction");
+				
+				XmlSchema schema = getSchemaForProject(project);
+				XmlSchemaCollection collection = SchemaMeta.getCollection(schema);
+				
+				String targetNamespace = schema.getTargetNamespace();
+				String prefix = collection.getNamespaceContext().getPrefix(targetNamespace);
+				String requestableName = sequence != null && sequence.length() > 0 ? sequence : connector + "__" + transaction;
+				String tagname = prefix+":"+requestableName + "Response";
+				
+				
+				Document responseDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+				Element requestableResponse = responseDoc.createElementNS(targetNamespace, tagname);
+				Node renamed = responseDoc.renameNode(responseDoc.importNode(documentElement, true), "", "response");
+				requestableResponse.appendChild(renamed);
+				
+				final Map<XmlSchemaObject, List<List<XmlSchemaObject>>> map = new LinkedHashMap<XmlSchemaObject, List<List<XmlSchemaObject>>>();
+				new XmlSchemaWalker(true, true) {
+					List<XmlSchemaObject> elist = null;
+					List<XmlSchemaObject> alist = null;
+					Map<QName, XmlSchemaObject> mso = new HashMap<QName, XmlSchemaObject>();
+					Map<QName, XmlSchemaObject> mto = new HashMap<QName, XmlSchemaObject>();
+					
+					public void init(XmlSchema xmlSchema, QName qname, Element element) {
+						XmlSchemaElement rxe = SchemaMeta.getCollection(xmlSchema).getElementByQName(qname);
+						if (rxe != null) {
+							List<List<XmlSchemaObject>> list = new ArrayList<List<XmlSchemaObject>>();
+							list.add(new ArrayList<XmlSchemaObject>());
+							list.add(new ArrayList<XmlSchemaObject>());
+							map.put(rxe, list);
+							mso.put(qname, rxe);
+							elist = list.get(0);
+							alist = list.get(1);
+							
+							walkElement(xmlSchema, rxe);
+							
+							/*for (XmlSchemaObject xso: map.keySet()) {
+								System.out.println(((XmlSchemaElement)xso).getName());
+								System.out.print("\t[");
+								for (XmlSchemaObject child: map.get(xso).get(1)) {
+									System.out.print(((XmlSchemaAttribute)child).getName()+",");
+								}
+								System.out.println("]");
+								for (XmlSchemaObject child: map.get(xso).get(0)) {
+									System.out.println("\t"+((XmlSchemaElement)child).getName());
+								}
+							}*/
+							
+							makeCompliant(rxe, element);
+						}
+					}
+					
+					protected boolean makeCompliant(XmlSchemaObject xso, Node node) {
+						String nodeName = node.getNodeName();
+						String localName = nodeName.substring(nodeName.indexOf(":")+1);
+						String xsoName = xso instanceof XmlSchemaElement ? ((XmlSchemaElement)xso).getName() : ((XmlSchemaAttribute)xso).getName();
+						
+						if (xsoName.equals(localName)) {
+							Document doc = node.getOwnerDocument();
+							QName xsoQName = xso instanceof XmlSchemaElement ? ((XmlSchemaElement)xso).getQName() : ((XmlSchemaAttribute)xso).getQName();
+							boolean elementQualified = SchemaMeta.getSchema(xso).getElementFormDefault().getValue().equals("qualified");
+							boolean attributeQualified = SchemaMeta.getSchema(xso).getAttributeFormDefault().getValue().equals("qualified");
+							boolean isQualified = (xsoQName != null && !xsoQName.getNamespaceURI().equals("")) || (xso instanceof XmlSchemaElement ? elementQualified : attributeQualified);
+							String targetNamespace = SchemaMeta.getSchema(xso).getTargetNamespace();
+							String prefix = SchemaMeta.getCollection(xso).getNamespaceContext().getPrefix(targetNamespace);
+							
+							if (isQualified)
+								node = doc.renameNode(node, targetNamespace, prefix+":"+localName);
+							else
+								node = doc.renameNode(node, "", localName);
+							
+							if (node.getNodeType() == Node.ELEMENT_NODE) {
+								Element element = (Element)node;
+								
+								if (element.hasAttributes()) {
+									List<Node> list = new ArrayList<Node>();
+									NamedNodeMap attributes = element.getAttributes();
+									for (int i=0; i <attributes.getLength(); i++) {
+										Node attr = attributes.item(i);
+										String attrNodeName = attr.getNodeName();
+										if (attrNodeName.equals("xsi:type") || 
+											attrNodeName.startsWith("xmlns:") ||
+											attrNodeName.endsWith(":encodingStyle"))
+										{
+											list.add(attr);
+										}
+									}
+									
+									for (Node attr : list) {
+										element.removeAttributeNode((Attr) attr);
+									}
+									
+									attributes = element.getAttributes();
+									for (int i=0; i <attributes.getLength(); i++) {
+										Node attr = attributes.item(i);
+										String attrNodeName = attr.getNodeName();
+										if (attrNodeName.startsWith("xsi:")) {
+											attr = doc.renameNode(attr, Constants.URI_2001_SCHEMA_XSI, attrNodeName);
+										}
+										
+										for (XmlSchemaObject a : map.get(xso).get(1)) {
+											if (makeCompliant(a, attr)) {
+												break;
+											}
+										}
+									}
+								}
+								
+								if (element.hasChildNodes()) {
+									NodeList children = element.getChildNodes();
+									for (int i=0; i <children.getLength(); i++) {
+										//System.out.println("element: "+children.item(i).getNodeName());
+										for (XmlSchemaObject e : map.get(xso).get(0)) {
+											//System.out.println(" test "+((XmlSchemaElement)e).getName());
+											if (makeCompliant(e, children.item(i))) {
+												break;
+											}
+										}
+									}
+								}
+							}
+							return true;
+						}
+						else {
+							//System.out.println(nodeName);
+						}
+						return false;
+					}
+					
+					
+					@Override
+					public void walkByTypeName(XmlSchema xmlSchema, QName qname) {
+						XmlSchemaType obj = SchemaMeta.getCollection(xmlSchema).getTypeByQName(qname);
+						if (obj != null) {
+							if (!mso.containsKey(qname)) {
+								mso.put(qname, obj);
+								super.walkByTypeName(xmlSchema, qname);
+							}
+							else {
+								if (mto.containsKey(qname)) {
+									//System.out.println("\nWalk type "+ qname);
+									elist.addAll(map.get(mto.get(qname)).get(0));
+								}
+							}
+						}
+					}
+
+					@Override
+					public void walkByElementRef(XmlSchema xmlSchema, QName qname) {
+						XmlSchemaElement obj = SchemaMeta.getCollection(xmlSchema).getElementByQName(qname);
+						if (obj != null) {
+							if (!mso.containsKey(qname)) {
+								mso.put(qname, obj);
+								super.walkByElementRef(xmlSchema, qname);
+							}
+							else {
+								if (mto.containsKey(qname)) {
+									//System.out.println("\nWalk elem ref "+ qname);
+									elist.add(mto.get(qname));
+								}
+							}
+						}
+					}
+
+					@Override
+					public void walkByAttributeGroupRef(XmlSchema xmlSchema, QName qname) {
+						XmlSchema schema = SchemaMeta.getCollection(xmlSchema).schemaForNamespace(qname.getNamespaceURI());
+						XmlSchemaAttributeGroup obj = (XmlSchemaAttributeGroup) schema.getAttributeGroups().getItem(qname);
+						if (obj != null) {
+							if (!mso.containsKey(qname)) {
+								mso.put(qname, obj);
+								super.walkByAttributeGroupRef(xmlSchema, qname);
+							}
+						}
+					}
+
+					@Override
+					public void walkByAttributeRef(XmlSchema xmlSchema, QName qname) {
+						XmlSchemaAttribute obj = SchemaMeta.getCollection(xmlSchema).getAttributeByQName(qname);
+						if (obj != null) {
+							if (!mso.containsKey(qname)) {
+								mso.put(qname, obj);
+								super.walkByAttributeRef(xmlSchema, qname);
+							}
+							else {
+								if (mto.containsKey(qname)) {
+									//System.out.println("\nWalk attr ref "+ qname);
+									alist.add(mto.get(qname));
+								}
+							}
+						}
+					}
+
+					@Override
+					public void walkByGroupRef(XmlSchema xmlSchema, QName qname) {
+						XmlSchema schema = SchemaMeta.getCollection(xmlSchema).schemaForNamespace(qname.getNamespaceURI());
+						XmlSchemaGroup obj = (XmlSchemaGroup) schema.getGroups().getItem(qname);
+						if (obj != null) {
+							if (!mso.containsKey(qname)) {
+								mso.put(qname, obj);
+								super.walkByGroupRef(xmlSchema, qname);
+							}
+						}
+					}
+					
+					@Override
+					protected void walkElement(XmlSchema xmlSchema, XmlSchemaElement obj) {
+						List<XmlSchemaObject> el = elist;
+						List<XmlSchemaObject> al = alist;
+						
+						QName qname = obj.getQName();
+						QName refName = obj.getRefName();
+						QName typeName = obj.getSchemaTypeName();
+						if (refName == null) {
+							el.add(obj);
+							List<List<XmlSchemaObject>> list = new ArrayList<List<XmlSchemaObject>>();
+							list.add(new ArrayList<XmlSchemaObject>());
+							list.add(new ArrayList<XmlSchemaObject>());
+							map.put(obj, list);
+							
+							//System.out.print("\nname="+obj.getName());
+							String ns = SchemaMeta.getSchema(obj).getTargetNamespace();
+							if (typeName != null) {
+								if (!mto.containsKey(typeName)) {
+									if (typeName.getNamespaceURI().equals(Constants.URI_2001_SCHEMA_XSD)) {
+										typeName = new QName(ns, obj.getName());
+									}
+									mto.put(typeName, obj);
+									//System.out.print("; typeN="+typeName);
+								}
+							}
+							else {
+								if (qname != null) {
+									if (qname.getNamespaceURI().equals("")) {
+										qname = new QName(ns, obj.getName());
+									}
+								}
+								else
+									qname = new QName(ns, obj.getName());
+								if (!mto.containsKey(qname)) {
+									mto.put(qname, obj);
+									//System.out.print("; qname="+qname);
+								}
+							}
+							
+							elist = list.get(0);
+							alist = list.get(1);
+							super.walkElement(xmlSchema, obj);
+							elist = el;
+							alist = al;
+						}
+						else {
+							super.walkElement(xmlSchema, obj);
+							elist = el;
+							alist = al;
+						}
+					}
+		
+					@Override
+					protected void walkAttribute(XmlSchema xmlSchema, XmlSchemaAttribute obj) {
+						if (obj.getRefName() == null) {
+							alist.add(obj);
+						}
+						super.walkAttribute(xmlSchema, obj);
+						
+					}
+					
+				}.init(schema, new QName(targetNamespace, requestableName + "Response"), requestableResponse);
+		
+				responseDoc.appendChild(requestableResponse);
+				//System.out.println(XMLUtils.prettyPrintDOM(responseDoc));
+				return responseDoc;
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return document;
 	}
 	
 	private XmlSchemaCacheEntry getCacheEntry(String projectName) {

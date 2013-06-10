@@ -576,7 +576,13 @@ public class XmlSchemaWalker {
 	}
 	
 	protected void walkSimpleTypeUnion(XmlSchema xmlSchema, XmlSchemaSimpleTypeUnion obj) {
-		walkAnnotated(xmlSchema, obj);		
+		walkAnnotated(xmlSchema, obj);
+		QName[] members = obj.getMemberTypesQNames();
+		if (members != null) {
+			for (QName qname : members) {
+				walkByTypeName(xmlSchema, qname);
+			}
+		}
 	}
 	
 	protected void walkComplexType(XmlSchema xmlSchema, XmlSchemaComplexType obj) {
