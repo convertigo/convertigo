@@ -341,6 +341,8 @@ public class WebServiceServlet extends GenericServlet {
 
 			// Read schemas into a new Collection in order to modify them
 			XmlSchemaCollection wsdlSchemaCollection = new XmlSchemaCollection();
+			String baseURI = Engine.PROJECTS_PATH + "/" + projectName + "/xsd";
+			if (baseURI != null) wsdlSchemaCollection.setBaseUri(baseURI);
 			for (XmlSchema xmlSchema: xmlSchemaCollection.getXmlSchemas()) {
 				String tns = xmlSchema.getTargetNamespace();
 				if (tns.equals(Constants.URI_2001_SCHEMA_XSD)) continue;
@@ -387,7 +389,7 @@ public class WebServiceServlet extends GenericServlet {
 					wsdlSchema.setElement(schemaElt);
 					types.addExtensibilityElement(wsdlSchema);
 				}
-				else { // case of schema include (same targetNamespace)
+				else { // case of schema include (same targetNamespace) or same schema
 					Element schemaElt = wsdlSchema.getElement();
 					
 					// Add missing attributes
@@ -405,17 +407,27 @@ public class WebServiceServlet extends GenericServlet {
 						Node node = children.item(i);
 						// Special cases
 						if (node.getNodeType() == Node.ELEMENT_NODE) {
+							Element el = (Element)node;
 							// Do not add include
-							if (((Element)node).getTagName().endsWith("include"))
+							if (el.getTagName().endsWith("include"))
 								continue;
 							// Add import at first
-							if (((Element)node).getTagName().endsWith("import")) {
-								schemaElt.insertBefore(schemaElt.getOwnerDocument().importNode(node, true), schemaElt.getFirstChild());
-								continue;
+							if (el.getTagName().endsWith("import")) {
+								String ins = el.getAttribute("namespace");
+								if (!tns.equals(ins) && el.hasAttribute("schemaLocation")) {
+									if (!hasElement(schemaElt, el.getLocalName(), ins))
+										schemaElt.insertBefore(schemaElt.getOwnerDocument().importNode(el, true), schemaElt.getFirstChild());
+									continue;
+								}
 							}
+							// Else
+							if (!hasElement(schemaElt, el.getLocalName(), el.getAttribute("name")))
+								schemaElt.appendChild(schemaElt.getOwnerDocument().importNode(el, true));
 						}
-						// Others
-						schemaElt.appendChild(schemaElt.getOwnerDocument().importNode(node, true));
+						else {
+							// Others
+							schemaElt.appendChild(schemaElt.getOwnerDocument().importNode(node, true));
+						}
 					}
 				}
 			}
@@ -434,6 +446,26 @@ public class WebServiceServlet extends GenericServlet {
 		}
 		String wsdl = sw.toString();
         return wsdl;
+    }
+    
+    private static boolean hasElement(Element schemaElt, String localName, String attrValue) {
+    	NodeList list = schemaElt.getElementsByTagNameNS(Constants.URI_2001_SCHEMA_XSD, localName);
+		if (list.getLength() > 0) {
+			for (int i=0; i < list.getLength(); i++) {
+				Element el = (Element)list.item(i);
+				if ("include".equals(localName) || "import".equals(localName)) {
+					if (el.getAttribute("namespace").equals(attrValue)) {
+						return true;
+					}
+				}
+				else {
+					if (el.getAttribute("name").equals(attrValue)) {
+						return true;
+					}
+				}
+			}
+		}
+    	return false;
     }
     
 	private static void reduceSchema(XmlSchema xmlSchema, Set<QName> qnames) {
