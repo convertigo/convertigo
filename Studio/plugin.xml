@@ -175,6 +175,8 @@
       <library name="lib/axis2-1.6.2/lib/xml-resolver-1.2.jar"/>
       <library name="lib/axis2-1.6.2/lib/xmlbeans-2.3.0.jar"/>
       <library name="lib/axis2-1.6.2/lib/XmlSchema-1.4.7.jar"/>
+      <library name="lib/javapns/bcprov-jdk15-146.jar" />
+      <library name="lib/javapns/JavaPNS_2.2.jar" />
    </runtime>
 
    <requires>
