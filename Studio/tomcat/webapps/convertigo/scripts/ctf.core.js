@@ -429,14 +429,12 @@ $.extend(true, C8O, {
 				var $data = C8O._getRefData(rule, refs);
 				
 				if (C8O.isUndefined(rule.mode) || rule.mode == "find") {
-					if (C8O.isDefined(rule.find)) {
-						var $elt = rule.find == "." ? $data : $data.find(rule.find);
-						if ($elt.length) {
-							if (C8O.isDefined(rule.attr)) {
-								value = $elt.attr(rule.attr);
-							} else {
-								value = $elt.text();
-							}
+					var $elt = C8O.isUndefined(rule.find) || rule.find == "." ? $data : $data.find(rule.find);
+					if ($elt.length) {
+						if (C8O.isDefined(rule.attr)) {
+							value = $elt.attr(rule.attr);
+						} else {
+							value = $elt.text();
 						}
 					}
 				} else if (rule.mode == "index") {
