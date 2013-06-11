@@ -1,7 +1,8 @@
 C8O = {	
 	vars : { /** customizable value */
 		ajax_method : "POST", /** POST/GET */
-		requester_prefix : ""
+		requester_prefix : "",
+		i18n : ""
 	},
 		
 	addHook : function (name, fn) {
@@ -92,12 +93,71 @@ C8O = {
 		delete C8O._define.recall_params[parameter_name];
 	},
 	
+	translate : function (elt) {
+		if (C8O._define.dictionnary != null) {
+			C8O.walk(elt, C8O._define.dictionnary, function (txt, dictionnary) {
+				var find = txt.search(C8O._define.re_i18n);
+				var res = "";
+				while (find != -1) {
+					res += txt.substring(0, find);
+					txt = txt.substring(find);
+					
+					var match = txt.match(C8O._define.re_i18n);
+					
+					var value = dictionnary[match[1]];
+					
+					if (C8O.isUndefined(value)) {
+						value = match[1];
+						console.log(value + " not found in dictionnary");
+					}
+					
+					res += value;
+					txt = txt.substring(match[0].length);
+					find = txt.search(C8O._define.re_i18n);
+				}
+				return res + txt;
+			});
+		}
+	},
+	
+	/**
+	 * Walk each node and attribute and call the specified function
+	 */
+	walk: function (elt, data, fn) {
+		if (elt.nodeType) {
+			if (elt.nodeType == Node.ELEMENT_NODE) {
+				for (var i = 0; i < elt.attributes.length; i++) {
+					var fnr = fn(elt.attributes[i].nodeValue, data);
+					
+					if (fnr != null) {
+						elt.attributes[i].nodeValue = fnr;
+					}
+				}
+				for (var i = 0; i < elt.childNodes.length; i++) {
+					C8O.walk(elt.childNodes[i], data, fn);
+				}
+			} else if (elt.nodeType == Node.TEXT_NODE) {
+				var fnr = fn(elt.nodeValue, data);
+				
+				if (fnr != null) {
+					elt.nodeValue = fnr;
+				}
+			}
+		} else if (elt.each) {
+			elt.each(function () {
+				C8O.walk(this, data, fn);
+			});
+		}
+	},
+	
 	_define : {
 		hooks : {},
 		last_call_params : {},
 		pendingXhrCpt : 0,
 		recall_params : {__context : "", __connector : ""},
-		re_plus : new RegExp("\\+", "g")
+		re_plus : new RegExp("\\+", "g"),
+		re_i18n : new RegExp("__MSG_(.*?)__"),
+		dictionnary : null
 	},
 	
 	_call : function (data) {
@@ -250,5 +310,14 @@ $(document).ready(function () {
 	if (!$.mobile.ajaxBlacklist) {
 		$("<div id=\"c8oloading\"/>").css({backgroundColor : "grey", position : "absolute", width : "100%", height : "100%", opacity : 0.5, "z-index" : 99}).hide().appendTo("body");
 	}
-	C8O._hook("document_ready");
+	
+	if (C8O.vars.i18n != "") {
+		$.getJSON("i18n/" + C8O.vars.i18n + ".json", function (dictionnary) {
+			C8O._define.dictionnary = dictionnary;
+			C8O.translate(document.documentElement);
+			C8O._hook("document_ready");
+		});
+	} else {
+		C8O._hook("document_ready");
+	}
 });

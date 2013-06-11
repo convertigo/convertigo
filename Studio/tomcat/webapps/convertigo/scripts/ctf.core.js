@@ -137,7 +137,7 @@ $.extend(true, C8O, {
 		if (requestable === "*") {
 			return {
 				"fullTextName": requestable,
-				"type": "*",
+				"type": "*"
 			}
 		}
 	    
@@ -366,40 +366,19 @@ $.extend(true, C8O, {
 					$c8oEachContainer.removeAttr("data-c8o-late-render");
 					C8O._manageTemplate($c8oEachContainer);
 					C8O._renderElement($c8oEachContainer, refs);
+					
+					var renderFunction = $c8oEachContainer.attr("data-c8o-after-late-render-function");
+					if (C8O.isDefined(renderFunction)) {
+						renderFunction = C8O._getFunction(renderFunction);
+						if (renderFunction != null) {
+							renderFunction.call($c8oEachContainer[0], refs._self, refs);
+						}
+					}
+					
 					$c8oEachContainer.trigger("create");
 				});
 			}
 		});
-	},
-	
-	/**
-	 * Walk each node and attribute and call the specified function
-	 */
-	walk: function (elt, data, fn) {
-		if (elt.nodeType) {
-			if (elt.nodeType == Node.ELEMENT_NODE) {
-				for (var i = 0; i < elt.attributes.length; i++) {
-					var fnr = fn(elt.attributes[i].nodeValue, data);
-					
-					if (fnr != null) {
-						elt.attributes[i].nodeValue = fnr;
-					}
-				}
-				for (var i = 0; i < elt.childNodes.length; i++) {
-					C8O.walk(elt.childNodes[i], data, fn);
-				}
-			} else if (elt.nodeType == Node.TEXT_NODE) {
-				var fnr = fn(elt.nodeValue, data);
-				
-				if (fnr != null) {
-					elt.nodeValue = fnr;
-				}
-			}
-		} else if (elt.each) {
-			elt.each(function () {
-				C8O.walk(this, data, fn);
-			});
-		}
 	},
 	
 	_makeRule: function (txt) {
@@ -716,8 +695,7 @@ C8O.addHook("document_ready", function () {
 		}
 	});
 	
-	// FOR JQM
-//	$(document).on("pagebeforecreate", "[data-role=page]", function(event){
+	var onNewPage = function () {
 		C8O._attachEventHandlers();
 		
 		var $document = $(document);
@@ -731,8 +709,14 @@ C8O.addHook("document_ready", function () {
 			var $c8oListenContainer = $(this);
 			C8O._manageTemplate($c8oListenContainer);
 		});
-//	});
+	};
 	
+	if (C8O.isDefined($.mobile)) {
+		// FOR JQM
+		$(document).on("pagebeforecreate", "[data-role=page]", onNewPage);	
+	} else {
+		onNewPage();
+	}
 });
 
 /**
