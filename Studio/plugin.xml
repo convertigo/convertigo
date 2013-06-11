@@ -177,6 +177,9 @@
       <library name="lib/axis2-1.6.2/lib/XmlSchema-1.4.7.jar"/>
       <library name="lib/javapns/bcprov-jdk15-146.jar" />
       <library name="lib/javapns/JavaPNS_2.2.jar" />
+      <library name="lib/gcm/gcm-server.jar" />
+      <library name="lib/gcm/json_simple-1.1.jar" />
+      <library name="lib/gcm/mockito-all-1.8.5.jar" />
    </runtime>
 
    <requires>

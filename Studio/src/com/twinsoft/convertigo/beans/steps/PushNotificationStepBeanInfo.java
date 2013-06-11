@@ -48,11 +48,13 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
             properties[0].setShortDescription(getExternalizedString("property.token.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
 
-			properties[1] = new PropertyDescriptor("pushType", beanClass, "getPushType", "setPushType");
-            properties[1].setDisplayName(getExternalizedString("property.pushtype.display_name"));
-            properties[1].setShortDescription(getExternalizedString("property.pushtype.short_description"));
-            properties[1].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
 
+			properties[1] = new PropertyDescriptor("GCMApiKey", beanClass, "getGCMApiKey", "setGCMApiKey");
+            properties[1].setDisplayName(getExternalizedString("property.gcmapikey.display_name"));
+            properties[1].setShortDescription(getExternalizedString("property.gcmapikey.short_description"));
+            properties[1].setValue("scriptable", Boolean.TRUE);
+
+			
 			properties[2] = new PropertyDescriptor("clientCertificate", beanClass, "getClientCertificate", "setClientCertificate");
             properties[2].setDisplayName(getExternalizedString("property.clientcertificate.display_name"));
             properties[2].setShortDescription(getExternalizedString("property.clientcertificate.short_description"));

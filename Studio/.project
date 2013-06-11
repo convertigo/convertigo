@@ -20,12 +20,18 @@
 			<arguments>
 			</arguments>
 		</buildCommand>
+		<buildCommand>
+			<name>net.sourceforge.metrics.builder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.jem.workbench.JavaEMFNature</nature>
 		<nature>org.eclipse.pde.PluginNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.jem.beaninfo.BeanInfoNature</nature>
+		<nature>net.sourceforge.metrics.nature</nature>
 	</natures>
 	<linkedResources>
 		<link>

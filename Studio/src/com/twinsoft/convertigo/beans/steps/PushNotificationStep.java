@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import javapns.Push;
@@ -34,6 +35,9 @@ import org.mozilla.javascript.Undefined;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.google.android.gcm.server.Message;
+import com.google.android.gcm.server.MulticastResult;
+import com.google.android.gcm.server.Sender;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
@@ -52,16 +56,17 @@ public class PushNotificationStep extends Step implements IStepSourceContainer, 
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	private XMLVector<String> tokens =  new XMLVector<String>();
 	
-	private String pushType = "APNS";
 	private String clientCertificate = "\".//<client certificate>.p12\"";
-	private String certificatePassword = "<your .p12 certificate password>";
+	private String certificatePassword = "\"<your .p12 certificate password>\"";
 	private String apnsNotificationType = "Message";
+	private String GCMApiKey = "\"<configure your api key here>\"";
 	
 	private transient StepSource source = null;
 	private transient StepSource tokenSource = null;
 	private transient String     sClientCertificate;
 	private transient String     sCertificatePassword;
 	private transient String     sPayload;
+	private transient String 	 sGCMApiKey;
 	
 	public PushNotificationStep() {
 		super();
@@ -99,12 +104,13 @@ public class PushNotificationStep extends Step implements IStepSourceContainer, 
 		this.tokens = nTokens;
 	}
 
-	public String getPushType() {
-		return this.pushType;
+
+	public String getGCMApiKey() {
+		return GCMApiKey;
 	}
-	
-	public void setPushType(String nPushType) {
-		this.pushType = nPushType;
+
+	public void setGCMApiKey(String gCMApiKey) {
+		GCMApiKey = gCMApiKey;
 	}
 
 	public String getClientCertificate() {
@@ -156,10 +162,6 @@ public class PushNotificationStep extends Step implements IStepSourceContainer, 
 	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		String[] result = new String[0];
-		if(propertyName.equals("pushType")){
-			String[] pushTypes = {"APNS","GCM"};
-			result = pushTypes;
-		}
 		
 		if(propertyName.equals("apnsNotificationType")){
 			String[] pushTypes = {"Message","Badge", "Sound"};
@@ -176,72 +178,136 @@ public class PushNotificationStep extends Step implements IStepSourceContainer, 
 		return Engine.theApp.filePropertyManager.getFilepathFromProperty(entry, getProject().getName());
 	}
 
+	protected void PushToGCM(Context javascriptContext, Scriptable scope) throws EngineException, Exception
+	{
+		Engine.logBeans.debug("Push notification, Notifiyng Andoid devices");
+		try {
+			evaluate(javascriptContext, scope, this.GCMApiKey, "gcmapikey", false);
+			sGCMApiKey = evaluated instanceof Undefined ? "" : evaluated.toString();
+			
+			Sender sender = new Sender(sGCMApiKey); 
+
+			// get Token List
+			StepSource tokens = getTokenSource();
+			NodeList list;
+			list = tokens.inError() ? null : tokens.getContextOutputNodes();
+			if (list != null) {
+				ArrayList<String> devicesList = new ArrayList<String>(); 
+				for (int i=0; i< list.getLength(); i++) {
+					String token = getNodeValue(list.item(i));
+					if (token.startsWith("gcm:")) {
+						devicesList.add(token.substring(4));
+						Engine.logBeans.trace("Push notification, Android device " + token.substring(4) + " will be notified");
+					}
+				}
+				
+				if (devicesList.isEmpty())
+					return;
+	
+				// use this line to send message with payload data 
+				Message message = new Message.Builder() 
+										.collapseKey("1") 
+										.timeToLive(3) 
+										.delayWhileIdle(true) 
+										.addData("message", sPayload) 
+										.build(); 
+		
+				// Use this for multicast messages 
+				MulticastResult result = sender.send(message, devicesList, 1); 
+				sender.send(message, devicesList, 1); 
+				Engine.logBeans.debug("Push notification, Android devices notified: " + result.toString());
+	
+				if (result.getResults() != null) { 
+					int canonicalRegId = result.getCanonicalIds(); 
+					if (canonicalRegId != 0) { 
+					} 
+				} else { 
+					int error = result.getFailure(); 
+					Engine.logBeans.error("Push notification, Android device error: " + error);
+				}
+			}
+		} catch (Exception e) { 
+			Engine.logBeans.error("Push notification, Android device execption: " + e);
+		} 
+	}
+	
+	protected void PushToAPNS(Context javascriptContext, Scriptable scope) throws EngineException, Exception
+	{
+		evaluate(javascriptContext, scope, this.clientCertificate, "clientCertificate", false);
+		sClientCertificate = evaluated instanceof Undefined ? "" : evaluated.toString();
+		sClientCertificate = getAbsoluteFilePath(sClientCertificate);
+
+		evaluate(javascriptContext, scope, this.certificatePassword, "certificatePassword", false);
+		sCertificatePassword = evaluated instanceof Undefined ? "" : evaluated.toString();
+
+		// get Token List
+		StepSource tokens = getTokenSource();
+		NodeList list;
+		list = tokens.inError() ? null : tokens.getContextOutputNodes();
+		if (list != null) {
+			ArrayList<String> devicesList = new ArrayList<String>(); 
+			
+			for (int i=0; i< list.getLength(); i++) {
+				String token = getNodeValue(list.item(i));
+				if (token.startsWith("apns:")) {
+					devicesList.add(token.substring(5));
+					Engine.logBeans.trace("Push notification, iOS device " + token.substring(5) + " will be notified");
+				}
+			}
+
+			if (devicesList.isEmpty())
+				return;
+
+			
+			
+			// Submit the push to JavaPN libarary...
+			PushedNotifications pn;
+			if (apnsNotificationType.equalsIgnoreCase("Message")) {
+				pn = Push.alert(sPayload,
+								sClientCertificate,
+								sCertificatePassword,
+								true,
+								devicesList);
+				
+			} else if (apnsNotificationType.equalsIgnoreCase("Badge")) {
+				pn = Push.badge(Integer.parseInt(sPayload, 10),
+								sClientCertificate,
+								sCertificatePassword,
+								true,
+								devicesList);
+				
+			} else { 
+				pn = Push.sound(sPayload,
+								sClientCertificate,
+								sCertificatePassword,
+								true,
+								devicesList);
+			}
+			
+			// Analyse the responses..
+			Iterator<PushedNotification>  iPn  = pn.iterator();
+			while (iPn.hasNext()) {
+				PushedNotification notif = iPn.next();
+				Engine.logBeans.debug("Push notification :" + notif + " Sucessfull : " + notif.isSuccessful());
+			}
+		}
+	}
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
+				// get Source data as a string to payload
+				StepSource stepSource = getSource();
+				NodeList list;
+
+				list = stepSource.inError() ? null : stepSource.getContextOutputNodes();
+				if (list != null)
+					sPayload = getNodeValue(list.item(0));
+				
 				try {
-					if (pushType.equalsIgnoreCase("APNS")) {
-						evaluate(javascriptContext, scope, this.clientCertificate, "clientCertificate", false);
-						sClientCertificate = evaluated instanceof Undefined ? "" : evaluated.toString();
-						sClientCertificate = getAbsoluteFilePath(sClientCertificate);
-	
-						evaluate(javascriptContext, scope, this.certificatePassword, "certificatePassword", false);
-						sCertificatePassword = evaluated instanceof Undefined ? "" : evaluated.toString();
-
-						// get Token List
-						StepSource tokens = getTokenSource();
-						NodeList list;
-						list = tokens.inError() ? null : tokens.getContextOutputNodes();
-						if (list != null) {
-							String[] devices = new String[list.getLength()];
-							for (int i=0; i< list.getLength(); i++) {
-								devices[i] = getNodeValue(list.item(i));
-							}
-
-
-							// get Source data as a string to payload
-							StepSource stepSource = getSource();
-							list = stepSource.inError() ? null : stepSource.getContextOutputNodes();
-							if (list != null)
-								sPayload = getNodeValue(list.item(0));
-							
-							// Submit the push to JavaPN libarary...
-							PushedNotifications pn;
-							if (apnsNotificationType.equalsIgnoreCase("Message")) {
-								pn = Push.alert(sPayload,
-												sClientCertificate,
-												sCertificatePassword,
-												true,
-												devices);
-								
-							} else if (apnsNotificationType.equalsIgnoreCase("Badge")) {
-								pn = Push.badge(Integer.parseInt(sPayload, 10),
-												sClientCertificate,
-												sCertificatePassword,
-												true,
-												devices);
-								
-							} else { 
-								pn = Push.sound(sPayload,
-												sClientCertificate,
-												sCertificatePassword,
-												true,
-												devices);
-							}
-							
-							// Analyse the responses..
-							Iterator<PushedNotification>  iPn  = pn.iterator();
-							while (iPn.hasNext()) {
-								PushedNotification notif = iPn.next();
-								Engine.logBeans.debug("Push notification :" + notif + " Sucessfull : " + notif.isSuccessful());
-							}
-						}
-						
-					} else if (pushType.equalsIgnoreCase("GCM")) {
-						// Todo : Implement Google cloud messening
-					}
+					PushToAPNS(javascriptContext, scope);
+					PushToGCM(javascriptContext, scope);
 				} catch (EngineException e) {
 					throw e;
 				} catch (Exception e) {

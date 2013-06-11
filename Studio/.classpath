@@ -38,6 +38,9 @@
 	<classpathentry kind="lib" path="lib/internal/aviva-111114.jar"/>
 	<classpathentry kind="lib" path="lib/internal/externalbrowser.jar"/>
 	<classpathentry kind="lib" path="lib/engine-htmlparsers.jar"/>
+	<classpathentry kind="lib" path="lib/javapns/JavaPNS_2.2.jar"/>
+	<classpathentry kind="lib" path="lib/javapns/bcprov-jdk15-146.jar"/>
+	<classpathentry kind="lib" path="lib/gcm/gcm-server.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="lib" path="lib/cos.jar"/>
 	<classpathentry kind="lib" path="lib/jCharts-0.7.2.jar"/>
