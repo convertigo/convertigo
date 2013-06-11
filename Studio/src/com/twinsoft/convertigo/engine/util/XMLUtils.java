@@ -36,6 +36,8 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -972,6 +974,23 @@ public class XMLUtils {
 		return res;
 	}
 	
+	public static List<Node> toArrayList(NodeList nl) {
+		List<Node> res = new ArrayList<Node>();
+		for (int i = 0 ; i < nl.getLength() ; i++) {
+			res.add(nl.item(i));
+		}
+		return res;
+	}
+	
+	public static NodeList toNodeList(List<Node> nl) {	
+		Document doc = getDefaultDocumentBuilder().newDocument();
+		Element root = doc.createElement("root");
+		for (Node n : nl) {
+			root.appendChild(doc.adoptNode(n));
+		}
+		return root.getChildNodes();
+	}
+		
 	public static void spreadNamespaces(Node node, String tns, boolean overwrite) {
 		Document doc = node instanceof Document ? (Document) node : node.getOwnerDocument();
 		boolean isParent = false;
