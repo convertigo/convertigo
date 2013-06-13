@@ -30,6 +30,10 @@ import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -69,7 +73,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	@Override
 	protected Control createButtonBar(Composite parent) {
 		Control buttonBar =  super.createButtonBar(parent);
-		projectDeployDialogComposite = (ProjectDeployDialogComposite) dialogComposite; 
+		projectDeployDialogComposite = (ProjectDeployDialogComposite) dialogComposite;		
 		getButton(IDialogConstants.OK_ID).setText("Deploy");
 		projectDeployDialogComposite.setOkButton(getButton(IDialogConstants.OK_ID));
 		return buttonBar;
@@ -87,7 +91,7 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	
 	@Override
 	protected void okPressed() {
-		try {
+		
 			getButton(IDialogConstants.OK_ID).setEnabled(false);
 			progressBar = projectDeployDialogComposite.progressBar;
 			labelProgression = projectDeployDialogComposite.labelProgress;
@@ -105,72 +109,90 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 	        trustAllCertificates = projectDeployDialogComposite.checkTrustAllCertificates.getSelection();
 	        bAssembleXsl = projectDeployDialogComposite.assembleXsl.getSelection();
         
-	        boolean doubleFound = false;
-	        
-	        Set<String> deploymentConfigurationNames = new HashSet<String>();  
-	        deploymentConfigurationNames = ConvertigoPlugin.deploymentConfigurationManager.getAllDeploymentConfigurationNames();
-	        String currentProjectName = ConvertigoPlugin.projectManager.currentProjectName;
-	        
-	        for (String deploymentConfigurationName: deploymentConfigurationNames) {
-	        	DeploymentConfiguration deploymentConfiguration = null;
-	        	if (convertigoServer.equals(deploymentConfigurationName)) {
-	        		deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get(deploymentConfigurationName);
-	        		if (deploymentConfiguration != null && !(deploymentConfiguration instanceof DeploymentConfigurationReadOnly)) {
-		        		deploymentConfiguration.setBAssembleXsl(bAssembleXsl);
-		        		deploymentConfiguration.setBHttps(isHttps);
-		        		deploymentConfiguration.setUsername(convertigoUserName);
-		        		deploymentConfiguration.setUserpassword(convertigoUserPassword);
-		        		deploymentConfiguration.setBTrustAllCertificates(trustAllCertificates);
-		        		doubleFound = true;
-		        		ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, deploymentConfiguration.getServer());
-	        		}
-	        	}
-	        }
-	        
-	        if (!doubleFound) {	        	
-		        DeploymentConfiguration dc = new DeploymentConfiguration(
-			            convertigoServer,
-			            convertigoUserName,
-			            convertigoUserPassword,
-			            isHttps,
-			            trustAllCertificates,
-			            bAssembleXsl
-			        );
-	        	
-//	            list.add(convertigoServer);
-	            ConvertigoPlugin.deploymentConfigurationManager.add(dc);
-	            ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, dc.getServer());
-//		        if (list.getItem(0).equals(ProjectDeployDialogComposite.messageList)) {
-//		        	list.remove(0);
-//		        }
-	            projectDeployDialogComposite.fillList();
-	        }
+	        close();
+			Job deployBack = new Job("Deployment in progress...") {
+				
+				@Override
+				protected IStatus run(IProgressMonitor arg0) {
+					try {
+						boolean doubleFound = false;
+							
+				        Set<String> deploymentConfigurationNames = new HashSet<String>();  
+				        deploymentConfigurationNames = ConvertigoPlugin.deploymentConfigurationManager.getAllDeploymentConfigurationNames();
+				        String currentProjectName = ConvertigoPlugin.projectManager.currentProjectName;
+				        
+				        for (String deploymentConfigurationName: deploymentConfigurationNames) {
+				        	DeploymentConfiguration deploymentConfiguration = null;
+				        	if (convertigoServer.equals(deploymentConfigurationName)) {
+				        		deploymentConfiguration = ConvertigoPlugin.deploymentConfigurationManager.get(deploymentConfigurationName);
+				        		if (deploymentConfiguration != null && !(deploymentConfiguration instanceof DeploymentConfigurationReadOnly)) {
+					        		deploymentConfiguration.setBAssembleXsl(bAssembleXsl);
+					        		deploymentConfiguration.setBHttps(isHttps);
+					        		deploymentConfiguration.setUsername(convertigoUserName);
+					        		deploymentConfiguration.setUserpassword(convertigoUserPassword);
+					        		deploymentConfiguration.setBTrustAllCertificates(trustAllCertificates);
+					        		doubleFound = true;
+					        		ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, deploymentConfiguration.getServer());
+				        		}
+				        	}
+				        }
+				        
+				        if (!doubleFound) {	        	
+					        DeploymentConfiguration dc = new DeploymentConfiguration(
+						            convertigoServer,
+						            convertigoUserName,
+						            convertigoUserPassword,
+						            isHttps,
+						            trustAllCertificates,
+						            bAssembleXsl
+						        );
+				        	
+			//	            list.add(convertigoServer);
+				            ConvertigoPlugin.deploymentConfigurationManager.add(dc);
+				            ConvertigoPlugin.deploymentConfigurationManager.setDefault(currentProjectName, dc.getServer());
+			//		        if (list.getItem(0).equals(ProjectDeployDialogComposite.messageList)) {
+			//		        	list.remove(0);
+			//		        }
+				            projectDeployDialogComposite.fillList();
+				        }
+			
+				        File projectDir = new File(Engine.PROJECTS_PATH + "/" + ConvertigoPlugin.projectManager.currentProject.getName() + "/_private");
+				        if (!projectDir.exists()) {
+				        	ConvertigoPlugin.logInfo("Creating \"_private\" project directory");
+				            try {
+				                projectDir.mkdirs();
+				            }
+				            catch(Exception e) {
+				                String message = java.text.MessageFormat.format(
+				                    "Unable to create the private project directory \"{0}\"..",
+				                    new Object[] { ConvertigoPlugin.projectManager.currentProject.getName() }
+				                );
+				                ConvertigoPlugin.logException(e, message);
+				                return Status.CANCEL_STATUS;
+				            }
+				        }
+			
+				        ConvertigoPlugin.deploymentConfigurationManager.save();
+				        
+				        deployInBack();
+					}
+					catch (Throwable e) {
+						ConvertigoPlugin.logException(e, "Unable to deploy project!");
+						return Status.CANCEL_STATUS;
+					}
+					
+					return Status.OK_STATUS;
+				}
+		};
 
-	        File projectDir = new File(Engine.PROJECTS_PATH + "/" + ConvertigoPlugin.projectManager.currentProject.getName() + "/_private");
-	        if (!projectDir.exists()) {
-	        	ConvertigoPlugin.logInfo("Creating \"_private\" project directory");
-	            try {
-	                projectDir.mkdirs();
-	            }
-	            catch(Exception e) {
-	                String message = java.text.MessageFormat.format(
-	                    "Unable to create the private project directory \"{0}\"..",
-	                    new Object[] { ConvertigoPlugin.projectManager.currentProject.getName() }
-	                );
-	                ConvertigoPlugin.logException(e, message);
-	            }
-	        }
-
-	        ConvertigoPlugin.deploymentConfigurationManager.save();
-	        
-			Thread thread = new Thread(this);
-			thread.start();
-		}
-		catch (Throwable e) {
-			ConvertigoPlugin.logException(e, "Unable to deploy project!");
-		}
+		deployBack.setUser(true);
+		deployBack.schedule(); 
 	}
-
+	
+	private void deployInBack(){
+		run();
+	}
+	
 	public void run() {
 		final Display display = getParentShell().getDisplay();
 		Thread progressBarThread = new Thread("Progress Bar thread") {
