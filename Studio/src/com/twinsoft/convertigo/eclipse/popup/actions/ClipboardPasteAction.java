@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 public class ClipboardPasteAction extends ClipboardAction {
 
 	public ClipboardPasteAction() {
-		super();
+		super(ConvertigoPlugin.clipboardManagerSystem);
 	}
 	
 	public void run() {
@@ -50,7 +50,7 @@ public class ClipboardPasteAction extends ClipboardAction {
     		TreeObject selectedTreeObject = explorerView.getFirstSelectedTreeObject();
     		
     		String source = null;
-    		if (!ConvertigoPlugin.clipboardManager2.isCut) {
+    		if (!clipboardManager.isCut) {
 	        	Clipboard clipboard = new Clipboard(display);
 	        	TextTransfer textTransfer = TextTransfer.getInstance();
 	        	source = (String)clipboard.getContents(textTransfer);

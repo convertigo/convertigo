@@ -118,11 +118,11 @@ public class ChangeToIfFileExistThenElseStepAction extends MyAbstractAction {
 						
 						// Cut/Paste steps under Then step
 						if (selectedPaths.length > 0) {
-    						ClipboardAction.cut(explorerView, selectedPaths, ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP);
-    						for (int i = 0 ; i < ConvertigoPlugin.clipboardManager2.objects.length ; i++) {
-    							ConvertigoPlugin.clipboardManager2.cutAndPaste(ConvertigoPlugin.clipboardManager2.objects[i], thenTreeObject);
+							new ClipboardAction(ConvertigoPlugin.clipboardManagerDND).cut(explorerView, selectedPaths, ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP);
+    						for (int i = 0 ; i < ConvertigoPlugin.clipboardManagerDND.objects.length ; i++) {
+    							ConvertigoPlugin.clipboardManagerDND.cutAndPaste(ConvertigoPlugin.clipboardManagerDND.objects[i], thenTreeObject);
     						}
-    						ConvertigoPlugin.clipboardManager2.reset();
+    						ConvertigoPlugin.clipboardManagerDND.reset();
 						}
 						
 		   				// Delete If step

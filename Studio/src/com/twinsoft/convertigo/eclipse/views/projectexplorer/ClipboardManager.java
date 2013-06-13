@@ -90,7 +90,7 @@ import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class ClipboardManager2 {
+public class ClipboardManager {
 
 	public int objectsType = ProjectExplorerView.TREE_OBJECT_TYPE_UNKNOWN;
 	public Object[] objects;

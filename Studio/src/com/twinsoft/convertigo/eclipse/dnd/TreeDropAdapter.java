@@ -110,8 +110,8 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 		
 		detail = event.detail;
-		ConvertigoPlugin.clipboardManager2.isCopy = (event.detail == DND.DROP_COPY);
-		ConvertigoPlugin.clipboardManager2.isCut = (event.detail == DND.DROP_MOVE);
+		ConvertigoPlugin.clipboardManagerDND.isCopy = (event.detail == DND.DROP_COPY);
+		ConvertigoPlugin.clipboardManagerDND.isCut = (event.detail == DND.DROP_MOVE);
 		super.drop(event);
 	}
 
@@ -210,7 +210,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 						String source = data.toString();
 						document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(source)));
 						
-						ClipboardAction.paste(source, shell, explorerView, targetTreeObject, true);
+						ClipboardAction.dnd.paste(source, shell, explorerView, targetTreeObject, true);
 			            return true;
 				    } catch (SAXException sax) {
 						// Parse failed probably because data was not XML but an XPATH String
@@ -272,7 +272,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	}
 
 	public DatabaseObject paste(Node node, DatabaseObject parentDatabaseObject, boolean bChangeName) throws EngineException {
-		Object object = ConvertigoPlugin.clipboardManager2.read(node);
+		Object object = ConvertigoPlugin.clipboardManagerDND.read(node);
 		if (object instanceof DatabaseObject) {
 			DatabaseObject databaseObject = (DatabaseObject)object;
 			String dboName = databaseObject.getName();

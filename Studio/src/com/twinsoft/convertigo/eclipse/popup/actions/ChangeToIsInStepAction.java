@@ -108,11 +108,11 @@ public class ChangeToIsInStepAction extends MyAbstractAction {
 
     						// Cut/Paste steps under jIf step
     						if (selectedPaths.length > 0) {
-	    						ClipboardAction.cut(explorerView, selectedPaths, ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP);
-	    						for (int i = 0 ; i < ConvertigoPlugin.clipboardManager2.objects.length ; i++) {
-	    							ConvertigoPlugin.clipboardManager2.cutAndPaste(ConvertigoPlugin.clipboardManager2.objects[i], stepTreeObject);
+    							new ClipboardAction(ConvertigoPlugin.clipboardManagerDND).cut(explorerView, selectedPaths, ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP);
+	    						for (int i = 0 ; i < ConvertigoPlugin.clipboardManagerDND.objects.length ; i++) {
+	    							ConvertigoPlugin.clipboardManagerDND.cutAndPaste(ConvertigoPlugin.clipboardManagerDND.objects[i], stepTreeObject);
 	    						}
-	    						ConvertigoPlugin.clipboardManager2.reset();
+	    						ConvertigoPlugin.clipboardManagerDND.reset();
     						}
     						
     		   				// Delete IfThenElse step

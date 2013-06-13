@@ -983,7 +983,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			return bool.equals(Boolean.valueOf(isDefault));
 		}
 		if (name.equals("canPaste")) {
-			canPaste = ((ConvertigoPlugin.clipboardManager2.isCopy) || (ConvertigoPlugin.clipboardManager2.isCut));
+			canPaste = ((ConvertigoPlugin.clipboardManagerSystem.isCopy) || (ConvertigoPlugin.clipboardManagerSystem.isCut));
 			Boolean bool = Boolean.valueOf(value);
 			return bool.equals(Boolean.valueOf(canPaste));
 		}

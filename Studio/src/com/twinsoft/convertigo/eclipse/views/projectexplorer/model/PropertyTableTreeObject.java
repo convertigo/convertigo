@@ -151,7 +151,7 @@ public class PropertyTableTreeObject extends TreeParent implements IPropertyTree
 			return bool.equals(Boolean.valueOf(isInherited()));
 		}
 		if (name.equals("canPaste")) {
-			boolean canPaste = ((ConvertigoPlugin.clipboardManager2.isCopy) || (ConvertigoPlugin.clipboardManager2.isCut));
+			boolean canPaste = ((ConvertigoPlugin.clipboardManagerSystem.isCopy) || (ConvertigoPlugin.clipboardManagerSystem.isCut));
 			Boolean bool = Boolean.valueOf(value);
 			return bool.equals(Boolean.valueOf(canPaste));
 		}

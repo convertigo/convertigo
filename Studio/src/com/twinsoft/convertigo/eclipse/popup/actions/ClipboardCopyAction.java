@@ -36,7 +36,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 public class ClipboardCopyAction extends ClipboardAction {
 	
 	public ClipboardCopyAction() {
-		super();
+		super(ConvertigoPlugin.clipboardManagerSystem);
 	}
 
 	public void run() {

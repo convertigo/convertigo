@@ -57,7 +57,7 @@ public class TreeDragListener extends DragSourceAdapter {
 		ProjectExplorerView explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 		if (explorerView != null) {
 			try {
-				String sXml = ClipboardAction.copy(explorerView);
+				String sXml = ClipboardAction.dnd.copy(explorerView);
 				if (sXml != null) {
 					event.data = sXml;
 				}

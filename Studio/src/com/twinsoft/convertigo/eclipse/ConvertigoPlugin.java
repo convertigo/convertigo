@@ -115,7 +115,7 @@ import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager2;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectManager;
 import com.twinsoft.convertigo.eclipse.views.references.ReferencesView;
@@ -138,7 +138,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 	public static ProjectManager projectManager = null;
 	
-	public static ClipboardManager2 clipboardManager2 = null;
+	public static ClipboardManager clipboardManagerDND = null;
+	public static ClipboardManager clipboardManagerSystem = null;
 	
 	public static DeploymentConfigurationManager deploymentConfigurationManager = null;
 		
@@ -592,7 +593,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		
 		log = getLog();
 		projectManager = new ProjectManager();
-		clipboardManager2 = new ClipboardManager2();		
+		clipboardManagerSystem = new ClipboardManager();
+		clipboardManagerDND = new ClipboardManager();
 		//learnProxy = new LearnProxy();
 		
 		// Create consoles

@@ -50,6 +50,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ClipboardManager;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreePath;
@@ -64,12 +65,16 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.CarUtils;
 
 public class ClipboardAction extends MyAbstractAction {
+	public final static ClipboardAction dnd = new ClipboardAction(ConvertigoPlugin.clipboardManagerDND);
+	
+	protected ClipboardManager clipboardManager;
 
-	public ClipboardAction() {
+	protected ClipboardAction(ClipboardManager clipboardManager) {
 		super();
+		this.clipboardManager = clipboardManager;
 	}
 
-	public static String copy(ProjectExplorerView explorerView) throws EngineException, ParserConfigurationException {
+	public String copy(ProjectExplorerView explorerView) throws EngineException, ParserConfigurationException {
 		String sXml = null;
 		if (explorerView != null) {
 			int type = ProjectExplorerView.getTreeObjectType(explorerView.getLeadSelectionPath());
@@ -79,13 +84,13 @@ public class ClipboardAction extends MyAbstractAction {
 		return sXml;
 	}
 	
-	public static String copy(ProjectExplorerView explorerView, TreePath[] selectedPaths, int type) throws EngineException, ParserConfigurationException {
+	public String copy(ProjectExplorerView explorerView, TreePath[] selectedPaths, int type) throws EngineException, ParserConfigurationException {
 		String sXml = null;
 		if (explorerView != null) {
-			ConvertigoPlugin.clipboardManager2.reset();
-			ConvertigoPlugin.clipboardManager2.objectsType = type;
-			ConvertigoPlugin.clipboardManager2.isCopy = true;
-			sXml = ConvertigoPlugin.clipboardManager2.copy(selectedPaths);
+			clipboardManager.reset();
+			clipboardManager.objectsType = type;
+			clipboardManager.isCopy = true;
+			sXml = clipboardManager.copy(selectedPaths);
 			
 			for (int i = 0 ; i < selectedPaths.length ; i++) {
 				TreeObject treeObject = (TreeObject)selectedPaths[i].getLastPathComponent();
@@ -96,29 +101,29 @@ public class ClipboardAction extends MyAbstractAction {
 		return sXml;
 	}
 
-	public static String cut(ProjectExplorerView explorerView) throws EngineException, ParserConfigurationException {
+	public String cut(ProjectExplorerView explorerView) throws EngineException, ParserConfigurationException {
 		String sXml = copy(explorerView);
 		if (sXml != null) {
-			ConvertigoPlugin.clipboardManager2.isCopy = false;
-			ConvertigoPlugin.clipboardManager2.isCut = true;
+			clipboardManager.isCopy = false;
+			clipboardManager.isCut = true;
 		}
 		return sXml;
 	}
 	
-	public static String cut(ProjectExplorerView explorerView, TreePath[] selectedPaths, int type) throws EngineException, ParserConfigurationException {
+	public String cut(ProjectExplorerView explorerView, TreePath[] selectedPaths, int type) throws EngineException, ParserConfigurationException {
 		String sXml = copy(explorerView, selectedPaths, type);
 		if (sXml != null) {
-			ConvertigoPlugin.clipboardManager2.isCopy = false;
-			ConvertigoPlugin.clipboardManager2.isCut = true;
+			clipboardManager.isCopy = false;
+			clipboardManager.isCut = true;
 		}
 		return sXml;
 	}
 
-	public static void paste(String source, Shell shell, ProjectExplorerView explorerView, TreeObject selectedTreeObject) throws ConvertigoException, IOException, ParserConfigurationException, SAXException, CoreException {
+	public void paste(String source, Shell shell, ProjectExplorerView explorerView, TreeObject selectedTreeObject) throws ConvertigoException, IOException, ParserConfigurationException, SAXException, CoreException {
 		paste(source, shell, explorerView, selectedTreeObject, false);
 	}
 	
-	public static void paste(String source, Shell shell, ProjectExplorerView explorerView, TreeObject selectedTreeObject, boolean isDND) throws ConvertigoException, IOException, ParserConfigurationException, SAXException, CoreException {
+	public void paste(String source, Shell shell, ProjectExplorerView explorerView, TreeObject selectedTreeObject, boolean isDND) throws ConvertigoException, IOException, ParserConfigurationException, SAXException, CoreException {
 		if ((explorerView != null) && (selectedTreeObject != null)) {
 			TreeObject targetTreeObject = null;
 			Object targetObject = null;
@@ -133,10 +138,10 @@ public class ClipboardAction extends MyAbstractAction {
     			
     			// This is for enabling copy/paste inside the same data directory,
     			// i.e. without having to select the parent database object.
-    			if (ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.getTreeObjectType(new TreePath(targetTreeObject))) {
+    			if (clipboardManager.objectsType == ProjectExplorerView.getTreeObjectType(new TreePath(targetTreeObject))) {
     				// Exception: if the copied object is a screen class,
     				// it must be different from the currently selected object.
-    				if (ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SCREEN_CLASS) {
+    				if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SCREEN_CLASS) {
     					CustomDialog customDialog = new CustomDialog(
     							shell,
     							"Paste a Screenclass",
@@ -152,8 +157,8 @@ public class ClipboardAction extends MyAbstractAction {
     					else if (response == 2)
     						return;
     				}
-    				else if (ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT_WITH_EXPRESSIONS) {
-    					if (ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_FUNCTION) {
+    				else if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT_WITH_EXPRESSIONS) {
+    					if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_FUNCTION) {
     						targetObject = ((DatabaseObject)targetObject).getParent();
     					}
     					else {
@@ -175,12 +180,12 @@ public class ClipboardAction extends MyAbstractAction {
 	    					}
     					}
     				}
-    				else if (ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP_WITH_EXPRESSIONS ||
-    						ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP) {
+    				else if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP_WITH_EXPRESSIONS ||
+    						clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP) {
     					targetObject = pasteStep(shell, source, (DatabaseObject)targetObject);
     					if (targetObject == null) return;
     				}
-    				else if (isDND && ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SEQUENCE) {
+    				else if (isDND && clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SEQUENCE) {
     					// Do not change target to parent
     				}
     				else {
@@ -190,15 +195,15 @@ public class ClipboardAction extends MyAbstractAction {
 					targetTreeObject = explorerView.findTreeObjectByUserObject(((DatabaseObject)targetObject));
     			}
 				else {
-					if (ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP_WITH_EXPRESSIONS ||
-						ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP) {
+					if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP_WITH_EXPRESSIONS ||
+						clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP) {
 						targetObject = pasteStep(shell, source, (DatabaseObject)targetObject);
 						if (targetObject == null) return;
 					}
 				}
 			}
 
-            if (ConvertigoPlugin.clipboardManager2.isCut) {
+            if (clipboardManager.isCut) {
         		TreeParent targetTreeParent = null;
         		String targetPath = targetTreeObject.getPath();
         		if (targetTreeObject instanceof DatabaseObjectTreeObject) {
@@ -208,14 +213,14 @@ public class ClipboardAction extends MyAbstractAction {
         			targetTreeParent = ((IPropertyTreeObject)targetTreeObject).getTreeObjectOwner();
         		}
         			
-            	for (int i = 0 ; i < ConvertigoPlugin.clipboardManager2.objects.length ; i++) {
+            	for (int i = 0 ; i < clipboardManager.objects.length ; i++) {
             		// Cut & paste
-					ConvertigoPlugin.clipboardManager2.cutAndPaste(ConvertigoPlugin.clipboardManager2.objects[i], targetTreeObject);
+					clipboardManager.cutAndPaste(clipboardManager.objects[i], targetTreeObject);
 					
 					// Updating the tree
 					// Report 4.5: fix #401
-					//explorerView.reloadTreeObject(ConvertigoPlugin.clipboardManager2.parentTreeNodeOfCutObjects[i]);
-					TreeObject parentTreeNodeOfCutObjects = ConvertigoPlugin.clipboardManager2.parentTreeNodeOfCutObjects[i];
+					//explorerView.reloadTreeObject(clipboardManager.parentTreeNodeOfCutObjects[i]);
+					TreeObject parentTreeNodeOfCutObjects = clipboardManager.parentTreeNodeOfCutObjects[i];
 					parentTreeNodeOfCutObjects.getProjectTreeObject().hasBeenModified(true);
 					explorerView.reloadTreeObject(parentTreeNodeOfCutObjects);
             	}
@@ -228,16 +233,16 @@ public class ClipboardAction extends MyAbstractAction {
                 		targetTreeObject.getProjectTreeObject().hasBeenModified(true);// Report 4.5: fix #401
             	}
             	
-            	ConvertigoPlugin.clipboardManager2.reset();
+            	clipboardManager.reset();
             }
-            else if (ConvertigoPlugin.clipboardManager2.isCopy){
+            else if (clipboardManager.isCopy){
             	if (source != null) {
                 	// Paste
-                    ConvertigoPlugin.clipboardManager2.paste(source, targetObject, true);
+                    clipboardManager.paste(source, targetObject, true);
 
                     // Case of project copy
-                    if (ConvertigoPlugin.clipboardManager2.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_PROJECT) {
-                    	Object[] pastedObjects = ConvertigoPlugin.clipboardManager2.pastedObjects;
+                    if (clipboardManager.objectsType == ProjectExplorerView.TREE_OBJECT_TYPE_DBO_PROJECT) {
+                    	Object[] pastedObjects = clipboardManager.pastedObjects;
                     	for (int i=0; i<pastedObjects.length; i++) {
                     		Object object = pastedObjects[i];
                     		if ((object != null) && (object instanceof Project)) {
@@ -283,7 +288,7 @@ public class ClipboardAction extends MyAbstractAction {
 		}
 	}
 	
-	private static Object pasteStep(Shell shell, String source, DatabaseObject targetObject) throws ParserConfigurationException, SAXException, IOException {
+	private Object pasteStep(Shell shell, String source, DatabaseObject targetObject) throws ParserConfigurationException, SAXException, IOException {
 		// Can only paste on Sequence or Step
 		if (targetObject instanceof Sequence)
 			return targetObject;
@@ -294,7 +299,7 @@ public class ClipboardAction extends MyAbstractAction {
 		if (targetObject instanceof IThenElseContainer)
 			return null;
 		else {
-			List<Object> objects = ConvertigoPlugin.clipboardManager2.read(source);
+			List<Object> objects = clipboardManager.read(source);
 			int size = objects.size();
 			for (Object ob: objects) {
 				// Can only paste step objects
@@ -375,7 +380,7 @@ public class ClipboardAction extends MyAbstractAction {
 		return targetObject;
 	}
 	
-	private static void makeProjectTempArchive(ProjectTreeObject projectTreeObject) throws EngineException {
+	private void makeProjectTempArchive(ProjectTreeObject projectTreeObject) throws EngineException {
 		Project project = projectTreeObject.getObject();		
 				
 		try {
@@ -389,7 +394,7 @@ public class ClipboardAction extends MyAbstractAction {
 		}
 	}
 	
-	private static Project importProjectTempArchive(String projectName, ProjectExplorerView explorerView) throws EngineException {
+	private Project importProjectTempArchive(String projectName, ProjectExplorerView explorerView) throws EngineException {
 		try {
 			// Get an available target project name
 			int index = 1;
