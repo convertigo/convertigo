@@ -137,7 +137,7 @@ $.extend(true, C8O, {
 		if (requestable === "*") {
 			return {
 				"fullTextName": requestable,
-				"type": "*"
+				"type": "*",
 			}
 		}
 	    
@@ -381,6 +381,36 @@ $.extend(true, C8O, {
 		});
 	},
 	
+	/**
+	 * Walk each node and attribute and call the specified function
+	 */
+	walk: function (elt, data, fn) {
+		if (elt.nodeType) {
+			if (elt.nodeType == Node.ELEMENT_NODE) {
+				for (var i = 0; i < elt.attributes.length; i++) {
+					var fnr = fn(elt.attributes[i].nodeValue, data);
+					
+					if (fnr != null) {
+						elt.attributes[i].nodeValue = fnr;
+					}
+				}
+				for (var i = 0; i < elt.childNodes.length; i++) {
+					C8O.walk(elt.childNodes[i], data, fn);
+				}
+			} else if (elt.nodeType == Node.TEXT_NODE) {
+				var fnr = fn(elt.nodeValue, data);
+				
+				if (fnr != null) {
+					elt.nodeValue = fnr;
+				}
+			}
+		} else if (elt.each) {
+			elt.each(function () {
+				C8O.walk(this, data, fn);
+			});
+		}
+	},
+	
 	_makeRule: function (txt) {
 		var match = txt.match(C8O._define.re_find_brackets);
 		var rule = undefined;
@@ -429,12 +459,14 @@ $.extend(true, C8O, {
 				var $data = C8O._getRefData(rule, refs);
 				
 				if (C8O.isUndefined(rule.mode) || rule.mode == "find") {
-					var $elt = C8O.isUndefined(rule.find) || rule.find == "." ? $data : $data.find(rule.find);
-					if ($elt.length) {
-						if (C8O.isDefined(rule.attr)) {
-							value = $elt.attr(rule.attr);
-						} else {
-							value = $elt.text();
+					if (C8O.isDefined(rule.find)) {
+						var $elt = rule.find == "." ? $data : $data.find(rule.find);
+						if ($elt.length) {
+							if (C8O.isDefined(rule.attr)) {
+								value = $elt.attr(rule.attr);
+							} else {
+								value = $elt.text();
+							}
 						}
 					}
 				} else if (rule.mode == "index") {
@@ -693,7 +725,8 @@ C8O.addHook("document_ready", function () {
 		}
 	});
 	
-	var onNewPage = function () {
+	// FOR JQM
+	$(document).on("pagebeforecreate", "[data-role=page]", function(event){
 		C8O._attachEventHandlers();
 		
 		var $document = $(document);
@@ -707,14 +740,8 @@ C8O.addHook("document_ready", function () {
 			var $c8oListenContainer = $(this);
 			C8O._manageTemplate($c8oListenContainer);
 		});
-	};
+	});
 	
-	if (C8O.isDefined($.mobile)) {
-		// FOR JQM
-		$(document).on("pagebeforecreate", "[data-role=page]", onNewPage);	
-	} else {
-		onNewPage();
-	}
 });
 
 /**
