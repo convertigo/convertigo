@@ -228,6 +228,36 @@ C8O = {
 		}
 	},
 	
+	/**
+	 * Walk each node and attribute and call the specified function
+	 */
+	walk: function (elt, data, fn) {
+		if (elt.nodeType) {
+			if (elt.nodeType == Node.ELEMENT_NODE) {
+				for (var i = 0; i < elt.attributes.length; i++) {
+					var fnr = fn(elt.attributes[i].nodeValue, data);
+					
+					if (fnr != null) {
+						elt.attributes[i].nodeValue = fnr;
+					}
+				}
+				for (var i = 0; i < elt.childNodes.length; i++) {
+					C8O.walk(elt.childNodes[i], data, fn);
+				}
+			} else if (elt.nodeType == Node.TEXT_NODE) {
+				var fnr = fn(elt.nodeValue, data);
+				
+				if (fnr != null) {
+					elt.nodeValue = fnr;
+				}
+			}
+		} else if (elt.each) {
+			elt.each(function () {
+				C8O.walk(this, data, fn);
+			});
+		}
+	},
+	
 	_define : {
 		clipping_attributs :
 			$(["altKey", "ctrlKey", "metaKey", "shiftKey", "clientX", "clientY", "screenX", "screenY", "layerX", "layerY", "pageX", "pageY", "button"]),
