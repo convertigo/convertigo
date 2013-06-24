@@ -10,49 +10,56 @@ $.extend(true, C8O, {
 	 */
 	_routeResponse: function(c8oRequestable, xml) {
 		var $doc = $(xml.documentElement);
-		var routeFound = false;
 		
 		for (var i in C8O.routingTable) {
 			var entry = C8O.routingTable[i];
 			if (C8O.isMatching(c8oRequestable, entry.calledRequest)) {
 				for (var j in entry.actions) {
 					var action = entry.actions[j];
-					var transition =  action.transition;
-					var fnCondition = C8O._getFunction(action.condition);
-					if (fnCondition != null) {
-						routeFound = fnCondition($doc);
-					} else {
-						var element = $doc.find(action.condition);
-						routeFound = (element.length != 0 || $doc.is(action.condition));
+					var routeFound = true;
+					
+					if (C8O.isDefined(action.fromPage)) {
+						routeFound = $.mobile.activePage.attr("id") == action.fromPage;
 					}
-
+					
 					if (routeFound) {
-						var goToPage = action.gopage;
-
-						// Render in a target page
-						if (goToPage) {
-							// Bind a listener on the 'pagebeforeshow' event in order
-							// to render bindings only after the page is shown
-							$(document).one('pagebeforeshow', function (event) {
+						if (C8O.isDefined(action.condition)) {
+							var fnCondition = C8O._getFunction(action.condition);
+							if (fnCondition != null) {
+								routeFound = fnCondition($doc);
+							} else {
+								routeFound = C8O._findAndSelf($doc, action.condition).length > 0;
+							}
+						}
+	
+						if (routeFound) {
+							var transition =  action.transition;
+							var goToPage = action.gopage || action.goToPage;
+	
+							// Render in a target page
+							if (goToPage) {
+								// Bind a listener on the 'pagebeforeshow' event in order
+								// to render bindings only after the page is shown
+								$(document).one('pagebeforeshow', function (event) {
+									C8O._renderBindings(c8oRequestable, $doc);
+									if (action.afterRendering) {
+										action.afterRendering($doc);
+									}
+								});
+								
+								// Change page
+								$.mobile.changePage(goToPage, transition);
+							}
+							// Render on the same page
+							else {
 								C8O._renderBindings(c8oRequestable, $doc);
 								if (action.afterRendering) {
 									action.afterRendering($doc);
 								}
-							});
-							
-							// Change page
-							transition.allowSamePageTransition = true;
-							$.mobile.changePage(goToPage, transition);
-						}
-						// Render on the same page
-						else {
-							C8O._renderBindings(c8oRequestable, $doc);
-							if (action.afterRendering) {
-								action.afterRendering($doc);
 							}
+							
+							return;
 						}
-						
-						return;
 					}
 				}
 			}
@@ -711,6 +718,7 @@ C8O.addHook("document_ready", function () {
 	
 	if (C8O.isDefined($.mobile)) {
 		// FOR JQM
+		$.mobile.changePage.defaults.allowSamePageTransition = true;
 		$(document).on("pagebeforecreate", "[data-role=page]", onNewPage);	
 	} else {
 		onNewPage();
