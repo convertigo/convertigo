@@ -17,7 +17,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/internal/ui-090918.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/util-v28883.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/vdx-090918.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/internal/vt220-090918.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/ms.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/netscape.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/internal/comm.jar"/>
@@ -37,6 +36,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/internal/externalbrowser.jar"/>
 	<classpathentry kind="lib" path="lib/engine-htmlparsers.jar"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-fileupload-1.2.2.jar" sourcepath="/ExternalJavaSources/commons-fileupload-1.2.1-sources.jar"/>
+	<classpathentry kind="lib" path="lib/internal/vt220-v34405.jar"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry exported="true" kind="lib" path="lib/cos.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/jCharts-0.7.2.jar"/>
