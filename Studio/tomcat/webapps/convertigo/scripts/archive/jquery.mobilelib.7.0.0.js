@@ -169,6 +169,7 @@ C8O = {
 				success : C8O._onSuccess,
 				type : C8O.vars.ajax_method,
 				url : "../../" + C8O.vars.requester_prefix + ".xml"
+//				url : "https://cora.convertigo.net/cems/projects/coraFidelite_ihm/" + C8O.vars.requester_prefix + ".xml"
 			});
 			jqXHR.C8O_data = data;
 			C8O._define.pendingXhrCpt++;

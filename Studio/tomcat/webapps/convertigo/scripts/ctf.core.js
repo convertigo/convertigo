@@ -19,7 +19,7 @@ $.extend(true, C8O, {
 					var routeFound = true;
 					
 					if (C8O.isDefined(action.fromPage)) {
-						routeFound = $.mobile.activePage.attr("id") == action.fromPage;
+						routeFound = $.mobile.activePage.is(action.fromPage);
 					}
 					
 					if (routeFound) {
