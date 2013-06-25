@@ -4,6 +4,10 @@ C8O = {
 		requester_prefix : "",
 		i18n : ""
 	},
+	
+	options : {
+		loading : {}
+	},
 		
 	addHook : function (name, fn) {
 		if ($.isFunction(fn)) {
@@ -95,28 +99,26 @@ C8O = {
 	
 	translate : function (elt) {
 		if (C8O._define.dictionnary != null) {
-			C8O.walk(elt, C8O._define.dictionnary, function (txt, dictionnary) {
-				var find = txt.search(C8O._define.re_i18n);
-				var res = "";
-				while (find != -1) {
-					res += txt.substring(0, find);
-					txt = txt.substring(find);
-					
-					var match = txt.match(C8O._define.re_i18n);
-					
-					var value = dictionnary[match[1]];
-					
-					if (C8O.isUndefined(value)) {
-						value = match[1];
-						console.log(value + " not found in dictionnary");
+			if (typeof(elt) == "string") {
+				return C8O._translate(elt);
+			} else {
+				C8O.walk(elt, null, function (txt) {
+					var find = txt.search(C8O._define.re_i18n);
+					var res = "";
+					while (find != -1) {
+						res += txt.substring(0, find);
+						txt = txt.substring(find);
+						
+						var match = txt.match(C8O._define.re_i18n);
+						var value = C8O._translate(match[1]);
+												
+						res += value;
+						txt = txt.substring(match[0].length);
+						find = txt.search(C8O._define.re_i18n);
 					}
-					
-					res += value;
-					txt = txt.substring(match[0].length);
-					find = txt.search(C8O._define.re_i18n);
-				}
-				return res + txt;
-			});
+					return res + txt;
+				});
+			}
 		}
 	},
 	
@@ -169,7 +171,6 @@ C8O = {
 				success : C8O._onSuccess,
 				type : C8O.vars.ajax_method,
 				url : "../../" + C8O.vars.requester_prefix + ".xml"
-//				url : "https://cora.convertigo.net/cems/projects/coraFidelite_ihm/" + C8O.vars.requester_prefix + ".xml"
 			});
 			jqXHR.C8O_data = data;
 			C8O._define.pendingXhrCpt++;
@@ -252,7 +253,7 @@ C8O = {
 		if (C8O._hook("loading_start")) {
 			$("#c8oloading").show();
 			try {
-				$.mobile.showPageLoadingMsg();
+				$.mobile.loading("show", C8O.options.loading);
 			} catch (e) {}
 		}
 	},
@@ -260,7 +261,7 @@ C8O = {
 	_loadingStop : function () {
 		if (C8O._hook("loading_stop")) {
 			try {
-				$.mobile.hidePageLoadingMsg();
+				$.mobile.loading("stop");
 			} catch (e) {}
 			$("#c8oloading").hide();
 		}
@@ -298,6 +299,15 @@ C8O = {
 		var res = object[attribute];
 		delete object[attribute];
 		return res;
+	},
+	
+	_translate : function (str) {
+		var value = C8O._define.dictionnary[str];
+		if (C8O.isUndefined(value)) {
+			value = str;
+			console.log(value + " not found in dictionnary");
+		}
+		return value;
 	}
 };
 
