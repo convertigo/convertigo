@@ -178,12 +178,15 @@ public class WebServiceServletRequester extends ServletRequester {
 		return document;
 	}
 	
-	protected Object addStatisticsAsData(Object result) { 
-        if (result != null && context.requestedObject.getAddStatistics()) { 
-                if (result instanceof SOAPMessage) { 
-                        context.statistics.printStatisticsSOAP((SOAPMessage) result); 
-                } 
-        } 
+	protected Object addStatisticsAsData(Object result) {
+		try {
+	        if (result != null && context.requestedObject.getAddStatistics()) { 
+	                if (result instanceof SOAPMessage) { 
+	                        context.statistics.printStatisticsSOAP((SOAPMessage) result); 
+	                } 
+	        }
+		}
+		catch (Exception e) {}
 		return result; 
 	} 
 	
