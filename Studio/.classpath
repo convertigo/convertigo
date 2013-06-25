@@ -17,7 +17,6 @@
 	<classpathentry kind="lib" path="lib/internal/ui-090918.jar"/>
 	<classpathentry kind="lib" path="lib/internal/util-v28883.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry kind="lib" path="lib/internal/vdx-090918.jar"/>
-	<classpathentry kind="lib" path="lib/internal/vt220-090918.jar"/>
 	<classpathentry kind="lib" path="lib/internal/ms.jar"/>
 	<classpathentry kind="lib" path="lib/internal/netscape.jar"/>
 	<classpathentry kind="lib" path="lib/internal/comm.jar"/>
@@ -40,6 +39,7 @@
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/apache-mime4j-core-0.7.2.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/mex-1.6.2-impl.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/neethi-3.0.2.jar"/>
+	<classpathentry kind="lib" path="lib/internal/vt220-v34405.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="lib" path="lib/cos.jar"/>
 	<classpathentry kind="lib" path="lib/jCharts-0.7.2.jar"/>
