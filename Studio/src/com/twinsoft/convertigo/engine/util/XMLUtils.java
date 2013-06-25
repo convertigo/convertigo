@@ -80,7 +80,10 @@ public class XMLUtils {
 	private static ThreadLocal<DocumentBuilderFactory> defaultDocumentBuilderFactory = new ThreadLocal<DocumentBuilderFactory>() {
 		@Override
 		protected DocumentBuilderFactory initialValue() {
-			return DocumentBuilderFactory.newInstance();
+			//return DocumentBuilderFactory.newInstance();
+			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+			documentBuilderFactory.setNamespaceAware(true);
+			return documentBuilderFactory;
 		}
 	};
 

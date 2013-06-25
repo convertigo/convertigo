@@ -852,6 +852,7 @@ public class SchemaManager implements AbstractManager {
 					}
 					
 					protected boolean makeCompliant(XmlSchemaObject xso, Node node) {
+						String tns = node.getNamespaceURI();
 						String nodeName = node.getNodeName();
 						String localName = nodeName.substring(nodeName.indexOf(":")+1);
 						String xsoName = xso instanceof XmlSchemaElement ? ((XmlSchemaElement)xso).getName() : ((XmlSchemaAttribute)xso).getName();
@@ -924,6 +925,13 @@ public class SchemaManager implements AbstractManager {
 						}
 						else {
 							//System.out.println(nodeName);
+							if ((tns != null) && !tns.equals("")) {
+								Document doc = node.getOwnerDocument();
+								String prefix = SchemaMeta.getCollection(xso).getNamespaceContext().getPrefix(tns);
+								if ((prefix != null) && !prefix.equals("")) {
+									node = doc.renameNode(node, tns, prefix+":"+localName);
+								}
+							}
 						}
 						return false;
 					}
