@@ -74,6 +74,8 @@ import org.xml.sax.helpers.DefaultHandler;
 import com.twinsoft.convertigo.beans.common.XMLizable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.util.StringEx;
 
 public class XMLUtils {
@@ -82,7 +84,9 @@ public class XMLUtils {
 		protected DocumentBuilderFactory initialValue() {
 			//return DocumentBuilderFactory.newInstance();
 			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-			documentBuilderFactory.setNamespaceAware(true);
+			String s = EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_NAMESPACE_AWARE);
+			if (s.equalsIgnoreCase("true"))
+				documentBuilderFactory.setNamespaceAware(true);
 			return documentBuilderFactory;
 		}
 	};

@@ -417,7 +417,9 @@ public class EnginePropertiesManager {
 		DOCUMENT_XML_ENGINE ("document.xml_engine", XmlEngine.java.getValue(), "XML engine", PropertyCategory.XmlGeneration),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = XsltEngine.class)
 		DOCUMENT_XSLT_ENGINE ("document.xslt_engine", XsltEngine.xalan_xsltc.getValue(), "XSLT engine", PropertyCategory.XmlGeneration),
-
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		DOCUMENT_NAMESPACE_AWARE("document.namespace.aware", "false", "Set namespace aware", PropertyCategory.XmlGeneration),
+		
 		/** PROXY */
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = ProxyMode.class)
 		PROXY_SETTINGS_MODE ("htmlProxy.mode", ProxyMode.off.getValue(), "Proxy mode", PropertyCategory.Proxy),
