@@ -49,6 +49,7 @@ import org.w3c.dom.ProcessingInstruction;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -96,6 +97,8 @@ public class SqlTransaction extends TransactionWithVariables {
 	public static int TYPE_CREATE_TABLE = 5;
 	
 	public static int TYPE_DROP_TABLE = 6;
+	
+	public static int TYPE_TRUNCATE_TABLE = 7;		// jmc 13/06/25
 	
 	public static int TYPE_UNKNOWN = 99;
 	
@@ -184,6 +187,8 @@ public class SqlTransaction extends TransactionWithVariables {
 				type = SqlTransaction.TYPE_CREATE_TABLE;
 			else if (sqlQuery.toUpperCase().indexOf("DROP TABLE") == 0)
 				type = SqlTransaction.TYPE_DROP_TABLE;
+			else if (sqlQuery.toUpperCase().indexOf("TRUNCATE TABLE") == 0)		// jmc 13/06/25
+				type = SqlTransaction.TYPE_TRUNCATE_TABLE;
 			else type = TYPE_UNKNOWN;
 			
 			// retrieve parameter names
