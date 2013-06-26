@@ -74,6 +74,7 @@
 	<!--
 		Expose access to all URIs, including the file and http protocols
 	-->
+	<access origin="https://*" subdomains="true"/>
 	<access origin="*" subdomains="true"/>
 
 </widget>
