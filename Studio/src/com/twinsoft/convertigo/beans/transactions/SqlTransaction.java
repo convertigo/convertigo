@@ -100,7 +100,9 @@ public class SqlTransaction extends TransactionWithVariables {
 	public static int TYPE_CREATE_TABLE = 5;
 	
 	public static int TYPE_DROP_TABLE = 6;
-	
+
+	public static int TYPE_TRUNCATE_TABLE = 7;		// jmc 13/06/25
+
 	public static int TYPE_UNKNOWN = 99;
 	
 	/** Holds value of property xmlOutput. */
@@ -186,6 +188,8 @@ public class SqlTransaction extends TransactionWithVariables {
 				type = SqlTransaction.TYPE_CREATE_TABLE;
 			else if (sqlQuery.toUpperCase().indexOf("DROP TABLE") == 0)
 				type = SqlTransaction.TYPE_DROP_TABLE;
+			else if (sqlQuery.toUpperCase().indexOf("TRUNCATE TABLE") == 0)		// jmc 13/06/25
+				type = SqlTransaction.TYPE_TRUNCATE_TABLE;
 			else type = TYPE_UNKNOWN;
 			
 			// retrieve parameter names
