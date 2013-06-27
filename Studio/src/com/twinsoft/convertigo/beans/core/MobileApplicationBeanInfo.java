@@ -39,7 +39,7 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[18];
+			properties = new PropertyDescriptor[19];
 			
             properties[0] = new PropertyDescriptor("enableFlashUpdate", MobileApplication.class, "getEnableFlashUpdate", "setEnableFlashUpdate");
             properties[0].setDisplayName(getExternalizedString("property.enableFlashUpdate.display_name"));
@@ -121,6 +121,10 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
             properties[17].setDisplayName(getExternalizedString("property.applicationFeatureNotification.display_name"));
             properties[17].setShortDescription(getExternalizedString("property.applicationFeatureNotification.short_description"));
             properties[17].setExpert(true);
+            
+            properties[18] = new PropertyDescriptor("flashUpdateTimeout", MobileApplication.class, "getFlashUpdateTimeout", "setFlashUpdateTimeout");
+            properties[18].setDisplayName(getExternalizedString("property.flashUpdateTimeout.display_name"));
+            properties[18].setShortDescription(getExternalizedString("property.flashUpdateTimeout.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

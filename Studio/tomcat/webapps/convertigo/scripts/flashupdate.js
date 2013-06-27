@@ -43,6 +43,7 @@ var F = {
 	endPoint: null,
 	projectName: null,
 	localBase: null,
+	timeout: 0,
 	firstLaunch: true,
 	clickEvent: typeof(document.ontouchstart) == "undefined" ? "click" : "touchstart",
 	
@@ -250,7 +251,8 @@ var F = {
 				error: function (xhr, status, err) {
 					F.debug("error: mobiles.GetResources " + err);
 					F.redirectApp();
-				}
+				},
+				timeout: F.timeout
 			});
 		} else {
 			$("#checkingUpdate").hide();

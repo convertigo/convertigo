@@ -65,6 +65,7 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 	private String buildMode = FlashUpdateBuildMode.full.name();
 	
 	private boolean requireUserConfirmation = false;
+	private long flashUpdateTimeout = 5000;
 	
 	private String applicationId = "";
 	private String applicationName = "";
@@ -334,6 +335,14 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 
 	public void setApplicationFeatureNotification(boolean applicationFeatureNotification) {
 		this.applicationFeatureNotification = applicationFeatureNotification;
+	}
+
+	public long getFlashUpdateTimeout() {
+		return flashUpdateTimeout;
+	}
+
+	public void setFlashUpdateTimeout(long flashUpdateTimeout) {
+		this.flashUpdateTimeout = flashUpdateTimeout;
 	}
 	
 	public boolean isFeature(PhoneGapFeatures feature) {

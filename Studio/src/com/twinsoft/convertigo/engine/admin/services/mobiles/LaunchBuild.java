@@ -121,6 +121,7 @@ public class LaunchBuild extends XmlService {
 			json.put("applicationName", finalApplicationName);
 			json.put("projectName", mobileResourceHelper.mobileApplication.getProject().getName());
 			json.put("endPoint", mobileResourceHelper.mobileApplication.getComputedEndpoint(request));
+			json.put("timeout", mobileResourceHelper.mobileApplication.getFlashUpdateTimeout());
 			FileUtils.write(new File(mobileResourceHelper.destDir, "env.json"), json.toString());
 			
 						
