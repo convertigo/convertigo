@@ -661,8 +661,8 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	private boolean trustAllServerCertificates;
 	
 	transient final private Map<Thread, Shuttle> siteClipperRequestObjectsPerThread = Collections.synchronizedMap(new HashMap<Thread, Shuttle>());
-	transient final private CertificateManager certificateManager = new CertificateManager();
-	
+	transient final public CertificateManager certificateManager = new CertificateManager();
+
 	transient private ScreenClassHelper<SiteClipperScreenClass> screenClassHelper = new ScreenClassHelper<SiteClipperScreenClass>(this);
 	transient private DomainsFilterHelper domainsFilter = new DomainsFilterHelper(this);
 	transient private HostConfiguration hostConfiguration = null;

@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
+import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -57,7 +59,15 @@ public abstract class FrontalBiller extends Biller {
 			frontalProperties = new Properties();
 			frontalProperties.load(new FileInputStream(Engine.CONFIGURATION_PATH + POBI_PROPERTIES_FILE_NAME));
 			
-			CertificateManager certificateManager = ((HttpConnector) context.getConnector()).certificateManager;
+			Connector connector = context.getConnector();
+			CertificateManager certificateManager = null;
+			if (connector instanceof HttpConnector) {
+				certificateManager = ((HttpConnector) connector).certificateManager;
+			}
+			else if (connector instanceof SiteClipperConnector) {
+				certificateManager = ((SiteClipperConnector) connector).certificateManager;
+			} 
+			
 			certificate = new File(certificateManager.keyStore).getName();
 			int idx = certificate.indexOf('.');
 			if (idx != -1 ) {

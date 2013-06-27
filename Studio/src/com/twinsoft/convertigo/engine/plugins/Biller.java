@@ -30,6 +30,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
+import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Context;
@@ -172,14 +174,6 @@ public abstract class Biller extends AbstractBiller {
 	public void insertCariocaBilling(Context context, Object data) throws EngineException {
 		String sSqlRequest = null;
 		try {
-			Engine.logBillers.debug("[Biller] Trying to insert the billing into a Carioca database ");
-			sqlRequester.open();
-			
-			CertificateManager certificateManager = ((HttpConnector) context.getConnector()).certificateManager;
-			if (!certificateManager.storeInformationCollected) {
-				certificateManager.collectStoreInformation(context);
-			}
-
 			int cache = 0;
 			double cost = getCost(context, data);
 			if (cost == -1) {
@@ -192,59 +186,75 @@ public abstract class Biller extends AbstractBiller {
 				cache = 1;
 			}
 
+			Connector connector = context.getConnector();
+			CertificateManager certificateManager = null;
+			if (connector instanceof HttpConnector) {
+				certificateManager = ((HttpConnector) connector).certificateManager;
+			}
+			else if (connector instanceof SiteClipperConnector) {
+				certificateManager = ((SiteClipperConnector) connector).certificateManager;
+			} 
+			
+			if (!certificateManager.storeInformationCollected) {
+				certificateManager.collectStoreInformation(context);
+			}
+
 			String certificate = new File(certificateManager.keyStore).getName();
 			int idx = certificate.indexOf('.');
 			if (idx != -1 ) {
 				certificate = certificate.substring(0, idx);
 			}
 
-			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(Biller.PROPERTIES_SQL_REQUEST_INSERT_BILLING));
-			
-			try {
-				Engine.logBillers.debug("[Biller] Replacing TAS IDs");
-				sqlRequest.replace("{IDSVR}", context.get("IDSVR").toString());
-				sqlRequest.replace("{IDSERV}", context.get("IDSERV").toString());
-				sqlRequest.replace("{IDUSER}", context.get("IDUSER").toString());
-				sqlRequest.replace("{IDPROF}", context.get("IDPROF").toString());
-				sqlRequest.replace("{IDEMUL}", context.get("IDEMUL").toString());
-
-				Engine.logBillers.debug("[Biller] Replacing TAS variables");
-				sqlRequest.replaceSQL("{NomSv}", context.tasVirtualServerName, '\'');
-				sqlRequest.replaceSQL("{UserName}", context.tasUserName, '\'');
-				sqlRequest.replaceSQL("{UserGroup}", context.tasUserGroup, '\'');
-				sqlRequest.replaceSQL("{Service}", getService(context, data), '\'');
-				
-				Engine.logBillers.debug("[Biller] Replacing POBI variables");
-				sqlRequest.replace("{cdbanque}", context.get("cdbanque").toString());
-				sqlRequest.replace("{cdguichet}", context.get("cdguichet").toString());
-				sqlRequest.replaceSQL("{certificat}", certificate, '\'');
-				sqlRequest.replace("{cache}", Integer.toString(cache));
-				sqlRequest.replaceSQL("{module}", getModule(context, data), '\'');
-				sqlRequest.replaceSQL("{userdata}", context.get("userdata").toString(), '\'');
-				sqlRequest.replaceSQL("{BDFKey}", getDataKey(context, data), '\'');
-				sqlRequest.replaceSQL("{UserGroupAuto}", context.get("UserGroupAuto").toString(), '\'');
-			}
-			catch(NullPointerException e) {
-				throw new EngineException("One parameter for SQL replacement is missing.", e);
-			}
-
-			Engine.logBillers.debug("[Biller] Replacements from the context done");
-		
-			Calendar rightNow = Calendar.getInstance();
-			SimpleDateFormat df = new SimpleDateFormat(sqlRequester.getProperty(Biller.PROPERTIES_SQL_DATE_FORMAT));
-			String date = df.format(rightNow.getTime());
-			sqlRequest.replace("{StartHour}", date);
-			sqlRequest.replace("{EndHour}", date);
-			Engine.logBillers.debug("[Biller] Start and End hour computed");
-		
-			sqlRequest.replace("{Cost}", Double.toString(cost));
-			Engine.logBillers.debug("[Biller] Cost computed");
-			
-			sSqlRequest = sqlRequest.toString();
-			Engine.logBillers.debug("[Biller] SQL: " + sSqlRequest);
-
 			Statement statement = null;
 			try {
+				Engine.logBillers.debug("[Biller] Replacements from the context done");
+				
+				Engine.logBillers.debug("[Biller] Trying to insert the billing into a Carioca database ");
+				sqlRequester.open();
+				
+				StringEx sqlRequest = new StringEx(sqlRequester.getProperty(Biller.PROPERTIES_SQL_REQUEST_INSERT_BILLING));
+				
+				try {
+					Engine.logBillers.debug("[Biller] Replacing TAS IDs");
+					sqlRequest.replace("{IDSVR}", context.get("IDSVR").toString());
+					sqlRequest.replace("{IDSERV}", context.get("IDSERV").toString());
+					sqlRequest.replace("{IDUSER}", context.get("IDUSER").toString());
+					sqlRequest.replace("{IDPROF}", context.get("IDPROF").toString());
+					sqlRequest.replace("{IDEMUL}", context.get("IDEMUL").toString());
+
+					Engine.logBillers.debug("[Biller] Replacing TAS variables");
+					sqlRequest.replaceSQL("{NomSv}", context.tasVirtualServerName, '\'');
+					sqlRequest.replaceSQL("{UserName}", context.tasUserName, '\'');
+					sqlRequest.replaceSQL("{UserGroup}", context.tasUserGroup, '\'');
+					sqlRequest.replaceSQL("{Service}", getService(context, data), '\'');
+					
+					Engine.logBillers.debug("[Biller] Replacing POBI variables");
+					sqlRequest.replace("{cdbanque}", context.get("cdbanque").toString());
+					sqlRequest.replace("{cdguichet}", context.get("cdguichet").toString());
+					sqlRequest.replaceSQL("{certificat}", certificate, '\'');
+					sqlRequest.replace("{cache}", Integer.toString(cache));
+					sqlRequest.replaceSQL("{module}", getModule(context, data), '\'');
+					sqlRequest.replaceSQL("{userdata}", context.get("userdata").toString(), '\'');
+					sqlRequest.replaceSQL("{BDFKey}", getDataKey(context, data), '\'');
+					sqlRequest.replaceSQL("{UserGroupAuto}", context.get("UserGroupAuto").toString(), '\'');
+				}
+				catch(NullPointerException e) {
+					throw new EngineException("One parameter for SQL replacement is missing.", e);
+				}
+
+				Calendar rightNow = Calendar.getInstance();
+				SimpleDateFormat df = new SimpleDateFormat(sqlRequester.getProperty(Biller.PROPERTIES_SQL_DATE_FORMAT));
+				String date = df.format(rightNow.getTime());
+				sqlRequest.replace("{StartHour}", date);
+				sqlRequest.replace("{EndHour}", date);
+				Engine.logBillers.debug("[Biller] Start and End hour computed");
+			
+				sqlRequest.replace("{Cost}", Double.toString(cost));
+				Engine.logBillers.debug("[Biller] Cost computed");
+				
+				sSqlRequest = sqlRequest.toString();
+				Engine.logBillers.debug("[Biller] SQL: " + sSqlRequest);
+
 				statement = sqlRequester.connection.createStatement();
 				int nResult = statement.executeUpdate(sSqlRequest);
 				Engine.logBillers.debug("[Biller] " + nResult + " row(s) inserted.");
