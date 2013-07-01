@@ -181,8 +181,9 @@ public class ProjectsDataFilter implements Filter {
 	    			}
 	    		}
         	}
-    	}
-    	else {
+    	} else if (Engine.theApp != null && Engine.theApp.resourceCompressorManager != null  && Engine.theApp.resourceCompressorManager.check(request, response)) {
+    		return;
+    	} else {
         	Engine.logContext.debug("Convertigo request => follow the normal filter chain");
         	chain.doFilter(request, response);
     	}

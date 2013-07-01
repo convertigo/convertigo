@@ -6,6 +6,9 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URLDecoder;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,6 +26,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ResourceCompressorManager.ResourceBundle;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 
 public class MobileResourceHelper {
@@ -133,43 +137,64 @@ public class MobileResourceHelper {
 			} else {
 				// jQuery Mobile case
 				
+				List<File> filesToDelete = new LinkedList<File>();
+				
 				for (File htmlFile :FileUtils.listFiles(destDir, new String[] {"html"}, true)) {
 					String htmlContent = FileUtils.readFileToString(htmlFile);
 					StringBuffer sbIndexHtml = new StringBuffer();
 					BufferedReader br = new BufferedReader(new StringReader(htmlContent));
 					String line = br.readLine();
 					while (line != null) {
-						if (!line.contains("<!--") && line.contains("\"../../../../")) {
-							String file = line.replaceFirst(".*\"\\.\\./\\.\\./\\.\\./\\.\\./(.*?)\".*", "$1");
-							File inFile = new File(Engine.WEBAPP_PATH + "/" + file);
-							
-							if (inFile.exists()) {
-								boolean needImages = file.matches(".*jquery\\.mobile\\..*?min\\.css");
+						if (!line.contains("<!--")) {
+							if (line.contains("\"../../../../")) {
+								String file = line.replaceFirst(".*\"\\.\\./\\.\\./\\.\\./\\.\\./(.*?)\".*", "$1");
+								File inFile = new File(Engine.WEBAPP_PATH + "/" + file);
 								
-								file = file.replace("scripts/", "js/");
-								File outFile = new File(destDir, file);
-								outFile.getParentFile().mkdirs();
-								FileUtils.copyFile(inFile, outFile);
-								line = line.replaceFirst("\"\\.\\./\\.\\./\\.\\./\\.\\./.*?\"", "\"" + file + "\"");
-								
-								if (needImages) {
-									File inImages = new File(inFile.getParentFile(), "images");
-									File outImages = new File(outFile.getParentFile(), "images");
-									FileUtils.copyDirectory(inImages, outImages, defaultFilter, true);
+								if (inFile.exists()) {
+									boolean needImages = file.matches(".*jquery\\.mobile\\..*?min\\.css");
+									
+									file = file.replace("scripts/", "js/");
+									File outFile = new File(destDir, file);
+									outFile.getParentFile().mkdirs();
+									FileUtils.copyFile(inFile, outFile);
+									line = line.replaceFirst("\"\\.\\./\\.\\./\\.\\./\\.\\./.*?\"", "\"" + file + "\"");
+									
+									if (needImages) {
+										File inImages = new File(inFile.getParentFile(), "images");
+										File outImages = new File(outFile.getParentFile(), "images");
+										FileUtils.copyDirectory(inImages, outImages, defaultFilter, true);
+									}
+									
+									if (file.matches(".*/jquery\\.mobilelib\\..*?js")) {
+										String sJs = FileUtils.readFileToString(outFile);
+										sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "/\"");
+										writeStringToFile(outFile, sJs);
+									}
+									
+									if (file.matches(".*/flashupdate_.*?\\.css")) {
+										FileUtils.copyDirectory(new File(inFile.getParentFile(), "flashupdate_fonts"), new File(outFile.getParentFile(), "flashupdate_fonts"), defaultFilter, true);
+										FileUtils.copyDirectory(new File(inFile.getParentFile(), "flashupdate_images"), new File(outFile.getParentFile(), "flashupdate_images"), defaultFilter, true);
+									}
 								}
-								
-								if (file.matches(".*/jquery\\.mobilelib\\..*?js")) {
-									String sJs = FileUtils.readFileToString(outFile);
-									sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "/\"");
-									writeStringToFile(outFile, sJs);
-								}
-								
-								if (file.matches(".*/flashupdate_.*?\\.css")) {
-									FileUtils.copyDirectory(new File(inFile.getParentFile(), "flashupdate_fonts"), new File(outFile.getParentFile(), "flashupdate_fonts"), defaultFilter, true);
-									FileUtils.copyDirectory(new File(inFile.getParentFile(), "flashupdate_images"), new File(outFile.getParentFile(), "flashupdate_images"), defaultFilter, true);
+							} else {
+								Pattern pScript = Pattern.compile("(?:(?:<script .*?src)|(?:<link .*?href))=\"(.*?)\"");
+								Matcher mScript = pScript.matcher(line);
+								if (mScript.find()) {
+									String uri = mScript.group(1);
+									uri = htmlFile.getParent().substring(projectDir.getParent().length()) + "/" + uri;
+									ResourceBundle resourceBundle = Engine.theApp.resourceCompressorManager.process(uri);
+									if (resourceBundle != null) {
+										resourceBundle.writeFile();
+										for (File file : resourceBundle.getFiles()) {
+											if (file.getPath().indexOf(projectDir.getPath()) == 0) {
+												filesToDelete.add(file);
+											}
+										}
+									}
 								}
 							}
 						}
+						
 						sbIndexHtml.append(line + "\n");
 						line = br.readLine();
 					}
@@ -177,6 +202,10 @@ public class MobileResourceHelper {
 					htmlContent = sbIndexHtml.toString();
 
 					writeStringToFile(htmlFile, htmlContent);
+				}
+				
+				for (File file : filesToDelete) {
+					FileUtils.deleteQuietly(file);
 				}
 			}
 			

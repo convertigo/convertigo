@@ -190,6 +190,11 @@ public class Engine {
 	 * The external browser manager
 	 */
 	public SchemaManager schemaManager;
+	
+	/**
+	 * The external browser manager
+	 */
+	public ResourceCompressorManager resourceCompressorManager;
 
 	/**
 	 * Loggers
@@ -427,6 +432,13 @@ public class Engine {
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to run the trace player.", e);
 				}
+				
+				try {
+					Engine.theApp.resourceCompressorManager = new ResourceCompressorManager();
+					Engine.theApp.resourceCompressorManager.init();
+				} catch (Exception e) {
+					Engine.logEngine.error("Unable to run the resource compressor.", e);
+				} 
 				
 				Engine.logEngine
 						.info("Current working directory is '" + System.getProperty("user.dir") + "'.");
@@ -779,6 +791,10 @@ public class Engine {
 				
 				if (Engine.theApp.schemaManager != null) {
 					Engine.theApp.schemaManager.destroy();
+				}
+				
+				if (Engine.theApp.resourceCompressorManager != null) {
+					Engine.theApp.resourceCompressorManager.destroy();
 				}
 
 				// Closing the session manager

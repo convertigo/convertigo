@@ -17,6 +17,7 @@
 	<classpathentry kind="lib" path="lib/internal/ui-090918.jar"/>
 	<classpathentry kind="lib" path="lib/internal/util-v28883.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry kind="lib" path="lib/internal/vdx-090918.jar"/>
+	<classpathentry kind="lib" path="lib/internal/vt220-v34405.jar"/>
 	<classpathentry kind="lib" path="lib/internal/ms.jar"/>
 	<classpathentry kind="lib" path="lib/internal/netscape.jar"/>
 	<classpathentry kind="lib" path="lib/internal/comm.jar"/>
@@ -40,7 +41,7 @@
 	<classpathentry kind="lib" path="lib/javapns/JavaPNS_2.2.jar"/>
 	<classpathentry kind="lib" path="lib/javapns/bcprov-jdk15-146.jar"/>
 	<classpathentry kind="lib" path="lib/gcm/gcm-server.jar"/>
-	<classpathentry kind="lib" path="lib/internal/vt220-v34405.jar"/>
+	<classpathentry kind="lib" path="lib/yuicompressor-2.4.7.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="lib" path="lib/cos.jar"/>
 	<classpathentry kind="lib" path="lib/jCharts-0.7.2.jar"/>
