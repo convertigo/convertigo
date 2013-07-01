@@ -49,11 +49,21 @@ public class PobiProxyBiller extends PobiBiller {
 	//
 	// SurvMP
 	//
-	private String strPreClotureDeclarationSurvMP = 	"SurvMP Chèque > Déclaration en cours > Pré-clôture > Impression";
-	private String strSaisieSurvMP = 					"SurvMP Chèque > Déclaration en cours > Saisie";
-	private String strCartographieSurvMP =				"SurvMP Cartographie > Accueil"; 
+	private String strPreClotureDeclarationSurvMP = 	"SurvMP Référentiel chèque > Déclaration en cours > Pré-clôture > Impression";
+	private String strClotureChequeSurvMP = 			"SurvMP Référentiel chèque > Déclaration en cours > Remise";
+	private String strSaisieSurvMP = 					"SurvMP Référentiel chèque > Déclaration en cours > Saisie";
+	private String strCartographieSurvMP =				"SurvMP Cartographie \"établissements\" > Déclaration en cours > Saisie";
+	private String strCartographiePlus = 				"Contenu de la déclaration";
+	private String strClotureCartographie =				"SurvMP Cartographie \"établissements\" > Déclaration en cours > Remise";
+	private String strCartoPrivativeSurvMP =			"SurvMP Cartographie \"émetteurs de cartes privatives\" > Déclaration en cours > Saisie";
+	private String strCartographiePrivativePlus = 		"Contenu de la déclaration";
+	private String strClotureCartoPrivative =			"SurvMP Cartographie \"émetteurs de cartes privatives\" > Déclaration en cours > Remise";
 	private String strContenuDeclarationSurvMP = 		"Contenu de la déclaration";
-	private String strAccueilSurvMP = 					"SurvMP Chèque > Accueil";
+	private String strAccueilSurvMP = 					"Merci d'indiquer votre numéro d'accréditation";
+	private String strSaisieDeclarationFraude =			"SurvMP Recensement de la fraude > Déclaration en cours > Saisie";
+	private String strSaisieDeclarationFraudePlus =		"Contenu de la déclaration";	
+	private String strClotureFraude =					"SurvMP Recensement de la fraude > Déclaration en cours > Remise";
+
 	//
 	// Eligibilité
 	//
@@ -255,7 +265,10 @@ public class PobiProxyBiller extends PobiBiller {
 			return -1;
 		}
 
-		return getApplicationCost("ficp", cleBDF, sousCle, nbp);
+		if (cleBDF != "")		
+			return getApplicationCost("ficp", cleBDF, sousCle, nbp);
+		
+		return -1;
 	}
 
 	private boolean isFirstHomonyme(String cleBDF, String sousCle, String application) throws SQLException {
@@ -338,14 +351,26 @@ public class PobiProxyBiller extends PobiBiller {
 		if (html.indexOf(strAccueilSurvMP) != -1)				// SurvMP page d'accueil
 			return 0;
 				
-		if (html.indexOf(strCartographieSurvMP) != -1)			// SurvMP Cartographie
+		if ((html.indexOf(strClotureCartographie) != -1) || ((html.indexOf(strCartographieSurvMP) != -1) && (html.indexOf(strCartographiePlus) != -1)))		// SurvMP Cartographie
+			return 0;		
+
+		if ((html.indexOf(strClotureCartoPrivative) != -1) || ((html.indexOf(strCartoPrivativeSurvMP) != -1)  && (html.indexOf(strCartographiePrivativePlus) != -1)))	// SurvMP Cartographie privative
 			return 0;		
 		
 		// IMPORTANT : must have these two strings to trigger
-		if ((html.indexOf(strSaisieSurvMP) != -1) && (html.indexOf(strContenuDeclarationSurvMP) != -1))	// SurvMP Homologation Chéque
+		if ((html.indexOf(strSaisieSurvMP) != -1) && (html.indexOf(strContenuDeclarationSurvMP) != -1))			// SurvMP Homologation Chéque
 			return 0;
+				
+		if (html.indexOf(strClotureChequeSurvMP) != -1)			// SurvMP Cloture Cheque Declaration
+			return 0;		
 		
 		if (html.indexOf(strPreClotureDeclarationSurvMP) != -1)	// SurvMP PreCloture Declaration
+			return 0;		
+		
+		if ((html.indexOf(strSaisieDeclarationFraude) != -1) && (html.indexOf(strSaisieDeclarationFraudePlus) != -1))	// SurvMP Saisie Fraude Declaration
+			return 0;
+
+		if (html.indexOf(strClotureFraude) != -1)				// SurvMP Cloture Fraude
 			return 0;		
 
 		// default
@@ -369,7 +394,9 @@ public class PobiProxyBiller extends PobiBiller {
 		if (html.indexOf("FNCI") != -1)
 			return "FNCI mise à jour";
 
-		if (html.indexOf(strPreClotureDeclarationSurvMP) != -1) 
+		if ((html.indexOf(strClotureChequeSurvMP) != -1)
+				|| (html.indexOf(strPreClotureDeclarationSurvMP) != -1)
+				|| (html.indexOf(strSaisieSurvMP) != -1))
 			return "Chèque";
 
 		if (html.indexOf(strSaisieSurvMP) != -1)
@@ -380,6 +407,16 @@ public class PobiProxyBiller extends PobiBiller {
 		
 		if (html.indexOf(strServiceEligibilite) != -1)
 			return "Eligibilité";
+
+		if (((html.indexOf(strSaisieDeclarationFraude) != -1) && (html.indexOf(strSaisieDeclarationFraudePlus) != -1))
+			|| (html.indexOf(strClotureFraude) != -1))
+			return "Fraude";		
+		
+		if ((html.indexOf(strCartographieSurvMP) != -1) || (html.indexOf(strClotureCartographie) != -1))
+			return "Cartographie";		
+	
+		if ((html.indexOf(strClotureCartoPrivative) != -1) || (html.indexOf(strCartoPrivativeSurvMP) != -1))
+			return "Cartographie";		
 
 		// default
 		return super.getService(context, data);
@@ -397,7 +434,16 @@ public class PobiProxyBiller extends PobiBiller {
 			return "Déclaration chèques payés";
 
 		if (html.indexOf(strCartographieSurvMP) != -1)
-			return "Accueil Carto";
+			return "Saisie";
+		
+		if (html.indexOf(strClotureCartographie) != -1)
+			return "Clôture";
+
+		if (html.indexOf(strCartoPrivativeSurvMP) != -1)
+			return "Saisie";
+
+		if (html.indexOf(strClotureCartoPrivative) != -1)
+			return "Clôture";
 		
 		if (html.indexOf(strFccMajPersonneMoraleNonImmatriculee) != -1)
 			return "Déclaration";
@@ -405,7 +451,8 @@ public class PobiProxyBiller extends PobiBiller {
 		if (html.indexOf(strPreClotureDeclarationSurvMP) != -1)
 			return "Pré-Clôture";
 
-		if (html.indexOf(strSaisieSurvMP) != -1) 
+		if (((html.indexOf(strSaisieDeclarationFraude) != -1) && (html.indexOf(strSaisieDeclarationFraudePlus) != -1))
+				|| (html.indexOf(strSaisieSurvMP) != -1)) 
 			return "Saisie";
 
 		if (html.indexOf(strAccueilSurvMP) != -1)
@@ -414,6 +461,10 @@ public class PobiProxyBiller extends PobiBiller {
 		if (html.indexOf(strServiceEligibilite) != -1)
 			return ""; // empty
 
+		if ((html.indexOf(strClotureChequeSurvMP) != -1)
+				|| (html.indexOf(strClotureFraude) != -1))
+				return "Clôture";
+
 		// default
 		return "(proxy)";
 	}
@@ -421,10 +472,12 @@ public class PobiProxyBiller extends PobiBiller {
 	protected String getDataKey(Context context, Object data) {
 		String html = (String) data;
 
-		if (html.indexOf(strFccConsultationFichierCentralCheques) != -1)
-			return getFccBdfKeyProxy(html);
-		
-		if (html.indexOf(strFccFichierCentralCheques) != -1)
+		if (((html.indexOf(strFccSuppressionChequeBdFenInfraction) != -1) && (html
+				.indexOf(strFccSuppressionChequesPayes) != -1))
+				|| ((html.indexOf(strFccDeclarationRemiseBDF) != -1) && (html
+						.indexOf(strFccDeclarationChequesPayes) != -1))
+				|| (html.indexOf(strFccConsultationFichierCentralCheques) != -1)
+				|| (html.indexOf(strFccFichierCentralCheques) != -1))
 			return getFccBdfKeyProxy(html);
 		
 		if (html.indexOf("FICP") != -1)
@@ -433,6 +486,12 @@ public class PobiProxyBiller extends PobiBiller {
 		if (html.indexOf("FNCI") != -1)
 			return getFnciBdfKeyProxy(html);
 		
+		// return empty string here to avoid falling into
+		// Exception generation just after
+		// changed by jmc 05/11/2007
+		if (html.indexOf("SurvMP") != -1)
+			return ""; 
+
 		// si on n'a pas trouvé
 		Engine.logBillers.error(
 			"[PobiBiller] Unable to get the transaction BDF key; aborting billing.",
