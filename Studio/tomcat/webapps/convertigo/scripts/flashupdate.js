@@ -31,7 +31,7 @@ downloadFiles ?
 */
 
 var F = {
-	reTailUrl: new RegExp("(.*)/.*"),
+	reTailUrl: new RegExp("([^#?]*)/.*"),
 	local: null,
 	currentFiles: null,
 	remoteFiles: null,
