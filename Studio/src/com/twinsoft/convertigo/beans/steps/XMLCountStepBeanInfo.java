@@ -31,8 +31,8 @@ public class XMLCountStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = XMLCountStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.steps.XMLElementStep.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/step_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/step_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/countstep_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/countstep_32x32.png";
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/XMLCountStep");
 			
