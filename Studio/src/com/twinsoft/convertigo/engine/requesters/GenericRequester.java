@@ -390,6 +390,11 @@ public abstract class GenericRequester extends Requester {
 			Engine.logContext.debug("Required context: " + parameterValue);
 			// This parameter is not handled here
 		}
+		// Parameter for removing namespaces
+		else if (parameterName.equals(Parameter.RemoveNamespaces.getName())) {
+			Engine.logContext.debug("Namespaces removal required");
+			context.removeNamespaces = true;
+		}
 		// This means "Async mode"
 		else if (parameterName.equals(Parameter.Async.getName())) {
 			context.isAsync = (parameterValue.equalsIgnoreCase("true") || parameterValue.equalsIgnoreCase("1")) ? true : false;

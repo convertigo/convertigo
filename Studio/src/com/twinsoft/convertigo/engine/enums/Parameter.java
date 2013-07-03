@@ -42,6 +42,7 @@ public enum Parameter {
 	ProxyGoto("__goto"),
 	ProxyThen("__then"),
 	RemoveContext("__removeContext"),
+	RemoveNamespaces("__removeNamespaces"),
 	RemoveSession("__removeSession"),
 	RsaEncoded("__encoded"),
 	Sequence("__sequence"),

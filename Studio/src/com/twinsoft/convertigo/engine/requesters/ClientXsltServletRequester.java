@@ -28,11 +28,18 @@ import org.w3c.dom.*;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.translators.Translator;
+import com.twinsoft.convertigo.engine.translators.XmlServletTranslator;
 
 public class ClientXsltServletRequester extends ServletRequester {
 
     public ClientXsltServletRequester() {
     }
+
+    @Override
+	public Translator getTranslator() {
+		return new XmlServletTranslator();
+	}
 
     public String getName() {
         return "ClientXsltServletRequester";

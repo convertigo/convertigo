@@ -28,8 +28,6 @@ import java.util.Enumeration;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.w3c.dom.Document;
-
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -277,10 +275,4 @@ public abstract class ServletRequester extends GenericRequester {
 			httpSession.setAttribute("__sessionListener", new HttpSessionListener());
 		}
 	}
-	
-	@Override
-	public Object postGetDocument(Document document) throws Exception {
-		Object result = super.postGetDocument(document);
-		return result;
-    }
 }

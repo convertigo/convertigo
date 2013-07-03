@@ -125,6 +125,8 @@ public class Context extends AbstractContext {
 	public RequestableObject requestedObject;
 	public ISheetContainer lastDetectedObject;
 	
+	public boolean removeNamespaces = false;
+	
 	// compatibility with older versions
 	public ScreenClass lastDetectedScreenClass = null;
 	public Transaction transaction = null;//
@@ -196,6 +198,8 @@ public class Context extends AbstractContext {
 		lastDetectedObject = null;
 		
 		userReference = null;
+		
+		removeNamespaces = false;
 
 		// For compatibility with older javelin projects
 		lastDetectedScreenClass = null;

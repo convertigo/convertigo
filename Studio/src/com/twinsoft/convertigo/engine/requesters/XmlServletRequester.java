@@ -28,6 +28,8 @@ import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.translators.Translator;
+import com.twinsoft.convertigo.engine.translators.XmlServletTranslator;
 
 public class XmlServletRequester extends ServletRequester {
 
@@ -37,6 +39,11 @@ public class XmlServletRequester extends ServletRequester {
     public String getName() {
         return "XmlServletRequester";
     }
+
+    @Override
+	public Translator getTranslator() {
+		return new XmlServletTranslator();
+	}
 
 	public void setStyleSheet(Document document) {
         // No sheet should be inserted
