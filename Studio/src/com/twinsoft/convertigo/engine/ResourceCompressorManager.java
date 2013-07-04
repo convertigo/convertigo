@@ -21,10 +21,13 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+import ro.isdc.wro.extensions.processor.js.UglifyJsProcessor;
+import ro.isdc.wro.model.resource.processor.impl.css.CssCompressorProcessor;
+import ro.isdc.wro.model.resource.processor.impl.css.CssMinProcessor;
+import ro.isdc.wro.model.resource.processor.impl.js.JSMinProcessor;
+
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
-import com.yahoo.platform.yui.compressor.CssCompressor;
-import com.yahoo.platform.yui.compressor.JavaScriptCompressor;
 
 public class ResourceCompressorManager implements AbstractManager {
 	static final File compressorCacheDirectory = new File(Engine.USER_WORKSPACE_PATH + "/compressor");
@@ -158,11 +161,17 @@ public class ResourceCompressorManager implements AbstractManager {
 					result = sources.toString();
 				} else {
 					if (resourceType == ResourceType.js) {
-						JavaScriptCompressor javaScriptCompressor = new JavaScriptCompressor(new StringReader(sources.toString()), null);
-						javaScriptCompressor.compress(compressed, 80, true, false, false, compression == CompressionOptions.light);
+						if (compression == CompressionOptions.light) {
+							new JSMinProcessor().process(new StringReader(sources.toString()), compressed);
+						} else {
+							new UglifyJsProcessor().process(new StringReader(sources.toString()), compressed);
+						}
 					} else {
-						CssCompressor cssCompressor = new CssCompressor(new StringReader(sources.toString()));
-						cssCompressor.compress(compressed, 80);
+						if (compression == CompressionOptions.light) {
+							new CssMinProcessor().process(new StringReader(sources.toString()), compressed);
+						} else {
+							new CssCompressorProcessor().process(new StringReader(sources.toString()), compressed);
+						}
 					}
 					result = compressed.toString();
 				}
@@ -194,6 +203,10 @@ public class ResourceCompressorManager implements AbstractManager {
 		
 		public void writeFile() throws IOException {
 			FileUtils.write(virtualFile, getResult(), "utf-8");
+		}
+		
+		public void writeFile(String prepend) throws IOException {
+			FileUtils.write(virtualFile, getResult() + prepend, "utf-8");
 		}
 		
 		private void setCompression(CompressionOptions compression) {

@@ -2,7 +2,8 @@ C8O = {
 	vars : { /** customizable value */
 		ajax_method : "POST", /** POST/GET */
 		requester_prefix : "",
-		i18n : ""
+		i18n : "",
+		endpoint_url : "../../"
 	},
 	
 	options : {
@@ -170,7 +171,7 @@ C8O = {
 				dataType : "xml",
 				success : C8O._onSuccess,
 				type : C8O.vars.ajax_method,
-				url : "../../" + C8O.vars.requester_prefix + ".xml"
+				url : C8O.vars.endpoint_url + C8O.vars.requester_prefix + ".pxml"
 			});
 			jqXHR.C8O_data = data;
 			C8O._define.pendingXhrCpt++;

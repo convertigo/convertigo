@@ -31,6 +31,7 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 
 public class MobileResourceHelper {
 	private static final Pattern alphaNumPattern = Pattern.compile("[\\.\\w]*");
+	Pattern pScript = Pattern.compile("(?:(?:<script .*?src)|(?:<link .*?href))=\"(.*?)\"");
 	
 	public static final IOFileFilter defaultFilter = new IOFileFilter() {
 		
@@ -177,18 +178,31 @@ public class MobileResourceHelper {
 									}
 								}
 							} else {
-								Pattern pScript = Pattern.compile("(?:(?:<script .*?src)|(?:<link .*?href))=\"(.*?)\"");
 								Matcher mScript = pScript.matcher(line);
 								if (mScript.find()) {
 									String uri = mScript.group(1);
 									uri = htmlFile.getParent().substring(projectDir.getParent().length()) + "/" + uri;
 									ResourceBundle resourceBundle = Engine.theApp.resourceCompressorManager.process(uri);
 									if (resourceBundle != null) {
-										resourceBundle.writeFile();
-										for (File file : resourceBundle.getFiles()) {
-											if (file.getPath().indexOf(projectDir.getPath()) == 0) {
-												filesToDelete.add(file);
+										synchronized (resourceBundle) {
+											line = line.replaceAll("(?:#|\\?).*?(?<!\\\\)(\")","$1");
+											String prepend = null;
+											for (File file : resourceBundle.getFiles()) {
+												if (file.getName().matches("jquery\\.mobilelib\\..*?js")) {
+													prepend = "C8O.vars.endpoint_url=\"" + endPoint + "/\";";												
+													break;
+												}
 											}
+											if (prepend == null) {
+												resourceBundle.writeFile();
+											} else {
+												resourceBundle.writeFile(prepend);
+											}
+											for (File file : resourceBundle.getFiles()) {
+												if (file.getPath().indexOf(projectDir.getPath()) == 0) {
+													filesToDelete.add(file);
+												}
+											}											
 										}
 									}
 								}

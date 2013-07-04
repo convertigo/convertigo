@@ -106,8 +106,11 @@
       <library name="lib/qrcode.jar"/>
       <library name="lib/mysql-connector.jar"/>
       <library name="lib/mariadb-java-client-1.1.1.jar"/>
-      <library name="lib/yuicompressor-2.4.7.jar"/>
+      <library name="lib/wro4j-core-1.6.3.jar"/>
+      <library name="lib/wro4j-extensions-1.6.3.jar"/>
       <library name="lib/rhino-1.7-R4.jar"/>
+      <library name="lib/apache/commons/commons-lang3-3.1.jar"/>
+      <library name="lib/apache/commons/commons-pool-1.6.jar"/>
       <library name="lib/internal/html_parsers-v30936.jar"/>
       <library name="lib/internal/util-v28883.jar"/>
       <library name="lib/axis2-1.6.2/lib/activation-1.1.jar"/>

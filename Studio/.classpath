@@ -41,7 +41,11 @@
 	<classpathentry kind="lib" path="lib/javapns/JavaPNS_2.2.jar"/>
 	<classpathentry kind="lib" path="lib/javapns/bcprov-jdk15-146.jar"/>
 	<classpathentry kind="lib" path="lib/gcm/gcm-server.jar"/>
-	<classpathentry kind="lib" path="lib/yuicompressor-2.4.7.jar"/>
+	<classpathentry kind="lib" path="lib/wro4j-core-1.6.3.jar"/>
+	<classpathentry kind="lib" path="lib/wro4j-extensions-1.6.3.jar"/>
+	<classpathentry kind="lib" path="lib/rhino-1.7-R4.jar" sourcepath="/ExternalJavaSources/rhino-1.7R4"/>
+	<classpathentry kind="lib" path="lib/apache/commons/commons-lang3-3.1.jar"/>
+	<classpathentry kind="lib" path="lib/apache/commons/commons-pool-1.6.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="lib" path="lib/cos.jar"/>
 	<classpathentry kind="lib" path="lib/jCharts-0.7.2.jar"/>
@@ -70,7 +74,6 @@
 	<classpathentry kind="lib" path="tomcat/lib/servlet-api.jar" sourcepath="/ExternalJavaSources/apache-tomcat-6.0.36-src.zip"/>
 	<classpathentry kind="lib" path="tomcat/lib/tomcat-coyote.jar"/>
 	<classpathentry kind="lib" path="tomcat/lib/tomcat-dbcp.jar"/>
-	<classpathentry kind="lib" path="lib/rhino-1.7-R4.jar" sourcepath="/ExternalJavaSources/rhino-1.7R4"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5"/>
 	<classpathentry kind="lib" path="lib/soapui/not-yet-commons-ssl-0.3.11.jar"/>
 	<classpathentry kind="lib" path="lib/soapui/soapui-3.5.1.jar"/>
