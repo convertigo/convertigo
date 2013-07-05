@@ -150,7 +150,7 @@ public class StartupDiagnostics {
 				Engine.logEngine.info("System env HOME: " + sysEnvHome);
 
 				if (!userHome.equals(sysEnvHome)) {
-					Engine.logEngine.warn("Java home is different than the system environment HOME!");
+					Engine.logEngine.warn("Java user home is different than the system environment HOME!");
 					testsSummary += TEST_WARN;
 				} else {
 					if (!isMacOS) {
