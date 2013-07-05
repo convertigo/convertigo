@@ -145,6 +145,15 @@ public class StartupDiagnostics {
 			String userHome = System.getProperty("user.home");
 			Engine.logEngine.info("Java user home: " + userHome);
 
+			boolean isUserHomeWritable;
+			try {
+				StartupDiagnostics.testWriteAccess(new File(userHome), true);
+				isUserHomeWritable = true;
+			} catch (IOException e) {
+				Engine.logEngine.error("The Java user home directory is not writeable!");
+				isUserHomeWritable = false;
+			}
+
 			if (isLinux || isMacOS) {
 				String sysEnvHome = System.getenv("HOME");
 				Engine.logEngine.info("System env HOME: " + sysEnvHome);
@@ -152,6 +161,14 @@ public class StartupDiagnostics {
 				if (!userHome.equals(sysEnvHome)) {
 					Engine.logEngine.warn("Java user home is different than the system environment HOME!");
 					testsSummary += TEST_WARN;
+
+					try {
+						StartupDiagnostics.testWriteAccess(new File(userHome), true);
+						isUserHomeWritable &= true;
+					} catch (IOException e) {
+						Engine.logEngine.error("The system env HOME directory is not writeable!");
+						isUserHomeWritable = false;
+					}
 				} else {
 					if (!isMacOS) {
 						// Checking /etc/passwd file under linux
@@ -196,17 +213,11 @@ public class StartupDiagnostics {
 				testsSummary += TEST_SUCCESS;
 			}
 
-			// Test write access in user home dir
+			// Test write access in user home dir (Java & system env)
 			// The user dir must be writeable in order eclipse to write its
 			// working files such as .eclipse...
 			testsSummary += " - Test user home directory write access ...... ";
-			try {
-				StartupDiagnostics.testWriteAccess(new File(userHome), true);
-				testsSummary += TEST_SUCCESS;
-			} catch (IOException e) {
-				Engine.logEngine.error("The user home directory is not writeable!");
-				testsSummary += TEST_FAILED;
-			}
+			testsSummary += (isUserHomeWritable ? TEST_SUCCESS : TEST_FAILED);
 
 			// Check JBoss tmp dir
 			String jbossTmpDir = System.getProperty("jboss.server.temp.dir");
