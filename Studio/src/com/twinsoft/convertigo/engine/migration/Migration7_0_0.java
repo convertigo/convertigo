@@ -74,6 +74,7 @@ import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLActionStep;
+import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
@@ -289,6 +290,15 @@ public class Migration7_0_0 {
 						if (transaction instanceof TransactionWithVariables) {
 							TransactionWithVariables transactionVars = (TransactionWithVariables) transaction;
 							handleRequestableVariable(transactionVars.getVariablesList());
+							
+							// Change SQLQuery variables : i.e. {id} --> {{id}}
+							if (transaction instanceof SqlTransaction){
+								String sqlQuery = ((SqlTransaction) transaction).getSqlQuery();
+								
+								sqlQuery = sqlQuery.replaceAll("\\{([a-zA-Z0-9_]+)\\}", "{{$1}}");
+								((SqlTransaction) transaction).setSqlQuery(sqlQuery);
+							}
+							
 						}
 					}
 				}
