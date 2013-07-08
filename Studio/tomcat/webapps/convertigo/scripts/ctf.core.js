@@ -622,11 +622,6 @@ $.extend(true, C8O, {
 			// Find whether the call compionent is inside a form
 			var $form = $element.closest("form");
 			if ($form.length > 0) {
-				// Cancel form submissions as we are going to handle them by ourselves
-				$form.submit(function () {
-				    return false;
-				});
-
 				// Search for input fields in the form
 				C8O.formToData($form, c8oCallParams);
 			}
@@ -677,14 +672,14 @@ $.extend(true, C8O, {
 C8O.addHook("document_ready", function () {
 	C8O.removeRecallParameter("__connector");
 	
-	$(document).on("click.c8o submit.c8o", "[data-c8o-call]", function () {
+	$(document).on("click", ":not(form)[data-c8o-call]", function () {
 		var callMode = $(this).attr("data-c8o-call-mode");
 		if (C8O.isUndefined(callMode) || callMode == "click") {
 			return C8O._onC8oCall(this);
 		}
-	});
-	
-	$(document).on("click.c8o", "[data-c8o-render]", function () {
+	}).on("submit", "form[data-c8o-call]", function () {
+		return C8O._onC8oCall(this);
+	}).on("click", "[data-c8o-render]", function () {
 		var eventName = $(this).attr("data-c8o-render");
 		for (var templateID in C8O._templates) {
 			var $lateRender = $("[data-c8o-template-id=" + templateID + "][data-c8o-late-render=" + eventName + "]");
