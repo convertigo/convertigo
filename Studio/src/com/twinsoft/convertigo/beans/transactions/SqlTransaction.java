@@ -30,13 +30,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.UniqueTag;
@@ -56,7 +56,6 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.util.StringEx;
 
 public class SqlTransaction extends TransactionWithVariables {
 
@@ -68,18 +67,21 @@ public class SqlTransaction extends TransactionWithVariables {
 	/** The PreparedStatement to execute queries */
 	transient private PreparedStatement preparedStatement = null;
 	
-	/** The vectors of parameterNames for the query. */
-	transient private Set<String> declaredParametersSet = null;
-	transient private Set<String> oldDeclaredParametersSet = null;
-	
 	/** The type of query. */
 	transient private int type = -1;
 	
 	/** Use for stock parameter of the query. */
 	transient private Map<String, String> parametersMap = new HashMap<String, String>();
 	
-	/** Use for get order of parameters */
-	transient private List<String> orderedParametersList = new ArrayList<String>();
+	/** Use for get order of parameters for the query */
+	transient private List<String> orderedParametersList = null;
+	transient private List<String> oldOrderedParametersList = null;
+	
+	/** Just use for the parameterized parameter like {{id}} **/
+	transient private List<String> otherParametersList = null;
+
+	/** Use for replacement of values when we have the case of parameter looks like "{{id}}" */
+	transient private String sqlQueryReplacement = ""; 
 	
 	/** Holds value of property sqlQuery. */
 	private String sqlQuery = "";
@@ -128,8 +130,9 @@ public class SqlTransaction extends TransactionWithVariables {
     	SqlTransaction clonedObject = (SqlTransaction) super.clone();
     	clonedObject.connector = null;
     	clonedObject.preparedStatement = null;
-    	clonedObject.declaredParametersSet = null;
-    	clonedObject.oldDeclaredParametersSet = null;
+    	clonedObject.orderedParametersList = null;
+    	clonedObject.oldOrderedParametersList = null;
+    	clonedObject.otherParametersList = null;
     	clonedObject.type = type;
         return clonedObject;
     }
@@ -170,10 +173,11 @@ public class SqlTransaction extends TransactionWithVariables {
 	}
 
 	private void initializeQuery(boolean updateDefinitions) {
+
 		if ((sqlQuery != null) && (isSubLoaded || (bNew && updateDefinitions))) {
-			int start= 0, bIndex=-1, eIndex=-1;
+			sqlQueryReplacement = sqlQuery;
 			
-			// retrieve query type
+			// Retrieve query type
 			if (sqlQuery.toUpperCase().indexOf("SELECT") == 0)
 				type = SqlTransaction.TYPE_SELECT;
 			else if (sqlQuery.toUpperCase().indexOf("UPDATE") == 0)
@@ -192,51 +196,60 @@ public class SqlTransaction extends TransactionWithVariables {
 				type = SqlTransaction.TYPE_TRUNCATE_TABLE;
 			else type = TYPE_UNKNOWN;
 			
-			// retrieve parameter names
-			declaredParametersSet = new HashSet<String>();
+			// Retrieve parameter names
+			orderedParametersList = new ArrayList<String>(); // for parameters like {id}
+			otherParametersList = new ArrayList<String>();	 // for parameters like {{id}}
 			
-			// Clear the parameterName order List
-			orderedParametersList.clear();
-			while ((bIndex = sqlQuery.indexOf("{", start)) != -1) {
-				if ((eIndex = sqlQuery.indexOf("}", bIndex)) != -1) {
-					// retrieve parameter name
-					String parameterName = sqlQuery.substring(bIndex+1, eIndex);
-					
-					// add the parameterName into the ArrayList if is a value and not a table name for example.
-					orderedParametersList.add(parameterName);
+			// Clear parameters Map
+			parametersMap.clear();
 
-					// add parameter content's to hashtable
-					declaredParametersSet.add(parameterName);
-					
-					// add a new variable with name equal to parameterName
-					if (updateDefinitions && (getVariable(parameterName) == null)) {
-						try {
-							if (!StringUtils.isNormalized(parameterName))
-								throw new EngineException("Parameter name is not normalized : \""+parameterName+"\".");
-							
-							RequestableVariable variable = new RequestableVariable();
-							variable.setName(parameterName);
-							variable.setDescription(parameterName);
-							variable.setWsdl(Boolean.TRUE);
-							variable.setCachedKey(Boolean.TRUE);
-							addVariable(variable);
-
-							variable.bNew = true;
-							variable.hasChanged = true;
-							hasChanged = true;
-						} catch(EngineException e) {
-							Engine.logBeans.error("Could not add variable '"+parameterName+"' for SqlTransaction '"+ getName() +"'", null);
-						}
-					}
-					start = eIndex;
-				} else	break;
+			// Handled the case if we have value like {{id}} or "{{id}}" or '{{id}}' (i.e: table name or instructions)		
+			Pattern pattern = Pattern.compile("\\{\\{([a-zA-Z0-9_]+)\\}\\}");
+			Matcher matcher = pattern.matcher(sqlQuery);
+			
+			while (matcher.find()) {
+				String parameterName = matcher.group(1);
+				String parameterValue = getParameterValue(parameterName, getVariableVisibility(parameterName)).toString();
+				sqlQueryReplacement = sqlQueryReplacement.replace("{{"+parameterName+"}}", parameterValue);
+				
+				// Add the parameterName into the ArrayList if is looks like {{id}}.	
+				otherParametersList.add(parameterName);
+				
+				matcher = pattern.matcher(sqlQueryReplacement);
+				
+				updateVariable(updateDefinitions, parameterName);
 			}
 			
-			// modify variables definition if needed
-			if (!declaredParametersSet.equals(oldDeclaredParametersSet)) {
-				if (updateDefinitions && (oldDeclaredParametersSet != null))
-					for (String parameterName : oldDeclaredParametersSet)
-						if (!declaredParametersSet.contains(parameterName)) {
+			// Handled the case if we have value like {id} (i.e: parameters value)	
+			pattern = Pattern.compile("([\"']?)\\{([a-zA-Z0-9_]+)\\}\\1");
+			matcher = pattern.matcher(sqlQueryReplacement);
+			
+			while (matcher.find()) {
+				String parameterName = matcher.group(2);	
+				String parameterValue = getParameterValue(parameterName, getVariableVisibility(parameterName)).toString();
+
+				// Add the parameterName into the ArrayList if is looks like {id} and not {{id}}.	
+				orderedParametersList.add(parameterName);
+				
+				// Update the parameters map if needed
+				if (!parametersMap.containsKey(parameterName)) {
+					parametersMap.put(parameterName, parameterValue);
+				}
+				
+				updateVariable(updateDefinitions, parameterName);
+				
+			}				
+			// Replace parameter by question mark (for parameter value injection)
+			sqlQueryReplacement = matcher.replaceAll("?");
+			
+			// We create an another List which permit to compare and update variables
+			List<String> allParametersList = createAllParametersList();
+			
+			// Modify variables definition if needed
+			if ( !allParametersList.equals(oldOrderedParametersList) ) {
+				if ( updateDefinitions && (oldOrderedParametersList != null ))
+					for ( String parameterName : oldOrderedParametersList )
+						if ( !allParametersList.contains( parameterName ) ) {
 							Variable variable = getVariable(parameterName);
 							if (variable != null) {
 								try {
@@ -244,98 +257,101 @@ public class SqlTransaction extends TransactionWithVariables {
 								} catch (EngineException e) {}
 							}
 						}
-				oldDeclaredParametersSet = declaredParametersSet;
+				oldOrderedParametersList = allParametersList;
 			}
 		}
 	}
 	
-	private String getParametrizedQuery(List<String> logHiddenValues) {
-		if (sqlQuery.indexOf("{") == -1)
-			return sqlQuery;
+	private List<String> createAllParametersList(){
+		List<String> allParametersList = new ArrayList<String>();
+		for (String parameterName : otherParametersList){
+			allParametersList.add(parameterName);
+		}
+		for (String parameterName : orderedParametersList){
+			allParametersList.add(parameterName);
+		}
+		return allParametersList;
+	}
+	
+	private void updateVariable(boolean updateDefinitions, String parameterName){
+		if (updateDefinitions && (getVariable(parameterName) == null)) {
+			try {
+				if (!StringUtils.isNormalized(parameterName))
+					throw new EngineException("Parameter name is not normalized : \""+parameterName+"\".");
+				
+				RequestableVariable variable = new RequestableVariable();
+				variable.setName(parameterName);
+				variable.setDescription(parameterName);
+				variable.setWsdl(Boolean.TRUE);
+				variable.setCachedKey(Boolean.TRUE);
+				addVariable(variable);
+
+				variable.bNew = true;
+				variable.hasChanged = true;
+				hasChanged = true;
+			} catch(EngineException e) {
+				Engine.logBeans.error("Could not add variable '"+parameterName+"' for SqlTransaction '"+ getName() +"'", null);
+			}
+		}
+	}
+	
+	private String getParametrizedQuery(List<String> logHiddenValues) throws EngineException {
+				
+		if(sqlQueryReplacement.equals("") && !sqlQuery.equals(""))
+			sqlQueryReplacement = sqlQuery;
 		
-		if (declaredParametersSet == null)
+		Pattern pattern = Pattern.compile("\\{([a-zA-Z0-9_]+)\\}");
+		Matcher matcher = pattern.matcher(sqlQueryReplacement);
+		
+		// If we don't have bracket don't need to replace them
+		if (!matcher.find()) 
+			return sqlQueryReplacement;
+		
+		if (orderedParametersList == null)
 			initializeQuery(false);
 		
-		if (declaredParametersSet != null) {
-			StringEx s = new StringEx(sqlQuery);
-			// Clear parameters Map
-			parametersMap.clear();
-			for (String parameterName : declaredParametersSet) {
-				try {
-					Object variableValue = null;
-					
-					// Retrieve variable's visibility if exists
-					int variableVisibility = getVariableVisibility(parameterName);
+		return sqlQueryReplacement;
+	}
+	
+	private Object getParameterValue(String parameterName, int variableVisibility){
+		Object variableValue = null;
 
-					// Scope parameter
-					if (scope != null) {
-						variableValue = scope.get(parameterName,scope);
-						if (variableValue instanceof Undefined)
-							variableValue = null;
-						if (variableValue instanceof UniqueTag && ((UniqueTag) variableValue).equals(UniqueTag.NOT_FOUND)) 
-							variableValue = null;
-						if (variableValue != null)
-							Engine.logBeans.trace("(SqlTransaction) scope value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
-						
-					}
-					// Otherwise Transaction parameter (USELESS)
-					if (variableValue == null) {
-						variableValue = variables.get(parameterName);
-						if (variableValue != null)
-							Engine.logBeans.trace("(SqlTransaction) parameter value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
-					}
-					// Otherwise context parameter
-					if (variableValue == null) {
-						variableValue = (context.get(parameterName) == null ? null : context.get(parameterName));
-						if (variableValue != null)
-							Engine.logBeans.trace("(SqlTransaction) context value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
-					}
-					// Otherwise default transaction parameter value
-					if (variableValue == null) {
-						variableValue = getVariableValue(parameterName);
-						if (variableValue != null)
-							Engine.logBeans.trace("(SqlTransaction) default value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
-					}
-					
-					if (variableValue == null)
-						Engine.logBeans.trace("(SqlTransaction) none value found");
-					
-					variableValue = ((variableValue == null)? new String(""):variableValue);
-					
-					String parameterValue = variableValue.toString();
-					
-					if (variableValue != null && Visibility.Logs.isMasked(variableVisibility)) {
-						if (!variableValue.equals("")) logHiddenValues.add(parameterValue);
-					}
-					
-					/*
-					 * Compute the parametrized form of the SQL request, i.e. for
-					 * instance SELECT * FROM table WHERE id=? and date > ?
-					 */
-
-					// String with double quotes
-				 	if (s.toString().indexOf("\"{" + parameterName + "}\"") != -1) {
-						s.replaceAll("\"{" + parameterName + "}\"", "?");
-					} 
-					
-					// String with simple quotes
-					if (s.toString()
-							.indexOf("'{" + parameterName + "}'") != -1) {
-						s.replaceAll("'{" + parameterName + "}'", "?");
-					}
-					// Regular case for numbers
-					s.replaceAll("{" + parameterName + "}", "?");
-				 	
-				 	// Put the parameter into HashMap with the name(key) and the value
-				 	parametersMap.put(parameterName, parameterValue);
-					 	
-				} catch(ClassCastException e) {
-					Engine.logBeans.warn("(SqlTransaction) Ignoring parameter '" + parameterName+ "' because its value is not a string.");
-				}
-			}
-			return s.toString();
+		// Scope parameter
+		if (scope != null) {
+			variableValue = scope.get(parameterName,scope);
+			if (variableValue instanceof Undefined)
+				variableValue = null;
+			if (variableValue instanceof UniqueTag && ((UniqueTag) variableValue).equals(UniqueTag.NOT_FOUND)) 
+				variableValue = null;
+			if (variableValue != null)
+				Engine.logBeans.trace("(SqlTransaction) scope value: "+ Visibility.Logs.printValue(variableVisibility,variableValue));
 		}
-		return null;
+		
+		// Otherwise Transaction parameter (USELESS)
+		if (variableValue == null) {
+			variableValue = variables.get(parameterName);
+			if (variableValue != null)
+				Engine.logBeans.trace("(SqlTransaction) parameter value: "+ Visibility.Logs.printValue(variableVisibility,variableValue));
+		}
+		
+		// Otherwise context parameter
+		if (variableValue == null && context != null) {
+			variableValue = (context.get(parameterName) == null ? null : context.get(parameterName));
+			if (variableValue != null)
+				Engine.logBeans.trace("(SqlTransaction) context value: "+ Visibility.Logs.printValue(variableVisibility,variableValue));
+		}
+		
+		// Otherwise default transaction parameter value
+		if (variableValue == null) {
+			variableValue = getVariableValue(parameterName);
+			if (variableValue != null)
+				Engine.logBeans.trace("(SqlTransaction) default value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+		}
+		
+		if (variableValue == null)
+			Engine.logBeans.trace("(SqlTransaction) "+parameterName+" none value found");
+		
+		return variableValue = ((variableValue == null)? new String(""):variableValue);
 	}
 
 	private String prepareQuery(List<String> logHiddenValues) throws SQLException, ClassNotFoundException, EngineException {
@@ -344,17 +360,17 @@ public class SqlTransaction extends TransactionWithVariables {
 
 		logHiddenValues.clear();
 		
-		// prepare the query
+		// Prepare the query
 		String query = getParametrizedQuery(logHiddenValues);
 		
-		// type not retrieved
+		// Type not retrieved
 		if (type == -1) {
 			initializeQuery(false);
 		}
 		
-		// limit number of result
+		// Limit number of result
 		if (type == SqlTransaction.TYPE_SELECT) {
-			if (!maxResult.equals("") && query.indexOf("limit") == -1 && query.indexOf("LIMIT") == -1 && query.indexOf("Limit") == -1) {
+			if (!maxResult.equals("") && query.toUpperCase().indexOf("LIMIT") == -1) {
 				if (query.lastIndexOf(';') == -1)
 					query += " limit " + maxResult + ";";
 				else
@@ -365,7 +381,6 @@ public class SqlTransaction extends TransactionWithVariables {
 		if (Engine.logBeans.isDebugEnabled())
 			Engine.logBeans.debug("(SqlTransaction) Preparing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
 		
-		// preparedStatement = connector.prepareStatement(query); 
 		preparedStatement = connector.prepareStatement(query, parametersMap, orderedParametersList);
 		return query;
 	}
@@ -380,7 +395,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		int numberOfResults = 0;
 		int nb = 0;
 		
-		// create an empty list for hidden variable values
+		// Create an empty list for hidden variable values
 		List<String> logHiddenValues = new ArrayList<String>();
 		
 		try {
@@ -393,10 +408,10 @@ public class SqlTransaction extends TransactionWithVariables {
 			if (!runningThread.bContinue)
 				return;
 			
-			// prepare the query and retrieve its type
+			// Prepare the query and retrieve its type
 			query = prepareQuery(logHiddenValues);
 			
-			// build xsdType
+			// Build xsdType
 			if (studioMode) {
 				xsdType = "";
 				doc = createDOM(getEncodingCharSet());
@@ -426,7 +441,7 @@ public class SqlTransaction extends TransactionWithVariables {
 			if (!runningThread.bContinue)
 				return;
 	
-			// execute the SELECT query
+			// Execute the SELECT query
 			if (type == SqlTransaction.TYPE_SELECT || type == SqlTransaction.TYPE_UNKNOWN) {
 				ResultSet rs = null;
 				try {
@@ -591,7 +606,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				else
 					Engine.logBeans.debug("(SqlTransaction) Query executed successfully (" + numberOfResults + " results)");
 			}
-			// execute the 'UPDATE/INSERT/DELETE' query
+			// Execute the 'UPDATE/INSERT/DELETE' query
 			else {
 				try {
 					nb = preparedStatement.executeUpdate();
@@ -614,16 +629,16 @@ public class SqlTransaction extends TransactionWithVariables {
 					Engine.logBeans.debug("(SqlTransaction) Query executed successfully (returned " + nb + ").");
 			}
 				
-			// close statement and resulset if exist
+			// Close statement and resulset if exist
 			preparedStatement.close();
 				
 			if (!runningThread.bContinue)
 				return;
 
-			// show results in connector view
+			// Show results in connector view
 			connector.setData(lines, columnHeaders);
 				
-			// build XML response
+			// Build XML response
 			Element sql;
 			if (rows != null)
 				sql = parseResults(rows, columnHeaders);
@@ -964,7 +979,7 @@ public class SqlTransaction extends TransactionWithVariables {
 
 	/**
 	 * Getter for property sqlQuery
-	 * @return
+	 * @return String
 	 */
 	public String getSqlQuery() {
 		return sqlQuery;
@@ -972,7 +987,7 @@ public class SqlTransaction extends TransactionWithVariables {
 
 	/**
 	 * Setter for property sqlQuery
-	 * @param string
+	 * @param String
 	 */
 	public void setSqlQuery(String string) {
 		sqlQuery = string;
@@ -981,7 +996,7 @@ public class SqlTransaction extends TransactionWithVariables {
 
 	/**
 	 * Getter for property xmlOutput
-	 * @return
+	 * @return int
 	 */
 	public int getXmlOutput() {
 		return xmlOutput;
@@ -989,7 +1004,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	
 	/**
 	 * Setter for property xmlOutput
-	 * @param string
+	 * @param String
 	 */
 	public void setXmlOutput(int type) {
 		xmlOutput = type;
@@ -997,7 +1012,7 @@ public class SqlTransaction extends TransactionWithVariables {
 
 	/**
 	 * Getter for property xmlGrouping
-	 * @return
+	 * @return boolean
 	 */
 	public boolean getXmlGrouping() {
 		return xmlGrouping;
@@ -1005,16 +1020,22 @@ public class SqlTransaction extends TransactionWithVariables {
 	
 	/**
 	 * Setter for property xmlGrouping
-	 * @param string
+	 * @param boolean
 	 */
 	public void setXmlGrouping(boolean group) {
 		xmlGrouping = group;
 	}
-
+	/**
+	 * Getter for MaxResult
+	 * @return String
+	 */
 	public String getMaxResult() {
 		return maxResult;
 	}
-
+	/**
+	 * Setter for MaxResult
+	 * @param String
+	 */
 	public void setMaxResult(String maxResult) {
 		this.maxResult = maxResult;
 	}

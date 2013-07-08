@@ -259,6 +259,9 @@ public class SqlConnector extends Connector {
 		if (isClosed() || needReset)
 			open();
 		
+		// In the case when we want to escape the bracket "\{id\}"
+		sqlQuery = sqlQuery.replace("\\{", "{").replace("\\}", "}");
+		
 		try {
 			Engine.logBeans.debug("[SqlConnector] Preparing statement...");
 			preparedStatement = connection.prepareStatement(sqlQuery);
@@ -287,8 +290,9 @@ public class SqlConnector extends Connector {
 	private void prepareParameters(PreparedStatement preparedStatement, Map<String, String> params, List<String> paramsName) throws SQLException{ 
 		// We loop and set parameters of the preparedStatement 
 		for (int x = 0 ; x < paramsName.size() ; x++) {
-			preparedStatement.setString(x+1, params.get(paramsName.get(x)));
+			preparedStatement.setString( x+1 , params.get( paramsName.get( x ) ) );
 		}
+		Engine.logBeans.trace("[SqlConnector] Preparing statement done");
 	}
 
 	public void prepareForTransaction(Context context) throws EngineException {
