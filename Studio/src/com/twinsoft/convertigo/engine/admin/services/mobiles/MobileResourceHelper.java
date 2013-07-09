@@ -181,7 +181,7 @@ public class MobileResourceHelper {
 								Matcher mScript = pScript.matcher(line);
 								if (mScript.find()) {
 									String uri = mScript.group(1);
-									uri = htmlFile.getParent().substring(projectDir.getParent().length()) + "/" + uri;
+									uri = htmlFile.getParent().substring(projectDir.getParent().length() + 1) + "/" + uri;
 									ResourceBundle resourceBundle = Engine.theApp.resourceCompressorManager.process(uri);
 									if (resourceBundle != null) {
 										synchronized (resourceBundle) {

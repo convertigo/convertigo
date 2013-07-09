@@ -111,6 +111,7 @@ public class ResourceCompressorManager implements AbstractManager {
 		private ResourceBundle(ResourceType resourceType, File virtualFile, String key) {
 			this.resourceType= resourceType; 
 			this.virtualFile = virtualFile;
+			key = key.replaceFirst("(.*?)/_private/(?:flashupdate|mobile)/", "$1/DisplayObjects/mobile/");
 			key = StringUtils.normalize(key);
 			cacheFile = new File(compressorCacheDirectory, key);
 		}
@@ -206,7 +207,7 @@ public class ResourceCompressorManager implements AbstractManager {
 		}
 		
 		public void writeFile(String prepend) throws IOException {
-			FileUtils.write(virtualFile, getResult() + prepend, "utf-8");
+			FileUtils.write(virtualFile, getResult() + "\n" + prepend, "utf-8");
 		}
 		
 		private void setCompression(CompressionOptions compression) {
@@ -233,7 +234,7 @@ public class ResourceCompressorManager implements AbstractManager {
 		ResourceBundle resourceBundle = process(requestURI);
 		if (resourceBundle != null) {
 			try {
-				response.setContentType("text/" + resourceBundle.getResourceType().name());
+				response.setContentType(resourceBundle.getResourceType() == ResourceType.js ? "application/javascript" : "text/css");
 				response.setCharacterEncoding("utf-8");
 				response.getWriter().write(resourceBundle.getResult());
 			} catch (IOException e) {
@@ -259,7 +260,8 @@ public class ResourceCompressorManager implements AbstractManager {
 				synchronized (cache) {
 					resourceBundle = cache.get(key);
 					if (resourceBundle == null) {
-						resourceBundle = new ResourceBundle(ResourceType.get(requestMatcher), new File(Engine.PROJECTS_PATH + RequestPart.pathFromProject.value(requestMatcher)), key);
+						String virtualFilePath = Engine.PROJECTS_PATH + "/" + RequestPart.pathFromProject.value(requestMatcher);
+						resourceBundle = new ResourceBundle(ResourceType.get(requestMatcher), new File(virtualFilePath), key);
 						cache.put(key, resourceBundle);
 						Engine.logEngine.debug("(ResourceCompressor) Create resourceBundle '" + key + "'");
 					} else {
