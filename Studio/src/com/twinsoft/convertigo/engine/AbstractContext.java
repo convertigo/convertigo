@@ -27,12 +27,16 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 public abstract class AbstractContext {
 
@@ -89,8 +93,7 @@ public abstract class AbstractContext {
 	/**
 	 * The user reference passed in input of the request
 	 */
-	public String userReference = null; 
-	
+	public String userReference = null;	
 	/**
 	 * Indicates whether the cache functionnality is enabled.
 	 */
@@ -239,6 +242,39 @@ public abstract class AbstractContext {
 		return internalTable.keySet();
 	}
 	
+	/**
+	 * @return Getter for the absolute requested URL
+	 */
+	public String getAbsoluteRequestedUrl (){
+		return HttpUtils.originalRequestURL(httpServletRequest);
+	}
+	
+	/**
+	 * @return Getter for the Convertigo URL
+	 */
+	public String getConvertigoUrl (){
+		Pattern pattern = Pattern.compile("^((.*?/)projects/.*?/).*$");
+		Matcher match = pattern.matcher(getAbsoluteRequestedUrl());
+		
+		if ( match.find() ) {
+			return match.group(2);
+		} else {
+			return "";
+		}
+	}
+	/**
+	 * @return Getter for the current project URL
+	 */
+	public String getProjectUrl (){
+		Pattern pattern = Pattern.compile("^((.*?/)projects/.*?/).*$");
+		Matcher match = pattern.matcher(getAbsoluteRequestedUrl());
+		
+		if ( match.find() ) {
+			return match.group(1);
+		} else {
+			return "";
+		}
+	}
 	/**
 	 * @Return the path to project directory
 	 * 
