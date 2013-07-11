@@ -155,6 +155,8 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			.getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/new_line.d.png"));
 	private Image imageGenerateXsl = new Image(Display.getCurrent(), getClass().getResourceAsStream(
 			"/com/twinsoft/convertigo/eclipse/editors/images/sheet.png"));
+	private Image imageTestConnection = new Image(Display.getCurrent(), getClass().getResourceAsStream(
+			"/com/twinsoft/convertigo/eclipse/editors/images/test_connection.png"));
 	private Image imageShowBlocks = new Image(Display.getCurrent(), getClass().getResourceAsStream(
 			"/com/twinsoft/convertigo/eclipse/editors/images/show_blocks.png"));
 	private Image imageNewScreenclass = new Image(Display.getCurrent(), getClass().getResourceAsStream(
@@ -721,7 +723,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			incr++;
 			toolTestConnection = new ToolItem(toolBar, SWT.PUSH);
 
-			toolTestConnection.setImage(imageGenerateXsl);
+			toolTestConnection.setImage(imageTestConnection);
 			toolTestConnection.setToolTipText("Test SQL connection");
 			toolTestConnection.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
 				public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
