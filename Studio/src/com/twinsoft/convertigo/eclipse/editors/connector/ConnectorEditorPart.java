@@ -49,6 +49,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.ToolBar;
@@ -87,7 +88,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils; 
 
 public class ConnectorEditorPart extends Composite implements Runnable, EngineListener {
 
@@ -350,6 +351,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	ToolItem toolItemRecord = null;
 	ToolItem toolLearn = null;
 	ToolItem toolAccumulate = null;
+	ToolItem toolTestConnection = null;
 
 	protected boolean bDebug = false;
 	protected boolean bShowBlocks = false;
@@ -712,6 +714,39 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			});
 			toolItemsIds.put("GenerateXSL", new Integer(incr));
 			incr++;
+		}
+		
+		if (connector instanceof SqlConnector) {	
+			new ToolItem(toolBar, SWT.SEPARATOR);
+			incr++;
+			toolTestConnection = new ToolItem(toolBar, SWT.PUSH);
+
+			toolTestConnection.setImage(imageGenerateXsl);
+			toolTestConnection.setToolTipText("Test SQL connection");
+			toolTestConnection.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
+				public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+					try {
+						((SqlConnector) connector).open();
+						
+						MessageBox mb = new MessageBox(getParent().getShell(), SWT.ICON_WORKING | SWT.OK);
+						mb.setMessage("The connection test was successful!");
+						mb.open();
+					} catch (Exception e1) {
+						Engine.logBeans.error("Test connecion failed!"+e1.getMessage());
+						
+						MessageBox mb = new MessageBox(getParent().getShell(), SWT.ICON_ERROR | SWT.OK);
+						mb.setMessage("The connection failed!");
+						mb.open();
+					}
+					((SqlConnector) connector).close();
+				}
+
+				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
+				}
+			});
+			toolItemsIds.put("Test SQL Connection", new Integer(incr));
+			incr++;
+			
 		}
 
 		if (IBlockizable.class.isAssignableFrom(compositeConnectorClass)) {
