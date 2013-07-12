@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
 import java.io.IOException;
+import java.sql.DriverManager;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
@@ -33,10 +34,12 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Text;
 
 public class ConfigureSQLConnectorComposite extends Composite {
@@ -46,6 +49,7 @@ public class ConfigureSQLConnectorComposite extends Composite {
 	private Combo jdbcDriver = null;
 	private Text username = null;
 	private Text password = null;
+	private Button testConnection = null;
 
 	private Map<String, String> jdbcDrivers;
 
@@ -61,29 +65,16 @@ public class ConfigureSQLConnectorComposite extends Composite {
 	 */
 	private void initialize() {
 		Label label;
-
-		GridData gridData2 = new GridData();
-		gridData2.horizontalSpan = 2;
+		
 		label = new Label(this, SWT.NONE);
-		label.setText("Please configure the SQL server name or IP address and port. If needed, you can also specify a username/password.");
-		label.setLayoutData(gridData2);
-
-		GridData gridData1 = new GridData();
-		gridData1.grabExcessHorizontalSpace = true;
-		gridData1.verticalAlignment = GridData.CENTER;
-		gridData1.horizontalAlignment = GridData.FILL;
-
-		GridData gridData = new GridData();
-		gridData.grabExcessHorizontalSpace = false;
-		gridData.horizontalAlignment = GridData.BEGINNING;
-		gridData.verticalAlignment = GridData.CENTER;
-		gridData.grabExcessVerticalSpace = false;
-
+		label.setText("Please configure the SQL server name or IP address and port. If needed, you can also specify a username/password.\n\n");
+		label.setLayoutData(new GridData (GridData.FILL, GridData.CENTER, false, false, 2, 0) );
+		
 		label = new Label(this, SWT.NONE);
 		label.setText("JDBC driver");
-		label.setLayoutData(gridData);
+		label.setLayoutData( new GridData (GridData.FILL, GridData.CENTER, false, false) );
 		jdbcDriver = new Combo(this, SWT.BORDER | SWT.READ_ONLY);
-		jdbcDriver.setLayoutData(gridData1);
+		jdbcDriver.setLayoutData( new GridData (GridData.FILL, GridData.CENTER, true, false) );
 
 		try {
 			Properties properties = new Properties();
@@ -101,23 +92,50 @@ public class ConfigureSQLConnectorComposite extends Composite {
 
 		label = new Label(this, SWT.NONE);
 		label.setText("JDBC URL");
-		label.setLayoutData(gridData);
+		label.setLayoutData( new GridData (GridData.FILL, GridData.CENTER, false, false) );
 		jdbcURL = new Text(this, SWT.BORDER);
-		jdbcURL.setLayoutData(gridData1);
+		jdbcURL.setLayoutData( new GridData (GridData.FILL, GridData.CENTER, true, false) );
 		jdbcURL.setText(jdbcDrivers.get(jdbcDriver.getText()));
 
 		label = new Label(this, SWT.NONE);
 		label.setText("Username");
-		label.setLayoutData(gridData);
+		label.setLayoutData( new GridData (GridData.FILL, GridData.CENTER, false, false) );
 		username = new Text(this, SWT.BORDER);
-		username.setLayoutData(gridData1);
+		username.setLayoutData( new GridData (GridData.FILL, GridData.CENTER, true, false) );
 
 		label = new Label(this, SWT.NONE);
 		label.setText("Password");
-		label.setLayoutData(gridData);
+		label.setLayoutData( new GridData (GridData.FILL, GridData.CENTER, false, false) );
 		password = new Text(this, SWT.PASSWORD | SWT.BORDER);
-		password.setLayoutData(gridData1);
+		password.setLayoutData( new GridData (GridData.FILL, GridData.CENTER, true, false) );
+		
+		testConnection = new Button(this, SWT.NONE);
+		testConnection.setText("Test Connection");
+		testConnection.addSelectionListener(new SelectionListener() {
+			
+			public void widgetSelected(SelectionEvent e) {
+				try {
+					Class.forName(getJdbcDriver()).newInstance();
 
+					DriverManager.getConnection( getJdbcURL(), 
+							getUsername(), getPassword());
+					
+					MessageBox mb = new MessageBox(getParent().getShell(), SWT.ICON_WORKING | SWT.OK);
+					mb.setMessage("Connection parameters are correct.");
+					mb.open();
+					
+				} catch (Exception e1) {
+					MessageBox mb = new MessageBox(getParent().getShell(), SWT.ICON_ERROR | SWT.OK);
+					mb.setMessage("Failed to Connect to MySQL!");
+					mb.open();
+				}	
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {}
+		});
+	
+		testConnection.setLayoutData( new GridData (GridData.END, GridData.CENTER, false, false, 2, 0) );
+		
 		jdbcURL.addModifyListener(modifyListener);
 		jdbcDriver.addModifyListener(modifyListener);
 		jdbcDriver.addSelectionListener(new SelectionListener() {
@@ -140,6 +158,7 @@ public class ConfigureSQLConnectorComposite extends Composite {
 
 		GridLayout gridLayout = new GridLayout();
 		gridLayout.numColumns = 2;
+		gridLayout.verticalSpacing = 15;
 		this.setLayout(gridLayout);
 	}
 
@@ -166,5 +185,4 @@ public class ConfigureSQLConnectorComposite extends Composite {
 	public String getPassword() {
 		return password.getText();
 	}
-
 }

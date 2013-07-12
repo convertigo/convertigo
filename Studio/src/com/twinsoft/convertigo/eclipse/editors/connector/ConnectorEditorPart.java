@@ -731,13 +731,13 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 						((SqlConnector) connector).open();
 						
 						MessageBox mb = new MessageBox(getParent().getShell(), SWT.ICON_WORKING | SWT.OK);
-						mb.setMessage("The connection test was successful!");
+						mb.setMessage("Connection parameters are correct.");
 						mb.open();
 					} catch (Exception e1) {
 						Engine.logBeans.error("Test connecion failed!"+e1.getMessage());
 						
 						MessageBox mb = new MessageBox(getParent().getShell(), SWT.ICON_ERROR | SWT.OK);
-						mb.setMessage("The connection failed!");
+						mb.setMessage("Failed to Connect to MySQL!");
 						mb.open();
 					}
 					((SqlConnector) connector).close();
