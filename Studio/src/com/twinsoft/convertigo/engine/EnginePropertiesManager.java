@@ -293,6 +293,8 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		THROW_HTTP_500 ("throw_http_500", "true", "Throw HTTP 500 in case of uncoverable servlet error", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
+		HIDING_ERROR_INFORMATION ("hiding_error_information", "false", "Hide errors informations", PropertyCategory.Main),
+		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		THROW_HTTP_500_SOAP_FAULT ("throw_http_500.soap_fault", "true", "Throw HTTP 500 in case of SOAP fault", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
 		UPDATE_STEPS ("update.steps", "false", "Update steps", PropertyCategory.Main),

@@ -1249,45 +1249,48 @@ public class Engine {
 
 		Element doc = document.createElement("document");
 		document.appendChild(doc);
-
+		
 		Element error = document.createElement("error");
-		error.setAttribute("project", (context.projectName == null ? "?" : context.projectName));
-		error.setAttribute("connector", (context.connectorName == null ? "?" : context.connectorName));
-		error.setAttribute("transaction", (context.transactionName == null ? "?" : context.transactionName));
 		doc.appendChild(error);
-
-		Element econtext = document.createElement("context");
-		for (String key : context.keys()) {
-			Object value = context.get(key);
-			if ((value != null) && (value instanceof String)) {
-				Element variable = document.createElement("variable");
-				variable.setAttribute("name", key);
-				variable.setAttribute("value", (String) value);
-				econtext.appendChild(variable);
+		
+		if ( EnginePropertiesManager.getProperty( PropertyName.HIDING_ERROR_INFORMATION ).equals( "false" ) ){
+			error.setAttribute("project", (context.projectName == null ? "?" : context.projectName));
+			error.setAttribute("connector", (context.connectorName == null ? "?" : context.connectorName));
+			error.setAttribute("transaction", (context.transactionName == null ? "?" : context.transactionName));
+	
+	
+			Element econtext = document.createElement("context");
+			for (String key : context.keys()) {
+				Object value = context.get(key);
+				if ((value != null) && (value instanceof String)) {
+					Element variable = document.createElement("variable");
+					variable.setAttribute("name", key);
+					variable.setAttribute("value", (String) value);
+					econtext.appendChild(variable);
+				}
 			}
-		}
-
-		error.appendChild(econtext);
-
-		Element exception = document.createElement("exception");
-		text = document.createTextNode(e.getClass().getName());
-		exception.appendChild(text);
-		error.appendChild(exception);
-
-		Element message = document.createElement("message");
-		text = document.createTextNode(e.getMessage());
-		message.appendChild(text);
-		error.appendChild(message);
-
-		Element stackTrace = document.createElement("stacktrace");
-		String jss = Log.getStackTrace(e);
-		jss = jss.replace('\r', ' ');
-		text = document.createTextNode(jss);
-		stackTrace.appendChild(text);
-		error.appendChild(stackTrace);
-
-		fireDocumentGenerated(new EngineEvent(context.outputDocument));
-
+	
+			error.appendChild(econtext);
+	
+			Element exception = document.createElement("exception");
+			text = document.createTextNode(e.getClass().getName());
+			exception.appendChild(text);
+			error.appendChild(exception);
+	
+			Element message = document.createElement("message");
+			text = document.createTextNode(e.getMessage());
+			message.appendChild(text);
+			error.appendChild(message);
+	
+			Element stackTrace = document.createElement("stacktrace");
+			String jss = Log.getStackTrace(e);
+			jss = jss.replace('\r', ' ');
+			text = document.createTextNode(jss);
+			stackTrace.appendChild(text);
+			error.appendChild(stackTrace);
+	
+			fireDocumentGenerated(new EngineEvent(context.outputDocument));
+			}
 		return document;
 	}
 
