@@ -123,6 +123,8 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
     
     private transient List<HttpStatementVariable> vVariables = new Vector<HttpStatementVariable>();
     transient private List<HttpStatementVariable> vAllVariables = null;
+
+	private String urlEncodingCharset = "";
     
 	/**
      * Constructs a new empty HTTPStatement object.
@@ -712,6 +714,10 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 	private String makeQuery(com.twinsoft.convertigo.engine.Context context, String methodToAnalyse) throws EngineException {
 		String variable, httpVariable, httpVariableValue, method, query = "";
 		int len = numberOfVariables();
+		String urlEncodingCharset = getUrlEncodingCharset();
+		if (urlEncodingCharset == null || urlEncodingCharset.length() == 0) {
+			urlEncodingCharset = getParentTransaction().getComputedUrlEncodingCharset();
+		}
 		
 		try {
 			for (int i = 0 ; i < len ; i++) {
@@ -722,8 +728,9 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 					httpVariable = httpStatementVariable.getHttpName();
 					
 					if (method.equals(methodToAnalyse)) {
-						if (query.length() != 0)
+						if (query.length() != 0) {
 							query += "&";
+						}
 
 						try {
 						// evaluate method can throw EngineException
@@ -739,7 +746,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 									for (int j=0; j<list.size(); j++) {
 										Object item = list.get(j);
 										httpVariableValue = item.toString();
-										query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, (j!=0));
+										query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, urlEncodingCharset, j != 0);
 									}
 								}
 								else if (evaluated instanceof NativeJavaObject) {
@@ -749,12 +756,12 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 										Vector<String> v = GenericUtils.cast(javaObject);
 										for (int j=0; j<v.size(); j++) {
 											httpVariableValue = v.get(j);
-											query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, (j!=0));
+											query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, urlEncodingCharset, j != 0);
 										}
 									}
 									else {
 										httpVariableValue = (String)nativeJavaObject.getDefaultValue(String.class);
-										query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, false);
+										query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, urlEncodingCharset, false);
 									}
 								}
 								else if (evaluated instanceof NativeArray) {
@@ -762,14 +769,14 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 									for (int j=0; j<array.getLength(); j++) {
 										Object item = array.get(j,array);
 										httpVariableValue = item.toString();
-										query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, (j!=0));
+										query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, urlEncodingCharset, j != 0);
 									}
 								}
 								else if (evaluated instanceof Vector) {
 									Vector<String> v = GenericUtils.cast(evaluated);
 									for (int j=0; j<v.size(); j++) {
 										httpVariableValue = v.get(j);
-										query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, (j!=0));
+										query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, urlEncodingCharset, j != 0);
 									}
 								}
 								else if (evaluated instanceof Undefined) {
@@ -777,7 +784,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 								}
 								else {
 									httpVariableValue = evaluated.toString();
-									query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, false);
+									query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, urlEncodingCharset, false);
 								}
 							}
 						} catch(EngineException e) {
@@ -788,12 +795,12 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 									List<String> list = GenericUtils.toString((Collection<?>)value);
 									for (String val : list) {
 										httpVariableValue = val;
-										query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, false);
+										query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, urlEncodingCharset, false);
 									}
 								}
 								else {
 									httpVariableValue = value.toString();
-									query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, false);
+									query = addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, urlEncodingCharset, false);
 								}
 							}
 						}
@@ -808,7 +815,7 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 	}
 
 	
-	protected String addVariableToQuery(String methodToAnalyse, String httpVariable, String httpVariableValue, String query, boolean firstParam) throws UnsupportedEncodingException {
+	protected String addVariableToQuery(String methodToAnalyse, String httpVariable, String httpVariableValue, String query, String urlEncodingCharset, boolean firstParam) throws UnsupportedEncodingException {
 		// if the variable name is in the form __header_<header name>, extract the header name and set it's value in the headers
 		
 		if (httpVariable.startsWith(Parameter.HttpHeader.getName())) {
@@ -823,14 +830,13 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 			return query;
 		
 		if (methodToAnalyse.equalsIgnoreCase("POST"))
-			query += ((firstParam)?"&":"") + URLEncoder.encode(httpVariable, "UTF-8") + "=" + URLEncoder.encode(httpVariableValue, "UTF-8");
+			query += (firstParam ? "&" : "") + URLEncoder.encode(httpVariable, urlEncodingCharset) + "=" + URLEncoder.encode(httpVariableValue, urlEncodingCharset);
 		else if (methodToAnalyse.equalsIgnoreCase("GET"))
-			query += ((firstParam)?"&":"") + httpVariable + "=" + URLEncoder.encode(httpVariableValue, "UTF-8");
+			query += (firstParam ? "&" : "") + httpVariable + "=" + URLEncoder.encode(httpVariableValue, urlEncodingCharset);
 		return query;
 	}
 	
-	public byte[] getResult()
-	{
+	public byte[] getResult() {
 		return result;
 	}
 
@@ -882,5 +888,13 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 				return;
 			}
 		}
+	}
+
+	public String getUrlEncodingCharset() {
+		return urlEncodingCharset ;
+	}
+
+	public void setUrlEncodingCharset(String urlEncodingCharset) {
+		this.urlEncodingCharset = urlEncodingCharset;
 	}
 }

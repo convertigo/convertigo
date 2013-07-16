@@ -37,7 +37,7 @@ public class HTTPStatementBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/http_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/http_32x32.png";
 			
-			properties = new PropertyDescriptor[9];
+			properties = new PropertyDescriptor[10];
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/HTTPStatement");
 			
@@ -94,6 +94,11 @@ public class HTTPStatementBeanInfo extends MySimpleBeanInfo {
 			properties[8].setShortDescription(getExternalizedString("property.trigger.short_description"));
 			properties[8].setExpert(true);
 			properties[8].setPropertyEditorClass(getEditorClass("HttpTriggerEditor"));
+			
+			properties[9] = new PropertyDescriptor("urlEncodingCharset", beanClass, "getUrlEncodingCharset", "setUrlEncodingCharset");
+			properties[9].setDisplayName(getExternalizedString("property.urlEncodingCharset.display_name"));
+			properties[9].setShortDescription(getExternalizedString("property.urlEncodingCharset.short_description"));
+			properties[9].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

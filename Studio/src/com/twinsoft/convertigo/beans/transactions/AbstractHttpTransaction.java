@@ -98,6 +98,8 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
     
     transient private AttachmentManager attachmentManager = null;
 
+	private String urlEncodingCharset = "";
+
     public AbstractHttpTransaction() {
 		super();
 		
@@ -443,5 +445,24 @@ public abstract class AbstractHttpTransaction extends TransactionWithVariables {
         }
     }
 
+	public String getUrlEncodingCharset() {
+		return urlEncodingCharset;
+	}
+
+	public void setUrlEncodingCharset(String urlEncodingCharset) {
+		this.urlEncodingCharset = urlEncodingCharset;
+	}
 	
+	public String getComputedUrlEncodingCharset() {
+		String encoding = getUrlEncodingCharset();
+		if (encoding == null || encoding.length() == 0) {
+			encoding = getConnector().getUrlEncodingCharset();
+		}
+		return encoding;
+	}
+	
+	@Override
+	public HttpConnector getConnector() {
+		return (HttpConnector) super.getConnector();
+	}
 }

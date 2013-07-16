@@ -41,7 +41,7 @@ public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[8];
+			properties = new PropertyDescriptor[9];
 			
 			properties[0] = new PropertyDescriptor("baseDir", beanClass, "getBaseDir", "setBaseDir");
 			properties[0].setDisplayName(getExternalizedString("property.baseDir.display_name"));
@@ -78,6 +78,11 @@ public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[7].setShortDescription(getExternalizedString("property.httpHeaderForward.short_description"));
 			properties[7].setExpert(true);
 			properties[7].setPropertyEditorClass(getEditorClass("HttpHeaderForwardEditor"));
+			
+			properties[8] = new PropertyDescriptor("urlEncodingCharset", beanClass, "getUrlEncodingCharset", "setUrlEncodingCharset");
+			properties[8].setDisplayName(getExternalizedString("property.urlEncodingCharset.display_name"));
+			properties[8].setShortDescription(getExternalizedString("property.urlEncodingCharset.short_description"));
+			properties[8].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

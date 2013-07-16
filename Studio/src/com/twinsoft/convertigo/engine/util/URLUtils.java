@@ -42,31 +42,33 @@ public class URLUtils {
 	static private Pattern splitEqual = Pattern.compile("=");
 	static private Pattern splitAnd = Pattern.compile("&");
 	
-	public static String encodeAbsoluteURL(String url) {
+	public static String encodeAbsoluteURL(String url, String urlEncoding) {
 		String sUrl = url;
 		try {
-			int index = ((url.startsWith("http://")) ? 7:((url.startsWith("https://") ? 8:-1)));
+			int index = ((url.startsWith("http://")) ? 7 : ((url.startsWith("https://") ? 8 : -1)));
 			if (index != -1) {
-				sUrl = (index == 7) ? "http://":"https://";
+				sUrl = (index == 7) ? "http://" : "https://";
 				String[] fields = url.substring(index).split("/");
 				int len = fields.length;
-				if(len>0){
+				if (len > 0) {
 					index = fields[0].indexOf(":");
-					sUrl += ((index!=-1)?encodeField(fields[0].substring(0, index))+fields[0].substring(index):encodeField(fields[0])) + ((0<len-1) ? "/":"");
+					sUrl += ((index != -1) ? encodeField(fields[0].substring(0, index), urlEncoding) + fields[0].substring(index) : encodeField(fields[0], urlEncoding)) + ((0 < len - 1) ? "/":"");
 				}
-				for (int i=1; i<len; i++) {
-					sUrl += encodeField(fields[i]) + ((i<len-1) ? "/":"");
+				for (int i = 1; i < len; i++) {
+					sUrl += encodeField(fields[i], urlEncoding) + ((i<len-1) ? "/" : "");
 
 				}
 			}
 		} catch (UnsupportedEncodingException e) {
 			return url;
 		}
-		if(url.endsWith("/")) sUrl+="/";
+		if (url.endsWith("/")) {
+			sUrl+="/";
+		}
 		return sUrl;
 	}
 	
-	public static String encodeField(String field) throws UnsupportedEncodingException {
+	public static String encodeField(String field, String urlEncoding) throws UnsupportedEncodingException {
 		String encodedField = field;
 		if ((field != null) && (!field.equals(""))) {
 			Pattern myPattern = Pattern.compile("[?&=]");
@@ -77,35 +79,48 @@ public class URLUtils {
 			while (myMatcher.find()) {
 				startIndex = myMatcher.start();
 				endIndex = myMatcher.end();
-				if ((beginIndex != startIndex) && (startIndex != -1) && (beginIndex <= startIndex))
-					splitString.add(new String (URLEncoder.encode(field.substring(beginIndex, startIndex),"UTF-8")));
+				if ((beginIndex != startIndex) && (startIndex != -1) && (beginIndex <= startIndex)) {
+					splitString.add(new String (URLEncoder.encode(field.substring(beginIndex, startIndex), urlEncoding)));
+				}
 				splitString.add(new String (field.substring(startIndex, endIndex)));
 				beginIndex = endIndex;
 			}
 			if (beginIndex != field.length()) {
-				splitString.add(new String (URLEncoder.encode(field.substring(beginIndex, field.length()),"UTF-8")));
+				splitString.add(new String (URLEncoder.encode(field.substring(beginIndex, field.length()), urlEncoding)));
 			}
 			
-			if (splitString.size() > 0) encodedField = "";
-			for (String splitted : splitString)
-				if ((splitted != null) && (!splitted.equals("")))
-					encodedField += splitted;			
+			if (splitString.size() > 0) {
+				encodedField = "";
+			}
+			for (String splitted : splitString) {
+				if ((splitted != null) && (!splitted.equals(""))) {
+					encodedField += splitted;
+				}
+			}
 		}
 		return encodedField;
 	}
 	
 	public static String extractPathReferer(String url){
 		int id = url.indexOf('?');
-		if(id!=-1) url = url.substring(0, id);
-		if(!url.endsWith("/")) url = url.substring(0, url.lastIndexOf('/')+1);
+		if (id!=-1) {
+			url = url.substring(0, id);
+		}
+		if (!url.endsWith("/")) {
+			url = url.substring(0, url.lastIndexOf('/')+1);
+		}
 		return url;
 	}
 	
 	public static String extractHost(String url, String def){
-		if(def==null) def = url;
-		int firstSlashAfterHttp = url.indexOf('/', url.indexOf("://")+3);
-		String host = (firstSlashAfterHttp==-1)? def : url.substring(0, firstSlashAfterHttp);
-		if(host.length()==0) host = def;
+		if (def == null) {
+			def = url;
+		}
+		int firstSlashAfterHttp = url.indexOf('/', url.indexOf("://") + 3);
+		String host = (firstSlashAfterHttp == -1) ? def : url.substring(0, firstSlashAfterHttp);
+		if (host.length() == 0) {
+			host = def;
+		}
 		return host;
 	}
 	
@@ -115,11 +130,13 @@ public class URLUtils {
 	
 	public static String getFullpathRessources(Class<?> c, String ressource) {
 		URL url = c.getResource(ressource);
-		if(url==null) return null;
-			try{
-				Class<?> fl = Class.forName("org.eclipse.core.runtime.FileLocator");
-				url = (URL) fl.getMethod("toFileURL", URL.class).invoke(null, url);
-			}catch (Exception e) {} // ENGINE MODE, getResource works directly
+		if (url == null) {
+			return null;
+		}
+		try {
+			Class<?> fl = Class.forName("org.eclipse.core.runtime.FileLocator");
+			url = (URL) fl.getMethod("toFileURL", URL.class).invoke(null, url);
+		} catch (Exception e) {} // ENGINE MODE, getResource works directly
 		String f;
 		try {
 			f = url.toURI().getPath();

@@ -24,9 +24,10 @@ package com.twinsoft.convertigo.eclipse;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import org.eclipse.core.runtime.Status;
 
@@ -119,11 +120,11 @@ public class ConsolePipes {
 							}
 
 							if (logFileSize != logFileSizeCurrent) {
-								FileReader fr = null;
+								InputStreamReader fr = null;
 								try {
 									long fileLength = logFile.length();
-									fr = new FileReader(logFile);
-
+									fr = new InputStreamReader(new FileInputStream(logFile), "UTF-8");
+									
 									if (seek == -1) {
 										seek = 0;
 										if (fileLength > MAX_CONSOLE_START_SIZE) {
