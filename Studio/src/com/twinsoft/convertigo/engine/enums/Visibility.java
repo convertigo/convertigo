@@ -46,6 +46,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.variables.HttpStatementVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -262,10 +263,15 @@ public enum Visibility {
 		try {
 			keys.add(variable.getName());
 			Class<?> c = variable.getClass();
-			if (c.getName().indexOf(".RequestableHttp") != -1) {
+			if (c.getName().indexOf(".RequestableHttp") != -1 || c.getName().indexOf(".HttpStatement") != -1) {
 				//java.lang.reflect.Method method = c.getMethod("getHttpName");
 				//String key = (String)method.invoke(c);
-				String key = ((RequestableHttpVariable) variable).getHttpName();
+				String key = "";
+				if (variable instanceof RequestableHttpVariable) {
+					key = ((RequestableHttpVariable) variable).getHttpName();
+				} else {
+					key = ((HttpStatementVariable) variable).getHttpName();
+				}
 				if (!keys.contains(key)) keys.add(key);
 			}
 		} catch (Exception e) {}
