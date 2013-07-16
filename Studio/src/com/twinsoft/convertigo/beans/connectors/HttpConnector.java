@@ -82,7 +82,6 @@ import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
-import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.CertificateManager;
@@ -134,6 +133,8 @@ public class HttpConnector extends Connector {
 	public static final String HTTP_HEADER_FORWARD_POLICY_IGNORE = "Ignore";
 	public static final String HTTP_HEADER_FORWARD_POLICY_MERGE = "Merge";
 	transient private Map<String, String> httpHeaderForwardMap = null;
+	
+	private String urlEncodingCharset = "UTF-8";
 
 	public HttpConnector() {
 		super();
@@ -360,6 +361,8 @@ public class HttpConnector extends Connector {
 		
 		// int len = httpTransaction.getVariablesDefinitionSize();
 		int len = httpTransaction.numberOfVariables();
+		
+		String urlEncodingCharset = httpTransaction.getComputedUrlEncodingCharset();
 
 		for (int i = 0; i < len; i++) {
 			bIgnoreVariable = false;
@@ -373,8 +376,8 @@ public class HttpConnector extends Connector {
 			if (httpVariable.equals(""))
 				bIgnoreVariable = true;
 
-			Engine.logBeans.trace("(HttpConnector) Variable: " + variable + " => (" + method + ") "
-					+ httpVariable);
+			Engine.logBeans.trace("(HttpConnector) Variable: " + variable + " => (" + method + ") " + httpVariable);
+			
 			if (method.equals("GET")) {
 
 				// Retrieves variable value
@@ -388,30 +391,21 @@ public class HttpConnector extends Connector {
 								if (httpObjectVariableValue instanceof Collection<?>)
 									for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
 										queryString += ((queryString.length() != 0) ? "&" : "");
-										queryString += httpVariable
-												+ "="
-												+ URLEncoder.encode(httpVariableValue.toString(),
-														getRequestEncoding(httpTransaction));
+										queryString += httpVariable + "=" + URLEncoder.encode(httpVariableValue.toString(), urlEncodingCharset);
 									}
 								else if (httpObjectVariableValue.getClass().isArray())
 									for (Object item : (Object[]) httpObjectVariableValue) {
 										queryString += ((queryString.length() != 0) ? "&" : "");
-										queryString += httpVariable
-												+ "="
-												+ URLEncoder.encode(item.toString(),
-														getRequestEncoding(httpTransaction));
+										queryString += httpVariable + "=" + URLEncoder.encode(item.toString(), urlEncodingCharset);
 									}
 							}
 							// standard case
 							else {
 								queryString += ((queryString.length() != 0) ? "&" : "");
-								queryString += httpVariable
-										+ "="
-										+ URLEncoder.encode(httpObjectVariableValue.toString(),
-												getRequestEncoding(httpTransaction));
+								queryString += httpVariable + "=" + URLEncoder.encode(httpObjectVariableValue.toString(), urlEncodingCharset);
 							}
 						} catch (UnsupportedEncodingException e) {
-							throw new EngineException("UTF-8 encoding is not supported.", e);
+							throw new EngineException(urlEncodingCharset + " encoding is not supported.", e);
 						}
 					}
 				}
@@ -419,7 +413,7 @@ public class HttpConnector extends Connector {
 		}
 
 		// encodes URL if it contains special characters
-		sUrl = URLUtils.encodeAbsoluteURL(sUrl);
+		sUrl = URLUtils.encodeAbsoluteURL(sUrl, urlEncodingCharset);
 
 		if (queryString.length() != 0) {
 			if (sUrl.indexOf('?') == -1) {
@@ -523,7 +517,7 @@ public class HttpConnector extends Connector {
 						// Template has been parsed from file, retrieve its declared encoding char set
 						// If not found use "UTF-8" according to HTTP POST for text/xml (see getData)
 						String xmlEncoding = requestTemplate.getXmlEncoding();
-						xmlEncoding = (xmlEncoding == null) ? "UTF-8":xmlEncoding;
+						xmlEncoding = (xmlEncoding == null) ? "UTF-8" : xmlEncoding;
 						
 						postQuery = XMLUtils.prettyPrintDOMWithEncoding(requestTemplate, xmlEncoding);
 					}
@@ -875,9 +869,10 @@ public class HttpConnector extends Connector {
 				Engine.logBeans.debug("(HttpConnector) Host: " + host + ":" + port);
 				hostConfiguration.setHost(host, port);
 			}
-
+			AbstractHttpTransaction httpTransaction = (AbstractHttpTransaction) context.transaction;
+			
 			// Retrieve HTTP method
-			int httpVerb = ((AbstractHttpTransaction) context.transaction).getHttpVerb();
+			int httpVerb = httpTransaction.getHttpVerb();
 			String sHttpVerb = AbstractHttpTransaction.HTTP_VERBS[httpVerb];
 			Engine.logBeans.debug("(HttpConnector) HTTP verb: " + sHttpVerb);
 			if (httpVerb == AbstractHttpTransaction.HTTP_VERB_GET) {
@@ -926,8 +921,7 @@ public class HttpConnector extends Connector {
 					postMethod.setRequestEntity(new StringRequestEntity(postQuery, "text/xml", "UTF-8"));
 				}
 				else {
-					String charset = getCharset();
-					if (charset == null) charset = "UTF-8";
+					String charset = httpTransaction.getComputedUrlEncodingCharset();
 					postMethod.setRequestEntity(new StringRequestEntity(postQuery, content_type, charset));
 				}
 			}
@@ -1232,13 +1226,6 @@ public class HttpConnector extends Connector {
 		}
 	}
 
-	private String getRequestEncoding(AbstractHttpTransaction httpTransaction) {
-		if (httpTransaction instanceof XmlHttpTransaction) {
-			return (((XmlHttpTransaction) httpTransaction).getXmlEncoding());
-		}
-		return "UTF-8";
-	}
-
 	private String getAbsoluteUrl(HttpMethod method, String givenUrl) throws URIException,
 			MalformedURLException, EngineException {
 		String absoluteUrl = givenUrl;
@@ -1533,5 +1520,13 @@ public class HttpConnector extends Connector {
 			return true;
 		}
 		return super.isCipheredProperty(propertyName);
+	}
+
+	public String getUrlEncodingCharset() {
+		return urlEncodingCharset;
+	}
+
+	public void setUrlEncodingCharset(String urlEncodingCharset) {
+		this.urlEncodingCharset = urlEncodingCharset;
 	}
 }

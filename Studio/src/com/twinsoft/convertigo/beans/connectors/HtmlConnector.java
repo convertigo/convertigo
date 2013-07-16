@@ -260,15 +260,19 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 		// Retrieve current executing transaction
 		HtmlTransaction htmlTransaction = getCurrentHtmlTransaction(context);
 		
-		if ((htmlTransaction == null) || (!htmlTransaction.runningThread.bContinue))
+		if ((htmlTransaction == null) || (!htmlTransaction.runningThread.bContinue)) {
 			return;
+		}
 		
 		// Retrieve current statement : the statement being executed
 		Statement statement = htmlTransaction.currentStatement;
-		if (statement == null)
+		if (statement == null) {
 			return;
-		if (!(statement instanceof HTTPStatement))
+		}
+		
+		if (!(statement instanceof HTTPStatement)) {
 			return;
+		}
 		
 		HTTPStatement httpStatement = (HTTPStatement)statement;
 		
@@ -289,9 +293,10 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 			Engine.logBeans.debug("(HtmlConnector) GET query: " + Visibility.Logs.replaceVariables(httpStatement.getVariables(), queryString));
 		
 		// Encodes URL if it contains special characters
-		sUrl = URLUtils.encodeAbsoluteURL(sUrl);
-		if (queryString.length() != 0)
-			sUrl += (sUrl.indexOf('?') == -1 ? "?":"&") + queryString;
+		sUrl = URLUtils.encodeAbsoluteURL(sUrl, htmlTransaction.getComputedUrlEncodingCharset());
+		if (queryString.length() != 0) {
+			sUrl += (sUrl.indexOf('?') == -1 ? "?" : "&") + queryString;
+		}
 
 		// Posting all input variables marked as POST
 		Engine.logBeans.trace("(HtmlConnector) Loading all POST input variables");

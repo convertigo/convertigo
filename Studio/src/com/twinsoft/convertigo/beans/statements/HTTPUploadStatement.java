@@ -89,12 +89,12 @@ public class HTTPUploadStatement extends HTTPStatement {
 	}
 	
 	@Override
-	protected String addVariableToQuery(String methodToAnalyse, String httpVariable, String httpVariableValue, String query, boolean firstParam) throws UnsupportedEncodingException {
+	protected String addVariableToQuery(String methodToAnalyse, String httpVariable, String httpVariableValue, String query, String urlEncodingCharset, boolean firstParam) throws UnsupportedEncodingException {
 		if (methodToAnalyse.equalsIgnoreCase("POST")) {
 			parts.add(new StringPart(httpVariable, httpVariableValue));
 			return "";
 		} else {
-			return super.addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, firstParam);
+			return super.addVariableToQuery(methodToAnalyse, httpVariable, httpVariableValue, query, urlEncodingCharset, firstParam);
 		}
 	}
 	

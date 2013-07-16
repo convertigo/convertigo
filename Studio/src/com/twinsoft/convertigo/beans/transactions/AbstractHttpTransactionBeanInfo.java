@@ -36,7 +36,7 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/AbstractHttpTransaction");
 
-			properties = new PropertyDescriptor[5];
+			properties = new PropertyDescriptor[6];
 			
 			properties[0] = new PropertyDescriptor("subDir", AbstractHttpTransaction.class, "getSubDir", "setSubDir");
 			properties[0].setDisplayName(getExternalizedString("property.subDir.display_name"));
@@ -62,6 +62,11 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[4].setDisplayName(getExternalizedString("property.httpVerb.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.httpVerb.short_description"));
 			properties[4].setPropertyEditorClass(getEditorClass("HttpVerbEditor"));
+			
+			properties[5] = new PropertyDescriptor("urlEncodingCharset", beanClass, "getUrlEncodingCharset", "setUrlEncodingCharset");
+			properties[5].setDisplayName(getExternalizedString("property.urlEncodingCharset.display_name"));
+			properties[5].setShortDescription(getExternalizedString("property.urlEncodingCharset.short_description"));
+			properties[5].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
