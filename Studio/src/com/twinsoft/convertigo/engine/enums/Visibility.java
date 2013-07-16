@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.engine.enums;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -47,6 +46,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
@@ -135,13 +135,16 @@ public enum Visibility {
 		if (variableList.isEmpty()) return object;
 		
 		try {
+			
 			// Case of queryString | postQuery : variable_name=variable_value&variable_name=variable_value
 			if (object instanceof String) {
 				String toPrint = String.valueOf(object);
 				for (Variable variable: variableList) {
+										
 					if (variable != null && isMasked(variable.getVisibility())) {
-						for (String key : getVariableKeyNames(variable))
-							toPrint = toPrint.replaceAll(key+"=[^\\&]*", key+"=\""+ STRING_MASK +"\"");
+						for (String key : getVariableKeyNames(variable)){
+							toPrint = toPrint.replaceAll( key+"=[^\\&]*", key+"=\""+ STRING_MASK +"\"");
+						}
 					}
 				}
 				return toPrint;
@@ -264,8 +267,9 @@ public enum Visibility {
 			keys.add(variable.getName());
 			Class<?> c = variable.getClass();
 			if (c.getName().indexOf(".RequestableHttp") != -1) {
-				Method method = c.getMethod("getHttpName");
-				String key = (String)method.invoke(c);
+				//java.lang.reflect.Method method = c.getMethod("getHttpName");
+				//String key = (String)method.invoke(c);
+				String key = ((RequestableHttpVariable) variable).getHttpName();
 				if (!keys.contains(key)) keys.add(key);
 			}
 		} catch (Exception e) {}
