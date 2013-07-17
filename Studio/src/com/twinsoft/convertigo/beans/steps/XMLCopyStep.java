@@ -185,15 +185,15 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 				Node node = list.item(i);
 				if (node != null) {
 					Node imported = doc.importNode(node, true);
-					if (imported.getNodeType() == Node.ELEMENT_NODE)
-						stepNode.appendChild((Element)imported);
-					else if (imported.getNodeType() == Node.ATTRIBUTE_NODE) {
+					if (imported.getNodeType() == Node.ELEMENT_NODE) {
+						stepNode.appendChild((Element) imported);
+					} else if (imported.getNodeType() == Node.ATTRIBUTE_NODE) {
 						stepNode.setAttribute(imported.getNodeName(),imported.getNodeValue());
 					}
 				}
-				removeUselessAttributes(stepNode);
 			}
 		}
+		removeUselessAttributes(stepNode);
 	}
 
 	@Override
