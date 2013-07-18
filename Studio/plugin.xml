@@ -2167,6 +2167,32 @@
                      </objectState>
                   </enablement>
                </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToXMLConcatStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToXMLConcat"
+                     label="XML Concat"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.XMLElementStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToXMLElementStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToXMLElement"
+                     label="XML Element"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.XMLConcatStep">
+                     </objectState>
+                  </enablement>
+               </action>
             </objectContribution>
             <objectContribution
                   id="convertigo.sequenceContribution"
