@@ -34,6 +34,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.steps.IfExistStep;
 import com.twinsoft.convertigo.beans.steps.IsInStep;
 import com.twinsoft.convertigo.beans.steps.IsInThenElseStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
@@ -66,6 +67,7 @@ public class ChangeToIsInStepAction extends MyAbstractAction {
     		if (explorerView != null) {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
     			Object databaseObject = treeObject.getObject();
+    			// For IsInThenElse step
     			if ((databaseObject != null) && (databaseObject instanceof IsInThenElseStep)) {
     				IsInThenElseStep ifThenElseStep = (IsInThenElseStep)databaseObject;
     				if (ifThenElseStep.hasThenElseSteps()) {
@@ -127,6 +129,67 @@ public class ChangeToIsInStepAction extends MyAbstractAction {
 			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(ifStep));
 		        		}
 					}
+    			}
+    			// For IfExist step
+    			if ((databaseObject != null) && (databaseObject instanceof IfExistStep)) {
+   				
+    				IfExistStep ifExistStep = (IfExistStep)databaseObject;
+					List<Step> list = ifExistStep.getSteps();
+					TreePath[] selectedPaths = new TreePath[list.size()];
+					for (int i=0; i<list.size(); i++) {
+						StepTreeObject stepTreeObject = (StepTreeObject)explorerView.findTreeObjectByUserObject(list.get(i));
+						selectedPaths[i] = new TreePath(stepTreeObject);
+					}
+					
+					TreeParent treeParent = treeObject.getParent();
+					DatabaseObjectTreeObject parentTreeObject = null;
+					if (treeParent instanceof DatabaseObjectTreeObject)
+						parentTreeObject = (DatabaseObjectTreeObject)treeParent;
+					else
+						parentTreeObject = (DatabaseObjectTreeObject)treeParent.getParent();
+					
+	        		if (parentTreeObject != null) {
+						// New jIf step
+	        			IsInStep ifStep = new IsInStep();
+	        			ifStep.setSourceDefinition(ifExistStep.getSourceDefinition());
+						ifStep.bNew = true;
+						ifStep.hasChanged = true;
+						
+						// Add new jIf step to parent
+						DatabaseObject parentDbo = ifExistStep.getParent();
+						parentDbo.add(ifStep);
+						
+						// Set correct order
+						if (parentDbo instanceof StepWithExpressions)
+							((StepWithExpressions)parentDbo).insertAtOrder(ifStep,ifExistStep.priority);
+						else if (parentDbo instanceof Sequence)
+							((Sequence)parentDbo).insertAtOrder(ifStep,ifExistStep.priority);
+						
+						// Add new jIf step in Tree
+						StepTreeObject stepTreeObject = new StepTreeObject(explorerView.viewer,ifStep);
+						treeParent.addChild(stepTreeObject);
+
+						// Cut/Paste steps under jIf step
+						if (selectedPaths.length > 0) {
+    						new ClipboardAction(ConvertigoPlugin.clipboardManagerDND).cut(explorerView, selectedPaths, ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP);
+    						for (int i = 0 ; i < ConvertigoPlugin.clipboardManagerDND.objects.length ; i++) {
+    							ConvertigoPlugin.clipboardManagerDND.cutAndPaste(ConvertigoPlugin.clipboardManagerDND.objects[i], stepTreeObject);
+    						}
+    						ConvertigoPlugin.clipboardManagerDND.reset();
+						}
+						
+		   				// Delete IfThenElse step
+						long oldPriority = ifExistStep.priority;
+						ifExistStep.delete();
+		   				
+		   				// Simulate move of IfThenElse to If
+						ifStep.getSequence().fireStepMoved(new StepEvent(ifStep,String.valueOf(oldPriority)));
+						
+	        			parentTreeObject.hasBeenModified(true);
+		                explorerView.reloadTreeObject(parentTreeObject);
+		                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(ifStep));
+	        		}
+					
     			}
     		}
         	

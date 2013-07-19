@@ -2098,10 +2098,9 @@
                   <enablement>
                      <objectState
                            name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.steps.IsInThenElseStep">
-                     </objectState>
+                           value="com.twinsoft.convertigo.beans.steps.IsInThenElseStep;com.twinsoft.convertigo.beans.steps.IfExistStep" />
                   </enablement>
-               </action>
+               </action>           
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIsInThenElseStepAction"
                      enablesFor="1"
@@ -2111,7 +2110,7 @@
                   <enablement>
                      <objectState
                            name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.steps.IsInStep">
+                           value="com.twinsoft.convertigo.beans.steps.IsInStep;com.twinsoft.convertigo.beans.steps.IfExistThenElseStep">
                      </objectState>
                   </enablement>
                </action>
@@ -2124,8 +2123,7 @@
                   <enablement>
                      <objectState
                            name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep">
-                     </objectState>
+                           value="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep;com.twinsoft.convertigo.beans.steps.IsInStep" />
                   </enablement>
                </action>
                <action
@@ -2137,8 +2135,7 @@
                   <enablement>
                      <objectState
                            name="objectClassName"
-                           value="com.twinsoft.convertigo.beans.steps.IfExistStep">
-                     </objectState>
+                           value="com.twinsoft.convertigo.beans.steps.IfExistStep;com.twinsoft.convertigo.beans.steps.IsInThenElseStep" />
                   </enablement>
                </action>
                <action
