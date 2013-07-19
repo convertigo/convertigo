@@ -2036,6 +2036,32 @@
                      path="changeTo">
                </menu> 
                <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToSimpleSourceStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIf"
+                     label="jSimpleSource"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.SourceStep">
+                     </objectState>
+                  </enablement>
+               </action>               
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToSourceStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIf"
+                     label="jSource"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.SimpleSourceStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfStepAction"
                      enablesFor="1"
                      id="convertigo.action.changeToIf"
