@@ -28,6 +28,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.CellEditor;
@@ -958,7 +959,9 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		if (name.equals("objectClassName")) {
 			DatabaseObject databaseObject = getObject();
 			objectClassName = databaseObject.getClass().getName();
-			return objectClassName.equals(value);
+			objectClassName = Pattern.quote(objectClassName);
+			return value.matches("(^|.*;)"+objectClassName+"($|;.*)");
+			//return objectClassName.equals(value);
 		}
 		if (name.equals("isInherited")) {
 			Boolean bool = Boolean.valueOf(value);

@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.steps.ElseStep;
+import com.twinsoft.convertigo.beans.steps.IfExistThenElseStep;
 import com.twinsoft.convertigo.beans.steps.IsInStep;
 import com.twinsoft.convertigo.beans.steps.IsInThenElseStep;
 import com.twinsoft.convertigo.beans.steps.ThenStep;
@@ -67,9 +68,10 @@ public class ChangeToIsInThenElseStepAction extends MyAbstractAction {
     		if (explorerView != null) {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
     			Object databaseObject = treeObject.getObject();
+    			// For IsInStep
     			if ((databaseObject != null) && (databaseObject instanceof IsInStep)) {
-    				IsInStep ifStep = (IsInStep)databaseObject;
-					List<Step> list = ifStep.getSteps();
+    				IsInStep isIn = (IsInStep)databaseObject;
+					List<Step> list = isIn.getSteps();
 					TreePath[] selectedPaths = new TreePath[list.size()];
 					for (int i=0; i<list.size(); i++) {
 						StepTreeObject stepTreeObject = (StepTreeObject)explorerView.findTreeObjectByUserObject(list.get(i));
@@ -86,20 +88,20 @@ public class ChangeToIsInThenElseStepAction extends MyAbstractAction {
 	        		if (parentTreeObject != null) {
 						// New IfThenElseStep step
 	        			IsInThenElseStep ifThenElseStep = new IsInThenElseStep();
-	        			ifThenElseStep.setSourceDefinition(ifStep.getSourceDefinition());
-	        			ifThenElseStep.setTestDefinition(ifStep.getTestDefinition());
+	        			ifThenElseStep.setSourceDefinition(isIn.getSourceDefinition());
+	        			ifThenElseStep.setTestDefinition(isIn.getTestDefinition());
 						ifThenElseStep.bNew = true;
 						ifThenElseStep.hasChanged = true;
 						
 						// Add new IfThenElseStep step to parent
-						DatabaseObject parentDbo = ifStep.getParent();
+						DatabaseObject parentDbo = isIn.getParent();
 						parentDbo.add(ifThenElseStep);
 						
 						// Set correct order
 						if (parentDbo instanceof StepWithExpressions)
-							((StepWithExpressions)parentDbo).insertAtOrder(ifThenElseStep,ifStep.priority);
+							((StepWithExpressions)parentDbo).insertAtOrder(ifThenElseStep,isIn.priority);
 						else if (parentDbo instanceof Sequence)
-							((Sequence)parentDbo).insertAtOrder(ifThenElseStep,ifStep.priority);
+							((Sequence)parentDbo).insertAtOrder(ifThenElseStep,isIn.priority);
 						
 						// Add Then/Else steps
 						ThenStep thenStep = new ThenStep();
@@ -127,8 +129,8 @@ public class ChangeToIsInThenElseStepAction extends MyAbstractAction {
 						}
 						
 		   				// Delete If step
-						long oldPriority = ifStep.priority;
-						ifStep.delete();
+						long oldPriority = isIn.priority;
+						isIn.delete();
 		   				
 		   				// Simulate move of If to IfThenElse
 		   				ifThenElseStep.getSequence().fireStepMoved(new StepEvent(ifThenElseStep,String.valueOf(oldPriority)));
@@ -137,6 +139,63 @@ public class ChangeToIsInThenElseStepAction extends MyAbstractAction {
 		                explorerView.reloadTreeObject(parentTreeObject);
 		                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(ifThenElseStep));
 	        		}
+				}
+    			
+    			//For IfExistThenElse step
+    			if ((databaseObject != null) && (databaseObject instanceof IfExistThenElseStep)) {
+    				IfExistThenElseStep ifExistThenElse = (IfExistThenElseStep)databaseObject;
+    				if (ifExistThenElse.hasThenElseSteps()) {
+    					
+    					TreeParent treeParent = treeObject.getParent();
+						DatabaseObjectTreeObject parentTreeObject = null;
+						if (treeParent instanceof DatabaseObjectTreeObject)
+							parentTreeObject = (DatabaseObjectTreeObject)treeParent;
+						else
+							parentTreeObject = (DatabaseObjectTreeObject)treeParent.getParent();
+						
+		        		if (parentTreeObject != null) {
+							// New IsInThenElse step
+		        			IsInThenElseStep isInThenElse = new IsInThenElseStep();
+		        			isInThenElse.setSourceDefinition(ifExistThenElse.getSourceDefinition());
+		        			isInThenElse.bNew = true;
+		        			isInThenElse.hasChanged = true;
+							
+							// Add new IsInThenElse step to parent
+							DatabaseObject parentDbo = ifExistThenElse.getParent();
+							parentDbo.add(isInThenElse);
+							
+							// Set correct order
+							if (parentDbo instanceof StepWithExpressions)
+								((StepWithExpressions)parentDbo).insertAtOrder(isInThenElse,ifExistThenElse.priority);
+							else if (parentDbo instanceof Sequence)
+								((Sequence)parentDbo).insertAtOrder(isInThenElse,ifExistThenElse.priority);
+							
+							// Add Then/Else steps
+							ThenStep thenStep = ifExistThenElse.getThenStep();
+							ElseStep elseStep = ifExistThenElse.getElseStep();
+							thenStep.bNew = true;
+							elseStep.bNew = true;
+							isInThenElse.addStep(thenStep);
+							isInThenElse.addStep(elseStep);
+						
+							// Add new IsInThenElse step in Tree
+							StepTreeObject stepTreeObject = new StepTreeObject(explorerView.viewer, isInThenElse);							
+							treeParent.addChild( new StepTreeObject(explorerView.viewer, isInThenElse));
+							stepTreeObject.addChild(new StepTreeObject(explorerView.viewer, thenStep));
+							stepTreeObject.addChild(new StepTreeObject(explorerView.viewer, elseStep));
+ 
+							// Delete ifExistThenElse step
+							long oldPriority = ifExistThenElse.priority;
+							ifExistThenElse.delete();
+			   				
+			   				// Simulate move of ifExistThenElse to IsInThenElse step
+							isInThenElse.getSequence().fireStepMoved(new StepEvent(isInThenElse,String.valueOf(oldPriority)));
+							
+		        			parentTreeObject.hasBeenModified(true);
+			                explorerView.reloadTreeObject(parentTreeObject);
+			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(isInThenElse));
+		        		}
+    				}
 				}
 			}
         	
