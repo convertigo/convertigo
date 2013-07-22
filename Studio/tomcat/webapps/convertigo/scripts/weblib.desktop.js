@@ -26,12 +26,12 @@ $.extend(true, C8O, {
 	},
 	
 	ro_vars : {
-		plugins_path : "../../scripts/weblib_plugins/",
 		portal_username : "",
 		widget_name : ""
 	},
 	
 	vars : { /** customizable value by adding __name=value in query*/
+		auto_refresh : "true", /** true/false */
 		auto_resize : "true", /** true/false */
 		resize_offset : "50", /** number */
 		send_portal_username : "true", /** true/false */
@@ -101,7 +101,8 @@ $.extend(true, C8O, {
 			$(["altKey", "ctrlKey", "metaKey", "shiftKey", "clientX", "clientY", "screenX", "screenY", "layerX", "layerY", "pageX", "pageY", "button"]),
 		dirty_timer : {},
 		navigation_var_actions : ["backward", "forward", "stop", "refresh"],
-		iframe : false
+		iframe : false,
+		webclipper_path : ""
 	},
 	
 	_addField : function (params, twsid, value) {
@@ -142,10 +143,40 @@ $.extend(true, C8O, {
 						break;
 					}
 				},
-				url : "../../webclipper/" + C8O._define.project + "/" + (C8O._define.connector ? C8O._define.connector : "$") + "/" + (C8O._define.context ? C8O._define.context : "$") + "/d"
+				url : C8O._define.webclipper_path + C8O._define.project + "/" + (C8O._define.connector ? C8O._define.connector : "$") + "/" + (C8O._define.context ? C8O._define.context : "$") + "/d"
 			});
 		} else {
 			C8O._define.dirty_timer = window.setTimeout("C8O._checkDirty(500)", 500);
+		}
+	},
+	
+	__init : C8O._init,
+	_init : function (params) {
+		var value;
+		if (value = C8O._remove(params, "__container")) {
+			if (value == "df") {
+				C8O._getScript(C8O._define.plugins_path + "df.js", function () {
+					C8O._init_df(params);
+				});
+			} else if (value == "mosaic") {
+				C8O._getScript(C8O._define.plugins_path + "mosaic.js", function () {
+					C8O._init_mosaic(params);
+				});
+			} else if (value == "gatein") {
+				C8O._getScript(C8O._define.plugins_path + "gatein.js", function () {
+					C8O._init_gatein(params);
+				});
+			} else if (value == "sharepoint") {
+				C8O._getScript(C8O._define.plugins_path + "sharepoint.js", function () {
+					C8O._init_sharepoint(params);
+				});
+			} else if (value == "standalone") {
+				C8O._getScript(C8O._define.plugins_path + "standalone.js", function () {
+					C8O._init_standalone(params);
+				});
+			}
+		} else {
+			C8O.__init(params);
 		}
 	},
 	
@@ -159,6 +190,8 @@ $.extend(true, C8O, {
 		if (typeof(C8O_document_ready) != "undefined") {
 			C8O.addHook("document_ready", C8O_document_ready);
 		}
+		
+		C8O._define.webclipper_path = window.location.href.replace(new RegExp("/projects/.*"), "/webclipper/");
 		
 		// retrieve the wait_div element in memory
 		C8O._define.wait_div = $("#wait_div").clone();
@@ -206,7 +239,7 @@ $.extend(true, C8O, {
 				var redirect_location = $(xml.documentElement).attr("redirect_location");
 				if (!C8O.isUndefined(redirect_location)) {
 					if (C8O.vars.use_siteclipper_plugin == "true") {
-						C8O._getScript(C8O.ro_vars.plugins_path + "siteclipper.js", function () {
+						C8O._getScript(C8O._define.plugins_path + "siteclipper.js", function () {
 							C8O._init_siteclipper({redirect_location : redirect_location});
 						});
 					} else {
@@ -341,50 +374,6 @@ $.extend(true, C8O, {
 			C8O._fillBody($doc.contents().detach());
 		} else {
 			C8O._fillBody(xml.transformNode(xsl));
-		}
-	},
-	
-	_init : function (params) {
-		var value;
-		if (C8O._remove(params, "__enc")=="true" || C8O.init_vars.enc=="true") {
-			C8O._getScript(C8O.ro_vars.plugins_path + "rsa.js", function () {
-				C8O._init_rsa(params);
-			});
-		} else if (value=C8O._remove(params, "__container")) {
-			if (value=="df") {
-				C8O._getScript(C8O.ro_vars.plugins_path + "df.js", function () {
-					C8O._init_df(params);
-				});
-			} else if (value=="mosaic") {
-				C8O._getScript(C8O.ro_vars.plugins_path + "mosaic.js", function () {
-					C8O._init_mosaic(params);
-				});
-			} else if (value=="gatein") {
-				C8O._getScript(C8O.ro_vars.plugins_path + "gatein.js", function () {
-					C8O._init_gatein(params);
-				});
-			} else if (value=="sharepoint") {
-				C8O._getScript(C8O.ro_vars.plugins_path + "sharepoint.js", function () {
-					C8O._init_sharepoint(params);
-				});
-			} else if (value=="standalone") {
-				C8O._getScript(C8O.ro_vars.plugins_path + "standalone.js", function () {
-					C8O._init_standalone(params);
-				});
-			}
-		} else {
-			C8O._define.connector = params.__connector;
-			C8O._define.context = params.__context;
-
-			C8O._retrieve_vars(params);
-			
-			if (C8O._hook("init_finished", params) && C8O.vars.first_call == "true") {
-				C8O.call(params);
-			}
-			
-			if (C8O.vars.first_call == "false") {
-				C8O.waitHide();
-			}
 		}
 	}
 });

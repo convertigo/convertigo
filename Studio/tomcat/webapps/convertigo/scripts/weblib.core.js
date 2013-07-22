@@ -27,11 +27,11 @@ C8O = {
 	},
 	
 	ro_vars : {
+		i18n_files : []
 	},
 	
 	vars : { /** customizable value by adding __name=value in query*/
 		ajax_method : "POST", /** POST/GET */
-		auto_refresh : "true", /** true/false */
 		endpoint_url : "",
 		first_call : "true", /** true/false */
 		requester_prefix : ""
@@ -163,6 +163,28 @@ C8O = {
 		return data;
 	},
 	
+	getBrowserLanguage : function () {
+		var lang, nav = navigator;
+	    if (nav && nav.userAgent && (lang = nav.userAgent.match(/android.*\W(\w\w)-(\w\w)\W/i))) {
+	        lang = lang[1];
+	    }
+
+	    if (!lang && nav) {
+	        if (nav.language) {
+	            lang = nav.language;
+	        } else if (nav.browserLanguage) {
+	            lang = nav.browserLanguage;
+	        } else if (nav.systemLanguage) {
+	            lang = nav.systemLanguage;
+	        } else if (nav.userLanguage) {
+	            lang = nav.userLanguage;
+	        }
+	        lang = lang.substr(0, 2);
+	    }
+	    
+	    return lang;
+	},
+	
 	getLastCallParameter : function (key) {
 		if (C8O.isUndefined(key)) {
 			return C8O._obj_clone(C8O._define.last_call_params);
@@ -248,6 +270,7 @@ C8O = {
 		hooks : {},
 		last_call_params : {},
 		pendingXhrCpt : 0,
+		plugins_path : "",
 		recall_params : {__context : "", __connector : ""},
 		re_plus : new RegExp("\\+", "g"),
 		re_i18n : new RegExp("__MSG_(.*?)__"),
@@ -418,33 +441,14 @@ C8O = {
 	},
 	
 	_init : function (params) {
-		var value;
-		if (C8O._remove(params, "__enc")=="true" || C8O.init_vars.enc=="true") {
+		var value = C8O._remove(params, "__enc");
+		if (C8O.isDefined(value)) {
+			C8O.init_vars.enc = value;
+		}
+		if (C8O.init_vars.enc == "true" && C8O.isUndefined(C8O._init_rsa)) {
 			C8O._getScript(C8O.ro_vars.plugins_path + "rsa.js", function () {
 				C8O._init_rsa(params);
 			});
-		} else if (value=C8O._remove(params, "__container")) {
-			if (value=="df") {
-				C8O._getScript(C8O.ro_vars.plugins_path + "df.js", function () {
-					C8O._init_df(params);
-				});
-			} else if (value=="mosaic") {
-				C8O._getScript(C8O.ro_vars.plugins_path + "mosaic.js", function () {
-					C8O._init_mosaic(params);
-				});
-			} else if (value=="gatein") {
-				C8O._getScript(C8O.ro_vars.plugins_path + "gatein.js", function () {
-					C8O._init_gatein(params);
-				});
-			} else if (value=="sharepoint") {
-				C8O._getScript(C8O.ro_vars.plugins_path + "sharepoint.js", function () {
-					C8O._init_sharepoint(params);
-				});
-			} else if (value=="standalone") {
-				C8O._getScript(C8O.ro_vars.plugins_path + "standalone.js", function () {
-					C8O._init_standalone(params);
-				});
-			}
 		} else {
 			C8O._define.connector = params.__connector;
 			C8O._define.context = params.__context;
@@ -469,10 +473,16 @@ $.ajaxSetup({
 });
 
 $(document).ready(function () {
-	if (C8O.init_vars.i18n != "") {
-		$.getJSON("i18n/" + C8O.vars.i18n + ".json", function (dictionnary) {
+	C8O._define.plugins_path = window.location.href.replace(new RegExp("/projects/.*"), "/scripts/weblib_plugins/");
+	if (C8O.ro_vars.i18n_files.length > 0) {
+		if (C8O.init_vars.i18n == "") {
+			var lang = C8O.getBrowserLanguage();
+			C8O.init_vars.i18n = ($.inArray(lang, C8O.ro_vars.i18n_files) == -1) ? C8O.ro_vars.i18n_files[0] : lang;
+		}
+		var jqxhr = $.getJSON("i18n/" + C8O.vars.i18n + ".json", function (dictionnary) {
 			C8O._define.dictionnary = dictionnary;
 			C8O.translate(document.documentElement);
+		}).always(function () {
 			C8O._onDocumentReady();
 		});
 	} else {
