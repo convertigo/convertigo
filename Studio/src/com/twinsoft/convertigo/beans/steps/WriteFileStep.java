@@ -191,13 +191,15 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 		String path = entry;
 			
 		if (appendTimestamp) {
-			java.text.SimpleDateFormat formater = new java.text.SimpleDateFormat( ".yyyyMMdd" );
+			java.text.SimpleDateFormat formater = new java.text.SimpleDateFormat( ".yyyymmddHHmmssSSS" );
 			String date = formater.format(new Date());
 			
 			int id = path.lastIndexOf(".");
-			if( id > path.lastIndexOf('/') || id > path.lastIndexOf('\\') ){
+			if (id > path.lastIndexOf('/') || id > path.lastIndexOf('\\')) {
 				path = path.substring(0, id) + date + path.substring(id);
-			}else path = path + date;
+			} else {
+				path = path + date;
+			}
 		}
 		
 		return Engine.theApp.filePropertyManager.getFilepathFromProperty(path, getProject().getName());

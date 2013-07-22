@@ -46,38 +46,47 @@ public class MouseAdvanceStatementBeanInfo extends MySimpleBeanInfo {
             properties[0] = new PropertyDescriptor("screenX", beanClass, "getScreenX", "setScreenX");
             properties[0].setDisplayName(getExternalizedString("property.screenx.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.screenx.short_description"));
+            properties[0].setValue("scriptable", Boolean.TRUE);
             
             properties[1] = new PropertyDescriptor("screenY", beanClass, "getScreenY", "setScreenY");
             properties[1].setDisplayName(getExternalizedString("property.screeny.display_name"));
             properties[1].setShortDescription(getExternalizedString("property.screeny.short_description"));
+            properties[1].setValue("scriptable", Boolean.TRUE);
 
             properties[2] = new PropertyDescriptor("clientX", beanClass, "getClientX", "setClientX");
             properties[2].setDisplayName(getExternalizedString("property.clientx.display_name"));
             properties[2].setShortDescription(getExternalizedString("property.clientx.short_description"));
+            properties[2].setValue("scriptable", Boolean.TRUE);
 
             properties[3] = new PropertyDescriptor("clientY", beanClass, "getClientY", "setClientY");
             properties[3].setDisplayName(getExternalizedString("property.clienty.display_name"));
             properties[3].setShortDescription(getExternalizedString("property.clienty.short_description"));
+            properties[3].setValue("scriptable", Boolean.TRUE);
             
             properties[4] = new PropertyDescriptor("altKey", beanClass, "getAltKey", "setAltKey");
             properties[4].setDisplayName(getExternalizedString("property.altkey.display_name"));
             properties[4].setShortDescription(getExternalizedString("property.altkey.short_description"));
+            properties[4].setValue("scriptable", Boolean.TRUE);
             
             properties[5] = new PropertyDescriptor("button", beanClass, "getButton", "setButton");
             properties[5].setDisplayName(getExternalizedString("property.button.display_name"));
             properties[5].setShortDescription(getExternalizedString("property.button.short_description"));
+            properties[5].setValue("scriptable", Boolean.TRUE);
             
             properties[6] = new PropertyDescriptor("ctrlKey", beanClass, "getCtrlKey", "setCtrlKey");
             properties[6].setDisplayName(getExternalizedString("property.ctrlkey.display_name"));
             properties[6].setShortDescription(getExternalizedString("property.ctrlkey.short_description"));
+            properties[6].setValue("scriptable", Boolean.TRUE);
             
             properties[7] = new PropertyDescriptor("metKey", beanClass, "getMetKey", "setMetKey");
             properties[7].setDisplayName(getExternalizedString("property.metkey.display_name"));
             properties[7].setShortDescription(getExternalizedString("property.metkey.short_description"));
+            properties[7].setValue("scriptable", Boolean.TRUE);
             
             properties[8] = new PropertyDescriptor("shiftKey", beanClass, "getShiftKey", "setShiftKey");
             properties[8].setDisplayName(getExternalizedString("property.shiftkey.display_name"));
-            properties[8].setShortDescription(getExternalizedString("property.shiftkey.short_description"));            
+            properties[8].setShortDescription(getExternalizedString("property.shiftkey.short_description"));
+            properties[8].setValue("scriptable", Boolean.TRUE);  
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

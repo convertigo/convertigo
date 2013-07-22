@@ -37,14 +37,17 @@ public class XMLVariable extends HtmlExtractionRule {
 		super();
 	}
 	
+	@Override
 	public boolean apply(Document xmlDom, Context context) {
 		return super.apply(xmlDom, context);
 	}
-
+	
+	@Override
 	protected void appendToOutputDom(NodeList nodeList, Document outputDom) {
 		// Do not append to output document
 	}
-
+	
+	@Override
 	public void addToScope(Scriptable scope) {
 		scope.put(getName(), scope, this.resultList);
 	}

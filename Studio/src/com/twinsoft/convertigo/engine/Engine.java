@@ -666,15 +666,14 @@ public class Engine {
 									new ProcessBuilder(wm.getAbsolutePath()).start();
 									Engine.logEngine.debug("Xvnc successfully started !");
 								}
-							} else
-								Engine.logEngine.info(vncDir.getAbsolutePath()
-										+ " not found or incomplet, can't start Xvnc");
+							} else {
+								Engine.logEngine.info(vncDir.getAbsolutePath() + " not found or incomplet, can't start Xvnc");
+							}
 						} catch (Exception e) {
-							Engine.logEngine.error("failed to launch Xvnc", e);
+							Engine.logEngine.info("failed to launch Xvnc (maybe already launched", e);
 						}
 					} else
-						Engine.logEngine
-								.warn("Trying to start Xvnc on Linux without DISPLAY environment variable !");
+						Engine.logEngine.warn("Trying to start Xvnc on Linux without DISPLAY environment variable !");
 				}
 
 				isStarted = true;
