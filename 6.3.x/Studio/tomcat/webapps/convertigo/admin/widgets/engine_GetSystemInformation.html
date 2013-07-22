@@ -1,0 +1,67 @@
+<!--
+ * Copyright (c) 2001-2011 Convertigo SA.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, see<http://www.gnu.org/licenses/>.
+ *
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
+-->
+
+<div class="main-widget-toolbar">
+<button id="sysinfoGetJavaSystemProperties">Java system properties</button>
+</div>
+
+<table width="100%" cellspacing="5" cellpadding="2">
+    <tr class="main_headerTab">
+        <td colspan="2"><span id="sysinfoHostName"></span></td>
+    </tr>
+    <tr class="main_odd">
+        <td><strong>CPU</strong></td>
+        <td><span id="sysinfoOsArchitecture"></span> architecture, <span id="sysinfoOsAvailableProcessors"></span> processor(s)</td>
+    </tr>
+    <tr class="main_even">
+        <td><strong>OS</strong></td>
+        <td><span id="sysinfoOsName"></span>&nbsp;<span id="sysinfoOsVersion"></span></td>
+    </tr>
+    <tr class="main_odd">
+        <td><strong>Network</strong></td>
+        <td id="sysinfoHostAddresses" />
+    </tr>
+    <tr class="main_even">
+        <td><strong>Java vendor</strong></td>
+        <td id="sysinfoJavaVendor" />
+    </tr>
+    <tr class="main_odd">
+        <td><strong>Java</strong></td>
+        <td><span id="sysinfoJavaVersion"></span> (classes version: <span id="sysinfoJavaClassVersion"></span>)</td>
+    </tr>
+    <tr class="main_even">
+        <td width="20%"><strong>Total memory:</strong></td>
+        <td><span id="sysinfoMemoryTotal"></span> MB</td>
+    </tr>
+    <tr class="main_odd">
+        <td><strong>Available memory:</strong></td>
+        <td><span id="sysinfoMemoryAvailable"></span> MB</td>
+    </tr>
+    <tr class="main_even">
+        <td><strong>Maximum memory:</strong></td>
+        <td><span id="sysinfoMemoryMaximal"></span> MB</td>
+    </tr>
+    <tr class="main_odd">
+        <td><strong>Your browser:</strong></td>
+        <td id="sysinfoBrowser"></td>
+    </tr>
+</table>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<custom>
+	<additions>
+		<category type="xsl" description="XSL Files" icon="/com/twinsoft/convertigo/beans/core/images/sheet_color_32x32.png">
+			<xsl name="error.xsl" tooltip="The stylesheet file to handle Convertigo errors" />
+			<xsl name="error_fr.xsl" tooltip="The French translated stylesheet file to handle Convertigo errors" />
+			<xsl name="donothing.xsl" tooltip="The minimal stylesheet file to be used by default HTML screen class for Web clipping" />
+		</category>
+	</additions>
+</custom>

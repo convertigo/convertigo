@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet title="Create a new project">
+   <intro href="/com.twinsoft.convertigo/help/Screens.html">
+      <description>
+         To develop a Convertigo project you have to start with creating an empty project.<br/><br/>
+The bold text in this help file is available in (?).
+      </description>
+   </intro>
+   <item title="Start de creation form" dialog="true" skip="true">
+      <description>
+         Next click repeatedly on:<br/><br/>
+&gt;The menu « File »<br/><br/>
+&gt;On « New »<br/><br/>
+&gt;On « Project »<br/><br/>
+&gt;On the file  « Convertigo Project »<br/><br/>
+&gt;On the file « Web clipping »<br/><br/>
+&gt;On the file «  Web Clipping »<br/><br/>
+&gt;Sur &quot;Next&quot;<br/><br/>
+You can realise these instructions manually (Click on &quot;Click to skip&quot;)
+or automatically(Click on &quot;Click to perform&quot;).
+      </description>
+      <command serialization="org.eclipse.ui.newWizard(newWizardId=com.twinsoft.convertigo.eclipse.wizards.NewWebClippingConnectorWizard)" confirm="false">
+      </command>
+   </item>
+   <item title="Follow the instructions in the form" dialog="true" skip="false">
+      <description>
+         &gt;Give a name to your project<br/><br/>
+&gt;Click on &quot;Next&quot;<br/><br/>
+&gt;Click on &quot;Next&quot;<br/><br/>
+&gt;Put the l&apos;address of the web site server (address until&apos;au &quot;/&quot;) to treat in the field &quot;HTTP Serveur&quot;. This address needs to start with www<br/><br/>
+To eventually complete the address of the web site, go to the tab <b>Projects view</b>, click on the sign &quot;+&quot; of the project du projet followed by &quot;+&quot; of the file &quot;connector&quot;. Click on the connector that appeared.<br/>
+In the tab <b>properties view</b> change the propriaty &quot;Root Path&quot; and put the rest of the site address by commencing with a &quot;/&quot;<br/>
+      </description>
+   </item>
+</cheatsheet>

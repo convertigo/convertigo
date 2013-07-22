@@ -1,0 +1,2837 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin
+   id="com.twinsoft.convertigo.studio"
+   name="C-EMS studio plugin"
+   version="0.0.0.build"
+   provider-name="Convertigo"
+   class="com.twinsoft.convertigo.eclipse.ConvertigoPlugin">
+
+   <runtime>
+      <library name="bin/"/>
+      <library name="icons/"/>
+      <library name="tomcat/webapps/convertigo/WEB-INF/classes/"/>
+      <library name="lib/avalon.jar"/>
+      <library name="lib/comm.jar"/>
+      <library name="lib/cos.jar"/>
+      <library name="lib/ejb.jar"/>
+      <library name="lib/fop.jar"/>
+      <library name="lib/jacob.jar"/>
+      <library name="lib/jakarta-regexp-1.2.jar"/>
+      <library name="lib/jCharts-0.7.2.jar"/>
+      <library name="lib/msxml.jar"/>
+      <library name="lib/runtime.jar"/>
+      <library name="lib/studio.jar"/>
+      <library name="lib/engine.jar"/>
+      <library name="lib/engine-htmlparsers.jar"/>
+      <library name="lib/beans.jar"/>
+      <library name="lib/tools.jar"/>
+      <library name="lib/traceplayer.jar"/>
+      <library name="lib/ws-commons-java5-1.0.1.jar"/>
+      <library name="lib/cplugin.jar"/>
+      <library name="lib/MozillaInterfaces.jar"/>
+      <library name="lib/MozillaGlue.jar">
+         <export
+               name="org.mozilla.xpcom.*">
+         </export>
+      </library>
+      <library name="lib/directkit.jar"/>
+      <library name="lib/hsqldb.jar"/>
+      <library name="lib/ojdbc5.jar"/>
+      <library name="lib/jt400.jar"/>
+      <library name="lib/jtds-1.2.2.jar"/>
+      <library name="lib/dom4j-1.6.1/dom4j-1.6.1.jar"/>
+      <library name="lib/apache/bcel/bcel-5.2.jar"/>
+      <library name="lib/apache/batik/batik.jar"/>
+      <library name="lib/apache/commons/commons-lang-2.5.jar"/>
+      <library name="lib/apache/commons/commons-fileupload-1.2.2.jar"/>
+      <library name="lib/apache/xmlgraphics/xmlgraphics-commons-1.4.jar"/>
+      <library name="lib/backport/backport-util-concurrent-3.1.jar"/>
+      <library name="lib/xerces-2_11_0/xercesImpl.jar"/>
+      <library name="lib/xerces-2_11_0/xml-apis.jar"/>
+      <library name="lib/netbeans/absolutelayout.jar"/>
+      <library name="lib/soapui/bcprov-jdk15-141.jar"/>
+      <library name="lib/soapui/commons-beanutils-1.7.0.jar"/>
+      <library name="lib/soapui/commons-cli-1.0.jar"/>
+      <library name="lib/soapui/not-yet-commons-ssl-0.3.11.jar"/>
+      <library name="lib/soapui/soapui-3.5.1.jar"/>
+      <library name="lib/soapui/soapui-xmlbeans-3.5.1.jar"/>
+      <library name="tomcat/lib/annotations-api.jar"/>
+      <library name="tomcat/lib/bootstrap.jar"/>
+      <library name="tomcat/lib/catalina.jar"/>
+      <library name="tomcat/lib/catalina-ant.jar"/>
+      <library name="tomcat/lib/catalina-ha.jar"/>
+      <library name="tomcat/lib/catalina-tribes.jar"/>
+      <library name="tomcat/lib/commons-daemon.jar"/>
+      <library name="tomcat/lib/el-api.jar"/>
+      <library name="tomcat/lib/jasper.jar"/>
+      <library name="tomcat/lib/jasper-el.jar"/>
+      <library name="tomcat/lib/jasper-jdt.jar"/>
+      <library name="tomcat/lib/jsp-api.jar"/>
+      <library name="tomcat/lib/servlet-api.jar"/>
+      <library name="tomcat/lib/tomcat-coyote.jar"/>
+      <library name="tomcat/lib/tomcat-dbcp.jar"/>
+      <library name="tomcat/lib/tomcat-i18n-es.jar"/>
+      <library name="tomcat/lib/tomcat-i18n-fr.jar"/>
+      <library name="tomcat/lib/tomcat-i18n-ja.jar"/>
+      <library name="tomcat/lib/tomcat-juli.jar"/>
+      <library name="lib/internal/aviva-111114.jar"/>
+      <library name="lib/internal/bull-v24323.jar"/>
+      <library name="lib/internal/comm.jar"/>
+      <library name="lib/internal/crysec-090918.jar"/>
+      <library name="lib/internal/ms.jar"/>
+      <library name="lib/internal/netscape.jar"/>
+      <library name="lib/internal/phaos.jar"/>
+      <library name="lib/internal/twinj-v28353.jar"/>
+      <library name="lib/internal/ui-090918.jar"/>
+      <library name="lib/internal/vdx-090918.jar"/>
+      <library name="lib/internal/vt220-v34405.jar"/>
+      <library name="lib/rhino-1.7-R4.jar"/>
+      <library name="lib/commons-collections-3.1.jar"/>
+      <library name="lib/quartz-1.7.1.jar"/>
+      <library name="lib/jettison-1.2.jar"/>
+      <library name="lib/ctgclient.jar"/>
+      <library name="lib/hibernate/antlr-2.7.6.jar"/>
+      <library name="lib/hibernate/hibernate-jpa-2.0-api-1.0.0.Final.jar"/>
+      <library name="lib/hibernate/hibernate3.jar"/>
+      <library name="lib/hibernate/javassist-3.12.0.GA.jar"/>
+      <library name="lib/hibernate/jta-1.1.jar"/>
+      <library name="lib/hibernate/slf4j-api-1.6.1.jar"/>
+      <library name="lib/hibernate/slf4j-nop-1.6.1.jar"/>
+      <library name="lib/internal/tas-v25667.jar"/>
+      <library name="lib/internal/api-v25978.jar"/>
+      <library name="lib/scribe-1.1.0.jar"/>   
+      <library name="lib/internal/ibm-v28353.jar"/>
+      <library name="lib/qrcode.jar"/>
+      <library name="lib/mysql-connector.jar"/>
+      <library name="lib/mariadb-java-client-1.1.3.jar"/>
+      <library name="lib/internal/html_parsers-v30936.jar"/>
+      <library name="lib/internal/util-v28883.jar"/>
+      <library name="lib/axis2-1.6.2/lib/activation-1.1.jar"/>
+      <library name="lib/axis2-1.6.2/lib/antlr-2.7.7.jar"/>
+      <library name="lib/axis2-1.6.2/lib/apache-mime4j-core-0.7.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axiom-api-1.2.13.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axiom-dom-1.2.13.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axiom-impl-1.2.13.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-adb-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-adb-codegen-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-ant-plugin-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-clustering-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-codegen-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-corba-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-fastinfoset-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-java2wsdl-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-jaxbri-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-jaxws-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-jibx-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-json-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-kernel-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-metadata-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-mtompolicy-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-saaj-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-soapmonitor-servlet-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-spring-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-transport-http-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-transport-local-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/axis2-xmlbeans-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/bcel-5.1.jar"/>
+      <library name="lib/axis2-1.6.2/lib/commons-cli-1.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/commons-codec-1.3.jar"/>
+      <library name="lib/axis2-1.6.2/lib/commons-fileupload-1.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/commons-httpclient-3.1.jar"/>
+      <library name="lib/axis2-1.6.2/lib/commons-io-1.4.jar"/>
+      <library name="lib/axis2-1.6.2/lib/commons-logging-1.1.1.jar"/>
+      <library name="lib/axis2-1.6.2/lib/geronimo-annotation_1.0_spec-1.1.jar"/>
+      <library name="lib/axis2-1.6.2/lib/geronimo-jaxws_2.2_spec-1.0.jar"/>
+      <library name="lib/axis2-1.6.2/lib/geronimo-jta_1.1_spec-1.1.jar"/>
+      <library name="lib/axis2-1.6.2/lib/geronimo-saaj_1.3_spec-1.0.1.jar"/>
+      <library name="lib/axis2-1.6.2/lib/geronimo-stax-api_1.0_spec-1.0.1.jar"/>
+      <library name="lib/axis2-1.6.2/lib/geronimo-ws-metadata_2.0_spec-1.1.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/httpcore-4.0.jar"/>
+      <library name="lib/axis2-1.6.2/lib/jalopy-1.5rc3.jar"/>
+      <library name="lib/axis2-1.6.2/lib/jaxb-api-2.1.jar"/>
+      <library name="lib/axis2-1.6.2/lib/jaxb-impl-2.1.7.jar"/>
+      <library name="lib/axis2-1.6.2/lib/jaxb-xjc-2.1.7.jar"/>
+      <library name="lib/axis2-1.6.2/lib/jaxen-1.1.1.jar"/>
+      <library name="lib/axis2-1.6.2/lib/jaxws-tools-2.1.3.jar"/>
+      <library name="lib/axis2-1.6.2/lib/jettison-1.0-RC2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/jibx-bind-1.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/jibx-run-1.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/jsr311-api-1.0.jar"/>
+      <library name="lib/axis2-1.6.2/lib/juli-6.0.16.jar"/>
+      <library name="lib/axis2-1.6.2/lib/log4j-1.2.15.jar"/>
+      <library name="lib/axis2-1.6.2/lib/mail-1.4.jar"/>
+      <library name="lib/axis2-1.6.2/lib/mex-1.6.2-impl.jar"/>
+      <library name="lib/axis2-1.6.2/lib/neethi-3.0.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/regexp-1.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/tribes-6.0.16.jar"/>
+      <library name="lib/axis2-1.6.2/lib/woden-api-1.0M9.jar"/>
+      <library name="lib/axis2-1.6.2/lib/woden-impl-commons-1.0M9.jar"/>
+      <library name="lib/axis2-1.6.2/lib/woden-impl-dom-1.0M9.jar"/>
+      <library name="lib/axis2-1.6.2/lib/wsdl4j-1.6.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/wstx-asl-3.2.9.jar"/>
+      <library name="lib/axis2-1.6.2/lib/xalan-2.7.0.jar"/>
+      <library name="lib/axis2-1.6.2/lib/xml-resolver-1.2.jar"/>
+      <library name="lib/axis2-1.6.2/lib/xmlbeans-2.3.0.jar"/>
+      <library name="lib/axis2-1.6.2/lib/XmlSchema-1.4.7.jar"/>   </runtime>
+
+   <requires>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.jface.text"/>
+      <import plugin="org.eclipse.core.resources"/>
+      <import plugin="org.eclipse.ui.ide"/>
+      <import plugin="org.eclipse.ui.console"/>
+      <import plugin="org.eclipse.ui.views"/>
+      <import plugin="org.eclipse.wst.xml.ui"/>
+      <import plugin="org.eclipse.wst.sse.ui"/>
+      <import plugin="org.eclipse.wst.sse.core"/>
+      <import plugin="org.eclipse.wst.jsdt.ui"/>
+      <import plugin="org.eclipse.wst.jsdt.core"/>
+   </requires>
+
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.xsl.XslRuleEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="xsl"
+            icon="icons/convertigo_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.xsl.XslRuleEditor"
+            name="Xsl rule editor"/>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.browser.AdministrationEditor"
+            icon="icons/convertigo_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.browser.AdministrationEditor"
+            name="Administration editor">
+      </editor>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor"
+            default="false"
+            icon="icons/connector_color_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor"
+            name="Connector Editor"/>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor"
+            default="false"
+            icon="icons/connector_color_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor"
+            name="Sequence Editor">
+      </editor>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            icon="icons/studio/handlers_sc_entry.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor"
+            name="Javascript transaction Editor"/>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStatementEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            icon="icons/studio/handlers_sc_entry.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStatementEditor"
+            name="Javascript statement Editor"/>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            icon="icons/studio/handlers_sc_entry.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditor"
+            name="Javascript step Editor">
+      </editor>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="xml"
+            icon="icons/sample.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditor"
+            name="Xml transaction Editor"/>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="xml"
+            icon="icons/sample.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditor"
+            name="Xml transaction Step Editor">
+      </editor>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceStepEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="xml"
+            icon="icons/sample.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceStepEditor"
+            name="Xml sequence Step Editor">
+      </editor>
+      <editor
+            class="com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="xml"
+            icon="icons/sample.gif"
+            id="com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceEditor"
+            name="Xml sequence Editor">
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            description="Actions provided by Convertigo"
+            id="com.twinsoft.convertigo.actionset"
+            label="Convertigo"
+            visible="true">
+         <menu
+               id="com.twinsoft.convertigo.menu"
+               label="&amp;Convertigo">
+            <separator name="com.twinsoft.convertigo.separator"/>
+         </menu>
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.AboutAction"
+               icon="icons/convertigo_16x16.gif"
+               id="com.twinsoft.convertigo.About"
+               label="About Convertigo plug-in"
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.ProjectPrintAction"
+               icon="icons/studio/project_print.gif"
+               id="com.twinsoft.convertigo.PrintProject"
+               label="&amp;Print project"
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.AdministrationAction"
+               icon="icons/administration_16x16.gif"
+               id="com.twinsoft.convertigo.Administration"
+               label="&amp;Open web administration console"
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.SetupAction"
+               icon="icons/setupwizard_16x16.gif"
+               id="com.twinsoft.convertigo.Setup"
+               label="&amp;Configure Studio"
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
+      </actionSet>
+   </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+<!-- Main categories -->
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigo"
+            name="Convertigo Projects"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
+            name="Convertigo Samples and Demos"/>
+<!-- Categories for Convertigo Projects -->
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigolegacyweb"
+            name="Legacy publishing (webization)"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo">
+      </category>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
+            name="Legacy integration"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigowebintegration"
+            name="Web integration"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigowebclipping"
+            name="Web clipping"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigosequencer"
+            name="Sequencer"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo">
+      </category>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigowebservices"
+            name="Web services consumption"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigolibraries"
+            name="Libraries"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigohubs"
+            name="Mashup composition"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigositeclipper"
+            name="Site clipping"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigosql"
+            name="SQL"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigomobile"
+            name="Mobile"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>  
+<!-- Categories for Convertigo Samples and Demos -->
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+            name="Documentation samples"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+            name="Reference Manual examples"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+            name="Mobile samples"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigosqlsamples"
+            name="SQL Connector samples"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigosequencersamples"
+            name="Sequencer samples"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
+      <category
+            id="com.twinsoft.convertigo.eclipse.convertigodemos"
+            name="Mashup demo projects"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
+<!-- Mobilizer projects -->
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSenchaMobileWizard"
+            icon="icons/studio/mobile_HighEnd_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewSenchaMobileWizard"
+            name="Sencha/PhoneGap based configurable project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates a Mobile project based on Sencha/PhoneGap frameworks, which features are configurable thanks to the following wizard.</description> 
+            </wizard>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewEmptyJQueryMobileWizard"
+            icon="icons/studio/mobile_HighEnd_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewEmptyJQueryMobileWizard"
+            name="jQuery Mobile based empty project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates a Mobile project based on jQueryMobile framework, which features are configurable (simply uncomment them inside code).</description> 
+            </wizard>
+<!-- Legacy publishing projects -->
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New3270WebWizard"
+            icon="icons/studio/panel_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.New3270WebWizard"
+            name="3270 Web Style"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an IBM 3270 Web style webization project.</description> 
+            </wizard>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New5250WebWizard"
+            icon="icons/studio/panel_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.New5250WebWizard"
+            name="5250 Web Style"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an IBM 5250 Web style webization project.</description> 
+            </wizard>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDKUWebWizard"
+            icon="icons/studio/panel_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewDKUWebWizard"
+            name="DKU7xxx Web Style"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates a BULL DKUxxx Web style webization project.</description> 
+            </wizard>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New3270FlexWizard"
+            icon="icons/studio/flex_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.New3270FlexWizard"
+            name="3270 Flex Style"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an IBM 3270 Flex webization project.</description> 
+            </wizard>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New5250FlexWizard"
+            icon="icons/studio/flex_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.New5250FlexWizard"
+            name="5250 Flex Style"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an IBM 5250 Flex webization project.</description> 
+            </wizard>
+<!-- Legacy integration projects -->
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New3270ConnectorWizard"
+            icon="icons/studio/javelinconnector_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.New3270ConnectorWizard"
+            name="3270 Screen"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an IBM 3270 Screen based WebService connector project.</description> 
+            </wizard>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New5250ConnectorWizard"
+            icon="icons/studio/javelinconnector_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.New5250ConnectorWizard"
+            name="5250 Screen"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an IBM 5250 Screen based WebService connector project.</description> 
+            </wizard>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDKUConnectorWizard"
+            icon="icons/studio/javelinconnector_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewDKUConnectorWizard"
+            name="Bull DKUxxx Screen"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates a BULL DKU7xx Screen based WebService connector project.</description> 
+            </wizard>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewMinitelConnectorWizard"
+            icon="icons/studio/javelinconnector_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewMinitelConnectorWizard"
+            name="Minitel Screen"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates a Minitel Screen based WebService connector project.</description> 
+            </wizard>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewVT220ConnectorWizard"
+            icon="icons/studio/javelinconnector_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewVT220ConnectorWizard"
+            name="Unix VTxxx Screen"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an UNIX VTxxx Screen based WebService connector project.</description> 
+            </wizard>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewCicsConnectorWizard"
+            icon="icons/studio/cicsconnector_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewCicsConnectorWizard"
+            name="CICS COMMAREA"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an IBM CICS COMMAREA based WebService connector project.</description> 
+            </wizard>
+<!-- Web integration projects -->
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebintegration"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewHtmlConnectorWizard"
+            icon="icons/studio/htmlconnector_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewHtmlConnectorWizard"
+            name="HTML Web Site"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an HTML Web Site based WebService connector project.</description> 
+            </wizard>
+<!-- Web clipping projects -->
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebclipping"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebClippingConnectorWizard"
+            icon="icons/studio/htmlconnector_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewWebClippingConnectorWizard"
+            name="Web Clipping"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an HTML Web Clipping connector project.</description> 
+            </wizard>
+<!-- Sequencer projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosequencer"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSequencerWizard"
+             icon="icons/studio/sequence_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSequencerWizard"
+             name="Sequencer project"
+             preferredPerspectives="convertigo"
+             project="true">
+             <description>Creates a sequencer project.</description>
+             </wizard>
+<!-- SQL projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosql"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSQLConnectorWizard"
+             icon="icons/studio/sqlconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSQLConnectorWizard"
+             name="SQL project"
+             preferredPerspectives="convertigo"
+             project="true">
+             <description>Creates a SQL project.</description>
+             </wizard>
+<!-- Site Clipper connector projects -->
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigositeclipper"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSiteClipperProjectWizard"
+            icon="icons/studio/siteclipperconnector_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewSiteClipperProjectWizard"
+            name="Site Clipper project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates a Site Clipper connector project.</description> 
+            </wizard>
+<!-- Tutorials sample projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCLIWizard"
+             icon="icons/studio/javelinconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCLIWizard"
+             name="Legacy integration"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the legacy integration sample project to use with Convertigo Legacy Integrator Quick Guide documentation.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCLPWizard"
+             icon="icons/studio/javelinconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCLPWizard"
+             name="Legacy publishing"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the legacy publishing sample project to use with Convertigo Legacy Publisher Quick Guide documentation.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCMCWizard"
+             icon="icons/studio/interaction_hub_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCMCWizard"
+             name="Mashup composition"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the interaction hub sample project to use with Convertigo Mashup Composer Quick Guide documentation.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCMSWizard"
+             icon="icons/studio/sequence_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCMSWizard"
+             name="Mashup sequencing"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the mashup sequencer sample project to use with Convertigo Mashup Sequencer Quick Guide documentation.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCWCWizard"
+             icon="icons/studio/htmlconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCWCWizard"
+             name="Web clipping"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the web clipping sample project to use with Convertigo Web Clipper Quick Guide documentation.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCWIWizard"
+             icon="icons/studio/htmlconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCWIWizard"
+             name="Web integration"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the web integration sample project to use with Convertigo Web Integrator Quick Guide documentation.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleMobilizerWizard"
+             icon="icons/studio/mobile_HighEnd_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleMobilizerWizard"
+             name="Mobile Sencha-based"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Mobilizer sample project to use with "My first Convertigo Mobilizer project" tutorial.</description>
+       </wizard>
+       <!--<wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleSiteClipperWizard"
+             icon="icons/studio/siteclipperconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleSiteClipperWizard"
+             name="Site clipping"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Site clipper sample project to use with "My first Convertigo Site Clipper project" tutorial.</description>
+       </wizard>-->
+<!-- Reference Manual sample projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleSiteClipperWizard"
+             icon="icons/studio/siteclipperconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleSiteClipperWizard"
+             name="Site Clipper objects examples"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the sample project containing Site Clipper objects examples described in the Reference Manual.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleStatementsWizard"
+             icon="icons/studio/htmlconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStatementsWizard"
+             name="HTML connector statements examples"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the sample project containing HTML connector statements examples described in the Reference Manual.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleStepsWizard"
+             icon="icons/studio/sequence_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleStepsWizard"
+             name="Sequencer objects examples"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the sample project containing Sequencer objects examples described in the Reference Manual.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleVariablesWizard"
+             icon="icons/studio/variable_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleVariablesWizard"
+             name="Variables examples"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the sample project containing variables examples described in the Reference Manual.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleHTTPWizard"
+             icon="icons/studio/httpconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleHTTPWizard"
+             name="HTTP connector objects examples"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the sample project containing HTTP connector objects examples described in the Reference Manual.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigorefmanualexamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewRefManualSampleWebClipperWizard"
+             icon="icons/studio/htmlconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewRefManualSampleWebClipperWizard"
+             name="Web Clipper objects examples"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the sample project containing Web Clipper objects examples described in the Reference Manual.</description>
+       </wizard>
+<!-- Mobile sample projects -->
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerFullFeaturedJQueryMobileWizard"
+            icon="icons/studio/mobile_HighEnd_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerFullFeaturedJQueryMobileWizard"
+            name="jQuery Mobile based full-featured sample project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Imports a full-featured Mobile sample project based on jQueryMobile framework.</description> 
+       </wizard>
+<!--       
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerPdfWizard"
+             icon="icons/studio/mobile_HighEnd_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerPdfWizard"
+             name="Sencha based Pdf sample"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports a Sencha based sample project which downloads a PDF file from Convertigo web site.</description>
+       </wizard>
+-->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerWebToPdfWizard"
+             icon="icons/studio/mobile_HighEnd_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerWebToPdfWizard"
+             name="Sencha based WebToPdf sample"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports a Sencha based sample project which downloads any HTML page as a PDF file.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerRssNYTimesWizard"
+             icon="icons/studio/mobile_HighEnd_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerRssNYTimesWizard"
+             name="Sencha based NYTimes sample"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports a Sencha based sample project which reads New York Times RSS feeds.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerSiebelWizard"
+             icon="icons/studio/mobile_HighEnd_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerSiebelWizard"
+             name="Sencha based Siebel sample"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports a Sencha based sample project which connects to a Siebel application.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerUsDirectoryDemoWizard"
+             icon="icons/studio/mobile_HighEnd_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerUsDirectoryDemoWizard"
+             name="Sencha based US Directory sample"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports a Sencha based sample project which makes search on the US Directory web site.</description>
+       </wizard>
+<!-- HelloWorld sample project -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleHelloWorldWizard"
+             icon="icons/convertigo_16x16.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleHelloWorldWizard"
+             name="HelloWorld sample project"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports an HSQLDB database sample project.</description>
+       </wizard>
+<!-- SQL connector sample projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigosqlsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSQLSampleHSQLDBWizard"
+             icon="icons/studio/sqlconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSQLSampleHSQLDBWizard"
+             name="HSQLDB database sample project"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports an HSQLDB database sample project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigosqlsamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSQLSampleXLSWizard"
+             icon="icons/studio/excel.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSQLsampleXLSWizard"
+             name="Excel file database sample project"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports an Excel file database sample project.</description>
+       </wizard>
+<!-- Sequencer sample projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigosequencersamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSequencer1SampleWizard"
+             icon="icons/studio/sequence_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSequencer1SampleWizard"
+             name="Sequencer sample project with SQL and HTML connectors"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports a sequencer sample project based on two datasources: a SQL database accessed through a SQL connector and a website accessed trough an HTML connector.</description>
+       </wizard>       
+       
+<!-- Web services projects -->
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservices"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewHttpConnectorWizard"
+            icon="icons/studio/httpconnector_color_32x32.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewHttpConnectorWizard"
+            name="REST Web service"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates an HTTP based Web Service connector project to invoke a remote REST web service.</description> 
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebservices"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebServiceReferenceWizard"
+             icon="icons/studio/httpconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewWebServiceReferenceWizard"
+             name="SOAP Web service"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Creates an HTTP based Web Service connector project to invoke a remote SOAP web service, by importing its WSDL description file.</description>
+       </wizard>
+<!-- Librairies projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryGoogleMapsWizard"
+             icon="icons/studio/library_googleMaps_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleMapsWizard"
+             name="Google Maps"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Google Maps library project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryGoogleSpreadsheetsWizard"
+             icon="icons/studio/library_googleSpreadsheets_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleSpreadsheetsWizard"
+             name="Google Spreadsheets"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Google Spreadsheets library project.</description>
+       </wizard>
+       <!--<wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleDocsWizard"
+             icon="icons/studio/library_googleDocs_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleDocsWizard"
+             name="Google Docs"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the convertigo Google Docs library project</description>
+       </wizard>-->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryKeyringWizard"
+             icon="icons/studio/library_keyring_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryKeyringWizard"
+             name="Keyring library"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the Convertigo Keyring library project.</description>
+       </wizard>
+<!-- Mashup demo projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDemoSalesForceWizard"
+             icon="icons/studio/demo_salesForce_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewDemoSalesForceWizard"
+             name="SalesForce"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the convertigo SalesForce demo project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDemoUsDirectoryWizard"
+             icon="icons/studio/demo_usDirectory_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewDemoUsDirectoryWizard"
+             name="US Directory"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the convertigo US Directory demo project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDemoLegacyCRMWizard"
+             icon="icons/studio/demo_legacyCRM_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewDemoLegacyCRMWizard"
+             name="Legacy CRM"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the convertigo Legacy CRM demo project.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodemos"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDemoMashupWizard"
+             icon="icons/studio/demo_mashup_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewDemoMashupWizard"
+             name="Mashup demo"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports the convertigo mashup demo project.</description>
+       </wizard>
+<!-- Interaction hub projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigohubs"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewInteractionHubWizard"
+             icon="icons/studio/interaction_hub_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewInteractionHubWizard"
+             name="Interaction hub"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Creates an interaction hub project.</description>
+       </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.ui.resourcePerspective">
+         <newWizardShortcut
+               id="org.eclipse.jdt.ui.wizards.NewProjectCreationWizard">
+         </newWizardShortcut>
+         <viewShortcut
+               id="org.eclipse.jdt.ui.TypeHierarchy">
+         </viewShortcut>
+         <perspectiveShortcut
+               id="org.eclipse.debug.ui.DebugPerspective">
+         </perspectiveShortcut>
+         <actionSet
+               id="org.eclipse.jdt.ui.JavaActionSet">
+         </actionSet>
+         <view
+               relative="org.eclipse.ui.views.ResourceNavigator"
+               relationship="stack"
+               id="org.eclipse.jdt.ui.PackageExplorer">
+         </view>
+      </perspectiveExtension>
+      <perspectiveExtension
+            targetID="com.twinsoft.convertigo.eclipse.ConvertigoPerspective">
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView"
+               ratio="0.23"
+               relationship="left"
+               relative="org.eclipse.ui.editorss"/>
+         <view
+               ratio="0.65"
+               relationship="bottom"
+               relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView"
+               id="org.eclipse.ui.views.PropertySheet"/>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
+               relationship="stack"
+               relative="org.eclipse.ui.views.PropertySheet"/>
+         <view
+               ratio="0.70"
+               relationship="bottom"
+               relative="org.eclipse.ui.editorss"
+               id="org.eclipse.ui.views.TaskList"/>
+         <view
+               relationship="stack"
+               relative="org.eclipse.ui.views.TaskList"
+               id="org.eclipse.ui.console.ConsoleView"/>
+         <view
+               relationship="stack"
+               relative="org.eclipse.ui.views.TaskList"
+               id="org.eclipse.pde.runtime.LogView"/>
+         <view
+               id="org.eclipse.ui.navigator.ProjectExplorer"
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView">
+         </view>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
+               minimized="false"
+               ratio="0.8"
+               relationship="right"
+               relative="org.eclipse.ui.editorss">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            id="convertigo.criteriaContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.CriteriaTreeObject">
+      </objectContribution>
+      <objectContribution
+            id="convertigo.screenclassContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.ScreenClassTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateInheritedScreenClassAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newScreenclass"
+               label="Screen class"
+               menubarPath="convertigo.menu.new/content"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateSheetAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newScreenclassSheet"
+               label="Sheet"
+               menubarPath="convertigo.menu.new/content"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateCriteriaAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newCriteria"
+               label="Criteria"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="isDefault"
+                     value="false"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateExtractionRuleAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newExtractionRule"
+               label="Extraction rule"
+               menubarPath="convertigo.menu.new/content"/>
+      </objectContribution>
+      <objectContribution
+            id="convertigo.objectContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject">
+         <visibility>
+            <objectState
+                  name="isInherited"
+                  value="false"/>
+         </visibility>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
+               enablesFor="1"
+               icon="icons/studio/clipboard_paste.gif"
+               id="convertigo.action.pasteAction"
+               label="Paste"
+               menubarPath="clipboard">
+            <enablement>
+               <objectState
+                     name="canPaste"
+                     value="true"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction"
+               enablesFor="+"
+               icon="icons/studio/clipboard_copy.gif"
+               id="convertigo.action.copyAction"
+               label="Copy"
+               menubarPath="clipboard"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction"
+               enablesFor="+"
+               icon="icons/studio/clipboard_cut.gif"
+               id="convertigo.action.cutAction"
+               label="Cut"
+               menubarPath="clipboard"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDeleteAction"
+               enablesFor="+"
+               icon="icons/studio/delete.gif"
+               id="convertigo.action.deleteAction"
+               label="Delete"
+               menubarPath="delete"
+               tooltip="delete the selected object">
+            <enablement>
+               <objectState
+                     name="isInherited"
+                     value="false"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectRenameAction"
+               enablesFor="1"
+               id="convertigo.action.renameAction"
+               label="Rename"
+               menubarPath="delete"/>
+         <menu
+               id="convertigo.menu.new"
+               label="New"
+               path="new">
+            <groupMarker name="content"/>
+            <separator name="additions"/>
+         </menu>
+      </objectContribution>
+      <objectContribution
+            id="convertigo.objectPriorityContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject">
+         <visibility>
+            <and>
+               <objectState
+                     name="isInherited"
+                     value="false"/>
+               <or>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.CriteriaTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.ExtractionRuleTreeObject"/>
+                  <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject"/>
+                  <objectClass
+                        name="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+                  </objectClass>
+               </or>
+            </and>
+         </visibility>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction"
+               enablesFor="1"
+               icon="icons/studio/dbo_increase_priority.gif"
+               id="convertigo.action.increasePriority"
+               label="Increase priority"
+               menubarPath="priority"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction"
+               enablesFor="1"
+               icon="icons/studio/dbo_decrease_priority.gif"
+               id="convertigo.action.decreasePriority"
+               label="Decrease priority"
+               menubarPath="priority"/>
+      </objectContribution>
+      <objectContribution
+            id="convertigo.explorerContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.UnloadedProjectTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectOpenAction"
+               enablesFor="+"
+               icon="icons/studio/project_open.gif"
+               id="convertigo.action.openProject"
+               label="Open"
+               menubarPath="project"
+               tooltip="Open a project"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectCreateAction"
+               enablesFor="1"
+               icon="icons/studio/project_create.gif"
+               id="convertigo.action.newProject"
+               label="New"
+               menubarPath="explorer"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.UnloadedProjectDeleteAction"
+               enablesFor="+"
+               icon="icons/studio/project_delete.gif"
+               id="convertigo.action.deleteProjectAction"
+               label="Delete"
+               menubarPath="project">
+         </action>
+      </objectContribution>
+      <objectContribution
+            id="convertigo.transactionContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionCreateHandlerAction"
+               enablesFor="1"
+               id="convertigo.action.createHandler"
+               label="Handler"
+               menubarPath="convertigo.menu.new/content"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateSheetAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newTransactionSheet"
+               label="Sheet"
+               menubarPath="convertigo.menu.new/content"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newTransactionVariable"
+               label="Variable"
+               menubarPath="convertigo.menu.new/content">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateTestCaseAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newTransactionTestCase"
+               label="TestCase"
+               menubarPath="convertigo.menu.new/content">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionEditHandlersAction"
+               enablesFor="1"
+               id="convertigo.action.editHandlers"
+               label="Edit handlers"
+               menubarPath="edit"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedAction"
+               enablesFor="1"
+               icon="icons/studio/transaction_execute_selected.gif"
+               id="convertigo.action.executeSelectedTransaction"
+               label="Execute"
+               menubarPath="execute">
+          </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.UpdateXSDTypesFromXMLAction"
+               enablesFor="1"
+               id="convertigo.action.updateXSDFromXML"
+               label="Update schema from current generated XML"
+               menubarPath="xsd">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.UpdateXSDTypesAction"
+               enablesFor="1"
+               id="convertigo.action.updateXSD"
+               label="Update schema from transaction&apos;s definition"
+               menubarPath="xsd">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.SetDefaultTransactionAction"
+               enablesFor="1"
+               id="convertigo.action.setDefaultTransaction"
+               label="Default transaction"
+               menubarPath="default"
+               style="toggle">
+            <enablement>
+               <objectState
+                     name="isDefault"
+                     value="false"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateFormFromTransactionAction"
+               enablesFor="1"
+               id="convertigo.action.generateForm"
+               label="Generate Request Form Transaction"
+               menubarPath="transaction">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
+               enablesFor="1"
+               id="convertigo.action.createEmptyStub"
+               label="Create empty stub"
+               menubarPath="stub">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStubFromXMLAction"
+               enablesFor="1"
+               id="convertigo.action.createStubFromXML"
+               label="Create stub from current generated XML"
+               menubarPath="stub">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedFromStubAction"
+               icon="icons/studio/transaction_execute_selected.gif"
+               id="convertigo.action.executeSelectedTransactionFromStub"
+               label="Execute from stub"
+               menubarPath="execute">
+         </action>
+         
+      </objectContribution>
+      <objectContribution
+            id="convertigo.transactionCopybookContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject">
+         <visibility>
+            <objectState
+                  name="objectClassName"
+                  value="com.twinsoft.convertigo.beans.transactions.CicsTransaction"/>
+         </visibility>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CicsTransactionImportCopybookAction"
+               enablesFor="1"
+               id="convertigo.action.importCopybook"
+               label="Import copybook"
+               menubarPath="transaction">
+         </action>
+      </objectContribution>
+      <objectContribution
+            id="convertigo.projectContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CustomAdditionsAction"
+               enablesFor="1"
+               id="convertigo.action.customizeFile"
+               label="Add files ..."
+               menubarPath="add"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectCloseAction"
+               enablesFor="+"
+               icon="icons/studio/close.gif"
+               id="convertigo.action.closeProject"
+               label="Close"
+               menubarPath="save"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateConnectorAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newConnector"
+               label="Connector"
+               menubarPath="convertigo.menu.new/content"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateSequenceAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newSequence"
+               label="Sequence"
+               menubarPath="convertigo.menu.new/content">
+         </action>
+         <!--action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileDeviceAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newMobileDevice"
+               label="Mobile device"
+               menubarPath="convertigo.menu.new/content">
+         </action-->
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectEditWSDLAction"
+               enablesFor="1"
+               id="convertigo.action.editProjectWSDL"
+               label="Display wsdl file"
+               menubarPath="edit">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectEditXSDAction"
+               enablesFor="1"
+               id="convertigo.action.editProjectXSD"
+               label="Display schema file"
+               menubarPath="edit">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerRefreshAction"
+               enablesFor="1"
+               icon="icons/studio/refresh.gif"
+               id="convertigo.action.reloadXmlProject"
+               label="Reload from XML"
+               menubarPath="project"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectExportAction"
+               enablesFor="1"
+               icon="icons/studio/project_export.gif"
+               id="convertigo.action.exportProject"
+               label="Export"
+               menubarPath="project"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectDeployAction"
+               enablesFor="1"
+               icon="icons/studio/project_deploy.gif"
+               id="convertigo.action.deployProject"
+               label="Deploy"
+               menubarPath="project"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectSaveAction"
+               enablesFor="1"
+               icon="icons/studio/project_save.gif"
+               id="convertigo.action.saveProject"
+               label="Save"
+               menubarPath="save"
+               overrideActionId="convertigo.action.saveAction">
+            <enablement>
+               <objectState
+                     name="isModified"
+                     value="true"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectImportWsReference"
+               enablesFor="1"
+               id="convertigo.action.importWSReference"
+               label="Import WS reference"
+               menubarPath="webservice">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectCleanXSDAction"
+               enablesFor="1"
+               id="convertigo.action.cleanProjectXSD"
+               label="Update Web Service"
+               menubarPath="schema">
+         </action>
+         <!--action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectValidateXSDAction"
+               enablesFor="1"
+               id="convertigo.action.validateProjectXSD"
+               label="Validate schema file"
+               menubarPath="schema">
+         </action-->
+      </objectContribution>
+      <objectContribution
+            id="convertigo.connectorContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.ConnectorTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreatePoolAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newPool"
+               label="Pool"
+               menubarPath="convertigo.menu.new/content"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateTransactionAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newTransaction"
+               label="Transaction"
+               menubarPath="convertigo.menu.new/content"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.SetDefaultConnectorAction"
+               enablesFor="1"
+               id="convertigo.action.setDefaultConnector"
+               label="Default connector"
+               menubarPath="default"
+               style="toggle">
+            <enablement>
+               <objectState
+                     name="isDefault"
+                     value="false"/>
+            </enablement>
+         </action>
+      </objectContribution>
+      <objectContribution
+            id="convertigo.sheetContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.SheetTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.SheetEditAction"
+               enablesFor="1"
+               id="convertigo.action.editAction"
+               label="Edit"
+               menubarPath="sheet"/>
+      </objectContribution>
+      <objectContribution
+            id="convertigo.transactionStatementContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.TransactionTreeObject">
+         <visibility>
+            <objectState
+                  name="objectClassName"
+                  value="com.twinsoft.convertigo.beans.transactions.HtmlTransaction"/>
+         </visibility>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStatementAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newStatement"
+               label="Statement"
+               menubarPath="convertigo.menu.new/content">
+               <enablement>
+                 <objectState
+                       name="isThenElseStatement"
+                       value="false"/>
+               </enablement>
+          </action>
+      </objectContribution>
+		<objectContribution
+		      id="convertigo.statementContribution"
+		      objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject">
+		   <action
+		         class="com.twinsoft.convertigo.eclipse.popup.actions.EnableStatementAction"
+		         enablesFor="+"
+		         id="convertigo.action.enableStatement"
+		         label="Enable"
+		         menubarPath="enable">
+		      <enablement>
+		         <objectState
+		               name="isEnable"
+		               value="false"/>
+		      </enablement>
+		   </action>
+		   <action
+		         class="com.twinsoft.convertigo.eclipse.popup.actions.DisableStatementAction"
+		         enablesFor="+"
+		         id="convertigo.action.disableStatement"
+		         label="Disable"
+		         menubarPath="enable">
+		      <enablement>
+		         <objectState
+		               name="isEnable"
+		               value="true"/>
+		      </enablement>
+		   </action>
+		</objectContribution>
+		<objectContribution
+                  id="convertigo.statementChangeToContribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject">
+               <visibility>
+                  <objectState
+                        name="canChangeTo"
+                        value="true">
+                  </objectState>
+               </visibility>
+               <menu
+                     id="convertigo.menu.statement.changeTo"
+                     label="Change to"
+                     path="changeTo">
+               </menu>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfStatementAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIf"
+                     label="If"
+                     menubarPath="convertigo.menu.statement.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.statements.IfThenElseStatement">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfThenElseStatementAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIfThenElse"
+                     label="IfThenElse"
+                     menubarPath="convertigo.menu.statement.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.statements.IfStatement">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfXpathExistsStatementAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIfXpathExists"
+                     label="IfXpathExists"
+                     menubarPath="convertigo.menu.statement.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfXpathExistsThenElseStatementAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIfXpathExistsThenElse"
+                     label="IfXpathExistsThenElse"
+                     menubarPath="convertigo.menu.statement.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement">
+                     </objectState>
+                  </enablement>
+               </action>
+    		</objectContribution>
+      <objectContribution
+            id="convertigo.statementWEContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject">
+         <visibility>
+            <objectState
+                  name="isStatementWithExpressions"
+                  value="true"/>
+         </visibility>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStatementAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newStatement"
+               label="Statement"
+               menubarPath="convertigo.menu.new/content"/>
+      </objectContribution>
+            <objectContribution
+            id="convertigo.folderContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.ObjectsFolderTreeObject">
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateTransactionAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newTransaction"
+               label="Transaction"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="0"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionCreateHandlerAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.createHandler"
+               label="Handler"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="2"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateInheritedScreenClassAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newScreenclass"
+               label="Screen class"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="5"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateSheetAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newSheet"
+               label="Sheet"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="1"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreatePoolAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newPool"
+               label="Pool"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="8"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateExtractionRuleAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newExtractionRule"
+               label="Extraction rule"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="7"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateCriteriaAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newCriteria"
+               label="Criteria"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="6"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateConnectorAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newConnector"
+               label="Connector"
+               menubarPath="convertigo.menu.new/content">
+             <enablement>
+               <objectState
+                     name="folderType"
+                     value="9"/>
+             </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateSequenceAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newSequence"
+               label="Sequence"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="11">
+               </objectState>
+            </enablement>
+         </action>
+         <!--action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileDeviceAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newMobileDevice"
+               label="Mobile device"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="14">
+               </objectState>
+            </enablement>
+         </action-->
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStepAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newStep"
+               label="Step"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="12">
+               </objectState>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateTestCaseAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newTestCase"
+               label="Test case"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="13">
+               </objectState>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newVariable"
+               label="Variable"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="3">
+               </objectState>
+            </enablement>
+         </action>
+         <menu
+               id="convertigo.menu.new"
+               label="New"
+               path="new">
+            <groupMarker name="content"/>
+         </menu>
+      </objectContribution>
+            <objectContribution
+                  id="convertigo.extractionruleContribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.ExtractionRuleTreeObject">
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.EnableExtractionRuleAction"
+                     enablesFor="+"
+                     id="convertigo.action.enableExtractionRule"
+                     label="Enable"
+                     menubarPath="enable">
+                  <enablement>
+                     <objectState
+                           name="isEnabled"
+                           value="false"/>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.DisableExtractionRuleAction"
+                     enablesFor="+"
+                     id="convertigo.action.disableExtractionRule"
+                     label="Disable"
+                     menubarPath="enable">
+                  <enablement>
+                     <objectState
+                           name="isEnabled"
+                           value="true"/>
+                  </enablement>
+               </action>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.variableContribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.VariableTreeObject">
+               <visibility>
+                  <objectState
+                        name="isChildOfJavelinTransaction"
+                        value="true"/>
+               </visibility>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionShowVariableAction"
+                     enablesFor="1"
+                     id="convertigo.action.showVariable"
+                     label="Show variable position"
+                     menubarPath="top">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionWriteVariableAction"
+                     enablesFor="1"
+                     id="convertigo.action.writeVariable"
+                     label="Write variable position"
+                     menubarPath="top">
+               </action>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.variable2Contribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.VariableTreeObject2">
+               <menu
+                     id="convertigo.menu.variable.changeTo"
+                     label="Change to"
+                     path="changeTo">
+               </menu>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToMultiValuedVariableAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToMultiValuedVariable"
+                     label="MultiValued Variable"
+                     menubarPath="convertigo.menu.variable.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="isMultiValued"
+                           value="false">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToSingleValuedVariableAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToSingleValuedVariable"
+                     label="SingleValued Variable"
+                     menubarPath="convertigo.menu.variable.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="isMultiValued"
+                           value="true">
+                     </objectState>
+                  </enablement>
+               </action>
+               
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.httpStatementContribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject">
+               <visibility>
+                  <objectState
+                        name="isHttpStatement"
+                        value="true"/>
+               </visibility>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newHttpStatementVariable"
+                     label="Variable"
+                     menubarPath="convertigo.menu.new/content">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.StatementAddVariableToTransactionAction"
+                     enablesFor="1"
+                     id="convertigo.action.addHTTPVariable"
+                     label="Add HTTP variables to transaction"
+                     menubarPath="add"/>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.traceContribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.TraceTreeObject">
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.TraceDeleteAction"
+                     enablesFor="1"
+                     id="convertigo.action.deleteTrace"
+                     label="Delete"
+                     menubarPath="main"/>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.TraceRenameAction"
+                     enablesFor="1"
+                     id="convertigo.action.renameTrace"
+                     label="Rename"
+                     menubarPath="main"/>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.TraceEditAction"
+                     enablesFor="1"
+                     id="convertigo.action.editTrace"
+                     label="Edit"
+                     menubarPath="main"/>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.TracePlayAction"
+                     enablesFor="1"
+                     id="convertigo.action.playTrace"
+                     label="Play"
+                     menubarPath="play"/>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.stepContribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.EnableStepAction"
+                     enablesFor="+"
+                     id="convertigo.action.enableStep"
+                     label="Enable"
+                     menubarPath="enable">
+                  <enablement>
+                     <objectState
+                           name="isEnable"
+                           value="false">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.DisableStepAction"
+                     enablesFor="+"
+                     id="convertigo.action.disableStep"
+                     label="Disable"
+                     menubarPath="enable">
+                  <enablement>
+                     <objectState
+                           name="isEnable"
+                           value="true">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ShowStepSourceInPickerAction"
+                     enablesFor="1"
+                     id="convertigo.action.showSourceInPicker"
+                     label="Show source in Picker"
+                     menubarPath="picker">
+                  <enablement>
+                     <objectState
+                           name="workOnSource"
+                           value="true">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ShowStepInPickerAction"
+                     enablesFor="1"
+                     id="convertigo.action.showInPicker"
+                     label="Show in Picker"
+                     menubarPath="picker">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.OutputStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.step.output"
+                     label="Output"
+                     menubarPath="output">
+               </action>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.stepWEContribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+               <visibility>
+                  <objectState
+                        name="isStepWithExpressions"
+                        value="true">
+                  </objectState>
+               </visibility>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStepAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newStep"
+                     label="Step"
+                     menubarPath="convertigo.menu.new/content">
+                  <enablement>
+                     <objectState
+                           name="isThenElseStep"
+                           value="false">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceImportFromXsdAction"
+                     enablesFor="1"
+                     id="convertigo.action.swe.importXSD"
+                     label="Import step&apos;s structure from schema"
+                     menubarPath="import">
+                  <enablement>
+                     <and>
+                        <not>
+                           <objectState
+                                 name="objectClassName"
+                                 value="com.twinsoft.convertigo.beans.steps.XMLElementStep">
+                           </objectState>
+                        </not>
+                        <not>
+                           <objectState
+                                 name="objectClassName"
+                                 value="com.twinsoft.convertigo.beans.steps.IfThenElseStep">
+                           </objectState>
+                        </not>
+                        <not>
+                           <objectState
+                                 name="objectClassName"
+                                 value="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep">
+                           </objectState>
+                        </not>
+                        <not>
+                           <objectState
+                                 name="objectClassName"
+                                 value="com.twinsoft.convertigo.beans.steps.IfInThenElseStep">
+                           </objectState>
+                        </not>
+                     </and>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.OutputRecursiveStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.step.output.recurse"
+                     label="Output recursively"
+                     menubarPath="output">
+               </action>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.stepChangeToContribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+               <visibility>
+                  <objectState
+                        name="canChangeTo"
+                        value="true">
+                  </objectState>
+               </visibility>
+               <menu
+                     id="convertigo.menu.step.changeTo"
+                     label="Change to"
+                     path="changeTo">
+               </menu> 
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToSimpleSourceStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIf"
+                     label="jSimpleSource"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.SourceStep">
+                     </objectState>
+                  </enablement>
+               </action>               
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToSourceStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIf"
+                     label="jSource"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.SimpleSourceStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIf"
+                     label="jIf"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.IfThenElseStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfThenElseStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIfThenElse"
+                     label="jIfThenElse"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.IfStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIsInStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIsIn"
+                     label="IsIn"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.IsInThenElseStep;com.twinsoft.convertigo.beans.steps.IfExistStep" />
+                  </enablement>
+               </action>           
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIsInThenElseStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIsInThenElse"
+                     label="IsInThenElse"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.IsInStep;com.twinsoft.convertigo.beans.steps.IfExistThenElseStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfExistStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIfExist"
+                     label="IfExist"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep;com.twinsoft.convertigo.beans.steps.IsInStep" />
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfExistThenElseStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIfExistThenElse"
+                     label="IfExistThenElse"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.IfExistStep;com.twinsoft.convertigo.beans.steps.IsInThenElseStep" />
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfFileExistStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIfFileExist"
+                     label="IfFileExists"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.IfFileExistThenElseStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfFileExistThenElseStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToIfFileExistThenElse"
+                     label="IfFileExistsThenElse"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.IfFileExistStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToXMLConcatStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToXMLConcat"
+                     label="XML Concat"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.XMLElementStep">
+                     </objectState>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToXMLElementStepAction"
+                     enablesFor="1"
+                     id="convertigo.action.changeToXMLElement"
+                     label="XML Element"
+                     menubarPath="convertigo.menu.step.changeTo/content">
+                  <enablement>
+                     <objectState
+                           name="objectClassName"
+                           value="com.twinsoft.convertigo.beans.steps.XMLConcatStep">
+                     </objectState>
+                  </enablement>
+               </action>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.sequenceContribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.SequenceTreeObject">
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStepAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newStep"
+                     label="Step"
+                     menubarPath="convertigo.menu.new/content">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateSheetAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newSequenceSheet"
+                     label="Sheet"
+                     menubarPath="convertigo.menu.new/content">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newSequenceVariable"
+                     label="Variable"
+                     menubarPath="convertigo.menu.new/content">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateTestCaseAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newTestCase"
+                     label="Test case"
+                     menubarPath="convertigo.menu.new/content">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedAction"
+                     enablesFor="1"
+                     icon="icons/studio/transaction_execute_selected.gif"
+                     id="convertigo.action.executeSelectedSequence"
+                     label="Execute"
+                     menubarPath="execute">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.UpdateXSDTypesFromXMLAction"
+                     enablesFor="0"
+                     id="convertigo.action.seq.updateXSDFromXML"
+                     label="Update schema from current generated XML"
+                     menubarPath="xsd">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.UpdateXSDTypesAction"
+                     enablesFor="1"
+                     id="convertigo.action.seq.updateXSD"
+                     label="Update schema from sequence&apos;s definition"
+                     menubarPath="xsd">
+               </action>
+            <action
+                  class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceImportFromXsdAction"
+                  enablesFor="1"
+                  id="convertigo.action.seq.importXSD"
+                  label="Import step&apos;s structure from schema"
+                  menubarPath="import">
+            </action>
+            <action
+                  class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedFromStubAction"
+                  icon="icons/studio/transaction_execute_selected.gif"
+                  id="convertigo.action.executeSelectedSequenceFromStub"
+                  label="Execute from stub"
+                  menubarPath="execute">
+            </action>
+            <action
+                  class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
+                  id="convertigo.action.seq.createEmptyStub"
+                  label="Create empty stub"
+                  menubarPath="stub">
+            </action>
+            <action
+                  class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStubFromXMLAction"
+                  id="convertigo.action.seq.createStubFromXML"
+                  label="Create stub from current generated XML"
+                  menubarPath="stub">
+            </action>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.transactionStepContribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+               <visibility>
+                  <objectState
+                        name="isTransactionStep"
+                        value="true">
+                  </objectState>
+               </visibility>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newTransactionStepVariable"
+                     label="Variable"
+                     menubarPath="convertigo.menu.new/content">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.StepImportTransactionVariablesAction"
+                     enablesFor="1"
+                     id="convertigo.action.importVariables"
+                     label="Import variables from target transaction"
+                     menubarPath="import">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.StepExportVariablesToSequenceAction"
+                     enablesFor="1"
+                     id="convertigo.action.exportVariables"
+                     label="Export variables to main sequence"
+                     menubarPath="export">
+               </action>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.sequenceStepContribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+               <visibility>
+                  <objectState
+                        name="isSequenceStep"
+                        value="true">
+                  </objectState>
+               </visibility>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newSequenceStepVariable"
+                     label="Variable"
+                     menubarPath="convertigo.menu.new/content">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.StepImportSequenceVariablesAction"
+                     enablesFor="1"
+                     id="convertigo.action.seq.importVariables"
+                     label="Import variables from target sequence"
+                     menubarPath="import">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.StepExportVariablesToSequenceAction"
+                     enablesFor="1"
+                     id="convertigo.action.seq.exportVariables"
+                     label="Export variables to main sequence"
+                     menubarPath="export">
+               </action>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.objectTableProperty"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableTreeObject">
+               <visibility>
+                  <objectState
+                        name="isInherited"
+                        value="false">
+                  </objectState>
+               </visibility>
+               <menu
+                     id="convertigo.menu.tableProperty.new"
+                     label="New"
+                     path="new">
+                  <groupMarker
+                        name="content">
+                  </groupMarker>
+                  <separator
+                        name="additions">
+                  </separator>
+               </menu>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreatePropertyTableRowAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newTablePropertyRow"
+                     label="Row"
+                     menubarPath="convertigo.menu.tableProperty.new/content">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
+                     enablesFor="1"
+                     icon="icons/studio/clipboard_paste.gif"
+                     id="convertigo.action.pasteAction"
+                     label="Paste"
+                     menubarPath="clipboard">
+                  <enablement>
+                     <objectState
+                           name="canPaste"
+                           value="true"/>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction"
+                     enablesFor="+"
+                     icon="icons/studio/clipboard_copy.gif"
+                     id="convertigo.action.copyAction"
+                     label="Copy"
+                     menubarPath="clipboard"/>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction"
+                     enablesFor="+"
+                     icon="icons/studio/clipboard_cut.gif"
+                     id="convertigo.action.cutAction"
+                     label="Cut"
+                     menubarPath="clipboard"/>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.objectTableRowProperty"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableRowTreeObject">
+               <visibility>
+                  <objectState
+                        name="isInherited"
+                        value="false">
+                  </objectState>
+               </visibility>
+               <menu
+                     id="convertigo.menu.tableRowProperty.new"
+                     label="New"
+                     path="new">
+                  <groupMarker
+                        name="content">
+                  </groupMarker>
+                  <separator
+                        name="additions">
+                  </separator>
+               </menu>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreatePropertyTableColumnAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newTablePropertyCol"
+                     label="Column"
+                     menubarPath="convertigo.menu.tableRowProperty.new/content">
+                  <enablement>
+                     <objectState
+                           name="acceptColumns"
+                           value="true"/>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableRowAction"
+                     enablesFor="1"
+                     icon="icons/studio/delete.gif"
+                     id="convertigo.action.deleteTableRowAction"
+                     label="Delete"
+                     menubarPath="delete">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction"
+                     enablesFor="1"
+                     icon="icons/studio/dbo_increase_priority.gif"
+                     id="convertigo.action.moveRowUp"
+                     label="Up"
+                     menubarPath="move">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction"
+                     enablesFor="1"
+                     icon="icons/studio/dbo_decrease_priority.gif"
+                     id="convertigo.action.moveRowDown"
+                     label="Down"
+                     menubarPath="move">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
+                     enablesFor="1"
+                     icon="icons/studio/clipboard_paste.gif"
+                     id="convertigo.action.pasteAction"
+                     label="Paste"
+                     menubarPath="clipboard">
+                  <enablement>
+                     <objectState
+                           name="canPaste"
+                           value="true"/>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction"
+                     enablesFor="+"
+                     icon="icons/studio/clipboard_copy.gif"
+                     id="convertigo.action.copyAction"
+                     label="Copy"
+                     menubarPath="clipboard"/>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction"
+                     enablesFor="+"
+                     icon="icons/studio/clipboard_cut.gif"
+                     id="convertigo.action.cutAction"
+                     label="Cut"
+                     menubarPath="clipboard"/>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.objectTableColProperty"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableColumnTreeObject">
+               <visibility>
+                  <objectState
+                        name="isInherited"
+                        value="false">
+                  </objectState>
+               </visibility>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableColumnAction"
+                     enablesFor="1"
+                     icon="icons/studio/delete.gif"
+                     id="convertigo.action.deleteTableColAction"
+                     label="Delete"
+                     menubarPath="delete">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction"
+                     enablesFor="1"
+                     icon="icons/studio/dbo_increase_priority.gif"
+                     id="convertigo.action.moveColumnUp"
+                     label="Up"
+                     menubarPath="move">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction"
+                     enablesFor="1"
+                     icon="icons/studio/dbo_decrease_priority.gif"
+                     id="convertigo.action.moveColumnDown"
+                     label="Down"
+                     menubarPath="move">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
+                     enablesFor="1"
+                     icon="icons/studio/clipboard_paste.gif"
+                     id="convertigo.action.pasteAction"
+                     label="Paste"
+                     menubarPath="clipboard">
+                  <enablement>
+                     <objectState
+                           name="canPaste"
+                           value="true"/>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction"
+                     enablesFor="+"
+                     icon="icons/studio/clipboard_copy.gif"
+                     id="convertigo.action.copyAction"
+                     label="Copy"
+                     menubarPath="clipboard"/>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction"
+                     enablesFor="+"
+                     icon="icons/studio/clipboard_cut.gif"
+                     id="convertigo.action.cutAction"
+                     label="Cut"
+                     menubarPath="clipboard"/>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.testCaseContribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.TestCaseTreeObject">
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateVariableAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newTestCaseVariable"
+                     label="Variable"
+                     menubarPath="convertigo.menu.new/content">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.TestCaseExecuteSelectedAction"
+                     enablesFor="1"
+                     icon="icons/studio/transaction_execute_selected.gif"
+                     id="convertigo.action.executeSelectedTestCase"
+                     label="Run"
+                     menubarPath="run">
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.TestCaseImportRequestableVariablesAction"
+                     enablesFor="1"
+                     id="convertigo.action.importRequestableVariables"
+                     label="Import variables from target requestable"
+                     menubarPath="import">
+               </action>
+            </objectContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="com.twinsoft.convertigo.eclipse.preferences.ConvertigoPreferencePage"
+            id="ConvertigoPreferencePage"
+            name="Convertigo">
+      </page>
+      <page
+            category="ConvertigoPreferencePage"
+            class="com.twinsoft.convertigo.eclipse.preferences.StudioPreferencePage"
+            id="StudioPreferencePage"
+            name="Studio"/>
+      <page
+            category="ConvertigoPreferencePage"
+            class="com.twinsoft.convertigo.eclipse.preferences.EnginePreferencePage"
+            id="EnginePreferencePage"
+            name="Engine"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            objectClass="org.eclipse.core.resources.IFile"
+            name="Sample Page"
+            nameFilter="*.*"
+            class="com.twinsoft.convertigo.eclipse.properties.SamplePropertyPage"
+            id="com.twinsoft.convertigo.eclipse.properties.samplePropertyPage">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Convertigo"
+            id="convertigo">
+      </category>
+      <view
+            name="Projects"
+            icon="icons/convertigo_16x16.gif"
+            category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView"
+            id="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView">
+      </view>
+      <view
+            category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
+            icon="icons/picker_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
+            name="Source Picker">
+      </view>
+      <view
+            category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
+            icon="icons/references_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
+            name="References"
+            restorable="true">
+      </view>
+      <view
+            category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
+            icon="icons/consoles/engine.gif"
+            id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
+            name="Engine Log"
+            restorable="true">
+      </view>
+      <!--view
+            category="convertigo"
+            class="com.twinsoft.convertigo.eclipse.views.propertysheet.PropertySheetView"
+            icon="icons/sample.gif"
+            id="com.twinsoft.convertigo.eclipse.views.propertysheet.PropertySheetView"
+            name="PropertySheet View"/-->
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            icon="icons/convertigo_16x16.gif"
+            class="com.twinsoft.convertigo.eclipse.ConvertigoPerspective"
+            name="Convertigo"
+            id="com.twinsoft.convertigo.eclipse.ConvertigoPerspective"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            label="Unloadable Convertigo project"
+            icon="icons/studio/unloadable_project.gif"
+            id="com.twinsoft.convertigo.eclipse.decorators.unloadableproject"
+            lightweight="true"
+            state="true"
+            location="TOP_LEFT">
+         <description>Decorates Convertigo projects that can not be successfully loaded.</description>
+         <enablement>
+            <and>
+                <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.UnloadedProjectTreeObject"/>
+                <objectState name="isLoadable" value="false"/>
+            </and>
+         </enablement>
+      </decorator>
+   </extension>
+   <extension
+         point="org.eclipse.ui.viewActions">
+      <viewContribution
+            id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution"
+            targetID="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView">
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerImportAction"
+               disabledIcon="icons/studio/project_import.gif"
+               icon="icons/studio/project_import.gif"
+               id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.import"
+               label="Import"
+               menubarPath="additions"
+               style="push"
+               toolbarPath="additions"
+               tooltip="Import a project in treeview"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerRefreshAction"
+               disabledIcon="icons/studio/refresh.d.gif"
+               enablesFor="*"
+               icon="icons/studio/refresh.gif"
+               id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.refresh"
+               label="Refresh"
+               menubarPath="additions"
+               style="push"
+               toolbarPath="additions"
+               tooltip="Refresh the projects treeview from the repository">
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectTreeObject"/>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerSaveAllAction"
+               disabledIcon="icons/studio/project_save.d.gif"
+               enablesFor="1"
+               icon="icons/studio/project_save.gif"
+               id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.save"
+               label="Save"
+               menubarPath="additions"
+               style="push"
+               toolbarPath="additions"
+               tooltip="Save all">
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction"
+               disabledIcon="icons/studio/dbo_increase_priority.d.gif"
+               enablesFor="+"
+               hoverIcon="icons/studio/dbo_increase_priority.gif"
+               icon="icons/studio/dbo_increase_priority.gif"
+               id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.increasePriority"
+               label="Increase priority"
+               menubarPath="additions"
+               style="push"
+               toolbarPath="additions"
+               tooltip="Increase selected object(s) priority">
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.CriteriaTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.ExtractionRuleTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject"/>
+            <selection
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+            </selection>
+            <selection
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.VariableTreeObject2">
+            </selection>
+            <selection
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableRowTreeObject">
+            </selection>
+            <selection
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableColumnTreeObject">
+            </selection>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDecreasePriorityAction"
+               disabledIcon="icons/studio/dbo_decrease_priority.d.gif"
+               enablesFor="+"
+               hoverIcon="icons/studio/dbo_decrease_priority.gif"
+               icon="icons/studio/dbo_decrease_priority.gif"
+               id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.decreasePriority"
+               label="Decrease priority"
+               menubarPath="additions"
+               style="push"
+               toolbarPath="additions"
+               tooltip="Decrease selected object(s) priority">
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.CriteriaTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.ExtractionRuleTreeObject"/>
+            <selection class="com.twinsoft.convertigo.eclipse.views.projectexplorer.StatementTreeObject"/>
+            <selection
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.StepTreeObject">
+            </selection>
+            <selection
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.VariableTreeObject2">
+            </selection>
+            <selection
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableRowTreeObject">
+            </selection>
+            <selection
+                  class="com.twinsoft.convertigo.eclipse.views.projectexplorer.PropertyTableColumnTreeObject">
+            </selection>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerFindAction"
+               disabledIcon="icons/studio/find.gif"
+               enablesFor="*"
+               icon="icons/studio/find.gif"
+               id="com.twinsoft.convertigo.eclipse.views.projectexplorer.viewContribution.find"
+               label="Find"
+               menubarPath="additions"
+               style="push"
+               toolbarPath="additions"
+               tooltip="Find objects in projects treeview"/>
+      </viewContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <keyBinding
+            contextId="org.eclipse.ui.contexts.window"
+            keyConfigurationId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            keySequence="F12"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.contexts">
+      <context
+            id="convertigo4.context1"
+            name="convertigo4.context1"/>
+   </extension>
+   <extension
+         id="convertigoStartup"
+         name="convertigoStartup"
+         point="org.eclipse.ui.startup">
+   </extension>
+   <extension
+         point="org.eclipse.ui.cheatsheets.cheatSheetContent">    
+   </extension>
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <category
+            id="com.twinsoft.convertigo.eclipse.wizards.ConvertigoCategory"
+            name="Convertigo">
+      </category>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.wizards.ConvertigoCategory"
+            class="com.twinsoft.convertigo.eclipse.wizards.import_export.ImportWizard"
+            icon="icons/sample.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.ImportWizard"
+            name="Convertigo project">
+         <description>
+            Import a convertigo project from the local file system into the workspace.
+         </description>
+      </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.exportWizards">
+      <category
+            id="com.twinsoft.convertigo.eclipse.wizards.ConvertigoCategory"
+            name="Convertigo">
+      </category>
+      <wizard
+            category="com.twinsoft.convertigo.eclipse.wizards.ConvertigoCategory"
+            class="com.twinsoft.convertigo.eclipse.wizards.import_export.ExportWizard"
+            icon="icons/sample.gif"
+            id="com.twinsoft.convertigo.eclipse.wizards.ExportWizard"
+            name="Convertigo project">
+         <description>
+            Export a convertigo project from the workspace.
+         </description>
+      </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="com.twinsoft.convertigo.eclipse.ConvertigoPluginPreferenceInitializer">
+      </initializer>
+   </extension>
+</plugin>

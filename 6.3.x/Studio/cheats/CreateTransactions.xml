@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet title="Créer des transactions">
+   <intro href="/com.twinsoft.convertigo/help/Screens.html">
+      <description>
+         Une transaction sert à créer une naviguation automatique dans le site web d’un projet et à exécuter certaines instructions. A chaque fois que Convertigo détecte une screen class avec des extractions rules, il ajoute à sa sortie le résultat des extractions de ces classes.
+<br/><br/>
+Le vocabulaire en gras dans cette aide est disponible dans (?).
+      </description>
+   </intro>
+   <item title="Créez une nouvelle transaction" dialog="true" skip="false">
+      <description>
+         Dans l’onglet <b>Projects view</b>,  faites un clic droit sur le dossier <b>Transactions</b> de votre projet puis appuyez sur<br/><br/>
+ &gt;New
+<br/><br/> 
+&gt;Transaction<br/><br/>
+&gt;Transaction HTML<br/><br/>
+&gt;Next<br/><br/>
+&gt;Finish<br/><br/>
+Pour ajouter des variables d&apos;entrée a votre transaction, appuyez sur la proprieté &quot;Variables&quot; (dans <b>properties view</b>) de votre transaction puis sur &quot;...&quot;. Nommez enfin vos variables comme bon vous semble. Ces variables sont désormais des variables javascript et sont accessible partout dans la transaction.
+      </description>
+   </item>
+   <item title="Créez un Handler" dialog="true" skip="false" href="/com.twinsoft.convertigo/help/AlgoHandlers.html">
+      <description>
+         Lors de l’exécution d’une transaction, Convertigo va exécuter successivement les instructions contenues dans les <b>handlers</b> selon le shéma de l&apos;algorithme des handlers (disponible dans (?)).
+<br/>
+<br/>
+Pour créer un <b>handler</b>, faites un clic droit sur la transaction dans l’onglet <b>Projects view</b>, appuyez sur &quot;new&quot; puis sur &quot;Handler&quot;. <br/>Sélectionnez  enfin celui/ceux désiré(s).
+      </description>
+   </item>
+   <item title="Créez un statement" dialog="true" skip="false" href="http://doc.convertigo.com/JSPWiki/Wiki.jsp?page=CWICWCStatements">
+      <description>
+         Pour chaque handler, il existe de nombreuses instructions (<b>Statement</b>) qui peuvent être exécutées. La liste se trouve dans (?) .
+<br/><br/>
+ Pour ajouter un <b>Statement</b> à un <b>handler</b>,  créez une requête Xpath qui renvoi l’élement où l’action doit etre faite.<br/>
+ Sélectionnez l’<b>handler</b> désiré dans l’onglet <b> Projects view</b> et appuyez sur l’icône <b>new Statement icon</b>.<br/> Choisissez alors le Statement adapté.<br/><br/> (Vous pouvez également créer un Statement en faisant un clic droit sur le <b>handler</b> --&gt; new --&gt; Statement)
+      </description>
+   </item>
+   <item title="Rendez vos transactions communiquantes" dialog="true" skip="false">
+      <description>
+         Dans l’onglet <b>Projects view</b>  cliquez sur une <b>transaction</b>.<br/> Dans l&apos;onglet <b>properties view</b>, mettez la proprieté  « public  Method » à la valeur true.<br/> Faites un clic droit sur la <b>transaction</b> et cliquez sur « Extract WSDL Type » puis sur « oui ».<br/>  Maintenez la touche « Ctrl » et sélectionnez dans la liste tous les éléments utilisés par votre transaction (choisissez les tous si vous ne savez pas lesquels sont utilisés).
+<br/><br/>
+Recommencez cela pour toutes vos transactions.
+      </description>
+   </item>
+   <item title="Testez vos transactions" dialog="true" skip="false">
+      <description>
+         Pour tester une transaction, faites un clic droit sur la <b>transaction</b>  désirée puis appuyez sur &quot;Execute&quot;. <br/><br/>Le résultat se trouve dans l’onglet <b>Output Tag</b> de la <b>navigator area</b>
+      </description>
+   </item>
+</cheatsheet>

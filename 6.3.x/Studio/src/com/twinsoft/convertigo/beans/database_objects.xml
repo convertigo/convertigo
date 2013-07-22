@@ -1,0 +1,1244 @@
+<database_objects>		
+	<group name="Common">
+		<category>
+			<beans>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.core.TestCase">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction"/>
+                </bean>				
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.core.Sheet">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.CicsTransaction"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.core.Pool">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.JavelinConnector"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SqlConnector"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CicsConnector"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SiteClipperConnector"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector"/>
+                </bean>
+			</beans>
+		</category>
+		<category name="Variables">
+			<beans groupname="Requestable variables">
+				<bean enable="true" documented="true" default="true" classname="com.twinsoft.convertigo.beans.variables.RequestableVariable">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.RequestableMultiValuedVariable">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction"/>
+				</bean>
+				<bean enable="true" documented="true" default="true" classname="com.twinsoft.convertigo.beans.variables.RequestableHttpVariable">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction"/>
+				</bean>
+			</beans>
+			<beans groupname="Statement variables">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.HttpStatementVariable">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.HTTPStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.HttpStatementMultiValuedVariable">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.HTTPStatement"/>
+				</bean>
+			</beans>
+			<beans groupname="Step variables">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.StepVariable">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.RequestableStep"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.StepMultiValuedVariable">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.RequestableStep"/>
+				</bean>
+			</beans>
+			<beans groupname="Test Case variables">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.TestCaseVariable">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.TestCase"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.variables.TestCaseMultiValuedVariable">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.TestCase"/>
+				</bean>
+			</beans>
+		</category>
+		<category name="Devices">
+			<beans groupname="Mobile devices">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.Android">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPad">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPhone3">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPhone4">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+				</bean>
+			</beans>
+		</category>
+	</group>
+	
+	<group name="Sequencer">
+		<category>
+			<beans>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+			</beans>
+		</category>
+		<category name="Steps">
+			<beans groupname="Flow control steps">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.IfStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.IfThenElseStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.IfExistStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="ignore" classname="com.twinsoft.convertigo.beans.steps.ThenStep">
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfThenElseStep"/>       
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IsInThenElseStep"/>
+                </bean>
+                <bean enable="true" documented="ignore" classname="com.twinsoft.convertigo.beans.steps.ElseStep">               		
+                	<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IfThenElseStep"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.IsInThenElseStep"/>
+                </bean>         
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.IsInStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.IsInThenElseStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.WhileStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.DoWhileStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.IteratorStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.SimpleIteratorStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.ReturnStep">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.BreakStep">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+				</bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.SerialStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.ParallelStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.IfFileExistStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.IfFileExistThenElseStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="false" documented="false" classname="com.twinsoft.convertigo.beans.steps.FunctionStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                </bean>
+		    </beans>
+            <beans groupname="Javascript steps">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.SimpleStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.SourceStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.SimpleSourceStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.ExceptionStep">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+				</bean>
+            </beans>
+            <beans groupname="XML steps">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.XMLAttributeStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLElementStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElementStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.AttributeStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLElementStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElementStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.XMLCopyStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.XMLElementStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.ElementStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.XMLSplitStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.XMLTransformStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.XMLCountStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.XMLConcatStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.XMLDateTimeStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.XMLGenerateDatesStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+            </beans>
+            <beans groupname="Convertigo request steps">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.TransactionStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.SequenceStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+				</bean>
+            </beans>
+            <beans groupname="File management steps">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.ReadXMLStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.ReadCSVStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.WriteXMLStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.WriteCSVStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.CopyStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.DuplicateStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.MoveStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.RenameStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.DeleteStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+  				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.CreateDirectoryStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.ListDirStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+            </beans>
+            <beans groupname="Others">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.InputVariablesStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>    
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.SmtpStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="false" documented="false" classname="com.twinsoft.convertigo.beans.steps.SleepStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.RemoveContextStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.ProcessExecStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.LogStep">
+                	<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.GenerateHashCodeStep">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ElseStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.FunctionStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.ThenStep"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
+                </bean>
+            </beans>
+		</category>
+	</group>
+	
+	<group name="SQL">
+		<category>
+			<beans>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.SqlConnector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.SqlTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SqlConnector"/>
+				</bean>
+			</beans>
+		</category>
+	</group>
+	
+	<group name="CICS">
+		<category>
+			<beans>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.CicsConnector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.CicsTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CicsConnector"/>
+				</bean>
+			</beans>
+		</category>
+	</group>
+	
+	<group name="Web services">
+        <category>
+            <beans>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.HttpTransaction">
+                    <parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction">
+                    <parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction">
+                    <parent allowInheritance="false" classname="com.twinsoft.convertigo.beans.connectors.HttpConnector"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.ProxyHttpConnector"/>
+                </bean>
+            </beans>
+        </category>
+	</group>
+	
+	<group name="Web">
+		<category>
+			<beans>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.HtmlConnector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.HtmlConnector"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.HtmlConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+				</bean>
+			</beans>
+		</category>
+		<category name="Criteria">
+			<beans>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XPath">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Url">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+				</bean>
+			</beans>
+		</category>
+		<category name="Extraction rules">
+			<beans groupname="Web clipping extraction rules">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.WebClipper">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+                </bean>
+                <bean enable="false" documented="false" classname="com.twinsoft.convertigo.beans.common.WebClipper2">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.html.XMLAddLink">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.html.XMLAddButton">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.html.XMLAddText">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.html.XMLAddImage">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.html.XMLDeleteNodes">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+                </bean>
+			</beans>
+			<beans groupname="Data extraction rules">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLNode">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLNodeList">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLRecord">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLTable">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLText">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+                </bean>
+				<bean enable="false" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLVariable">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLHttpHeaders">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.XMLHttpUrl">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass"/>
+				</bean>
+			</beans>
+		</category>
+		<category name="Statements">
+			<beans groupname="Handler statements">
+			    <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.HandlerStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ScEntryDefaultHandlerStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ScExitDefaultHandlerStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.transactions.HtmlTransaction"/>
+				</bean>
+            </beans>
+            <beans groupname="Flow control statements">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.IfStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.WhileStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.DoWhileStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ReturnStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.BreakStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.CallFunctionStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="ignore" classname="com.twinsoft.convertigo.beans.statements.ThenStatement">
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement"/>         		
+                </bean>
+                <bean enable="true" documented="ignore" classname="com.twinsoft.convertigo.beans.statements.ElseStatement">               		
+                	<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement"/>
+               		<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.IfThenElseStatement"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+				</bean>
+            </beans>
+            <beans groupname="Javascript statements">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.SimpleStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+            </beans>
+            <beans groupname="User input control statement">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.KeyStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetValueStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetSelectedStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetCheckedStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.MouseStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.MouseAdvanceStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.CreateEventStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.InputHtmlSetFileStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+            </beans>
+            <beans groupname="Browser control statements">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.CredentialsStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.BrowserPropertyChangeStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.NavigationBarStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.TabManagementStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.CookiesGetStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.CookiesAddStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.AdoptClientCookies">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.InvokeBrowserJsStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.GetUrlStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.GetAttachmentStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+            </beans>
+            <beans groupname="Others">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.HTTPUploadStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.HTTPStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ExceptionStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.GetNodesStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.GetTextStatement">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ContextGetStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ContextSetStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ContextAddTextNodeStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.LogStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.WaitTriggerStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.ContinueWithSiteClipperStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.statements.RecordForSiteClipperStatement">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.BlockStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.ContainerStatement"/>
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.statements.FunctionStatement"/>
+				</bean>			
+			</beans>
+		</category>
+	</group>
+	
+	<group name="Legacy">
+		<category>
+			<beans>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.JavelinConnector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.JavelinTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.JavelinConnector"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.JavelinConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+				</bean>			
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.DefaultBlockFactory">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+				</bean>
+			</beans>
+		</category>
+		<category name="Criteria">
+			<beans>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.EmulatorTechnology">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.EmptyScreen">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.FindString">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.RegularExpression">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+				</bean>
+			</beans>
+		</category>
+		<category name="Extraction rules">
+			<beans groupname="Presentation">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Style">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Container">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+            </beans>
+            <beans groupname="Common GUI components">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Choice">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Command">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Field">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.FieldsVT">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                    <emulator-technology classname="com.twinsoft.vt220.TerminalVT220"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Date">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Panel">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                    <emulator-technology classname="com.twinsoft.ibm.TerminalSNA"/>
+                    <emulator-technology classname="com.twinsoft.ibm.Terminal400"/>
+                    <emulator-technology classname="com.twinsoft.dku.TerminalDKU"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Separator">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Record">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                    <emulator-technology classname="com.twinsoft.ibm.TerminalSNA"/>
+                    <emulator-technology classname="com.twinsoft.ibm.Terminal400"/>
+                    <emulator-technology classname="com.twinsoft.dku.TerminalDKU"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Table">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Button">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Image">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="false" documented="false" classname="com.twinsoft.convertigo.beans.common.Slider">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="false" documented="false" classname="com.twinsoft.convertigo.beans.common.CheckBox">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="false" documented="false" classname="com.twinsoft.convertigo.beans.common.Radio">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="false" documented="false" classname="com.twinsoft.convertigo.beans.common.TabBox">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+            </beans>
+            <beans groupname="SNA GUI components">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.sna.CommandSNA">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                    <emulator-technology classname="com.twinsoft.ibm.TerminalSNA"/>
+                    <emulator-technology classname="com.twinsoft.ibm.Terminal400"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.sna.Menu">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                    <emulator-technology classname="com.twinsoft.ibm.TerminalSNA"/>
+                    <emulator-technology classname="com.twinsoft.ibm.Terminal400"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.sna.Subfile">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                    <emulator-technology classname="com.twinsoft.ibm.TerminalSNA"/>
+                    <emulator-technology classname="com.twinsoft.ibm.Terminal400"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.sna.Nptui">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                    <emulator-technology classname="com.twinsoft.ibm.TerminalSNA"/>
+                    <emulator-technology classname="com.twinsoft.ibm.Terminal400"/>
+                </bean>
+            </beans>
+            <beans groupname="VDX GUI components">
+                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.vdx.CommandVdx">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                    <emulator-technology classname="com.twinsoft.vdx.GenTerm"/>
+                </bean>
+                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.vdx.EditField">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                    <emulator-technology classname="com.twinsoft.vdx.GenTerm"/>
+                </bean>
+                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.vdx.Menu">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                    <emulator-technology classname="com.twinsoft.vdx.GenTerm"/>
+                </bean>
+            </beans>
+            <beans groupname="Block management">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.MergeBlocks">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.RemoveBlocks">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.SplitBlock">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.TrimBlock">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.MoveBlocks">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+				</bean>
+			</beans>
+            <beans groupname="Text handling">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.ChangeLetterCase">      
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.ReplaceText">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.TranslateText">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+            </beans>
+            <beans groupname="Others">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.TagName">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Attribute">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
+            </beans>
+		</category>
+	</group>
+	
+	<group name="SiteClipper">
+		<category>
+			<beans>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.SiteClipperConnector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SiteClipperConnector"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SiteClipperConnector"/>
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+				</bean>
+			</beans>
+		</category>
+		<category name="Criteria">
+			<beans groupname="Request criteria">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchUrl">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchHeaderOfRequest">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+				</bean>
+			</beans>
+            <beans groupname="Response criteria">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchMimeType">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchRegExp">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchHeaderOfResponse">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.criteria.siteclipper.MatchStatusCode">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+			</beans>
+		</category>
+		<category name="Rules">
+            <beans groupname="Request rules">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.AddHeaderToRequest">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ModifyHeaderOfRequest">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveHeaderFromRequest">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveCacheHeadersFromRequest">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+				</bean>
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RequestJavaScript">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+				</bean>
+			</beans>
+            <beans groupname="Response rules">
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ResponseJavaScript">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+				</bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.AddHeaderToResponse">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ModifyHeaderOfResponse">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveHeaderFromResponse">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ReplaceString">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ScriptInjector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.CssInjector">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RewriteLocationHeader">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RewriteAbsoluteUrl">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ClientInstructionSetValue">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ClientInstructionSetChecked">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.ClientInstructionClick">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+                <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.extractionrules.siteclipper.RemoveCacheHeadersFromResponse">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass"/>
+                </bean>
+			</beans>
+		</category>
+	</group>
+</database_objects>
+
+
+
