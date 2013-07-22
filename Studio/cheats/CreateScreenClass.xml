@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet title="Créer des Screen classes">
+   <intro href="/com.twinsoft.convertigo/help/Screens.html">
+      <description>
+         Une <b>Screen Class</b> permet d&apos;identifier une page (ou écran) d&apos;une application Web. Convertigo utilise les <b>Screen Class</b> pour déterminer quelles règles d&apos;extractions il doit utiliser pour une page donnée. Une <b>Screen Class</b> est identifiée de manière unique par un ou plusieurs <b>Critères</b> basé sur des epressions <b>Xpath</b><br/><br/>
+
+Repérez dans le site web  tous les types de pages contenant des données ainsi que celles traversées pour y parvenir. Ces pages doivent être « marqués » comme Screen Class  pour que Convertigo sache à tout moment dans quel page il se trouve.
+<br/><br/>
+Le vocabulaire en gras dans cette aide est disponible dans (?).
+      </description>
+   </intro>
+   <item title="Placez le navigateur" dialog="true" skip="false">
+      <description>
+         Placez  la <b>navigator area</b>(dans la <b>Connector view</b>) sur une des pages repérée précédemment.
+      </description>
+   </item>
+   <item title="Trouvez un element caracteristique" dialog="true" skip="false">
+      <description>
+         Faites un clic droit sur un élément de la <b>navigator area</b> qui vous parait être un élément caractéristique de la page ou du type de page(exemple: un nom, une image,  un bouton).
+<br/><br/>Dans la <b>DOM Area</b> (qui contient le code HTML sous forme d&apos;une arborescence), un élement devient surligné en vert
+      </description>
+   </item>
+   <item title="Définissez l&apos;element caractéritique" dialog="true" skip="false">
+      <description>
+         Dans la <b>DOM Area</b>, appuyez sur le &quot;+&quot; de l’élément en vert. Dans la liste deployée trouvez un <b>attribut</b> ou un <b>tag</b> qui caractérise le type d’écran actuel
+(exemple : <b>attribute</b> « id »,<b>attribute</b> « name »). Faites un clic droit sur ce denier et appuyez sur « Generate selection Xpath ».<br/><br/> Dans la zone <b>Xpath Area</b> , une requête Xpath apparaît.  L’espace <b>XPath&apos;s result Area</b> montre les résultats de la requête Xpath pour la page actuelle.
+<br/>
+Dans un cas idéal la requête XPAth ne doit renvoyer qu&apos;un seul résultat
+<br/>
+<br/>
+(Vous pouvez appuyer sur l&apos;icône <b>parent node icon</b> pour remonter dans la hiérarchie de la <b>DOM Area</b> afin de trouver un meilleur élement pour caractériser la page web)
+      </description>
+   </item>
+   <item title="Vérifiez l&apos;exclusivité de votre requête" dialog="true" skip="false">
+      <description>
+         Vérifiez bien que la requête Xpath de la <b>Xpath area</b> ne retourne des résultats que pour cet écran. <br/><br/>Pour cela, testez la requête Xpath sur tous les autres pages web qui sont ou vont devenir des Screen class. Confirmez qu’elles ne renvoient rien (root seul dans <b>XPath&apos;s result Area</b>). <br/><br/>Si c’est bien le cas retournez  sur la page web à définir et passez à l’étape suivante. Sinon trouvez une autre requête Xpath par clic droit --&gt;« Generate selection Xpath » ou par modification manuelle de la requête dans la zone <b>Xpath Area</b>.
+      </description>
+   </item>
+   <item title="Exécutez la création" dialog="true" skip="false">
+      <description>
+         Dans la vue <b>Projects view</b>, cliquez  sur la <b>Screen class</b> « Default Screen class ». <br/> Cliquez ensuite sur l’icône <b>new screen class icon</b> . Sélectionnez  &quot;Classe d’écran&quot;, appuyez sur next puis donnez un nom évocateur à votre screen class.
+<br/>
+<br/>
+(Vous pouvez aussi cliquer sur l’icône <b>new criteria icon</b> pour enrichir une screen class déjà existante d’un nouveau critère. La <b>screen class</b> sélectionné dans l’onglet  <b>Projects view</b>  doit être la screen class à enrichir. S’il existe plusieurs critères à une class d’écran, tous doivent être satisfaits)
+      </description>
+   </item>
+   <item title="Conclusion" dialog="true" skip="false">
+      <description>
+         Votre <b>screen class</b> est alors créée et apparait dans l’onglet <b>Projects view</b>. Vous pouvez maintenant créer les autres <b>screen classes</b>.
+      </description>
+   </item>
+</cheatsheet>

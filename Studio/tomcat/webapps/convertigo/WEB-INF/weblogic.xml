@@ -1,0 +1,8 @@
+<!DOCTYPE weblogic-web-app PUBLIC    "-//BEA Systems, Inc.//DTD Web Application 8.1//EN"    "weblogic810-web-jar.dtd">
+<weblogic-web-app>
+        <container-descriptor>
+                <prefer-web-inf-classes>true</prefer-web-inf-classes>
+                <show-archived-real-path-enabled>true</show-archived-real-path-enabled>
+        </container-descriptor>
+       <context-root>convertigo</context-root>
+</weblogic-web-app>

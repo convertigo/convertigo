@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet title="Créer des Extractions rules">
+   <intro href="/com.twinsoft.convertigo/help/Screens.html">
+      <description>
+         Extraction rules are tools to transform HTML code (website language) to XML code. « extraction rules » are presented in all screen classes containing information to be extracted.
+<br/><br/>
+The text in bold in this help file is available in (?).
+      </description>
+   </intro>
+   <item title="Put the browser" dialog="true" skip="false">
+      <description>
+         Put the <b>browser area</b> on a screen containing the information to be extracted.
+      </description>
+   </item>
+   <item title="First project (9)" dialog="true" skip="false">
+      <description>
+         &gt;Put your browser on &quot;http://www.google.com/search?hl=en&amp;q=convertigo&quot;
+      </description>
+   </item>
+   <item title="Verify that the web page corresponds to its screen class" dialog="true" skip="false">
+      <description>
+         Verify that the web page of the <b>browser area</b> is well associated to the wanted screen class. For this press on the icon <b>Synchronize icon</b>.<br/><br/> In the tab <b>Project view</b>, a <b>screen class</b> has been selected automatically : it is the screen class detected by Convertigo for the actual web page.
+      </description>
+   </item>
+   <item title="First project (10)" dialog="true" skip="false">
+      <description>
+         &gt;By pressing on the icon <b>Synchronize icon</b>, you will see that the <b>screen class</b> &quot;dataPages&quot; has been selected
+      </description>
+   </item>
+   <item title="Place the information to be extracted in a green frame" dialog="true" skip="false">
+      <description>
+         For this, click right in the <b>Browser area</b> on one of the elements to be extracted next eventually enlarge the frame with the help of the icon <b>parent node icon</b> .
+      </description>
+   </item>
+   <item title="First project (11)" dialog="true" skip="false">
+      <description>
+         &gt;Take the blue frame containing the results as it contains useful information on the project.<br/><br/>
+&gt;Put yourself on the <b>tag</b> DIV having an attribute by pressing once on the icon <b>parent node icon</b>
+      </description>
+   </item>
+   <item title="Identify the information by an Xpath" dialog="true" skip="false">
+      <description>
+         Find in the <b>DOM area</b> by pressing right click --&gt;« Generate selection Xpath » an XPATH request identifying the green frame.
+<br/><br/>
+The result can be one or more elements in function of the needs.
+      </description>
+   </item>
+   <item title="First project (12)" dialog="true" skip="false">
+      <description>
+         &gt;Click right on the attribute id=&quot;ssb&quot; next click on ;Generate selection Xpath&quot;.
+      </description>
+   </item>
+   <item title="Choose an extraction rule " dialog="true" skip="false" href="http://doc.convertigo.com/JSPWiki/Wiki.jsp?page=CWICWCExtractionRules">
+      <description>
+         In function of the type of the extraction information multiple rules can be choosen.<br/> <br/> 
+Cliquez sur (?) pour en voir la liste.<br/> <br/> 
+  The rest of this help file describes two of the most used extraction rules.
+      </description>
+   </item>
+   <item title="L&apos;example of the Text rule" dialog="true" skip="true">
+      <description>
+         The « Text » extraction rule allows to recuperate the <b>Text</b> of a d’une balise HTML .<br/><br/> Pour ajouter cette règle à un projet, sélectionnez la <b>screen class</b> voulue dans l’onglet <b>Projet view</b> et appuyez sur l’icône  <b>new Extraction rules icon</b>(L’ Xpath de la <b>Xpath area</b> doit être valide).
+      </description>
+   </item>
+   <item title="First project (13)" dialog="true" skip="false">
+      <description>
+         Ce qui est interessant ici est le texte contenu dans le bandeau bleu ciel. Vous aurez donc besoin d&apos;une regle d&apos;extraction Text.<br/>
+<br/>
+&gt;Appuyez sur l&apos;icone <b>new extraction rule icon</b> puis sur l&apos;extraction rule &quot;Text&quot;<br/>
+<br/>
+&gt;Cliquez sur l&apos;<b>extraction rule</b> qui vient d&apos;apparaître dans la <b>Project view
+</b>.<br/>Dans l&apos;onglet <b>properties view</b> mettez la proprieté &quot;Recurse&quot; à la valeur true pour permettre la recherche de tous les elements <b>Text</b> sous la DIV.
+      </description>
+   </item>
+   <item title="L&apos;exemple de la règle Record" dialog="true" skip="true">
+      <description>
+         L’extraction rule « Record » permet d’extraire les informations contenues dans une liste (plusieurs élements retournés par la requête Xpath). 
+<br/>
+<br/>Pour ajouter cette règle à un projet, sélectionnez la <b>screen class</b> voulue dans l’onglet <b>Projet view</b> et appuyez sur l’icône  <b>new Extraction rules icon</b>(L’ Xpath de la <b>Xpath area</b> doit être valide).
+<br/><br/> 
+Dans l’onglet <b>Properties view</b> vous voyez une ligne &quot;Xpath&quot; qui contient la requête qui permet d’accéder aux informations à extraire(doit retourner une liste). Un traitement va être effectué sur chacun des résultats  de cette requête. 
+<br/>&gt;Cliquez sur la ligne « Description» qui se trouve juste au dessus puis sur le bouton « … ». <br/>&gt;Cliquez sur l’icône bleue pour chaque information élémentaire contenu dans un élement de la liste.
+<br/>&gt; Donnez des noms correspondant à l’information dans la colonne « name » et dans la colonne Xpath entrez une requête Xpath relative à la premiere qui  amène à l’information voulue.
+      </description>
+   </item>
+   <item title="First project (14)" dialog="true" skip="false">
+      <description>
+         Pour faire le tableau récapitulatif de la première page des résultats google , plusieurs étapes sont nécessaires.<br/><br/>
+ &gt;Dans la <b>navigator area</b>, faites un clic droit sur un des résultats google et appuyez sur l&apos;icone <b>parent node icon</b> autant de fois que nécessaire pour englober tous les résutats.(allez  jusqu&apos;au <b>tag</b> &quot;OL&quot;)<br/><br/>
+ &gt;Faites un clic droit sur ce OL et appuyez sur &quot;Generate selection Xpath&quot;<br/><br/>
+ &gt;Completez l&apos;Xpath de l&apos;<b>Xpath area</b> par &quot;/LI&quot; de manière à avoir une liste de &quot;LI&quot; comme résultat de la requête Xpath et appuyez sur &quot;Entrée&quot;.
+ <br/><br/>
+ &gt;Appuyez ensuite sur l&apos;icone <b>new Extraction rule icon</b> puis sur &quot;Record&quot;.
+  <br/><br/>
+&gt;Cliquez sur l&apos;<b>extraction rule</b> qui vient d&apos;apparaître dans la <b>Project view
+</b>.<br/>Dans l&apos;onglet <b>properties view</b> cliquez sur &quot;Description&quot; et sur &quot;...&quot;.
+  <br/><br/>
+ Le projet exemple aura besoin du titre et de l&apos;adresse de page web de chaque résultat google.<br/>Vous aurez donc besoin de deux paramètres par réponse.<br/>&gt;cliquez deux fois sur l&apos;icone bleu (De la pop up generé par le clic sur &quot;...&quot;). Nommez le premier Name &quot;title&quot; et le second &quot;adress&quot; et appuyez sur &quot;ok&quot;
+    <br/><br/>
+      </description>
+   </item>
+   <item title="First project (15)" dialog="true" skip="false">
+      <description>
+         &gt;Faites un clic droit sur un des titres d&apos;une réponse google . Faites ensuite un clic droit sur le <b>tag</b> &quot;A&quot; surligné dans la <b>DOM area</b> puis sur &quot;create <b>absolute</b> Xpath&quot;  .<br/><br/>Vous pouvez reconnaitre dans la requète Xpath affiché (dans la &quot;Xpath area&quot;) la suite &quot;/OL/LI&quot; qui est l&apos;Xpath utilisé pour créer la règle d&apos;extraction à l&apos;étape precédente. La suite de la requête commence par un crochet dans lequel se trouve un numero: c&apos;est la position du résultat google sur lequel vous avez cliqué. Le reste est le chemin relatif du <b>tag</b> &quot;LI&quot; vers le titre.<br/><br/>
+&gt;Copiez la valeur &quot;/H3/A&quot; et collez la apres un &quot;.&quot;(qui représente la requète de base) dans le champ &quot;Xpath&quot;  de la ligne &quot;title&quot; du formulaire &quot;...&quot; de la proprieté &quot;Description&quot;
+<br/><br/>Vous pouvez également remarquer que l&apos;adresse du site cible se trouvedans l&apos;attribut href de la balise A.<br/>
+&gt;Copiez donc la chaine &quot;./H3/A/@href&quot;  dans la ligne &quot;adress&quot;
+<br/><br/>
+&gt;Mettez finalement la proprietés child à la valeur true pour la ligne lié au titre  (Afin de pouvoir, par exemple recuperer du texte surenvelopés dans des balises bold)
+      </description>
+   </item>
+   <item title="Vérifiez la bonne marche de vos Extraction rules" dialog="true" skip="false">
+      <description>
+         Pour vérifier que vos règles d’extraction fonctionnent bien, cliquez  sur l’icône <b>XMLize icon</b> puis voyez le résultat dans l’onglet <b> Output Tab</b> du navigateur.<br/><br/> Attention l’icône <b>XMLize icon</b>  de cet onglet ne donne pas le bon résultat !!!
+      </description>
+   </item>
+</cheatsheet>

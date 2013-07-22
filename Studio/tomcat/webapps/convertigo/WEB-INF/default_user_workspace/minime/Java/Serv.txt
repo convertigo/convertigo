@@ -1,0 +1,11 @@
+[SERVICE]
+IDSERV=1
+IDSVR=1
+IDEMUL=1
+IDCNX=0
+NomService=Annuaire electronique
+CodeService=AE
+Description=Annuaire electronique
+CoutCnx=0
+CoutMinute=0
+Icone=
