@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2001-2013 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
@@ -71,7 +71,9 @@ public class SqlQueryEditorComposite extends AbstractDialogComposite {
 	@Override
 	public void performPostDialogCreation() {
 		Shell newShell = this.parentDialog.getShell();
-		Rectangle pDisplayBounds = newShell.getDisplay().getBounds();
+
+		// mods jmc 23/07/2013
+		Rectangle pDisplayBounds = newShell.getDisplay().getPrimaryMonitor().getBounds();
 		
 		int nWidth = 600;
 		int nHeight = 400;
@@ -82,5 +84,4 @@ public class SqlQueryEditorComposite extends AbstractDialogComposite {
 		
 		super.performPostDialogCreation();
 	}
-
 }
