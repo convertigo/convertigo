@@ -22,17 +22,18 @@
 
 package com.twinsoft.convertigo.beans.statements;
 
+import java.util.Arrays;
+
+import org.apache.xpath.XPathAPI;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.parsers.events.AbstractEvent;
 import com.twinsoft.convertigo.engine.parsers.events.MouseEvent;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class MouseAdvanceStatement extends MouseStatement {
 	private static final long serialVersionUID = -8671654909869364944L;
@@ -227,8 +228,8 @@ public class MouseAdvanceStatement extends MouseStatement {
 	}
 	
     @Override
-    public void configure(Element element) throws Exception {
-    	super.configure(element);
+    public void preconfigure(Element element) throws Exception {
+    	super.preconfigure(element);
     	
     	String version = element.getAttribute("version");
     	
@@ -236,13 +237,12 @@ public class MouseAdvanceStatement extends MouseStatement {
     		Engine.logDatabaseObjectManager.info("Migration to 7.0.0 for MouseAdvanceStatement, migrate to javascriptable properties.");
     		Document doc = element.getOwnerDocument();
     		
-    		for (String tagName : new String[]{"java.lang.Short", "java.lang.Integer", "java.lang.Boolean"}) {
-        		for (Node node : XMLUtils.toNodeArray(element.getElementsByTagName(tagName))) {
-        			Element exElt = (Element) node;
-        			Element newElt = doc.createElement("java.lang.String");
-        			newElt.setAttribute("value", exElt.getAttribute("value"));
-        			exElt.getParentNode().replaceChild(exElt, newElt);
-        		}    			
+    		for (String propertyName : Arrays.asList("screenX", "screenY", "clientX", "clientY", "ctrlKey", "altKey", "shiftKey", "metKey", "button")) {
+    			Element exElt = (Element) XPathAPI.selectSingleNode(element, "property[@name='" + propertyName +"']/*");
+    			Element newElt = doc.createElement("java.lang.String");
+    			
+    			newElt.setAttribute("value", exElt.getAttribute("value"));
+    			exElt.getParentNode().replaceChild(newElt, exElt);
     		}
     	}
     }
