@@ -65,11 +65,20 @@ import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLActionStep;
 import com.twinsoft.convertigo.beans.steps.XMLGenerateDatesStep;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboParent;
+import com.twinsoft.convertigo.engine.dbo_explorer.DboUtils;
 import com.twinsoft.convertigo.engine.migration.Migration001;
 import com.twinsoft.convertigo.engine.migration.Migration3_0_0;
 import com.twinsoft.convertigo.engine.migration.Migration5_0_0;
 import com.twinsoft.convertigo.engine.migration.Migration5_0_4;
 import com.twinsoft.convertigo.engine.util.CarUtils;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -292,7 +301,68 @@ public class DatabaseObjectsManager implements AbstractManager {
 		
 		return project;
 	}
+	
+	public static boolean acceptDatabaseObjects(DatabaseObject parentObject, DatabaseObject object ) {
+		try {
+			Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
+			Class<? extends DatabaseObject> objectClass = object.getClass();
 
+			DboExplorerManager manager = new DboExplorerManager();
+			List<DboGroup> groups = manager.getGroups();
+			for (DboGroup group : groups) {
+				List<DboCategory> categories = group.getCategories();
+				for (DboCategory category : categories) {
+					List<DboBeans> beansCategories	= category.getBeans();
+					for (DboBeans beansCategory : beansCategories) {
+						List<DboBean> beans = beansCategory.getBeans();
+						for (DboBean bean : beans) {
+							String className = bean.getClassName();
+							Class<DatabaseObject> beanClass = GenericUtils.cast(Class.forName(className));
+							
+							// The bean should derived from DatabaseObject...
+							boolean isDatabaseObject = (DatabaseObject.class.isAssignableFrom(beanClass));
+
+							if (isDatabaseObject) {
+								// ... and should derived from the specified class
+								boolean isFromSpecifiedClass = ((objectClass == null) ||
+										((objectClass != null) && (objectClass.isAssignableFrom(beanClass))));
+								if (isFromSpecifiedClass) {
+									// Check parent
+									Collection<DboParent> parents = bean.getParents();
+									boolean bFound = false;
+									for (DboParent possibleParent : parents) {
+										// Check if parent allow inheritance
+										if (Class.forName(possibleParent.getClassName()).equals(parentObjectClass)||
+											possibleParent.allowInheritance() && Class.forName(possibleParent.getClassName()).isAssignableFrom(parentObjectClass)) {
+												bFound = true;
+												break;
+										}
+									}
+
+									if (bFound) {
+										// Check technology if needed
+										String technology = DboUtils.getTechnology(parentObject, objectClass);
+										if (technology != null) {
+											Collection<String> acceptedTechnologies = bean.getEmulatorTechnologies();
+											if (!acceptedTechnologies.isEmpty() && !acceptedTechnologies.contains(technology)) {
+												continue;
+											}
+										}
+										return true;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			return false;
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to load database objects properties.", false);
+			return false;
+		}
+	}
+	
 	public Project getProjectByName(String projectName) throws EngineException {
 		try {
 			return getOriginalProjectByName(projectName).clone();

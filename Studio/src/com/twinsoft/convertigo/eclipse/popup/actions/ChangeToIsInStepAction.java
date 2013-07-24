@@ -89,8 +89,16 @@ public class ChangeToIsInStepAction extends MyAbstractAction {
 		        		if (parentTreeObject != null) {
     						// New jIf step
 		        			IsInStep ifStep = new IsInStep();
+		        			
+		        			// Set properties
 		        			ifStep.setSourceDefinition(ifThenElseStep.getSourceDefinition());
 		        			ifStep.setTestDefinition(ifThenElseStep.getTestDefinition());
+		        			ifStep.setComment(ifThenElseStep.getComment());
+		        			ifStep.setCondition(ifThenElseStep.getCondition());
+		        			ifStep.setEnable(ifThenElseStep.isEnable());
+		        			ifStep.setOutput(ifThenElseStep.isOutput());
+		        			ifStep.setName(ifThenElseStep.getName());
+		        			
     						ifStep.bNew = true;
     						ifStep.hasChanged = true;
     						
@@ -151,8 +159,16 @@ public class ChangeToIsInStepAction extends MyAbstractAction {
 	        		if (parentTreeObject != null) {
 						// New jIf step
 	        			IsInStep ifStep = new IsInStep();
+	        			
+	        			// Set properties
 	        			ifStep.setSourceDefinition(ifExistStep.getSourceDefinition());
-						ifStep.bNew = true;
+	        			ifStep.setComment(ifExistStep.getComment());
+	        			ifStep.setCondition(ifExistStep.getCondition());
+	        			ifStep.setEnable(ifExistStep.isEnable());
+	        			ifStep.setOutput(ifExistStep.isOutput());
+	        			ifStep.setName(ifExistStep.getName());
+	        			
+	        			ifStep.bNew = true;
 						ifStep.hasChanged = true;
 						
 						// Add new jIf step to parent

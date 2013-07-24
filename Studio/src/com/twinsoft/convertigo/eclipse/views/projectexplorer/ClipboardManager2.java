@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,18 +72,11 @@ import com.twinsoft.convertigo.beans.steps.ThenStep;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.ConvertigoException;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
-import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
-import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
-import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
-import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
-import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
-import com.twinsoft.convertigo.engine.dbo_explorer.DboParent;
-import com.twinsoft.convertigo.engine.dbo_explorer.DboUtils;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ClipboardManager2 {
@@ -347,7 +339,7 @@ public class ClipboardManager2 {
 			if (objectsType != ProjectExplorerView.TREE_OBJECT_TYPE_DBO_PROJECT) {
 				
 				// Verify if object is accepted for paste
-				if (!acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
+				if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, databaseObject)) {
 					throw new EngineException("You cannot paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + databaseObject.getClass().getSimpleName());
 				}
 				
@@ -605,7 +597,7 @@ public class ClipboardManager2 {
         }
 		
         // Verify object is accepted for paste
-		if (!acceptDatabaseObjects(parentDatabaseObject, object)) {
+		if (!DatabaseObjectsManager.acceptDatabaseObjects(parentDatabaseObject, object)) {
 			throw new EngineException("You cannot cut and paste to a " + parentDatabaseObject.getClass().getSimpleName() + " a database object of type " + object.getClass().getSimpleName());
 		}
         
@@ -661,67 +653,6 @@ public class ClipboardManager2 {
 			throw new EngineException("Exception in cutAndPaste", e);
 		}
 		move(object, parentDatabaseObject);
-	}
-
-	protected boolean acceptDatabaseObjects(DatabaseObject parentObject, DatabaseObject object ) {
-		try {
-			Class<? extends DatabaseObject> parentObjectClass = parentObject.getClass();
-			Class<? extends DatabaseObject> objectClass = object.getClass();
-
-			DboExplorerManager manager = new DboExplorerManager();
-			List<DboGroup> groups = manager.getGroups();
-			for (DboGroup group : groups) {
-				List<DboCategory> categories = group.getCategories();
-				for (DboCategory category : categories) {
-					List<DboBeans> beansCategories	= category.getBeans();
-					for (DboBeans beansCategory : beansCategories) {
-						List<DboBean> beans = beansCategory.getBeans();
-						for (DboBean bean : beans) {
-							String className = bean.getClassName();
-							Class<DatabaseObject> beanClass = GenericUtils.cast(Class.forName(className));
-							
-							// The bean should derived from DatabaseObject...
-							boolean isDatabaseObject = (DatabaseObject.class.isAssignableFrom(beanClass));
-
-							if (isDatabaseObject) {
-								// ... and should derived from the specified class
-								boolean isFromSpecifiedClass = ((objectClass == null) ||
-										((objectClass != null) && (objectClass.isAssignableFrom(beanClass))));
-								if (isFromSpecifiedClass) {
-									// Check parent
-									Collection<DboParent> parents = bean.getParents();
-									boolean bFound = false;
-									for (DboParent possibleParent : parents) {
-										// Check if parent allow inheritance
-										if (Class.forName(possibleParent.getClassName()).equals(parentObjectClass)||
-											possibleParent.allowInheritance() && Class.forName(possibleParent.getClassName()).isAssignableFrom(parentObjectClass)) {
-												bFound = true;
-												break;
-										}
-									}
-
-									if (bFound) {
-										// Check technology if needed
-										String technology = DboUtils.getTechnology(parentObject, objectClass);
-										if (technology != null) {
-											Collection<String> acceptedTechnologies = bean.getEmulatorTechnologies();
-											if (!acceptedTechnologies.isEmpty() && !acceptedTechnologies.contains(technology)) {
-												continue;
-											}
-										}
-										return true;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			return false;
-		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Unable to load database objects properties.", false);
-			return false;
-		}
 	}
 	
 	/**

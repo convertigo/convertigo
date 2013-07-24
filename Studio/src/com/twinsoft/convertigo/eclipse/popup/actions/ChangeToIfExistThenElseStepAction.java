@@ -88,8 +88,16 @@ public class ChangeToIfExistThenElseStepAction extends MyAbstractAction {
 	        		if (parentTreeObject != null) {
 						// New IfThenElseStep step
 	        			IfExistThenElseStep ifThenElseStep = new IfExistThenElseStep();
+	        			
+	        			// Set properties
 	        			ifThenElseStep.setSourceDefinition(ifStep.getSourceDefinition());
-						ifThenElseStep.bNew = true;
+	        			ifThenElseStep.setComment(ifStep.getComment());
+	        			ifThenElseStep.setCondition(ifStep.getCondition());
+	        			ifThenElseStep.setEnable(ifStep.isEnable());
+	        			ifThenElseStep.setOutput(ifStep.isOutput());
+	        			ifThenElseStep.setName(ifStep.getName());
+	        			
+	        			ifThenElseStep.bNew = true;
 						ifThenElseStep.hasChanged = true;
 						
 						// Add new IfThenElseStep step to parent
@@ -155,8 +163,16 @@ public class ChangeToIfExistThenElseStepAction extends MyAbstractAction {
 		        		if (parentTreeObject != null) {
 							// New IfExistThenElse step
 		        			IfExistThenElseStep ifThenElseStep = new IfExistThenElseStep();
+		        			
+		        			// Set properties
 		        			ifThenElseStep.setSourceDefinition(isInThenElseStep.getSourceDefinition());
-							ifThenElseStep.bNew = true;
+		        			ifThenElseStep.setComment(isInThenElseStep.getComment());
+		        			ifThenElseStep.setCondition(isInThenElseStep.getCondition());
+		        			ifThenElseStep.setEnable(isInThenElseStep.isEnable());
+		        			ifThenElseStep.setOutput(isInThenElseStep.isOutput());
+		        			ifThenElseStep.setName(isInThenElseStep.getName());
+		        			
+		        			ifThenElseStep.bNew = true;
 							ifThenElseStep.hasChanged = true;
 							
 							// Add new IfExistThenElse step to parent
