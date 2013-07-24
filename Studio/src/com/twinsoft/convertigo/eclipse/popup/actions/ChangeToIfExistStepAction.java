@@ -70,6 +70,7 @@ public class ChangeToIfExistStepAction extends MyAbstractAction {
     			// For IfExistThenElseStep
     			if ((databaseObject != null) && (databaseObject instanceof IfExistThenElseStep)) {
     				IfExistThenElseStep ifThenElseStep = (IfExistThenElseStep)databaseObject;
+    				
     				if (ifThenElseStep.hasThenElseSteps()) {
     					ThenStep thenStep = ifThenElseStep.getThenStep();
     					List<Step> list = thenStep.getSteps();
@@ -89,8 +90,16 @@ public class ChangeToIfExistStepAction extends MyAbstractAction {
 		        		if (parentTreeObject != null) {
     						// New jIf step
 		        			IfExistStep ifStep = new IfExistStep();
+		        			
+		        			// Set properties
 		        			ifStep.setSourceDefinition(ifThenElseStep.getSourceDefinition());
-    						ifStep.bNew = true;
+		        			ifStep.setComment(ifThenElseStep.getComment());
+		        			ifStep.setCondition(ifThenElseStep.getCondition());
+		        			ifStep.setEnable(ifThenElseStep.isEnable());
+		        			ifStep.setOutput(ifThenElseStep.isOutput());
+		        			ifStep.setName(ifThenElseStep.getName());
+		        			
+		        			ifStep.bNew = true;
     						ifStep.hasChanged = true;
     						
     						// Add new jIf step to parent
@@ -149,7 +158,15 @@ public class ChangeToIfExistStepAction extends MyAbstractAction {
 	        		if (parentTreeObject != null) {
 						// New jIf step
 	        			IfExistStep ifStep = new IfExistStep();
+	        			
+	        			// Set properties
 	        			ifStep.setSourceDefinition(isInStep.getSourceDefinition());
+	        			ifStep.setComment(isInStep.getComment());
+	        			ifStep.setCondition(isInStep.getCondition());
+	        			ifStep.setEnable(isInStep.isEnable());
+	        			ifStep.setOutput(isInStep.isOutput());
+	        			ifStep.setName(isInStep.getName());
+	        			
 						ifStep.bNew = true;
 						ifStep.hasChanged = true;
 						

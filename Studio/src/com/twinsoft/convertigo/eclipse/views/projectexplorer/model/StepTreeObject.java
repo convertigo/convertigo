@@ -37,6 +37,8 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.steps.AttributeStep;
+import com.twinsoft.convertigo.beans.steps.ElementStep;
 import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
 import com.twinsoft.convertigo.beans.steps.IfExistStep;
 import com.twinsoft.convertigo.beans.steps.IfExistThenElseStep;
@@ -52,6 +54,7 @@ import com.twinsoft.convertigo.beans.steps.SimpleSourceStep;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.beans.steps.SourceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.steps.XMLConcatStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
@@ -439,8 +442,11 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 					bool.equals(Boolean.valueOf(getObject() instanceof IfFileExistThenElseStep)) ||
 					bool.equals(Boolean.valueOf(getObject() instanceof XMLConcatStep)) ||
 					bool.equals(Boolean.valueOf(getObject() instanceof XMLElementStep)) ||
+					bool.equals(Boolean.valueOf(getObject() instanceof XMLAttributeStep)) ||
 					bool.equals(Boolean.valueOf(getObject() instanceof SourceStep)) ||
-					bool.equals(Boolean.valueOf(getObject() instanceof SimpleSourceStep));
+					bool.equals(Boolean.valueOf(getObject() instanceof SimpleSourceStep)) ||
+					bool.equals(Boolean.valueOf(getObject() instanceof ElementStep)) ||
+					bool.equals(Boolean.valueOf(getObject() instanceof AttributeStep));
 		}
 		return super.testAttribute(target, name, value);
 	}

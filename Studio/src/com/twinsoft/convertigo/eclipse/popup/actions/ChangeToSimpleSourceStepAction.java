@@ -73,7 +73,15 @@ public class ChangeToSimpleSourceStepAction extends MyAbstractAction {
 	        		if (parentTreeObject != null) {
 						// New jSimpleSource step
 						SimpleSourceStep jSimpleSourceStep = new SimpleSourceStep();
+						
+						// Set properties
 						jSimpleSourceStep.setSourceDefinition(jSourceStep.getSourceDefinition());
+						jSimpleSourceStep.setComment(jSourceStep.getComment());
+						jSimpleSourceStep.setVariableName(jSourceStep.getVariableName());
+						jSimpleSourceStep.setEnable(jSourceStep.isEnable());
+						jSimpleSourceStep.setOutput(jSourceStep.isOutput());
+						jSimpleSourceStep.setName(jSourceStep.getName());
+						
 						jSimpleSourceStep.bNew = true;
 						jSimpleSourceStep.hasChanged = true;
 						

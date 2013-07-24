@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL: http://sourceus/svn/convertigo/CEMS_opensource/branches/6.2.x/Studio/src/com/twinsoft/convertigo/eclipse/popup/actions/ChangeToXMLConcatStepAction.java $
+ * $URL: http://sourceus/svn/convertigo/CEMS_opensource/branches/6.3.x/Studio/src/com/twinsoft/convertigo/eclipse/popup/actions/ChangeToXMLAttributeStepAction.java $
  * $Author: nicolasa $
  * $Revision: 31165 $
  * $Date: 2012-07-20 17:45:54 +0200 (ven., 20 juil. 2012) $
@@ -27,12 +27,11 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
-import com.twinsoft.convertigo.beans.steps.XMLConcatStep;
+import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
@@ -43,14 +42,15 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class ChangeToXMLConcatStepAction extends MyAbstractAction {
+public class ChangeToXMLAttributeStepAction extends MyAbstractAction {
 
-	public ChangeToXMLConcatStepAction() {
+	public ChangeToXMLAttributeStepAction() {
 	}
 
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.eclipse.popup.actions.MyAbstractAction#run()
 	 */
+	
 	@Override
 	public void run() {
 		Display display = Display.getDefault();
@@ -64,6 +64,7 @@ public class ChangeToXMLConcatStepAction extends MyAbstractAction {
     		if (explorerView != null) {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
     			Object databaseObject = treeObject.getObject();
+    			// XML Element
     			if ((databaseObject != null) && (databaseObject instanceof XMLElementStep)) {
     				XMLElementStep elementStep = (XMLElementStep)databaseObject;
 					
@@ -75,60 +76,54 @@ public class ChangeToXMLConcatStepAction extends MyAbstractAction {
 						parentTreeObject = (DatabaseObjectTreeObject)treeParent.getParent();
 					
 	        		if (parentTreeObject != null) {
-						// New XMLConcatStep step
-	        			XMLConcatStep concatStep = new XMLConcatStep();
 	        			
-	        			if ( DatabaseObjectsManager.acceptDatabaseObjects(elementStep.getParent(), concatStep) ) {
-		        			XMLVector<XMLVector<Object>> sources = new XMLVector<XMLVector<Object>>();
-		        			if ( !elementStep.getSourceDefinition().toString().equals("[]") ) {
-		        				XMLVector<Object> source = new XMLVector<Object>();
-		        				
-		        				source.add(""); 
-		        				source.add(elementStep.getSourceDefinition());
-		        				source.add(elementStep.getNodeText());
-		        				
-		        				sources.add(source);
-		        			}
-		        			concatStep.setOutput(elementStep.isOutput());
-	        				concatStep.setEnable(elementStep.isEnable());
-		        			concatStep.setComment(elementStep.getComment());
-		        			concatStep.setNodeName(elementStep.getNodeName());
-		        			concatStep.setSourcesDefinition(sources);
-		        			concatStep.bNew = true;
-		        			concatStep.hasChanged = true;
+						// New XMLAttribute step
+	        			XMLAttributeStep attributeStep = new XMLAttributeStep();
+	        			
+		        		if ( DatabaseObjectsManager.acceptDatabaseObjects(elementStep.getParent(), attributeStep) ) {
+	        				// Set properties
+		        			attributeStep.setOutput(elementStep.isOutput());
+		        			attributeStep.setEnable(elementStep.isEnable());
+		        			attributeStep.setComment(elementStep.getComment());
+		        			attributeStep.setSourceDefinition(elementStep.getSourceDefinition());
+		        			attributeStep.setNodeText(elementStep.getNodeText());
+		        			attributeStep.setNodeName(elementStep.getNodeName());
+		        			
+		        			attributeStep.bNew = true;
+		        			attributeStep.hasChanged = true;
 							
-							// Add new XMLConcatStep step to parent
+							// Add new XMLAttribute step to parent
 							DatabaseObject parentDbo = elementStep.getParent();
-							parentDbo.add(concatStep);
+						
+							parentDbo.add(attributeStep);
 							
 							// Set correct order
 							if (parentDbo instanceof StepWithExpressions)
-								((StepWithExpressions)parentDbo).insertAtOrder(concatStep,elementStep.priority);
+								((StepWithExpressions)parentDbo).insertAtOrder(attributeStep,elementStep.priority);
 							else if (parentDbo instanceof Sequence)
-								((Sequence)parentDbo).insertAtOrder(concatStep,elementStep.priority);
+								((Sequence)parentDbo).insertAtOrder(attributeStep,elementStep.priority);
 						
-							// Add new XMLConcatStep step in Tree
-							StepTreeObject stepTreeObject = new StepTreeObject(explorerView.viewer,concatStep);
+							// Add new XMLAttribute step in Tree
+							StepTreeObject stepTreeObject = new StepTreeObject(explorerView.viewer,elementStep);
 							treeParent.addChild(stepTreeObject);
 							
-			   				// Delete XMLElementStep step
+			   				// Delete XMLElement step
 							long oldPriority = elementStep.priority;
 							elementStep.delete();
-			   				
-			   				concatStep.getSequence().fireStepMoved(new StepEvent(concatStep,String.valueOf(oldPriority)));
+							attributeStep.getSequence().fireStepMoved(new StepEvent(attributeStep,String.valueOf(oldPriority)));
 							
 		        			parentTreeObject.hasBeenModified(true);
 			                explorerView.reloadTreeObject(parentTreeObject);
-			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(concatStep));
-	        			} else {
-	        				throw new EngineException("You cannot paste to a " + elementStep.getParent().getClass().getSimpleName() + " a database object of type " + concatStep.getClass().getSimpleName());
+			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(attributeStep));
+						} else {
+							throw new EngineException("You cannot paste to a " + elementStep.getParent().getClass().getSimpleName() + " a database object of type " + attributeStep.getClass().getSimpleName());
 						}
 	        		}
 				}
 			}
         }
         catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to change XMLElement to XMLConcat step!");
+        	ConvertigoPlugin.logException(e, "Unable to change to XMLAttribute step!");
         }
         finally {
 			shell.setCursor(null);

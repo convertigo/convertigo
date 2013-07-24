@@ -88,8 +88,16 @@ public class ChangeToIsInThenElseStepAction extends MyAbstractAction {
 	        		if (parentTreeObject != null) {
 						// New IfThenElseStep step
 	        			IsInThenElseStep ifThenElseStep = new IsInThenElseStep();
+	        			
+	        			// Set properties
 	        			ifThenElseStep.setSourceDefinition(isIn.getSourceDefinition());
 	        			ifThenElseStep.setTestDefinition(isIn.getTestDefinition());
+	        			ifThenElseStep.setComment(isIn.getComment());
+	        			ifThenElseStep.setCondition(isIn.getCondition());
+	        			ifThenElseStep.setEnable(isIn.isEnable());
+	        			ifThenElseStep.setOutput(isIn.isOutput());
+	        			ifThenElseStep.setName(isIn.getName());
+	        			
 						ifThenElseStep.bNew = true;
 						ifThenElseStep.hasChanged = true;
 						
@@ -156,7 +164,15 @@ public class ChangeToIsInThenElseStepAction extends MyAbstractAction {
 		        		if (parentTreeObject != null) {
 							// New IsInThenElse step
 		        			IsInThenElseStep isInThenElse = new IsInThenElseStep();
+		        			
+		        			// Set properties
 		        			isInThenElse.setSourceDefinition(ifExistThenElse.getSourceDefinition());
+		        			isInThenElse.setComment(ifExistThenElse.getComment());
+		        			isInThenElse.setCondition(ifExistThenElse.getCondition());
+		        			isInThenElse.setEnable(ifExistThenElse.isEnable());
+		        			isInThenElse.setOutput(ifExistThenElse.isOutput());
+		        			isInThenElse.setName(ifExistThenElse.getName());
+		        			
 		        			isInThenElse.bNew = true;
 		        			isInThenElse.hasChanged = true;
 							
