@@ -1013,6 +1013,38 @@
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject">
       </objectContribution>
       <objectContribution
+	        id="convertigo.openProjectTestPlatformContribution"
+	        objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.OpenProjectTestPlatformAction"
+	             enablesFor="1"
+	             icon="icons/studio/open_test_platform_16x16.png"
+	             id="convertigo.action.openProjectTestPlatform"
+	             label="Open test platform"
+	             menubarPath="run">
+	       </action>
+	  </objectContribution>
+	  <objectContribution
+	        id="convertigo.launchMobileDeviceProjectContribution"
+	        objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileDeviceTreeObject">
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.LaunchMobileDeviceProjectAction"
+	             enablesFor="1"
+	             icon="icons/studio/launch_test_platform_16x16.png"
+	             id="convertigo.action.launchMobileDeviceProject"
+	             label="Launch in test platform"
+	             menubarPath="run">
+	       </action>
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.LaunchMobileDeviceFullScreenProjectAction"
+	             enablesFor="1"
+	             icon="icons/studio/launch_fullscreen_16x16.gif"
+	             id="convertigo.action.launchMobileDeviceFullScreenProject"
+	             label="Launch Fullscreen"
+	             menubarPath="run">
+	       </action>
+	  </objectContribution>
+      <objectContribution
             id="convertigo.mobileApplicationContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject">
          <action
