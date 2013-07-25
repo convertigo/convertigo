@@ -367,7 +367,7 @@ public abstract class GenericRequester extends Requester {
         Engine.logContext.trace("Initializing context");
 
 		String previousProjectName = (String) context.projectName;
-
+		
 		context.reset();
 
 		long lastAccessTime = Calendar.getInstance().getTime().getTime();
@@ -379,8 +379,6 @@ public abstract class GenericRequester extends Requester {
 	        Engine.logContext.debug("Project name differs from previous one; requiring new session");
 			context.isNewSession = true;
 			context.projectName = projectName;
-			context.tasSessionKey = null;
-            context.tasSessionKeyVerified = true;
 		}
 	}
 
@@ -461,6 +459,9 @@ public abstract class GenericRequester extends Requester {
 			if ((parameterValue != null) && (parameterValue.length() > 0)) {
 				context.tasSessionKey = parameterValue;
 				Engine.logContext.debug("The Carioca key is \"" + parameterValue + "\".");
+				
+				// given key must be verified
+				context.tasSessionKeyVerified = false;
 			}
 		}
 		// Carioca trusted request
