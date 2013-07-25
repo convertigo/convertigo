@@ -1038,7 +1038,7 @@
 	       <action
 	             class="com.twinsoft.convertigo.eclipse.popup.actions.LaunchMobileDeviceFullScreenProjectAction"
 	             enablesFor="1"
-	             icon="icons/studio/launch_fullscreen_16x16.gif"
+	             icon="icons/studio/launch_fullscreen_16x16.png"
 	             id="convertigo.action.launchMobileDeviceFullScreenProject"
 	             label="Launch Fullscreen"
 	             menubarPath="run">
