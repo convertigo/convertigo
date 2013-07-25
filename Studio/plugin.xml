@@ -1256,6 +1256,13 @@
                label="Edit handlers"
                menubarPath="edit"/>
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedFromStubAction"
+               icon="icons/studio/transaction_execute_selected.gif"
+               id="convertigo.action.executeSelectedTransactionFromStub"
+               label="Execute from stub"
+               menubarPath="execute">
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedAction"
                enablesFor="1"
                icon="icons/studio/transaction_execute_selected.gif"
@@ -1310,13 +1317,6 @@
                id="convertigo.action.createStubFromXML"
                label="Create stub from current generated XML"
                menubarPath="stub">
-         </action>
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.TransactionExecuteSelectedFromStubAction"
-               icon="icons/studio/transaction_execute_selected.gif"
-               id="convertigo.action.executeSelectedTransactionFromStub"
-               label="Execute from stub"
-               menubarPath="execute">
          </action>
          
       </objectContribution>
@@ -2337,6 +2337,13 @@
                      label="Test case"
                      menubarPath="convertigo.menu.new/content">
                </action>
+		        <action
+		              class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedFromStubAction"
+		              icon="icons/studio/transaction_execute_selected.gif"
+		              id="convertigo.action.executeSelectedSequenceFromStub"
+		              label="Execute from stub"
+		              menubarPath="execute">
+		        </action>
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedAction"
                      enablesFor="1"
@@ -2365,13 +2372,6 @@
                   id="convertigo.action.seq.importXSD"
                   label="Import step&apos;s structure from schema"
                   menubarPath="import">
-            </action>
-            <action
-                  class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedFromStubAction"
-                  icon="icons/studio/transaction_execute_selected.gif"
-                  id="convertigo.action.executeSelectedSequenceFromStub"
-                  label="Execute from stub"
-                  menubarPath="execute">
             </action>
             <action
                   class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
