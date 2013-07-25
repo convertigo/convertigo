@@ -8,6 +8,16 @@ $.extend(true, C8O, {
 	 * 
 	 * If no page has to be switched, we render on the same page immediately
 	 */
+	isActivePage: function (fromPage) {
+		return true;
+	},
+	
+	changePage: function (goToPage, options, callback) {
+		if (typeof(callback) == "function") {
+			callback();
+		};
+	},
+	
 	_routeResponse: function(c8oRequestable, xml, c8oData) {
 		var $doc = $(xml.documentElement);
 		
@@ -19,7 +29,7 @@ $.extend(true, C8O, {
 					var routeFound = true;
 					
 					if (C8O.isDefined(action.fromPage)) {
-						routeFound = $.mobile.activePage.is(action.fromPage);
+						routeFound = C8O.isActivePage(action.fromPage);
 					}
 					
 					if (routeFound) {
@@ -33,29 +43,22 @@ $.extend(true, C8O, {
 						}
 	
 						if (routeFound) {
-							var transition =  action.transition;
-							var goToPage = action.gopage || action.goToPage;
-	
-							// Render in a target page
-							if (goToPage) {
-								// Bind a listener on the 'pagebeforeshow' event in order
-								// to render bindings only after the page is shown
-								$(document).one('pagebeforeshow', function (event) {
-									C8O._renderBindings(c8oRequestable, $doc, c8oData);
-									if (action.afterRendering) {
-										action.afterRendering($doc, c8oData);
-									}
-								});
-								
-								// Change page
-								$.mobile.changePage(goToPage, transition);
-							}
-							// Render on the same page
-							else {
+							var options =  action.options;
+							var goToPage = action.goToPage;
+							var afterChange = function () {
 								C8O._renderBindings(c8oRequestable, $doc, c8oData);
 								if (action.afterRendering) {
 									action.afterRendering($doc, c8oData);
-								}
+								}								
+							};
+							
+							// Render in a target page
+							if (goToPage) {
+								C8O.changePage(goToPage, options, afterChange);
+							}
+							// Render on the same page
+							else {
+								afterChange();
 							}
 							
 							return;
@@ -64,6 +67,7 @@ $.extend(true, C8O, {
 				}
 			}
 		}
+		C8O._renderBindings(c8oRequestable, $doc, c8oData);
 	},
 	
 	/**
@@ -150,7 +154,7 @@ $.extend(true, C8O, {
 	    
 		var requestableParts = requestable.match(C8O._define.re_requestable);
 		if (requestableParts != null) {
-			if (requestableParts[3]) {
+			if (requestableParts[3] != null) {
 				return {
 					"fullTextName": requestable,
 					"type": "transaction",
@@ -159,7 +163,7 @@ $.extend(true, C8O, {
 					"transaction": requestableParts[3]
 				};
 	    	}
-			else if (requestableParts[2]) {
+			else if (requestableParts[2] != null) {
 				return {
 					"fullTextName": requestable,
 					"type": "sequence",
@@ -425,22 +429,25 @@ $.extend(true, C8O, {
 		var refs = data.refs;
 		var find = txt.search(C8O._define.re_find_brackets);
 		var res = "";
+		var elt = this.nodeType == Node.TEXT_NODE ? this.parentElement : this;
 		while (find != -1) {
 			res += txt.substring(0, find);
 			txt = txt.substring(find);
 			var rule = C8O._makeRule(txt);
-			
+			var $elt = undefined;
 			var value = undefined;
 			
 			try {
 				var $data = C8O._getRefData(rule, refs);
 				
+				var isFragment = C8O.isDefined(rule.type) || rule.type == "fragment";
+				
 				if (C8O.isUndefined(rule.mode) || rule.mode == "find") {
-					var $elt = C8O.isUndefined(rule.find) || rule.find == "." ? $data : $data.find(rule.find);
+					$elt = C8O.isUndefined(rule.find) || rule.find == "." ? $data : $data.find(rule.find);
 					if ($elt.length) {
 						if (C8O.isDefined(rule.attr)) {
 							value = $elt.attr(rule.attr);
-						} else {
+						} else if (!isFragment) {
 							value = $elt.text();
 						}
 					}
@@ -452,17 +459,26 @@ $.extend(true, C8O, {
 			}
 			
 			if (C8O.isUndefined(value)) {
-				if (C8O.isDefined(rule.def)) {
-					value = rule.def;
+				if (isFragment && C8O.isDefined($elt) && $elt.length) {
+					$elt.each(function () {
+						value = C8O.convertHTML(this, value);
+					});
 				} else {
-					value = "";
+					if (C8O.isDefined(rule.def)) {
+						value = rule.def;
+					} else {
+						value = "";
+					}
+					if (isFragment) {
+						value = $("<fragment/>").html(value)[0];
+					}
 				}
 			}
 			
 			var functionFormatter = C8O._getFunction(rule.formatter);
 			if (functionFormatter != null) {
 				try {
-					var formatted = functionFormatter.call($element[0], value);
+					var formatted = functionFormatter.call(elt, value);
 					
 					if (typeof(formatted) == "string") {
 						value = formatted;
@@ -472,7 +488,13 @@ $.extend(true, C8O, {
 				}
 			}
 			
-			res += value;
+			if (isFragment && C8O.isDefined(value.childNodes)) {
+				$(this).before(document.createTextNode(res), value.childNodes);
+				res = "";
+			} else {
+				res += value;
+			}
+			
 			txt = txt.substring(rule.template.length);
 			find = txt.search(C8O._define.re_find_brackets);
 		}
@@ -663,6 +685,12 @@ $.extend(true, C8O, {
 			refs[refName] = refs._self;
 		}
 		return refs;
+	},
+	
+	_onDocumentReadyEnd: function (callback) {
+		if (typeof(callback) == "function") {
+			callback();
+		};
 	}
 });
 
@@ -711,13 +739,7 @@ C8O.addHook("document_ready", function () {
 		});
 	};
 	
-	if (C8O.isDefined($.mobile)) {
-		// FOR JQM
-		$.mobile.changePage.defaults.allowSamePageTransition = true;
-		$(document).on("pagebeforecreate", "[data-role=page]", onNewPage);	
-	} else {
-		onNewPage();
-	}
+	C8O._onDocumentReadyEnd(onNewPage);
 });
 
 /**

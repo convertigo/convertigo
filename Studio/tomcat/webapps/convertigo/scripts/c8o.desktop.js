@@ -33,6 +33,7 @@ $.extend(true, C8O, {
 	vars : { /** customizable value by adding __name=value in query*/
 		auto_refresh : "true", /** true/false */
 		auto_resize : "true", /** true/false */
+		first_call : "true",
 		resize_offset : "50", /** number */
 		send_portal_username : "true", /** true/false */
 		target_append : "false", /** true/false */

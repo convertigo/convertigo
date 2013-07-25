@@ -33,7 +33,7 @@ C8O = {
 	vars : { /** customizable value by adding __name=value in query*/
 		ajax_method : "POST", /** POST/GET */
 		endpoint_url : "",
-		first_call : "true", /** true/false */
+		first_call : "false",
 		requester_prefix : ""
 	},
 	
@@ -131,6 +131,9 @@ C8O = {
 	},
 
 	convertHTML : function (input, output) {
+		if (C8O.isUndefined(output)) {
+			output = document.createElement("fragment");
+		}
 		switch (input.nodeType) {
 		case Node.ELEMENT_NODE:
 			var i;
@@ -139,7 +142,7 @@ C8O = {
 				newelt.setAttribute(input.attributes[i].nodeName, input.attributes[i].nodeValue);
 			}
 			for (i = 0 ; i < input.childNodes.length ; i++) {
-				convertHTML(input.childNodes[i], newelt);
+				C8O.convertHTML(input.childNodes[i], newelt);
 			}
 			output.appendChild(newelt);
 			break;
@@ -147,6 +150,7 @@ C8O = {
 			output.appendChild(document.createTextNode(input.nodeValue))
 			break;
 		}
+		return output
 	},
 	
 	formToData : function ($form, data) {
@@ -239,28 +243,28 @@ C8O = {
 	/**
 	 * Walk each node and attribute and call the specified function
 	 */
-	walk: function (elt, data, fn) {
-		if (elt.nodeType) {
-			if (elt.nodeType == Node.ELEMENT_NODE) {
-				for (var i = 0; i < elt.attributes.length; i++) {
-					var fnr = fn(elt.attributes[i].nodeValue, data);
+	walk: function (node, data, fn) {
+		if (node.nodeType) {
+			if (node.nodeType == Node.ELEMENT_NODE) {
+				for (var i = 0; i < node.attributes.length; i++) {
+					var fnr = fn.call(node, node.attributes[i].nodeValue, data);
 					
 					if (fnr != null) {
-						elt.attributes[i].nodeValue = fnr;
+						node.attributes[i].nodeValue = fnr;
 					}
 				}
-				for (var i = 0; i < elt.childNodes.length; i++) {
-					C8O.walk(elt.childNodes[i], data, fn);
+				for (var i = 0; i < node.childNodes.length; i++) {
+					C8O.walk(node.childNodes[i], data, fn);
 				}
-			} else if (elt.nodeType == Node.TEXT_NODE) {
-				var fnr = fn(elt.nodeValue, data);
+			} else if (node.nodeType == Node.TEXT_NODE) {
+				var fnr = fn.call(node, node.nodeValue, data);
 				
 				if (fnr != null) {
-					elt.nodeValue = fnr;
+					node.nodeValue = fnr;
 				}
 			}
-		} else if (elt.each) {
-			elt.each(function () {
+		} else if (node.each) {
+			node.each(function () {
 				C8O.walk(this, data, fn);
 			});
 		}
