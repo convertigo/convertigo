@@ -86,7 +86,7 @@ public class EditorFrameworkDialog extends Dialog {
 		newShell.setText(cellEditor.dialogTitle);
 
 		/*
-		 * Rectangle pDisplayBounds = newShell.getDisplay().getBounds();
+		 * Rectangle pDisplayBounds = newShell.getDisplay().getPrimaryMonitor().getBounds();	// mods jmc 25/07/2013
 		 * 
 		 * int nWidth = 500; int nHeight = 400;
 		 * 
