@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2001-2013 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
@@ -97,7 +97,8 @@ public class MyAbstractDialog extends Dialog {
 		
 		newShell.setText(dialogTitle);
 
-		Rectangle pDisplayBounds = newShell.getDisplay().getBounds();
+		// mods jmc 25/07/2013
+		Rectangle pDisplayBounds = newShell.getDisplay().getPrimaryMonitor().getBounds();
 
 		int nLeft = (pDisplayBounds.width - nWidth) / 2;
 		int nTop = (pDisplayBounds.height - nHeight) / 2;
