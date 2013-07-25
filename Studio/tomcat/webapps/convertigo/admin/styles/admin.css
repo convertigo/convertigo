@@ -108,7 +108,7 @@ hr {
 	margin: 15px 0 15px 10px !important;
 	-margin: 5px 0 15px 10px; 
 	/margin: 5px 0 15px 10px;
-	border: none 0;
+	border: 0;
 	border-top: 1px dotted #aeaeae;
 	height: 1px;
 }
@@ -601,18 +601,18 @@ table {
 	display: block;
 	text-align: center;
 	margin-right: 12px !important;
-	margin-bottom: 5px !important;
+	margin-bottom: 10px !important;
 }
 
 .mainmenu_mb_menuV img {
 	display: block;
-	border: 'none';
+	border: 0;
 	opacity: 1;
 	height: 55px;
 	width: 55px;
 }
 
-.mainmenu_tab {
+.mainmenu_tab, .navigatemenu_tab {
 	width: 160px;
 	vertical-align: top;
 	height: 100%;
@@ -624,6 +624,9 @@ table {
 	padding-top: 10px;	
 	padding-bottom: 10px;	
 }
+.navigatemenu_tab {
+	background-image: none;
+}
 
 #sperationOfMenus{
 	width: 60%;
@@ -633,16 +636,16 @@ table {
 
 /* for ie */
 .mainmenu_ulG,.mainmenu_ulD {
-	padding: 0px 0pt;
+	padding: 0;
 	list-style: none outside none;
 }
 
 .mainmenu_ulG {
-	margin: 0px 0pt 0pt 10px;
+	margin: 0px 0px 0px 10px;
 }
 
 .mainmenu_ulD {
-	margin: 0pt;
+	margin: 0;
 }
 
 .mainmenu_nolist {
@@ -656,7 +659,8 @@ span.mainmenu_text {
 	font-weight: normal;
 	text-align: center;
 	width: 55px;
-	height: 10px;
+	height: 18px;
+	line-height: 1.4em;
 }
 
 a:hover>span.mainmenu_text {
@@ -1375,9 +1379,7 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 #projectEditObjectProperties {
 	width: 68%;
 	float: right;
-    border-style:solid;
-    border-color: #EAEAEA;
-    border-width: 1px;
+    border:1px solid #EAEAEA;
     background-color: white;
     padding: 2px;
     -moz-border-radius: 10px 10px 10px 10px/ 10px 10px 10px 10px;
@@ -1441,7 +1443,7 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	width: 1px;
 	text-align: left;
 	margin: 5px 10px 5px 10px;
-	border: none 0;
+	border: 0;
 	border-left: 1px dotted #aeaeae;
 	height: 96%;
 }
