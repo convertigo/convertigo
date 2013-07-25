@@ -41,6 +41,8 @@ var vars, defs = {
 function addMobileDevice($device, $parent) {
 	var $device_div = $("#templates .device").clone();
 	setName($device_div.find(".device_name"), $device);
+	$device_div.attr('id', $device.attr('classname'));
+	$device_div.attr('path', $device.attr('ressource_path'));
 	
 	var layout = defs.classnames[$device.attr("classname")];
 	if (typeof(layout) === "undefined") {
@@ -162,13 +164,15 @@ function alignPusher() {
 	}
 }
 
-function showQRCode(isBlackberry) {
-	var $td = $(this);
+function showQRCode($parent, $device, isBlackberry) {
+	//var $td = $(this);
+	var $td = $parent;
 	
 	var base_url = window.location.href;
 	base_url = base_url.substring(0, base_url.indexOf("project.html"));
 	
-	var href = "projects/" + vars.projectName + "/DisplayObjects/mobile/index.html";
+	//var href = "projects/" + vars.projectName + "/DisplayObjects/mobile/index.html";
+	var href = "projects/" + vars.projectName + "/" + $device.attr('ressource_path');
 	var build_url = $td.find(".build_url").attr("value");
 	var target_url = (build_url === "") ? base_url + href : build_url;
 	if (build_url != "") {
@@ -230,9 +234,11 @@ function setLink($a, params) {
 	}
 }
 
-function setLinkForMobileDevice(a) {
-	var $a = $(this);
-	$a.attr("href", "projects/" + vars.projectName + "/DisplayObjects/mobile/index.html");
+//function setLinkForMobileDevice(a) {
+function setLinkForMobileDevice($device, $parent) {
+	var $a = $parent;
+	//$a.attr("href", "projects/" + vars.projectName + "/DisplayObjects/mobile/index.html");
+	$a.attr("href", "projects/" + vars.projectName + "/" + $device.attr('ressource_path'));
 }
 
 function setLinkForRequestable(a) {
@@ -334,7 +340,8 @@ function getPhoneGapBuildUrl() {
 	base_url = base_url.substring(0, base_url.indexOf("project.html"));
 	var url = base_url + "admin/services/mobiles.GetPackage?application=" + vars.projectName + "&platform=" + device_platform;
 	$td.find(".build_url").attr("value",url);
-	showQRCode.call($td, isBlackberry);
+	//showQRCode.call($td, isBlackberry);
+	showQRCode($(this), $td, isBlackberry);
 }
 
 function getPhoneGapBuildStatus() {
@@ -450,14 +457,60 @@ function getRequester() {
 	}
 	return "index.html";
 }
+function _getQuery() {
+	var l = window.location,
+		q = l.search.length > 0 ? l.search.substring(1) : "",
+		h = l.hash.length > 0 ? l.hash.substring(1) : "";
+	return (q.length > 0 && h.length > 0) ? (q + "&" + h) : (q.length > 0 ? q : h);
+}
+
+function isUndefined (obj) {
+	return typeof(obj) === "undefined";
+}
+
+function parseQuery(params, query) {
+	var data = {},
+		vars = (query ? query : _getQuery() ).split("&"),
+		i, id, key, value;
+	for (i = 0; i < vars.length; i += 1) {
+		if (vars[i].length > 0) {
+			id = vars[i].indexOf("=");
+			key = (id > 0)?vars[i].substring(0, id):vars[i];
+			value = "";
+			if (id > 0) {
+				value = vars[i].substring(id + 1);
+				if (value.length) {
+					value = value.replace(new RegExp("\\+", "g"), " ");
+					try {
+						value = decodeURIComponent(value);
+					} catch (err1) {
+						try {
+							value = unescape(value);
+						} catch (err2) {}
+					}
+				}
+			}
+			if (this.isUndefined(data[key])) {
+				data[key] = value;
+			} else if ($.isArray(data[key])) {
+				data[key].push(value);
+			} else {
+				data[key] = [data[key]].concat([value]);
+			}
+		}
+	}
+	return data;
+}
 
 $(document).ready(function() {
 	if (window.location.hash.length === 0) {
 		return;
 	}
+	var linkString = window.location.href.match(".*#([a-zA-Z0-9_]*)[\?]?(.*)?");
+	var parameters = ( linkString[2] == undefined ? "" : parseQuery({}, linkString[2]) );
 	
 	vars = {
-		projectName : window.location.hash.substring(1),
+		projectName : linkString[1],
 		pusher_original_pos : $("#pusher").offset().top
 	};
 	$(".project_name").text(vars.projectName);
@@ -524,10 +577,12 @@ $(document).ready(function() {
 				$(".mobiles:first").removeClass("hidden");
 				$devices.each(function () {
 					addMobileDevice($(this), $(".mobiles:first .requestables:first"));
+					setLinkForMobileDevice($(this), $("#main a.device_link"));		
+					showQRCode($("#main .webapp.qrcode_content"), $(this), false);
 				});
 			}
 			
-			$("#main a.device_link").each(setLinkForMobileDevice);
+			//$("#main a.device_link").each(setLinkForMobileDevice);
 			
 			$("#main a.requestable_link").each(setLinkForRequestable);
 			
@@ -761,9 +816,20 @@ $(document).ready(function() {
 			});
 	
 			$("#main .install.qrcode_content").each(getPhoneGapBuildStatus);
-			$("#main .webapp.qrcode_content").each(function () {
-				showQRCode.call($(this), false)
-			});
+			//$("#main .webapp.qrcode_content").each(function () {
+			//	showQRCode.call($(this), false)
+			//});
+			
+			//Autorun the device passed in parameter
+			if ( linkString[2] != undefined ){
+					$( "#"+(parameters.device.match( "^i(.*)") == null ? 
+							parameters.device : "I"+parameters.device.match( "^i(.*)")[1])+
+							" h6" ).click();
+					
+					$( "#"+(parameters.device.match( "^i(.*)") == null ? 
+							parameters.device : "I"+parameters.device.match( "^i(.*)")[1])+
+							" a" ).click();
+			}
 		});
-	});
+	});		
 });
