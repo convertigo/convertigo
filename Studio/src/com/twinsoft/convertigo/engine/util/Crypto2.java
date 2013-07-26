@@ -207,7 +207,7 @@ public class Crypto2 {
 			return null;
 		}
 	}
-
+	
 	public static String encodeToHexString(String data) {
 		return Crypto2.encodeToHexString(
 				EnginePropertiesManager.getProperty(PropertyName.CRYPTO_PASSPHRASE),
@@ -226,6 +226,7 @@ public class Crypto2 {
 		}
 		// Crypto v1 lib
 		else if (ciphered.charAt(0) == CRYPTO_V1_MARKER) {
+			ciphered = ciphered.substring(1);
 			logDebug("Crypto v1 detected");
 			if (bTripleDES) {
 				return com.twinsoft.convertigo.engine.util.Crypto.decodeFromHexString3(ciphered);
@@ -236,6 +237,7 @@ public class Crypto2 {
 		}
 		// Crypto twinsoft DESKey
 		else if (ciphered.charAt(0) == CRYPTO_TWINSOFT_DESKEY_MARKER) {
+			ciphered = ciphered.substring(1);
 			logDebug("Crypto twinsoft DESKey detected");
 			if (bTripleDES) {
 				return DESKey.decodeFromHexString3(ciphered);
