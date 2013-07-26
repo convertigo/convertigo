@@ -23,10 +23,13 @@
 package com.twinsoft.convertigo.eclipse.property_editors;
 
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Text;
@@ -70,17 +73,38 @@ public class SqlQueryEditorComposite extends AbstractDialogComposite {
 
 	@Override
 	public void performPostDialogCreation() {
-		Shell newShell = this.parentDialog.getShell();
-
-		// mods jmc 23/07/2013
-		Rectangle pDisplayBounds = newShell.getDisplay().getPrimaryMonitor().getBounds();
+		// mods jmc 26/07/2013
 		
 		int nWidth = 600;
 		int nHeight = 400;
-		int nLeft = (pDisplayBounds.width - nWidth) / 2;
-		int nTop = (pDisplayBounds.height - nHeight) / 2;
+		int nLeft = 0;
+		int nTop = 0;
 		 
-		newShell.setBounds(nLeft, nTop, nWidth, nHeight);
+		Shell newShell = this.parentDialog.getShell();
+		Display display = newShell.getDisplay();
+		
+		Point pt = display.getCursorLocation();
+	    Monitor [] monitors = display.getMonitors();
+
+	    for (int i= 0; i<monitors.length; i++) {
+	          if (monitors[i].getBounds().contains(pt)) {
+	             Rectangle rect = monitors[i].getClientArea();
+	             
+	             if (rect.x < 0)
+	         		nLeft = ((rect.width - nWidth) / 2) + rect.x;
+	             else
+	         		nLeft = (rect.width - nWidth) / 2;
+
+	             if (rect.y < 0)
+	         		nTop = ((rect.height - nHeight) / 2) + rect.y;
+	             else
+	         		nTop = (rect.height - nHeight) / 2;
+	             
+	             break;
+	          }
+	    }
+
+	    newShell.setBounds(nLeft, nTop, nWidth, nHeight);
 		
 		super.performPostDialogCreation();
 	}

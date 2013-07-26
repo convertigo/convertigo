@@ -86,14 +86,30 @@ public class EditorFrameworkDialog extends Dialog {
 		newShell.setText(cellEditor.dialogTitle);
 
 		/*
-		 * Rectangle pDisplayBounds = newShell.getDisplay().getPrimaryMonitor().getBounds();	// mods jmc 25/07/2013
-		 * 
-		 * int nWidth = 500; int nHeight = 400;
-		 * 
-		 * int nLeft = (pDisplayBounds.width - nWidth) / 2; int nTop =
-		 * (pDisplayBounds.height - nHeight) / 2;
-		 * 
-		 * newShell.setBounds(nLeft, nTop, nWidth, nHeight);
+		 *	Display display = newShell.getDisplay();
+		 *	
+		 *	Point pt = display.getCursorLocation();
+		 *   Monitor [] monitors = display.getMonitors();
+		 *
+		 *	for (int i= 0; i<monitors.length; i++) {
+		 *		if (monitors[i].getBounds().contains(pt)) {
+		 *			Rectangle rect = monitors[i].getClientArea();
+		 *
+		 *           if (rect.x < 0)
+		 *        		nLeft = ((rect.width - nWidth) / 2) + rect.x;
+		 *			else
+		 *         		nLeft = (rect.width - nWidth) / 2;
+		 *
+		 *	        if (rect.y < 0)
+		 *	        	nTop = ((rect.height - nHeight) / 2) + rect.y;
+		 *	        else
+		 *	        	nTop = (rect.height - nHeight) / 2;
+		 *	             
+		 *	        break;
+		 *	      }
+		 *	}
+		 *
+		 *	newShell.setBounds(nLeft, nTop, nWidth, nHeight);
 		 */
 	}
 
