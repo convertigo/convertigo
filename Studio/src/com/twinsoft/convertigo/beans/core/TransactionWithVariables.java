@@ -476,6 +476,19 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			variableName = variableNode.getAttribute("name");
 			variableValue = variableNode.getAttribute("value");
 			valueAttrNode = variableNode.getAttributeNode("value");
+
+			
+			// Handle complex xml variable
+			
+			if ((valueAttrNode == null) && (variableNode.hasChildNodes() || variableNode.hasAttributes())) {
+				String sValue = XMLUtils.prettyPrintElement(variableNode, true, false);
+				sValue = sValue.replaceAll("<variable name=\""+variableName+"\">", "");
+				sValue = sValue.replaceAll("</variable>", "");
+				variableValue = sValue;
+			}
+			
+			
+			
 			variableMethod = null;
 			
 			// Test case for transaction
@@ -528,7 +541,12 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 				Object current = variables.get(variableName);
 				if (current == null) {
 					Vector<String> vCurrent = new Vector<String>();
-					if (valueAttrNode != null) vCurrent.add(variableValue);
+					
+					if (variableNode.hasChildNodes() || variableNode.hasAttributes())
+						vCurrent.add(variableValue);
+					else if (valueAttrNode != null)
+						vCurrent.add(variableValue);
+					
 					variables.put(variableName, vCurrent);
 				}
 				else {
