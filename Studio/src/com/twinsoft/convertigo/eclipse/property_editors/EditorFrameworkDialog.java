@@ -27,9 +27,13 @@ import java.lang.reflect.Constructor;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -86,14 +90,30 @@ public class EditorFrameworkDialog extends Dialog {
 		newShell.setText(cellEditor.dialogTitle);
 
 		/*
-		 * Rectangle pDisplayBounds = newShell.getDisplay().getPrimaryMonitor().getBounds();	// mods jmc 25/07/2013
-		 * 
-		 * int nWidth = 500; int nHeight = 400;
-		 * 
-		 * int nLeft = (pDisplayBounds.width - nWidth) / 2; int nTop =
-		 * (pDisplayBounds.height - nHeight) / 2;
-		 * 
-		 * newShell.setBounds(nLeft, nTop, nWidth, nHeight);
+		 *	Display display = newShell.getDisplay();
+		 *	
+		 *	Point pt = display.getCursorLocation();
+		 *   Monitor [] monitors = display.getMonitors();
+		 *
+		 *	for (int i= 0; i<monitors.length; i++) {
+		 *		if (monitors[i].getBounds().contains(pt)) {
+		 *			Rectangle rect = monitors[i].getClientArea();
+		 *
+		 *           if (rect.x < 0)
+		 *        		nLeft = ((rect.width - nWidth) / 2) + rect.x;
+		 *			else
+		 *         		nLeft = (rect.width - nWidth) / 2;
+		 *
+		 *	        if (rect.y < 0)
+		 *	        	nTop = ((rect.height - nHeight) / 2) + rect.y;
+		 *	        else
+		 *	        	nTop = (rect.height - nHeight) / 2;
+		 *	             
+		 *	        break;
+		 *	      }
+		 *	}
+		 *
+		 *	newShell.setBounds(nLeft, nTop, nWidth, nHeight);
 		 */
 	}
 
