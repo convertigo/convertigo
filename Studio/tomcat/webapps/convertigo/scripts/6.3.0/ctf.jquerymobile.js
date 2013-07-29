@@ -23,5 +23,15 @@ $.extend(true, C8O, {
 		$(document).on("pagebeforecreate", "[data-role=page]", function () {
 			C8O.__onDocumentReadyEnd(callback);
 		});
+	},
+	
+	__renderFinish: C8O._renderFinish,
+	_renderFinish: function ($elt) {
+		try {
+			C8O.__renderFinish($elt);
+			$elt.trigger("create");
+		} catch (e) {
+			//console.log(e);
+		}
 	}
 });

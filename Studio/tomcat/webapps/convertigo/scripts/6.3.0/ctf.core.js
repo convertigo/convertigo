@@ -1,4 +1,7 @@
 $.extend(true, C8O, {
+	vars : { /** customizable value by adding __name=value in query*/
+		xsl_side : "none" /** client/server */
+	},
 	/**
 	 * This will analyze C8O responses and route them to the correct page according to the
 	 * routingTable. 
@@ -301,9 +304,7 @@ $.extend(true, C8O, {
 		C8O._renderUseAttributes($html);
 
 		// Render GUI components
-		//$html.find("[data-role='collapsible-set']").collapsibleset();
-		//$html.find("[data-role='listview']").listview();
-		$html.trigger("create");
+		C8O._renderFinish($html);
 	},
 
 	/**
@@ -316,6 +317,10 @@ $.extend(true, C8O, {
 			// Find data-c8o-use-xxx attributes in the found HTML element
 			C8O._findUseAttributes($this);
 		});
+	},
+	
+	_renderFinish: function($elt) {
+		
 	},
 	
 	/**
@@ -386,7 +391,7 @@ $.extend(true, C8O, {
 						}
 					}
 					
-					$c8oEachContainer.trigger("create");
+					C8O._renderFinish($c8oEachContainer);
 				});
 			}
 		});
@@ -733,7 +738,7 @@ C8O.addHook("document_ready", function () {
 		// The search order is reversed because we want to manage templates deeply first.
 		// This is not strictly deeply traversal, but it is enough to have deeply first
 		// template management on each XML branch.
-		$($document.find("[data-c8o-listen],[data-c8o-each],[data-c8o-late-render]").get().reverse()).each(function() {
+		$($document.find("[data-c8o-listen],[data-c8o-each],[data-c8o-late-render]").not("[data-c8o-template-id]").get().reverse()).each(function() {
 			var $c8oListenContainer = $(this);
 			C8O._manageTemplate($c8oListenContainer);
 		});

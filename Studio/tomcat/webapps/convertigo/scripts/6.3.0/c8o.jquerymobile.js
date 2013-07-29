@@ -59,15 +59,19 @@ $.extend(true, C8O, {
 			$("#c8oloading").show();
 			try {
 				$.mobile.loading("show", C8O.options.loading);
-			} catch (e) {}
+			} catch (e) {
+//				console.log(e);
+			}
 		}
 	},
 	
 	waitHide : function () {
 		if (C8O._hook("loading_stop")) {
 			try {
-				$.mobile.loading("stop");
-			} catch (e) {}
+				$.mobile.loading("hide");
+			} catch (e) {
+//				console.log(e);
+			}
 			$("#c8oloading").hide();
 		}
 	}

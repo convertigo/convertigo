@@ -110,21 +110,6 @@ $.extend(true, C8O, {
 		params["__field_" + twsid] = value;
 		return value;
 	},
-
-	_call : function (data) {
-		C8O._define.last_call_params = data;
-		if (C8O._hook("call", data)) {
-			var jqXHR = $.ajax({
-				data : data,
-				dataType : C8O.vars.xsl_side == "client" ? "xml" : "text",
-				success : C8O._onSuccess,
-				type : C8O.vars.ajax_method,
-				url : C8O.vars.requester_prefix + (C8O.vars.xsl_side == "client" ? ".xml" : ".cxml")
-			});
-			jqXHR.C8O_data = data;
-			C8O._define.pendingXhrCpt++;
-		}
-	},
 	
 	_checkDirty : function (tim) {
 		clearTimeout(C8O._define.dirty_timer);

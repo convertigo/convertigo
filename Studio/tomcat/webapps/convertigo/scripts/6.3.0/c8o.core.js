@@ -73,9 +73,10 @@ C8O = {
 			data = {};
 		} else if (!$.isPlainObject(data) && $(data).is("form")) {
 			var $form = $(data);
+			data = C8O.formToData($form);
 			if ($form.find("input[type=file]").length) {
 				var targetName = "tn_" + new Date().getTime() + "_" + Math.floor(Math.random() * 100);
-				var action = window.location.pathname.replace(new RegExp("^(.*/).*?$"), "$1") + C8O.vars.requester_prefix + (C8O.vars.xsl_side == "client" ? ".xml":".cxml");
+				var action = C8O._getCallUrl();
 				$form.attr({
 					method : "POST",
 					enctype : "multipart/form-data",
@@ -85,22 +86,20 @@ C8O = {
 				var $iframe = $("<iframe/>").attr({
 					src : "",
 					style : "display: none"
-				}).appendTo("body").on("load", function () {
-					if (action == this.contentWindow.location.pathname) {
-						if (C8O.vars.xsl_side == "client") {
-							var xml = $iframe[0].contentWindow.document.XMLDocument;
-							C8O._onSuccess(xml ? xml : $iframe[0].contentWindow.document, "success", {
-								C8O_data : data,
-								responseText : "No responseText for multipart, use XSL or xml_response."
-							});
-						} else {
-							C8O._onSuccess(null, "success", {
-								C8O_data : data,
-								responseText : $iframe[0].contentWindow.document.outerHTML
-							});
-						}
-						$iframe.remove();
-					};
+				}).appendTo("body").one("load", function () {
+					if (C8O.vars.xsl_side == "server") {
+						C8O._onSuccess(null, "success", {
+							C8O_data : data,
+							responseText : $iframe[0].contentWindow.document.outerHTML
+						});
+					} else {
+						var xml = $iframe[0].contentWindow.document.XMLDocument;
+						C8O._onSuccess(xml ? xml : $iframe[0].contentWindow.document, "success", {
+							C8O_data : data,
+							responseText : "No responseText for multipart, use XSL or xml_response."
+						});
+					}
+					$iframe.remove();
 				});
 				$iframe[0].contentWindow.name = targetName;
 				window.setTimeout(function () {
@@ -289,7 +288,7 @@ C8O = {
 				dataType : C8O.vars.xsl_side == "server" ? "text" : "xml",
 				success : C8O._onSuccess,
 				type : C8O.vars.ajax_method,
-				url : C8O.vars.endpoint_url + C8O.vars.requester_prefix + (C8O.vars.xsl_side == "client" ? ".xml" : C8O.vars.xsl_side == "server" ? ".cxml" : ".pxml")
+				url : C8O._getCallUrl()
 			});
 			jqXHR.C8O_data = data;
 			C8O._define.pendingXhrCpt++;
@@ -341,6 +340,10 @@ C8O = {
 			}
 			return attributes;
 		}
+	},
+	
+	_getCallUrl : function () {
+		return C8O.vars.endpoint_url + C8O.vars.requester_prefix + (C8O.vars.xsl_side == "client" ? ".xml" : C8O.vars.xsl_side == "server" ? ".cxml" : ".pxml");
 	},
 	
 	_getFunction : function (functionObject) {
