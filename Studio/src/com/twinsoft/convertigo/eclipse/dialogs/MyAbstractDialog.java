@@ -102,8 +102,9 @@ public class MyAbstractDialog extends Dialog {
 		
 		// mods jmc 26/07/2013
 		
-		int nWidth = 600;
-		int nHeight = 400;
+		nWidth = 600;
+		nHeight = 400;
+		
 		int nLeft = 0;
 		int nTop = 0;
 		 
