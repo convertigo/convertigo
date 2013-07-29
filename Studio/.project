@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>CemsStudio6.3.x</name>
+	<name>CemsStudio</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -31,7 +31,7 @@
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/parsers</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsHtmlParsers/src/com/twinsoft/convertigo/engine/parsers</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/CemsHtmlParsers_branch/src/com/twinsoft/convertigo/engine/parsers</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
