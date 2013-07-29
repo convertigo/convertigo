@@ -155,7 +155,7 @@ $.extend(true, C8O, {
 	_init : function (params) {
 		var value;
 		if (value = C8O._remove(params, "__container")) {
-			} else if (value == "gatein") {
+			if (value == "gatein") {
 				C8O._getScript(C8O._define.plugins_path + "gatein.js", function () {
 					C8O._init_gatein(params);
 				});
