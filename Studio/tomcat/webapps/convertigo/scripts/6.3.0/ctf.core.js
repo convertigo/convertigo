@@ -397,7 +397,7 @@ $.extend(true, C8O, {
 		});
 	},
 	
-	_makeRule: function (txt) {
+	_makeRule: function (txt, jsonOnly) {
 		var match = txt.match(C8O._define.re_find_brackets);
 		var rule = undefined;
 		if (match[2]) {
@@ -406,6 +406,9 @@ $.extend(true, C8O, {
 			part = part.replace(C8O._define.re_replace_escaped_bracket_simple_quote, "$1");
 			try {
 				rule = $.parseJSON(part);
+				if (jsonOnly) {
+					return rule;
+				}
 			} catch (e) {
 				console.log("JSON parse failed on " + part + " : " + e);
 			}
@@ -414,7 +417,7 @@ $.extend(true, C8O, {
 			rule = {find : match[1].replace(C8O._define.re_replace_escaped_bracket_simple_quote, "$1")};
 		}
 		rule.template = match[0];
-		return rule;
+		return jsonOnly ? null : rule;
 	},
 	
 	_getRefData: function (rule, refs) {
@@ -507,8 +510,7 @@ $.extend(true, C8O, {
 	},
 	
 	_define: {
-		re_accumulate_mode : new RegExp("^(?:(append)|(prepend)|(.*?))$"), // 1: append ; 2: preprend ; 3: replace
-		re_attr_plus : new RegExp("^data-c8o-(?:use-(.*$)|variable-(.*$)|internal-(.*$))"), // 1: use ; 2: variable ; 3: internal
+		re_accumulate_mode : new RegExp("^(?:(append)|(prepend)|(.*?))$"), // 1: append ; 2: preprend ; 3: replacel
 		re_call_mode : new RegExp("^(?:(click)|(auto)|(?:(timer:)(.*)))$"), // 1: click ; 2: auto ; 3: timer ; 4: seconds for timer
 		re_requestable : new RegExp("^(.*?)\\.(.*?)(?:\\.(.*))?$"), // 1: project ; 2: sequence | connector ; 3: transaction
 		/**
@@ -648,31 +650,23 @@ $.extend(true, C8O, {
 			
 			// Find whether the call compionent is inside a form
 			var $form = $element.closest("form");
-			if ($form.length > 0) {
+			if ($form.length) {
 				// Search for input fields in the form
 				C8O.formToData($form, c8oCallParams);
 			}
 			
 			// Search for 'data-c8o-variable' tagged elements in the link to use it
 			// to build data request to C8O
-			C8O._findAndSelf($element, "[data-c8o-variable]").each(function (index, element) {
+			C8O._findAndSelf($form.length ? $form : $element, "[data-c8o-variable]").each(function (index, element) {
 				var $c8oVariable = $(element);
 				var name = $c8oVariable.attr("data-c8o-variable");
 				var value = $c8oVariable.text();
-				c8oCallParams[name] = value;
+				C8O.appendValue(c8oCallParams, name, value);
 			});
 			
-			var attributes = C8O._getAttributes(element);
-			for (var attributeName in attributes) {
-				var attributeMatch = attributeName.match(C8O._define.re_attr_plus);
-				if (attributeMatch != null) {
-					if (attributeMatch[2] != null) {
-						c8oCallParams[attributeMatch[2]] = attributes[attributeName];
-					} else if (attributeMatch[3] != null) {
-						c8oCallParams["__" + attributeMatch[3]] = attributes[attributeName];
-					}
-				}
-			}
+			var variables = ($form.length && !$element.is("form")) ? C8O._makeRule("{" + $form.attr("data-c8o-variables") + "}", true) : null;
+			variables = $.extend(variables, C8O._makeRule("{" + $element.attr("data-c8o-variables") + "}", true));
+			C8O.appendValues(c8oCallParams, variables);
 			
 			// now call c8o with constructed arguments
 			C8O.call(c8oCallParams);
