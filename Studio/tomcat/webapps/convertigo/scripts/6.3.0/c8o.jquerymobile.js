@@ -43,6 +43,9 @@ $.extend(true, C8O, {
 			$("<div id=\"c8oloading\"/>").css({backgroundColor : "grey", position : "absolute", width : "100%", height : "100%", opacity : 0.5, "z-index" : 99}).hide().appendTo("body");
 		}
 		
+		// needed to prevent some automatic jqm ajax loading (form submit, click href)
+		$.mobile.ajaxEnabled = false;
+		
 		if (C8O._hook("document_ready")) {
 			C8O._init({});
 		};
