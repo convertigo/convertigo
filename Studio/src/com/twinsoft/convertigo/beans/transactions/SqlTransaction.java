@@ -70,19 +70,16 @@ public class SqlTransaction extends TransactionWithVariables {
 	/** The type of query. */
 	transient private int type = -1;
 	
-	/** Use for stock parameter of the query. */
+	/** Query's parameters map (name and value) */
 	transient private Map<String, String> parametersMap = new HashMap<String, String>();
 	
-	/** Use for get order of parameters for the query */
+	/** Query's ordered parameter names */
 	transient private List<String> orderedParametersList = null;
 	transient private List<String> oldOrderedParametersList = null;
 	
 	/** Just use for the parameterized parameter like {{id}} **/
 	transient private List<String> otherParametersList = null;
 
-	/** Use for replacement of values when we have the case of parameter looks like "{{id}}" */
-	transient private String sqlQueryReplacement = ""; 
-	
 	/** Holds value of property sqlQuery. */
 	private String sqlQuery = "";
 	
@@ -172,10 +169,10 @@ public class SqlTransaction extends TransactionWithVariables {
 		return null;
 	}
 
-	private void initializeQuery(boolean updateDefinitions) {
-
+	private String initializeQuery(boolean updateDefinitions) {
+		String preparedSqlQuery = "";
 		if ((sqlQuery != null) && (isSubLoaded || (bNew && updateDefinitions))) {
-			sqlQueryReplacement = sqlQuery;
+			preparedSqlQuery = sqlQuery;
 			
 			// Retrieve query type
 			if (sqlQuery.toUpperCase().indexOf("SELECT") == 0)
@@ -210,19 +207,19 @@ public class SqlTransaction extends TransactionWithVariables {
 			while (matcher.find()) {
 				String parameterName = matcher.group(1);
 				String parameterValue = getParameterValue(parameterName, getVariableVisibility(parameterName)).toString();
-				sqlQueryReplacement = sqlQueryReplacement.replace("{{"+parameterName+"}}", parameterValue);
+				preparedSqlQuery = preparedSqlQuery.replace("{{"+parameterName+"}}", parameterValue);
 				
 				// Add the parameterName into the ArrayList if is looks like {{id}}.	
 				otherParametersList.add(parameterName);
 				
-				matcher = pattern.matcher(sqlQueryReplacement);
+				matcher = pattern.matcher(preparedSqlQuery);
 				
 				updateVariable(updateDefinitions, parameterName);
 			}
 			
 			// Handled the case if we have value like {id} (i.e: parameters value)	
 			pattern = Pattern.compile("([\"']?)\\{([a-zA-Z0-9_]+)\\}\\1");
-			matcher = pattern.matcher(sqlQueryReplacement);
+			matcher = pattern.matcher(preparedSqlQuery);
 			
 			while (matcher.find()) {
 				String parameterName = matcher.group(2);	
@@ -240,36 +237,38 @@ public class SqlTransaction extends TransactionWithVariables {
 				
 			}				
 			// Replace parameter by question mark (for parameter value injection)
-			sqlQueryReplacement = matcher.replaceAll("?");
+			preparedSqlQuery = matcher.replaceAll("?");
 			
 			// We create an another List which permit to compare and update variables
 			List<String> allParametersList = createAllParametersList();
 			
 			// Modify variables definition if needed
 			if ( !allParametersList.equals(oldOrderedParametersList) ) {
-				if ( updateDefinitions && (oldOrderedParametersList != null ))
-					for ( String parameterName : oldOrderedParametersList )
+				if ( updateDefinitions && (oldOrderedParametersList != null )) {
+					for ( String parameterName : oldOrderedParametersList ) {
 						if ( !allParametersList.contains( parameterName ) ) {
 							Variable variable = getVariable(parameterName);
 							if (variable != null) {
 								try {
 									variable.delete();
-								} catch (EngineException e) {}
+								} catch (EngineException e) {
+									// Ignored: should never occur
+								}
 							}
 						}
+					}
+				}
 				oldOrderedParametersList = allParametersList;
 			}
 		}
+		
+		return preparedSqlQuery;
 	}
 	
 	private List<String> createAllParametersList(){
 		List<String> allParametersList = new ArrayList<String>();
-		for (String parameterName : otherParametersList){
-			allParametersList.add(parameterName);
-		}
-		for (String parameterName : orderedParametersList){
-			allParametersList.add(parameterName);
-		}
+		allParametersList.addAll(otherParametersList);
+		allParametersList.addAll(orderedParametersList);
 		return allParametersList;
 	}
 	
@@ -293,24 +292,6 @@ public class SqlTransaction extends TransactionWithVariables {
 				Engine.logBeans.error("Could not add variable '"+parameterName+"' for SqlTransaction '"+ getName() +"'", null);
 			}
 		}
-	}
-	
-	private String getParametrizedQuery(List<String> logHiddenValues) throws EngineException {
-				
-		if(sqlQueryReplacement.equals("") && !sqlQuery.equals(""))
-			sqlQueryReplacement = sqlQuery;
-		
-		Pattern pattern = Pattern.compile("\\{([a-zA-Z0-9_]+)\\}");
-		Matcher matcher = pattern.matcher(sqlQueryReplacement);
-		
-		// If we don't have bracket don't need to replace them
-		if (!matcher.find()) 
-			return sqlQueryReplacement;
-		
-		if (orderedParametersList == null)
-			initializeQuery(false);
-		
-		return sqlQueryReplacement;
 	}
 	
 	private Object getParameterValue(String parameterName, int variableVisibility){
@@ -361,35 +342,29 @@ public class SqlTransaction extends TransactionWithVariables {
 		logHiddenValues.clear();
 		
 		// Prepare the query
-		String query = getParametrizedQuery(logHiddenValues);
-		
-		// Type not retrieved
-		if (type == -1) {
-			initializeQuery(false);
-		}
+		String preparedSqlQuery = initializeQuery(false);
 		
 		// Limit number of result
 		if (type == SqlTransaction.TYPE_SELECT) {
-			if (!maxResult.equals("") && query.toUpperCase().indexOf("LIMIT") == -1) {
-				if (query.lastIndexOf(';') == -1)
-					query += " limit " + maxResult + ";";
+			if (!maxResult.equals("") && preparedSqlQuery.toUpperCase().indexOf("LIMIT") == -1) {
+				if (preparedSqlQuery.lastIndexOf(';') == -1)
+					preparedSqlQuery += " limit " + maxResult + ";";
 				else
-					query = query.substring(0, query.lastIndexOf(';')) + " limit " + maxResult + ";";
+					preparedSqlQuery = preparedSqlQuery.substring(0, preparedSqlQuery.lastIndexOf(';')) + " limit " + maxResult + ";";
 			}
 		}
 		
 		if (Engine.logBeans.isDebugEnabled())
-			Engine.logBeans.debug("(SqlTransaction) Preparing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
+			Engine.logBeans.debug("(SqlTransaction) Preparing query '" + Visibility.Logs.replaceValues(logHiddenValues, preparedSqlQuery) + "'.");
 		
-		preparedStatement = connector.prepareStatement(query, parametersMap, orderedParametersList);
-		return query;
+		preparedStatement = connector.prepareStatement(preparedSqlQuery, parametersMap, orderedParametersList);
+		return preparedSqlQuery;
 	}
 	
 	@Override
 	public void runCore() throws EngineException {
 		Document doc = null;
 		Element sql_output = null;
-		String query = null, prettyPrintedText = "";
 		boolean studioMode = Engine.isStudioMode();
 		String prefix = getXsdTypePrefix();
 		int numberOfResults = 0;
@@ -409,7 +384,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				return;
 			
 			// Prepare the query and retrieve its type
-			query = prepareQuery(logHiddenValues);
+			String query = prepareQuery(logHiddenValues);
 			
 			// Build xsdType
 			if (studioMode) {
@@ -666,7 +641,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	
 		if (studioMode) {
 			if (doc != null) {
-				prettyPrintedText = XMLUtils.prettyPrintDOM(doc);
+				String prettyPrintedText = XMLUtils.prettyPrintDOM(doc);
 				prettyPrintedText = prettyPrintedText.substring(prettyPrintedText.indexOf("<xsd:"));
 				xsdType = prettyPrintedText;
 			}
