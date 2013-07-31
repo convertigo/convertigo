@@ -60,7 +60,7 @@ public class RewriteAbsoluteUrl extends BaseRule implements IResponseRule {
 		String html_keywords = "href|src|background|action|codebase|longdesc|usemap|cite|data|classid|profile";
 		String html_start = "(?i:" + html_keywords +")\\s*=\\s*[\"']?";
 		String css_start = "url\\s*\\(\\s*[\"']?";
-		String common = "((?:((?:https?:)?//)|/).*?)([^\\w:\\.])";
+		String common = "((?:((?:https?:)?//)|/).*?)(/|\\)|'|\"|\\s|\\?|#|$)";
 		
 		htmlPattern = Pattern.compile("(" + html_start + ")" + common);
 		cssPattern = Pattern.compile("(" + css_start + ")" + common);
