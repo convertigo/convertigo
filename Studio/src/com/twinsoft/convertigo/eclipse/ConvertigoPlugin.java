@@ -66,6 +66,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -74,6 +75,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
+import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tree;
@@ -466,10 +468,35 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					int w = 664;
 					int h = 400;
 					try {
-						Rectangle clientArea = display.getActiveShell().getClientArea();
-						int x = (clientArea.width - w) / 2;
-						int y = (clientArea.height - h) / 2;
-						shell.setBounds(x, y, w, h);
+						// mod jmc 31/07/2013
+						
+						int x = 0;
+						int y = 0;
+						 
+						Point pt = display.getCursorLocation();
+					    Monitor [] monitors = display.getMonitors();
+
+					    for (int i= 0; i<monitors.length; i++) {
+					          if (monitors[i].getBounds().contains(pt)) {
+					             Rectangle rect = monitors[i].getClientArea();
+					             
+					             if (rect.x < 0)
+					         		x = ((rect.width - w) / 2) + rect.x;
+					             else
+					         		x = (rect.width - w) / 2;
+
+					             if (rect.y < 0)
+					         		y = ((rect.height - h) / 2) + rect.y;
+					             else
+					         		y = (rect.height - h) / 2;
+					             
+					             break;
+					          }
+					    }
+
+					    shell.setBounds(x, y, w, h);						
+						
+						
 					}
 					catch (Exception e) {
 						shell.setBounds(100, 100, w, h);
