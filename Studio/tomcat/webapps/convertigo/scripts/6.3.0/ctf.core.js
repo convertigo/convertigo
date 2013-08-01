@@ -406,30 +406,22 @@ $.extend(true, C8O, {
 		});
 	},
 	
-	_makeRule: function (txt, jsonOnly) {
-		var match = txt.match(C8O._define.re_find_brackets);
+	_makeRule: function (txt) {
+		var match = txt.match(C8O._define.re_find_ctf_markers);
 		if (!match) {
 			return null;
 		}
 		var rule = undefined;
 		if (match[1]) {
 			// JSON case
-			var part = match[2] ? match[1].replace(C8O._define.re_replace_simple_quote, "$1\"") : match[1];
-			part = part.replace(C8O._define.re_replace_escaped_bracket_simple_quote, "$1");
-			try {
-				rule = $.parseJSON(part);
-				if (jsonOnly) {
-					return rule;
-				}
-			} catch (e) {
-				console.log("JSON parse failed on " + part + " : " + e);
-			}
+			var part = match[1];
+			rule = C8O._silentParseJSON(part);
 		}
 		if (C8O.isUndefined(rule)) {
-			rule = {find : match[3].replace(C8O._define.re_replace_escaped_bracket_simple_quote, "$1")};
+			rule = {find : match[2]};
 		}
 		rule.template = match[0];
-		return jsonOnly ? null : rule;
+		return rule;
 	},
 	
 	_getRefData: function (rule, refs) {
@@ -447,7 +439,7 @@ $.extend(true, C8O, {
 	_renderText: function (txt, data) {
 		var $element = data.$element;
 		var refs = data.refs;
-		var find = txt.search(C8O._define.re_find_brackets);
+		var find = txt.search(C8O._define.re_find_ctf_markers);
 		var res = "";
 		var elt = this.nodeType == Node.TEXT_NODE ? this.parentElement : this;
 		while (find != -1) {
@@ -516,7 +508,7 @@ $.extend(true, C8O, {
 			}
 			
 			txt = txt.substring(rule.template.length);
-			find = txt.search(C8O._define.re_find_brackets);
+			find = txt.search(C8O._define.re_find_ctf_markers);
 		}
 		return res + txt;	
 	},
@@ -528,10 +520,7 @@ $.extend(true, C8O, {
 		/**
 		 * Reg exp selector for templating engine
 		 */
-//		re_find_brackets : new RegExp("{(\\s*(?:('|\").*?\\2\\s*:)?.*?(?!\\\\).)}"), // 0: full ; 1: content ; 2: is json // {(\s*(?:('|").*?\2\s*:)?.*?(?!\\).)}
-		re_find_brackets : new RegExp(C8O._define.ctf_in + "(?:({\\s*(')?.*?})|(?:=(.*?)))" + C8O._define.ctf_out), // 0: full ; 1: json ; 2: quote ; 3: selector // {(\s*(?:('|").*?\2\s*:)?.*?(?!\\).)}
-		re_replace_escaped_bracket_simple_quote : new RegExp("\\\\(}|')", "g"), // replace with "$1"
-		re_replace_simple_quote : new RegExp("(^|(?!\\\\).)'", "g") // replace with "$1""
+		re_find_ctf_markers : new RegExp(C8O._define.ctf_in + "(?:(\\{[\\d\\D]*?\\})|(?:=(.*?)))" + C8O._define.ctf_out) // 0: full ; 1: json ; 2: selector
 	},
 	
 	_decodeStore: function(store) {
@@ -677,8 +666,8 @@ $.extend(true, C8O, {
 				C8O.appendValue(c8oCallParams, name, value);
 			});
 			
-			var variables = ($form.length && !$element.is("form")) ? C8O._makeRule(C8O._define.ctf_in + $form.attr("data-c8o-variables") + C8O._define.ctf_out, true) : null;
-			variables = $.extend(variables, C8O._makeRule(C8O._define.ctf_in + $element.attr("data-c8o-variables") + C8O._define.ctf_out, true));
+			var variables = ($form.length && !$element.is("form")) ? C8O._silentParseJSON($form.attr("data-c8o-variables")) : null;
+			variables = $.extend(variables, C8O._silentParseJSON($element.attr("data-c8o-variables")));
 			C8O.appendValues(c8oCallParams, variables);
 			
 			// now call c8o with constructed arguments
@@ -703,6 +692,17 @@ $.extend(true, C8O, {
 		if (typeof(callback) == "function") {
 			callback();
 		};
+	},
+	
+	_silentParseJSON: function (str) {
+		if (typeof(str) == "string") {
+			try {
+				return $.parseJSON(str);
+			} catch (e) {
+				console.log("JSON parse failed on " + str + " : " + e);
+			}
+		}
+		return {};
 	}
 });
 
