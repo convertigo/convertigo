@@ -1,4 +1,10 @@
 $.extend(true, C8O, {
+	_define: {
+		ctf_in : "__",
+		ctf_out : "__"
+	}
+});
+$.extend(true, C8O, {
 	vars : { /** customizable value by adding __name=value in query*/
 		xsl_side : "none" /** client/server */
 	},
@@ -133,11 +139,14 @@ $.extend(true, C8O, {
 	 * in a list, false otherwise.
 	 */
 	isMatching: function(requestable, checkRequestablesList) {
+		if (requestable == "*") {
+			return true;
+		}
 		var checkRequestablesArray = checkRequestablesList.split(",");
+		var requestableObject = C8O.getRequestableObject(requestable);
 		
 		for (var i = 0; i < checkRequestablesArray.length; i++) {
 			var checkRequestable = $.trim(checkRequestablesArray[i]);
-			var requestableObject = C8O.getRequestableObject(requestable);
 			var checkRequestableObject = C8O.getRequestableObject(checkRequestable);
 			if (C8O.isMatchingSingle(requestableObject, checkRequestableObject)) {
 				return true;
@@ -362,7 +371,7 @@ $.extend(true, C8O, {
 				var $template = C8O._manageTemplate($c8oEachContainer);
 				
 				// Now we can iterate over the XML data
-				var rule = C8O._makeRule("{" + $c8oEachContainer.attr("data-c8o-each") + "}");
+				var rule = C8O._makeRule(C8O._define.ctf_in + $c8oEachContainer.attr("data-c8o-each") + C8O._define.ctf_out);
 				var $refData = C8O._getRefData(rule, refs);
 				var $self = refs._self;
 				$refData.find(rule.find).each(function (index) {
@@ -399,10 +408,13 @@ $.extend(true, C8O, {
 	
 	_makeRule: function (txt, jsonOnly) {
 		var match = txt.match(C8O._define.re_find_brackets);
+		if (!match) {
+			return null;
+		}
 		var rule = undefined;
-		if (match[2]) {
+		if (match[1]) {
 			// JSON case
-			var part = (match[2] == "'") ? match[0].replace(C8O._define.re_replace_simple_quote, "$1\"") : match[0];
+			var part = match[2] ? match[1].replace(C8O._define.re_replace_simple_quote, "$1\"") : match[1];
 			part = part.replace(C8O._define.re_replace_escaped_bracket_simple_quote, "$1");
 			try {
 				rule = $.parseJSON(part);
@@ -414,7 +426,7 @@ $.extend(true, C8O, {
 			}
 		}
 		if (C8O.isUndefined(rule)) {
-			rule = {find : match[1].replace(C8O._define.re_replace_escaped_bracket_simple_quote, "$1")};
+			rule = {find : match[3].replace(C8O._define.re_replace_escaped_bracket_simple_quote, "$1")};
 		}
 		rule.template = match[0];
 		return jsonOnly ? null : rule;
@@ -516,7 +528,8 @@ $.extend(true, C8O, {
 		/**
 		 * Reg exp selector for templating engine
 		 */
-		re_find_brackets : new RegExp("{(\\s*(?:('|\").*?\\2\\s*:)?.*?(?!\\\\).)}"), // 0: full ; 1: content ; 2: is json // {(\s*(?:('|").*?\2\s*:)?.*?(?!\\).)}
+//		re_find_brackets : new RegExp("{(\\s*(?:('|\").*?\\2\\s*:)?.*?(?!\\\\).)}"), // 0: full ; 1: content ; 2: is json // {(\s*(?:('|").*?\2\s*:)?.*?(?!\\).)}
+		re_find_brackets : new RegExp(C8O._define.ctf_in + "(?:({\\s*(')?.*?})|(?:=(.*?)))" + C8O._define.ctf_out), // 0: full ; 1: json ; 2: quote ; 3: selector // {(\s*(?:('|").*?\2\s*:)?.*?(?!\\).)}
 		re_replace_escaped_bracket_simple_quote : new RegExp("\\\\(}|')", "g"), // replace with "$1"
 		re_replace_simple_quote : new RegExp("(^|(?!\\\\).)'", "g") // replace with "$1""
 	},
@@ -664,8 +677,8 @@ $.extend(true, C8O, {
 				C8O.appendValue(c8oCallParams, name, value);
 			});
 			
-			var variables = ($form.length && !$element.is("form")) ? C8O._makeRule("{" + $form.attr("data-c8o-variables") + "}", true) : null;
-			variables = $.extend(variables, C8O._makeRule("{" + $element.attr("data-c8o-variables") + "}", true));
+			var variables = ($form.length && !$element.is("form")) ? C8O._makeRule(C8O._define.ctf_in + $form.attr("data-c8o-variables") + C8O._define.ctf_out, true) : null;
+			variables = $.extend(variables, C8O._makeRule(C8O._define.ctf_in + $element.attr("data-c8o-variables") + C8O._define.ctf_out, true));
 			C8O.appendValues(c8oCallParams, variables);
 			
 			// now call c8o with constructed arguments
@@ -736,6 +749,8 @@ C8O.addHook("document_ready", function () {
 			var $c8oListenContainer = $(this);
 			C8O._manageTemplate($c8oListenContainer);
 		});
+		
+		C8O._renderBindings("*", $("<div/>"), {});
 	};
 	
 	C8O._onDocumentReadyEnd(onNewPage);
