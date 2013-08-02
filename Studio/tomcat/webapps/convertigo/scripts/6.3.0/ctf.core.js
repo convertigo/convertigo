@@ -1,7 +1,7 @@
 $.extend(true, C8O, {
 	_define: {
-		ctf_in : "__",
-		ctf_out : "__"
+		ctf_mark : "__",
+		ctf_mark_esc : "\\\\_\\\\_"
 	}
 });
 $.extend(true, C8O, {
@@ -371,7 +371,7 @@ $.extend(true, C8O, {
 				var $template = C8O._manageTemplate($c8oEachContainer);
 				
 				// Now we can iterate over the XML data
-				var rule = C8O._makeRule(C8O._define.ctf_in + $c8oEachContainer.attr("data-c8o-each") + C8O._define.ctf_out);
+				var rule = C8O._makeRule(C8O._define.ctf_mark + $c8oEachContainer.attr("data-c8o-each") + C8O._define.ctf_mark);
 				var $refData = C8O._getRefData(rule, refs);
 				var $self = refs._self;
 				$refData.find(rule.find).each(function (index) {
@@ -408,20 +408,22 @@ $.extend(true, C8O, {
 	
 	_makeRule: function (txt) {
 		var match = txt.match(C8O._define.re_find_ctf_markers);
-		if (!match) {
+		try {
+			var rule = undefined;
+			if (match[1]) {
+				// JSON case
+				rule = match[1].replace(C8O._define.re_find_ctf_esc_end, C8O._define.ctf_mark);
+				rule = $.parseJSON(rule);
+			} else if (match[2]) {
+				rule = match[2].replace(C8O._define.re_find_ctf_esc_end, C8O._define.ctf_mark);
+				rule = {find : rule};
+			}
+			rule.template = match[0];
+			return rule;
+		} catch (e) {
+			// console.log(e);
 			return null;
 		}
-		var rule = undefined;
-		if (match[1]) {
-			// JSON case
-			var part = match[1];
-			rule = C8O._silentParseJSON(part);
-		}
-		if (C8O.isUndefined(rule)) {
-			rule = {find : match[2]};
-		}
-		rule.template = match[0];
-		return rule;
 	},
 	
 	_getRefData: function (rule, refs) {
@@ -443,74 +445,79 @@ $.extend(true, C8O, {
 		var res = "";
 		var elt = this.nodeType == Node.TEXT_NODE ? this.parentElement : this;
 		while (find != -1) {
-			res += txt.substring(0, find);
+			res += txt.substring(0, find).replace(C8O._define.re_find_ctf_esc_start, C8O._define.ctf_mark + "$1");
 			txt = txt.substring(find);
 			var rule = C8O._makeRule(txt);
-			var $elt = undefined;
-			var value = undefined;
-			
-			try {
-				var $data = C8O._getRefData(rule, refs);
+			if (rule != null) {
+				var $elt = undefined;
+				var value = undefined;
 				
-				var isFragment = C8O.isDefined(rule.type) || rule.type == "fragment";
-				
-				if (C8O.isUndefined(rule.mode) || rule.mode == "find") {
-					$elt = C8O.isUndefined(rule.find) || rule.find == "." ? $data : $data.find(rule.find);
-					if ($elt.length) {
-						if (C8O.isDefined(rule.attr)) {
-							value = $elt.attr(rule.attr);
-						} else if (!isFragment) {
-							value = $elt.text();
-						}
-					}
-				} else if (rule.mode == "index") {
-					value = $data.data("index");
-				}
-			} catch (e) {
-				console.log("$data.find failed : " + e);
-			}
-			
-			if (C8O.isUndefined(value)) {
-				if (isFragment && C8O.isDefined($elt) && $elt.length) {
-					$elt.each(function () {
-						value = C8O.convertHTML(this, value);
-					});
-				} else {
-					if (C8O.isDefined(rule.def)) {
-						value = rule.def;
-					} else {
-						value = "";
-					}
-					if (isFragment) {
-						value = $("<fragment/>").html(value)[0];
-					}
-				}
-			}
-			
-			var functionFormatter = C8O._getFunction(rule.formatter);
-			if (functionFormatter != null) {
 				try {
-					var formatted = functionFormatter.call(elt, value);
+					var $data = C8O._getRefData(rule, refs);
 					
-					if (typeof(formatted) == "string") {
-						value = formatted;
+					var isFragment = C8O.isDefined(rule.type) || rule.type == "fragment";
+					
+					if (C8O.isUndefined(rule.mode) || rule.mode == "find") {
+						$elt = C8O.isUndefined(rule.find) || rule.find == "." ? $data : $data.find(rule.find);
+						if ($elt.length) {
+							if (C8O.isDefined(rule.attr)) {
+								value = $elt.attr(rule.attr);
+							} else if (!isFragment) {
+								value = $elt.text();
+							}
+						}
+					} else if (rule.mode == "index") {
+						value = $data.data("index");
 					}
 				} catch (e) {
-					console.log("call formatter failed : " + e);
+					console.log("$data.find failed : " + e);
 				}
-			}
-			
-			if (isFragment && C8O.isDefined(value.childNodes)) {
-				$(this).before(document.createTextNode(res), value.childNodes);
-				res = "";
+				
+				if (C8O.isUndefined(value)) {
+					if (isFragment && C8O.isDefined($elt) && $elt.length) {
+						$elt.each(function () {
+							value = C8O.convertHTML(this, value);
+						});
+					} else {
+						if (C8O.isDefined(rule.def)) {
+							value = rule.def;
+						} else {
+							value = "";
+						}
+						if (isFragment) {
+							value = $("<fragment/>").html(value)[0];
+						}
+					}
+				}
+				
+				var functionFormatter = C8O._getFunction(rule.formatter);
+				if (functionFormatter != null) {
+					try {
+						var formatted = functionFormatter.call(elt, value); // add $data in next release
+						
+						if (typeof(formatted) == "string") {
+							value = formatted;
+						}
+					} catch (e) {
+						console.log("call formatter failed : " + e);
+					}
+				}
+				
+				if (isFragment && C8O.isDefined(value.childNodes)) {
+					$(this).before(document.createTextNode(res), value.childNodes);
+					res = "";
+				} else {
+					res += value;
+				}
+				
+				txt = txt.substring(rule.template.length);
 			} else {
-				res += value;
+				res += txt.substring(0, 1);
+				txt = txt.substring(1);
 			}
-			
-			txt = txt.substring(rule.template.length);
 			find = txt.search(C8O._define.re_find_ctf_markers);
 		}
-		return res + txt;	
+		return res + txt.replace(C8O._define.re_find_ctf_esc_start, C8O._define.ctf_mark + "$1");	
 	},
 	
 	_define: {
@@ -520,7 +527,9 @@ $.extend(true, C8O, {
 		/**
 		 * Reg exp selector for templating engine
 		 */
-		re_find_ctf_markers : new RegExp(C8O._define.ctf_in + "(?:(\\{[\\d\\D]*?\\})|(?:=(.*?)))" + C8O._define.ctf_out) // 0: full ; 1: json ; 2: selector
+		re_find_ctf_markers : new RegExp(C8O._define.ctf_mark + "(?:(\\{[\\d\\D]*?\\})|(?:=(.*?)))" + C8O._define.ctf_mark), // 0: full ; 1: json ; 2: selector
+		re_find_ctf_esc_start : new RegExp(C8O._define.ctf_mark_esc + "(=|\\{)", "g"),
+		re_find_ctf_esc_end : new RegExp(C8O._define.ctf_mark_esc, "g") // 0: full ; 1: json ; 2: selector
 	},
 	
 	_decodeStore: function(store) {
