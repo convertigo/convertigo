@@ -248,13 +248,14 @@ $.extend(true, C8O, {
 		// been rendered, there is a special attribute 'data-c8o-template-id', whose value is the
 		// name of the saved template.
 		var templateID = $element.attr("data-c8o-template-id");
+		
+		var accumulate_mode = $element.attr("data-c8o-accumulate");
+		if (!accumulate_mode) {
+			accumulate_mode = "";
+		}
+		accumulate_mode = accumulate_mode.match(C8O._define.re_accumulate_mode);
+		
 		if (templateID) {
-			var accumulate_mode = $element.attr("data-c8o-accumulate");
-			if (!accumulate_mode) {
-				accumulate_mode = "";
-			}
-			accumulate_mode = accumulate_mode.match(C8O._define.re_accumulate_mode);
-			
 			if (accumulate_mode[3] != null) {
 				// The widget has already been rendered. We must empty it and reinsert the template.
 				$element.empty();
@@ -281,13 +282,8 @@ $.extend(true, C8O, {
 			templateID = C8O._addTemplate($template);
 			$element.attr("data-c8o-template-id", templateID);
 			
-			// If we are in an iterator template, we must remove the template
-			var c8oEachIterator = $element.attr("data-c8o-each");
-			if (c8oEachIterator) {
-				$element.empty();
-			}
-			
-			if ($element.attr("data-c8o-late-render")) {
+			// If we are in an iterator template, late-render or with an accumulate_mode, we must remove the template
+			if ($element.attr("data-c8o-each") || $element.attr("data-c8o-late-render") || accumulate_mode[3] == null) {
 				$element.empty();
 			}
 			
@@ -746,20 +742,20 @@ C8O.addHook("document_ready", function () {
 	
 	var onNewPage = function () {
 		C8O._attachEventHandlers();
-		
-		var $document = $(document);
 
 		// Store listen and iteration templates
 		// Templates should be managed deeply first (in order to handle nested templates)
 		// The search order is reversed because we want to manage templates deeply first.
 		// This is not strictly deeply traversal, but it is enough to have deeply first
 		// template management on each XML branch.
-		$($document.find("[data-c8o-listen],[data-c8o-each],[data-c8o-late-render]").not("[data-c8o-template-id]").get().reverse()).each(function() {
+		$($("[data-c8o-listen],[data-c8o-each],[data-c8o-late-render]").not("[data-c8o-template-id]").get().reverse()).each(function() {
 			var $c8oListenContainer = $(this);
 			C8O._manageTemplate($c8oListenContainer);
 		});
 		
-		C8O._renderBindings("*", $("<div/>"), {});
+		// Empty templates
+		var $html = $("html:first");
+		C8O._renderElement($html, C8O._handleRef($html, $("<xml/>")));
 	};
 	
 	C8O._onDocumentReadyEnd(onNewPage);
