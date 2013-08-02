@@ -54,12 +54,17 @@ C8O = {
 	},
 	
 	appendValue : function (data, key, value) {
-		if (C8O.isUndefined(data[key])) {
-			data[key] = value;
-		} else if ($.isArray(data[key])) {
-			data[key].push(value);
-		} else {
-			data[key] = [data[key], value];
+		if (!$.isArray(value)) {
+			value = [value];
+		}
+		for (var i in value) {
+			if (C8O.isUndefined(data[key])) {
+				data[key] = value[i];
+			} else if ($.isArray(data[key])) {
+				data[key].push(value[i]);
+			} else {
+				data[key] = [data[key], value[i]];
+			}
 		}
 	},
 	
