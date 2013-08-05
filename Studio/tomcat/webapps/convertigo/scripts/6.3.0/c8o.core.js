@@ -498,7 +498,8 @@ $.ajaxSetup({
 });
 
 $(document).ready(function () {
-	C8O._define.project = window.location.href.replace(new RegExp("/projects/([^/]+).*"), "$1");
+	var matcher = window.location.href.match(new RegExp("/projects/([^/]+)"));
+	C8O._define.project = matcher == null ? "unknown" : matcher[1];
 	C8O._define.plugins_path = window.location.href.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
 	if (C8O.ro_vars.i18n_files.length > 0) {
 		if (C8O.init_vars.i18n == "") {
