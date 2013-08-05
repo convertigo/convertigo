@@ -287,6 +287,7 @@ C8O = {
 		last_call_params : {},
 		pendingXhrCpt : 0,
 		plugins_path : "",
+		project : "",
 		recall_params : {__context : "", __connector : ""},
 		re_plus : new RegExp("\\+", "g"),
 		re_i18n : new RegExp("__MSG_(.*?)__"),
@@ -497,6 +498,7 @@ $.ajaxSetup({
 });
 
 $(document).ready(function () {
+	C8O._define.project = window.location.href.replace(new RegExp("/projects/([^/]+)"), "$1");
 	C8O._define.plugins_path = window.location.href.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
 	if (C8O.ro_vars.i18n_files.length > 0) {
 		if (C8O.init_vars.i18n == "") {

@@ -27,12 +27,12 @@ $.extend(true, C8O, {
 		};
 	},
 	
-	_routeResponse: function(c8oRequestable, xml, c8oData) {
+	_routeResponse: function(xml, c8oData) {
 		var $doc = $(xml.documentElement);
 		
 		for (var i in C8O.routingTable) {
 			var entry = C8O.routingTable[i];
-			if (C8O.isMatching(c8oRequestable, entry.calledRequest)) {
+			if (C8O.isMatching(c8oData, entry.calledRequest)) {
 				for (var j in entry.actions) {
 					var action = entry.actions[j];
 					var routeFound = true;
@@ -55,7 +55,7 @@ $.extend(true, C8O, {
 							var options =  action.options;
 							var goToPage = action.goToPage;
 							var afterChange = function () {
-								C8O._renderBindings(c8oRequestable, $doc, c8oData);
+								C8O._renderBindings($doc, c8oData);
 								if (action.afterRendering) {
 									action.afterRendering($doc, c8oData);
 								}								
@@ -76,7 +76,7 @@ $.extend(true, C8O, {
 				}
 			}
 		}
-		C8O._renderBindings(c8oRequestable, $doc, c8oData);
+		C8O._renderBindings($doc, c8oData);
 	},
 	
 	/**
@@ -84,7 +84,7 @@ $.extend(true, C8O, {
 	 * 
 	 * If widgets are listviews, refresh them as well as iscroll widgets.
 	 */
-	_renderBindings: function(calledRequestable, $xmlData, c8odata) {
+	_renderBindings: function($xmlData, c8oData) {
 		$("[data-c8o-listen]").each( function (index, element) {
 			var $element = $(element);
 			
@@ -92,12 +92,12 @@ $.extend(true, C8O, {
 			var listenRequestables = $element.attr("data-c8o-listen");
 			
 			// Check called requestable against the list of listen requestables
-			if (C8O.isMatching(calledRequestable, listenRequestables)) {
+			if (C8O.isMatching(c8oData, listenRequestables)) {
 				// Check listen condition if any
 				if (!C8O._checkConditionDomSelectorOrJsFunction(
 						$element.attr("data-c8o-listen-condition"),
 						$element,
-						[$xmlData, c8odata],
+						[$xmlData, c8oData],
 						$xmlData)) {
 					// The condition failed, so we abort the rendering
 					return;
@@ -110,7 +110,7 @@ $.extend(true, C8O, {
 				
 				var functionBeforeRendering = C8O._getFunction($element.attr("data-c8o-before-rendering"));
 				if (functionBeforeRendering != null) {
-					functionBeforeRendering.call(element, $xmlData, c8odata);
+					functionBeforeRendering.call(element, $xmlData, c8oData);
 				}
 
 				C8O.renderWidgets($c8oListenContainer, $xmlData);
@@ -128,7 +128,7 @@ $.extend(true, C8O, {
 				
 				var functionAfterRendering = C8O._getFunction($element.attr("data-c8o-after-rendering"));
 				if (functionAfterRendering != null) {
-					functionAfterRendering.call(element, $xmlData, c8odata);
+					functionAfterRendering.call(element, $xmlData, c8oData);
 				}
 			}
 		});
@@ -138,92 +138,45 @@ $.extend(true, C8O, {
 	 * Returns true if a given requestable is matching one of the requestables
 	 * in a list, false otherwise.
 	 */
-	isMatching: function(requestable, checkRequestablesList) {
-		if (requestable == "*") {
-			return true;
-		}
-		var checkRequestablesArray = checkRequestablesList.split(",");
-		var requestableObject = C8O.getRequestableObject(requestable);
+	isMatching: function(c8oData, checkRequestablesList) {
+		var checkRequestablesArray = checkRequestablesList.split(C8O._define.re_split_comma_trim);
 		
-		for (var i = 0; i < checkRequestablesArray.length; i++) {
-			var checkRequestable = $.trim(checkRequestablesArray[i]);
-			var checkRequestableObject = C8O.getRequestableObject(checkRequestable);
-			if (C8O.isMatchingSingle(requestableObject, checkRequestableObject)) {
+		for (var i in checkRequestablesArray) {
+			if (C8O.isMatchingSingle(c8oData, checkRequestablesArray[i])) {
 				return true;
 			}
 		}
 		
 		return false;
 	},
-
-	getRequestableObject: function(requestable) {
-		if (requestable === "*") {
-			return {
-				"fullTextName": requestable,
-				"type": "*"
-			}
-		}
-	    
-		var requestableParts = requestable.match(C8O._define.re_requestable);
-		if (requestableParts != null) {
-			if (requestableParts[3] != null) {
-				return {
-					"fullTextName": requestable,
-					"type": "transaction",
-					"project": requestableParts[1],
-					"connector": requestableParts[2],
-					"transaction": requestableParts[3]
-				};
-	    	}
-			else if (requestableParts[2] != null) {
-				return {
-					"fullTextName": requestable,
-					"type": "sequence",
-					"project": requestableParts[1],
-					"sequence": requestableParts[2]
-				};
-			}
-		}
-
-		// TODO: handle error: should never go there
-	},
 	
 	/**
 	 * Returns true if requestableObject is matching checkRequestableObject, false otherwise.
 	 */
-	isMatchingSingle: function(requestableObject, checkRequestableObject) {
-		// Universal case
-		if (checkRequestableObject.fullTextName === "*") {
+	isMatchingSingle: function(c8oData, checkRequestableObject) {
+		if (checkRequestableObject == "*") {
 			return true;
-		}
-		// Fully qualified requestable (e.g. project.sequence, or project.connector.sequence)
-		else if (checkRequestableObject.fullTextName === requestableObject.fullTextName) {
-			return true;
-		}
-		else {
-			if (requestableObject.type === "sequence") {
-				// Any sequence (.* or project.*)
-				if (requestableObject.project != checkRequestableObject.project) return false;
-				if (checkRequestableObject.sequence === "*") return true;
-				
-				// Explicit sequence
-				return (requestableObject.sequence === checkRequestableObject.sequence);
-			}
-			else if (requestableObject.type === "transaction") {
-				// Any transaction (..* or project..* or project.connector.*)
-				if (requestableObject.project != checkRequestableObject.project) return false;
-				if (requestableObject.connector != checkRequestableObject.connector) return false;
-				if (checkRequestableObject.transaction === "*") return true;
-
-				// Explicit transaction
-				return (requestableObject.transaction === checkRequestableObject.transaction);
-			}
-			else {
-				// TODO: handle error: unknown requestable type
-			}
 		}
 		
-		// TODO: handle error: should never go there
+		var matches = checkRequestableObject.match(C8O._define.re_requestable);
+		
+		if (matches) {
+			var project1 = C8O.isDefined(c8oData.__project) ? c8oData.__project : C8O._define.project;
+			var project2 = matches[1].length ? matches[1] : C8O._define.project;
+			if (project1 == project2) {
+				if (C8O.isDefined(c8oData.__sequence) && C8O.isDefined(matches[2])) {
+					return matches[2] == "*" || matches[2] == c8oData.__sequence; 
+				}
+				if (C8O.isDefined(c8oData.__connector) && C8O.isDefined(c8oData.__transaction) && C8O.isDefined(matches[3])) {
+					if (c8oData.__connector == matches[3]) {
+						return matches[4] == "*" || matches[4] == c8oData.__transaction;
+					}
+				}
+			}
+		} else {
+			console.log("Cannot match the invalid requestable '" + checkRequestableObject + "'");
+		}
+		
 		return false;
 	},
 
@@ -475,8 +428,8 @@ $.extend(true, C8O, {
 							value = C8O.convertHTML(this, value);
 						});
 					} else {
-						if (C8O.isDefined(rule.def)) {
-							value = rule.def;
+						if (C8O.isDefined(rule["default"])) {
+							value = rule["default"];
 						} else {
 							value = "";
 						}
@@ -519,53 +472,14 @@ $.extend(true, C8O, {
 	_define: {
 		re_accumulate_mode : new RegExp("^(?:(append)|(prepend)|(.*?))$"), // 1: append ; 2: preprend ; 3: replacel
 		re_call_mode : new RegExp("^(?:(click)|(auto)|(?:(timer:)(.*)))$"), // 1: click ; 2: auto ; 3: timer ; 4: seconds for timer
-		re_requestable : new RegExp("^(.*?)\\.(.*?)(?:\\.(.*))?$"), // 1: project ; 2: sequence | connector ; 3: transaction
+		re_requestable : new RegExp("^([^.]*)\\.(?:([^.]+)|(?:([^.]+)\\.([^.]+)))$"), // 1: project ; 2: sequence ; 3: connector ; 4: transaction > 1+2 | 1+3+4
+		re_split_comma_trim : new RegExp("\\s*,\\s*"),
 		/**
 		 * Reg exp selector for templating engine
 		 */
 		re_find_ctf_markers : new RegExp(C8O._define.ctf_mark + "(?:(\\{[\\d\\D]*?\\})|(?:=(.*?)))" + C8O._define.ctf_mark), // 0: full ; 1: json ; 2: selector
 		re_find_ctf_esc_start : new RegExp(C8O._define.ctf_mark_esc + "(=|\\{)", "g"),
 		re_find_ctf_esc_end : new RegExp(C8O._define.ctf_mark_esc, "g") // 0: full ; 1: json ; 2: selector
-	},
-	
-	_decodeStore: function(store) {
-		// Requestable format:
-		// [<project name>].(([connector name].[<transaction name>]) | <sequence name>)[:<store name>]
-		var storeParts = store.split(":");
-		var requestable = storeParts[0];
-		var storeID = null;
-		if (storeParts.length == 2) {
-			storeID = storeParts[1];
-		}
-		
-		var requestableParts = requestable.split(".");
-		
-		switch (requestableParts.length) {
-		// Transaction case: project.connector.transaction
-		// project, connector and transaction are optional: if not set, we will use the current project, the default connector or the default transaction
-		// E.g.:
-		//    myproject.myconnector.mytransaction defines the transaction named "mytransaction" from the connector named "myconnector" from the project named "myproject"
-		//    myproject..mytransaction defines the transaction named "mytransaction" from the default connector from the project named "myproject"
-		//    .myconnector.mytransaction defines the transaction named "mytransaction" from the connector named "myconnector" from the current project
-		//    ..mytransaction defines the transaction named "mytransaction" from the default connector from the current project
-		//    .. defines the default transaction from the default connector from the current project
-		case 3:
-			return { storeID: storeID, project: requestableParts[0], connector: requestableParts[1], transaction: requestableParts[2] };
-		// Sequence case: project.sequence
-		// project is optional: if not set, we will use the current project
-		case 2:
-			return { storeID: storeID, project: requestableParts[0], sequence: requestableParts[1] };
-		default:
-			return {};
-		}
-	},
-	
-	/**
-	 * Todo : Save in local storage any input field having the
-	 * data-c8O-autosave attriute
-	 */
-	handleAutoSaveInputs: function(target) {
-		
 	},
 
 	/**
@@ -632,19 +546,24 @@ $.extend(true, C8O, {
 
 		var c8oCall = $element.attr("data-c8o-call");
 		if (c8oCall) {
-			var store = C8O._decodeStore(c8oCall);
-			
 			var c8oCallParams = {};
+			var matches = c8oCall.match(C8O._define.re_requestable);
 			
-			if (store.project)
-				c8oCallParams["__project"] = store.project;
-			if (store.connector)
-				c8oCallParams["__connector"] = store.connector;
-			if (store.transaction)
-				c8oCallParams["__transaction"] = store.transaction;
-			if (store.sequence)
-				c8oCallParams["__sequence"] = store.sequence;
-
+			if (matches != null) {
+				if (matches[1].length) {
+					c8oCallParams["__project"] = matches[1];
+				}
+				if (C8O.isDefined(matches[2])) {
+					c8oCallParams["__sequence"] = matches[2];
+				} else {
+					c8oCallParams["__connector"] = matches[3];
+					c8oCallParams["__transaction"] = matches[4];
+				}
+			} else {
+				console.log("data-c8o-call '" + c8oCall + "' is not valid");
+				return false;
+			}
+			
 			var context = $element.attr("data-c8o-internal-context");
 			if (context) {
 				c8oCallParams["__context"] = context;
@@ -770,25 +689,8 @@ C8O.addHook("xml_response", function (xml, c8oData) {
 	 * This will help determining which actions have to be achieved: which data to manage in which screen.
 	 * The choice can be done depending on the last "requestable", but also on the xml response itself, depending
 	 * on its content (see above code).
-	 */
-	var c8oRequestable = project + "." + sequence;
-
-	var project = c8oData.__project;
-	if (C8O.isUndefined(project)) project = "";
-
-	var sequence = c8oData.__sequence;
-	if (C8O.isUndefined(sequence)) {
-		var connector = c8oData.__connector;
-		if (C8O.isUndefined(connector)) connector = "";
-		var transaction = c8oData.__transaction;
-		if (C8O.isUndefined(transaction)) transaction = "";
-		c8oRequestable = project + "." + connector + "." + transaction;
-	}
-	else {
-		c8oRequestable = project + "." + sequence;
-	}
-	
-	C8O._routeResponse(c8oRequestable, xml, c8oData);
+	 */	
+	C8O._routeResponse(xml, c8oData);
 	
 	return false;
 });
