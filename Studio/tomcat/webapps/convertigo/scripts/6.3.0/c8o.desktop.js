@@ -172,11 +172,9 @@ $.extend(true, C8O, {
 		
 		if (C8O._hook("document_ready")) {
 			var loc = window.location,
-				base = loc.href.substring(0, loc.href.indexOf("/projects/")),
-				match = loc.pathname.match(/\/projects\/(.*)\/.*/);
-			if (match.length > 1) {
+				base = loc.href.substring(0, loc.href.indexOf("/projects/"));
+			if (C8O._define.project != null) {
 				var params = C8O._parseQuery();
-				C8O._define.project = match[1];
 				
 				var testplatform = C8O._remove(params, "__testplatform");
 				testplatform = (testplatform == null) ? C8O.init_vars.testplatform : (C8O.init_vars.testplatform = testplatform);
@@ -187,7 +185,7 @@ $.extend(true, C8O, {
 					loc.href = base + "/project.html#" + C8O._define.project;
 				}
 			} else {
-				window.location.href = base;
+				loc.href = base;
 			}
 		}
 	},
