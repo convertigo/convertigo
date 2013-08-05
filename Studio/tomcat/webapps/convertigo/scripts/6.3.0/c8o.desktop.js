@@ -198,9 +198,7 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	__onSuccess : C8O._onSuccess,
 	_onSuccess : function (xml, status, jqXHR) {
-		C8O.__onSuccess(xml, status, jqXHR);
 		if (C8O.vars.xsl_side == "server") {
 			var aText = [jqXHR.responseText + ""];
 			if (C8O._hook("text_response", aText)) {

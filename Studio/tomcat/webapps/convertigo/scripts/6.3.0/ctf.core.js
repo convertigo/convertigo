@@ -342,7 +342,12 @@ $.extend(true, C8O, {
 				var $template = C8O._manageTemplate($c8oEachContainer);
 				
 				// Now we can iterate over the XML data
-				var rule = C8O._makeRule(C8O._define.ctf_mark + $c8oEachContainer.attr("data-c8o-each") + C8O._define.ctf_mark);
+				var c8oEach = $c8oEachContainer.attr("data-c8o-each");
+				if (c8oEach.length < 2 || c8oEach.charAt(0) != "{" || c8oEach.charAt(c8oEach.length - 1) != "}") {
+					c8oEach = "=" + c8oEach;
+				}
+				
+				var rule = C8O._makeRule(C8O._define.ctf_mark + c8oEach + C8O._define.ctf_mark);
 				var $refData = C8O._getRefData(rule, refs);
 				var $self = refs._self;
 				$refData.find(rule.find).each(function (index) {
@@ -640,6 +645,19 @@ $.extend(true, C8O, {
 		};
 	},
 	
+	_onSuccess : function (xml, status, jqXHR) {
+		var c8oData = jqXHR.C8O_data;
+		if (C8O._hook("xml_response", xml, c8oData)) {
+			/*
+			 * Retrieving last requestable from last call to Convertigo server.
+			 * This will help determining which actions have to be achieved: which data to manage in which screen.
+			 * The choice can be done depending on the last "requestable", but also on the xml response itself, depending
+			 * on its content (see above code).
+			 */	
+			C8O._routeResponse(xml, c8oData);
+		}
+	},
+	
 	_silentParseJSON: function (str) {
 		if (typeof(str) == "string") {
 			try {
@@ -655,7 +673,7 @@ $.extend(true, C8O, {
 /**
  *  Initialize C8O MVC Framework 
  */
-C8O.addHook("document_ready", function () {
+C8O.addHook("init_finished", function () {
 	C8O.removeRecallParameter("__connector");
 	
 	$(document).on("click", ":not(form)[data-c8o-call]", function () {
@@ -700,19 +718,4 @@ C8O.addHook("document_ready", function () {
 	};
 	
 	C8O._onDocumentReadyEnd(onNewPage);
-});
-
-/**
- * Hook the XML response for C8O MVC framework
- */
-C8O.addHook("xml_response", function (xml, c8oData) {
-	/*
-	 * Retrieving last requestable from last call to Convertigo server.
-	 * This will help determining which actions have to be achieved: which data to manage in which screen.
-	 * The choice can be done depending on the last "requestable", but also on the xml response itself, depending
-	 * on its content (see above code).
-	 */	
-	C8O._routeResponse(xml, c8oData);
-	
-	return false;
 });

@@ -298,8 +298,10 @@ C8O = {
 		C8O._define.last_call_params = data;
 		if (C8O._hook("call", data)) {
 			var jqXHR = $.ajax({
+				complete : C8O._onComplete,
 				data : data,
 				dataType : C8O.vars.xsl_side == "server" ? "text" : "xml",
+				error : C8O._onError,
 				success : C8O._onSuccess,
 				type : C8O.vars.ajax_method,
 				url : C8O._getCallUrl()
@@ -320,14 +322,27 @@ C8O = {
 		return $.extend(true, {}, object);
 	},
 	
+	_onComplete : function (jqXHR, textStatus) {
+		if (C8O._hook("complete", jqXHR, textStatus)) {
+			if (--C8O._define.pendingXhrCpt <= 0) {
+				C8O._define.pendingXhrCpt = 0;
+				C8O.waitHide();
+			}
+		}
+	},
+	
 	_onDocumentReady : function () {
+		if (C8O._hook("document_ready")) {
+			C8O._init({});
+		};
+	},
+	
+	_onError : function (jqXHR, textStatus, errorThrown) {
+		C8O._hook("error", jqXHR, textStatus, errorThrown);
 	},
 	
 	_onSuccess : function (xml, status, jqXHR) {
-		if (--C8O._define.pendingXhrCpt <= 0) {
-			C8O._define.pendingXhrCpt = 0;
-			C8O.waitHide();
-		}
+		C8O._hook("xml_response", xml, jqXHR.C8O_data);
 	},
 	
 	_retrieve_vars : function (data) {

@@ -38,6 +38,7 @@ $.extend(true, C8O, {
 	_define : {
 	},
 	
+	_jqm_onDocumentReady : _onDocumentReady,
 	_onDocumentReady : function () {
 		if (!$.mobile.ajaxBlacklist) {
 			$("<div id=\"c8oloading\"/>").css({backgroundColor : "grey", position : "absolute", width : "100%", height : "100%", opacity : 0.5, "z-index" : 99}).hide().appendTo("body");
@@ -46,15 +47,7 @@ $.extend(true, C8O, {
 		// needed to prevent some automatic jqm ajax loading (form submit, click href)
 		$.mobile.ajaxEnabled = false;
 		
-		if (C8O._hook("document_ready")) {
-			C8O._init({});
-		};
-	},
-	
-	__onSuccess : C8O._onSuccess,
-	_onSuccess : function (xml, status, jqXHR) {
-		C8O.__onSuccess(xml, status, jqXHR);
-		C8O._hook("xml_response", xml, jqXHR.C8O_data);
+		C8O._jqm_onDocumentReady();
 	},
 	
 	waitShow : function () {
