@@ -34,7 +34,7 @@ C8O = {
 		ajax_method: "POST", /** POST/GET */
 		endpoint_url: "",
 		first_call: "false",
-		log_level: "trace", /** none, error, warn, info, debug, trace */
+		log_level: "warn", /** none, error, warn, info, debug, trace */
 		log_line: "false",
 		requester_prefix: "",
 		xsl_side: "none"
