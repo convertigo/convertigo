@@ -572,6 +572,8 @@ $.extend(true, C8O, {
 		}
 
 		var c8oCall = $element.attr("data-c8o-call");
+		C8O.log.trace("ctf.core: data-c8o-call " + c8oCall);
+		
 		if (c8oCall) {
 			var c8oCallParams = {};
 			var matches = c8oCall.match(C8O._define.re_requestable);
@@ -587,23 +589,15 @@ $.extend(true, C8O, {
 					c8oCallParams["__transaction"] = matches[4];
 				}
 			} else {
-				console.log("data-c8o-call '" + c8oCall + "' is not valid");
+				C8O.log.error("ctf.core: data-c8o-call '" + c8oCall + "' is not valid");
 				return false;
-			}
-			
-			var context = $element.attr("data-c8o-internal-context");
-			if (context) {
-				c8oCallParams["__context"] = context;
-			}
-
-			var c8oUserReference = $element.attr("data-c8o-internal-user_reference");
-			if (c8oUserReference) {
-				c8oCallParams["__user_reference"] = c8oUserReference;
 			}
 			
 			// Find whether the call compionent is inside a form
 			var $form = $element.closest("form");
 			if ($form.length) {
+				C8O.log.trace("ctf.core: data-c8o-call in form");
+				
 				// Search for input fields in the form
 				C8O.formToData($form, c8oCallParams);
 			}
@@ -614,12 +608,27 @@ $.extend(true, C8O, {
 				var $c8oVariable = $(element);
 				var name = $c8oVariable.attr("data-c8o-variable");
 				var value = $c8oVariable.text();
+				C8O.log.trace("ctf.core: add data-c8o-variable " + name + "=" + value);
 				C8O.appendValue(c8oCallParams, name, value);
 			});
 			
-			var variables = ($form.length && !$element.is("form")) ? C8O._silentParseJSON($form.attr("data-c8o-variables")) : null;
-			variables = $.extend(variables, C8O._silentParseJSON($element.attr("data-c8o-variables")));
-			C8O.appendValues(c8oCallParams, variables);
+			var variables = null;
+			var c8oVariables;
+			if ($form.length && !$element.is("form")) {
+				c8oVariables = $form.attr("data-c8o-variables");
+				if (C8O.isDefined(c8oVariables)) {
+					C8O.log.trace("ctf.core: add form data-c8o-variables " + c8oVariables);
+					variables = C8O._silentParseJSON(c8oVariables);
+				}
+			}
+			c8oVariables = $element.attr("data-c8o-variables");
+			if (C8O.isDefined(c8oVariables)) {
+				C8O.log.trace("ctf.core: add current data-c8o-variables " + c8oVariables);
+				variables = $.extend(variables, C8O._silentParseJSON($element.attr("data-c8o-variables")));
+			}
+			if (variables != null) {
+				C8O.appendValues(c8oCallParams, variables);
+			}
 			
 			// now call c8o with constructed arguments
 			C8O.call(c8oCallParams);
@@ -634,6 +643,7 @@ $.extend(true, C8O, {
 		refs._self = $doc;
 		var refName = $element.attr("data-c8o-ref");
 		if (refName) {
+			C8O.log.debug("ctf.core: add reference " + refName);
 			refs[refName] = refs._self;
 		}
 		return refs;
@@ -663,7 +673,7 @@ $.extend(true, C8O, {
 			try {
 				return $.parseJSON(str);
 			} catch (e) {
-				console.log("JSON parse failed on " + str + " : " + e);
+				C8O.log.debug("ctf.core: JSON parse failed on " + str, e);
 			}
 		}
 		return {};
@@ -674,6 +684,9 @@ $.extend(true, C8O, {
  *  Initialize C8O MVC Framework 
  */
 C8O.addHook("init_finished", function () {
+	C8O.log.info("ctf.core: initializing CTF framework");
+	
+	C8O.vars.xsl_side = "none";
 	C8O.removeRecallParameter("__connector");
 	
 	$(document).on("click", ":not(form)[data-c8o-call]", function () {
@@ -688,11 +701,12 @@ C8O.addHook("init_finished", function () {
 		for (var templateID in C8O._templates) {
 			var $lateRender = $("[data-c8o-template-id=" + templateID + "][data-c8o-late-render=" + eventName + "]");
 			if ($lateRender.length != 0 && $lateRender.children().length == 0) {
+				C8O.log.debug("ctf.core: late-render " + eventName);
 				$lateRender.each(function () {
 					try {
 						$lateRender.data("late-render")();
 					} catch (e) {
-						//TODO log exception
+						C8O.log.warn("ctf.core: exception in during late-render", e);
 					}
 				});
 			}
@@ -700,6 +714,7 @@ C8O.addHook("init_finished", function () {
 	});
 	
 	var onNewPage = function () {
+		C8O.log.info("ctf.core: new page initializing");
 		C8O._attachEventHandlers();
 
 		// Store listen and iteration templates
@@ -714,6 +729,8 @@ C8O.addHook("init_finished", function () {
 		
 		// Empty templates
 		var $html = $("html:first");
+
+		C8O.log.debug("ctf.core: initial rendering");
 		C8O._renderElement($html, C8O._handleRef($html, $("<xml/>")));
 	};
 	
