@@ -430,7 +430,8 @@ $.extend(true, C8O, {
 		var refs = data.refs;
 		var find = txt.search(C8O._define.re_find_ctf_markers);
 		var res = "";
-		var elt = this.nodeType == Node.TEXT_NODE ? this.parentElement : this;
+		var elt = this.nodeType == Node.TEXT_NODE ? this.parentNode : this;
+		
 		while (find != -1) {
 			res += txt.substring(0, find).replace(C8O._define.re_find_ctf_esc_start, C8O._define.ctf_mark + "$1");
 			txt = txt.substring(find);
