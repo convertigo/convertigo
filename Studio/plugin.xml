@@ -957,53 +957,95 @@
          </view>
       </perspectiveExtension>
       <perspectiveExtension
-            targetID="com.twinsoft.convertigo.eclipse.ConvertigoPerspective">
+            targetID="com.twinsoft.convertigo.eclipse.ConvertigoPerspective.API">
          <view
                id="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView"
-               ratio="0.23"
+               ratio="0.20"
                relationship="left"
                relative="org.eclipse.ui.editorss"/>
-         <view
-               ratio="0.65"
-               relationship="bottom"
-               relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView"
-               id="org.eclipse.ui.views.PropertySheet"/>
-         <view
-               id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
-               relationship="stack"
-               relative="org.eclipse.ui.views.PropertySheet"/>
-         <view
-               ratio="0.70"
-               relationship="bottom"
-               relative="org.eclipse.ui.editorss"
-               id="org.eclipse.ui.views.TaskList"/>
-         <view
-               relationship="stack"
-               relative="org.eclipse.ui.views.TaskList"
-               id="org.eclipse.ui.console.ConsoleView"/>
-         <view
-               relationship="stack"
-               relative="org.eclipse.ui.views.TaskList"
-               id="org.eclipse.pde.runtime.LogView"/>
          <view
                id="org.eclipse.ui.navigator.ProjectExplorer"
                relationship="stack"
                relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView">
          </view>
          <view
-               id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
+               ratio="0.65"
+               relationship="bottom"
+               relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView"
+               id="org.eclipse.ui.views.PropertySheet"/>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
+               ratio="0.70"
+               relationship="bottom"
+               relative="org.eclipse.ui.editorss"/>
+         <view
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
+               id="org.eclipse.ui.console.ConsoleView"/>
+         <view
+               id="org.eclipse.ui.views.TaskList"
                minimized="false"
-               ratio="0.8"
-               relationship="right"
-               relative="org.eclipse.ui.editorss">
+               relationship="stack"
+               relative="org.eclipse.ui.console.ConsoleView">
          </view>
          <view
-               relationship="right"
+               relationship="stack"
+               relative="org.eclipse.ui.views.TaskList"
+               id="org.eclipse.pde.runtime.LogView"/>
+         <view
+               relationship="stack"
                minimized="false"
-               ratio="0.8"
-               relative="org.eclipse.ui.editorss"
+               relative="org.eclipse.pde.runtime.LogView"
                id="com.twinsoft.convertigo.eclipse.views.schema.SchemaView">
          </view>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView"
+               ratio="0.35"
+               relationship="left"
+               relative="org.eclipse.ui.editorss"/>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.references.ReferencesView"
+               minimized="false"
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView">
+         </view>
+      </perspectiveExtension>
+      <perspectiveExtension
+            targetID="com.twinsoft.convertigo.eclipse.ConvertigoPerspective.UI">
+         <view
+               id="org.eclipse.ui.navigator.ProjectExplorer"
+               ratio="0.20"
+               relationship="left"
+               relative="org.eclipse.ui.editorss"/>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView"
+               relationship="stack"
+               relative="org.eclipse.ui.navigator.ProjectExplorer">
+         </view>
+         <view
+               ratio="0.65"
+               relationship="bottom"
+               relative="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView"
+               id="org.eclipse.ui.views.PropertySheet"/>
+         <view
+               id="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
+               ratio="0.70"
+               relationship="bottom"
+               relative="org.eclipse.ui.editorss"/>
+         <view
+               relationship="stack"
+               relative="com.twinsoft.convertigo.eclipse.views.loggers.EngineLogView"
+               id="org.eclipse.ui.console.ConsoleView"/>
+         <view
+               id="org.eclipse.ui.views.TaskList"
+               minimized="false"
+               relationship="stack"
+               relative="org.eclipse.ui.console.ConsoleView">
+         </view>
+         <view
+               relationship="stack"
+               relative="org.eclipse.ui.views.TaskList"
+               id="org.eclipse.pde.runtime.LogView"/>
       </perspectiveExtension>
    </extension>
    <extension
@@ -2764,8 +2806,14 @@
       <perspective
             icon="icons/convertigo_16x16.gif"
             class="com.twinsoft.convertigo.eclipse.ConvertigoPerspective"
-            name="Convertigo"
-            id="com.twinsoft.convertigo.eclipse.ConvertigoPerspective"/>
+            name="Convertigo API"
+            id="com.twinsoft.convertigo.eclipse.ConvertigoPerspective.API"/>
+      <perspective
+            class="com.twinsoft.convertigo.eclipse.ConvertigoPerspective"
+            icon="icons/convertigo_16x16.gif"
+            id="com.twinsoft.convertigo.eclipse.ConvertigoPerspective.UI"
+            name="Convertigo UI">
+      </perspective>
    </extension>
    <extension
          point="org.eclipse.ui.decorators">
