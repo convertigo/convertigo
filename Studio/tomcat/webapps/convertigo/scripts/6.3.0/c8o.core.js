@@ -110,18 +110,19 @@ C8O = {
 				}).appendTo("body").one("load", function () {
 					C8O.log.debug("c8o.core: call using a form response");
 					
+					var fakeXHR = {
+						C8O_data: data
+					};
+					
 					if (C8O.vars.xsl_side == "server") {
-						C8O._onSuccess(null, "success", {
-							C8O_data: data,
-							responseText: $iframe[0].contentWindow.document.outerHTML
-						});
+						fakeXHR.responseText = $iframe[0].contentWindow.document.outerHTML;
+						C8O._onSuccess(null, "success", fakeXHR);
 					} else {
 						var xml = $iframe[0].contentWindow.document.XMLDocument;
-						C8O._onSuccess(xml ? xml: $iframe[0].contentWindow.document, "success", {
-							C8O_data: data,
-							responseText: "No responseText for multipart, use XSL or xml_response."
-						});
+						fakeXHR.responseText = "No responseText for multipart, use XSL or xml_response.";
+						C8O._onSuccess(xml ? xml: $iframe[0].contentWindow.document, "success", fakeXHR);
 					}
+					C8O._onComplete(fakeXHR, "success");
 					$iframe.remove();
 				});
 				$iframe[0].contentWindow.name = targetName;
@@ -259,7 +260,15 @@ C8O = {
 		if (window.JSON && window.JSON.stringify) {
 			return window.JSON.stringify(data);
 		} else {
-			return "n/a";
+			if (typeof(data) == "object") {
+				var s = "{";
+				for (var k in data) {
+					s += '"' + k + '" : "' + C8O.toJSON(data[k]) + '", ';
+				}
+				return s + "}";
+			} else {
+				return data;
+			}
 		}
 	},
 	

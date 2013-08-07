@@ -120,9 +120,10 @@ $.extend(true, C8O, {
 			// Get the binded attributes
 			var listenRequestables = $element.attr("data-c8o-listen");
 			
-			C8O.log.trace("ctf.core: data-c8o-listen '" + listenRequestables + "'");
 			// Check called requestable against the list of listen requestables
 			if (C8O.isMatching(c8oData, listenRequestables)) {
+				C8O.log.trace("ctf.core: data-c8o-listen '" + listenRequestables + "' match");
+				
 				// Check listen condition if any
 				if (!C8O._checkConditionDomSelectorOrJsFunction(
 						$element.attr("data-c8o-listen-condition"),
@@ -154,6 +155,8 @@ $.extend(true, C8O, {
 					C8O.log.debug("ctf.core: call data-c8o-after-rendering function '" + $element.attr("data-c8o-after-rendering") + "'");
 					functionAfterRendering.call(element, $xmlData, c8oData);
 				}
+			} else {
+				C8O.log.trace("ctf.core: data-c8o-listen '" + listenRequestables + "' doesn't match");
 			}
 		});
 	},

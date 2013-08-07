@@ -3,7 +3,7 @@
 $.extend(true, C8O, {
 	isActivePage: function (fromPage) {
 		var ret = $.mobile.activePage.is(fromPage);
-		C8O.log.trace("ctf.jquerymobile: is '" + fromPage "' the active page ? " + ret);
+		C8O.log.trace("ctf.jquerymobile: is '" + fromPage + "' the active page ? " + ret);
 		return ret;
 	},
 	
