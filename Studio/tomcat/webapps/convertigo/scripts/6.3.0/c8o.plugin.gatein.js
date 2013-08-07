@@ -25,7 +25,9 @@ C8O._init_gatein = function (params) {
 		try {
 			func();
 		} catch (e) {
+			C8O.log.trace("c8o.plugin.gatein: retry (" + retry + ") due to exception", e);
 			if (--retry == 0) {
+				C8O.log.info("c8o.plugin.gatein: too many retry", e);
 				// silent ignore
 			} else {
 				window.setTimeout(function () {
@@ -36,6 +38,8 @@ C8O._init_gatein = function (params) {
 	};
 	
 	if (params.__hub_page) {
+		C8O.log.debug("c8o.plugin.gatein: initialize hub for page " + params.__hub_page);
+		
 		C8O._getScript("../../scripts/weblib_plugins/hub.js", function () {
 			C8O._hub.init(params);
 			
@@ -47,6 +51,7 @@ C8O._init_gatein = function (params) {
 					try {
 						parent.eXo.core.Topic.unsubscribe("/convertigo/mashup", subscribeID);
 					} catch (e) {
+						C8O.log.info("c8o.plugin.gatein: failed to unsubscribe", e);
 						// silent ignore
 					}
 				});
@@ -66,6 +71,8 @@ C8O._init_gatein = function (params) {
 			var widget_name = new RegExp("resources%2F(.*).xml#").exec(window.frameElement.src);
 			widget_name = (widget_name != null && widget_name.length > 1) ? widget_name[1] : "unknow_widget";
 		}
+		
+		C8O.log.debug("c8o.plugin.gatein: initialize widget " + widget_name);
 		
 		C8O.addHook("mashup_event", function (eventName, payload) {
 			retryIt(4, function() {
@@ -99,6 +106,7 @@ C8O._init_gatein = function (params) {
 				C8O.addRecallParameter("portal_username", C8O.ro_vars.portal_username);
 			}
 		} catch (e) {
+			C8O.log.warn("c8o.plugin.gatein: cannot retrieve portal username, maybe due to cross-domain issue", e);
 			// maybe due to cross-domain issue
 		}
 		

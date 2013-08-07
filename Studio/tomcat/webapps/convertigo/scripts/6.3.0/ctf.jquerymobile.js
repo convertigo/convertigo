@@ -2,7 +2,9 @@
 
 $.extend(true, C8O, {
 	isActivePage: function (fromPage) {
-		return $.mobile.activePage.is(fromPage);
+		var ret = $.mobile.activePage.is(fromPage);
+		C8O.log.trace("ctf.jquerymobile: is '" + fromPage "' the active page ? " + ret);
+		return ret;
 	},
 	
 	_changePage: C8O.changePage,
@@ -14,6 +16,7 @@ $.extend(true, C8O, {
 		});
 		
 		// Change page
+		C8O.log.debug("ctf.jquerymobile: change page to " + goToPage);
 		$.mobile.changePage(goToPage, options);
 	},
 	
@@ -21,6 +24,7 @@ $.extend(true, C8O, {
 	_onDocumentReadyEnd: function (callback) {
 		$.mobile.changePage.defaults.allowSamePageTransition = true;
 		$(document).on("pagebeforecreate", "[data-role=page]", function () {
+			C8O.log.debug("ctf.jquerymobile: new DOM page loaded, initialize it");
 			C8O.__onDocumentReadyEnd(callback);
 		});
 	},
@@ -31,7 +35,7 @@ $.extend(true, C8O, {
 			C8O.__renderFinish($elt);
 			$elt.trigger("create");
 		} catch (e) {
-			//console.log(e);
+			C8O.log.warn("ctf.jquerymobile: render finish failed", e);
 		}
 	}
 });

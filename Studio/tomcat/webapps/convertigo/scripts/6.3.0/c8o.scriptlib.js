@@ -37,6 +37,8 @@ function C8O_document_ready () {
 	doMashupEvent = function (event, event_name, data) {
 		C8O.doMashupEvent(event_name, data);
 	};
+	
+	C8O.log.debug("c8o.scriptlib: initialization finished");
 	return true;
 }
 

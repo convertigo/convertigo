@@ -255,6 +255,14 @@ C8O = {
 		delete C8O._define.recall_params[parameter_name];
 	},
 	
+	toJSON: function (data) {
+		if (window.JSON && window.JSON.stringify) {
+			return window.JSON.stringify(data);
+		} else {
+			return "n/a";
+		}
+	},
+	
 	translate: function (elt) {
 		if (C8O._define.dictionnary != null) {
 			if (typeof(elt) == "string") {
@@ -334,7 +342,7 @@ C8O = {
 		if (C8O._hook("call", data)) {
 			var url = C8O._getCallUrl();
 			if (C8O.canLog("trace")) {
-				C8O.log.trace("c8o.core: call " + (JSON ? JSON.stringify(data) : "n/a") + " " + C8O.vars.ajax_method + " " + url);				
+				C8O.log.trace("c8o.core: call " + C8O.toJSON(data) + " " + C8O.vars.ajax_method + " " + url);				
 			}
 			var jqXHR = $.ajax({
 				complete: C8O._onComplete,
@@ -354,6 +362,9 @@ C8O = {
 		if (C8O.canLog(level)) {
 			if (C8O._hook("log", level, msg, e)) {
 				if (window.console && window.console.log) {
+					if (C8O.isDefined(e)) {
+						msg += " (catch: " + e + ")";
+					}
 					if (C8O.vars.log_line == "true" && navigator.userAgent.indexOf("Chrome") != -1) {
 						msg += "\n\t\t" + new Error().stack.split("\n")[3];
 					}
