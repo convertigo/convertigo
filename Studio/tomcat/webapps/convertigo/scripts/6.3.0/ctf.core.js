@@ -126,7 +126,7 @@ $.extend(true, C8O, {
 				// Check listen condition if any
 				if (!C8O._checkConditionDomSelectorOrJsFunction(
 						$element.attr("data-c8o-listen-condition"),
-						$element,
+						element,
 						[$xmlData, c8oData],
 						$xmlData)) {
 					// The condition failed, so we abort the rendering
@@ -592,7 +592,7 @@ $.extend(true, C8O, {
 		// Check call condition if any
 		if (!C8O._checkConditionDomSelectorOrJsFunction(
 				$element.attr("data-c8o-call-condition"),
-				$element,
+				element,
 				[],
 				$(window.document))) {
 			// The condition failed, so we abort the rendering
