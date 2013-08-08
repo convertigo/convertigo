@@ -62,7 +62,7 @@ $.extend(true, C8O, {
 					var routeFound = true;
 					
 					if (C8O.isDefined(action.fromPage)) {
-						C8O.log.debug("ctf.trace: need fromPage " + action.fromPage);
+						C8O.log.info("ctf.core: need fromPage " + action.fromPage);
 						routeFound = C8O.isActivePage(action.fromPage);
 					}
 					
@@ -84,12 +84,12 @@ $.extend(true, C8O, {
 								if (action.afterRendering) {
 									action.afterRendering($doc, c8oData);
 								}
-								C8O.log.debug("ctf.trace: rendering done");
+								C8O.log.info("ctf.core: rendering done");
 							};
 							
 							// Render in a target page
 							if (goToPage) {
-								C8O.log.debug("ctf.trace: route found, apply goToPage " + action.goToPage);
+								C8O.log.info("ctf.core: route found, apply goToPage " + action.goToPage);
 								C8O.changePage(goToPage, action.options, afterChange);
 							}
 							// Render on the same page
@@ -131,6 +131,7 @@ $.extend(true, C8O, {
 						[$xmlData, c8oData],
 						$xmlData)) {
 					// The condition failed, so we abort the rendering
+					C8O.log.trace("ctf.core: data-c8o-listen-condition return false");
 					return;
 				}
 
@@ -358,6 +359,9 @@ $.extend(true, C8O, {
 				}
 				
 				var rule = C8O._makeRule(C8O._define.ctf_mark + c8oEach + C8O._define.ctf_mark);
+				if (C8O.canLog("trace")) {
+					C8O.log.trace("ctf.core: process data-c8o-each rule=" + C8O.toJSON(rule));
+				}
 				if (rule != null) {
 					var $refData = C8O._getRefData(rule, refs);
 					var $self = refs._self;

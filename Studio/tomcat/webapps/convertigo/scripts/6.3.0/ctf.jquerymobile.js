@@ -33,7 +33,20 @@ $.extend(true, C8O, {
 	_renderFinish: function ($elt) {
 		try {
 			C8O.__renderFinish($elt);
-			$elt.trigger("create");
+			
+			if ($elt.data("mobile-page")) {
+				C8O.log.info("ctf.jquerymobile: mobile page");
+				$elt.data("mobile-page")._trigger("create",null,{})
+			} else {
+				$elt.trigger("create");
+		         if (!C8O.isUndefined($elt.listview)) {
+		        	 try {
+		        		 $elt.listview("refresh");
+		        	 } catch (e) {
+		        		 C8O.log.trace("ctf.jquerymobile: listview failed to refresh", e);
+		        	 }
+				}
+			}
 		} catch (e) {
 			C8O.log.warn("ctf.jquerymobile: render finish failed", e);
 		}
