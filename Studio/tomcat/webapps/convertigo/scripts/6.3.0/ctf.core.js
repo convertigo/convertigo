@@ -52,7 +52,7 @@ $.extend(true, C8O, {
 	_routeResponse: function(xml, c8oData) {
 		var $doc = $(xml.documentElement);
 		
-		C8O.log.info("ctf.core: searching route for " + c8oData);
+		C8O.log.info("ctf.core: searching route for " + C8O.toJSON(c8oData));
 		
 		for (var i in C8O.routingTable) {
 			var entry = C8O.routingTable[i];
@@ -112,28 +112,32 @@ $.extend(true, C8O, {
 	
 	/**
 	 * Scans all the widgets requiring data update and render them
-	 * 
-	 * If widgets are listviews, refresh them as well as iscroll widgets.
 	 */
 	_renderBindings: function($xmlData, c8oData) {
+		C8O.log.debug("ctf.core: rendering bindings");
+		C8O.log.trace("ctf.core: c8oData = " + C8O.toJSON(c8oData));
+		
 		$("[data-c8o-listen]").each( function (index, element) {
 			var $element = $(element);
 			
 			// Get the binded attributes
 			var listenRequestables = $element.attr("data-c8o-listen");
+			C8O.log.trace("ctf.core: listenRequestables = '" + listenRequestables + "'");
 			
 			// Check called requestable against the list of listen requestables
 			if (C8O.isMatching(c8oData, listenRequestables)) {
-				C8O.log.trace("ctf.core: data-c8o-listen '" + listenRequestables + "' match");
+				C8O.log.info("ctf.core: data-c8o-listen '" + listenRequestables + "' match");
 				
 				// Check listen condition if any
+				var c8oListenCondition = $element.attr("data-c8o-listen-condition");
+				C8O.log.info("ctf.core: listen condition: " + (c8oListenCondition ? c8oListenCondition : "<none>"));
 				if (!C8O._checkConditionDomSelectorOrJsFunction(
-						$element.attr("data-c8o-listen-condition"),
+						c8oListenCondition,
 						element,
 						[$xmlData, c8oData],
 						$xmlData)) {
 					// The condition failed, so we abort the rendering
-					C8O.log.trace("ctf.core: data-c8o-listen-condition return false");
+					C8O.log.info("ctf.core: condition failed");
 					return;
 				}
 
@@ -340,6 +344,8 @@ $.extend(true, C8O, {
 	},
 	
 	_renderElement: function($element, refs) {
+		C8O.log.debug("ctf.core: rendering element");
+
 		refs = $.extend({}, refs);
 
 		// Render simple elements
