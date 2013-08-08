@@ -81,6 +81,8 @@ C8O = {
 	
 	call: function (data) {
 		var key;
+		C8O.log.info("c8o.core: call: " + C8O.toJSON(data));
+
 		C8O.log.trace("c8o.core: call show wait div");
 		C8O.waitShow();
 		

@@ -52,6 +52,8 @@ $.extend(true, C8O, {
 	_routeResponse: function(xml, c8oData) {
 		var $doc = $(xml.documentElement);
 		
+		C8O.log.info("ctf.core: searching route for " + c8oData);
+		
 		for (var i in C8O.routingTable) {
 			var entry = C8O.routingTable[i];
 			C8O.log.trace("ctf.core: check routing " + entry.calledRequest);
@@ -62,7 +64,7 @@ $.extend(true, C8O, {
 					var routeFound = true;
 					
 					if (C8O.isDefined(action.fromPage)) {
-						C8O.log.info("ctf.core: need fromPage " + action.fromPage);
+						C8O.log.debug("ctf.core: need fromPage " + action.fromPage);
 						routeFound = C8O.isActivePage(action.fromPage);
 					}
 					
@@ -84,7 +86,7 @@ $.extend(true, C8O, {
 								if (action.afterRendering) {
 									action.afterRendering($doc, c8oData);
 								}
-								C8O.log.info("ctf.core: rendering done");
+								C8O.log.debug("ctf.core: rendering done");
 							};
 							
 							// Render in a target page
@@ -104,7 +106,7 @@ $.extend(true, C8O, {
 			}
 		}
 		
-		C8O.log.debug("ctf.core: no route found, process template");
+		C8O.log.info("ctf.core: no route found, process template");
 		C8O._renderBindings($doc, c8oData);
 	},
 	
@@ -692,6 +694,7 @@ $.extend(true, C8O, {
 	},
 	
 	_onSuccess : function (xml, status, jqXHR) {
+		C8O.log.info("ctf.core: received valid response");
 		var c8oData = jqXHR.C8O_data;
 		if (C8O._hook("xml_response", xml, c8oData)) {
 			/*
@@ -720,7 +723,7 @@ $.extend(true, C8O, {
  *  Initialize C8O MVC Framework 
  */
 C8O.addHook("init_finished", function () {
-	C8O.log.info("ctf.core: initializing CTF framework");
+	C8O.log.info("ctf.core: initializing CTF");
 	
 	C8O.vars.xsl_side = "none";
 	C8O.removeRecallParameter("__connector");

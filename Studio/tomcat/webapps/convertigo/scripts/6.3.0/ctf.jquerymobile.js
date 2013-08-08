@@ -3,7 +3,7 @@
 $.extend(true, C8O, {
 	isActivePage: function (fromPage) {
 		var ret = $.mobile.activePage.is(fromPage);
-		C8O.log.trace("ctf.jquerymobile: is '" + fromPage + "' the active page ? " + ret);
+		C8O.log.trace("ctf.jquerymobile: is \"" + fromPage + "\" the active page ? " + ret);
 		return ret;
 	},
 	
@@ -16,7 +16,7 @@ $.extend(true, C8O, {
 		});
 		
 		// Change page
-		C8O.log.debug("ctf.jquerymobile: change page to " + goToPage);
+		C8O.log.info("ctf.jquerymobile: change page to \"" + goToPage + "\"");
 		$.mobile.changePage(goToPage, options);
 	},
 	
