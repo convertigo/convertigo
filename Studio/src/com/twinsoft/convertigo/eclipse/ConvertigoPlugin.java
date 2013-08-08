@@ -136,7 +136,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	
 	public static final String PLUGIN_UNIQUE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPlugin"; //$NON-NLS-1$
 	
-	public static final String PLUGIN_PERSPECTIVE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPerspective"; //$NON-NLS-1$
+	public static final String PLUGIN_PERSPECTIVE_ID = "com.twinsoft.convertigo.eclipse.ConvertigoPerspective.API"; //$NON-NLS-1$
 
 	public static ProjectManager projectManager = null;
 	
