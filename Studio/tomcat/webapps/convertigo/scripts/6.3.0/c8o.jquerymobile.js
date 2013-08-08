@@ -28,7 +28,6 @@ $.extend(true, C8O, {
 	},
 	
 	vars : {
-		endpoint_url : "../../"
 	},
 		
 	options : {
