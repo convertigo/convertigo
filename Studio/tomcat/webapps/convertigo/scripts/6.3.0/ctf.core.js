@@ -61,22 +61,26 @@ $.extend(true, C8O, {
 			if (C8O.isMatching(c8oData, entry.calledRequest)) {
 				for (var j in entry.actions) {
 					var action = entry.actions[j];
+					C8O.log.debug("ctf.core: analizyng action " + C8O.toJSON(action));
+					
 					var routeFound = true;
 					
 					if (C8O.isDefined(action.fromPage)) {
-						C8O.log.debug("ctf.core: need fromPage " + action.fromPage);
+						C8O.log.debug("ctf.core: required fromPage " + action.fromPage);
 						routeFound = C8O.isActivePage(action.fromPage);
 					}
 					
 					if (routeFound) {
-						
+
 						if (C8O.isDefined(action.condition)) {
+							C8O.log.debug("ctf.core: route condition: " + action.condition);
 							var fnCondition = C8O._getFunction(action.condition);
 							if (fnCondition != null) {
 								routeFound = fnCondition($doc, c8oData);
 							} else {
 								routeFound = C8O._findAndSelf($doc, action.condition).length > 0;
 							}
+							C8O.log.debug("ctf.core: route condition returns: " + routeFound);
 						}
 	
 						if (routeFound) {
