@@ -46,6 +46,10 @@ public class XMLConcatStepBeanInfo extends MySimpleBeanInfo {
             properties[0].setDisplayName(getExternalizedString("property.separator.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.separator.short_description"));
             properties[0].setExpert(true);
+            
+            PropertyDescriptor property = getPropertyDescriptor("sourcesDefinition");
+            property.setDisplayName(getExternalizedString("property.sourcesDefinition.display_name"));
+            property.setShortDescription(getExternalizedString("property.sourcesDefinition.short_description"));
 			
 		}
 		catch(Exception e) {
