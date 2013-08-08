@@ -33,7 +33,7 @@ C8O._init_rsa = function (params) {
 			C8O._define.publickey = setKeyPair(split[0], split[1], split[2]);
 			C8O._init(params);
 		},
-		url: "../../rsa/publickey"
+		url: window.location.href.replace(new RegExp("/projects/.*"), "/rsa/publickey")
 	});
 }
 

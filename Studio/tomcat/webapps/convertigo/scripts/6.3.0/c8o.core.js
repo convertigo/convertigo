@@ -345,6 +345,7 @@ C8O = {
 		recall_params: {__context: "", __connector: ""},
 		re_plus: new RegExp("\\+", "g"),
 		re_i18n: new RegExp("__MSG_(.*?)__"),
+		start_time: new Date().getTime(),
 		dictionnary: null
 	},
 
@@ -371,15 +372,19 @@ C8O = {
 	
 	_log: function (level, msg, e) {
 		if (C8O.canLog(level)) {
-			if (C8O._hook("log", level, msg, e)) {
+			var ret;
+			if (ret = C8O._hook("log", level, msg, e)) {
 				if (window.console && window.console.log) {
+					if (typeof(ret) == "string") {
+						msg = ret;
+					}
 					if (C8O.isDefined(e)) {
-						msg += " (catch: " + e + ")";
+						msg += " (catch: " + C8O.toJSON(e) + ")";
 					}
 					if (C8O.vars.log_line == "true" && navigator.userAgent.indexOf("Chrome") != -1) {
 						msg += "\n\t\t" + new Error().stack.split("\n")[3];
 					}
-					console.log("[" + level + "] " + msg);
+					console.log(((new Date().getTime() - C8O._define.start_time) / 1000) + " [" + level + "] " + msg);
 				}
 			}
 		}
@@ -582,14 +587,14 @@ C8O = {
 			C8O.log.trace("c8o.core: switch request encryption " + value);
 			C8O.init_vars.enc = value;
 		}
-		if (C8O.init_vars.enc == "true") {
+		if (C8O.init_vars.enc == "true" && C8O.isUndefined(C8O._define.publickey)) {
 			C8O.log.debug("c8o.core: request encryption enabled");
 			
 			if (C8O.isUndefined(C8O._init_rsa)) {
-				C8O._getScript(C8O.ro_vars.plugins_path + "rsa.js", function () {
+				C8O._getScript(C8O._define.plugins_path + "rsa.js", function () {
 					C8O._init_rsa(params);
 				});
-			} else if (C8O.isUndefined(C8O._define.publickey)) {
+			} else {
 				C8O._init_rsa(params);
 			}
 		} else {

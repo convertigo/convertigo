@@ -52,7 +52,9 @@ $.extend(true, C8O, {
 	_routeResponse: function(xml, c8oData) {
 		var $doc = $(xml.documentElement);
 		
-		C8O.log.info("ctf.core: searching route for " + C8O.toJSON(c8oData));
+		if (C8O.canLog("info")) {
+			C8O.log.info("ctf.core: searching route for " + C8O.toJSON(c8oData));
+		}
 		
 		for (var i in C8O.routingTable) {
 			var entry = C8O.routingTable[i];
@@ -61,7 +63,9 @@ $.extend(true, C8O, {
 			if (C8O.isMatching(c8oData, entry.calledRequest)) {
 				for (var j in entry.actions) {
 					var action = entry.actions[j];
-					C8O.log.debug("ctf.core: analizyng action " + C8O.toJSON(action));
+					if (C8O.canLog("debug")) {
+						C8O.log.debug("ctf.core: analizyng action " + C8O.toJSON(action));
+					}
 					
 					var routeFound = true;
 					
@@ -86,7 +90,11 @@ $.extend(true, C8O, {
 						if (routeFound) {
 							var goToPage = action.goToPage;
 							var afterChange = function () {
+								if (action.beforeRendering) {
+									action.beforeRendering($doc, c8oData);
+								}
 								C8O._renderBindings($doc, c8oData);
+								
 								if (action.afterRendering) {
 									action.afterRendering($doc, c8oData);
 								}
@@ -119,7 +127,9 @@ $.extend(true, C8O, {
 	 */
 	_renderBindings: function($xmlData, c8oData) {
 		C8O.log.debug("ctf.core: rendering bindings");
-		C8O.log.trace("ctf.core: c8oData = " + C8O.toJSON(c8oData));
+		if (C8O.canLog("trace")) {
+			C8O.log.trace("ctf.core: c8oData = " + C8O.toJSON(c8oData));
+		}
 		
 		$("[data-c8o-listen]").each( function (index, element) {
 			var $element = $(element);
@@ -371,9 +381,11 @@ $.extend(true, C8O, {
 				}
 				
 				var rule = C8O._makeRule(C8O._define.ctf_mark + c8oEach + C8O._define.ctf_mark);
+				
 				if (C8O.canLog("trace")) {
 					C8O.log.trace("ctf.core: process data-c8o-each rule=" + C8O.toJSON(rule));
 				}
+				
 				if (rule != null) {
 					var $refData = C8O._getRefData(rule, refs);
 					var $self = refs._self;
