@@ -55,7 +55,7 @@ $.extend(true, C8O, {
 	vars: {
 //		ajax_method: "POST", /** POST/GET: http method to request CEMS */
 //		auto_refresh: "true", /** true/false: allow auto refresh feature for clipping */
-//		auto_resize: "true", /** true/false: allow weblib to perform resize after content filled */
+//		auto_resize: "true", /** true/false: allow C8O to perform resize after content filled */
 //		endpoint_url: "", /** base of the URL CEMS calls. Should not be modified */
 //		first_call: "true", /** true/false: automatically call convertigo using the page query/hash parameters, after the init_finished hook */
 //		log_level: "warn", /** none/error/warn/info/debug/trace: filter logs that appear in the browser console */
@@ -87,7 +87,7 @@ $.extend(true, C8O, {
 
 /**
  * addHook function
- * some part of the weblib can be customized using a hook
+ * some part of the C8O can be customized using a hook
  * just specify the hook name and its handler
  * all existing hook are explain bellow
  * name: string of the hook name
@@ -156,6 +156,23 @@ $.extend(true, C8O, {
 //C8O.convertHTML(input, output)
 
 /**
+ * formToData function
+ * copy all form's inputs into the data object or a new one.
+ * Inputs names are the keys and inputs values are the values of the data object.
+ * In case of multivalued, value is turn into an array. 
+ * form: raw or jQuery FORM element
+ * data (optional): object (key/value) where values are copied
+ * return: the data object or a new one with copied form's inputs values
+ */
+//C8O.formToData($form, data)
+
+/**
+ * getBrowserLanguage function
+ * return: a string of the current detected language, in 2 characters
+ */
+//C8O.getBrowserLanguage()
+
+/**
  * doNavigationBarEvent function
  * for HTML connector only
  * send an action to the navigation bar of the connector
@@ -209,6 +226,19 @@ $.extend(true, C8O, {
 //C8O.isUndefined(obj);
 
 /**
+ * log object
+ * write the msg string into the console.log if available
+ * or call the hook "log" if added.
+ * msg: string with the message to log
+ * e (optional): exception object to add to the log
+ */
+//C8O.log.error(msg, e);
+//C8O.log.warn(msg, e);
+//C8O.log.info(msg, e);
+//C8O.log.debug(msg, e);
+//C8O.log.trace(msg, e);
+
+/**
  * removeRecallParameter function
  * reversed effect of addRecallParameter function
  * remove a parameter from automatically
@@ -216,6 +246,25 @@ $.extend(true, C8O, {
  * parameter_name: parameter name to remove from the list
  */
 //C8O.removeRecallParameter(parameter_name);
+
+/**
+ * toJSON function
+ * return a string representation of the data object (key/value) in a JSON format
+ * data: object to transform
+ * return: string of the data object in a JSON format 
+ */
+//C8O.toJSON(data);
+
+/**
+ * translate function
+ * if the i18n is enabled (C8O.ro_vars.files not empty)
+ * this function translate each text node and each attribute content that contain
+ * the __MSG_key__ marker, using the current dictionary.
+ * It can also translate a key and return its value.
+ * elt: element to translate or a string to translate
+ * return: string translated or nothing in case of element parameter 
+ */
+//C8O.translate(elt);
 
 /**
  * waitHide function
@@ -245,13 +294,41 @@ $.extend(true, C8O, {
  *  or perform request itself
  *  
  *  data: key/value map of parameters sent to CEMS
- *  return: true > lets weblib perform the call
- *             false > weblib doen't perform the call
+ *  return: true > lets C8O perform the call
+ *             false > C8O doen't perform the call
  */
 //C8O.addHook("call", function (data) {
 //	return true;
 //});
 
+/**
+ *  call_complete hook
+ *  called after the xml_response, text_response or call_error hook
+ *  
+ *  jqXHR: the jQuery object that enhance the XHR used by the call
+ *  textStatus: text status of the Ajax response
+ *  data: data used to generate the C8O.call
+ *  return: true > hide the wait div if no pending call
+ *             false > lets the wait div
+ */
+//C8O.addHook("call_complete", function (jqXHR, textStatus, data) {
+//	return true;
+//});
+
+/**
+ *  call_error hook
+ *  called call_complete hook, in case of an Ajax error (network error, unparsable response)
+ *  
+ *  jqXHR: the jQuery object that enhance the XHR used by the call
+ *  textStatus: text status of the Ajax response
+ *  errorThrown: caught cause of the error
+ *  data: data used to generate the C8O.call
+ *  return: true > log the error with C8O.log.error
+ *             false > don't log the error
+ */
+//C8O.addHook("call_error", function (jqXHR, textStatus, errorThrown, data) {
+//	return true;
+//});
 
 /**
  *  document_ready hook
@@ -259,7 +336,20 @@ $.extend(true, C8O, {
  *  can perform some DOM tweak
  *  or break the processing of request
  *  
- *  return: true > lets weblib perform the init
+ *  return: true > lets C8O perform the init
+ *             false > break the processing of request
+ */
+//C8O.addHook("document_ready", function () {
+//	return true;
+//});
+
+/**
+ *  document_ready hook
+ *  used at page loading
+ *  can perform some DOM tweak
+ *  or break the processing of request
+ *  
+ *  return: true > lets C8O perform the init
  *             false > break the processing of request
  */
 //C8O.addHook("document_ready", function () {
@@ -268,15 +358,34 @@ $.extend(true, C8O, {
 
 /**
  *  init_finished hook
- *  used at page loading after weblib initialization
+ *  used at page loading after C8O initialization
  *  can modify data parameter of the first call
  *  or break the processing of request
  *  
- *  return: true > lets weblib perform the first call
+ *  return: true > lets C8O perform the first call
  *             false > break the processing of request
  */
 //C8O.addHook("init_finished", function (data) {
 //	return true;
+//});
+
+/**
+ *  log hook
+ *  used on each C8O.log.xxx call.
+ *  Allow to:
+ *   * handle log message (put in div, send request …)
+ *   * prevent log writing (return false)
+ *   * modify the message (return a new msg content).
+ *  
+ *  level: "string" level of this log, between error/warn/info/debug/trace
+ *  msg: "string" the log message
+ *  e: can be anything or nothing, but linked with the error
+ *  return: "string" > logs in console and override the msg
+ *             false > doesn't log in console
+ *             nothing or true > logs in console
+ */
+//C8O.addHook("log", function (level, msg, e) {
+//	return false;
 //});
 
 /**
@@ -303,38 +412,10 @@ $.extend(true, C8O, {
  *  event.target: widget name of the event target
  *  event.type: type of the event, the default is 'call'
  *  
- *  return: true > lets weblib consume the event
- *             false > event ignored by weblib
+ *  return: true > lets C8O consume the event
+ *             false > event ignored by C8O
  */
 //C8O.addHook("receive_mashup_event", function (event) {
-//	return true;
-//});
-
-/**
- *  xml_response hook
- *  used for tweak, retrieve value or do transformation
- *  using the XML response from CEMS
- *  
- *  xml: pure DOM document
- *  return: true > lets weblib perform the xml
- *             false > break the processing of xml
- */
-//C8O.addHook("xml_response", function (xml) {
-//	return true;
-//});
-
-/**
- *  text_response hook
- *  used for tweak, retrieve value or do transformation
- *  using the text response from CEMS (after a server XSL transformation)
- *  
- *  aText: array with only one string, aText[0], of the text received
- *            and can be replaced by a new value
- *  return: true > lets weblib perform the inclusion in the DOM
- *             false > break the processing of the weblib
- */
-//C8O.addHook("text_response", function (aText) {
-//  var text = aText[0];
 //	return true;
 //});
 
@@ -344,7 +425,7 @@ $.extend(true, C8O, {
  *  for calculate the height of the
  *  iframe element
  *  
- *  return: false > bypass weblib resize 
+ *  return: false > bypass C8O resize 
  *             type of 'number' > height for the iframe
  *             other > do standard resize
  */
@@ -361,8 +442,8 @@ $.extend(true, C8O, {
  *  
  *  $container: jquery object where the content has been added
  *  
- *  return: true > lets weblib perform the init 
- *             false > bypass weblib resize
+ *  return: true > lets C8O perform the init 
+ *             false > bypass C8O resize
  */
 //C8O.addHook("result_filled", function ($container) {
 //	return true;
@@ -385,9 +466,37 @@ $.extend(true, C8O, {
  *  
  *  $iframe: jQuery object with the iframe container of the siteclipped page selected
  *  
- *  return: true > lets weblib perform recude the iframe 
- *             false > bypass weblib resize
+ *  return: true > lets C8O perform recude the iframe 
+ *             false > bypass C8O resize
  */
 //C8O.addHook("siteclipper_page_unloaded", function ($iframe) {
+//	return true;
+//});
+
+/**
+ *  text_response hook
+ *  used for tweak, retrieve value or do transformation
+ *  using the text response from CEMS (after a server XSL transformation)
+ *  
+ *  aText: array with only one string, aText[0], of the text received
+ *            and can be replaced by a new value
+ *  return: true > lets C8O perform the inclusion in the DOM
+ *             false > break the processing of the C8O
+ */
+//C8O.addHook("text_response", function (aText) {
+//  var text = aText[0];
+//	return true;
+//});
+
+/**
+ *  xml_response hook
+ *  used for tweak, retrieve value or do transformation
+ *  using the XML response from CEMS
+ *  
+ *  xml: pure DOM document
+ *  return: true > lets C8O perform the xml
+ *             false > break the processing of xml
+ */
+//C8O.addHook("xml_response", function (xml) {
 //	return true;
 //});

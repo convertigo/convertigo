@@ -120,13 +120,13 @@ C8O = {
 					
 					if (C8O.vars.xsl_side == "server") {
 						fakeXHR.responseText = $iframe[0].contentWindow.document.outerHTML;
-						C8O._onSuccess(null, "success", fakeXHR);
+						C8O._onCallSuccess(null, "success", fakeXHR);
 					} else {
 						var xml = $iframe[0].contentWindow.document.XMLDocument;
 						fakeXHR.responseText = "No responseText for multipart, use XSL or xml_response.";
-						C8O._onSuccess(xml ? xml: $iframe[0].contentWindow.document, "success", fakeXHR);
+						C8O._onCallSuccess(xml ? xml: $iframe[0].contentWindow.document, "success", fakeXHR);
 					}
-					C8O._onComplete(fakeXHR, "success");
+					C8O._onCallComplete(fakeXHR, "success");
 					$iframe.remove();
 				});
 				$iframe[0].contentWindow.name = targetName;
@@ -187,13 +187,11 @@ C8O = {
 	},
 	
 	formToData: function ($form, data) {
-		if (!$form.jquery) {
-			$form = $($form);
-		}
+		$form = $($form);
 		if (C8O.isUndefined(data)) {
 			data = {};
 		}
-		var formArray = ($form.jquery ? $form : $($form)).serializeArray();
+		var formArray = $form.serializeArray();
 		for (var i in formArray) {
 			C8O.appendValue(data, formArray[i].name, formArray[i].value);
 		}
@@ -373,91 +371,16 @@ C8O = {
 				C8O.log.trace("c8o.core: call " + C8O.toJSON(data) + " " + C8O.vars.ajax_method + " " + url);
 			}
 			var jqXHR = $.ajax({
-				complete: C8O._onComplete,
+				complete: C8O._onCallComplete,
 				data: data,
 				dataType: C8O.vars.xsl_side == "server" ? "text" : "xml",
-				error: C8O._onError,
-				success: C8O._onSuccess,
+				error: C8O._onCallError,
+				success: C8O._onCallSuccess,
 				type: C8O.vars.ajax_method,
 				url: url
 			});
 			jqXHR.C8O_data = data;
 			C8O._define.pendingXhrCpt++;
-		}
-	},
-	
-	_log: function (level, msg, e) {
-		if (C8O.canLog(level)) {
-			var ret;
-			if (ret = C8O._hook("log", level, msg, e)) {
-				if (window.console && window.console.log) {
-					if (typeof(ret) == "string") {
-						msg = ret;
-					}
-					if (C8O.isDefined(e)) {
-						msg += " (catch: " + C8O.toJSON(e) + ")";
-					}
-					if (C8O.vars.log_line == "true" && navigator.userAgent.indexOf("Chrome") != -1) {
-						msg += "\n\t\t" + new Error().stack.split("\n")[3];
-					}
-					var time = (new Date().getTime() - C8O._define.start_time) / 1000;
-					time = ("    " + time + "    ").replace(	C8O._define.re_format_time, "$1$2$3");
-					
-					if (level.length == 4) {
-						level += " ";
-					}
-					
-					console.log(time + " [" + level + "] " + msg);
-				}
-			}
-		}
-	},
-	
-	_obj_replace: function (object, content) {
-		for (var key in object) {
-			delete object[key];
-		}
-		return $.extend(object, content);
-	},
-	
-	_obj_clone: function (object) {
-		return $.extend(true, {}, object);
-	},
-	
-	_onComplete: function (jqXHR, textStatus) {
-		if (C8O._hook("complete", jqXHR, textStatus)) {
-			if (--C8O._define.pendingXhrCpt <= 0) {
-				C8O._define.pendingXhrCpt = 0;
-				C8O.waitHide();
-				C8O.log.debug("c8o.core: Ajax complete, hide the wait div");
-			} else {
-				C8O.log.trace("c8o.core: Ajax complete, remains " + C8O._define.pendingXhrCpt + " pending requests");
-			}
-		}
-	},
-	
-	_onDocumentReady: function () {
-		if (C8O._hook("document_ready")) {
-			C8O._init({});
-		};
-	},
-	
-	_onError: function (jqXHR, textStatus, errorThrown) {
-		if (C8O._hook("error", jqXHR, textStatus, errorThrown)) {
-			C8O.log.error("c8o.core: Ajax error [" + textStatus + "]", errorThrown);
-		}
-	},
-	
-	_onSuccess: function (xml, status, jqXHR) {
-		C8O._hook("xml_response", xml, jqXHR.C8O_data);
-	},
-	
-	_retrieve_vars: function (data) {
-		for (key in C8O.vars) {
-			if (!C8O.isUndefined(data["__" + key])) {
-				C8O.vars[key] = C8O._remove(data, "__" + key);
-				C8O.log.debug("c8o.core: retrieve from parameter C8O.vars." + key + "=" + C8O.vars[key]);
-			}
 		}
 	},
 	
@@ -559,6 +482,107 @@ C8O = {
 		return ret;
 	},
 	
+	_init: function (params) {
+		var value = C8O._remove(params, "__enc");
+		if (C8O.isDefined(value)) {
+			C8O.log.trace("c8o.core: switch request encryption " + value);
+			C8O.init_vars.enc = value;
+		}
+		if (C8O.init_vars.enc == "true" && C8O.isUndefined(C8O._define.publickey)) {
+			C8O.log.debug("c8o.core: request encryption enabled");
+			
+			if (C8O.isUndefined(C8O._init_rsa)) {
+				C8O._getScript(C8O._define.plugins_path + "rsa.js", function () {
+					C8O._init_rsa(params);
+				});
+			} else {
+				C8O._init_rsa(params);
+			}
+		} else {
+			C8O._define.connector = params.__connector;
+			C8O._define.context = params.__context;
+
+			C8O._retrieve_vars(params);
+			
+			if (C8O._hook("init_finished", params) && C8O.vars.first_call == "true") {
+				C8O.log.debug("c8o.core: make the first_call");
+				C8O.call(params);
+			} else {
+				C8O.log.trace("c8o.core: hide the initial wait div");
+				C8O.waitHide();
+			}
+		}
+	},
+	
+	_log: function (level, msg, e) {
+		if (C8O.canLog(level)) {
+			var ret;
+			if (ret = C8O._hook("log", level, msg, e)) {
+				if (window.console && window.console.log) {
+					if (typeof(ret) == "string") {
+						msg = ret;
+					}
+					if (C8O.isDefined(e)) {
+						msg += " (catch: " + C8O.toJSON(e) + ")";
+					}
+					if (C8O.vars.log_line == "true" && navigator.userAgent.indexOf("Chrome") != -1) {
+						msg += "\n\t\t" + new Error().stack.split("\n")[3];
+					}
+					var time = (new Date().getTime() - C8O._define.start_time) / 1000;
+					time = ("    " + time + "    ").replace(	C8O._define.re_format_time, "$1$2$3");
+					
+					if (level.length == 4) {
+						level += " ";
+					}
+					
+					console.log(time + " [" + level + "] " + msg);
+				}
+			}
+		}
+	},
+	
+	_obj_replace: function (object, content) {
+		for (var key in object) {
+			delete object[key];
+		}
+		return $.extend(object, content);
+	},
+	
+	_obj_clone: function (object) {
+		return $.extend(true, {}, object);
+	},
+	
+	_onCallComplete: function (jqXHR, textStatus) {
+		if (--C8O._define.pendingXhrCpt <= 0) {
+			C8O._define.pendingXhrCpt = 0;
+		}
+		
+		if (C8O._hook("call_complete", jqXHR, textStatus, jqXHR.C8O_data)) {
+			if (!C8O._define.pendingXhrCpt) {
+				C8O.waitHide();
+				C8O.log.debug("c8o.core: Ajax complete, hide the wait div");
+			} else {
+				C8O.log.trace("c8o.core: Ajax complete, remains " + C8O._define.pendingXhrCpt + " pending requests");
+			}
+		}
+	},
+	
+	_onCallError: function (jqXHR, textStatus, errorThrown) {
+		if (C8O._hook("call_error", jqXHR, textStatus, errorThrown, jqXHR.C8O_data)) {
+			C8O.log.error("c8o.core: Ajax error [" + textStatus + "]", errorThrown);
+		}
+	},
+	
+	_onCallSuccess: function (xml, status, jqXHR) {
+		C8O._hook("xml_response", xml, jqXHR.C8O_data);
+	},
+	
+	_onDocumentReady: function () {
+		if (C8O._hook("document_ready")) {
+			C8O._init({});
+		};
+	},
+	
 	_parseQuery: function (params, query) {
 		var data = C8O.isUndefined(params) ? {} : params,
 			vars = (query ? query : C8O._getQuery()).split("&"),
@@ -593,6 +617,15 @@ C8O = {
 		return res;
 	},
 	
+	_retrieve_vars: function (data) {
+		for (key in C8O.vars) {
+			if (!C8O.isUndefined(data["__" + key])) {
+				C8O.vars[key] = C8O._remove(data, "__" + key);
+				C8O.log.debug("c8o.core: retrieve from parameter C8O.vars." + key + "=" + C8O.vars[key]);
+			}
+		}
+	},
+	
 	_translate: function (str) {
 		var value = C8O._define.dictionnary[str];
 		if (C8O.isUndefined(value)) {
@@ -602,38 +635,6 @@ C8O = {
 			C8O.log.trace("c8o.core: translate '" + str + "' in '" + value + "'");
 		}
 		return value;
-	},
-	
-	_init: function (params) {
-		var value = C8O._remove(params, "__enc");
-		if (C8O.isDefined(value)) {
-			C8O.log.trace("c8o.core: switch request encryption " + value);
-			C8O.init_vars.enc = value;
-		}
-		if (C8O.init_vars.enc == "true" && C8O.isUndefined(C8O._define.publickey)) {
-			C8O.log.debug("c8o.core: request encryption enabled");
-			
-			if (C8O.isUndefined(C8O._init_rsa)) {
-				C8O._getScript(C8O._define.plugins_path + "rsa.js", function () {
-					C8O._init_rsa(params);
-				});
-			} else {
-				C8O._init_rsa(params);
-			}
-		} else {
-			C8O._define.connector = params.__connector;
-			C8O._define.context = params.__context;
-
-			C8O._retrieve_vars(params);
-			
-			if (C8O._hook("init_finished", params) && C8O.vars.first_call == "true") {
-				C8O.log.debug("c8o.core: make the first_call");
-				C8O.call(params);
-			} else {
-				C8O.log.trace("c8o.core: hide the initial wait div");
-				C8O.waitHide();
-			}
-		}
 	}
 }
 

@@ -145,7 +145,76 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	__init : C8O._init,
+	_fillBody : function (content, resize) {
+		var $container = C8O.vars.target_id;
+		if (typeof($container) == "string") {
+			$container = $($container.length == 0 ? "body" : ('#' + $container));	
+		} else if (C8O.isUndefined($container.jquery)){
+			$container = $($container);
+		}
+		
+		if (C8O.vars.target_append == "true") {
+			$container.append(content);
+		} else {
+			$container.html(content).children("title:first").each(function () {
+				window.document.title = $(this).text();
+			});
+		}
+		if (C8O._hook("result_filled", $container)) {
+			C8O.log.debug("c8o.desk: result filled, add clipping event if necessary and perform resize");
+			
+			$("a, input[type=button], input[type=image], input[type=submit]").filter("[twsid]").unbind(".clipping").bind("click.clipping", C8O._handleEvent);
+			$("form[twsid]").unbind(".clipping").bind("submit.clipping", C8O._handleEvent);
+			
+			if (C8O.vars.auto_resize == "true" && window != window.parent && (C8O.isUndefined(resize) || resize)) {
+				window.setTimeout(C8O._resize, 750);
+			}
+			if ("true" == C8O.vars.auto_refresh && $("[twsid]:first").length > 0) {
+				C8O._checkDirty();
+			}
+		}
+	},
+	
+	_handleEvent : function (event) {
+		var params = {
+			__event_action : event.type,
+			__event_srcid : $(this).attr("twsid")
+		};
+		if (event.type == "click") {
+			C8O._define.clipping_attributs.each(function () {
+				if (!C8O.isUndefined(event[this])) {
+					params["__event_" + this] = event[this];
+				}
+			});
+		}
+		(event.type == "submit" ? $($.makeArray(this.elements)) : $("input, select, textarea").filter("[twsid]:enabled")).each(function () {
+			var twsid = $(this).attr("twsid"), j;
+			switch (this.type) {
+				case 'text' : case 'password' : case 'hidden' : case 'textarea':
+					C8O._addField(params, twsid, this.value);
+					break;
+				case 'select-one':
+					if (this.selectedIndex>=0) C8O._addField(params, twsid, this.selectedIndex);
+					break;
+				case 'select-multiple':
+					var selected = [];
+					for (j=0; j < this.options.length; j++) {
+						if (this.options[j].selected) {
+							selected.push(j);
+						}
+						C8O._addField(params, twsid, selected.join(";"));
+					}
+					break;
+				case 'checkbox' : case 'radio':
+					C8O._addField(params, twsid, this.checked?"true":"false");
+					break;			
+			}
+		});
+		C8O.call(params);
+		return false;
+	},
+	
+	_desk_init : C8O._init,
 	_init : function (params) {
 		var value;
 		if (value = C8O._remove(params, "__container")) {
@@ -161,7 +230,54 @@ $.extend(true, C8O, {
 				});
 			}
 		} else {
-			C8O.__init(params);
+			C8O._desk_init(params);
+		}
+	},
+	
+	_onCallSuccess : function (xml, status, jqXHR) {
+		if (C8O.vars.xsl_side == "server") {
+			C8O.log.debug("c8o.desk: receive xsl server response as text");
+			
+			var aText = [jqXHR.responseText + ""];
+			if (C8O._hook("text_response", aText)) {
+				C8O._fillBody(aText[0]);
+			}
+		} else {	
+			if (C8O._hook("xml_response", xml, jqXHR.C8O_data)) {
+				var redirect_location = $(xml.documentElement).attr("redirect_location");
+				if (!C8O.isUndefined(redirect_location)) {
+					C8O.log.debug("c8o.desk: receive a siteclipper response, prepare for redirection");
+					
+					if (C8O.vars.use_siteclipper_plugin == "true") {
+						C8O._getScript(C8O._define.plugins_path + "siteclipper.js", function () {
+							C8O._init_siteclipper({redirect_location : redirect_location});
+						});
+					} else {
+						window.location = redirect_location;
+					}
+					return;
+				}
+				var sheet_uri = C8O._xslStyleSheet(xml);
+				if (sheet_uri != null) {
+					C8O.log.debug("c8o.desk: receive a XML response, retrieve XSL for client transformation " + sheet_uri);
+					
+					$.ajax({
+						url : sheet_uri,
+						success : function (xsl) {
+							C8O._xslt(xml, xsl);
+						},
+						type : "GET"
+					});
+				} else {
+					C8O.log.debug("c8o.desk: receive a XML response without XSL, insert XML as text");
+					
+					if (!$.support.leadingWhitespace) {
+						C8O._fillBody($("<pre>" + jqXHR.responseText.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>"));
+					} else {
+						C8O._fillBody($("<pre/>").text(jqXHR.responseText));
+					}
+				}
+			}
 		}
 	},
 	
@@ -214,50 +330,12 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	_onSuccess : function (xml, status, jqXHR) {
-		if (C8O.vars.xsl_side == "server") {
-			C8O.log.debug("c8o.desk: receive xsl server response as text");
-			
-			var aText = [jqXHR.responseText + ""];
-			if (C8O._hook("text_response", aText)) {
-				C8O._fillBody(aText[0]);
-			}
-		} else {	
-			if (C8O._hook("xml_response", xml, jqXHR.C8O_data)) {
-				var redirect_location = $(xml.documentElement).attr("redirect_location");
-				if (!C8O.isUndefined(redirect_location)) {
-					C8O.log.debug("c8o.desk: receive a siteclipper response, prepare for redirection");
-					
-					if (C8O.vars.use_siteclipper_plugin == "true") {
-						C8O._getScript(C8O._define.plugins_path + "siteclipper.js", function () {
-							C8O._init_siteclipper({redirect_location : redirect_location});
-						});
-					} else {
-						window.location = redirect_location;
-					}
-					return;
-				}
-				var sheet_uri = C8O._xslStyleSheet(xml);
-				if (sheet_uri != null) {
-					C8O.log.debug("c8o.desk: receive a XML response, retrieve XSL for client transformation " + sheet_uri);
-					
-					$.ajax({
-						url : sheet_uri,
-						success : function (xsl) {
-							C8O._xslt(xml, xsl);
-						},
-						type : "GET"
-					});
-				} else {
-					C8O.log.debug("c8o.desk: receive a XML response without XSL, insert XML as text");
-					
-					if (!$.support.leadingWhitespace) {
-						C8O._fillBody($("<pre>" + jqXHR.responseText.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>"));
-					} else {
-						C8O._fillBody($("<pre/>").text(jqXHR.responseText));
-					}
-				}
-			}
+	_postMessage : function (data) {
+		if (window.postMessage) {
+			try {
+				data = C8O.toJSON(data);
+			} catch(e) {}
+			window.parent.postMessage(data, "*");
 		}
 	},
 	
@@ -276,36 +354,6 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	_fillBody : function (content, resize) {
-		var $container = C8O.vars.target_id;
-		if (typeof($container) == "string") {
-			$container = $($container.length == 0 ? "body" : ('#' + $container));	
-		} else if (C8O.isUndefined($container.jquery)){
-			$container = $($container);
-		}
-		
-		if (C8O.vars.target_append == "true") {
-			$container.append(content);
-		} else {
-			$container.html(content).children("title:first").each(function () {
-				window.document.title = $(this).text();
-			});
-		}
-		if (C8O._hook("result_filled", $container)) {
-			C8O.log.debug("c8o.desk: result filled, add clipping event if necessary and perform resize");
-			
-			$("a, input[type=button], input[type=image], input[type=submit]").filter("[twsid]").unbind(".clipping").bind("click.clipping", C8O._handleEvent);
-			$("form[twsid]").unbind(".clipping").bind("submit.clipping", C8O._handleEvent);
-			
-			if (C8O.vars.auto_resize == "true" && window != window.parent && (C8O.isUndefined(resize) || resize)) {
-				window.setTimeout(C8O._resize, 750);
-			}
-			if ("true" == C8O.vars.auto_refresh && $("[twsid]:first").length > 0) {
-				C8O._checkDirty();
-			}
-		}
-	},
-	
 	_xslStyleSheet : function (xml) {
 		var node = xml.firstChild;
 		while (node != null) {
@@ -316,54 +364,6 @@ $.extend(true, C8O, {
 			}
 		}
 		return null;
-	},
-	
-	_handleEvent : function (event) {
-		var params = {
-			__event_action : event.type,
-			__event_srcid : $(this).attr("twsid")
-		};
-		if (event.type == "click") {
-			C8O._define.clipping_attributs.each(function () {
-				if (!C8O.isUndefined(event[this])) {
-					params["__event_" + this] = event[this];
-				}
-			});
-		}
-		(event.type == "submit" ? $($.makeArray(this.elements)) : $("input, select, textarea").filter("[twsid]:enabled")).each(function () {
-			var twsid = $(this).attr("twsid"), j;
-			switch (this.type) {
-				case 'text' : case 'password' : case 'hidden' : case 'textarea':
-					C8O._addField(params, twsid, this.value);
-					break;
-				case 'select-one':
-					if (this.selectedIndex>=0) C8O._addField(params, twsid, this.selectedIndex);
-					break;
-				case 'select-multiple':
-					var selected = [];
-					for (j=0; j < this.options.length; j++) {
-						if (this.options[j].selected) {
-							selected.push(j);
-						}
-						C8O._addField(params, twsid, selected.join(";"));
-					}
-					break;
-				case 'checkbox' : case 'radio':
-					C8O._addField(params, twsid, this.checked?"true":"false");
-					break;			
-			}
-		});
-		C8O.call(params);
-		return false;
-	},
-	
-	_postMessage : function (data) {
-		if (window.postMessage) {
-			try {
-				data = C8O.toJSON(data);
-			} catch(e) {}
-			window.parent.postMessage(data, "*");
-		}
 	},
 	
 	_xslt : function (xml, xsl) {

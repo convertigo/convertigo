@@ -27,170 +27,155 @@ $.extend(true, C8O, {
 	}
 });
 $.extend(true, C8O, {
+	
 	vars : { /** customizable value by adding __name=value in query*/
 		xsl_side : "none" /** client/server */
 	},
-	/**
-	 * This will analyze C8O responses and route them to the correct page according to the
-	 * routingTable. 
-	 * 
-	 * When the correct page is found we switch to this page and wait for the pageinit event to
-	 * render all the widgets listening to this response.
-	 * 
-	 * If no page has to be switched, we render on the same page immediately
-	 */
-	isActivePage: function (fromPage) {
-		return true;
+	
+	_define: {
+		re_accumulate_mode : new RegExp("^(?:(append)|(prepend)|(.*?))$"), // 1: append ; 2: preprend ; 3: replacel
+		re_call_mode : new RegExp("^(?:(click)|(auto)|(?:(timer:)(.*)))$"), // 1: click ; 2: auto ; 3: timer ; 4: seconds for timer
+		re_requestable : new RegExp("^([^.]*)\\.(?:([^.]+)|(?:([^.]+)\\.([^.]+)))$"), // 1: project ; 2: sequence ; 3: connector ; 4: transaction > 1+2 | 1+3+4
+		re_split_comma_trim : new RegExp("\\s*,\\s*"),
+		/**
+		 * Reg exp selector for templating engine
+		 */
+		re_find_ctf_markers : new RegExp(C8O._define.ctf_mark + "(?:(\\{[\\d\\D]*?\\})|(?:=(.*?)))" + C8O._define.ctf_mark), // 0: full ; 1: json ; 2: selector
+		re_find_ctf_esc_start : new RegExp(C8O._define.ctf_mark_esc + "(=|\\{)", "g"),
+		re_find_ctf_esc_end : new RegExp(C8O._define.ctf_mark_esc, "g"), // 0: full ; 1: json ; 2: selector
+		
+		templates : {}
 	},
 	
-	changePage: function (goToPage, options, callback) {
+	_addTemplate: function(template) {
+		var templateID = Math.floor(Math.random() * 16777215).toString(16);
+		C8O._define.templates[templateID] = template;
+		return templateID;		
+	},
+	
+	_attachEventHandlers: function() {
+		C8O.log.debug("ctf.core: check call mode auto and timer");
+		$("[data-c8o-call]").filter("[data-c8o-call-mode=auto],[data-c8o-call-mode^=timer]").each( function (index, element) {
+			var $element = $(element);
+
+			var c8oCallMode = $element.attr("data-c8o-call-mode").match(C8O._define.re_call_mode);
+			
+			if (c8oCallMode != null) {
+				if (C8O.canLog("debug")) {
+					C8O.log.debug("ctf.core: call-mode " + c8oCallMode[0] + " for " + $element.attr("data-c8o-call"));
+				}
+				$element.attr("data-c8o-call-mode", "done-" + c8oCallMode[0]);
+				if (c8oCallMode[2]) {
+					C8O._onC8oCall(element);
+				} else if (c8oCallMode[3] && $.isNumeric(c8oCallMode[4])) {
+					window.setTimeout(function () {
+						C8O._onC8oCall(element);
+					}, c8oCallMode[4] * 1000);
+				}
+			}
+		});
+	},
+	
+	_changePage: function (goToPage, options, callback) {
 		if (typeof(callback) == "function") {
 			callback();
 		};
 	},
 	
-	_routeResponse: function(xml, c8oData) {
-		var $doc = $(xml.documentElement);
-		
-		if (C8O.canLog("info")) {
-			C8O.log.info("ctf.core: searching route for " + C8O.toJSON(c8oData));
-		}
-		
-		for (var i in C8O.routingTable) {
-			var entry = C8O.routingTable[i];
-			C8O.log.trace("ctf.core: check routing " + entry.calledRequest);
+	/**
+	 * Returns true if the given condition is true.
+	 * 
+	 * The condition can be:
+	 *    - a JQuery DOM selector in the $dom object
+	 *    - a Javascript function with the following signature:
+	 *       function(paramsArray)
+	 *       this equals thisObject
+	 */
+	_checkConditionDomSelectorOrJsFunction: function(condition, thisObject, paramsArray, $dom) {
+		if (condition) {
+			C8O.log.debug("ctf.core: check condition with " + condition);
 			
-			if (C8O.isMatching(c8oData, entry.calledRequest)) {
-				for (var j in entry.actions) {
-					var action = entry.actions[j];
-					if (C8O.canLog("debug")) {
-						C8O.log.debug("ctf.core: analizyng action " + C8O.toJSON(action));
-					}
-					
-					var routeFound = true;
-					
-					if (C8O.isDefined(action.fromPage)) {
-						C8O.log.debug("ctf.core: required fromPage " + action.fromPage);
-						routeFound = C8O.isActivePage(action.fromPage);
-					}
-					
-					if (routeFound) {
-
-						if (C8O.isDefined(action.condition)) {
-							C8O.log.debug("ctf.core: route condition: " + action.condition);
-							var fnCondition = C8O._getFunction(action.condition);
-							if (fnCondition != null) {
-								routeFound = fnCondition($doc, c8oData);
-							} else {
-								routeFound = C8O._findAndSelf($doc, action.condition).length > 0;
-							}
-							C8O.log.debug("ctf.core: route condition returns: " + routeFound);
-						}
-	
-						if (routeFound) {
-							var goToPage = action.goToPage;
-							var afterChange = function () {
-								if (action.beforeRendering) {
-									action.beforeRendering($doc, c8oData);
-								}
-								C8O._renderBindings($doc, c8oData);
-								
-								if (action.afterRendering) {
-									action.afterRendering($doc, c8oData);
-								}
-								C8O.log.debug("ctf.core: rendering done");
-							};
-							
-							// Render in a target page
-							if (goToPage) {
-								C8O.log.info("ctf.core: route found, apply goToPage " + action.goToPage);
-								C8O.changePage(goToPage, action.options, afterChange);
-							}
-							// Render on the same page
-							else {
-								afterChange();
-							}
-							
-							return;
-						}
-					}
+			// Function condition
+			var functionCondition = C8O._getFunction(condition);
+			if (functionCondition != null) {
+				C8O.log.trace("ctf.core: applying condition function");
+				if (!functionCondition.apply(thisObject, paramsArray)) {
+					// The condition failed, so we abort the rendering
+					C8O.log.trace("ctf.core: condition function return false");
+					return false;
 				}
 			}
+			// DOM selector condition
+			else {
+				C8O.log.trace("ctf.core: applying condition jquery selector");
+				if (C8O._findAndSelf($dom, condition + ":first").length == 0) {
+					// The condition failed, so we abort the rendering
+					C8O.log.trace("ctf.core: condition jquery selector return false");
+					return false;
+				}
+			}
+			C8O.log.trace("ctf.core: applying condition return true");
 		}
 		
-		C8O.log.info("ctf.core: no route found, process template");
-		C8O._renderBindings($doc, c8oData);
+		return true;
 	},
 	
 	/**
-	 * Scans all the widgets requiring data update and render them
+	 * Finds and renders all the data-c8o-use-xxx attributes in the given component.
 	 */
-	_renderBindings: function($xmlData, c8oData) {
-		C8O.log.debug("ctf.core: rendering bindings");
-		if (C8O.canLog("trace")) {
-			C8O.log.trace("ctf.core: c8oData = " + C8O.toJSON(c8oData));
-		}
-		
-		$("[data-c8o-listen]").each( function (index, element) {
-			var $element = $(element);
-			
-			// Get the binded attributes
-			var listenRequestables = $element.attr("data-c8o-listen");
-			C8O.log.trace("ctf.core: listenRequestables = '" + listenRequestables + "'");
-			
-			// Check called requestable against the list of listen requestables
-			if (C8O.isMatching(c8oData, listenRequestables)) {
-				C8O.log.info("ctf.core: data-c8o-listen '" + listenRequestables + "' match");
-				
-				// Check listen condition if any
-				var c8oListenCondition = $element.attr("data-c8o-listen-condition");
-				C8O.log.info("ctf.core: listen condition: " + (c8oListenCondition ? c8oListenCondition : "<none>"));
-				if (!C8O._checkConditionDomSelectorOrJsFunction(
-						c8oListenCondition,
-						element,
-						[$xmlData, c8oData],
-						$xmlData)) {
-					// The condition failed, so we abort the rendering
-					C8O.log.info("ctf.core: condition failed");
-					return;
-				}
-
-				// Apply the template
-				var $c8oListenContainer = $(this);
-				
-				C8O._manageTemplate($c8oListenContainer);
-				
-				var functionBeforeRendering = C8O._getFunction($element.attr("data-c8o-before-rendering"));
-				if (functionBeforeRendering != null) {
-					C8O.log.debug("ctf.core: call data-c8o-before-rendering function '" + $element.attr("data-c8o-before-rendering") + "'");
-					functionBeforeRendering.call(element, $xmlData, c8oData);
-				}
-
-				C8O.renderWidgets($c8oListenContainer, $xmlData);
-
-				// Re attach any click handlers in case of new graphical components
-				C8O._attachEventHandlers();
-				
-				var functionAfterRendering = C8O._getFunction($element.attr("data-c8o-after-rendering"));
-				if (functionAfterRendering != null) {
-					C8O.log.debug("ctf.core: call data-c8o-after-rendering function '" + $element.attr("data-c8o-after-rendering") + "'");
-					functionAfterRendering.call(element, $xmlData, c8oData);
-				}
-			} else {
-				C8O.log.trace("ctf.core: data-c8o-listen '" + listenRequestables + "' doesn't match");
+	_findUseAttributes: function($component) {
+		$($component[0].attributes).each(function () {
+			var attributeName = this.nodeName;
+			if (attributeName.indexOf("data-c8o-use-") == 0) {
+				attributeName = attributeName.substring(13);
+				var attributeValue = this.nodeValue;
+				C8O._renderUseAttribute($component, attributeName, attributeValue);
 			}
 		});
+	},
+	
+	_getRefData: function (rule, refs) {
+		var $data = refs._self;
+		if (C8O.isDefined(rule.ref)) {
+			if (C8O.isDefined(refs[rule.ref])) {
+				$data = refs[rule.ref];
+			} else {
+				C8O.log.info("ctf.core: unknown ref " + rule.ref + " in parent iteration, use current iteration");
+			}
+		}
+		return $data;
+	},
+	
+	_getTemplate: function(templateID) {
+		return C8O._define.templates[templateID].clone();
+	},
+	
+	_handleRef: function ($element, $doc, refs) {
+		if (C8O.isUndefined(refs)) {
+			refs = {};
+		}
+		refs._self = $doc;
+		var refName = $element.attr("data-c8o-ref");
+		if (refName) {
+			C8O.log.debug("ctf.core: add reference " + refName);
+			refs[refName] = refs._self;
+		}
+		return refs;
+	},
+	
+	_isActivePage: function (fromPage) {
+		return true;
 	},
 	
 	/**
 	 * Returns true if a given requestable is matching one of the requestables
 	 * in a list, false otherwise.
 	 */
-	isMatching: function(c8oData, checkRequestablesList) {
+	_isMatching: function(c8oData, checkRequestablesList) {
 		var checkRequestablesArray = checkRequestablesList.split(C8O._define.re_split_comma_trim);
 		
 		for (var i in checkRequestablesArray) {
-			if (C8O.isMatchingSingle(c8oData, checkRequestablesArray[i])) {
+			if (C8O._isMatchingSingle(c8oData, checkRequestablesArray[i])) {
 				return true;
 			}
 		}
@@ -201,7 +186,7 @@ $.extend(true, C8O, {
 	/**
 	 * Returns true if requestableObject is matching checkRequestableObject, false otherwise.
 	 */
-	isMatchingSingle: function(c8oData, checkRequestableObject) {
+	_isMatchingSingle: function(c8oData, checkRequestableObject) {
 		if (checkRequestableObject == "*") {
 			return true;
 		}
@@ -227,21 +212,25 @@ $.extend(true, C8O, {
 		
 		return false;
 	},
-
-	_templates : {},
 	
-	_addTemplate: function(template) {
-		var templateID = Math.floor(Math.random() * 16777215).toString(16);
-		C8O._templates[templateID] = template;
-		return templateID;		
-	},
-	
-	_getTemplate: function(templateID) {
-		return C8O._templates[templateID].clone();
-	},
-	
-	_removeTemplate: function(templateID) {
-		return delete C8O._templates[templateID];
+	_makeRule: function (txt) {
+		var match = txt.match(C8O._define.re_find_ctf_markers);
+		try {
+			var rule = undefined;
+			if (match[1]) {
+				// JSON case
+				rule = match[1].replace(C8O._define.re_find_ctf_esc_end, C8O._define.ctf_mark);
+				rule = $.parseJSON(rule);
+			} else if (match[2]) {
+				rule = match[2].replace(C8O._define.re_find_ctf_esc_end, C8O._define.ctf_mark);
+				rule = {find : rule};
+			}
+			rule.template = match[0];
+			return rule;
+		} catch (e) {
+			C8O.log.error("ctf.core: failed to make a rule from " + txt, e);
+			return null;
+		}
 	},
 	
 	_manageTemplate: function($element) {
@@ -297,64 +286,165 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	/**
-	 * Render the specified widget using the templating engine
-	 * 
-	 * $html points to the widget dom
-	 * $doc is the data to render in the widget
-	 */
-	renderWidgets: function ($html, $doc) {
-		var refs = C8O._handleRef($html, $doc);
+	_onC8oCall: function(element) {
+		var $element = $(element);
+		// Check call condition if any
+		if (!C8O._checkConditionDomSelectorOrJsFunction(
+				$element.attr("data-c8o-call-condition"),
+				element,
+				[],
+				$(window.document))) {
+			// The condition failed, so we abort the rendering
+			return;
+		}
+
+		var c8oCall = $element.attr("data-c8o-call");
+		C8O.log.trace("ctf.core: data-c8o-call " + c8oCall);
 		
-		// Render simple elements
-		C8O._renderElement($html, refs);
-
-		// Render "use" attributes
-		C8O._renderUseAttributes($html);
-
-		// Render GUI components
-		C8O._renderFinish($html);
-	},
-
-	/**
-	 * Renders special attributes data-c8o-use-xxx
-	 */
-	_renderUseAttributes: function($html) {
-		// Find the use attribute marker in HTML elements
-		C8O._findAndSelf($html, "[data-c8o-use]").each(function () {
-			var $this = $(this);
-			// Find data-c8o-use-xxx attributes in the found HTML element
-			C8O._findUseAttributes($this);
-		});
+		if (c8oCall) {
+			var c8oCallParams = {};
+			var matches = c8oCall.match(C8O._define.re_requestable);
+			
+			if (matches != null) {
+				if (matches[1].length) {
+					c8oCallParams["__project"] = matches[1];
+				}
+				if (C8O.isDefined(matches[2])) {
+					c8oCallParams["__sequence"] = matches[2];
+				} else {
+					c8oCallParams["__connector"] = matches[3];
+					c8oCallParams["__transaction"] = matches[4];
+				}
+			} else {
+				C8O.log.error("ctf.core: data-c8o-call '" + c8oCall + "' is not valid");
+				return false;
+			}
+			
+			// Find whether the call compionent is inside a form
+			var $form = $element.closest("form");
+			if ($form.length) {
+				C8O.log.trace("ctf.core: data-c8o-call in form");
+				
+				// Search for input fields in the form
+				C8O.formToData($form, c8oCallParams);
+			}
+			
+			// Search for 'data-c8o-variable' tagged elements in the link to use it
+			// to build data request to C8O
+			C8O._findAndSelf($form.length ? $form : $element, "[data-c8o-variable]").each(function (index, element) {
+				var $c8oVariable = $(element);
+				var name = $c8oVariable.attr("data-c8o-variable");
+				var value = $c8oVariable.text();
+				C8O.log.trace("ctf.core: add data-c8o-variable " + name + "=" + value);
+				C8O.appendValue(c8oCallParams, name, value);
+			});
+			
+			var variables = null;
+			var c8oVariables;
+			if ($form.length && !$element.is("form")) {
+				c8oVariables = $form.attr("data-c8o-variables");
+				if (C8O.isDefined(c8oVariables)) {
+					C8O.log.trace("ctf.core: add form data-c8o-variables " + c8oVariables);
+					variables = C8O._silentParseJSON(c8oVariables);
+				}
+			}
+			c8oVariables = $element.attr("data-c8o-variables");
+			if (C8O.isDefined(c8oVariables)) {
+				C8O.log.trace("ctf.core: add current data-c8o-variables " + c8oVariables);
+				variables = $.extend(variables, C8O._silentParseJSON($element.attr("data-c8o-variables")));
+			}
+			if (variables != null) {
+				C8O.appendValues(c8oCallParams, variables);
+			}
+			
+			// now call c8o with constructed arguments
+			C8O.call(c8oCallParams);
+		}
+		return false;
 	},
 	
-	_renderFinish: function($elt) {
-		
+	_onDocumentReadyEnd: function (callback) {
+		if (typeof(callback) == "function") {
+			callback();
+		};
+	},
+	
+	_onCallSuccess : function (xml, status, jqXHR) {
+		C8O.log.info("ctf.core: received valid response");
+		var c8oData = jqXHR.C8O_data;
+		if (C8O._hook("xml_response", xml, c8oData)) {
+			/*
+			 * Retrieving last requestable from last call to Convertigo server.
+			 * This will help determining which actions have to be achieved: which data to manage in which screen.
+			 * The choice can be done depending on the last "requestable", but also on the xml response itself, depending
+			 * on its content (see above code).
+			 */	
+			C8O._routeResponse(xml, c8oData);
+		}
+	},
+	
+	_removeTemplate: function(templateID) {
+		return delete C8O._define.templates[templateID];
 	},
 	
 	/**
-	 * Finds and renders all the data-c8o-use-xxx attributes in the given component.
+	 * Scans all the widgets requiring data update and render them
 	 */
-	_findUseAttributes: function($component) {
-		$($component[0].attributes).each(function () {
-			var attributeName = this.nodeName;
-			if (attributeName.indexOf("data-c8o-use-") == 0) {
-				attributeName = attributeName.substring(13);
-				var attributeValue = this.nodeValue;
-				C8O._renderUseAttribute($component, attributeName, attributeValue);
+	_renderBindings: function($xmlData, c8oData) {
+		C8O.log.debug("ctf.core: rendering bindings");
+		if (C8O.canLog("trace")) {
+			C8O.log.trace("ctf.core: c8oData = " + C8O.toJSON(c8oData));
+		}
+		
+		$("[data-c8o-listen]").each( function (index, element) {
+			var $element = $(element);
+			
+			// Get the binded attributes
+			var listenRequestables = $element.attr("data-c8o-listen");
+			C8O.log.trace("ctf.core: listenRequestables = '" + listenRequestables + "'");
+			
+			// Check called requestable against the list of listen requestables
+			if (C8O._isMatching(c8oData, listenRequestables)) {
+				C8O.log.info("ctf.core: data-c8o-listen '" + listenRequestables + "' match");
+				
+				// Check listen condition if any
+				var c8oListenCondition = $element.attr("data-c8o-listen-condition");
+				C8O.log.info("ctf.core: listen condition: " + (c8oListenCondition ? c8oListenCondition : "<none>"));
+				if (!C8O._checkConditionDomSelectorOrJsFunction(
+						c8oListenCondition,
+						element,
+						[$xmlData, c8oData],
+						$xmlData)) {
+					// The condition failed, so we abort the rendering
+					C8O.log.info("ctf.core: condition failed");
+					return;
+				}
+
+				// Apply the template
+				var $c8oListenContainer = $(this);
+				
+				C8O._manageTemplate($c8oListenContainer);
+				
+				var functionBeforeRendering = C8O._getFunction($element.attr("data-c8o-before-rendering"));
+				if (functionBeforeRendering != null) {
+					C8O.log.debug("ctf.core: call data-c8o-before-rendering function '" + $element.attr("data-c8o-before-rendering") + "'");
+					functionBeforeRendering.call(element, $xmlData, c8oData);
+				}
+
+				C8O._renderWidgets($c8oListenContainer, $xmlData);
+
+				// Re attach any click handlers in case of new graphical components
+				C8O._attachEventHandlers();
+				
+				var functionAfterRendering = C8O._getFunction($element.attr("data-c8o-after-rendering"));
+				if (functionAfterRendering != null) {
+					C8O.log.debug("ctf.core: call data-c8o-after-rendering function '" + $element.attr("data-c8o-after-rendering") + "'");
+					functionAfterRendering.call(element, $xmlData, c8oData);
+				}
+			} else {
+				C8O.log.trace("ctf.core: data-c8o-listen '" + listenRequestables + "' doesn't match");
 			}
 		});
-	},
-	
-	/**
-	 * Renders the data-c8o-use-xxx attribute in the given component,
-	 * i.e. removes the data-c8o-use-xxx attribute from the given element
-	 * and adds a new attribute xxx with the given value.
-	 */
-	_renderUseAttribute: function($component, attributeName, attributeValue) {
-		C8O.log.debug("ctf.core: add user attribute " + attributeName + "=" + attributeValue);
-		$component.removeAttr("data-c8o-use-" + attributeName);
-		$component.attr(attributeName, attributeValue);
 	},
 	
 	_renderElement: function($element, refs) {
@@ -424,36 +514,8 @@ $.extend(true, C8O, {
 		});
 	},
 	
-	_makeRule: function (txt) {
-		var match = txt.match(C8O._define.re_find_ctf_markers);
-		try {
-			var rule = undefined;
-			if (match[1]) {
-				// JSON case
-				rule = match[1].replace(C8O._define.re_find_ctf_esc_end, C8O._define.ctf_mark);
-				rule = $.parseJSON(rule);
-			} else if (match[2]) {
-				rule = match[2].replace(C8O._define.re_find_ctf_esc_end, C8O._define.ctf_mark);
-				rule = {find : rule};
-			}
-			rule.template = match[0];
-			return rule;
-		} catch (e) {
-			C8O.log.error("ctf.core: failed to make a rule from " + txt, e);
-			return null;
-		}
-	},
-	
-	_getRefData: function (rule, refs) {
-		var $data = refs._self;
-		if (C8O.isDefined(rule.ref)) {
-			if (C8O.isDefined(refs[rule.ref])) {
-				$data = refs[rule.ref];
-			} else {
-				C8O.log.info("ctf.core: unknown ref " + rule.ref + " in parent iteration, use current iteration");
-			}
-		}
-		return $data;
+	_renderFinish: function($elt) {
+		
 	},
 	
 	_renderText: function (txt, data) {
@@ -545,188 +607,128 @@ $.extend(true, C8O, {
 		return res + txt.replace(C8O._define.re_find_ctf_esc_start, C8O._define.ctf_mark + "$1");	
 	},
 	
-	_define: {
-		re_accumulate_mode : new RegExp("^(?:(append)|(prepend)|(.*?))$"), // 1: append ; 2: preprend ; 3: replacel
-		re_call_mode : new RegExp("^(?:(click)|(auto)|(?:(timer:)(.*)))$"), // 1: click ; 2: auto ; 3: timer ; 4: seconds for timer
-		re_requestable : new RegExp("^([^.]*)\\.(?:([^.]+)|(?:([^.]+)\\.([^.]+)))$"), // 1: project ; 2: sequence ; 3: connector ; 4: transaction > 1+2 | 1+3+4
-		re_split_comma_trim : new RegExp("\\s*,\\s*"),
-		/**
-		 * Reg exp selector for templating engine
-		 */
-		re_find_ctf_markers : new RegExp(C8O._define.ctf_mark + "(?:(\\{[\\d\\D]*?\\})|(?:=(.*?)))" + C8O._define.ctf_mark), // 0: full ; 1: json ; 2: selector
-		re_find_ctf_esc_start : new RegExp(C8O._define.ctf_mark_esc + "(=|\\{)", "g"),
-		re_find_ctf_esc_end : new RegExp(C8O._define.ctf_mark_esc, "g") // 0: full ; 1: json ; 2: selector
+	/**
+	 * Renders the data-c8o-use-xxx attribute in the given component,
+	 * i.e. removes the data-c8o-use-xxx attribute from the given element
+	 * and adds a new attribute xxx with the given value.
+	 */
+	_renderUseAttribute: function($component, attributeName, attributeValue) {
+		C8O.log.debug("ctf.core: add user attribute " + attributeName + "=" + attributeValue);
+		$component.removeAttr("data-c8o-use-" + attributeName);
+		$component.attr(attributeName, attributeValue);
 	},
 
 	/**
-	 * Returns true if the given condition is true.
-	 * 
-	 * The condition can be:
-	 *    - a JQuery DOM selector in the $dom object
-	 *    - a Javascript function with the following signature:
-	 *       function(paramsArray)
-	 *       this equals thisObject
+	 * Renders special attributes data-c8o-use-xxx
 	 */
-	_checkConditionDomSelectorOrJsFunction: function(condition, thisObject, paramsArray, $dom) {
-		if (condition) {
-			C8O.log.debug("ctf.core: check condition with " + condition);
-			
-			// Function condition
-			var functionCondition = C8O._getFunction(condition);
-			if (functionCondition != null) {
-				C8O.log.trace("ctf.core: applying condition function");
-				if (!functionCondition.apply(thisObject, paramsArray)) {
-					// The condition failed, so we abort the rendering
-					C8O.log.trace("ctf.core: condition function return false");
-					return false;
-				}
-			}
-			// DOM selector condition
-			else {
-				C8O.log.trace("ctf.core: applying condition jquery selector");
-				if (C8O._findAndSelf($dom, condition + ":first").length == 0) {
-					// The condition failed, so we abort the rendering
-					C8O.log.trace("ctf.core: condition jquery selector return false");
-					return false;
-				}
-			}
-			C8O.log.trace("ctf.core: applying condition return true");
-		}
-		
-		return true;
-	},
-	
-	_attachEventHandlers: function() {
-		C8O.log.debug("ctf.core: check call mode auto and timer");
-		$("[data-c8o-call]").filter("[data-c8o-call-mode=auto],[data-c8o-call-mode^=timer]").each( function (index, element) {
-			var $element = $(element);
-
-			var c8oCallMode = $element.attr("data-c8o-call-mode").match(C8O._define.re_call_mode);
-			
-			if (c8oCallMode != null) {
-				if (C8O.canLog("debug")) {
-					C8O.log.debug("ctf.core: call-mode " + c8oCallMode[0] + " for " + $element.attr("data-c8o-call"));
-				}
-				$element.attr("data-c8o-call-mode", "done-" + c8oCallMode[0]);
-				if (c8oCallMode[2]) {
-					C8O._onC8oCall(element);
-				} else if (c8oCallMode[3] && $.isNumeric(c8oCallMode[4])) {
-					window.setTimeout(function () {
-						C8O._onC8oCall(element);
-					}, c8oCallMode[4] * 1000);
-				}
-			}
+	_renderUseAttributes: function($html) {
+		// Find the use attribute marker in HTML elements
+		C8O._findAndSelf($html, "[data-c8o-use]").each(function () {
+			var $this = $(this);
+			// Find data-c8o-use-xxx attributes in the found HTML element
+			C8O._findUseAttributes($this);
 		});
 	},
 	
-	_onC8oCall: function(element) {
-		var $element = $(element);
-		// Check call condition if any
-		if (!C8O._checkConditionDomSelectorOrJsFunction(
-				$element.attr("data-c8o-call-condition"),
-				element,
-				[],
-				$(window.document))) {
-			// The condition failed, so we abort the rendering
-			return;
-		}
-
-		var c8oCall = $element.attr("data-c8o-call");
-		C8O.log.trace("ctf.core: data-c8o-call " + c8oCall);
+	/**
+	 * Render the specified widget using the templating engine
+	 * 
+	 * $html points to the widget dom
+	 * $doc is the data to render in the widget
+	 */
+	_renderWidgets: function ($html, $doc) {
+		var refs = C8O._handleRef($html, $doc);
 		
-		if (c8oCall) {
-			var c8oCallParams = {};
-			var matches = c8oCall.match(C8O._define.re_requestable);
-			
-			if (matches != null) {
-				if (matches[1].length) {
-					c8oCallParams["__project"] = matches[1];
-				}
-				if (C8O.isDefined(matches[2])) {
-					c8oCallParams["__sequence"] = matches[2];
-				} else {
-					c8oCallParams["__connector"] = matches[3];
-					c8oCallParams["__transaction"] = matches[4];
-				}
-			} else {
-				C8O.log.error("ctf.core: data-c8o-call '" + c8oCall + "' is not valid");
-				return false;
-			}
-			
-			// Find whether the call compionent is inside a form
-			var $form = $element.closest("form");
-			if ($form.length) {
-				C8O.log.trace("ctf.core: data-c8o-call in form");
-				
-				// Search for input fields in the form
-				C8O.formToData($form, c8oCallParams);
-			}
-			
-			// Search for 'data-c8o-variable' tagged elements in the link to use it
-			// to build data request to C8O
-			C8O._findAndSelf($form.length ? $form : $element, "[data-c8o-variable]").each(function (index, element) {
-				var $c8oVariable = $(element);
-				var name = $c8oVariable.attr("data-c8o-variable");
-				var value = $c8oVariable.text();
-				C8O.log.trace("ctf.core: add data-c8o-variable " + name + "=" + value);
-				C8O.appendValue(c8oCallParams, name, value);
-			});
-			
-			var variables = null;
-			var c8oVariables;
-			if ($form.length && !$element.is("form")) {
-				c8oVariables = $form.attr("data-c8o-variables");
-				if (C8O.isDefined(c8oVariables)) {
-					C8O.log.trace("ctf.core: add form data-c8o-variables " + c8oVariables);
-					variables = C8O._silentParseJSON(c8oVariables);
-				}
-			}
-			c8oVariables = $element.attr("data-c8o-variables");
-			if (C8O.isDefined(c8oVariables)) {
-				C8O.log.trace("ctf.core: add current data-c8o-variables " + c8oVariables);
-				variables = $.extend(variables, C8O._silentParseJSON($element.attr("data-c8o-variables")));
-			}
-			if (variables != null) {
-				C8O.appendValues(c8oCallParams, variables);
-			}
-			
-			// now call c8o with constructed arguments
-			C8O.call(c8oCallParams);
-		}
-		return false;
+		// Render simple elements
+		C8O._renderElement($html, refs);
+
+		// Render "use" attributes
+		C8O._renderUseAttributes($html);
+
+		// Render GUI components
+		C8O._renderFinish($html);
 	},
-	
-	_handleRef: function ($element, $doc, refs) {
-		if (C8O.isUndefined(refs)) {
-			refs = {};
+
+	/**
+	 * This will analyze C8O responses and route them to the correct page according to the
+	 * routingTable. 
+	 * 
+	 * When the correct page is found we switch to this page and wait for the pageinit event to
+	 * render all the widgets listening to this response.
+	 * 
+	 * If no page has to be switched, we render on the same page immediately
+	 */
+	_routeResponse: function(xml, c8oData) {
+		var $doc = $(xml.documentElement);
+		
+		if (C8O.canLog("info")) {
+			C8O.log.info("ctf.core: searching route for " + C8O.toJSON(c8oData));
 		}
-		refs._self = $doc;
-		var refName = $element.attr("data-c8o-ref");
-		if (refName) {
-			C8O.log.debug("ctf.core: add reference " + refName);
-			refs[refName] = refs._self;
-		}
-		return refs;
-	},
+		
+		for (var i in C8O.routingTable) {
+			var entry = C8O.routingTable[i];
+			C8O.log.trace("ctf.core: check routing " + entry.calledRequest);
+			
+			if (C8O._isMatching(c8oData, entry.calledRequest)) {
+				for (var j in entry.actions) {
+					var action = entry.actions[j];
+					if (C8O.canLog("debug")) {
+						C8O.log.debug("ctf.core: analizyng action " + C8O.toJSON(action));
+					}
+					
+					var routeFound = true;
+					
+					if (C8O.isDefined(action.fromPage)) {
+						C8O.log.debug("ctf.core: required fromPage " + action.fromPage);
+						routeFound = C8O._isActivePage(action.fromPage);
+					}
+					
+					if (routeFound) {
+
+						if (C8O.isDefined(action.condition)) {
+							C8O.log.debug("ctf.core: route condition: " + action.condition);
+							var fnCondition = C8O._getFunction(action.condition);
+							if (fnCondition != null) {
+								routeFound = fnCondition($doc, c8oData);
+							} else {
+								routeFound = C8O._findAndSelf($doc, action.condition).length > 0;
+							}
+							C8O.log.debug("ctf.core: route condition returns: " + routeFound);
+						}
 	
-	_onDocumentReadyEnd: function (callback) {
-		if (typeof(callback) == "function") {
-			callback();
-		};
-	},
-	
-	_onSuccess : function (xml, status, jqXHR) {
-		C8O.log.info("ctf.core: received valid response");
-		var c8oData = jqXHR.C8O_data;
-		if (C8O._hook("xml_response", xml, c8oData)) {
-			/*
-			 * Retrieving last requestable from last call to Convertigo server.
-			 * This will help determining which actions have to be achieved: which data to manage in which screen.
-			 * The choice can be done depending on the last "requestable", but also on the xml response itself, depending
-			 * on its content (see above code).
-			 */	
-			C8O._routeResponse(xml, c8oData);
+						if (routeFound) {
+							var goToPage = action.goToPage;
+							var afterChange = function () {
+								if (action.beforeRendering) {
+									action.beforeRendering($doc, c8oData);
+								}
+								C8O._renderBindings($doc, c8oData);
+								
+								if (action.afterRendering) {
+									action.afterRendering($doc, c8oData);
+								}
+								C8O.log.debug("ctf.core: rendering done");
+							};
+							
+							// Render in a target page
+							if (goToPage) {
+								C8O.log.info("ctf.core: route found, apply goToPage " + action.goToPage);
+								C8O._changePage(goToPage, action.options, afterChange);
+							}
+							// Render on the same page
+							else {
+								afterChange();
+							}
+							
+							return;
+						}
+					}
+				}
+			}
 		}
+		
+		C8O.log.info("ctf.core: no route found, process template");
+		C8O._renderBindings($doc, c8oData);
 	},
 	
 	_silentParseJSON: function (str) {
@@ -759,7 +761,7 @@ C8O.addHook("init_finished", function () {
 		return C8O._onC8oCall(this);
 	}).on("click", "[data-c8o-render]", function () {
 		var eventName = $(this).attr("data-c8o-render");
-		for (var templateID in C8O._templates) {
+		for (var templateID in C8O._define.templates) {
 			var $lateRender = $("[data-c8o-template-id=" + templateID + "][data-c8o-late-render=" + eventName + "]");
 			if ($lateRender.length != 0 && $lateRender.children().length == 0) {
 				C8O.log.debug("ctf.core: late-render " + eventName);

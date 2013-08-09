@@ -55,7 +55,7 @@ $.extend(true, C8O, {
 			try {
 				$.mobile.loading("show", C8O.options.loading);
 			} catch (e) {
-//				console.log(e);
+       		 	C8O.log.error("c8o.jqm : failed to show loading", e);
 			}
 		}
 	},
@@ -65,7 +65,7 @@ $.extend(true, C8O, {
 			try {
 				$.mobile.loading("hide");
 			} catch (e) {
-//				console.log(e);
+				C8O.log.error("c8o.jqm : failed to hide loading", e);
 			}
 			$("#c8oloading").hide();
 		}
