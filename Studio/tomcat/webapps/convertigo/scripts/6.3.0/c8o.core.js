@@ -81,7 +81,9 @@ C8O = {
 	
 	call: function (data) {
 		var key;
-		C8O.log.info("c8o.core: call: " + C8O.toJSON(data));
+		if (C8O.canLog("info")) {
+			C8O.log.info("c8o.core: call: " + C8O.toJSON(data));
+		}
 
 		C8O.log.trace("c8o.core: call show wait div");
 		C8O.waitShow();
@@ -259,19 +261,32 @@ C8O = {
 	},
 	
 	toJSON: function (data) {
-		if (window.JSON && window.JSON.stringify) {
-			return window.JSON.stringify(data);
-		} else {
-			if (typeof(data) == "object") {
-				var s = "{";
-				for (var k in data) {
-					s += '"' + k + '" : "' + C8O.toJSON(data[k]) + '", ';
-				}
-				return s + "}";
+		try {
+			if (window.JSON && window.JSON.stringify) {
+				return window.JSON.stringify(data);
 			} else {
-				return data;
+				if ($.isPlainObject(data)) {
+					var s = "{";
+					for (var k in data) {
+						s += '"' + k + '":' + C8O.toJSON(data[k]) + ',';
+					}
+					if (s.length > 1) {
+						s = s.substring(0, s.length - 1);
+					}
+					return s + "}";
+				} else if ($.isArray(data)) {
+					var s = "[";
+					for (var k in data) {
+						s += C8O.toJSON(data[k]) + ',';
+					}
+					if (s.length > 1) {
+						s = s.substring(0, s.length - 1);
+					}
+					return s + "]";
+				}
 			}
-		}
+		} catch (e) { }
+		return '"' + data + '"';
 	},
 	
 	translate: function (elt) {
