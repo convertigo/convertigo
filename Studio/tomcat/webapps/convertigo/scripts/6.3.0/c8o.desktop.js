@@ -43,7 +43,7 @@ $.extend(true, C8O, {
 	},
 	
 	doMashupEvent : function (event_name, payload) {
-		C8O.log.debug("c8o.desktop: doMashupEvent " + event_name);
+		C8O.log.debug("c8o.desk: doMashupEvent " + event_name);
 		
 		if (payload != null && typeof(payload) == "object") {
 			if (!$.isPlainObject(payload)) {
@@ -59,7 +59,7 @@ $.extend(true, C8O, {
 				}
 			}
 			if (C8O.canLog("trace")) {
-				C8O.log.trace("c8o.desktop: payload=" + C8O.toJSON(payload));
+				C8O.log.trace("c8o.desk: payload=" + C8O.toJSON(payload));
 			}
 		} else {
 			payload = {};
@@ -68,20 +68,20 @@ $.extend(true, C8O, {
 	},
 	
 	doNavigationBarEvent : function (type) {
-		C8O.log.debug("c8o.desktop: try to doNavigationBarEvent " + type);
+		C8O.log.debug("c8o.desk: try to doNavigationBarEvent " + type);
 		if ($.inArray(type, C8O._define.navigation_var_actions) != -1) {
 			C8O.call({ __event_action : "navbar_" + type });
 		}
 	},
 	
 	doReconnect : function () {
-		C8O.log.debug("c8o.desktop: doReconnect");
+		C8O.log.debug("c8o.desk: doReconnect");
 		window.location.reload(false);
 	},
 	
 	doResize : function (height, options) {
 		if (typeof(height) == "number") {
-			C8O.log.debug("c8o.desktop: doResize to " + height);
+			C8O.log.debug("c8o.desk: doResize to " + height);
 			if (C8O.isUndefined(options)) {
 				options = {};
 			}
@@ -91,7 +91,7 @@ $.extend(true, C8O, {
 				C8O._postMessage({type : "resize", height : height});
 			}
 		} else {
-			C8O.log.debug("c8o.desktop: doResize auto");
+			C8O.log.debug("c8o.desk: doResize auto");
 			C8O._resize(options);
 		}
 	},
@@ -149,7 +149,7 @@ $.extend(true, C8O, {
 	_init : function (params) {
 		var value;
 		if (value = C8O._remove(params, "__container")) {
-			C8O.log.debug("c8o.desktop: detect container " + value);
+			C8O.log.debug("c8o.desk: detect container " + value);
 			
 			if (value == "gatein") {
 				C8O._getScript(C8O._define.plugins_path + "gatein.js", function () {
@@ -168,13 +168,13 @@ $.extend(true, C8O, {
 	_onDocumentReady : function () {
 		/** No XSLT engine (see #1336) : switch to server mode */
 		if (!window.XSLTProcessor && !window.ActiveXObject) {
-			C8O.log.debug("c8o.desktop: no xsl engine, force xsl side server");
+			C8O.log.debug("c8o.desk: no xsl engine, force xsl side server");
 			C8O.vars.xsl_side = "server";
 		}
 		
 		/** weblib_wrapper can't access to C8O object with IE (see #1778) */
 		if (typeof(C8O_document_ready) != "undefined") {
-			C8O.log.debug("c8o.desktop: register document_ready from legacy wrapper");
+			C8O.log.debug("c8o.desk: register document_ready from legacy wrapper");
 			C8O.addHook("document_ready", C8O_document_ready);
 		}
 		
@@ -206,7 +206,7 @@ $.extend(true, C8O, {
 	_onMashupEvent : function (event) {
 		if (C8O._hook("receive_mashup_event", event)) {
 			if (C8O.canLog("debug")) {
-				C8O.log.debug("c8o.desktop: receive mashup event " + C8O.toJSON(event));
+				C8O.log.debug("c8o.desk: receive mashup event " + C8O.toJSON(event));
 			}
 			if (event.type == "call") {
 				C8O.call(event.payload);
@@ -216,7 +216,7 @@ $.extend(true, C8O, {
 	
 	_onSuccess : function (xml, status, jqXHR) {
 		if (C8O.vars.xsl_side == "server") {
-			C8O.log.debug("c8o.desktop: receive xsl server response as text");
+			C8O.log.debug("c8o.desk: receive xsl server response as text");
 			
 			var aText = [jqXHR.responseText + ""];
 			if (C8O._hook("text_response", aText)) {
@@ -226,7 +226,7 @@ $.extend(true, C8O, {
 			if (C8O._hook("xml_response", xml, jqXHR.C8O_data)) {
 				var redirect_location = $(xml.documentElement).attr("redirect_location");
 				if (!C8O.isUndefined(redirect_location)) {
-					C8O.log.debug("c8o.desktop: receive a siteclipper response, prepare for redirection");
+					C8O.log.debug("c8o.desk: receive a siteclipper response, prepare for redirection");
 					
 					if (C8O.vars.use_siteclipper_plugin == "true") {
 						C8O._getScript(C8O._define.plugins_path + "siteclipper.js", function () {
@@ -239,7 +239,7 @@ $.extend(true, C8O, {
 				}
 				var sheet_uri = C8O._xslStyleSheet(xml);
 				if (sheet_uri != null) {
-					C8O.log.debug("c8o.desktop: receive a XML response, retrieve XSL for client transformation " + sheet_uri);
+					C8O.log.debug("c8o.desk: receive a XML response, retrieve XSL for client transformation " + sheet_uri);
 					
 					$.ajax({
 						url : sheet_uri,
@@ -249,7 +249,7 @@ $.extend(true, C8O, {
 						type : "GET"
 					});
 				} else {
-					C8O.log.debug("c8o.desktop: receive a XML response without XSL, insert XML as text");
+					C8O.log.debug("c8o.desk: receive a XML response without XSL, insert XML as text");
 					
 					if (!$.support.leadingWhitespace) {
 						C8O._fillBody($("<pre>" + jqXHR.responseText.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>"));
@@ -271,7 +271,7 @@ $.extend(true, C8O, {
 				});
 				lowest += parseInt(C8O.vars.resize_offset);
 			}
-			C8O.log.debug("c8o.desktop: compute for resize a height of " + lowest);
+			C8O.log.debug("c8o.desk: compute for resize a height of " + lowest);
 			C8O.doResize(lowest, options);
 		}
 	},
@@ -292,7 +292,7 @@ $.extend(true, C8O, {
 			});
 		}
 		if (C8O._hook("result_filled", $container)) {
-			C8O.log.debug("c8o.desktop: result filled, add clipping event if necessary and perform resize");
+			C8O.log.debug("c8o.desk: result filled, add clipping event if necessary and perform resize");
 			
 			$("a, input[type=button], input[type=image], input[type=submit]").filter("[twsid]").unbind(".clipping").bind("click.clipping", C8O._handleEvent);
 			$("form[twsid]").unbind(".clipping").bind("submit.clipping", C8O._handleEvent);
@@ -367,7 +367,7 @@ $.extend(true, C8O, {
 	},
 	
 	_xslt : function (xml, xsl) {
-		C8O.log.debug("c8o.desktop: perform xsl transformation");
+		C8O.log.debug("c8o.desk: perform xsl transformation");
 		if (window.XSLTProcessor) {
 			var xsltProcessor = new XSLTProcessor();
 			xsltProcessor.importStylesheet(xsl);

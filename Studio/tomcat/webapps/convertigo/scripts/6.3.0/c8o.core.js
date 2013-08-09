@@ -19,7 +19,7 @@
  * $Revision$
  * $Date$
  */
-
+var toto = "zozo";
 C8O = {
 	init_vars: {
 		enc: "false", /** enable rsa encoding */
@@ -358,8 +358,9 @@ C8O = {
 		plugins_path: "",
 		project: null,
 		recall_params: {__context: "", __connector: ""},
-		re_plus: new RegExp("\\+", "g"),
+		re_format_time: new RegExp(" *(\\d*?)([\\d ]{4})((?:\\.[\\d ]{3})|(?: {4})) *"), // replace by "$1$2$3"
 		re_i18n: new RegExp("__MSG_(.*?)__"),
+		re_plus: new RegExp("\\+", "g"),
 		start_time: new Date().getTime(),
 		dictionnary: null
 	},
@@ -399,7 +400,14 @@ C8O = {
 					if (C8O.vars.log_line == "true" && navigator.userAgent.indexOf("Chrome") != -1) {
 						msg += "\n\t\t" + new Error().stack.split("\n")[3];
 					}
-					console.log(((new Date().getTime() - C8O._define.start_time) / 1000) + " [" + level + "] " + msg);
+					var time = (new Date().getTime() - C8O._define.start_time) / 1000;
+					time = ("    " + time + "    ").replace(	C8O._define.re_format_time, "$1$2$3");
+					
+					if (level.length == 4) {
+						level += " ";
+					}
+					
+					console.log(time + " [" + level + "] " + msg);
 				}
 			}
 		}

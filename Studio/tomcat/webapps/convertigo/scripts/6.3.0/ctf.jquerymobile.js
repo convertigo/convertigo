@@ -3,7 +3,7 @@
 $.extend(true, C8O, {
 	isActivePage: function (fromPage) {
 		var ret = $.mobile.activePage.is(fromPage);
-		C8O.log.trace("ctf.jquerymobile: is \"" + fromPage + "\" the active page ? " + ret);
+		C8O.log.trace("ctf.jqm : is \"" + fromPage + "\" the active page ? " + ret);
 		return ret;
 	},
 	
@@ -16,7 +16,7 @@ $.extend(true, C8O, {
 		});
 		
 		// Change page
-		C8O.log.info("ctf.jquerymobile: change page to \"" + goToPage + "\"");
+		C8O.log.info("ctf.jqm: change page to \"" + goToPage + "\"");
 		$.mobile.changePage(goToPage, options);
 	},
 	
@@ -24,7 +24,7 @@ $.extend(true, C8O, {
 	_onDocumentReadyEnd: function (callback) {
 		$.mobile.changePage.defaults.allowSamePageTransition = true;
 		$(document).on("pagebeforecreate", "[data-role=page]", function () {
-			C8O.log.debug("ctf.jquerymobile: new DOM page loaded, initialize it");
+			C8O.log.debug("ctf.jqm : new DOM page loaded, initialize it");
 			C8O.__onDocumentReadyEnd(callback);
 		});
 	},
@@ -35,7 +35,7 @@ $.extend(true, C8O, {
 			C8O.__renderFinish($elt);
 			
 			if ($elt.data("mobile-page")) {
-				C8O.log.info("ctf.jquerymobile: mobile page");
+				C8O.log.info("ctf.jqm : mobile page");
 				$elt.data("mobile-page")._trigger("create",null,{})
 			} else {
 				$elt.trigger("create");
@@ -43,12 +43,12 @@ $.extend(true, C8O, {
 		        	 try {
 		        		 $elt.listview("refresh");
 		        	 } catch (e) {
-		        		 C8O.log.trace("ctf.jquerymobile: listview failed to refresh", e);
+		        		 C8O.log.trace("ctf.jqm : listview failed to refresh", e);
 		        	 }
 				}
 			}
 		} catch (e) {
-			C8O.log.warn("ctf.jquerymobile: render finish failed", e);
+			C8O.log.warn("ctf.jqm : render finish failed", e);
 		}
 	}
 });
