@@ -19,7 +19,7 @@
  * $Revision$
  * $Date$
  */
-var toto = "zozo";
+
 C8O = {
 	init_vars: {
 		enc: "false", /** enable rsa encoding */
