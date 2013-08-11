@@ -665,7 +665,7 @@ $(document).ready(function () {
 			
 			C8O.log.debug("c8o.core: current active language is " + C8O.init_vars.i18n);
 		}
-		var jqxhr = $.getJSON("i18n/" + C8O.vars.i18n + ".json", function (dictionnary) {
+		var jqxhr = $.getJSON("i18n/" + C8O.init_vars.i18n + ".json", function (dictionnary) {
 			C8O.log.debug("c8o.core: translation dictionnary received for " + C8O.init_vars.i18n);
 			
 			C8O._define.dictionnary = dictionnary;
