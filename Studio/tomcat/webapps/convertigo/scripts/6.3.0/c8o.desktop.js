@@ -21,28 +21,28 @@
  */
 
 $.extend(true, C8O, {
-	init_vars : {
-		testplatform : "auto"
+	init_vars: {
+		testplatform: "auto"
 	},
 	
-	ro_vars : {
-		portal_username : "",
-		widget_name : ""
+	ro_vars: {
+		portal_username: "",
+		widget_name: ""
 	},
 	
-	vars : { /** customizable value by adding __name=value in query*/
-		auto_refresh : "true", /** true/false */
-		auto_resize : "true", /** true/false */
-		first_call : "true",
-		resize_offset : "50", /** number */
-		send_portal_username : "true", /** true/false */
-		target_append : "false", /** true/false */
-		target_id : "",
-		use_siteclipper_plugin : "true", /** true/false */
-		xsl_side : "client" /** client/server */
+	vars: { /** customizable value by adding __name=value in query*/
+		auto_refresh: "true", /** true/false */
+		auto_resize: "true", /** true/false */
+		first_call: "true",
+		resize_offset: "50", /** number */
+		send_portal_username: "true", /** true/false */
+		target_append: "false", /** true/false */
+		target_id: "",
+		use_siteclipper_plugin: "true", /** true/false */
+		xsl_side: "client" /** client/server */
 	},
 	
-	doMashupEvent : function (event_name, payload) {
+	doMashupEvent: function (event_name, payload) {
 		C8O.log.debug("c8o.desk: doMashupEvent " + event_name);
 		
 		if (payload != null && typeof(payload) == "object") {
@@ -67,28 +67,28 @@ $.extend(true, C8O, {
 		C8O._hook("mashup_event", event_name, payload);
 	},
 	
-	doNavigationBarEvent : function (type) {
+	doNavigationBarEvent: function (type) {
 		C8O.log.debug("c8o.desk: try to doNavigationBarEvent " + type);
 		if ($.inArray(type, C8O._define.navigation_var_actions) != -1) {
-			C8O.call({ __event_action : "navbar_" + type });
+			C8O.call({ __event_action: "navbar_" + type });
 		}
 	},
 	
-	doReconnect : function () {
+	doReconnect: function () {
 		C8O.log.debug("c8o.desk: doReconnect");
 		window.location.reload(false);
 	},
 	
-	doResize : function (height, options) {
+	doResize: function (height, options) {
 		if (typeof(height) == "number") {
 			C8O.log.debug("c8o.desk: doResize to " + height);
 			if (C8O.isUndefined(options)) {
 				options = {};
 			}
 			if (C8O._define.iframe) {
-				$(window.frameElement).animate({height : height}, options);
+				$(window.frameElement).animate({height: height}, options);
 			} else {
-				C8O._postMessage({type : "resize", height : height});
+				C8O._postMessage({type: "resize", height: height});
 			}
 		} else {
 			C8O.log.debug("c8o.desk: doResize auto");
@@ -96,39 +96,39 @@ $.extend(true, C8O, {
 		}
 	},
 		
-	waitHide : function () {
+	waitHide: function () {
 		$("#wait_div").remove();
 	},
 	
-	waitShow : function () {
+	waitShow: function () {
 		if ($("body #wait_div").length == 0) {
 			$("body").append(C8O._define.wait_div);
 		}
 	},
 	
-	_define : {
-		clipping_attributs :
+	_define: {
+		clipping_attributs:
 			$(["altKey", "ctrlKey", "metaKey", "shiftKey", "clientX", "clientY", "screenX", "screenY", "layerX", "layerY", "pageX", "pageY", "button"]),
-		dirty_timer : {},
-		navigation_var_actions : ["backward", "forward", "stop", "refresh"],
-		iframe : false,
-		webclipper_path : ""
+		dirty_timer: {},
+		navigation_var_actions: ["backward", "forward", "stop", "refresh"],
+		iframe: false,
+		webclipper_path: ""
 	},
 	
-	_addField : function (params, twsid, value) {
+	_addField: function (params, twsid, value) {
 		params["__field_" + twsid] = value;
 		return value;
 	},
 	
-	_checkDirty : function (tim) {
+	_checkDirty: function (tim) {
 		clearTimeout(C8O._define.dirty_timer);
 		if (tim) {
 			if (tim < 15000) {
 				tim *= 1.25;
 			}
 			$.ajax({
-				dataType : "text",
-				success : function (data) {
+				dataType: "text",
+				success: function (data) {
 					switch (data) {
 					case "false":
 						C8O._define.dirty_timer = window.setTimeout("C8O._checkDirty(" + tim + ")", tim);
@@ -138,14 +138,14 @@ $.extend(true, C8O, {
 						break;
 					}
 				},
-				url : C8O._define.webclipper_path + C8O._define.project + "/" + (C8O._define.connector ? C8O._define.connector : "$") + "/" + (C8O._define.context ? C8O._define.context : "$") + "/d"
+				url: C8O._define.webclipper_path + C8O._define.project + "/" + (C8O._define.connector ? C8O._define.connector : "$") + "/" + (C8O._define.context ? C8O._define.context : "$") + "/d"
 			});
 		} else {
 			C8O._define.dirty_timer = window.setTimeout("C8O._checkDirty(500)", 500);
 		}
 	},
 	
-	_fillBody : function (content, resize) {
+	_fillBody: function (content, resize) {
 		var $container = C8O.vars.target_id;
 		if (typeof($container) == "string") {
 			$container = $($container.length == 0 ? "body" : ('#' + $container));	
@@ -175,10 +175,10 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	_handleEvent : function (event) {
+	_handleEvent: function (event) {
 		var params = {
-			__event_action : event.type,
-			__event_srcid : $(this).attr("twsid")
+			__event_action: event.type,
+			__event_srcid: $(this).attr("twsid")
 		};
 		if (event.type == "click") {
 			C8O._define.clipping_attributs.each(function () {
@@ -190,7 +190,7 @@ $.extend(true, C8O, {
 		(event.type == "submit" ? $($.makeArray(this.elements)) : $("input, select, textarea").filter("[twsid]:enabled")).each(function () {
 			var twsid = $(this).attr("twsid"), j;
 			switch (this.type) {
-				case 'text' : case 'password' : case 'hidden' : case 'textarea':
+				case 'text': case 'password': case 'hidden': case 'textarea':
 					C8O._addField(params, twsid, this.value);
 					break;
 				case 'select-one':
@@ -205,7 +205,7 @@ $.extend(true, C8O, {
 						C8O._addField(params, twsid, selected.join(";"));
 					}
 					break;
-				case 'checkbox' : case 'radio':
+				case 'checkbox': case 'radio':
 					C8O._addField(params, twsid, this.checked?"true":"false");
 					break;			
 			}
@@ -214,8 +214,8 @@ $.extend(true, C8O, {
 		return false;
 	},
 	
-	_desk_init : C8O._init,
-	_init : function (params) {
+	_desk_init: C8O._init,
+	_init: function (params) {
 		var value;
 		if (value = C8O._remove(params, "__container")) {
 			C8O.log.debug("c8o.desk: detect container " + value);
@@ -234,7 +234,7 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	_onCallSuccess : function (xml, status, jqXHR) {
+	_onCallSuccess: function (xml, status, jqXHR) {
 		if (C8O.vars.xsl_side == "server") {
 			C8O.log.debug("c8o.desk: receive xsl server response as text");
 			
@@ -250,7 +250,7 @@ $.extend(true, C8O, {
 					
 					if (C8O.vars.use_siteclipper_plugin == "true") {
 						C8O._getScript(C8O._define.plugins_path + "siteclipper.js", function () {
-							C8O._init_siteclipper({redirect_location : redirect_location});
+							C8O._init_siteclipper({redirect_location: redirect_location});
 						});
 					} else {
 						window.location = redirect_location;
@@ -262,11 +262,11 @@ $.extend(true, C8O, {
 					C8O.log.debug("c8o.desk: receive a XML response, retrieve XSL for client transformation " + sheet_uri);
 					
 					$.ajax({
-						url : sheet_uri,
-						success : function (xsl) {
+						ur:: sheet_uri,
+						success: function (xsl) {
 							C8O._xslt(xml, xsl);
 						},
-						type : "GET"
+						type: "GET"
 					});
 				} else {
 					C8O.log.debug("c8o.desk: receive a XML response without XSL, insert XML as text");
@@ -281,8 +281,8 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	_onDocumentReady : function () {
-		/** No XSLT engine (see #1336) : switch to server mode */
+	_onDocumentReady: function () {
+		/** No XSLT engine (see #1336): switch to server mode */
 		if (!window.XSLTProcessor && !window.ActiveXObject) {
 			C8O.log.debug("c8o.desk: no xsl engine, force xsl side server");
 			C8O.vars.xsl_side = "server";
@@ -319,7 +319,7 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	_onMashupEvent : function (event) {
+	_onMashupEvent: function (event) {
 		if (C8O._hook("receive_mashup_event", event)) {
 			if (C8O.canLog("debug")) {
 				C8O.log.debug("c8o.desk: receive mashup event " + C8O.toJSON(event));
@@ -330,7 +330,7 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	_postMessage : function (data) {
+	_postMessage: function (data) {
 		if (window.postMessage) {
 			try {
 				data = C8O.toJSON(data);
@@ -339,7 +339,7 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	_resize : function (options) {
+	_resize: function (options) {
 		var lowest = C8O._hook("resize_calculation");
 		if (lowest != false) {
 			if (typeof(lowest) != "number") {
@@ -354,7 +354,7 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	_xslStyleSheet : function (xml) {
+	_xslStyleSheet: function (xml) {
 		var node = xml.firstChild;
 		while (node != null) {
 			if (node.nodeName == "xml-stylesheet") {
@@ -366,7 +366,7 @@ $.extend(true, C8O, {
 		return null;
 	},
 	
-	_xslt : function (xml, xsl) {
+	_xslt: function (xml, xsl) {
 		C8O.log.debug("c8o.desk: perform xsl transformation");
 		if (window.XSLTProcessor) {
 			var xsltProcessor = new XSLTProcessor();

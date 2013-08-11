@@ -22,12 +22,38 @@ $.extend(true, C8O, {
 	},
 	
 	_ctfjqm_onDocumentReadyEnd: C8O._onDocumentReadyEnd, 
-	_onDocumentReadyEnd: function (callback) {
+	_onDocumentReadyEnd: function (callback, $page) {
 		$.mobile.changePage.defaults.allowSamePageTransition = true;
-		$(document).on("pagebeforecreate", "[data-role=page]", function () {
-			C8O.log.debug("ctf.jqm : new DOM page loaded, initialize it");
-			C8O._ctfjqm_onDocumentReadyEnd(callback);
-		});
+		
+		C8O._ctfjqm_onDocumentReadyEnd(callback, $page);
+
+		$("[data-role=page]").data("c8o-ctf-init", true);
+
+		var onPageBeforeCreate = C8O._onPageBeforeCreate;
+		C8O._onPageBeforeCreate = function ($page) {
+			onPageBeforeCreate($page);
+			if (!$page.data("c8o-ctf-init")) {
+				C8O.log.debug("ctf.jqm : new DOM page loaded, initialize CTF on it");
+				$(this).data("c8o-ctf-init", true);
+				C8O._ctfjqm_onDocumentReadyEnd(callback, $page);
+			}
+		};
+		
+//		$(document).on("pagebeforecreate", "[data-role=page]", function () {
+//			var $page = $(this);
+//			if (!$page.data("c8o-ctf-init")) {
+//				C8O.log.debug("ctf.jqm : new DOM page loaded, initialize CTF on it");
+//				C8O._ctfjqm_onDocumentReadyEnd(callback, $page);
+//				$(this).data("c8o-ctf-init", true);
+//			}
+//		});
+		
+		C8O._ctfjqm_onJqmInitFinished();
+	},
+	
+	_ctfjqm_onJqmInitFinished: C8O._onJqmInitFinished,
+	_onJqmInitFinished: function () {
+		C8O.log.info("c8o.jqm : differ jquery mobile");
 	},
 	
 	_ctfjqm_renderFinish: C8O._renderFinish,
@@ -37,7 +63,7 @@ $.extend(true, C8O, {
 			
 			if ($elt.data("mobile-page")) {
 				C8O.log.info("ctf.jqm : mobile page");
-				$elt.data("mobile-page")._trigger("create",null,{})
+				$elt.data("mobile-page")._trigger("create", null, {})
 			} else {
 				$elt.trigger("create");
 		         if (!C8O.isUndefined($elt.listview)) {

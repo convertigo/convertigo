@@ -109,7 +109,7 @@ $.extend(true, C8O, {
 
 /**
  * appendValue function
- * append value in data.key :
+ * append value in data.key:
  * * set value if no previous
  * * make or reuse an array and push the value at the end
  * data: Object (key/value) that will be modified

@@ -22,29 +22,31 @@
 
 $.extend(true, C8O, {
 	_define: {
-		ctf_mark : "__",
-		ctf_mark_esc : "\\\\_\\\\_"
+		ctf_mark: "__",
+		ctf_mark_esc: "\\\\_\\\\_"
 	}
 });
 $.extend(true, C8O, {
 	
-	vars : { /** customizable value by adding __name=value in query*/
-		xsl_side : "none" /** client/server */
+	vars: { /** customizable value by adding __name=value in query*/
+		xsl_side: "none" /** client/server */
 	},
 	
+	routingTable: [],
+	
 	_define: {
-		re_accumulate_mode : new RegExp("^(?:(append)|(prepend)|(.*?))$"), // 1: append ; 2: preprend ; 3: replacel
-		re_call_mode : new RegExp("^(?:(click)|(auto)|(?:(timer:)(.*)))$"), // 1: click ; 2: auto ; 3: timer ; 4: seconds for timer
-		re_requestable : new RegExp("^([^.]*)\\.(?:([^.]+)|(?:([^.]+)\\.([^.]+)))$"), // 1: project ; 2: sequence ; 3: connector ; 4: transaction > 1+2 | 1+3+4
-		re_split_comma_trim : new RegExp("\\s*,\\s*"),
+		re_accumulate_mode: new RegExp("^(?:(append)|(prepend)|(.*?))$"), // 1: append ; 2: preprend ; 3: replacel
+		re_call_mode: new RegExp("^(?:(click)|(auto)|(?:(timer:)(.*)))$"), // 1: click ; 2: auto ; 3: timer ; 4: seconds for timer
+		re_requestable: new RegExp("^([^.]*)\\.(?:([^.]+)|(?:([^.]+)\\.([^.]+)))$"), // 1: project ; 2: sequence ; 3: connector ; 4: transaction > 1+2 | 1+3+4
+		re_split_comma_trim: new RegExp("\\s*,\\s*"),
 		/**
 		 * Reg exp selector for templating engine
 		 */
-		re_find_ctf_markers : new RegExp(C8O._define.ctf_mark + "(?:(\\{[\\d\\D]*?\\})|(?:=(.*?)))" + C8O._define.ctf_mark), // 0: full ; 1: json ; 2: selector
-		re_find_ctf_esc_start : new RegExp(C8O._define.ctf_mark_esc + "(=|\\{)", "g"),
-		re_find_ctf_esc_end : new RegExp(C8O._define.ctf_mark_esc, "g"), // 0: full ; 1: json ; 2: selector
+		re_find_ctf_markers: new RegExp(C8O._define.ctf_mark + "(?:(\\{[\\d\\D]*?\\})|(?:=(.*?)))" + C8O._define.ctf_mark), // 0: full ; 1: json ; 2: selector
+		re_find_ctf_esc_start: new RegExp(C8O._define.ctf_mark_esc + "(=|\\{)", "g"),
+		re_find_ctf_esc_end: new RegExp(C8O._define.ctf_mark_esc, "g"), // 0: full ; 1: json ; 2: selector
 		
-		templates : {}
+		templates: {}
 	},
 	
 	_addTemplate: function(template) {
@@ -53,9 +55,15 @@ $.extend(true, C8O, {
 		return templateID;		
 	},
 	
-	_attachEventHandlers: function() {
+	_changePage: function (goToPage, options, callback) {
+		if (typeof(callback) == "function") {
+			callback();
+		};
+	},
+	
+	_checkCallAuto: function($page) {
 		C8O.log.debug("ctf.core: check call mode auto and timer");
-		$("[data-c8o-call]").filter("[data-c8o-call-mode=auto],[data-c8o-call-mode^=timer]").each( function (index, element) {
+		C8O._findAndSelf($page, "[data-c8o-call]").filter("[data-c8o-call-mode=auto],[data-c8o-call-mode^=timer]").each( function (index, element) {
 			var $element = $(element);
 
 			var c8oCallMode = $element.attr("data-c8o-call-mode").match(C8O._define.re_call_mode);
@@ -74,12 +82,6 @@ $.extend(true, C8O, {
 				}
 			}
 		});
-	},
-	
-	_changePage: function (goToPage, options, callback) {
-		if (typeof(callback) == "function") {
-			callback();
-		};
 	},
 	
 	/**
@@ -223,7 +225,7 @@ $.extend(true, C8O, {
 				rule = $.parseJSON(rule);
 			} else if (match[2]) {
 				rule = match[2].replace(C8O._define.re_find_ctf_esc_end, C8O._define.ctf_mark);
-				rule = {find : rule};
+				rule = {find: rule};
 			}
 			rule.template = match[0];
 			return rule;
@@ -363,13 +365,13 @@ $.extend(true, C8O, {
 		return false;
 	},
 	
-	_onDocumentReadyEnd: function (callback) {
+	_onDocumentReadyEnd: function (callback, $page) {
 		if (typeof(callback) == "function") {
-			callback();
+			callback($page);
 		};
 	},
 	
-	_onCallSuccess : function (xml, status, jqXHR) {
+	_onCallSuccess: function (xml, status, jqXHR) {
 		C8O.log.info("ctf.core: received valid response");
 		var c8oData = jqXHR.C8O_data;
 		if (C8O._hook("xml_response", xml, c8oData)) {
@@ -432,9 +434,6 @@ $.extend(true, C8O, {
 				}
 
 				C8O._renderWidgets($c8oListenContainer, $xmlData);
-
-				// Re attach any click handlers in case of new graphical components
-				C8O._attachEventHandlers();
 				
 				var functionAfterRendering = C8O._getFunction($element.attr("data-c8o-after-rendering"));
 				if (functionAfterRendering != null) {
@@ -776,26 +775,24 @@ C8O.addHook("init_finished", function () {
 		}
 	});
 	
-	var onNewPage = function () {
+	var onNewPage = function ($page) {
 		C8O.log.info("ctf.core: new page initializing");
-		C8O._attachEventHandlers();
+		C8O._checkCallAuto($page);
 
 		// Store listen and iteration templates
 		// Templates should be managed deeply first (in order to handle nested templates)
 		// The search order is reversed because we want to manage templates deeply first.
 		// This is not strictly deeply traversal, but it is enough to have deeply first
 		// template management on each XML branch.
-		$($("[data-c8o-listen],[data-c8o-each],[data-c8o-late-render]").not("[data-c8o-template-id]").get().reverse()).each(function() {
+		$(C8O._findAndSelf($page, "[data-c8o-listen],[data-c8o-each],[data-c8o-late-render]").not("[data-c8o-template-id]").get().reverse()).each(function() {
 			var $c8oListenContainer = $(this);
 			C8O._manageTemplate($c8oListenContainer);
 		});
 		
 		// Empty templates
-		var $html = $("html:first");
-
 		C8O.log.debug("ctf.core: initial rendering");
-		C8O._renderElement($html, C8O._handleRef($html, $("<xml/>")));
+		C8O._renderElement($page, C8O._handleRef($page, $("<xml/>")));
 	};
 	
-	C8O._onDocumentReadyEnd(onNewPage);
+	C8O._onDocumentReadyEnd(onNewPage, $("html:first"));
 });
