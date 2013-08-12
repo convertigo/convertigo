@@ -489,6 +489,33 @@ $.extend(true, C8O, {
 //});
 
 /**
+ *  wait_hide hook
+ *  used after xml_response execution
+ *  or on C8O.waitHide() call
+ *  and hide the transparent mask
+ *  
+ *  return: true > lets C8O hide the loading mask
+ *             false > doesn't hide anything
+ */
+//C8O.addHook("wait_hide", function () {
+//	return true;
+//});
+
+/**
+ *  wait_show hook
+ *  used at C8O.call calling
+ *  or on C8O.waitShow() call
+ *  and display a transparent mask
+ *  that prevents the user to act
+ *  
+ *  return: true > lets C8O display the loading mask
+ *             false > doesn't display anything
+ */
+//C8O.addHook("wait_show", function () {
+//	return true;
+//});
+
+/**
  *  xml_response hook
  *  used for tweak, retrieve value or do transformation
  *  using the XML response from CEMS

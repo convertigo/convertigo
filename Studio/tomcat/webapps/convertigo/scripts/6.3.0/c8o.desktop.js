@@ -97,12 +97,16 @@ $.extend(true, C8O, {
 	},
 		
 	waitHide: function () {
-		$("#wait_div").remove();
+		if (C8O._hook("wait_hide")) {
+			$("#wait_div").remove();			
+		}
 	},
 	
 	waitShow: function () {
-		if ($("body #wait_div").length == 0) {
-			$("body").append(C8O._define.wait_div);
+		if (C8O._hook("wait_show")) {
+			if ($("body #wait_div").length == 0) {
+				$("body").append(C8O._define.wait_div);
+			}			
 		}
 	},
 	
@@ -262,7 +266,7 @@ $.extend(true, C8O, {
 					C8O.log.debug("c8o.desk: receive a XML response, retrieve XSL for client transformation " + sheet_uri);
 					
 					$.ajax({
-						ur:: sheet_uri,
+						url: sheet_uri,
 						success: function (xsl) {
 							C8O._xslt(xml, xsl);
 						},

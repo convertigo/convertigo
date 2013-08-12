@@ -313,9 +313,11 @@ C8O = {
 	},
 	
 	waitHide: function () {
+		C8O._hook("wait_hide");
 	},
 	
 	waitShow: function () {
+		C8O._hook("wait_show");
 	},
 	
 	/**
@@ -523,7 +525,22 @@ C8O = {
 						msg = ret;
 					}
 					if (C8O.isDefined(e)) {
-						msg += " (catch: " + C8O.toJSON(e) + ")";
+						var err = "";
+						if (C8O.isDefined(e.stack) && e.stack.length) {
+							err += e.stack;
+						} else if (typeof(e.toString) == "function") {
+							err += e.toString();
+						} else {
+							if (C8O.isDefined(e.name)) {
+								err += e.name + ": ";
+							}
+							if (C8O.isDefined(e.message)) {
+								err += e.message;
+							} else {
+								err += C8O.toJSON(e);
+							}
+						}
+						msg += "\nCatch: " + err;
 					}
 					if (C8O.vars.log_line == "true" && navigator.userAgent.indexOf("Chrome") != -1) {
 						msg += "\n\t\t" + new Error().stack.split("\n")[3];

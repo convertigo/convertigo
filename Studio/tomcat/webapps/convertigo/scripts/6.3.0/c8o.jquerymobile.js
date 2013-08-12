@@ -34,25 +34,25 @@ $.extend(true, C8O, {
 		loading: {}
 	},
 	
-	waitShow: function () {
-		if (C8O._hook("loading_start")) {
-			$("#c8oloading").show();
-			try {
-				$.mobile.loading("show", C8O.options.loading);
-			} catch (e) {
-       		 	C8O.log.error("c8o.jqm : failed to show loading", e);
-			}
-		}
-	},
-	
 	waitHide: function () {
-		if (C8O._hook("loading_stop")) {
+		if (C8O._hook("wait_hide") && C8O._hook("loading_stop")) {
 			try {
 				$.mobile.loading("hide");
 			} catch (e) {
 				C8O.log.error("c8o.jqm : failed to hide loading", e);
 			}
 			$("#c8oloading").hide();
+		}
+	},
+	
+	waitShow: function () {
+		if (C8O._hook("wait_show") && C8O._hook("loading_start")) {
+			$("#c8oloading").show();
+			try {
+				$.mobile.loading("show", C8O.options.loading);
+			} catch (e) {
+       		 	C8O.log.error("c8o.jqm : failed to show loading", e);
+			}
 		}
 	},
 	
