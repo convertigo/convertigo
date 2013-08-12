@@ -540,7 +540,7 @@ C8O = {
 								err += C8O.toJSON(e);
 							}
 						}
-						msg += "\nCatch: " + err;
+						msg += "\n" + err;
 					}
 					if (C8O.vars.log_line == "true" && navigator.userAgent.indexOf("Chrome") != -1) {
 						msg += "\n\t\t" + new Error().stack.split("\n")[3];

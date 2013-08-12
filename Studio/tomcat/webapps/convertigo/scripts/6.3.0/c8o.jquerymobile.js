@@ -39,7 +39,11 @@ $.extend(true, C8O, {
 			try {
 				$.mobile.loading("hide");
 			} catch (e) {
-				C8O.log.error("c8o.jqm : failed to hide loading", e);
+				if (C8O.isDefined(e.message) && e.message.indexOf("'loader'") == -1) {
+					C8O.log.error("c8o.jqm : failed to hide loading", e);
+				} else {
+					C8O.log.trace("c8o.jqm : failed to hide loading " + e);
+				}
 			}
 			$("#c8oloading").hide();
 		}
@@ -51,7 +55,11 @@ $.extend(true, C8O, {
 			try {
 				$.mobile.loading("show", C8O.options.loading);
 			} catch (e) {
-       		 	C8O.log.error("c8o.jqm : failed to show loading", e);
+				if (C8O.isDefined(e.message) && e.message.indexOf("'loader'") == -1) {
+       		 		C8O.log.error("c8o.jqm : failed to show loading", e);
+				} else {
+					C8O.log.trace("c8o.jqm : failed to hide loading " + e);
+				}
 			}
 		}
 	},
