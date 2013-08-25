@@ -27,6 +27,7 @@ import java.net.URLEncoder;
 
 import javax.xml.transform.TransformerException;
 
+import org.apache.xalan.xsltc.dom.SimpleResultTreeImpl;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -360,16 +361,26 @@ public class PobiXslUtils {
 		}
 	}
 	
-	public static String escapeString(NodeList nodeList) {
+	public static String escapeString(Object ob) {
 		try {
-			if (nodeList.getLength() == 0) return "";
+			if (ob instanceof NodeList) {
+				NodeList nodeList = (NodeList)ob;
 			
-			String s = getNodeValue(nodeList.item(0));
-			if (s != null) {
-				s = urlEncode(s);
-				s = s.replace('+', ' ');
-				s = s.replaceAll("%27", "\"");
-				return s;
+				if (nodeList.getLength() == 0) return "";
+				
+				String s = getNodeValue(nodeList.item(0));
+				if (s != null) {
+					s = urlEncode(s);
+					s = s.replace('+', ' ');
+					s = s.replaceAll("%27", "\"");
+					return s;
+				}
+			}
+			else if (ob instanceof SimpleResultTreeImpl) {
+				return escapeString(((SimpleResultTreeImpl)ob).getStringValue());
+			}
+			else if (ob instanceof String) {
+				return escapeString((String)ob);
 			}
 			return "";
 		}
@@ -384,7 +395,7 @@ public class PobiXslUtils {
 	
 	public static String urlEncode(String string) {
 		try {
-			return URLEncoder.encode(string, "UTF-8").replace('+', ' ');
+			return URLEncoder.encode(string, "ISO-8859-1").replace('+', ' ');
 		} catch (UnsupportedEncodingException e) {
 			// The system should always have the platform default
 			return null;
