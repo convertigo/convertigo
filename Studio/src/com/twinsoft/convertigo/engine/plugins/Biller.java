@@ -156,7 +156,6 @@ public abstract class Biller extends AbstractBiller {
 				if (statement != null) {
 					statement.close();
 				}
-				sqlRequester.close();
 			}
 		}
 		catch(SQLException e) {
@@ -164,6 +163,9 @@ public abstract class Biller extends AbstractBiller {
 		}
 		catch(Exception e) {
 			Engine.logBillers.error("[Biller] Unable to insert the billing", e);
+		}
+		finally {
+			sqlRequester.close();
 		}
 	}
 
@@ -174,6 +176,9 @@ public abstract class Biller extends AbstractBiller {
 	public void insertCariocaBilling(Context context, Object data) throws EngineException {
 		String sSqlRequest = null;
 		try {
+			Engine.logBillers.debug("[Biller] Trying to insert the billing into a Carioca database ");
+			sqlRequester.open();
+						
 			int cache = 0;
 			double cost = getCost(context, data);
 			if (cost == -1) {
@@ -208,9 +213,6 @@ public abstract class Biller extends AbstractBiller {
 			Statement statement = null;
 			try {
 				Engine.logBillers.debug("[Biller] Replacements from the context done");
-				
-				Engine.logBillers.debug("[Biller] Trying to insert the billing into a Carioca database ");
-				sqlRequester.open();
 				
 				StringEx sqlRequest = new StringEx(sqlRequester.getProperty(Biller.PROPERTIES_SQL_REQUEST_INSERT_BILLING));
 				
@@ -263,7 +265,6 @@ public abstract class Biller extends AbstractBiller {
 				if (statement != null) {
 					statement.close();
 				}
-				sqlRequester.close();
 			}
 		}
 		catch(SQLException e) {
@@ -271,6 +272,9 @@ public abstract class Biller extends AbstractBiller {
 		}
 		catch(Exception e) {
 			Engine.logBillers.error("[Biller] Unable to insert the billing", e);
+		}
+		finally {
+			sqlRequester.close();			
 		}
 	}
 }
