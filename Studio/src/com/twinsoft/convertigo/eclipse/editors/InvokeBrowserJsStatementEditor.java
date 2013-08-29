@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 
 public class InvokeBrowserJsStatementEditor extends TransactionWithVariablesEditor {
 	static public String[] getColumnNames() {
-		return new String[] { "Variable", "comment", "JS Expression"};
+		return new String[] { "Variable", "Comment", "JS Expression"};
 	}
 	
 	static public Object[] getDefaultData() {
