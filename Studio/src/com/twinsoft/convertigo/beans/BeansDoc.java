@@ -46,6 +46,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
@@ -58,15 +59,21 @@ public class BeansDoc {
 
 	public static void main(String[] args) throws Exception {
 
+		// Pseudo initialization of the C8O engine...
+
+		// Loggers
 		Engine.logBeans = Logger.getLogger(BeansDoc.class);
 		Engine.logContext = Logger.getLogger(BeansDoc.class);
 		Engine.logEngine = Logger.getLogger(BeansDoc.class);
+		
+		// Engine properties manager
+		EnginePropertiesManager.initProperties();
 
+		// Starting the DBO database exploration...
 		Document documentBeansDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 		ProcessingInstruction pi = documentBeansDoc.createProcessingInstruction("xml",
 				"version=\"1.0\" encoding=\"UTF-8\"");
 		documentBeansDoc.appendChild(pi);
-
 
 		Element dbdRoot = documentBeansDoc.createElement("database_objects");
 		documentBeansDoc.appendChild(dbdRoot);

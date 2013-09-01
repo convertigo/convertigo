@@ -747,6 +747,10 @@ public class EnginePropertiesManager {
     	copySystemProperties();
     }
     
+    public static synchronized void initProperties() throws EngineException {
+    	properties = new Properties();
+    }
+    
     public static synchronized void loadProperties() throws EngineException {
     	loadProperties(true);
     }
@@ -757,7 +761,7 @@ public class EnginePropertiesManager {
 		FileInputStream propsInputStream = null;
 		String enginePropertiesFile = Engine.CONFIGURATION_PATH + PROPERTIES_FILE_NAME;
         try {
-    		properties = new Properties();
+        	EnginePropertiesManager.initProperties();
 
     		System.out.println("Loading Convertigo engine properties from " + enginePropertiesFile);
 
