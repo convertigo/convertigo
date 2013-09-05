@@ -123,6 +123,7 @@ public abstract class GenericServlet extends HttpServlet {
 		String baseUrl = getServletBaseUrl(request);
 
 		if ((baseUrl.indexOf("/projects/") != -1) || (baseUrl.indexOf("/webclipper/") != -1)) {
+			long t0 = System.currentTimeMillis();
 			try {
 				String encoded = request.getParameter(Parameter.RsaEncoded.getName());
 				if (encoded != null) {
@@ -310,6 +311,10 @@ public abstract class GenericServlet extends HttpServlet {
 			} catch (Exception e) {
 				Engine.logContext.error("Unable to process the request!", e);
 				processException(request, response, e);
+			}
+			finally {
+				long t1 = System.currentTimeMillis();
+				Engine.theApp.pluginsManager.fireHttpServletRequestEnd(request, t0, t1);
 			}
 		} else {
 			// Not a valid Convertigo invocation URL, use retrieve as static

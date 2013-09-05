@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.engine.cache.CacheManager;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserManager;
 import com.twinsoft.convertigo.engine.plugins.AbstractBiller;
+import com.twinsoft.convertigo.engine.plugins.PluginsManager;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
@@ -196,6 +197,11 @@ public class Engine {
 	 */
 	public ResourceCompressorManager resourceCompressorManager;
 
+	/**
+	 * The plugins manager
+	 */
+	public PluginsManager pluginsManager;
+	
 	/**
 	 * Loggers
 	 */
@@ -439,6 +445,13 @@ public class Engine {
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to run the resource compressor.", e);
 				} 
+				
+				try {
+					Engine.theApp.pluginsManager = new PluginsManager();
+					Engine.theApp.pluginsManager.init();
+				} catch (Exception e) {
+					Engine.logEngine.error("Unable to run the plugins manager.", e);
+				}
 				
 				Engine.logEngine
 						.info("Current working directory is '" + System.getProperty("user.dir") + "'.");
@@ -797,6 +810,10 @@ public class Engine {
 					Engine.theApp.resourceCompressorManager.destroy();
 				}
 
+				if (Engine.theApp.pluginsManager != null) {
+					Engine.theApp.pluginsManager.destroy();
+				}
+				
 				// Closing the session manager
 				if (Engine.theApp.sessionManager != null) {
 					Engine.logEngine.info("Closing the session manager");

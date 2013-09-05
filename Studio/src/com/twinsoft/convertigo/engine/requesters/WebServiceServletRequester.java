@@ -159,6 +159,9 @@ public class WebServiceServletRequester extends ServletRequester {
 				throw new EngineException("Web Services are not available with this version of Convertigo.");
 			}
 			
+			// fire event for plugins
+			Engine.theApp.pluginsManager.fireRequesterCoreProcessRequestStart(context, inputData);
+			
 			makeInputDocument();
 
             preGetDocument();
@@ -168,6 +171,10 @@ public class WebServiceServletRequester extends ServletRequester {
 		catch(Throwable e) {
 			context.isErrorDocument = true;
 			result = SOAPUtils.writeSoapFault(e, context.requestedObject != null ? context.requestedObject.getEncodingCharSet() : "UTF-8");
+		}
+		finally {
+        	// fire event for plugins
+        	Engine.theApp.pluginsManager.fireRequesterCoreProcessRequestEnd(context, inputData);
 		}
 		
 		return result;

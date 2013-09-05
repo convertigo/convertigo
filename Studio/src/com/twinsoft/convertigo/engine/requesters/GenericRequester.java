@@ -587,6 +587,9 @@ public abstract class GenericRequester extends Requester {
 		Document document = null;
         
         try {
+        	// fire event for plugins
+        	Engine.theApp.pluginsManager.fireRequesterCoreProcessRequestStart(context, inputData);
+        	
             makeInputDocument();
             if (context.transactionName != null) Engine.logContext.info("Starting transaction");
             if (context.sequenceName != null) Engine.logContext.info("Starting sequence");
@@ -653,7 +656,11 @@ public abstract class GenericRequester extends Requester {
 				throw ee;
 			}
 		}
-		
+		finally {
+        	// fire event for plugins
+        	Engine.theApp.pluginsManager.fireRequesterCoreProcessRequestEnd(context, inputData);
+		}
+        
 		return result;
     }
     

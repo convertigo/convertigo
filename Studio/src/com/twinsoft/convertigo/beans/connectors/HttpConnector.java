@@ -813,6 +813,10 @@ public class HttpConnector extends Connector {
 		HttpMethod method = null;
 
 		try {
+			// Fire event for plugins
+			long t0 = System.currentTimeMillis();
+			Engine.theApp.pluginsManager.fireHttpConnectorGetDataStart(context);
+			
 			// Retrieving httpState
 			getHttpState(context);
 
@@ -932,6 +936,11 @@ public class HttpConnector extends Connector {
 			byte[] result = executeMethod(method, context);
 			Engine.logBeans.debug("(HttpConnector) Total read bytes: "
 					+ ((result != null) ? result.length : 0));
+
+
+			// Fire event for plugins
+			long t1 = System.currentTimeMillis();
+			Engine.theApp.pluginsManager.fireHttpConnectorGetDataEnd(context, t0, t1);
 
 			fireDataChanged(new ConnectorEvent(this, result));
 
