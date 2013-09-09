@@ -90,15 +90,30 @@ public class List extends XmlService {
 		
         storesKeysEnum = certifVector.elements();
     	
-    	String certificateName, certificateType, certificatePwd, certificateGroup;
+		Engine.logAdmin.debug("Analyzing certificates...");
+
+		String certificateName, certificateType, certificatePwd, certificateGroup;
     	ArrayList<String> installedCertificates=new ArrayList<String>() ;
     	while (storesKeysEnum.hasMoreElements()) {
     		certificateName  = (String) storesKeysEnum.nextElement();
     		certificateType  = (String) storesProperties.getProperty(certificateName + ".type");
-    		certificatePwd   = Crypto2.decodeFromHexString((String) storesProperties.getProperty(certificateName));
+    		certificatePwd   = (String) storesProperties.getProperty(certificateName);
     		certificateGroup = (String) storesProperties.getProperty(certificateName + ".group");
 
-    		
+    		Engine.logAdmin.debug("Found certificate:");
+    		Engine.logAdmin.debug("   name=" + certificateName);
+    		Engine.logAdmin.debug("   type=" + certificateType);
+    		Engine.logAdmin.debug("   password (ciphered)=" + certificatePwd);
+    		Engine.logAdmin.debug("   group=" + certificateGroup);
+
+    		if (certificatePwd.length() > 0) {
+    			try {
+					certificatePwd   = Crypto2.decodeFromHexString((String) storesProperties.getProperty(certificateName));
+				} catch (Exception e) {
+		    		Engine.logAdmin.error("Unable to decipher the password", e);
+				}
+    		}
+
     		Element certificateElement = document.createElement("certificate");
     		certificateElement.setAttribute("name", certificateName);
     		certificateElement.setAttribute("type", certificateType);
