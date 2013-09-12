@@ -232,6 +232,7 @@ public class EnginePropertiesManager {
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
     	Billing ("Supervision"),
     	Notifications ("Notifications"),
+    	@CategoryOptions(visibility = Visibility.HIDDEN)
     	MobileBuilder ("Mobile builder")
     	;
     	
