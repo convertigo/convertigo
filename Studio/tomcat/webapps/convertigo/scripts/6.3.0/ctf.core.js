@@ -288,6 +288,17 @@ $.extend(true, C8O, {
 		}
 	},
 	
+	_manageTemplates: function($element) {
+		// Store listen and iteration templates
+		// Templates should be managed deeply first (in order to handle nested templates)
+		// The search order is reversed because we want to manage templates deeply first.
+		// This is not strictly deeply traversal, but it is enough to have deeply first
+		// template management on each XML branch.
+		$(C8O._findAndSelf($element, "[data-c8o-listen],[data-c8o-each],[data-c8o-late-render]").not("[data-c8o-template-id]").get().reverse()).each(function() {
+			C8O._manageTemplate($(this));
+		});
+	},
+	
 	_onC8oCall: function(element) {
 		var $element = $(element);
 		// Check call condition if any
@@ -589,6 +600,7 @@ $.extend(true, C8O, {
 				
 				if (isFragment && C8O.isDefined(value.childNodes)) {
 					C8O.log.trace("ctf.core: template fragment insert " + value.childNodes.length + " nodes");
+					C8O._manageTemplates($(value));
 					$(this).before(document.createTextNode(res), value.childNodes);
 					res = "";
 				} else {
@@ -779,15 +791,7 @@ C8O.addHook("init_finished", function () {
 		C8O.log.info("ctf.core: new page initializing");
 		C8O._checkCallAuto($page);
 
-		// Store listen and iteration templates
-		// Templates should be managed deeply first (in order to handle nested templates)
-		// The search order is reversed because we want to manage templates deeply first.
-		// This is not strictly deeply traversal, but it is enough to have deeply first
-		// template management on each XML branch.
-		$(C8O._findAndSelf($page, "[data-c8o-listen],[data-c8o-each],[data-c8o-late-render]").not("[data-c8o-template-id]").get().reverse()).each(function() {
-			var $c8oListenContainer = $(this);
-			C8O._manageTemplate($c8oListenContainer);
-		});
+		C8O._manageTemplates($page);
 		
 		// Empty templates
 		C8O.log.debug("ctf.core: initial rendering");
