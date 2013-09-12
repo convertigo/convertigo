@@ -98,8 +98,6 @@ $.extend(true, C8O, {
 });
 
 $(document).ready(function () {
-	// needed to prevent some automatic jqm ajax loading (form submit, click href)
-	$.mobile.ajaxEnabled = false;
 	$.mobile.autoInitializePage = false;
 });
 
