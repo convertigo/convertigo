@@ -165,35 +165,54 @@ public class ViewImageProvider {
 		}
 		
 		if (databaseObjectTreeObject != null) {
-			boolean unreachable = databaseObjectTreeObject.hasAncestorDisabled();
 			// SWT palette isn't the same on all OS
-
-			for (int i = 0 ; i < imageData.height ; i++) {
-				for (int j = 0 ; j < imageData.width ; j++) {
-					float[] HSB = imageData.palette.getRGB(imageData.getPixel(j, i)).getHSB();
-
-					if (!databaseObjectTreeObject.isEnabled()) {
-						setColor(HSB, 0);
-					} else if (databaseObjectTreeObject.isInherited) {
-						HSB[1] = 0;
-						HSB[2] *= 0.9f;
-					} else if (databaseObjectTreeObject.isDetectedObject) {
-						setColor(HSB, 120);
-					} else if (unreachable) {
-						setColor(HSB, 40);
-					} else {
-						HSB = null;
+			// GIF style
+			if(imageData.palette.colors != null) {
+				for (int i = 0; i < imageData.palette.colors.length; i ++) {
+					if (i != imageData.transparentPixel) {
+						RGB rgb = imageData.palette.colors[i];
+						
+						imageData.palette.colors[i] = changeHue(rgb, databaseObjectTreeObject);
 					}
-					
-					if (HSB != null) {
-						imageData.setPixel(j, i, imageData.palette.getPixel(new RGB(HSB[0], HSB[1], HSB[2])));
+				}
+			}
+			// PNG style and Linux
+			else { 			
+				for (int i = 0; i < imageData.height; i++) {
+					for (int j = 0; j < imageData.width; j++) {
+						RGB rgb = imageData.palette.getRGB(imageData.getPixel(j, i));
+						
+						imageData.setPixel(j, i, imageData.palette.getPixel(changeHue(rgb,databaseObjectTreeObject)));
 					}
 				}
 			}
 		}
-
 		return imageData;
-	}
+	}	
+
+    private static RGB changeHue(RGB rgb, DatabaseObjectTreeObject databaseObjectTreeObject) {
+    	
+    	float[] HSB = rgb.getHSB();
+    	
+    	if (!databaseObjectTreeObject.isEnabled()) {
+    		setColor(HSB, 0);
+		} else if (databaseObjectTreeObject.isInherited) {
+			HSB[1] = 0;
+			HSB[2] *= 0.9f;
+		} else if (databaseObjectTreeObject.isDetectedObject) {
+			setColor(HSB, 120);
+		} else if (databaseObjectTreeObject.hasAncestorDisabled()) {
+			setColor(HSB, 40);
+		} else {
+			HSB = null;
+		}
+    	
+    	if(HSB != null) {
+    		rgb = new RGB(HSB[0], HSB[1], HSB[2]);
+    	}
+    	
+    	return rgb;
+    }
 	
 	static private void setColor(float[] HSB, float hue) {
 		HSB[0] = hue;
@@ -203,5 +222,5 @@ public class ViewImageProvider {
 		} else if (HSB[1] > 0.8f) {
 			HSB[1] = 0.8f;
 		}
-	}
+	}    
 }
