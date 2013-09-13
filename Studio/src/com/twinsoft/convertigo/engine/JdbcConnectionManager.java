@@ -72,6 +72,7 @@ public class JdbcConnectionManager implements AbstractManager {
 	}
 
 	private BasicDataSource addDatabasePool(SqlConnector connector) {
+		Engine.logEngine.trace("(JdbcConnectionManager) Creating a new pool");
 		BasicDataSource pool = new BasicDataSource();
 		pool.setDriverClassName(connector.getRealJdbcDriverClassName());
 		pool.setUrl(connector.getRealJdbcURL());
@@ -83,10 +84,14 @@ public class JdbcConnectionManager implements AbstractManager {
 	}
 
 	private synchronized BasicDataSource getDatabasePool (SqlConnector connector) {
-		if (databasePools.containsKey(getKey(connector)))
+		if (databasePools.containsKey(getKey(connector))) {
+			Engine.logEngine.trace("(JdbcConnectionManager) getDatabasePool() returning existing pool");
 			return (BasicDataSource) databasePools.get(getKey(connector));
-		else
+		}
+		else {
+			Engine.logEngine.trace("(JdbcConnectionManager) getDatabasePool() returning new pool");
 			return addDatabasePool(connector);
+		}
 	}
 	
 	private String getKey (SqlConnector connector) {
@@ -98,9 +103,11 @@ public class JdbcConnectionManager implements AbstractManager {
 	}
 	
 	public Connection getConnection(SqlConnector connector, int retry_cpt) throws SQLException {
-		Engine.logEngine.trace("(jdbcConnectionManager) getConnection for "+connector.getProject().getName()+"."+connector.getName());
+		Engine.logEngine.trace("(JdbcConnectionManager) getConnection for "+connector.getProject().getName()+"."+connector.getName());
 		BasicDataSource pool = getDatabasePool(connector);
+		Engine.logEngine.trace("(JdbcConnectionManager) pool = " + pool);
 		Connection connection = pool.getConnection();
+		Engine.logEngine.trace("(JdbcConnectionManager) connection = " + connection);
 		
 		/* Database query to list tables
 			*JDBC Drivers
@@ -142,12 +149,15 @@ public class JdbcConnectionManager implements AbstractManager {
 		}
 		
 		try{
+			Engine.logEngine.trace("(JdbcConnectionManager) testing connection with query: " + query);
 			connection.prepareStatement(query).executeQuery();
+			Engine.logEngine.trace("(JdbcConnectionManager) connection OK");
 		}catch (SQLException e) {
 			String exceptionClassName = e.getClass().getName();
+			Engine.logEngine.trace("(JdbcConnectionManager) [" + exceptionClassName + "]: " + e.getMessage());
 			if(retry_cpt>0){
 				if(exceptionClassName.equals("com.mysql.jdbc.CommunicationsException")){
-					Engine.logEngine.trace("(JdbcConnectionManager) Connection not valid : getting another connection ("+retry_cpt+" retry before abort)");
+					Engine.logEngine.trace("(JdbcConnectionManager) Connection not valid: getting another connection ("+retry_cpt+" retry before abort)");
 					retry_cpt--;
 				}else{
 					Engine.logEngine.error("(JdbcConnectionManager) Unknow SQLException ["+exceptionClassName+"] : retry getConnection", e);
