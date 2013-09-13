@@ -102,7 +102,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	}
 
 	transient protected static long lastTime = 0;
-	transient private static long qnamecpt = 0;
 
 	transient private final static ThreadLocal<SubLoader> subLoader = new ThreadLocal<SubLoader>() {
 		@Override
@@ -117,7 +116,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	
 	transient private DatabaseObject original = null;
 	
-	transient private String qname = null;
 
 	transient public boolean isSubLoaded = false;
 
@@ -174,7 +172,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				DatabaseObject clone = (DatabaseObject) super.clone();
 				clone.original = this;
 				clone.parent = null;
-				clone.qname = qname;
 				clone.bNew = false;
 				clone.isImporting = false;
 				clone.isSubLoaded = false; //Engine.isEngineMode() ? isSubLoaded : false;
@@ -292,8 +289,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	 * @return the fully qualified name of the object.
 	 */
 	public String getQName() {
-		if (qname == null) {
-			qname = Long.toString(qnamecpt++, Character.MAX_RADIX);
+		String qname;
+		if (parent != null) {
+			qname = parent.getQName() + "." + getName();
+		} else {
+			qname = "?." + getName();
 		}
 		return qname;
 	}
