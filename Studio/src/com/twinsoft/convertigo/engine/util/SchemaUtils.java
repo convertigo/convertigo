@@ -84,7 +84,7 @@ public class SchemaUtils {
 
 	public static XmlSchema loadSchema(File xsdFile, XmlSchemaCollection xmlSchemaCollection) throws SAXException, IOException {
 		if (xsdFile != null && xsdFile.exists() && xsdFile.isFile()) {
-			return loadSchema(xsdFile.toURL(), xmlSchemaCollection);
+			return loadSchema(xsdFile.toURI().toURL(), xmlSchemaCollection);
 		}
 		return null;
 	}

@@ -50,7 +50,7 @@ public abstract class FileReference extends Reference implements IFileReference 
 	protected URL getFileUrl() throws MalformedURLException {
 		File file = getFile();
 		if (file != null && file.isFile() && file.exists()) {
-			return file.toURL();
+			return file.toURI().toURL();
 		}
 		return null;
 	}

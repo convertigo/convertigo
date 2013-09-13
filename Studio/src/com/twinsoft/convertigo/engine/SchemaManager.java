@@ -911,6 +911,8 @@ public class SchemaManager implements AbstractManager {
 								if (element.hasChildNodes()) {
 									NodeList children = element.getChildNodes();
 									for (int i=0; i <children.getLength(); i++) {
+										if (children.item(i).getNodeType() == Node.TEXT_NODE)
+											continue;
 										//System.out.println("element: "+children.item(i).getNodeName());
 										for (XmlSchemaObject e : map.get(xso).get(0)) {
 											//System.out.println(" test "+((XmlSchemaElement)e).getName());
