@@ -102,10 +102,9 @@ public class ViewImageProvider {
 		return image;
 	}
 	
-	public static Image getImageFromCache(String iconName, Image base, Object object) {
-		String imageName = getImageName(object);
-		
+	public static Image getImageFromCache(String imageName, Image base, Object object) {	
 		Image image = imagesCache.get(imageName);
+		
 		if (image == null) {
 			Device device = Display.getCurrent();
 			
