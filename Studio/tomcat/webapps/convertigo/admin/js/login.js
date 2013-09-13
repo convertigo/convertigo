@@ -23,15 +23,7 @@ jQuery().ready(
 								$("#FieldConvAdminUserLogin").val(),
 								$("#FieldConvAdminUserPassword").val());
 						return false;
-					});
-			
-			//pour IE
-			$("input").keydown(
-					function(event) {						
-						if (event.keyCode == 13) {
-							$("#loginForm").submit();
-						}
-					});
+					});		
 		});
 
 function checkAuthentication() {

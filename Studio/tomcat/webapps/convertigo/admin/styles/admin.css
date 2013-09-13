@@ -240,6 +240,15 @@ table {
 	/margin-top: -16px;
 }
 
+.submit_button {
+	background: url(../images/btn_signin.png);
+	background-repeat: no-repeat;
+	width: 75px;
+	height: 27px;
+	border: 0px;
+	cursor: pointer;
+}
+
 .dlgInfoMessage {
 	text-align: left;
 }
