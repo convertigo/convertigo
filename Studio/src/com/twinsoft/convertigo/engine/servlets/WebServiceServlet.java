@@ -1052,8 +1052,9 @@ public class WebServiceServlet extends GenericServlet {
 			requestMessage = messageFactory.createMessage(mimeHeaders, is);
 			
 			// Handle MTOM uploads
-			if (isMTOM)
-				handleMTOMUploads(requestMessage);
+			if (isMTOM) {
+				handleMTOMUploads(request.getSession().getId(), requestMessage);
+			}
 			
 			// Remove all attachments
 			requestMessage.removeAllAttachments();
@@ -1065,24 +1066,24 @@ public class WebServiceServlet extends GenericServlet {
 		return requestMessage;
 	}
 	
-	private void handleMTOMUploads(SOAPMessage requestMessage) throws SOAPException, FileNotFoundException, IOException {
+	private void handleMTOMUploads(String sessionID, SOAPMessage requestMessage) throws SOAPException, FileNotFoundException, IOException {
 		SOAPPart sp = requestMessage.getSOAPPart();
 		SOAPEnvelope se = sp.getEnvelope();
 		SOAPBody sb = se.getBody();
-		handleMTOMUploads(sb.getChildElements());
+		handleMTOMUploads(sessionID, sb.getChildElements());
 	}
 	
-	private void handleMTOMUploads(Iterator<?> iterator) throws FileNotFoundException, IOException, SOAPException {
+	private void handleMTOMUploads(String sessionID, Iterator<?> iterator) throws FileNotFoundException, IOException, SOAPException {
 		while (iterator.hasNext()) {
 			Object element = iterator.next();
 			if (element instanceof SOAPElement) {
-				handleMTOMUploads((SOAPElement)element);
-				handleMTOMUploads(((SOAPElement)element).getChildElements());
+				handleMTOMUploads(sessionID, (SOAPElement)element);
+				handleMTOMUploads(sessionID, ((SOAPElement)element).getChildElements());
 			}
 		}
 	}
 	
-	private void handleMTOMUploads(SOAPElement soapElement) throws FileNotFoundException, IOException, SOAPException {
+	private void handleMTOMUploads(String sessionID, SOAPElement soapElement) throws FileNotFoundException, IOException, SOAPException {
 		if (soapElement instanceof org.apache.axis2.saaj.SOAPElementImpl) {
 			org.apache.axis2.saaj.SOAPElementImpl el = (org.apache.axis2.saaj.SOAPElementImpl)soapElement;
 			final OMNode firstOMChild = el.getElement().getFirstOMChild();
@@ -1094,7 +1095,7 @@ public class WebServiceServlet extends GenericServlet {
 	            if (isBinary && isOptimized && contentID != null) {
 	            	// Write file
 	            	javax.activation.DataHandler dh = (javax.activation.DataHandler)ti.getDataHandler();
-	            	String filePath = getUploadFilePath(el.getLocalName(), dh.getContentType());
+	            	String filePath = getUploadFilePath(sessionID, el.getLocalName(), dh.getContentType());
 	            	dh.writeTo(new FileOutputStream(new File(filePath)));
 					
 	            	// Modify value in soap envelope (replace the base64 encoded value with the filepath value)
@@ -1107,21 +1108,58 @@ public class WebServiceServlet extends GenericServlet {
 		}
 	}
 	
-	private String getUploadFilePath(String fileName, String mimeType) throws IOException {
-    	File dirPath = new File(Engine.USER_WORKSPACE_PATH + "/uploads");
-    	if (!dirPath.exists()) dirPath.mkdir();
-    	String[] mtArray = mimeType.split(";");
-    	String fileExt = MimeType.parse(mtArray[0]).getExtensions()[0];
-    	if (fileExt.equals("")) fileExt = "xxx";
-    	String fullFileName = fileName +"."+fileExt;
-    	for (int i=0;i<mtArray.length;i++) {
-    		if (mtArray[i].trim().startsWith("name=")) {
-    			fullFileName = mtArray[i].trim().substring("name=".length());
-    			break;
-    		}
-    	}
-    	
-    	String filePath = dirPath.getCanonicalPath() + File.separator + fullFileName;
-    	return filePath;
+	private String getUploadFilePath(String sessionID, String fileName, String mimeType) throws IOException {
+		File uploadsDir = new File(Engine.USER_WORKSPACE_PATH + "/uploads");
+		if (!uploadsDir.exists()) {
+			uploadsDir.mkdir();
+		}
+		String cpUploadsDir = uploadsDir.getCanonicalPath();
+
+		String[] mimeTypeParts = mimeType.split(";");
+
+		/*
+		 * Computing the file extension:
+		 * - if present in the header, use this one
+		 * - otherwise, we will use "xxx"
+		 */
+		String fileExt = MimeType.parse(mimeTypeParts[0]).getExtensions()[0];
+		if (fileExt.equals("")) {
+			fileExt = "xxx";
+		}
+
+		/*
+		 * Computing the file name:
+		 * - if present in the header, use this one
+		 * - otherwise, we create the filename with the node name
+		 */
+		fileName = fileName + "." + fileExt;
+		for (int i = 0; i < mimeTypeParts.length; i++) {
+			if (mimeTypeParts[i].trim().startsWith("name=")) {
+				fileName = mimeTypeParts[i].trim().substring("name=".length());
+				break;
+			}
+		}
+
+		/*
+		 * This filename should be unique accross all C8O contexts. So, first,
+		 * we add the session ID, and second, if it already exists, we try to
+		 * compute a new unique filename by adding an incremental number.
+		 */
+		String uniqueFileName = sessionID + "_" + fileName;
+		int i = 1;
+		File file = new File(cpUploadsDir, uniqueFileName);
+		if (file.exists()) {
+			Engine.logEngine.warn("MTOM upload filename (\"" + file.toString()
+					+ "\") already exists, computing a new unique one...");
+			do {
+				i++;
+				uniqueFileName = sessionID + "_" + i + "_" + fileName;
+				file = new File(cpUploadsDir, uniqueFileName);
+			} while (file.exists());
+		}
+
+		fileName = file.toString();
+		Engine.logEngine.debug("MTOM upload file name: " + fileName);
+		return fileName;
 	}
 }
