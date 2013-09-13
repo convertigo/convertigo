@@ -600,6 +600,7 @@ $.extend(true, C8O, {
 				
 				if (isFragment && C8O.isDefined(value.childNodes)) {
 					C8O.log.trace("ctf.core: template fragment insert " + value.childNodes.length + " nodes");
+					C8O._hook("_newContent", $(value));
 					C8O._manageTemplates($(value));
 					$(this).before(document.createTextNode(res), value.childNodes);
 					res = "";
@@ -791,6 +792,7 @@ C8O.addHook("init_finished", function () {
 		C8O.log.info("ctf.core: new page initializing");
 		C8O._checkCallAuto($page);
 
+		C8O._hook("_newContent", $page);
 		C8O._manageTemplates($page);
 		
 		// Empty templates

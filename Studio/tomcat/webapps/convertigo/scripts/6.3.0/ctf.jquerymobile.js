@@ -39,15 +39,6 @@ $.extend(true, C8O, {
 			}
 		};
 		
-//		$(document).on("pagebeforecreate", "[data-role=page]", function () {
-//			var $page = $(this);
-//			if (!$page.data("c8o-ctf-init")) {
-//				C8O.log.debug("ctf.jqm : new DOM page loaded, initialize CTF on it");
-//				C8O._ctfjqm_onDocumentReadyEnd(callback, $page);
-//				$(this).data("c8o-ctf-init", true);
-//			}
-//		});
-		
 		C8O._ctfjqm_onJqmInitFinished();
 	},
 	
@@ -78,4 +69,8 @@ $.extend(true, C8O, {
 			C8O.log.warn("ctf.jqm : render finish failed", e);
 		}
 	}
+});
+
+C8O.addHook("_newContent", function ($elt) {
+	$elt.find("form[data-c8o-call]").attr("data-ajax", "false");
 });
