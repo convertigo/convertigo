@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -54,6 +57,9 @@ public class EnableExtractionRuleAction extends MyAbstractAction {
     			ExtractionRule extractionRule = null;
     			
     			TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
+    			
+    			Set<TreeObject> parents = new HashSet<TreeObject>();
+    			
 				for (int i = treeObjects.length-1 ; i>=0  ; i--) {
 					treeObject = (DatabaseObjectTreeObject) treeObjects[i];
 					if (treeObject instanceof ExtractionRuleTreeObject) {
@@ -64,9 +70,12 @@ public class EnableExtractionRuleAction extends MyAbstractAction {
 		    			extractionRuleTreeObject.setEnabled(true);
 		    			extractionRuleTreeObject.hasBeenModified(true);
 		    			
-		                // Updating the tree
-		                explorerView.refreshTreeObject(extractionRuleTreeObject.getParentDatabaseObjectTreeObject(),true);
+		    			parents.add(extractionRuleTreeObject.getParentDatabaseObjectTreeObject());	
 					}
+				}
+				// Updating the tree
+				for (TreeObject parent : parents) {
+					explorerView.refreshTreeObject(parent,true);
 				}
     		}
         }

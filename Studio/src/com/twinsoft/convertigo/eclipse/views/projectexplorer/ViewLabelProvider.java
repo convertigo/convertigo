@@ -143,6 +143,7 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 				image = ViewImageProvider.getImageFromCache(iconName, variableTreeObject);
 			}
 			else if (obj instanceof DatabaseObjectTreeObject) {
+								
 				DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) obj;
 				
 				iconName = MySimpleBeanInfo.getIconName(databaseObjectTreeObject.databaseObjectBeanInfo, BeanInfo.ICON_COLOR_16x16);

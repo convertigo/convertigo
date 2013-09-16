@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -30,8 +33,8 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.DatabaseObjectTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ExtractionRuleTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObject;
 
 public class DisableExtractionRuleAction extends MyAbstractAction {
@@ -54,6 +57,9 @@ public class DisableExtractionRuleAction extends MyAbstractAction {
     			ExtractionRule extractionRule = null;
     			
     			TreeObject[] treeObjects = explorerView.getSelectedTreeObjects();
+    			
+    			Set<TreeObject> parents = new HashSet<TreeObject>();
+    			
 				for (int i = treeObjects.length-1 ; i>=0  ; i--) {
 					treeObject = (DatabaseObjectTreeObject) treeObjects[i];
 					if (treeObject instanceof ExtractionRuleTreeObject) {
@@ -64,10 +70,13 @@ public class DisableExtractionRuleAction extends MyAbstractAction {
 		    			extractionRuleTreeObject.setEnabled(false);
 		    			extractionRuleTreeObject.hasBeenModified(true);
 		    			
-		                // Updating the tree
-		                explorerView.refreshTreeObject(extractionRuleTreeObject.getParentDatabaseObjectTreeObject(),true);
+		    			parents.add(extractionRuleTreeObject.getParentDatabaseObjectTreeObject());						
 					}
 				}
+				// Updating the tree
+				for (TreeObject parent : parents) {
+					explorerView.refreshTreeObject(parent,true);
+				}				
     		}
         }
         catch (Throwable e) {
