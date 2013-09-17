@@ -87,7 +87,6 @@ public class Engine {
 	public static String WEBAPP_PATH = "";
 	public static String CACHE_PATH = "";
 	public static String CONFIGURATION_PATH = "";
-	public static String SENCHA_PATH = "";
 
 	static {
 		// Do not forget to retrieve the canonical paths, i.e. the path
@@ -268,7 +267,6 @@ public class Engine {
 		Engine.CACHE_PATH = new File(Engine.USER_WORKSPACE_PATH + "/cache").getCanonicalPath();
 		Engine.CONFIGURATION_PATH = new File(Engine.USER_WORKSPACE_PATH + "/configuration").getCanonicalPath();
 		Engine.CERTIFICATES_PATH = new File(Engine.USER_WORKSPACE_PATH + "/certificates").getCanonicalPath();
-		Engine.SENCHA_PATH = new File(Engine.USER_WORKSPACE_PATH + "/sencha").getCanonicalPath();
 
 		Engine.WEBAPP_PATH = new File(webappPath).getCanonicalPath();
 		Engine.XSL_PATH = new File(Engine.WEBAPP_PATH + "/xsl").getCanonicalPath();

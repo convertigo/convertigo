@@ -392,16 +392,6 @@
 <!-- Mobilizer projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSenchaMobileWizard"
-            icon="icons/studio/mobile_HighEnd_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewSenchaMobileWizard"
-            name="Sencha/PhoneGap based configurable project"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates a Mobile project based on Sencha/PhoneGap frameworks, which features are configurable thanks to the following wizard.</description> 
-            </wizard>
-      <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewEmptyJQueryMobileWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewEmptyJQueryMobileWizard"
@@ -638,16 +628,6 @@
              project="true">
           <description>Imports the web integration sample project to use with Convertigo Web Integrator Quick Guide documentation.</description>
        </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleMobilizerWizard"
-             icon="icons/studio/mobile_HighEnd_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleMobilizerWizard"
-             name="Mobile Sencha-based"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Mobilizer sample project to use with "My first Convertigo Mobilizer project" tutorial.</description>
-       </wizard>
        <!--<wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleSiteClipperWizard"
@@ -729,58 +709,6 @@
             preferredPerspectives="convertigo"
             project="true">
             <description>Imports a full-featured Mobile sample project based on jQueryMobile framework.</description> 
-       </wizard>
-<!--       
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerPdfWizard"
-             icon="icons/studio/mobile_HighEnd_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerPdfWizard"
-             name="Sencha based Pdf sample"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports a Sencha based sample project which downloads a PDF file from Convertigo web site.</description>
-       </wizard>
--->
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerWebToPdfWizard"
-             icon="icons/studio/mobile_HighEnd_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerWebToPdfWizard"
-             name="Sencha based WebToPdf sample"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports a Sencha based sample project which downloads any HTML page as a PDF file.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerRssNYTimesWizard"
-             icon="icons/studio/mobile_HighEnd_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerRssNYTimesWizard"
-             name="Sencha based NYTimes sample"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports a Sencha based sample project which reads New York Times RSS feeds.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerSiebelWizard"
-             icon="icons/studio/mobile_HighEnd_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerSiebelWizard"
-             name="Sencha based Siebel sample"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports a Sencha based sample project which connects to a Siebel application.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerUsDirectoryDemoWizard"
-             icon="icons/studio/mobile_HighEnd_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerUsDirectoryDemoWizard"
-             name="Sencha based US Directory sample"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports a Sencha based sample project which makes search on the US Directory web site.</description>
        </wizard>
 <!-- HelloWorld sample project -->
        <wizard

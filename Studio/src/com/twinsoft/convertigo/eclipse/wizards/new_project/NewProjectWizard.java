@@ -28,8 +28,6 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -49,7 +47,6 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWizard;
 import org.eclipse.ui.PlatformUI;
-//import org.eclipse.ui.internal.dialogs.NewWizard;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -62,23 +59,15 @@ import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.dialogs.ProjectMobileCreationSuccessfulDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.wizards.enums.MobileHighEndDevice;
-import com.twinsoft.convertigo.eclipse.wizards.enums.MobileFeature;
-import com.twinsoft.convertigo.eclipse.wizards.enums.MobileLook;
-import com.twinsoft.convertigo.eclipse.wizards.enums.MobileSencha;
-import com.twinsoft.convertigo.eclipse.wizards.new_project.ConfigureSQLConnectorPage;
-import com.twinsoft.convertigo.eclipse.wizards.util.MobileUtils;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.WsReference;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
+//import org.eclipse.ui.internal.dialogs.NewWizard;
 
 public class NewProjectWizard extends Wizard implements INewWizard {
 	// Wizard Pages
@@ -93,9 +82,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public NewProjectWizardPage9 page9;
 	public NewProjectWizardPage10 page10;
 	public NewProjectWizardPage11 page11;
-	public NewProjectWizardPage12 page12;
-	public NewProjectWizardPage13 page13;
-	public NewProjectWizardPage14 page14;
 	public NewProjectWizardPageSummarySampleProject pageSummarySampleProject;
 	public ConfigureSQLConnectorPage configureSQLConnectorPage;
 
@@ -137,7 +123,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int SAMPLE_DOCUMENTATION_CWC = 603;
 	public static final int SAMPLE_DOCUMENTATION_CMS = 604;
 	public static final int SAMPLE_DOCUMENTATION_CMC = 605;
-	public static final int SAMPLE_DOCUMENTATION_MOBILIZER = 606;
 	public static final int SAMPLE_DOCUMENTATION_SITECLIPPER = 607;
 	public static final int SAMPLE_REFMANUAL_SITECLIPPER = 650;
 	public static final int SAMPLE_REFMANUAL_STATEMENTS = 651;
@@ -159,12 +144,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int DEMOS_MASHUP = 903;
 	public static final int TEMPLATE_INTERACTION_HUB = 1000;
 	public static final int TEMPLATE_SITE_CLIPPER = 1100;
-	public static final int TEMPLATE_MOBILE_SENCHA = 1200;
-	public static final int SAMPLE_MOBILE_SENCHA_PDF = 1210;
-	public static final int SAMPLE_MOBILE_SENCHA_WEBTOPDF = 1211;
-	public static final int SAMPLE_MOBILE_SENCHA_RSSNYTIMES = 1212;
-	public static final int SAMPLE_MOBILE_SENCHA_SIEBEL = 1213;
-	public static final int SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO = 1214;
 	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE = 1300;
 	public static final int SAMPLE_MOBILE_JQUERYMOBILE_VACATION = 1310;
 	public static final int SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED = 1311;
@@ -183,7 +162,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String SQL_TEMPLATE_PROJECT_FILE_NAME = "template_SQL.car";
 	public static final String INTERACTION_HUB_TEMPLATE_PROJECT_FILE_NAME = "template_interactionHub.car";
 	public static final String SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME = "template_siteClipper.car";
-	public static final String SENCHA_MOBILE_TEMPLATE_PROJECT_FILE_NAME = "template_mobileSencha.car";
 	public static final String JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME = "template_mobileJQueryMobile.car";
 	public static final String CLI_DOC_PROJECT_FILE_NAME = "sample_documentation_CLI.car";
 	public static final String CWI_DOC_PROJECT_FILE_NAME = "sample_documentation_CWI.car";
@@ -191,12 +169,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String CWC_DOC_PROJECT_FILE_NAME = "sample_documentation_CWC.car";
 	public static final String CMS_DOC_PROJECT_FILE_NAME = "sample_documentation_CMS.car";
 	public static final String CMC_DOC_PROJECT_FILE_NAME = "sample_documentation_CMC.car";
-	public static final String MOBILIZER_DOC_PROJECT_FILE_NAME = "sampleDocumentationMobilizerSencha.car";
-	public static final String MOBILE_SENCHA_PDF_PROJECT_FILE_NAME = "sampleMobilePdf.car";
-	public static final String MOBILE_SENCHA_WEBTOPDF_PROJECT_FILE_NAME = "sampleMobileWebToPdf.car";
-	public static final String MOBILE_SENCHA_RSSNYTIMES_PROJECT_FILE_NAME = "sampleMobileRssNYTimes.car";
-	public static final String MOBILE_SENCHA_SIEBEL_PROJECT_FILE_NAME = "sampleMobileSiebel.car";
-	public static final String MOBILE_SENCHA_USDIRECTORYDEMO_PROJECT_FILE_NAME = "sampleMobileUsDirectoryDemo.car";
 	public static final String MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME = "sampleMobileVacation.car";
 	public static final String MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME = "sampleMobileJQuery.car";
 	public static final String SITECLIPPER_DOC_PROJECT_FILE_NAME = "sampleDocumentationSiteClipper.car";
@@ -226,10 +198,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		super();
 		setNeedsProgressMonitor(true);
 		setWindowTitle("Create a new project");
-	}
-
-	public boolean isSenchaSample() {
-		return false;
 	}
 
 	/**
@@ -343,25 +311,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			addPage(page2);
 			addPage(page11);
 			break;
-
-		case TEMPLATE_MOBILE_SENCHA:
-			page12 = new NewProjectWizardPage12(selection);
-			page13 = new NewProjectWizardPage13(selection);
-			page14 = new NewProjectWizardPage14(selection);
-			addPage(page12);
-			addPage(page13);
-			addPage(page14);
-			break;
-		case SAMPLE_DOCUMENTATION_MOBILIZER:
-		case SAMPLE_MOBILE_SENCHA_PDF:
-		case SAMPLE_MOBILE_SENCHA_WEBTOPDF:
-		case SAMPLE_MOBILE_SENCHA_RSSNYTIMES:
-		case SAMPLE_MOBILE_SENCHA_SIEBEL:
-		case SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO:
-			pageSummarySampleProject = new NewProjectWizardPageSummarySampleProject(selection);
-			page14 = new NewProjectWizardPage14(selection);
-			addPage(pageSummarySampleProject);
-			addPage(page14);
+			
 		default:
 			break;
 		}
@@ -409,26 +359,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				ConvertigoPlugin.logException(e, "An error occured while refreshing the tree view");
 			}
 			view.viewer.refresh();
-		}
-
-		switch (templateId) {
-		case SAMPLE_DOCUMENTATION_MOBILIZER:
-		case SAMPLE_MOBILE_SENCHA_PDF:
-		case SAMPLE_MOBILE_SENCHA_WEBTOPDF:
-		case SAMPLE_MOBILE_SENCHA_RSSNYTIMES:
-		case SAMPLE_MOBILE_SENCHA_SIEBEL:
-		case SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO:
-		case TEMPLATE_MOBILE_SENCHA:
-			if (projectName != null) {
-				ProjectMobileCreationSuccessfulDialog dialog = new ProjectMobileCreationSuccessfulDialog(
-						getShell(),
-						EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL)
-								+ "/" + "project.html#" + projectName, projectName);
-				dialog.open();
-			}
-			break;
-		default:
-			break;
 		}
 
 		return true;
@@ -488,12 +418,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_DOCUMENTATION_CMS:
 			case SAMPLE_DOCUMENTATION_CWC:
 			case SAMPLE_DOCUMENTATION_CWI:
-			case SAMPLE_DOCUMENTATION_MOBILIZER:
-			case SAMPLE_MOBILE_SENCHA_PDF:
-			case SAMPLE_MOBILE_SENCHA_WEBTOPDF:
-			case SAMPLE_MOBILE_SENCHA_RSSNYTIMES:
-			case SAMPLE_MOBILE_SENCHA_SIEBEL:
-			case SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO:
 			case SAMPLE_DOCUMENTATION_SITECLIPPER:
 			case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
 			case SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED:
@@ -533,12 +457,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 					}
 				}
 				return;
-
-			case TEMPLATE_MOBILE_SENCHA:
-				projectName = page12.getProjectName();
-				monitor.beginTask("Creating project " + projectName, 7);
-				createFromBlankProject(monitor);
-				return;
+				
 			default:
 				throw new EngineException("Attempt to create new project, with templateId " + templateId
 						+ " unknown.");
@@ -657,12 +576,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME;
 			oldProjectName = SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME.substring(0,
 					SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case TEMPLATE_MOBILE_SENCHA:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ SENCHA_MOBILE_TEMPLATE_PROJECT_FILE_NAME;
-			oldProjectName = SENCHA_MOBILE_TEMPLATE_PROJECT_FILE_NAME.substring(0,
-					SENCHA_MOBILE_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
@@ -811,7 +724,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			String newConnectorName = "NewConnector";
 			// interactionHub project connector name is by default set to "void"
 			switch (templateId) {
-			case TEMPLATE_MOBILE_SENCHA:
 			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 			case TEMPLATE_SEQUENCE_CONNECTOR:
 			case TEMPLATE_INTERACTION_HUB:
@@ -835,105 +747,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			monitor.setTaskName("Connector renamed");
 			monitor.worked(1);
 
-			switch (templateId) {
-			case TEMPLATE_MOBILE_SENCHA:
-				boolean updateTopToolbar = true;
-				int mobileLook = page13.getLook();
-				List<String> cssToBeRemoved = page13.getCssToBeRemoved();
-				List<MobileFeature> jsToBeRemoved = page13.getFeaturesToBeRemoved();
-
-				// Cleans 'index.html' file and delete unnecessary files
-				MobileUtils htmlIndexUtils = new MobileUtils(newProjectDir + "/"
-						+ MobileSencha.INDEX_HTML.directory() + "/" + MobileSencha.INDEX_HTML.displayName(),
-						true);
-				if (mobileLook != MobileLook.AUTO.index()) {
-					for (String css : cssToBeRemoved) {
-						// Remove useless links (css files)
-						htmlIndexUtils.removeCss(css);
-					}
-				}
-				for (MobileFeature feature : jsToBeRemoved) {
-					// Remove useless scripts (js files)
-					htmlIndexUtils.removeSrc(feature);
-					// Delete feature js file
-					String featureFileName = feature.fileName();
-					File f = new File(newProjectDir + "/" + MobileSencha.SRC_DIRECTORY + "/" + featureFileName);
-					f.delete();
-					// Check if project's name should be updated in
-					// TopToolbar.js
-					if (featureFileName.equalsIgnoreCase(MobileFeature.TOP_TOOLBAR.fileName()))
-						updateTopToolbar = false;
-				}
-				htmlIndexUtils.printDOM(); // save file
-				monitor.setTaskName("Mobile index HTML file fixed");
-				monitor.worked(1);
-
-				// Cleans 'app.js' file
-				MobileUtils jsAppUtils = new MobileUtils(newProjectDir + "/" + MobileSencha.APP_JS.directory()
-						+ "/" + MobileSencha.APP_JS.displayName(), false);
-				String app = jsAppUtils.getContent();
-				jsAppUtils.print(app); // save file
-				monitor.setTaskName("Mobile application source file fixed");
-				monitor.worked(1);
-
-				// Cleans 'topToolbar.js' file
-				if (updateTopToolbar) {
-					MobileUtils jsToolbarUtils = new MobileUtils(newProjectDir + "/"
-							+ MobileSencha.SRC_DIRECTORY + "/" + MobileFeature.TOP_TOOLBAR.fileName(), false);
-					String toolbar = jsToolbarUtils.getContent();
-					// Update project's name
-					toolbar = toolbar.replaceAll("\\$\\{\\}\\$", newProjectName);
-					jsToolbarUtils.print(toolbar); // save file
-				}
-				monitor.setTaskName("Mobile project name fixed");
-				monitor.worked(1);
-
-				// Now adds official Sencha files (js & css)
-				MobileUtils.unzipSencha(page14.getSenchaPath(), newProjectDir + "/"
-						+ MobileSencha.JS_DIRECTORY, MobileSencha.getJSFiles());
-				MobileUtils.unzipSencha(page14.getSenchaPath(), newProjectDir + "/"
-						+ MobileSencha.CSS_DIRECTORY, MobileLook.getCssFiles(mobileLook));
-				monitor.setTaskName("Sencha framework unziped");
-				monitor.worked(1);
-				break;
-			default:
-				break;
-			}
-
-			NodeList mobiledeviceElements = dom.getDocumentElement().getElementsByTagName("mobiledevice");
-			List<Element> devicestoRemove = new ArrayList<Element>();
-			// configure mobile devices
-			switch (templateId) {
-			case TEMPLATE_MOBILE_SENCHA:
-				for (int i = 0; i < mobiledeviceElements.getLength(); i++) {
-					Element element = (Element) mobiledeviceElements.item(i);
-					NodeList mobiledeviceProperties = element.getElementsByTagName("property");
-					property = (Element) XMLUtils
-							.findNodeByAttributeValue(mobiledeviceProperties, "name", "name");
-					mobileDeviceName = ((Element) property.getElementsByTagName("java.lang.String").item(0))
-							.getAttribute("value");
-					Boolean found = false;
-					for (MobileHighEndDevice device : page12.getMobileDevices()) {
-						if ((device.displayName().toLowerCase()).equalsIgnoreCase(mobileDeviceName
-								.toLowerCase())) {
-							found = true;
-						}
-					}
-					if (!found) {
-						devicestoRemove.add(element);
-					}
-				}
-				for (Element element : devicestoRemove) {
-					element.getParentNode().removeChild(element);
-				}
-				break;
-			default:
-				break;
-			}
-
 			// configure config.xml
 			switch (templateId) {
-			case TEMPLATE_MOBILE_SENCHA:
 			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 				String mobileWwwPath = Engine.PROJECTS_PATH + "/" + newProjectName + "/" + MobileDevice.RESOURCES_PATH;
 				Document configXmlDocument = XMLUtils.loadXml(mobileWwwPath + "/config.xml");
@@ -1108,9 +923,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				monitor.setTaskName("Connector certificates policy updated");
 				monitor.worked(1);
 				break;
-			case TEMPLATE_MOBILE_SENCHA:
-				// no parameter to configure for now
-				break;
+				
 			default:
 				break;
 			}
@@ -1223,7 +1036,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	private Project createFromArchiveProject(IProgressMonitor monitor) throws Exception {
 		Project project = null;
 		String projectArchivePath = "";
-		String newProjectDir = "";
 
 		switch (templateId) {
 		case SAMPLE_HELLO_WORLD:
@@ -1300,64 +1112,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + CWI_DOC_PROJECT_FILE_NAME;
 			projectName = CWI_DOC_PROJECT_FILE_NAME.substring(0, CWI_DOC_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
-		case SAMPLE_DOCUMENTATION_MOBILIZER:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + MOBILIZER_DOC_PROJECT_FILE_NAME;
-			projectName = MOBILIZER_DOC_PROJECT_FILE_NAME.substring(0,
-					MOBILIZER_DOC_PROJECT_FILE_NAME.indexOf(".car"));
-			newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
-			break;
-		case SAMPLE_MOBILE_SENCHA_PDF:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + MOBILE_SENCHA_PDF_PROJECT_FILE_NAME;
-			projectName = MOBILE_SENCHA_PDF_PROJECT_FILE_NAME.substring(0,
-					MOBILE_SENCHA_PDF_PROJECT_FILE_NAME.indexOf(".car"));
-			newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
-			break;
-		case SAMPLE_MOBILE_SENCHA_WEBTOPDF:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ MOBILE_SENCHA_WEBTOPDF_PROJECT_FILE_NAME;
-			projectName = MOBILE_SENCHA_WEBTOPDF_PROJECT_FILE_NAME.substring(0,
-					MOBILE_SENCHA_WEBTOPDF_PROJECT_FILE_NAME.indexOf(".car"));
-			newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
-			break;
-		case SAMPLE_MOBILE_SENCHA_RSSNYTIMES:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ MOBILE_SENCHA_RSSNYTIMES_PROJECT_FILE_NAME;
-			projectName = MOBILE_SENCHA_RSSNYTIMES_PROJECT_FILE_NAME.substring(0,
-					MOBILE_SENCHA_RSSNYTIMES_PROJECT_FILE_NAME.indexOf(".car"));
-			newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
-			break;
-		case SAMPLE_MOBILE_SENCHA_SIEBEL:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + MOBILE_SENCHA_SIEBEL_PROJECT_FILE_NAME;
-			projectName = MOBILE_SENCHA_SIEBEL_PROJECT_FILE_NAME.substring(0,
-					MOBILE_SENCHA_SIEBEL_PROJECT_FILE_NAME.indexOf(".car"));
-			newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
-			break;
-		case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME;
-			projectName = MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME.substring(0,
-					MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME.indexOf(".car"));
-			newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
-			break;
-		case SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME;
-			projectName = MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME.substring(0,
-					MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME.indexOf(".car"));
-			newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
-			break;
-		case SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ MOBILE_SENCHA_USDIRECTORYDEMO_PROJECT_FILE_NAME;
-			projectName = MOBILE_SENCHA_USDIRECTORYDEMO_PROJECT_FILE_NAME.substring(0,
-					MOBILE_SENCHA_USDIRECTORYDEMO_PROJECT_FILE_NAME.indexOf(".car"));
-			newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
-			break;
 		case SAMPLE_DOCUMENTATION_SITECLIPPER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SITECLIPPER_DOC_PROJECT_FILE_NAME;
 			projectName = SITECLIPPER_DOC_PROJECT_FILE_NAME.substring(0,
 					SITECLIPPER_DOC_PROJECT_FILE_NAME.indexOf(".car"));
-			newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
+//			newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
 			break;
 		case LIBRARY_GOOGLE_MAPS:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME;
@@ -1428,19 +1187,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			monitor.setTaskName("Project loaded");
 			monitor.worked(1);
 
-			switch (templateId) {
-			case SAMPLE_DOCUMENTATION_MOBILIZER:
-			case SAMPLE_MOBILE_SENCHA_PDF:
-			case SAMPLE_MOBILE_SENCHA_WEBTOPDF:
-			case SAMPLE_MOBILE_SENCHA_RSSNYTIMES:
-			case SAMPLE_MOBILE_SENCHA_SIEBEL:
-			case SAMPLE_MOBILE_SENCHA_USDIRECTORYDEMO:
-				updateSenchaProject(monitor, newProjectDir, project.getName());
-				break;
-			default:
-				break;
-			}
-
 			monitor.setTaskName("Resources created");
 			monitor.worked(1);
 		} catch (Exception e) {
@@ -1459,80 +1205,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		}
 
 		return project;
-	}
-
-	private void updateSenchaProject(IProgressMonitor monitor, String newProjectDir, String projectName)
-			throws Exception {
-		int mobileLook;
-
-		// FOR SAMPLES
-		if (isSenchaSample()) {
-			// Retrieve sample look from index.html file
-			MobileUtils htmlIndexUtils = new MobileUtils(newProjectDir + "/"
-					+ MobileSencha.INDEX_HTML.directory() + "/" + MobileSencha.INDEX_HTML.displayName(), true);
-			mobileLook = htmlIndexUtils.getLook();
-			htmlIndexUtils.printDOM(); // save file
-		}
-		// FOR TEMPLATE
-		else {
-			boolean updateTopToolbar = true;
-
-			// Cleans 'index.html' file and delete unnecessary files
-			MobileUtils htmlIndexUtils = new MobileUtils(newProjectDir + "/"
-					+ MobileSencha.INDEX_HTML.directory() + "/" + MobileSencha.INDEX_HTML.displayName(), true);
-			mobileLook = page13.getLook();
-			List<String> cssToBeRemoved = page13.getCssToBeRemoved();
-			List<MobileFeature> jsToBeRemoved = page13.getFeaturesToBeRemoved();
-			if (mobileLook != MobileLook.AUTO.index()) {
-				for (String css : cssToBeRemoved) {
-					// Remove useless links (css files)
-					htmlIndexUtils.removeCss(css);
-				}
-			}
-			for (MobileFeature feature : jsToBeRemoved) {
-				// Remove useless scripts (js files)
-				htmlIndexUtils.removeSrc(feature);
-				// Delete feature js file
-				String featureFileName = feature.fileName();
-				File f = new File(newProjectDir + "/" + MobileSencha.SRC_DIRECTORY + "/" + featureFileName);
-				f.delete();
-				// Check if project's name should be updated in TopToolbar.js
-				if (featureFileName.equalsIgnoreCase(MobileFeature.TOP_TOOLBAR.fileName()))
-					updateTopToolbar = false;
-			}
-			htmlIndexUtils.printDOM(); // save file
-			monitor.setTaskName("Mobile index HTML file updated");
-			monitor.worked(1);
-
-			// // Cleans 'app.js' file
-			// MobileUtils jsAppUtils = new MobileUtils(newProjectDir + "/" +
-			// MobileSencha.APP_JS.directory() + "/" +
-			// MobileSencha.APP_JS.displayName(), false);
-			// String app = jsAppUtils.getContent();
-			// jsAppUtils.print(app); // save file
-			// monitor.setTaskName("Mobile application source file fixed");
-			// monitor.worked(1);
-
-			// Cleans 'topToolbar.js' file
-			if (updateTopToolbar) {
-				MobileUtils jsToolbarUtils = new MobileUtils(newProjectDir + "/" + MobileSencha.SRC_DIRECTORY
-						+ "/" + MobileFeature.TOP_TOOLBAR.fileName(), false);
-				String toolbar = jsToolbarUtils.getContent();
-				// Update project's name
-				toolbar = toolbar.replaceAll("\\$\\{\\}\\$", projectName);
-				jsToolbarUtils.print(toolbar); // save file
-				monitor.setTaskName("Mobile project name updated for toolbar");
-				monitor.worked(1);
-			}
-		}
-
-		// Now adds official Sencha files (js & css)
-		MobileUtils.unzipSencha(page14.getSenchaPath(), newProjectDir + "/" + MobileSencha.JS_DIRECTORY,
-				MobileSencha.getJSFiles());
-		MobileUtils.unzipSencha(page14.getSenchaPath(), newProjectDir + "/" + MobileSencha.CSS_DIRECTORY,
-				MobileLook.getCssFiles(mobileLook));
-		monitor.setTaskName("Sencha framework unziped");
-		monitor.worked(1);
 	}
 
 	/**

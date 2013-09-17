@@ -130,6 +130,8 @@ public class LaunchBuild extends XmlService {
 			// Update endpoint for C8O server
 			File serverJsFile = new File(tmpMobileWwwPath + "/sources/server.js");
 			if (serverJsFile.exists()) {
+				// Sencha based projects
+				
 				String sServerJsHtml = FileUtils.readFileToString(serverJsFile);
 				sServerJsHtml = sServerJsHtml.replaceAll("/\\* DO NOT REMOVE THIS LINE endpoint \\: '' \\*/", "endpoint : '" + endPoint + "'");
 				FileUtils.writeStringToFile(serverJsFile, sServerJsHtml);
@@ -145,6 +147,8 @@ public class LaunchBuild extends XmlService {
 				// needed
 				sIndexHtml = resolveFile(sIndexHtml, "scripts/mobilelib.js", "js/mobilelib.js");
 			} else {
+				// jquerymobile based projects
+				
 				StringBuffer sbIndexHtml = new StringBuffer();
 				BufferedReader br = new BufferedReader(new StringReader(sIndexHtml));
 				String line = br.readLine();
