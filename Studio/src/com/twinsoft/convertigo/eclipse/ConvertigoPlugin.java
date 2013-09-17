@@ -682,7 +682,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					
 					configureDeployConfiguration();
 
-					displayWaitScreen();
+//					displayWaitScreen();
 
 					new Thread(embeddedTomcat, "Embedded Tomcat").start();
 					new Thread(new Runnable() {

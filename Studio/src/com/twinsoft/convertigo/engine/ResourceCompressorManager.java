@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -112,7 +113,9 @@ public class ResourceCompressorManager implements AbstractManager {
 			this.resourceType= resourceType; 
 			this.virtualFile = virtualFile;
 			key = key.replaceFirst("(.*?)/_private/(?:flashupdate|mobile)/", "$1/DisplayObjects/mobile/");
-			key = StringUtils.normalize(key);
+			key = DigestUtils.md5Hex(key) + DigestUtils.shaHex(key) + "." + resourceType.name();
+//			key = StringUtils.normalize(key);
+//			key = key.replaceAll("_+", "_");
 			cacheFile = new File(compressorCacheDirectory, key);
 		}
 		
