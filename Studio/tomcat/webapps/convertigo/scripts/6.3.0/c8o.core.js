@@ -183,7 +183,7 @@ C8O = {
 			output.appendChild(document.createTextNode(input.nodeValue))
 			break;
 		}
-		return output
+		return output;
 	},
 	
 	formToData: function ($form, data) {
