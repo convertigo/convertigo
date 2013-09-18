@@ -308,7 +308,7 @@ $.extend(true, C8O, {
 				[],
 				$(window.document))) {
 			// The condition failed, so we abort the rendering
-			return;
+			return false;
 		}
 
 		var c8oCall = $element.attr("data-c8o-call");
