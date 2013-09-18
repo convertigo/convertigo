@@ -570,8 +570,9 @@ $.extend(true, C8O, {
 				
 				if (C8O.isUndefined(value)) {
 					if (isFragment && C8O.isDefined($elt) && $elt.length) {
+						value = document.createElement("fragment");
 						$elt.each(function () {
-							value = C8O.convertHTML(this, value);
+							value.appendChild(document.importNode(this));
 						});
 					} else {
 						if (C8O.isDefined(rule["default"])) {
@@ -599,6 +600,7 @@ $.extend(true, C8O, {
 				}
 				
 				if (isFragment && C8O.isDefined(value.childNodes)) {
+//					value = C8O.convertHTML(value).firstChild;
 					C8O.log.trace("ctf.core: template fragment insert " + value.childNodes.length + " nodes");
 					C8O._hook("_newContent", $(value));
 					C8O._manageTemplates($(value));
