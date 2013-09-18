@@ -600,7 +600,7 @@ $.extend(true, C8O, {
 				}
 				
 				if (isFragment && C8O.isDefined(value.childNodes)) {
-//					value = C8O.convertHTML(value).firstChild;
+					value = C8O.convertHTML(value).firstChild;
 					C8O.log.trace("ctf.core: template fragment insert " + value.childNodes.length + " nodes");
 					C8O._hook("_newContent", $(value));
 					C8O._manageTemplates($(value));
