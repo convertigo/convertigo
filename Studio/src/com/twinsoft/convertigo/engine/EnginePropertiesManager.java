@@ -232,7 +232,6 @@ public class EnginePropertiesManager {
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
     	Billing ("Supervision"),
     	Notifications ("Notifications"),
-    	@CategoryOptions(visibility = Visibility.HIDDEN)
     	MobileBuilder ("Mobile builder"),
     	@CategoryOptions(visibility = Visibility.HIDDEN)
     	ExternalBrowser ("External browser")
@@ -516,13 +515,31 @@ public class EnginePropertiesManager {
 		NOTIFICATIONS_SMTP_PASSWORD ("notifications.smtp.password", "", "STMP password", PropertyCategory.Notifications),
 		
 		/** MOBILE BUILDER */
+		//@PropertyOptions(propertyType = PropertyType.Boolean)
+		//MOBILE_BUILDER_ ("mobile.builder.", "false", "Don't use the default Phonegap account", PropertyCategory.MobileBuilder),
+		
 		MOBILE_BUILDER_USERNAME ("mobile.builder.username", "", "Mobile builder username", PropertyCategory.MobileBuilder),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
 		MOBILE_BUILDER_PASSWORD ("mobile.builder.password", "", "Mobile builder password", PropertyCategory.MobileBuilder),
+		
+		MOBILE_BUILDER_IOS_CERTIFICATE_TITLE ("mobile.builder.ios_certificate_title", "", "iOS certificate title", PropertyCategory.MobileBuilder),
+		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
+		MOBILE_BUILDER_IOS_CERTIFICATE_PW ("mobile.builder.ios_certificate_pw", "", "iOS certificate password", PropertyCategory.MobileBuilder),
+		
+		MOBILE_BUILDER_ANDROID_CERTIFICATE_TITLE ("mobile.builder.android_certificate_title", "", "Android certificate title", PropertyCategory.MobileBuilder),
+		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
+		MOBILE_BUILDER_ANDROID_CERTIFICATE_PW ("mobile.builder.android_certificate_pw", "", "Android certificate password", PropertyCategory.MobileBuilder),
+		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
+		MOBILE_BUILDER_ANDROID_KEYSTORE_PW ("mobile.builder.android_keystore_pw", "", "Android keyStore password", PropertyCategory.MobileBuilder),
+		
+		MOBILE_BUILDER_BB_KEY_TITLE ("mobile.builder.bb_key_title", "", "Black Berry key title", PropertyCategory.MobileBuilder),
+		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
+		MOBILE_BUILDER_BB_KEY_PW ("mobile.builder.bb_key_pw", "", "Black Berry key password", PropertyCategory.MobileBuilder),
 
 		@PropertyOptions(advance = true)
 		MOBILE_BUILDER_PLATFORM_URL ("mobile.builder.platform_url", "https://build.convertigo.net/cmb/PhoneGapBuilder", "Mobile builder platform URL", PropertyCategory.MobileBuilder),
-
+		
+		
 		/** EXTERNAL BROWSER */
 		@PropertyOptions(propertyType = PropertyType.Array)
 		EBA_LIST ("externalbrowser.agent.list", "", "External Browser Agent list", PropertyCategory.ExternalBrowser),

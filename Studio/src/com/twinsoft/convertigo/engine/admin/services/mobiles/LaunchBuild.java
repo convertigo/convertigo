@@ -161,6 +161,21 @@ public class LaunchBuild extends XmlService {
 			String mobileBuilderPlatformPassword = EnginePropertiesManager
 					.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
 			
+			String mobileBuilderIOSCertificateTitle = EnginePropertiesManager
+					.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
+			String mobileBuilderIOSCertificatePw = EnginePropertiesManager
+					.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_PW);
+			String mobileBuilderAndroidCertificateTitle = EnginePropertiesManager
+					.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_TITLE);
+			String mobileBuilderAndroidCertificatePw = EnginePropertiesManager
+					.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_PW);
+			String mobileBuilderAndroidKeystorePw = EnginePropertiesManager
+					.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_KEYSTORE_PW);
+			String mobileBuilderBBKeyTitle = EnginePropertiesManager
+					.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_TITLE);
+			String mobileBuilderBBKeyPw = EnginePropertiesManager
+					.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_PW);
+			
 			PostMethod method;
 			int methodStatusCode;
 			InputStream methodBodyContentInputStream;
@@ -169,6 +184,14 @@ public class LaunchBuild extends XmlService {
 			params.put("application", new String[]{finalApplicationName});
 			params.put("username", new String[]{mobileBuilderPlatformUsername});
 			params.put("password", new String[]{mobileBuilderPlatformPassword});
+			
+			params.put("iOSCertificateTitle", new String[]{mobileBuilderIOSCertificateTitle});
+			params.put("iOSCertificatePw", new String[]{mobileBuilderIOSCertificatePw});
+			params.put("androidCertificateTitle", new String[]{mobileBuilderAndroidCertificateTitle});
+			params.put("androidCertificatePw", new String[]{mobileBuilderAndroidCertificatePw});
+			params.put("androidKeystorePw", new String[]{mobileBuilderAndroidKeystorePw});
+			params.put("bbKeyTitle", new String[]{mobileBuilderBBKeyTitle});
+			params.put("bbKeyPw", new String[]{mobileBuilderBBKeyPw});
 
 			// Launch the mobile build
 			URL url = new URL(mobileBuilderPlatformURL + "/build?" + URLUtils.mapToQuery(params));
