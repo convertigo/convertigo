@@ -357,15 +357,33 @@ $.extend(true, C8O, {
 //});
 
 /**
+ *  get_language hook
+ *  used at page loading before document_ready and when i18n is enable
+ *  (no empty C8O.ro_vars.i18n_files)
+ *  can modify data parameter of the first call
+ *  or break the processing of request
+ *  
+ *  params: key/value object decoded from the current query or hash string
+ *  
+ *  return: string > the current language to use
+ *            other cases > use the default language detection
+ */
+//C8O.addHook("get_language", function (params) {
+//
+//});
+
+/**
  *  init_finished hook
  *  used at page loading after C8O initialization
  *  can modify data parameter of the first call
  *  or break the processing of request
  *  
+ *  params: key/value object decoded from the current query or hash string
+ *  
  *  return: true > lets C8O perform the first call
  *             false > break the processing of request
  */
-//C8O.addHook("init_finished", function (data) {
+//C8O.addHook("init_finished", function (params) {
 //	return true;
 //});
 

@@ -68,12 +68,12 @@ $.extend(true, C8O, {
 	},
 	
 	_jqm_onDocumentReady: C8O._onDocumentReady,
-	_onDocumentReady: function () {
+	_onDocumentReady: function (params) {
 		if (!$.mobile.ajaxBlacklist) {
 			$("<div id=\"c8oloading\"/>").css({backgroundColor: "grey", position: "fixed", width: "100%", height: "100%", opacity: 0.5, "z-index": 99}).hide().appendTo("body");
 		}
 		
-		C8O._jqm_onDocumentReady();
+		C8O._jqm_onDocumentReady(params);
 	},
 	
 	_onJqmInitFinished: function () {

@@ -285,7 +285,7 @@ $.extend(true, C8O, {
 		}
 	},
 	
-	_onDocumentReady: function () {
+	_onDocumentReady: function (params) {
 		/** No XSLT engine (see #1336): switch to server mode */
 		if (!window.XSLTProcessor && !window.ActiveXObject) {
 			C8O.log.debug("c8o.desk: no xsl engine, force xsl side server");
@@ -303,11 +303,10 @@ $.extend(true, C8O, {
 		// retrieve the wait_div element in memory
 		C8O._define.wait_div = $("#wait_div").clone();
 		
-		if (C8O._hook("document_ready")) {
+		if (C8O._hook("document_ready", params)) {
 			var loc = window.location,
 				base = loc.href.substring(0, loc.href.indexOf("/projects/"));
 			if (C8O._define.project != null) {
-				var params = C8O._parseQuery();
 				
 				var testplatform = C8O._remove(params, "__testplatform");
 				testplatform = (testplatform == null) ? C8O.init_vars.testplatform : (C8O.init_vars.testplatform = testplatform);

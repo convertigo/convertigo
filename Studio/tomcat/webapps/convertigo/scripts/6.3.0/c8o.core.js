@@ -594,9 +594,9 @@ C8O = {
 		C8O._hook("xml_response", xml, jqXHR.C8O_data);
 	},
 	
-	_onDocumentReady: function () {
-		if (C8O._hook("document_ready")) {
-			C8O._init({});
+	_onDocumentReady: function (params) {
+		if (C8O._hook("document_ready", params)) {
+			C8O._init(params);
 		};
 	},
 	
@@ -671,17 +671,30 @@ $(document).ready(function () {
 	}
 	
 	C8O._define.plugins_path = window.location.href.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
+	
+	var params = C8O._parseQuery();
+	
 	if (C8O.ro_vars.i18n_files.length > 0) {
 		C8O.log.trace("c8o.core: i18n enabled");
 		
-		if (C8O.init_vars.i18n == "") {
-			var lang = C8O.getBrowserLanguage();
-			C8O.log.trace("c8o.core: current browser language is " + lang);
-			
-			C8O.init_vars.i18n = ($.inArray(lang, C8O.ro_vars.i18n_files) == -1) ? C8O.ro_vars.i18n_files[0] : lang;
-			
-			C8O.log.debug("c8o.core: current active language is " + C8O.init_vars.i18n);
+		var lang = C8O._hook("get_language", params);
+		
+		if (typeof lang != "string") {
+			lang = C8O._remove(params, "__i18n");
+			if (typeof lang != "string") {
+				lang = C8O.init_vars.i18n;
+				if (lang == "") {
+					lang = C8O.getBrowserLanguage();
+				}
+			}
 		}
+		
+		C8O.log.trace("c8o.core: current browser language is " + lang);
+		
+		C8O.init_vars.i18n = ($.inArray(lang, C8O.ro_vars.i18n_files) == -1) ? C8O.ro_vars.i18n_files[0] : lang;
+		
+		C8O.log.debug("c8o.core: current active language is " + C8O.init_vars.i18n);
+		
 		var jqxhr = $.getJSON("i18n/" + C8O.init_vars.i18n + ".json", function (dictionnary) {
 			C8O.log.debug("c8o.core: translation dictionnary received for " + C8O.init_vars.i18n);
 			
@@ -690,9 +703,9 @@ $(document).ready(function () {
 			
 			C8O.log.debug("c8o.core: translation done in " + C8O.init_vars.i18n);
 		}).always(function () {
-			C8O._onDocumentReady();
+			C8O._onDocumentReady(params);
 		});
 	} else {
-		C8O._onDocumentReady();
+		C8O._onDocumentReady(params);
 	}
 });
