@@ -572,7 +572,7 @@ $.extend(true, C8O, {
 					if (isFragment && C8O.isDefined($elt) && $elt.length) {
 						value = document.createElement("fragment");
 						$elt.each(function () {
-							value.appendChild(document.importNode(this));
+							value.appendChild(document.importNode(this, true));
 						});
 					} else {
 						if (C8O.isDefined(rule["default"])) {
