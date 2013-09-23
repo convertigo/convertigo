@@ -35,7 +35,7 @@ public class SqlTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/sqltransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/sqltransaction_color_32x32.png";
 
-			properties = new PropertyDescriptor[4];
+			properties = new PropertyDescriptor[5];
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/SqlTransaction");
 			
@@ -63,6 +63,10 @@ public class SqlTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[3].setExpert(true);
 			properties[3].setDisplayName(getExternalizedString("property.maxResult.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.maxResult.short_description"));
+			
+			properties[4] = new PropertyDescriptor("autoCommit", beanClass, "getAutoCommit", "setAutoCommit");
+			properties[4].setDisplayName(getExternalizedString("property.autoCommit.display_name"));
+			properties[4].setShortDescription(getExternalizedString("property.autoCommit.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
