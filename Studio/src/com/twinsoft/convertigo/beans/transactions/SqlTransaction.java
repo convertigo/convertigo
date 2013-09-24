@@ -136,7 +136,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		private Map<String, String> parametersMap = new HashMap<String, String>();
 		
 		public SqlQueryInfos(String thequery, SqlTransaction sqlTransaction, boolean updateDefinitions){
-			this.query = thequery.replaceAll("\n", "").replaceAll("\r", "");;
+			this.query = thequery.replaceAll("\n", " ").replaceAll("\r", "").trim();
 			this.sqlTransaction = sqlTransaction;
 			findType();
 			this.query = prepareParameters(updateDefinitions);
@@ -459,9 +459,12 @@ public class SqlTransaction extends TransactionWithVariables {
 			
 			// In case of first SqlTransaction run
 			// TODO : A vérifier
-			if( preparedSqlQueries != null && (preparedSqlQueries.get(0).getQuery().equals("")))
+			if ( preparedSqlQueries != null && preparedSqlQueries.get(0).getQuery().equals("") )
 				preparedSqlQueries = initializeQueries(true);
 			
+			if ( verifyParameters(preparedSqlQueries) == false )
+					preparedSqlQueries = initializeQueries(true);
+					
 			if( preparedSqlQueries.get(0).getParametersMap().size() != 0 )
 				preparedSqlQueries.get(0).getParametersMap().get(preparedSqlQueries.get(0).getOrderedParametersList().get(0));
 			
@@ -738,7 +741,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				Element sql;
 				if (rows != null && errorMessageSQL.equals("")){ 
 					sql = parseResults(rows, columnHeaders);
-				//In case of error during the execution of the request
+				//In case of error during the execution of the request we pull up the error node
 				} else if( !errorMessageSQL.equals("")) {
 					sql = parseResults(-1);
 				} else {
@@ -781,6 +784,24 @@ public class SqlTransaction extends TransactionWithVariables {
 				xsdType = prettyPrintedText;
 			}
 		}
+	}
+	
+	private boolean verifyParameters(List <SqlQueryInfos> SqlQueries) {
+		boolean result = true;
+		
+		int x = 0;
+		while (x < SqlQueries.size() && result == true) {
+			SqlQueryInfos sqlQuery = SqlQueries.get(x);
+			if (sqlQuery.getOrderedParametersList().size() > 0) {
+				int y = 0;
+				String parameter = sqlQuery.getOrderedParametersList().get(y);
+				result = sqlQuery.getParametersMap().get(parameter).equals(getParameterValue(parameter, this.getVariableVisibility(parameter)).toString());
+				y++; 
+			}
+			x++;
+		}
+		
+		return result;
 	}
 
 	@Override
