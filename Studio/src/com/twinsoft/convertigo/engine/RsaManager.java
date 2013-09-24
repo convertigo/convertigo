@@ -24,19 +24,26 @@ package com.twinsoft.convertigo.engine;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
 import javax.servlet.http.HttpSession;
 
 public class RsaManager implements AbstractManager {
+	private final static Pattern findTimestamp = Pattern.compile("ts=(\\d*)&(.*$)");
 	private final static int keyLenght = 512;
-	private enum key{cipher, publickey};
+	private final static SecurityException securityException = new SecurityException();
+	
+	static {
+		securityException.setStackTrace(new StackTraceElement[0]);	
+	}
+	
+	private enum key{cipher, publickey, rsaTimestamp};
 	private KeyPairGenerator kpg;
 
 	public void destroy() throws EngineException {
@@ -44,67 +51,91 @@ public class RsaManager implements AbstractManager {
 
 	public void init() throws EngineException {
 		try {
-			
         	kpg = KeyPairGenerator.getInstance("RSA");
         	kpg.initialize(keyLenght);
-        	
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			kpg = null;
+			Engine.logEngine.error("(RsaManager) Failed to initialize RSA KeyPairGenerator", e);
 		}
 	}
 
     public String decrypt(String encrypted, HttpSession session) {
     	Cipher dec = (Cipher) session.getAttribute(key.cipher.toString());
-    	if(dec==null) throw new RuntimeException("no cipher");
+    	
+    	if (dec == null) {
+    		Engine.logEngine.warn("(RsaManager) No cipher is session " + session.getId());
+    		throw securityException;
+    	}
+    	
         String[] blocks = encrypted.split("\\s");
         StringBuffer result = new StringBuffer();
         try {
-            for ( int i = blocks.length-1; i >= 0; i-- ) {
+            for (int i = blocks.length - 1; i >= 0; i-- ) {
                 byte[] data = hexStringToByteArray(blocks[i]);
                 byte[] decryptedBlock = dec.doFinal(data);
                 try {
                 	int offset = 0;
-                	while(offset<decryptedBlock.length && decryptedBlock[offset]==0)
+                	while (offset < decryptedBlock.length && decryptedBlock[offset] == 0) {
                 		offset++;
+                	}
 					result.append(new String(decryptedBlock, offset, decryptedBlock.length-offset, "utf-8"));
 				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Engine.logEngine.warn("(RsaManager) Failed to decode decryptedBlock", e);
 				}
             }
         } catch (GeneralSecurityException e) {
-            throw new RuntimeException("Decrypt error",e);
+        	Engine.logEngine.warn("(RsaManager) Failed to decrypt a message", e);
+            throw securityException;
         }
-        return result.reverse().toString();
+        
+        Engine.logEngine.debug("(RsaManager) Request decrypted for session " + session.getId());
+        String query = result.reverse().toString();
+        
+    	synchronized (session) {
+	        Long exTs = (Long) session.getAttribute(key.rsaTimestamp.toString());
+	    	Matcher findTS = findTimestamp.matcher(query);
+	    	
+	    	if (findTS.matches()) {
+	    		try {
+	    			Long newTs = Long.parseLong(findTS.group(1));
+	    			
+	    			if (exTs == null || newTs > exTs) {
+	    				Engine.logEngine.debug("(RsaManager) Update timestamp for session " + session.getId());
+	    				session.setAttribute(key.rsaTimestamp.toString(), newTs);
+	        			return findTS.group(2);
+	        		}
+	    		} catch (NumberFormatException e) {
+	    		}
+	    		Engine.logEngine.info("(RsaManager) Invalid timestamp for session " + session.getId());
+	    		throw securityException;
+	    	} else if (exTs != null) {
+	    		Engine.logEngine.info("(RsaManager) No timestamp for session " + session.getId());
+	    		throw securityException;
+	    	}
+		}
+    	
+        return query;
     }
     
     public String getPublicKey(HttpSession session) {
     	String publicKey = (String) session.getAttribute(key.publickey.toString());
     	Cipher dec = (Cipher) session.getAttribute(key.cipher.toString());
-    	if(publicKey == null || dec == null) try {
-    		KeyPair kp = kpg.generateKeyPair();
-
-
-    		dec = Cipher.getInstance("RSA/ECB/NOPADDING");
-
-    		dec.init(Cipher.DECRYPT_MODE, kp.getPrivate());
-
-    		RSAPublicKey pk = (RSAPublicKey)kp.getPublic();
-    		publicKey = pk.getPublicExponent().toString(16)+'|'+pk.getModulus().toString(16)+'|'+getMaxDigits(keyLenght);
-    		
-    		session.setAttribute(key.publickey.toString(), publicKey);
-    		session.setAttribute(key.cipher.toString(), dec);
-    	} catch (NoSuchAlgorithmException e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
-    	} catch (NoSuchPaddingException e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
-    	} catch (InvalidKeyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+    	
+    	if (publicKey == null || dec == null) {
+    		try {
+	    		KeyPair kp = kpg.generateKeyPair();
+	    		dec = Cipher.getInstance("RSA/ECB/NOPADDING");
+	    		dec.init(Cipher.DECRYPT_MODE, kp.getPrivate());
+	
+	    		RSAPublicKey pk = (RSAPublicKey) kp.getPublic();
+	    		publicKey = pk.getPublicExponent().toString(16) + '|' + pk.getModulus().toString(16) + '|' + getMaxDigits(keyLenght);
+	    		
+	    		session.setAttribute(key.publickey.toString(), publicKey);
+	    		session.setAttribute(key.cipher.toString(), dec);
+	    	} catch (Exception e) {
+	    		Engine.logEngine.warn("Can't create publicKey for session " + session.getId(), e);
+	    	}
+    	}
     	return publicKey;
     }
 
