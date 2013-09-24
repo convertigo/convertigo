@@ -368,13 +368,17 @@ C8O = {
 	_call: function (data) {
 		C8O._define.last_call_params = data;
 		if (C8O._hook("call", data)) {
+			var netData = C8O._hook("_call_rsa", data);
+			if (typeof netData != "object") {
+				netData = data;
+			}
 			var url = C8O._getCallUrl();
 			if (C8O.canLog("trace")) {
-				C8O.log.trace("c8o.core: call " + C8O.toJSON(data) + " " + C8O.vars.ajax_method + " " + url);
+				C8O.log.trace("c8o.core: call " + C8O.toJSON(netData) + " " + C8O.vars.ajax_method + " " + url);
 			}
 			var jqXHR = $.ajax({
 				complete: C8O._onCallComplete,
-				data: data,
+				data: netData,
 				dataType: C8O.vars.xsl_side == "server" ? "text" : "xml",
 				error: C8O._onCallError,
 				success: C8O._onCallSuccess,
