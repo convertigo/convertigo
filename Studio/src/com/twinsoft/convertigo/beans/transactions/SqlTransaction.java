@@ -629,6 +629,7 @@ public class SqlTransaction extends TransactionWithVariables {
 			}
 			catch(SQLException e) {;}
 			preparedStatement = null;
+			connector.close();
 		}
 	
 		if (studioMode) {

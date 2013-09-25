@@ -40,7 +40,7 @@ public class SqlConnectorBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[7];
+			properties = new PropertyDescriptor[9];
 			
 			properties[0] = new PropertyDescriptor("jdbcDriverClassName", beanClass, "getJdbcDriverClassName", "setJdbcDriverClassName");
 			properties[0].setDisplayName(getExternalizedString("property.jdbcDriverClassName.display_name"));
@@ -72,6 +72,16 @@ public class SqlConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[6].setDisplayName(getExternalizedString("property.keepConnectionAliveAfterTransaction.display_name"));
 			properties[6].setShortDescription(getExternalizedString("property.keepConnectionAliveAfterTransaction.short_description"));
 			properties[6].setExpert(true);
+			
+			properties[7] = new PropertyDescriptor("idleConnectionTestTime", beanClass, "getIdleConnectionTestTime", "setIdleConnectionTestTime");
+			properties[7].setDisplayName(getExternalizedString("property.idleConnectionTestTime.display_name"));
+			properties[7].setShortDescription(getExternalizedString("property.idleConnectionTestTime.short_description"));
+			properties[7].setExpert(true);
+			
+			properties[8] = new PropertyDescriptor("connectionPool", beanClass, "getConnectionPool", "setConnectionPool");
+			properties[8].setDisplayName(getExternalizedString("property.connectionPool.display_name"));
+			properties[8].setShortDescription(getExternalizedString("property.connectionPool.short_description"));
+			properties[8].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
