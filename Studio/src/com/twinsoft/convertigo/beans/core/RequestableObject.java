@@ -34,7 +34,6 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -44,11 +43,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.mozilla.javascript.Scriptable;
-import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -404,50 +401,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         	fireRequestableEvent(RequestableObject.EVENT_REQUESTABLE_FINISHED);
         }
         
-        try {
-	        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-	        documentBuilderFactory.setNamespaceAware(true);
-	        
-	        Document nDoc = documentBuilderFactory.newDocumentBuilder().newDocument();
-	        importNode(context.outputDocument, nDoc);
-	        context.outputDocument = nDoc;
-        } catch (Exception e) {
-        	e.printStackTrace();
-        }
-        
         return context.outputDocument;
-    }
-	
-    private void importNode(Document docIn, Document docOut) {
-    	Element eltIn = docIn.getDocumentElement();
-    	Element eltOut = docOut.createElement(eltIn.getTagName());
-    	importNode(eltIn, docOut, eltOut);
-    	docOut.appendChild(eltOut);
-    }
-    
-    private void importNode(Element eltIn, Document docOut, Element eltOut) {
-    	NamedNodeMap attrs = eltIn.getAttributes();
-    	for (int i = 0; i < attrs.getLength(); i++) {
-    		Attr attr = (Attr) attrs.item(i);
-    		if (!attr.getName().startsWith("xmlns:")) {
-    			eltOut.setAttribute(attr.getName().replaceFirst(".*?:", ""), attr.getValue());
-    		}
-    	}
-    	NodeList nl = eltIn.getChildNodes();
-    	for (int i = 0; i < nl.getLength(); i++) {
-    		Node node = nl.item(i);
-    		switch(node.getNodeType()) {
-    		case Node.ELEMENT_NODE:
-    			Element elt = (Element) node;
-    			Element childOut = docOut.createElement(elt.getTagName());
-    			importNode(elt, docOut, childOut);
-    			eltOut.appendChild(childOut);
-    			break;
-    		case Node.TEXT_NODE:
-    			eltOut.appendChild(docOut.createTextNode(node.getNodeValue()));
-    			break;
-    		}
-    	}
     }
     
     /*
