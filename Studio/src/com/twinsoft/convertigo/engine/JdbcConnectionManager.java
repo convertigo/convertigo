@@ -95,9 +95,45 @@ public class JdbcConnectionManager implements AbstractManager {
 		Engine.logEngine.debug("(JdbcConnectionManager) maxConnections: " + maxConnections);
 		pool.setMaxActive(maxConnections);
 
+		/* Database query to list tables
+			*JDBC Drivers
+			SQLSERVER	:	SELECT * FROM INFORMATION_SCHEMA.TABLES
+			MYSQL		:	SELECT * FROM INFORMATION_SCHEMA.TABLES | SHOW TABLES
+			DB2			:	SELECT * FROM SYSCAT.TABLES
+			ORACLE		: 	SELECT * FROM ALL_TABLES
+			POSTGRES	:	SELECT * FROM pg_tables
+			HSQLDB		:	SELECT * FROM INFORMATION_SCHEMA.SYSTEM_TABLES
+			
+			*JDBC-ODBC Bridge
+			DHARMA SDK	: 	SELECT * FROM DHARMA.SYSTABLES | SELECT * FROM SYSTABLES
+		 */
+	
 		String query = connector.getSystemTablesQuery();
 		if (query.equals("")) {
-			query = "select 1 as dbcp_connection_test";
+			String jdbcDriverClassName = connector.getJdbcDriverClassName();
+			/* SQLSERVER (limit to 1 row)*/
+			if ("net.sourceforge.jtds.jdbc.Driver".equals(jdbcDriverClassName))
+				query = "SELECT TOP 1 * FROM INFORMATION_SCHEMA.TABLES";
+			/* MYSQL (limit to 1 row)*/
+			else if ("com.mysql.jdbc.Driver".equals(jdbcDriverClassName))
+				query = "SELECT * FROM INFORMATION_SCHEMA.TABLES LIMIT 1";
+			/* HSQLDB (limit to 1 row)*/
+			else if ("org.hsqldb.jdbcDriver".equals(jdbcDriverClassName))
+				query = "SELECT TOP 1 * FROM INFORMATION_SCHEMA.SYSTEM_TABLES";
+			/* DB2 (limit to 1 row)*/
+			else if ("com.ibm.db2.jcc.DB2Driver".equals(jdbcDriverClassName))
+				query = "SELECT * FROM SYSCAT.TABLES FETCH FIRST 1 ROWS";
+			/* AS400 (limit to 1 row)*/
+			else if ("com.ibm.as400.access.AS400JDBCDriver".equals(jdbcDriverClassName))
+				query = "SELECT * FROM SYSIBM.SQLSCHEMAS FETCH FIRST 1 ROWS ONLY";
+			/* ORACLE (limit 1 row) */
+			else if ("oracle.jdbc.driver.OracleDriver".equals(jdbcDriverClassName))
+				query = "SELECT * FROM ALL_TABLES WHERE ROWNUM <= 1";
+			/* Initialize the query by default with no limitation on returned resultset */
+			else {
+				query = "SELECT 1 AS dbcp_connection_test";
+//				query = "SELECT * FROM INFORMATION_SCHEMA.TABLES";
+			}
 		}
 		Engine.logEngine.debug("(JdbcConnectionManager) SQL validation query: " + query);
 		pool.setValidationQuery(query);
