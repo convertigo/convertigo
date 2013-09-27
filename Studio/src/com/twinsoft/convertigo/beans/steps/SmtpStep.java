@@ -49,6 +49,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -268,9 +269,14 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 					transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 					transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 					StringWriter sw = new StringWriter();
-
-					StepSource stepSource = getSource();
-					NodeList list = stepSource.inError() ? null : stepSource.getContextOutputNodes();
+					
+					// make a clean copy, without step_id and copy_step attributes
+					Document workingDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+					Element root = (Element) workingDoc.appendChild(workingDoc.createElement("root"));
+					XMLCopyStep.createCopy(this, workingDoc, root);
+					
+					NodeList list = root.getChildNodes();
+					
 					if (list != null) {
 						for (int i = 0; i < list.getLength(); i++) {
 							Node currentNode = list.item(i);
