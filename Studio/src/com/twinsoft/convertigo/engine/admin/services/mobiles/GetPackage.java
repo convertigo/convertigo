@@ -111,11 +111,7 @@ public class GetPackage extends DownloadService {
 			} 
 			
 			OutputStream responseOutputStream = response.getOutputStream();
-			byte[] buffer = new byte[1024];
-			int len;
-			while ((len = methodBodyContentInputStream.read(buffer)) != -1) {
-				responseOutputStream.write(buffer, 0, len);
-			}
+			IOUtils.copy(methodBodyContentInputStream, responseOutputStream);
 		} finally {
 			method.releaseConnection();
 		}
