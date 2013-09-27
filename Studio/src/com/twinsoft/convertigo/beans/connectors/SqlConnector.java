@@ -94,6 +94,8 @@ public class SqlConnector extends Connector {
 	
 	private long idleConnectionTestTime = 60;
 	
+	private boolean testOnBorrow = false;
+	
 	private boolean connectionPool = true;
 	
 	public SqlConnector() {
@@ -513,5 +515,13 @@ public class SqlConnector extends Connector {
 
 	public void setConnectionPool(boolean connectionPool) {
 		this.connectionPool = connectionPool;
+	}
+
+	public boolean getTestOnBorrow() {
+		return testOnBorrow;
+	}
+
+	public void setTestOnBorrow(boolean testOnBorrow) {
+		this.testOnBorrow = testOnBorrow;
 	}
 }

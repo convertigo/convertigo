@@ -138,7 +138,10 @@ public class JdbcConnectionManager implements AbstractManager {
 		Engine.logEngine.debug("(JdbcConnectionManager) SQL validation query: " + query);
 		pool.setValidationQuery(query);
 
-		pool.setTestOnBorrow(true);
+		boolean testOnBorrow = connector.getTestOnBorrow();
+		Engine.logEngine.debug("(JdbcConnectionManager) testOnBorrow=" + testOnBorrow);
+		pool.setTestOnBorrow(testOnBorrow);
+		
 		pool.setTestOnReturn(true);
 		pool.setTestWhileIdle(true);
 		
