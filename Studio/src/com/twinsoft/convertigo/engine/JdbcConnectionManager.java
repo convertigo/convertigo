@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.engine;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -72,43 +73,28 @@ public class JdbcConnectionManager implements AbstractManager {
 	}
 
 	private BasicDataSource addDatabasePool(SqlConnector connector) {
-		Engine.logEngine.trace("(JdbcConnectionManager) Creating a new pool");
-		BasicDataSource pool = new BasicDataSource();
-		pool.setDriverClassName(connector.getRealJdbcDriverClassName());
-		pool.setUrl(connector.getRealJdbcURL());
-		pool.setUsername(connector.getJdbcUserName());
-		pool.setPassword(connector.getJdbcUserPassword());
-		pool.setMaxActive(connector.getJdbcMaxConnection());
-		databasePools.put(getKey(connector), pool);
-		return pool;
-	}
-
-	private synchronized BasicDataSource getDatabasePool (SqlConnector connector) {
-		if (databasePools.containsKey(getKey(connector))) {
-			Engine.logEngine.trace("(JdbcConnectionManager) getDatabasePool() returning existing pool");
-			return (BasicDataSource) databasePools.get(getKey(connector));
-		}
-		else {
-			Engine.logEngine.trace("(JdbcConnectionManager) getDatabasePool() returning new pool");
-			return addDatabasePool(connector);
-		}
-	}
-	
-	private String getKey (SqlConnector connector) {
-		return Long.toString(connector.getIdentity());
-	}
-	
-	public Connection getConnection(SqlConnector connector) throws SQLException {
-		return getConnection(connector, 10);
-	}
-	
-	public Connection getConnection(SqlConnector connector, int retry_cpt) throws SQLException {
-		Engine.logEngine.trace("(JdbcConnectionManager) getConnection for "+connector.getProject().getName()+"."+connector.getName());
-		BasicDataSource pool = getDatabasePool(connector);
-		Engine.logEngine.trace("(JdbcConnectionManager) pool = " + pool);
-		Connection connection = pool.getConnection();
-		Engine.logEngine.trace("(JdbcConnectionManager) connection = " + connection);
+		Engine.logEngine.debug("(JdbcConnectionManager) Creating a new pool");
 		
+		BasicDataSource pool = new BasicDataSource();
+
+		pool.setDriverClassName(connector.getRealJdbcDriverClassName());
+		
+		String jdbcURL = connector.getRealJdbcURL();
+		Engine.logEngine.debug("(JdbcConnectionManager) JDBC URL: " + jdbcURL);
+		pool.setUrl(jdbcURL);
+
+		String user = connector.getJdbcUserName();
+		Engine.logEngine.debug("(JdbcConnectionManager) User: " + user);
+		pool.setUsername(user);
+
+		String password = connector.getJdbcUserPassword();
+		Engine.logEngine.trace("(JdbcConnectionManager) Password: " + password);
+		pool.setPassword(password);
+
+		int maxConnections = connector.getJdbcMaxConnection();
+		Engine.logEngine.debug("(JdbcConnectionManager) maxConnections: " + maxConnections);
+		pool.setMaxActive(maxConnections);
+
 		/* Database query to list tables
 			*JDBC Drivers
 			SQLSERVER	:	SELECT * FROM INFORMATION_SCHEMA.TABLES
@@ -121,7 +107,7 @@ public class JdbcConnectionManager implements AbstractManager {
 			*JDBC-ODBC Bridge
 			DHARMA SDK	: 	SELECT * FROM DHARMA.SYSTABLES | SELECT * FROM SYSTABLES
 		 */
-		
+	
 		String query = connector.getSystemTablesQuery();
 		if (query.equals("")) {
 			String jdbcDriverClassName = connector.getJdbcDriverClassName();
@@ -144,34 +130,96 @@ public class JdbcConnectionManager implements AbstractManager {
 			else if ("oracle.jdbc.driver.OracleDriver".equals(jdbcDriverClassName))
 				query = "SELECT * FROM ALL_TABLES WHERE ROWNUM <= 1";
 			/* Initialize the query by default with no limitation on returned resultset */
-			else
-				query = "SELECT * FROM INFORMATION_SCHEMA.TABLES";
-		}
-		
-		try{
-			Engine.logEngine.trace("(JdbcConnectionManager) testing connection with query: " + query);
-			connection.prepareStatement(query).executeQuery();
-			Engine.logEngine.trace("(JdbcConnectionManager) connection OK");
-		}catch (SQLException e) {
-			String exceptionClassName = e.getClass().getName();
-			Engine.logEngine.trace("(JdbcConnectionManager) [" + exceptionClassName + "]: " + e.getMessage());
-			if(retry_cpt>0){
-				if(exceptionClassName.equals("com.mysql.jdbc.CommunicationsException")){
-					Engine.logEngine.trace("(JdbcConnectionManager) Connection not valid: getting another connection ("+retry_cpt+" retry before abort)");
-					retry_cpt--;
-				}else{
-					Engine.logEngine.error("(JdbcConnectionManager) Unknow SQLException ["+exceptionClassName+"] : retry getConnection", e);
-					retry_cpt = 0;
-				}
-				try{
-					connection.close();
-				}catch (Exception ex) {} // may be already closed
-				connection = getConnection(connector, retry_cpt);
-			}else{
-				Engine.logEngine.error("(JdbcConnectionManager) Connection not valid : unable to get a valid connection (no more retry)");
-				throw e;
+			else {
+				query = "SELECT 1 AS dbcp_connection_test";
+//				query = "SELECT * FROM INFORMATION_SCHEMA.TABLES";
 			}
 		}
+		Engine.logEngine.debug("(JdbcConnectionManager) SQL validation query: " + query);
+		pool.setValidationQuery(query);
+
+		boolean testOnBorrow = connector.getTestOnBorrow();
+		Engine.logEngine.debug("(JdbcConnectionManager) testOnBorrow=" + testOnBorrow);
+		pool.setTestOnBorrow(testOnBorrow);
+		
+		pool.setTestOnReturn(true);
+		pool.setTestWhileIdle(true);
+		
+		long timeBetweenEvictionRunsMillis = connector.getIdleConnectionTestTime() * 1000;
+		Engine.logEngine.debug("(JdbcConnectionManager) Time between eviction runs millis: " + timeBetweenEvictionRunsMillis);
+		pool.setTimeBetweenEvictionRunsMillis(timeBetweenEvictionRunsMillis);
+		
+		pool.setNumTestsPerEvictionRun(3);
+		
+		databasePools.put(getKey(connector), pool);
+		Engine.logEngine.debug("(JdbcConnectionManager) Pool added");
+
+		return pool;
+	}
+
+	private synchronized BasicDataSource getDatabasePool (SqlConnector connector) {
+		if (databasePools.containsKey(getKey(connector))) {
+			Engine.logEngine.debug("(JdbcConnectionManager) getDatabasePool() returning existing pool");
+			return (BasicDataSource) databasePools.get(getKey(connector));
+		}
+		else {
+			Engine.logEngine.debug("(JdbcConnectionManager) getDatabasePool() returning new pool");
+			return addDatabasePool(connector);
+		}
+	}
+	
+	private String getKey (SqlConnector connector) {
+		return connector.getQName();
+	}
+	
+	public Connection getConnection(SqlConnector connector) throws SQLException, ClassNotFoundException {
+		Connection connection;
+		Engine.logEngine.debug("(JdbcConnectionManager) Trying to get a SQL connection...");
+		
+		if (connector.getConnectionPool()) {
+			Engine.logEngine.debug("(JdbcConnectionManager) getConnection for "
+					+ connector.getProject().getName() + "." + connector.getName());
+			
+			BasicDataSource pool = getDatabasePool(connector);
+			Engine.logEngine.debug("(JdbcConnectionManager) pool = " + pool);
+			Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + pool.getNumActive() + "/" + pool.getMaxActive());
+			Engine.logEngine.debug("(JdbcConnectionManager)    idle connection(s):   " + pool.getNumIdle() + "/" + pool.getMaxIdle());
+			
+			connection = pool.getConnection();
+			Engine.logEngine.debug("(JdbcConnectionManager) pooled connection = " + connection);
+			Engine.logEngine.debug("(JdbcConnectionManager)    active connection(s): " + pool.getNumActive() + "/" + pool.getMaxActive());
+			Engine.logEngine.debug("(JdbcConnectionManager)    idle connection(s):   " + pool.getNumIdle() + "/" + pool.getMaxIdle());
+		}
+		else {
+			// Attempt to load the database driver
+			String jdbcDriverClassName = connector.getRealJdbcDriverClassName();
+			Engine.logEngine.debug("(JdbcConnectionManager) JDBC driver: " + jdbcDriverClassName);
+			Class.forName(jdbcDriverClassName);
+			Engine.logEngine.debug("(JdbcConnectionManager) JDBC driver loaded");
+			
+			String jdbcURL = connector.getRealJdbcURL();
+			Engine.logEngine.debug("(JdbcConnectionManager) JDBC URL: " + jdbcURL);
+			String user = connector.getJdbcUserName();
+			Engine.logEngine.debug("(JdbcConnectionManager) User: " + user);
+			String password = connector.getJdbcUserPassword();
+			Engine.logEngine.trace("(JdbcConnectionManager) Password: " + password);
+
+			if ("".equals(user)) {
+				Engine.logEngine.debug("(JdbcConnectionManager) Anonymous connection requested");
+				connection = DriverManager.getConnection(jdbcURL);
+			}
+			else {
+				Engine.logEngine.debug("(JdbcConnectionManager) Non anonymous connection requested");
+				connection = DriverManager.getConnection(
+						jdbcURL,
+						user,
+						password);
+			}
+
+			Engine.logEngine.debug("(JdbcConnectionManager) non pooled connection = " + connection);
+		}
+
 		return connection;
 	}
+
 }
