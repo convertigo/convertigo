@@ -1268,6 +1268,9 @@
                 <bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.common.Attribute">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
                 </bean>
+                <bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.common.SplitFields">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass"/>
+                </bean>
             </beans>
 		</category>
 	</group>
