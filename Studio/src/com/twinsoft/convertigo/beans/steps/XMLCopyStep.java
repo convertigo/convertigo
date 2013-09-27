@@ -170,7 +170,11 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
-		NodeList list = getContextValues();
+		createCopy(this, doc, stepNode);
+	}
+	
+	static protected void createCopy(Step step, Document doc, Element stepNode) throws EngineException {
+		NodeList list = step.getContextValues();
 		if (list != null) {
 			int len = list.getLength();
 			for (int i=0; i<len;i++) {
