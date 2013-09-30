@@ -147,6 +147,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE = 1300;
 	public static final int SAMPLE_MOBILE_JQUERYMOBILE_VACATION = 1310;
 	public static final int SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED = 1311;
+	public static final int SAMPLE_MOBILE_CTF_GALLERY = 1312;
 	public static final int SAMPLE_SEQUENCER_1 = 1400;
 
 	// to import blank project
@@ -171,6 +172,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String CMC_DOC_PROJECT_FILE_NAME = "sample_documentation_CMC.car";
 	public static final String MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME = "sampleMobileVacation.car";
 	public static final String MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME = "sampleMobileJQuery.car";
+	public static final String MOBILE_CTF_GALLERY_PROJECT_FILE_NAME = "sampleMobileCtfGallery.car";
 	public static final String SITECLIPPER_DOC_PROJECT_FILE_NAME = "sampleDocumentationSiteClipper.car";
 	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleMaps.car";
 	public static final String GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleSpreadsheets.car";
@@ -224,6 +226,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_DOCUMENTATION_SITECLIPPER:
 		case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
 		case SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED:
+		case SAMPLE_MOBILE_CTF_GALLERY:
 		case LIBRARY_GOOGLE_MAPS:
 		case LIBRARY_GOOGLE_SPREADSHEETS:
 		case LIBRARY_GOOGLE_DOCS:
@@ -421,6 +424,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_DOCUMENTATION_SITECLIPPER:
 			case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
 			case SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED:
+			case SAMPLE_MOBILE_CTF_GALLERY:
 			case LIBRARY_GOOGLE_MAPS:
 			case LIBRARY_GOOGLE_SPREADSHEETS:
 			case LIBRARY_GOOGLE_DOCS:
@@ -1159,6 +1163,24 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + MASHUP_DEMO_PROJECT_FILE_NAME;
 			projectName = MASHUP_DEMO_PROJECT_FILE_NAME.substring(0,
 					MASHUP_DEMO_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
+					+ MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME;
+			projectName = MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME.substring(0,
+					MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
+					+ MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME;
+			projectName = MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME.substring(0,
+					MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_MOBILE_CTF_GALLERY:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
+					+ MOBILE_CTF_GALLERY_PROJECT_FILE_NAME;
+			projectName = MOBILE_CTF_GALLERY_PROJECT_FILE_NAME.substring(0,
+					MOBILE_CTF_GALLERY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		default:
 			return null;

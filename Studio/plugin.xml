@@ -710,6 +710,16 @@
             project="true">
             <description>Imports a full-featured Mobile sample project based on jQueryMobile framework.</description> 
        </wizard>
+       <wizard
+            category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobileCtfGalleryWizard"
+            icon="icons/studio/mobile_HighEnd_color_32x32.png"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobileCtfGalleryWizard"
+            name="CTF gallery sample project"
+            preferredPerspectives="convertigo"
+            project="true">
+            <description>Creates the CTF gallery sample project.</description> 
+       </wizard>
 <!-- HelloWorld sample project -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
