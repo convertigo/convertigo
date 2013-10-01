@@ -1,6 +1,9 @@
 package com.twinsoft.convertigo.engine.translators;
 
+import java.util.ArrayList;
+
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -64,8 +67,23 @@ class InputDocumentBuilder {
 		}
 	}
 	
-	boolean handleSpecialParameter(String parameterName, String parameterValue) {
-		return handleSpecialParameter(parameterName, new String[] { parameterValue });
+	boolean handleSpecialParameter(String parameterName, Object parameterObject) {
+		String[] parameterValues = null;
+		
+		if (parameterObject instanceof String) {
+			parameterValues = new String[] { (String) parameterObject };
+		} else if (parameterObject instanceof String[]) {
+			parameterValues = (String[]) parameterObject;
+		} else if (parameterObject instanceof NodeList) {
+			ArrayList<String> al = new ArrayList<String>();
+			NodeList nl = (NodeList) parameterObject;
+			for (int i = 0 ; i < nl.getLength() ; i++) {
+				al.add(nl.item(i).getTextContent());
+			}
+			parameterValues =  al.toArray(new String[0]);
+		}
+		
+		return handleSpecialParameter(parameterName, parameterValues);
 	}
 	
 	boolean handleSpecialParameter(String parameterName, String[] parameterValues) {
