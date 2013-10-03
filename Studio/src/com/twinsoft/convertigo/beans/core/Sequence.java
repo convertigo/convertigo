@@ -1324,13 +1324,18 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		if (contextName.equals(getInheritedContextName()))
 			return contextName;
 		
-		if (!stepContextNames.contains(contextName))
+		if (!stepContextNames.contains(contextName)) {
 			stepContextNames.add(contextName);
+		}
 		return contextName;
 	}
 	
 	public boolean useSameJSessionForSteps() {
 		return new Boolean(EnginePropertiesManager.getProperty(PropertyName.SEQUENCE_STEPS_USE_SAME_JSESSION)).booleanValue();
+	}
+	
+	public void onCachedResponse() {
+		removeSequenceContext();
 	}
 	
 	protected boolean executeNextStep(org.mozilla.javascript.Context javascriptContext, Scriptable scope) throws EngineException

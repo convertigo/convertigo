@@ -840,7 +840,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
                 if (cdata != null) {
                     wsdlType = cdata.getNodeValue();
                     Engine.logBeans.trace("(Requestable) Requestable.configure() : wsdltype has been successfully set");
-                } else Engine.logBeans.trace("(Requestable) Requestable.configure() : wsdltype is empty");
+                } else {
+                	Engine.logBeans.trace("(Requestable) Requestable.configure() : wsdltype is empty");
+                }
             }
         } catch(Exception e) {
             throw new EngineException("Unable to configure the WSDL types of the requestable \"" + getName() + "\".", e);
@@ -850,8 +852,11 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         	// Convert the publicMethod property to new semantic (accessibility)
             if (VersionUtils.compare(version, "6.1.2") < 0) {
 				boolean publicMethod = (Boolean) XMLUtils.findPropertyValue(element, "publicMethod");
-				if (publicMethod) setAccessibility(ACCESSIBILITY_PUBLIC);
-				else setAccessibility(ACCESSIBILITY_HIDDEN);
+				if (publicMethod) {
+					setAccessibility(ACCESSIBILITY_PUBLIC);
+				} else {
+					setAccessibility(ACCESSIBILITY_HIDDEN);
+				}
 				
                 hasChanged = true;
                 Engine.logBeans.warn("[RequestableObject] The object \"" + getName() + "\" has been updated to version 6.1.2; publicMethod=" + publicMethod + "; accessibility=" + accessibility);
@@ -922,5 +927,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
 	public void setAuthenticatedContextRequired(boolean authenticatedContextRequired) {
 		this.authenticatedContextRequired = authenticatedContextRequired;
+	}
+		
+	public void onCachedResponse() {
+		
 	}
 }
