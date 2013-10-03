@@ -173,6 +173,10 @@ public abstract class CacheManager extends AbstractRunnableManager {
 								ProcessingInstruction pi = response.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + context.requestedObject.getEncodingCharSet() + "\"");
 								response.insertBefore(pi, response.getFirstChild());
 								context.outputDocument = response; // response has been overridden - needed by billings!
+								
+								if (context.requestedObject != null) {
+									context.requestedObject.onCachedResponse();
+								}
 							}
 							else{
 								Engine.logCacheManager.debug("Response from cache is null: removing the cache entry.");

@@ -777,14 +777,15 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             		runCore();
             	}
 
-                if (!runningThread.bContinue)
+                if (!runningThread.bContinue) {
                 	return;
+                }
 
                 handleRequestableEvent(RequestableObject.EVENT_REQUESTABLE_XML_GENERATED, javascriptContext);
             } catch(Throwable e) {
             	// Try to find an exception cause thrown by a jException step
 				Throwable jExceptionStepCause = e;
-				while ((jExceptionStepCause = jExceptionStepCause.getCause()) != null)  {
+				while ((jExceptionStepCause = jExceptionStepCause.getCause()) != null) {
 					if (jExceptionStepCause instanceof StepException) {
 						break;
 					}
@@ -846,7 +847,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
                 if (cdata != null) {
                     wsdlType = cdata.getNodeValue();
                     Engine.logBeans.trace("(Requestable) Requestable.configure() : wsdltype has been successfully set");
-                } else Engine.logBeans.trace("(Requestable) Requestable.configure() : wsdltype is empty");
+                } else {
+                	Engine.logBeans.trace("(Requestable) Requestable.configure() : wsdltype is empty");
+                }
             }
         } catch(Exception e) {
             throw new EngineException("Unable to configure the WSDL types of the requestable \"" + getName() + "\".", e);
@@ -856,8 +859,11 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         	// Convert the publicMethod property to new semantic (accessibility)
             if (VersionUtils.compare(version, "6.1.2") < 0) {
 				boolean publicMethod = (Boolean) XMLUtils.findPropertyValue(element, "publicMethod");
-				if (publicMethod) setAccessibility(ACCESSIBILITY_PUBLIC);
-				else setAccessibility(ACCESSIBILITY_HIDDEN);
+				if (publicMethod) {
+					setAccessibility(ACCESSIBILITY_PUBLIC);
+				} else {
+					setAccessibility(ACCESSIBILITY_HIDDEN);
+				}
 				
                 hasChanged = true;
                 Engine.logBeans.warn("[RequestableObject] The object \"" + getName() + "\" has been updated to version 6.1.2; publicMethod=" + publicMethod + "; accessibility=" + accessibility);
@@ -900,17 +906,18 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         return element;
 	}  
 	
-	
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
-		List<DatabaseObject> rep=super.getAllChildren();
-		List<Sheet> sheets=getSheetsList();		
-		for(Sheet sheet:sheets){
+		List<DatabaseObject> rep = super.getAllChildren();
+		List<Sheet> sheets = getSheetsList();		
+		
+		for (Sheet sheet : sheets) {
 			rep.add(sheet);
 		}
 		
 		return rep;
 	}
+	
     public boolean getAddStatistics() {
 		return addStatistics;
 	}
@@ -927,5 +934,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 
 	public void setAuthenticatedContextRequired(boolean authenticatedContextRequired) {
 		this.authenticatedContextRequired = authenticatedContextRequired;
+	}
+		
+	public void onCachedResponse() {
+		
 	}
 }
