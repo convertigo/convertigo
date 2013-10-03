@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
 
 import javax.servlet.http.HttpServletRequest;
@@ -110,12 +109,7 @@ public class GetPackage extends DownloadService {
 				response.setContentType("application/octet-stream");
 			} 
 			
-			OutputStream responseOutputStream = response.getOutputStream();
-			byte[] buffer = new byte[1024];
-			int len;
-			while ((len = methodBodyContentInputStream.read(buffer)) != -1) {
-				responseOutputStream.write(buffer, 0, len);
-			}
+			IOUtils.copy(methodBodyContentInputStream, response.getOutputStream());
 		} finally {
 			method.releaseConnection();
 		}
