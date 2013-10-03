@@ -512,6 +512,7 @@ function deleteMapping(project,certificateName,tas,server,authgroup,user){
 		var params=createDeleteMappingParams(project,certificateName,tas,server,authgroup,user);	
 		callService("certificates.mappings.Delete", function(){				
 			certificates_List_update();
+			showInfo("The mapping has been successfully deleted.");
 			},
 			params);
 	});
@@ -523,7 +524,7 @@ function deleteMappingWithoutUpdate(project,certificateName,tas,server,authgroup
 }
 
 function createDeleteMappingParams(project,certificateName,tas,server,authgroup,user){
-	var type=$("tr[id="+certificateName+"] > td[aria-describedby=certificatesList_type] >select").val();	
+	var type=$("tr[id='"+certificateName+"'] > td[aria-describedby=certificatesList_type] >select").val();	
 	var params="projects."+project+"."+type+".store";	
 	var rad="";
 	if(tas!=undefined){
