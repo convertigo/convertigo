@@ -1858,7 +1858,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 	
 	public void reloadDatabaseObject(DatabaseObject databaseObject) throws EngineException, IOException {
-		DatabaseObjectTreeObject treeObject = findTreeObjectByUserObject(databaseObject);
+		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject(databaseObject);
 		treeObject.hasBeenModified(databaseObject.hasChanged);
 		reloadTreeObject(treeObject);
 	}
@@ -1924,7 +1924,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	public void updateDatabaseObject(DatabaseObject databaseObject) {
-		DatabaseObjectTreeObject treeObject = findTreeObjectByUserObject(databaseObject);
+		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject(databaseObject);
 		updateTreeObject(treeObject);
 	}
 	
@@ -2042,7 +2042,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		return databaseObjectTreeObject;
 	}
 	
-	public DatabaseObjectTreeObject findTreeObjectByUserObject(DatabaseObject databaseObject) {
+	public TreeObject findTreeObjectByUserObject(DatabaseObject databaseObject) {
 		DatabaseObjectTreeObject databaseObjectTreeObject = findTreeObjectByUserObjectFromCache(databaseObject);
 		if (databaseObjectTreeObject != null) {
 			return databaseObjectTreeObject;
@@ -2068,6 +2068,16 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						if (project.getName().equals(databaseProject.getName())) {
 							return isProject ? projectTreeObject : findTreeObjectByUserObject(databaseObject, projectTreeObject);
 						}
+					}
+					else if (treeObject instanceof UnloadedProjectTreeObject) {
+						UnloadedProjectTreeObject unloadedProjectTreeObject = (UnloadedProjectTreeObject) treeObject;
+						
+						if (unloadedProjectTreeObject.getName().equals(databaseProject.getName())) {						
+							TreeParent parent = unloadedProjectTreeObject.getParent();
+							String path = unloadedProjectTreeObject.getPath();
+							
+							return findTreeObjectByPath(parent, path);											
+						}					
 					}
 				}
 			}
@@ -2355,7 +2365,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			if (source instanceof DatabaseObject) {
 				getSite().getShell().getDisplay().syncExec(new Runnable() {
 					public void run() {
-						DatabaseObjectTreeObject databaseTreeObject = findTreeObjectByUserObject((DatabaseObject)source);
+						DatabaseObjectTreeObject databaseTreeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject((DatabaseObject)source);
 						if (databaseTreeObject != null) {
 							if (lastDetectedDatabaseObjectTreeObject != null) {
 								lastDetectedDatabaseObjectTreeObject.isDetectedObject = false;
@@ -2387,7 +2397,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (source instanceof DatabaseObject) {
 			Display.getDefault().syncExec(new Runnable() {
 				public void run() {
-					DatabaseObjectTreeObject databaseObjectTreeObject = findTreeObjectByUserObject((DatabaseObject)source);
+					DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject((DatabaseObject)source);
 					try {
 						reloadTreeObject(databaseObjectTreeObject);
 						
@@ -2422,7 +2432,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		if (source instanceof DatabaseObject) {
 			getSite().getShell().getDisplay().syncExec(new Runnable() {
 				public void run() {
-					DatabaseObjectTreeObject databaseTreeObject = findTreeObjectByUserObject((DatabaseObject)source);
+					DatabaseObjectTreeObject databaseTreeObject = (DatabaseObjectTreeObject) findTreeObjectByUserObject((DatabaseObject)source);
 					if (databaseTreeObject != null) {
 						viewer.expandToLevel(databaseTreeObject, 0);
 						setSelectedTreeObject(databaseTreeObject);

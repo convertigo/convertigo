@@ -88,7 +88,7 @@ public class ProjectExportAction extends MyAbstractAction {
 					File file = new File(filePath);
 					
 					if(file.exists()){
-						if(ConvertigoPlugin.questionMessageBox("File already exists. Do you want to overwrite?")==SWT.YES){
+						if(ConvertigoPlugin.questionMessageBox(shell, "File already exists. Do you want to overwrite?")==SWT.YES){
 							if(file.delete()==false){
 								ConvertigoPlugin.warningMessageBox("Error when deleting the file "+file.getName()+"! Please verify access rights!");
 								return;
