@@ -33,6 +33,8 @@ public class GetSourcePackage extends DownloadService {
 		response.setContentType("application/octet-stream");
 		
 		IOUtils.copy(archiveInputStream, response.getOutputStream());		
+		
+		archiveInputStream.close();
 	}	
 
 }

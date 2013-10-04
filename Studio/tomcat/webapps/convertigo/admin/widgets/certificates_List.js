@@ -512,6 +512,7 @@ function deleteMapping(project,certificateName,tas,server,authgroup,user){
 		var params=createDeleteMappingParams(project,certificateName,tas,server,authgroup,user);	
 		callService("certificates.mappings.Delete", function(){				
 			certificates_List_update();
+			showInfo("The mapping has been successfully deleted.");
 			},
 			params);
 	});
