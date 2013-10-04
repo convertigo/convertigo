@@ -1049,19 +1049,12 @@ public class ReferencesView extends ViewPart implements CompositeListener,
 				DatabaseObject selectedDatabaseObject = abstractNode.getRefDatabaseObject();
 				ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
 				TreeObject selectedTreeObject = projectExplorerView.findTreeObjectByUserObject(selectedDatabaseObject);
+				
 				if (selectedTreeObject != null) {
 					projectExplorerView.setSelectedTreeObject(selectedTreeObject);
-				} else {
-					if (!(firstElement instanceof RequiresNode)) {
-						if (!(firstElement instanceof IsUsedByNode)) {
-							if (!(firstElement instanceof InformationNode)) {
-								if (!(firstElement instanceof EntryHandlerNode)) {
-									if (!(firstElement instanceof ExitHandlerNode)) {
-										ConvertigoPlugin.infoMessageBox("This project is closed. Please open the project first.");
-									}
-								}
-							}
-						}
+					
+					if (selectedTreeObject instanceof UnloadedProjectTreeObject) {
+						ConvertigoPlugin.infoMessageBox("This project is closed. Please open the project first.");
 					}					
 				}
 			}

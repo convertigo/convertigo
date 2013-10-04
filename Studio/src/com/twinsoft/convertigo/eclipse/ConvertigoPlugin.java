@@ -265,8 +265,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}
 	
 	// Must be called in the display GUI thread
-	public static int questionMessageBox(String message){
-		return ConvertigoPlugin.messageBox(message, SWT.YES | SWT.NO | SWT.ICON_QUESTION);
+	public static int questionMessageBox(Shell shell, String message){
+		return ConvertigoPlugin.messageBox(shell, message, SWT.YES | SWT.NO | SWT.ICON_QUESTION);
 	}
 
 	public static void warningMessageBox(String message) {
@@ -279,10 +279,12 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 	private static void messageBoxWithoutReturnCode(final String message, int options) {
 		Display display = getDisplay();
+		final Shell shell = display.getActiveShell();
+		
 		display.asyncExec(new Runnable() {
 			public void run() {
 				try {
-					messageBox(message, SWT.OK | SWT.ICON_INFORMATION);
+					messageBox(shell, message, SWT.OK | SWT.ICON_INFORMATION);
 				}
 				catch (Exception e){
 					ConvertigoPlugin.logException(e, "Error while trying to open message box");
@@ -291,15 +293,13 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		});
 	}
 
-	private static int messageBox(String message, int options) {
+	private static int messageBox(Shell shell, String message, int options) {
 		try {
-			Display display = getDisplay();
-			Shell shell = display.getActiveShell();
 	    	MessageBox messageBox = new MessageBox(shell, options);
 	    	messageBox.setText("Convertigo");
 	    	if (message == null) message = "(null message)";
 			messageBox.setMessage(message);
-			if (true) return -1;
+			//if (true) return -1;
 	    	int response = messageBox.open();
 	    	return response;
 		}
