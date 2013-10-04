@@ -80,18 +80,18 @@ public class ChangeToXMLConcatStepAction extends MyAbstractAction {
 	        			
 	        			if ( DatabaseObjectsManager.acceptDatabaseObjects(elementStep.getParent(), concatStep) ) {
 		        			XMLVector<XMLVector<Object>> sources = new XMLVector<XMLVector<Object>>();
-		        			if ( !elementStep.getSourceDefinition().toString().equals("[]") ) {
-		        				XMLVector<Object> source = new XMLVector<Object>();
-		        				
-		        				source.add(""); 
-		        				source.add(elementStep.getSourceDefinition());
-		        				source.add(elementStep.getNodeText());
-		        				
-		        				sources.add(source);
-		        			}
+	        				XMLVector<Object> source = new XMLVector<Object>();
+	        				
+	        				source.add("description"); 
+	        				source.add(elementStep.getSourceDefinition());
+	        				source.add(elementStep.getNodeText());
+	        				
+	        				sources.add(source);
+		        			
 		        			concatStep.setOutput(elementStep.isOutput());
 	        				concatStep.setEnable(elementStep.isEnable());
 		        			concatStep.setComment(elementStep.getComment());
+		        			//elementStep.getNodeText();
 		        			concatStep.setNodeName(elementStep.getNodeName());
 		        			concatStep.setSourcesDefinition(sources);
 		        			concatStep.bNew = true;
