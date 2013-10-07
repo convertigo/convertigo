@@ -292,12 +292,13 @@ function getLoadingImageUrl() {
 	return vars.base_url + "images/loading.gif";
 }
 
-function launchPhoneGapBuild() {
-	var endpoint = $("#build_endpoint").val();
-	
-	endpoint += (endpoint.match(/\/$/) ? "" : "/") + "projects/" + vars.projectName;
-		
-	var applicationID = $("#build_application_id").val();
+function getCurrentEndpoint() {
+	var endpoint = $("#build_endpoint").text();
+	return endpoint + (endpoint.match(/\/$/) ? "" : "/") + "projects/" + vars.projectName + "/";
+}
+
+function launchPhoneGapBuild() {		
+	var applicationID = $("#build_application_id").text();
 
 	$("body").css("cursor", "progress");
 	$(".device_status").attr("title","build requested").empty();
@@ -305,7 +306,7 @@ function launchPhoneGapBuild() {
 	$.ajax({
 		type : "POST",
 		url : "admin/services/mobiles.LaunchBuild",
-		data : { "application" : vars.projectName, "endpoint" : endpoint, "applicationID" : applicationID },
+		data : { "application" : vars.projectName, "endpoint" : getCurrentEndpoint(), "applicationID" : applicationID },
 		dataType : "xml",
 		success : function(xml) {
 			$("#main .btn_build, .btn_get_source").button("enable");
@@ -564,23 +565,27 @@ $(document).ready(function() {
 					$("#build_application_name").text($mobileApplication.attr("mobileProjectName"));
 				}
 				
-				$(".btn_get_source").attr("href", vars.base_url + "admin/services/mobiles.GetSourcePackage?application=" + vars.projectName);
-				
 				// Endpoint
 				var endpoint = $mobileApplication.attr("endpoint");
 				$("#build_endpoint").text(endpoint);
-
+				
 				// Application ID
 				var applicationID = $mobileApplication.attr("applicationID");
 				$("#build_application_id").text(applicationID);
-
+				
+				$(".btn_get_source").attr("href", vars.base_url + "admin/services/mobiles.GetSourcePackage?" + $.param({
+					application: vars.projectName,
+					applicationID: $("#build_application_id").text(),
+					endpoint: getCurrentEndpoint()
+				}));
+				
 				// Add mobile devices
 				var $devices = $mobileApplication.find(">mobiledevice");
 				if ($devices.length > 0) {
 					$(".mobiles:first").removeClass("hidden");
 					$devices.each(function () {
 						addMobileDevice($(this), $(".mobiles:first .requestables:first"));
-						setLinkForMobileDevice($(this), $("#main a.device_link"));		
+						setLinkForMobileDevice($(this), $("#main a.device_link"));	
 						showQRCode($("#main .webapp.qrcode_content"), $(this), false);
 					});
 					
