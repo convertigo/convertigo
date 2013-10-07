@@ -321,8 +321,12 @@ public class ContextManager extends AbstractRunnableManager {
     	return contexts.keySet();
     }
     
-    public Collection<Context> getContexts(){
-    	return contexts.values();
+    public Collection<Context> getContexts() {
+    	Collection<Context> res;
+    	synchronized (contexts) {
+			res = new ArrayList<Context>(contexts.values());
+		}
+    	return res;
     }
     
     public int getNumberOfContexts() {
