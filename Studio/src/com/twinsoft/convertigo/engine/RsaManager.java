@@ -35,8 +35,8 @@ import javax.crypto.Cipher;
 import javax.servlet.http.HttpSession;
 
 public class RsaManager implements AbstractManager {
-	private final static Pattern findTimestamp = Pattern.compile("ts=(\\d*)&(.*$)");
-	private final static int keyLenght = 512;
+	private final static Pattern findTimestamp = Pattern.compile("^ts=(\\d+)&(.*$)");
+	private final static int keyLength = 512;
 	private final static SecurityException securityException = new SecurityException();
 	
 	static {
@@ -52,7 +52,7 @@ public class RsaManager implements AbstractManager {
 	public void init() throws EngineException {
 		try {
         	kpg = KeyPairGenerator.getInstance("RSA");
-        	kpg.initialize(keyLenght);
+        	kpg.initialize(keyLength);
 		} catch (NoSuchAlgorithmException e) {
 			kpg = null;
 			Engine.logEngine.error("(RsaManager) Failed to initialize RSA KeyPairGenerator", e);
@@ -89,7 +89,7 @@ public class RsaManager implements AbstractManager {
         }
         
         Engine.logEngine.debug("(RsaManager) Request decrypted for session " + session.getId());
-        String query = result.reverse().toString();
+        String query = result.toString();
         
     	synchronized (session) {
 	        Long exTs = (Long) session.getAttribute(key.rsaTimestamp.toString());
@@ -128,7 +128,7 @@ public class RsaManager implements AbstractManager {
 	    		dec.init(Cipher.DECRYPT_MODE, kp.getPrivate());
 	
 	    		RSAPublicKey pk = (RSAPublicKey) kp.getPublic();
-	    		publicKey = pk.getPublicExponent().toString(16) + '|' + pk.getModulus().toString(16) + '|' + getMaxDigits(keyLenght);
+	    		publicKey = pk.getPublicExponent().toString(16) + '|' + pk.getModulus().toString(16) + '|' + getMaxDigits(keyLength);
 	    		
 	    		session.setAttribute(key.publickey.toString(), publicKey);
 	    		session.setAttribute(key.cipher.toString(), dec);
