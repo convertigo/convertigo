@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2001-2013 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
@@ -63,22 +63,13 @@ C8O._init_rsa = function (params) {
 	};
 
 	 function encrypt(taggedString, keyPair) {
-//		var charSum = 0;
-//		for(var i = 0; i < string.length; i++) {
-//			charSum += string.charCodeAt(i);
-//		}
-//		var tag = '0123456789abcdef';
-//		var hex = '';
-//		hex += tag.charAt((charSum & 0xF0) >> 4) + tag.charAt(charSum & 0x0F);
-
-//		var taggedString = hex + string;
-//		var taggedString = string;
-
 		var encrypt = [];
 
 		for (var i = 0; i < taggedString.length; i++) {
 			encrypt[i] = taggedString.charCodeAt(i);
 		}
+		
+		encrypt.reverse();
 
 		while (encrypt.length % keyPair.chunkSize !== 0) {
 			encrypt[i++] = 0;
