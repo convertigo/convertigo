@@ -216,6 +216,7 @@ public class Authenticate extends XmlService {
 		// Logout
 		else {
 			Engine.authenticatedSessionManager.removeAuthenticatedSession(httpSession);
+			httpSession.removeAttribute("authenticatedUser");
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "", "success");
 		}
 	}

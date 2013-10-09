@@ -125,9 +125,15 @@ public abstract class AbstractContext {
 	
 	public void setAuthenticatedUser(String authenticatedUser){
 		if (authenticatedUser != null) {
-			portalUserName = authenticatedUser;		
-			httpSession.setAttribute( "authenticatedUser" , authenticatedUser );
+			portalUserName = authenticatedUser;
+			if (httpSession != null) httpSession.setAttribute( "authenticatedUser" , authenticatedUser );
 		}
+	}
+	
+	public void removeAuthenticatedUser(){
+		portalUserName = null;
+		tasUserName = null;
+		if (httpSession != null) httpSession.removeAttribute("authenticatedUser");
 	}
 	
 	/**
