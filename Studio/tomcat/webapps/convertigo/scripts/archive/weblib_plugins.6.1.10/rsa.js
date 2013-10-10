@@ -82,9 +82,9 @@ C8O._init_rsa = function (params) {
 				block.digits[j] += encrypt[k++] << 8;
 			}
 			var crypt = keyPair.barrett.powMod(block, keyPair.e);
-			encrypted += (keyPair.radix == 16 ? biToHex(crypt) : biToString(crypt, keyPair.radix)) + " ";
+			encrypted = (keyPair.radix == 16 ? biToHex(crypt) : biToString(crypt, keyPair.radix)) + encrypted;
 		}
-		return encrypted.substring(0, encrypted.length - 1);
+		return encrypted;
 	};
 
 /*
