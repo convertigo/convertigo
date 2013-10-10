@@ -671,10 +671,20 @@ $(document).ready(function () {
 	var matcher = window.location.href.match(new RegExp("/projects/([^/]+)"));
 	if (matcher != null) {
 		C8O._define.project = matcher[1];
-		C8O.log.trace("c8o.core: current project is " + C8O._define.project);
+		C8O.log.trace("c8o.core: current project is " + C8O._define.project + " in webapp mode");
+		
+		C8O._define.plugins_path = window.location.href.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
+	} else {
+		matcher = C8O.vars.endpoint_url.match(new RegExp("/projects/([^/]+)"));
+		if (matcher != null) {
+			C8O._define.project = matcher[1];
+			C8O.log.debug("c8o.core: current project is " + C8O._define.project + " in mobile mode");
+			
+			C8O._define.plugins_path = C8O.vars.endpoint_url.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
+		} else {
+			C8O.log.warn("c8o.core: cannot determine the current project using " + window.location.href + " or " + C8O.vars.endpoint_url);
+		}
 	}
-	
-	C8O._define.plugins_path = window.location.href.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
 	
 	var params = C8O._parseQuery();
 	
