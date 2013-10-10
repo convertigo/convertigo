@@ -37,6 +37,7 @@ import javax.servlet.http.HttpSession;
 public class RsaManager implements AbstractManager {
 	private final static Pattern findTimestamp = Pattern.compile("^ts=(\\d+)&(.*$)");
 	private final static int keyLength = 512;
+	private final static int chunckSize = keyLength / 4;
 	private final static SecurityException securityException = new SecurityException();
 	
 	static {
@@ -67,11 +68,10 @@ public class RsaManager implements AbstractManager {
     		throw securityException;
     	}
     	
-        String[] blocks = encrypted.split("\\s");
         StringBuffer result = new StringBuffer();
         try {
-            for (int i = blocks.length - 1; i >= 0; i-- ) {
-                byte[] data = hexStringToByteArray(blocks[i]);
+            for (int i = 0; i < encrypted.length(); i += chunckSize) {
+                byte[] data = hexStringToByteArray(encrypted.substring(i, i + chunckSize));
                 byte[] decryptedBlock = dec.doFinal(data);
                 try {
                 	int offset = 0;
