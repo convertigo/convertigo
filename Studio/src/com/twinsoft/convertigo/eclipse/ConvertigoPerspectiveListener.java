@@ -24,22 +24,29 @@ package com.twinsoft.convertigo.eclipse;
 
 import org.eclipse.ui.IPerspectiveDescriptor;
 import org.eclipse.ui.IPerspectiveListener;
+import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 
 public class ConvertigoPerspectiveListener implements IPerspectiveListener {
 
 	public void perspectiveActivated(IWorkbenchPage page, IPerspectiveDescriptor perspective) {
-		
-		ConvertigoPlugin.logDebug3("IWorkbenchPage perspectiveActivated : "+ page.getLabel() + "("+ page.toString() +")");
-		if (!perspective.getId().equalsIgnoreCase(ConvertigoPerspective.perspective_id)) {
-		}
-		else {
+
+		ConvertigoPlugin.logDebug3("IWorkbenchPage perspectiveActivated : " + page.getLabel() + "("
+				+ page.toString() + ")");
+		if (!perspective.getId().equalsIgnoreCase(ConvertigoPlugin.PLUGIN_PERSPECTIVE_ID)) {
+		} else {
 		}
 	}
 
 	public void perspectiveChanged(IWorkbenchPage page, IPerspectiveDescriptor perspective, String changeId) {
-		
-		ConvertigoPlugin.logDebug3("IWorkbenchPage perspectiveChanged : "+ page.getLabel() + "("+ perspective.getLabel() +" - "+ changeId +")");
+		ConvertigoPlugin.logDebug3("IWorkbenchPage perspectiveChanged : " + page.getLabel() + "("
+				+ perspective.getLabel() + " - " + changeId + ")");
+
+		IViewReference introView = page.findViewReference("org.eclipse.ui.internal.introview");
+		// Maximize the intro view if present
+		if (introView != null) {
+			page.setPartState(introView, IWorkbenchPage.STATE_MAXIMIZED);
+		}
 	}
 
 }
