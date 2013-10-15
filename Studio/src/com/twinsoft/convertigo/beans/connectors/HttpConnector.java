@@ -61,6 +61,7 @@ import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.DeleteMethod;
+import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.httpclient.methods.OptionsMethod;
@@ -913,16 +914,16 @@ public class HttpConnector extends Connector {
 			if (!hasUserAgent)
 				method.setRequestHeader("User-Agent", getUserAgent(context));
 
-			// Setting POST parameters if any
-			Engine.logBeans.debug("(HttpConnector) Setting post data");
-			if (httpVerb == AbstractHttpTransaction.HTTP_VERB_POST) {
-				PostMethod postMethod = (PostMethod) method;
+			// Setting POST or PUT parameters if any
+			Engine.logBeans.debug("(HttpConnector) Setting " + httpVerb + " data");
+			if (method instanceof EntityEnclosingMethod) {
+				EntityEnclosingMethod entityEnclosingMethod = (EntityEnclosingMethod) method;
 				if (content_type.equalsIgnoreCase("text/xml")) {
-					postMethod.setRequestEntity(new StringRequestEntity(postQuery, "text/xml", "UTF-8"));
+					entityEnclosingMethod.setRequestEntity(new StringRequestEntity(postQuery, "text/xml", "UTF-8"));
 				}
 				else {
 					String charset = httpTransaction.getComputedUrlEncodingCharset();
-					postMethod.setRequestEntity(new StringRequestEntity(postQuery, content_type, charset));
+					entityEnclosingMethod.setRequestEntity(new StringRequestEntity(postQuery, content_type, charset));
 				}
 			}
 
