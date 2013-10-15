@@ -344,19 +344,6 @@ $.extend(true, C8O, {
 //});
 
 /**
- *  document_ready hook
- *  used at page loading
- *  can perform some DOM tweak
- *  or break the processing of request
- *  
- *  return: true > lets C8O perform the init
- *             false > break the processing of request
- */
-//C8O.addHook("document_ready", function () {
-//	return true;
-//});
-
-/**
  *  get_language hook
  *  used at page loading before document_ready and when i18n is enable
  *  (no empty C8O.ro_vars.i18n_files)
