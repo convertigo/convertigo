@@ -299,7 +299,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	    	messageBox.setText("Convertigo");
 	    	if (message == null) message = "(null message)";
 			messageBox.setMessage(message);
-			//if (true) return -1;
 	    	int response = messageBox.open();
 	    	return response;
 		}
