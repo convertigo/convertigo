@@ -27,9 +27,7 @@ import org.eclipse.ui.IPerspectiveFactory;
 
 public class ConvertigoPerspective implements IPerspectiveFactory {
 
-	public final static String perspective_id = "com.twinsoft.convertigo.eclipse.ConvertigoPerspective";
-	
-    public ConvertigoPerspective() {
+	public ConvertigoPerspective() {
     }
 
     public void createInitialLayout(IPageLayout layout) {
