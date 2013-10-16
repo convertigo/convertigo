@@ -229,17 +229,13 @@ public class BnppPlugin extends Plugin {
 			}
 		}
 		else if (projectName.equals("PobiFiben")) {
-			if (transactionName.startsWith("m") || 
-				transactionName.equalsIgnoreCase("vb") || 
-				transactionName.equalsIgnoreCase("sc") || 
-				transactionName.equalsIgnoreCase("de") || 
-				transactionName.equalsIgnoreCase("an")) {
-					if (transactionName.equalsIgnoreCase("m07")) {
-						s = (String)getTransactionVariableValue(context, "denom");
-					}
-					else {
-						s = (String)getTransactionVariableValue(context, "id");
-					}
+			if (transactionName.startsWith("m")) {
+				if (transactionName.equalsIgnoreCase("m07")) {
+					s = (String)getTransactionVariableValue(context, "denom");
+				}
+				else {
+					s = (String)getTransactionVariableValue(context, "id");
+				}
 			}
 			else if (transactionName.equalsIgnoreCase("ls")) {
 				String param1 = null;
