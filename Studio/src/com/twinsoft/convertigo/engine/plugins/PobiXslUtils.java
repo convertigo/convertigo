@@ -426,8 +426,13 @@ public class PobiXslUtils {
 		String nextIds = XslUtils.getContextVariableValue(contextId, "nextIds");
 		
 		if ((nextModules != null) && (!nextModules.equals(""))) {
+			boolean isNumberedModule = false;
 			String nextModule = escapeString(nextModules.substring(0,2));
-			nextUrl += ".cxml?"+Parameter.Transaction.getName()+"=" + ((!nextModule.equals("vb") && !nextModule.equals("sc") && !nextModule.equals("de") && !nextModule.equals("an")) ? "m":"") + nextModule;
+			try {
+				Integer.parseInt(nextModule, 10);
+				isNumberedModule = true;
+			} catch (Exception e) {}
+			nextUrl += ".cxml?"+Parameter.Transaction.getName()+"=" + (isNumberedModule ? "m":"") + nextModule;
 			nextUrl += "&id=" + escapeString(id);
 			nextUrl += "&cdguichet=" + escapeString(cdguichet);
 			nextUrl += "&cdbanque=" + escapeString(cdbanque);
