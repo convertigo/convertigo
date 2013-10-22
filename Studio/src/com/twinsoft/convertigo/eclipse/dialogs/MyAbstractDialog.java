@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2001-2013 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
@@ -43,8 +43,8 @@ public class MyAbstractDialog extends Dialog {
 
 	private Class<? extends Composite> dialogAreaClass;
 	private String dialogTitle;
-	private int nWidth = 500;
-	private int nHeight = 400;
+	private int nWidth = 600;
+	private int nHeight = 500;
 	
 	protected MyAbstractDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle) {
 		super(parentShell);
@@ -100,14 +100,14 @@ public class MyAbstractDialog extends Dialog {
 		
 		newShell.setText(dialogTitle);	
 		
-		// mods jmc 26/07/2013
-		
-		nWidth = 600;
-		nHeight = 400;
 		int nLeft = 0;
 		int nTop = 0;
 		 
 		Display display = newShell.getDisplay();
+
+		// mods jmc 22/10/2013
+		nWidth = newShell.getSize().x;
+		nHeight = newShell.getSize().y;
 		
 		Point pt = display.getCursorLocation();
 	    Monitor [] monitors = display.getMonitors();
