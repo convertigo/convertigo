@@ -56,6 +56,8 @@
     <gap:splash src="res/splash/ios/splashiPadLandscape2x.png"   gap:platform="ios"     width="2008" height="1536" />
     <gap:splash src="res/splash/winphone/splash.jpg" 		     gap:platform="winphone" />
 
+<!-- 	<gap:plugin name="com.phonegap.plugins.pushplugin" /> -->
+
 	<!-- If you do not want any permissions to be added to your app, add the
     following tag to your config.xml; you will still have the INTERNET
     permission on your app, which PhoneGap requires. -->
