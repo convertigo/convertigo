@@ -129,6 +129,7 @@ public class HttpConnector extends Connector {
 	transient public URL url;
 	transient private String referer = "";
 	transient private String charset = null;
+	transient public Element httpInfoElement;
 	
 	public static final String HTTP_HEADER_FORWARD_POLICY_REPLACE = "Replace";
 	public static final String HTTP_HEADER_FORWARD_POLICY_IGNORE = "Ignore";
@@ -1057,9 +1058,7 @@ public class HttpConnector extends Connector {
 						|| (statuscode == HttpStatus.SC_SEE_OTHER)
 						|| (statuscode == HttpStatus.SC_TEMPORARY_REDIRECT)) {
 
-					Header location = null;
-
-					location = method.getResponseHeader("Location");
+					Header location = method.getResponseHeader("Location");
 					if (location != null) {
 						newuri = location.getValue();
 						if ((newuri == null) || (newuri.equals(""))) {
@@ -1132,6 +1131,49 @@ public class HttpConnector extends Connector {
 					 */
 				}
 			}
+			//Added by julienda - #3433 - 04/03/2013
+			AbstractHttpTransaction abstractHttpTransaction = (AbstractHttpTransaction) context.transaction;
+			
+			if (abstractHttpTransaction.getHttpInfo()) {
+				Document doc = context.outputDocument;
+				
+				//Remove the node HTTPInfo if we have a redirect
+				NodeList nodeList = XMLUtils.findElements(context.outputDocument.getDocumentElement(), abstractHttpTransaction.getHttpInfoTagName());
+				if (nodeList != null) {
+					XMLUtils.removeNodeListContent(nodeList);
+				}
+				
+				//Parent Element
+				httpInfoElement = doc.createElement(abstractHttpTransaction.getHttpInfoTagName());
+				
+				//Add requested URL
+				Element urlElement = doc.createElement("url");
+				urlElement.setTextContent(method.getURI().toString());
+				httpInfoElement.appendChild(urlElement);
+
+				//Add status code
+				Element httpStatusElement = doc.createElement("status");
+					
+				httpStatusElement.setAttribute("code", Integer.toString(statuscode));
+				httpStatusElement.setAttribute("text", method.getStatusText());
+				httpInfoElement.appendChild(httpStatusElement);
+
+				//We add headers informations
+
+				List<Header> headers = Arrays.asList(requestHeaders);
+				if (!headers.isEmpty()) {
+					Element httpHeadersElement = doc.createElement("headers");
+
+					for (int i = 0; i < headers.size(); i++){
+						Element elt = doc.createElement("header");
+						elt.setAttribute("name", headers.get(i).toString().substring( 0, headers.get(i).toString().indexOf(":") ) );
+						elt.setAttribute("value", headers.get(i).toString().substring( headers.get(i).toString().indexOf(":")+2 ) );
+						httpHeadersElement.appendChild(elt);
+					}				
+					httpInfoElement.appendChild(httpHeadersElement);
+				}
+				doc.getDocumentElement().appendChild(httpInfoElement);
+			}				
 		} finally {
 			method.releaseConnection();
 		}

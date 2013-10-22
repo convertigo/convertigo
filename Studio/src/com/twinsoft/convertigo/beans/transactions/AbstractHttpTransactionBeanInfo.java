@@ -36,7 +36,7 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/AbstractHttpTransaction");
 
-			properties = new PropertyDescriptor[6];
+			properties = new PropertyDescriptor[8];
 			
 			properties[0] = new PropertyDescriptor("subDir", AbstractHttpTransaction.class, "getSubDir", "setSubDir");
 			properties[0].setDisplayName(getExternalizedString("property.subDir.display_name"));
@@ -63,10 +63,19 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[4].setShortDescription(getExternalizedString("property.httpVerb.short_description"));
 			properties[4].setPropertyEditorClass(getEditorClass("HttpVerbEditor"));
 			
-			properties[5] = new PropertyDescriptor("urlEncodingCharset", beanClass, "getUrlEncodingCharset", "setUrlEncodingCharset");
-			properties[5].setDisplayName(getExternalizedString("property.urlEncodingCharset.display_name"));
-			properties[5].setShortDescription(getExternalizedString("property.urlEncodingCharset.short_description"));
-			properties[5].setExpert(true);
+			properties[5] = new PropertyDescriptor("httpInfo", AbstractHttpTransaction.class, "getHttpInfo", "setHttpInfo");
+			properties[5].setDisplayName(getExternalizedString("property.httpInfo.display_name"));
+			properties[5].setShortDescription(getExternalizedString("property.httpInfo.short_description"));
+			
+			properties[6] = new PropertyDescriptor("httpInfoTagName", AbstractHttpTransaction.class, "getHttpInfoTagName", "setHttpInfoTagName");
+			properties[6].setDisplayName(getExternalizedString("property.httpInfoTagName.display_name"));
+			properties[6].setShortDescription(getExternalizedString("property.httpInfoTagName.short_description"));
+            properties[6].setValue("normalizable", Boolean.TRUE);
+			
+			properties[7] = new PropertyDescriptor("urlEncodingCharset", beanClass, "getUrlEncodingCharset", "setUrlEncodingCharset");
+			properties[7].setDisplayName(getExternalizedString("property.urlEncodingCharset.display_name"));
+			properties[7].setShortDescription(getExternalizedString("property.urlEncodingCharset.short_description"));
+			properties[7].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
