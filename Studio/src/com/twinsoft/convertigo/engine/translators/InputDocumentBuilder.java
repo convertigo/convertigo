@@ -1,7 +1,5 @@
 package com.twinsoft.convertigo.engine.translators;
 
-import java.util.ArrayList;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -75,12 +73,13 @@ class InputDocumentBuilder {
 		} else if (parameterObject instanceof String[]) {
 			parameterValues = (String[]) parameterObject;
 		} else if (parameterObject instanceof NodeList) {
-			ArrayList<String> al = new ArrayList<String>();
 			NodeList nl = (NodeList) parameterObject;
-			for (int i = 0 ; i < nl.getLength() ; i++) {
-				al.add(nl.item(i).getTextContent());
+			parameterValues = new String[nl.getLength()];
+			for (int i = 0 ; i < parameterValues.length ; i++) {
+				parameterValues[i] = nl.item(i).getTextContent();
 			}
-			parameterValues =  al.toArray(new String[0]);
+		} else {
+			parameterValues = new String[0];
 		}
 		
 		return handleSpecialParameter(parameterName, parameterValues);
