@@ -43,8 +43,8 @@ public class MyAbstractDialog extends Dialog {
 
 	private Class<? extends Composite> dialogAreaClass;
 	private String dialogTitle;
-	private int nWidth = 600;
-	private int nHeight = 500;
+	private int nWidth = 500;
+	private int nHeight = 400;
 	
 	protected MyAbstractDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle) {
 		super(parentShell);
