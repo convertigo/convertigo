@@ -100,15 +100,14 @@ public class MyAbstractDialog extends Dialog {
 		
 		newShell.setText(dialogTitle);	
 		
-		// mods jmc 26/07/2013
-		
-		nWidth = 600;
-		nHeight = 400;
-		
 		int nLeft = 0;
 		int nTop = 0;
 		 
 		Display display = newShell.getDisplay();
+
+		// mods jmc 22/10/2013
+		nWidth = newShell.getSize().x;
+		nHeight = newShell.getSize().y;
 		
 		Point pt = display.getCursorLocation();
 	    Monitor [] monitors = display.getMonitors();
