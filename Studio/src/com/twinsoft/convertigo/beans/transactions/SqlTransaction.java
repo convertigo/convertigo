@@ -457,13 +457,9 @@ public class SqlTransaction extends TransactionWithVariables {
 			if (!runningThread.bContinue)
 				return;
 			
-			// In case of first SqlTransaction run
-			// TODO : A vérifier
-			if ( preparedSqlQueries != null && preparedSqlQueries.get(0).getQuery().equals("") )
+			// We check variables and initialize queries if we have a change
+			if ( checkVariables(preparedSqlQueries)==false )
 				preparedSqlQueries = initializeQueries(true);
-			
-			if ( verifyParameters(preparedSqlQueries) == false )
-					preparedSqlQueries = initializeQueries(true);
 					
 			if( preparedSqlQueries.get(0).getParametersMap().size() != 0 )
 				preparedSqlQueries.get(0).getParametersMap().get(preparedSqlQueries.get(0).getOrderedParametersList().get(0));
@@ -511,7 +507,9 @@ public class SqlTransaction extends TransactionWithVariables {
 							// We set the auto-commit in function of the SqlTransaction parameter
 							connector.connection.setAutoCommit( autoCommit );
 							// We execute the query
-							rs = preparedStatement.executeQuery();
+							//rs = preparedStatement.executeQuery();
+							preparedStatement.execute();
+							rs = preparedStatement.getResultSet();
 						}
 						// Retry once (should not happens)
 						catch(Exception e) {
@@ -523,7 +521,9 @@ public class SqlTransaction extends TransactionWithVariables {
 								query = prepareQuery(logHiddenValues, sqlQueryInfos);
 								try {
 									// We execute the query
-									rs = preparedStatement.executeQuery();
+									//rs = preparedStatement.executeQuery();
+									preparedStatement.execute();
+									rs = preparedStatement.getResultSet();
 								} catch(Exception e1) {
 									// We rollback if error and if the property auto-commit is false
 									if( autoCommit == false )
@@ -786,22 +786,23 @@ public class SqlTransaction extends TransactionWithVariables {
 		}
 	}
 	
-	private boolean verifyParameters(List <SqlQueryInfos> SqlQueries) {
-		boolean result = true;
-		
-		int x = 0;
-		while (x < SqlQueries.size() && result == true) {
-			SqlQueryInfos sqlQuery = SqlQueries.get(x);
-			if (sqlQuery.getOrderedParametersList().size() > 0) {
-				int y = 0;
-				String parameter = sqlQuery.getOrderedParametersList().get(y);
-				result = sqlQuery.getParametersMap().get(parameter).equals(getParameterValue(parameter, this.getVariableVisibility(parameter)).toString());
-				y++; 
+	private boolean checkVariables(List<SqlQueryInfos> sqlQueries) {
+		for(SqlQueryInfos sqlQuery : sqlQueries){
+			Map<String, String> variables  = sqlQuery.getParametersMap();
+			if(sqlQuery.orderedParametersList != null && variables != null){
+				if(sqlQuery.orderedParametersList.size() != 0 && variables.size() != 0){
+					for(String key : sqlQuery.orderedParametersList){
+						if( !getParameterValue( key, this.getVariableVisibility(key) ).toString().equals( variables.get(key) ) )
+							return false;	
+					}
+				}
+			}else{
+				initializeQueries(true);
+				checkVariables(preparedSqlQueries);
+				return checkVariables(preparedSqlQueries);
 			}
-			x++;
 		}
-		
-		return result;
+		return true;
 	}
 
 	@Override
