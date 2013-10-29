@@ -63,6 +63,17 @@ function parseJSONarray(value) {
 	return [];
 }
 
+function waitDivBuildHide() {
+	$("#wait_div_build").hide();
+}
+
+function waitDivBuildShow() {
+	$("#wait_div_build").show();
+	$("#wait_div_build img").attr("src", getLoadingImageUrl());
+	$("#wait_div_build p").text("Uploading project to cloud build");
+	$("#wait_div_build").css("display", "block");
+}
+
 function addRequestable($requestable, $parent) {
 	var $requestable_div = $("#templates .requestable").clone();
 	setName($requestable_div.find(".requestable_name"), $requestable);
@@ -299,17 +310,21 @@ function getCurrentEndpoint() {
 
 function launchPhoneGapBuild() {		
 	var applicationID = $("#build_application_id").text();
-
+	
 	$("body").css("cursor", "progress");
 	$(".device_status").attr("title","build requested").empty();
 	$("#main .btn_build, .btn_get_source").button("disable");
+	
+	waitDivBuildShow();
+	
 	$.ajax({
 		type : "POST",
 		url : "admin/services/mobiles.LaunchBuild",
 		data : { "application" : vars.projectName, "endpoint" : getCurrentEndpoint(), "applicationID" : applicationID },
 		dataType : "xml",
 		success : function(xml) {
-			$("#main .btn_build, .btn_get_source").button("enable");
+			waitDivBuildHide();
+			$("#main .btn_build, .btn_get_source").button("enable");			
 			$("body").css("cursor", "auto");
 			$("#main .install.qrcode_content").each(function() {
 				$(this).find(".build_status").attr("value","starting");
@@ -317,13 +332,15 @@ function launchPhoneGapBuild() {
 			});
 			setTimeout(function() {$("#main .install.qrcode_content").each(getPhoneGapBuildStatus);}, 1000);
 		},
-		error : function(xml) {
+		error : function(xml) {			
+			waitDivBuildHide();
 			$("#main .btn_build, .btn_get_source").button("enable");
 			$("body").css("cursor", "auto");
 			var $message = $(xml.responseXML).find("message").text();
 			alert("Build Error:\n" + $message);
 		}
 	});
+	$("#main .wait_status_build").css("display","none");
 }
 
 function getPhoneGapBuildUrl() {
@@ -364,7 +381,7 @@ function getPhoneGapBuildStatus() {
 				else if (status === "error") {
 					$td.parents("li:first").find(".device_status").attr("title","build in error").empty().append("<img src=\"images/new/build_none.png\" />");
 					$td.find(".build_status").attr("value","error");
-					$td.find("> a").empty().append("BUILD ERROR:<br/>" + $build.attr("error"));
+					$td.find("> a").empty().append("BUILD ERROR:<br/>" + $build.attr("error"));		
 				}
 				else if (status === "pending") {
 					$td.parents("li:first").find(".device_status").attr("title","build pending").empty().append("<img src=\"images/new/build_pending.png\" />");
@@ -375,8 +392,8 @@ function getPhoneGapBuildStatus() {
 				else if (status === "complete") {
 					$td.parents("li:first").find(".device_status").attr("title","build complete").empty().append("<img src=\"images/new/build_complete.png\" />");
 					$td.find(".build_status").attr("value","complete");
-					getPhoneGapBuildUrl.call($td);
-				}
+					getPhoneGapBuildUrl.call($td);		
+				}			
 			}
 		},
 		error : function(xml) {
