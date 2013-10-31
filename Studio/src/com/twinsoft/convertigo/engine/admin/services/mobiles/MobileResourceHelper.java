@@ -182,7 +182,7 @@ public class MobileResourceHelper {
 									} else if (file.matches(".*/c8o\\.core\\..*?js")) {
 										serverJsFile = outFile;
 										String sJs = FileUtils.readFileToString(serverJsFile);
-										sJs = sJs.replaceAll(Pattern.quote("endpoint_url: \"\""), "endpoint_url: \"" + endPoint + "\"");
+										sJs = sJs.replaceAll(Pattern.quote("endpoint_url: \"\""), "endpoint_url: \"" + endPoint + "/\"");
 										FileUtils.writeStringToFile(serverJsFile, sJs);
 									}
 									
