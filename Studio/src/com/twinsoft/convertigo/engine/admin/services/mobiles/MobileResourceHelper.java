@@ -179,6 +179,11 @@ public class MobileResourceHelper {
 										String sJs = FileUtils.readFileToString(outFile);
 										sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "/\"");
 										writeStringToFile(outFile, sJs);
+									} else if (file.matches(".*/c8o\\.core\\..*?js")) {
+										serverJsFile = outFile;
+										String sJs = FileUtils.readFileToString(serverJsFile);
+										sJs = sJs.replaceAll(Pattern.quote("endpoint_url: \"\""), "endpoint_url: \"" + endPoint + "\"");
+										FileUtils.writeStringToFile(serverJsFile, sJs);
 									}
 									
 									if (file.matches(".*/flashupdate_.*?\\.css")) {
@@ -197,7 +202,7 @@ public class MobileResourceHelper {
 											line = line.replaceAll("(?:#|\\?).*?(?<!\\\\)(\")","$1");
 											String prepend = null;
 											for (File file : resourceBundle.getFiles()) {
-												if (file.getName().matches("jquery\\.mobilelib\\..*?js")) {
+												if (file.getName().matches("c8o\\.core\\..*?js")) {
 													prepend = "C8O.vars.endpoint_url=\"" + endPoint + "/\";";												
 													break;
 												}

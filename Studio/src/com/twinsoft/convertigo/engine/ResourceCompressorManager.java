@@ -28,7 +28,6 @@ import ro.isdc.wro.model.resource.processor.impl.css.CssMinProcessor;
 import ro.isdc.wro.model.resource.processor.impl.js.JSMinProcessor;
 
 import com.twinsoft.convertigo.engine.util.HttpUtils;
-import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class ResourceCompressorManager implements AbstractManager {
 	static final File compressorCacheDirectory = new File(Engine.USER_WORKSPACE_PATH + "/compressor");
