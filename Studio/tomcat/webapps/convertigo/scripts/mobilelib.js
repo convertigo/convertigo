@@ -332,6 +332,7 @@ Ext.onReady(function () {
 		
 		var mode = (ua.indexOf('blackberry') != -1 ? 'bb6'
 				: ua.indexOf('android') != -1 ? 'android'
+				: ua.indexOf('windowsphone') != -1 ? 'windowsphone'
 				: ua.search('iphone|ipad|ipod') != -1 ? 'apple'
 				: 'senchatouch');
 		

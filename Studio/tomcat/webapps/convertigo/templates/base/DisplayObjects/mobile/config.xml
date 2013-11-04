@@ -19,6 +19,7 @@
 		<gap:platform name="iOS"/>
 		<gap:platform name="symbian.wrt"/>
 		<gap:platform name="blackberry" project="widgets"/>
+		<gap:platform name="winphone"/>
 	</gap:platforms>
 	
 	<preference name="phonegap-version" value="2.9.0" />

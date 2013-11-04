@@ -127,6 +127,9 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPhone4">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobiledevices.WindowsPhone">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
+				</bean>
 			</beans>
 		</category>
 	</group>

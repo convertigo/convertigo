@@ -27,14 +27,16 @@ var vars, defs = {
 		BlackBerry6 : "BlackBerryTorch",
 		IPad : "iPad1",
 		IPhone3 : "iPhone3",
-		IPhone4 : "iPhone4"
+		IPhone4 : "iPhone4",
+		WindowsPhone : "NokiaLumia920"
 	},
 	phones : {
 		iPad1 : { name : "iPad 1", dpi : 132, os: "ios", install: "IPA", useragent: "iphone" },
 		iPhone4 : { name : "iPhone 4", dpi : 163, os: "ios", install: "IPA", useragent: "iphone" },
 		iPhone3 : { name : "iPhone 3", dpi : 163, os: "ios", install: "IPA", useragent: "iphone" },
 		HtcDesire : { name : "HTC Desire", dpi : 169, os: "android", install: "APK", useragent: "android" },
-    	BlackBerryTorch : { name : "BlackBerry Torch", dpi : 187.5, os: "blackberry", install: "JAD", useragent: "blackberry" }
+    	BlackBerryTorch : { name : "BlackBerry Torch", dpi : 187.5, os: "blackberry", install: "JAD", useragent: "blackberry" },
+    	NokiaLumia920 : { name : "Nokia Lumia 920", dpi : 160, os: "winphone", install: "XAP", useragent: "winphone" }
 	}
 };
 
@@ -282,6 +284,7 @@ function setMobileDeviceLayout($elt, $xml) {
 	else if (classname === "IPad") layout = "iPad1";
 	else if (classname === "IPhone3") layout = "iPhone3";
 	else if (classname === "IPhone4") layout = "iPhone4";
+	else if (classname === "WindowsPhone") layout = "NokiaLumia920";
 	$elt.attr("value", layout);
 }
 

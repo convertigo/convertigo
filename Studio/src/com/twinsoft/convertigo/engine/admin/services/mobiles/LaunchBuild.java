@@ -71,21 +71,30 @@ public class LaunchBuild extends XmlService {
 					.getProperty(PropertyName.MOBILE_BUILDER_USERNAME);
 			String mobileBuilderPlatformPassword = EnginePropertiesManager
 					.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
-			
+			//iOS
 			String mobileBuilderIOSCertificateTitle = EnginePropertiesManager
 					.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
 			String mobileBuilderIOSCertificatePw = EnginePropertiesManager
 					.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_PW);
+			//ANDROID
 			String mobileBuilderAndroidCertificateTitle = EnginePropertiesManager
 					.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_TITLE);
 			String mobileBuilderAndroidCertificatePw = EnginePropertiesManager
 					.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_PW);
 			String mobileBuilderAndroidKeystorePw = EnginePropertiesManager
 					.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_KEYSTORE_PW);
+			//BLACKBERRY
 			String mobileBuilderBBKeyTitle = EnginePropertiesManager
 					.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_TITLE);
 			String mobileBuilderBBKeyPw = EnginePropertiesManager
 					.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_PW);
+			//WINDOWSPHONE
+//			String mobileBuilderWindowsPhoneCertificateTitle = EnginePropertiesManager
+//					.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_CERTIFICATE_TITLE);
+//			String mobileBuilderWindowsPhoneCertificatePw = EnginePropertiesManager
+//					.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_CERTIFICATE_PW);
+//			String mobileBuilderWindowsPhoneKeystorePw = EnginePropertiesManager
+//					.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_KEYSTORE_PW);
 			
 			PostMethod method;
 			int methodStatusCode;
@@ -103,6 +112,9 @@ public class LaunchBuild extends XmlService {
 			params.put("androidKeystorePw", new String[]{mobileBuilderAndroidKeystorePw});
 			params.put("bbKeyTitle", new String[]{mobileBuilderBBKeyTitle});
 			params.put("bbKeyPw", new String[]{mobileBuilderBBKeyPw});
+//			params.put("windowsPhoneCertificateTitle", new String[]{mobileBuilderWindowsPhoneCertificateTitle});
+//			params.put("windowsPhoneCertificatePw", new String[]{mobileBuilderWindowsPhoneCertificatePw});
+//			params.put("windowsPhoneKeystorePw", new String[]{mobileBuilderWindowsPhoneKeystorePw});
 
 			// Launch the mobile build
 			URL url = new URL(mobileBuilderPlatformURL + "/build?" + URLUtils.mapToQuery(params));

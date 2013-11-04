@@ -662,64 +662,73 @@ C8O = {
 $.ajaxSettings.traditional = true;
 $.ajaxSetup({
 	type: C8O.vars.ajax_method,
-	dataType: "xml"
+	dataType: "xml", 
+	
 });
 
-$(document).ready(function () {
-	C8O.log.debug("c8o.core: start document ready");
-	
-	var matcher = window.location.href.match(new RegExp("/projects/([^/]+)"));
-	if (matcher != null) {
-		C8O._define.project = matcher[1];
-		C8O.log.trace("c8o.core: current project is " + C8O._define.project + " in webapp mode");
+(function () {
+	var start = function(){
+		C8O.log.debug("c8o.core: start document ready");
 		
-		C8O._define.plugins_path = window.location.href.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
-	} else {
-		matcher = C8O.vars.endpoint_url.match(new RegExp("/projects/([^/]+)"));
+		var matcher = window.location.href.match(new RegExp("/projects/([^/]+)"));
 		if (matcher != null) {
 			C8O._define.project = matcher[1];
-			C8O.log.debug("c8o.core: current project is " + C8O._define.project + " in mobile mode");
+			C8O.log.trace("c8o.core: current project is " + C8O._define.project + " in webapp mode");
 			
-			C8O._define.plugins_path = C8O.vars.endpoint_url.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
+			C8O._define.plugins_path = window.location.href.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
 		} else {
-			C8O.log.warn("c8o.core: cannot determine the current project using " + window.location.href + " or " + C8O.vars.endpoint_url);
-		}
-	}
-	
-	var params = C8O._parseQuery();
-	
-	if (C8O.ro_vars.i18n_files.length > 0) {
-		C8O.log.trace("c8o.core: i18n enabled");
-		
-		var lang = C8O._hook("get_language", params);
-		
-		if (typeof lang != "string") {
-			lang = C8O._remove(params, "__i18n");
-			if (typeof lang != "string") {
-				lang = C8O.init_vars.i18n;
-				if (lang == "") {
-					lang = C8O.getBrowserLanguage();
-				}
+			matcher = C8O.vars.endpoint_url.match(new RegExp("/projects/([^/]+)"));
+			if (matcher != null) {
+				C8O._define.project = matcher[1];
+				C8O.log.debug("c8o.core: current project is " + C8O._define.project + " in mobile mode");
+				
+				C8O._define.plugins_path = C8O.vars.endpoint_url.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
+			} else {
+				C8O.log.warn("c8o.core: cannot determine the current project using " + window.location.href + " or " + C8O.vars.endpoint_url);
 			}
 		}
 		
-		C8O.log.trace("c8o.core: current browser language is " + lang);
+		var params = C8O._parseQuery();
 		
-		C8O.init_vars.i18n = ($.inArray(lang, C8O.ro_vars.i18n_files) == -1) ? C8O.ro_vars.i18n_files[0] : lang;
-		
-		C8O.log.debug("c8o.core: current active language is " + C8O.init_vars.i18n);
-		
-		var jqxhr = $.getJSON("i18n/" + C8O.init_vars.i18n + ".json", function (dictionnary) {
-			C8O.log.debug("c8o.core: translation dictionnary received for " + C8O.init_vars.i18n);
+		if (C8O.ro_vars.i18n_files.length > 0) {
+			C8O.log.trace("c8o.core: i18n enabled");
 			
-			C8O._define.dictionnary = dictionnary;
-			C8O.translate(document.documentElement);
+			var lang = C8O._hook("get_language", params);
 			
-			C8O.log.debug("c8o.core: translation done in " + C8O.init_vars.i18n);
-		}).always(function () {
+			if (typeof lang != "string") {
+				lang = C8O._remove(params, "__i18n");
+				if (typeof lang != "string") {
+					lang = C8O.init_vars.i18n;
+					if (lang == "") {
+						lang = C8O.getBrowserLanguage();
+					}
+				}
+			}
+			
+			C8O.log.trace("c8o.core: current browser language is " + lang);
+			
+			C8O.init_vars.i18n = ($.inArray(lang, C8O.ro_vars.i18n_files) == -1) ? C8O.ro_vars.i18n_files[0] : lang;
+			
+			C8O.log.debug("c8o.core: current active language is " + C8O.init_vars.i18n);
+			
+			var jqxhr = $.getJSON("i18n/" + C8O.init_vars.i18n + ".json", function (dictionnary) {
+				C8O.log.debug("c8o.core: translation dictionnary received for " + C8O.init_vars.i18n);
+				
+				C8O._define.dictionnary = dictionnary;
+				C8O.translate(document.documentElement);
+				
+				C8O.log.debug("c8o.core: translation done in " + C8O.init_vars.i18n);
+			}).always(function () {
+				C8O._onDocumentReady(params);
+			});
+		} else {
 			C8O._onDocumentReady(params);
-		});
+		}
+	};
+	
+	if (C8O.vars.endpoint_url != "") {
+		$(document).on("deviceready", start);
 	} else {
-		C8O._onDocumentReady(params);
+		$(document).ready(start);
 	}
-});
+})();
