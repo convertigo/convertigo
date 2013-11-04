@@ -89,6 +89,10 @@ public class MobileResourceHelper {
 		try {
 			String endPoint = mobileApplication.getComputedEndpoint(request) + "/projects/" + project.getName();
 			String applicationID = mobileApplication.getComputedApplicationId();
+
+			if (!endPoint.endsWith("/")) {
+				endPoint += "/";
+			}
 			
 			// Check forbidden characters in application ID (a-zA-Z0-9.-)
 			if (!Pattern.matches("[\\.\\w]*", applicationID)) {
@@ -177,12 +181,12 @@ public class MobileResourceHelper {
 									
 									if (file.matches(".*/jquery\\.mobilelib\\..*?js")) {
 										String sJs = FileUtils.readFileToString(outFile);
-										sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "/\"");
+										sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "\"");
 										writeStringToFile(outFile, sJs);
 									} else if (file.matches(".*/c8o\\.core\\..*?js")) {
 										serverJsFile = outFile;
 										String sJs = FileUtils.readFileToString(serverJsFile);
-										sJs = sJs.replaceAll(Pattern.quote("endpoint_url: \"\""), "endpoint_url: \"" + endPoint + "/\"");
+										sJs = sJs.replaceAll(Pattern.quote("endpoint_url: \"\""), "endpoint_url: \"" + endPoint + "\"");
 										FileUtils.writeStringToFile(serverJsFile, sJs);
 									}
 									
@@ -203,7 +207,7 @@ public class MobileResourceHelper {
 											String prepend = null;
 											for (File file : resourceBundle.getFiles()) {
 												if (file.getName().matches("c8o\\.core\\..*?js")) {
-													prepend = "C8O.vars.endpoint_url=\"" + endPoint + "/\";";												
+													prepend = "C8O.vars.endpoint_url=\"" + endPoint + "\";";												
 													break;
 												}
 											}
