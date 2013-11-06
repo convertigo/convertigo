@@ -24,17 +24,17 @@ package com.twinsoft.convertigo.beans.mobiledevices;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class WindowsPhoneBeanInfo extends MySimpleBeanInfo {
+public class WindowsPhone7BeanInfo extends MySimpleBeanInfo {
 
-	public WindowsPhoneBeanInfo() {
+	public WindowsPhone7BeanInfo() {
 		try {
-			beanClass = WindowsPhone.class;
+			beanClass = WindowsPhone7.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.MobileDevice.class;
 
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobiledevices/images/windowsphone_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobiledevices/images/windowsphone_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/mobiledevices/res/WindowsPhone");
+			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/mobiledevices/res/WindowsPhone7");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

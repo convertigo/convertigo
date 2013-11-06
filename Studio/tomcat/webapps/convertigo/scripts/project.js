@@ -28,7 +28,7 @@ var vars, defs = {
 		IPad : "iPad1",
 		IPhone3 : "iPhone3",
 		IPhone4 : "iPhone4",
-		WindowsPhone : "NokiaLumia920"
+		WindowsPhone7 : "NokiaLumia920"
 	},
 	phones : {
 		iPad1 : { name : "iPad 1", dpi : 132, os: "ios", install: "IPA", useragent: "iphone" },
@@ -42,6 +42,7 @@ var vars, defs = {
 
 function addMobileDevice($device, $parent) {
 	var $device_div = $("#templates .device").clone();
+		
 	setName($device_div.find(".device_name"), $device);
 	$device_div.attr('id', $device.attr('classname'));
 	$device_div.attr('path', $device.attr('ressource_path'));
@@ -284,7 +285,7 @@ function setMobileDeviceLayout($elt, $xml) {
 	else if (classname === "IPad") layout = "iPad1";
 	else if (classname === "IPhone3") layout = "iPhone3";
 	else if (classname === "IPhone4") layout = "iPhone4";
-	else if (classname === "WindowsPhone") layout = "NokiaLumia920";
+	else if (classname === "WindowsPhone7") layout = "NokiaLumia920";
 	$elt.attr("value", layout);
 }
 

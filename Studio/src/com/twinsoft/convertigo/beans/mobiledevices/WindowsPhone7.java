@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/beans/mobiledevices/WindowsPhone.java $
+ * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/beans/mobiledevices/WindowsPhone7.java $
  * $Author: julienda $
  * $Revision: 31472 $
  * $Date: 2012-08-23 17:53:27 +0200 (jeu., 23 août 2012) $
@@ -24,11 +24,11 @@ package com.twinsoft.convertigo.beans.mobiledevices;
 
 import com.twinsoft.convertigo.beans.core.MobileDevice;
 
-public class WindowsPhone extends MobileDevice {
+public class WindowsPhone7 extends MobileDevice {
 
 	private static final long serialVersionUID = 1092999336588542617L;
 
-	public WindowsPhone() {
+	public WindowsPhone7() {
 		super();
 		setScreenWidth(1280);
 		setScreenHeight(768);

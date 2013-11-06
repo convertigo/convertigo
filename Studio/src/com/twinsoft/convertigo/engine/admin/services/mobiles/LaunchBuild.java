@@ -88,13 +88,7 @@ public class LaunchBuild extends XmlService {
 					.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_TITLE);
 			String mobileBuilderBBKeyPw = EnginePropertiesManager
 					.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_PW);
-			//WINDOWSPHONE
-//			String mobileBuilderWindowsPhoneCertificateTitle = EnginePropertiesManager
-//					.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_CERTIFICATE_TITLE);
-//			String mobileBuilderWindowsPhoneCertificatePw = EnginePropertiesManager
-//					.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_CERTIFICATE_PW);
-//			String mobileBuilderWindowsPhoneKeystorePw = EnginePropertiesManager
-//					.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_KEYSTORE_PW);
+			//WINDOWSPHONE7
 			
 			PostMethod method;
 			int methodStatusCode;
@@ -112,9 +106,6 @@ public class LaunchBuild extends XmlService {
 			params.put("androidKeystorePw", new String[]{mobileBuilderAndroidKeystorePw});
 			params.put("bbKeyTitle", new String[]{mobileBuilderBBKeyTitle});
 			params.put("bbKeyPw", new String[]{mobileBuilderBBKeyPw});
-//			params.put("windowsPhoneCertificateTitle", new String[]{mobileBuilderWindowsPhoneCertificateTitle});
-//			params.put("windowsPhoneCertificatePw", new String[]{mobileBuilderWindowsPhoneCertificatePw});
-//			params.put("windowsPhoneKeystorePw", new String[]{mobileBuilderWindowsPhoneKeystorePw});
 
 			// Launch the mobile build
 			URL url = new URL(mobileBuilderPlatformURL + "/build?" + URLUtils.mapToQuery(params));
