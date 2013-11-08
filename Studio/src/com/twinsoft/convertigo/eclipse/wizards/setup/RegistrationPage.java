@@ -408,6 +408,9 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 		checkValidity();
 		SetupWizard wizard = (SetupWizard) super.getWizard();
 		setControlsEnabled(false);
+		
+		wizard.postRegisterState(this.getClass().getSimpleName().toLowerCase());
+
 		notConnectedLink.setText("Checking for connection to " + registrationLink + " …");
 		((GridData) notConnectedLink.getLayoutData()).exclude = false;
 		notConnectedLink.setVisible(true);
@@ -481,7 +484,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 	public boolean register(RegisterCallback callback) {
 		if (isConnected && changed) {
 			changed = false;
-			((SetupWizard) getWizard()).register(
+			((SetupWizard) super.getWizard()).register(
 					username.getText(),
 					password.getText(),
 					firstname.getText(),

@@ -2,6 +2,7 @@ package com.twinsoft.convertigo.eclipse.wizards.setup;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -24,6 +25,13 @@ public class LicensePage extends WizardPage implements SummaryGenerator {
 		super("LicensePage");
 		setTitle("Product license agreement");
 		setDescription("You should first read and accept the Convertigo EMS license.");
+	}
+	
+	@Override
+	public IWizard getWizard() {
+		SetupWizard wizard = (SetupWizard) super.getWizard();
+		wizard.postRegisterState(this.getClass().getSimpleName().toLowerCase());
+		return wizard;
 	}
 
 	public void createControl(Composite parent) {

@@ -1,5 +1,6 @@
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
+import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -8,11 +9,14 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.CheckConnectedCallback;
 import com.twinsoft.convertigo.eclipse.wizards.setup.SetupWizard.SummaryGenerator;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -20,7 +24,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMethod;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
 import com.twinsoft.convertigo.engine.ProxyManager;
 
-public class ConfigureProxyPage extends WizardPage implements SummaryGenerator {
+public class ConfigureProxyPage extends WizardPage implements SummaryGenerator,CheckConnectedCallback  {
 	private Combo proxyMode;
 	private Text proxyPort;
 	private Text proxyHost;
@@ -29,6 +33,8 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator {
 	private Text proxyAutoConfUrl;
 	private Text proxyUser;
 	private Text proxyPassword;
+	private Label statusConnection;
+	private boolean isConnected;
 	
 	private Composite container;
 	private ProxyManager proxyManager;
@@ -38,6 +44,13 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator {
 		setTitle("Proxy settings");
 		setDescription("This page configures the proxy settings. A proxy configuration is needed to let Convertigo Studio access the Internet in order to run demos or to be able to connect to any web site or web service available on the Internet.");
 		this.proxyManager = proxyManager;
+	}
+	
+	@Override
+	public IWizard getWizard() {
+		SetupWizard wizard = (SetupWizard) super.getWizard();
+		wizard.postRegisterState(this.getClass().getSimpleName().toLowerCase());
+		return wizard;
 	}
 	
 	public void createControl(Composite parent) {
@@ -207,7 +220,22 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator {
 			}
 			
 		});
+		statusConnection = new Label(container, SWT.NORMAL);
+		statusConnection.setLayoutData(layoutData);
 		
+		Button checkConnection = new Button(container, SWT.BUTTON1);
+		checkConnection.setLayoutData(layoutData);
+		checkConnection.setText("Check connection");
+		final SetupWizard wizard = (SetupWizard) super.getWizard();
+		final CheckConnectedCallback callback = this;
+		checkConnection.addSelectionListener(new SelectionListener() {
+			
+			public void widgetSelected(SelectionEvent arg0) {
+				wizard.checkConnected(callback);
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent arg0) {}
+		});
 		enableComponents(proxyManager.proxyMode);
 		enableComponents(proxyManager.proxyMethod);
 		
@@ -298,5 +326,40 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator {
 						"\tuser: " + proxyUser.getText() + "\n" +
 						"\tpassword: *****\n"
 					) : "")) : ""));
+	}
+
+	public void onCheckConnected(final boolean isConnected, final String message) {
+		Display.getDefault().asyncExec(new Runnable() {
+
+			public void run() {
+//				MessageBox mb = null;
+				ConfigureProxyPage.this.setConnected(isConnected);
+				String msg = message;
+				setPageComplete(!isConnected);
+				if (!isConnected) {
+//					setErrorMessage("No Internet connection! Please check your proxy settings.");
+					msg = "Connection error : " + message;
+					statusConnection.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
+//					mb = new MessageBox(ConfigureProxyPage.this.getShell(), SWT.ICON_ERROR | SWT.OK); 
+				} else {
+//					setMessage("Your proxy settings seems to be goods.");
+					msg = "The connection test was successful!";
+					statusConnection.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_GREEN));
+//					mb = new MessageBox(ConfigureProxyPage.this.getShell(), SWT.ICON_WORKING | SWT.OK); 
+				}
+//			 	mb.setMessage(msg); 
+//			 	mb.open(); 
+				statusConnection.setText(msg);
+			}
+			
+		});
+	}
+
+	public boolean isConnected() {
+		return isConnected;
+	}
+
+	public void setConnected(boolean isConnected) {
+		this.isConnected = isConnected;
 	}
 }

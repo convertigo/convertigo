@@ -35,6 +35,7 @@ public class SetupWizard extends Wizard {
 	public static final String registrationServiceUrl = "https://c8o.convertigo.net/cems/projects/studioRegistration/.xml";
 	
 	private static final Pattern scheme_host_pattern = Pattern.compile("https://(.*?)(?::([\\d]*))?(/.*|$)");
+	private static String uniqueID;
 	
 	interface SummaryGenerator {
 		public String getSummary();
@@ -60,11 +61,15 @@ public class SetupWizard extends Wizard {
 	protected ProxyManager proxyManager;
 
 	public SetupWizard() {
-		super();
-		
+		super();	
+		generateUniqueID();
 		setNeedsProgressMonitor(true);
 	}
-
+	
+	private void generateUniqueID(){
+		uniqueID = ""+System.currentTimeMillis()+Math.round(300*Math.random());
+	}
+	
 	@Override
 	public void addPages() {
 		Engine.CONFIGURATION_PATH = Engine.USER_WORKSPACE_PATH;
@@ -241,7 +246,7 @@ public class SetupWizard extends Wizard {
 					String message;
 	
 					try {
-						String[] urlSource = {"http://www.convertigo.com"};
+						String[] urlSource = {"http://register.convertigo.com"};
 						
 						HttpClient client = prepareHttpClient(urlSource);
 						GetMethod method = new GetMethod(urlSource[0]);
@@ -342,4 +347,46 @@ public class SetupWizard extends Wizard {
 		th.setName("SetupWizard.register");
 		th.start();
 	}
+	
+	public void postRegisterState(final String page){
+		Thread th = new Thread(new Runnable() {
+
+			public void run() {				
+				synchronized (SetupWizard.this) {
+					
+					try {
+						String[] url = {"http://www.google-analytics.com/collect"};
+						HttpClient client = prepareHttpClient(url);
+						PostMethod method = new PostMethod(url[0]);			
+						method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+						
+						// set parameters for POST method
+						method.setParameter("v", "1");
+						method.setParameter("tid", "UA-660091-2");
+						method.setParameter("cid", getUniqueID());
+						method.setParameter("t", "pageview");
+						method.setParameter("dh", "http://www.convertigo.com");
+						method.setParameter("dp", "/StudioRegistrationWizard_"+page+".html");
+						method.setParameter("dt", page);
+						
+						// execute HTTP post with parameters
+						//int statusCode = client.executeMethod(method);
+						client.executeMethod(method);
+						
+					} catch (Exception e) {
+//						message = "Generic failure: " + e.getClass().getSimpleName() + ", " + e.getMessage();
+						//TODO disable when code complete
+						ConvertigoPlugin.logException(e, "Error while trying to send registration");
+					}
+				}
+			}
+		});
+		th.setDaemon(true);
+		th.setName("SetupWizard.register_steps");
+		th.start();
+	}
+
+	public static String getUniqueID() {
+		return uniqueID;
+	}	
 }
