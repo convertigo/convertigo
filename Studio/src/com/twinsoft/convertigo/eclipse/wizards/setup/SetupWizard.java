@@ -28,6 +28,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.ProxyManager;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -367,7 +368,7 @@ public class SetupWizard extends Wizard {
 						method.setParameter("t", "pageview");
 						method.setParameter("dh", "http://www.convertigo.com");
 						method.setParameter("dp", "/StudioRegistrationWizard_"+page+".html");
-						method.setParameter("dt", page);
+						method.setParameter("dt", page+"_"+ProductVersion.productVersion);
 						
 						// execute HTTP post with parameters
 						//int statusCode = client.executeMethod(method);
