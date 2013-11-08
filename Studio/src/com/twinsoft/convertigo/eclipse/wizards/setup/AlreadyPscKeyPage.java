@@ -1,5 +1,6 @@
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
+import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -20,6 +21,13 @@ public class AlreadyPscKeyPage extends WizardPage {
 		super("AlreadyPscKeyPage");
 		setTitle("Personal Studio Configuration");
 		setDescription("Already own a PSC?");
+	}
+	
+	@Override
+	public IWizard getWizard() {
+		SetupWizard wizard = (SetupWizard) super.getWizard();
+		wizard.postRegisterState(this.getClass().getSimpleName().toLowerCase());
+		return wizard;
 	}
 
 	public void createControl(Composite parent) {
@@ -60,11 +68,11 @@ public class AlreadyPscKeyPage extends WizardPage {
 		choice.addSelectionListener(choiceDone);
 		choice.setText("I do not have a PSC and I want to register now");
 		
-//		choice = new Button(container, SWT.RADIO);
-//		choice.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-//		choice.addSelectionListener(choiceDone);
-//		choice.setText("I do not have a PSC and I will register later (select \"Convertigo\" menu, then \"Configure Studio\" to run this wizard again)");
-//		choice.setData("ANON", "");
+		choice = new Button(container, SWT.RADIO);
+		choice.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		choice.addSelectionListener(choiceDone);
+		choice.setText("I do not have a PSC and I will register later (select \"Convertigo\" menu, then \"Configure Studio\" to run this wizard again)");
+		choice.setData("ANON", "");
 		
 		Link details = new Link(container, SWT.WRAP);
 		details.setText(
@@ -72,8 +80,8 @@ public class AlreadyPscKeyPage extends WizardPage {
 				"Choose the \"I do not have a PSC and I want to register now\" option and fill in the creation form in the next page. This form automatically creates for you a Convertigo Trial Cloud account as well as a free Convertigo Support Forum account. \n\n" +
 				"You can access the Convertigo Support Forum by clicking this link: <a href=\"http://www.convertigo.com/en/how-to/developer-forum.html\">http://www.convertigo.com/en/how-to/developer-forum.html</a>.\n\n" +
 				"As a result of the registration process, you will receive a PSC by email that will configure your Studio for projects deployment on Convertigo Trial Cloud. \n\n" +
-				"Registered users will also get a free 20 minutes \"Getting Started\" web meeting session with one of our support engineers. The link to choose an available slot will be available in the same email providing you the PSC. \n\n" 
-//				"Choosing not to register will prevent you from getting access to the Trial Cloud and the Support Forum.\n"
+				"Registered users will also get a free 20 minutes \"Getting Started\" web meeting session with one of our support engineers. The link to choose an available slot will be available in the same email providing you the PSC. \n\n" +
+				"Choosing not to register will prevent you from getting access to the Trial Cloud and the Support Forum.\n"
 		);
 		details.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		details.addSelectionListener(new SelectionListener() {

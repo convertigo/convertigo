@@ -38,7 +38,9 @@ public class SummaryPage extends WizardPage {
 	@Override
 	public IWizard getWizard() {
 		SetupWizard wizard = (SetupWizard) super.getWizard();
-		
+
+		wizard.postRegisterState(this.getClass().getSimpleName().toLowerCase());
+
 		StringBuffer summary = new StringBuffer();
 		
 		for (IWizardPage page : wizard.getPages()) {

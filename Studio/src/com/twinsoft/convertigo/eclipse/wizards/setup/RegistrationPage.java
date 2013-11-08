@@ -481,7 +481,7 @@ public class RegistrationPage extends WizardPage implements CheckConnectedCallba
 	public boolean register(RegisterCallback callback) {
 		if (isConnected && changed) {
 			changed = false;
-			((SetupWizard) getWizard()).register(
+			((SetupWizard) super.getWizard()).register(
 					username.getText(),
 					password.getText(),
 					firstname.getText(),

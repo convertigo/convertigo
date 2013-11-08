@@ -54,7 +54,10 @@ public class PscKeyPage extends WizardPage implements RegisterCallback, SummaryG
 		
 		setErrorMessage(null);
 		setMessage(getDescription());
-		
+
+		SetupWizard wizard = (SetupWizard) super.getWizard();
+		wizard.postRegisterState(this.getClass().getSimpleName().toLowerCase());
+
 		if (previousPage instanceof RegistrationPage) {
 			RegistrationPage registrationPage = (RegistrationPage) previousPage;
 			if (registrationPage.isConnected()) {

@@ -1,5 +1,6 @@
 package com.twinsoft.convertigo.eclipse.wizards.setup;
 
+import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -32,6 +33,13 @@ public class WorkspaceCreationPage extends WizardPage implements SummaryGenerato
 				"This action will be completed when this wizard finishes.");
 		
 		setControl(container);
+	}
+	
+	@Override
+	public IWizard getWizard() {
+		SetupWizard wizard = (SetupWizard) super.getWizard();
+		wizard.postRegisterState(this.getClass().getSimpleName().toLowerCase());
+		return wizard;
 	}
 
 	public String getSummary() {
