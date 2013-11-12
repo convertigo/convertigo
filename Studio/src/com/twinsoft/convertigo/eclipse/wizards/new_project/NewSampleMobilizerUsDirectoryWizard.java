@@ -14,19 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL: http://sourceus/svn/CEMS_opensource/branches/6.0.x/Studio/src/com/twinsoft/convertigo/eclipse/wizards/NewJQueryMobileWizard.java $
- * $Author: nicolasa $
- * $Revision: 28531 $
- * $Date: 2011-10-12 10:46:45 +0200 (Wed, 12 Oct 2011) $
+ * $URL: http://sourceus/svn/convertigo/CEMS_opensource/branches/6.2.x/Studio/src/com/twinsoft/convertigo/eclipse/wizards/new_project/NewSampleMobilizerUsDirectoryDemoWizard.java $
+ * $Author: fabienb $
+ * $Revision: 31035 $
+ * $Date: 2012-07-06 14:56:38 +0200 (ven., 06 juil. 2012) $
  */
 
 package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
-public class NewSampleMobilizerFullFeaturedJQueryMobileWizard extends NewProjectWizard {
-
-	public NewSampleMobilizerFullFeaturedJQueryMobileWizard() {
+public class NewSampleMobilizerUsDirectoryWizard extends NewProjectWizard {
+	
+	public NewSampleMobilizerUsDirectoryWizard() {
 		super();
-		this.templateId = NewProjectWizard.SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED;
+		this.templateId = NewProjectWizard.SAMPLE_MOBILE_USDIRECTORY;
 	}
 
 }

@@ -14,18 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL$
- * $Author$
- * $Revision$
- * $Date$
+ * $URL: http://sourceus/svn/CEMS_opensource/branches/6.0.x/Studio/src/com/twinsoft/convertigo/eclipse/wizards/NewJQueryMobileWizard.java $
+ * $Author: nicolasa $
+ * $Revision: 28531 $
+ * $Date: 2011-10-12 10:46:45 +0200 (Wed, 12 Oct 2011) $
  */
 
 package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
-public class NewSampleMobilizerVacationWizard extends NewProjectWizard {
-	
-	public NewSampleMobilizerVacationWizard() {
+public class NewSampleMobilizerSimpleAppWizard extends NewProjectWizard {
+
+	public NewSampleMobilizerSimpleAppWizard() {
 		super();
-		this.templateId = NewProjectWizard.SAMPLE_MOBILE_VACATION;
+		this.templateId = NewProjectWizard.SAMPLE_MOBILE_SIMPLE_APP;
 	}
+
 }
