@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.common;
 
 import java.beans.PropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class XMLPrintScreenBeanInfo extends MySimpleBeanInfo {
@@ -46,7 +47,7 @@ public class XMLPrintScreenBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("tagName", beanClass, "getTagName", "setTagName");
 			properties[0].setDisplayName(getExternalizedString("property.tagName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.tagName.short_description"));
-			properties[0].setValue("normalizable", true);
+			properties[0].setValue(DatabaseObject.PROPERTY_XMLNAME, true);
 			
 			properties[1] = new PropertyDescriptor("height", beanClass, "getHeight", "setHeight");
 			properties[1].setDisplayName(getExternalizedString("property.height.display_name"));

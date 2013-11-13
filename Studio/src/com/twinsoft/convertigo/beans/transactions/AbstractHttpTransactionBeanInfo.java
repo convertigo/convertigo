@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.transactions;
 
 import java.beans.PropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 
@@ -66,11 +67,13 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[5] = new PropertyDescriptor("httpInfo", AbstractHttpTransaction.class, "getHttpInfo", "setHttpInfo");
 			properties[5].setDisplayName(getExternalizedString("property.httpInfo.display_name"));
 			properties[5].setShortDescription(getExternalizedString("property.httpInfo.short_description"));
+			properties[5].setExpert(true);
 			
 			properties[6] = new PropertyDescriptor("httpInfoTagName", AbstractHttpTransaction.class, "getHttpInfoTagName", "setHttpInfoTagName");
 			properties[6].setDisplayName(getExternalizedString("property.httpInfoTagName.display_name"));
 			properties[6].setShortDescription(getExternalizedString("property.httpInfoTagName.short_description"));
-            properties[6].setValue("normalizable", Boolean.TRUE);
+            properties[6].setValue(DatabaseObject.PROPERTY_XMLNAME, Boolean.TRUE);
+			properties[6].setExpert(true);
 			
 			properties[7] = new PropertyDescriptor("urlEncodingCharset", beanClass, "getUrlEncodingCharset", "setUrlEncodingCharset");
 			properties[7].setDisplayName(getExternalizedString("property.urlEncodingCharset.display_name"));
