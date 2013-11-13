@@ -68,6 +68,12 @@ public class HtmlTransactionBeanInfo extends MySimpleBeanInfo {
             
             property = getPropertyDescriptor("dataEncoding");
             property.setHidden(true);
+			
+            property = getPropertyDescriptor("httpInfo");
+            property.setHidden(true);
+            
+            property = getPropertyDescriptor("httpInfoTagName");
+            property.setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
