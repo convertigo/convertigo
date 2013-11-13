@@ -93,6 +93,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public String mobileDeviceName;
 	public String theme = "default";
 
+	// ENTRIES IN WIZARD
 	// Default project templates
 	public static final int TEMPLATE_MISC_EMPTY_PROJECT = 0;
 	public static final int TEMPLATE_WEB_HTML_IBM_3270 = 100;
@@ -114,7 +115,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_EAI_HTML_WEB_SITE = 307;
 	public static final int TEMPLATE_WEB_CLIPPING_CONNECTOR = 400;
 	public static final int TEMPLATE_SEQUENCE_CONNECTOR = 500;
+	public static final int TEMPLATE_WEB_SERVICE_REFERENCE = 700;
+	public static final int TEMPLATE_SQL_CONNECTOR = 701;
+	// generic sample
 	public static final int SAMPLE_HELLO_WORLD = 620;
+	// documentation samples
 	public static final int SAMPLE_DOCUMENTATION_CLI = 600;
 	public static final int SAMPLE_DOCUMENTATION_CLP = 601;
 	public static final int SAMPLE_DOCUMENTATION_CWI = 602;
@@ -122,16 +127,17 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int SAMPLE_DOCUMENTATION_CMS = 604;
 	public static final int SAMPLE_DOCUMENTATION_CMC = 605;
 	public static final int SAMPLE_DOCUMENTATION_SITECLIPPER = 607;
+	// reference manual samples
 	public static final int SAMPLE_REFMANUAL_SITECLIPPER = 650;
 	public static final int SAMPLE_REFMANUAL_STATEMENTS = 651;
 	public static final int SAMPLE_REFMANUAL_STEPS = 652;
 	public static final int SAMPLE_REFMANUAL_VARIABLES = 653;
 	public static final int SAMPLE_REFMANUAL_HTTP = 654;
 	public static final int SAMPLE_REFMANUAL_WEBCLIPPER = 655;
+	// SQL samples
 	public static final int SAMPLE_SQL_HSQLDB = 660;
 	public static final int SAMPLE_SQL_XLS = 661;
-	public static final int TEMPLATE_WEB_SERVICE_REFERENCE = 700;
-	public static final int TEMPLATE_SQL_CONNECTOR = 701;
+	// libraries
 	public static final int LIBRARY_GOOGLE_MAPS = 800;
 	public static final int LIBRARY_GOOGLE_SPREADSHEETS = 801;
 	public static final int LIBRARY_GOOGLE_DOCS = 802;
@@ -143,11 +149,16 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_INTERACTION_HUB = 1000;
 	public static final int TEMPLATE_SITE_CLIPPER = 1100;
 	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE = 1300;
-	public static final int SAMPLE_MOBILE_JQUERYMOBILE_VACATION = 1310;
-	public static final int SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED = 1311;
+	// mobile samples
+	public static final int SAMPLE_MOBILE_VACATION = 1310;
+	public static final int SAMPLE_MOBILE_SIMPLE_APP = 1311;
 	public static final int SAMPLE_MOBILE_CTF_GALLERY = 1312;
+	public static final int SAMPLE_MOBILE_USDIRECTORY = 1313;
+	public static final int SAMPLE_MOBILE_MOBTV = 1314;
+	// sequencer samples
 	public static final int SAMPLE_SEQUENCER_1 = 1400;
 
+	// FILE NAMES
 	// to import blank project
 	public static final String JAVELIN_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME = "template_javelin.car";
 	public static final String DKU_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME = "template_javelinDKU.car";
@@ -162,33 +173,43 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String INTERACTION_HUB_TEMPLATE_PROJECT_FILE_NAME = "template_interactionHub.car";
 	public static final String SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME = "template_siteClipper.car";
 	public static final String JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME = "template_mobileJQueryMobile.car";
+	// documentation samples
 	public static final String CLI_DOC_PROJECT_FILE_NAME = "sample_documentation_CLI.car";
 	public static final String CWI_DOC_PROJECT_FILE_NAME = "sample_documentation_CWI.car";
 	public static final String CLP_DOC_PROJECT_FILE_NAME = "sample_documentation_CLP.car";
 	public static final String CWC_DOC_PROJECT_FILE_NAME = "sample_documentation_CWC.car";
 	public static final String CMS_DOC_PROJECT_FILE_NAME = "sample_documentation_CMS.car";
 	public static final String CMC_DOC_PROJECT_FILE_NAME = "sample_documentation_CMC.car";
-	public static final String MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME = "sampleMobileVacation.car";
-	public static final String MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME = "sampleMobileJQuery.car";
-	public static final String MOBILE_CTF_GALLERY_PROJECT_FILE_NAME = "sampleMobileCtfGallery.car";
 	public static final String SITECLIPPER_DOC_PROJECT_FILE_NAME = "sampleDocumentationSiteClipper.car";
+	// mobile samples
+	public static final String SAMPLE_MOBILE_VACATION_PROJECT_FILE_NAME = "sampleMobileVacation.car";
+	public static final String SAMPLE_MOBILE_SIMPLE_APP_PROJECT_FILE_NAME = "sampleMobileJQuery.car";
+	public static final String SAMPLE_MOBILE_CTF_GALLERY_PROJECT_FILE_NAME = "sampleMobileCtfGallery.car";
+	public static final String SAMPLE_MOBILE_USDIRECTORY_PROJECT_FILE_NAME = "sampleMobileUsDirectoryDemo.car";
+	public static final String SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME = "sampleMobileMobTv.car";
+	// libraries
 	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleMaps.car";
 	public static final String GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleSpreadsheets.car";
 	public static final String GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleDocs.car";
 	public static final String KEYRING_LIBRARY_PROJECT_FILE_NAME = "lib_Keyring.car";
+	// mashup demo
 	public static final String SALESFORCE_DEMO_PROJECT_FILE_NAME = "demo_SalesForce.car";
 	public static final String USDIRECTORY_DEMO_PROJECT_FILE_NAME = "demo_usDirectory.car";
 	public static final String LEGACYCRM_DEMO_PROJECT_FILE_NAME = "demo_legacyCRM.car";
 	public static final String MASHUP_DEMO_PROJECT_FILE_NAME = "demo_mashup.car";
+	// referemnce manual samples
 	public static final String REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME = "sample_refManual_siteClipper.car";
 	public static final String REFMANUAL_STATEMENTS_PROJECT_FILE_NAME = "sample_refManual_statements.car";
 	public static final String REFMANUAL_STEPS_PROJECT_FILE_NAME = "sample_refManual_steps.car";
 	public static final String REFMANUAL_VARIABLES_PROJECT_FILE_NAME = "sample_refManual_variables.car";
 	public static final String REFMANUAL_HTTP_PROJECT_FILE_NAME = "sample_refManual_http.car";
 	public static final String REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME = "sample_refManual_webClipper.car";
+	// SQL samples
 	public static final String SQL_HSQLDB_PROJECT_FILE_NAME = "sample_database_HSQLDB.car";
 	public static final String SQL_XLS_PROJECT_FILE_NAME = "sample_database_XLS.car";
+	// generic sample
 	public static final String SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME = "sample_HelloWorld.car";
+	// sequencer samples
 	public static final String SEQUENCER_1_PROJECT_FILE_NAME = "sample_sequencer.car";
 
 	/**
@@ -222,9 +243,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_DOCUMENTATION_CWC:
 		case SAMPLE_DOCUMENTATION_CWI:
 		case SAMPLE_DOCUMENTATION_SITECLIPPER:
-		case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
-		case SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED:
+		case SAMPLE_MOBILE_VACATION:
+		case SAMPLE_MOBILE_SIMPLE_APP:
 		case SAMPLE_MOBILE_CTF_GALLERY:
+		case SAMPLE_MOBILE_USDIRECTORY:
+		case SAMPLE_MOBILE_MOBTV:
 		case LIBRARY_GOOGLE_MAPS:
 		case LIBRARY_GOOGLE_SPREADSHEETS:
 		case LIBRARY_GOOGLE_DOCS:
@@ -420,9 +443,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_DOCUMENTATION_CWC:
 			case SAMPLE_DOCUMENTATION_CWI:
 			case SAMPLE_DOCUMENTATION_SITECLIPPER:
-			case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
-			case SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED:
+			case SAMPLE_MOBILE_VACATION:
+			case SAMPLE_MOBILE_SIMPLE_APP:
 			case SAMPLE_MOBILE_CTF_GALLERY:
+			case SAMPLE_MOBILE_USDIRECTORY:
+			case SAMPLE_MOBILE_MOBTV:
 			case LIBRARY_GOOGLE_MAPS:
 			case LIBRARY_GOOGLE_SPREADSHEETS:
 			case LIBRARY_GOOGLE_DOCS:
@@ -1036,53 +1061,43 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		switch (templateId) {
 		case SAMPLE_HELLO_WORLD:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME;
-			projectName = SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME.substring(0,
-					SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME.substring(0, SAMPLE_HELLO_WORLD_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_SEQUENCER_1:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SEQUENCER_1_PROJECT_FILE_NAME;
-			projectName = SEQUENCER_1_PROJECT_FILE_NAME.substring(0,
-					SEQUENCER_1_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = SEQUENCER_1_PROJECT_FILE_NAME.substring(0, SEQUENCER_1_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_SQL_HSQLDB:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SQL_HSQLDB_PROJECT_FILE_NAME;
-			projectName = SQL_HSQLDB_PROJECT_FILE_NAME.substring(0,
-					SQL_HSQLDB_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = SQL_HSQLDB_PROJECT_FILE_NAME.substring(0, SQL_HSQLDB_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_SQL_XLS:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SQL_XLS_PROJECT_FILE_NAME;
-			projectName = SQL_XLS_PROJECT_FILE_NAME.substring(0,
-					SQL_XLS_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = SQL_XLS_PROJECT_FILE_NAME.substring(0, SQL_XLS_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_REFMANUAL_SITECLIPPER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME;
-			projectName = REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME.substring(0,
-					REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME.substring(0, REFMANUAL_SITECLIPPER_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_REFMANUAL_STATEMENTS:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_STATEMENTS_PROJECT_FILE_NAME;
-			projectName = REFMANUAL_STATEMENTS_PROJECT_FILE_NAME.substring(0,
-					REFMANUAL_STATEMENTS_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = REFMANUAL_STATEMENTS_PROJECT_FILE_NAME.substring(0, REFMANUAL_STATEMENTS_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_REFMANUAL_STEPS:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_STEPS_PROJECT_FILE_NAME;
-			projectName = REFMANUAL_STEPS_PROJECT_FILE_NAME.substring(0,
-					REFMANUAL_STEPS_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = REFMANUAL_STEPS_PROJECT_FILE_NAME.substring(0, REFMANUAL_STEPS_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_REFMANUAL_VARIABLES:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_VARIABLES_PROJECT_FILE_NAME;
-			projectName = REFMANUAL_VARIABLES_PROJECT_FILE_NAME.substring(0,
-					REFMANUAL_VARIABLES_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = REFMANUAL_VARIABLES_PROJECT_FILE_NAME.substring(0, REFMANUAL_VARIABLES_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_REFMANUAL_WEBCLIPPER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME;
-			projectName = REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME.substring(0,
-					REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME.substring(0, REFMANUAL_WEBCLIPPER_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_REFMANUAL_HTTP:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + REFMANUAL_HTTP_PROJECT_FILE_NAME;
-			projectName = REFMANUAL_HTTP_PROJECT_FILE_NAME.substring(0,
-					REFMANUAL_HTTP_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = REFMANUAL_HTTP_PROJECT_FILE_NAME.substring(0, REFMANUAL_HTTP_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_DOCUMENTATION_CLI:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + CLI_DOC_PROJECT_FILE_NAME;
@@ -1110,69 +1125,59 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			break;
 		case SAMPLE_DOCUMENTATION_SITECLIPPER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SITECLIPPER_DOC_PROJECT_FILE_NAME;
-			projectName = SITECLIPPER_DOC_PROJECT_FILE_NAME.substring(0,
-					SITECLIPPER_DOC_PROJECT_FILE_NAME.indexOf(".car"));
-//			newProjectDir = Engine.PROJECTS_PATH + "/" + projectName;
+			projectName = SITECLIPPER_DOC_PROJECT_FILE_NAME.substring(0, SITECLIPPER_DOC_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case LIBRARY_GOOGLE_MAPS:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME;
-			projectName = GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME.substring(0,
-					GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME.substring(0, GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case LIBRARY_GOOGLE_SPREADSHEETS:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME;
-			projectName = GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME.substring(0,
-					GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME;
+			projectName = GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME.substring(0, GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case LIBRARY_GOOGLE_DOCS:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME;
-			projectName = GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME.substring(0,
-					GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME.substring(0, GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case LIBRARY_KEYRING:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ KEYRING_LIBRARY_PROJECT_FILE_NAME;
-			projectName = KEYRING_LIBRARY_PROJECT_FILE_NAME.substring(0,
-					KEYRING_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + KEYRING_LIBRARY_PROJECT_FILE_NAME;
+			projectName = KEYRING_LIBRARY_PROJECT_FILE_NAME.substring(0, KEYRING_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case DEMOS_SALESFORCE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SALESFORCE_DEMO_PROJECT_FILE_NAME;
-			projectName = SALESFORCE_DEMO_PROJECT_FILE_NAME.substring(0,
-					SALESFORCE_DEMO_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = SALESFORCE_DEMO_PROJECT_FILE_NAME.substring(0, SALESFORCE_DEMO_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case DEMOS_USDIRECTORY:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + USDIRECTORY_DEMO_PROJECT_FILE_NAME;
-			projectName = USDIRECTORY_DEMO_PROJECT_FILE_NAME.substring(0,
-					USDIRECTORY_DEMO_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = USDIRECTORY_DEMO_PROJECT_FILE_NAME.substring(0, USDIRECTORY_DEMO_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case DEMOS_LEGACYCRM:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + LEGACYCRM_DEMO_PROJECT_FILE_NAME;
-			projectName = LEGACYCRM_DEMO_PROJECT_FILE_NAME.substring(0,
-					LEGACYCRM_DEMO_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = LEGACYCRM_DEMO_PROJECT_FILE_NAME.substring(0, LEGACYCRM_DEMO_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case DEMOS_MASHUP:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + MASHUP_DEMO_PROJECT_FILE_NAME;
-			projectName = MASHUP_DEMO_PROJECT_FILE_NAME.substring(0,
-					MASHUP_DEMO_PROJECT_FILE_NAME.indexOf(".car"));
+			projectName = MASHUP_DEMO_PROJECT_FILE_NAME.substring(0, MASHUP_DEMO_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
-		case SAMPLE_MOBILE_JQUERYMOBILE_VACATION:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME;
-			projectName = MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME.substring(0,
-					MOBILE_JQUERYMOBILE_VACATION_PROJECT_FILE_NAME.indexOf(".car"));
+		case SAMPLE_MOBILE_VACATION:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_VACATION_PROJECT_FILE_NAME;
+			projectName = SAMPLE_MOBILE_VACATION_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_VACATION_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
-		case SAMPLE_MOBILE_JQUERYMOBILE_FULLFEATURED:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME;
-			projectName = MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME.substring(0,
-					MOBILE_JQUERYMOBILE_FULLFEATURED_PROJECT_FILE_NAME.indexOf(".car"));
+		case SAMPLE_MOBILE_SIMPLE_APP:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_SIMPLE_APP_PROJECT_FILE_NAME;
+			projectName = SAMPLE_MOBILE_SIMPLE_APP_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_SIMPLE_APP_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_MOBILE_CTF_GALLERY:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/"
-					+ MOBILE_CTF_GALLERY_PROJECT_FILE_NAME;
-			projectName = MOBILE_CTF_GALLERY_PROJECT_FILE_NAME.substring(0,
-					MOBILE_CTF_GALLERY_PROJECT_FILE_NAME.indexOf(".car"));
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_CTF_GALLERY_PROJECT_FILE_NAME;
+			projectName = SAMPLE_MOBILE_CTF_GALLERY_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_CTF_GALLERY_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_MOBILE_USDIRECTORY:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_USDIRECTORY_PROJECT_FILE_NAME;
+			projectName = SAMPLE_MOBILE_USDIRECTORY_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_USDIRECTORY_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_MOBILE_MOBTV:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME;
+			projectName = SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		default:
 			return null;

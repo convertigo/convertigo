@@ -400,10 +400,10 @@
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewEmptyJQueryMobileWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewEmptyJQueryMobileWizard"
-            name="jQuery Mobile based empty project"
+            name="Mobile application empty project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a Mobile project based on jQueryMobile framework, which features are configurable (simply uncomment them inside code).</description> 
+            <description>Creates a Mobile project based on jQuery Mobile and CTF frameworks, which features are configurable (simply uncomment them inside code).</description> 
             </wizard>
 <!-- Legacy publishing projects -->
       <wizard
@@ -523,10 +523,10 @@
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewHtmlConnectorWizard"
             icon="icons/studio/htmlconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewHtmlConnectorWizard"
-            name="HTML Web Site"
+            name="HTML website"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates an HTML Web Site based WebService connector project.</description> 
+            <description>Creates an HTML website based WebService connector project.</description> 
             </wizard>
 <!-- Web clipping projects -->
        <wizard
@@ -707,13 +707,13 @@
 <!-- Mobile sample projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerFullFeaturedJQueryMobileWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerSimpleAppWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerFullFeaturedJQueryMobileWizard"
-            name="jQuery Mobile based full-featured sample project"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerSimpleAppWizard"
+            name="Simple mobile app sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports a full-featured Mobile sample project based on jQueryMobile framework.</description> 
+            <description>Imports a mobile sample project based on jQuery Mobile and CTF frameworks.</description> 
        </wizard>
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
@@ -723,7 +723,27 @@
             name="CTF gallery sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates the CTF gallery sample project.</description> 
+            <description>Imports the CTF gallery sample project.</description> 
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerUsDirectoryWizard"
+             icon="icons/studio/mobile_HighEnd_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerUsDirectoryWizard"
+             name="Mobile US Directory sample project"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports a sample project creating a US Directory mobile application. The project is based on jQuery Mobile and CTF frameworks, and makes searches on the US Directory website to dynamically get data.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerMobTvWizard"
+             icon="icons/studio/mobile_HighEnd_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerMobTvWizard"
+             name="MobTV sample project"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports a sample project creating a MobTV mobile application. The project is based on jQuery Mobile and CTF frameworks, and makes searches on the programme-tv.net website to dynamically get data.</description>
        </wizard>
 <!-- HelloWorld sample project -->
        <wizard
