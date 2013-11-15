@@ -60,6 +60,8 @@ public class SetupWizard extends Wizard {
 	protected SummaryPage summaryPage;
 	
 	protected ProxyManager proxyManager;
+	
+	private String previousPageName = "";
 
 	public SetupWizard() {
 		super();	
@@ -68,7 +70,7 @@ public class SetupWizard extends Wizard {
 	}
 	
 	private void generateUniqueID(){
-		uniqueID = ""+System.currentTimeMillis()+Math.round(300*Math.random());
+		uniqueID = "" + System.currentTimeMillis() + Math.round(300 * Math.random());
 	}
 	
 	@Override
@@ -349,42 +351,44 @@ public class SetupWizard extends Wizard {
 		th.start();
 	}
 	
-	public void postRegisterState(final String page){
-		Thread th = new Thread(new Runnable() {
+	public void postRegisterState(final String page) {
+		if (!page.equals(previousPageName)) {
+			previousPageName = page;
+			Thread th = new Thread(new Runnable() {
 
-			public void run() {				
-				synchronized (SetupWizard.this) {
-					
-					try {
-						String[] url = {"http://www.google-analytics.com/collect"};
-						HttpClient client = prepareHttpClient(url);
-						PostMethod method = new PostMethod(url[0]);			
-						method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-						
-						// set parameters for POST method
-						method.setParameter("v", "1");
-						method.setParameter("tid", "UA-660091-2");
-						method.setParameter("cid", getUniqueID());
-						method.setParameter("t", "pageview");
-						method.setParameter("dh", "http://www.convertigo.com");
-						method.setParameter("dp", "/StudioRegistrationWizard_"+page+".html");
-						method.setParameter("dt", page+"_"+ProductVersion.productVersion);
-						
-						// execute HTTP post with parameters
-						//int statusCode = client.executeMethod(method);
-						client.executeMethod(method);
-						
-					} catch (Exception e) {
-//						message = "Generic failure: " + e.getClass().getSimpleName() + ", " + e.getMessage();
-						//TODO disable when code complete
-						ConvertigoPlugin.logException(e, "Error while trying to send registration");
+				public void run() {				
+					synchronized (SetupWizard.this) {
+
+						try {
+							String[] url = {"http://www.google-analytics.com/collect"};
+							HttpClient client = prepareHttpClient(url);
+							PostMethod method = new PostMethod(url[0]);			
+							method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+							// set parameters for POST method
+							method.setParameter("v", "1");
+							method.setParameter("tid", "UA-660091-2");
+							method.setParameter("cid", getUniqueID());
+							method.setParameter("t", "pageview");
+							method.setParameter("dh", "http://www.convertigo.com");
+							method.setParameter("dp", "/StudioRegistrationWizard_" + page + ".html");
+							method.setParameter("dt", page + "_" + ProductVersion.productVersion);
+
+							// execute HTTP post with parameters
+							client.executeMethod(method);
+
+						} catch (Exception e) {
+							ConvertigoPlugin.logWarning(e, "Error while trying to send registration");
+						}
 					}
 				}
-			}
-		});
-		th.setDaemon(true);
-		th.setName("SetupWizard.register_steps");
-		th.start();
+			});
+			th.setDaemon(true);
+			th.setName("SetupWizard.register_steps");
+			th.start();
+		} else {
+			previousPageName = page;			
+		}
 	}
 
 	public static String getUniqueID() {
