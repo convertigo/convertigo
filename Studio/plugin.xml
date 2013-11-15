@@ -718,7 +718,7 @@
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobileCtfGalleryWizard"
-            icon="icons/studio/mobile_HighEnd_color_32x32.png"
+            icon="icons/studio/demo_ctfgallery_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobileCtfGalleryWizard"
             name="CTF gallery sample project"
             preferredPerspectives="convertigo"
@@ -728,7 +728,7 @@
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerUsDirectoryWizard"
-             icon="icons/studio/mobile_HighEnd_color_32x32.png"
+             icon="icons/studio/demo_usDirectory_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerUsDirectoryWizard"
              name="Mobile US Directory sample project"
              preferredPerspectives="convertigo"
@@ -738,7 +738,7 @@
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerMobTvWizard"
-             icon="icons/studio/mobile_HighEnd_color_32x32.png"
+             icon="icons/studio/demo_mobtv_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerMobTvWizard"
              name="MobTV sample project"
              preferredPerspectives="convertigo"
