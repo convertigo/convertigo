@@ -332,23 +332,16 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator,C
 		Display.getDefault().asyncExec(new Runnable() {
 
 			public void run() {
-//				MessageBox mb = null;
 				ConfigureProxyPage.this.setConnected(isConnected);
 				String msg = message;
-				setPageComplete(!isConnected);
+				
 				if (!isConnected) {
-//					setErrorMessage("No Internet connection! Please check your proxy settings.");
 					msg = "Connection error : " + message;
-					statusConnection.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_RED));
-//					mb = new MessageBox(ConfigureProxyPage.this.getShell(), SWT.ICON_ERROR | SWT.OK); 
+					statusConnection.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_RED)); 
 				} else {
-//					setMessage("Your proxy settings seems to be goods.");
 					msg = "The connection test was successful!";
-					statusConnection.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_GREEN));
-//					mb = new MessageBox(ConfigureProxyPage.this.getShell(), SWT.ICON_WORKING | SWT.OK); 
+					statusConnection.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_GREEN)); 
 				}
-//			 	mb.setMessage(msg); 
-//			 	mb.open(); 
 				statusConnection.setText(msg);
 			}
 			
