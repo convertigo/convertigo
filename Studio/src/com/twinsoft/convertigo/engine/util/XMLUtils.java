@@ -58,6 +58,8 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.tools.CatalogResolver;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
@@ -1149,5 +1151,46 @@ public class XMLUtils {
 		}
 		
 		return localName;
+	}
+	
+	public static  void handleElement(Element elt, JSONObject obj) throws JSONException {
+		String key = elt.getTagName();
+		
+		JSONObject value = new JSONObject();
+		NodeList nl = elt.getChildNodes();
+		for(int i=0;i<nl.getLength();i++) {
+			Node node = nl.item(i);
+			if(node.getNodeType()==Node.ELEMENT_NODE) {
+				Element child = (Element) node;
+				handleElement(child, value);
+			}
+		}
+		
+		JSONObject attr = new JSONObject();
+		NamedNodeMap nnm = elt.getAttributes();
+		for(int i=0;i<nnm.getLength();i++) {
+			Node node = nnm.item(i);
+			attr.accumulate(node.getNodeName(), node.getNodeValue());
+		}
+		
+		if(value.length()==0) {
+			String content = elt.getTextContent();
+			if(attr.length()==0) obj.accumulate(key, content);
+			else value.accumulate("text", content);
+		}
+		
+		if(attr.length()!=0)
+			value.accumulate("attr", attr);
+		
+		if(value.length()!=0)
+			obj.accumulate(key, value);
+	}
+	
+	public static String XmlToJson(Element elt) throws JSONException
+	{
+		JSONObject json = new JSONObject();
+		handleElement(elt, json);
+		String result = json.toString(1);
+		return result;
 	}
 }
