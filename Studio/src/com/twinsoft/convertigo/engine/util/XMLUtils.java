@@ -1153,7 +1153,7 @@ public class XMLUtils {
 		return localName;
 	}
 	
-	public static  void handleElement(Element elt, JSONObject obj) throws JSONException {
+	public static  void handleElement(Element elt, JSONObject obj, boolean ignoreStepIds) throws JSONException {
 		String key = elt.getTagName();
 		
 		JSONObject value = new JSONObject();
@@ -1162,7 +1162,7 @@ public class XMLUtils {
 			Node node = nl.item(i);
 			if(node.getNodeType()==Node.ELEMENT_NODE) {
 				Element child = (Element) node;
-				handleElement(child, value);
+				handleElement(child, value, ignoreStepIds);
 			}
 		}
 		
@@ -1170,7 +1170,8 @@ public class XMLUtils {
 		NamedNodeMap nnm = elt.getAttributes();
 		for(int i=0;i<nnm.getLength();i++) {
 			Node node = nnm.item(i);
-			attr.accumulate(node.getNodeName(), node.getNodeValue());
+			if (ignoreStepIds && (node.getNodeName() != "step_id"))
+				attr.accumulate(node.getNodeName(), node.getNodeValue());
 		}
 		
 		if(value.length()==0) {
@@ -1186,10 +1187,10 @@ public class XMLUtils {
 			obj.accumulate(key, value);
 	}
 	
-	public static String XmlToJson(Element elt) throws JSONException
+	public static String XmlToJson(Element elt, boolean ignoreStepIds) throws JSONException
 	{
 		JSONObject json = new JSONObject();
-		handleElement(elt, json);
+		handleElement(elt, json, ignoreStepIds);
 		String result = json.toString(1);
 		return result;
 	}
