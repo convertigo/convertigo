@@ -186,7 +186,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String SAMPLE_MOBILE_SIMPLE_APP_PROJECT_FILE_NAME = "sampleMobileJQuery.car";
 	public static final String SAMPLE_MOBILE_CTF_GALLERY_PROJECT_FILE_NAME = "sampleMobileCtfGallery.car";
 	public static final String SAMPLE_MOBILE_USDIRECTORY_PROJECT_FILE_NAME = "sampleMobileUsDirectoryDemo.car";
-	public static final String SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME = "sampleMobileMobTv.car";
+	public static final String SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME = "sampleMobileMobTV.car";
 	// libraries
 	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleMaps.car";
 	public static final String GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleSpreadsheets.car";
