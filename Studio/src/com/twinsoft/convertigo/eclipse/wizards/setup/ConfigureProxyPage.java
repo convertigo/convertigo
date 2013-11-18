@@ -231,6 +231,8 @@ public class ConfigureProxyPage extends WizardPage implements SummaryGenerator,C
 		checkConnection.addSelectionListener(new SelectionListener() {
 			
 			public void widgetSelected(SelectionEvent arg0) {
+				statusConnection.setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLUE));
+				statusConnection.setText("Checking connection ...");
 				wizard.checkConnected(callback);
 			}
 			

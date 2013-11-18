@@ -249,7 +249,7 @@ public class SetupWizard extends Wizard {
 					String message;
 	
 					try {
-						String[] urlSource = {"http://register.convertigo.com"};
+						String[] urlSource = {"https://c8o.convertigo.net/cems/index.html"};
 						
 						HttpClient client = prepareHttpClient(urlSource);
 						GetMethod method = new GetMethod(urlSource[0]);
