@@ -27,7 +27,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjec
 public class SqlOutputSelectionEditor extends PropertyWithTagsEditor {
 
 	public static String[] getTags(DatabaseObjectTreeObject databaseObjectTreeObject) {
-		return new String[] { "RAW", "AUTO", "ELEMENT", "ELEMENT_WITH_ATTRIBUTES" };
+		return new String[] { "RAW", "AUTO", "ELEMENT", "ELEMENT_WITH_ATTRIBUTES", "FLAT_ELEMENT" };
 	}
 
 }

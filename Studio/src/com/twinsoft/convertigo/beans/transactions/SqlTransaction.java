@@ -110,6 +110,8 @@ public class SqlTransaction extends TransactionWithVariables {
 	
 	public static int XML_ELEMENT_WITH_ATTRIBUTES = 3;
 	
+	public static int XML_FLAT_ELEMENT = 4;
+	
 	private String errorMessageSQL = "";
 
 	/** Holds value of property xmlGrouping. */
@@ -1009,12 +1011,13 @@ public class SqlTransaction extends TransactionWithVariables {
 			Element parent = (Element)sqlOutput;
 			//int parentLevel = 0;
 			++i;
+			
 			for(Map<String,String> rowElt : row) {
 				String tag = "row" + i;
 				//int level = Integer.parseInt((String)rowElt.get("_level"),10);
 				Engine.logBeans.trace("(SqlTransaction) row"+i+" "+rowElt.toString());
 				
-				boolean exist = (xmlOutput == XML_RAW)?
+				boolean exist = (xmlOutput == XML_RAW || xmlOutput == XML_FLAT_ELEMENT )?
 						elements.containsKey(tag):
 						elements.containsKey(rowElt);
 				
@@ -1026,7 +1029,20 @@ public class SqlTransaction extends TransactionWithVariables {
 								String value = rowElt.get(columnName);
 								element.setAttribute(columnName,value);
 							}
-					} else {
+					}
+					else if (xmlOutput == XML_FLAT_ELEMENT) {
+						element = (Element)elements.get(tag);
+						
+						for(String columnName : columnHeaders) {
+							if (rowElt.containsKey(columnName)){
+								String value = rowElt.get(columnName);
+								Node node = doc.createElement(StringUtils.normalize(columnName));
+								node.setTextContent(value);
+								element.appendChild(node);
+							}
+						}
+					}
+					else {
 						element = (Element)elements.get(rowElt);
 						if (xmlGrouping) {
 							if (!parent.equals(sqlOutput)) {
@@ -1046,7 +1062,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				if (!exist) {
 					String tagName;
 					
-					if ((xmlOutput == XML_RAW) || (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES)) {
+					if ((xmlOutput == XML_RAW) || (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) || (xmlOutput == XML_FLAT_ELEMENT)) {
 						tagName = "row";
 					}
 					else {
@@ -1058,7 +1074,7 @@ public class SqlTransaction extends TransactionWithVariables {
 					if (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) {
 						element.setAttribute("name", rowElt.get("_tagname"));
 					}
-
+					
 					for(String columnName : columnHeaders) {
 						if (rowElt.containsKey(columnName)) {
 							String value = rowElt.get(columnName);
@@ -1075,18 +1091,25 @@ public class SqlTransaction extends TransactionWithVariables {
 								node.setAttribute("name", columnName);
 								node.appendChild(doc.createTextNode(value));
 								element.appendChild(node);
+							} 
+							else if (xmlOutput == XML_FLAT_ELEMENT) {
+								Node node = doc.createElement(StringUtils.normalize(columnName));
+								node.setTextContent(value);
+								element.appendChild(node);
 							}
 						}
 					}
 
-					if (xmlOutput == XML_RAW) {
+					if (xmlOutput == XML_RAW || xmlOutput == XML_FLAT_ELEMENT) {
 						elements.put(tag, element);
 					}
 					else if ((xmlOutput == XML_ELEMENT) || (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) || (xmlOutput == XML_AUTO)) {
 						elements.put(rowElt, element);
 					}
-
-					parent.appendChild(element);
+					
+					parent.appendChild(element);			
+					Engine.logBeans.trace("(SqlTransaction) parent.appendChild(" + element.toString() + ")");
+					
 				}
 				if (xmlOutput != XML_RAW) {
 					//parentLevel = level;
