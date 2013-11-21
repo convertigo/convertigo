@@ -95,24 +95,26 @@ public abstract class GenericRequester extends Requester {
 
 	@Override
 	public void checkAuthenticatedContext() throws EngineException {
-        if (context.requestedObject.getAuthenticatedContextRequired()) {
+		if (context.requestedObject.getAuthenticatedContextRequired()) {
 			Engine.logContext.debug("Authenticated context required");
-        	if ("(anonymous)".equals(context.getAuthenticatedUser())) {
-        		if (context.httpSession != null) {
-            		Object authenticatedUser = context.httpSession.getAttribute("authenticatedUser");
-            		if (authenticatedUser != null) {
-            			// If there is an authenticated user in the HTTP session, we consider
-            			// the context as authenticated "from the top", and then copy the user
-            			// into the context.
-            			context.portalUserName = authenticatedUser.toString();
-    					Engine.logContext.debug("Authenticated user added in the context from the HTTP session");
-    					return;
-            		}
-        		}
-        		
-        		throw new EngineException("Authentication required");
-        	}
-        }
+			if ("(anonymous)".equals(context.getAuthenticatedUser())) {
+				throw new EngineException("Authentication required");
+			}
+		}
+		
+		context.portalUserName = null;
+		
+		if (context.httpSession != null) {
+			Object authenticatedUser = context.httpSession.getAttribute("authenticatedUser");
+			if (authenticatedUser != null) {
+				// If there is an authenticated user in the HTTP session, we consider
+				// the context as authenticated "from the top", and then copy the user
+				// into the context.
+				context.portalUserName = authenticatedUser.toString();
+				Engine.logContext.debug("Authenticated user added in the context from the HTTP session");
+				return;
+			}
+		}
 	}
 
 	private String findBrowserFromUserAgent(Project project, String userAgent) {
