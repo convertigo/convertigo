@@ -70,7 +70,6 @@ import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.methods.TraceMethod;
 import org.apache.commons.httpclient.protocol.Protocol;
-import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -98,6 +97,7 @@ import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.plugins.VicApi;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -137,12 +137,12 @@ public class HttpConnector extends Connector {
 	transient private Map<String, String> httpHeaderForwardMap = null;
 	
 	private String urlEncodingCharset = "UTF-8";
-
+	
 	public HttpConnector() {
 		super();
 
 		certificateManager = new CertificateManager();
-
+		
 		hostConfiguration = new HostConfiguration();
 	}
 
@@ -857,7 +857,7 @@ public class HttpConnector extends Connector {
 						|| (hostConfiguration.getPort() != port)) {
 					Engine.logBeans
 							.debug("(HttpConnector) Using MySSLSocketFactory for creating the SSL socket");
-					Protocol myhttps = new Protocol("https", (ProtocolSocketFactory) new MySSLSocketFactory(
+					Protocol myhttps = new Protocol("https", MySSLSocketFactory.getSSLSocketFactory(
 							certificateManager.keyStore, certificateManager.keyStorePassword,
 							certificateManager.trustStore, certificateManager.trustStorePassword,
 							this.trustAllServerCertificates), port);
@@ -1238,6 +1238,7 @@ public class HttpConnector extends Connector {
 				}
 			});
 
+			HttpUtils.logCurrentHttpConnection(hostConfiguration);
 			Engine.logBeans.debug("(HttpConnector) HttpClient: executing method...");
 			statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 			Engine.logBeans.debug("(HttpConnector) HttpClient: end of method successfull");
@@ -1251,6 +1252,7 @@ public class HttpConnector extends Connector {
 			}
 		} catch (IOException e) {
 			try {
+				HttpUtils.logCurrentHttpConnection(hostConfiguration);
 				Engine.logBeans.warn("(HttpConnector) HttpClient: connection error to " + sUrl + ": "
 						+ e.getMessage() + "; retrying method");
 				statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
@@ -1311,8 +1313,7 @@ public class HttpConnector extends Connector {
 								|| (hostConfiguration.getPort() != port)) {
 							Engine.logBeans
 									.debug("(HttpConnector) Using MySSLSocketFactory for creating the SSL socket");
-							Protocol myhttps = new Protocol("https",
-									(ProtocolSocketFactory) new MySSLSocketFactory(
+							Protocol myhttps = new Protocol("https", MySSLSocketFactory.getSSLSocketFactory(
 											certificateManager.keyStore, certificateManager.keyStorePassword,
 											certificateManager.trustStore,
 											certificateManager.trustStorePassword,

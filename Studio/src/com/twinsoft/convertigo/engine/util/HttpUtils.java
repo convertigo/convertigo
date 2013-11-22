@@ -37,6 +37,10 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.httpclient.HostConfiguration;
+import org.apache.commons.httpclient.HttpConnectionManager;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 
@@ -218,5 +222,17 @@ public class HttpUtils {
 		String url = originalRequestURL(request);
 		url = c8o_request_pattern.matcher(url).replaceFirst("$1");
 		return url;
+	}
+	
+	public static void logCurrentHttpConnection(HostConfiguration hostConfiguration) {
+		if (Engine.logEngine.isInfoEnabled() && Engine.theApp != null && Engine.theApp.httpClient != null) {
+			HttpConnectionManager httpConnectionManager = Engine.theApp.httpClient.getHttpConnectionManager();
+			if (httpConnectionManager != null && httpConnectionManager instanceof MultiThreadedHttpConnectionManager) {
+				MultiThreadedHttpConnectionManager mtHttpConnectionManager = (MultiThreadedHttpConnectionManager) httpConnectionManager;
+				int connections = mtHttpConnectionManager.getConnectionsInPool();
+				int connectionsForHost = mtHttpConnectionManager.getConnectionsInPool(hostConfiguration);
+				Engine.logEngine.info("(HttpUtils) Currently " + connections + " HTTP connections in use, " + connectionsForHost + " for " + hostConfiguration.getHost() + "; Creating a new one ...");
+			}
+		}
 	}
 }

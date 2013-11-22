@@ -35,7 +35,6 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 
 public abstract class FrontalBiller extends Biller {
-	protected static Object semaphore = new Object();
 	
 	public static final String PROPERTIES_SQL_REQUEST_INSERT_REQUEST = "sql.request.insert_request";
 	public static final String PROPERTIES_SQL_REQUEST_GET_REQUEST = "sql.request.get_request";

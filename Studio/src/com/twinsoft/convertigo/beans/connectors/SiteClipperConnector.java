@@ -67,7 +67,6 @@ import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.protocol.Protocol;
-import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
@@ -836,6 +835,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 						+ hostConfiguration.getHostURL()
 						+ httpMethod.getURI().toString());
 
+				HttpUtils.logCurrentHttpConnection(hostConfiguration);
 				Engine.theApp.httpClient.executeMethod(hostConfiguration, httpMethod, context.httpState);
 			} else {
 				Engine.logSiteClipper.info("Retrieve recorded response from Context");
@@ -1003,7 +1003,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				
 				Engine.logSiteClipper.debug("(SiteClipperConnector) CertificateManager has changed: " + certificateManager.hasChanged);
 				Engine.logSiteClipper.debug("(SiteClipperConnector) Using MySSLSocketFactory for creating the SSL socket");
-				Protocol myhttps = new Protocol("https", (ProtocolSocketFactory) new MySSLSocketFactory(
+				Protocol myhttps = new Protocol("https", MySSLSocketFactory.getSSLSocketFactory(
 					certificateManager.keyStore, certificateManager.keyStorePassword,
 					certificateManager.trustStore, certificateManager.trustStorePassword,
 					trustAllServerCertificates), shuttle.getRequestPort());
