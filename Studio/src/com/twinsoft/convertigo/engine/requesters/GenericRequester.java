@@ -90,12 +90,6 @@ public abstract class GenericRequester extends Requester {
 
 	@Override
 	public void checkAuthenticatedContext() throws EngineException {
-		if (context.requestedObject.getAuthenticatedContextRequired()) {
-			Engine.logContext.debug("Authenticated context required");
-			if ("(anonymous)".equals(context.getAuthenticatedUser())) {
-				throw new EngineException("Authentication required");
-			}
-		}
 		
 		context.portalUserName = null;
 		
@@ -107,7 +101,13 @@ public abstract class GenericRequester extends Requester {
 				// into the context.
 				context.portalUserName = authenticatedUser.toString();
 				Engine.logContext.debug("Authenticated user added in the context from the HTTP session");
-				return;
+			}
+		}
+		
+		if (context.requestedObject.getAuthenticatedContextRequired()) {
+			Engine.logContext.debug("Authenticated context required");
+			if ("(anonymous)".equals(context.getAuthenticatedUser())) {
+				throw new EngineException("Authentication required");
 			}
 		}
 	}
