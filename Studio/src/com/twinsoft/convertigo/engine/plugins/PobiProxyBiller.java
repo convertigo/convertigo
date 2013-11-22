@@ -39,7 +39,7 @@ public class PobiProxyBiller extends PobiBiller {
 
 	private String strFccSuppressionChequesPayes = 				"Suppression de chèques payés émis en infraction";
 	private String strFccSuppressionChequeBdFenInfraction =		"Votre suppression a été remise à la Banque de France";
-	
+
 	private String strFccDeclarationChequesPayes = 				"Déclaration de chèques payés émis en infraction";
 	private String strFccDeclarationRemiseBDF =					"Votre déclaration a été remise à la Banque de France.";
 
@@ -69,7 +69,7 @@ public class PobiProxyBiller extends PobiBiller {
 	//
 	private String strServiceEligibilite = 			"Informations sur l'éligibilité des créances";
 
-	
+
 	public PobiProxyBiller() throws IOException {
 		super();
 	}
@@ -81,12 +81,12 @@ public class PobiProxyBiller extends PobiBiller {
 		if ((html.indexOf(strFccDeclarationRemiseBDF) != -1)
 				&& (html.indexOf(strFccDeclarationChequesPayes) != -1))
 			return getFccCostProxy(html);
-		
+
 		// Mise à jour "Votre suppression a été remise à la Banque de France"			
 		if ((html.indexOf(strFccSuppressionChequeBdFenInfraction) != -1)
 				&& (html.indexOf(strFccSuppressionChequesPayes) != -1))
 			return getFccCostProxy(html);
-		
+
 		if (html.indexOf(strFccConsultationFichierCentralCheques) != -1)
 			return getFccCostProxy(html);
 
@@ -101,18 +101,18 @@ public class PobiProxyBiller extends PobiBiller {
 
 		if (html.indexOf("SurvMP") != -1)
 			return getSurvMPCostProxy(html);
-		
+
 		if (html.indexOf("ELIGIBILITE") != -1)
 			return getEligibiliteCostProxy(html);
 
 		return -1;
 	}
-	
+
 	private double getFccCostProxy(String html) throws SQLException {
-/*		String cleBDF, sousCle = "";
+		/*		String cleBDF, sousCle = "";
 		int nbp;
 		int index1, index2, index3;
-		
+
 		if ((index1 = html.indexOf("inexistant")) != -1) {
 			index2 = html.indexOf('>', index1);
 			index3 = html.indexOf('<', index2);
@@ -158,17 +158,17 @@ public class PobiProxyBiller extends PobiBiller {
 			cleBDF = sx.toString();
 			nbp = 1;
 		}*/
-		
+
 		// Mise à jour "Votre déclaration a été remise à la Banque de France"			
 		if ((html.indexOf(strFccDeclarationRemiseBDF) != -1)
 				&& (html.indexOf(strFccDeclarationChequesPayes) != -1))
 			return 0;
-		
+
 		// Mise à jour "Votre suppression a été remise à la Banque de France"			
 		if ((html.indexOf(strFccSuppressionChequeBdFenInfraction) != -1)
 				&& (html.indexOf(strFccSuppressionChequesPayes) != -1))
 			return 0;
-		
+
 		// Mise à jour "déclaration personnes non immatriculées" 
 		if (html.indexOf(strFccMajPersonneMoraleNonImmatriculee) != -1)			                  
 			return 0;
@@ -183,9 +183,9 @@ public class PobiProxyBiller extends PobiBiller {
 
 		return -1;
 
-//		return getApplicationCost("fcc", cleBDF, sousCle, nbp);
+		//		return getApplicationCost("fcc", cleBDF, sousCle, nbp);
 	}
-	
+
 	private double getEligibiliteCostProxy(String html) throws SQLException {
 		// Mise à jour "éligibilité" 
 		if (html.indexOf(strServiceEligibilite) != -1)			                  
@@ -193,12 +193,12 @@ public class PobiProxyBiller extends PobiBiller {
 
 		return -1;
 	}
-	
+
 	private double getFicpCostProxy(String html) throws SQLException {
 		String cleBDF, sousCle = "";
 		int nbp;
 		int index1, index2, index3;
-		
+
 		// Mise à jour "déclaration"
 		if (html.indexOf("La déclaration d'incident a bien été enregistrée") != -1)
 			return 0;
@@ -267,73 +267,75 @@ public class PobiProxyBiller extends PobiBiller {
 
 		if (cleBDF != "")		
 			return getApplicationCost("ficp", cleBDF, sousCle, nbp);
-		
+
 		return -1;
 	}
 
 	private boolean isFirstHomonyme(String cleBDF, String sousCle, String application) throws SQLException {
-		synchronized(PobiBiller.semaphore) {
-			boolean bFirstHomonyme = false;
-			Statement statement = null;
-				
-			String sSqlRequest = null;
-			try {
-				StringEx sqlRequest = new StringEx(sqlRequester.getProperty(PobiBiller.PROPERTIES_SQL_REQUEST_GET_REQUEST));
+		boolean bFirstHomonyme = false;
+		Statement statement = null;
+
+		long startCost = System.currentTimeMillis();
+
+		String sSqlRequest = null;
+		try {
+			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(PobiBiller.PROPERTIES_SQL_REQUEST_GET_REQUEST));
+
+			sqlRequest.replace("{RefClient}", certificate);
+			sqlRequest.replace("{CleBdf}", cleBDF);
+			sqlRequest.replace("{SousCleCompOp}", "=");
+			sqlRequest.replace("{SousCle}", "");
+			sqlRequest.replace("{Application}", application);
+
+			sSqlRequest = sqlRequest.toString();
+			Engine.logBillers.debug("[PobiProxyBiller] SQL: " + sSqlRequest);
+
+			statement = sqlRequester.connection.createStatement();
+			ResultSet resultSet = statement.executeQuery(sSqlRequest);
+
+			resultSet.next();
+
+			if (resultSet.getInt("nbclebdf") == 1) {
+				Engine.logBillers.debug("[PobiProxyBiller] Homonyme page yet requested");
+
+				statement.close();
+
+				sqlRequest = new StringEx(sqlRequester.getProperty(PobiBiller.PROPERTIES_SQL_REQUEST_GET_REQUEST));
 
 				sqlRequest.replace("{RefClient}", certificate);
 				sqlRequest.replace("{CleBdf}", cleBDF);
-				sqlRequest.replace("{SousCleCompOp}", "=");
-				sqlRequest.replace("{SousCle}", "");
+				sqlRequest.replace("{SousCleCompOp}", " like ");
+				sqlRequest.replace("{SousCle}", "[0-9][0-9]");
 				sqlRequest.replace("{Application}", application);
 
 				sSqlRequest = sqlRequest.toString();
 				Engine.logBillers.debug("[PobiProxyBiller] SQL: " + sSqlRequest);
 
 				statement = sqlRequester.connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(sSqlRequest);
+				resultSet = statement.executeQuery(sSqlRequest);
 
 				resultSet.next();
+				bFirstHomonyme = (resultSet.getInt("nbclebdf") == 0);
 
-				if (resultSet.getInt("nbclebdf") == 1) {
-					Engine.logBillers.debug("[PobiProxyBiller] Homonyme page yet requested");
-					
-					statement.close();
-
-					sqlRequest = new StringEx(sqlRequester.getProperty(PobiBiller.PROPERTIES_SQL_REQUEST_GET_REQUEST));
-
-					sqlRequest.replace("{RefClient}", certificate);
-					sqlRequest.replace("{CleBdf}", cleBDF);
-					sqlRequest.replace("{SousCleCompOp}", " like ");
-					sqlRequest.replace("{SousCle}", "[0-9][0-9]");
-					sqlRequest.replace("{Application}", application);
-
-					sSqlRequest = sqlRequest.toString();
-					Engine.logBillers.debug("[PobiProxyBiller] SQL: " + sSqlRequest);
-
-					statement = sqlRequester.connection.createStatement();
-					resultSet = statement.executeQuery(sSqlRequest);
-
-					resultSet.next();
-					bFirstHomonyme = (resultSet.getInt("nbclebdf") == 0);
-				
-					Engine.logBillers.debug("[PobiProxyBiller] First homonyme: " + bFirstHomonyme);
-				}
-				
-				return bFirstHomonyme;
+				Engine.logBillers.debug("[PobiProxyBiller] First homonyme: " + bFirstHomonyme);
 			}
-			catch(SQLException e) {
-				Engine.logBillers.warn("[PobiProxyBiller] Unable to find whether it is the first homonyme; ignoring and assuming false.\n" + e.getMessage() + " (error code: " + e.getErrorCode() + ")\nSQL: " + sSqlRequest);
-				return false;
+
+			return bFirstHomonyme;
+		}
+		catch(SQLException e) {
+			Engine.logBillers.warn("[PobiProxyBiller] Unable to find whether it is the first homonyme; ignoring and assuming false.\n" + e.getMessage() + " (error code: " + e.getErrorCode() + ")\nSQL: " + sSqlRequest);
+			return false;
+		}
+		catch(Exception e) {
+			Engine.logBillers.error("[PobiProxyBiller] Unable to find whether it is the first homonyme; ignoring and assuming false.", e);
+			return false;
+		}
+		finally {
+			if (statement != null) {
+				statement.close();
 			}
-			catch(Exception e) {
-				Engine.logBillers.error("[PobiProxyBiller] Unable to find whether it is the first homonyme; ignoring and assuming false.", e);
-				return false;
-			}
-			finally {
-				if (statement != null) {
-					statement.close();
-				}
-			}
+
+			Engine.logBillers.info("[PobiBiller] isFirstHomonyme, 1 request in " + (System.currentTimeMillis() - startCost) + " ms");
 		}
 	}
 
@@ -350,23 +352,23 @@ public class PobiProxyBiller extends PobiBiller {
 	private double getSurvMPCostProxy(String html) throws SQLException {		
 		if (html.indexOf(strAccueilSurvMP) != -1)				// SurvMP page d'accueil
 			return 0;
-				
+
 		if ((html.indexOf(strClotureCartographie) != -1) || ((html.indexOf(strCartographieSurvMP) != -1) && (html.indexOf(strCartographiePlus) != -1)))		// SurvMP Cartographie
 			return 0;		
 
 		if ((html.indexOf(strClotureCartoPrivative) != -1) || ((html.indexOf(strCartoPrivativeSurvMP) != -1)  && (html.indexOf(strCartographiePrivativePlus) != -1)))	// SurvMP Cartographie privative
 			return 0;		
-		
+
 		// IMPORTANT : must have these two strings to trigger
 		if ((html.indexOf(strSaisieSurvMP) != -1) && (html.indexOf(strContenuDeclarationSurvMP) != -1))			// SurvMP Homologation Chéque
 			return 0;
-				
+
 		if (html.indexOf(strClotureChequeSurvMP) != -1)			// SurvMP Cloture Cheque Declaration
 			return 0;		
-		
+
 		if (html.indexOf(strPreClotureDeclarationSurvMP) != -1)	// SurvMP PreCloture Declaration
 			return 0;		
-		
+
 		if ((html.indexOf(strSaisieDeclarationFraude) != -1) && (html.indexOf(strSaisieDeclarationFraudePlus) != -1))	// SurvMP Saisie Fraude Declaration
 			return 0;
 
@@ -382,10 +384,10 @@ public class PobiProxyBiller extends PobiBiller {
 
 		if (((html.indexOf(strFccSuppressionChequeBdFenInfraction) != -1)
 				&& (html.indexOf(strFccSuppressionChequesPayes) != -1))
-			|| ((html.indexOf(strFccDeclarationRemiseBDF) != -1)
-					&& (html.indexOf(strFccDeclarationChequesPayes) != -1))
-			|| (html.indexOf(strFccConsultationFichierCentralCheques) != -1)
-			|| (html.indexOf(strFccFichierCentralCheques) != -1))
+				|| ((html.indexOf(strFccDeclarationRemiseBDF) != -1)
+						&& (html.indexOf(strFccDeclarationChequesPayes) != -1))
+						|| (html.indexOf(strFccConsultationFichierCentralCheques) != -1)
+						|| (html.indexOf(strFccFichierCentralCheques) != -1))
 			return "FCC mise à jour";
 
 		if (html.indexOf("FICP") != -1)
@@ -401,20 +403,20 @@ public class PobiProxyBiller extends PobiBiller {
 
 		if (html.indexOf(strSaisieSurvMP) != -1)
 			return "Chèque";
-		
+
 		if (html.indexOf(strAccueilSurvMP) != -1)
 			return "SurvMP";
-		
+
 		if (html.indexOf(strServiceEligibilite) != -1)
 			return "Eligibilité";
 
 		if (((html.indexOf(strSaisieDeclarationFraude) != -1) && (html.indexOf(strSaisieDeclarationFraudePlus) != -1))
-			|| (html.indexOf(strClotureFraude) != -1))
+				|| (html.indexOf(strClotureFraude) != -1))
 			return "Fraude";		
-		
+
 		if ((html.indexOf(strCartographieSurvMP) != -1) || (html.indexOf(strClotureCartographie) != -1))
 			return "Cartographie";		
-	
+
 		if ((html.indexOf(strClotureCartoPrivative) != -1) || (html.indexOf(strCartoPrivativeSurvMP) != -1))
 			return "Cartographie";		
 
@@ -424,18 +426,18 @@ public class PobiProxyBiller extends PobiBiller {
 
 	protected String getModule(Context context, Object data) {
 		String html = (String) data;
-		
+
 		if ((html.indexOf(strFccSuppressionChequeBdFenInfraction) != -1)
 				&& (html.indexOf(strFccSuppressionChequesPayes) != -1))
 			return "Suppression chèques payés";
-		
+
 		if ((html.indexOf(strFccDeclarationRemiseBDF) != -1)
 				&& (html.indexOf(strFccDeclarationChequesPayes) != -1))
 			return "Déclaration chèques payés";
 
 		if (html.indexOf(strCartographieSurvMP) != -1)
 			return "Saisie";
-		
+
 		if (html.indexOf(strClotureCartographie) != -1)
 			return "Clôture";
 
@@ -444,7 +446,7 @@ public class PobiProxyBiller extends PobiBiller {
 
 		if (html.indexOf(strClotureCartoPrivative) != -1)
 			return "Clôture";
-		
+
 		if (html.indexOf(strFccMajPersonneMoraleNonImmatriculee) != -1)
 			return "Déclaration";
 
@@ -463,7 +465,7 @@ public class PobiProxyBiller extends PobiBiller {
 
 		if ((html.indexOf(strClotureChequeSurvMP) != -1)
 				|| (html.indexOf(strClotureFraude) != -1))
-				return "Clôture";
+			return "Clôture";
 
 		// default
 		return "(proxy)";
@@ -476,16 +478,16 @@ public class PobiProxyBiller extends PobiBiller {
 				.indexOf(strFccSuppressionChequesPayes) != -1))
 				|| ((html.indexOf(strFccDeclarationRemiseBDF) != -1) && (html
 						.indexOf(strFccDeclarationChequesPayes) != -1))
-				|| (html.indexOf(strFccConsultationFichierCentralCheques) != -1)
-				|| (html.indexOf(strFccFichierCentralCheques) != -1))
+						|| (html.indexOf(strFccConsultationFichierCentralCheques) != -1)
+						|| (html.indexOf(strFccFichierCentralCheques) != -1))
 			return getFccBdfKeyProxy(html);
-		
+
 		if (html.indexOf("FICP") != -1)
 			return getFicpBdfKeyProxy(html);
-		
+
 		if (html.indexOf("FNCI") != -1)
 			return getFnciBdfKeyProxy(html);
-		
+
 		// return empty string here to avoid falling into
 		// Exception generation just after
 		// changed by jmc 05/11/2007
@@ -494,15 +496,15 @@ public class PobiProxyBiller extends PobiBiller {
 
 		// si on n'a pas trouvé
 		Engine.logBillers.error(
-			"[PobiBiller] Unable to get the transaction BDF key; aborting billing.",
-			new EngineException("Unknown html page type (accepted types are: FCC, FIBEN, FNCI, FICP); the analyzed page is:\n" + html));
+				"[PobiBiller] Unable to get the transaction BDF key; aborting billing.",
+				new EngineException("Unknown html page type (accepted types are: FCC, FIBEN, FNCI, FICP); the analyzed page is:\n" + html));
 		return "?";
 	}
-	
+
 	private String getFccBdfKeyProxy(String html) {
 		String cleBDF = "";
 		int index1, index2, index3;
-				
+
 		if ((index1 = html.indexOf("Référence du RIB en cours")) != -1) {
 			index3 = html.indexOf('>', index1);
 			index2 = html.indexOf('>', index3 + 1);
@@ -511,19 +513,19 @@ public class PobiProxyBiller extends PobiBiller {
 		}
 		else {
 			Engine.logBillers.error(
-				"[PobiBiller] Unable to get the transaction BDF key; aborting billing.",
-				new EngineException("Unknown html page ; the analyzed page is:\n" + html)
-			);
+					"[PobiBiller] Unable to get the transaction BDF key; aborting billing.",
+					new EngineException("Unknown html page ; the analyzed page is:\n" + html)
+					);
 			cleBDF = "?";
 		}
 
 		return (cleBDF);
 	}
-	
+
 	private String getFicpBdfKeyProxy(String html) {
 		String cleBDF = "";
 		int index1, index2, index3;
-		
+
 		if ((index1 = html.indexOf("Dossier non trouvé")) != -1) {
 			index2 = html.indexOf('>', index1);
 			index3 = html.indexOf('<', index2);
@@ -560,19 +562,19 @@ public class PobiProxyBiller extends PobiBiller {
 		}
 		else {
 			Engine.logBillers.error(
-				"[PobiBiller] Unable to get the transaction BDF key; aborting billing.",
-				new EngineException("Unknown html page ; the analyzed page is:\n" + html)
-			);
+					"[PobiBiller] Unable to get the transaction BDF key; aborting billing.",
+					new EngineException("Unknown html page ; the analyzed page is:\n" + html)
+					);
 			cleBDF = "?";
 		}
 
 		return (cleBDF);
 	}
-	
+
 	private String getFnciBdfKeyProxy(String html) {
 		String cleBDF = "";
 		int index1, index2, index3;
-		
+
 		if ((index1 = html.indexOf("Référence du RIB en cours")) != -1) {
 			index3 = html.indexOf('>', index1);
 			index2 = html.indexOf('>', index3 + 1);
@@ -586,10 +588,10 @@ public class PobiProxyBiller extends PobiBiller {
 			try {
 				String strResult = "";
 				StringTokenizer strtok = new StringTokenizer(cleBDF, " \r\n\t");
-					
+
 				while(strtok.hasMoreTokens())
 					strResult += strtok.nextToken().trim() + " ";
-					
+
 				cleBDF = strResult.trim();
 			}
 			catch(Exception e) {
@@ -598,12 +600,12 @@ public class PobiProxyBiller extends PobiBiller {
 		}
 		else {
 			Engine.logBillers.error(
-				"[PobiBiller] Unable to get the transaction BDF key; aborting billing.",
-				new EngineException("Unknown html page ; the analyzed page is:\n" + html)
-			);
+					"[PobiBiller] Unable to get the transaction BDF key; aborting billing.",
+					new EngineException("Unknown html page ; the analyzed page is:\n" + html)
+					);
 			cleBDF = "?";
 		}
-		
+
 		return (cleBDF);
 	}
 }

@@ -42,7 +42,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.protocol.Protocol;
-import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 
 import com.twinsoft.convertigo.beans.connectors.ConnectionException;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
@@ -234,7 +233,7 @@ public class HttpClient {
 				Engine.logEngine.debug("(HttpClient) CertificateManager has changed: " + certificateManager.hasChanged);
 				if (certificateManager.hasChanged || (!host.equalsIgnoreCase(hostConfiguration.getHost())) || (hostConfiguration.getPort() != port)) {
 					Engine.logEngine.debug("(HttpClient) Using MySSLSocketFactory for creating the SSL socket");
-					Protocol myhttps = new Protocol("https", (ProtocolSocketFactory) new MySSLSocketFactory(
+					Protocol myhttps = new Protocol("https", MySSLSocketFactory.getSSLSocketFactory(
 							certificateManager.keyStore, certificateManager.keyStorePassword,
 							certificateManager.trustStore, certificateManager.trustStorePassword,
 							trustAllServerCertificates), port);

@@ -147,6 +147,7 @@ public abstract class Biller extends AbstractBiller {
 			Engine.logBillers.debug("[Biller] SQL: " + sSqlRequest);
 
 			Statement statement = null;
+			long startBilling = System.currentTimeMillis();
 			try {
 				statement = sqlRequester.connection.createStatement();
 				int nResult = statement.executeUpdate(sSqlRequest);
@@ -156,6 +157,7 @@ public abstract class Biller extends AbstractBiller {
 				if (statement != null) {
 					statement.close();
 				}
+				Engine.logBillers.info("[Biller] insertVicBilling, 1 request in " + (System.currentTimeMillis() - startBilling) + " ms");
 			}
 		}
 		catch(SQLException e) {
@@ -211,6 +213,7 @@ public abstract class Biller extends AbstractBiller {
 			}
 
 			Statement statement = null;
+			long startBilling = System.currentTimeMillis();
 			try {
 				Engine.logBillers.debug("[Biller] Replacements from the context done");
 				
@@ -265,6 +268,7 @@ public abstract class Biller extends AbstractBiller {
 				if (statement != null) {
 					statement.close();
 				}
+				Engine.logBillers.info("[Biller] insertCariocaBilling, 1 request in " + (System.currentTimeMillis() - startBilling) + " ms");
 			}
 		}
 		catch(SQLException e) {

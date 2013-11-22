@@ -76,6 +76,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.requesters.InternalRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -739,6 +740,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 			try {
 				displayCookies();
 				
+				HttpUtils.logCurrentHttpConnection(hostConfiguration);
 				Engine.logBeans.debug("(RequestableStep) HttpClient: executing method...");
 				statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 				Engine.logBeans.debug("(RequestableStep) HttpClient: end of method successfull");
@@ -748,6 +750,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 			}
 			catch(IOException e) {
 				try {
+					HttpUtils.logCurrentHttpConnection(hostConfiguration);
 					Engine.logBeans.warn("(RequestableStep) HttpClient: connection error to " + targetUrl + ": " + e.getMessage() + "; retrying method");
 					statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 					Engine.logBeans.debug("(RequestableStep) HttpClient: end of method successfull");

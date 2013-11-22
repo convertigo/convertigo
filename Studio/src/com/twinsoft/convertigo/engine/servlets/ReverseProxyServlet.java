@@ -60,7 +60,6 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.protocol.Protocol;
-import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.apache.commons.lang.StringUtils;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
@@ -73,9 +72,9 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.plugins.AbstractBiller;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -272,7 +271,7 @@ public class ReverseProxyServlet extends HttpServlet {
 						|| (hostConfiguration.getPort() != targetPort)) {
 					Engine.logEngine
 							.debug("(ReverseProxyServlet) Using MySSLSocketFactory for creating the SSL socket");
-					Protocol myhttps = new Protocol("https", (ProtocolSocketFactory) new MySSLSocketFactory(
+					Protocol myhttps = new Protocol("https", MySSLSocketFactory.getSSLSocketFactory(
 							certificateManager.keyStore, certificateManager.keyStorePassword,
 							certificateManager.trustStore, certificateManager.trustStorePassword,
 							trustAllServerCertificates), targetPort);
