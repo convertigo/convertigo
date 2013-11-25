@@ -3,7 +3,6 @@
 	<classpathentry excluding="*.properties|*.svn" kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/qrcode.jar"/>
 	<classpathentry kind="lib" path="lib/"/>
-	<classpathentry kind="lib" path="lib/scribe-1.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/hibernate/hibernate-jpa-2.0-api-1.0.0.Final.jar"/>
 	<classpathentry kind="lib" path="lib/hibernate/antlr-2.7.6.jar"/>
 	<classpathentry kind="lib" path="lib/hibernate/hibernate3.jar"/>
@@ -144,5 +143,6 @@
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/xml-resolver-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/xmlbeans-2.3.0.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/XmlSchema-1.4.7.jar"/>
+	<classpathentry kind="lib" path="lib/signpost-core-1.2.1.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
