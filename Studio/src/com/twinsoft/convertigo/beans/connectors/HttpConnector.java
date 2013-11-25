@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -47,6 +48,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+
+import oauth.signpost.exception.OAuthException;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
@@ -96,6 +99,7 @@ import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.Version;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.oauth.HttpOAuthConsumer;
 import com.twinsoft.convertigo.engine.plugins.VicApi;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -131,6 +135,13 @@ public class HttpConnector extends Connector {
 	transient private String charset = null;
 	transient public Element httpInfoElement;
 	
+	//oAuth Signature
+	transient public HttpOAuthConsumer oAuthConsumer = null;
+	transient String oAuthKey = null;
+	transient String oAuthSecret = null;
+	transient String oAuthToken = null;
+	transient String oAuthTokenSecret = null;	
+	
 	public static final String HTTP_HEADER_FORWARD_POLICY_REPLACE = "Replace";
 	public static final String HTTP_HEADER_FORWARD_POLICY_IGNORE = "Ignore";
 	public static final String HTTP_HEADER_FORWARD_POLICY_MERGE = "Merge";
@@ -142,7 +153,7 @@ public class HttpConnector extends Connector {
 		super();
 
 		certificateManager = new CertificateManager();
-		
+				
 		hostConfiguration = new HostConfiguration();
 	}
 
@@ -283,7 +294,7 @@ public class HttpConnector extends Connector {
 		boolean isFormUrlEncoded = true;
 
 		httpParameters = httpTransaction.getHttpParameters();
-
+		
 		for (List<String> httpParameter : httpTransaction.getHttpParameters()) {
 			String key = httpParameter.get(0);
 			String value = httpParameter.get(1);
@@ -293,8 +304,23 @@ public class HttpConnector extends Connector {
 					break;
 				}
 			}
+			
+			// oAuth Parameters are passed as standard Headers
+			if (key.equalsIgnoreCase("oAuthKey")) {
+				oAuthKey = value;
+			}
+			if (key.equalsIgnoreCase("oAuthSecret")) {
+				oAuthSecret = value;
+			}
+			if (key.equalsIgnoreCase("oAuthToken")) {
+				oAuthToken = value;
+			}
+			if (key.equalsIgnoreCase("oAuthTokenSecret")) {
+				oAuthTokenSecret = value;
+			}
 		}
 
+		
 		// Retrieve request template file if necessary
 		File requestTemplateFile = null;
 		if (!isFormUrlEncoded) {
@@ -1238,6 +1264,19 @@ public class HttpConnector extends Connector {
 				}
 			});
 
+			// handle oAuthSignatures if any
+			if (oAuthKey != null && oAuthSecret != null && oAuthToken != null && oAuthTokenSecret != null) {
+				oAuthConsumer = new HttpOAuthConsumer(oAuthKey, oAuthSecret, hostConfiguration);
+				oAuthConsumer.setTokenWithSecret(oAuthToken, oAuthTokenSecret);
+				oAuthConsumer.sign(method);
+
+				oAuthConsumer = null;
+				oAuthKey = null;
+				oAuthSecret = null;
+				oAuthToken = null;
+				oAuthTokenSecret = null;
+			}
+			
 			HttpUtils.logCurrentHttpConnection(hostConfiguration);
 			Engine.logBeans.debug("(HttpConnector) HttpClient: executing method...");
 			statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
@@ -1260,6 +1299,8 @@ public class HttpConnector extends Connector {
 			} catch (IOException ee) {
 				throw new ConnectionException("Connection error to " + sUrl, ee);
 			}
+		} catch (OAuthException eee) {
+			throw new ConnectionException("OAuth Connection error to " + sUrl, eee);
 		}
 		return statuscode;
 	}
