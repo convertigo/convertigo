@@ -27,19 +27,21 @@ import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.DailyRollingFileAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+//import org.apache.log4j.DailyRollingFileAppender;
+//import org.apache.log4j.FileAppender;
+//import org.apache.log4j.Logger;
+//import org.apache.log4j.PatternLayout;
 
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.util.Log;
 
 public class BnppPlugin extends Plugin {
 
-	static Logger customLog = Logger.getLogger(BnppPlugin.class);
-			
+//	static Logger customLog = Logger.getLogger(BnppPlugin.class);
+	static Log logCustom;
+	
 	public BnppPlugin() {
 		super();
 		this.prop_prefix = "bnpp.";
@@ -48,7 +50,7 @@ public class BnppPlugin extends Plugin {
 	@Override
 	protected void init(Properties properties) {
 		super.init(properties);
-		
+/*		
 		PatternLayout layout = new PatternLayout("%m%n");
 	    FileAppender appender = null;
 		try {
@@ -67,7 +69,23 @@ public class BnppPlugin extends Plugin {
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
-		
+*/
+		try {
+			logCustom = new Log(Engine.LOG_PATH + "/custom.log");
+			logCustom.logLevel = Log.LOGLEVEL_MESSAGE;
+			logCustom.setLogStringFormat("%m" + Log.lineSeparator);
+			logCustom.createDailyLogFiles(true);
+			String headerLine = getProperty("custom.log.header","ClientIP,SessionID,Date,User,Request URI,Transaction,Parameters,Convertigo duration (ms),BDF duration (ms)");
+			if (headerLine != null) {
+			 	String s = ""; 
+				String[] headers = headerLine.split(","); 
+			 	for (int i=0;i<headers.length;i++) 
+			 		s += (s.equals("")?"":"\t| ") + headers[i]; 
+			 	logCustom.message("\n"+s);
+			 }
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -119,7 +137,8 @@ public class BnppPlugin extends Plugin {
                     	value = (value == null) ? "_":value.toString(); 
                     	s += (s.equals("")?"":"\t\t") + value; 
                     }
-                    customLog.info(s); 
+                    //customLog.info(s);
+                    logCustom.message(s);
 				}
 			}
 			catch (Exception e) {}
