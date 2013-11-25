@@ -37,9 +37,9 @@ import java.security.NoSuchProviderException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.net.ssl.KeyManager;
@@ -58,7 +58,7 @@ import org.apache.commons.httpclient.protocol.SecureProtocolSocketFactory;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 
 public class MySSLSocketFactory implements SecureProtocolSocketFactory {
-	static List<MySSLSocketFactory> cache = new LinkedList<MySSLSocketFactory>();
+	static Map<String, MySSLSocketFactory> cache = new HashMap<String, MySSLSocketFactory>();
 	static long checkExpires = System.currentTimeMillis() + 300000;
 
 	protected String keyStore;
@@ -71,39 +71,37 @@ public class MySSLSocketFactory implements SecureProtocolSocketFactory {
 	private SSLContext sslcontext = null;
 	
 	static public ProtocolSocketFactory getSSLSocketFactory(String keyStore, String keyStorePassword, String trustStore, String trustStorePassword, boolean trustAllServerCertificates) {
-		MySSLSocketFactory newMySSLSocketFactory = new MySSLSocketFactory(keyStore, keyStorePassword, trustStore, trustStorePassword, trustAllServerCertificates);
-		MySSLSocketFactory mySSLSocketFactory = null;
+		String key = "" + keyStore + "|" + keyStorePassword + "|" + trustStore + "|" + trustStorePassword + "|" + trustAllServerCertificates;
 		
 		synchronized (cache) {
-			for (Iterator<MySSLSocketFactory> i = cache.iterator(); newMySSLSocketFactory != mySSLSocketFactory && i.hasNext();) {
-				mySSLSocketFactory = i.next();
-				if (mySSLSocketFactory.equals(newMySSLSocketFactory)) {
-					newMySSLSocketFactory = mySSLSocketFactory;
-					i.remove();
-					Engine.logCertificateManager.debug("(MySSLSocketFactory) Retrieve SSLSocketFactory from cache");
-				}
+			MySSLSocketFactory mySSLSocketFactory = cache.get(key);
+			if (mySSLSocketFactory == null) {
+				Engine.logCertificateManager.debug("(MySSLSocketFactory) Create new SSLSocketFactory (" + key + ")");
+				mySSLSocketFactory = new MySSLSocketFactory(keyStore, keyStorePassword, trustStore, trustStorePassword, trustAllServerCertificates);
+				cache.put(key, mySSLSocketFactory);
+			} else {
+				Engine.logCertificateManager.debug("(MySSLSocketFactory) Retrieve SSLSocketFactory from cache (" + key + ")");
 			}
 			
-			long now = System.currentTimeMillis(); 
+			long now = System.currentTimeMillis();
+			mySSLSocketFactory.expire = now + 3600000;
+			
 			if (now >= checkExpires) {
 				int removed = 0;
 				
-				for (Iterator<MySSLSocketFactory> i = cache.iterator(); i.hasNext();) {
-					mySSLSocketFactory = i.next();
-					if (now >= mySSLSocketFactory.expire) {
+				for (Iterator<MySSLSocketFactory> i = cache.values().iterator(); i.hasNext();) {
+					MySSLSocketFactory cachedSSLSocketFactory = i.next();
+					if (now >= cachedSSLSocketFactory.expire) {
 						removed++;
 						i.remove();
 					}
 				}
-				Engine.logCertificateManager.info("(MySSLSocketFactory) Clear " + removed + " cache entries, remains " + (cache.size() + 1) + " entries");
+				Engine.logCertificateManager.info("(MySSLSocketFactory) Clear " + removed + " cache entries, remains " + cache.size() + " entries");
 				checkExpires += 300000;
 			}
 			
-			newMySSLSocketFactory.expire = now + 3600000;
-			cache.add(0, newMySSLSocketFactory);
+			return mySSLSocketFactory;
 		}
-		
-		return newMySSLSocketFactory;
 	}
 	
 	private MySSLSocketFactory(String keyStore, String keyStorePassword, String trustStore, String trustStorePassword, boolean trustAllServerCertificates) {
@@ -269,12 +267,4 @@ public class MySSLSocketFactory implements SecureProtocolSocketFactory {
 			// Nothing to do
 		}
 	};
-
-	public boolean equals(MySSLSocketFactory mySSLSocketFactory) {
-		return this.keyStore.equals(mySSLSocketFactory.keyStore) &&
-				this.keyStorePassword.equals(mySSLSocketFactory.keyStorePassword) &&
-				this.trustStore.equals(mySSLSocketFactory.trustStore) &&
-				this.trustStorePassword.equals(mySSLSocketFactory.trustStorePassword) &&
-				this.trustAllServerCertificates == mySSLSocketFactory.trustAllServerCertificates;
-	}
 }    
