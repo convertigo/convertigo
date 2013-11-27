@@ -313,7 +313,7 @@ public class Crypto2 {
 	
 	private static void logDebug(String message) {
 		if (Engine.logEngine != null) {
-			Engine.logEngine.debug(message);
+			Engine.logEngine.trace(message);
 		}
 		else {
 			System.out.println(message);
