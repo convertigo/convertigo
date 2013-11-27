@@ -73,7 +73,7 @@
 	<classpathentry kind="lib" path="tomcat/lib/servlet-api.jar" sourcepath="/ExternalJavaSources/apache-tomcat-6.0.36-src.zip"/>
 	<classpathentry kind="lib" path="tomcat/lib/tomcat-coyote.jar" sourcepath="/ExternalJavaSources/apache-tomcat-6.0.29-src.zip"/>
 	<classpathentry kind="lib" path="tomcat/lib/tomcat-dbcp.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="lib/soapui/not-yet-commons-ssl-0.3.11.jar"/>
 	<classpathentry kind="lib" path="lib/soapui/soapui-3.5.1.jar"/>
 	<classpathentry kind="lib" path="lib/soapui/soapui-xmlbeans-3.5.1.jar"/>
