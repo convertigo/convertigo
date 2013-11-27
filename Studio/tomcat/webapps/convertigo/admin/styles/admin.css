@@ -431,6 +431,17 @@ table {
 }
 
 /**************************** WIDGET ************************************************************************/
+
+/*** Icon help add by Alexandre ***/
+
+.widget_content_help {
+	background:url('../images/convertigo-administration-picto-last-date1.png') no-repeat right;
+	width:20px;
+	height:inherit;
+	float:right;
+}
+/*********************************/
+
 .widget {
 	float: left;
 	width: 100% !important;

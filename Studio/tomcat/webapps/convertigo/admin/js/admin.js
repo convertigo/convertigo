@@ -251,6 +251,10 @@ function loadWidgets(layoutName, widgetOptions) {
 	});
 }
 
+function getVersion(){
+	callService("engine.GetStatus", function(xml) { $("#statusEngine").html($(xml).find("version").attr("engine")) });
+	return;
+}
 function loadWidget(widgetId, widgetOptions) {
 	var $widget = $("#" + widgetId);
 	if ($widget.text().length > 0) {
@@ -261,8 +265,9 @@ function loadWidget(widgetId, widgetOptions) {
 			"widgets/" + widgetId + ".html",
 			function(xml) {
 				var $tmp = $(widget_container);
+				var $help = getVersion();
 				$tmp.find(".widget_content_center").first().append(xml);
-				$tmp.find(".widget_content_topcenter").first().html('<h3>' + $("#" + widgetId).attr("displayName") + '</h3>');
+				$tmp.find(".widget_content_topcenter").first().html('<a href="' + $help + '/index.jsp" class="widget_content_help">' + '</a>' + '<h3>' + $("#" + widgetId).attr("displayName") + '</h3>');
 				$("#" + widgetId).append($tmp.find("div[class=widget]").children().first());
 				window[widgetId + "_init"](widgetOptions);
 			}
