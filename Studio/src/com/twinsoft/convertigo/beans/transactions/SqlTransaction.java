@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,6 +61,22 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public class SqlTransaction extends TransactionWithVariables {
 
 	private static final long serialVersionUID = 5180639998317573920L;
+	
+	enum keywords {
+		_tagname,
+		_level;
+		
+		static boolean contains(String key) {
+			try {
+				keywords.valueOf(key);
+			} catch (IllegalArgumentException e) {
+				return false;
+			}
+			
+			return true;
+		}
+		
+	}	
 
 	/** The SqlConnector for transaction. */
 	transient private SqlConnector connector = null;
@@ -585,12 +602,12 @@ public class SqlTransaction extends TransactionWithVariables {
 								int j = 0;
 								for(Entry<String,List<List<Object>>> entry : tables.entrySet()) {
 									String tableName = entry.getKey();
-									Map<String,String> elementTable = new HashMap<String, String>();
-									elementTable.put("_tagname",tableName);
-									elementTable.put("_level",(++j)+"0");
+									Map<String,String> elementTable = new LinkedHashMap<String, String>();
+									elementTable.put(keywords._tagname.name(), tableName);
+									elementTable.put(keywords._level.name(), (++j) + "0");
 									for (List<Object> col : entry.getValue()) {
-										String columnName = (String)col.get(1);
-										int index = (Integer)col.get(0);
+										String columnName = (String) col.get(1);
+										int index = (Integer) col.get(0);
 										Object ob = null;
 										try {
 											ob = rs.getObject(index);
@@ -604,7 +621,15 @@ public class SqlTransaction extends TransactionWithVariables {
 										}
 										Engine.logBeans.trace("(SqlTransaction) Retrieved value ("+resu+") for column " + columnName + ", line " + (j-1) + ".");
 										line.set(index-1, resu);
-										elementTable.put(columnName,resu);
+										
+										int cpt = 1;
+										String t = "";
+										while (elementTable.containsKey(columnName + t)) {
+											t ="_" + String.valueOf(cpt);											
+											cpt++;
+										}										
+										
+										elementTable.put(columnName + t, resu);
 									}
 									row.add(elementTable);
 								}
@@ -741,8 +766,13 @@ public class SqlTransaction extends TransactionWithVariables {
 					
 				// Build XML response
 				Element sql;
-				if (rows != null && errorMessageSQL.equals("")){ 
-					sql = parseResults(rows, columnHeaders);
+				if (rows != null && errorMessageSQL.equals("")){
+					if (xmlOutput == XML_RAW || xmlOutput == XML_FLAT_ELEMENT) {
+						sql = parseResultsFlat(lines, columnHeaders);
+					} else {
+						sql = parseResultsHierarchical(rows, columnHeaders);
+					}					
+					
 				//In case of error during the execution of the request we pull up the error node
 				} else if( !errorMessageSQL.equals("")) {
 					sql = parseResults(-1);
@@ -999,7 +1029,47 @@ public class SqlTransaction extends TransactionWithVariables {
 		return elt;
 	}
 	
-	private Element parseResults(List<List<Map<String,String>>> rows, List<String> columnHeaders) {
+	private Element parseResultsFlat(List<List<String>> lines, List<String> columnHeaders) {
+		Document doc = createDOM(getEncodingCharSet());
+		Element document = (Element) doc.appendChild(doc.createElement("document"));
+		Element sqlOutput = (Element) document.appendChild(doc.createElement("sql_output"));
+		Element element = null;
+		
+		for (List<String> line : lines) {
+			element = doc.createElement("row");
+
+			Iterator<String> lineIterator = line.iterator();
+			for (String columnName : columnHeaders) {
+				String normalizedColumnName = StringUtils.normalize(columnName);
+				String value = lineIterator.next();
+
+				if (xmlOutput == XML_RAW) {
+					int x = 1;
+					String t = "";
+					while (!element.getAttribute(normalizedColumnName + t).equals("")) {
+						t ="_" + String.valueOf(x);											
+						x++;
+					}
+
+					element.setAttribute(normalizedColumnName + t,value);
+				} else if (xmlOutput == XML_FLAT_ELEMENT) {
+					Node node = doc.createElement(normalizedColumnName);
+					node.setTextContent(value);
+					element.appendChild(node);
+				}
+			}
+
+			sqlOutput.appendChild(element);
+		}
+		
+		doc.getDocumentElement().appendChild(sqlOutput);
+		
+		Document output = context.outputDocument;
+		Element elt = (Element) output.importNode(sqlOutput, true);
+		return elt;
+	}
+	
+	private Element parseResultsHierarchical(List<List<Map<String,String>>> rows, List<String> columnHeaders) {
 		Document doc = createDOM(getEncodingCharSet());
 		Node document = doc.appendChild(doc.createElement("document"));
 		Node sqlOutput = document.appendChild(doc.createElement("sql_output"));
@@ -1014,7 +1084,7 @@ public class SqlTransaction extends TransactionWithVariables {
 			
 			for(Map<String,String> rowElt : row) {
 				String tag = "row" + i;
-				//int level = Integer.parseInt((String)rowElt.get("_level"),10);
+				//int level = Integer.parseInt((String)rowElt.get(keywords._level.name()),10);
 				Engine.logBeans.trace("(SqlTransaction) row"+i+" "+rowElt.toString());
 				
 				boolean exist = (xmlOutput == XML_RAW || xmlOutput == XML_FLAT_ELEMENT )?
@@ -1022,67 +1092,46 @@ public class SqlTransaction extends TransactionWithVariables {
 						elements.containsKey(rowElt);
 				
 				if (exist) {
-					if (xmlOutput == XML_RAW) {
-						element = (Element)elements.get(tag);
-						for(String columnName : columnHeaders)
-							if (rowElt.containsKey(columnName)){
-								String value = rowElt.get(columnName);
-								element.setAttribute(columnName,value);
-							}
-					}
-					else if (xmlOutput == XML_FLAT_ELEMENT) {
-						element = (Element)elements.get(tag);
-						
-						for(String columnName : columnHeaders) {
-							if (rowElt.containsKey(columnName)){
-								String value = rowElt.get(columnName);
-								Node node = doc.createElement(StringUtils.normalize(columnName));
-								node.setTextContent(value);
-								element.appendChild(node);
-							}
-						}
-					}
-					else {
-						element = (Element)elements.get(rowElt);
-						if (xmlGrouping) {
-							if (!parent.equals(sqlOutput)) {
-								Node topOfElement = element;
-								while (!topOfElement.getParentNode().equals(sqlOutput))
-									topOfElement = topOfElement.getParentNode();
-								Node topOfParent = parent;
-								while (!topOfParent.getParentNode().equals(sqlOutput))
-									topOfParent = topOfParent.getParentNode();
+					element = (Element)elements.get(rowElt);
+					if (xmlGrouping) {
+						if (!parent.equals(sqlOutput)) {
+							Node topOfElement = element;
+							while (!topOfElement.getParentNode().equals(sqlOutput))
+								topOfElement = topOfElement.getParentNode();
+							Node topOfParent = parent;
+							while (!topOfParent.getParentNode().equals(sqlOutput))
+								topOfParent = topOfParent.getParentNode();
 					
-								if (!topOfParent.equals(topOfElement))
-									exist = false;
-							}
-						} else exist = false;
-					}
+							if (!topOfParent.equals(topOfElement))
+								exist = false;
+						}
+					} else exist = false;
 				}
 				if (!exist) {
 					String tagName;
 					
-					if ((xmlOutput == XML_RAW) || (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) || (xmlOutput == XML_FLAT_ELEMENT)) {
+					if (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) {
 						tagName = "row";
 					}
 					else {
-						tagName = rowElt.get("_tagname");
+						tagName = StringUtils.normalize(rowElt.get(keywords._tagname.name()));
 					}
 					
 					element = doc.createElement(tagName);
 
 					if (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) {
-						element.setAttribute("name", rowElt.get("_tagname"));
+						element.setAttribute("name", rowElt.get(keywords._tagname.name()));
 					}
 					
-					for(String columnName : columnHeaders) {
-						if (rowElt.containsKey(columnName)) {
+					for (String columnName : rowElt.keySet()) {
+						if (!keywords.contains(columnName)) {
+							
 							String value = rowElt.get(columnName);
-							if ((xmlOutput == XML_RAW) || (xmlOutput == XML_AUTO)) {
-								element.setAttribute(columnName,value);
+							if (xmlOutput == XML_AUTO) {
+								element.setAttribute(StringUtils.normalize(columnName),value);
 							}
 							else if (xmlOutput == XML_ELEMENT) {
-								Node node = doc.createElement(columnName);
+								Node node = doc.createElement(StringUtils.normalize(columnName));
 								node.appendChild(doc.createTextNode(value));
 								element.appendChild(node);
 							}
@@ -1091,19 +1140,11 @@ public class SqlTransaction extends TransactionWithVariables {
 								node.setAttribute("name", columnName);
 								node.appendChild(doc.createTextNode(value));
 								element.appendChild(node);
-							} 
-							else if (xmlOutput == XML_FLAT_ELEMENT) {
-								Node node = doc.createElement(StringUtils.normalize(columnName));
-								node.setTextContent(value);
-								element.appendChild(node);
 							}
 						}
 					}
-
-					if (xmlOutput == XML_RAW || xmlOutput == XML_FLAT_ELEMENT) {
-						elements.put(tag, element);
-					}
-					else if ((xmlOutput == XML_ELEMENT) || (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) || (xmlOutput == XML_AUTO)) {
+					
+					if ((xmlOutput == XML_ELEMENT) || (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) || (xmlOutput == XML_AUTO)) {
 						elements.put(rowElt, element);
 					}
 					
@@ -1111,10 +1152,9 @@ public class SqlTransaction extends TransactionWithVariables {
 					Engine.logBeans.trace("(SqlTransaction) parent.appendChild(" + element.toString() + ")");
 					
 				}
-				if (xmlOutput != XML_RAW) {
-					//parentLevel = level;
-					parent = element;
-				}
+				
+				//parentLevel = level;
+				parent = element;
 			}
 		}
 	
