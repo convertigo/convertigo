@@ -1271,10 +1271,6 @@ public class HttpConnector extends Connector {
 				oAuthConsumer.sign(method);
 
 				oAuthConsumer = null;
-				oAuthKey = null;
-				oAuthSecret = null;
-				oAuthToken = null;
-				oAuthTokenSecret = null;
 			}
 			
 			HttpUtils.logCurrentHttpConnection(hostConfiguration);
