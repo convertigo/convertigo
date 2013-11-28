@@ -440,6 +440,20 @@ table {
 	height:inherit;
 	float:right;
 }
+
+.IconHelpLink {
+	background: url('../images/convertigo-administration-picto-last-date1.png') no-repeat right;
+	height: 35px;
+	width: 30px;
+	display: inline-block;
+	position: relative;
+}
+
+.IconHelpTitle {
+	float: left;
+	display: inline-block;
+}
+
 /*********************************/
 
 .widget {
@@ -1167,6 +1181,7 @@ table.ui-pg-table {
 
 /****************************** root element for accordion *********************************************************/
 	/*************decorated with rounded borders and gradient background image *****************************************/
+
 .config-accordion {
 	-moz-border-radius: 10px 10px 0px 0px/ 10px 10px 0px 0px;
 	-webkit-border-radius: 10px 10px 0px 0px/ 10px 10px 0px 0px;
