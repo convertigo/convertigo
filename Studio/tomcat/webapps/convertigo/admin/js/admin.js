@@ -255,6 +255,13 @@ function getVersion(){
 	callService("engine.GetStatus", function(xml) { $("#statusEngine").html($(xml).find("version").attr("engine")) });
 	return;
 }
+
+// Added by Alexandre
+function helpIconLinkHome() {
+	$(window).attr("location",'http://help.convertigo.com/' + $("#statusEngine").text() + '/index.jsp');
+}
+
+
 function loadWidget(widgetId, widgetOptions) {
 	var $widget = $("#" + widgetId);
 	if ($widget.text().length > 0) {
@@ -265,9 +272,16 @@ function loadWidget(widgetId, widgetOptions) {
 			"widgets/" + widgetId + ".html",
 			function(xml) {
 				var $tmp = $(widget_container);
-				var $help = getVersion();
 				$tmp.find(".widget_content_center").first().append(xml);
-				$tmp.find(".widget_content_topcenter").first().html('<a href="' + $help + '/index.jsp" class="widget_content_help">' + '</a>' + '<h3>' + $("#" + widgetId).attr("displayName") + '</h3>');
+				//Condition added by Alexandre
+				if (location.hash=="" || location.hash=="#Configuration" || location.hash=="#Home" || location.hash=="#Scheduler") {
+					$tmp.find(".widget_content_topcenter").first().html('<a href="#" class="widget_content_help">' + '</a>' + '<h3>' + $("#" + widgetId).attr("displayName") + '</h3>');
+					$(".widget_content_help").on("click", helpIconLinkHome);
+				} 
+				else {
+					$tmp.find(".widget_content_topcenter").first().html('<h3>' + $("#" + widgetId).attr("displayName") + '</h3>');
+				}
+				// End condition
 				$("#" + widgetId).append($tmp.find("div[class=widget]").children().first());
 				window[widgetId + "_init"](widgetOptions);
 			}
