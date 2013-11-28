@@ -28,15 +28,15 @@ public class ProductVersion {
     public static String majorProductVersion = "7";
     public static String minorProductVersion = "1";
     public static String servicePack = "0";
-    public static String tag = "beta";
-    public static String revision = null;
+    public static String tag = "beta";		/** release = null */
+    public static String revision = null;	/** release = null */
     
     public static String productVersion =
     	ProductVersion.majorProductVersion + "." +
     	ProductVersion.minorProductVersion + "." +
     	ProductVersion.servicePack;
     
-    public static String helpVersion = productVersion;
+    public static String helpVersion = "6.3.2"; /** release = productVersion */
     
     public static String fullProductVersionID =
     		ProductVersion.productVersion +
