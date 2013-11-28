@@ -54,8 +54,8 @@ function configuration_List_init () {
 				$category.find(".config-pane>button").remove();
 			}
 			
-			$category.attr("id","tab-" + $x_category.attr("name"));			
-			//$category.find(".config-category-title:first").text($x_category.attr("displayName"));
+			$category.attr("id","tab-" + $x_category.attr("name"));
+			$category.find(".config-category-title:first").text($x_category.attr("displayName"));
 			$ul.append(
 					$("<li/>").append(
 							$("<a/>").attr("href","#tab-" + $x_category.attr("name")).text($x_category.attr("displayName"))
