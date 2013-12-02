@@ -42,7 +42,10 @@ $(document).ready(function () {
 						if(this.value != ""){
 							$project_div.find(".project_" + this.name).text("(" + this.value + ")");
 						}
-					}else{
+					} else if (this.name == "comment") {
+						//format comment text to show it correctly
+						$project_div.find(".project_" + this.name).html(this.value.replace(new RegExp("\n", "g"), "<br/>"));
+					} else {
 						$project_div.find(".project_" + this.name).text(this.value);
 					}
 				});

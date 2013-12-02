@@ -554,8 +554,12 @@ $(document).ready(function() {
 			$(".acc>li>h6").unbind('click');
 			
 			var $project = $(xml).find("project:first");
-			
-			$(".project_comment").text($project.attr("comment"));
+			//get comment from xml document
+			var comment = $project.attr("comment");
+			//replace encoding \n by element html <br/>
+			comment = comment.replace(new RegExp("\n", "g"), "<br/>");
+			//insert comment in test platform project detail.
+			$(".project_comment").html(comment);
 			if ($project.attr("version") != "")
 				$(".project_version").text("(" + $project.attr("version") + ")");
 			$project.find(">connector").each(function (i) {
