@@ -133,7 +133,9 @@ table {
 	font-size: 12px;
 	color: #818181;
 }
-
+.clear {
+	clear:both;
+}
 /********************************************* INDEX / LOGIN PAGE **************************************************/
 .index {
 	width: 100%;
@@ -1203,7 +1205,7 @@ table.ui-pg-table {
 }
 
 /* list category  */
-.ui-widget-content {
+#configAccordion.ui-widget-content {
 	border:0;
 }
 .ui-tabs-vertical { 

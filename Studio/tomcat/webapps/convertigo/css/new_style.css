@@ -339,70 +339,51 @@ ul li {
 }
 .window_left {
 	width:15px;
-	float:left;
-	background: transparent url(../images/new/window_left.png) top right;
-	background-repeat:repeat-y;	
+	background: transparent url(../images/new/window_left.png) repeat-y top right;
 }
 .window_center {
-	width:100%;
 	height:15px;
-	background: transparent url(../images/new/window_bottom_center.png) top center;
-	background-repeat:repeat-x;		
+	background: transparent url(../images/new/window_bottom_center.png) repeat-x top center;	
 }
 .window_right {
 	width:15px;
-	float:left;
-	background: transparent url(../images/new/window_right.png) top left;
-	background-repeat:repeat-y;		
+	background: transparent url(../images/new/window_right.png) repeat-y top left;	
 }
 .window_corner_bottomL {
-	width:15px;
+	width:13px;
 	height:15px;
-	float:left;
-	background: transparent url(../images/new/window_bottom_left.png) top right;
-	background-repeat:no-repeat;
+	background: transparent url(../images/new/window_bottom_left.png) no-repeat top right;
 }
 .window_corner_bottomR {
-	width:15px;
+	width:13px;
 	height:15px;
-	float:left;
-	background: transparent url(../images/new/window_bottom_right.png) top left;
-	background-repeat:no-repeat;
+	background: transparent url(../images/new/window_bottom_right.png) no-repeat top left;
 }
-
-
 .window_exe_btn {
 	width: 18px;
 	height: 18px;
 	float: left;
 	cursor: pointer;
 }
-
 #window_exe_increase {
 	background: transparent url(../images/new/btn_increase_scale.png) top left;
 }
-
 #window_exe_decrease {
 	background: transparent url(../images/new/btn_decrease_scale.png) top left;
 }
-
 #window_exe_close {
 	background: transparent url(../images/new/btn_close_window.png) top left;
 }
-
 #window_exe_pin {
 	background: transparent url(../images/new/btn_pin_window.png) top left;
 }
-
 #window_exe_pin.window_exe_pinned {
 	background: transparent url(../images/new/btn_pinned_window.png) top left;
 }
-
 .radio_mode {
 	float: left;
 	padding-left:50px;
 }
-
 .title {
 	vertical-align:bottom;
 	float:left;
