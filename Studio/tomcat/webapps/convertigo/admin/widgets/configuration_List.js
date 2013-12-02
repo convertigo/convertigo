@@ -40,7 +40,13 @@ function configuration_List_init () {
 			primary : "ui-icon-disk"
 		}
 	});
-
+	
+	//Get engine version
+	var getEngineVersion = "";
+	callService("engine.GetStatus", function(xml) {
+		getEngineVersion = $(xml).find("version").attr("engine");
+	});		
+	
 	var $template = $("#config-template");
 	var $ul = $("<ul/>").attr("id","config-category-list");
 	callService("configuration.List", function (xml) {
@@ -54,8 +60,64 @@ function configuration_List_init () {
 				$category.find(".config-pane>button").remove();
 			}
 			
+			//Get Url for each widgets
+			var urlHelp = "";
+			switch ($x_category.attr("name"))
+			{
+				case "Main":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/422Mainparameters.html";
+					break;
+				case "Account":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/423Accounts.html";
+					break;
+				case "Logs":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/424Logs.html";
+					break;
+				case "Context":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/425Realtimeactivitymonitoring.html";
+					break;
+				case "XmlGeneration":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/426XMLgeneration.html";
+					break;
+				case "XulRunner":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/427HTMLparser.html";
+					break;
+				case "HttpClient":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/428HTTPclient.html";
+					break;
+				case "Network":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/429Network.html";
+					break;
+				case "Proxy":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4210Proxy.html";
+					break;
+				case "SecurityToken":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4211Securitytoken.html";
+					break;
+				case "Ssl":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4212SSL.html";
+					break;
+				case "Cache":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4213Cache.html";
+					break;
+				case "Carioca":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4214LegacyCariocaportal.html";
+					break;
+				case "Billing":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4215Supervision.html";
+					break;
+				case "Notifications":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4216Notifications.html";
+					break;
+				case "MobileBuilder":
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/42Configuration.html";
+					break;
+			}
+
+			
 			$category.attr("id","tab-" + $x_category.attr("name"));
 			$category.find(".config-category-title:first").text($x_category.attr("displayName"));
+			$category.find(".config-category-title:first + a").attr("id", $x_category.attr("name")).attr("href",urlHelp);
 			$ul.append(
 					$("<li/>").append(
 							$("<a/>").attr("href","#tab-" + $x_category.attr("name")).text($x_category.attr("displayName"))

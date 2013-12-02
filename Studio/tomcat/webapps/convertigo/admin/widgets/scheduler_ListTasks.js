@@ -40,6 +40,16 @@ var $empty_element_xml = $("<element/>")
 var setting_order = ["name", "enabled", "description", "jobName", "scheduleName", "serial", "writeOutput", "cron", "context", "project"];
 
 function scheduler_ListTasks_init () {
+	////////////////////////////////////////HELP MANAGEMENT//////////////////////////////////
+	//Get engine version
+	var getEngineVersion = "";
+	callService("engine.GetStatus", function(xml) {
+		getEngineVersion = $(xml).find("version").attr("engine");
+	});	
+	$("#helpJobs").attr("href", "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/492Jobstable.html");
+	$("#helpSchedules").attr("href", "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/493Schedulestable.html");
+	$("#helpScheduledJobs").attr("href", "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/494ScheduledJobstable.html");
+	
 	////////////////////////////////////////INITIALIZATION OF THE TABLE//////////////////////
 	$(".scheduledTableData").jqGrid({
 		datatype : "local",

@@ -430,31 +430,26 @@ table {
 	color: #8f8f8f;
 }
 
-/**************************** WIDGET ************************************************************************/
+/* *************************** WIDGET *********************************************************************** */
 
-/*** Icon help add by Alexandre ***/
-
+/* = Icon help add by alexandret 
+-------------------------------------- */
 .widget_content_help {
-	background:url('../images/convertigo-administration-picto-last-date1.png') no-repeat right;
-	width:20px;
-	height:inherit;
+	background: transparent url('../images/convertigo-administration-picto-help.png') no-repeat center right;
+	width:25px;
+	height:38px;
 	float:right;
 }
-
 .IconHelpLink {
-	background: url('../images/convertigo-administration-picto-last-date1.png') no-repeat right;
+	background: transparent url('../images/convertigo-administration-picto-help2.png') no-repeat center right;
 	height: 35px;
 	width: 30px;
-	display: inline-block;
-	position: relative;
+	float: left;
 }
-
 .IconHelpTitle {
 	float: left;
-	display: inline-block;
 }
-
-/*********************************/
+/* ----------------------------------- */
 
 .widget {
 	float: left;

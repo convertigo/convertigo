@@ -89,7 +89,7 @@ function connections_List_init() {
 				    'Requested',
 				    'Status',
 				    'User',
-				    '<img src="images/convertigo-administration-picto-scheduler.png" alt="Context creation date"/>',
+				    '<img src="images/convertigo-administration-picto-creation-date.png" alt="Context creation date"/>',
 				    '<img src="images/convertigo-administration-picto-last-date.png" alt="Context last access date"/>',
 				    '<img src="images/convertigo-administration-picto-activity.png" alt="Copntext inactivity"/>',
 				    'Client computer'

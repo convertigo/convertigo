@@ -251,36 +251,81 @@ function loadWidgets(layoutName, widgetOptions) {
 	});
 }
 
-function getVersion(){
-	callService("engine.GetStatus", function(xml) { $("#statusEngine").html($(xml).find("version").attr("engine")) });
-	return;
-}
-
-// Added by Alexandre
-function helpIconLinkHome() {
-	$(window).attr("location",'http://help.convertigo.com/' + $("#statusEngine").text() + '/index.jsp');
-}
-
-
 function loadWidget(widgetId, widgetOptions) {
 	var $widget = $("#" + widgetId);
 	if ($widget.text().length > 0) {
 		$widget.show();
 		window[widgetId + "_update"](widgetOptions);
 	} else {
+		//Get engine version
+		var getEngineVersion = "";
+		callService("engine.GetStatus", function(xml) {
+			getEngineVersion = $(xml).find("version").attr("engine");
+		});		
 		loadHTML(
 			"widgets/" + widgetId + ".html",
 			function(xml) {
 				var $tmp = $(widget_container);
 				$tmp.find(".widget_content_center").first().append(xml);
-				//Condition added by Alexandre
-				if (location.hash=="" || location.hash=="#Configuration" || location.hash=="#Home" || location.hash=="#Scheduler") {
-					$tmp.find(".widget_content_topcenter").first().html('<a href="#" class="widget_content_help">' + '</a>' + '<h3>' + $("#" + widgetId).attr("displayName") + '</h3>');
-					$(".widget_content_help").on("click", helpIconLinkHome);
-				} 
-				else {
-					$tmp.find(".widget_content_topcenter").first().html('<h3>' + $("#" + widgetId).attr("displayName") + '</h3>');
+				//Condition added by alexandret
+				//Get Url for each widgets to go to help informations
+				var urlHelp = "";
+				switch (widgetId)
+				{
+					//home page
+					case "engine_GetStatus":
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/412Homepage.html";
+						break;
+					case "engine_GetSystemInformation":
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/412Homepage.html";
+						break;
+					case "engine_Monitor":
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/412Homepage.html";
+						break;
+					//Configuration page
+					case "configuration_List":
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/421Configurationpage.html";
+						break;
+					//Connections page
+					case "connections_List":
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/43Connections.html";
+						break;
+					//Projects page
+					case "projects_List":
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/44Projects.html";
+						break;
+					//Certificates page
+					case "certificates_List":
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/45Certificates.html";
+						break;
+					//Logs page
+					case "logs_Show":
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/46Logs.html";
+						break;
+					//Trace player page
+					case "trace_List":
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/47TracePlayer.html";
+						break;
+					//Cache page
+					case "cache":
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/48Cache.html";
+						break;
+					//Scheduler page
+					case "scheduler_ListTasks":
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/491Schedulerpage.html";
+						break;
+					//Keys page
+					case "keys_List":
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/410Keys.html";
+						break;
+					//Symbols page
+					case "globalSymbols_List":
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/412Homepage.html";
+						break;					
 				}
+				//show icon help button
+				$tmp.find(".widget_content_topcenter").first().html('<a href="' + urlHelp + '" class="widget_content_help" target="_blank">' + '</a>' + '<h3>' + $("#" + widgetId).attr("displayName") + '</h3>');
+
 				// End condition
 				$("#" + widgetId).append($tmp.find("div[class=widget]").children().first());
 				window[widgetId + "_init"](widgetOptions);
