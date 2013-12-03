@@ -108,6 +108,11 @@ public class SOAPUtils {
 	public static String toString(SOAPMessage soapMessage, String encoding) throws TransformerConfigurationException, TransformerException, SOAPException, IOException, ParserConfigurationException, SAXException {	
 		soapMessage.saveChanges();
 		
+		if (encoding == null) { // #3803
+			Engine.logEngine.warn("(SOAPUtils) encoding is null. Set encoding to UTF-8 for toString.");
+			encoding = "UTF-8";
+		}
+		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		soapMessage.writeTo(out);
         String s = new String(out.toByteArray(), encoding); 

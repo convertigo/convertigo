@@ -465,6 +465,10 @@ public abstract class GenericServlet extends HttpServlet {
 				// header missing
 				request.setAttribute("convertigo.charset", requester.context.requestedObject.getEncodingCharSet());
 			}
+			else { // #3803
+				Engine.logEngine.warn("(GenericServlet) requestedObject is null. Set encoding to UTF-8 for processRequest.");
+				request.setAttribute("convertigo.charset", "UTF-8");
+			}
 			
 			return result;
 		} finally {
