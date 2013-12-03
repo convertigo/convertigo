@@ -565,6 +565,8 @@ public abstract class GenericRequester extends Requester {
 			String motherContextID = parameterValue;
 			Context motherContext = Engine.theApp.contextManager.get(motherContextID);
 			if (motherContext != null) {
+				if(context.httpSession == null)
+					context.httpSession = motherContext.httpSession;
 				context.set("motherContext", motherContext);
 				Engine.logContext.debug("Setting mother sequence context: " + parameterValue);
 			}
