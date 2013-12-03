@@ -120,18 +120,12 @@ public abstract class GenericRequester extends Requester {
 	@Override
 	public void checkAuthenticatedContext() throws EngineException {
 		
-		if (context.httpSession != null) {
-			if ( !context.getAuthenticatedUser().equals("null") && !context.getAuthenticatedUser().equals("")) {
-				Engine.logContext.debug("The context is authenticated via the HTTP session");
-			}
-		}
-		
-		if (context.requestedObject.getAuthenticatedContextRequired()) {
+		if ( context.getAuthenticatedUser() != null ) {
+			Engine.logContext.debug("The context is authenticated via the HTTP session");
+		} else if (context.requestedObject.getAuthenticatedContextRequired()) {
 			Engine.logContext.debug("Authenticated context required");
-			if ("null".equals(context.getAuthenticatedUser())) {
-				throw new EngineException("Authentication required");
-			}
-		}
+			throw new EngineException("Authentication required");
+		} 
 	}
 
 	private String findBrowserFromUserAgent(Project project, String userAgent) {

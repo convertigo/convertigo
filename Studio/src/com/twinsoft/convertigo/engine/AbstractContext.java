@@ -111,15 +111,9 @@ public abstract class AbstractContext {
 	
 	public String getAuthenticatedUser() {
 		if (tasUserName == null) {
-			if (httpSession.getAttribute("authenticatedUser") == null || 
-					httpSession.getAttribute("authenticatedUser") == "") {
-				return null;
-			}
-			else {
-				return httpSession.getAttribute("authenticatedUser").toString();
-			}
-		}
-		else {
+			return httpSession == null || httpSession.getAttribute("authenticatedUser") == null ? 
+					null : httpSession.getAttribute("authenticatedUser").toString();
+		} else {
 			return tasUserName;
 		}
 	}
