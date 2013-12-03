@@ -124,7 +124,8 @@ public abstract class GenericRequester extends Requester {
 			Engine.logContext.debug("The context is authenticated via the HTTP session");
 		} else if (context.requestedObject.getAuthenticatedContextRequired()) {
 			Engine.logContext.debug("Authenticated context required");
-			throw new EngineException("Authentication required");
+			if(!context.isStubRequested)
+				throw new EngineException("Authentication required");
 		} 
 	}
 
