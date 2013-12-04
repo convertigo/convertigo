@@ -28,6 +28,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
@@ -41,11 +44,38 @@ import com.twinsoft.convertigo.engine.util.SqlRequester;
 import com.twinsoft.util.StringEx;
 
 public abstract class Biller extends AbstractBiller {
-	
 	public static final String PROPERTIES_SQL_REQUEST_INSERT_BILLING = "sql.request.insert_billing";
 	public static final String PROPERTIES_SQL_DATE_FORMAT = "sql.date_format";
+	
+	private static final Thread thread;
+	private static final BlockingQueue<Biller> queue;
+	
+	static {
+		queue = new LinkedBlockingQueue<Biller>();
+		thread = new Thread(new Runnable() {
+
+			public void run() {
+				while (thread.isAlive()) {
+					try {
+						Biller biller = queue.poll(30, TimeUnit.SECONDS);
+						if (biller != null) {
+							Engine.logBillers.info("(Biller) Insert a billing request, remains " + queue.size() + " in queue.");
+							biller.insertBilling(biller.context, null);
+						}
+					} catch (Throwable t) {
+						Engine.logBillers.warn("(Biller) Something wrong with a billing insertion", t);
+					}
+				}
+			}
+			
+		});
+		thread.setName("Biller Thread");
+		thread.setDaemon(true);
+		thread.start();
+	}
 
 	protected SqlRequester sqlRequester;
+	private Context context;
 	
 	/**
 	 * Constructs a Biller object.
@@ -63,7 +93,12 @@ public abstract class Biller extends AbstractBiller {
 	protected abstract String getDataKey(Context context, Object data);
 	
 	public void insertBilling(Context context) throws EngineException {
-		insertBilling(context, null);
+		try {
+			this.context = context.clone();
+			queue.offer(this);
+		} catch (CloneNotSupportedException e) {
+			throw new EngineException("Unable to clone the context", e);
+		}
 	}
 	
 	public void insertBilling(Context context, Object data) throws EngineException {
