@@ -367,7 +367,7 @@ public class SetupWizard extends Wizard {
 
 							// set parameters for POST method
 							method.setParameter("v", "1");
-							method.setParameter("tid", "UA-660091-2");
+							method.setParameter("tid", "UA-660091-6");
 							method.setParameter("cid", getUniqueID());
 							method.setParameter("t", "pageview");
 							method.setParameter("dh", "http://www.convertigo.com");
