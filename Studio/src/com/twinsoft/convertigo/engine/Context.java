@@ -80,7 +80,7 @@ import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.URLrewriter;
 import com.twinsoft.twinj.Javelin;
 
-public class Context extends AbstractContext {
+public class Context extends AbstractContext implements Cloneable {
 
 	public LogParameters logParameters = new LogParameters();
 	
@@ -648,5 +648,11 @@ public class Context extends AbstractContext {
 		if (xulRecorder != null) {
 			xulRecorder.stopRecording();
 		}
+	}
+	
+	@Override
+	public Context clone() throws CloneNotSupportedException {
+		Context clone = (Context) super.clone();
+		return clone;
 	}
 }
