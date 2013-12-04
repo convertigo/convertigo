@@ -132,7 +132,7 @@ public class List extends XmlService{
             connectionElement.setAttribute(attributes[3], context.connectorName);
             connectionElement.setAttribute(attributes[4], (context.requestedObject instanceof Transaction) ? context.transactionName:context.sequenceName);
             connectionElement.setAttribute(attributes[5], (context.requestedObject == null || context.requestedObject.runningThread == null ? "finished" : (context.requestedObject.runningThread.bContinue ? "in progress" : "finished")) + "("+ context.waitingRequests+")");
-            connectionElement.setAttribute(attributes[6], context.getAuthenticatedUser());
+            connectionElement.setAttribute(attributes[6], context.getAuthenticatedUser()==null ? "" : context.getAuthenticatedUser());
             connectionElement.setAttribute(attributes[7], DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.creationTime)));
             connectionElement.setAttribute(attributes[8], DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date(context.lastAccessTime)));
             try {

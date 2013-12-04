@@ -88,26 +88,40 @@ public abstract class GenericRequester extends Requester {
 		// Default implementation: nothing to check
 	}
 
+//	@Override
+//	public void checkAuthenticatedContext() throws EngineException {
+//		
+//		context.portalUserName = null;
+//		
+//		if (context.httpSession != null) {
+//			Object authenticatedUser = context.httpSession.getAttribute("authenticatedUser");
+//			if (authenticatedUser != null) {
+//				// If there is an authenticated user in the HTTP session, we consider
+//				// the context as authenticated "from the top", and then copy the user
+//				// into the context.
+//				context.portalUserName = authenticatedUser.toString();
+//				Engine.logContext.debug("Authenticated user added in the context from the HTTP session");
+//			}
+//		}
+//		
+//		if (context.requestedObject.getAuthenticatedContextRequired()) {
+//			Engine.logContext.debug("Authenticated context required");
+//			if ("(anonymous)".equals(context.getAuthenticatedUser())) {
+//				throw new EngineException("Authentication required");
+//			}
+//		}
+//	}
+	
 	@Override
 	public void checkAuthenticatedContext() throws EngineException {
-        if (context.requestedObject.getAuthenticatedContextRequired()) {
+		
+		if ( context.getAuthenticatedUser() != null ) {
+			Engine.logContext.debug("The context is authenticated via the HTTP session");
+		} else if (context.requestedObject.getAuthenticatedContextRequired()) {
 			Engine.logContext.debug("Authenticated context required");
-        	if ("(anonymous)".equals(context.getAuthenticatedUser())) {
-        		if (context.httpSession != null) {
-            		Object authenticatedUser = context.httpSession.getAttribute("authenticatedUser");
-            		if (authenticatedUser != null) {
-            			// If there is an authenticated user in the HTTP session, we consider
-            			// the context as authenticated "from the top", and then copy the user
-            			// into the context.
-            			context.portalUserName = authenticatedUser.toString();
-    					Engine.logContext.debug("Authenticated user added in the context from the HTTP session");
-    					return;
-            		}
-        		}
-        		
-        		throw new EngineException("Authentication required");
-        	}
-        }
+			if(!context.isStubRequested)
+				throw new EngineException("Authentication required");
+		} 
 	}
 
 	private String findBrowserFromUserAgent(Project project, String userAgent) {
@@ -451,9 +465,10 @@ public abstract class GenericRequester extends Requester {
 				Engine.logContext.debug("The security token is \"" + securityToken + "\".");
 				
 				// Update the context with the security token information
-				context.portalUserName = securityToken.userID;
+//				context.portalUserName = securityToken.userID;
 				if (context.httpSession != null) {
-					context.httpSession.setAttribute("authenticatedUser", context.portalUserName);
+//					context.httpSession.setAttribute("authenticatedUser", context.portalUserName);
+					context.httpSession.setAttribute("authenticatedUser", securityToken.userID);
 					Engine.logContext.debug("Authenticated user added in the HTTP session");
 				}
 				
@@ -560,6 +575,8 @@ public abstract class GenericRequester extends Requester {
 			String motherContextID = parameterValue;
 			Context motherContext = Engine.theApp.contextManager.get(motherContextID);
 			if (motherContext != null) {
+				if(context.httpSession == null)
+					context.httpSession = motherContext.httpSession;
 				context.set("motherContext", motherContext);
 				Engine.logContext.debug("Setting mother sequence context: " + parameterValue);
 			}

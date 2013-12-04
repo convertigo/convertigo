@@ -108,27 +108,22 @@ public abstract class AbstractContext {
 	
 	public String getAuthenticatedUser() {
 		if (tasUserName == null) {
-			if (portalUserName == null) {
-				return "(anonymous)";
-			}
-			else {
-				return portalUserName;
-			}
-		}
-		else {
+			return httpSession == null || httpSession.getAttribute("authenticatedUser") == null ? 
+					null : httpSession.getAttribute("authenticatedUser").toString();
+		} else {
 			return tasUserName;
 		}
 	}
 	
 	public void setAuthenticatedUser(String authenticatedUser){
 		if (authenticatedUser != null) {
-			portalUserName = authenticatedUser;
+//			portalUserName = authenticatedUser;
 			if (httpSession != null) httpSession.setAttribute( "authenticatedUser" , authenticatedUser );
 		}
 	}
 	
 	public void removeAuthenticatedUser(){
-		portalUserName = null;
+//		portalUserName = null;
 		tasUserName = null;
 		if (httpSession != null) httpSession.removeAttribute("authenticatedUser");
 	}
@@ -136,7 +131,7 @@ public abstract class AbstractContext {
 	/**
 	 * The portal user name.
 	 */
-	public String portalUserName;
+//	public String portalUserName;
 	
 	// Carioca / VIC related properties
 
