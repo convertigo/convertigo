@@ -1,6 +1,7 @@
 package com.twinsoft.convertigo.engine.translators;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -64,8 +65,24 @@ class InputDocumentBuilder {
 		}
 	}
 	
-	boolean handleSpecialParameter(String parameterName, String parameterValue) {
-		return handleSpecialParameter(parameterName, new String[] { parameterValue });
+	boolean handleSpecialParameter(String parameterName, Object parameterObject) {
+		String[] parameterValues = null;
+		
+		if (parameterObject instanceof String) {
+			parameterValues = new String[] { (String) parameterObject };
+		} else if (parameterObject instanceof String[]) {
+			parameterValues = (String[]) parameterObject;
+		} else if (parameterObject instanceof NodeList) {
+			NodeList nl = (NodeList) parameterObject;
+			parameterValues = new String[nl.getLength()];
+			for (int i = 0 ; i < parameterValues.length ; i++) {
+				parameterValues[i] = nl.item(i).getTextContent();
+			}
+		} else {
+			parameterValues = new String[0];
+		}
+		
+		return handleSpecialParameter(parameterName, parameterValues);
 	}
 	
 	boolean handleSpecialParameter(String parameterName, String[] parameterValues) {
@@ -81,7 +98,7 @@ class InputDocumentBuilder {
 			Engine.logContext.info("Javelin field: '" + parameterName + "' = '" + parameterValue + "'");
 		}
 		// This is a stub's value
-		else if(parameterName.equals(Parameter.Stub.getName()) && Boolean.parseBoolean(parameterValue)) {
+		else if (parameterName.equals(Parameter.Stub.getName()) && Boolean.parseBoolean(parameterValue)) {
 			context.isStubRequested = true;
 		}
 		// This is the document signature

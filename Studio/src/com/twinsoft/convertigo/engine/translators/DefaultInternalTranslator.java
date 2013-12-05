@@ -47,29 +47,18 @@ public class DefaultInternalTranslator implements Translator {
 		
 		InputDocumentBuilder inputDocumentBuilder = new InputDocumentBuilder(context);
         
-		// We transform the HTTP post data into XML data.
 		for (Entry<String, Object> entry : request.entrySet()) {
 			String parameterName = entry.getKey();
 			Object parameterObject = entry.getValue();
-			String[] parameterValues = null;  
-			String parameterValue = null;
-			if (parameterObject instanceof String[]) {
-				parameterValues = (String[]) parameterObject;
-				
-				if (parameterValues.length > 0) {
-					parameterValue = parameterValues[0];
-				}
-			} else if (parameterObject instanceof String) {
-				parameterValue = (String) parameterObject;
-			}
-			
-			if (!inputDocumentBuilder.handleSpecialParameter(parameterName, parameterValues != null ? parameterValues : new String[] { parameterValue })) {
-				if (parameterValues == null) {
-					addParameterObject(context.inputDocument, inputDocumentBuilder.transactionVariablesElement, parameterName, parameterObject);
+
+			if (!inputDocumentBuilder.handleSpecialParameter(parameterName, parameterObject)) {
+				if (parameterObject instanceof String[]) {
+					inputDocumentBuilder.addVariable(parameterName, (String[]) parameterObject);
 				} else {
-					inputDocumentBuilder.addVariable(parameterName, parameterValues);
+					addParameterObject(context.inputDocument,
+							inputDocumentBuilder.transactionVariablesElement, parameterName, parameterObject);
 				}
-			};
+			}
 		}
 
 		Engine.logContext.info("Input document created");
