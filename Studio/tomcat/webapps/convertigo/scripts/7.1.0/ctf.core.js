@@ -235,6 +235,14 @@ $.extend(true, C8O, {
 		}
 	},
 	
+	_makeRuleFromC8oSelector: function (c8oSelector) {
+		if (c8oSelector.length < 2 || c8oSelector.charAt(0) != "{" || c8oSelector.charAt(c8oSelector.length - 1) != "}") {
+			c8oSelector = "=" + c8oSelector;
+		}
+		
+		return C8O._makeRule(C8O._define.ctf_mark + c8oSelector + C8O._define.ctf_mark);		
+	},
+	
 	_manageTemplate: function($element) {
 		// We should first save the widget template for future reuse. If the widget has already
 		// been rendered, there is a special attribute 'data-c8o-template-id', whose value is the
@@ -463,7 +471,7 @@ $.extend(true, C8O, {
 		refs = $.extend({}, refs);
 
 		// Render simple elements
-		C8O.walk($element, {$element: $element, refs: refs}, C8O._renderText);
+		C8O.walk($element, {$element: $element, refs: refs}, C8O._renderText, C8O._validateNodeWalk);
 		
 		// Render iterated elements
 		C8O._findAndSelf($element, "[data-c8o-each],[data-c8o-late-render]").each(function() {
@@ -475,12 +483,7 @@ $.extend(true, C8O, {
 				var $template = C8O._manageTemplate($c8oEachContainer);
 				
 				// Now we can iterate over the XML data
-				var c8oEach = $c8oEachContainer.attr("data-c8o-each");
-				if (c8oEach.length < 2 || c8oEach.charAt(0) != "{" || c8oEach.charAt(c8oEach.length - 1) != "}") {
-					c8oEach = "=" + c8oEach;
-				}
-				
-				var rule = C8O._makeRule(C8O._define.ctf_mark + c8oEach + C8O._define.ctf_mark);
+				var rule = C8O._makeRuleFromC8oSelector($c8oEachContainer.attr("data-c8o-each"));
 				
 				if (C8O.canLog("trace")) {
 					C8O.log.trace("ctf.core: process data-c8o-each rule=" + C8O.toJSON(rule));
@@ -497,8 +500,8 @@ $.extend(true, C8O, {
 						
 						C8O._handleRef($c8oEachContainer, $data, refs);
 						
-						C8O._renderElement($item, refs);
 						$c8oEachContainer.append($item);
+						C8O._renderElement($item, refs);
 					});
 				} else {
 					C8O.log.debug("ctf.core: data-c8o-each not processed using '" + c8oEach + "'");
@@ -754,6 +757,40 @@ $.extend(true, C8O, {
 			}
 		}
 		return {};
+	},
+	
+	_validateNodeWalk: function (node, data) {
+		if (node.nodeType == Node.ELEMENT_NODE) {
+			var $element = $(node);
+			if ($element.is("[data-c8o-each]")) {
+				return false;
+			} else if ($element.is("[data-c8o-if], [data-c8o-if-not]")) {
+				var isC8oIf = $element.is("[data-c8o-if]");
+				var rule = C8O._makeRuleFromC8oSelector(isC8oIf ?
+						$element.attr("data-c8o-if") :
+						$element.attr("data-c8o-if-not"));
+				
+				if (C8O.canLog("trace")) {
+					C8O.log.trace("ctf.core: process data-c8o-if" + (isC8oIf ? "" : "-not")+ " rule=" + C8O.toJSON(rule));
+				}
+				
+				if (rule != null) {
+					var refs = data.refs;
+					var $refData = C8O._getRefData(rule, refs);
+					
+					var size = C8O._findAndSelf($refData, rule.find).size();
+					if ((size && isC8oIf) || (!size && !isC8oIf)) {
+						return true;
+					} else {
+						$element.remove();
+						return false;
+					}
+				} else {
+					C8O.log.debug("ctf.core: data-c8o-if" + (isC8oIf ? "" : "-not")+ " not processed using '" + c8oIf + "'");
+				}
+			}
+		}
+		return true;
 	}
 });
 
