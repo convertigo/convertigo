@@ -323,8 +323,8 @@ C8O = {
 	/**
 	 * Walk each node and attribute and call the specified function
 	 */
-	walk: function (node, data, fn) {
-		if (node.nodeType) {
+	walk: function (node, data, fn, fn_validate) {
+		if (node.nodeType && (typeof fn_validate != "function" || fn_validate(node, data))) {
 			if (node.nodeType == Node.ELEMENT_NODE) {
 				for (var i = 0; i < node.attributes.length; i++) {
 					var fnr = fn.call(node, node.attributes[i].nodeValue, data);
@@ -334,10 +334,10 @@ C8O = {
 					}
 				}
 				for (var i = 0; i < node.childNodes.length; i++) {
-					C8O.walk(node.childNodes[i], data, fn);
+					C8O.walk(node.childNodes[i], data, fn, fn_validate);
 				}
 			} else if (node.nodeType == Node.TEXT_NODE) {
-				var fnr = fn.call(node, node.nodeValue, data);
+				var fnr = fn.call(node, node.nodeValue, data, fn_validate);
 				
 				if (fnr != null) {
 					node.nodeValue = fnr;
@@ -345,7 +345,7 @@ C8O = {
 			}
 		} else if (node.each) {
 			node.each(function () {
-				C8O.walk(this, data, fn);
+				C8O.walk(this, data, fn, fn_validate);
 			});
 		}
 	},
