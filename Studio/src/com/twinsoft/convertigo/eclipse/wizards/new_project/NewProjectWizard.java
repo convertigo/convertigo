@@ -155,6 +155,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int SAMPLE_MOBILE_CTF_GALLERY = 1312;
 	public static final int SAMPLE_MOBILE_USDIRECTORY = 1313;
 	public static final int SAMPLE_MOBILE_MOBTV = 1314;
+	public static final int SAMPLE_MOBILE_C8O_WEB_MOBILE = 1315;
 	// sequencer samples
 	public static final int SAMPLE_SEQUENCER_1 = 1400;
 
@@ -187,6 +188,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String SAMPLE_MOBILE_CTF_GALLERY_PROJECT_FILE_NAME = "sampleMobileCtfGallery.car";
 	public static final String SAMPLE_MOBILE_USDIRECTORY_PROJECT_FILE_NAME = "sampleMobileUsDirectoryDemo.car";
 	public static final String SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME = "sampleMobileMobTV.car";
+	public static final String SAMPLE_MOBILE_C8O_WEB_MOBILE_PROJECT_FILE_NAME = "sampleMobileConvertigoWebMobile.car";
 	// libraries
 	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleMaps.car";
 	public static final String GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleSpreadsheets.car";
@@ -248,6 +250,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_MOBILE_CTF_GALLERY:
 		case SAMPLE_MOBILE_USDIRECTORY:
 		case SAMPLE_MOBILE_MOBTV:
+		case SAMPLE_MOBILE_C8O_WEB_MOBILE:
 		case LIBRARY_GOOGLE_MAPS:
 		case LIBRARY_GOOGLE_SPREADSHEETS:
 		case LIBRARY_GOOGLE_DOCS:
@@ -448,6 +451,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_MOBILE_CTF_GALLERY:
 			case SAMPLE_MOBILE_USDIRECTORY:
 			case SAMPLE_MOBILE_MOBTV:
+			case SAMPLE_MOBILE_C8O_WEB_MOBILE:
 			case LIBRARY_GOOGLE_MAPS:
 			case LIBRARY_GOOGLE_SPREADSHEETS:
 			case LIBRARY_GOOGLE_DOCS:
@@ -1178,6 +1182,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_MOBILE_MOBTV:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME;
 			projectName = SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case SAMPLE_MOBILE_C8O_WEB_MOBILE:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_C8O_WEB_MOBILE_PROJECT_FILE_NAME;
+			projectName = SAMPLE_MOBILE_C8O_WEB_MOBILE_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_C8O_WEB_MOBILE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		default:
 			return null;
