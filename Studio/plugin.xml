@@ -705,7 +705,7 @@
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerSimpleAppWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerSimpleAppWizard"
-            name="Simple mobile app sample project"
+            name="Convertigo simple mobile app sample project"
             preferredPerspectives="convertigo"
             project="true">
             <description>Imports a mobile sample project based on jQuery Mobile and CTF frameworks.</description> 
@@ -739,6 +739,16 @@
              preferredPerspectives="convertigo"
              project="true">
           <description>Imports a sample project creating a MobTV mobile application. The project is based on jQuery Mobile and CTF frameworks, and makes searches on the programme-tv.net website to dynamically get data.</description>
+       </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerConvertigoWebMobileWizard"
+             icon="icons/studio/demo_c8o_web_mobile_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerConvertigoWebMobileWizard"
+             name="Convertigo web mobile sample project"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports a sample project creating a light Convertigo website as a mobile application. The project is based on jQuery Mobile and CTF frameworks, and dynamically gets data from Convertigo website's Feature matrix page.</description>
        </wizard>
 <!-- HelloWorld sample project -->
        <wizard
