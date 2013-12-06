@@ -346,7 +346,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 		// warns if bean name is not normalized
 		if (!name.equals(StringUtils.normalize(name))) {
-			Engine.logBeans.warn("Unnormalized name : \"" + name + "\" for databaseObject ("
+			Engine.logBeans.warn("Unnormalized name: \"" + name + "\" for databaseObject ("
 					+ getClass().getSimpleName() + ")");
 		}
 

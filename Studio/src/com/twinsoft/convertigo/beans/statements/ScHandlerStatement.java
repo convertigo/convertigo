@@ -47,19 +47,19 @@ public class ScHandlerStatement extends HandlerStatement{
 	private String normalizedScreenClassName = "";
 	
 	public ScHandlerStatement(String handlerType) throws EngineException {
-		this(handlerType,CHOOSE_SCREENCLASS_NAME);
+		this(handlerType, CHOOSE_SCREENCLASS_NAME);
 	}
 	
 	public ScHandlerStatement(String handlerType, String normalizedScreenClassName) throws EngineException {
-		super(handlerType,"");
-		this.normalizedScreenClassName = (normalizedScreenClassName.equals(CHOOSE_SCREENCLASS_NAME) ? "":normalizedScreenClassName);
+		super(handlerType, "");
+		this.normalizedScreenClassName = normalizedScreenClassName.equals(CHOOSE_SCREENCLASS_NAME) ? "" : normalizedScreenClassName;
 		if (handlerType.equals(EVENT_ENTRY_HANDLER)) {
 			setHandlerResult(RETURN_REDETECT);
-			setName("on" + normalizedScreenClassName + "Entry");
+			setName("on" + this.normalizedScreenClassName + "Entry");
 		}
 		else {
 			setHandlerResult(RETURN_ACCUMULATE);
-			setName("on" + normalizedScreenClassName + "Exit");
+			setName("on" + this.normalizedScreenClassName + "Exit");
 		}
 	}
 	
