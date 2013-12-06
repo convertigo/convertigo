@@ -32,7 +32,6 @@
 	<classpathentry kind="lib" path="lib/internal/phaos.jar"/>
 	<classpathentry kind="lib" path="lib/internal/tas-v25667.jar"/>
 	<classpathentry kind="lib" path="lib/internal/api-v25978.jar" sourcepath="/ConvertigoLibs/src"/>
-	<classpathentry kind="lib" path="lib/internal/ibm-v28353.jar" sourcepath="/ConvertigoLibs/src"/>
 	<classpathentry kind="lib" path="lib/internal/twinj-v28353.jar"/>
 	<classpathentry kind="lib" path="lib/internal/aviva-111114.jar"/>
 	<classpathentry kind="lib" path="lib/internal/externalbrowser.jar"/>
@@ -144,5 +143,6 @@
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/xmlbeans-2.3.0.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/XmlSchema-1.4.7.jar"/>
 	<classpathentry kind="lib" path="lib/signpost-core-1.2.1.2.jar"/>
+	<classpathentry kind="lib" path="lib/internal/ibm-v35876.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
