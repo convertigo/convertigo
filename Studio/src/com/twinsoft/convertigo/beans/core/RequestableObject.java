@@ -563,27 +563,44 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	}
     
 	/** Holds value of property responseExpiryDate. */
-	private String responseCacheEditorValue = "";
+	private String responseExpiryDate = "";
     
 	/** Getter for property responseExpiryDate.
 	 * @return Value of property responseExpiryDate.
 	 */
-	public String getResponseCacheEditorValue() {
-		return this.responseCacheEditorValue;
+	public String getResponseExpiryDate() {
+		return this.responseExpiryDate;
 	}
-    
+	/** Getter for have only the response lifetime.
+	 * @return Value of the response lifetime.
+	 */
+	public String getResponseLifetime() {
+		String resp = "";
+		if (responseExpiryDate!=null && !responseExpiryDate.equals(""))
+			resp = (responseExpiryDate.split(";"))[0];
+		return resp;
+	}
+	/** Getter to know if we use authenticated user as cache key.
+	 * @return Value the use authenticated user as cache key.
+	 */
+	public boolean useAuthenticatedUserAsCacheKey() {
+		boolean ret = false;
+		if (responseExpiryDate!=null && !responseExpiryDate.equals(""))
+			ret = Boolean.parseBoolean((responseExpiryDate.split(";"))[1]);
+		return ret;
+	}
 	/** Setter for property responseExpiryDate.
 	 * @param responseExpiryDate New value of property responseExpiryDate.
 	 */
-	public void setResponseCacheEditorValue(String responseCacheEditorValue) {
-		this.responseCacheEditorValue = responseCacheEditorValue;
+	public void setResponseExpiryDate(String responseExpiryDate) {
+		this.responseExpiryDate = responseExpiryDate;
 	}
 	
 	/**
 	 * Retrieves the transaction response date in milliseconds.
 	 */
 	public long getResponseExpiryDateInMillis() throws EngineException {
-		if (responseCacheEditorValue.length() == 0) {
+		if (responseExpiryDate.length() == 0) {
 			return 0;
 		}
 		
@@ -595,8 +612,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		int cDoW = nowCalendar.get(Calendar.DAY_OF_WEEK);
 
 		try {		
-			String responseLifeTime = responseCacheEditorValue.split(";")[0];
-			StringTokenizer st = new StringTokenizer(responseLifeTime, "," , false);
+			StringTokenizer st = new StringTokenizer(getResponseLifetime(), "," , false);
 			String param;
 			param = st.nextToken();
 			
@@ -886,6 +902,12 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	    	} catch (Exception e) {
 	    		Engine.logBeans.error("[RequestableObject] Could not backup wsdlTypes for requestable \""+ getName() +"\" (v 4.6.0)", e);
 	    	}
+        }
+        // Add case of migration to the new cache editor
+        if (VersionUtils.compare(version, "7.1.0") < 0) {
+			if ( !getResponseExpiryDate().equals("") ){
+				setResponseExpiryDate(getResponseExpiryDate()+";false");
+			}
         }
 	}
 
