@@ -52,12 +52,13 @@ public class RequestableObjectBeanInfo extends MySimpleBeanInfo {
 			properties[3] = new PropertyDescriptor("encodingCharSet", beanClass, "getEncodingCharSet", "setEncodingCharSet");
 			properties[3].setExpert(true);
 			properties[3].setDisplayName(getExternalizedString("property.encodingCharSet.display_name"));
-			properties[3].setShortDescription(getExternalizedString("property.encodingCharSet.short_description"));
-
-			properties[4] = new PropertyDescriptor("responseExpiryDate", beanClass, "getResponseExpiryDate", "setResponseExpiryDate");
+			properties[3].setShortDescription(getExternalizedString("property.encodingCharSet.short_description"));			
+			
+			properties[4] = new PropertyDescriptor("responseCacheEditorValue", beanClass, "getResponseCacheEditorValue", "setResponseCacheEditorValue");
 			properties[4].setExpert(true);
 			properties[4].setDisplayName(getExternalizedString("property.responseExpiryDate.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.responseExpiryDate.short_description"));
+			properties[4].setPropertyEditorClass(getEditorClass("CacheEditor"));
 
 			properties[5] = new PropertyDescriptor("billable", beanClass, "isBillable", "setBillable");
 			properties[5].setExpert(true);

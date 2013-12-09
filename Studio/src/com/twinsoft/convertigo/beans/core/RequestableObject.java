@@ -563,27 +563,27 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	}
     
 	/** Holds value of property responseExpiryDate. */
-	private String responseExpiryDate = "";
+	private String responseCacheEditorValue = "";
     
 	/** Getter for property responseExpiryDate.
 	 * @return Value of property responseExpiryDate.
 	 */
-	public String getResponseExpiryDate() {
-		return this.responseExpiryDate;
+	public String getResponseCacheEditorValue() {
+		return this.responseCacheEditorValue;
 	}
     
 	/** Setter for property responseExpiryDate.
 	 * @param responseExpiryDate New value of property responseExpiryDate.
 	 */
-	public void setResponseExpiryDate(String responseExpiryDate) {
-		this.responseExpiryDate = responseExpiryDate;
+	public void setResponseCacheEditorValue(String responseCacheEditorValue) {
+		this.responseCacheEditorValue = responseCacheEditorValue;
 	}
 	
 	/**
 	 * Retrieves the transaction response date in milliseconds.
 	 */
 	public long getResponseExpiryDateInMillis() throws EngineException {
-		if (responseExpiryDate.length() == 0) {
+		if (responseCacheEditorValue.length() == 0) {
 			return 0;
 		}
 		
@@ -595,7 +595,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		int cDoW = nowCalendar.get(Calendar.DAY_OF_WEEK);
 
 		try {		
-			StringTokenizer st = new StringTokenizer(responseExpiryDate, "," , false);
+			String responseLifeTime = responseCacheEditorValue.split(";")[0];
+			StringTokenizer st = new StringTokenizer(responseLifeTime, "," , false);
 			String param;
 			param = st.nextToken();
 			
