@@ -52,7 +52,7 @@
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/parsers</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsHtmlParsers/src/com/twinsoft/convertigo/engine/parsers</locationURI>
+			<locationURI>WORKSPACE_LOC/CemsHtmlParsers_7.1.x/src/com/twinsoft/convertigo/engine/parsers</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
