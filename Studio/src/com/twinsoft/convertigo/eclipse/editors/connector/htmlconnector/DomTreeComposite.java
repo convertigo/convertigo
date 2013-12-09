@@ -162,14 +162,17 @@ public class DomTreeComposite extends Composite {
 		tbRemoveAlertNodes.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
 			
 			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
-				 nsIDOMDocument document = ((AbstractXulWebViewer) htmlDesign.getWebViewer()).getNsDom();
-				 nsIDOMNodeList nl = document.getElementsByTagName("ALERT");
-				 while (nl.getLength() != 0) {
-					if (nl.item(0).getNodeType() == Node.ELEMENT_NODE) {
-						 document.getDocumentElement().removeChild(nl.item(0));
+				AbstractXulWebViewer webviewer = (AbstractXulWebViewer) htmlDesign.getWebViewer();
+				nsIDOMDocument document;
+				if (webviewer != null && (document = webviewer.getNsDom()) != null) {
+					nsIDOMNodeList nl = document.getElementsByTagName("ALERT");
+					while (nl.getLength() != 0) {
+						if (nl.item(0).getNodeType() == Node.ELEMENT_NODE) {
+							document.getDocumentElement().removeChild(nl.item(0));
+						}
 					}
-				 }
-				 refreshDOMDisplay();
+					refreshDOMDisplay();
+				}
 			}
 			
 			public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
