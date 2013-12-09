@@ -112,13 +112,13 @@ public class ScreenClassHelper<SC extends ScreenClass> {
 	private  SC findScreenClass(SC currentScreenClass) {
 		int scDepth = currentScreenClass.getDepth() * 3;
 		String tab = scDepth == 0 ? "" : String.format("%" + scDepth + "s", "");
-		Engine.logBeans.debug(tab + "Analyzing screen class " + currentScreenClass.getName());
+		Engine.logBeans.trace(tab + "Analyzing screen class " + currentScreenClass.getName());
 
 		for (Criteria criteria : currentScreenClass.getLocalCriterias()) {
 			if (criteria.isMatching(connector)) {
-				Engine.logBeans.debug(tab + ". Criteria " + criteria.getName() + " is matching");
+				Engine.logBeans.trace(tab + ". Criteria " + criteria.getName() + " is matching");
 			} else {
-				Engine.logBeans.debug(tab + ". Criteria " + criteria.getName() + " not matching; aborting screen class analyze");
+				Engine.logBeans.trace(tab + ". Criteria " + criteria.getName() + " not matching; aborting screen class analyze");
 				return null;
 			}
 		}
