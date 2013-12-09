@@ -764,29 +764,38 @@ $.extend(true, C8O, {
 			var $element = $(node);
 			if ($element.is("[data-c8o-each]")) {
 				return false;
-			} else if ($element.is("[data-c8o-if], [data-c8o-if-not]")) {
-				var isC8oIf = $element.is("[data-c8o-if]");
-				var rule = C8O._makeRuleFromC8oSelector(isC8oIf ?
-						$element.attr("data-c8o-if") :
-						$element.attr("data-c8o-if-not"));
-				
-				if (C8O.canLog("trace")) {
-					C8O.log.trace("ctf.core: process data-c8o-if" + (isC8oIf ? "" : "-not")+ " rule=" + C8O.toJSON(rule));
-				}
-				
-				if (rule != null) {
-					var refs = data.refs;
-					var $refData = C8O._getRefData(rule, refs);
-					
-					var size = C8O._findAndSelf($refData, rule.find).size();
-					if ((size && isC8oIf) || (!size && !isC8oIf)) {
-						return true;
-					} else {
-						$element.remove();
-						return false;
+			} else {
+				var ifCase = ["if", "if-not"];
+				for (var i in ifCase) {
+					if ($element.is("[data-c8o-" + ifCase[i] + "]")) {
+						var attribute = $element.attr("data-c8o-" + ifCase[i]);
+						var fnIf = C8O._getFunction(attribute);
+						var ret;
+						if (fnIf != null) {
+							C8O.log.trace("ctf.core: process data-c8o-" + ifCase[i] + " calling function " + attribute);
+							ret = fnIf.call(node, data.refs._self, data.refs);
+						} else {
+							var rule = C8O._makeRuleFromC8oSelector(attribute);
+	
+							if (C8O.canLog("trace")) {
+								C8O.log.trace("ctf.core: process data-c8o-" + ifCase[i] + " rule=" + C8O.toJSON(rule));
+							}
+							
+							if (rule != null) {
+								var refs = data.refs;
+								var $refData = C8O._getRefData(rule, refs);
+								
+								ret = C8O._findAndSelf($refData, rule.find).size();
+							} else {
+								C8O.log.debug("ctf.core: data-c8o-" + ifCase[i] + " not processed using '" + c8oIf + "'");
+							}
+						}
+						if ((i == "0" && !ret) || (i == "1" && ret)) {
+							C8O.log.trace("ctf.core: data-c8o-" + ifCase[i] + " remove element");
+							$element.remove();
+							return false;
+						}
 					}
-				} else {
-					C8O.log.debug("ctf.core: data-c8o-if" + (isC8oIf ? "" : "-not")+ " not processed using '" + c8oIf + "'");
 				}
 			}
 		}
