@@ -23,12 +23,9 @@
 package com.twinsoft.convertigo.eclipse.editors.jscript;
 
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.contentassist.ContentAssistant;
-import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
-import org.eclipse.jface.text.contentassist.IContentAssistant;
-import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
+import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.wst.jsdt.ui.text.IColorManager;
+import org.eclipse.wst.jsdt.ui.text.JavaScriptSourceViewerConfiguration;
 
 /**
  * This class overrides the JSSourceViewerConfiguration only to be able to specify a custom
@@ -37,40 +34,11 @@ import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
  * @author opic
  *
  */
-public class MyJSEditorSourceViewerConfiguration extends TextSourceViewerConfiguration {
+public class MyJSEditorSourceViewerConfiguration extends JavaScriptSourceViewerConfiguration {
 
-	private IContentAssistant fContentAssistant = null;
-
-	/**
-	 * 
-	 */
-	public MyJSEditorSourceViewerConfiguration() {
-		super();
+	public MyJSEditorSourceViewerConfiguration(IColorManager colorManager,
+			IPreferenceStore preferenceStore, ITextEditor editor,
+			String partitioning) {
+		super(colorManager, preferenceStore, editor, partitioning);
 	}
-
-	public MyJSEditorSourceViewerConfiguration(IPreferenceStore store) {
-		super(store);
-	}
-
-	/**
-	 * @see org.eclipse.jface.text.source.SourceViewerConfiguration#getContentAssistant(ISourceViewer)
-	 */
-	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
-		if (fContentAssistant == null) {
-			// Ensure that only one assistant is ever returned.  Creating a second assistant
-			// that is added to a viewer can cause odd key-eating by the wrong one.
-			ContentAssistant contentAssistant = new ContentAssistant();
-			contentAssistant.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
-			IContentAssistProcessor contentAssistantProcessor = new MyJScriptCompletionProcessor();
-			contentAssistant.setContentAssistProcessor(contentAssistantProcessor, IDocument.DEFAULT_CONTENT_TYPE);
-			contentAssistant.enableAutoActivation(true);
-			contentAssistant.setAutoActivationDelay(500);
-			contentAssistant.setProposalPopupOrientation(IContentAssistant.PROPOSAL_OVERLAY);
-			contentAssistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
-			contentAssistant.setInformationControlCreator(getInformationControlCreator(sourceViewer));
-			fContentAssistant = contentAssistant;
-		}
-		return fContentAssistant;
-	}
-	
 }

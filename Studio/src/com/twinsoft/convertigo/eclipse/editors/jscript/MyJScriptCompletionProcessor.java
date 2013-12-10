@@ -27,17 +27,21 @@ import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Vector;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContextInformation;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
-import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
+import org.eclipse.wst.jsdt.ui.text.java.ContentAssistInvocationContext;
+import org.eclipse.wst.jsdt.ui.text.java.IJavaCompletionProposalComputer;
+import org.mozilla.javascript.edu.emory.mathcs.backport.java.util.Arrays;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
@@ -47,14 +51,9 @@ import com.twinsoft.util.QuickSortItem;
 import com.twinsoft.util.StringEx;
 
 
-/**
- * This is our implementation of the ComlpetionProcessor, we introspect our know objects and 
- * be sure to push them in the ICompletionProposal array
- *  
- * @author opic
- *
- */
-public class MyJScriptCompletionProcessor implements IContentAssistProcessor
+
+
+public class MyJScriptCompletionProcessor implements IJavaCompletionProposalComputer
 {
 	protected 	char 	completionProposalAutoActivationCharacters[] = {'.'};
     private 	String 	objectNamePrefix = "";
@@ -216,6 +215,14 @@ public class MyJScriptCompletionProcessor implements IContentAssistProcessor
         }
     }
 
+
+	/*
+	 * @see org.eclipse.jface.text.contentassist.ICompletionProposalComputer#computeContextInformation(org.eclipse.jface.text.contentassist.TextContentAssistInvocationContext, org.eclipse.core.runtime.IProgressMonitor)
+	 */
+	public List computeContextInformation(ContentAssistInvocationContext context, IProgressMonitor monitor) {
+		return null;
+	}
+    
     public static Class<?> findObjectClass(String sLine) {
         if (sLine.length() == 0) return HandlerObjects.class;
         
@@ -243,9 +250,11 @@ public class MyJScriptCompletionProcessor implements IContentAssistProcessor
      * (non-Javadoc)
      * @see org.eclipse.jface.text.contentassist.IContentAssistProcessor#computeCompletionProposals(org.eclipse.jface.text.ITextViewer, int)
      */
-	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset)
+    
+	public List computeCompletionProposals(ContentAssistInvocationContext context, IProgressMonitor monitor) 
 	{
-		IDocument				document	= viewer.getDocument();
+		IDocument				document	= context.getDocument();
+		int						offset		= context.getInvocationOffset();
 
 		try {
 			int 	lineNo 		= document.getLineOfOffset(offset);
@@ -283,31 +292,30 @@ public class MyJScriptCompletionProcessor implements IContentAssistProcessor
 				result[i] = new CompletionProposal(value, offset, 0, value.length(), null, showing, info, descr);
 			}
 	        
-			return result;
+			return Arrays.asList(result);
 			
 		} catch (BadLocationException e) {
 			return null;
 		}
 	}
 
-	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
-		return null;
+
+	public void sessionEnded() {
+		return;
 	}
 
-	public char[] getCompletionProposalAutoActivationCharacters() {
-		return completionProposalAutoActivationCharacters;
+	/*
+	 * @see org.eclipse.wst.jsdt.ui.text.java.IJavaCompletionProposalComputer#sessionStarted()
+	 */
+	public void sessionStarted() {
+		return;
 	}
 
-	public char[] getContextInformationAutoActivationCharacters() {
-		return null;
-	}
-
+	/*
+	 * @see org.eclipse.jface.text.contentassist.ICompletionProposalComputer#getErrorMessage()
+	 */
 	public String getErrorMessage() {
-		return null;
+		return "";
 	}
-
-	public IContextInformationValidator getContextInformationValidator() {
-		return null;
-	}
-
+	
 }

@@ -22,8 +22,10 @@
 
 package com.twinsoft.convertigo.eclipse.editors.jscript;
 
+import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.wst.jsdt.internal.ui.javaeditor.CompilationUnitEditor;
+import org.eclipse.wst.jsdt.ui.text.JavaScriptTextTools;
 
 /**
  * This class overrides the Eclipse's JScript editor to change the Source Viewer Configuration
@@ -38,8 +40,8 @@ public class MyJScriptEditor extends CompilationUnitEditor {
 	public void setSourceViewerConfiguration()
 	{
 		SourceViewerConfiguration configuration;
-		
-		configuration = new MyJSEditorSourceViewerConfiguration(getPreferenceStore());
+		JavaScriptTextTools jstt = new JavaScriptTextTools(getPreferenceStore());
+		configuration = new MyJSEditorSourceViewerConfiguration(jstt.getColorManager(), getPreferenceStore(), this, null);
 		setSourceViewerConfiguration(configuration);
 	}
 
