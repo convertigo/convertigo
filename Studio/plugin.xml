@@ -2776,7 +2776,9 @@
    
 	<extension
         point="org.eclipse.wst.jsdt.ui.javaCompletionProposalComputer"
-        id="ConvertigoCompletionProposalComputer">
+        id="ConvertigoCompletionProposalComputer"
+        name="Convertigo Proposals">
+        
         <javaCompletionProposalComputer
                 class="com.twinsoft.convertigo.eclipse.editors.jscript.MyJScriptCompletionProcessor"
                 categoryId="com.twinsoft.convertigo.proposals">
