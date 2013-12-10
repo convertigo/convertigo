@@ -24,9 +24,19 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.constants.Constants;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -36,8 +46,11 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public abstract class WriteFileStep extends Step implements IStepSourceContainer {
 	private static final long serialVersionUID = 1935459983330667718L;
@@ -47,7 +60,7 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	private String dataFile = "";	
 	private String encoding="iso-8859-1";
 	private boolean appendResult=false;
-
+	
 	private transient StepSource source = null;
 	
 	public WriteFileStep() {
@@ -215,5 +228,64 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	
 	protected boolean isReallyAppend(String fullFilePath) throws EngineException{
 		return appendResult && new File(fullFilePath).exists();
+	}
+	
+	@Override
+	public String getStepNodeName() {
+		return "fileInfo";
+	}
+	
+	@Override
+	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
+		String projectName = getProject().getName();
+		String filepath = getAbsoluteFilePath(dataFile.replaceAll("\"", ""));
+		
+		Pattern pattern = Pattern.compile(".*(projects.*)");
+		Matcher matcher = pattern.matcher(filepath);
+		
+		String fromProject = "";
+		if(matcher.find())
+			fromProject = matcher.group(1);
+		
+		// Relative file path
+		if ( filepath.startsWith(Engine.PROJECTS_PATH + "/" + projectName) ) 
+			stepNode.setAttribute("relative-url", fromProject.replace("projects/"+ projectName +"/", ""));
+		
+		// Absolute file path
+		if ( !filepath.equals("") )
+			stepNode.setAttribute("absolute-path", filepath);
+		
+		// File-url
+		String fileurl = HttpUtils.convertigoRequestURL(getSequence().context.httpServletRequest);
+		stepNode.setAttribute("file-url", fileurl + "/" + fromProject);	
+	}
+	
+	@Override
+	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+		
+		XmlSchemaComplexType cType = XmlSchemaUtils.makeDynamic(this, new XmlSchemaComplexType(schema));
+		element.setType(cType);
+
+		XmlSchemaSequence sequence = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+		cType.setParticle(sequence);
+		SchemaMeta.setContainerXmlSchemaGroupBase(element, sequence);		
+		
+		XmlSchemaAttribute attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("file-url");
+		attr.setSchemaTypeName(Constants.XSD_STRING);
+		cType.getAttributes().add(attr);
+		
+		attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("absolute-path");
+		attr.setSchemaTypeName(Constants.XSD_STRING);
+		cType.getAttributes().add(attr);
+		
+		attr = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
+		attr.setName("relative-path");
+		attr.setSchemaTypeName(Constants.XSD_STRING);
+		cType.getAttributes().add(attr);
+		
+		return element;
 	}
 }
