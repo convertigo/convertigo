@@ -264,7 +264,8 @@ public class MyJScriptCompletionProcessor implements IJavaCompletionProposalComp
 
 	        clazz = findObjectClass(sLine);
 	        if (clazz == null) {
-	            return null;
+	        	ICompletionProposal[] result = new ICompletionProposal[0];
+	            return Arrays.asList(result);
 	        }
 			
 	        int indexSeparator = sLine.lastIndexOf('.');
