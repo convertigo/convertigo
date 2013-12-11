@@ -123,7 +123,7 @@ public class ScreenClassHelper<SC extends ScreenClass> {
 			}
 		}
 
-		Engine.logBeans.debug(tab + "::: Screen class " + currentScreenClass.getName() + " is matching");
+		Engine.logBeans.trace(tab + "::: Screen class " + currentScreenClass.getName() + " is matching");
 
 		SC bestFoundScreenClass = currentScreenClass;
 		int bestFoundScreenClassNumberOfLocalCriterias  = bestFoundScreenClass.getNumberOfLocalCriterias();
@@ -145,7 +145,7 @@ public class ScreenClassHelper<SC extends ScreenClass> {
 		if (bestFoundScreenClass != null) // Setting the returned screen class to the best found one
 			currentScreenClass = bestFoundScreenClass;
         
-		Engine.logBeans.debug(tab + "<<< Returning " + currentScreenClass.getName());
+		Engine.logBeans.trace(tab + "<<< Returning " + currentScreenClass.getName());
 		return currentScreenClass;
 	}
 }
