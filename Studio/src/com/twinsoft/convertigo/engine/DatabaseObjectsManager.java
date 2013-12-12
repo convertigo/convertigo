@@ -65,7 +65,6 @@ import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLActionStep;
 import com.twinsoft.convertigo.beans.steps.XMLGenerateDatesStep;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBean;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboBeans;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboCategory;
@@ -358,7 +357,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 			return false;
 		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Unable to load database objects properties.", false);
+			Engine.logEngine.error("Unable to load database objects properties.", e);
 			return false;
 		}
 	}
