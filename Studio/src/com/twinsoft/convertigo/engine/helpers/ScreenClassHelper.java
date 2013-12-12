@@ -137,7 +137,7 @@ public class ScreenClassHelper<SC extends ScreenClass> {
 					(screenClassNumberOfLocalCriterias > bestFoundScreenClassNumberOfLocalCriterias)) {
 						bestFoundScreenClass = screenClass;
 						bestFoundScreenClassNumberOfLocalCriterias  = screenClassNumberOfLocalCriterias;
-						Engine.logBeans.debug(tab + "   >>> Found a better screen class " + screenClass.getName());
+						Engine.logBeans.trace(tab + "   >>> Found a better screen class " + screenClass.getName());
 					}
 				}
 			}
