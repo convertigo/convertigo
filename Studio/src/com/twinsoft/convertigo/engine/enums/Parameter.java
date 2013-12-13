@@ -52,7 +52,7 @@ public enum Parameter {
 	Supervision("__supervision"),
 	Testcase("__testcase"),
 	Transaction("__transaction"),
-	TransactionMotherSequenceContext("__motherContext"),
+	MotherSequenceContext("__motherContext"),
 	UserReference("__user_reference"),
 	Xslt("__xslt"),
 

@@ -614,6 +614,7 @@ public class Context extends AbstractContext implements Cloneable {
 		httpServletRequest = null;
 		httpSession = null;
 		requestHeaders = null;
+		parentContext = null;
 	}
 	
 	public Scriptable getSharedScope() {
@@ -648,6 +649,10 @@ public class Context extends AbstractContext implements Cloneable {
 		if (xulRecorder != null) {
 			xulRecorder.stopRecording();
 		}
+	}
+	
+	public Context getRootContext() {
+		return parentContext == null ? this : parentContext.getRootContext();
 	}
 	
 	@Override

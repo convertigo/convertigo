@@ -211,7 +211,7 @@ public class LCABiller extends AbstractBiller {
 		// Transaction may have been called by a mother sequence
 		if (value == null) {
 			// Try to get mother sequence's context
-			Context motherContext = (Context)context.get("motherContext");
+			Context motherContext = context.parentContext;
 			if (motherContext!= null) {
 				// Replace current context name with mother's one in searched attribute
 				String attrib = attr.replaceAll("_"+contextName+"_", "_"+motherContext.name+"_");

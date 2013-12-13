@@ -107,7 +107,12 @@ public abstract class AbstractContext {
 	/**
 	 * Indicates whether the context is to be kept in the pool even if it is not in the expected state (i.e. wrong screen class).
 	 */
-	public boolean lockPooledContext = false; 
+	public boolean lockPooledContext = false;
+	
+	/**
+	 * Parent context of the current sub transaction or sub sequence, if any.
+	 */
+	public Context parentContext = null;
 	
 	public String getAuthenticatedUser() {
 		if (tasUserName == null) {
@@ -399,5 +404,13 @@ public abstract class AbstractContext {
 	public abstract String decodeFromHexString(String s);
 	
 	public abstract String decodeFromHexString(String passphrase, String s);
-
+	
+	/**
+	 * Get the context context requested by the client.
+	 * 
+	 * Can be the current context or the last ancestor context, trough many call steps.
+	 * 
+	 * @return the context requested by the client
+	 */
+	public abstract Context getRootContext();
 }

@@ -322,14 +322,14 @@ public abstract class GenericRequester extends Requester {
 					result = coreProcessRequest();
 					result = getTranslator().buildOutputData(context, result);
 	            } finally {
-    				context.statistics.stop(t);
+    				if (context != null) {
+    					context.statistics.stop(t);
     				
     				// Bugfix for #853 (Tomcat looses parameters without any explanation)
     				// Remove the request and session references from the context
     				// Moved here by #2254
-    				Engine.logContext.trace("Bugfix #853, #2254");
-    				Engine.logContext.trace("context=" + context);
-    				if (context != null) {
+	    				Engine.logContext.trace("Bugfix #853, #2254");
+	    				Engine.logContext.trace("context=" + context);
     					Engine.logContext.trace("Removing request and session objects from the context");
     					context.clearRequest();
     				}
@@ -562,13 +562,17 @@ public abstract class GenericRequester extends Requester {
 			context.noCache = (parameterValue.equalsIgnoreCase("true") ? true : false);
 			Engine.logContext.debug("Ignoring cache required: " + parameterValue);
 		}
-		else if (parameterName.startsWith(Parameter.TransactionMotherSequenceContext.getName())) {
+		else if (parameterName.startsWith(Parameter.MotherSequenceContext.getName())) {
 			String motherContextID = parameterValue;
-			Context motherContext = Engine.theApp.contextManager.get(motherContextID);
-			if (motherContext != null) {
-				if(context.httpSession == null)
-					context.httpSession = motherContext.httpSession;
-				context.set("motherContext", motherContext);
+			Context parentContext = Engine.theApp.contextManager.get(motherContextID);
+			if (parentContext != null) {
+				if (context.httpSession == null) {
+					context.httpSession = parentContext.httpSession;
+				}
+				if (context.httpServletRequest == null) {
+					context.httpServletRequest = parentContext.httpServletRequest;
+				}
+				context.parentContext = parentContext;
 				Engine.logContext.debug("Setting mother sequence context: " + parameterValue);
 			}
 		}

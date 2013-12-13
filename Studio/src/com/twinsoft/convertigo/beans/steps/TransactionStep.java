@@ -199,8 +199,7 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		if (isInternalInvoke()) {
 			request.put(Parameter.Project.getName(), new String[] { projectName });
 			// request.put(Parameter.Pool.getName(), new String[] { "" });
-			request.put(Parameter.TransactionMotherSequenceContext.getName(),
-					new String[] { sequence.context.contextID });
+			request.put(Parameter.MotherSequenceContext.getName(), new String[] { sequence.context.contextID });
 			request.put(Parameter.Transaction.getName(), new String[] { targetTransaction.getName() });
 			request.put(Parameter.Connector.getName(), new String[] { targetConnector.getName() });
 			request.put(Parameter.Context.getName(), new String[] { sequence.addStepContextName(ctxName) });
@@ -249,8 +248,8 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 			if (postQuery.indexOf(Parameter.Transaction.getName()) == -1)
 				postQuery = addParamToPostQuery(Parameter.Transaction.getName(), targetTransaction.getName(),
 						postQuery);
-			if (postQuery.indexOf(Parameter.TransactionMotherSequenceContext.getName()) == -1)
-				postQuery = addParamToPostQuery(Parameter.TransactionMotherSequenceContext.getName(),
+			if (postQuery.indexOf(Parameter.MotherSequenceContext.getName()) == -1)
+				postQuery = addParamToPostQuery(Parameter.MotherSequenceContext.getName(),
 						sequence.context.contextID, postQuery);
 			if (postQuery.indexOf(Parameter.Context.getName()) == -1)
 				postQuery = addParamToPostQuery(Parameter.Context.getName(),
