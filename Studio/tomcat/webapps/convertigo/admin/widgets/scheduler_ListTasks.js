@@ -58,7 +58,7 @@ function scheduler_ListTasks_init () {
 				name : "enabled",
 				index : "enabled",					
 				align : "center",
-				width : 10			
+				width : 12			
 			}, {
 				name : "name",
 				index : "name",					
@@ -96,7 +96,7 @@ function scheduler_ListTasks_init () {
 		toppager : false,
 		emptyrecords : "No element to display",
 		altRows : true,	
-		rowNum : 10000
+		rowNum: '1000000'
 	});
 	
 	//////////////////////////////////////////////INITIALISATION OF THE DIALOG OF CREATION/EDITION/////////////////////////// 

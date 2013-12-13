@@ -62,11 +62,11 @@ function globalSymbols_List_init() {
 			viewrecords : true,
 			height : 'auto',
 			sortable : true,
-			pgbuttons : false,
+			pgbuttons : true,
 			pginput : true,
 			toppager : false,
 			altRows : false,	
-			rowNum : 10000,
+			rowNum: '1000000',
 			afterEditCell: function() {
 				$("#updateSymbols").button("disable")
 	            e = jQuery.Event("keydown");
@@ -79,7 +79,6 @@ function globalSymbols_List_init() {
 	            });
 	        }
 		});
-		
 		updateGlobalSymbolsList(xml);
 	});
 	

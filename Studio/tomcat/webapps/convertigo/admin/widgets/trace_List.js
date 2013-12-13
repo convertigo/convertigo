@@ -68,7 +68,7 @@ function trace_List_init() {
 		toppager : false,
 		emptyrecords : 'No traces configured',
 		altRows : true,
-		rowNum : 10000
+		rowNum: '1000000'
 	});
 
 	trace_List_update();

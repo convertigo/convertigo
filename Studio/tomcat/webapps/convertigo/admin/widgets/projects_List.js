@@ -96,7 +96,7 @@ function projects_List_init() {
 			toppager : false,
 			emptyrecords : 'No projects',
 			altRows : true,		
-			rowNum : 10000
+			rowNum : '1000000'
 		});
 		updateProjectsList(xml);
 	});

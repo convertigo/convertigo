@@ -166,7 +166,7 @@ function connections_List_init() {
 					toppager : false,
 					emptyrecords : 'No connections',
 					altRows : true,		
-					rowNum : 10000
+					rowNum: '1000000'
 					
 				});
 			
