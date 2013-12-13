@@ -635,7 +635,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
                 </bean>
             </beans>
-            <beans groupname="Context management">
+            <beans groupname="HTTP session management">
             	<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.SetAuthenticatedUserStep">
             	    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
