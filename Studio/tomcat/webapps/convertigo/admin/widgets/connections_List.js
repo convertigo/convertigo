@@ -165,8 +165,8 @@ function connections_List_init() {
 					pginput : false,
 					toppager : false,
 					emptyrecords : 'No connections',
-					altRows : true,				
-					rownumbers : false
+					altRows : true,		
+					rowNum : 10000
 					
 				});
 			

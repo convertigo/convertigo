@@ -65,8 +65,8 @@ function globalSymbols_List_init() {
 			pgbuttons : false,
 			pginput : true,
 			toppager : false,
-			altRows : false,			
-			rownumbers : false,
+			altRows : false,	
+			rowNum : 10000,
 			afterEditCell: function() {
 				$("#updateSymbols").button("disable")
 	            e = jQuery.Event("keydown");

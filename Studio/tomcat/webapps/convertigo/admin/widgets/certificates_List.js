@@ -137,8 +137,8 @@ function certificates_List_init(){
 				pginput : false,
 				toppager : false,
 				emptyrecords : 'No certificates configured',
-				altRows : true,				
-				rownumbers : false,
+				altRows : true,		
+				rowNum : 10000,
 				caption : "Installed certificates"
 				
 			});		
@@ -179,7 +179,7 @@ function certificates_List_init(){
 				toppager : false,
 				emptyrecords : 'No mappings',
 				altRows : true,			
-				rownumbers : false,
+				rowNum : 10000,
 				caption : "Mappings for anonymous users"
 			});	
 	
@@ -231,8 +231,8 @@ function certificates_List_init(){
 				pginput : false,
 				toppager : false,
 				emptyrecords : 'No new candidates',
-				altRows : true,				
-				rownumbers : false,
+				altRows : true,		
+				rowNum : 10000,
 				caption : "Mappings for carioca users"
 			});	
 		

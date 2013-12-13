@@ -96,7 +96,7 @@ function scheduler_ListTasks_init () {
 		toppager : false,
 		emptyrecords : "No element to display",
 		altRows : true,	
-		rownumbers : false
+		rowNum : 10000
 	});
 	
 	//////////////////////////////////////////////INITIALISATION OF THE DIALOG OF CREATION/EDITION/////////////////////////// 
