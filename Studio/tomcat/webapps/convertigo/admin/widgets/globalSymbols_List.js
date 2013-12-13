@@ -201,16 +201,15 @@ function addSymbol(xml) {
 function updateSymbol() {
 	var $symbol = $("#symbolsList").find('.ui-widget-content');
 	var nbSymbol = $symbol.length;
-	var symbols = "";
+	var symbols = [];
 	$symbol.each(function(index) {
 		var name = $($symbol.eq(index)).children("td")[0];
 		var value = $($symbol.eq(index)).children("td")[1];
-		symbols = symbols + name.title + "=" + value.title + ",";
+		symbols.push(name.title+"="+value.title);
 	});
 	
-	$.get("services/global_symbols.Update",{
-		symbols : symbols, 
-		nbSymbol : nbSymbol}, 
+	$.post("services/global_symbols.Update",{
+		symbols : symbols}, 
 		function(xml){
 			if($(xml).find("error").length != 0) {
 				var message = $(xml).find("message").text()

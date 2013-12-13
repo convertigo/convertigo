@@ -55,29 +55,16 @@ public class List extends XmlService{
 	        prop.load(in);
 	        in.close();
         }
-        catch (Exception e) {}
+        catch (Exception e) {
+        	Engine.logBeans.error("Problem during loading the global symbols file!\n"+e.getMessage());
+        }        
         
-        int nbList = prop.size();
-        String listKeys = prop.keySet().toString();
-        String listValues = prop.values().toString();
+        Object[] listKeys = prop.keySet().toArray();
+        Object[] listValues = prop.values().toArray();
         
-    	for (int i = 0; i<nbList; i++) {
-    		String symbol = listKeys.split(",")[0];
-    		String symbolValue = listValues.split(",")[0];
-    		int nbChar = symbol.length() + 2;
-    		if (listKeys.length() > nbChar) {
-	    		listKeys = listKeys.substring(nbChar);
-				nbChar = symbolValue.length() + 2;
-				listValues =listValues.substring(nbChar);
-    		}
-			if (i == 0) {
-				symbol = symbol.substring(1);
-				symbolValue = symbolValue.substring(1);
-			}
-			if (i == nbList-1) {
-				symbol = symbol.split("]")[0];
-				symbolValue = symbolValue.split("]")[0];
-			}
+    	for (int i = 0; i < prop.size(); i++) {
+    		String symbol = (String) listKeys[i];
+    		String symbolValue = (String) listValues[i];
  
 			Element symbolElement = document.createElement("symbol");
 			symbolElement.setAttribute("name", symbol);

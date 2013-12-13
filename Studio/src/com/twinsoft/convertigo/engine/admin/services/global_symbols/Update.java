@@ -43,16 +43,12 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 public class Update extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
-        String symbols = request.getParameter("symbols");
-        int nbSymbol = Integer.parseInt(request.getParameter("nbSymbol"));
+		String[] symbols = request.getParameterValues("symbols");
         
         Properties prop = new Properties();
-        for (int i=0; i<nbSymbol; i++) {
-        	String symbol = symbols.split(",")[0];
-        	symbols = symbols.substring(symbol.length()+1);
-        	String symbolName = symbol.split("=")[0];
-        	String value = symbol.split("=")[1];
-        	prop.setProperty(symbolName, value);
+        for (int i=0; i < symbols.length ; i++) {
+        	String [] values = symbols[i].split("=");
+        	prop.setProperty(values[0], values[1]);
         } 
         prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");        
     	
