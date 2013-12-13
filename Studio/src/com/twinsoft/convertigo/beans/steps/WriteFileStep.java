@@ -24,8 +24,6 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
 import java.util.Date;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
@@ -60,6 +58,7 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	private String dataFile = "";	
 	private String encoding="iso-8859-1";
 	private boolean appendResult=false;
+	private transient String filePath;
 	
 	private transient StepSource source = null;
 	
@@ -173,20 +172,22 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
-			if (super.stepExecute(javascriptContext, scope)) {
+
+				filePath = null;
 				try {
 					StepSource stepSource = getSource();
 					if (!stepSource.inError()) {
-						String filePath = evaluateDataFileName(javascriptContext, scope);
+						filePath = evaluateDataFileName(javascriptContext, scope);
 						NodeList nl = stepSource.getContextOutputNodes();
 						writeFile(filePath, nl);
+						filePath = getAbsoluteFilePath(filePath);
 					}
 				} catch (Exception e) {
 		        	setErrorStatus(true);
 		            Engine.logBeans.error("An error occured while writing to file", e);
 		        }
-		        return true;
-			}
+		        return super.stepExecute(javascriptContext, scope);
+			
 		}
 		return false;
 	}
@@ -237,27 +238,27 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
-		String projectName = getProject().getName();
-		String filepath = getAbsoluteFilePath(dataFile.replaceAll("\"", ""));
-		
-		Pattern pattern = Pattern.compile(".*(projects.*)");
-		Matcher matcher = pattern.matcher(filepath);
-		
-		String fromProject = "";
-		if(matcher.find())
-			fromProject = matcher.group(1);
-		
-		// Relative file path
-		if ( filepath.startsWith(Engine.PROJECTS_PATH + "/" + projectName) ) 
-			stepNode.setAttribute("relative-url", fromProject.replace("projects/"+ projectName +"/", ""));
-		
-		// Absolute file path
-		if ( !filepath.equals("") )
-			stepNode.setAttribute("absolute-path", filepath);
-		
-		// File-url
-		String fileurl = HttpUtils.convertigoRequestURL(getSequence().context.httpServletRequest);
-		stepNode.setAttribute("file-url", fileurl + "/" + fromProject);	
+		if (filePath != null) {
+			String projectName = getProject().getName();
+			String projectPath = Engine.PROJECTS_PATH + "/" + projectName + "/";
+			
+			filePath = filePath.replace('\\', '/');
+			projectPath = projectPath.replace('\\', '/');
+			
+			// Relative file path
+			if (filePath.startsWith(projectPath)) { 
+				stepNode.setAttribute("relative-url", filePath.substring(projectPath.length()));
+			}
+			// Absolute file path
+			if (new File(filePath).exists()) {
+				stepNode.setAttribute("absolute-path", filePath);
+			}
+			// File-url
+			if (filePath.startsWith(Engine.PROJECTS_PATH.replace('\\', '/') + "/")) {
+				String fileurl = HttpUtils.convertigoRequestURL(getSequence().context.httpServletRequest);
+				stepNode.setAttribute("file-url", fileurl + "/projects/" + filePath.substring(Engine.PROJECTS_PATH.length()+1));	
+			}
+		}
 	}
 	
 	@Override
