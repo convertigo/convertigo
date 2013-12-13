@@ -86,7 +86,7 @@ public class GetContextStep extends StepWithExpressions implements IComplexTypeA
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
 			if (getSequence().context != null) {
-				value = (String) getSequence().context.get(key);		
+				value = (String) getSequence().context.httpSession.getAttribute(key);		
 				return super.stepExecute(javascriptContext, scope);
 			}
 		}
