@@ -406,9 +406,9 @@ public abstract class AbstractContext {
 	public abstract String decodeFromHexString(String passphrase, String s);
 	
 	/**
-	 * Get the context context requested by the client.
+	 * Get the context requested by the client.
 	 * 
-	 * Can be the current context or the last ancestor context, trough many call steps.
+	 * Can be the current context or the last ancestor context, through many call steps.
 	 * 
 	 * @return the context requested by the client
 	 */
