@@ -2785,5 +2785,30 @@
                 <partition type="__dftl_partition_content_type" />
         </javaCompletionProposalComputer>
     </extension>
+
+	<extension
+	     id="com.twinsoft.convertigo.ctfCompletionProposals"
+	     point="org.eclipse.wst.sse.ui.completionProposal">         
+	      
+		  <proposalCategory
+		           id="com.twinsoft.convertigo.ctfCompletionProposals.category"
+		           icon="icons/convertigo_16x16.gif"
+		           name="Convertigo CTF Proposals">
+		  </proposalCategory>
+	 
+		  <proposalComputer
+		        activate="true"
+		        categoryId="com.twinsoft.convertigo.ctfCompletionProposals.category"
+		        class="com.twinsoft.convertigo.eclipse.editors.completion.CtfCompletionProposalsComputer"
+		        id="com.twinsoft.convertigo.ctfCompletionProposals.computer">      
+				<contentType
+             		id="org.eclipse.wst.html.core.htmlsource">
+          			<partitionType
+                		id="org.eclipse.wst.html.HTML_DEFAULT">
+          			</partitionType>
+       			</contentType>
+       	   </proposalComputer>
+		           
+	</extension>
    
 </plugin>
