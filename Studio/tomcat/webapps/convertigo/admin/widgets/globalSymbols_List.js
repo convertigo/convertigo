@@ -21,6 +21,7 @@
  */
 
 function globalSymbols_List_init() {
+	var rowIDCell, cellnameCell, valueCell, iRowCell, iColCell;
 	$("#updateSymbols").button({
 		icons : {
 			primary : "ui-icon-disk"
@@ -67,7 +68,7 @@ function globalSymbols_List_init() {
 			toppager : false,
 			altRows : false,	
 			rowNum: '1000000',
-			afterEditCell: function() {
+			afterEditCell: function(rowid, cellname, value, iRow, iCol) {	
 				$("#updateSymbols").button("disable")
 	            e = jQuery.Event("keydown");
 	            e.keyCode = $.ui.keyCode.ENTER;
@@ -75,8 +76,23 @@ function globalSymbols_List_init() {
 	            edit.blur(function() {
 	            	//Simulate press ENTER event
 	                edit.trigger(e);
-	                $("#updateSymbols").button("enable");
+	                if (rowid==rowIDCell && cellname==cellnameCell && value!=valueCell && iRow==iRowCell && iCol==iColCell) {
+	                	$("#updateSymbols").button("enable");
+	                } else {
+	                	rowIDCell = "";
+						cellnameCell = "";
+						valueCell = "";
+						iRowCell = "";
+						iColCell = "";
+	                }
 	            });
+	        },
+	        beforeEditCell: function(rowid, cellname, value, iRow, iCol) {
+	        	rowIDCell = rowid;
+	        	cellnameCell = cellname;
+	        	valueCell = value;
+	        	iRowCell = iRow;
+	        	iColCell = iCol;
 	        }
 		});
 		updateGlobalSymbolsList(xml);
