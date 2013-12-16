@@ -27,10 +27,10 @@ import com.twinsoft.convertigo.engine.EngineException;
 public class CtfCompletionProposalsComputer implements  ICompletionProposalComputer {
 
 	private static String ctfAttributes[][] = {
-		{"data-c8o-call=\"\"","Call a Convertigo sequence or transaction"},
-		{"data-c8o-listen=\"\"","Listen to a Convertigo sequence or transaction"},
-		{"data-c8o-call-mode=\"auto\"","Call mode to be automatic"},
-		{"data-c8o-each=\"\"","Iterate on selector for all childs"}
+		{"data-c8o-call=\"\"",      "Call a Convertigo sequence or transaction"},
+		{"data-c8o-listen=\"\"",    "Listen to a Convertigo sequence or transaction"},
+		{"data-c8o-call-mode=\"\"", "Call mode to be auto, timer"},
+		{"data-c8o-each=\"\"",      "Iterate on selector for all childs"}
 	};
 	
 	private static String ctfTemplates[] = {
@@ -78,8 +78,8 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 		return Sequences;
 	}
 
-	private Image imageCtf = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-													"/com/twinsoft/convertigo/eclipse/dialogs/images/key.png"));			
+	private Image imageCtf = new Image(Display.getCurrent(),
+									   getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/dialogs/images/key.png"));			
 
 	@Override
 	public List<CompletionProposal> computeCompletionProposals(
