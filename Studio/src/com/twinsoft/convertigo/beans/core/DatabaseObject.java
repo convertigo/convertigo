@@ -867,7 +867,19 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 					+ "Object name: '" + DatabaseObjectsManager.getProjectLoadingData().databaseObjectName + "'\n"
 					+ "Object type: '" + databaseObject.getDatabaseType() + "'\n"
 					+ "Project: '" + DatabaseObjectsManager.getProjectLoadingData().projectName + "'";
-			throw new CompilablePropertyException(message);
+			
+			if (!Engine.isStudioMode()) {
+				throw new CompilablePropertyException(message);
+			}
+			
+			try {
+				Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
+
+				Method m = convertigoPlugin.getMethod("warningMessageBox", String.class);
+				m.invoke(null, message);
+			} catch (Exception e) {
+				Engine.logBeans.warn(message);
+			}
 		}
 		return compiledValue;
 	}
@@ -915,6 +927,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 							if (symbolDefaultValue == null) {
 								DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure = "Symbol '"
 										+ symbolName + "' not found in the global symbols file";
+								
 								return propertyObjectValue;
 							} else {
 								symbolCompiledValue = symbolDefaultValue;

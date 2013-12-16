@@ -281,13 +281,12 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}
 
 	private static void messageBoxWithoutReturnCode(final String message, int options) {
-		Display display = getDisplay();
-		final Shell shell = display.getActiveShell();
+		final Display display = getDisplay();
 		
 		display.asyncExec(new Runnable() {
 			public void run() {
 				try {
-					messageBox(shell, message, SWT.OK | SWT.ICON_INFORMATION);
+					messageBox(display.getActiveShell(), message, SWT.OK | SWT.ICON_INFORMATION);
 				}
 				catch (Exception e){
 					ConvertigoPlugin.logException(e, "Error while trying to open message box");
