@@ -14,8 +14,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.wst.sse.ui.contentassist.CompletionProposalInvocationContext;
 import org.eclipse.wst.sse.ui.contentassist.ICompletionProposalComputer;
 
+import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ViewContentProvider;
@@ -56,11 +58,11 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 		}
 	}
 	
-	private List<String> getSequenceList(String projectName) throws EngineException {
-		Vector<String> Sequences = new Vector<String>();
-		
+	private Project getProjectByName(String projectName) throws EngineException
+	{
+		Project project;
+
 		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		Project project = null;
 		TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer
 				.getContentProvider()).getProjectRootObject(projectName);
 		if (projectTreeObject instanceof UnloadedProjectTreeObject) {
@@ -68,6 +70,44 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 		} else {
 			project = projectExplorerView.getProject(projectName);
 		}		
+		return project;
+	}
+
+	private List<String> getTransactionList(String projectName, String connectorName) throws EngineException {
+		Vector<String> Transactions = new Vector<String>();
+		
+		Project project = getProjectByName(projectName);
+		Connector connector = project.getConnectorByName(connectorName);
+		
+		List<Transaction> transactions = connector.getTransactionsList();
+		if (!transactions.isEmpty()) {
+			for (Transaction transaction : transactions) {
+				String transactionName = transaction.getName();
+				Transactions.add(transactionName);
+			}
+		}		
+		return Transactions;
+	}
+
+	
+	private List<String> getConnectorList(String projectName) throws EngineException {
+		Vector<String> Connectors = new Vector<String>();
+		
+		Project project = getProjectByName(projectName);
+		List <Connector> connectors = project.getConnectorsList();
+		if (!connectors.isEmpty()) {
+			for (Connector connector : connectors) {
+				String connectorName = connector.getName();
+				Connectors.add(connectorName);
+			}
+		}		
+		return Connectors;
+	}
+	
+	private List<String> getSequenceList(String projectName) throws EngineException {
+		Vector<String> Sequences = new Vector<String>();
+		
+		Project project = getProjectByName(projectName);
 		List<Sequence> sequences = project.getSequencesList();
 		if (!sequences.isEmpty()) {
 			for (Sequence sequence : sequences) {
@@ -79,7 +119,7 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 	}
 
 	private Image imageCtf = new Image(Display.getCurrent(),
-									   getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/completion_ctf.png"));			
+			   getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/completion_ctf.png"));			
 
 	private Image imageProject = new Image(Display.getCurrent(),
 			   getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/c8o_color_16x16.png"));			
@@ -87,6 +127,14 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 	private Image imageSequence = new Image(Display.getCurrent(),
 			   getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png"));			
 
+	private Image imageConnector = new Image(Display.getCurrent(),
+			   getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/connector_color_16x16.png"));			
+
+	private Image imageTransaction = new Image(Display.getCurrent(),
+			   getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png"));			
+
+
+	
 	@Override
 	public List<CompletionProposal> computeCompletionProposals(
 			CompletionProposalInvocationContext context, IProgressMonitor monitor) {
@@ -160,6 +208,27 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 								// this in the form 'xxx.' or '.' so handle sequence completion
 								String projectName = alreadyTyped.substring(0, alreadyTyped.indexOf('.'));
 								alreadyTyped = alreadyTyped.substring(alreadyTyped.indexOf('.') +1);
+								if (alreadyTyped.contains(".")) {
+									// this in the form 'xxx.XXX' or '..' so handle sequence completion
+									String connector = alreadyTyped.substring(0, alreadyTyped.indexOf('.'));
+									alreadyTyped = alreadyTyped.substring(alreadyTyped.indexOf('.') +1);
+									List<String> transactions = getTransactionList(projectName, connector);
+									for (int i=0; i< transactions.size(); i++) {
+										if (transactions.get(i).startsWith(alreadyTyped)) {
+											String entry = (String) transactions.get(i);
+											//Set additional information
+											String descr = entry + " : " + "Transaction Name";
+											//Set the string to display
+											String showing = transactions.get(i);
+											//Set the replacement string
+											String value = transactions.get(i).substring(alreadyTyped.length());
+											IContextInformation info = new ContextInformation(showing, descr);
+											lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageTransaction, showing, info, descr));
+										}
+									}
+									return lProposals;
+								}
+								
 								List<String> sequences = getSequenceList(projectName);
 								for (int i=0; i< sequences.size(); i++) {
 									if (sequences.get(i).startsWith(alreadyTyped)) {
@@ -174,6 +243,22 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 										lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageSequence, showing, info, descr));
 									}
 								}
+								
+								List<String> connectors = getConnectorList(projectName);
+								for (int i=0; i< connectors.size(); i++) {
+									if (connectors.get(i).startsWith(alreadyTyped)) {
+										String entry = (String) connectors.get(i);
+										//Set additional information
+										String descr = entry + " : " + "Connector Name";
+										//Set the string to display
+										String showing = connectors.get(i);
+										//Set the replacement string
+										String value = connectors.get(i).substring(alreadyTyped.length());
+										IContextInformation info = new ContextInformation(showing, descr);
+										lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageConnector, showing, info, descr));
+									}
+								}
+								
 								return lProposals;								
 							}
 							
