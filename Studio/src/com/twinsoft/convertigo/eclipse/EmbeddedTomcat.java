@@ -120,6 +120,15 @@ public class EmbeddedTomcat implements Runnable {
 
 				context = embedded.createContext(contextPath, docBase);
 				context.setParentClassLoader(this.getClass().getClassLoader());
+				
+				if (directory.equals("convertigo")) {
+					File configFile = new File(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH + "/studio/context.xml");
+					if (configFile.exists()) {
+						System.out.println("(EmbeddedTomcat) Set convertigo webapp config file to " + configFile.getAbsolutePath());
+						context.setConfigFile(configFile.getAbsolutePath());
+					}	
+				}
+				
 				host.addChild(context);
 			}
 	

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+<!-- <Resource name="jdbc/SampleJNDI" -->
+<!-- 		auth="Container" -->
+<!-- 		type="javax.sql.DataSource" -->
+<!-- 		username="sa" -->
+<!-- 		maxActive="1" -->
+<!-- 		password="" -->
+<!-- 		driverClassName="org.hsqldb.jdbcDriver" -->
+<!-- 		url="jdbc:hsqldb:file:/tmp/sample_JNDI_HSQLDB"/> -->
+</Context>
