@@ -363,7 +363,7 @@ public class StartupDiagnostics {
 
 						LddLibrariesResult lddLibrariesResult = lddLibraries(testTmpDir,
 								libraryPath,
-								".*((gnome)|(glx)|(webkit)|(mozilla)|(cairo)|(xpcominit)|(atk)).*");
+								".*((gnome)|(glx)|(webkit)|(mozilla)|(cairo)|(xpcominit)|(atk)|(gdk)).*");
 						Engine.logEngine.info("Checking SWT libraries dependencies:\n"
 								+ lddLibrariesResult.response);
 						if (lddLibrariesResult.linkErrorFound) {
