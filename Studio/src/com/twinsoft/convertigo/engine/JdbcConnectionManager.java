@@ -176,7 +176,11 @@ public class JdbcConnectionManager implements AbstractManager {
 		Connection connection;
 		Engine.logEngine.debug("(JdbcConnectionManager) Trying to get a SQL connection...");
 		
-		if (connector.getConnectionPool()) {
+		if ((connection = connector.getJNDIConnection()) != null) {
+			Engine.logEngine.debug("(JdbcConnectionManager) getJNDIConnection for "
+					+ connector.getProject().getName() + "." + connector.getName());
+		}
+		else if (connector.getConnectionPool()) {
 			Engine.logEngine.debug("(JdbcConnectionManager) getConnection for "
 					+ connector.getProject().getName() + "." + connector.getName());
 			

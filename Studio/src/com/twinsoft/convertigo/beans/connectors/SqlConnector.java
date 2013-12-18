@@ -38,6 +38,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
+
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -109,6 +113,21 @@ public class SqlConnector extends Connector {
 		return clonedObject;
 	}
 	
+	public Connection getJNDIConnection(){
+		Connection conn = null;
+		if (jdbcDriverClassName.equals("JNDI")) {
+			try {
+				javax.naming.Context initContext = new InitialContext(); 
+				DataSource ds = (DataSource) initContext.lookup("java:/comp/env/"+jdbcURL);
+				conn = ds.getConnection();
+			} catch (NamingException e) {
+				e.getMessage();
+			} catch (SQLException e) {
+				e.getMessage();
+			}
+		}
+		return conn;
+	}
 	
 	@Override
 	public void configure(Element element) throws Exception {
