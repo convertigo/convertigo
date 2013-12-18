@@ -79,7 +79,13 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 	}
 
 	private Image imageCtf = new Image(Display.getCurrent(),
-									   getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/dialogs/images/key.png"));			
+									   getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/completion_ctf.png"));			
+
+	private Image imageProject = new Image(Display.getCurrent(),
+			   getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/c8o_color_16x16.png"));			
+
+	private Image imageSequence = new Image(Display.getCurrent(),
+			   getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png"));			
 
 	@Override
 	public List<CompletionProposal> computeCompletionProposals(
@@ -165,7 +171,7 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 										//Set the replacement string
 										String value = sequences.get(i).substring(alreadyTyped.length());
 										IContextInformation info = new ContextInformation(showing, descr);
-										lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageCtf, showing, info, descr));
+										lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageSequence, showing, info, descr));
 									}
 								}
 								return lProposals;								
@@ -179,7 +185,7 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 							String showing = ".";
 							String value = ".";
 							IContextInformation info = new ContextInformation(showing, descr);
-							lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageCtf, showing, info, descr));
+							lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageProject, showing, info, descr));
 
 							// iterate through projects list
 							for (int i=0; i< projectNames.size(); i++) {
@@ -192,7 +198,7 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 									//Set the replacement string
 									value = projectNames.get(i).substring(alreadyTyped.length());
 									info = new ContextInformation(showing, descr);
-									lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageCtf, showing, info, descr));
+									lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageProject, showing, info, descr));
 								}
 							}
 							return lProposals;
