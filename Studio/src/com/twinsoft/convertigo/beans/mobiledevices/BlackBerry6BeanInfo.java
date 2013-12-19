@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.beans.mobiledevices;
 
+import java.beans.PropertyDescriptor;
+
+import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class BlackBerry6BeanInfo extends MySimpleBeanInfo {
@@ -38,6 +41,19 @@ public class BlackBerry6BeanInfo extends MySimpleBeanInfo {
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
+		
+			properties = new PropertyDescriptor[2];
+			
+			properties[0] = new PropertyDescriptor("bbKeyTitle", BlackBerry6.class, "getBbKeyTitle", "setBbKeyTitle");
+			properties[0].setDisplayName(getExternalizedString("property.bbKeyTitle.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.bbKeyTitle.short_description"));
+			properties[0].setExpert(false);
+			
+			properties[1] = new PropertyDescriptor("bbKeyPw", BlackBerry6.class, "getBbKeyPw", "setBbKeyPw");
+			properties[1].setDisplayName(getExternalizedString("property.bbKeyPw.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.bbKeyPw.short_description"));
+			properties[1].setExpert(false);
+			
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

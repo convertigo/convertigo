@@ -27,7 +27,7 @@ import com.twinsoft.convertigo.beans.core.MobileDevice;
 public class IPad extends MobileDevice {
 
 	private static final long serialVersionUID = 370167918956703015L;
-
+	
 	public IPad() {
 		super();
 		setScreenWidth(1024);
@@ -35,4 +35,22 @@ public class IPad extends MobileDevice {
 		setResourcesPath(MobileDevice.RESOURCES_PATH + "/");
 	}
 
+	private String iOSCertificateTitle = "";
+	private String iOSCertificatePw = "";
+	
+	public String getiOSCertificateTitle() {
+		return iOSCertificateTitle;
+	}
+
+	public void setiOSCertificateTitle(String iOSCertificateTitle) {
+		this.iOSCertificateTitle = iOSCertificateTitle;
+	}
+
+	public String getiOSCertificatePw() {
+		return iOSCertificatePw;
+	}
+
+	public void setiOSCertificatePw(String iOSCertificatePw) {
+		this.iOSCertificatePw = iOSCertificatePw;
+	}
 }

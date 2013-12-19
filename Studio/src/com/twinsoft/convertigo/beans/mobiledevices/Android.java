@@ -27,12 +27,41 @@ import com.twinsoft.convertigo.beans.core.MobileDevice;
 public class Android extends MobileDevice {
 
 	private static final long serialVersionUID = 1092999336588542617L;
-
+	
+	private String androidCertificateTitle = "";
+	private String androidCertificatePw = "";
+	private String androidKeystorePw = "";
+	
+	
 	public Android() {
 		super();
 		setScreenWidth(800);
 		setScreenHeight(480);
 		setResourcesPath(MobileDevice.RESOURCES_PATH + "/");
+	}
+
+	public String getAndroidCertificateTitle() {
+		return androidCertificateTitle;
+	}
+
+	public void setAndroidCertificateTitle(String androidCertificateTitle) {
+		this.androidCertificateTitle = androidCertificateTitle;
+	}
+
+	public String getAndroidCertificatePw() {
+		return androidCertificatePw;
+	}
+
+	public void setAndroidCertificatePw(String androidCertificatePw) {
+		this.androidCertificatePw = androidCertificatePw;
+	}
+
+	public String getAndroidKeystorePw() {
+		return androidKeystorePw;
+	}
+
+	public void setAndroidKeystorePw(String androidKeystorePw) {
+		this.androidKeystorePw = androidKeystorePw;
 	}
 
 }

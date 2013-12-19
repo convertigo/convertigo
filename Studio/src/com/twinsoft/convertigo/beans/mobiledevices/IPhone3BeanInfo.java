@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.beans.mobiledevices;
 
+import java.beans.PropertyDescriptor;
+
+import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class IPhone3BeanInfo extends MySimpleBeanInfo {
@@ -38,6 +41,18 @@ public class IPhone3BeanInfo extends MySimpleBeanInfo {
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
+			
+			properties = new PropertyDescriptor[2];
+			
+			properties[0] = new PropertyDescriptor("iOSCertificateTitle", IPhone3.class, "getiOSCertificateTitle", "setiOSCertificateTitle");
+			properties[0].setDisplayName(getExternalizedString("property.iOSCertificateTitle.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.iOSCertificateTitle.short_description"));
+			properties[0].setExpert(false);
+			
+			properties[1] = new PropertyDescriptor("iOSCertificatePw", IPhone3.class, "getiOSCertificatePw", "setiOSCertificatePw");
+			properties[1].setDisplayName(getExternalizedString("property.iOSCertificatePw.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.iOSCertificatePw.short_description"));
+			properties[1].setExpert(false);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

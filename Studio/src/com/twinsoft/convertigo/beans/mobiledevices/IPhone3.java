@@ -34,5 +34,23 @@ public class IPhone3 extends MobileDevice {
 		setScreenHeight(320);
 		setResourcesPath(MobileDevice.RESOURCES_PATH + "/");
 	}
+	
+	private String iOSCertificateTitle = "";
+	private String iOSCertificatePw = "";
+	
+	public String getiOSCertificateTitle() {
+		return iOSCertificateTitle;
+	}
 
+	public void setiOSCertificateTitle(String iOSCertificateTitle) {
+		this.iOSCertificateTitle = iOSCertificateTitle;
+	}
+
+	public String getiOSCertificatePw() {
+		return iOSCertificatePw;
+	}
+
+	public void setiOSCertificatePw(String iOSCertificatePw) {
+		this.iOSCertificatePw = iOSCertificatePw;
+	}
 }

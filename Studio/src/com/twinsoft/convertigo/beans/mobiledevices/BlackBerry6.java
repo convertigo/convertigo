@@ -34,5 +34,22 @@ public class BlackBerry6 extends MobileDevice {
 		setScreenHeight(640);
 		setResourcesPath(MobileDevice.RESOURCES_PATH + "/");
 	}
+	
+	private String bbKeyTitle = "";
+	private String bbKeyPw = "";
+	
+	public String getBbKeyTitle() {
+		return bbKeyTitle;
+	}
+	public void setBbKeyTitle(String bbKeyTitle) {
+		this.bbKeyTitle = bbKeyTitle;
+	}
 
+	public String getBbKeyPw() {
+		return bbKeyPw;
+	}
+
+	public void setBbKeyPw(String bbKeyPw) {
+		this.bbKeyPw = bbKeyPw;
+	}
 }

@@ -41,6 +41,12 @@ import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.core.MobileDevice;
+import com.twinsoft.convertigo.beans.mobiledevices.Android;
+import com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6;
+import com.twinsoft.convertigo.beans.mobiledevices.IPad;
+import com.twinsoft.convertigo.beans.mobiledevices.IPhone3;
+import com.twinsoft.convertigo.beans.mobiledevices.IPhone4;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -67,28 +73,102 @@ public class LaunchBuild extends XmlService {
 			// Login to the mobile builder platform
 			String mobileBuilderPlatformURL = EnginePropertiesManager
 					.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
-			String mobileBuilderPlatformUsername = EnginePropertiesManager
-					.getProperty(PropertyName.MOBILE_BUILDER_USERNAME);
-			String mobileBuilderPlatformPassword = EnginePropertiesManager
-					.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
+			
+			String mobileBuilderPlatformUsername;
+			String mobileBuilderPlatformPassword;
+			if (!mobileResourceHelper.mobileApplication.getKey().equals("") && 
+					!mobileResourceHelper.mobileApplication.getPassword().equals("")) {
+				mobileBuilderPlatformUsername = mobileResourceHelper.mobileApplication.getKey();
+				mobileBuilderPlatformPassword = mobileResourceHelper.mobileApplication.getPassword(); 
+			} else {
+				mobileBuilderPlatformUsername = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_USERNAME);
+				mobileBuilderPlatformPassword = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
+			}
 			//iOS
-			String mobileBuilderIOSCertificateTitle = EnginePropertiesManager
-					.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
-			String mobileBuilderIOSCertificatePw = EnginePropertiesManager
-					.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_PW);
+			String mobileBuilderIOSCertificateTitle = "";
+			String mobileBuilderIOSCertificatePw = "";
+			
 			//ANDROID
-			String mobileBuilderAndroidCertificateTitle = EnginePropertiesManager
-					.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_TITLE);
-			String mobileBuilderAndroidCertificatePw = EnginePropertiesManager
-					.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_PW);
-			String mobileBuilderAndroidKeystorePw = EnginePropertiesManager
-					.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_KEYSTORE_PW);
+			String mobileBuilderAndroidCertificateTitle = "";
+			String mobileBuilderAndroidCertificatePw = "";
+			String mobileBuilderAndroidKeystorePw = "";
+			
 			//BLACKBERRY
-			String mobileBuilderBBKeyTitle = EnginePropertiesManager
-					.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_TITLE);
-			String mobileBuilderBBKeyPw = EnginePropertiesManager
-					.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_PW);
+			String mobileBuilderBBKeyTitle = "";
+			String mobileBuilderBBKeyPw = "";
+			
 			//WINDOWSPHONE7
+			
+			
+			for (MobileDevice mobileDevice : mobileResourceHelper.mobileApplication.getMobileDeviceList()) {
+				String deviceName = mobileDevice.getClass().getSimpleName();
+				//iOS
+				if (deviceName.equals("iPad") ) {
+					if (!((IPad) mobileDevice).getiOSCertificateTitle().equals("") && !((IPad) mobileDevice).getiOSCertificatePw().equals("")) {
+						mobileBuilderIOSCertificateTitle = ((IPad) mobileDevice).getiOSCertificateTitle();
+						mobileBuilderIOSCertificatePw = ((IPad) mobileDevice).getiOSCertificatePw();
+					} else {
+						mobileBuilderIOSCertificateTitle = EnginePropertiesManager
+								.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
+						mobileBuilderIOSCertificatePw = EnginePropertiesManager
+								.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_PW);
+					}
+				} 
+				
+				if (deviceName.equals("iPhone 3")) {
+					if (!((IPhone3) mobileDevice).getiOSCertificateTitle().equals("") && !((IPhone3) mobileDevice).getiOSCertificatePw().equals("")) {
+						mobileBuilderIOSCertificateTitle = ((IPhone3) mobileDevice).getiOSCertificateTitle();
+						mobileBuilderIOSCertificatePw = ((IPhone3) mobileDevice).getiOSCertificatePw();  
+					} else {
+						mobileBuilderIOSCertificateTitle = EnginePropertiesManager
+								.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
+						mobileBuilderIOSCertificatePw = EnginePropertiesManager
+								.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_PW);
+					}
+				} 
+				
+				if (deviceName.equals("iPhone 4")) { 
+					if (!((IPhone4) mobileDevice).getiOSCertificateTitle().equals("") && !((IPhone4) mobileDevice).getiOSCertificatePw().equals("")) {
+						mobileBuilderIOSCertificateTitle = ((IPhone4) mobileDevice).getiOSCertificateTitle();
+						mobileBuilderIOSCertificatePw = ((IPhone4) mobileDevice).getiOSCertificatePw();  
+					} else {
+						mobileBuilderIOSCertificateTitle = EnginePropertiesManager
+								.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
+						mobileBuilderIOSCertificatePw = EnginePropertiesManager
+								.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_PW);
+					}
+			    } 
+				
+				//ANDROID
+				if (deviceName.equals("Android")) { 
+					if (!((Android) mobileDevice).getAndroidCertificateTitle().equals("") && !((Android) mobileDevice).getAndroidCertificatePw().equals("") 
+							&& !((Android) mobileDevice).getAndroidKeystorePw().equals("")) {
+						mobileBuilderAndroidCertificateTitle = ((Android) mobileDevice).getAndroidCertificateTitle();
+						mobileBuilderAndroidCertificatePw = ((Android) mobileDevice).getAndroidCertificatePw();
+						mobileBuilderAndroidKeystorePw = ((Android) mobileDevice).getAndroidKeystorePw();
+					} else {
+						mobileBuilderAndroidCertificateTitle = EnginePropertiesManager
+								.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_TITLE);
+						mobileBuilderAndroidCertificatePw = EnginePropertiesManager
+								.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_PW);
+						mobileBuilderAndroidKeystorePw = EnginePropertiesManager
+								.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_KEYSTORE_PW);
+					}
+				} 
+				
+				//BLACKBERRY
+				if (deviceName.equals("BlackBerry 6")) { 
+					if (!((BlackBerry6) mobileDevice).getBbKeyTitle().equals("") && !((BlackBerry6) mobileDevice).getBbKeyPw().equals("")) {
+						mobileBuilderBBKeyTitle = ((BlackBerry6) mobileDevice).getBbKeyTitle();
+						mobileBuilderBBKeyPw = ((BlackBerry6) mobileDevice).getBbKeyPw();
+					} else {
+						mobileBuilderBBKeyTitle = EnginePropertiesManager
+								.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_TITLE);
+						mobileBuilderBBKeyPw = EnginePropertiesManager
+								.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_PW);
+					}
+				} 
+			}
 			
 			PostMethod method;
 			int methodStatusCode;

@@ -35,4 +35,22 @@ public class IPhone4 extends MobileDevice {
 		setResourcesPath(MobileDevice.RESOURCES_PATH + "/");
 	}
 
+	private String iOSCertificateTitle = "";
+	private String iOSCertificatePw = "";
+	
+	public String getiOSCertificateTitle() {
+		return iOSCertificateTitle;
+	}
+
+	public void setiOSCertificateTitle(String iOSCertificateTitle) {
+		this.iOSCertificateTitle = iOSCertificateTitle;
+	}
+
+	public String getiOSCertificatePw() {
+		return iOSCertificatePw;
+	}
+
+	public void setiOSCertificatePw(String iOSCertificatePw) {
+		this.iOSCertificatePw = iOSCertificatePw;
+	}
 }

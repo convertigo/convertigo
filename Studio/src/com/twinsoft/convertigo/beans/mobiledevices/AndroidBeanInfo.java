@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.mobiledevices;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class AndroidBeanInfo extends MySimpleBeanInfo {
@@ -35,9 +37,28 @@ public class AndroidBeanInfo extends MySimpleBeanInfo {
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobiledevices/images/android_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/mobiledevices/res/Android");
-
+						
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
+			
+			properties = new PropertyDescriptor[3];
+			
+			properties[0] = new PropertyDescriptor("androidCertificateTitle", Android.class, "getAndroidCertificateTitle", "setAndroidCertificateTitle");
+			properties[0].setDisplayName(getExternalizedString("property.androidCertificateTitle.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.androidCertificateTitle.short_description"));
+			properties[0].setExpert(false);
+			
+			properties[1] = new PropertyDescriptor("androidCertificatePw", Android.class, "getAndroidCertificatePw", "setAndroidCertificatePw");
+			properties[1].setDisplayName(getExternalizedString("property.androidCertificatePw.display_name"));
+			properties[1].setShortDescription(getExternalizedString("property.androidCertificatePw.short_description"));
+			properties[1].setExpert(false);
+			
+			properties[2] = new PropertyDescriptor("androidKeystorePw", Android.class, "getAndroidKeystorePw", "setAndroidKeystorePw");
+			properties[2].setDisplayName(getExternalizedString("property.androidKeystorePw.display_name"));
+			properties[2].setShortDescription(getExternalizedString("property.androidKeystorePw.short_description"));
+			properties[2].setExpert(false);
+			
+			
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

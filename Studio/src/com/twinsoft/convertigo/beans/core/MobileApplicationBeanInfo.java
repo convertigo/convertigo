@@ -39,7 +39,7 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[19];
+			properties = new PropertyDescriptor[21];
 			
             properties[0] = new PropertyDescriptor("enableFlashUpdate", MobileApplication.class, "getEnableFlashUpdate", "setEnableFlashUpdate");
             properties[0].setDisplayName(getExternalizedString("property.enableFlashUpdate.display_name"));
@@ -125,6 +125,16 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
             properties[18] = new PropertyDescriptor("flashUpdateTimeout", MobileApplication.class, "getFlashUpdateTimeout", "setFlashUpdateTimeout");
             properties[18].setDisplayName(getExternalizedString("property.flashUpdateTimeout.display_name"));
             properties[18].setShortDescription(getExternalizedString("property.flashUpdateTimeout.short_description"));
+            
+			properties[19] = new PropertyDescriptor("key", MobileApplication.class, "getKey", "setKey");
+			properties[19].setDisplayName(getExternalizedString("property.key.display_name"));
+			properties[19].setShortDescription(getExternalizedString("property.key.short_description"));
+			properties[19].setExpert(false);
+			
+			properties[20] = new PropertyDescriptor("password", MobileApplication.class, "getPassword", "setPassword");
+			properties[20].setDisplayName(getExternalizedString("property.password.display_name"));
+			properties[20].setShortDescription(getExternalizedString("property.password.short_description"));
+			properties[20].setExpert(false);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
