@@ -142,6 +142,8 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		
 		if (isInternalInvoke()) {
 	    	request.put(Parameter.Project.getName(), new String[] { projectName });
+			request.put(Parameter.TransactionMotherSequenceContext.getName(),
+					new String[] { sequence.context.contextID });
 	    	request.put(Parameter.Sequence.getName(), new String[] { targetSequence.getName() });
 	    	request.put(Parameter.Context.getName(), new String[] { sequence.addStepContextName(ctxName) });
 	    	request.put(Parameter.SessionId.getName(), new String[] { sequence.getSessionId() });
@@ -199,6 +201,9 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 				postQuery = addParamToPostQuery(Parameter.SequenceInheritedTransactionContext.getName(), inheritContex ? inheritedCxtName:"", postQuery);
 			if (postQuery.indexOf(Parameter.Sequence.getName()) == -1)
 				postQuery = addParamToPostQuery(Parameter.Sequence.getName(), targetSequence.getName(), postQuery);
+			if (postQuery.indexOf(Parameter.TransactionMotherSequenceContext.getName()) == -1)
+				postQuery = addParamToPostQuery(Parameter.TransactionMotherSequenceContext.getName(),
+						sequence.context.contextID, postQuery);
 			if (postQuery.indexOf(Parameter.Context.getName()) == -1)
 				postQuery = addParamToPostQuery(Parameter.Context.getName(), sequence.addStepContextName(ctxName), postQuery);
 			
