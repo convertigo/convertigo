@@ -27,8 +27,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -251,35 +249,21 @@ public abstract class AbstractContext {
 	/**
 	 * @return Getter for the absolute requested URL
 	 */
-	public String getAbsoluteRequestedUrl (){
+	public String getAbsoluteRequestedUrl() {
 		return HttpUtils.originalRequestURL(httpServletRequest);
 	}
 	
 	/**
 	 * @return Getter for the Convertigo URL
 	 */
-	public String getConvertigoUrl (){
-		Pattern pattern = Pattern.compile("^((.*?/)projects/.*?/).*$");
-		Matcher match = pattern.matcher(getAbsoluteRequestedUrl());
-		
-		if ( match.find() ) {
-			return match.group(2);
-		} else {
-			return "";
-		}
+	public String getConvertigoUrl() {
+		return HttpUtils.convertigoRequestURL(httpServletRequest) + '/';
 	}
 	/**
 	 * @return Getter for the current project URL
 	 */
-	public String getProjectUrl (){
-		Pattern pattern = Pattern.compile("^((.*?/)projects/.*?/).*$");
-		Matcher match = pattern.matcher(getAbsoluteRequestedUrl());
-		
-		if ( match.find() ) {
-			return match.group(1);
-		} else {
-			return "";
-		}
+	public String getProjectUrl () {
+		return HttpUtils.projectRequestURL(httpServletRequest) + '/';
 	}
 	/**
 	 * @Return the path to project directory

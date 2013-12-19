@@ -45,7 +45,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 
 public class HttpUtils {
-	private final static Pattern c8o_request_pattern = Pattern.compile("(.*?)/(?:projects/|admin/).*");
+	private final static Pattern c8o_request_pattern = Pattern.compile("((.*?)/(?:projects/(.+?)|admin))/.*");
 
 	/**
 	 * Calls a convertigo transaction from the same server and port than
@@ -219,6 +219,12 @@ public class HttpUtils {
 	}
 	
 	public static String convertigoRequestURL(HttpServletRequest request) {
+		String url = originalRequestURL(request);
+		url = c8o_request_pattern.matcher(url).replaceFirst("$2");
+		return url;
+	}
+	
+	public static String projectRequestURL(HttpServletRequest request) {
 		String url = originalRequestURL(request);
 		url = c8o_request_pattern.matcher(url).replaceFirst("$1");
 		return url;
