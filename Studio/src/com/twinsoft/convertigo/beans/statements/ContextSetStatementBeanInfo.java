@@ -50,7 +50,7 @@ public class ContextSetStatementBeanInfo extends MySimpleBeanInfo {
             properties[1] = new PropertyDescriptor("expression", beanClass, "getExpression", "setExpression");
             properties[1].setDisplayName(getExternalizedString("property.expression.display_name"));
             properties[1].setShortDescription(getExternalizedString("property.expression.short_description"));
-            properties[1].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
+            //properties[1].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
             properties[1].setValue("scriptable", Boolean.TRUE);
 		}
 		catch(Exception e) {
