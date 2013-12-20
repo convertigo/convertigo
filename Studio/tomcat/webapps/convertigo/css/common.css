@@ -194,9 +194,6 @@ a img {
 	font-weight: bold;
 	border: 10px solid rgba(0,0,0,0.4);	
 	background-color: rgba(255,255,255,0.8);
-	-webkit-border-radius: 5px;
-	-moz-border-radius: 5px;
-	border-radius: 5px;
 	z-index: 99999;
 }
 #wait_div_build img {
