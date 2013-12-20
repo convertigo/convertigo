@@ -103,10 +103,13 @@
 /* *** NokiaLumia920 370x617 *** */
 
 .NokiaLumia920_mask {
-
+	width:1032px;
+	height:1804px;
+	background-image: url(../images/mobile/NokiaLumia920_mask_1280x768.png);
 }
 .NokiaLumia920_contenu {
-
-	width:370px;
-	height:617px;
+	top: 221px;
+	left: 130px;
+	width:768px;
+	height:1280px;	
 }
