@@ -172,26 +172,43 @@ a img {
 #wait_div_build {
 	display:none;
 }
-#wait_div_build div {
-	-moz-opacity: 0.2;
-	background-color: #B5D3E7;
-	filter: alpha(opacity=20);
-	height: 100%;
-	left: 0;
-	opacity: 0.2;
+#wait_div_build .bgOpacity {
 	position: fixed;
 	top: 0px;
+	left: 0;
 	width: 100%;
+	height: 100%;
+	background-color: #B5D3E7;
+	filter: alpha(opacity=40);
+	-moz-opacity: 0.2;
+	opacity: 0.4;
 	z-index:99998;
 }
-
-#wait_div_build img {
- 	left: 50%; 
- 	position: fixed; 
- 	top: 50%;
- 	z-index: 99999; 
+#wait_div_build_info {
+	display: table;
+ 	position: fixed;
+	top: 35%;
+	left: 37%;	
+	width: 24%;
+	padding: 10px;
+	font-weight: bold;
+	border: 10px solid rgba(0,0,0,0.4);	
+	background-color: rgba(255,255,255,0.8);
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	z-index: 99999;
 }
-
+#wait_div_build img {
+	float:left;
+	margin-right: 10px;
+}
+#wait_div_build p {
+	display: table-cell;
+    vertical-align: middle;
+	padding: 0;
+	margin: 0;
+}
 #loginWarn {
 	color: red;
 	font-weight: bolder;
