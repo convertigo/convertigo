@@ -115,6 +115,7 @@ import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.actions.SetupAction;
+import com.twinsoft.convertigo.eclipse.dialogs.GlobalsSymbolsWarnDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
@@ -274,6 +275,28 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 	public static void warningMessageBox(String message) {
 		ConvertigoPlugin.messageBoxWithoutReturnCode(message, SWT.OK | SWT.ICON_WARNING);
+	}
+	
+	private static GlobalsSymbolsWarnDialog dialogGlobalSymbols = null;
+	private static boolean response = false;
+	
+	public static boolean warningGlobalSymbols(final String projectName, final String propertyName,
+			final String propertyValue, final String failureMessage, final String objectName, final String objectType) {
+		final Display display = getDisplay();
+		display.syncExec(new Runnable() {
+			public void run() {
+				try {
+					dialogGlobalSymbols = new GlobalsSymbolsWarnDialog(getDisplay().getActiveShell(), projectName, propertyName,
+							propertyValue, failureMessage, objectName, objectType);
+					dialogGlobalSymbols.open();
+					response = dialogGlobalSymbols.getSkipNextWarning();
+				} catch (Exception e){
+					ConvertigoPlugin.logException(e, "Error while trying to open warning global symbols box");
+				}
+			}
+		});
+		
+		return response;
 	}
 
 	public static void infoMessageBox(final String message) {

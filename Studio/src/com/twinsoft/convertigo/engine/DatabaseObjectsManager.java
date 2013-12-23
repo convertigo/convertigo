@@ -241,12 +241,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	// Thread reference to currently loaded project for log needs
 	public static class ProjectLoadingData {
-		public ProjectLoadingData() {
-		}
+		public ProjectLoadingData() {}
 
 		public String projectName;
-		public String databaseObjectName;
 		public String compilablePropertyFailure;
+		public boolean skipNextWarning = false;
 	}
 
 	private static ThreadLocal<ProjectLoadingData> projectLoadingDataThreadLocal = new ThreadLocal<ProjectLoadingData>() {

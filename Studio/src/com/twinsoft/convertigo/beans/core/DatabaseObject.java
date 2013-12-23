@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.Icon;
@@ -77,6 +78,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	private static final long serialVersionUID = -873065042105207891L;
 
 	public static final String PROPERTY_XMLNAME = "xmlname";
+	
+	private transient Set<String> symbolsErrors = null;
 
 	private static class SubLoader extends WalkHelper {
 		DatabaseObject databaseObject;
@@ -117,7 +120,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	
 	transient private DatabaseObject original = null;
 	
-
 	transient public boolean isSubLoaded = false;
 
 	/**
@@ -695,8 +697,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			boolean maskValue = false;
 
 			// First find the object's name
-			String name = (String) XMLUtils.findPropertyValue(element, "name");
-			DatabaseObjectsManager.getProjectLoadingData().databaseObjectName = name;
+//			String name = (String) XMLUtils.findPropertyValue(element, "name");
+//			DatabaseObjectsManager.getProjectLoadingData().databaseObjectName = name;
 
 			for (int i = 0; i < len; i++) {
 				childNode = childNodes.item(i);
@@ -847,8 +849,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			String propertyName, Object propertyObjectValue) throws CompilablePropertyException {
 		// This a property that does not need to be compiled; remove source
 		// value if any
+
 		if (!valueIsCompilable(propertyObjectValue)) {
 			databaseObject.removeCompilablePropertySourceValue(propertyName);
+			databaseObject.removeSymbolError(propertyName);
 			return propertyObjectValue;
 		}
 
@@ -861,26 +865,45 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		Object compiledValue = getCompiledValue(propertyType, propertyObjectValue);
 		
 		if (DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure != null) {
-			String message = "Compilation error for property '" + propertyName + "': "
-					+ DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure + "\n"
+			String failure = DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure;
+			String objectName = databaseObject.getName();
+			String projectName = DatabaseObjectsManager.getProjectLoadingData().projectName;
+			if (projectName == null)
+				projectName = databaseObject.getProject().toString();
+			String message = "Compilation error for property '" + propertyName + "': \n\n"
+					+ failure + "\n"
 					+ "Property value: '" + propertyObjectValue + "'\n"
-					+ "Object name: '" + DatabaseObjectsManager.getProjectLoadingData().databaseObjectName + "'\n"
+					+ "Object name: '" + objectName + "'\n"
 					+ "Object type: '" + databaseObject.getDatabaseType() + "'\n"
-					+ "Project: '" + DatabaseObjectsManager.getProjectLoadingData().projectName + "'";
+					+ "Project: '" + projectName + "'";
 			
-			if (!Engine.isStudioMode()) {
-				throw new CompilablePropertyException(message);
-			}
-			
-			try {
-				Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
+			if (Engine.isStudioMode()) {			
+				try {
+					// Show warning message box if the check box aren't selected
+					if (DatabaseObjectsManager.getProjectLoadingData().skipNextWarning == false) {
+						Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
+						Method m = convertigoPlugin.getMethod("warningGlobalSymbols", String.class, String.class, String.class, String.class, String.class, String.class);
+						DatabaseObjectsManager.getProjectLoadingData().skipNextWarning = 
+								(Boolean) m.invoke(null, projectName, propertyName, propertyObjectValue, failure, objectName, databaseObject.getDatabaseType());
+					}
 
-				Method m = convertigoPlugin.getMethod("warningMessageBox", String.class);
-				m.invoke(null, message);
-			} catch (Exception e) {
-				Engine.logBeans.warn(message);
+				} catch (Exception e) {
+					Engine.logBeans.warn(message);
+				}
 			}
+			
+			// Add warn message into the log
+			Engine.logBeans.warn(message);	
+			databaseObject.addSymbolError(propertyName);
+			
+			if ((propertyType != String.class)) {
+				return "0";
+			}
+			
+		} else { 
+			databaseObject.removeSymbolError(propertyName);
 		}
+		
 		return compiledValue;
 	}
 
@@ -1330,5 +1353,21 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		if (!isImporting && !hasChanged) {
 			hasChanged = true;
 		}
+	}
+	
+	public void addSymbolError(String propertyName){
+		if (symbolsErrors == null) {
+			symbolsErrors = new HashSet<String>();
+		}
+		symbolsErrors.add(propertyName);
+	}
+	
+	public void removeSymbolError(String propertyName){
+		if(symbolsErrors != null) {
+			symbolsErrors.remove(propertyName);
+		}
+	}
+	public boolean isSymbolError(){
+		return (symbolsErrors != null && symbolsErrors.size() != 0);		
 	}
 }

@@ -74,8 +74,6 @@ import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithTagsEditorAdvance;
 import com.twinsoft.convertigo.eclipse.property_editors.PropertyWithValidatorEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.StringOrNullEditor;
-import com.twinsoft.convertigo.eclipse.property_editors.validators.CompilableValueValidator;
-import com.twinsoft.convertigo.eclipse.property_editors.validators.NumberValidator;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.InfoPropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ScriptablePropertyDescriptor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -353,7 +351,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		    }
 			else if (value instanceof Number) {
 				propertyDescriptor = new TextPropertyDescriptor(name, displayName);
-				propertyDescriptor.setValidator(new CompilableValueValidator(new NumberValidator(value.getClass())));
+//				propertyDescriptor.setValidator(new CompilableValueValidator(new NumberValidator(value.getClass())));
 			}
         }
     	// Complex types
@@ -437,7 +435,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
     	// Default case
     	if (propertyDescriptor == null) {
     		propertyDescriptor = new TextPropertyDescriptor(name, displayName);
-    		propertyDescriptor.setValidator(new CompilableValueValidator(getValidator(name)));
+//    		propertyDescriptor.setValidator(new CompilableValueValidator(getValidator(name)));
     	}
         
     	if (propertyDescriptor != null) {
@@ -658,13 +656,17 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		return false;
 	}
 
-	public void resetPropertyValue(Object id) {
-	}
-
+	public void resetPropertyValue(Object id) {	}
+	
 	public void setPropertyValue(Object id, Object value) {
 		DatabaseObject databaseObject = getObject();
 		Object oldValue = getPropertyValue(id);
 		String propertyName = (String) id;
+		
+		if (oldValue != null && oldValue.equals(value)) {
+			return;
+		}
+		
 		try {
 			java.beans.PropertyDescriptor databaseObjectPropertyDescriptor = getPropertyDescriptor(propertyName);
 
@@ -707,8 +709,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				// Retrieve compiled value or remove source value if any
 				if (value.toString().indexOf("${") == -1)
 					databaseObject.removeCompilablePropertySourceValue(propertyName);
-				else
-					value = DatabaseObject.compileProperty(databaseObject, propertyClass, propertyName, value);
+				
+				value = DatabaseObject.compileProperty(databaseObject, propertyClass, propertyName, value);
 				
 				if ((propertyClass == int.class) || (propertyClass == Integer.class)) {
 					if (!(value instanceof Integer))	value = new Integer(value.toString());
@@ -820,6 +822,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		        	tree.update();
 		        }	        
 	        }
+	        
 	        TreeObjectEvent treeObjectEvent = new TreeObjectEvent(this, propertyName, oldValue, value);
 	        ConvertigoPlugin.projectManager.getProjectExplorerView().fireTreeObjectPropertyChanged(treeObjectEvent);
         }
