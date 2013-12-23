@@ -231,13 +231,22 @@ public class ContextManager extends AbstractRunnableManager {
 				// for Call steps
 			}
 			synchronized(contexts) {
+				long numberOfContext = contexts.size();
+				long maxNumberOfContext = EnginePropertiesManager.getPropertyAsLong(PropertyName.CONVERTIGO_MAX_CONTEXTS);
+				if (numberOfContext >= maxNumberOfContext) {
+					Engine.logContextManager.warn("Max number of contexts reached: " + numberOfContext + "/" + maxNumberOfContext);
+					throw new MaxNumberOfContextsException("Maximum number of contexts reached, please try later");
+				} else {
+					Engine.logContextManager.debug("Current number of contexts: " + numberOfContext + "/" + maxNumberOfContext);
+				}
+				
 				Engine.logContextManager.debug("Context \"" + contextName + "\" not found; creating the execution context");
 				context = new Context(contextID);
 				context.name = contextName;
 				context.cacheEntry = null;
 				currentContextNum++;
 				context.contextNum = currentContextNum;
-				long creationTime = Calendar.getInstance().getTime().getTime();
+				long creationTime = System.currentTimeMillis();
 				Engine.logContextManager.debug("Setting the creation time for context " + contextID + ": " + creationTime);
 				context.creationTime = creationTime;
 				context.lastAccessTime = creationTime;

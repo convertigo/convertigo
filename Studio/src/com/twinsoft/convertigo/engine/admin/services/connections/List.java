@@ -81,7 +81,7 @@ public class List extends XmlService{
         rootElement.appendChild(connectionsListElement);
         
         Element contextsInUseElement = document.createElement("contextsInUse");
-        Text connectedUsersTextNode = document.createTextNode(Integer.toString(Engine.theApp.contextManager.getNumberOfContexts()));
+        Text connectedUsersTextNode = document.createTextNode("" + Engine.theApp.contextManager.getNumberOfContexts() + "/" + EnginePropertiesManager.getProperty(PropertyName.CONVERTIGO_MAX_CONTEXTS));
         contextsInUseElement.appendChild(connectedUsersTextNode);
         rootElement.appendChild(contextsInUseElement);
         
