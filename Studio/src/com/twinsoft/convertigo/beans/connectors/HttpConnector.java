@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -72,6 +71,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.methods.TraceMethod;
+import org.apache.commons.httpclient.params.HttpConnectionParams;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -1274,6 +1274,10 @@ public class HttpConnector extends Connector {
 			}
 			
 			HttpUtils.logCurrentHttpConnection(hostConfiguration);
+			
+			hostConfiguration.getParams().setIntParameter(HttpConnectionParams.SO_TIMEOUT, (int) context.requestedObject.getResponseTimeout() * 1000);
+			hostConfiguration.getParams().setIntParameter(HttpConnectionParams.CONNECTION_TIMEOUT, (int) context.requestedObject.getResponseTimeout() * 1000);
+			
 			Engine.logBeans.debug("(HttpConnector) HttpClient: executing method...");
 			statuscode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 			Engine.logBeans.debug("(HttpConnector) HttpClient: end of method successfull");

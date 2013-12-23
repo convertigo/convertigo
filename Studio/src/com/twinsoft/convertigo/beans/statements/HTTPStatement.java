@@ -849,12 +849,19 @@ public class HTTPStatement extends Statement implements IVariableContainer, ITri
 				
 				HtmlTransaction htmlTransaction = getParentTransaction();
 				int exVerb = htmlTransaction.getHttpVerb();
+				long exTimeout = htmlTransaction.getResponseTimeout();
+				
 				try {
 					htmlTransaction.setHttpVerb(getHttpVerb());
+					try {
+						htmlTransaction.setResponseTimeout(getTrigger().getTrigger().getTimeout() / 1000);
+					} finally {}
+					
 					htmlTransaction.applyUserRequest(this);
-				return true;
+					return true;
 				} finally {
 					htmlTransaction.setHttpVerb(exVerb);
+					htmlTransaction.setResponseTimeout(exTimeout);
 				}
 			}
 		}

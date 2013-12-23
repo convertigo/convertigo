@@ -827,7 +827,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 				HostConfiguration hostConfiguration = getHostConfiguration(shuttle);
 
 				HttpMethodParams httpMethodParams = httpMethod.getParams();
-				httpMethodParams.setParameter("http.connection.stalecheck", new Boolean(true));
+				httpMethodParams.setBooleanParameter("http.connection.stalecheck", true);
 				httpMethodParams.setParameter(HttpMethodParams.RETRY_HANDLER,
 						new DefaultHttpMethodRetryHandler(3, true));
 
