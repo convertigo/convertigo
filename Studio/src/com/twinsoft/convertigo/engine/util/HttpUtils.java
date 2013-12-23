@@ -231,7 +231,7 @@ public class HttpUtils {
 				MultiThreadedHttpConnectionManager mtHttpConnectionManager = (MultiThreadedHttpConnectionManager) httpConnectionManager;
 				int connections = mtHttpConnectionManager.getConnectionsInPool();
 				int connectionsForHost = mtHttpConnectionManager.getConnectionsInPool(hostConfiguration);
-				Engine.logEngine.info("(HttpUtils) Currently " + connections + " HTTP connections in use, " + connectionsForHost + " for " + hostConfiguration.getHost() + "; Creating a new one ...");
+				Engine.logEngine.info("(HttpUtils) Currently " + connections + " HTTP connections pooled, " + connectionsForHost + " for " + hostConfiguration.getHost() + "; Getting one ...");
 			}
 		}
 	}
