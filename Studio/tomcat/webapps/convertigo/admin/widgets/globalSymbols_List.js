@@ -7,7 +7,7 @@
  * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+// * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
@@ -217,14 +217,15 @@ function updateSymbol() {
 	var $symbol = $("#symbolsList").find('.ui-widget-content');
 	var nbSymbol = $symbol.length;
 	var symbols = [];
+	var	isempty = nbSymbol < 1;
 	$symbol.each(function(index) {
 		var name = $($symbol.eq(index)).children("td")[0];
 		var value = $($symbol.eq(index)).children("td")[1];
 		symbols.push(name.title+"="+value.title);
 	});
-	
-	$.post("services/global_symbols.Update",{
-		symbols : symbols}, 
+
+	$.post("services/global_symbols.Update",
+		{symbols : symbols, isempty : isempty}, 
 		function(xml){
 			if($(xml).find("error").length != 0) {
 				var message = $(xml).find("message").text()

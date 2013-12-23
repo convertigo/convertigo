@@ -44,12 +44,15 @@ public class Update extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		String[] symbols = request.getParameterValues("symbols");
+        String isempty = request.getParameter("isempty");
         
         Properties prop = new Properties();
-        for (int i=0; i < symbols.length ; i++) {
-        	String [] values = symbols[i].split("=");
-        	prop.setProperty(values[0], values[1]);
-        } 
+        if (isempty.equals("false") && symbols != null) {
+	        for (int i=0; i < symbols.length ; i++) {
+	        	String [] values = symbols[i].split("=");
+	        	prop.setProperty(values[0], values[1]);
+	        } 
+        }
         prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");        
     	
     	Engine.theApp.databaseObjectsManager.updateSymbols(prop);
