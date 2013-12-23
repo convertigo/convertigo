@@ -101,7 +101,7 @@ public class ScreenClassHelper<SC extends ScreenClass> {
 		}
 	}
 	
-	public SC getCurrentScreenClass() {
+	public SC getCurrentScreenClass() throws EngineException {
 		return findScreenClass(getDefaultScreenClass());
 	}
 	
@@ -109,12 +109,14 @@ public class ScreenClassHelper<SC extends ScreenClass> {
 		return GenericUtils.cast(screenClass.getInheritedScreenClasses());
 	}
 	
-	private  SC findScreenClass(SC currentScreenClass) {
+	private  SC findScreenClass(SC currentScreenClass) throws EngineException {
 		int scDepth = currentScreenClass.getDepth() * 3;
 		String tab = scDepth == 0 ? "" : String.format("%" + scDepth + "s", "");
 		Engine.logBeans.trace(tab + "Analyzing screen class " + currentScreenClass.getName());
-
+		currentScreenClass.checkSymbols();
+		
 		for (Criteria criteria : currentScreenClass.getLocalCriterias()) {
+			criteria.checkSymbols();
 			if (criteria.isMatching(connector)) {
 				Engine.logBeans.trace(tab + ". Criteria " + criteria.getName() + " is matching");
 			} else {

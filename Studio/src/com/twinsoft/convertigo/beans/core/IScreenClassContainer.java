@@ -36,7 +36,7 @@ public interface IScreenClassContainer<SC extends ScreenClass> {
 
 	public void add(DatabaseObject databaseObject) throws EngineException;
 	
-	public SC getCurrentScreenClass();
+	public SC getCurrentScreenClass() throws EngineException;
 	
 	public SC getScreenClassByName(String screenClassName);
 	

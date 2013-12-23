@@ -759,6 +759,7 @@ public class HtmlTransaction extends HttpTransaction {
 //		if (bStatistics) {
 //			th = context.statistics.start(EngineStatistics.APPLY_SCREENCLASS_HANDLERS);
 //		}
+		handlerStatement.checkSymbols();
 		
 		Object returnedValue = null;
 		try {
@@ -861,7 +862,8 @@ public class HtmlTransaction extends HttpTransaction {
 				}
 
 				Engine.logBeans.debug("(HtmlTransaction) Applying the extraction rule \"" + extractionRule.getName() + "\"");
-
+				extractionRule.checkSymbols();
+				
 				String extractionRuleQName = extractionRule.getQName();
 				if (vExtractionRulesInited.contains(extractionRuleQName)) {
 					extractionRuleInitReason = ExtractionRule.ACCUMULATING;

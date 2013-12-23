@@ -496,6 +496,7 @@ public class Context extends AbstractContext implements Cloneable {
 		}else{
 			setConnector(project.getConnectorByName(connectorName));
 			Engine.logContext.debug("Loaded connector: " + connectorName);
+			getConnector().checkSymbols();
 			used_connectors.put(key, getConnector());
 		}
 	}
@@ -514,6 +515,7 @@ public class Context extends AbstractContext implements Cloneable {
 		requestedObject = sequence;
 		
 		Engine.logContext.debug("Sequence loaded: " + requestedObject.getName());
+		requestedObject.checkSymbols();
 		
 		setConnector(null);
 		transaction = null;

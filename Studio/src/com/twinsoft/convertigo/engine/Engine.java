@@ -1046,9 +1046,11 @@ public class Engine {
 					Engine.logContext.debug("Project loaded: " + context.project.getName());
 				}
 			}
+			context.project.checkSymbols();
 
 			// Loading sequence
 			if (context.sequenceName != null) {
+				
 				context.loadSequence();
 			} else {
 				// Loading connector
@@ -1073,6 +1075,7 @@ public class Engine {
 					}
 					Engine.logContext.debug("Transaction loaded: " + context.requestedObject.getName());
 				}
+				context.transaction.checkSymbols();
 
 				if (context.getConnector().isTasAuthenticationRequired()) {
 					if (context.tasSessionKey == null) {

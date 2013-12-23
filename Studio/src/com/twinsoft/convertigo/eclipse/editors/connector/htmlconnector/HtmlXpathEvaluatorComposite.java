@@ -178,14 +178,18 @@ public class HtmlXpathEvaluatorComposite extends XpathEvaluatorComposite {
 	}
 
 	protected void buttonSelected(String name) {
-		if (name.equals("screenclass")) {
-			htmlDesign.createScreenClassFromSelection();
-		} else if (name.equals("criterion")) {
-			htmlDesign.createCriteriasFromSelection(getDom());
-		} else if (name.equals("extractionrule")) {
-			htmlDesign.createExtractionRuleFromSelection(getDom());
-		} else if (name.equals("statement")) {
-			htmlDesign.createStatementFromSelection();
+		try {
+			if (name.equals("screenclass")) {
+				htmlDesign.createScreenClassFromSelection();
+			} else if (name.equals("criterion")) {
+				htmlDesign.createCriteriasFromSelection(getDom());
+			} else if (name.equals("extractionrule")) {
+				htmlDesign.createExtractionRuleFromSelection(getDom());
+			} else if (name.equals("statement")) {
+				htmlDesign.createStatementFromSelection();
+			}
+		} catch (EngineException e) {
+			ConvertigoPlugin.logInfo("Engine exception occurs: "+e.getMessage());
 		}
 	}
 

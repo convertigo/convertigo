@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,6 +57,8 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.Version;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.steps.SmartType;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.DatabaseObjectNotFoundException;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
@@ -165,6 +168,25 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		} catch (Exception e) {
 			Engine.logBeans.error("Unable to get the bean icon.", e);
 			return null;
+		}
+	}
+
+	public void checkSymbols() throws EngineException {
+		if (symbolsErrors != null) {
+			Iterator<String> iterator = symbolsErrors.iterator();
+			if (iterator.hasNext()) {
+				String message = "The property '"+iterator.next()+"' of '"+getName()+"' have an undefined global symbol!";
+				if (Engine.isStudioMode()) {
+					try {
+						Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin"); 
+					 	Method m = convertigoPlugin.getMethod("warningMessageBox", String.class); 
+					 	m.invoke(null, message); 
+					} catch (Exception e) {
+						Engine.logBeans.error("Unable to invoke the warningMessageBox method.", e);
+					}  
+				}
+				throw new EngineException(message);
+			}
 		}
 	}
 

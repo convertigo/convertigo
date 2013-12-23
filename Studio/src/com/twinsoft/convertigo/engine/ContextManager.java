@@ -843,6 +843,7 @@ public class ContextManager extends AbstractRunnableManager {
 				return null;
 			}
 			Engine.logContextManager.debug("Found pool=" + pool);
+			pool.checkSymbols();
 
 			String contextIDPrefix = ContextManager.getPoolContextID(projectName, connectorName, poolName, "");
 

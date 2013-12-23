@@ -1047,7 +1047,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		return sort(screenClassHelper.getAllScreenClasses());
 	}
 
-	public SiteClipperScreenClass getCurrentScreenClass() {
+	public SiteClipperScreenClass getCurrentScreenClass() throws EngineException {
 		return screenClassHelper.getCurrentScreenClass();
 	}
 

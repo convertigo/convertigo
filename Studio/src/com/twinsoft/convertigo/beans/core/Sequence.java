@@ -1467,7 +1467,8 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			stepToExecute.httpState = ((stepToExecute instanceof BranchStep) ? getNewHttpState():getStepHttpState());
 			stepToExecute.executedSteps.putAll(executedSteps);
 			Engine.logBeans.trace("(Sequence) "+step+" ["+step.hashCode()+"] has been copied into "+stepToExecute+" ["+stepToExecute.hashCode()+"]");
-    		
+    		stepToExecute.checkSymbols();
+			
     		if (stepToExecute.execute(javascriptContext, scope)) {
     			//childrenSteps.put(new Long(stepToExecute.priority), stepToExecute.executeTimeID);
     			childrenSteps.put(stepToExecute.executeTimeID, new Long(stepToExecute.priority));

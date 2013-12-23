@@ -203,10 +203,11 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 	 * Returns the current screen class.
 	 * 
 	 * @return the current screen class.
+	 * @throws EngineException 
 	 * 
 	 * @EngineException exception if any error occurs.
 	 */
-	public final HtmlScreenClass getCurrentScreenClass() {
+	public final HtmlScreenClass getCurrentScreenClass() throws EngineException {
 		return screenClassHelper.getCurrentScreenClass();
 	}
 	

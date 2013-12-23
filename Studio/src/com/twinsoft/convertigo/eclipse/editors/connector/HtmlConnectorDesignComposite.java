@@ -217,9 +217,13 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 							if (htmlConnector.isLearning()) {
 								HtmlTransaction htmlTransaction = (HtmlTransaction) htmlConnector.getLearningTransaction();
 								htmlTransaction.setCurrentXmlDocument(dom);
-								detectedScreenClass = htmlConnector.getCurrentScreenClass();
-								Engine.theApp.fireObjectDetected(new EngineEvent(detectedScreenClass));
-								ConvertigoPlugin.logDebug2("(HtmlConnectorDesignComposite) detected screen class '" + detectedScreenClass.getName() + "'");
+								try {
+									detectedScreenClass = htmlConnector.getCurrentScreenClass();
+									Engine.theApp.fireObjectDetected(new EngineEvent(detectedScreenClass));
+									ConvertigoPlugin.logDebug2("(HtmlConnectorDesignComposite) detected screen class '" + detectedScreenClass.getName() + "'");
+								} catch (EngineException e) {
+									ConvertigoPlugin.logInfo("Engine exception occurs: "+e.getMessage());
+								}
 							}
 						}
 					}
@@ -604,7 +608,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		webViewer.addDocumentCompletedListener(documentCompletedListener);
 	}
 
-	public HtmlScreenClass getParentHtmlScreenClass() {
+	public HtmlScreenClass getParentHtmlScreenClass() throws EngineException {
 		HtmlScreenClass parentObject = null;
 
 		// Case of Learning mode
@@ -671,7 +675,11 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 				synchronized (htmlConnector) {
 					Document currentDom = htmlConnector.getCurrentXmlDocument();
 					htmlConnector.setCurrentXmlDocument(currentWebDom);
-					htmlScreenClass = htmlConnector.getCurrentScreenClass();
+					try {
+						htmlScreenClass = htmlConnector.getCurrentScreenClass();
+					} catch (EngineException e) {
+						ConvertigoPlugin.logInfo("Engine exception occurs: "+e.getMessage());
+					}
 					htmlConnector.setCurrentXmlDocument(currentDom);
 				}
 				fireObjectSelected(new CompositeEvent(htmlScreenClass));
@@ -1273,7 +1281,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		return domTreeComp;
 	}
 	
-	public void createScreenClassFromSelection() {
+	public void createScreenClassFromSelection() throws EngineException {
 		String className = "com.twinsoft.convertigo.beans.core.ScreenClass";
 		
 		// Retrieve selected criteria xpath
@@ -1318,7 +1326,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		}
 	}
 	
-	public void createCriteriasFromSelection(Document dom) {
+	public void createCriteriasFromSelection(Document dom) throws EngineException {
 		String className = "com.twinsoft.convertigo.beans.core.Criteria";
 		
 		// Retrieve selected criterias xpath
@@ -1362,7 +1370,7 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 		return criteria;
 	}
 
-	public void createExtractionRuleFromSelection(Document dom) {
+	public void createExtractionRuleFromSelection(Document dom) throws EngineException {
 		String className = "com.twinsoft.convertigo.beans.core.ExtractionRule";
 		
 		// Retrieve selected extraction rule xpath
