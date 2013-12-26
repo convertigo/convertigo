@@ -71,18 +71,20 @@ public class BnppPlugin extends Plugin {
 		}
 */
 		try {
-			logCustom = new Log(Engine.LOG_PATH + "/custom.log");
-			logCustom.logLevel = Log.LOGLEVEL_MESSAGE;
-			logCustom.setLogStringFormat("%m" + Log.lineSeparator);
-			logCustom.createDailyLogFiles(true);
-			String headerLine = getProperty("custom.log.header","ClientIP,SessionID,Date,User,Request URI,Transaction,Parameters,Convertigo duration (ms),BDF duration (ms)");
-			if (headerLine != null) {
-			 	String s = ""; 
-				String[] headers = headerLine.split(","); 
-			 	for (int i=0;i<headers.length;i++) 
-			 		s += (s.equals("")?"":"\t| ") + headers[i]; 
-			 	logCustom.message("\n"+s);
-			 }
+			if ("true".equals(getProperty("custom.log", "false"))) {
+				logCustom = new Log(Engine.LOG_PATH + "/custom.log");
+				logCustom.logLevel = Log.LOGLEVEL_MESSAGE;
+				logCustom.setLogStringFormat("%m" + Log.lineSeparator);
+				logCustom.createDailyLogFiles(true);
+				String headerLine = getProperty("custom.log.header","ClientIP,SessionID,Date,User,Request URI,Transaction,Parameters,Convertigo duration (ms),BDF duration (ms)");
+				if (headerLine != null) {
+				 	String s = ""; 
+					String[] headers = headerLine.split(","); 
+				 	for (int i=0;i<headers.length;i++) 
+				 		s += (s.equals("")?"":"\t| ") + headers[i]; 
+				 	logCustom.message("\n"+s);
+				 }
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
