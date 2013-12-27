@@ -57,8 +57,6 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.Version;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.steps.SmartType;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.DatabaseObjectNotFoundException;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
