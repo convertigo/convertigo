@@ -106,6 +106,10 @@ public class List extends XmlService {
     		Engine.logAdmin.debug("   password (ciphered)=" + certificatePwd);
     		Engine.logAdmin.debug("   group=" + certificateGroup);
 
+    		if (certificateType == null) {
+    			Engine.logAdmin.error("Corrupted certificate '"+certificateName+"' : missing type");
+    		}
+    		
     		if (certificatePwd.length() > 0) {
     			try {
 					certificatePwd   = Crypto2.decodeFromHexString((String) storesProperties.getProperty(certificateName));
