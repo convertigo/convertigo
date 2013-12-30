@@ -58,7 +58,6 @@ import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -286,27 +285,22 @@ public class ProjectUtils {
 		return false;
 	}
 	
-	public static void addUndefinedGlobalSymbols(Project currentProject){
+	public static void addUndefinedGlobalSymbols(Project currentProject) throws Exception {
 		Map<String,String> globalSymbols = new HashMap<String,String>();
 		addUndefinedGlobalSymbols(currentProject, globalSymbols);
 		
 		//Update the global symbols file
-        try {
-			Properties prop = new Properties();
-	        prop.load(new FileInputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()));
-	        
-	        if (globalSymbols != null) {
-		        for (String symbol : globalSymbols.keySet()) {
-		        	prop.setProperty(symbol, globalSymbols.get(symbol) == null ? "0" : globalSymbols.get(symbol));
-		        } 
-	        }
-			prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");
-       
-			Engine.theApp.databaseObjectsManager.updateSymbols(prop);
-			ConvertigoPlugin.infoMessageBox("The global symbols file has been successfully updated!");
-		} catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Unable to update global symbols from the selected project!\n"+e.getMessage());
-		} 
+		Properties prop = new Properties();
+        prop.load(new FileInputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()));
+        
+        if (globalSymbols != null) {
+	        for (String symbol : globalSymbols.keySet()) {
+	        	prop.setProperty(symbol, globalSymbols.get(symbol) == null ? "0" : globalSymbols.get(symbol));
+	        } 
+        }
+		prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");
+   
+		Engine.theApp.databaseObjectsManager.updateSymbols(prop);
 	}
 	
 	private static void addUndefinedGlobalSymbols(DatabaseObject currentDBO, Map<String,String> globalSymbols){

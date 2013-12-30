@@ -60,6 +60,8 @@ public class DeclareGlobalSymbolsFromThisProjectAction extends MyAbstractAction 
     				
     				//Reload the project
     				explorerView.reloadProject(treeObject);
+    				
+    				ConvertigoPlugin.infoMessageBox("The global symbols file has been successfully updated!"); 
     			}
     		}
         	

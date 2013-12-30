@@ -64,6 +64,7 @@ public class Declare extends XmlService {
 
 			if (object instanceof Project) {
 				Project project = (Project) object;
+				
 				ProjectUtils.addUndefinedGlobalSymbols(project);
 			}
 		} catch (Exception e) {
