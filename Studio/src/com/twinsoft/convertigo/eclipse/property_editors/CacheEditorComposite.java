@@ -77,6 +77,7 @@ public class CacheEditorComposite extends AbstractDialogComposite {
 		//We initialize widgets in case we have already a value
 		initializeWidgets();
 
+		this.getShell().setSize(340, 350);
 	}
 
 	private void initializeWidgets() {
@@ -247,6 +248,7 @@ public class CacheEditorComposite extends AbstractDialogComposite {
 		else
 			pack(true);
 
+		this.getShell().setSize(340, 350);
 	}
 	
 	private void showWidgetsGeneratorTools(int mode, boolean auto){
@@ -278,6 +280,8 @@ public class CacheEditorComposite extends AbstractDialogComposite {
 			getShell().pack(true);
 		else
 			pack(true);
+		
+		this.getShell().setSize(340, 350);
 	}
 	
 	private void manageOK(){
