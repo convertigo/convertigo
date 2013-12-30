@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -1289,6 +1290,8 @@ public class HttpConnector extends Connector {
 					Engine.logBeans.trace("(HttpConnector) HttpClient response cookies:"
 							+ Arrays.asList(cookies).toString());
 			}
+		} catch (SocketTimeoutException e) {
+			throw new ConnectionException("Timeout reached (" + context.requestedObject.getResponseTimeout() + " sec)");
 		} catch (IOException e) {
 			try {
 				HttpUtils.logCurrentHttpConnection(hostConfiguration);

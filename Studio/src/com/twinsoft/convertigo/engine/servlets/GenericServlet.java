@@ -360,6 +360,7 @@ public abstract class GenericServlet extends HttpServlet {
 			throw new ServletException(e);
 		} else {
 			try {
+				response.addHeader("Convertigo-Exception", e.getClass().getName());
 				response.setContentType("text/plain");
 				PrintWriter out = response.getWriter();
 				out.println("Convertigo error: " + e.getMessage());

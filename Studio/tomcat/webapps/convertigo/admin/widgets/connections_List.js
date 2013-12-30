@@ -25,6 +25,7 @@ var desc="&desc";
 
 function updateConnectionsList(xml) {
 	$("#connectionsContextsInUse").html($(xml).find("contextsInUse").text());
+	$("#connectionsContextsNumber").html($(xml).find("contextsNumber").text());
 	$("#connectionsThreadsInUse").html($(xml).find("threadsInUse").text());
 	$("#connectionsThreadsNumber").html($(xml).find("threadsNumber").text());
 	$("#connectionsHttpTimeout").html($(xml).find("httpTimeout").text());
@@ -73,6 +74,7 @@ function connections_List_init() {
 	callService("connections.List",
 	    function(xml){			
 			$("#connectionsContextsInUse").html($(xml).find("contextsInUse").text());
+			$("#connectionsContextsNumber").html($(xml).find("contextsNumber").text());
 			$("#connectionsThreadsInUse").html($(xml).find("threadsInUse").text());
 			$("#connectionsThreadsNumber").html($(xml).find("threadsNumber").text());
 			$("#connectionsHttpTimeout").html($(xml).find("httpTimeout").text());
