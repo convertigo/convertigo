@@ -81,9 +81,14 @@ public class List extends XmlService{
         rootElement.appendChild(connectionsListElement);
         
         Element contextsInUseElement = document.createElement("contextsInUse");
-        Text connectedUsersTextNode = document.createTextNode("" + Engine.theApp.contextManager.getNumberOfContexts() + "/" + EnginePropertiesManager.getProperty(PropertyName.CONVERTIGO_MAX_CONTEXTS));
+        Text connectedUsersTextNode = document.createTextNode("" + Engine.theApp.contextManager.getNumberOfContexts());
         contextsInUseElement.appendChild(connectedUsersTextNode);
         rootElement.appendChild(contextsInUseElement);
+        
+        Element contextsNumberElement = document.createElement("contextsNumber");
+        Text contextsNumberTextNode = document.createTextNode("" + EnginePropertiesManager.getProperty(PropertyName.CONVERTIGO_MAX_CONTEXTS));
+        contextsNumberElement.appendChild(contextsNumberTextNode);
+        rootElement.appendChild(contextsNumberElement);
         
         Element threadsInUseElement = document.createElement("threadsInUse");
         Text threadsInUseTextNode = document.createTextNode("" + com.twinsoft.convertigo.beans.core.RequestableObject.nbCurrentWorkerThreads);

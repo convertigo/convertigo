@@ -1256,7 +1256,7 @@ public class HttpConnector extends Connector {
 							+ Arrays.asList(cookies).toString());
 			}
 		} catch (SocketTimeoutException e) {
-			throw new ConnectionException("Timeout riched (" + context.requestedObject.getResponseTimeout() + " sec)");
+			throw new ConnectionException("Timeout reached (" + context.requestedObject.getResponseTimeout() + " sec)");
 		} catch (IOException e) {
 			try {
 				HttpUtils.logCurrentHttpConnection(hostConfiguration);
