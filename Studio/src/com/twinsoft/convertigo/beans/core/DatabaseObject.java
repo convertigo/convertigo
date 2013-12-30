@@ -39,10 +39,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -81,6 +84,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	public static final String PROPERTY_XMLNAME = "xmlname";
 	
 	private transient Set<String> symbolsErrors = null;
+	private transient static Map<String,String> symbolsDefaultsValues = null;
 
 	private static class SubLoader extends WalkHelper {
 		DatabaseObject databaseObject;
@@ -869,13 +873,13 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			String propertyName, Object propertyObjectValue) throws CompilablePropertyException {
 		// This a property that does not need to be compiled; remove source
 		// value if any
-
+		
 		if (!valueIsCompilable(propertyObjectValue)) {
 			databaseObject.removeCompilablePropertySourceValue(propertyName);
-			databaseObject.removeSymbolError(propertyName);
+			databaseObject.removeSymbolError(propertyObjectValue.toString());
 			return propertyObjectValue;
 		}
-
+		
 		// Update source value and retrieve compiled value
 		databaseObject.setCompilablePropertySourceValue(propertyName, propertyObjectValue);
 		Engine.logBeans.trace("  source value='" + propertyObjectValue.toString() + "'");
@@ -914,14 +918,14 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			
 			// Add warn message into the log
 			Engine.logBeans.warn(message);	
-			databaseObject.addSymbolError(propertyName);
+			databaseObject.addSymbolError(propertyObjectValue.toString());
 			
 			if ((propertyType != String.class)) {
 				return "0";
 			}
 			
 		} else { 
-			databaseObject.removeSymbolError(propertyName);
+			databaseObject.removeSymbolError(propertyObjectValue.toString());
 		}
 		
 		return compiledValue;
@@ -974,6 +978,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 								return propertyObjectValue;
 							} else {
 								symbolCompiledValue = symbolDefaultValue;
+								if (symbolsDefaultsValues == null)
+									symbolsDefaultsValues = new HashMap<String,String>();
+								symbolsDefaultsValues.put(symbolName,symbolDefaultValue);
 							}
 						}
 
@@ -1375,19 +1382,56 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		}
 	}
 	
-	public void addSymbolError(String propertyName){
+	public void addSymbolError(String propertyValue){
+		String[] value = extractSymbol(propertyValue);
+		
 		if (symbolsErrors == null) {
 			symbolsErrors = new HashSet<String>();
 		}
-		symbolsErrors.add(propertyName);
-	}
-	
-	public void removeSymbolError(String propertyName){
-		if(symbolsErrors != null) {
-			symbolsErrors.remove(propertyName);
+		
+		for (int i = 0 ; i < value.length ; i++) {
+			symbolsErrors.add(value[i]);
 		}
 	}
+	
+	public void removeSymbolError(String propertyValue){
+		String[] value = extractSymbol(propertyValue);
+		
+		if (symbolsErrors != null) {
+			for (int i = 0 ; i < value.length ; i++) {
+				symbolsErrors.remove(value[i]);
+			}
+		}
+	}
+	
 	public boolean isSymbolError(){
 		return (symbolsErrors != null && symbolsErrors.size() != 0);		
+	}
+	
+	public Set<String> getSymbolsErrors(){
+		if (isSymbolError()) {
+			return symbolsErrors;
+		}
+		return null;
+	}
+	
+	public Map<String,String> getSymbolsDefaulsValues(){
+		return symbolsDefaultsValues;
+	}
+	
+	private String[] extractSymbol(String propertyValue) {
+		Pattern p = Pattern.compile("\\$\\{([^\\{\\}]*)\\}");
+		Matcher m = p.matcher(propertyValue);
+		List<String> extract = new LinkedList<String>();
+		
+		while (m.find()) {
+			extract.add(m.group(1));
+		}
+		
+		if (extract.size() == 0) {
+			return new String[1];
+		} else {
+			return (String[]) extract.toArray(new String[extract.size()]);
+		}
 	}
 }

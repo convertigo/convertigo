@@ -26,11 +26,17 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -52,6 +58,7 @@ import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -129,6 +136,8 @@ public class ProjectUtils {
 			throw new Exception("File \""+oldPath+"\" does not exist");
 		}
 	}
+	
+	
 	
 	public static void renameXsdFile(String projectsDir, String sourceProjectName, String targetProjectName) throws Exception {
 		String oldPath = projectsDir + "/" + targetProjectName + "/" + sourceProjectName + ".xsd";
@@ -275,5 +284,53 @@ public class ProjectUtils {
 			}
 		}
 		return false;
+	}
+	
+	public static void addUndefinedGlobalSymbols(Project currentProject){
+		Map<String,String> globalSymbols = new HashMap<String,String>();
+		addUndefinedGlobalSymbols(currentProject, globalSymbols);
+		
+		//Update the global symbols file
+        try {
+			Properties prop = new Properties();
+	        prop.load(new FileInputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()));
+	        
+	        if (globalSymbols != null) {
+		        for (String symbol : globalSymbols.keySet()) {
+		        	prop.setProperty(symbol, globalSymbols.get(symbol) == null ? "0" : globalSymbols.get(symbol));
+		        } 
+	        }
+			prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");
+       
+			Engine.theApp.databaseObjectsManager.updateSymbols(prop);
+			ConvertigoPlugin.infoMessageBox("The global symbols file has been successfully updated!");
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to update global symbols from the selected project!\n"+e.getMessage());
+		} 
+	}
+	
+	private static void addUndefinedGlobalSymbols(DatabaseObject currentDBO, Map<String,String> globalSymbols){
+		List<DatabaseObject> dboChildrens = null;
+		
+		if ((dboChildrens = currentDBO.getAllChildren()) != null) {
+			for (DatabaseObject dboChild : dboChildrens) {
+				addUndefinedGlobalSymbols(dboChild,globalSymbols);
+			}
+		}
+		
+		Set<String> symbols = null;
+		if ((symbols = currentDBO.getSymbolsErrors()) != null) {
+			for (String symb : symbols) {
+				globalSymbols.put(symb,null);
+			}
+		}
+		
+		//We add the symbol with default value
+		Map<String,String> symbolsDefaultsValues = null;
+		if ((symbolsDefaultsValues = currentDBO.getSymbolsDefaulsValues()) != null) {
+			for (String symb : symbolsDefaultsValues.keySet()) {
+				globalSymbols.put(symb, symbolsDefaultsValues.get(symb));
+			}
+		}		
 	}
 }

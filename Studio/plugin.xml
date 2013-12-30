@@ -1245,6 +1245,13 @@
                label="Deploy"
                menubarPath="project"/>
          <action
+	   	 	   class="com.twinsoft.convertigo.eclipse.popup.actions.DeclareGlobalSymbolsFromThisProjectAction"
+			   enablesFor="1"
+			   icon="icons/studio/declare_global_symbols_16x16.gif"
+			   id="convertigo.action.declareGlobalSymbolsFromThisProject"
+			   label="Declare global symbols from this project"
+			   menubarPath="project"/>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectSaveAction"
                enablesFor="1"
                icon="icons/studio/project_save.gif"
