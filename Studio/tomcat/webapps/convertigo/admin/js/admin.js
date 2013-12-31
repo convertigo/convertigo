@@ -37,10 +37,10 @@ $(window).ready(function() {
 		traditional : true
 	});
 	
-	$("#ajax_wait").ajaxStart(function () {
-		$(this).show();
+	$(document).ajaxStart(function () {
+		$("#ajax_wait").show();
 	}).ajaxStop(function () {
-		$(this).fadeOut(1000);
+		$("#ajax_wait").fadeOut(1000);
 	});
 
 	callService("engine.GetSystemInformation", function (xml) {
@@ -104,7 +104,30 @@ $(window).ready(function() {
 	else {
 		displayPage("Home");
 	}
+	
+	checkAuthentication();
 });
+
+function checkAuthentication(){
+	$.ajax( {
+		type : "POST",
+		url : "services/engine.CheckAuthentication",
+		dataType : "xml",
+		data : {},
+		success : function(xml) {
+			var $xml = $(xml);
+			var $authenticated = $xml.find("authenticated");
+			if ($authenticated.text() == "true") {
+				setTimeout(function() {
+					checkAuthentication();
+				}, 5000);
+			} else {
+				document.location.href = "login.html";
+			}
+		},		
+        global: false
+	});
+}
 
 function updateDate(){		
 	var currentDate = new Date();
