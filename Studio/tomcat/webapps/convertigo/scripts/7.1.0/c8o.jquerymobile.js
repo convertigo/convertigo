@@ -58,7 +58,7 @@ $.extend(true, C8O, {
 				if (C8O.isDefined(e.message) && e.message.indexOf("'loader'") == -1) {
        		 		C8O.log.error("c8o.jqm : failed to show loading", e);
 				} else {
-					C8O.log.trace("c8o.jqm : failed to hide loading " + e);
+					C8O.log.trace("c8o.jqm : failed to show loading " + e);
 				}
 			}
 		}
@@ -72,6 +72,20 @@ $.extend(true, C8O, {
 		if (!$.mobile.ajaxBlacklist) {
 			$("<div id=\"c8oloading\"/>").css({backgroundColor: "grey", position: "fixed", width: "100%", height: "100%", opacity: 0.5, "z-index": 99}).hide().appendTo("body");
 		}
+		
+		$(document).on("pageshow", function () {
+			if ($("#c8oloading").is(":visible")) {
+				try {
+					$.mobile.loading("show", C8O.options.loading);
+				} catch (e) {
+					if (C8O.isDefined(e.message) && e.message.indexOf("'loader'") == -1) {
+	       		 		C8O.log.error("c8o.jqm : failed to show loading", e);
+					} else {
+						C8O.log.trace("c8o.jqm : failed to show loading " + e);
+					}
+				}
+			}
+		});
 		
 		C8O._jqm_onDocumentReady(params);
 	},

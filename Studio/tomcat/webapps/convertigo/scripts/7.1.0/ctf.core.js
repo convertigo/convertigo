@@ -380,6 +380,14 @@ $.extend(true, C8O, {
 			
 			// now call c8o with constructed arguments
 			C8O.call(c8oCallParams);
+			
+			var action = null;
+			try {
+				action = JSON.parse($element.attr("data-c8o-action"));
+			} catch (e) {}
+			if (action != null) {
+				C8O._processAction(null, c8oCallParams, action);
+			}
 		}
 		return false;
 	},
@@ -402,6 +410,62 @@ $.extend(true, C8O, {
 			 */	
 			C8O._routeResponse(xml, c8oData);
 		}
+	},
+	
+	_processAction: function ($doc, c8oData, action) {
+		if (C8O.canLog("debug")) {
+			C8O.log.debug("ctf.core: analizyng action " + C8O.toJSON(action));
+		}
+		
+		var routeFound = true;
+		
+		if (C8O.isDefined(action.fromPage)) {
+			C8O.log.debug("ctf.core: required fromPage " + action.fromPage);
+			routeFound = C8O._isActivePage(action.fromPage);
+		}
+		
+		if (routeFound) {
+
+			if (C8O.isDefined(action.condition)) {
+				C8O.log.debug("ctf.core: route condition: " + action.condition);
+				var fnCondition = C8O._getFunction(action.condition);
+				if (fnCondition != null) {
+					routeFound = fnCondition($doc, c8oData);
+				} else {
+					routeFound = C8O._findAndSelf($doc, action.condition).length > 0;
+				}
+				C8O.log.debug("ctf.core: route condition returns: " + routeFound);
+			}
+
+			if (routeFound) {
+				var goToPage = action.goToPage;
+				var afterChange = $doc == null ? function () {} :
+					function () {
+					if (action.beforeRendering) {
+						action.beforeRendering($doc, c8oData);
+					}
+					C8O._renderBindings($doc, c8oData);
+					
+					if (action.afterRendering) {
+						action.afterRendering($doc, c8oData);
+					}
+					C8O.log.debug("ctf.core: rendering done");
+				};
+				
+				// Render in a target page
+				if (goToPage) {
+					C8O.log.info("ctf.core: route found, apply goToPage " + action.goToPage);
+					C8O._changePage(goToPage, action.options, afterChange);
+				}
+				// Render on the same page
+				else {
+					afterChange();
+				}
+				
+				return true;
+			}
+		}
+		return false;
 	},
 	
 	_removeTemplate: function(templateID) {
@@ -689,56 +753,9 @@ $.extend(true, C8O, {
 			if (C8O._isMatching(c8oData, entry.calledRequest)) {
 				for (var j in entry.actions) {
 					var action = entry.actions[j];
-					if (C8O.canLog("debug")) {
-						C8O.log.debug("ctf.core: analizyng action " + C8O.toJSON(action));
-					}
 					
-					var routeFound = true;
-					
-					if (C8O.isDefined(action.fromPage)) {
-						C8O.log.debug("ctf.core: required fromPage " + action.fromPage);
-						routeFound = C8O._isActivePage(action.fromPage);
-					}
-					
-					if (routeFound) {
-
-						if (C8O.isDefined(action.condition)) {
-							C8O.log.debug("ctf.core: route condition: " + action.condition);
-							var fnCondition = C8O._getFunction(action.condition);
-							if (fnCondition != null) {
-								routeFound = fnCondition($doc, c8oData);
-							} else {
-								routeFound = C8O._findAndSelf($doc, action.condition).length > 0;
-							}
-							C8O.log.debug("ctf.core: route condition returns: " + routeFound);
-						}
-	
-						if (routeFound) {
-							var goToPage = action.goToPage;
-							var afterChange = function () {
-								if (action.beforeRendering) {
-									action.beforeRendering($doc, c8oData);
-								}
-								C8O._renderBindings($doc, c8oData);
-								
-								if (action.afterRendering) {
-									action.afterRendering($doc, c8oData);
-								}
-								C8O.log.debug("ctf.core: rendering done");
-							};
-							
-							// Render in a target page
-							if (goToPage) {
-								C8O.log.info("ctf.core: route found, apply goToPage " + action.goToPage);
-								C8O._changePage(goToPage, action.options, afterChange);
-							}
-							// Render on the same page
-							else {
-								afterChange();
-							}
-							
-							return;
-						}
+					if (C8O._processAction($doc, c8oData, action)) {
+						return;
 					}
 				}
 			}
