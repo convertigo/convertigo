@@ -23,21 +23,18 @@
 package com.twinsoft.convertigo.eclipse;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 
 import org.apache.catalina.Context;
-import org.apache.catalina.Engine;
-import org.apache.catalina.Host;
 import org.apache.catalina.connector.Connector;
-import org.apache.catalina.startup.Embedded;
+import org.apache.catalina.startup.Tomcat;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.util.Log;
 
 public class EmbeddedTomcat implements Runnable {
 
-	private Embedded embedded;
+	private Tomcat embedded;
 	public String tomcatHome;
 	
 	/**
@@ -64,79 +61,8 @@ public class EmbeddedTomcat implements Runnable {
 	        
 			// Create an embedded server
 			System.out.println("(EmbeddedTomcat) Creating a new instance of EmbeddedTomcat");
-			embedded = new Embedded();
+			embedded = new Tomcat();
 			
-			embedded.setName("Catalina");
-		
-			// Setup log statements
-//			embedded.setLogger(new LoggerBase() {
-//				protected static final String info = "com.twinsoft.convertigo.studio.EmbeddedTomcatLogger/1.0";
-//				public void log(String msg) {
-//					ConvertigoPlugin.getDefault().tomcatConsoleStream.println(msg);
-//				}
-//			});
-	
-			// Create an engine
-			System.out.println("(EmbeddedTomcat) Creating the engine for 'localhost'");
-
-			Engine engine = embedded.createEngine();
-			engine.setName("catalina");
-
-			engine.setDefaultHost("localhost");
-	
-			// Create a default virtual host
-			System.out.println("(EmbeddedTomcat) Creating the virtual host on 'localhost, " + tomcatHome + "/webapps'");
-
-			Host host = embedded.createHost("localhost", tomcatHome + "/webapps");
-
-			engine.addChild(host);
-
-			// Create the default context
-			System.out.println("(EmbeddedTomcat) Creating the default context");
-
-			Context context = embedded.createContext("", tomcatHome + "/webapps/ROOT");
-			context.setParentClassLoader(this.getClass().getClassLoader());
-			host.addChild(context);
-	
-			// Create all contexts into the webapps directory
-			System.out.println("(EmbeddedTomcat) Creating the webapp contexts");
-			File dir = new File(tomcatHome + "/webapps");
-			String[] directories = dir.list(new FilenameFilter() {
-				public boolean accept(File dir, String name) {
-					return (new File(dir, name)).isDirectory();
-				}
-			});
-			
-			String contextPath, docBase, directory;
-			for (int i = 0 ; i < directories.length ; i++) {
-				directory = directories[i];
-				
-				// Skip ROOT webapps
-				if (directory.equals("ROOT")) continue;
-				
-				contextPath = "/" + directory;
-				docBase = tomcatHome + "/webapps/" + directory;
-				System.out.println("(EmbeddedTomcat) Adding context '" + contextPath + ", " + docBase);
-
-				context = embedded.createContext(contextPath, docBase);
-				context.setParentClassLoader(this.getClass().getClassLoader());
-				
-				if (directory.equals("convertigo")) {
-					File configFile = new File(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH + "/studio/context.xml");
-					if (configFile.exists()) {
-						System.out.println("(EmbeddedTomcat) Set convertigo webapp config file to " + configFile.getAbsolutePath());
-						context.setConfigFile(configFile.getAbsolutePath());
-					}	
-				}
-				
-				host.addChild(context);
-			}
-	
-			// Install the assembled container hierarchy
-			System.out.println("(EmbeddedTomcat) Installing the assembled container hierarchy");
-
-			embedded.addEngine(engine);
-
 			// Assemble and install a default HTTP connector
 			int httpConnectorPort = 8080;
 
@@ -153,20 +79,33 @@ public class EmbeddedTomcat implements Runnable {
 				httpConnectorPort = Integer.parseInt(convertigoServer.substring(i+1, j));
 			}
 
-			System.out.println("(EmbeddedTomcat) Installing the embedded HTTP connector listening on port " + httpConnectorPort);
-			Connector connector = embedded.createConnector((java.net.InetAddress) null, httpConnectorPort, false);
-			embedded.addConnector(connector);
-		
+			embedded.setPort(httpConnectorPort);
+			
 			int httpsConnectorPort = httpConnectorPort + 1;
 			System.out.println("(EmbeddedTomcat) Installing the embedded HTTPS connector listening on port " + httpsConnectorPort);
-			connector = embedded.createConnector((java.net.InetAddress) null, httpsConnectorPort, true);
-			connector.setProtocol ("TLS"); 
-			connector.setSecure(true); 
-			connector.setEnableLookups(false); 
-			connector.setAttribute("keypass", "password"); 
-			connector.setAttribute("keystore", tomcatHome + "/conf/.keystore"); 
-			connector.setAttribute("ClientAuth", false);
-			embedded.addConnector(connector);
+			
+			Connector connector = new Connector();
+			connector.setPort(httpsConnectorPort);
+			connector.setSecure(true);
+			connector.setScheme("https");
+			connector.setAttribute("keystorePass", "password"); 
+			connector.setAttribute("keystoreFile", tomcatHome + "/conf/.keystore"); 
+			connector.setAttribute("clientAuth", false);
+			connector.setAttribute("sslProtocol", "TLS");
+			connector.setAttribute("SSLEnabled", true);
+			embedded.getService().addConnector(connector);
+			
+			Context context = embedded.addWebapp("", tomcatHome + "webapps/ROOT");
+			context.setParentClassLoader(this.getClass().getClassLoader());
+			
+			context = embedded.addWebapp("/convertigo", com.twinsoft.convertigo.engine.Engine.WEBAPP_PATH);
+			context.setParentClassLoader(this.getClass().getClassLoader());
+			
+			File configFile = new File(com.twinsoft.convertigo.engine.Engine.USER_WORKSPACE_PATH + "/studio/context.xml");
+			if (configFile.exists()) {
+				System.out.println("(EmbeddedTomcat) Set convertigo webapp config file to " + configFile.getAbsolutePath());
+				context.setConfigFile(configFile.toURI().toURL());
+			}
 		
 			// Start the embedded server
 			System.out.println("(EmbeddedTomcat) Starting the server");
@@ -179,7 +118,7 @@ public class EmbeddedTomcat implements Runnable {
 			System.out.println("(EmbeddedTomcat) Unexpected exception while launching Tomcat:\n" + stackTrace);
 		}
 	}
-
+	
 	/**
 	 * Stops the Tomcat server.
 	 */
