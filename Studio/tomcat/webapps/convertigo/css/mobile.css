@@ -100,16 +100,28 @@
 	width:360px;
 	height:480px;
 }
-/* *** NokiaLumia920 370x617 *** */
+/* *** NokiaLumia920 384x640 *** */
+
+/* .NokiaLumia920_mask { */
+/* 	width:1032px; */
+/* 	height:1804px; */
+/* 	background-image: url(../images/mobile/NokiaLumia920_mask_1280x768.png); */
+/* } */
+/* .NokiaLumia920_contenu { */
+/* 	top: 221px; */
+/* 	left: 130px; */
+/* 	width:768px; */
+/* 	height:1280px;	 */
+/* } */
 
 .NokiaLumia920_mask {
-	width:1032px;
-	height:1804px;
-	background-image: url(../images/mobile/NokiaLumia920_mask_1280x768.png);
+	width:516px;
+	height:902px;
+	background-image: url(../images/mobile/NokiaLumia920_mask_640x384.png);
 }
 .NokiaLumia920_contenu {
-	top: 221px;
-	left: 130px;
-	width:768px;
-	height:1280px;	
+	top: 110px;
+	left: 65px;
+	width:384px;
+	height:640px;	
 }

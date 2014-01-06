@@ -36,7 +36,7 @@ var vars, defs = {
 		iPhone3 : { name : "iPhone 3", dpi : 163, os: "ios", install: "IPA", useragent: "iphone" },
 		HtcDesire : { name : "HTC Desire", dpi : 169, os: "android", install: "APK", useragent: "android" },
     	BlackBerryTorch : { name : "BlackBerry Torch", dpi : 187.5, os: "blackberry", install: "JAD", useragent: "blackberry" },
-    	NokiaLumia920 : { name : "Nokia Lumia 920", dpi : 169, os: "winphone", install: "XAP", useragent: "winphone" }
+    	NokiaLumia920 : { name : "Nokia Lumia 920", dpi : 166, os: "winphone", install: "XAP", useragent: "winphone" }
 	}
 };
 
