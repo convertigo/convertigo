@@ -1238,6 +1238,13 @@
                label="Export"
                menubarPath="project"/>
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectStatsAction"
+               icon="icons/studio/statistics.gif"
+               id="CemsStudio_7.1.x.action1"
+               label="Statistics"
+               menubarPath="project">
+         </action>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectDeployAction"
                enablesFor="1"
                icon="icons/studio/project_deploy.gif"
