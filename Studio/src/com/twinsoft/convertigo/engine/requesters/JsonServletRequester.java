@@ -24,15 +24,9 @@ package com.twinsoft.convertigo.engine.requesters;
 
 import java.io.UnsupportedEncodingException;
 
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class JsonServletRequester extends ServletRequester {
 
@@ -48,47 +42,9 @@ public class JsonServletRequester extends ServletRequester {
         return;
     }
 	
-	private void handleElement(Element elt, JSONObject obj) throws JSONException {
-		String key = elt.getTagName();
-		
-		JSONObject value = new JSONObject();
-		NodeList nl = elt.getChildNodes();
-		for(int i=0;i<nl.getLength();i++) {
-			Node node = nl.item(i);
-			if(node.getNodeType()==Node.ELEMENT_NODE) {
-				Element child = (Element) node;
-				handleElement(child, value);
-			}
-		}
-		
-		JSONObject attr = new JSONObject();
-		NamedNodeMap nnm = elt.getAttributes();
-		for(int i=0;i<nnm.getLength();i++) {
-			Node node = nnm.item(i);
-			attr.accumulate(node.getNodeName(), node.getNodeValue());
-		}
-		
-		if(value.length()==0) {
-			String content = elt.getTextContent();
-			if(attr.length()==0) obj.accumulate(key, content);
-			else value.accumulate("text", content);
-		}
-		
-		if(attr.length()!=0)
-			value.accumulate("attr", attr);
-		
-		if(value.length()!=0)
-			obj.accumulate(key, value);
-	}
-	
 	@Override
 	public String postGetDocument(Document document) throws Exception {
-		JSONObject json = new JSONObject();
-		handleElement(document.getDocumentElement(), json);
-		String result = json.toString(1);
-		if (Engine.logContext.isDebugEnabled())
-			Engine.logContext.debug("Json string:\n"+result);
-		return result;
+		return XMLUtils.XmlToJson(document.getDocumentElement(), true);
 	}
 	
 	protected Object addStatisticsAsData(Object result) { 
