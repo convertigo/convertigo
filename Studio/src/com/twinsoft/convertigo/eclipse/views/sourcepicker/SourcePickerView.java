@@ -521,9 +521,8 @@ public class SourcePickerView extends ViewPart implements IStepSourceEditor, Ste
 				
 				Project project = step.getProject();
 				XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), true);
-				XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep == null ? step:targetStep);
-				Document stepDoc = XmlSchemaUtils.getDomInstance(xso);
-//				Document stepDoc = step.getWsdlDom();
+				XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep == null ? step : targetStep);
+				Document stepDoc = xso!= null ? XmlSchemaUtils.getDomInstance(xso) : null;
 				if (stepDoc != null) { // stepDoc can be null for non "xml" step : e.g jIf
 					Document doc = step.getSequence().createDOM();
 					Element root = (Element)doc.importNode(stepDoc.getDocumentElement(), true);
