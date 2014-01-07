@@ -1156,13 +1156,19 @@ public class Engine {
 		 	requester.checkAuthenticatedContext(); 
 			
 		 	RequestableObject requestedObject = context.requestedObject;
-
+			
+		 	String contextResponseExpiryDate = (String) context.get(Parameter.ResponseExpiryDate.getName());
+			if (contextResponseExpiryDate != null) {
+				requestedObject.setResponseExpiryDate(contextResponseExpiryDate);
+				context.remove(Parameter.ResponseExpiryDate.getName());
+			}
+			
 			if (context.isAsync) {
 				outputDom = JobManager.addJob(cacheManager, requestedObject, requester, context);
 			} else {
 				outputDom = cacheManager.getDocument(requester, context);
 			}
-
+			
 			Element documentElement = outputDom.getDocumentElement();
 			documentElement.setAttribute("version", Version.fullProductVersion);
 			documentElement.setAttribute("context", context.name);

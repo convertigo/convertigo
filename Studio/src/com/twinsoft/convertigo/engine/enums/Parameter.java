@@ -44,6 +44,7 @@ public enum Parameter {
 	RemoveContext("__removeContext"),
 	RemoveNamespaces("__removeNamespaces"),
 	RemoveSession("__removeSession"),
+	ResponseExpiryDate("__responseExpiryDate"),
 	RsaEncoded("__encoded"),
 	Sequence("__sequence"),
 	SequenceInheritedTransactionContext("__inheritedContext"),
