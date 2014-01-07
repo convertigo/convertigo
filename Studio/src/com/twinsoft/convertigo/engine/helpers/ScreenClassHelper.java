@@ -112,18 +112,18 @@ public class ScreenClassHelper<SC extends ScreenClass> {
 	private  SC findScreenClass(SC currentScreenClass) {
 		int scDepth = currentScreenClass.getDepth() * 3;
 		String tab = scDepth == 0 ? "" : String.format("%" + scDepth + "s", "");
-		Engine.logBeans.debug(tab + "Analyzing screen class " + currentScreenClass.getName());
+		Engine.logBeans.trace(tab + "Analyzing screen class " + currentScreenClass.getName());
 
 		for (Criteria criteria : currentScreenClass.getLocalCriterias()) {
 			if (criteria.isMatching(connector)) {
-				Engine.logBeans.debug(tab + ". Criteria " + criteria.getName() + " is matching");
+				Engine.logBeans.trace(tab + ". Criteria " + criteria.getName() + " is matching");
 			} else {
-				Engine.logBeans.debug(tab + ". Criteria " + criteria.getName() + " not matching; aborting screen class analyze");
+				Engine.logBeans.trace(tab + ". Criteria " + criteria.getName() + " not matching; aborting screen class analyze");
 				return null;
 			}
 		}
 
-		Engine.logBeans.debug(tab + "::: Screen class " + currentScreenClass.getName() + " is matching");
+		Engine.logBeans.trace(tab + "::: Screen class " + currentScreenClass.getName() + " is matching");
 
 		SC bestFoundScreenClass = currentScreenClass;
 		int bestFoundScreenClassNumberOfLocalCriterias  = bestFoundScreenClass.getNumberOfLocalCriterias();
@@ -137,7 +137,7 @@ public class ScreenClassHelper<SC extends ScreenClass> {
 					(screenClassNumberOfLocalCriterias > bestFoundScreenClassNumberOfLocalCriterias)) {
 						bestFoundScreenClass = screenClass;
 						bestFoundScreenClassNumberOfLocalCriterias  = screenClassNumberOfLocalCriterias;
-						Engine.logBeans.debug(tab + "   >>> Found a better screen class " + screenClass.getName());
+						Engine.logBeans.trace(tab + "   >>> Found a better screen class " + screenClass.getName());
 					}
 				}
 			}
@@ -145,7 +145,7 @@ public class ScreenClassHelper<SC extends ScreenClass> {
 		if (bestFoundScreenClass != null) // Setting the returned screen class to the best found one
 			currentScreenClass = bestFoundScreenClass;
         
-		Engine.logBeans.debug(tab + "<<< Returning " + currentScreenClass.getName());
+		Engine.logBeans.trace(tab + "<<< Returning " + currentScreenClass.getName());
 		return currentScreenClass;
 	}
 }
