@@ -49,9 +49,11 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
+import com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass;
 import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
+import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
 import com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
@@ -91,6 +93,8 @@ public class ProjectStatsAction extends MyAbstractAction {
     					int connectorCount = 0;
     					int htmlScreenclassCount = 0;
     					int htmlCriteriaCount = 0;
+    					int siteClipperScreenclassCount = 0;
+    					int siteClipperCriteriaCount = 0;
     					int htmlExtractionRuleCount = 0;
     					int htmlTransactionVariableCount = 0;
     					int sqlTransactionVariableCount = 0;
@@ -109,17 +113,19 @@ public class ProjectStatsAction extends MyAbstractAction {
     					int stepCount = 0;
     					int sheetCount = 0;
     					int referenceCount = 0;
+    					int selectInQueryCount = 0;
 
     					/*
     					 * transaction counters
     					 */
     					int transactionWithVariablesCount = 0;
     					int htmltransactionCount = 0;
+    					int httptransactionCount = 0;
     					int jsonHttpTransactionCount = 0;
-    					int xmlHttpTransactionCount = 0;
-    					int javelinTransactionCount = 0;
     					int proxyTransactionCount = 0;
     					int siteClipperTransactionCount = 0;
+    					int xmlHttpTransactionCount = 0;
+    					int javelinTransactionCount = 0;
     					int sqlTransactionCount = 0;
     					int transactionCount = 0;
     					
@@ -168,10 +174,52 @@ public class ProjectStatsAction extends MyAbstractAction {
 									displayString += 
 										"\r\nSQL connector\r\n"
 										+ " sqltransactionCount = " + sqlTransactionCount + "\r\n"											// ok
-										+ " transactionVariableCount = " + sqlTransactionVariableCount + "\r\n"
-										+ " sheetCount = " + sheetCount + "\r\n"
-										+ "\r\n";
+										+ " selectInQueryCount = " + selectInQueryCount + "\r\n"											// ok
+										+ " transactionVariableCount = " + sqlTransactionVariableCount + "\r\n";
+
+									if (sheetCount > 0) {
+										displayString += 
+												"\r\nSheets\r\n" 
+												+ " sheetCount = " + sheetCount + "\r\n";
+									}
+
+									displayString += "\r\n";
 								}
+
+								/*
+								 * Http connector
+								 */
+								if (jsonHttpTransactionCount > 0) {
+									displayString += 
+										"\r\nHTTP connector\r\n"
+										+ " JSONTransactionCount = " + jsonHttpTransactionCount + "\r\n"										// ok
+										+ " xmlTransactionCount = " + xmlHttpTransactionCount + "\r\n"											// ok
+										+ " HTTPtransactionCount = " + httptransactionCount + "\r\n"											// ok
+										+ "\r\n";
+								}						
+
+								/*
+								 * Proxy connector
+								 */
+								if (proxyTransactionCount > 0) {
+									displayString += 
+										"\r\nProxy connector\r\n"
+										+ " TransactionCount = " + proxyTransactionCount + "\r\n"											// ok
+										+ "\r\n";
+								}						
+
+
+								/*
+								 * Siteclipper connector
+								 */
+								if (siteClipperTransactionCount > 0) {
+									displayString += 
+										"\r\nProxy connector\r\n"
+										+ " TransactionCount = " + siteClipperTransactionCount + "\r\n"										// ok
+										+ " screenclassCount = " + javelinScreenclassCount + "\r\n"											// ok
+										+ " criteriaCount = " + javelinCriteriaCount + "\r\n"
+										+ "\r\n";
+								}						
 
 								/*
 								 * Sequencer
@@ -181,13 +229,17 @@ public class ProjectStatsAction extends MyAbstractAction {
 										"\r\nSequencer\r\n"
 										+ " sequenceCount = " + sequenceCount + "\r\n"														// ok
 										+ " stepCount = " + stepCount + "\r\n"																// ok
-										+ " reqVariableCount = " + reqVariableCount + "\r\n"
+										+ " variableCount = " + sequenceVariableCount + "\r\n"
 										+ "\r\n";
 								}
 								
-								displayString += 
-										" poolCount = " + poolCount + "\r\n"
-										+ " variableCount = " + sequenceVariableCount + "\r\n";
+								displayString += " reqVariableCount = " + reqVariableCount + "\r\n";
+
+								if (poolCount > 0) {
+									displayString +=
+										"\r\nPools\r\n"
+										+ " poolCount = " + poolCount + "\r\n";
+								}
 								
 								if (referenceCount > 0) {
 									displayString +=
@@ -217,28 +269,37 @@ public class ProjectStatsAction extends MyAbstractAction {
 						protected void walk(DatabaseObject databaseObject) throws Exception {
 							depth++;
 							
-							String name = databaseObject.getName();
+							// String name = databaseObject.getName();
 							
+							// deal with connectors
 							if (databaseObject instanceof Connector) {    								
-								Connector connector = (Connector) databaseObject;
 								connectorCount++;
 							}							
 							else
 							if (databaseObject instanceof Reference) {    								
-								Reference reference = (Reference) databaseObject;
 								referenceCount++;
 							}							
-							else
-							if (databaseObject instanceof JavelinScreenClass) {    								
-								JavelinScreenClass screenclass = (JavelinScreenClass) databaseObject;
-								javelinScreenclassCount++;
+							else // deal with screenclasses
+							if (databaseObject instanceof ScreenClass) {
+								if (databaseObject instanceof JavelinScreenClass) {	// deal with javelinScreenClasses    								
+									javelinScreenclassCount++;
+								}
+								else 
+								if (databaseObject instanceof SiteClipperScreenClass) {	// deal with siteClipperScreenClasses    								
+									siteClipperScreenclassCount++;
+								}
+								else {												// deal with html ScreenClasses
+									htmlScreenclassCount++;
+								}
 							}
 							else 
 							if (databaseObject instanceof Criteria) {
-								Criteria criteria = (Criteria) databaseObject;
-								
 								if (databaseObject.getParent() instanceof JavelinScreenClass) {																
 									javelinCriteriaCount++;
+								}
+								else
+								if (databaseObject.getParent() instanceof SiteClipperScreenClass) {																
+									siteClipperCriteriaCount++;
 								}
 								else {
 									htmlCriteriaCount++;
@@ -246,8 +307,6 @@ public class ProjectStatsAction extends MyAbstractAction {
 							}
 							else
 							if (databaseObject instanceof ExtractionRule) {
-								ExtractionRule extractionRule = (ExtractionRule) databaseObject;
-								
 								if (databaseObject.getParent() instanceof JavelinScreenClass) {																
 									javelinExtractionRuleCount++;
 								}
@@ -256,50 +315,60 @@ public class ProjectStatsAction extends MyAbstractAction {
 								}
 							}
 							else
-							if (databaseObject instanceof ScreenClass) {    								
-								ScreenClass screenclass = (ScreenClass) databaseObject;
-								htmlScreenclassCount++;
-							}
-							else
 							if (databaseObject instanceof Transaction) {
 								if (databaseObject instanceof TransactionWithVariables) {
 									if (databaseObject instanceof HtmlTransaction) {
-										HtmlTransaction htmlTransaction = (HtmlTransaction) databaseObject;
 										htmltransactionCount++;
 									}
 									else
 									if (databaseObject instanceof JsonHttpTransaction) {
-										JsonHttpTransaction jsonHttpTransaction = (JsonHttpTransaction) databaseObject;
 										jsonHttpTransactionCount++;
 									}
 									else
+									if (databaseObject instanceof HttpTransaction) {
+										httptransactionCount++;
+									}
+									else
 									if (databaseObject instanceof XmlHttpTransaction) {
-										XmlHttpTransaction XmlHttpTransaction = (XmlHttpTransaction) databaseObject;
 										xmlHttpTransactionCount++;
 									}								
 									else
 									if (databaseObject instanceof ProxyTransaction) {
-										ProxyTransaction proxyTransaction = (ProxyTransaction) databaseObject;
 										proxyTransactionCount++;
 									}
 									else
 									if (databaseObject instanceof SiteClipperTransaction) {
-										SiteClipperTransaction javelinTransaction = (SiteClipperTransaction) databaseObject;
 										siteClipperTransactionCount++;
 									}
 									else
 									if (databaseObject instanceof JavelinTransaction) {
-										JavelinTransaction javelinTransaction = (JavelinTransaction) databaseObject;
 										javelinTransactionCount++;
 									}
 									else
 									if (databaseObject instanceof SqlTransaction) {
-										SqlTransaction javelinTransaction = (SqlTransaction) databaseObject;
+										SqlTransaction sqlTransaction = (SqlTransaction)databaseObject;
+										/*
+										 * count the number of SELECT
+										 */
+										String query = sqlTransaction.getSqlQuery();
+										if (query != null) {
+											query = query.toLowerCase();
+											String pattern = "select";
+											int lastIndex = 0;
+
+											while(lastIndex != -1) {
+												lastIndex = query.indexOf(pattern, lastIndex);
+											    if (lastIndex != -1) {
+											    	selectInQueryCount++;
+											    	lastIndex += pattern.length();
+											    }
+											}
+										}
+										
 										sqlTransactionCount++;
 									}
 								}
 								else { // transaction with no variables
-									Transaction transaction = (Transaction) databaseObject;
 									transactionCount++;
 								}
 							}
@@ -307,70 +376,53 @@ public class ProjectStatsAction extends MyAbstractAction {
 							if (databaseObject instanceof Statement) {
 								// System.out.println(databaseObject.getClass().getName() + "\r\n");
 								if (databaseObject instanceof HandlerStatement) {
-									HandlerStatement handlerStatement = (HandlerStatement) databaseObject;
 									handlerstatementCount++;
 								}
 								else { 				
-									Statement statement = (Statement) databaseObject;
 									statementCount++;
 								}
 							}
 							else // deal with variables
 							if (databaseObject instanceof Variable) {
-								if (databaseObject.getParent() instanceof TestCase) { 
-    								Variable variable = (Variable) databaseObject;
-    								testcaseVariableCount++;
-								}
-								else
 								if (databaseObject.getParent() instanceof Transaction) {
 									if (databaseObject.getParent() instanceof HtmlTransaction) {
-										Variable variable = (Variable) databaseObject;
 										htmlTransactionVariableCount++;
 									}
 									else
 									if (databaseObject.getParent() instanceof SqlTransaction) {
-										Variable variable = (Variable) databaseObject;
 										sqlTransactionVariableCount++;
 									}
 									else {
-										Variable variable = (Variable) databaseObject;
 										transactionVariableCount++;
 									}
 								}
 								else
 								if (databaseObject.getParent() instanceof Sequence) { 
-    								Variable variable = (Variable) databaseObject;
     								sequenceVariableCount++;
 								}
-								
-								if (databaseObject instanceof RequestableVariable) {    
-									RequestableVariable variable = (RequestableVariable) databaseObject;
-									reqVariableCount++;
+								else
+								if (databaseObject.getParent() instanceof TestCase) { 
+    								testcaseVariableCount++;
 								}
 							}
 							else
 							if (databaseObject instanceof TestCase) {    
-								TestCase testCase = (TestCase) databaseObject;
 								testcaseCount++;
 							}
 							else
 							if (databaseObject instanceof Sequence) {    
-								Sequence sequence = (Sequence) databaseObject;
 								sequenceCount++;
 							}
 							else
 							if (databaseObject instanceof Step) {    
-								Step step = (Step) databaseObject;
 								stepCount++;
 							}
 							else
 							if (databaseObject instanceof Sheet) {    
-								Sheet sheet = (Sheet) databaseObject;
 								sheetCount++;
 							}
 							else
 							if (databaseObject instanceof Pool) {    
-								Pool pool = (Pool) databaseObject;
 								poolCount++;
 							}
 							
