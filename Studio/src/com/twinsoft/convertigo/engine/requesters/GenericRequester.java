@@ -594,6 +594,12 @@ public abstract class GenericRequester extends Requester {
 				Engine.logContext.debug("The translation language requested is \"" + context.lang + "\".");
 			}
 		}
+		// This is the overidden of cache lifetime
+		else if (parameterName.equals(Parameter.ResponseExpiryDate.getName())) {
+			if (parameterValue != null) {
+				context.set(Parameter.ResponseExpiryDate.getName(), parameterValue);
+			}
+		}
 	}
 
 	@Override

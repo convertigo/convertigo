@@ -580,6 +580,20 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 			resp = (responseExpiryDate.split(";"))[0];
 		return resp;
 	}
+	/** Getter for have only the response lifetime.
+	 * @return Value of the response lifetime.
+	 */
+	public void setResponseLifetime(String responseLifetime) {
+		if (responseExpiryDate!=null && !responseExpiryDate.equals("")) {
+			String useAuthenticatedUserAsCacheKey = (responseExpiryDate.split(";"))[1];
+			if (useAuthenticatedUserAsCacheKey!=null && !useAuthenticatedUserAsCacheKey.equals("")) {
+				responseExpiryDate = responseLifetime+";"+useAuthenticatedUserAsCacheKey;
+			} else {
+				responseExpiryDate = responseLifetime+";false";
+			}
+			setResponseExpiryDate(responseLifetime);
+		}
+	}
 	/** Getter to know if we use authenticated user as cache key.
 	 * @return Value the use authenticated user as cache key.
 	 */
