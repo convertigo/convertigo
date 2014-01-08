@@ -26,6 +26,9 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.io.BufferedReader;
+import java.io.StringReader;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -50,8 +53,9 @@ import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass;
-import com.twinsoft.convertigo.beans.statements.HTTPStatement;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
+import com.twinsoft.convertigo.beans.steps.SequenceStep;
+import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
@@ -59,7 +63,6 @@ import com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
-import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
@@ -90,6 +93,8 @@ public class ProjectStatsAction extends MyAbstractAction {
         			Project project = (Project) projectTreeObject.getObject();
 
 					new WalkHelper() {
+						int sequenceJavascriptLines;
+						int sequenceJavascriptFunction;
     					int connectorCount = 0;
     					int htmlScreenclassCount = 0;
     					int htmlCriteriaCount = 0;
@@ -97,10 +102,17 @@ public class ProjectStatsAction extends MyAbstractAction {
     					int siteClipperCriteriaCount = 0;
     					int htmlExtractionRuleCount = 0;
     					int htmlTransactionVariableCount = 0;
+    					
     					int sqlTransactionVariableCount = 0;
+    					int javelinTransactionVariableCount = 0;
     					int javelinScreenclassCount = 0;
     					int javelinCriteriaCount = 0;
     					int javelinExtractionRuleCount = 0;
+    					int javelinEntryHandlerCount = 0;
+    					int javelinExitHandlerCount = 0;
+    					int javelinFunctionCount = 0;
+    					int javelinHandlerCount = 0;
+    					int javelinJavascriptLines = 0;
     					int statementCount = 0;
     					int poolCount = 0;
     					int handlerstatementCount = 0;
@@ -164,6 +176,9 @@ public class ProjectStatsAction extends MyAbstractAction {
 										+ " criteriaCount = " + javelinCriteriaCount + "\r\n"
 										+ " extractionRuleCount = " + javelinExtractionRuleCount + "\r\n"
 										+ " transactionCount = " + javelinTransactionCount + "\r\n"											// ok
+										+ " handlerCount (Entry = " + javelinEntryHandlerCount + ", Exit = " + javelinExitHandlerCount + ", Screenclass = " + javelinHandlerCount + ", functions = " + javelinFunctionCount 
+										+  "), total = " + (int)(javelinEntryHandlerCount + javelinExitHandlerCount + javelinHandlerCount + javelinFunctionCount) + " in " + javelinJavascriptLines + " lines\r\n"										
+										+ " variableCount = " + javelinTransactionVariableCount + "\r\n"
 										+ "\r\n";
 								}						
 								
@@ -230,10 +245,12 @@ public class ProjectStatsAction extends MyAbstractAction {
 										+ " sequenceCount = " + sequenceCount + "\r\n"														// ok
 										+ " stepCount = " + stepCount + "\r\n"																// ok
 										+ " variableCount = " + sequenceVariableCount + "\r\n"
+										+ " javascriptCode = " + sequenceJavascriptFunction + " functions in " + sequenceJavascriptLines + " lines"
+										+  ((boolean)(sequenceJavascriptFunction == 0) ? " (declarations or so)\r\n":"\r\n")
 										+ "\r\n";
 								}
 								
-								displayString += " reqVariableCount = " + reqVariableCount + "\r\n";
+// 								displayString += " reqVariableCount = " + reqVariableCount + "\r\n";
 
 								if (poolCount > 0) {
 									displayString +=
@@ -342,6 +359,39 @@ public class ProjectStatsAction extends MyAbstractAction {
 									}
 									else
 									if (databaseObject instanceof JavelinTransaction) {
+										JavelinTransaction javelinTransaction = (JavelinTransaction)databaseObject;
+
+										// Functions
+										String line;
+										int lineNumber = 0;
+										BufferedReader br = new BufferedReader(new StringReader(javelinTransaction.handlers));
+
+										while ((line = br.readLine()) != null) {
+											line = line.trim();
+											lineNumber++;
+											if (line.startsWith("function ")) {
+												try {
+													String functionName = line.substring(9, line.indexOf(')') + 1);
+													
+													if (functionName.endsWith(JavelinTransaction.EVENT_ENTRY_HANDLER + "()")) {
+														// TYPE_FUNCTION_SCREEN_CLASS_ENTRY
+														javelinEntryHandlerCount++;
+													} else if (functionName.endsWith(JavelinTransaction.EVENT_EXIT_HANDLER + "()")) {
+														// TYPE_FUNCTION_SCREEN_CLASS_EXIT
+														javelinExitHandlerCount++;
+													} else {
+														// TYPE_OTHER
+														javelinFunctionCount++;
+													}
+												} catch(StringIndexOutOfBoundsException e) {
+													// Ignore
+												}
+											}
+										}
+
+										// compute total number of lines of javascript
+										javelinJavascriptLines += lineNumber;
+										
 										javelinTransactionCount++;
 									}
 									else
@@ -376,7 +426,7 @@ public class ProjectStatsAction extends MyAbstractAction {
 							if (databaseObject instanceof Statement) {
 								// System.out.println(databaseObject.getClass().getName() + "\r\n");
 								if (databaseObject instanceof HandlerStatement) {
-									handlerstatementCount++;
+									handlerstatementCount++;									
 								}
 								else { 				
 									statementCount++;
@@ -385,6 +435,10 @@ public class ProjectStatsAction extends MyAbstractAction {
 							else // deal with variables
 							if (databaseObject instanceof Variable) {
 								if (databaseObject.getParent() instanceof Transaction) {
+									if (databaseObject.getParent() instanceof JavelinTransaction) {
+										javelinTransactionVariableCount++;
+									}
+									else
 									if (databaseObject.getParent() instanceof HtmlTransaction) {
 										htmlTransactionVariableCount++;
 									}
@@ -414,8 +468,32 @@ public class ProjectStatsAction extends MyAbstractAction {
 								sequenceCount++;
 							}
 							else
-							if (databaseObject instanceof Step) {    
-								stepCount++;
+							if (databaseObject instanceof Step) {
+								if (databaseObject instanceof SimpleStep) {
+									SimpleStep simpleStep = (SimpleStep)databaseObject;
+									
+									// Functions
+									String line;
+									int lineNumber = 0;
+									BufferedReader br = new BufferedReader(new StringReader(simpleStep.getExpression()));
+
+									while ((line = br.readLine()) != null) {
+										line = line.trim();
+										lineNumber++;
+										if (line.startsWith("function ")) {
+											try {
+												sequenceJavascriptFunction++;
+											} catch(StringIndexOutOfBoundsException e) {
+												// Ignore
+											}
+										}
+									}
+
+									sequenceJavascriptLines += lineNumber;
+									stepCount++;
+								}
+								else
+									stepCount++;
 							}
 							else
 							if (databaseObject instanceof Sheet) {    
