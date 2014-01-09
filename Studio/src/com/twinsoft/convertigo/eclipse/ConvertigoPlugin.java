@@ -278,8 +278,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}
 	
 	private static GlobalsSymbolsWarnDialog dialogGlobalSymbols = null;
+	private static boolean result = false;
 	
-	public static void warningGlobalSymbols(final String projectName, final String propertyName,
+	public static boolean warningGlobalSymbols(final String projectName, final String propertyName,
 			final String propertyValue, final String failureMessage, final String objectName, final String objectType) {
 		final Display display = getDisplay();
 		display.syncExec(new Runnable() {
@@ -288,11 +289,13 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 					dialogGlobalSymbols = new GlobalsSymbolsWarnDialog(getDisplay().getActiveShell(), projectName, propertyName,
 							propertyValue, failureMessage, objectName, objectType);
 					dialogGlobalSymbols.open();
+					result = dialogGlobalSymbols.getSkipWarning();
 				} catch (Exception e){
 					ConvertigoPlugin.logException(e, "Error while trying to open warning global symbols box");
 				}
 			}
 		});
+		return result;
 	}
 
 	public static void infoMessageBox(final String message) {

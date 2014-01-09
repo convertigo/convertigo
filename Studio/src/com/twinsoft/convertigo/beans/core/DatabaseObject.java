@@ -900,7 +900,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				if (projectName == null){
 					projectName = databaseObject.getProject().toString();
 				}			
-	
+				
 				String message = "Compilation error for property '" + propertyName + "': \n\n"
 						+ failure + "\n"
 						+ "Property value: '" + propertyObjectValue + "'\n"
@@ -915,7 +915,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 							if (!inStackTrace("com.twinsoft.convertigo.engine.admin.services.projects.List")) {
 								Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
 								Method m = convertigoPlugin.getMethod("warningGlobalSymbols", String.class, String.class, String.class, String.class, String.class, String.class);
-								m.invoke(null, projectName, propertyName, propertyObjectValue, failure, objectName, databaseObject.getDatabaseType());
+								DatabaseObjectsManager.getProjectLoadingData().skipNextWarning =  
+										(Boolean)m.invoke(null, projectName, propertyName, propertyObjectValue, failure, objectName, databaseObject.getDatabaseType());
 							}
 						}
 	

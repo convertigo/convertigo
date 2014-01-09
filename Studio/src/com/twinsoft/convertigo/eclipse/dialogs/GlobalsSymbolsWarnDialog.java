@@ -6,6 +6,8 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -13,14 +15,11 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 
@@ -29,7 +28,8 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	private StyledText labelIntro, labelProperty, labelObjectName, labelObjectType, labelProject = null;
 	private Text textFailure = null;
 	private Image image = null;
-	private Button buttonDismiss = null;
+	private Button buttonDismiss = null;	
+	private boolean skipNextWarning = false;
 	private String projectName, propertyName,
 	propertyValue, failureMessage, objectName, objectType; 
  
@@ -199,9 +199,13 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		return container;
 	}
 	
+	public boolean getSkipWarning(){
+		return skipNextWarning;
+	}
+	
 	@Override
 	protected void okPressed() {
-		DatabaseObjectsManager.getProjectLoadingData().skipNextWarning = buttonDismiss.getSelection();
+		skipNextWarning = buttonDismiss.getSelection();
 		try {
 			ProjectUtils.addUndefinedGlobalSymbol(propertyValue);
 			ProjectUtils.refreshTheProject(projectName);
@@ -228,10 +232,16 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		button.setEnabled(true);
 		
 		Button buttonCancel = createButton(parent, IDialogConstants.CANCEL_ID, "Close", true);
-		buttonCancel.addListener(SWT.MouseUp, new Listener() {
+		buttonCancel.addSelectionListener(new SelectionListener() {
 			@Override
-			public void handleEvent(Event event) {
-				DatabaseObjectsManager.getProjectLoadingData().skipNextWarning = buttonDismiss.getSelection();
+			public void widgetSelected(SelectionEvent e) {
+				skipNextWarning = buttonDismiss.getSelection();
+				close();
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				skipNextWarning = buttonDismiss.getSelection();
 				close();
 			}
 		});
