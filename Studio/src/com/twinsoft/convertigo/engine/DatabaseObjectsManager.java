@@ -724,11 +724,16 @@ public class DatabaseObjectsManager implements AbstractManager {
 					}
 				}
 			}
-
+			
+			if (getProjectLoadingData().projectName==null) {
+				getProjectLoadingData().projectName = projectName;
+			}
+			
 			// Import project (will perform the migration)
 			Project project = importProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName
 					+ ".xml");
 
+			
 			// Rename connector's directory under traces directory if needed
 			// (name should be normalized since 4.6)
 			File tracesDir = new File(Engine.PROJECTS_PATH + "/" + projectName + "/Traces");

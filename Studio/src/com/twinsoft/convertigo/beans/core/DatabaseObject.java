@@ -82,7 +82,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	private static final long serialVersionUID = -873065042105207891L;
 
 	public static final String PROPERTY_XMLNAME = "xmlname";
-	public static final Pattern p = Pattern.compile("\\$\\{([^\\{\\}]*)\\}");
+	public static final Pattern patternSymbolName = Pattern.compile(".*\\$\\{([^\\{\\}]*)\\}.*");
 	
 	private transient Set<String> symbolsErrors = null;
 	private transient static Map<String,String> symbolsDefaultsValues = null;
@@ -883,66 +883,75 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		
 		// Update source value and retrieve compiled value
 		databaseObject.setCompilablePropertySourceValue(propertyName, propertyObjectValue);
-		Engine.logBeans.trace("  source value='" + propertyObjectValue.toString() + "'");
 		
 		// Reset compilation error message
 		DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure = null;
 		Object compiledValue = getCompiledValue(propertyType, propertyObjectValue);
 		
-		if (DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure != null) {
+		if (propertyObjectValue instanceof String) {
 			
-			String failure = DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure;
-			String objectName = databaseObject.getName();
-			String projectName = DatabaseObjectsManager.getProjectLoadingData().projectName;
-			if (projectName == null){
-				projectName = databaseObject.getProject().toString();
-			}
-			
-			if (propertyObjectValue instanceof XMLVector<?>) {
-				
-			} else if (propertyObjectValue instanceof SmartType) {
-				
-			}
-			
+			Engine.logBeans.trace("  source value='" + propertyObjectValue.toString() + "'");
 
-			String message = "Compilation error for property '" + propertyName + "': \n\n"
-					+ failure + "\n"
-					+ "Property value: '" + propertyObjectValue + "'\n"
-					+ "Object name: '" + objectName + "'\n"
-					+ "Object type: '" + databaseObject.getDatabaseType() + "'\n"
-					+ "Project: '" + projectName + "'";
+			if (DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure != null) {
 				
-			if (Engine.isStudioMode()) {			
-				try {
-					// Show warning message box if the check box aren't selected
-					if (DatabaseObjectsManager.getProjectLoadingData().skipNextWarning == false) {
-						if (!inStackTrace("com.twinsoft.convertigo.engine.admin.services.projects.List")) {
-							Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
-							Method m = convertigoPlugin.getMethod("warningGlobalSymbols", String.class, String.class, String.class, String.class, String.class, String.class);
-							DatabaseObjectsManager.getProjectLoadingData().skipNextWarning = 
-									(Boolean) m.invoke(null, projectName, propertyName, propertyObjectValue, failure, objectName, databaseObject.getDatabaseType());
+				String failure = DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure;
+				String objectName = databaseObject.getName();
+				String projectName = DatabaseObjectsManager.getProjectLoadingData().projectName;
+				if (projectName == null){
+					projectName = databaseObject.getProject().toString();
+				}			
+	
+				String message = "Compilation error for property '" + propertyName + "': \n\n"
+						+ failure + "\n"
+						+ "Property value: '" + propertyObjectValue + "'\n"
+						+ "Object name: '" + objectName + "'\n"
+						+ "Object type: '" + databaseObject.getDatabaseType() + "'\n"
+						+ "Project: '" + projectName + "'";
+					
+				if (Engine.isStudioMode()) {			
+					try {
+						// Show warning message box if the check box aren't selected
+						if (DatabaseObjectsManager.getProjectLoadingData().skipNextWarning == false) {
+							if (!inStackTrace("com.twinsoft.convertigo.engine.admin.services.projects.List")) {
+								Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
+								Method m = convertigoPlugin.getMethod("warningGlobalSymbols", String.class, String.class, String.class, String.class, String.class, String.class);
+								m.invoke(null, projectName, propertyName, propertyObjectValue, failure, objectName, databaseObject.getDatabaseType());
+							}
 						}
+	
+					} catch (Exception e) {
+						Engine.logBeans.warn(message+"\n"+e.getMessage());
 					}
-
-				} catch (Exception e) {
-					Engine.logBeans.warn(message+"\n"+e.getMessage());
 				}
+				
+				// Add warn message into the log
+				Engine.logBeans.warn(message);	
+				databaseObject.addSymbolError(propertyObjectValue.toString());
+				DatabaseObjectsManager.getProjectLoadingData().undefinedGlobalSymbol = true;
+				
+				if ((propertyType != String.class)) {
+					return "0";
+				}
+				
+			} else { 
+				databaseObject.removeSymbolError(propertyObjectValue.toString());
 			}
-			
-			// Add warn message into the log
-			Engine.logBeans.warn(message);	
-			databaseObject.addSymbolError(propertyObjectValue.toString());
-			
-			DatabaseObjectsManager.getProjectLoadingData().undefinedGlobalSymbol = true;
-			
-			if ((propertyType != String.class)) {
-				return "0";
+		} else if (propertyObjectValue instanceof XMLVector<?>) {
+			try {
+				XMLVector<Object> xmlv = new XMLVector<Object>(GenericUtils.<XMLVector<Object>> cast(propertyObjectValue));
+				for (int i = 0; i < xmlv.size(); i++) {
+					compileProperty(databaseObject, propertyType, propertyName, xmlv.get(i));
+				}
+			} catch (Exception e) {
+				
 			}
-			
-		} else { 
-			databaseObject.removeSymbolError(propertyObjectValue.toString());
+		} else if (propertyObjectValue instanceof SmartType) {
+			SmartType smartType = (SmartType) propertyObjectValue;
+			if (smartType.isUseExpression()) {
+				smartType = smartType.clone();
+				compileProperty(databaseObject, propertyType, propertyName, smartType.getExpression());
+			}
 		}
-		
 		return compiledValue;
 	}
 	
@@ -1450,7 +1459,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	}
 	
 	public static String[] extractSymbol(String propertyValue) {
-		Matcher m = p.matcher(propertyValue);
+		Matcher m = patternSymbolName.matcher(propertyValue);
 		List<String> extract = new LinkedList<String>();
 		
 		while (m.find()) {

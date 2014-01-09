@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 
@@ -29,7 +30,6 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	private Text textFailure = null;
 	private Image image = null;
 	private Button buttonDismiss = null;
-	private boolean skipNextWarning = false;
 	private String projectName, propertyName,
 	propertyValue, failureMessage, objectName, objectType; 
  
@@ -201,7 +201,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	
 	@Override
 	protected void okPressed() {
-		skipNextWarning = buttonDismiss.getSelection();
+		DatabaseObjectsManager.getProjectLoadingData().skipNextWarning = buttonDismiss.getSelection();
 		try {
 			ProjectUtils.addUndefinedGlobalSymbol(propertyValue);
 			ProjectUtils.refreshTheProject(projectName);
@@ -210,14 +210,6 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		}
 		close();
 	}
-	
-	/**
-	 * Get the state of dismiss button.
-	 */
-	public boolean getSkipNextWarning(){
-		return skipNextWarning;
-	}
-	
 	/**
 	 * Create contents of the button bar.
 	 * @param parent
@@ -225,6 +217,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		Button button = null;
+		
 		String[] symbolsNames = DatabaseObject.extractSymbol(propertyValue);
 		if (symbolsNames.length==1) {
 			button = createButton(parent, IDialogConstants.OK_ID, "Create '"+symbolsNames[0]+"' symbol", true);
@@ -238,7 +231,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		buttonCancel.addListener(SWT.MouseUp, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
-				skipNextWarning = buttonDismiss.getSelection();
+				DatabaseObjectsManager.getProjectLoadingData().skipNextWarning = buttonDismiss.getSelection();
 				close();
 			}
 		});
