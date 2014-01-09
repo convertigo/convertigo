@@ -912,11 +912,13 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 					try {
 						// Show warning message box if the check box aren't selected
 						if (DatabaseObjectsManager.getProjectLoadingData().skipNextWarning == false) {
-							if (!inStackTrace("com.twinsoft.convertigo.engine.admin.services.projects.List")) {
+							if (!intoStack("com.twinsoft.convertigo.engine.admin.services.projects.List")) {
 								Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
 								Method m = convertigoPlugin.getMethod("warningGlobalSymbols", String.class, String.class, String.class, String.class, String.class, String.class);
 								DatabaseObjectsManager.getProjectLoadingData().skipNextWarning =  
 										(Boolean)m.invoke(null, projectName, propertyName, propertyObjectValue, failure, objectName, databaseObject.getDatabaseType());
+							} else {
+								DatabaseObjectsManager.getProjectLoadingData().skipNextWarning = true;
 							}
 						}
 	
@@ -956,14 +958,12 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		return compiledValue;
 	}
 	
-	private static boolean inStackTrace(String className){
+	private static boolean intoStack(String className){
 		StackTraceElement[] stacks = Thread.currentThread().getStackTrace();
-		int i = 0;
-		while (i<stacks.length && i<15) {
-			if (stacks[i].getClassName().equals(className)) {
+		for (StackTraceElement stack : stacks) {
+			if (stack.getClassName().equals(className)) {
 				return true;
 			}
-			i++;
 		}
 		return false;
 	}

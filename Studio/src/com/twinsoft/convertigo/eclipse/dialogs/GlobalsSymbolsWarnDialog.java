@@ -193,6 +193,19 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		labelInfo.setLayoutData(gridData);
 		
 		buttonDismiss = new Button(container, SWT.CHECK);
+		buttonDismiss.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				skipNextWarning = buttonDismiss.getSelection();
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				skipNextWarning = buttonDismiss.getSelection();
+				
+			}
+		});
 		buttonDismiss.setText("Skip next pop-ups");
 		buttonDismiss.setLayoutData(gridData);	
 		
@@ -205,7 +218,6 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	
 	@Override
 	protected void okPressed() {
-		skipNextWarning = buttonDismiss.getSelection();
 		try {
 			ProjectUtils.addUndefinedGlobalSymbol(propertyValue);
 			ProjectUtils.refreshTheProject(projectName);
@@ -231,11 +243,10 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		
 		button.setEnabled(true);
 		
-		Button buttonCancel = createButton(parent, IDialogConstants.CANCEL_ID, "Close", true);
+		Button buttonCancel = createButton(parent, IDialogConstants.CLOSE_ID, "Close", true);
 		buttonCancel.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				skipNextWarning = buttonDismiss.getSelection();
 				close();
 			}
 			

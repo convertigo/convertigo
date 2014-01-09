@@ -377,6 +377,16 @@ public class DatabaseObjectsManager implements AbstractManager {
 			projects.remove(projectName);
 		}
 	}
+	
+	public void clearCacheIfSymbolError(String projectName) {
+		synchronized (projects) {
+			if(projects.containsKey(projectName)) {
+				if (projects.get(projectName).getSymbolsErrors() == null) {
+					projects.remove(projectName);
+				}
+			}	
+		}
+	}
 
 	public void buildCar(String projectName) {
 		try {
