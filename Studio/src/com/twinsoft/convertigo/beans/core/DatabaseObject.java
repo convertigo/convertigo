@@ -912,7 +912,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 					try {
 						// Show warning message box if the check box aren't selected
 						if (DatabaseObjectsManager.getProjectLoadingData().skipNextWarning == false) {
-							if (!intoStack("com.twinsoft.convertigo.engine.admin.services.projects.List")) {
+							if (intoStack("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectLoadingJob")) {
 								Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
 								Method m = convertigoPlugin.getMethod("warningGlobalSymbols", String.class, String.class, String.class, String.class, String.class, String.class);
 								DatabaseObjectsManager.getProjectLoadingData().skipNextWarning =  
