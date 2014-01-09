@@ -1513,15 +1513,24 @@ a.start {
 
 /*************************************************** CONNECTIONS WIDGET *******************************************************/
 
-#connectionsListButtonDeleteAll{
+#connectionsListButtonDeleteAll {
 	margin: 10px;
 	
 }
 
 /*************************************************** PROJECT WIDGET *******************************************************/
 
-#projectsAssembleXsl{
+#projectsAssembleXsl {
 	margin-left: 30px;
+}
+.iconAlertGlobalSymbols {
+	position: relative;
+	top: 2px;
+}
+
+.alertGlobalSymbols, .alertGlobalSymbols.ui-widget-content {
+	font-weight: bold;
+	background: #FCE4E4;
 }
 
 /*************************************************** SYMBOLS WIDGET *******************************************************/

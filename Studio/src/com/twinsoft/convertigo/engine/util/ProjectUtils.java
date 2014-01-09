@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -58,6 +60,9 @@ import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -285,6 +290,43 @@ public class ProjectUtils {
 		return false;
 	}
 	
+	public static void refreshTheProject(String projectName) throws EngineException {
+		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		TreeObject treeObject = projectExplorerView.findTreeObjectByUserObjectQName(projectName);
+		projectExplorerView.reloadProject(treeObject);
+	}
+	
+	/**
+	 * Add an undefined global symbol
+	 * @param undefinedGlobalSymbol
+	 * @throws Exception
+	 */
+	public static void addUndefinedGlobalSymbol(String undefinedGlobalSymbol) throws Exception {	
+		//Update the global symbols file
+		Properties prop = new Properties();
+        prop.load(new FileInputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()));
+        
+        String globalSymbol = "";
+        Pattern p = Pattern.compile("\\$\\{([^\\{\\}]*)\\}"); 
+        Matcher m = p.matcher(undefinedGlobalSymbol); 
+         
+        while (m.find()) { 
+        	globalSymbol = m.group(1); 
+     	} 
+        
+        if (globalSymbol != null && !globalSymbol.equals("")) {
+        	String[] globalSymbolSplit = globalSymbol.split("=");
+	        prop.setProperty(globalSymbolSplit[0], globalSymbolSplit.length == 1 ? "0" : globalSymbolSplit[1]);
+        }
+		prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");
+   
+		Engine.theApp.databaseObjectsManager.updateSymbols(prop);
+	}
+	/**
+	 * Add undefined global symbols
+	 * @param currentProject
+	 * @throws Exception
+	 */
 	public static void addUndefinedGlobalSymbols(Project currentProject) throws Exception {
 		Map<String,String> globalSymbols = new HashMap<String,String>();
 		addUndefinedGlobalSymbols(currentProject, globalSymbols);

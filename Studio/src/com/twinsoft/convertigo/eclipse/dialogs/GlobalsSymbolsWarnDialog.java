@@ -8,15 +8,20 @@ import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.ProjectUtils;
 
 public class GlobalsSymbolsWarnDialog extends Dialog {
 	
@@ -46,6 +51,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Undefined Global Symbols");
+		newShell.setMinimumSize(400,310); 
 	}
 
 	/**
@@ -181,17 +187,28 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
 		
+		Label labelInfo = new Label(container, SWT.NONE);
+		labelInfo.setText("Note: You can also create all global symbols for one project \nby right-clicking on the Project and choose \"Declare global symbols\"");
+		labelInfo.setForeground(getShell().getDisplay().getSystemColor(SWT.COLOR_BLUE));
+		labelInfo.setLayoutData(gridData);
+		
 		buttonDismiss = new Button(container, SWT.CHECK);
-		buttonDismiss.setText("Dismiss all futher popups");
-		buttonDismiss.setLayoutData(gridData);
-
+		buttonDismiss.setText("Skip next pop-ups");
+		buttonDismiss.setLayoutData(gridData);	
+		
 		return container;
 	}
 	
 	@Override
 	protected void okPressed() {
 		skipNextWarning = buttonDismiss.getSelection();
-		this.close();
+		try {
+			ProjectUtils.addUndefinedGlobalSymbol(propertyValue);
+			ProjectUtils.refreshTheProject(projectName);
+		} catch (Exception e) {
+			Engine.logBeans.error("Error during saving the global symbols file!\n"+e.getMessage());
+		}
+		close();
 	}
 	
 	/**
@@ -207,15 +224,23 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	 */
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-		Button button = createButton(parent, IDialogConstants.OK_ID, "OK", true);
+		Button button = null;
+		String[] symbolsNames = DatabaseObject.extractSymbol(propertyValue);
+		if (symbolsNames.length==1) {
+			button = createButton(parent, IDialogConstants.OK_ID, "Create '"+symbolsNames[0]+"' symbol", true);
+		}else{
+			button = createButton(parent, IDialogConstants.OK_ID, "Create symbols", true);
+		}
+		
 		button.setEnabled(true);
-	}
-
-	/**
-	 * Return the initial size of the dialog.
-	 */
-	@Override
-	protected Point getInitialSize() {
-		return new Point(400, 270);
+		
+		Button buttonCancel = createButton(parent, IDialogConstants.CANCEL_ID, "Close", true);
+		buttonCancel.addListener(SWT.MouseUp, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				skipNextWarning = buttonDismiss.getSelection();
+				close();
+			}
+		});
 	}
 }

@@ -82,6 +82,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	private static final long serialVersionUID = -873065042105207891L;
 
 	public static final String PROPERTY_XMLNAME = "xmlname";
+	public static final Pattern p = Pattern.compile("\\$\\{([^\\{\\}]*)\\}");
 	
 	private transient Set<String> symbolsErrors = null;
 	private transient static Map<String,String> symbolsDefaultsValues = null;
@@ -240,7 +241,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	public transient boolean hasChanged = false;
 
 	public transient boolean bNew = false;
-
+	
 	/**
 	 * The type of the database object. This type is used for storing the object
 	 * into the database.
@@ -889,36 +890,50 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		Object compiledValue = getCompiledValue(propertyType, propertyObjectValue);
 		
 		if (DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure != null) {
+			
 			String failure = DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure;
 			String objectName = databaseObject.getName();
 			String projectName = DatabaseObjectsManager.getProjectLoadingData().projectName;
-			if (projectName == null)
+			if (projectName == null){
 				projectName = databaseObject.getProject().toString();
+			}
+			
+			if (propertyObjectValue instanceof XMLVector<?>) {
+				
+			} else if (propertyObjectValue instanceof SmartType) {
+				
+			}
+			
+
 			String message = "Compilation error for property '" + propertyName + "': \n\n"
 					+ failure + "\n"
 					+ "Property value: '" + propertyObjectValue + "'\n"
 					+ "Object name: '" + objectName + "'\n"
 					+ "Object type: '" + databaseObject.getDatabaseType() + "'\n"
 					+ "Project: '" + projectName + "'";
-			
+				
 			if (Engine.isStudioMode()) {			
 				try {
 					// Show warning message box if the check box aren't selected
 					if (DatabaseObjectsManager.getProjectLoadingData().skipNextWarning == false) {
-						Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
-						Method m = convertigoPlugin.getMethod("warningGlobalSymbols", String.class, String.class, String.class, String.class, String.class, String.class);
-						DatabaseObjectsManager.getProjectLoadingData().skipNextWarning = 
-								(Boolean) m.invoke(null, projectName, propertyName, propertyObjectValue, failure, objectName, databaseObject.getDatabaseType());
+						if (!inStackTrace("com.twinsoft.convertigo.engine.admin.services.projects.List")) {
+							Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
+							Method m = convertigoPlugin.getMethod("warningGlobalSymbols", String.class, String.class, String.class, String.class, String.class, String.class);
+							DatabaseObjectsManager.getProjectLoadingData().skipNextWarning = 
+									(Boolean) m.invoke(null, projectName, propertyName, propertyObjectValue, failure, objectName, databaseObject.getDatabaseType());
+						}
 					}
 
 				} catch (Exception e) {
-					Engine.logBeans.warn(message);
+					Engine.logBeans.warn(message+"\n"+e.getMessage());
 				}
 			}
 			
 			// Add warn message into the log
 			Engine.logBeans.warn(message);	
 			databaseObject.addSymbolError(propertyObjectValue.toString());
+			
+			DatabaseObjectsManager.getProjectLoadingData().undefinedGlobalSymbol = true;
 			
 			if ((propertyType != String.class)) {
 				return "0";
@@ -930,7 +945,19 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		
 		return compiledValue;
 	}
-
+	
+	private static boolean inStackTrace(String className){
+		StackTraceElement[] stacks = Thread.currentThread().getStackTrace();
+		int i = 0;
+		while (i<stacks.length && i<15) {
+			if (stacks[i].getClassName().equals(className)) {
+				return true;
+			}
+			i++;
+		}
+		return false;
+	}
+	
 	public static Object getCompiledValue(Class<?> propertyType, Object propertyObjectValue) {
 		Object compiledValue = getCompiledValue(propertyObjectValue);
 		if ((compiledValue instanceof String) && (propertyType != String.class)) {
@@ -972,8 +999,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 						if (symbolCompiledValue == null) {
 							if (symbolDefaultValue == null) {
-								DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure = "Symbol '"
-										+ symbolName + "' not found in the global symbols file";
+								DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure = "'"
+										+ symbolName + "' symbol not found in the global symbols file";
 								
 								return propertyObjectValue;
 							} else {
@@ -1401,7 +1428,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			for (int i = 0 ; i < value.length ; i++) {
 				symbolsErrors.remove(value[i]);
 			}
-		}
+			if (symbolsErrors.size()==0) {
+				this.getProject().undefinedGlobalSymbols = false;
+			}
+		}		
 	}
 	
 	public boolean isSymbolError(){
@@ -1419,8 +1449,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		return symbolsDefaultsValues;
 	}
 	
-	private String[] extractSymbol(String propertyValue) {
-		Pattern p = Pattern.compile("\\$\\{([^\\{\\}]*)\\}");
+	public static String[] extractSymbol(String propertyValue) {
 		Matcher m = p.matcher(propertyValue);
 		List<String> extract = new LinkedList<String>();
 		

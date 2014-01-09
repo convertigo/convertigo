@@ -246,6 +246,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		public String projectName;
 		public String compilablePropertyFailure;
 		public boolean skipNextWarning = false;
+		public boolean undefinedGlobalSymbol = false;
 	}
 
 	private static ThreadLocal<ProjectLoadingData> projectLoadingDataThreadLocal = new ThreadLocal<ProjectLoadingData>() {
@@ -935,6 +936,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			// Import will perform necessary beans migration (see deserialization)
 			Project project = (Project) importDatabaseObject(projectNode, null);
+			project.undefinedGlobalSymbols = getProjectLoadingData().undefinedGlobalSymbol;
 			
 			synchronized (projects) {
 				projects.put(project.getName(), project);

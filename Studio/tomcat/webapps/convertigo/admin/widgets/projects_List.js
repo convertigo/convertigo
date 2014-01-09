@@ -146,7 +146,10 @@ function updateProjectsList(xml) {
 										"addRowData",
 										projectName,
 										{
-											name : projectName,
+											name : (typeof $(this).attr("gsymbols")==="undefined" ? projectName : 
+													"<a href=\"javascript: declareSymbols('"
+													+ projectName
+													+ "')\"><img border=\"0\" class=\"iconAlertGlobalSymbols\" title=\"Click here to create undefined global symbols\" src=\"images/convertigo-administration-alert-global-symbols.png\">&nbsp;</a>"+projectName),
 											comment : $(this).attr("comment"),
 											version : $(this).attr("version"),
 											exported : $(this).attr("exported"),
@@ -167,6 +170,9 @@ function updateProjectsList(xml) {
 												+ "\"><img border=\"0\" title=\"Test the project\" src=\"images/convertigo-administration-picto-test-platform.png\"></a>"
 										});
 					});
+	if( $(".iconAlertGlobalSymbols").length > 0 ){
+		$(".iconAlertGlobalSymbols").parent("a").parent("td").parent("tr").addClass("alertGlobalSymbols");
+	}
 }
 
 function deleteProject(projectName) {
@@ -239,6 +245,23 @@ function reloadProject(projectName) {
 						}
 					});
 }
+
+
+function declareSymbols(projectName) { 
+
+	callService("global_symbols.Declare",  
+		function(xml) { 
+			if ($(xml).find("response").attr("state")==="success") {
+				showInfo("<p>"+$(xml).find("response").attr("message")+"</p>");
+				projects_List_update();
+			}
+			if ($(xml).find("response").attr("state")==="error") {
+				showError("<p>"+$(xml).find("response").attr("message")+"</p>",$(xml).find("stackTrace").text()); 
+			}
+		} 
+		, {project : projectName} 
+	); 
+} 
 
 function editProject(projectName) {
 	//see projectEdit.js

@@ -77,6 +77,11 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 	 */
 	private boolean schemaInline = true;
 	
+	/**
+	 * Holds value if we have an undefined global symbol
+	 */
+	public boolean undefinedGlobalSymbols = false;
+	
 	/** 
 	 * The namespace URI
 	 */

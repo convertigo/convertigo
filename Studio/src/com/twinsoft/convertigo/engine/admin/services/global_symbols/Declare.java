@@ -22,55 +22,45 @@
 
 package com.twinsoft.convertigo.engine.admin.services.global_symbols;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
+import org.w3c.dom.Element;
 
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
-import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 @ServiceDefinition(
 		name = "Declare",
 		roles = { Role.WEB_ADMIN },
 		parameters = {},
-		returnValue = ""
+		returnValue = "the state of the creation"
 	)
 public class Declare extends XmlService {
-	private TwsCachedXPathAPI xpath;
-	private Node postElt;
-	
+
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
-		Document post = null;
+		Element root = document.getDocumentElement();
+		String projectName = request.getParameter("project");
+		Element response = document.createElement("response");
 
-		try {
-			Map<String, DatabaseObject> map = com.twinsoft.convertigo.engine.admin.services.projects.Get.getDatabaseObjectByQName(request);
-			
-			xpath = new TwsCachedXPathAPI();
-			post = XMLUtils.parseDOM(request.getInputStream());
-			postElt = document.importNode(post.getFirstChild(), true);
-
-			String objectQName = xpath.selectSingleNode(postElt, "./@qname").getNodeValue();
-			DatabaseObject object = map.get(objectQName);
-
-			if (object instanceof Project) {
-				Project project = (Project) object;
-				
-				ProjectUtils.addUndefinedGlobalSymbols(project);
-			}
+		try {		
+			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+			ProjectUtils.addUndefinedGlobalSymbols(project);
+			response.setAttribute("state", "success");
+			response.setAttribute("message","Global symbols have been successfully declared!");
 		} catch (Exception e) {
 			Engine.logBeans.error("Error during saving the global symbols file!\n"+e.getMessage());
+			
+			response.setAttribute("state", "error");
+			response.setAttribute("message","Error during saving the global symbols file!");
+			Element stackTrace = document.createElement("stackTrace");
+			stackTrace.setTextContent(e.getMessage());
+			root.appendChild(stackTrace);
 		}
-		
-
+		root.appendChild(response);		
 	}
 }

@@ -31,14 +31,13 @@ function project_Edit_init() {
 	}).click(function() {
 		projectEditObjectSubmitProperties();
 	});
-	$('#projectDeclareGlobalSymbols').button( {
-		icons : {
-			primary : "ui-icon-disk"
-		}
-	}).click(function() {
-		projectDeclareGlobalSymbols();
+	$('#projectDeclareGlobalSymbols').button( { 
+	icons : { 
+        primary : "ui-icon-disk" 
+	            } 
+	}).click(function() { 
+        projectDeclareGlobalSymbols(); 
 	});
-	
 }
 
 function project_Edit_update() {
@@ -369,27 +368,19 @@ function projectEditObjectSubmitProperties() {
 	);
 }
 
-function projectDeclareGlobalSymbols() {
-	var $xmlResponse = $(xmlDatabaseObject);
-
-	$(".projectEdit-form-item").each(
-		function() {
-			var $property = $xmlResponse.find("property[name=" + $(this).data("propertyName") + "]");
-			var $value = $property.find("*[value],*[value=]");
-			var value = $(this).val();
-			$property.find("*[value],*[value=]").attr('value', $(this).val());
-		});
-
-	var $node = $xmlResponse.find('admin >*').first();
-	var node = $node[0];
-	callService("global_symbols.Declare", 
-		function() {
-			showInfo("Global symbols declared!");
-		}
-		, domToString2(node)
-		, undefined
-		, {
-			contentType : "application/xml"
-		  }
-	);
-}
+function projectDeclareGlobalSymbols() { 	 
+	var projectName = $(".projectEditObjectName");
+	
+	callService("global_symbols.Declare",  
+		function(xml) { 
+			if ($(xml).find("response").attr("state")==="success") {
+				showInfo("<p>"+$(xml).find("response").attr("message")+"</p>");
+				projects_List_update();
+			}
+			if ($(xml).find("response").attr("state")==="error") {
+				showError("<p>"+$(xml).find("response").attr("message")+"</p>",$(xml).find("stackTrace").text()); 
+			}
+		} 
+		, {project:projectName}  
+	); 
+} 

@@ -1224,26 +1224,12 @@
                menubarPath="edit">
          </action-->
          <action
-               class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerRefreshAction"
-               enablesFor="1"
-               icon="icons/studio/refresh.gif"
-               id="convertigo.action.reloadXmlProject"
-               label="Reload from XML"
-               menubarPath="project"/>
-         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectExportAction"
                enablesFor="1"
                icon="icons/studio/project_export.gif"
                id="convertigo.action.exportProject"
                label="Export"
                menubarPath="project"/>
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectStatsAction"
-               icon="icons/studio/statistics.gif"
-               id="CemsStudio_7.1.x.action1"
-               label="Statistics"
-               menubarPath="project">
-         </action>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectDeployAction"
                enablesFor="1"
@@ -1252,12 +1238,25 @@
                label="Deploy"
                menubarPath="project"/>
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectStatsAction"
+               icon="icons/studio/statistics.gif"
+               id="CemsStudio_7.1.x.action1"
+               label="Statistics"
+               menubarPath="others"/>
+         <action
 	   	 	   class="com.twinsoft.convertigo.eclipse.popup.actions.DeclareGlobalSymbolsFromThisProjectAction"
 			   enablesFor="1"
-			   icon="icons/studio/declare_global_symbols_16x16.gif"
+			   icon="icons/studio/declare_global_symbols_16x16.png"
 			   id="convertigo.action.declareGlobalSymbolsFromThisProject"
-			   label="Declare global symbols from this project"
-			   menubarPath="project"/>
+			   label="Create global symbols"
+			   menubarPath="others"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerRefreshAction"
+               enablesFor="1"
+               icon="icons/studio/refresh.gif"
+               id="convertigo.action.reloadXmlProject"
+               label="Reload from XML"
+               menubarPath="others"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectSaveAction"
                enablesFor="1"
