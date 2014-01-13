@@ -60,9 +60,6 @@ import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.core.StatementWithExpressions;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -289,13 +286,6 @@ public class ProjectUtils {
 		}
 		return false;
 	}
-	
-	public static void refreshTheProject(String projectName) throws EngineException {
-		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		TreeObject treeObject = projectExplorerView.findTreeObjectByUserObjectQName(projectName);
-		projectExplorerView.reloadProject(treeObject);
-	}
-	
 	/**
 	 * Add an undefined global symbol
 	 * @param undefinedGlobalSymbol

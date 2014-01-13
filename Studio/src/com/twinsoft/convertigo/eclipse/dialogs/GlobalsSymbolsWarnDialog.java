@@ -20,6 +20,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 
@@ -220,7 +223,11 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	protected void okPressed() {
 		try {
 			ProjectUtils.addUndefinedGlobalSymbol(propertyValue);
-			ProjectUtils.refreshTheProject(projectName);
+			
+			//Refresh the project 
+			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+			TreeObject treeObject = projectExplorerView.findTreeObjectByUserObjectQName(projectName);
+			projectExplorerView.reloadProject(treeObject);
 		} catch (Exception e) {
 			Engine.logBeans.error("Error during saving the global symbols file!\n"+e.getMessage());
 		}

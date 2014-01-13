@@ -104,7 +104,6 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 			
 			try {
 				Engine.theApp.databaseObjectsManager.clearCacheIfSymbolError(projectName);
-//				Engine.theApp.databaseObjectsManager.clearCache(projectName);
 				project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 			}
 			finally {
