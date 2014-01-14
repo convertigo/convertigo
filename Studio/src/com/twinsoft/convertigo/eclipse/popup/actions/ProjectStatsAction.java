@@ -140,6 +140,7 @@ public class ProjectStatsAction extends MyAbstractAction {
     					int javelinTransactionCount = 0;
     					int sqlTransactionCount = 0;
     					int transactionCount = 0;
+    					int totalC8oObjects = 0;
     					
     					public void go(DatabaseObject project) {
     						try {
@@ -148,7 +149,43 @@ public class ProjectStatsAction extends MyAbstractAction {
     							
 								init(project);
 								
-								displayString = "projectName = " + projectName + "\r\n"														// ok
+								totalC8oObjects = 1  
+										+ connectorCount	// connectors
+										+ htmlScreenclassCount
+										+ htmlCriteriaCount
+										+ htmlExtractionRuleCount
+										+ htmlTransactionVariableCount
+										+ handlerstatementCount 
+										+ statementCount
+										+ javelinScreenclassCount
+										+ javelinCriteriaCount
+										+ javelinExtractionRuleCount
+										+ javelinTransactionCount
+										+ javelinEntryHandlerCount
+										+ javelinExitHandlerCount
+										+ javelinHandlerCount
+										+ javelinFunctionCount
+										+ javelinTransactionVariableCount
+										+ sqlTransactionCount
+										+ sqlTransactionVariableCount
+										+ sheetCount
+										+ jsonHttpTransactionCount
+										+ xmlHttpTransactionCount
+										+ httptransactionCount
+										+ proxyTransactionCount
+										+ siteClipperTransactionCount
+										+ siteClipperScreenclassCount
+										+ siteClipperCriteriaCount
+										+ sequenceCount
+										+ stepCount
+										+ sequenceVariableCount
+										+ sequenceJavascriptFunction
+										+ poolCount
+										+ referenceCount
+										+ testcaseCount
+										+ testcaseVariableCount;
+								
+								displayString = "projectName = " + projectName + " contains " + totalC8oObjects + " objects\r\n"			// ok
 										+ " connectorCount = " + connectorCount + "\r\n";													// ok
 
 								/*
@@ -231,8 +268,8 @@ public class ProjectStatsAction extends MyAbstractAction {
 									displayString += 
 										"\r\nProxy connector\r\n"
 										+ " TransactionCount = " + siteClipperTransactionCount + "\r\n"										// ok
-										+ " screenclassCount = " + javelinScreenclassCount + "\r\n"											// ok
-										+ " criteriaCount = " + javelinCriteriaCount + "\r\n"
+										+ " screenclassCount = " + siteClipperScreenclassCount + "\r\n"										// ok
+										+ " criteriaCount = " + siteClipperCriteriaCount + "\r\n"
 										+ "\r\n";
 								}						
 
