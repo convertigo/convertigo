@@ -1417,6 +1417,13 @@
                label="Deploy"
                menubarPath="project"/>
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectStatsAction"
+               enablesFor="1"
+               icon="icons/studio/statistics.gif"
+               id="convertigo.action.ProjectStatistics"
+               label="Statistics..."
+               menubarPath="project"/>               
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectSaveAction"
                enablesFor="1"
                icon="icons/studio/project_save.gif"
