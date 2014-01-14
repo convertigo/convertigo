@@ -830,18 +830,6 @@
             id="convertigo.criteriaContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject">
       </objectContribution>
-      <objectContribution
-	        id="convertigo.openProjectTestPlatformContribution"
-	        objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
-	       <action
-	             class="com.twinsoft.convertigo.eclipse.popup.actions.OpenProjectTestPlatformAction"
-	             enablesFor="1"
-	             icon="icons/studio/open_test_platform_16x16.png"
-	             id="convertigo.action.openProjectTestPlatform"
-	             label="Open test platform"
-	             menubarPath="run">
-	       </action>
-	  </objectContribution>
 	  <objectContribution
 	        id="convertigo.launchMobileDeviceProjectContribution"
 	        objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileDeviceTreeObject">
@@ -1157,19 +1145,73 @@
       <objectContribution
             id="convertigo.projectContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.CustomAdditionsAction"
-               enablesFor="1"
-               id="convertigo.action.customizeFile"
-               label="Add files ..."
-               menubarPath="add"/>
-         <action
+		 <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectCloseAction"
                enablesFor="+"
                icon="icons/studio/close.gif"
                id="convertigo.action.closeProject"
                label="Close"
                menubarPath="save"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectSaveAction"
+               enablesFor="1"
+               icon="icons/studio/project_save.gif"
+               id="convertigo.action.saveProject"
+               label="Save"
+               menubarPath="save"
+               overrideActionId="convertigo.action.saveAction">
+            <enablement>
+               <objectState
+                     name="isModified"
+                     value="true"/>
+            </enablement>
+         </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectExportAction"
+               enablesFor="1"
+               icon="icons/studio/project_export.gif"
+               id="convertigo.action.exportProject"
+               label="Export"
+               menubarPath="project"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectDeployAction"
+               enablesFor="1"
+               icon="icons/studio/project_deploy.gif"
+               id="convertigo.action.deployProject"
+               label="Deploy"
+               menubarPath="project"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerRefreshAction"
+               enablesFor="1"
+               icon="icons/studio/refresh.gif"
+               id="convertigo.action.reloadXmlProject"
+               label="Reload your project"
+               menubarPath="project"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectImportWsReference"
+               enablesFor="1"
+               id="convertigo.action.importWSReference"
+               label="Import WS reference"
+               menubarPath="service" />      
+         <action
+	   	 	   class="com.twinsoft.convertigo.eclipse.popup.actions.DeclareGlobalSymbolsFromThisProjectAction"
+			   enablesFor="1"
+			   icon="icons/studio/declare_global_symbols_16x16.png"
+			   id="convertigo.action.declareGlobalSymbolsFromThisProject"
+			   label="Create global symbols"
+			   menubarPath="service"/>
+		 <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectStatsAction"
+               icon="icons/studio/statistics.gif"
+               id="CemsStudio_7.1.x.action1"
+               label="Statistics"
+               menubarPath="stats"/>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CustomAdditionsAction"
+               enablesFor="1"
+               id="convertigo.action.customizeFile"
+               label="Add files ..."
+               menubarPath="add"/>
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileApplicationAction"
                enablesFor="1"
@@ -1223,61 +1265,6 @@
                label="Display schema file"
                menubarPath="edit">
          </action-->
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectExportAction"
-               enablesFor="1"
-               icon="icons/studio/project_export.gif"
-               id="convertigo.action.exportProject"
-               label="Export"
-               menubarPath="project"/>
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectDeployAction"
-               enablesFor="1"
-               icon="icons/studio/project_deploy.gif"
-               id="convertigo.action.deployProject"
-               label="Deploy"
-               menubarPath="project"/>
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectStatsAction"
-               icon="icons/studio/statistics.gif"
-               id="CemsStudio_7.1.x.action1"
-               label="Statistics"
-               menubarPath="others"/>
-         <action
-	   	 	   class="com.twinsoft.convertigo.eclipse.popup.actions.DeclareGlobalSymbolsFromThisProjectAction"
-			   enablesFor="1"
-			   icon="icons/studio/declare_global_symbols_16x16.png"
-			   id="convertigo.action.declareGlobalSymbolsFromThisProject"
-			   label="Create global symbols"
-			   menubarPath="others"/>
-         <action
-               class="com.twinsoft.convertigo.eclipse.actions.ProjectExplorerRefreshAction"
-               enablesFor="1"
-               icon="icons/studio/refresh.gif"
-               id="convertigo.action.reloadXmlProject"
-               label="Reload from XML"
-               menubarPath="others"/>
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectSaveAction"
-               enablesFor="1"
-               icon="icons/studio/project_save.gif"
-               id="convertigo.action.saveProject"
-               label="Save"
-               menubarPath="save"
-               overrideActionId="convertigo.action.saveAction">
-            <enablement>
-               <objectState
-                     name="isModified"
-                     value="true"/>
-            </enablement>
-         </action>
-         <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectImportWsReference"
-               enablesFor="1"
-               id="convertigo.action.importWSReference"
-               label="Import WS reference"
-               menubarPath="webservice">
-         </action>
          <!--action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ProjectCleanXSDAction"
                enablesFor="1"
@@ -1293,6 +1280,18 @@
                menubarPath="schema">
          </action-->
       </objectContribution>
+      <objectContribution
+	        id="convertigo.openProjectTestPlatformContribution"
+	        objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject">
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.OpenProjectTestPlatformAction"
+	             enablesFor="1"
+	             icon="icons/studio/open_test_platform_16x16.png"
+	             id="convertigo.action.openProjectTestPlatform"
+	             label="Open test platform"
+	             menubarPath="stats">
+	       </action>
+	  </objectContribution>
       <objectContribution
             id="convertigo.connectorContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject">
