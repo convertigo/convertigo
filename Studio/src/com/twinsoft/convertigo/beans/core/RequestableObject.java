@@ -599,7 +599,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	 */
 	public boolean useAuthenticatedUserAsCacheKey() {
 		boolean ret = false;
-		if (responseExpiryDate!=null && !responseExpiryDate.equals(""))
+		if (responseExpiryDate!=null && !responseExpiryDate.equals("") && responseExpiryDate.split(";").length==2)
 			ret = Boolean.parseBoolean((responseExpiryDate.split(";"))[1]);
 		return ret;
 	}
