@@ -1393,7 +1393,9 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	cursor: pointer;
 }
 
-
+#projectEditUndefinedSymbolsInfo {
+	background: #FCE4E4;
+}
 
 .properties-group {
 	background-color: #B5D3E7;

@@ -30,7 +30,7 @@ function projects_List_init() {
 	callService("projects.List", function(xml) {
 		$("#projectsList").jqGrid( {
 			datatype : "local",
-			colNames : [ 'Name', 'Comment', 'Version', 'Exported', 'Deployment', 'Delete', 'Reload', 'Edit', 'Export', 'Test' ],
+			colNames : [ 'Name', 'Comment', 'Version', 'Exported', 'Deployment', 'Delete', 'Reload', 'Export', 'Test' ],
 			colModel : [ {
 				name : 'name',
 				index : 'name',
@@ -65,12 +65,6 @@ function projects_List_init() {
 			}, {
 				name : 'btnReload',
 				index : 'btnReload',
-				width : 20,
-				sortable : false,
-				align : "center"
-			}, {
-				name : 'btnEdit',
-				index : 'btnEdit',
 				width : 20,
 				sortable : false,
 				align : "center"
@@ -146,10 +140,10 @@ function updateProjectsList(xml) {
 										"addRowData",
 										projectName,
 										{
-											name : (typeof $(this).attr("gsymbols")==="undefined" ? projectName : 
-													"<a href=\"javascript: declareSymbols('"
+											name : (typeof $(this).attr("undefined_symbols")==="undefined" ? "<a href=\"javascript: editProject('"+projectName+"', false)\" title=\"Click to edit '"+projectName+"' project\">"+projectName+"</a>" : 
+													"<a href=\"javascript: editProject('"
 													+ projectName
-													+ "')\"><img border=\"0\" class=\"iconAlertGlobalSymbols\" title=\"Click here to create undefined global symbols\" src=\"images/convertigo-administration-alert-global-symbols.png\">&nbsp;</a>"+projectName),
+													+ "',true)\" title=\"Click to edit '"+projectName+"'\ project">&nbsp;<img border=\"0\" class=\"iconAlertGlobalSymbols\" title=\"Click here to create undefined global symbols\" src=\"images/convertigo-administration-alert-global-symbols.png\">&nbsp;&nbsp;"+projectName+"</a>"),
 											comment : $(this).attr("comment"),
 											version : $(this).attr("version"),
 											exported : $(this).attr("exported"),
@@ -160,9 +154,6 @@ function updateProjectsList(xml) {
 											btnReload : "<a href=\"javascript: reloadProject('"
 													+ projectName
 													+ "')\"><img border=\"0\" title=\"Reload the project\" src=\"images/convertigo-administration-picto-reload.png\"></a>",
-											btnEdit : "<a href=\"javascript: editProject('"
-													+ projectName
-													+ "')\"><img border=\"0\" title=\"Edit the project\" src=\"images/convertigo-administration-picto-edit.png\"></a>",
 											btnExport : "<a href=\"services/projects.Export?projectName="
 												+ projectName
 												+ "\"><img border=\"0\" title=\"Make CAR archive from the project\" src=\"images/convertigo-administration-picto-save.png\"></a>",
@@ -246,24 +237,12 @@ function reloadProject(projectName) {
 					});
 }
 
-
-function declareSymbols(projectName) { 
-
-	callService("global_symbols.Declare",  
-		function(xml) { 
-			if ($(xml).find("response").attr("state")==="success") {
-				showInfo("<p>"+$(xml).find("response").attr("message")+"</p>");
-				projects_List_update();
-			}
-			if ($(xml).find("response").attr("state")==="error") {
-				showError("<p>"+$(xml).find("response").attr("message")+"</p>",$(xml).find("stackTrace").text()); 
-			}
-		} 
-		, {project : projectName} 
-	); 
-} 
-
-function editProject(projectName) {
+function editProject(projectName, alertUndefinedSymbol) {
 	//see projectEdit.js
-	loadProject(projectName);
+	if (alertUndefinedSymbol==true) {
+		loadProjectGSymbol(projectName);
+	} else {
+		$("#projectEditUndefinedSymbolsInfo").hide();
+		loadProject(projectName);
+	}
 }

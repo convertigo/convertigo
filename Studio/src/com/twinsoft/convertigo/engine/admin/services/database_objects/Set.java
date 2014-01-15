@@ -75,6 +75,7 @@ public class Set extends XmlService {
 		Document post = null;
 
 		try {
+			
 			Map<String, DatabaseObject> map = com.twinsoft.convertigo.engine.admin.services.projects.Get.getDatabaseObjectByQName(request);
 			
 			xpath = new TwsCachedXPathAPI();
@@ -89,6 +90,8 @@ public class Set extends XmlService {
 
 			if (object instanceof Project) {
 				Project project = (Project) object;
+
+//				Engine.theApp.databaseObjectsManager.clearCacheIfSymbolError(project.getName());
 				
 				String objectNewName = getPropertyValue(object, "name").toString();
 				

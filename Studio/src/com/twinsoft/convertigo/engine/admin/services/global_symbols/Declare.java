@@ -44,7 +44,7 @@ public class Declare extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element root = document.getDocumentElement();
-		String projectName = request.getParameter("project");
+		String projectName = request.getParameter("projectName");
 		Element response = document.createElement("response");
 
 		try {		

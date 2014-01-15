@@ -33,6 +33,7 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -312,6 +313,37 @@ public class ProjectUtils {
    
 		Engine.theApp.databaseObjectsManager.updateSymbols(prop);
 	}
+	/**
+	 * Add undefined global symbols
+	 * @param currentProject
+	 * @throws Exception
+	 */
+	public static Set<String> getUndefinedGlobalSymbols(Project currentProject) throws Exception {
+		Set<String> globalSymbols = new HashSet<String>();
+		
+		getUndefinedGlobalSymbols(currentProject, globalSymbols);
+		
+		return globalSymbols;
+	}
+	
+	private static void getUndefinedGlobalSymbols(DatabaseObject currentDBO, Set<String> globalSymbols){
+		List<DatabaseObject> dboChildrens = null;
+		
+		if ((dboChildrens = currentDBO.getAllChildren()) != null) {
+			for (DatabaseObject dboChild : dboChildrens) {
+				getUndefinedGlobalSymbols(dboChild, globalSymbols);
+			}
+		}
+		
+		Set<String> symbols = null;
+		if ((symbols = currentDBO.getSymbolsErrors()) != null) {
+			for (String symb : symbols) {
+				globalSymbols.add(symb);
+			}
+		}		
+	}
+	
+	
 	/**
 	 * Add undefined global symbols
 	 * @param currentProject

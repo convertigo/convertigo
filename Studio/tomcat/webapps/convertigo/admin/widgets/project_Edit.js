@@ -31,17 +31,35 @@ function project_Edit_init() {
 	}).click(function() {
 		projectEditObjectSubmitProperties();
 	});
-	$('#projectDeclareGlobalSymbols').button( { 
-	icons : { 
-        primary : "ui-icon-disk" 
-	            } 
-	}).click(function() { 
+	$('#projectEditUndefinedSymbolsInfoSubmit').click(function() { 
         projectDeclareGlobalSymbols(); 
 	});
 }
 
 function project_Edit_update() {
 	$("#project_Edit").hide();
+}
+
+
+function loadProjectGSymbol(projectName){	
+	callService("projects.GetUndefinedSymbols", function(xml) {
+		if ($(xml).find("undefined_symbols")) {
+			var htmlCode = "<h2>Undefined Global Symbols</h2>";
+			htmlCode += "<ul>";
+			$(xml).find("undefined_symbols").children().each(function() {
+				htmlCode += "<li>"+$(this).text()+"</li>";
+			});
+			htmlCode += "</ul>";
+			
+			$("#projectEditUndefinedSymbolsInfoList").html(htmlCode);
+			$("#projectEditUndefinedSymbolsInfo").show();
+		}else {
+			$("#projectEditUndefinedSymbolsInfo").hide();
+		}
+	}, 
+	{"projectName":projectName});
+	
+	loadProject(projectName);
 }
 
 // This variable contains the XML DOM returned by the database_objects.Get service
@@ -366,21 +384,25 @@ function projectEditObjectSubmitProperties() {
 		contentType : "application/xml"
 	   }
 	);
+	
+	projects_List_update();
 }
 
 function projectDeclareGlobalSymbols() { 	 
-	var projectName = $(".projectEditObjectName");
+	var projectName = $(".projectEditObjectName").text();
 	
 	callService("global_symbols.Declare",  
 		function(xml) { 
 			if ($(xml).find("response").attr("state")==="success") {
 				showInfo("<p>"+$(xml).find("response").attr("message")+"</p>");
-				projects_List_update();
+				project_Edit_init();
 			}
 			if ($(xml).find("response").attr("state")==="error") {
 				showError("<p>"+$(xml).find("response").attr("message")+"</p>",$(xml).find("stackTrace").text()); 
 			}
 		} 
-		, {project:projectName}  
+		, {"projectName":projectName}  
 	); 
+	
+	projects_List_update();
 } 
