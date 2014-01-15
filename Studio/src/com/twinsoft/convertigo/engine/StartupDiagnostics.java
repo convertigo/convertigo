@@ -350,11 +350,20 @@ public class StartupDiagnostics {
 					if (isLinux) {
 						String osArchitecture = ((architecture == Architecture.x32bits ? "i386" :
 							architecture == Architecture.x64bits ? "amd64" : ""));
+						                                                
+						String libraryPath = xulrunnerLibDir.toString() + ":" + javaLibraryPath + ":" + javaHome + "/lib/" + osArchitecture;
 
+						File javaLib = new File(javaHome + "/lib/" + osArchitecture);
+						libraryPath += ":" + javaLib;
+						for (File javaSubLib : javaLib.listFiles()) {
+							if (javaSubLib.isDirectory()) {
+								libraryPath += ":" + javaSubLib.getAbsolutePath();
+							}
+						}
+						
 						LddLibrariesResult lddLibrariesResult = lddLibraries(testTmpDir,
-								xulrunnerLibDir.toString() + ":" + javaLibraryPath + ":"
-										+ javaHome + "/lib/" + osArchitecture + "/headless",
-										".*((gnome)|(glx)|(webkit)|(mozilla)|(cairo)|(xpcominit)|(atk)).*");
+								libraryPath,
+								".*((gnome)|(glx)|(webkit)|(mozilla)|(cairo)|(xpcominit)|(atk)).*");
 						Engine.logEngine.info("Checking SWT libraries dependencies:\n"
 								+ lddLibrariesResult.response);
 						if (lddLibrariesResult.linkErrorFound) {
