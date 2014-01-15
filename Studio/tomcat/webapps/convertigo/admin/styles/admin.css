@@ -1535,6 +1535,10 @@ a.start {
 	background: #FCE4E4;
 }
 
+#dialog-deploy-project {
+	display: none;
+}
+
 /*************************************************** SYMBOLS WIDGET *******************************************************/
 #dialog-add-symbol {
 	display: none;

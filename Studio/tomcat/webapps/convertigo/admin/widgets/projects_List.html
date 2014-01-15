@@ -25,9 +25,7 @@
 <br/>
 
 <button id="projectsDeploy">Deploy a project</button>
-<input id="projectsAssembleXsl" type=checkbox></input>
-<span>Assemble xsl files included in stylesheets when deploying</span>
-
+<button id="projectsListButtonDeleteAll">Delete all</button>
 
 <!-- Table actions -->
 <table cellpadding="2" style="margin-top:5px; vertical-align:top;">
@@ -58,3 +56,9 @@
 
 <!-- Projects table -->
 <table id="projectsList"></table>
+
+<!-- Deploy dialog box -->
+<form id="dialog-deploy-project" >
+	<input type='checkbox' id='projectsAssembleXsl'/>
+	<span>Assemble XSL files included in style sheets when deploying</span>
+</form>

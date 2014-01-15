@@ -25,6 +25,21 @@ function projects_List_init() {
 		icons : {
 			primary : "ui-icon-circle-plus"
 		}
+	}).click(function(){
+		projectsDeploy();
+	});
+
+
+	$("#projectsListButtonDeleteAll").button({				
+		icons : {
+			primary : "ui-icon-closethick"
+		}
+	}).click(function(){
+		showConfirm("Are you sure you want to delete all the projects?",function(){
+			$("#projectsList tr:gt(0)").each(function(){					
+				callService("projects.Delete",function(){},{"projectName":$(this).attr('id')});
+			});
+		});					
 	});
 
 	callService("projects.List", function(xml) {
@@ -94,31 +109,6 @@ function projects_List_init() {
 		});
 		updateProjectsList(xml);
 	});
-
-	var ajaxUpload = new AjaxUpload("projectsDeploy", {
-		action : "services/projects.Deploy",			
-		responseType : "xml",		
-		onSubmit : function(file, ext) {			
-			this._settings.action = "services/projects.Deploy?bAssembleXsl=" + $("#projectsAssembleXsl").is(":checked");
-			var str = ".car";
-			if (file.match(str + "$") != str) {
-				showError("<p>The project '" + file + "' is not a valid archive (*.car)</p>");
-				return false;
-			}
-	
-			startWait(50);
-		},
-		onComplete : function(file, response) {
-			clearInterval(this.tim_progress);
-			endWait();
-			if ($(response).find("error").length > 0) {
-				showError("<p>An unexpected error occurs.</p>", $(response).text());
-			} else {
-				showInfo($(response).text());
-				projects_List_update();
-			}
-		}
-	});	
 }
 
 function projects_List_update() {
@@ -143,7 +133,7 @@ function updateProjectsList(xml) {
 											name : (typeof $(this).attr("undefined_symbols")==="undefined" ? "<a href=\"javascript: editProject('"+projectName+"', false)\" title=\"Click to edit '"+projectName+"' project\">"+projectName+"</a>" : 
 													"<a href=\"javascript: editProject('"
 													+ projectName
-													+ "',true)\" title=\"Click to edit '"+projectName+"'\ project">&nbsp;<img border=\"0\" class=\"iconAlertGlobalSymbols\" title=\"Click here to create undefined global symbols\" src=\"images/convertigo-administration-alert-global-symbols.png\">&nbsp;&nbsp;"+projectName+"</a>"),
+													+ "',true)\" title=\"Click to edit '"+projectName+"'\ project\">&nbsp;<img border=\"0\" class=\"iconAlertGlobalSymbols\" title=\"Click here to create undefined global symbols\" src=\"images/convertigo-administration-alert-global-symbols.png\">&nbsp;&nbsp;"+projectName+"</a>"),
 											comment : $(this).attr("comment"),
 											version : $(this).attr("version"),
 											exported : $(this).attr("exported"),
@@ -164,6 +154,52 @@ function updateProjectsList(xml) {
 	if( $(".iconAlertGlobalSymbols").length > 0 ){
 		$(".iconAlertGlobalSymbols").parent("a").parent("td").parent("tr").addClass("alertGlobalSymbols");
 	}
+}
+
+function projectsDeploy(xml) {	
+	
+		$("#dialog-deploy-project").dialog({
+			autoOpen : true,
+			title : "Choose .car file and Deploy",
+			modal : true,
+	        buttons: [{
+                id: "btn-browseAndDeploy",
+                text: "Browse and Deploy"
+        },{
+                id:"btn-cancel",
+                text: "Cancel",
+                click: function() {
+                        $(this).dialog("close");
+                }
+	        }]
+		});
+		
+		var ajaxUpload = new AjaxUpload("btn-browseAndDeploy", {
+			action : "services/projects.Deploy",			
+			responseType : "xml",		
+			onSubmit : function(file, ext) {			
+				this._settings.action = "services/projects.Deploy?bAssembleXsl=" + $("#projectsAssembleXsl").is(":checked");
+				var str = ".car";
+				if (file.match(str + "$") != str) {
+					showError("<p>The project '" + file + "' is not a valid archive (*.car)</p>");
+					return false;
+				}
+		
+				startWait(50);
+			},
+			onComplete : function(file, response) {
+				clearInterval(this.tim_progress);
+				endWait();
+				if ($(response).find("error").length > 0) {
+					showError("<p>An unexpected error occurs.</p>", $(response).text());
+				} else {
+					showInfo($(response).text());
+					projects_List_update();
+					$("").dialog("close");
+				}
+			}
+		});	
+
 }
 
 function deleteProject(projectName) {
