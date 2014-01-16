@@ -105,7 +105,7 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 		if (obj instanceof DatabaseObjectTreeObject) {
 			DatabaseObject dbo = ((DatabaseObjectTreeObject) obj).getObject();
 			if (dbo.isSymbolError()) {
-				return obj.toString() + " ! undefined symbol !"; 
+				return obj.toString() + " (! undefined symbol !)"; 
 			}
 		}
 		return obj.toString();

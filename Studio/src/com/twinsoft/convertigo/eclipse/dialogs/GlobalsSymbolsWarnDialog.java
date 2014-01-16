@@ -37,6 +37,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	private Button buttonOk, buttonIgnore = null;
 	private boolean doThisForAllCurrentProjectSymbols = false;
 	private boolean createAll = false;
+	private boolean showCheckBox = true;
 	private String projectName, propertyName,
 	propertyValue, objectName, objectType; 
 	private Display display;
@@ -46,13 +47,14 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	 * @param parentShell, errorMessage
 	 */
 	public GlobalsSymbolsWarnDialog(Shell parentShell, String projectName, String propertyName,
-			String propertyValue, String objectName, String objectType) {
+			String propertyValue, String objectName, String objectType, boolean showCheckBox) {
 		super(parentShell);
 		this.projectName = projectName;
 		this.propertyName = propertyName;
 		this.propertyValue = propertyValue;
 		this.objectName = objectName;
 		this.objectType = objectType;
+		this.showCheckBox = showCheckBox;
 		this.setShellStyle(SWT.DIALOG_TRIM | SWT.RESIZE);
 	}
 
@@ -190,29 +192,30 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		labelInfo.setForeground(new Color(display, 0, 164, 200));
 		labelInfo.setLayoutData(gridData);
 		
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gridData.horizontalSpan = 3;
-		
-		buttonDoThis = new Button(container, SWT.CHECK | SWT.WRAP);
-		buttonDoThis.addSelectionListener(new SelectionListener() {
-			
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				doThisForAllCurrentProjectSymbols = buttonDoThis.getSelection();
-				buttonOk.setText(doThisForAllCurrentProjectSymbols==true ? "Create symbols" : "Create '"+DatabaseObject.extractSymbol(propertyValue)[0]+"' symbol");
-				buttonIgnore.setText(doThisForAllCurrentProjectSymbols==true ? "Ignore all" : "Ignore");
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				doThisForAllCurrentProjectSymbols = buttonDoThis.getSelection();
-				buttonOk.setText(doThisForAllCurrentProjectSymbols==true ? "Create symbols" : "Create '"+DatabaseObject.extractSymbol(propertyValue)[0]+"' symbol");
-				buttonIgnore.setText(doThisForAllCurrentProjectSymbols==true ? "Ignore all" : "Ignore");
-			}
-		});
-		buttonDoThis.setText("Do this for all current project symbols");
-		buttonDoThis.setLayoutData(gridData);	
-		
+		if (showCheckBox==true) {
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.horizontalSpan = 3;
+	
+			buttonDoThis = new Button(container, SWT.CHECK | SWT.WRAP);
+			buttonDoThis.addSelectionListener(new SelectionListener() {
+				
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					doThisForAllCurrentProjectSymbols = buttonDoThis.getSelection();
+					buttonOk.setText(doThisForAllCurrentProjectSymbols==true ? "Create symbols" : "Create '"+DatabaseObject.extractSymbol(propertyValue)[0]+"' symbol");
+					buttonIgnore.setText(doThisForAllCurrentProjectSymbols==true ? "Ignore all" : "Ignore");
+				}
+				
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					doThisForAllCurrentProjectSymbols = buttonDoThis.getSelection();
+					buttonOk.setText(doThisForAllCurrentProjectSymbols==true ? "Create symbols" : "Create '"+DatabaseObject.extractSymbol(propertyValue)[0]+"' symbol");
+					buttonIgnore.setText(doThisForAllCurrentProjectSymbols==true ? "Ignore all" : "Ignore");
+				}
+			});
+			buttonDoThis.setText("Do this for all current project symbols");
+			buttonDoThis.setLayoutData(gridData);	
+		}
 		return container;
 	}
 	

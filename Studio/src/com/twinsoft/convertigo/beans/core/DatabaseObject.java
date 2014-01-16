@@ -914,26 +914,22 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				
 				if (Engine.isStudioMode()) {			
 					try {
-						// Show warning message box if the check box aren't selected
+						// When loading/opening project
+						
 						if (intoStack("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectLoadingJob")) {
 							if (doThisForAll == false) {
-								//Ignore dialog 
-								Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
-								Method m = convertigoPlugin.getMethod("warningGlobalSymbols", String.class, String.class, String.class, String.class, String.class);
-								boolean[] actions = (boolean[])m.invoke(null, projectName, propertyName, propertyObjectValue, objectName, databaseObject.getDatabaseType());
-								
-								DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol = actions[0];
-								DatabaseObjectsManager.getProjectLoadingData().doThisForAll = actions[1];
-								
-								createUndefinedSymbol = actions[0];
-								doThisForAll = actions[1];
-								
-								if (createUndefinedSymbol == true) {
-									//Create current symbol
-									ProjectUtils.createUndefinedGlobalSymbol(extractSymbol(propertyObjectValue.toString()));
-								}
+								openSymbolWarningDialog(projectName, propertyName, propertyObjectValue, objectName, 
+										databaseObject, createUndefinedSymbol, doThisForAll, true);
 							} 
 						} 
+						// When edition a property value
+						else if (intoStack("org.eclipse.ui.views.properties.PropertySheetEntry")) {
+							if (doThisForAll == false) {
+								openSymbolWarningDialog(projectName, propertyName, propertyObjectValue, objectName, 
+										databaseObject, createUndefinedSymbol, doThisForAll, false);
+							} 
+						} 
+						// When using the admin console
 						else {
 							DatabaseObjectsManager.getProjectLoadingData().doThisForAll = true;
 							DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol = false;
@@ -976,6 +972,24 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			}
 		}
 		return compiledValue;
+	}
+	
+	private static void openSymbolWarningDialog(String projectName, String propertyName, Object propertyObjectValue, String objectName, 
+			DatabaseObject databaseObject, boolean createUndefinedSymbol, boolean doThisForAll, boolean showCheckBox) throws Exception{
+		Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
+		Method m = convertigoPlugin.getMethod("warningGlobalSymbols", String.class, String.class, String.class, String.class, String.class, boolean.class);
+		boolean[] actions = (boolean[])m.invoke(null, projectName, propertyName, propertyObjectValue, objectName, databaseObject.getDatabaseType(), showCheckBox);
+		
+		DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol = actions[0];
+		DatabaseObjectsManager.getProjectLoadingData().doThisForAll = actions[1];
+		
+		createUndefinedSymbol = actions[0];
+		doThisForAll = actions[1];
+		
+		if (createUndefinedSymbol == true) {
+			//Create current symbol
+			ProjectUtils.createUndefinedGlobalSymbol(extractSymbol(propertyObjectValue.toString()));
+		}
 	}
 	
 	private static boolean intoStack(String className){

@@ -280,14 +280,14 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	private static GlobalsSymbolsWarnDialog dialogGlobalSymbols = null;
 	
 	public static boolean[] warningGlobalSymbols(final String projectName, final String propertyName,
-			final String propertyValue, final String objectName, final String objectType) {
+			final String propertyValue, final String objectName, final String objectType, final boolean showCheckBox) {
 		final Display display = getDisplay();
 		final boolean[] result = {false,false};
 		display.syncExec(new Runnable() {
 			public void run() {
 				try {
 					dialogGlobalSymbols = new GlobalsSymbolsWarnDialog(getDisplay().getActiveShell(), projectName, propertyName,
-							propertyValue, objectName, objectType);
+							propertyValue, objectName, objectType, showCheckBox);
 					dialogGlobalSymbols.open();
 					
 					result[0] = dialogGlobalSymbols.getCreateAction();
