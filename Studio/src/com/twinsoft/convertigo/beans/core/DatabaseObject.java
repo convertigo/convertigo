@@ -70,6 +70,7 @@ import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -907,29 +908,48 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 						+ "Object name: '" + objectName + "'\n"
 						+ "Object type: '" + databaseObject.getDatabaseType() + "'\n"
 						+ "Project: '" + projectName + "'";
-					
+				
+				boolean createUndefinedSymbol = DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol;
+				boolean doThisForAll = DatabaseObjectsManager.getProjectLoadingData().doThisForAll;
+				
 				if (Engine.isStudioMode()) {			
 					try {
 						// Show warning message box if the check box aren't selected
-						if (DatabaseObjectsManager.getProjectLoadingData().skipNextWarning == false) {
-							if (intoStack("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectLoadingJob")) {
+						if (intoStack("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectLoadingJob")) {
+							if (doThisForAll == false) {
+								//Ignore dialog 
 								Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
-								Method m = convertigoPlugin.getMethod("warningGlobalSymbols", String.class, String.class, String.class, String.class, String.class, String.class);
-								DatabaseObjectsManager.getProjectLoadingData().skipNextWarning =  
-										(Boolean)m.invoke(null, projectName, propertyName, propertyObjectValue, failure, objectName, databaseObject.getDatabaseType());
-							} else {
-								DatabaseObjectsManager.getProjectLoadingData().skipNextWarning = true;
-							}
-						}
-	
+								Method m = convertigoPlugin.getMethod("warningGlobalSymbols", String.class, String.class, String.class, String.class, String.class);
+								boolean[] actions = (boolean[])m.invoke(null, projectName, propertyName, propertyObjectValue, objectName, databaseObject.getDatabaseType());
+								
+								DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol = actions[0];
+								DatabaseObjectsManager.getProjectLoadingData().doThisForAll = actions[1];
+								
+								createUndefinedSymbol = actions[0];
+								doThisForAll = actions[1];
+								
+								if (createUndefinedSymbol == true) {
+									//Create current symbol
+									ProjectUtils.createUndefinedGlobalSymbol(extractSymbol(propertyObjectValue.toString()));
+								}
+							} 
+						} 
+						else {
+							DatabaseObjectsManager.getProjectLoadingData().doThisForAll = true;
+							DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol = false;
+						}	
 					} catch (Exception e) {
 						Engine.logBeans.warn(message+"\n"+e.getMessage());
 					}
 				}
 				
 				// Add warn message into the log
-				Engine.logBeans.warn(message);	
-				databaseObject.addSymbolError(propertyObjectValue.toString());
+				Engine.logBeans.warn(message);
+				if (createUndefinedSymbol == false) {
+					databaseObject.addSymbolError(propertyObjectValue.toString());
+				} else if (doThisForAll == true) {
+					databaseObject.addSymbolError(propertyObjectValue.toString());
+				}
 				DatabaseObjectsManager.getProjectLoadingData().undefinedGlobalSymbol = true;
 				
 				if ((propertyType != String.class)) {
@@ -1439,8 +1459,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				symbolsErrors.remove(value[i]);
 			}
 			if (symbolsErrors.size()==0) {
-				this.getProject().undefinedGlobalSymbols = false;
-			}
+				getProject().undefinedGlobalSymbols = false;
+			} 
 		}		
 	}
 	
@@ -1453,6 +1473,12 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			return symbolsErrors;
 		}
 		return null;
+	}
+	
+	public void setSymbolsErrors(Set<String> symbolsErrors){
+		if (symbolsErrors!=null) {
+			this.symbolsErrors = symbolsErrors;
+		}
 	}
 	
 	public Map<String,String> getSymbolsDefaulsValues(){

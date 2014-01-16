@@ -56,7 +56,7 @@ public class DeclareGlobalSymbolsFromThisProjectAction extends MyAbstractAction 
     			if ((databaseObject != null) && (databaseObject instanceof Project)) {
     				Project project = (Project)treeObject.getObject();
     				
-    				ProjectUtils.addUndefinedGlobalSymbols(project);
+    				ProjectUtils.createUndefinedGlobalSymbols(project);
     				
     				//Reload the project
     				explorerView.reloadProject(treeObject);

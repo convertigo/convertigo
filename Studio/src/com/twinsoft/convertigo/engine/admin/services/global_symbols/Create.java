@@ -35,12 +35,12 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 
 @ServiceDefinition(
-		name = "Declare",
+		name = "Create",
 		roles = { Role.WEB_ADMIN },
 		parameters = {},
 		returnValue = "the state of the creation"
 	)
-public class Declare extends XmlService {
+public class Create extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element root = document.getDocumentElement();
@@ -49,7 +49,7 @@ public class Declare extends XmlService {
 
 		try {		
 			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-			ProjectUtils.addUndefinedGlobalSymbols(project);
+			ProjectUtils.createUndefinedGlobalSymbols(project);
 			response.setAttribute("state", "success");
 			response.setAttribute("message","Global symbols have been successfully declared!");
 		} catch (Exception e) {

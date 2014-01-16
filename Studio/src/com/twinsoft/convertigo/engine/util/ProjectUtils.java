@@ -343,15 +343,28 @@ public class ProjectUtils {
 		}		
 	}
 	
+	public static void createUndefinedGlobalSymbol(String[] symbolsUndefined) throws Exception {
+		Properties prop = new Properties();
+        prop.load(new FileInputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()));
+		
+		for (String symbolUndefined : symbolsUndefined) {
+			prop.setProperty(symbolUndefined, "0" );
+		}
+		
+		//Update the global symbols file
+		prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");
+		Engine.theApp.databaseObjectsManager.updateSymbols(prop);
+	}
+	
 	
 	/**
 	 * Add undefined global symbols
 	 * @param currentProject
 	 * @throws Exception
 	 */
-	public static void addUndefinedGlobalSymbols(Project currentProject) throws Exception {
+	public static void createUndefinedGlobalSymbols(Project currentProject) throws Exception {
 		Map<String,String> globalSymbols = new HashMap<String,String>();
-		addUndefinedGlobalSymbols(currentProject, globalSymbols);
+		createUndefinedGlobalSymbols(currentProject, globalSymbols);
 		
 		//Update the global symbols file
 		Properties prop = new Properties();
@@ -367,12 +380,12 @@ public class ProjectUtils {
 		Engine.theApp.databaseObjectsManager.updateSymbols(prop);
 	}
 	
-	private static void addUndefinedGlobalSymbols(DatabaseObject currentDBO, Map<String,String> globalSymbols){
+	private static void createUndefinedGlobalSymbols(DatabaseObject currentDBO, Map<String,String> globalSymbols){
 		List<DatabaseObject> dboChildrens = null;
 		
 		if ((dboChildrens = currentDBO.getAllChildren()) != null) {
 			for (DatabaseObject dboChild : dboChildrens) {
-				addUndefinedGlobalSymbols(dboChild,globalSymbols);
+				createUndefinedGlobalSymbols(dboChild,globalSymbols);
 			}
 		}
 		
@@ -390,5 +403,22 @@ public class ProjectUtils {
 				globalSymbols.put(symb, symbolsDefaultsValues.get(symb));
 			}
 		}		
+	}
+	
+	public static void removeUndefinedGlobalSymbols(DatabaseObject currentDBO) {
+		List<DatabaseObject> dboChildrens = null;
+		
+		if ((dboChildrens = currentDBO.getAllChildren()) != null) {
+			for (DatabaseObject dboChild : dboChildrens) {
+				removeUndefinedGlobalSymbols(dboChild);
+			}
+		}
+		
+		if (currentDBO.getSymbolsErrors() != null) {
+			currentDBO.setSymbolsErrors(new HashSet<String>());
+		}
+		if (currentDBO instanceof Project){
+			((Project)currentDBO).undefinedGlobalSymbols = false;
+		}
 	}
 }

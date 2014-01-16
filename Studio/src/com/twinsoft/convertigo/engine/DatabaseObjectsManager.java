@@ -245,7 +245,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 		public String projectName;
 		public String compilablePropertyFailure;
-		public boolean skipNextWarning = false;
+		public boolean doThisForAll = false;
+		public boolean createUndefinedSymbol = false;
 		public boolean undefinedGlobalSymbol = false;
 	}
 
@@ -278,11 +279,19 @@ public class DatabaseObjectsManager implements AbstractManager {
 			try {
 				checkForEngineMigrationProcess(projectName);
 				project = importProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
+				if(getProjectLoadingData().createUndefinedSymbol==true && getProjectLoadingData().doThisForAll==true){
+					ProjectUtils.createUndefinedGlobalSymbols(project);
+					ProjectUtils.removeUndefinedGlobalSymbols(project);
+				}
+				
 			} catch (ClassCastException e) {
 				throw new EngineException("The requested object \"" + projectName + "\" is not a project!", e);
 			} catch (ProjectInMigrationProcessException e) {
 				throw new EngineException("Unable to load the project \"" + projectName
 						+ "\": the project is in migration process.", e);
+			} catch (Exception e) {
+				throw new EngineException("Unable to create the undefined global symbols for the project \"" + projectName
+						+ "\"", e);
 			} finally {
 				long t1 = Calendar.getInstance().getTime().getTime();
 				Engine.logDatabaseObjectManager.trace("Project loaded in " + (t1 - t0) + " ms");

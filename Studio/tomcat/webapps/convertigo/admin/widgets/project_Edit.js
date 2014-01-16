@@ -391,7 +391,7 @@ function projectEditObjectSubmitProperties() {
 function projectDeclareGlobalSymbols() { 	 
 	var projectName = $(".projectEditObjectName").text();
 	
-	callService("global_symbols.Declare",  
+	callService("global_symbols.Create",  
 		function(xml) { 
 			if ($(xml).find("response").attr("state")==="success") {
 				showInfo("<p>"+$(xml).find("response").attr("message")+"</p>");

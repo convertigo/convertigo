@@ -9,15 +9,17 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -28,33 +30,37 @@ import com.twinsoft.convertigo.engine.util.ProjectUtils;
 
 public class GlobalsSymbolsWarnDialog extends Dialog {
 	
-	private StyledText labelIntro, labelProperty, labelObjectName, labelObjectType, labelProject = null;
-	private Text textFailure = null;
+	private StyledText labelProperty, labelObjectType, labelProject = null;
+	private StyledText textFailure = null;
 	private Image image = null;
-	private Button buttonDismiss = null;	
-	private boolean skipNextWarning = false;
+	private Button buttonDoThis = null;	
+	private Button buttonOk, buttonIgnore = null;
+	private boolean doThisForAllCurrentProjectSymbols = false;
+	private boolean createAll = false;
 	private String projectName, propertyName,
-	propertyValue, failureMessage, objectName, objectType; 
+	propertyValue, objectName, objectType; 
+	private Display display;
  
 	/**
 	 * Create the dialog.
 	 * @param parentShell, errorMessage
 	 */
 	public GlobalsSymbolsWarnDialog(Shell parentShell, String projectName, String propertyName,
-			String propertyValue, String failureMessage, String objectName, String objectType) {
+			String propertyValue, String objectName, String objectType) {
 		super(parentShell);
 		this.projectName = projectName;
 		this.propertyName = propertyName;
 		this.propertyValue = propertyValue;
-		this.failureMessage = failureMessage;
 		this.objectName = objectName;
 		this.objectType = objectType;
+		this.setShellStyle(SWT.DIALOG_TRIM | SWT.RESIZE);
 	}
 
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Undefined Global Symbols");
-		newShell.setMinimumSize(400,310); 
+		newShell.setSize(410,270); 
+		display = newShell.getDisplay();
 	}
 
 	/**
@@ -64,164 +70,164 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	@Override
 	protected Control createDialogArea(Composite parent) {
 		Composite container = (Composite) super.createDialogArea(parent);
-		StyleRange styleItalic = null;
 		StyleRange styleBold = null;
 		GridLayout gridLayout = new GridLayout();
-		gridLayout.numColumns = 2;
+		gridLayout.numColumns = 4;
 		gridLayout.marginTop = 10;
-		gridLayout.horizontalSpacing = 10;
+		gridLayout.horizontalSpacing = 2;
 		Color back = parent.getBackground();
 		
 		container.setLayout(gridLayout);
 		
-		GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-		gridData.verticalSpan = 7;
-		gridData.grabExcessHorizontalSpace = true;
+		GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+		gridData.verticalSpan = 6;
+		
+		StyledText emptySpace1 = new StyledText(container, SWT.WRAP);
+		emptySpace1.setEditable(false);
+		emptySpace1.setText("     ");
+		emptySpace1.setLayoutData(gridData);
+		emptySpace1.setBackground(back);
+		
+		gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+		gridData.verticalSpan = 4;
 		
 		image = new Image(parent.getDisplay(), parent.getDisplay().getSystemImage(SWT.ICON_WARNING), 0);
 		Label labelImage = new Label(container, SWT.NONE);
 		labelImage.setImage(image);
 		labelImage.setLayoutData(gridData);
 		
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-
-		labelIntro = new StyledText(container, SWT.NONE);
-		labelIntro.setText("Compilation error for property '"+propertyName+"':");
-		labelIntro.setEditable(false);
-		labelIntro.setLayoutData(gridData);
-		labelIntro.setBackground(back);
+		gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
+		gridData.verticalSpan = 4;
 		
-		if (propertyName!=null) {
-			styleBold = new StyleRange();
-			styleBold.start = 32;
-			styleBold.length = propertyName.length();
-			styleBold.fontStyle = SWT.BOLD;
-			labelIntro.setStyleRange(styleBold);
-		}
+		StyledText emptySpace2 = new StyledText(container, SWT.WRAP);
+		emptySpace2.setEditable(false);
+		emptySpace2.setText(" ");
+		emptySpace2.setLayoutData(gridData);
+		emptySpace2.setBackground(back);
+		
+		//First message
 		gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 		
-		textFailure = new Text(container, SWT.MULTI);
-		textFailure.setText(failureMessage);
-		textFailure.setEditable(false);
-		textFailure.setLayoutData(gridData);
-		textFailure.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+		String[] symbolsNames = DatabaseObject.extractSymbol(propertyValue);
+		textFailure = new StyledText(container, SWT.WRAP);
+		if (symbolsNames.length==1) {
+			textFailure.setText("Undefined Global Symbol(s): "+symbolsNames[0]);
+			textFailure.setFocus();
+		}
 
+		textFailure.setEditable(false);
+		FontData[] fD = textFailure.getFont().getFontData();
+		fD[0].setHeight(10);
+		textFailure.setFont( new Font(display, fD[0]));
+		textFailure.setLayoutData(gridData);
+		textFailure.setBackground(back);
 		
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		
-		labelProperty = new StyledText(container, SWT.NONE);
-		labelProperty.setEditable(false);
-		labelProperty.setText("\nProperty value: '"+propertyValue+"'");
-		labelProperty.setLayoutData(gridData);
-		labelProperty.setBackground(back);
-		
-		if (propertyValue!=null) {
+		if (symbolsNames[0]!=null) {
 			styleBold = new StyleRange();
-			styleBold.start = 18;
-			styleBold.length = propertyValue.length();
+			styleBold.start = 28;
+			styleBold.length = symbolsNames[0].length();
 			styleBold.fontStyle = SWT.BOLD;
-			labelProperty.setStyleRange(styleBold);
-		}
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		
-		labelObjectName = new StyledText(container, SWT.NONE);
-		labelObjectName.setEditable(false);
-		labelObjectName.setText("● Object name: '"+objectName+"'");
-		labelObjectName.setLayoutData(gridData);
-		labelObjectName.setBackground(back);
-		
-		if (objectName!=null) {
-			styleBold = new StyleRange();
-			styleBold.start = 16;
-			styleBold.length = objectName.length();
-			styleBold.fontStyle = SWT.BOLD;
-			labelObjectName.setStyleRange(styleBold);
-			
-			styleItalic = new StyleRange();
-			styleItalic.start = 2;
-			styleItalic.length = 13;
-			styleItalic.fontStyle = SWT.ITALIC;
-			labelObjectName.setStyleRange(styleItalic);
-		}
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		
-		labelObjectType = new StyledText(container, SWT.NONE);
-		labelObjectType.setEditable(false);
-		labelObjectType.setText("● Object type: '"+objectType+"'");
-		labelObjectType.setLayoutData(gridData);
-		labelObjectType.setBackground(back);
-		
-		if (objectType!=null) {
-			styleBold = new StyleRange();
-			styleBold.start = 16;
-			styleBold.length = objectType.length();
-			styleBold.fontStyle = SWT.BOLD;
-			labelObjectType.setStyleRange(styleBold);
-			
-			styleItalic = new StyleRange();
-			styleItalic.start = 2;
-			styleItalic.length = 13;
-			styleItalic.fontStyle = SWT.ITALIC;
-			labelObjectType.setStyleRange(styleItalic);
+			textFailure.setStyleRange(styleBold);
 		}
 		
+		//Project
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		
-		labelProject = new StyledText(container, SWT.NONE);
+		labelProject = new StyledText(container, SWT.WRAP);
 		labelProject.setEditable(false);
-		labelProject.setText("● Project: '"+projectName+"'\n");
+		labelProject.setText("     ●  Project: "+projectName);
 		labelProject.setLayoutData(gridData);
 		labelProject.setBackground(back);
 		
 		if (projectName!=null) {
 			styleBold = new StyleRange();
-			styleBold.start = 12;
+			styleBold.start = 17;
 			styleBold.length = projectName.length();
 			styleBold.fontStyle = SWT.BOLD;
 			labelProject.setStyleRange(styleBold);
-			
-			styleItalic = new StyleRange();
-			styleItalic.start = 2;
-			styleItalic.length = 9;
-			styleItalic.fontStyle = SWT.ITALIC;
-			labelProject.setStyleRange(styleItalic);
+		}
+		
+		//Object type & value
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		
+		labelObjectType = new StyledText(container, SWT.WRAP);
+		labelObjectType.setEditable(false);
+		labelObjectType.setText("     ●  "+objectType+": "+objectName);
+		labelObjectType.setLayoutData(gridData);
+		labelObjectType.setBackground(back);
+		
+		if (objectName!=null && objectType!=null) {
+			styleBold = new StyleRange();
+			styleBold.start = objectType.length()+10;
+			styleBold.length = objectName.length();
+			styleBold.fontStyle = SWT.BOLD;
+			labelObjectType.setStyleRange(styleBold);
+		}
+		
+		//Property name & value
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		
+		labelProperty = new StyledText(container, SWT.WRAP);
+		labelProperty.setEditable(false);
+		labelProperty.setText("     ●  "+propertyName+": "+propertyValue);
+		labelProperty.setLayoutData(gridData);
+		labelProperty.setBackground(back);
+		
+		if (propertyValue!=null && propertyName!=null) {
+			styleBold = new StyleRange();
+			styleBold.start = propertyName.length()+10;
+			styleBold.length = propertyValue.length();
+			styleBold.fontStyle = SWT.BOLD;
+			labelProperty.setStyleRange(styleBold);
 		}
 		
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gridData.horizontalSpan = 2;
+		gridData.horizontalSpan = 3;
+		gridData.grabExcessHorizontalSpace = true;
 		
-		Label labelInfo = new Label(container, SWT.NONE);
-		labelInfo.setText("Note: You can also create all global symbols for one project \nby right-clicking on the Project and choose \"Declare global symbols\"");
-		labelInfo.setForeground(getShell().getDisplay().getSystemColor(SWT.COLOR_BLUE));
+		Label labelInfo = new Label(container, SWT.WRAP );
+		labelInfo.setText("\nNote: You can also create all global symbols for one project by right-clicking on the Project and choose \"Create global symbols\"");
+		labelInfo.setForeground(new Color(display, 0, 164, 200));
 		labelInfo.setLayoutData(gridData);
 		
-		buttonDismiss = new Button(container, SWT.CHECK);
-		buttonDismiss.addSelectionListener(new SelectionListener() {
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan = 3;
+		
+		buttonDoThis = new Button(container, SWT.CHECK | SWT.WRAP);
+		buttonDoThis.addSelectionListener(new SelectionListener() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				skipNextWarning = buttonDismiss.getSelection();
+				doThisForAllCurrentProjectSymbols = buttonDoThis.getSelection();
+				buttonOk.setText(doThisForAllCurrentProjectSymbols==true ? "Create symbols" : "Create '"+DatabaseObject.extractSymbol(propertyValue)[0]+"' symbol");
+				buttonIgnore.setText(doThisForAllCurrentProjectSymbols==true ? "Ignore all" : "Ignore");
 			}
 			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				skipNextWarning = buttonDismiss.getSelection();
-				
+				doThisForAllCurrentProjectSymbols = buttonDoThis.getSelection();
+				buttonOk.setText(doThisForAllCurrentProjectSymbols==true ? "Create symbols" : "Create '"+DatabaseObject.extractSymbol(propertyValue)[0]+"' symbol");
+				buttonIgnore.setText(doThisForAllCurrentProjectSymbols==true ? "Ignore all" : "Ignore");
 			}
 		});
-		buttonDismiss.setText("Skip next pop-ups");
-		buttonDismiss.setLayoutData(gridData);	
+		buttonDoThis.setText("Do this for all current project symbols");
+		buttonDoThis.setLayoutData(gridData);	
 		
 		return container;
 	}
 	
-	public boolean getSkipWarning(){
-		return skipNextWarning;
+	public boolean getCreateAction(){
+		return createAll;
+	}
+	
+	public boolean getCheckButtonSelection() {
+		 return doThisForAllCurrentProjectSymbols;
 	}
 	
 	@Override
 	protected void okPressed() {
 		try {
+			createAll = true;
 			ProjectUtils.addUndefinedGlobalSymbol(propertyValue);
 			
 			//Refresh the project 
@@ -239,27 +245,27 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	 */
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-		Button button = null;
-		
+	
 		String[] symbolsNames = DatabaseObject.extractSymbol(propertyValue);
 		if (symbolsNames.length==1) {
-			button = createButton(parent, IDialogConstants.OK_ID, "Create '"+symbolsNames[0]+"' symbol", true);
+			buttonOk = createButton(parent, IDialogConstants.OK_ID, "Create '"+symbolsNames[0]+"' symbol", true);
 		}else{
-			button = createButton(parent, IDialogConstants.OK_ID, "Create symbols", true);
+			buttonOk = createButton(parent, IDialogConstants.OK_ID, "Create symbols", true);
 		}
 		
-		button.setEnabled(true);
+		buttonOk.setEnabled(true);
 		
-		Button buttonCancel = createButton(parent, IDialogConstants.CLOSE_ID, "Close", true);
-		buttonCancel.addSelectionListener(new SelectionListener() {
+		buttonIgnore = createButton(parent, IDialogConstants.CLOSE_ID, "Ignore", true);
+		buttonIgnore.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				createAll = false;
 				close();
 			}
 			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				skipNextWarning = buttonDismiss.getSelection();
+				createAll = false;
 				close();
 			}
 		});
