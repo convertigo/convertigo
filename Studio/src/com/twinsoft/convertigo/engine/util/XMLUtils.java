@@ -424,7 +424,7 @@ public class XMLUtils {
 //	}
 	
 	public static Node writeObjectToXml(Document document, Object object, Class<?> classObject) throws Exception {
-		return writeObjectToXml(document, classObject, null, classObject);
+		return writeObjectToXml(document, object, null, classObject);
 	}
 	
 	public static Node writeObjectToXml(Document document, Object object, Object compiledValue, Class<?> classObject)
