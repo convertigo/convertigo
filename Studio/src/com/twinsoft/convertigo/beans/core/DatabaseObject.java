@@ -527,9 +527,13 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				}
 
 				// Stores the value
-				Node node = XMLUtils.writeObjectToXml(document, value);
+				Class<?> classObject = propertyDescriptor.getPropertyType();
+				Node node = null;
 				if (exportOptions.contains(ExportOption.bIncludeCompiledValue)) {
-					node = XMLUtils.writeObjectToXml(document, value, compiledValue);
+//					node = XMLUtils.writeObjectToXml(document, value, compiledValue);
+					node = XMLUtils.writeObjectToXml(document, value, compiledValue, classObject);
+				} else {
+					node = XMLUtils.writeObjectToXml(document, value, classObject);
 				}
 				propertyElement.appendChild(node);
 

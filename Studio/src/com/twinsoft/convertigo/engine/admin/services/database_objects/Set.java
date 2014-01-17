@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.TransformerException;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -44,7 +45,7 @@ import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-@ServiceDefinition(name = "Set", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Set", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "the state of saving properties")
 public class Set extends XmlService {
 	private TwsCachedXPathAPI xpath;
 	private Node postElt;
@@ -63,19 +64,20 @@ public class Set extends XmlService {
 		return DatabaseObject.compileProperty(object, propertyName, propertyValue);
 	}
 
-	private String getPropertyValue(String propertyName) throws TransformerException {
-		Node nodetmp = xpath.selectSingleNode(postElt, "./property[@name=\"" + propertyName
-				+ "\"]/*[1]/@value");
-		if (nodetmp == null)
-			return "";
-		return nodetmp.getNodeValue();
-	}
+//	private String getPropertyValue(String propertyName) throws TransformerException {
+//		Node nodetmp = xpath.selectSingleNode(postElt, "./property[@name=\"" + propertyName
+//				+ "\"]/*[1]/@value");
+//		if (nodetmp == null)
+//			return "";
+//		return nodetmp.getNodeValue();
+//	}
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
+		Element root = document.getDocumentElement();
 		Document post = null;
-
+		Element response = document.createElement("response");
+		
 		try {
-			
 			Map<String, DatabaseObject> map = com.twinsoft.convertigo.engine.admin.services.projects.Get.getDatabaseObjectByQName(request);
 			
 			xpath = new TwsCachedXPathAPI();
@@ -85,13 +87,12 @@ public class Set extends XmlService {
 			String objectQName = xpath.selectSingleNode(postElt, "./@qname").getNodeValue();
 			DatabaseObject object = map.get(objectQName);
 
-			String comment = getPropertyValue("comment");
+//			String comment = getPropertyValue("comment");
+			String comment = getPropertyValue(object, "comment").toString();
 			object.setComment(comment);
 
 			if (object instanceof Project) {
 				Project project = (Project) object;
-
-//				Engine.theApp.databaseObjectsManager.clearCacheIfSymbolError(project.getName());
 				
 				String objectNewName = getPropertyValue(object, "name").toString();
 				
@@ -113,27 +114,41 @@ public class Set extends XmlService {
 				String propertyTypeString = xpath.selectSingleNode(postElt,
 						"./property[@name=\"" + propertyName + "\"]/*[1]")
 						.getNodeName();
-
-				String propertyValue = getPropertyValue(propertyName);
-
-				Object oPropertyValue = createObject(propertyTypeString, propertyValue);
-
-				if (object.isCipheredProperty(propertyName)) {
-					oPropertyValue = DatabaseObject.encryptPropertyValue(oPropertyValue);
-				}
 				
-				if (oPropertyValue != null) {
-					Object args[] = { oPropertyValue };
-					setter.invoke(object, args);
+//				String propertyValue = getPropertyValue(propertyName);
+				try{
+					String propertyValue = getPropertyValue(object, propertyName).toString();
+					
+					Object oPropertyValue = createObject(propertyTypeString, propertyValue);
+	
+					if (object.isCipheredProperty(propertyName)) {
+						oPropertyValue = DatabaseObject.encryptPropertyValue(oPropertyValue);
+					}
+					
+					if (oPropertyValue != null) {
+						Object args[] = { oPropertyValue };
+						setter.invoke(object, args);
+					}
+				} catch(IllegalArgumentException e){
+					
 				}
-				
 			}
 			
 			Engine.theApp.databaseObjectsManager.exportProject(object.getProject());
+			response.setAttribute("state", "success");
+			response.setAttribute("message", "Project have been successfully updated!");
+		} catch(Exception e){
+			Engine.logBeans.error("Error during saving the properties!\n"+e.getMessage());
+			response.setAttribute("state", "error");
+			response.setAttribute("message", "Error during saving the properties!");
+			Element stackTrace = document.createElement("stackTrace");
+			stackTrace.setTextContent(e.getMessage());
+			root.appendChild(stackTrace);
 		} finally {
 			xpath.resetCache();
 		}
 
+		root.appendChild(response);
 	}
 
 	private Object createObject(String propertyTypeString, Object propertyValue) {

@@ -372,20 +372,29 @@ function projectEditObjectSubmitProperties() {
 			var $value = $property.find("*[value],*[value=]");
 			var value = $(this).val();
 			$property.find("*[value],*[value=]").attr('value', $(this).val());
-		});
+		}
+	);
 
 	var $node = $xmlResponse.find('admin >*').first();
 	var node = $node[0];	
-	callService("database_objects.Set", function() {
-		showInfo("Project updated");
-	}, domToString2(node)
-	 , undefined
-	 , {
-		contentType : "application/xml"
-	   }
+	callService("database_objects.Set", 
+		function(xml) {
+			if ($(xml).find("response").attr("state")==="success") {
+				showInfo("<p>"+$(xml).find("response").attr("message")+"</p>");
+			}
+			if ($(xml).find("response").attr("state")==="error") {
+				showError("<p>"+$(xml).find("response").attr("message")+"</p>",$(xml).find("stackTrace").text()); 
+			}
+
+			projects_List_update();
+		}
+		, domToString2(node)
+		, undefined
+		, {
+			contentType : "application/xml"
+		}
 	);
 	
-	projects_List_update();
 }
 
 function projectDeclareGlobalSymbols() { 	 
