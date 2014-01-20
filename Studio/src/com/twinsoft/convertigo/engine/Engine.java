@@ -302,7 +302,7 @@ public class Engine {
 
 	public static synchronized void start() throws EngineException {
 		if (Engine.theApp == null) {
-			System.out.println("Starting Convertigo Enterprise Mashup Server");
+			System.out.println("Starting Convertigo Enterprise Mobility Server");
 
 			// If the engine has been stopped by the admin, we must reload
 			// properties
@@ -897,7 +897,7 @@ public class Engine {
 	 */
 	public Engine() {
 		Engine.logEngine.info("===========================================================");
-		Engine.logEngine.info(" Convertigo Enterprise Mashup Server "
+		Engine.logEngine.info(" Convertigo Enterprise Mobility Server "
 				+ com.twinsoft.convertigo.engine.Version.fullProductVersion);
 		Engine.logEngine.info("    engine " + Version.version);
 		Engine.logEngine.info("    beans " + com.twinsoft.convertigo.beans.Version.version);
