@@ -42,7 +42,7 @@ public class EngineServlet extends HttpServlet {
     /** Returns a short description of the servlet.
     */
     public String getServletInfo() {
-        return "Convertigo Enterprise Mashup Server Engine Startup Servlet";
+        return "Convertigo Enterprise Mobility Server Engine Startup Servlet";
     }
     
 	public void init(ServletConfig servletConfig) throws ServletException {
