@@ -19,13 +19,24 @@
  * $Revision$
  * $Date$
 -->
-
-<p>
-    <strong><span id="connectionsContextsInUse"></span> / <span id="connectionsContextsNumber"></span> user(s)</strong> currently connected to Convertigo.
-    <br/>Number of threads currently in use:
-    <strong><span id="connectionsThreadsInUse"></span> / <span id="connectionsThreadsNumber"></span></strong>
-    <br/>Max HTTP session inactivity: <strong><span id="connectionsHttpTimeout"></span></strong>
-</p>
+<div class="bgButtonAction">
+	<button id="connectionsListButtonDeleteAll">Delete all</button>
+</div>
+<br/>
+<table>
+	<tr>
+		<td width="180">Currently connected:</td>
+		<td><strong><span id="connectionsContextsInUse"></span> / <span id="connectionsContextsNumber"></span> user(s)</strong></td>
+	</tr>
+	<tr>
+		<td>Threads currently in use:</td>
+		<td><strong><span id="connectionsThreadsInUse"></span> / <span id="connectionsThreadsNumber"></span></strong></td>
+	</tr>
+	<tr>
+		<td>Max HTTP session inactivity:</td>
+		<td><strong><span id="connectionsHttpTimeout"></span></strong></td>
+	</tr>
+</table>
 
 <h6>Legend</h6>
 
@@ -50,4 +61,3 @@
 
 <table id="connectionsList"></table>
 
-<button id="connectionsListButtonDeleteAll">Delete all</button>

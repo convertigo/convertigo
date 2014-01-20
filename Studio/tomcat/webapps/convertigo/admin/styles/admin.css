@@ -21,7 +21,8 @@
  */
 
 @charset "utf-8";
-
+/* = common style
+---------------------------------------------------------------------------- */
 body {
 	font-family: Arial;
 	font-size: 12px;
@@ -137,7 +138,8 @@ table {
 .clear {
 	clear:both;
 }
-/********************************************* INDEX / LOGIN PAGE **************************************************/
+/* INDEX / LOGIN PAGE 
+---------------------------------------------------------------------- */
 .index {
 	width: 100%;
 	background-color: #FFF;
@@ -256,7 +258,8 @@ table {
 	text-align: left;
 }
 
-/**************************************************** HEADER *******************************************************/
+/* = HEADER
+---------------------------------------------------------------------- */
 #mainheader {	
 	margin-right:7px !important;
 	margin-top: 10px;
@@ -335,7 +338,8 @@ table {
 	font-variant: small-caps;
 }
 
-/************************************************ TEMPLATE MAIN ****************************************************/
+/* = TEMPLATE MAIN
+---------------------------------------------------------------------- */
 #mainglobal {
 	margin: 0px 20px 0 20px !important;
 }
@@ -433,7 +437,8 @@ table {
 	color: #8f8f8f;
 }
 
-/* *************************** WIDGET *********************************************************************** */
+/* = WIDGET
+---------------------------------------------------------------------- */
 
 /* = Icon help add by alexandret 
 -------------------------------------- */
@@ -452,7 +457,7 @@ table {
 .IconHelpTitle {
 	float: left;
 }
-/* ----------------------------------- */
+/* end icon help ---------------------- */
 
 .widget {
 	float: left;
@@ -532,6 +537,7 @@ table {
 	color: #818181;
 	text-align: left;
 	background-color: #fff;
+	position: relative;
 }
 
 .widget_content_right {
@@ -609,7 +615,23 @@ table {
 	text-align: center;
 }
 
-/************************************************* DOCK MENU *******************************************************/
+/* == common style widget content
+----------------------------------------*/
+
+.bgButtonAction {
+	position: relative;
+	top: 0px;
+	left: -14px;
+	height: 47px;
+	width: 100%;
+	background-color: #f3f2f1;
+	border-bottom: 1px solid #dddddd;	
+	padding: 10px 12px 0 12px;;
+}
+
+
+/* = DOCK MENU
+---------------------------------------------------------------------- */
 #mainmenu>table.mainmenu_tab>div.mainmenu_mb_menuV {
 	width: 75px;
 	height: 535px;
@@ -666,7 +688,8 @@ table {
 	padding-top: 20px;
 }
 
-/* for ie */
+/* == for ie 
+----------------------------------------*/
 .mainmenu_ulG,.mainmenu_ulD {
 	padding: 0;
 	list-style: none outside none;
@@ -683,8 +706,8 @@ table {
 .mainmenu_nolist {
 	list-style-image: none;
 }
+/* == end for ie ------------------------*/
 
-/* end for ie */
 span.mainmenu_text {
 	color: #999;
 	font-size: 9px;
@@ -725,10 +748,6 @@ a:hover>span.mainmenu_text {
 	text-align: left;
 }
 
-.main-widget-toolbar {
-	padding: 5px;
-}
-
 .main_odd {
 	background-color: #fff;
 }
@@ -755,7 +774,8 @@ table.ui-pg-table {
 	text-align: left;
 }
 
-/****************************** LOG VIEWER *********************************************************/
+/* = LOG VIEWER
+---------------------------------------------------------------------- */
 .log-full-screen {
 	position: fixed;
 	top: 0px;
@@ -1190,7 +1210,8 @@ table.ui-pg-table {
    /* width: 650px;*/
 }
 
-/* accordion header */
+/* == accordion header
+----------------------------------------*/
 .config-accordion>div>h2 {
 	margin: 0 10px 0 0;
 	padding: 5px 10px;
@@ -1205,7 +1226,8 @@ table.ui-pg-table {
 	background: #f3f2f1 0 0;
 }
 
-/* list category  */
+/* == list category
+----------------------------------------*/
 #configAccordion.ui-widget-content {
 	border:0;
 }
@@ -1285,7 +1307,8 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	background-color: #f3f2f1;
 }
 
-/* currently active header */
+/* == currently active header
+----------------------------------------*/
 .config-accordion>div>h2.current {
 	color: #FFF;
 	font: Arial 14px normal;
@@ -1299,7 +1322,8 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	background: #868686;
 }
 
-/* accordion pane */
+/* == accordion pane
+----------------------------------------*/
 .config-accordion .config-pane {
 	border: 1px solid #f3f2f1;
 	border-width: 0;
@@ -1309,7 +1333,8 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	padding: 2px;
 }
 
-/* a title inside pane */
+/* == a title inside pane
+----------------------------------------*/
 .config-accordion .config-pane>h3 {
 	font-weight: normal;
 	/*margin:0 0 -5px 0;*/
@@ -1317,7 +1342,8 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	color: #999;
 }
 
-/* current border content style */
+/* == current border content style
+----------------------------------------*/
 .config-accordion-main-content {
 	border: 1px solid #ccc;
 	-moz-border-radius: 0px 0px 10px 10px/ 0px 0px 10px 10px;
@@ -1333,6 +1359,7 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	-webkit-border-radius: 0px 0px 10px 10px/ 0px 0px 10px 10px;
 	-khtml-border-radius: 0px 0px 10px 10px/ 0px 0px 10px 10px;
 	margin-right:10px;
+	clear:both;
 }
 
 .config-accordion-main-properties {
@@ -1377,7 +1404,8 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	cursor: pointer;
 }
 
-/********************************************** PROJECT TREE VIEW **************************************************/
+/* = PROJECT TREE VIEW
+---------------------------------------------------------------------- */
 
 .projectEdit-editedObject { 
     color:black;
@@ -1464,7 +1492,8 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 }
 
 
-/*************************************************** COMMON ********************************************************/
+/* = COMMON
+---------------------------------------------------------------------- */
 .spacerH {
 	width: 10px !important;
 	-width: 10px; 
@@ -1490,7 +1519,8 @@ a.start {
 	zoom: 1;
 }
 
-/*************************************************** AJAX WAIT *******************************************************/
+/* = AJAX WAIT
+---------------------------------------------------------------------- */
 #ajax_wait {
 	position: fixed;
     top: 0px;
@@ -1513,14 +1543,12 @@ a.start {
     margin: 10px;
 }
 
-/*************************************************** CONNECTIONS WIDGET *******************************************************/
+/* = CONNECTIONS WIDGET
+---------------------------------------------------------------------- */
 
-#connectionsListButtonDeleteAll {
-	margin: 10px;
-	
-}
 
-/*************************************************** PROJECT WIDGET *******************************************************/
+/* = PROJECT WIDGET
+---------------------------------------------------------------------- */
 
 #projectsAssembleXsl {
 	margin-left: 30px;
@@ -1539,7 +1567,8 @@ a.start {
 	display: none;
 }
 
-/*************************************************** SYMBOLS WIDGET *******************************************************/
+/* = SYMBOLS WIDGET
+---------------------------------------------------------------------- */
 #dialog-add-symbol {
 	display: none;
 }

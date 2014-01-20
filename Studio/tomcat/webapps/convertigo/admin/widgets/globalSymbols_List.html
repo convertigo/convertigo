@@ -24,32 +24,20 @@
 		<link href="styles/admin.css" type="text/css" rel="stylesheet"/>
 	</head>
 	<body>
-			<br/>
+		<div class="bgButtonAction">
 			<button id="updateSymbols" onclick="javascript: updateSymbol()">Update Symbols</button>
-			
-			<!-- Table actions -->
-			<table cellpadding="2" style="margin-top:5px; vertical-align:top;">
-			    <tr valign="middle" height="25" width="100%">
-			        <td width="80px"><h6>Legend :</h6></td>
-			        
-			        <td><img src="images/convertigo-administration-picto-delete.png" alt="Delete symbol" border="0"></td>
-			        <td>Delete Symbol</td>
-			        <td><div class="dotV"></div></td>                                                                                                  
-			                                                       
-			    </tr>                                               
-			</table>
-			<br/>
 			<button id="addSymbol" onclick="javascript: addSymbol()">Add Symbol</button>
-			<br/><br/>
-			<!-- Global Symbols table -->
-			<table id="symbolsList"></table>
-		
-			<form id="dialog-add-symbol">
-					<label for="name">Name : </label>
-					<input type='text' id='addName' value=''/>
-					<br/>
-					<label for="value">Value : </label>
-					<input type='text' id='addValue' value=''/>
-			</form>
+		</div>	
+		<br/>
+		<!-- Global Symbols table -->
+		<table id="symbolsList"></table>
+	
+		<form id="dialog-add-symbol">
+				<label for="name">Name : </label>
+				<input type='text' id='addName' value=''/>
+				<br/>
+				<label for="value">Value : </label>
+				<input type='text' id='addValue' value=''/>
+		</form>
 	</body>
 </html>
