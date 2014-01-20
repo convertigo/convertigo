@@ -54,7 +54,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.apache.xml.resolver.Catalog;
@@ -308,130 +307,11 @@ public class XMLUtils {
 	 * return e.getMessage(); } }
 	 */
 	public static Node writeObjectToXml(Document document, Object object) throws Exception {
-//		return writeObjectToXml(document, object, null);
-		return writeObjectToXml(document, object, object.getClass());
+		return writeObjectToXml(document, object, null);
 	}
-	
-	
 
-//	public static Node writeObjectToXml(Document document, Object object, Object compiledValue)
-//			throws Exception {
-//		if (object == null)
-//			return null;
-//
-//		// Simple objects
-//		if ((object instanceof Boolean) || (object instanceof Integer) || (object instanceof Double)
-//				|| (object instanceof Float) || (object instanceof Character) || (object instanceof Long)
-//				|| (object instanceof Short) || (object instanceof Byte)) {
-//			Element element = document.createElement(object.getClass().getName());
-//			element.setAttribute("value", object.toString());
-//			if (compiledValue != null)
-//				element.setAttribute("compiledValue", compiledValue.toString());
-//			return element;
-//		}
-//		// Strings
-//		else if (object instanceof String) {
-//			Element element = document.createElement(object.getClass().getName());
-//			element.setAttribute("value", object.toString());
-//			if (compiledValue != null)
-//				element.setAttribute("compiledValue", compiledValue.toString());
-//			return element;
-//		}
-//		// Arrays
-//		else if (object.getClass().getName().startsWith("[")) {
-//			String arrayClassName = object.getClass().getName();
-//			int i = arrayClassName.lastIndexOf('[');
-//
-//			String itemClassName = arrayClassName.substring(i + 1);
-//			char c = itemClassName.charAt(itemClassName.length() - 1);
-//			switch (c) {
-//			case ';':
-//				itemClassName = itemClassName.substring(1, itemClassName.length() - 1);
-//				break;
-//			case 'B':
-//				itemClassName = "byte";
-//				break;
-//			case 'C':
-//				itemClassName = "char";
-//				break;
-//			case 'D':
-//				itemClassName = "double";
-//				break;
-//			case 'F':
-//				itemClassName = "float";
-//				break;
-//			case 'I':
-//				itemClassName = "int";
-//				break;
-//			case 'J':
-//				itemClassName = "long";
-//				break;
-//			case 'S':
-//				itemClassName = "short";
-//				break;
-//			case 'Z':
-//				itemClassName = "boolean";
-//				break;
-//			}
-//
-//			Element element = document.createElement("array");
-//			element.setAttribute("classname", itemClassName);
-//
-//			int len = Array.getLength(object);
-//			element.setAttribute("length", Integer.toString(len));
-//
-//			Node subNode;
-//			for (int k = 0; k < len; k++) {
-//				subNode = writeObjectToXml(document, Array.get(object, k));
-//				if (subNode != null) {
-//					element.appendChild(subNode);
-//				}
-//			}
-//
-//			return element;
-//		}
-//		// XMLization
-//		else if (object instanceof XMLizable) {
-//			Element element = document.createElement("xmlizable");
-//			element.setAttribute("classname", object.getClass().getName());
-//			element.appendChild(((XMLizable) object).writeXml(document));
-//			return element;
-//		}
-//		// Default serialization
-//		else {
-//			Element element = document.createElement("serializable");
-//			element.setAttribute("classname", object.getClass().getName());
-//
-//			String objectBytesEncoded = null;
-//			byte[] objectBytes = null;
-//
-//			// We write the object to a bytes array
-//			ByteArrayOutputStream outputStream = new ByteArrayOutputStream(1024);
-//			ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-//			objectOutputStream.writeObject(object);
-//			objectOutputStream.flush();
-//			outputStream.close();
-//
-//			// Now, we retrieve the object bytes
-//			objectBytes = outputStream.toByteArray();
-//			objectBytesEncoded = Base64.encodeBytes(objectBytes);
-//
-//			CDATASection cDATASection = document.createCDATASection(new String(objectBytesEncoded));
-//			element.appendChild(cDATASection);
-//
-//			return element;
-//		}
-//	}
-	
-	public static Node writeObjectToXml(Document document, Object object, Class<?> classObject) throws Exception {
-		return writeObjectToXml(document, object, null, classObject);
-	}
-	
-	public static Node writeObjectToXml(Document document, Object object, Object compiledValue, Class<?> classObject)
+	public static Node writeObjectToXml(Document document, Object object, Object compiledValue)
 			throws Exception {
-		if (classObject.isPrimitive() ){
-			classObject = ClassUtils.primitiveToWrapper(classObject);
-		}
 		if (object == null)
 			return null;
 
@@ -439,7 +319,7 @@ public class XMLUtils {
 		if ((object instanceof Boolean) || (object instanceof Integer) || (object instanceof Double)
 				|| (object instanceof Float) || (object instanceof Character) || (object instanceof Long)
 				|| (object instanceof Short) || (object instanceof Byte)) {
-			Element element = document.createElement(classObject.getName());
+			Element element = document.createElement(object.getClass().getName());
 			element.setAttribute("value", object.toString());
 			if (compiledValue != null)
 				element.setAttribute("compiledValue", compiledValue.toString());
@@ -447,15 +327,15 @@ public class XMLUtils {
 		}
 		// Strings
 		else if (object instanceof String) {
-			Element element = document.createElement(classObject.getName());
+			Element element = document.createElement(object.getClass().getName());
 			element.setAttribute("value", object.toString());
 			if (compiledValue != null)
 				element.setAttribute("compiledValue", compiledValue.toString());
 			return element;
 		}
 		// Arrays
-		else if (classObject.getName().startsWith("[")) {
-			String arrayClassName = classObject.getName();
+		else if (object.getClass().getName().startsWith("[")) {
+			String arrayClassName = object.getClass().getName();
 			int i = arrayClassName.lastIndexOf('[');
 
 			String itemClassName = arrayClassName.substring(i + 1);
@@ -498,7 +378,7 @@ public class XMLUtils {
 
 			Node subNode;
 			for (int k = 0; k < len; k++) {
-				subNode = writeObjectToXml(document, Array.get(object, k),classObject.getComponentType());
+				subNode = writeObjectToXml(document, Array.get(object, k));
 				if (subNode != null) {
 					element.appendChild(subNode);
 				}
@@ -509,14 +389,14 @@ public class XMLUtils {
 		// XMLization
 		else if (object instanceof XMLizable) {
 			Element element = document.createElement("xmlizable");
-			element.setAttribute("classname", classObject.getName());
+			element.setAttribute("classname", object.getClass().getName());
 			element.appendChild(((XMLizable) object).writeXml(document));
 			return element;
 		}
 		// Default serialization
 		else {
 			Element element = document.createElement("serializable");
-			element.setAttribute("classname", classObject.getName());
+			element.setAttribute("classname", object.getClass().getName());
 
 			String objectBytesEncoded = null;
 			byte[] objectBytes = null;
@@ -538,7 +418,7 @@ public class XMLUtils {
 			return element;
 		}
 	}
-	
+
 	public static Object readObjectFromXml(Element node) throws Exception {
 		String nodeName = node.getNodeName();
 		String nodeValue = ((Element) node).getAttribute("value");

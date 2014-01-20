@@ -30,6 +30,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.TransformerException;
 
+import org.apache.commons.lang.ClassUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -39,6 +40,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.CompilablePropertyExcep
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
@@ -111,15 +113,18 @@ public class Set extends XmlService {
 				
 				Method setter = propertyDescriptor.getWriteMethod();
 
-				String propertyTypeString = xpath.selectSingleNode(postElt,
-						"./property[@name=\"" + propertyName + "\"]/*[1]")
-						.getNodeName();
+//				String propertyTypeString = xpath.selectSingleNode(postElt,
+//						"./property[@name=\"" + propertyName + "\"]/*[1]")
+//						.getNodeName();
+				Class<?> propertyTypeClass = propertyDescriptor.getReadMethod().getReturnType();
+				if (propertyTypeClass.isPrimitive()) {
+					propertyTypeClass = ClassUtils.primitiveToWrapper(propertyTypeClass);
+				}
 				
-//				String propertyValue = getPropertyValue(propertyName);
 				try{
 					String propertyValue = getPropertyValue(object, propertyName).toString();
 					
-					Object oPropertyValue = createObject(propertyTypeString, propertyValue);
+					Object oPropertyValue = createObject(propertyTypeClass, propertyValue);
 	
 					if (object.isCipheredProperty(propertyName)) {
 						oPropertyValue = DatabaseObject.encryptPropertyValue(oPropertyValue);
@@ -129,9 +134,8 @@ public class Set extends XmlService {
 						Object args[] = { oPropertyValue };
 						setter.invoke(object, args);
 					}
-				} catch(IllegalArgumentException e){
 					
-				}
+				} catch(IllegalArgumentException e){}
 			}
 			
 			Engine.theApp.databaseObjectsManager.exportProject(object.getProject());
@@ -150,29 +154,17 @@ public class Set extends XmlService {
 
 		root.appendChild(response);
 	}
-
-	private Object createObject(String propertyTypeString, Object propertyValue) {
+	
+	private Object createObject(Object propertyClass, Object value) throws ServiceException {
 		Object oPropertyValue = null;
-		if (propertyTypeString.equals(String.class.toString().split("\\s")[1])) {
-			oPropertyValue = propertyValue;
-		} else if (propertyTypeString.equals(Character.class.toString().split(" ")[1])) {
-			oPropertyValue = new Character(((String) propertyValue).charAt(0));
-		} else if (propertyTypeString.equals(Boolean.class.toString().split(" ")[1])) {
-			oPropertyValue = new Boolean(((String) propertyValue));
-		} else if (propertyTypeString.equals(Integer.class.toString().split(" ")[1])) {
-			oPropertyValue = new Integer(((String) propertyValue));
-		} else if (propertyTypeString.equals(Long.class.toString().split(" ")[1])) {
-			oPropertyValue = new Long(((String) propertyValue));
-		} else if (propertyTypeString.equals(Float.class.toString().split(" ")[1])) {
-			oPropertyValue = new Float(((String) propertyValue));
-		} else if (propertyTypeString.equals(Double.class.toString().split(" ")[1])) {
-			oPropertyValue = new Double(((String) propertyValue));
-		} else if (propertyTypeString.equals(Byte.class.toString().split(" ")[1])) {
-			oPropertyValue = new Byte(((String) propertyValue));
-		} else if (propertyTypeString.equals(Short.class.toString().split(" ")[1])) {
-			oPropertyValue = new Short(((String) propertyValue));
+		if (Number.class.isAssignableFrom(propertyClass.getClass())) {
+			try {
+				oPropertyValue = propertyClass.getClass().getConstructor(String.class).newInstance(value.toString());
+			} catch (Exception e) {
+				throw new ServiceException("Error when create the object:\n"+e.getMessage());
+			}
 		}
 		return oPropertyValue;
+		
 	}
-
 }
