@@ -38,6 +38,7 @@ function projects_List_init() {
 		showConfirm("Are you sure you want to delete all the projects?",function(){
 			$("#projectsList tr:gt(0)").each(function(){					
 				callService("projects.Delete",function(){},{"projectName":$(this).attr('id')});
+				projects_List_init();
 			});
 		});					
 	});
