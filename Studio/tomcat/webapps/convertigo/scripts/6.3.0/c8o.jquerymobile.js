@@ -100,6 +100,8 @@ $.extend(true, C8O, {
 $(document).ready(function () {
 	$.mobile.autoInitializePage = false;
 });
+//For WindowsPhone accept the cross-plateform
+$.support.cors = true;
 
 C8O.addHook("init_finished", function () {
 	C8O._onJqmInitFinished();
