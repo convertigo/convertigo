@@ -18,22 +18,34 @@
 */
 
 /*
- * $URL: http://sourceus.twinsoft.fr/svn/convertigo/CEMS_opensource/branches/6.3.x/Studio/src/com/twinsoft/convertigo/eclipse/popup/actions/ProjectStatsAction.java $
+ * $URL: http://sourceus.twinsoft.fr/svn/convertigo/CEMS_opensource/branches/6.3.x/Studio/src/com/twinsoft/convertigo/eclipse/popup/actions/CustomStatsWizardPage.java $
  * $Author: jmc $
  * $Revision: 33092 $
- * $Date: 2014-01-02 12:44:33 +0100 (Thu, 02 Jan 2014) $
+ * $Date: 2014-01-15 12:44:33 +0100 (Thu, 02 Jan 2014) $
  */
 
-package com.twinsoft.convertigo.eclipse.popup.actions;
+package com.twinsoft.convertigo.eclipse.wizards;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
+import java.util.Hashtable;
+import java.util.Map;
 
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.ExpandBar;
+import org.eclipse.swt.widgets.Label;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Criteria;
@@ -54,7 +66,6 @@ import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
 import com.twinsoft.convertigo.beans.screenclasses.SiteClipperScreenClass;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
-import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.SimpleStep;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
@@ -69,30 +80,54 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeOb
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.proxy.translated.ProxyTransaction;
 
-public class ProjectStatsAction extends MyAbstractAction {
-	
-	int depth = 0;
+public class CustomStatsWizardPage extends WizardPage {
 
-	public ProjectStatsAction() {
-		super();
+    protected Color FOREGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND);
+    protected Color BACKGROUND_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+    protected Color FOREGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_BLUE);
+    protected Color BACKGROUND_SELECTED_COLOR = Display.getDefault().getSystemColor(SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW);    
+
+    protected Cursor handCursor;
+    protected CLabel currentSelectedItem = null;
+    
+    private Map<String, Image> icons = new Hashtable<String, Image>(256);
+    
+	Text labelDisplayString = null;
+    
+    public CustomStatsWizardPage(String pageName) {
+		super(pageName);
 	}
 
+	public CustomStatsWizardPage(String pageName, String title, ImageDescriptor titleImage) {
+		super(pageName, title, titleImage);
+	}
+	
 	@Override
-	public void run() {
-		final Display display = Display.getDefault();
-		final Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
+	public void dispose() {
+		super.dispose();
 		
-		final Shell shell = getParentShell();
-		shell.setCursor(waitCursor);
+    	for (Image image : icons.values()) {
+            if (image != null)
+            	image.dispose();
+        }
+    	icons.clear();
 		
+		if (handCursor != null)
+			handCursor.dispose();
+	}
+
+    void computeStats(ProjectExplorerView explorerView) {
         try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
     			try {
+    				// explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
         			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
         			Project project = (Project) projectTreeObject.getObject();
 
 					new WalkHelper() {
+						String displayString = "";
+
+						int depth = 0;
 						int sequenceJavascriptLines;
 						int sequenceJavascriptFunction;
     					int connectorCount = 0;
@@ -144,7 +179,6 @@ public class ProjectStatsAction extends MyAbstractAction {
     					
     					public void go(DatabaseObject project) {
     						try {
-    							String displayString = "";
     		                	String projectName = project.getName();                
     							
 								init(project);
@@ -186,14 +220,14 @@ public class ProjectStatsAction extends MyAbstractAction {
 										+ testcaseVariableCount;
 								
 								displayString = "projectName = " + projectName + " contains " + totalC8oObjects + " objects\r\n"			// ok
-										+ " connectorCount = " + connectorCount + "\r\n";													// ok
+										+ " connectorCount = " + connectorCount + "\r\n\r\n";												// ok
 
 								/*
 								 * html connector
 								 */
 								if (htmltransactionCount > 0) {
 									displayString += 
-										"\r\nHTML connector\r\n"
+										"HTML connector\r\n"
 										+ " screenclassCount = " + htmlScreenclassCount + "\r\n"											// ok
 										+ " criteriaCount = " + htmlCriteriaCount + "\r\n"
 										+ " extractionRuleCount = " + htmlExtractionRuleCount + "\r\n"
@@ -208,7 +242,7 @@ public class ProjectStatsAction extends MyAbstractAction {
 								 */
 								if (javelinScreenclassCount > 0) {
 									displayString += 
-										"\r\nJavelin connector\r\n"
+										"Javelin connector\r\n"
 										+ " screenclassCount = " + javelinScreenclassCount + "\r\n"											// ok
 										+ " criteriaCount = " + javelinCriteriaCount + "\r\n"
 										+ " extractionRuleCount = " + javelinExtractionRuleCount + "\r\n"
@@ -224,7 +258,7 @@ public class ProjectStatsAction extends MyAbstractAction {
 								 */
 								if (sqlTransactionCount > 0) {
 									displayString += 
-										"\r\nSQL connector\r\n"
+										"SQL connector\r\n"
 										+ " sqltransactionCount = " + sqlTransactionCount + "\r\n"											// ok
 										+ " selectInQueryCount = " + selectInQueryCount + "\r\n"											// ok
 										+ " transactionVariableCount = " + sqlTransactionVariableCount + "\r\n";
@@ -243,7 +277,7 @@ public class ProjectStatsAction extends MyAbstractAction {
 								 */
 								if (jsonHttpTransactionCount > 0) {
 									displayString += 
-										"\r\nHTTP connector\r\n"
+										"HTTP connector\r\n"
 										+ " JSONTransactionCount = " + jsonHttpTransactionCount + "\r\n"										// ok
 										+ " xmlTransactionCount = " + xmlHttpTransactionCount + "\r\n"											// ok
 										+ " HTTPtransactionCount = " + httptransactionCount + "\r\n"											// ok
@@ -255,7 +289,7 @@ public class ProjectStatsAction extends MyAbstractAction {
 								 */
 								if (proxyTransactionCount > 0) {
 									displayString += 
-										"\r\nProxy connector\r\n"
+										"Proxy connector\r\n"
 										+ " TransactionCount = " + proxyTransactionCount + "\r\n"											// ok
 										+ "\r\n";
 								}						
@@ -266,7 +300,7 @@ public class ProjectStatsAction extends MyAbstractAction {
 								 */
 								if (siteClipperTransactionCount > 0) {
 									displayString += 
-										"\r\nProxy connector\r\n"
+										"SiteClipper connector\r\n"
 										+ " TransactionCount = " + siteClipperTransactionCount + "\r\n"										// ok
 										+ " screenclassCount = " + siteClipperScreenclassCount + "\r\n"										// ok
 										+ " criteriaCount = " + siteClipperCriteriaCount + "\r\n"
@@ -278,7 +312,7 @@ public class ProjectStatsAction extends MyAbstractAction {
 								 */
 								if (sequenceCount > 0) {
 									displayString += 
-										"\r\nSequencer\r\n"
+										"Sequencer\r\n"
 										+ " sequenceCount = " + sequenceCount + "\r\n"														// ok
 										+ " stepCount = " + stepCount + "\r\n"																// ok
 										+ " variableCount = " + sequenceVariableCount + "\r\n"
@@ -291,28 +325,24 @@ public class ProjectStatsAction extends MyAbstractAction {
 
 								if (poolCount > 0) {
 									displayString +=
-										"\r\nPools\r\n"
+										"Pools\r\n"
 										+ " poolCount = " + poolCount + "\r\n";
 								}
 								
 								if (referenceCount > 0) {
 									displayString +=
-										"\r\nReferences\r\n"
+										"References\r\n"
 										+ " referenceCount = " + referenceCount + "\r\n";
 								}
 								
 								if (testcaseCount > 0) {
 									displayString +=
-										"\r\nTest cases\r\n"
+										"Test cases\r\n"
 										+ " testcaseCount = " + testcaseCount + "\r\n"
 										+ " testcaseVariableCount = " + testcaseVariableCount + "\r\n";
 								}
 								
-								// System.out.println(displayString);
-								
-								MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.ICON_INFORMATION | SWT.APPLICATION_MODAL);
-								messageBox.setMessage(displayString);
-								messageBox.open();
+								labelDisplayString.setText(displayString);
 								
 							} catch (Exception e) {
 								e.printStackTrace();
@@ -483,7 +513,7 @@ public class ProjectStatsAction extends MyAbstractAction {
 									if (databaseObject.getParent() instanceof SqlTransaction) {
 										sqlTransactionVariableCount++;
 									}
-									else {
+									else { // should be zero
 										transactionVariableCount++;
 									}
 								}
@@ -555,9 +585,29 @@ public class ProjectStatsAction extends MyAbstractAction {
         	ConvertigoPlugin.logException(e, "Unable to compute statistics of the project!");
         }
         finally {
-			shell.setCursor(null);
-			waitCursor.dispose();
         }        
-	}
+    }
+	
+	public void createControl(Composite parent) {
+		Composite container = new Composite(parent, SWT.NULL);
+		GridLayout layout = new GridLayout();
+		container.setLayout(layout);
+		
+		Composite compositeObjects = new Composite(container, SWT.NONE);
+		GridData gridData = new GridData();
+		gridData.horizontalAlignment = SWT.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		//gridData.horizontalSpan = 2;
+		gridData.verticalAlignment = GridData.BEGINNING;
+		gridData.grabExcessVerticalSpace = true;
+		compositeObjects.setLayoutData(gridData);
+		compositeObjects.setLayout(new FillLayout());
+		
+		labelDisplayString = new Text(compositeObjects, SWT.BORDER | SWT.V_SCROLL | SWT.MULTI | SWT.WRAP);
+		labelDisplayString.setText("");
 
+		setControl(container);
+		
+		computeStats(ConvertigoPlugin.getDefault().getProjectExplorerView());
+	}
 }
