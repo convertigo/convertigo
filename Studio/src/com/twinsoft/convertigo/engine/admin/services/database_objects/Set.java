@@ -155,11 +155,13 @@ public class Set extends XmlService {
 		root.appendChild(response);
 	}
 	
-	private Object createObject(Object propertyClass, Object value) throws ServiceException {
+	private Object createObject(Class<?> propertyClass, String value) throws ServiceException {
 		Object oPropertyValue = null;
-		if (Number.class.isAssignableFrom(propertyClass.getClass())) {
+
+		if (Number.class.isAssignableFrom(propertyClass) ||
+				Boolean.class.isAssignableFrom(propertyClass)) {
 			try {
-				oPropertyValue = propertyClass.getClass().getConstructor(String.class).newInstance(value.toString());
+				oPropertyValue = propertyClass.getConstructor(String.class).newInstance(value);		
 			} catch (Exception e) {
 				throw new ServiceException("Error when create the object:\n"+e.getMessage());
 			}
