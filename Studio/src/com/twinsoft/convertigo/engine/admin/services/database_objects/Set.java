@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2001-2014 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
@@ -18,8 +18,9 @@
  * $Author$
  * $Revision$
  * $Date$
- */
 
+
+ */
 package com.twinsoft.convertigo.engine.admin.services.database_objects;
 
 import java.beans.BeanInfo;
@@ -30,7 +31,9 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.TransformerException;
 
+import org.apache.commons.lang.ClassUtils;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -38,13 +41,14 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject.CompilablePropertyExcep
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-@ServiceDefinition(name = "Set", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "")
+@ServiceDefinition(name = "Set", roles = { Role.WEB_ADMIN }, parameters = {}, returnValue = "the state of saving properties")
 public class Set extends XmlService {
 	private TwsCachedXPathAPI xpath;
 	private Node postElt;
@@ -63,16 +67,18 @@ public class Set extends XmlService {
 		return DatabaseObject.compileProperty(object, propertyName, propertyValue);
 	}
 
-	private String getPropertyValue(String propertyName) throws TransformerException {
-		Node nodetmp = xpath.selectSingleNode(postElt, "./property[@name=\"" + propertyName
-				+ "\"]/*[1]/@value");
-		if (nodetmp == null)
-			return "";
-		return nodetmp.getNodeValue();
-	}
+//	private String getPropertyValue(String propertyName) throws TransformerException {
+//		Node nodetmp = xpath.selectSingleNode(postElt, "./property[@name=\"" + propertyName
+//				+ "\"]/*[1]/@value");
+//		if (nodetmp == null)
+//			return "";
+//		return nodetmp.getNodeValue();
+//	}
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
+		Element root = document.getDocumentElement();
 		Document post = null;
+		Element response = document.createElement("response");
 
 		try {
 			Map<String, DatabaseObject> map = com.twinsoft.convertigo.engine.admin.services.projects.Get.getDatabaseObjectByQName(request);
@@ -84,7 +90,8 @@ public class Set extends XmlService {
 			String objectQName = xpath.selectSingleNode(postElt, "./@qname").getNodeValue();
 			DatabaseObject object = map.get(objectQName);
 
-			String comment = getPropertyValue("comment");
+//			String comment = getPropertyValue("comment");
+			String comment = getPropertyValue(object, "comment").toString();
 			object.setComment(comment);
 
 			if (object instanceof Project) {
@@ -107,54 +114,61 @@ public class Set extends XmlService {
 				
 				Method setter = propertyDescriptor.getWriteMethod();
 
-				String propertyTypeString = xpath.selectSingleNode(postElt,
-						"./property[@name=\"" + propertyName + "\"]/*[1]")
-						.getNodeName();
-
-				String propertyValue = getPropertyValue(propertyName);
-
-				Object oPropertyValue = createObject(propertyTypeString, propertyValue);
-
-				if (object.isCipheredProperty(propertyName)) {
-					oPropertyValue = DatabaseObject.encryptPropertyValue(oPropertyValue);
+//				String propertyTypeString = xpath.selectSingleNode(postElt,
+//						"./property[@name=\"" + propertyName + "\"]/*[1]")
+//						.getNodeName();
+				Class<?> propertyTypeClass = propertyDescriptor.getReadMethod().getReturnType();
+				if (propertyTypeClass.isPrimitive()) {
+					propertyTypeClass = ClassUtils.primitiveToWrapper(propertyTypeClass);
 				}
 				
-				if (oPropertyValue != null) {
-					Object args[] = { oPropertyValue };
-					setter.invoke(object, args);
-				}
-				
+				try{
+					String propertyValue = getPropertyValue(object, propertyName).toString();
+					
+					Object oPropertyValue = createObject(propertyTypeClass, propertyValue);
+	
+					if (object.isCipheredProperty(propertyName)) {
+						oPropertyValue = DatabaseObject.encryptPropertyValue(oPropertyValue);
+					}
+					
+					if (oPropertyValue != null) {
+						Object args[] = { oPropertyValue };
+						setter.invoke(object, args);
+					}
+					
+				} catch(IllegalArgumentException e){}
 			}
 			
 			Engine.theApp.databaseObjectsManager.exportProject(object.getProject());
+			response.setAttribute("state", "success");
+			response.setAttribute("message", "Project have been successfully updated!");
+		} catch(Exception e){
+			Engine.logBeans.error("Error during saving the properties!\n"+e.getMessage());
+			response.setAttribute("state", "error");
+			response.setAttribute("message", "Error during saving the properties!");
+			Element stackTrace = document.createElement("stackTrace");
+			stackTrace.setTextContent(e.getMessage());
+			root.appendChild(stackTrace);
 		} finally {
 			xpath.resetCache();
 		}
 
+		root.appendChild(response);
 	}
 
-	private Object createObject(String propertyTypeString, Object propertyValue) {
+	private Object createObject(Class<?> propertyClass, String value) throws ServiceException {
 		Object oPropertyValue = null;
-		if (propertyTypeString.equals(String.class.toString().split("\\s")[1])) {
-			oPropertyValue = propertyValue;
-		} else if (propertyTypeString.equals(Character.class.toString().split(" ")[1])) {
-			oPropertyValue = new Character(((String) propertyValue).charAt(0));
-		} else if (propertyTypeString.equals(Boolean.class.toString().split(" ")[1])) {
-			oPropertyValue = new Boolean(((String) propertyValue));
-		} else if (propertyTypeString.equals(Integer.class.toString().split(" ")[1])) {
-			oPropertyValue = new Integer(((String) propertyValue));
-		} else if (propertyTypeString.equals(Long.class.toString().split(" ")[1])) {
-			oPropertyValue = new Long(((String) propertyValue));
-		} else if (propertyTypeString.equals(Float.class.toString().split(" ")[1])) {
-			oPropertyValue = new Float(((String) propertyValue));
-		} else if (propertyTypeString.equals(Double.class.toString().split(" ")[1])) {
-			oPropertyValue = new Double(((String) propertyValue));
-		} else if (propertyTypeString.equals(Byte.class.toString().split(" ")[1])) {
-			oPropertyValue = new Byte(((String) propertyValue));
-		} else if (propertyTypeString.equals(Short.class.toString().split(" ")[1])) {
-			oPropertyValue = new Short(((String) propertyValue));
-		}
-		return oPropertyValue;
-	}
 
+		if (Number.class.isAssignableFrom(propertyClass) || Boolean.class.isAssignableFrom(propertyClass)) {
+			try {
+				oPropertyValue = propertyClass.getConstructor(String.class).newInstance(value);		
+			} catch (Exception e) {
+				throw new ServiceException("Error when create the object:\n"+e.getMessage());
+			}
+			
+		}		
+		return oPropertyValue;
+
+	}
 }
+
