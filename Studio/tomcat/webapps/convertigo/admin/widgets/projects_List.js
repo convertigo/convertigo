@@ -36,10 +36,14 @@ function projects_List_init() {
 		}
 	}).click(function(){
 		showConfirm("Are you sure you want to delete all the projects?",function(){
-			$("#projectsList tr:gt(0)").each(function(){					
+			startWait(50);
+			$("#projectsList tr:gt(0)").each(function(){			
 				callService("projects.Delete",function(){},{"projectName":$(this).attr('id')});
-				projects_List_init();
 			});
+			setTimeout(function() {
+				projects_List_init();
+				endWait();
+			}, 1000);
 		});					
 	});
 
@@ -109,7 +113,18 @@ function projects_List_init() {
 			rowNum : '1000000'
 		});
 		updateProjectsList(xml);
+		if ($("#projectsList tr:gt(0)").length <= 0) {
+			$("#projectsListButtonDeleteAll").button("disable");
+		} else {
+			$("#projectsListButtonDeleteAll").button("enable");
+		}
 	});
+	
+	if(typeof projects_List_init == 'function') {
+		$("#widgetButtonProjects").parent("a").click(function(){
+			projects_List_init();
+		});
+	}
 }
 
 function projects_List_update() {
@@ -195,9 +210,9 @@ function projectsDeploy(xml) {
 					showError("<p>An unexpected error occurs.</p>", $(response).text());
 				} else {
 					showInfo($(response).text());
-					projects_List_update();
 					$("").dialog("close");
 				}
+				projects_List_init();
 			}
 		});	
 
@@ -228,6 +243,8 @@ function deleteProject(projectName) {
 												+ "' has been successfully deleted.");
 									}
 									$("#projectsList").jqGrid("delRowData", projectName);
+
+									projects_List_init();
 								});
 								return false;
 							},

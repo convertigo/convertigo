@@ -104,7 +104,7 @@ $(window).ready(function() {
 	else {
 		displayPage("Home");
 	}
-	
+
 	checkAuthentication();
 });
 
@@ -155,6 +155,7 @@ function displayPage(layoutName, widgetOptions) {
 	} else {
 		loadWidgets(layoutName, widgetOptions);
 	}
+	
 }
 
 function initWidgetContainer() {
@@ -355,6 +356,7 @@ function loadWidget(widgetId, widgetOptions) {
 			}
 		);
 	}
+
 }
 
 function loadScripts(layoutName, widgetOptions) {
