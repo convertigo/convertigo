@@ -22,22 +22,33 @@
 
 function globalSymbols_List_init() {
 	var rowIDCell, cellnameCell, valueCell, iRowCell, iColCell;
-	$("#updateSymbols").button({
-		icons : {
-			primary : "ui-icon-disk"
-		}
-	});
+	
 	$("#addSymbol").button({
 		icons : {
 			primary : "ui-icon-circle-plus"
 		}
+	}).click(function(){
+		addSymbol();
 	});
 	$("#updateSymbols").button("disable");
+	
+	$("#symbolsListButtonDeleteAll").button({				
+		icons : {
+			primary : "ui-icon-closethick"
+		}
+	}).click(function(){
+		showConfirm("Are you sure you want to delete all symbols?",function(){
+			$("#symbolsList tr:gt(0)").each(function(){			
+				$("#symbolsList").jqGrid('delRowData',$(this).attr('id'));
+			});
+			updateSymbol();
+		});					
+	});
 	
 	callService("global_symbols.List", function(xml) {
 		$("#symbolsList").jqGrid( {
 			datatype : "local",
-			colNames : ['Name', 'Value', 'Delete'],
+			colNames : ['Name', 'Value', 'Edit','Delete'],
 			colModel : [ {
 				name : 'name',
 				index : 'name',
@@ -51,6 +62,12 @@ function globalSymbols_List_init() {
 				align : "left",
 				editable : true
 			}, {
+				name : 'btnEdit',
+				index : 'btnEdit',
+				width : 10,
+				sortable : false,
+				align : "center"
+			}, {
 				name : 'btnDelete',
 				index : 'btnDelete',
 				width : 20,
@@ -58,8 +75,8 @@ function globalSymbols_List_init() {
 				align : "center"
 			} ],
 			autowidth : true,
-			cellEdit : true,
-			cellsubmit : 'clientArray',
+			cellEdit : false,
+//			cellsubmit : 'clientArray',
 			viewrecords : true,
 			height : 'auto',
 			sortable : true,
@@ -96,6 +113,12 @@ function globalSymbols_List_init() {
 	        }
 		});
 		updateGlobalSymbolsList(xml);
+		
+		if($("#symbolsList tr:gt(0)").length>0){
+			$("#symbolsListButtonDeleteAll").button("enable");
+		} else {
+			$("#symbolsListButtonDeleteAll").button("disable");
+		}
 	});
 	
 	//When press ENTER
@@ -127,9 +150,14 @@ function updateGlobalSymbolsList(xml) {
 										{
 											name : symbolName,
 											value : $(this).attr("value"),
+											btnEdit : "<a href=\"javascript: editSymbol('"
+												+ symbolName
+												+ "','"
+												+ $(this).attr("value")
+												+"')\"><img border=\"0\" title=\"Edit\" src=\"images/convertigo-administration-picto-edit.png\"></a>",
 											btnDelete : "<a href=\"javascript: deleteSymbol('"
 													+ symbolName
-													+ "')\"><img border=\"0\" title=\"Delete\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
+													+ "')\"><img border=\"0\" title=\"Delete\" src=\"images/convertigo-administration-picto-delete.png\"></a>"
 										});
 					});
 }
@@ -150,7 +178,7 @@ function deleteSymbol(symbolName) {
 										showInfo("The symbol '" + symbolName
 												+ "' has been successfully deleted.");
 
-										$("#updateSymbols").button("enable");
+										updateSymbol();
 									} else {
 										showError("Allready deleted or not in list");
 									}
@@ -172,7 +200,6 @@ function addSymbol(xml) {
 					modal : true,
 					buttons : {
 						"Add" : function() {
-							$(this).dialog('close');
 							var symbolName = $("#addName").val();
 							var value = $("#addValue").val();
 							
@@ -188,21 +215,25 @@ function addSymbol(xml) {
 													+ "')\"><img border=\"0\" title=\"Delete\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
 											btnEdit : "<a href=\"javascript: editSymbol('"
 													+ symbolName
-													+ "')\"><img border=\"0\" title=\"Edit\" src=\"images/convertigo-administration-picto-edit.png\"></a>",
+													+ "','"
+													+ value
+													+"')\"><img border=\"0\" title=\"Edit\" src=\"images/convertigo-administration-picto-edit.png\"></a>",
 										});
 								if (add) {
 									showInfo("The symbol '" + symbolName
 											+ "' has been successfully added.");
 	
-									$("#updateSymbols").button("enable");
 									$("#addName").val("");
 									$("#addValue").val("");
+
+									updateSymbol();
 								} else {
 									showError("Can not update");
 								}
 							} else {
 								showInfo("Please enter name and value"); 
 							}
+
 							return false;
 						},
 						Cancel : function() {
@@ -211,6 +242,65 @@ function addSymbol(xml) {
 						}
 					}
 				});
+}
+
+function editSymbol(symbolName, symbolValue) {
+	$("#addName").val(symbolName);
+	$("#addValue").val(symbolValue);
+	
+	$("#dialog-add-symbol").dialog(
+			{
+				autoOpen : true,
+				title : "Edit symbol",
+				modal : true,
+				buttons : {
+					"Edit" : function() {
+						var name = $("#addName").val();
+						var value = $("#addValue").val();
+						
+						if (name && value) {
+							if (name!=symbolName && value!=symbolValue) {
+								//delete old symbol
+								$("#symbolsList").jqGrid('delRowData',symbolName);
+								//add new symbol
+								var edit = $("#symbolsList").jqGrid(
+										"addRowData",
+										symbolName,
+										{
+											name : name,
+											value : value,
+											btnDelete : "<a href=\"javascript: deleteSymbol('"
+													+ name
+													+ "')\"><img border=\"0\" title=\"Delete\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
+											btnEdit : "<a href=\"javascript: editSymbol('"
+													+ name
+													+ "','"
+													+ value
+													+"')\"><img border=\"0\" title=\"Edit\" src=\"images/convertigo-administration-picto-edit.png\"></a>",
+										});
+								if (edit) {
+									showInfo("The symbol has been successfully updated.");
+	
+									$("#addName").val("");
+									$("#addValue").val("");
+								} else {
+									showError("Can not update");
+								}
+	
+								updateSymbol();
+							}
+						} else {
+							showInfo("Please enter name and value"); 
+						}
+						$(this).dialog('close');
+					},
+					Cancel : function() {
+						$(this).dialog('close');
+						return false;
+					}
+				}
+			}
+		);
 }
 
 function updateSymbol() {
@@ -236,7 +326,9 @@ function updateSymbol() {
 				$("#updateSymbols").button("disable");
 				globalSymbols_List_update();
 			}
-		});	
+
+			globalSymbols_List_init();
+		});
 }
 
 
