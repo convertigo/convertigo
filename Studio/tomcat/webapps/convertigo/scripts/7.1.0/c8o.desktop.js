@@ -86,7 +86,14 @@ $.extend(true, C8O, {
 				options = {};
 			}
 			if (C8O._define.iframe) {
-				$(window.frameElement).animate({height: height}, options);
+				// IE browser < version 9 does not support animate function
+				if (/msie [1-8]./.test(navigator.userAgent.toLowerCase())) {
+					// IE < 9
+					$(window.frameElement).height(height);
+				} else {
+					// IE > 9 or other browsers
+					$(window.frameElement).animate({height: height}, options);
+				}
 			} else {
 				C8O._postMessage({type: "resize", height: height});
 			}
@@ -347,7 +354,7 @@ $.extend(true, C8O, {
 		if (lowest != false) {
 			if (typeof(lowest) != "number") {
 				lowest = 0;
-				$("*:not(html, body)").each(function () {
+				$("*:not(html, body):visible").each(function () {
 					lowest = Math.max(lowest, this.offsetTop + this.offsetHeight);
 				});
 				lowest += parseInt(C8O.vars.resize_offset);
