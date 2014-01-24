@@ -164,143 +164,135 @@ function updateGlobalSymbolsList(xml) {
 
 function deleteSymbol(symbolName) {
 		$('<div></div>').html("<p>Do you really want to delete the symbol '" + symbolName + "'?</p>")
-				.dialog(
-						{
-							autoOpen : true,
-							title : "Confirmation",
-							modal : true,
-							buttons : {
-								Yes : function() {
-									$(this).dialog('close');
-									var del = $("#symbolsList").jqGrid('delRowData',symbolName);
-									
-									if (del) {
-										showInfo("The symbol '" + symbolName
-												+ "' has been successfully deleted.");
+			.dialog({
+				autoOpen : true,
+				title : "Confirmation",
+				modal : true,
+				buttons : {
+					Yes : function() {
+						$(this).dialog('close');
+						var del = $("#symbolsList").jqGrid('delRowData',symbolName);
+						
+						if (del) {
+							showInfo("The symbol '" + symbolName
+									+ "' has been successfully deleted.");
 
-										updateSymbol();
-									} else {
-										showError("Allready deleted or not in list");
-									}
-									return false;
-								},
-								No : function() {
-									$(this).dialog('close');
-									return false;
-								}
-							}
-						});
+							updateSymbol();
+						} else {
+							showError("Allready deleted or not in list");
+						}
+						return false;
+					},
+					No : function() {
+						$(this).dialog('close');
+						return false;
+					}
+				}
+			});
 }
 
 function addSymbol(xml) {
-		$("#dialog-add-symbol").dialog(
-				{
-					autoOpen : true,
-					title : "Add symbol",
-					modal : true,
-					buttons : {
-						"Add" : function() {
-							var symbolName = $("#addName").val();
-							var value = $("#addValue").val();
-							
-							if (symbolName && value) {
-								var add = $("#symbolsList").jqGrid(
-										"addRowData",
-										symbolName,
-										{
-											name : symbolName,
-											value : value,
-											btnDelete : "<a href=\"javascript: deleteSymbol('"
-													+ symbolName
-													+ "')\"><img border=\"0\" title=\"Delete\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
-											btnEdit : "<a href=\"javascript: editSymbol('"
-													+ symbolName
-													+ "','"
-													+ value
-													+"')\"><img border=\"0\" title=\"Edit\" src=\"images/convertigo-administration-picto-edit.png\"></a>",
-										});
-								if (add) {
-									showInfo("The symbol '" + symbolName
-											+ "' has been successfully added.");
+	$("#addName").val("");
+	$("#addValue").val("");
 	
-									$("#addName").val("");
-									$("#addValue").val("");
-
-									updateSymbol();
-								} else {
-									showError("Can not update");
-								}
-							} else {
-								showInfo("Please enter name and value"); 
-							}
-
-							return false;
-						},
-						Cancel : function() {
-							$(this).dialog('close');
-							return false;
+	$("#dialog-add-symbol").dialog({
+			autoOpen : true,
+			title : "Add symbol",
+			modal : true,
+			buttons : {
+				"Add" : function() {
+					var symbolName = $("#addName").val();
+					var value = $("#addValue").val();
+					
+					if (symbolName && value) {
+						var add = $("#symbolsList").jqGrid(
+							"addRowData",
+							symbolName,	{
+								name : symbolName,
+								value : value,
+								btnDelete : "<a href=\"javascript: deleteSymbol('"
+										+ symbolName
+										+ "')\"><img border=\"0\" title=\"Delete\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
+								btnEdit : "<a href=\"javascript: editSymbol('"
+										+ symbolName
+										+ "','"
+										+ value
+										+"')\"><img border=\"0\" title=\"Edit\" src=\"images/convertigo-administration-picto-edit.png\"></a>",
+							});
+						if (add) {
+							updateSymbol();
+							showInfo("The symbol '" + symbolName + "' has been successfully added.");
+						} else {
+							showError("Can not update");
 						}
+					} else {
+						showInfo("Please enter name and value"); 
 					}
-				});
+
+					return false;
+				},
+				Cancel : function() {
+					$(this).dialog('close');
+					return false;
+				}
+			}
+		});
 }
 
 function editSymbol(symbolName, symbolValue) {
 	$("#addName").val(symbolName);
 	$("#addValue").val(symbolValue);
 	
-	$("#dialog-add-symbol").dialog(
-			{
-				autoOpen : true,
-				title : "Edit symbol",
-				modal : true,
-				buttons : {
-					"Edit" : function() {
-						var name = $("#addName").val();
-						var value = $("#addValue").val();
-						
-						if (name && value) {
-							if (name!=symbolName && value!=symbolValue) {
-								//delete old symbol
-								$("#symbolsList").jqGrid('delRowData',symbolName);
-								//add new symbol
-								var edit = $("#symbolsList").jqGrid(
-										"addRowData",
-										symbolName,
-										{
-											name : name,
-											value : value,
-											btnDelete : "<a href=\"javascript: deleteSymbol('"
-													+ name
-													+ "')\"><img border=\"0\" title=\"Delete\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
-											btnEdit : "<a href=\"javascript: editSymbol('"
-													+ name
-													+ "','"
-													+ value
-													+"')\"><img border=\"0\" title=\"Edit\" src=\"images/convertigo-administration-picto-edit.png\"></a>",
-										});
-								if (edit) {
-									showInfo("The symbol has been successfully updated.");
-	
-									$("#addName").val("");
-									$("#addValue").val("");
-								} else {
-									showError("Can not update");
-								}
-	
+	$("#dialog-add-symbol").dialog({
+			autoOpen : true,
+			title : "Edit symbol",
+			modal : true,
+			buttons : {
+				"Edit" : function() {
+					var name = $("#addName").val();
+					var value = $("#addValue").val();
+					
+					if (name && value) {
+						//delete old symbol
+						var del = $("#symbolsList").jqGrid('delRowData',symbolName);				
+						if (del) {
+							//add new symbol
+							var edit = $("#symbolsList").jqGrid(
+								"addRowData",
+								symbolName, {
+									name : name,
+									value : value,
+									btnDelete : "<a href=\"javascript: deleteSymbol('"
+											+ name
+											+ "')\"><img border=\"0\" title=\"Delete\" src=\"images/convertigo-administration-picto-delete.png\"></a>",
+									btnEdit : "<a href=\"javascript: editSymbol('"
+											+ name
+											+ "','"
+											+ value
+											+"')\"><img border=\"0\" title=\"Edit\" src=\"images/convertigo-administration-picto-edit.png\"></a>",
+								});
+							if (edit) {
 								updateSymbol();
+								showInfo("The symbol has been successfully updated.");
+							} else {
+								showError("Can not update");
 							}
 						} else {
-							showInfo("Please enter name and value"); 
+							showError("Can not update");
 						}
-						$(this).dialog('close');
-					},
-					Cancel : function() {
-						$(this).dialog('close');
-						return false;
+
+					} else {
+						showInfo("Please enter name and value"); 
 					}
+					$(this).dialog('close');
+				},
+				Cancel : function() {
+					$(this).dialog('close');
+					return false;
 				}
 			}
-		);
+		}
+	);
 }
 
 function updateSymbol() {
@@ -330,5 +322,3 @@ function updateSymbol() {
 			globalSymbols_List_init();
 		});
 }
-
-
