@@ -22,20 +22,19 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
-import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.StatisticsDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
-import com.twinsoft.convertigo.eclipse.wizards.CustomStatsWizard;
 
-public class CustomStatsAction extends MyAbstractAction {
+public class CustomStatisticsAction extends MyAbstractAction {
 
-	public CustomStatsAction() {
+	public CustomStatisticsAction() {
 		super();
 	}
 
@@ -51,10 +50,11 @@ public class CustomStatsAction extends MyAbstractAction {
     		if (explorerView != null) {
     			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
     			if (projectTreeObject != null) {
-    	        	CustomStatsWizard caz = new CustomStatsWizard(projectTreeObject.getName());
-    	    		WizardDialog wzdlg = new WizardDialog(shell, caz);
-    	    		wzdlg.setPageSize(450, 250);
-    	    		wzdlg.open();
+    				StatisticsDialog stats = new StatisticsDialog(shell, 
+    						projectTreeObject.getName(), projectTreeObject.getObject().getComment(), 
+    						projectTreeObject.getObject().getVersion());
+    			
+    				stats.open();
     			}
     		}
         }

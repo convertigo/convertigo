@@ -1201,9 +1201,9 @@
 			   label="Create global symbols"
 			   menubarPath="service"/>
 		 <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.CustomStatsAction"
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CustomStatisticsAction"
                icon="icons/studio/statistics.gif"
-               id="CemsStudio_7.1.x.action1"
+               id="convertigo.action.customStatisticsAction"
                label="Statistics"
                menubarPath="stats"/>
          <action
