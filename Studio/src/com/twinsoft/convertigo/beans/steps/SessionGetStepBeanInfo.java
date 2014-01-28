@@ -26,31 +26,27 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
-public class SetContextStepBeanInfo extends MySimpleBeanInfo {
+public class SessionGetStepBeanInfo extends MySimpleBeanInfo {
     
-	public SetContextStepBeanInfo() {
+	public SessionGetStepBeanInfo() {
 		try {
-			beanClass = SetContextStep.class;
+			beanClass = SessionGetStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.StepWithExpressions.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/setContext_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/setContext_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/sessionGet_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/sessionGet_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/SetContextStep");
+			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/SessionGetStep");
 			
 			displayName = resourceBundle.getString("display_name");
-			shortDescription = resourceBundle.getString("short_description");
-			
-			properties = new PropertyDescriptor[2];
+			shortDescription = resourceBundle.getString("short_description");    
+
+			properties = new PropertyDescriptor[1];
 
             properties[0] = new PropertyDescriptor("key", beanClass, "getKey", "setKey");
             properties[0].setDisplayName(getExternalizedString("property.key.display_name"));
             properties[0].setShortDescription(getExternalizedString("property.key.short_description"));
             
-            properties[1] = new PropertyDescriptor("expression", beanClass, "getExpression", "setExpression");
-            properties[1].setDisplayName(getExternalizedString("property.expression.display_name"));
-            properties[1].setShortDescription(getExternalizedString("property.expression.short_description"));
-            properties[1].setPropertyEditorClass(getEditorClass("SmartTypeCellEditor"));
             
 		}
 		catch(Exception e) {

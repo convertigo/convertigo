@@ -22,14 +22,16 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Scriptable;
+
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.apache.ws.commons.schema.constants.Constants;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Scriptable;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -37,33 +39,33 @@ import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 
-public class SetContextStep extends StepWithExpressions implements IComplexTypeAffectation {
+
+public class SessionGetStep extends StepWithExpressions implements IComplexTypeAffectation {
 
 	private static final long serialVersionUID = -1894558458026853410L;
-
+	
 	private String key = "";
-	private SmartType expression = new SmartType();
 	
 	private String value;
 	
-	public SetContextStep() {
+	public SessionGetStep() {
 		super();
-		setOutput(false);
+		setOutput(true);		
 		this.xml = true;
 	}
-	
+
 	@Override
-    public SetContextStep clone() throws CloneNotSupportedException {
-    	SetContextStep clonedObject = (SetContextStep) super.clone();
+    public SessionGetStep clone() throws CloneNotSupportedException {
+    	SessionGetStep clonedObject = (SessionGetStep) super.clone();
         return clonedObject;
     }
 
 	@Override
-    public SetContextStep copy() throws CloneNotSupportedException {
-    	SetContextStep copiedObject = (SetContextStep) super.copy();
+    public SessionGetStep copy() throws CloneNotSupportedException {
+    	SessionGetStep copiedObject = (SessionGetStep) super.copy();
         return copiedObject;
     }
 	
@@ -74,7 +76,7 @@ public class SetContextStep extends StepWithExpressions implements IComplexTypeA
 	protected StepSource getSource() {
 		return null;
 	}
-	
+
 	@Override
 	public String getStepNodeName() {
 		return "context";
@@ -84,8 +86,7 @@ public class SetContextStep extends StepWithExpressions implements IComplexTypeA
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
 			if (getSequence().context != null) {
-				getSequence().context.httpSession.setAttribute(key, expression.getExpression());
-				value = (String) getSequence().context.httpSession.getAttribute(key);			
+				value = (String) getSequence().context.httpSession.getAttribute(key);		
 				return super.stepExecute(javascriptContext, scope);
 			}
 		}
@@ -132,20 +133,12 @@ public class SetContextStep extends StepWithExpressions implements IComplexTypeA
 		
 		return element;
 	}
-
+	
 	public String getKey() {
 		return key;
 	}
 
 	public void setKey(String key) {
 		this.key = key;
-	}
-
-	public SmartType getExpression() {
-		return expression;
-	}
-
-	public void setExpression(SmartType expression) {
-		this.expression = expression;
 	}
 }
