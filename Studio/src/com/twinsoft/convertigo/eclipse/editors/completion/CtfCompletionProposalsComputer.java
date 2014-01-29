@@ -29,10 +29,24 @@ import com.twinsoft.convertigo.engine.EngineException;
 public class CtfCompletionProposalsComputer implements  ICompletionProposalComputer {
 
 	private static String ctfAttributes[][] = {
+		{"data-c8o-accumulate=\"\"", "Define the accumulation type 'append' or 'prepend'"},
+		{"data-c8o-after-rendering=\"\"", "Define a method called after the rendering"},
+		{"data-c8o-before-rendering=\"\"", "Define a method called before the rendering"},
 		{"data-c8o-call=\"\"",      "Call a Convertigo sequence or transaction"},
-		{"data-c8o-listen=\"\"",    "Listen to a Convertigo sequence or transaction"},
+		{"data-c8o-call-condition=\"\"", "Define a conditional call"},
 		{"data-c8o-call-mode=\"\"", "Call mode to be auto, timer"},
-		{"data-c8o-each=\"\"",      "Iterate on selector for all childs"}
+		{"data-c8o-each=\"\"",      "Iterate on selector for all childs"},
+		{"data-c8o-if=\"\"", "Define a condition"},
+		{"data-c8o-if-not=\"\"", "Define a negative condition"},
+		{"data-c8o-late-render=\"\"", "Delay the rendering"},
+		{"data-c8o-listen=\"\"",    "Listen to a Convertigo sequence or transaction"},
+		{"data-c8o-listen-condition=\"\"", "Define a conditional listener"},
+		{"data-c8o-ref=\"\"", "Define a reference anchor name"},
+		{"data-c8o-render=\"\"", "Renders as soon as possible"},
+		{"data-c8o-use-\"\"", "Define an attribute for inline templating"},
+		{"data-c8o-use=\"\"", "Define an attribute marker for inline templating (on or off)"},
+		{"data-c8o-variable=\"\"",  "Define a variable"},
+		{"data-c8o-variables=\"\"", "Define several variables"}
 	};
 	
 	private static String ctfTemplates[] = {
