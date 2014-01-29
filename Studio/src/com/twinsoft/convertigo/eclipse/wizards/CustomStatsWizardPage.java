@@ -45,12 +45,19 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.beans.connectors.CicsConnector;
+import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
+import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
+import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
+import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Criteria;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
+// import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Sheet;
@@ -118,6 +125,7 @@ public class CustomStatsWizardPage extends WizardPage {
         try {
     		if (explorerView != null) {
     			try {
+    				// explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
         			ProjectTreeObject projectTreeObject = (ProjectTreeObject)explorerView.getFirstSelectedTreeObject();
         			Project project = (Project) projectTreeObject.getObject();
 
@@ -127,7 +135,16 @@ public class CustomStatsWizardPage extends WizardPage {
 						int depth = 0;
 						int sequenceJavascriptLines;
 						int sequenceJavascriptFunction;
-    					int connectorCount = 0;
+						
+    					int connectorCount = 0;    					
+						int httpConnectorCount = 0;
+						int httpsConnectorCount = 0;
+						int htmlConnectorCount = 0;
+						int cicsConnectorCount = 0;
+						int siteClipperConnectorCount = 0;
+						int sqlConnectorCount = 0;
+						int javelinConnectorCount = 0;
+    					
     					int htmlScreenclassCount = 0;
     					int htmlCriteriaCount = 0;
     					int siteClipperScreenclassCount = 0;
@@ -142,7 +159,6 @@ public class CustomStatsWizardPage extends WizardPage {
     					int javelinExtractionRuleCount = 0;
     					int javelinEntryHandlerCount = 0;
     					int javelinExitHandlerCount = 0;
-    					int javelinFunctionCount = 0;
     					int javelinHandlerCount = 0;
     					int javelinJavascriptLines = 0;
     					int statementCount = 0;
@@ -164,11 +180,14 @@ public class CustomStatsWizardPage extends WizardPage {
     					 */
     					int transactionWithVariablesCount = 0;
     					int htmltransactionCount = 0;
-    					int httptransactionCount = 0;
+    					int httpTransactionCount = 0;
+    					int httpsTransactionCount = 0;
+    					int xmlHttpTransactionCount = 0;
+    					int xmlHttpsTransactionCount = 0;
     					int jsonHttpTransactionCount = 0;
+    					int jsonHttpsTransactionCount = 0;
     					int proxyTransactionCount = 0;
     					int siteClipperTransactionCount = 0;
-    					int xmlHttpTransactionCount = 0;
     					int javelinTransactionCount = 0;
     					int sqlTransactionCount = 0;
     					int transactionCount = 0;
@@ -179,6 +198,8 @@ public class CustomStatsWizardPage extends WizardPage {
     		                	String projectName = project.getName();                
     							
 								init(project);
+								
+								connectorCount = htmlConnectorCount + httpConnectorCount + httpsConnectorCount + cicsConnectorCount + siteClipperConnectorCount + sqlConnectorCount + javelinConnectorCount;
 								
 								totalC8oObjects = 1  
 										+ connectorCount	// connectors
@@ -195,14 +216,16 @@ public class CustomStatsWizardPage extends WizardPage {
 										+ javelinEntryHandlerCount
 										+ javelinExitHandlerCount
 										+ javelinHandlerCount
-										+ javelinFunctionCount
 										+ javelinTransactionVariableCount
 										+ sqlTransactionCount
 										+ sqlTransactionVariableCount
 										+ sheetCount
 										+ jsonHttpTransactionCount
+										+ jsonHttpsTransactionCount
 										+ xmlHttpTransactionCount
-										+ httptransactionCount
+										+ xmlHttpsTransactionCount
+										+ httpTransactionCount
+										+ httpsTransactionCount
 										+ proxyTransactionCount
 										+ siteClipperTransactionCount
 										+ siteClipperScreenclassCount
@@ -222,7 +245,7 @@ public class CustomStatsWizardPage extends WizardPage {
 								/*
 								 * html connector
 								 */
-								if (htmltransactionCount > 0) {
+								if (htmlConnectorCount > 0) {
 									displayString += 
 										"HTML connector\r\n"
 										+ " screenclassCount = " + htmlScreenclassCount + "\r\n"											// ok
@@ -237,15 +260,15 @@ public class CustomStatsWizardPage extends WizardPage {
 								/*
 								 * javelin connector
 								 */
-								if (javelinScreenclassCount > 0) {
+								if (javelinConnectorCount > 0) {
 									displayString += 
-										"Javelin connector\r\n"
+										"Legacy connector (3270, 5250, VT220 etc...)\r\n"
 										+ " screenclassCount = " + javelinScreenclassCount + "\r\n"											// ok
 										+ " criteriaCount = " + javelinCriteriaCount + "\r\n"
 										+ " extractionRuleCount = " + javelinExtractionRuleCount + "\r\n"
 										+ " transactionCount = " + javelinTransactionCount + "\r\n"											// ok
-										+ " handlerCount (Entry = " + javelinEntryHandlerCount + ", Exit = " + javelinExitHandlerCount + ", Screenclass = " + javelinHandlerCount + ", functions = " + javelinFunctionCount 
-										+  "), total = " + (int)(javelinEntryHandlerCount + javelinExitHandlerCount + javelinHandlerCount + javelinFunctionCount) + " in " + javelinJavascriptLines + " lines\r\n"										
+										+ " handlerCount (Entry = " + javelinEntryHandlerCount + ", Exit = " + javelinExitHandlerCount + ", Handlers = " + javelinHandlerCount + "), total = "
+										+ (int)(javelinEntryHandlerCount + javelinExitHandlerCount + javelinHandlerCount) + " in " + javelinJavascriptLines + " lines\r\n"										
 										+ " variableCount = " + javelinTransactionVariableCount + "\r\n"
 										+ "\r\n";
 								}						
@@ -253,12 +276,12 @@ public class CustomStatsWizardPage extends WizardPage {
 								/*
 								 * SQL connector
 								 */
-								if (sqlTransactionCount > 0) {
+								if (sqlConnectorCount > 0) {
 									displayString += 
 										"SQL connector\r\n"
-										+ " sqltransactionCount = " + sqlTransactionCount + "\r\n"											// ok
-										+ " selectInQueryCount = " + selectInQueryCount + "\r\n"											// ok
-										+ " transactionVariableCount = " + sqlTransactionVariableCount + "\r\n";
+										+ " SqltransactionCount = " + sqlTransactionCount + "\r\n"											// ok
+										+ " SelectInQueryCount = " + selectInQueryCount + "\r\n"											// ok
+										+ " TransactionVariableCount = " + sqlTransactionVariableCount + "\r\n";
 
 									if (sheetCount > 0) {
 										displayString += 
@@ -272,15 +295,27 @@ public class CustomStatsWizardPage extends WizardPage {
 								/*
 								 * Http connector
 								 */
-								if (jsonHttpTransactionCount > 0) {
+								if (httpConnectorCount > 0) {
 									displayString += 
 										"HTTP connector\r\n"
-										+ " JSONTransactionCount = " + jsonHttpTransactionCount + "\r\n"										// ok
-										+ " xmlTransactionCount = " + xmlHttpTransactionCount + "\r\n"											// ok
-										+ " HTTPtransactionCount = " + httptransactionCount + "\r\n"											// ok
+										+ " JsonTransactionCount = " + jsonHttpTransactionCount + "\r\n"										// ok
+										+ " XmlTransactionCount = " + xmlHttpTransactionCount + "\r\n"											// ok
+										+ " HttpTransactionCount = " + httpTransactionCount + "\r\n"											// ok
 										+ "\r\n";
 								}						
 
+								/*
+								 * Https connector
+								 */
+								if (httpsConnectorCount > 0) {
+									displayString += 
+										"HTTPS connector\r\n"
+										+ " JsonTransactionCount = " + jsonHttpsTransactionCount + "\r\n"										// ok
+										+ " XmlTransactionCount = " + xmlHttpsTransactionCount + "\r\n"											// ok
+										+ " HttpTransactionCount = " + httpsTransactionCount + "\r\n"											// ok
+										+ "\r\n";
+								}						
+								
 								/*
 								 * Proxy connector
 								 */
@@ -353,15 +388,40 @@ public class CustomStatsWizardPage extends WizardPage {
 							// String name = databaseObject.getName();
 							
 							// deal with connectors
-							if (databaseObject instanceof Connector) {    								
-								connectorCount++;
-							}
-/*	for 7.x						
-							else								
+							if (databaseObject instanceof Connector) {
+								if (databaseObject instanceof HtmlConnector) {
+									htmlConnectorCount++;
+								}
+								else
+								if (databaseObject instanceof HttpConnector) {
+									if (((HttpConnector)databaseObject).isHttps()) 
+										httpsConnectorCount++;
+									else
+										httpConnectorCount++;
+								}
+								else
+								if (databaseObject instanceof CicsConnector) {
+									cicsConnectorCount++;
+								}
+								else
+								if (databaseObject instanceof SiteClipperConnector) {
+									siteClipperConnectorCount++;
+								}
+								else
+								if (databaseObject instanceof SqlConnector) {
+									sqlConnectorCount++;
+								}
+								else
+								if (databaseObject instanceof JavelinConnector) {
+									javelinConnectorCount++;
+								}
+							}					
+/*							
+							else
 							if (databaseObject instanceof Reference) {    								
 								referenceCount++;
-							}	
-*/													
+							}
+*/														
 							else // deal with screenclasses
 							if (databaseObject instanceof ScreenClass) {
 								if (databaseObject instanceof JavelinScreenClass) {	// deal with javelinScreenClasses    								
@@ -405,15 +465,24 @@ public class CustomStatsWizardPage extends WizardPage {
 									}
 									else
 									if (databaseObject instanceof JsonHttpTransaction) {
-										jsonHttpTransactionCount++;
+										if (((HttpConnector)databaseObject.getParent()).isHttps())
+											jsonHttpsTransactionCount++;
+										else
+											jsonHttpTransactionCount++;
 									}
 									else
 									if (databaseObject instanceof HttpTransaction) {
-										httptransactionCount++;
+										if (((HttpConnector)databaseObject.getParent()).isHttps())
+											httpsTransactionCount++;
+										else
+											httpTransactionCount++;
 									}
 									else
 									if (databaseObject instanceof XmlHttpTransaction) {
-										xmlHttpTransactionCount++;
+										if (((HttpConnector)databaseObject.getParent()).isHttps())
+											xmlHttpsTransactionCount++;
+										else
+											xmlHttpTransactionCount++;
 									}								
 									else
 									if (databaseObject instanceof ProxyTransaction) {
@@ -447,7 +516,7 @@ public class CustomStatsWizardPage extends WizardPage {
 														javelinExitHandlerCount++;
 													} else {
 														// TYPE_OTHER
-														javelinFunctionCount++;
+														javelinHandlerCount++;
 													}
 												} catch(StringIndexOutOfBoundsException e) {
 													// Ignore
