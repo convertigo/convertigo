@@ -45,6 +45,9 @@ function configuration_List_init () {
 	var getEngineVersion = "";
 	callService("engine.GetStatus", function(xml) {
 		getEngineVersion = $(xml).find("version").attr("engine");
+		if(getEngineVersion == "") {
+			getEngineVersion = "latest";
+		}
 	});		
 	
 	var $template = $("#config-template");

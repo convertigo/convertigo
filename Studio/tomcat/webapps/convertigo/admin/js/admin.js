@@ -285,6 +285,9 @@ function loadWidget(widgetId, widgetOptions) {
 		var getEngineVersion = "";
 		callService("engine.GetStatus", function(xml) {
 			getEngineVersion = $(xml).find("version").attr("engine");
+			if(getEngineVersion == "") {
+				getEngineVersion = "latest";
+			}
 		});		
 		loadHTML(
 			"widgets/" + widgetId + ".html",
