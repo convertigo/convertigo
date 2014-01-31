@@ -45,7 +45,6 @@
 	<classpathentry kind="lib" path="lib/apache/commons/commons-lang3-3.1.jar"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-pool-1.6.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="lib" path="lib/cos.jar"/>
 	<classpathentry kind="lib" path="lib/jCharts-0.7.2.jar"/>
 	<classpathentry kind="lib" path="lib/directkit.jar"/>
 	<classpathentry kind="lib" path="lib/ejb.jar"/>
