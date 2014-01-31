@@ -91,8 +91,6 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	transient protected PostMethod method = null;
 	transient protected HostConfiguration hostConfiguration = null;
 	transient protected String targetUrl = "";
-	transient protected	Context javascriptContext = null;
-	transient protected	Scriptable scope = null;
 	
 	
 	private String contextName = "";
@@ -107,10 +105,9 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		super();
 		
 		hostConfiguration = new HostConfiguration();
+		
 		orderedVariables = new XMLVector<XMLVector<Long>>();
 		orderedVariables.add(new XMLVector<Long>());
-		
-		this.xml = true;
 	}
 
 	@Override
@@ -763,59 +760,49 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	abstract protected void prepareForRequestable(Context javascriptContext, Scriptable scope) throws MalformedURLException, EngineException;
 	
 	@Override
-	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
-        try {
-        	request = new HashMap<String, Object>();
-			prepareForRequestable(javascriptContext, scope);
-			
-        	if (bInternalInvoke) {
-        		Engine.logBeans.debug("(RequestableStep) Internal invoke requested");
-            	InternalRequester internalRequester = new InternalRequester();
-            	
-            	internalRequester.inputData = request;
-        		Object result = internalRequester.processRequest(request);
-
-        		// MDC log parameters must return to their original values, because
-            	// the internal requester has been executed on the same thread as us.
-            	Log4jHelper.mdcSet(sequence.context.logParameters);
-
-            	if (result != null) {
-	            	xmlHttpDocument = (Document) result;
-	            	sequence.fireDataChanged(new SequenceEvent(this, result));
-	            	flushDocument();
-            	}
-        	}
-        	else {
-            	Engine.logBeans.debug("(RequestableStep) requesting : "+ method.getURI());
-            	byte[] result = executeMethod();
-            	Engine.logBeans.debug("(RequestableStep) Total read bytes: " + ((result != null) ? result.length:0));
-            	if (result != null) {
-	            	makeDocument(result);
-	            	sequence.fireDataChanged(new SequenceEvent(this, result));
-	            	flushDocument();
-            	}
-        	}
-        	
-        } catch (Exception e) {
-        	setErrorStatus(true);
-            Engine.logBeans.error("An error occured while invoking transaction step \""+ RequestableStep.this.getName() +"\"", e);
-        } finally {
-        	if (!bInternalInvoke && (method != null)) {
-        		method.releaseConnection();
-        	}
-        }
-	}
-
-	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
-			try {
-				this.javascriptContext = javascriptContext;
-				this.scope = scope;
-				return super.stepExecute(javascriptContext, scope);
-			} finally {
-				this.javascriptContext = null;
-				this.scope = null;
+			if (super.stepExecute(javascriptContext, scope)) {
+	            try {
+	            	request = new HashMap<String, Object>();
+	    			prepareForRequestable(javascriptContext, scope);
+	    			
+	            	if (bInternalInvoke) {
+	            		Engine.logBeans.debug("(RequestableStep) Internal invoke requested");
+		            	InternalRequester internalRequester = new InternalRequester();
+		            	
+		            	internalRequester.inputData = request;
+		        		Object result = internalRequester.processRequest(request);
+
+		        		// MDC log parameters must return to their original values, because
+		            	// the internal requester has been executed on the same thread as us.
+		            	Log4jHelper.mdcSet(sequence.context.logParameters);
+
+		            	if (result != null) {
+			            	xmlHttpDocument = (Document) result;
+			            	sequence.fireDataChanged(new SequenceEvent(this, result));
+			            	flushDocument();
+		            	}
+	            	}
+	            	else {
+		            	Engine.logBeans.debug("(RequestableStep) requesting : "+ method.getURI());
+		            	byte[] result = executeMethod();
+		            	Engine.logBeans.debug("(RequestableStep) Total read bytes: " + ((result != null) ? result.length:0));
+		            	if (result != null) {
+			            	makeDocument(result);
+			            	sequence.fireDataChanged(new SequenceEvent(this, result));
+			            	flushDocument();
+		            	}
+	            	}
+	            	
+	            } catch (Exception e) {
+	            	setErrorStatus(true);
+	                Engine.logBeans.error("An error occured while invoking transaction step \""+ RequestableStep.this.getName() +"\"", e);
+	            } finally {
+	            	if (!bInternalInvoke && (method != null))
+	            		method.releaseConnection();
+	            }
+	        	return true;
 			}
 		}
 		return false;
