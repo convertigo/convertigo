@@ -13,7 +13,6 @@
       <library name="tomcat/webapps/convertigo/WEB-INF/classes/"/>
       <library name="lib/avalon.jar"/>
       <library name="lib/comm.jar"/>
-      <library name="lib/cos.jar"/>
       <library name="lib/ejb.jar"/>
       <library name="lib/fop.jar"/>
       <library name="lib/jacob.jar"/>
