@@ -18,10 +18,10 @@
 */
 
 /*
- * $URL: http://sourceus.twinsoft.fr/svn/convertigo/CEMS_opensource/branches/6.3.x/Studio/src/com/twinsoft/convertigo/eclipse/popup/actions/CtfCompletionProposalsComputer.java $
- * $Author: jmc $
- * $Revision: 33092 $
- * $Date: 2014-01-15 12:44:33 +0100 (Thu, 02 Jan 2014) $
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
  */
 
 package com.twinsoft.convertigo.eclipse.editors.completion;
@@ -57,9 +57,8 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class CtfCompletionProposalsComputer implements
-		ICompletionProposalComputer {
-
+public class CtfCompletionProposalsComputer implements ICompletionProposalComputer {
+	
 	private List<Entry> ctfAttributes = new ArrayList<Entry>();
 	/*
 	 * {"data-c8o-accumulate=\"\"",
