@@ -1,5 +1,32 @@
+/*
+* Copyright (c) 2009-2014 Convertigo. All Rights Reserved.
+*
+* The copyright to the computer  program(s) herein  is the property
+* of Convertigo.
+* The program(s) may  be used  and/or copied  only with the written
+* permission  of  Convertigo  or in accordance  with  the terms and
+* conditions  stipulated  in the agreement/contract under which the
+* program(s) have been supplied.
+*
+* Convertigo makes  no  representations  or  warranties  about  the
+* suitability of the software, either express or implied, including
+* but  not  limited  to  the implied warranties of merchantability,
+* fitness for a particular purpose, or non-infringement. Convertigo
+* shall  not  be  liable for  any damage  suffered by licensee as a
+* result of using,  modifying or  distributing this software or its
+* derivatives.
+*/
+
+/*
+ * $URL: http://sourceus.twinsoft.fr/svn/convertigo/CEMS_opensource/branches/6.3.x/Studio/src/com/twinsoft/convertigo/eclipse/popup/actions/CtfCompletionProposalsComputer.java $
+ * $Author: jmc $
+ * $Revision: 33092 $
+ * $Date: 2014-01-15 12:44:33 +0100 (Thu, 02 Jan 2014) $
+ */
+
 package com.twinsoft.convertigo.eclipse.editors.completion;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -13,6 +40,9 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.wst.sse.ui.contentassist.CompletionProposalInvocationContext;
 import org.eclipse.wst.sse.ui.contentassist.ICompletionProposalComputer;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -25,40 +55,86 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class CtfCompletionProposalsComputer implements  ICompletionProposalComputer {
+public class CtfCompletionProposalsComputer implements
+		ICompletionProposalComputer {
 
-	private static String ctfAttributes[][] = {
-		{"data-c8o-accumulate=\"\"", "Define the accumulation type 'append' or 'prepend'"},
-		{"data-c8o-after-rendering=\"\"", "Define a method called after the rendering"},
-		{"data-c8o-before-rendering=\"\"", "Define a method called before the rendering"},
-		{"data-c8o-call=\"\"",      "Call a Convertigo sequence or transaction"},
-		{"data-c8o-call-condition=\"\"", "Define a conditional call"},
-		{"data-c8o-call-mode=\"\"", "Call mode to be auto, timer"},
-		{"data-c8o-each=\"\"",      "Iterate on selector for all childs"},
-		{"data-c8o-if=\"\"", "Define a condition"},
-		{"data-c8o-if-not=\"\"", "Define a negative condition"},
-		{"data-c8o-late-render=\"\"", "Delay the rendering"},
-		{"data-c8o-listen=\"\"",    "Listen to a Convertigo sequence or transaction"},
-		{"data-c8o-listen-condition=\"\"", "Define a conditional listener"},
-		{"data-c8o-ref=\"\"", "Define a reference anchor name"},
-		{"data-c8o-render=\"\"", "Renders as soon as possible"},
-		{"data-c8o-use-\"\"", "Define an attribute for inline templating"},
-		{"data-c8o-use=\"\"", "Define an attribute marker for inline templating (on or off)"},
-		{"data-c8o-variable=\"\"",  "Define a variable"},
-		{"data-c8o-variables=\"\"", "Define several variables"}
-	};
+	private List<Entry> ctfAttributes = new ArrayList<Entry>();
+	/*
+	 * {"data-c8o-accumulate=\"\"",
+	 * "Define the accumulation type 'append' or 'prepend'"},
+	 * {"data-c8o-after-rendering=\"\"",
+	 * "Define a method called after the rendering"},
+	 * {"data-c8o-before-rendering=\"\"",
+	 * "Define a method called before the rendering"}, {"data-c8o-call=\"\"",
+	 * "Call a Convertigo sequence or transaction"},
+	 * {"data-c8o-call-condition=\"\"", "Define a conditional call"},
+	 * {"data-c8o-call-mode=\"\"", "Call mode to be auto, timer"},
+	 * {"data-c8o-each=\"\"", "Iterate on selector for all childs"},
+	 * {"data-c8o-if=\"\"", "Define a condition"}, {"data-c8o-if-not=\"\"",
+	 * "Define a negative condition"}, {"data-c8o-late-render=\"\"",
+	 * "Delay the rendering"}, {"data-c8o-listen=\"\"",
+	 * "Listen to a Convertigo sequence or transaction"},
+	 * {"data-c8o-listen-condition=\"\"", "Define a conditional listener"},
+	 * {"data-c8o-ref=\"\"", "Define a reference anchor name"},
+	 * {"data-c8o-render=\"\"", "Renders as soon as possible"},
+	 * {"data-c8o-use-\"\"", "Define an attribute for inline templating"},
+	 * {"data-c8o-use=\"\"",
+	 * "Define an attribute marker for inline templating (on or off)"},
+	 * {"data-c8o-variable=\"\"", "Define a variable"},
+	 * {"data-c8o-variables=\"\"", "Define several variables"} };
+	 */
 	
-	private static String ctfTemplates[] = {
-		"__=tag__",
-		"__{\"find\":\"selector\", \"attr\":\"name\"}__"
-	};
+	private static String ctfTemplates[] = { "__=tag__",
+			"__{\"find\":\"selector\", \"attr\":\"name\"}__" };
 
-	private List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
-	
-	
-	private int findCharReverse(char c, IDocument doc, int offset)
-	{
+	private List<String> projectNames = Engine.theApp.databaseObjectsManager
+			.getAllProjectNamesList();
+
+	private String getTextValue(Element ele, String tagName) {
+		String textVal = null;
+		NodeList nl = ele.getElementsByTagName(tagName);
+
+		if (nl != null && nl.getLength() > 0) {
+			Element el = (Element) nl.item(0);
+			textVal = el.getFirstChild().getNodeValue();
+		}
+
+		return textVal;
+	}
+
+	private Entry getEntry(Element empEl) {
+
+		// for each <Entry> element get text values of entry
+		String keyword = getTextValue(empEl, "keyword");
+		String definition = getTextValue(empEl, "definition");
+
+		// Create a new Entry with the value read from the xml nodes
+		return new Entry(keyword, definition);
+	}
+
+	void loadCtfCompletionTable(String xmlString) {
+		try {
+			Document doc = XMLUtils.getDefaultDocumentBuilder().parse(
+					getClass().getResourceAsStream("c8oCompletionDict.xml"));
+			NodeList ctfNode = doc.getElementsByTagName("ctf");
+			Element ctfElement = (Element) ctfNode.item(0);
+			NodeList listOfEntries = ctfElement.getElementsByTagName("entry"); 
+
+			if (listOfEntries != null && listOfEntries.getLength() > 0) {
+				for (int i = 0; i < listOfEntries.getLength(); i++) {
+					// retrieve the ith Entry element
+					Element el = (Element)listOfEntries.item(i);
+					// get the Entry object text values and add it to list
+					ctfAttributes.add(getEntry(el));
+				}
+			}
+		} catch (Exception e) {
+		}
+	}
+
+	private int findCharReverse(char c, IDocument doc, int offset) {
 		try {
 			while (offset-- > 0) {
 				char current = doc.getChar(offset);
@@ -71,56 +147,59 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 			return -1;
 		}
 	}
-	
-	private Project getProjectByName(String projectName) throws EngineException
-	{
+
+	private Project getProjectByName(String projectName) throws EngineException {
 		Project project;
 
-		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
+		ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault()
+				.getProjectExplorerView();
 		TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer
 				.getContentProvider()).getProjectRootObject(projectName);
 		if (projectTreeObject instanceof UnloadedProjectTreeObject) {
-			project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+			project = Engine.theApp.databaseObjectsManager
+					.getProjectByName(projectName);
 		} else {
 			project = projectExplorerView.getProject(projectName);
-		}		
+		}
 		return project;
 	}
 
-	private List<String> getTransactionList(String projectName, String connectorName) throws EngineException {
+	private List<String> getTransactionList(String projectName,
+			String connectorName) throws EngineException {
 		Vector<String> Transactions = new Vector<String>();
-		
+
 		Project project = getProjectByName(projectName);
 		Connector connector = project.getConnectorByName(connectorName);
-		
+
 		List<Transaction> transactions = connector.getTransactionsList();
 		if (!transactions.isEmpty()) {
 			for (Transaction transaction : transactions) {
 				String transactionName = transaction.getName();
 				Transactions.add(transactionName);
 			}
-		}		
+		}
 		return Transactions;
 	}
 
-	
-	private List<String> getConnectorList(String projectName) throws EngineException {
+	private List<String> getConnectorList(String projectName)
+			throws EngineException {
 		Vector<String> Connectors = new Vector<String>();
-		
+
 		Project project = getProjectByName(projectName);
-		List <Connector> connectors = project.getConnectorsList();
+		List<Connector> connectors = project.getConnectorsList();
 		if (!connectors.isEmpty()) {
 			for (Connector connector : connectors) {
 				String connectorName = connector.getName();
 				Connectors.add(connectorName);
 			}
-		}		
+		}
 		return Connectors;
 	}
-	
-	private List<String> getSequenceList(String projectName) throws EngineException {
+
+	private List<String> getSequenceList(String projectName)
+			throws EngineException {
 		Vector<String> Sequences = new Vector<String>();
-		
+
 		Project project = getProjectByName(projectName);
 		List<Sequence> sequences = project.getSequencesList();
 		if (!sequences.isEmpty()) {
@@ -128,197 +207,277 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 				String sequenceName = sequence.getName();
 				Sequences.add(sequenceName);
 			}
-		}		
+		}
 		return Sequences;
 	}
 
-	private Image imageCtf = new Image(Display.getCurrent(),
-			   getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/completion_ctf.png"));			
+	private Image imageCtf = new Image(
+			Display.getCurrent(),
+			getClass()
+					.getResourceAsStream(
+							"/com/twinsoft/convertigo/eclipse/editors/images/completion_ctf.png"));
 
-	private Image imageProject = new Image(Display.getCurrent(),
-			   getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/c8o_color_16x16.png"));			
+	private Image imageProject = new Image(
+			Display.getCurrent(),
+			getClass()
+					.getResourceAsStream(
+							"/com/twinsoft/convertigo/beans/core/images/c8o_color_16x16.png"));
 
-	private Image imageSequence = new Image(Display.getCurrent(),
-			   getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png"));			
+	private Image imageSequence = new Image(
+			Display.getCurrent(),
+			getClass()
+					.getResourceAsStream(
+							"/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png"));
 
-	private Image imageConnector = new Image(Display.getCurrent(),
-			   getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/connector_color_16x16.png"));			
+	private Image imageConnector = new Image(
+			Display.getCurrent(),
+			getClass()
+					.getResourceAsStream(
+							"/com/twinsoft/convertigo/beans/core/images/connector_color_16x16.png"));
 
-	private Image imageTransaction = new Image(Display.getCurrent(),
-			   getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png"));			
+	private Image imageTransaction = new Image(
+			Display.getCurrent(),
+			getClass()
+					.getResourceAsStream(
+							"/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png"));
 
-
-	
 	@Override
 	public List<CompletionProposal> computeCompletionProposals(
-			CompletionProposalInvocationContext context, IProgressMonitor monitor) {
+			CompletionProposalInvocationContext context,
+			IProgressMonitor monitor) {
 		// TODO Auto-generated method stub
-		
-		IDocument				document	= context.getDocument();
-		int						offset		= context.getInvocationOffset();
-		
+
+		IDocument document = context.getDocument();
+		int offset = context.getInvocationOffset();
+
 		try {
 			Vector<CompletionProposal> lProposals = new Vector<CompletionProposal>();
-			boolean	attributeMode = false;
-			
-			int endTagOffset   = findCharReverse('>', document, offset);
+			boolean attributeMode = false;
+
+			int endTagOffset = findCharReverse('>', document, offset);
 			int startTagOffset = findCharReverse('<', document, offset);
-			
+
 			if (endTagOffset == -1)
 				attributeMode = true;
-			
+
 			if (startTagOffset == -1)
 				attributeMode = false;
-					
+
 			if (endTagOffset > startTagOffset)
 				attributeMode = false;
 			else
 				attributeMode = true;
-			
+
 			if (!attributeMode) {
 				// we are in a Text node, so display the templates proposals
 				int oFound = findCharReverse('>', document, offset);
-				if (oFound != -1){
-					int len = offset-oFound-1;
-					String	alreadyTyped = document.get(oFound+1, len);
-					
-					for (int i=0; i < ctfTemplates.length ; i++) {
+				if (oFound != -1) {
+					int len = offset - oFound - 1;
+					String alreadyTyped = document.get(oFound + 1, len);
+
+					for (int i = 0; i < ctfTemplates.length; i++) {
 						if (ctfTemplates[i].startsWith(alreadyTyped)) {
 							String entry = (String) ctfTemplates[i];
-							
-							//Set additional information
-							String descr = "/** TODO : retrieve description*/ " + entry;
-							
-							//Set the string to display
+
+							// Set additional information
+							String descr = "/** TODO : retrieve description*/ "
+									+ entry;
+
+							// Set the string to display
 							String showing = ctfTemplates[i];
-							
-							//Set the replacement string
-							String value = ctfTemplates[i].substring(alreadyTyped.length());
-							
-							IContextInformation info = new ContextInformation(showing, descr);
-							lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageCtf, showing, info, descr));
+
+							// Set the replacement string
+							String value = ctfTemplates[i]
+									.substring(alreadyTyped.length());
+
+							IContextInformation info = new ContextInformation(
+									showing, descr);
+							lProposals.add(new CompletionProposal(value,
+									offset, 0, value.length(), imageCtf,
+									showing, info, descr));
 						}
 					}
 					return lProposals;
 				}
 			}
-			
+
 			if (attributeMode) {
 				// we are within a tag, so display attribute proposals...
 				int oFound = findCharReverse('<', document, offset);
-				if (oFound != -1){
-					// we are in the <xxxx case. search the first space before our offset
+				if (oFound != -1) {
+					// we are in the <xxxx case. search the first space before
+					// our offset
 					oFound = findCharReverse(' ', document, offset);
 					if (oFound != -1) {
-						int len = offset-oFound-1;
-						String	alreadyTyped = document.get(oFound+1, len);
-						
-						if (alreadyTyped.startsWith("data-c8o-call=\"") ||
-							alreadyTyped.startsWith("data-c8o-listen=\"")) {
-							// We are typing in the content of a data-c8o-call so handle the projects and sequences completion
+						int len = offset - oFound - 1;
+						String alreadyTyped = document.get(oFound + 1, len);
+
+						if (alreadyTyped.startsWith("data-c8o-call=\"")
+								|| alreadyTyped
+										.startsWith("data-c8o-listen=\"")) {
+							// We are typing in the content of a data-c8o-call
+							// so handle the projects and sequences completion
 							// extract the part typed in the attribute content
-							alreadyTyped = alreadyTyped.substring(alreadyTyped.indexOf('"')+1);
+							alreadyTyped = alreadyTyped.substring(alreadyTyped
+									.indexOf('"') + 1);
 							if (alreadyTyped.contains(".")) {
-								// this in the form 'xxx.' or '.' so handle sequence completion
-								String projectName = alreadyTyped.substring(0, alreadyTyped.indexOf('.'));
-								alreadyTyped = alreadyTyped.substring(alreadyTyped.indexOf('.') +1);
+								// this in the form 'xxx.' or '.' so handle
+								// sequence completion
+								String projectName = alreadyTyped.substring(0,
+										alreadyTyped.indexOf('.'));
+								alreadyTyped = alreadyTyped
+										.substring(alreadyTyped.indexOf('.') + 1);
 								if (alreadyTyped.contains(".")) {
-									// this in the form 'xxx.XXX' or '..' so handle sequence completion
-									String connector = alreadyTyped.substring(0, alreadyTyped.indexOf('.'));
-									alreadyTyped = alreadyTyped.substring(alreadyTyped.indexOf('.') +1);
-									List<String> transactions = getTransactionList(projectName, connector);
-									for (int i=0; i< transactions.size(); i++) {
-										if (transactions.get(i).startsWith(alreadyTyped)) {
-											String entry = (String) transactions.get(i);
-											//Set additional information
-											String descr = entry + " : " + "Transaction Name";
-											//Set the string to display
-											String showing = transactions.get(i);
-											//Set the replacement string
-											String value = transactions.get(i).substring(alreadyTyped.length());
-											IContextInformation info = new ContextInformation(showing, descr);
-											lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageTransaction, showing, info, descr));
+									// this in the form 'xxx.XXX' or '..' so
+									// handle sequence completion
+									String connector = alreadyTyped.substring(
+											0, alreadyTyped.indexOf('.'));
+									alreadyTyped = alreadyTyped
+											.substring(alreadyTyped
+													.indexOf('.') + 1);
+									List<String> transactions = getTransactionList(
+											projectName, connector);
+									for (int i = 0; i < transactions.size(); i++) {
+										if (transactions.get(i).startsWith(
+												alreadyTyped)) {
+											String entry = (String) transactions
+													.get(i);
+											// Set additional information
+											String descr = entry + " : "
+													+ "Transaction Name";
+											// Set the string to display
+											String showing = transactions
+													.get(i);
+											// Set the replacement string
+											String value = transactions.get(i)
+													.substring(
+															alreadyTyped
+																	.length());
+											IContextInformation info = new ContextInformation(
+													showing, descr);
+											lProposals
+													.add(new CompletionProposal(
+															value, offset, 0,
+															value.length(),
+															imageTransaction,
+															showing, info,
+															descr));
 										}
 									}
 									return lProposals;
 								}
-								
+
 								List<String> sequences = getSequenceList(projectName);
-								for (int i=0; i< sequences.size(); i++) {
-									if (sequences.get(i).startsWith(alreadyTyped)) {
-										String entry = (String) sequences.get(i);
-										//Set additional information
-										String descr = entry + " : " + "Sequence Name";
-										//Set the string to display
+								for (int i = 0; i < sequences.size(); i++) {
+									if (sequences.get(i).startsWith(
+											alreadyTyped)) {
+										String entry = (String) sequences
+												.get(i);
+										// Set additional information
+										String descr = entry + " : "
+												+ "Sequence Name";
+										// Set the string to display
 										String showing = sequences.get(i);
-										//Set the replacement string
-										String value = sequences.get(i).substring(alreadyTyped.length());
-										IContextInformation info = new ContextInformation(showing, descr);
-										lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageSequence, showing, info, descr));
+										// Set the replacement string
+										String value = sequences.get(i)
+												.substring(
+														alreadyTyped.length());
+										IContextInformation info = new ContextInformation(
+												showing, descr);
+										lProposals.add(new CompletionProposal(
+												value, offset, 0, value
+														.length(),
+												imageSequence, showing, info,
+												descr));
 									}
 								}
-								
+
 								List<String> connectors = getConnectorList(projectName);
-								for (int i=0; i< connectors.size(); i++) {
-									if (connectors.get(i).startsWith(alreadyTyped)) {
-										String entry = (String) connectors.get(i);
-										//Set additional information
-										String descr = entry + " : " + "Connector Name";
-										//Set the string to display
+								for (int i = 0; i < connectors.size(); i++) {
+									if (connectors.get(i).startsWith(
+											alreadyTyped)) {
+										String entry = (String) connectors
+												.get(i);
+										// Set additional information
+										String descr = entry + " : "
+												+ "Connector Name";
+										// Set the string to display
 										String showing = connectors.get(i);
-										//Set the replacement string
-										String value = connectors.get(i).substring(alreadyTyped.length());
-										IContextInformation info = new ContextInformation(showing, descr);
-										lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageConnector, showing, info, descr));
+										// Set the replacement string
+										String value = connectors.get(i)
+												.substring(
+														alreadyTyped.length());
+										IContextInformation info = new ContextInformation(
+												showing, descr);
+										lProposals.add(new CompletionProposal(
+												value, offset, 0, value
+														.length(),
+												imageConnector, showing, info,
+												descr));
 									}
 								}
-								
-								return lProposals;								
+
+								return lProposals;
 							}
-							
-							
-							
+
 							// always add the '.' self project proposal
 							String entry = ".";
 							String descr = "My Own Project";
 							String showing = ".";
 							String value = ".";
-							IContextInformation info = new ContextInformation(showing, descr);
-							lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageProject, showing, info, descr));
+							IContextInformation info = new ContextInformation(
+									showing, descr);
+							lProposals.add(new CompletionProposal(value,
+									offset, 0, value.length(), imageProject,
+									showing, info, descr));
 
 							// iterate through projects list
-							for (int i=0; i< projectNames.size(); i++) {
-								if (projectNames.get(i).startsWith(alreadyTyped)) {
+							for (int i = 0; i < projectNames.size(); i++) {
+								if (projectNames.get(i)
+										.startsWith(alreadyTyped)) {
 									entry = (String) projectNames.get(i);
-									//Set additional information
+									// Set additional information
 									descr = entry + " : " + "Project Name";
-									//Set the string to display
+									// Set the string to display
 									showing = projectNames.get(i);
-									//Set the replacement string
-									value = projectNames.get(i).substring(alreadyTyped.length());
-									info = new ContextInformation(showing, descr);
-									lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageProject, showing, info, descr));
+									// Set the replacement string
+									value = projectNames.get(i).substring(
+											alreadyTyped.length());
+									info = new ContextInformation(showing,
+											descr);
+									lProposals
+											.add(new CompletionProposal(value,
+													offset, 0, value.length(),
+													imageProject, showing,
+													info, descr));
 								}
 							}
 							return lProposals;
 						}
-						
-						
-						for (int i=0; i < ctfAttributes.length ; i++) {
-							if (ctfAttributes[i][0].startsWith(alreadyTyped)) {
-								String entry = (String) ctfAttributes[i][0];
-								
-								//Set additional information
-								String descr = entry + " : " + ctfAttributes[i][1];
-								
-								//Set the string to display
-								String showing = ctfAttributes[i][0];
-								
-								//Set the replacement string
-								String value = ctfAttributes[i][0].substring(alreadyTyped.length());
-								
-								IContextInformation info = new ContextInformation(showing, descr);
-								lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageCtf, showing, info, descr));
+
+						String keyword;
+						String definition;
+
+						for (int i = 0; i < ctfAttributes.size(); i++) {
+							keyword = ctfAttributes.get(i).getKeyword();
+							definition = ctfAttributes.get(i).getDefinition();
+
+							if (keyword.startsWith(alreadyTyped)) {
+								// Set additional information
+								String descr = keyword + " : " + definition;
+
+								// Set the string to display
+								String showing = keyword;
+
+								// Set the replacement string
+								String value = keyword.substring(alreadyTyped
+										.length());
+
+								IContextInformation info = new ContextInformation(
+										showing, descr);
+								lProposals.add(new CompletionProposal(value,
+										offset, 0, value.length(), imageCtf,
+										showing, info, descr));
 							}
 						}
 						return lProposals;
@@ -326,7 +485,7 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 				}
 			}
 			return lProposals;
-			
+
 		} catch (Exception e) {
 			return null;
 		}
@@ -334,7 +493,8 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 
 	@Override
 	public List<?> computeContextInformation(
-			CompletionProposalInvocationContext context, IProgressMonitor monitor) {
+			CompletionProposalInvocationContext context,
+			IProgressMonitor monitor) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -348,13 +508,13 @@ public class CtfCompletionProposalsComputer implements  ICompletionProposalCompu
 	@Override
 	public void sessionEnded() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void sessionStarted() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<completionDictionnary>
+	<ctf>
+		<entry>
+			<keyword>data-c8o-accumulate=""</keyword>
+			<definition>Define the accumulation type 'append' or 'prepend'</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-after-rendering=""</keyword>
+			<definition>Define a method called after the rendering</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-before-rendering=""</keyword>
+			<definition>Define a method called before the rendering</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-call=""</keyword>
+			<definition>Call a Convertigo sequence or transaction</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-call-condition=""</keyword>
+			<definition>Define a conditional call</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-call-mode=""</keyword>
+			<definition>Call mode to be auto, timer</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-each=""</keyword>
+			<definition>Iterate on selector for all children</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-if=""</keyword>
+			<definition>Define a condition</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-if-not=""</keyword>
+			<definition>Define a negative condition</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-late-render=""</keyword>
+			<definition>Delay the rendering</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-listen=""</keyword>
+			<definition>Listen to a Convertigo sequence or transaction</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-listen-condition=""</keyword>
+			<definition>Define a conditional listener</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-ref=""</keyword>
+			<definition>Define a reference anchor name</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-render=""</keyword>
+			<definition>Renders as soon as possible</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-use-xxx=""</keyword>
+			<definition>Define an attribute for inline templating</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-use="on"</keyword>
+			<definition>Define an attribute marker for inline templating (on or off)</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-variable=""</keyword>
+			<definition>Define a variable</definition>
+		</entry>
+		<entry>
+			<keyword>data-c8o-variables=""</keyword>
+			<definition>Define several variables</definition>
+		</entry>
+	</ctf>
+</completionDictionnary>
