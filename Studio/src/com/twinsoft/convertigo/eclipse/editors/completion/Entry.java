@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2014 Convertigo. All Rights Reserved.
+* Copyright (c) 2014 Convertigo. All Rights Reserved.
 *
 * The copyright to the computer  program(s) herein  is the property
 * of Convertigo.
