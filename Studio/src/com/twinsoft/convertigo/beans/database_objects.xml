@@ -127,7 +127,7 @@
 				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPhone4">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobiledevices.WindowsPhone7">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.WindowsPhone7">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
 			</beans>
@@ -380,7 +380,7 @@
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLComplexStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.XMLErrorStep"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.steps.XMLSortStep">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.steps.XMLSortStep">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.sequences.GenericSequence"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BlockStep"/>
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.steps.BranchStep"/>
