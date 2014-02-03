@@ -75,6 +75,14 @@ var F = {
 			}
 		}
 		if (F.fileSystem == null) {
+			if (typeof(LocalFileSystem) == "undefined") {
+				LocalFileSystem = window;
+			}
+			F.debug("window.requestFileSystem typeof " + typeof(window.requestFileSystem));
+			F.debug("window.requestFileSystem " + window.requestFileSystem);
+			F.debug("window.webkitRequestFileSystem typeof " + typeof(window.webkitRequestFileSystem));
+			F.debug("window.webkitRequestFileSystem " + window.webkitRequestFileSystem);
+			window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
 			window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function (fileSystem) {
 				try {
 					F.fileSystem = fileSystem;
