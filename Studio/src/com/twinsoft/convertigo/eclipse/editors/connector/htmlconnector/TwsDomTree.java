@@ -379,4 +379,20 @@ public class TwsDomTree extends TreeWrapper {
 		}
 		return ret;
 	}
+
+	public void collapseAll() {
+		getTopItem().setExpanded(false);
+	}
+	
+	public void expandAll(TreeItem treeItem) {
+		TreeItem[] treeItems = treeItem.getItems();
+		treeItem.setExpanded(true);
+		for (TreeItem sub : treeItems) {
+			expandAll(sub);
+		}
+	}
+
+	public void expandAll() {
+		expandAll(getTopItem());
+	}
 }

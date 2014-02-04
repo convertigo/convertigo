@@ -305,9 +305,31 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
 		setToolItemIcon(toolItem, "icons/studio/collapse_all_nodes.gif", "C", "Collapse all");
+		toolItem.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				domTree.collapseAll();
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
 		
 		toolItem = new ToolItem(toolbar, SWT.PUSH);
 		setToolItemIcon(toolItem, "icons/studio/expand_all_nodes.gif", "E", "Expand all");
+		toolItem.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				domTree.expandAll();
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
 		
 		domTree = new TwsDomTree(composite, SWT.BORDER);
 		domTree.setLayoutData(new GridData(GridData.FILL_BOTH));
