@@ -113,14 +113,11 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		return new Entry(keyword, definition);
 	}
 
-	void loadCtfCompletionTable(String xmlString) {
+	void loadSubDictionaries(NodeList ctfNode) {
 		try {
-			Document doc = XMLUtils.getDefaultDocumentBuilder().parse(
-					getClass().getResourceAsStream("c8oCompletionDict.xml"));
-			NodeList ctfNode = doc.getElementsByTagName("ctf");
 			Element ctfElement = (Element) ctfNode.item(0);
 			NodeList listOfEntries = ctfElement.getElementsByTagName("entry"); 
-
+	
 			if (listOfEntries != null && listOfEntries.getLength() > 0) {
 				for (int i = 0; i < listOfEntries.getLength(); i++) {
 					// retrieve the ith Entry element
@@ -129,6 +126,16 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 					ctfAttributes.add(getEntry(el));
 				}
 			}
+		} catch (Exception e) {
+		}
+	}
+	
+	void loadCtfCompletionTable(String xmlString) {
+		try {
+			Document doc = XMLUtils.getDefaultDocumentBuilder().parse(getClass().getResourceAsStream("c8oCompletionDict.xml"));
+			// load all dictionary subsets one by one into the same table
+			loadSubDictionaries(doc.getElementsByTagName("ctf"));
+			loadSubDictionaries(doc.getElementsByTagName("jquerymobile"));
 		} catch (Exception e) {
 		}
 	}
