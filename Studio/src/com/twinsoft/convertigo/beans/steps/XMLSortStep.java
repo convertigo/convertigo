@@ -49,8 +49,8 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 	private static final long serialVersionUID = 4871778624030668414L;
 	
 	/* COMBO BOX */
-	public static final String ASCENDING_ORDER = "ascending";
-	public static final String DESCENDING_ORDER = "descending";
+	public static final String ASCENDING_ORDER = "Ascending";
+	public static final String DESCENDING_ORDER = "Descending";
 	
 	public static final String NUMBER_TYPE_ORDER = "Number";
 	public static final String DATE_TYPE_ORDER = "Date";
