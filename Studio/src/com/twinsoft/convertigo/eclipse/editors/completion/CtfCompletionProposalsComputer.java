@@ -91,13 +91,23 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 	private List<String> projectNames = Engine.theApp.databaseObjectsManager
 			.getAllProjectNamesList();
 
+	
+	public CtfCompletionProposalsComputer() {	
+		loadCtfCompletionTable();
+	}
+	
 	private String getTextValue(Element ele, String tagName) {
 		String textVal = null;
 		NodeList nl = ele.getElementsByTagName(tagName);
 
 		if (nl != null && nl.getLength() > 0) {
-			Element el = (Element) nl.item(0);
-			textVal = el.getFirstChild().getNodeValue();
+			try {
+				Element el = (Element) nl.item(0);
+				textVal = el.getFirstChild().getNodeValue();
+			}
+			catch(Exception e) {
+				textVal = "";
+			}
 		}
 
 		return textVal;
@@ -130,7 +140,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		}
 	}
 	
-	void loadCtfCompletionTable(String xmlString) {
+	void loadCtfCompletionTable() {
 		try {
 			Document doc = XMLUtils.getDefaultDocumentBuilder().parse(getClass().getResourceAsStream("c8oCompletionDict.xml"));
 			// load all dictionary subsets one by one into the same table
