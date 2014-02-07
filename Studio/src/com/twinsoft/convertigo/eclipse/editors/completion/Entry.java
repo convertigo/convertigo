@@ -27,15 +27,21 @@
 package com.twinsoft.convertigo.eclipse.editors.completion;
 
 public class Entry {
-	private String keyword;
-	private String definition;
+	public static int  ICONID_CTF = 0x0001;
+	public static int  ICONID_JQM = 0x0002;
+	
+	private String	keyword;
+	private String	definition;
+	private int		iconId;
 
 	public Entry() { 
+		iconId = ICONID_CTF;
 		keyword = "";
 		definition = "";
 	}
 
-	public Entry(String key, String def) { 
+	public Entry(String key, String def, int icId) {
+		iconId = icId;
 		keyword = key;
 		definition = def;
 	}
@@ -48,6 +54,10 @@ public class Entry {
 		definition = str;
 	}
 
+	public void setIconId(int id) {
+		iconId = id;
+	}
+	
 	public String getKeyword() {
 		return keyword;
 	}
@@ -55,8 +65,12 @@ public class Entry {
 	public String getDefinition() {
 		return definition;
 	}
+
+	public int getIconId() {
+		return iconId;
+	}
 	
 	public String toString() {
-		return keyword + ", " + definition;
+		return keyword + ", " + definition + ", " + iconId;
 	}
 }

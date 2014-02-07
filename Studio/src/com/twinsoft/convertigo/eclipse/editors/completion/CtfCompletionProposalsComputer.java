@@ -85,11 +85,9 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 	 * {"data-c8o-variables=\"\"", "Define several variables"} };
 	 */
 	
-	private static String ctfTemplates[] = { "__=tag__",
-			"__{\"find\":\"selector\", \"attr\":\"name\"}__" };
+	private static String ctfTemplates[] = { "__=tag__", "__{\"find\":\"selector\", \"attr\":\"name\"}__" };
 
-	private List<String> projectNames = Engine.theApp.databaseObjectsManager
-			.getAllProjectNamesList();
+	private List<String> projectNames = Engine.theApp.databaseObjectsManager.getAllProjectNamesList();
 
 	
 	public CtfCompletionProposalsComputer() {	
@@ -100,7 +98,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		String textVal = null;
 		NodeList nl = ele.getElementsByTagName(tagName);
 
-		if (nl != null && nl.getLength() > 0) {
+		if ((nl != null) && (nl.getLength() > 0)) {
 			try {
 				Element el = (Element) nl.item(0);
 				textVal = el.getFirstChild().getNodeValue();
@@ -113,17 +111,17 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		return textVal;
 	}
 
-	private Entry getEntry(Element empEl) {
+	private Entry getEntry(Element empEl, int iconId) {
 
 		// for each <Entry> element get text values of entry
 		String keyword = getTextValue(empEl, "keyword");
 		String definition = getTextValue(empEl, "definition");
 
 		// Create a new Entry with the value read from the xml nodes
-		return new Entry(keyword, definition);
+		return new Entry(keyword, definition, iconId);
 	}
 
-	void loadSubDictionaries(NodeList ctfNode) {
+	void loadSubDictionaries(NodeList ctfNode, int iconId) {
 		try {
 			Element ctfElement = (Element) ctfNode.item(0);
 			NodeList listOfEntries = ctfElement.getElementsByTagName("entry"); 
@@ -133,7 +131,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 					// retrieve the ith Entry element
 					Element el = (Element)listOfEntries.item(i);
 					// get the Entry object text values and add it to list
-					ctfAttributes.add(getEntry(el));
+					ctfAttributes.add(getEntry(el, iconId));
 				}
 			}
 		} catch (Exception e) {
@@ -144,8 +142,8 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		try {
 			Document doc = XMLUtils.getDefaultDocumentBuilder().parse(getClass().getResourceAsStream("c8oCompletionDict.xml"));
 			// load all dictionary subsets one by one into the same table
-			loadSubDictionaries(doc.getElementsByTagName("ctf"));
-			loadSubDictionaries(doc.getElementsByTagName("jquerymobile"));
+			loadSubDictionaries(doc.getElementsByTagName("ctf"), Entry.ICONID_CTF);
+			loadSubDictionaries(doc.getElementsByTagName("jquerymobile"), Entry.ICONID_JQM);
 		} catch (Exception e) {
 		}
 	}
@@ -172,8 +170,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		TreeObject projectTreeObject = ((ViewContentProvider) projectExplorerView.viewer
 				.getContentProvider()).getProjectRootObject(projectName);
 		if (projectTreeObject instanceof UnloadedProjectTreeObject) {
-			project = Engine.theApp.databaseObjectsManager
-					.getProjectByName(projectName);
+			project = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
 		} else {
 			project = projectExplorerView.getProject(projectName);
 		}
@@ -227,42 +224,20 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		return Sequences;
 	}
 
-	private Image imageCtf = new Image(
-			Display.getCurrent(),
-			getClass()
-					.getResourceAsStream(
-							"/com/twinsoft/convertigo/eclipse/editors/images/completion_ctf.png"));
+	private Image imageCtf = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/completion_ctf.png"));
 
-	private Image imageProject = new Image(
-			Display.getCurrent(),
-			getClass()
-					.getResourceAsStream(
-							"/com/twinsoft/convertigo/beans/core/images/c8o_color_16x16.png"));
+	private Image imageJqm = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/completion_jqm.png"));
 
-	private Image imageSequence = new Image(
-			Display.getCurrent(),
-			getClass()
-					.getResourceAsStream(
-							"/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png"));
+	private Image imageProject = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/c8o_color_16x16.png"));
 
-	private Image imageConnector = new Image(
-			Display.getCurrent(),
-			getClass()
-					.getResourceAsStream(
-							"/com/twinsoft/convertigo/beans/core/images/connector_color_16x16.png"));
+	private Image imageSequence = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/sequence_color_16x16.png"));
 
-	private Image imageTransaction = new Image(
-			Display.getCurrent(),
-			getClass()
-					.getResourceAsStream(
-							"/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png"));
+	private Image imageConnector = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/connector_color_16x16.png"));
+
+	private Image imageTransaction = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png"));
 
 	@Override
-	public List<CompletionProposal> computeCompletionProposals(
-			CompletionProposalInvocationContext context,
-			IProgressMonitor monitor) {
-		// TODO Auto-generated method stub
-
+	public List<CompletionProposal> computeCompletionProposals(CompletionProposalInvocationContext context, IProgressMonitor monitor) {
 		IDocument document = context.getDocument();
 		int offset = context.getInvocationOffset();
 
@@ -296,21 +271,16 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 							String entry = (String) ctfTemplates[i];
 
 							// Set additional information
-							String descr = "/** TODO : retrieve description*/ "
-									+ entry;
+							String descr = "/** TODO : retrieve description*/ " + entry;
 
 							// Set the string to display
 							String showing = ctfTemplates[i];
 
 							// Set the replacement string
-							String value = ctfTemplates[i]
-									.substring(alreadyTyped.length());
+							String value = ctfTemplates[i].substring(alreadyTyped.length());
 
-							IContextInformation info = new ContextInformation(
-									showing, descr);
-							lProposals.add(new CompletionProposal(value,
-									offset, 0, value.length(), imageCtf,
-									showing, info, descr));
+							IContextInformation info = new ContextInformation(showing, descr);
+							lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageCtf, showing, info, descr));
 						}
 					}
 					return lProposals;
@@ -321,63 +291,43 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 				// we are within a tag, so display attribute proposals...
 				int oFound = findCharReverse('<', document, offset);
 				if (oFound != -1) {
-					// we are in the <xxxx case. search the first space before
-					// our offset
+					//
+					// we are in the <xxxx case. search the first space before our offset
+					//
 					oFound = findCharReverse(' ', document, offset);
 					if (oFound != -1) {
 						int len = offset - oFound - 1;
 						String alreadyTyped = document.get(oFound + 1, len);
 
-						if (alreadyTyped.startsWith("data-c8o-call=\"")
-								|| alreadyTyped
-										.startsWith("data-c8o-listen=\"")) {
+						if (alreadyTyped.startsWith("data-c8o-call=\"") || alreadyTyped.startsWith("data-c8o-listen=\"")) {
 							// We are typing in the content of a data-c8o-call
 							// so handle the projects and sequences completion
 							// extract the part typed in the attribute content
-							alreadyTyped = alreadyTyped.substring(alreadyTyped
-									.indexOf('"') + 1);
+							alreadyTyped = alreadyTyped.substring(alreadyTyped.indexOf('"') + 1);
 							if (alreadyTyped.contains(".")) {
-								// this in the form 'xxx.' or '.' so handle
-								// sequence completion
-								String projectName = alreadyTyped.substring(0,
-										alreadyTyped.indexOf('.'));
-								alreadyTyped = alreadyTyped
-										.substring(alreadyTyped.indexOf('.') + 1);
+								//
+								//this in the form 'xxx.' or '.' so handle sequence completion
+								//
+								String projectName = alreadyTyped.substring(0, alreadyTyped.indexOf('.'));
+								alreadyTyped = alreadyTyped.substring(alreadyTyped.indexOf('.') + 1);
 								if (alreadyTyped.contains(".")) {
-									// this in the form 'xxx.XXX' or '..' so
-									// handle sequence completion
-									String connector = alreadyTyped.substring(
-											0, alreadyTyped.indexOf('.'));
-									alreadyTyped = alreadyTyped
-											.substring(alreadyTyped
-													.indexOf('.') + 1);
-									List<String> transactions = getTransactionList(
-											projectName, connector);
+									//
+									// this in the form 'xxx.XXX' or '..' so handle sequence completion
+									//
+									String connector = alreadyTyped.substring(0, alreadyTyped.indexOf('.'));
+									alreadyTyped = alreadyTyped.substring(alreadyTyped.indexOf('.') + 1);
+									List<String> transactions = getTransactionList(projectName, connector);
 									for (int i = 0; i < transactions.size(); i++) {
-										if (transactions.get(i).startsWith(
-												alreadyTyped)) {
-											String entry = (String) transactions
-													.get(i);
+										if (transactions.get(i).startsWith(alreadyTyped)) {
+											String entry = (String) transactions.get(i);
 											// Set additional information
-											String descr = entry + " : "
-													+ "Transaction Name";
+											String descr = entry + " : " + "Transaction Name";
 											// Set the string to display
-											String showing = transactions
-													.get(i);
+											String showing = transactions.get(i);
 											// Set the replacement string
-											String value = transactions.get(i)
-													.substring(
-															alreadyTyped
-																	.length());
-											IContextInformation info = new ContextInformation(
-													showing, descr);
-											lProposals
-													.add(new CompletionProposal(
-															value, offset, 0,
-															value.length(),
-															imageTransaction,
-															showing, info,
-															descr));
+											String value = transactions.get(i).substring(alreadyTyped.length());
+											IContextInformation info = new ContextInformation(showing, descr);
+											lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageTransaction, showing, info, descr));
 										}
 									}
 									return lProposals;
@@ -385,51 +335,31 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 
 								List<String> sequences = getSequenceList(projectName);
 								for (int i = 0; i < sequences.size(); i++) {
-									if (sequences.get(i).startsWith(
-											alreadyTyped)) {
-										String entry = (String) sequences
-												.get(i);
+									if (sequences.get(i).startsWith(alreadyTyped)) {
+										String entry = (String) sequences.get(i);
 										// Set additional information
-										String descr = entry + " : "
-												+ "Sequence Name";
+										String descr = entry + " : " + "Sequence Name";
 										// Set the string to display
 										String showing = sequences.get(i);
 										// Set the replacement string
-										String value = sequences.get(i)
-												.substring(
-														alreadyTyped.length());
-										IContextInformation info = new ContextInformation(
-												showing, descr);
-										lProposals.add(new CompletionProposal(
-												value, offset, 0, value
-														.length(),
-												imageSequence, showing, info,
-												descr));
+										String value = sequences.get(i).substring(alreadyTyped.length());
+										IContextInformation info = new ContextInformation(showing, descr);
+										lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageSequence, showing, info,descr));
 									}
 								}
 
 								List<String> connectors = getConnectorList(projectName);
 								for (int i = 0; i < connectors.size(); i++) {
-									if (connectors.get(i).startsWith(
-											alreadyTyped)) {
-										String entry = (String) connectors
-												.get(i);
+									if (connectors.get(i).startsWith(alreadyTyped)) {
+										String entry = (String) connectors.get(i);
 										// Set additional information
-										String descr = entry + " : "
-												+ "Connector Name";
+										String descr = entry + " : " + "Connector Name";
 										// Set the string to display
 										String showing = connectors.get(i);
 										// Set the replacement string
-										String value = connectors.get(i)
-												.substring(
-														alreadyTyped.length());
-										IContextInformation info = new ContextInformation(
-												showing, descr);
-										lProposals.add(new CompletionProposal(
-												value, offset, 0, value
-														.length(),
-												imageConnector, showing, info,
-												descr));
+										String value = connectors.get(i).substring(alreadyTyped.length());
+										IContextInformation info = new ContextInformation(showing, descr);
+										lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageConnector, showing, info, descr));
 									}
 								}
 
@@ -441,42 +371,34 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 							String descr = "My Own Project";
 							String showing = ".";
 							String value = ".";
-							IContextInformation info = new ContextInformation(
-									showing, descr);
-							lProposals.add(new CompletionProposal(value,
-									offset, 0, value.length(), imageProject,
-									showing, info, descr));
+							IContextInformation info = new ContextInformation(showing, descr);
+							lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageProject, showing, info, descr));
 
 							// iterate through projects list
 							for (int i = 0; i < projectNames.size(); i++) {
-								if (projectNames.get(i)
-										.startsWith(alreadyTyped)) {
+								if (projectNames.get(i).startsWith(alreadyTyped)) {
 									entry = (String) projectNames.get(i);
 									// Set additional information
 									descr = entry + " : " + "Project Name";
 									// Set the string to display
 									showing = projectNames.get(i);
 									// Set the replacement string
-									value = projectNames.get(i).substring(
-											alreadyTyped.length());
-									info = new ContextInformation(showing,
-											descr);
-									lProposals
-											.add(new CompletionProposal(value,
-													offset, 0, value.length(),
-													imageProject, showing,
-													info, descr));
+									value = projectNames.get(i).substring(alreadyTyped.length());
+									info = new ContextInformation(showing, descr);
+									lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageProject, showing, info, descr));
 								}
 							}
 							return lProposals;
 						}
 
-						String keyword;
-						String definition;
+						String	keyword;
+						String	definition;
+						int		iconId;
 
 						for (int i = 0; i < ctfAttributes.size(); i++) {
 							keyword = ctfAttributes.get(i).getKeyword();
 							definition = ctfAttributes.get(i).getDefinition();
+							iconId = ctfAttributes.get(i).getIconId();
 
 							if (keyword.startsWith(alreadyTyped)) {
 								// Set additional information
@@ -486,14 +408,17 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 								String showing = keyword;
 
 								// Set the replacement string
-								String value = keyword.substring(alreadyTyped
-										.length());
+								String value = keyword.substring(alreadyTyped.length());
 
-								IContextInformation info = new ContextInformation(
-										showing, descr);
-								lProposals.add(new CompletionProposal(value,
-										offset, 0, value.length(), imageCtf,
-										showing, info, descr));
+								IContextInformation info = new ContextInformation(showing, descr);
+								
+								/*
+								 * adjust icon type
+								 */
+								if (iconId == Entry.ICONID_CTF)
+									lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageCtf, showing, info, descr));
+								else 
+									lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageJqm, showing, info, descr));
 							}
 						}
 						return lProposals;
@@ -508,9 +433,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 	}
 
 	@Override
-	public List<?> computeContextInformation(
-			CompletionProposalInvocationContext context,
-			IProgressMonitor monitor) {
+	public List<?> computeContextInformation(CompletionProposalInvocationContext context, IProgressMonitor monitor) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -524,13 +447,10 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 	@Override
 	public void sessionEnded() {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void sessionStarted() {
 		// TODO Auto-generated method stub
-
 	}
-
 }
