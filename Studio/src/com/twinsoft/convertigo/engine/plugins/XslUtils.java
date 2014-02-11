@@ -31,7 +31,8 @@ public class XslUtils {
 	public static String getContextValue(String contextId, String key) {
 		try {
 			Context context = Engine.theApp.contextManager.get(contextId);
-			return (String) context.get(key);
+			Object value = context.get(key);
+			return ((value==null) ? "":value.toString());
 		}
 		catch(Exception e) {
 			Engine.logBillers.error("Error while trying to retrieve the context variable '" + key + "'", e);
