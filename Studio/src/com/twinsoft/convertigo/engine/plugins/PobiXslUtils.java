@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.engine.plugins;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.xml.transform.TransformerException;
 
@@ -406,6 +408,23 @@ public class PobiXslUtils {
 		return XslUtils.getContextVariableValue(contextId,"backurl");
 	}
 
+	public static String getResponseExpiryDate(String contextId, String module) {
+		String mod = module.startsWith("m") ? module.toUpperCase().substring(1):module.toUpperCase();
+		String modules = "|"+XslUtils.getContextValue(contextId, "modules")+"|";
+		String caches = "|"+XslUtils.getContextValue(contextId, "caches")+"|";
+		try {
+			if (modules.indexOf("|"+mod+"|") != -1) {
+				ArrayList<String> ar1 = new ArrayList<String>(Arrays.asList(modules.split("\\|",-1)));
+				ArrayList<String> ar2 = new ArrayList<String>(Arrays.asList(caches.split("\\|",-1)));
+				if (ar1.size() == ar2.size()) {
+					int index = ar1.indexOf(mod);
+					return ar2.get(index);
+				}
+			}
+		} catch (Exception e) {}
+		return "";
+	}
+	
 	public static String getFibenNextUrl(String contextId, String transactionId) {
 		String nextUrl = "";
 		
@@ -433,6 +452,9 @@ public class PobiXslUtils {
 				isNumberedModule = true;
 			} catch (Exception e) {}
 			nextUrl += ".cxml?"+Parameter.Transaction.getName()+"=" + (isNumberedModule ? "m":"") + nextModule;
+			String red = getResponseExpiryDate(contextId, nextModule);
+			if (!red.equals(""))
+				nextUrl += "&__responseExpiryDate=" + escapeString("absolute,"+red);
 			nextUrl += "&id=" + escapeString(id);
 			nextUrl += "&cdguichet=" + escapeString(cdguichet);
 			nextUrl += "&cdbanque=" + escapeString(cdbanque);
@@ -455,6 +477,9 @@ public class PobiXslUtils {
 				int index = nextIds.indexOf(' ');
 				String nextId = escapeString(index == -1 ? nextIds : nextIds.substring(0, index));
 				nextUrl += ".cxml?"+Parameter.Transaction.getName()+"=" + transactionId;
+				String red = getResponseExpiryDate(contextId, transactionId);
+				if (!red.equals(""))
+					nextUrl += "&__responseExpiryDate=" + escapeString("absolute,"+red);				
 				nextUrl += "&id=" + escapeString(nextId);
 				nextUrl += "&cdguichet=" + escapeString(cdguichet);
 				nextUrl += "&cdbanque=" + escapeString(cdbanque);
