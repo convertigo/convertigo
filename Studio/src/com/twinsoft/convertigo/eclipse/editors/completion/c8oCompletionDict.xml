@@ -105,6 +105,26 @@
 	</ctf>
 	<jquerymobile>
 		<entry>
+			<keyword>data-role="</keyword>
+			<definition>Specify object kind</definition>
+			<parameters>
+				<item>button</item>
+				<item>collapsible</item>
+				<item>collapsible-set</item>
+				<item>content</item>
+				<item>controlgroup</item>
+				<item>dialog</item>
+				<item>fieldcontain</item>
+				<item>header</item>
+				<item>footer</item>
+				<item>slider</item>
+				<item>listview</item>
+				<item>navbar</item>
+				<item>page</item>
+				<item>popup</item>
+			</parameters>
+		</entry>
+		<entry>
 			<keyword>data-corners="</keyword>
 			<definition/>
 			<parameters>
