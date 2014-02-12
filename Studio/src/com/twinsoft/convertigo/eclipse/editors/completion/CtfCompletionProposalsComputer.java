@@ -42,6 +42,7 @@ import org.eclipse.wst.sse.ui.contentassist.CompletionProposalInvocationContext;
 import org.eclipse.wst.sse.ui.contentassist.ICompletionProposalComputer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -60,30 +61,6 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public class CtfCompletionProposalsComputer implements ICompletionProposalComputer {
 	
 	private List<Entry> ctfAttributes = new ArrayList<Entry>();
-	/*
-	 * {"data-c8o-accumulate=\"\"",
-	 * "Define the accumulation type 'append' or 'prepend'"},
-	 * {"data-c8o-after-rendering=\"\"",
-	 * "Define a method called after the rendering"},
-	 * {"data-c8o-before-rendering=\"\"",
-	 * "Define a method called before the rendering"}, {"data-c8o-call=\"\"",
-	 * "Call a Convertigo sequence or transaction"},
-	 * {"data-c8o-call-condition=\"\"", "Define a conditional call"},
-	 * {"data-c8o-call-mode=\"\"", "Call mode to be auto, timer"},
-	 * {"data-c8o-each=\"\"", "Iterate on selector for all childs"},
-	 * {"data-c8o-if=\"\"", "Define a condition"}, {"data-c8o-if-not=\"\"",
-	 * "Define a negative condition"}, {"data-c8o-late-render=\"\"",
-	 * "Delay the rendering"}, {"data-c8o-listen=\"\"",
-	 * "Listen to a Convertigo sequence or transaction"},
-	 * {"data-c8o-listen-condition=\"\"", "Define a conditional listener"},
-	 * {"data-c8o-ref=\"\"", "Define a reference anchor name"},
-	 * {"data-c8o-render=\"\"", "Renders as soon as possible"},
-	 * {"data-c8o-use-\"\"", "Define an attribute for inline templating"},
-	 * {"data-c8o-use=\"\"",
-	 * "Define an attribute marker for inline templating (on or off)"},
-	 * {"data-c8o-variable=\"\"", "Define a variable"},
-	 * {"data-c8o-variables=\"\"", "Define several variables"} };
-	 */
 	
 	private static String ctfTemplates[] = { "__=tag__", "__{\"find\":\"selector\", \"attr\":\"name\"}__" };
 
@@ -111,14 +88,33 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		return textVal;
 	}
 
+	private List<String> getParametersList(Element ele, String tagName) {
+		List<String> parameters = new ArrayList<String>();
+		
+		NodeList listOfParameters = ele.getElementsByTagName(tagName);
+		if ((listOfParameters != null) && (listOfParameters.getLength() > 0)) {
+			try {
+				for(int i = 0; i < listOfParameters.getLength(); i++) {
+					Element item = (Element)listOfParameters.item(i);
+					parameters.add(item.getTextContent());
+				}
+			}
+			catch(Exception e) {				
+			}
+		}
+
+		return parameters;
+	}
+	
 	private Entry getEntry(Element empEl, int iconId) {
 
 		// for each <Entry> element get text values of entry
 		String keyword = getTextValue(empEl, "keyword");
 		String definition = getTextValue(empEl, "definition");
+		List<String> parameters = getParametersList(empEl, "item");
 
 		// Create a new Entry with the value read from the xml nodes
-		return new Entry(keyword, definition, iconId);
+		return new Entry(keyword, definition, iconId, parameters);
 	}
 
 	void loadSubDictionaries(NodeList ctfNode, int iconId) {
@@ -295,10 +291,14 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 					// we are in the <xxxx case. search the first space before our offset
 					//
 					oFound = findCharReverse(' ', document, offset);
+					
 					if (oFound != -1) {
 						int len = offset - oFound - 1;
 						String alreadyTyped = document.get(oFound + 1, len);
 
+						/*
+						 * deal with c8o-call
+						 */
 						if (alreadyTyped.startsWith("data-c8o-call=\"") || alreadyTyped.startsWith("data-c8o-listen=\"")) {
 							// We are typing in the content of a data-c8o-call
 							// so handle the projects and sequences completion
@@ -389,11 +389,47 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 								}
 							}
 							return lProposals;
-						}
+						} // end deal with c8o-call
 
 						String	keyword;
 						String	definition;
 						int		iconId;
+						
+						for (int i = 0; i < ctfAttributes.size(); i++) {
+							keyword = ctfAttributes.get(i).getKeyword();
+							
+							if (keyword.startsWith(alreadyTyped) && (alreadyTyped.endsWith("=\"") || alreadyTyped.endsWith("(\""))) {
+								definition = ctfAttributes.get(i).getDefinition();
+								iconId = ctfAttributes.get(i).getIconId();
+								List<String> parameters = ctfAttributes.get(i).getParameters();
+
+								// Set additional information
+								String descr = keyword + " : " + definition;
+
+								// Set the replacement string
+								String value = "";
+								
+								// Set the string to display
+								String showing = "";
+								
+								for (int j = 0; j < parameters.size(); j++) {
+									showing = parameters.get(j);
+									value = parameters.get(j) + "\"";
+									
+									IContextInformation info = new ContextInformation(showing, descr);
+									
+									/*
+									 * adjust icon type
+									 */
+									if (iconId == Entry.ICONID_CTF)
+										lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageCtf, showing, info, descr));
+									else 
+										lProposals.add(new CompletionProposal(value, offset, 0, value.length(), imageJqm, showing, info, descr));
+								}
+								
+								return lProposals;
+							}
+						}
 
 						for (int i = 0; i < ctfAttributes.size(); i++) {
 							keyword = ctfAttributes.get(i).getKeyword();
@@ -408,8 +444,15 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 								String showing = keyword;
 
 								// Set the replacement string
-								String value = keyword.substring(alreadyTyped.length());
+								String value = "";
 
+								if ((alreadyTyped.endsWith("=\"") || alreadyTyped.endsWith("(\""))) {
+									value = keyword.substring(alreadyTyped.length());
+								}
+								else { 
+									value = keyword.substring(alreadyTyped.length());
+								}
+								
 								IContextInformation info = new ContextInformation(showing, descr);
 								
 								/*

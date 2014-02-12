@@ -27,63 +27,67 @@
 <completionDictionnary>
 	<ctf>
 		<entry>
-			<keyword>data-c8o-accumulate=""</keyword>
+			<keyword>data-c8o-accumulate="</keyword>
 			<definition>Define the accumulation type 'append' or 'prepend'</definition>
+			<parameters>
+				<item>append</item>
+				<item>prepend</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-c8o-after-rendering=""</keyword>
+			<keyword>data-c8o-after-rendering="</keyword>
 			<definition>Define a method called after the rendering</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-before-rendering=""</keyword>
+			<keyword>data-c8o-before-rendering="</keyword>
 			<definition>Define a method called before the rendering</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-call=""</keyword>
+			<keyword>data-c8o-call="</keyword>
 			<definition>Call a Convertigo sequence or transaction</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-call-condition=""</keyword>
+			<keyword>data-c8o-call-condition="</keyword>
 			<definition>Define a conditional call</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-call-mode=""</keyword>
+			<keyword>data-c8o-call-mode="</keyword>
 			<definition>Call mode to be auto, timer</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-each=""</keyword>
+			<keyword>data-c8o-each="</keyword>
 			<definition>Iterate on selector for all children</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-if=""</keyword>
+			<keyword>data-c8o-if="</keyword>
 			<definition>Define a condition</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-if-not=""</keyword>
+			<keyword>data-c8o-if-not="</keyword>
 			<definition>Define a negative condition</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-late-render=""</keyword>
+			<keyword>data-c8o-late-render="</keyword>
 			<definition>Delay the rendering</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-listen=""</keyword>
+			<keyword>data-c8o-listen="</keyword>
 			<definition>Listen to a Convertigo sequence or transaction</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-listen-condition=""</keyword>
+			<keyword>data-c8o-listen-condition="</keyword>
 			<definition>Define a conditional listener</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-ref=""</keyword>
+			<keyword>data-c8o-ref="</keyword>
 			<definition>Define a reference anchor name</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-render=""</keyword>
+			<keyword>data-c8o-render="</keyword>
 			<definition>Renders as soon as possible</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-use-xxx=""</keyword>
+			<keyword>data-c8o-use-xxx="</keyword>
 			<definition>Define an attribute for inline templating</definition>
 		</entry>
 		<entry>
@@ -91,806 +95,535 @@
 			<definition>Define an attribute marker for inline templating (on or off)</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-variable=""</keyword>
+			<keyword>data-c8o-variable="</keyword>
 			<definition>Define a variable</definition>
 		</entry>
 		<entry>
-			<keyword>data-c8o-variables=""</keyword>
+			<keyword>data-c8o-variables="</keyword>
 			<definition>Define several variables</definition>
 		</entry>
 	</ctf>
 	<jquerymobile>
 		<entry>
-			<keyword>data-corners("true")</keyword>
+			<keyword>data-corners="</keyword>
 			<definition/>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-corners("false")</keyword>
+			<keyword>data-icon="</keyword>
 			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("home")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("delete")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("plus")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("arrow-u")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("arrow-d")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("carat-l")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("carat-t")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("carat-r")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("carat-b")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("check")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("gear")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("grid")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("star")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("custom")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("arrow-r")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("arrow-l")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("minus")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("refresh")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("forward")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("back")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("alert")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("info")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("search")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-iconpos("left")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-iconpos("right")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-iconpos("top")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-iconpos("bottom")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-iconpos("notext")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-iconshadow("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-iconshadow("false")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-inline("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-inline("false")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-mini("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-mini("false - Compact sized version")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-shadow("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-shadow("false")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-theme("swatch letter (a-z)")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-role("none - Prevents auto-enhancement to use native control")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-theme("swatch letter (a-z) - Added to the form element")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed("false")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapse-cue-text("string - Text used to provide audible feedback for users with screen reader software. Default: " click to collapse contents"")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("home")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("delete")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("plus")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("arrow-u")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("arrow-d")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("carat-l")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("carat-t")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("carat-r")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("carat-b")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("check")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("gear")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("grid")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("star")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("custom")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("arrow-r")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("arrow-l")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("minus")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("refresh")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("forward")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("back")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("alert")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("info")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("search")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("false")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-content-theme("swatch letter (a-z)")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expand-cue-text("string - Text used to provide audible feedback for users with screen reader software. Default: " click to expand contents"")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("home")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("delete")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("plus")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("arrow-u")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("arrow-d")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("carat-l")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("carat-t")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("carat-r")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("carat-b| check")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("gear")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("grid")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("star")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("custom")</keyword>
-			<definition/>
-		</entry>
+			<parameters>
+				<item>home</item>
+				<item>delete</item>
+				<item>plus</item>
+				<item>arrow-u</item>
+				<item>arrow-d</item>
+				<item>carat-l</item>
+				<item>carat-t</item>
+				<item>carat-r</item>
+				<item>carat-b</item>
+				<item>check</item>
+				<item>gear</item>
+				<item>grid</item>
+				<item>star</item>
+				<item>custom</item>
+				<item>arrow-r</item>
+				<item>arrow-l</item>
+				<item>minus</item>
+				<item>refresh</item>
+				<item>forward</item>
+				<item>back</item>
+				<item>alert</item>
+				<item>info</item>
+				<item>search</item>
+			</parameters>
+		</entry>
+		<entry>
+			<keyword>data-iconpos="</keyword>
+			<definition/>
+			<parameters>
+				<item>left</item>
+				<item>right</item>
+				<item>top</item>
+				<item>bottom</item>
+				<item>notext</item>
+			</parameters>
+		</entry>
+		<entry>
+			<keyword>data-iconshadow="</keyword>
+			<definition/>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
+		</entry>
 		<entry>
-			<keyword>data-expanded-icon("arrow-r")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("arrow-l")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("minus")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("refresh")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("forward")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("back")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("alert")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("info")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-expanded-icon("search")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-inset("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-inset("false")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-collapsed-icon("carat-b| check")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-content-theme("swatch letter (a-z) - Sets all collapsibles in set")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-iconpos(" notext")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-theme("swatch letter (a-z) - Sets all collapsibles in set")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-exclude-invisible("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-exclude-invisible("false - Sets whether to exclude invisible children in the assignment of rounded corners")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-mini("false - Compact sized version for all items in the controlgroup")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-type("horizontal")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-type("vertical - For horizontal or vertical item alignment")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-close-btn("left")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-close-btn("right")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-close-btn("none")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-close-btn-text("string - Text for the close button, dialog only. Default: "close"")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-dom-cache("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-dom-cache("false")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-overlay-theme("swatch letter (a-z) - Overlay theme when the page is opened in a dialog")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-title("string - Title used when page is shown")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-enhance("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-enhance("false")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-ajax("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-ajax("false")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-track-theme("swatch letter (a-z) - Added to the form element")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-autodividers("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-autodividers("false")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-count-theme("swatch letter (a-z) - Default "c"")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-divider-theme("swatch letter (a-z) - Default "b"")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-filter("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-filter("false")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-filter-placeholder("string")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-filter-theme("swatch letter (a-z)")</keyword>
-			<definition/>
-		</entry>
+			<keyword>data-inline="</keyword>
+			<definition/>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
+		</entry>
+		<entry>
+			<keyword>data-mini="</keyword>
+			<definition>Compact sized version</definition>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
+		</entry>
+		<entry>
+			<keyword>data-shadow="</keyword>
+			<definition/>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
+		</entry>
+		<entry>
+			<keyword>data-theme="</keyword>
+			<definition/>
+			<parameters>
+				<item>swatch letter (a-z)</item>
+			</parameters>
+		</entry>
+		<entry>
+			<keyword>data-role="</keyword>
+			<definition>Prevents auto-enhancement to use native control</definition>
+			<parameters>
+				<item>none</item>
+			</parameters>
+		</entry>
+		<entry>
+			<keyword>data-collapsed="</keyword>
+			<definition/>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
+		</entry>
 		<entry>
-			<keyword>data-header-theme("swatch letter (a-z)")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("carat-b| check")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-icon("false")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("home")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("delete")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("plus")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("arrow-u")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("arrow-d")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("carat-l")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("carat-t")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("carat-r")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("carat-b| check")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("gear")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("grid")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("star")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("custom")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("arrow-r")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("arrow-l")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("minus")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("refresh")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("forward")</keyword>
-			<definition/>
+			<keyword>data-collapse-cue-text="</keyword>
+			<definition>Text used to provide audible feedback for users with screen reader software. Default: " click to collapse contents"</definition>
+			<parameters>
+				<item>string</item>
+			</parameters>
+		</entry>
+		<entry>
+			<keyword>data-collapsed-icon="</keyword>
+			<definition/>
+			<parameters>
+				<item>home</item>
+				<item>delete</item>
+				<item>plus</item>
+				<item>arrow-u</item>
+				<item>arrow-d</item>
+				<item>carat-l</item>
+				<item>carat-t</item>
+				<item>carat-r</item>
+				<item>carat-b</item>
+				<item>check</item>
+				<item>gear</item>
+				<item>grid</item>
+				<item>star</item>
+				<item>custom</item>
+				<item>arrow-r</item>
+				<item>arrow-l</item>
+				<item>minus</item>
+				<item>refresh</item>
+				<item>forward</item>
+				<item>back</item>
+				<item>alert</item>
+				<item>info</item>
+				<item>search</item>
+				<item>false</item>
+			</parameters>
+		</entry>
+		<entry>
+			<keyword>data-content-theme="</keyword>
+			<definition/>
+			<parameters>
+				<item>swatch letter (a-z)</item>
+			</parameters>
+		</entry>
+		<entry>
+			<keyword>data-expand-cue-text="</keyword>
+			<definition>Text used to provide audible feedback for users with screen reader software. Default: " click to expand contents"</definition>
+			<parameters>
+				<item>string</item>
+			</parameters>
+		</entry>
+		<entry>
+			<keyword>data-expanded-icon="</keyword>
+			<definition/>
+			<parameters>
+				<item>home</item>
+				<item>delete</item>
+				<item>plus</item>
+				<item>arrow-u</item>
+				<item>arrow-d</item>
+				<item>carat-l</item>
+				<item>carat-t</item>
+				<item>carat-r</item>
+				<item>carat-b| check</item>
+				<item>gear</item>
+				<item>grid</item>
+				<item>star</item>
+				<item>custom</item>
+				<item>arrow-r</item>
+				<item>arrow-l</item>
+				<item>minus</item>
+				<item>refresh</item>
+				<item>forward</item>
+				<item>back</item>
+				<item>alert</item>
+				<item>info</item>
+				<item>search</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-split-icon("back")</keyword>
+			<keyword>data-inset="</keyword>
 			<definition/>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-split-icon("alert")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("info")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-icon("search")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-split-theme("swatch letter (a-z) - Default "b"")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-filtertext("string - Filter by this value instead of inner text")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-role("list-divider")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-overlay-theme("swatch letter (a-z) - Overlay theme when the page is opened as a dialog")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-theme("swatch letter (a-z) - Default "a"")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-url("url - Value for updating the URL, instead of the url used to request the page")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-dismissible("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-dismissible("false - If set to false prevents popup closing by clicking outside of the popup or pressing the Escape key")</keyword>
-			<definition/>
+			<keyword>data-exclude-invisible="</keyword>
+			<definition>Sets whether to exclude invisible children in the assignment of rounded corners</definition>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-history("true")</keyword>
-			<definition/>
-		</entry>
-		<entry>
-			<keyword>data-history("false - Sets whether the popup creates a browser history item when it opens. If set to false, it will not create a history item, and will thus not be closeable via the browser's "Back" button.")</keyword>
-			<definition/>
+			<keyword>data-type="</keyword>
+			<definition>For horizontal or vertical item alignment</definition>
+			<parameters>
+				<item>horizontal</item>
+				<item>vertical</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-overlay-theme("swatch letter (a-z) - Default "null" (transparent background)")</keyword>
+			<keyword>data-close-btn="</keyword>
 			<definition/>
+			<parameters>
+				<item>left</item>
+				<item>right</item>
+				<item>none</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-position-to("origin")</keyword>
-			<definition/>
+			<keyword>data-close-btn-text="</keyword>
+			<definition>Text for the close button, dialog only. Default: "close"</definition>
+			<parameters>
+				<item>string</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-position-to("window")</keyword>
+			<keyword>data-dom-cache="</keyword>
 			<definition/>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-position-to("selector - "origin" indicates that the popup is to be centered over the link that opens it. "window" indicates that it is to be centered in the browser window. If you give a jQuery selector, it will be centered over the first element returned by the selector, if that element is visible. Otherwise, it will be centered in the browser window.")</keyword>
-			<definition/>
+			<keyword>data-overlay-theme="</keyword>
+			<definition>Overlay theme when the page is opened in a dialog</definition>
+			<parameters>
+				<item>swatch letter (a-z)</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-theme("none - Default inherited, "none" sets the popup to transparent")</keyword>
-			<definition/>
+			<keyword>data-title="</keyword>
+			<definition>Title used when page is shown</definition>
+			<parameters>
+				<item>string</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-tolerance("30,15,30,15 - Distance from the edges of the window (top, right, bottom, left)")</keyword>
+			<keyword>data-enhance="</keyword>
 			<definition/>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-transition("none")</keyword>
+			<keyword>data-ajax="</keyword>
 			<definition/>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-transition("transition - The transition to use when making the popup appear/disappear.")</keyword>
-			<definition/>
+			<keyword>data-track-theme="</keyword>
+			<definition>Added to the form element</definition>
+			<parameters>
+				<item>swatch letter (a-z)</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-divider-theme("swatch letter (a-z) - Default "b" - Only applicable if optgroup support is used in non-native selects")</keyword>
+			<keyword>data-autodividers="</keyword>
 			<definition/>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-icon("false ")</keyword>
-			<definition/>
+			<keyword>data-count-theme="</keyword>
+			<definition>Default "c"</definition>
+			<parameters>
+				<item>swatch letter (a-z)</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-native-menu("true")</keyword>
-			<definition/>
+			<keyword>data-divider-theme="</keyword>
+			<definition>Default "b"</definition>
+			<parameters>
+				<item>swatch letter (a-z)</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-native-menu("false")</keyword>
+			<keyword>data-filter="</keyword>
 			<definition/>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-overlay-theme("swatch letter (a-z) - Overlay theme for non-native selects")</keyword>
+			<keyword>data-filter-placeholder="</keyword>
 			<definition/>
+			<parameters>
+				<item>string</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-placeholder("true")</keyword>
+			<keyword>data-filter-theme="</keyword>
 			<definition/>
+			<parameters>
+				<item>swatch letter (a-z)</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-placeholder("false - Can be set on option element of a non-native select")</keyword>
+			<keyword>data-header-theme="</keyword>
 			<definition/>
+			<parameters>
+				<item>swatch letter (a-z)</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-highlight("true")</keyword>
+			<keyword>data-split-icon="</keyword>
 			<definition/>
+			<parameters>
+				<item>home</item>
+				<item>delete</item>
+				<item>plus</item>
+				<item>arrow-u</item>
+				<item>arrow-d</item>
+				<item>carat-l</item>
+				<item>carat-t</item>
+				<item>carat-r</item>
+				<item>carat-b| check</item>
+				<item>gear</item>
+				<item>grid</item>
+				<item>star</item>
+				<item>custom</item>
+				<item>arrow-r</item>
+				<item>arrow-l</item>
+				<item>minus</item>
+				<item>refresh</item>
+				<item>forward</item>
+				<item>back</item>
+				<item>alert</item>
+				<item>info</item>
+				<item>search</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-highlight("false - Adds an active state fill on track to handle")</keyword>
-			<definition/>
+			<keyword>data-split-theme="</keyword>
+			<definition>Default "b"</definition>
+			<parameters>
+				<item>swatch letter (a-z)</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-clear-btn("true")</keyword>
-			<definition/>
+			<keyword>data-filtertext="</keyword>
+			<definition>Filter by this value instead of inner text</definition>
+			<parameters>
+				<item>string</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-clear-btn("false - Adds a clear button")</keyword>
-			<definition/>
+			<keyword>data-url="</keyword>
+			<definition>Value for updating the URL, instead of the url used to request the page</definition>
+			<parameters>
+				<item>url</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-clear-btn-text("string - Text for the close button. Default: "clear text"")</keyword>
-			<definition/>
+			<keyword>data-dismissible="</keyword>
+			<definition>If set to false prevents popup closing by clicking outside of the popup or pressing the Escape key</definition>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-add-back-btn("true")</keyword>
-			<definition/>
+			<keyword>data-history="</keyword>
+			<definition>Sets whether the popup creates a browser history item when it opens. If set to false, it will not create a history item, and will thus not be closeable via the browser's "Back" button.</definition>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-add-back-btn("false - Auto add back button, header only")</keyword>
-			<definition/>
+			<keyword>data-position-to="</keyword>
+			<definition>"origin" indicates that the popup is to be centered over the link that opens it. "window" indicates that it is to be centered in the browser window. If you give a jQuery selector, it will be centered over the first element returned by the selector, if that element is visible. Otherwise, it will be centered in the browser window.</definition>
+			<parameters>
+				<item>origin</item>
+				<item>window</item>
+				<item>selector</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-back-btn-text("string - Header only")</keyword>
-			<definition/>
+			<keyword>data-tolerance="</keyword>
+			<definition>Distance from the edges of the window (top, right, bottom, left)</definition>
+			<parameters>
+				<item>30,15,30,15</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-back-btn-theme("swatch letter (a-z) - Header only")</keyword>
-			<definition/>
+			<keyword>data-transition="</keyword>
+			<definition>The transition to use when making the popup appear/disappear.</definition>
+			<parameters>
+				<item>none</item>
+				<item>transition</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-id("string - Unique ID. Required for persistent footers")</keyword>
+			<keyword>data-native-menu="</keyword>
 			<definition/>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-position("fixed")</keyword>
-			<definition/>
+			<keyword>data-placeholder="</keyword>
+			<definition>Can be set on option element of a non-native select</definition>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-disable-page-zoom("true")</keyword>
-			<definition/>
+			<keyword>data-highlight="</keyword>
+			<definition>Adds an active state fill on track to handle</definition>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-disable-page-zoom("false - User-scaling-ability for pages with fixed toolbars")</keyword>
-			<definition/>
+			<keyword>data-clear-btn="</keyword>
+			<definition>Adds a clear button</definition>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-fullscreen("true")</keyword>
-			<definition/>
+			<keyword>data-clear-btn-text="</keyword>
+			<definition>Text for the close button. Default: "clear text"</definition>
+			<parameters>
+				<item>string</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-fullscreen("false - Setting toolbars over the page-content")</keyword>
-			<definition/>
+			<keyword>data-add-back-btn="</keyword>
+			<definition>Auto add back button, header only</definition>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-tap-toggle("true")</keyword>
-			<definition/>
+			<keyword>data-back-btn-text="</keyword>
+			<definition>Header only</definition>
+			<parameters>
+				<item>string</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-tap-toggle("false - Ability to toggle toolbar-visibility on user tap/click")</keyword>
-			<definition/>
+			<keyword>data-back-btn-theme="</keyword>
+			<definition>Header only</definition>
+			<parameters>
+				<item>swatch letter (a-z)</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-transition("slide")</keyword>
-			<definition/>
+			<keyword>data-id="</keyword>
+			<definition>Unique ID. Required for persistent footers</definition>
+			<parameters>
+				<item>string</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-transition("fade")</keyword>
+			<keyword>data-position="</keyword>
 			<definition/>
+			<parameters>
+				<item>fixed</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-transition("none - Show/hide-transition when a tap/click occurs")</keyword>
-			<definition/>
+			<keyword>data-disable-page-zoom="</keyword>
+			<definition>User-scaling-ability for pages with fixed toolbars</definition>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-update-page-padding("true")</keyword>
-			<definition/>
+			<keyword>data-fullscreen="</keyword>
+			<definition>Setting toolbars over the page-content</definition>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-update-page-padding("false - Have the page top and bottom padding updated on resize, transition, "updatelayout" events (the framework always updates the padding on the "pageshow" event).")</keyword>
-			<definition/>
+			<keyword>data-tap-toggle="</keyword>
+			<definition>Ability to toggle toolbar-visibility on user tap/click</definition>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-visible-on-page-show("true")</keyword>
-			<definition/>
+			<keyword>data-update-page-padding="</keyword>
+			<definition>Have the page top and bottom padding updated on resize, transition, "updatelayout" events (the framework always updates the padding on the "pageshow" event).</definition>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 		<entry>
-			<keyword>data-visible-on-page-show("false - Toolbar-visibility when parent page is shown")</keyword>
-			<definition/>
+			<keyword>data-visible-on-page-show="</keyword>
+			<definition>Toolbar-visibility when parent page is shown</definition>
+			<parameters>
+				<item>true</item>
+				<item>false</item>
+			</parameters>
 		</entry>
 	</jquerymobile>
 </completionDictionnary>

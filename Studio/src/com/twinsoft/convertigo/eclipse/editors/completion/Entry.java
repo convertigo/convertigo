@@ -26,6 +26,9 @@
 
 package com.twinsoft.convertigo.eclipse.editors.completion;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Entry {
 	public static int  ICONID_CTF = 0x0001;
 	public static int  ICONID_JQM = 0x0002;
@@ -33,17 +36,20 @@ public class Entry {
 	private String	keyword;
 	private String	definition;
 	private int		iconId;
+	private List<String> parameters;
 
 	public Entry() { 
 		iconId = ICONID_CTF;
 		keyword = "";
 		definition = "";
+		parameters = new ArrayList<String>();
 	}
 
-	public Entry(String key, String def, int icId) {
+	public Entry(String key, String def, int icId, List<String>paramList) {
 		iconId = icId;
 		keyword = key;
 		definition = def;
+		parameters = paramList;
 	}
 	
 	public void setKeyword(String str) {
@@ -58,6 +64,10 @@ public class Entry {
 		iconId = id;
 	}
 	
+	public void setParameters(List<String> params) {
+		parameters = params;
+	}
+	
 	public String getKeyword() {
 		return keyword;
 	}
@@ -69,8 +79,12 @@ public class Entry {
 	public int getIconId() {
 		return iconId;
 	}
+
+	public List<String> getParameters() {
+		return parameters;
+	}
 	
 	public String toString() {
-		return keyword + ", " + definition + ", " + iconId;
+		return keyword + ", " + definition + ", " + iconId + ", " + parameters.toString();
 	}
 }
