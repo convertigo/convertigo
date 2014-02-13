@@ -641,6 +641,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		
 		// Case of Project added
 		if (databaseObject instanceof Project) {
+			ProjectTreeObject projectTreeObject = (ProjectTreeObject) treeObject;
+			
 			// Case of project copy : update references in steps if needed
 			if (treeObjectEvent.oldValue != null) {
 				String oldName = (String) treeObjectEvent.oldValue;
@@ -681,35 +683,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				if (updateReferences) {
 					treeObjectEvent.update = update;
 					fireTreeObjectPropertyChanged(treeObjectEvent);
-					((ProjectTreeObject) treeObject).save(false);
+					projectTreeObject.save(false);
 				}
 			}
 			
-			// Alert user if project is broken
-			List<String> list = ((ProjectTreeObject) treeObject).getNeedeedProjectList();
-			if (!list.isEmpty()) {
-				boolean error = false;
-				Project project = ((ProjectTreeObject) treeObject).getObject();
-				String message = "For \"" + project.getName() + "\" project :\n";
-				for (String targetProjectName: list) {
-					boolean missingRef = !ProjectUtils.existProjectSchemaReference(project, targetProjectName);
-					boolean missingProject = false;
-					try {
-						missingProject = Engine.theApp.databaseObjectsManager.getProjectByName(targetProjectName) == null;
-					} catch (Exception e) {
-						missingProject = true;
-					}
-					if (missingRef || missingProject) {
-						error = true;
-						if (missingRef) message += "  > The reference to project \"" + targetProjectName + "\" is missing\n";
-						if (missingProject) message += "  > The project \"" + targetProjectName + "\" is missing\n";
-					}
-				}
-				if (error) {
-					message += "\nPlease create missing reference(s) and import missing project(s),\nor correct your sequence(s).";
-					ConvertigoPlugin.logError(message, true);
-				}
-			}
+			projectTreeObject.checkMissingProjects();
 		}
 	}
 

@@ -307,7 +307,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	private static void messageBoxWithoutReturnCode(final String message, int options) {
 		final Display display = getDisplay();
 		
-		display.asyncExec(new Runnable() {
+		display.syncExec(new Runnable() {
 			public void run() {
 				try {
 					messageBox(display.getActiveShell(), message, SWT.OK | SWT.ICON_INFORMATION);
@@ -321,6 +321,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 
 	private static int messageBox(Shell shell, String message, int options) {
 		try {
+			if (shell == null) {
+				shell = getDefault().getWorkbench().getActiveWorkbenchWindow().getShell();
+			}
 	    	MessageBox messageBox = new MessageBox(shell, options);
 	    	messageBox.setText("Convertigo");
 	    	if (message == null) message = "(null message)";

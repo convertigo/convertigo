@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -56,10 +57,12 @@ import org.eclipse.ui.part.FileEditorInput;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.RequestableStep;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -76,6 +79,7 @@ import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionStepEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xsl.XslFileEditorInput;
 import com.twinsoft.convertigo.eclipse.property_editors.validators.NamespaceUriValidator;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
 import com.twinsoft.convertigo.engine.ConvertigoException;
@@ -300,9 +304,14 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectAdded(treeObjectEvent);
 		
-		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
 		if (treeObject instanceof DatabaseObjectTreeObject) {
-			
+			DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
+			if ((treeObject != this && treeObject instanceof ProjectTreeObject) ||
+					databaseObject == null) { // TODO: handle drag & drop callTr/callSeq step creation with 2 modal windows
+				//(databaseObject instanceof RequestableStep && treeObject.getProjectTreeObject() == this)) {
+					checkMissingProjects();
+			}
 		}
 	}
 	
@@ -310,7 +319,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	public void treeObjectRemoved(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectRemoved(treeObjectEvent);
 		
-		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		TreeObject treeObject = (TreeObject) treeObjectEvent.getSource();
 		if (!(treeObject.equals(this)) && (treeObject.getParents().contains(this))) {
 			if (treeObject instanceof DatabaseObjectTreeObject) {
 				DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
@@ -342,7 +351,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 					}
 				}
 				// Case of a transaction deletion
-				if (databaseObject instanceof Transaction) {
+				else if (databaseObject instanceof Transaction) {
 					// transaction in this project
 					if (treeObject.getProjectTreeObject().equals(this)) {
 						String path = Project.XSD_FOLDER_NAME +"/"
@@ -366,6 +375,9 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 							}
 						}
 					}
+				}
+				else if (databaseObject instanceof ProjectSchemaReference) {
+					checkMissingProjects();
 				}
 			}
 		}
@@ -406,6 +418,11 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 			// Case of a requestable changed its WS exposition
 			else if (propertyName.equals("accessibility")) {
 				// Nothing to do
+			}
+			
+			else if ((databaseObject instanceof RequestableStep && propertyName.startsWith("source"))
+					|| (databaseObject instanceof ProjectSchemaReference && propertyName.equals("projectName"))) {
+				checkMissingProjects();
 			}
 		}
 	}
@@ -450,42 +467,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 
 		} catch (CoreException e) {
 			ConvertigoPlugin.logException(e, "Unable to open project named '" + projectName + "'!");
-		}
-	}
-	
-	public List<String> getNeedeedProjectList() {
-		List<String> projectList = new ArrayList<String>();
-		Project p = getObject();
-		for (Sequence s: p.getSequencesList()) {
-			getNeededProjects(projectList, s.getSteps());
-		}
-		return projectList;
-	}
-	
-	private void getNeededProjects(List<String> projectList, List<Step> steps) {
-		String targetProjectName;
-		for (Step step: steps) {
-			if (step instanceof StepWithExpressions) {
-				getNeededProjects(projectList, ((StepWithExpressions)step).getSteps());
-			}
-			else {
-				if (step instanceof TransactionStep) {
-					TransactionStep transactionStep = ((TransactionStep)step);
-					targetProjectName = transactionStep.getProjectName();
-					if (!targetProjectName.equals(getName())) {
-						if (!projectList.contains(targetProjectName))
-							projectList.add(targetProjectName);
-					}
-				}
-				else if (step instanceof SequenceStep) {
-					SequenceStep sequenceStep = ((SequenceStep)step);
-					targetProjectName = sequenceStep.getProjectName();
-					if (!targetProjectName.equals(getName())) {
-						if (!projectList.contains(targetProjectName))
-							projectList.add(targetProjectName);
-					}
-				}
-			}
 		}
 	}
 	
@@ -833,4 +814,47 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		return super.getValidator(propertyName);
 	} 
 	
+	public void checkMissingProjects() {
+		Project project = getObject();
+		
+		Set<String> missingProjects = project.getMissingProjects();
+		Set<String> missingProjectReferences = project.getMissingProjectReferences();
+
+		if (!missingProjects.isEmpty() || !missingProjectReferences.isEmpty()) {
+			String message = "For \"" + project.getName() + "\" project :\n";
+
+			for (String targetProjectName: missingProjects) {
+				message += "  > The project \"" + targetProjectName + "\" is missing\n";
+			}
+			
+			for (String targetProjectName: missingProjectReferences) {
+				message += "  > The reference to project \"" + targetProjectName + "\" is missing\n";
+			}
+			
+			message += "\nPlease create missing reference(s) and import missing project(s),\nor correct your sequence(s).";
+			
+			if (!missingProjectReferences.isEmpty()) {
+				int response = ConvertigoPlugin.questionMessageBox(null, message + "\n\nDo you want to automatically add reference objects ?");
+				if (response == SWT.YES) {
+					for (String targetProjectName: missingProjectReferences) {
+						try {
+							ProjectSchemaReference reference = new ProjectSchemaReference();
+							reference.setProjectName(targetProjectName);
+							reference.setName(targetProjectName + "_reference");
+							project.add(reference);
+							
+							ProjectExplorerView explorerView = ConvertigoPlugin.projectManager.getProjectExplorerView();
+							explorerView.reloadTreeObject(this);
+						} catch (Exception e) {
+							ConvertigoPlugin.logException(e, "failed to add a reference to '" + targetProjectName + "'");
+						}
+					}
+					this.hasBeenModified(true);
+					
+				}
+			} else {
+				ConvertigoPlugin.warningMessageBox(message);
+			}
+		}
+	}
 }

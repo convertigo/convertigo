@@ -25,9 +25,12 @@ package com.twinsoft.convertigo.beans.core;
 import java.io.File;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.w3c.dom.Element;
 
@@ -533,4 +536,48 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 		return getInfoForProperty(propertyName, Locale.getDefault());
 	}
 	
+	public Set<String> getNeededProjects() {
+		Set<String> neededProjects = new HashSet<String>();
+		for (Sequence sequence : getSequencesList()) {
+			getNeededProjects(neededProjects, sequence.getSteps());
+		}
+		return neededProjects;
+	}
+	
+	private void getNeededProjects(Set<String> projectList, List<Step> steps) {
+		for (Step step : steps) {
+			if (step instanceof StepWithExpressions) {
+				getNeededProjects(projectList, ((StepWithExpressions) step).getSteps());
+			} else if (step instanceof RequestableStep) {
+				RequestableStep transactionStep = (RequestableStep) step;
+				String targetProjectName = transactionStep.getProjectName();
+				if (!targetProjectName.equals(getName())) {
+					projectList.add(targetProjectName);
+				}
+			}
+		}
+	}
+	
+	public Set<String> getMissingProjectReferences() {
+		Set<String> missingProjects = getNeededProjects();
+		for (Iterator<String> i = missingProjects.iterator(); i.hasNext();) {
+			if (ProjectUtils.existProjectSchemaReference(this, i.next())) {
+				i.remove();
+			}
+		}
+		return missingProjects;
+	}
+	
+	public Set<String> getMissingProjects() {
+		Set<String> missingProjects = getNeededProjects();
+		for (Iterator<String> i = missingProjects.iterator(); i.hasNext();) {
+			try {
+				if (Engine.theApp.databaseObjectsManager.getOriginalProjectByName(i.next()) != null) {
+					i.remove();
+				}
+			} catch (Exception e) {
+			}
+		}
+		return missingProjects;
+	}
 }
