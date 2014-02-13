@@ -37,6 +37,8 @@ import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.ExpiredSecurityTokenException;
+import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 import com.twinsoft.convertigo.engine.translators.Translator;
@@ -52,7 +54,7 @@ public class WebServiceServletRequester extends ServletRequester {
     
 	@Override
 	public Translator getTranslator() {
-		return new WebServiceTranslator();
+		return new WebServiceTranslator(this);
 	}
 	
 	@Override
@@ -143,6 +145,11 @@ public class WebServiceServletRequester extends ServletRequester {
 			throw new EngineException("Unable to init internal variables",e);
 		}
 	
+	}
+
+	
+	public void handleParameter(String parameterName, String parameterValue) throws NoSuchSecurityTokenException, ExpiredSecurityTokenException {
+		handleParameter(context, parameterName, parameterValue);
 	}
 
 	@Override
