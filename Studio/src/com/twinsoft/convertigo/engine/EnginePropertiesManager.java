@@ -270,7 +270,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(visibility = Visibility.HIDDEN)
 		APPLICATION_SERVER_MASHUP_URL ("application_server.mashup.url", "http://localhost:18080/convertigo", "Mashup composer server base URL", PropertyCategory.Main),
 		DOCUMENT_THREADING_MAX_WORKER_THREADS ("document.threading.max_worker_threads", "100", "Maximal number of worker threads", PropertyCategory.Main),
-		CONVERTIGO_MAX_CONTEXTS ("convertigo.max_context", "750", "Convertigo Maximum Contexts", PropertyCategory.Main),
+		CONVERTIGO_MAX_CONTEXTS ("convertigo.max_context", "750", "Maximum number of contexts", PropertyCategory.Main),
 
 		/** MAIN ADVANCE */
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
