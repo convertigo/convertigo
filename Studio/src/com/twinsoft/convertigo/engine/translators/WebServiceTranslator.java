@@ -60,14 +60,20 @@ import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
 import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 import com.twinsoft.convertigo.engine.util.Base64v21;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 
 public class WebServiceTranslator implements Translator {
 	
+	private WebServiceServletRequester webServiceServletRequester;
+	
+	public WebServiceTranslator(WebServiceServletRequester webServiceServletRequester) {
+		this.webServiceServletRequester = webServiceServletRequester;
+	}
+
 	public void buildInputDocument(Context context, Object inputData) throws Exception {
         Engine.logBeans.debug("[WebServiceTranslator] Making input document");
 
@@ -98,22 +104,12 @@ public class WebServiceTranslator implements Translator {
 				int i = methodName.indexOf("__");
 				
 				// for statefull transaction, don't replace the project
-				if(context.project==null || !context.project.getName().equals(context.projectName)) context.project = Engine.theApp.databaseObjectsManager.getProjectByName(context.projectName);
+				if(context.project==null || !context.project.getName().equals(context.projectName)) {
+					context.project = Engine.theApp.databaseObjectsManager.getProjectByName(context.projectName);
+				}
 
 				String connectorName = null;
 				if (i == -1) {
-					/*if (context.project != null) {
-						String defaultConnectorName = context.project.getDefaultConnector().getName();
-						if (!defaultConnectorName.equals(context.connectorName)) {
-							context.isNewSession = true;
-							context.connectorName = defaultConnectorName;
-						}
-					}
-					else {
-						context.connectorName = null;
-					}
-					context.transactionName = methodName;*/
-					
 					context.connectorName = null;
 					context.sequenceName = methodName;
 				}
@@ -168,91 +164,13 @@ public class WebServiceTranslator implements Translator {
 						else
 							Engine.logBeans.debug("   Parameter: " + parameterName + "=\"" + parameterValue + "\"");
 
-						if (Parameter.Context.getName().equalsIgnoreCase(parameterName)) {
-							// Already handled!							
+						// Handle convertigo parameters
+						if (parameterName.startsWith("__")) {
+							webServiceServletRequester.handleParameter(parameterName, parameterValue);
 						}
-						else if (Parameter.CariocaSesskey.getName().equalsIgnoreCase(parameterName)) {
-							context.tasSessionKey = parameterValue;
-							Engine.logBeans.debug("Carioca session key: " + context.tasSessionKey);
-						}
-						// This is the overidden service code
-						else if (parameterName.equals(Parameter.CariocaService.getName())) {
-							if ((context.tasServiceCode == null) || (!context.tasServiceCode.equalsIgnoreCase(parameterValue))) {
-								context.isNewSession = true;
-								context.tasServiceCode = parameterValue;
-								Engine.logBeans.debug("The service code is overidden to \"" + parameterValue + "\".");
-							}
-						}
-						// Carioca trusted request
-						else if (parameterName.equals(Parameter.Carioca.getName())) {
-							if ((parameterValue != null) && (parameterValue.length() > 0)) {
-								context.isTrustedRequest = (parameterValue.equalsIgnoreCase("true") ? true : false);
-								Engine.logBeans.debug("Is Carioca trusted request: " + parameterValue);
-							}
-						}
-						else if (Parameter.CariocaUser.getName().equalsIgnoreCase(parameterName)) {
-							context.tasUserName = parameterValue;
-							Engine.logBeans.debug("Tas user name: " + context.tasUserName);
-						}
-						else if (Parameter.CariocaPassword.getName().equalsIgnoreCase(parameterName)) {
-							context.tasUserPassword = parameterValue;
-							Engine.logBeans.debug("Tas user password: " + context.tasUserPassword);
-						}
-						// VIC trusted request
-						else if (parameterName.equals(Parameter.Vic.getName())) {
-							if ((parameterValue != null) && (parameterValue.length() > 0)) {
-								context.isTrustedRequest = (parameterValue.equalsIgnoreCase("true") ? true : false);
-								Engine.logBeans.debug("Is VIC trusted request: " + parameterValue);
-							}
-						}
-						// This is the VIC group
-						else if (parameterName.equals(Parameter.VicGroup.getName())) {
-							if ((parameterValue != null) && (parameterValue.length() > 0)) {
-								context.isRequestFromVic = true;
-								int index = parameterValue.indexOf('@');
-								if (index == -1) {
-									context.tasUserGroup = parameterValue;
-									context.tasVirtualServerName = "";
-								}
-								else {
-									context.tasUserGroup = parameterValue.substring(0, index);
-									context.tasVirtualServerName = parameterValue.substring(index + 1);
-								}
-								Engine.logBeans.debug("The VIC group is \"" + context.tasUserGroup + "\".");
-								Engine.logBeans.debug("The VIC virtual server is \"" + context.tasVirtualServerName + "\".");
-							}
-						}
-						// This is the VIC service code
-						else if (parameterName.equals(Parameter.VicServiceCode.getName())) {
-							if ((parameterValue != null) && (parameterValue.length() > 0)) {
-								context.isRequestFromVic = true;
-								context.isNewSession = true;
-								context.tasServiceCode = parameterValue;
-								Engine.logBeans.debug("The VIC service code is \"" + parameterValue + "\".");
-							}
-						}
-						// This is the VIC dte address
-						else if (parameterName.equals(Parameter.VicDteAddress.getName())) {
-							if ((parameterValue != null) && (parameterValue.length() > 0)) {
-								context.isRequestFromVic = true;
-								context.tasDteAddress = parameterValue;
-								Engine.logBeans.debug("The VIC dte address is \"" + parameterValue + "\".");
-							}
-						}
-						// This is the VIC comm device
-						else if (parameterName.equals(Parameter.VicCommDevice.getName())) {
-							if ((parameterValue != null) && (parameterValue.length() > 0)) {
-								context.isRequestFromVic = true;
-								context.tasCommDevice = parameterValue;
-								Engine.logBeans.debug("The VIC comm device is \"" + parameterValue + "\".");
-							}
-						}
-						else if (parameterName.startsWith(Parameter.NoCache.getName())) {
-							context.noCache = (parameterValue.equalsIgnoreCase("true") ? true : false);
-							Engine.logBeans.debug("Ignoring cache required: " + parameterValue);
-						}
-						// common parameter handling
-						else if (inputDocumentBuilder.handleSpecialParameter(parameterName, parameterValue)) {
+						
+						// Common parameter handling
+						if (inputDocumentBuilder.handleSpecialParameter(parameterName, parameterValue)) {
 							// handled
 						}
 						// Compatibility for Convertigo 2.x
