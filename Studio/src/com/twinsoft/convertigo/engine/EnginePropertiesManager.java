@@ -537,9 +537,9 @@ public class EnginePropertiesManager {
 		MOBILE_BUILDER_ANDROID_KEYSTORE_PW ("mobile.builder.android_keystore_pw", "", "Android keyStore password", PropertyCategory.MobileBuilder),
 		
 		//BLACKBERRY
-		MOBILE_BUILDER_BB_KEY_TITLE ("mobile.builder.bb_key_title", "", "Black Berry key title", PropertyCategory.MobileBuilder),
+		MOBILE_BUILDER_BB_KEY_TITLE ("mobile.builder.bb_key_title", "", "BlackBerry key title", PropertyCategory.MobileBuilder),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
-		MOBILE_BUILDER_BB_KEY_PW ("mobile.builder.bb_key_pw", "", "Black Berry key password", PropertyCategory.MobileBuilder),
+		MOBILE_BUILDER_BB_KEY_PW ("mobile.builder.bb_key_pw", "", "BlackBerry key password", PropertyCategory.MobileBuilder),
 		
 		@PropertyOptions(advance = true)
 		MOBILE_BUILDER_PLATFORM_URL ("mobile.builder.platform_url", "https://build.convertigo.net/cmb/PhoneGapBuilder", "Mobile builder platform URL", PropertyCategory.MobileBuilder),
