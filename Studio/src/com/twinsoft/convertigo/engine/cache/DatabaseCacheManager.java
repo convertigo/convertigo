@@ -220,6 +220,12 @@ public class DatabaseCacheManager extends CacheManager {
 			
 			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(DatabaseCacheManager.PROPERTIES_SQL_REQUEST_STORE_RESPONSE));
 
+			String jdbcURL = sqlRequester.getProperty(SqlRequester.PROPERTIES_JDBC_URL);
+			boolean isSqlServerDatabase = jdbcURL.indexOf(":sqlserver:") != -1;
+			if (!isSqlServerDatabase) {
+				sqlRequest.replace("[Transaction]", "Transaction");
+			}
+			
 			String xml = XMLUtils.prettyPrintDOM(response);
 			sqlRequest.replace("{Xml}", escapeString(xml));
 			sqlRequest.replace("{RequestString}", escapeString(requestString));
@@ -241,20 +247,10 @@ public class DatabaseCacheManager extends CacheManager {
 			
 			try {						
 				statement = sqlRequester.connection.createStatement();
-				try{
-					//sqlServer	
-					int nResult = statement.executeUpdate(sSqlRequest);
-					Engine.logCacheManager.debug(nResult + " row(s) inserted.");
-				}catch(SQLException sqle){
-					//mysql						
-					Engine.logCacheManager.warn("Request failed: trying to translate it into mySql");
-					sqlRequest.replace("[Transaction]", "Transaction");
-					sSqlRequest = sqlRequest.toString();
-					Engine.logCacheManager.debug("SQL translated into mySQL: " + sSqlRequest);
-					int nResult = statement.executeUpdate(sSqlRequest);
-					Engine.logCacheManager.debug(nResult + " row(s) inserted.");
-				}			
-			}finally {
+				int nResult = statement.executeUpdate(sSqlRequest);
+				Engine.logCacheManager.debug(nResult + " row(s) inserted.");
+			}
+			finally {
 				if (statement != null) {
 					statement.close();
 				}
