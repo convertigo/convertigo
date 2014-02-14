@@ -41,7 +41,13 @@ public class ExternalBrowserTransactionBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
-			properties = new PropertyDescriptor[0];
+			properties = new PropertyDescriptor[1];
+			
+			properties[0] = new PropertyDescriptor("jsCode", beanClass, "getJsCode", "setJsCode");
+			properties[0].setDisplayName(getExternalizedString("property.jsCode.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.jsCode.short_description"));
+            properties[0].setPropertyEditorClass(getEditorClass("JavascriptTextEditor"));
+            properties[0].setValue("scriptable", Boolean.TRUE);
 			
 //			properties[0] = new PropertyDescriptor("targetURL", beanClass, "getTargetURL", "setTargetURL");
 //			properties[0].setDisplayName(getExternalizedString("property.targetURL.display_name"));

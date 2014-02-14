@@ -33,6 +33,7 @@ import com.twinsoft.convertigo.engine.externalbrowser.events.DocumentCompletedLi
 public class ExternalBrowserTransaction extends TransactionWithVariables {
 	private static final long serialVersionUID = -1726228364762123615L;
 
+	private String jsCode = "";
 
 	public ExternalBrowserTransaction() {
 		super();
@@ -75,20 +76,23 @@ public class ExternalBrowserTransaction extends TransactionWithVariables {
 		};
 		try {
 			ebi.addDocumentCompledListener(listener);
-			synchronized (listener) {
-				ebi.gotoUrl(url);
-				//Document d = ebi.getDom();
-				try {
-					listener.wait(30000);
-					if (!done[0]) {
-						throw new EngineException("(ExternalBrowserTransaction) Wait document completed timeout !");
-					}
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			Document doc = ebi.getDom();
+//			synchronized (listener) {
+//				ebi.gotoUrl(url);
+//				
+//				//Document d = ebi.getDom();
+//				try {
+////					listener.wait(3000);
+//					listener.wait(30000);
+//					if (!done[0]) {
+//						throw new EngineException("(ExternalBrowserTransaction) Wait document completed timeout !");
+//					}
+//				} catch (InterruptedException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//			Document doc = ebi.getDom();
+			Document doc = ebi.execute(jsCode);
 			if (doc != null) {
 				context.outputDocument.getDocumentElement().appendChild(context.outputDocument.importNode(doc.getDocumentElement(), true));
 			} else {
@@ -109,5 +113,13 @@ public class ExternalBrowserTransaction extends TransactionWithVariables {
 	@Override
 	public ExternalBrowserConnector getConnector() {
 		return (ExternalBrowserConnector) super.getConnector();
+	}
+	
+	public String getJsCode() {
+		return jsCode;
+	}
+
+	public void setJsCode(String jsCode) {
+		this.jsCode = jsCode;
 	}
 }
