@@ -38,6 +38,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
@@ -89,6 +90,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 
 public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject, IResourceChangeListener {
 	private IProject iProject = null;
+	private boolean isCheckMissingProjects = false;
 
 	public ProjectTreeObject(Viewer viewer, Project object) {
 		this(viewer, object, false);
@@ -308,8 +310,7 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 		if (treeObject instanceof DatabaseObjectTreeObject) {
 			DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
 			if ((treeObject != this && treeObject instanceof ProjectTreeObject) ||
-					databaseObject == null) { // TODO: handle drag & drop callTr/callSeq step creation with 2 modal windows
-				//(databaseObject instanceof RequestableStep && treeObject.getProjectTreeObject() == this)) {
+				(databaseObject instanceof RequestableStep && treeObject.getProjectTreeObject() == this)) {
 					checkMissingProjects();
 			}
 		}
@@ -815,46 +816,70 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 	} 
 	
 	public void checkMissingProjects() {
-		Project project = getObject();
+		if (isCheckMissingProjects) {
+			return;
+		}
 		
-		Set<String> missingProjects = project.getMissingProjects();
-		Set<String> missingProjectReferences = project.getMissingProjectReferences();
+		final Project project = getObject();
+		
+		final Set<String> missingProjects = project.getMissingProjects();
+		final Set<String> missingProjectReferences = project.getMissingProjectReferences();
 
 		if (!missingProjects.isEmpty() || !missingProjectReferences.isEmpty()) {
-			String message = "For \"" + project.getName() + "\" project :\n";
+			isCheckMissingProjects = true;
+			
+			Display.getDefault().asyncExec(new Runnable() {
 
-			for (String targetProjectName: missingProjects) {
-				message += "  > The project \"" + targetProjectName + "\" is missing\n";
-			}
-			
-			for (String targetProjectName: missingProjectReferences) {
-				message += "  > The reference to project \"" + targetProjectName + "\" is missing\n";
-			}
-			
-			message += "\nPlease create missing reference(s) and import missing project(s),\nor correct your sequence(s).";
-			
-			if (!missingProjectReferences.isEmpty()) {
-				int response = ConvertigoPlugin.questionMessageBox(null, message + "\n\nDo you want to automatically add reference objects ?");
-				if (response == SWT.YES) {
-					for (String targetProjectName: missingProjectReferences) {
-						try {
-							ProjectSchemaReference reference = new ProjectSchemaReference();
-							reference.setProjectName(targetProjectName);
-							reference.setName(targetProjectName + "_reference");
-							project.add(reference);
-							
-							ProjectExplorerView explorerView = ConvertigoPlugin.projectManager.getProjectExplorerView();
-							explorerView.reloadTreeObject(this);
-						} catch (Exception e) {
-							ConvertigoPlugin.logException(e, "failed to add a reference to '" + targetProjectName + "'");
+				@Override
+				public void run() {
+					try {
+						int level = ModalContext.getModalLevel();
+						if (level > 0) {
+							// prevents double modal windows: dead lock on linux/gtk studio
+							Display.getDefault().asyncExec(this);
+							return;
+						} 
+
+						String message = "For \"" + project.getName() + "\" project :\n";
+
+						for (String targetProjectName: missingProjects) {
+							message += "  > The project \"" + targetProjectName + "\" is missing\n";
 						}
+
+						for (String targetProjectName: missingProjectReferences) {
+							message += "  > The reference to project \"" + targetProjectName + "\" is missing\n";
+						}
+
+						message += "\nPlease create missing reference(s) and import missing project(s),\nor correct your sequence(s).";
+
+						if (!missingProjectReferences.isEmpty()) {
+							int response = ConvertigoPlugin.questionMessageBox(null, message + "\n\nDo you want to automatically add reference objects ?");
+							if (response == SWT.YES) {
+								for (String targetProjectName: missingProjectReferences) {
+									try {
+										ProjectSchemaReference reference = new ProjectSchemaReference();
+										reference.setProjectName(targetProjectName);
+										reference.setName(targetProjectName + "_reference");
+										project.add(reference);
+
+										ProjectExplorerView explorerView = ConvertigoPlugin.projectManager.getProjectExplorerView();
+										explorerView.reloadTreeObject(ProjectTreeObject.this);
+									} catch (Exception e) {
+										ConvertigoPlugin.logException(e, "failed to add a reference to '" + targetProjectName + "'");
+									}
+								}
+								hasBeenModified(true);
+
+							}
+						} else {
+							ConvertigoPlugin.warningMessageBox(message);
+						}
+					} finally {
+						isCheckMissingProjects = false;
 					}
-					this.hasBeenModified(true);
-					
 				}
-			} else {
-				ConvertigoPlugin.warningMessageBox(message);
-			}
+
+			});
 		}
 	}
 }
