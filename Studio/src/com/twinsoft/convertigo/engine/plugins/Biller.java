@@ -40,6 +40,7 @@ import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.SqlRequester;
 import com.twinsoft.util.StringEx;
 
@@ -57,8 +58,11 @@ public abstract class Biller extends AbstractBiller {
 			public void run() {
 				while (thread.isAlive()) {
 					try {
+						Log4jHelper.mdcClear();
 						Biller biller = queue.poll(30, TimeUnit.SECONDS);
 						if (biller != null) {
+							Log4jHelper.mdcSet(biller.context.logParameters);
+							
 							Engine.logBillers.info("(Biller) Insert a billing request, remains " + queue.size() + " in queue.");
 							biller.insertBilling(biller.context, null);
 						}
