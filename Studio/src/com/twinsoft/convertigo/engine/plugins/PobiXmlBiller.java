@@ -212,15 +212,21 @@ public class PobiXmlBiller extends PobiBiller {
 		try {
 			element = (Element) document.getDocumentElement().getElementsByTagName("REPONSE").item(0);
 			// Demande pmnc
-			numRep = (String) element.getAttribute("NUMDPMN");
+			numRep = element.getAttribute("NUMDPMN");
 			if ((numRep == null) || (numRep.equals(""))) {
 				// Relevé pp/pm
-				numRep = (String) element.getAttribute("NBP");
+				numRep = element.getAttribute("NBP");
 				if ((numRep == null) || (numRep.equals(""))) {
 					// Relevé pmnc
-					numRep = (String) element.getAttribute("TRP");
-					nbp = Integer.parseInt(numRep);
-					if (nbp >= 0) nbp = 1;
+					numRep = element.getAttribute("TRP");
+					numRep = numRep.trim();
+					try {
+						nbp = Integer.parseInt(numRep);
+						if (nbp >= 0) nbp = 1;
+					}
+					catch (NumberFormatException nfe) {
+						return 0; // numRep=' '
+					}
 				}
 				else {
 					nbp = Integer.parseInt(numRep);
