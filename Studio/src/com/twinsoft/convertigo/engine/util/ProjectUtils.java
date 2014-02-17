@@ -84,9 +84,6 @@ import com.twinsoft.convertigo.beans.transactions.JsonHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
@@ -450,7 +447,7 @@ public class ProjectUtils {
 		}
 	}
 	
-	public static Map<String,String> getStatByProject(Project project) {
+	public static Map<String,String> getStatByProject(Project project) throws Exception {
 		final Map<String,String> result = new HashMap<String,String>();
         try {
     		if (project != null) {
@@ -924,7 +921,7 @@ public class ProjectUtils {
     		}
         }
         catch (Throwable e) {
-        	ConvertigoPlugin.logException(e, "Unable to compute statistics of the project!");
+        	throw new Exception("Unable to compute statistics of the project!: \n"+e.getMessage());
         }
         finally {
         }
