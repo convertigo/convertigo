@@ -163,7 +163,9 @@ public class PobiXmlUtils {
 					
 					if (message == null) {
 						Node nodeErrorCode = XMLUtils.findChildNode(node, Node.ELEMENT_NODE);
-						message = "(UCR " + nodeErrorCode.getNodeName() + ") Erreur non répertoriée";
+						if (nodeErrorCode != null) {
+							message = "(UCR " + nodeErrorCode.getNodeName() + ") Erreur non répertoriée";
+						}
 					}
 				}
 
@@ -172,6 +174,13 @@ public class PobiXmlUtils {
 					Node nodeErrorMessage = XMLUtils.findChildNode(nodeList.item(0), Node.TEXT_NODE);
 					String textPbTech = nodeErrorMessage.getNodeValue();
 					message = "(PBTECH) Problème technique : " + textPbTech;
+				}
+
+				nodeList = document.getElementsByTagName("PBRALPH");
+				if (nodeList.getLength() != 0) {
+					Node nodeErrorMessage = XMLUtils.findChildNode(nodeList.item(0), Node.TEXT_NODE);
+					String textPbTech = nodeErrorMessage.getNodeValue();
+					message = "(PBRALPH) " + textPbTech;
 				}
 			}
 			catch(Exception e) {
