@@ -33,6 +33,7 @@ import java.util.List;
 import javax.xml.transform.TransformerException;
 
 import org.apache.xpath.CachedXPathAPI;
+import org.apache.xpath.objects.XObject;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -214,19 +215,8 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 					String ret = "";
 					
 					try {
-						Node selectNode = cachedXPathAPI.selectSingleNode(n, xpathExpression);
-						
-						if (selectNode != null){
-							
-							if ( selectNode.getNodeType() == Node.ELEMENT_NODE ) {
-								ret = selectNode.getTextContent();
-							} else {
-								ret = selectNode.getNodeValue();
-							}
-							
-						} else {
-							throw new TransformerException( "No node found !" );
-						}
+						XObject xo = cachedXPathAPI.eval(n, xpathExpression);
+						ret = xo.toString();
 						
 					} catch (TransformerException e) {
 						Engine.logBeans.error( "Error during sorting of the XML document: "+e.getMessage() );
