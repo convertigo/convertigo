@@ -34,12 +34,19 @@ function project_Edit_init() {
 	$('#projectEditUndefinedSymbolsInfoSubmit').click(function() { 
         projectDeclareGlobalSymbols(); 
 	});
+	
+	$('#projectEditStatsSubmit').button( {
+		icons : {
+			primary : "ui-icon-clipboard"
+		}
+	}).click(function() {
+		projectStats();
+	});
 }
 
 function project_Edit_update() {
 	$("#project_Edit").hide();
 }
-
 
 function loadProjectGSymbol(projectName){	
 	callService("projects.GetUndefinedSymbols", function(xml) {
@@ -414,4 +421,44 @@ function projectDeclareGlobalSymbols() {
 	); 
 	
 	projects_List_update();
+} 
+
+function projectStats() { 	 
+	var projectName = $(".projectEditObjectName").text();
+	
+	callService("projects.GetStatistic",  
+		function(xml) { 
+			if ($(xml).find("statistics")) {
+				$("#dialog-statistics-project").dialog({
+					autoOpen : true,
+					title : "Statistics",
+	                width: 800,
+					modal : true,
+			        buttons: [{
+		                id: "btn-stats-OK",
+		                text: "OK",
+		                click: function() {
+		                	$( this ).dialog( "close" );
+		                }
+			        }]
+				});
+				$("#statisticsGlobalProjectInfo").html($(xml).find("statistics").children(projectName).text().replace("<br/>",", "));
+				
+				var htmlStats = "";
+				$(xml).find("statistics").children("*").each(function() {
+					if (this.tagName != projectName) {
+						htmlStats += "<table><tr><td>"
+						htmlStats += "<img src=\"images/"+this.tagName.toLowerCase()+"_16x16.png\" /></td>";
+						htmlStats += "<td><strong>"+this.tagName.replace("_"," ")+"</strong><br/>"+$(this).text()+"<br/><br/></td>";
+						htmlStats += "</tr></table>";
+					}
+				});
+								
+				$("#statisticsDetails").html(htmlStats);
+			} else {
+				$("#statisticsProjectInfo").hide();
+			}
+		} 
+		, {"projectName":projectName}  
+	); 
 } 

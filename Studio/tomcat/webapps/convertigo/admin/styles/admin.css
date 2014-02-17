@@ -1567,6 +1567,11 @@ a.start {
 	display: none;
 }
 
+#dialog-statistics-project {
+	text-align:left;
+	display: none;
+}
+
 /* = SYMBOLS WIDGET
 ---------------------------------------------------------------------- */
 #dialog-add-symbol {

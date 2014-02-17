@@ -20,7 +20,9 @@
  * $Date$
 -->
 
-
+<div class="bgButtonAction">
+	<button id="projectEditStatsSubmit">Statistics</button> 
+</div>
 <div id="projectEditUndefinedSymbolsInfo">
 	<div id="projectEditUndefinedSymbolsInfoList"></div>
     <button id="projectEditUndefinedSymbolsInfoSubmit">Create global symbols</button> 
@@ -37,7 +39,7 @@
 	<table id="projectEditPropertyTable-template">
 		<tbody>
 			<tr class="main_headerTab"><td colspan="3">Information</td></tr>	
-			<tr><td>Name</td><td></td><td class="projectEditObjectName"></td></tr>
+			<tr id="projectEdit"><td>Name</td><td></td><td class="projectEditObjectName"></td></tr>
 			<tr><td>Version</td><td></td><td class="projectEditObjectVersion"></td></tr>	
 			<tr><td>Type</td><td></td><td class="projectEditObjectType"></td></tr>			
 			<tr class="main_headerTab"><td colspan="3">Properties</td></tr>			
@@ -58,3 +60,13 @@
 	<textarea id="projectEditTextArea" class="projectEdit-form-item"></textarea>	
 </div>
 
+
+<form id="dialog-statistics-project" >
+	<h2 id="statisticsGlobalProjectInfo"></h2>
+	<table>
+		<tr>
+			<td><img src="images/dialog_statistic.jpg" /></td>
+			<td id="statisticsDetails"></td>
+		</tr>
+	</table>
+</form>
