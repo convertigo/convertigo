@@ -660,6 +660,9 @@ public class Context extends AbstractContext implements Cloneable {
 	@Override
 	public Context clone() throws CloneNotSupportedException {
 		Context clone = (Context) super.clone();
+		if (logParameters != null) {
+			clone.logParameters = (LogParameters) logParameters.clone();
+		}
 		return clone;
 	}
 }
