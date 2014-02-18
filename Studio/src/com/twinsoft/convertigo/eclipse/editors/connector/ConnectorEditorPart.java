@@ -88,7 +88,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
-import com.twinsoft.convertigo.engine.util.XMLUtils; 
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class ConnectorEditorPart extends Composite implements Runnable, EngineListener {
 
@@ -737,7 +737,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 						Engine.logBeans.error("Test connecion failed!"+e1.getMessage());
 						
 						MessageBox mb = new MessageBox(getParent().getShell(), SWT.ICON_ERROR | SWT.OK);
-						mb.setMessage("Failed to Connect to MySQL!");
+						mb.setMessage("Failed to connect to the database! \n"+e1.getMessage());
 						mb.open();
 					}
 					((SqlConnector) connector).close();
