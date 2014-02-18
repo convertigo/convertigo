@@ -734,8 +734,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 						mb.setMessage("Connection parameters are correct.");
 						mb.open();
 					} catch (Exception e1) {
-						Engine.logBeans.error("Test connecion failed!"+e1.getMessage());
-						
+						Engine.logBeans.error("Test connection failed!"+e1.getMessage());
 						MessageBox mb = new MessageBox(getParent().getShell(), SWT.ICON_ERROR | SWT.OK);
 						mb.setMessage("Failed to connect to the database! \n"+e1.getMessage());
 						mb.open();
