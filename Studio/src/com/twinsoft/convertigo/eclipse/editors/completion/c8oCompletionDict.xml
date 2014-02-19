@@ -106,7 +106,7 @@
 	<jquerymobile>
 		<entry>
 			<keyword>data-role="</keyword>
-			<definition>Specify the kind of a control</definition>
+			<definition>Specify the kind of a control or prevents jQuery Mobile to style the control (none)</definition>
 			<parameters>
 				<item>button</item>
 				<item>collapsible</item>
@@ -121,6 +121,7 @@
 				<item>popup</item>
 				<item>header</item>
 				<item>footer</item>
+				<item>none</item>
 			</parameters>
 		</entry>
 		<entry>
@@ -208,13 +209,6 @@
 			<definition>Specifies the theme color of the button</definition>
 			<parameters>
 				<item>swatch letter (a-z)</item>
-			</parameters>
-		</entry>
-		<entry>
-			<keyword>data-role="</keyword>
-			<definition>Prevents auto-enhancement to use native control</definition>
-			<parameters>
-				<item>none</item>
 			</parameters>
 		</entry>
 		<entry>
