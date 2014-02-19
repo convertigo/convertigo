@@ -185,7 +185,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		private String prepareParameters(boolean updateDefinitions){
 			String preparedSqlQuery = "";
 
-			if ( query != null && (isSubLoaded && (bNew || updateDefinitions ))) {
+			if ( query != null && (bNew || updateDefinitions)) {
 				preparedSqlQuery = query;
 				// Handled the case if we have value like {{id}} or "{{id}}" or '{{id}}' (i.e: table name or instructions)		
 				Pattern pattern = Pattern.compile("\\{\\{([a-zA-Z0-9_]+)\\}\\}");
@@ -326,7 +326,6 @@ public class SqlTransaction extends TransactionWithVariables {
 				}
 			}
 		}
-		
 		// We create an another List which permit to compare and update variables
 		List<String> allParametersList = createAllParametersList(preparedSqlQueries);
 		
