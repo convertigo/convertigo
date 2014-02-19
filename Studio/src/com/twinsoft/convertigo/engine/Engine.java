@@ -1161,8 +1161,8 @@ public class Engine {
 		 	String contextResponseExpiryDate = (String) context.get(Parameter.ResponseExpiryDate.getName());
 		 	String oldResponseExpiryDate = null;
 			if (contextResponseExpiryDate != null) {
-				oldResponseExpiryDate = requestedObject.getResponseExpiryDate();
-				requestedObject.setResponseExpiryDate(contextResponseExpiryDate);
+				oldResponseExpiryDate = requestedObject.getResponseLifetime();
+				requestedObject.setResponseLifetime(contextResponseExpiryDate);
 				context.remove(Parameter.ResponseExpiryDate.getName());
 			}
 			
@@ -1174,7 +1174,7 @@ public class Engine {
 				}
 			}finally {
 				if (oldResponseExpiryDate!=null) {
-					requestedObject.setResponseExpiryDate(oldResponseExpiryDate);
+					requestedObject.setResponseLifetime(oldResponseExpiryDate);
 				}
 			}
 			

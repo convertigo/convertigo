@@ -571,27 +571,34 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	public String getResponseExpiryDate() {
 		return this.responseExpiryDate;
 	}
+	/** Setter for property responseExpiryDate.
+	 * @param responseExpiryDate
+	 */
+	public void setResponseExpiryDate(String responseExpiryDate) {
+		this.responseExpiryDate = responseExpiryDate;
+	}
 	/** Getter for have only the response lifetime.
 	 * @return Value of the response lifetime.
 	 */
 	public String getResponseLifetime() {
 		String resp = "";
-		if (responseExpiryDate!=null && !responseExpiryDate.equals(""))
+		if (this.responseExpiryDate!=null && !responseExpiryDate.equals("")) {
 			resp = (responseExpiryDate.split(";"))[0];
+		}
 		return resp;
 	}
-	/** Getter for have only the response lifetime.
-	 * @return Value of the response lifetime.
+	/**
+	 * Set the response lifetime.
+	 * @param responseLifetime
 	 */
 	public void setResponseLifetime(String responseLifetime) {
-		if (responseExpiryDate!=null && !responseExpiryDate.equals("")) {
+		if (this.responseExpiryDate!=null && !this.responseExpiryDate.equals("")) {
 			String useAuthenticatedUserAsCacheKey = (responseExpiryDate.split(";"))[1];
 			if (useAuthenticatedUserAsCacheKey!=null && !useAuthenticatedUserAsCacheKey.equals("")) {
-				responseExpiryDate = responseLifetime+";"+useAuthenticatedUserAsCacheKey;
+				this.responseExpiryDate = responseLifetime+";"+useAuthenticatedUserAsCacheKey;
 			} else {
-				responseExpiryDate = responseLifetime+";false";
+				this.responseExpiryDate = responseLifetime+";false";
 			}
-			setResponseExpiryDate(responseLifetime);
 		}
 	}
 	/** Getter to know if we use authenticated user as cache key.
@@ -603,13 +610,6 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 			ret = Boolean.parseBoolean((responseExpiryDate.split(";"))[1]);
 		return ret;
 	}
-	/** Setter for property responseExpiryDate.
-	 * @param responseExpiryDate New value of property responseExpiryDate.
-	 */
-	public void setResponseExpiryDate(String responseExpiryDate) {
-		this.responseExpiryDate = responseExpiryDate;
-	}
-	
 	/**
 	 * Retrieves the transaction response date in milliseconds.
 	 */
