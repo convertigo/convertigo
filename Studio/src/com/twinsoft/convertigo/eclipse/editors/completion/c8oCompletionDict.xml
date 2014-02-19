@@ -106,27 +106,26 @@
 	<jquerymobile>
 		<entry>
 			<keyword>data-role="</keyword>
-			<definition>Specify object kind</definition>
+			<definition>Specify the kind of a control</definition>
 			<parameters>
 				<item>button</item>
 				<item>collapsible</item>
-				<item>collapsible-set</item>
-				<item>content</item>
+				<item>collapsibleset</item>
 				<item>controlgroup</item>
 				<item>dialog</item>
 				<item>fieldcontain</item>
-				<item>header</item>
-				<item>footer</item>
 				<item>slider</item>
 				<item>listview</item>
 				<item>navbar</item>
 				<item>page</item>
 				<item>popup</item>
+				<item>header</item>
+				<item>footer</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-corners="</keyword>
-			<definition/>
+			<definition>Specifies whether the control should have rounded corners or not</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -134,7 +133,7 @@
 		</entry>
 		<entry>
 			<keyword>data-icon="</keyword>
-			<definition/>
+			<definition>Specifies the icon of the control. Default is no icon</definition>
 			<parameters>
 				<item>home</item>
 				<item>delete</item>
@@ -163,7 +162,7 @@
 		</entry>
 		<entry>
 			<keyword>data-iconpos="</keyword>
-			<definition/>
+			<definition>Specifies the position of the icon</definition>
 			<parameters>
 				<item>left</item>
 				<item>right</item>
@@ -174,7 +173,7 @@
 		</entry>
 		<entry>
 			<keyword>data-iconshadow="</keyword>
-			<definition/>
+			<definition>Specifies whether the control icon should have shadows or not</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -182,7 +181,7 @@
 		</entry>
 		<entry>
 			<keyword>data-inline="</keyword>
-			<definition/>
+			<definition>Specifies whether the control should be inline or not</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -190,7 +189,7 @@
 		</entry>
 		<entry>
 			<keyword>data-mini="</keyword>
-			<definition>Compact sized version</definition>
+			<definition>Specifies whether the control should be of small or regular size</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -198,7 +197,7 @@
 		</entry>
 		<entry>
 			<keyword>data-shadow="</keyword>
-			<definition/>
+			<definition>Specifies whether the button should have shadows or not</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -206,7 +205,7 @@
 		</entry>
 		<entry>
 			<keyword>data-theme="</keyword>
-			<definition/>
+			<definition>Specifies the theme color of the button</definition>
 			<parameters>
 				<item>swatch letter (a-z)</item>
 			</parameters>
@@ -220,7 +219,7 @@
 		</entry>
 		<entry>
 			<keyword>data-collapsed="</keyword>
-			<definition/>
+			<definition>Specifies whether the content should be closed or expanded</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -228,14 +227,14 @@
 		</entry>
 		<entry>
 			<keyword>data-collapse-cue-text="</keyword>
-			<definition>Text used to provide audible feedback for users with screen reader software. Default: " click to collapse contents"</definition>
+			<definition>Specifies some text to provide audible feedback for users with screen reader software. Default is "click to collapse contents".</definition>
 			<parameters>
 				<item>string</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-collapsed-icon="</keyword>
-			<definition/>
+			<definition>Specifies the icon of the collapsible button. Default is "plus"</definition>
 			<parameters>
 				<item>home</item>
 				<item>delete</item>
@@ -265,21 +264,21 @@
 		</entry>
 		<entry>
 			<keyword>data-content-theme="</keyword>
-			<definition/>
+			<definition>Specifies the theme color of the collapsible content. Will also add rounded corners to the collapsible content</definition>
 			<parameters>
 				<item>swatch letter (a-z)</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-expand-cue-text="</keyword>
-			<definition>Text used to provide audible feedback for users with screen reader software. Default: " click to expand contents"</definition>
+			<definition>Specifies some text to provide audible feedback for users with screen reader software. Default is "click to expand contents".</definition>
 			<parameters>
 				<item>string</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-expanded-icon="</keyword>
-			<definition/>
+			<definition>Specifies the icon of the collapsible button when the content is expanded. Default is "minus"</definition>
 			<parameters>
 				<item>home</item>
 				<item>delete</item>
@@ -307,7 +306,7 @@
 		</entry>
 		<entry>
 			<keyword>data-inset="</keyword>
-			<definition/>
+			<definition>Specifies whether the collapsible button should be styled with rounded corners and some margin or not</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -315,7 +314,7 @@
 		</entry>
 		<entry>
 			<keyword>data-exclude-invisible="</keyword>
-			<definition>Sets whether to exclude invisible children in the assignment of rounded corners</definition>
+			<definition>Specifies whether to exclude invisible children in the assignment of rounded corners</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -323,7 +322,7 @@
 		</entry>
 		<entry>
 			<keyword>data-type="</keyword>
-			<definition>For horizontal or vertical item alignment</definition>
+			<definition>Specifies whether a group should be horizontally or vertically displayed</definition>
 			<parameters>
 				<item>horizontal</item>
 				<item>vertical</item>
@@ -331,7 +330,7 @@
 		</entry>
 		<entry>
 			<keyword>data-close-btn="</keyword>
-			<definition/>
+			<definition>Specifies the position of the close button</definition>
 			<parameters>
 				<item>left</item>
 				<item>right</item>
@@ -340,14 +339,14 @@
 		</entry>
 		<entry>
 			<keyword>data-close-btn-text="</keyword>
-			<definition>Text for the close button, dialog only. Default: "close"</definition>
+			<definition>Specifies the text for the close button</definition>
 			<parameters>
 				<item>string</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-dom-cache="</keyword>
-			<definition/>
+			<definition>Specifies whether the to clear jQuery DOM cache or not for individual pages (if set to true, you need to take care to manage the DOM yourself and test thoroughly on all mobile devices)</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -355,21 +354,21 @@
 		</entry>
 		<entry>
 			<keyword>data-overlay-theme="</keyword>
-			<definition>Overlay theme when the page is opened in a dialog</definition>
+			<definition>Specifies the overlay (background) color of the dialog page</definition>
 			<parameters>
 				<item>swatch letter (a-z)</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-title="</keyword>
-			<definition>Title used when page is shown</definition>
+			<definition>Specifies the title for the dialog page</definition>
 			<parameters>
 				<item>string</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-enhance="</keyword>
-			<definition/>
+			<definition>If set to "true", (default) jQuery Mobile will automatically style the page, making it suitable for mobile devices. If set to "false", the framework will not style the page</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -377,7 +376,7 @@
 		</entry>
 		<entry>
 			<keyword>data-ajax="</keyword>
-			<definition/>
+			<definition>Specifies whether to load pages via ajax or not</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -385,14 +384,14 @@
 		</entry>
 		<entry>
 			<keyword>data-track-theme="</keyword>
-			<definition>Added to the form element</definition>
+			<definition>Specifies the theme color of the slider track</definition>
 			<parameters>
 				<item>swatch letter (a-z)</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-autodividers="</keyword>
-			<definition/>
+			<definition>Specifies whether to automatically divide list items or not</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -400,21 +399,21 @@
 		</entry>
 		<entry>
 			<keyword>data-count-theme="</keyword>
-			<definition>Default "c"</definition>
+			<definition>Specifies the theme color of the count bubble</definition>
 			<parameters>
 				<item>swatch letter (a-z)</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-divider-theme="</keyword>
-			<definition>Default "b"</definition>
+			<definition>Specifies the theme color of the list divider</definition>
 			<parameters>
 				<item>swatch letter (a-z)</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-filter="</keyword>
-			<definition/>
+			<definition>Specifies whether to add a search box in a list or not</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -422,28 +421,28 @@
 		</entry>
 		<entry>
 			<keyword>data-filter-placeholder="</keyword>
-			<definition/>
+			<definition>Deprecated in version 1.4. Use the HTML placeholder attribute instead. Specifies the text inside the search box. Default is "Filter items..."</definition>
 			<parameters>
 				<item>string</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-filter-theme="</keyword>
-			<definition/>
+			<definition>Specifies the theme color of the search filter</definition>
 			<parameters>
 				<item>swatch letter (a-z)</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-header-theme="</keyword>
-			<definition/>
+			<definition>https://github.com/jquery/jquery-mobile/issues/4332</definition>
 			<parameters>
 				<item>swatch letter (a-z)</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-split-icon="</keyword>
-			<definition/>
+			<definition>Specifies the icon of the split button. Default is "arrow-r"</definition>
 			<parameters>
 				<item>home</item>
 				<item>delete</item>
@@ -471,14 +470,14 @@
 		</entry>
 		<entry>
 			<keyword>data-split-theme="</keyword>
-			<definition>Default "b"</definition>
+			<definition>Specifies the theme color of the split button</definition>
 			<parameters>
 				<item>swatch letter (a-z)</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-filtertext="</keyword>
-			<definition>Filter by this value instead of inner text</definition>
+			<definition>Specifies a text to search for when filtering elements. This text will then be filtered instead of the actual list item text</definition>
 			<parameters>
 				<item>string</item>
 			</parameters>
@@ -492,7 +491,7 @@
 		</entry>
 		<entry>
 			<keyword>data-dismissible="</keyword>
-			<definition>If set to false prevents popup closing by clicking outside of the popup or pressing the Escape key</definition>
+			<definition>Specifies whether the popup should be closed by clicking outside of the popup or not</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -500,7 +499,7 @@
 		</entry>
 		<entry>
 			<keyword>data-history="</keyword>
-			<definition>Sets whether the popup creates a browser history item when it opens. If set to false, it will not create a history item, and will thus not be closeable via the browser's "Back" button.</definition>
+			<definition>Specifies whether the popup should create a browser history item when opened. If set to false, it will not create a history item, and will then not be closeable via the browser's "Back" button</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -508,7 +507,7 @@
 		</entry>
 		<entry>
 			<keyword>data-position-to="</keyword>
-			<definition>"origin" indicates that the popup is to be centered over the link that opens it. "window" indicates that it is to be centered in the browser window. If you give a jQuery selector, it will be centered over the first element returned by the selector, if that element is visible. Otherwise, it will be centered in the browser window.</definition>
+			<definition>Specifies the position of popup boxes. Origin - Default. Positions the popup over the link that opens it. jQuery selector - positions the popup over the specified element. Window - positions the popup in the middle of the window screen.</definition>
 			<parameters>
 				<item>origin</item>
 				<item>window</item>
@@ -517,14 +516,14 @@
 		</entry>
 		<entry>
 			<keyword>data-tolerance="</keyword>
-			<definition>Distance from the edges of the window (top, right, bottom, left)</definition>
+			<definition>Specifies the distance from the edges of the window (top, right, bottom, left)</definition>
 			<parameters>
 				<item>30,15,30,15</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-transition="</keyword>
-			<definition>The transition to use when making the popup appear/disappear.</definition>
+			<definition>Specifies how to transition from one page to the next. See jQuery Mobile Transitions chapter.</definition>
 			<parameters>
 				<item>none</item>
 				<item>transition</item>
@@ -532,7 +531,7 @@
 		</entry>
 		<entry>
 			<keyword>data-native-menu="</keyword>
-			<definition/>
+			<definition>When set to false, it uses jQuery's own custom select menu (recommended if you want the select menu to display the same on all mobile devices)</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -540,7 +539,7 @@
 		</entry>
 		<entry>
 			<keyword>data-placeholder="</keyword>
-			<definition>Can be set on option element of a non-native select</definition>
+			<definition>Can be set on an "option" element of a non-native select</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -548,7 +547,7 @@
 		</entry>
 		<entry>
 			<keyword>data-highlight="</keyword>
-			<definition>Adds an active state fill on track to handle</definition>
+			<definition>Specifies whether the slider track should be highlighted or not</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -556,7 +555,7 @@
 		</entry>
 		<entry>
 			<keyword>data-clear-btn="</keyword>
-			<definition>Adds a clear button</definition>
+			<definition>Specifies whether the input should have a "clear" button</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -564,7 +563,7 @@
 		</entry>
 		<entry>
 			<keyword>data-clear-btn-text="</keyword>
-			<definition>Text for the close button. Default: "clear text"</definition>
+			<definition>Specifies a text for the "clear" button. Default is "clear text"</definition>
 			<parameters>
 				<item>string</item>
 			</parameters>
@@ -586,28 +585,28 @@
 		</entry>
 		<entry>
 			<keyword>data-back-btn-theme="</keyword>
-			<definition>Header only</definition>
+			<definition>Specifies the theme color of the header back button</definition>
 			<parameters>
 				<item>swatch letter (a-z)</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-id="</keyword>
-			<definition>Unique ID. Required for persistent footers</definition>
+			<definition>Specifies a unique ID. Required for persistent footers</definition>
 			<parameters>
 				<item>string</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-position="</keyword>
-			<definition/>
+			<definition>Specifies whether the footer should be inline with page content or remain positioned at the bottom</definition>
 			<parameters>
 				<item>fixed</item>
 			</parameters>
 		</entry>
 		<entry>
 			<keyword>data-disable-page-zoom="</keyword>
-			<definition>User-scaling-ability for pages with fixed toolbars</definition>
+			<definition>Specifies whether the user is able to scale/zoom the page or not</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -615,7 +614,7 @@
 		</entry>
 		<entry>
 			<keyword>data-fullscreen="</keyword>
-			<definition>Setting toolbars over the page-content</definition>
+			<definition>Specifies toolbars to always be positioned at the top and/or bottom</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -623,7 +622,7 @@
 		</entry>
 		<entry>
 			<keyword>data-tap-toggle="</keyword>
-			<definition>Ability to toggle toolbar-visibility on user tap/click</definition>
+			<definition>Specifies whether the user is able to toggle toolbar-visibility on taps/clicks or not</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -631,7 +630,7 @@
 		</entry>
 		<entry>
 			<keyword>data-update-page-padding="</keyword>
-			<definition>Have the page top and bottom padding updated on resize, transition, "updatelayout" events (the framework always updates the padding on the "pageshow" event).</definition>
+			<definition>Specifies the padding of both top and bottom of the page to be updated on resize, transition and "updatelayout" events (jQuery Mobile always updates the padding on the "pageshow" event)</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>
@@ -639,7 +638,7 @@
 		</entry>
 		<entry>
 			<keyword>data-visible-on-page-show="</keyword>
-			<definition>Toolbar-visibility when parent page is shown</definition>
+			<definition>Specifies toolbar-visibility when parent page is shown</definition>
 			<parameters>
 				<item>true</item>
 				<item>false</item>

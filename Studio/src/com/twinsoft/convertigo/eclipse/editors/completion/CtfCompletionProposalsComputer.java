@@ -140,8 +140,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 			// load all dictionary subsets one by one into the same table
 			loadSubDictionaries(doc.getElementsByTagName("ctf"), Entry.ICONID_CTF);
 			loadSubDictionaries(doc.getElementsByTagName("jquerymobile"), Entry.ICONID_JQM);
-		} catch (Exception e) {
-		}
+		} catch (Exception e) {;}
 	}
 
 	private int findCharReverse(char c, IDocument doc, int offset) {
