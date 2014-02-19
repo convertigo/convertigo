@@ -31,6 +31,7 @@ import org.apache.ws.commons.schema.XmlSchemaAttributeGroup;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaFacet;
 import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
@@ -38,6 +39,8 @@ import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
 import org.apache.ws.commons.schema.XmlSchemaSimpleType;
+import org.apache.ws.commons.schema.XmlSchemaSimpleTypeContent;
+import org.apache.ws.commons.schema.XmlSchemaSimpleTypeRestriction;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.XmlSchemaUse;
 import org.apache.ws.commons.schema.constants.Constants;
@@ -255,7 +258,20 @@ public class XmlSchemaUtils {
 				if (parent instanceof Element) {
 					Element xParent = (Element) parent;
 					String name = obj.getName();
-					xParent.setAttribute(name, "");
+					String value = "";
+					
+					XmlSchemaSimpleType simpleType = obj.getSchemaType(); 
+					if (simpleType != null) {
+						XmlSchemaSimpleTypeContent simpleTypeContent = simpleType.getContent();
+						if (simpleTypeContent != null && simpleTypeContent instanceof XmlSchemaSimpleTypeRestriction) {
+							XmlSchemaObjectCollection facets = ((XmlSchemaSimpleTypeRestriction) simpleTypeContent).getFacets();
+							if (facets != null && facets.getCount() > 0) {
+								value = "" + ((XmlSchemaFacet) facets.getItem(0)).getValue();
+							}
+						}
+					}
+					
+					xParent.setAttribute(name, value);
 					if (references != null) {
 						references.put(xParent.getAttributeNode(name), obj);
 					}

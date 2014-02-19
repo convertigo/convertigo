@@ -243,7 +243,7 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 	}
 	
 	protected void filter(XmlSchemaObject xso, List<XmlSchemaObject> children, XmlSchemaObject subObject) {
-		if (xso instanceof XmlSchema || !(subObject instanceof XmlSchemaSimpleType)) {
+		if (xso instanceof XmlSchema || (!(subObject instanceof XmlSchemaSimpleType) || ((XmlSchemaSimpleType) subObject).getName() == null)) {
 			children.add(subObject);
 		}
 	}

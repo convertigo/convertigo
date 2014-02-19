@@ -569,6 +569,12 @@ public class XmlSchemaWalker {
 				walkSimpleType(xmlSchema, type);
 			}
 		}
+		
+		XmlSchemaObjectCollection facets = obj.getFacets();
+        for (int i = 0; i < facets.getCount(); i++) {
+        	XmlSchemaFacet facet = (XmlSchemaFacet) facets.getItem(i);
+        	walkFacet(xmlSchema, facet);
+        }
 	}
 	
 	protected void walkSimpleTypeList(XmlSchema xmlSchema, XmlSchemaSimpleTypeList obj) {
@@ -776,7 +782,6 @@ public class XmlSchemaWalker {
 	protected void walkFacet(XmlSchema xmlSchema, XmlSchemaFacet obj) {
 		walkAnnotated(xmlSchema, obj);
 		// TODO Auto-generated method stub
-		
 	}
 
 	protected void walkField(XmlSchema xmlSchema, XmlSchemaXPath obj) {

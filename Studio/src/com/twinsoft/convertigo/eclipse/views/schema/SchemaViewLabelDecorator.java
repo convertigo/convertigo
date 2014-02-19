@@ -28,10 +28,12 @@ import java.util.Map;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaEnumerationFacet;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
 import org.apache.ws.commons.schema.XmlSchemaSimpleType;
+import org.apache.ws.commons.schema.XmlSchemaSimpleTypeRestriction;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.XmlSchemaUse;
 import org.eclipse.jface.resource.CompositeImageDescriptor;
@@ -127,6 +129,11 @@ public class SchemaViewLabelDecorator implements ILabelDecorator {
 					type = SchemaMeta.getType(xso, ((XmlSchemaAttribute) element).getSchemaTypeName());					
 				} else if (element instanceof XmlSchemaSimpleContentExtension) {
 					type = SchemaMeta.getType(xso, ((XmlSchemaSimpleContentExtension) element).getBaseTypeName());
+				} else if (element instanceof XmlSchemaSimpleTypeRestriction) {
+					type = SchemaMeta.getType(xso, ((XmlSchemaSimpleTypeRestriction) element).getBaseTypeName());
+				} else if (element instanceof XmlSchemaEnumerationFacet) {
+					XmlSchemaEnumerationFacet enumerationFacet = (XmlSchemaEnumerationFacet) element;
+					decoratedText += " [" + enumerationFacet.getValue() + "]";
 				}
 				if (type != null && type instanceof XmlSchemaSimpleType) {
 					decoratedText += " [" + SchemaMeta.getPrefix(type) + ":" + type.getName() + "]";
