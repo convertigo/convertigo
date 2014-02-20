@@ -52,11 +52,9 @@ import org.eclipse.swt.widgets.Text;
 public class CacheEditorComposite extends AbstractDialogComposite {
 
 	private Group groupResponseLifetime = null;
-	private Group groupAuthenticatedUser = null;
 	private Group groupOptions = null;
 	private Text textResponseLifetime = null;
 	private Label labelSeparator, labelSeparator1 = null;
-	private Button buttonAuthenticatedUser = null;
 	private Button buttonToggleShowHide = null;
 	private Button buttonGenerate = null;
 	private Button buttonDelete = null;
@@ -65,7 +63,6 @@ public class CacheEditorComposite extends AbstractDialogComposite {
 	private Combo comboDayWeek, comboDayMonth = null;
 	private Text textTimeInSeconds = null;
 	private String responseLifeTime = null;
-	private boolean useAuthenticatedUser = false;
 
 	public CacheEditorComposite(Composite parent, int style,
 			AbstractDialogCellEditor cellEditor) {
@@ -74,10 +71,7 @@ public class CacheEditorComposite extends AbstractDialogComposite {
 		// Initialize widgets if we have already a value
 		String value = (String) cellEditor.databaseObjectTreeObject
 				.getPropertyValue(cellEditor.propertyDescriptor.getId());
-		String[] values = value.split(";");
-		responseLifeTime = (values.length > 1 ? values[0] : "");
-		useAuthenticatedUser = (values.length > 1 ? Boolean
-				.parseBoolean(values[1]) : false);
+		responseLifeTime = value;
 
 		initialize();
 		// We initialize widgets in case we have already a value
@@ -85,7 +79,7 @@ public class CacheEditorComposite extends AbstractDialogComposite {
 						
 		this.getShell().addShellListener(new ShellListener() {
 			public void shellActivated(ShellEvent event) {
-				getDisplay().getActiveShell().setSize(370, 370);
+				getDisplay().getActiveShell().setSize(370, 300);
 			}
 			public void shellClosed(ShellEvent arg0) { }
 			public void shellDeactivated(ShellEvent arg0) { }
@@ -259,18 +253,6 @@ public class CacheEditorComposite extends AbstractDialogComposite {
 		});
 
 		/* END GROUP Generator tools */
-
-		/* GROUP Authenticated User */
-		groupAuthenticatedUser = new Group(this, SWT.NONE);
-		groupAuthenticatedUser.setText("Authenticated user");
-		groupAuthenticatedUser.setLayoutData(new GridData(GridData.FILL_BOTH));
-		groupAuthenticatedUser.setLayout(new GridLayout(1, false));
-
-		buttonAuthenticatedUser = new Button(groupAuthenticatedUser, SWT.CHECK);
-		if (responseLifeTime != null)
-			buttonAuthenticatedUser.setSelection(useAuthenticatedUser);
-		buttonAuthenticatedUser.setText("use authenticated user as cache key");
-		/* END GROUP Authenticated User */
 	}
 
 	private void showGeneratorTool(boolean show, boolean auto) {
@@ -402,16 +384,11 @@ public class CacheEditorComposite extends AbstractDialogComposite {
 
 	@Override
 	public Object getValue() {
-		if (!textResponseLifetime.getText().equals(""))
-			return textResponseLifetime.getText() + ";"
-					+ buttonAuthenticatedUser.getSelection();
-		else
-			return "";
+		return textResponseLifetime.getText();
 	}
 
 	public Object deleteValue() {
 		textResponseLifetime.setText("");
-		buttonAuthenticatedUser.setSelection(false);
 		return getValue();
 	}
 }

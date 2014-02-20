@@ -565,6 +565,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	/** Holds value of property responseExpiryDate. */
 	private String responseExpiryDate = "";
     
+	/** */
+	private boolean authenticatedUserAsCacheKey = false;
+	
 	/** Getter for property responseExpiryDate.
 	 * @return Value of property responseExpiryDate.
 	 */
@@ -577,38 +580,20 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	public void setResponseExpiryDate(String responseExpiryDate) {
 		this.responseExpiryDate = responseExpiryDate;
 	}
-	/** Getter for have only the response lifetime.
-	 * @return Value of the response lifetime.
+
+	/**
+	 * Setter which set the value of authenticatedUserAsCacheKey
+	 * @param authenticatedUserAsCacheKey
 	 */
-	public String getResponseLifetime() {
-		String resp = "";
-		if (this.responseExpiryDate!=null && !responseExpiryDate.equals("")) {
-			resp = (responseExpiryDate.split(";"))[0];
-		}
-		return resp;
+	public void setAuthenticatedUserAsCacheKey(boolean authenticatedUserAsCacheKey) {
+		this.authenticatedUserAsCacheKey = authenticatedUserAsCacheKey;
 	}
 	/**
-	 * Set the response lifetime.
-	 * @param responseLifetime
+	 * Getter which return the value of authenticatedUserAsCacheKey
+	 * @return boolean
 	 */
-	public void setResponseLifetime(String responseLifetime) {
-		if (this.responseExpiryDate!=null && !this.responseExpiryDate.equals("")) {
-			String useAuthenticatedUserAsCacheKey = (responseExpiryDate.split(";"))[1];
-			if (useAuthenticatedUserAsCacheKey!=null && !useAuthenticatedUserAsCacheKey.equals("")) {
-				this.responseExpiryDate = responseLifetime+";"+useAuthenticatedUserAsCacheKey;
-			} else {
-				this.responseExpiryDate = responseLifetime+";false";
-			}
-		}
-	}
-	/** Getter to know if we use authenticated user as cache key.
-	 * @return Value the use authenticated user as cache key.
-	 */
-	public boolean useAuthenticatedUserAsCacheKey() {
-		boolean ret = false;
-		if (responseExpiryDate!=null && !responseExpiryDate.equals("") && responseExpiryDate.split(";").length==2)
-			ret = Boolean.parseBoolean((responseExpiryDate.split(";"))[1]);
-		return ret;
+	public boolean isAuthenticatedUserAsCacheKey(){
+		return authenticatedUserAsCacheKey;
 	}
 	/**
 	 * Retrieves the transaction response date in milliseconds.
@@ -626,7 +611,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		int cDoW = nowCalendar.get(Calendar.DAY_OF_WEEK);
 
 		try {		
-			StringTokenizer st = new StringTokenizer(getResponseLifetime(), "," , false);
+			StringTokenizer st = new StringTokenizer(getResponseExpiryDate(), "," , false);
 			String param;
 			param = st.nextToken();
 			

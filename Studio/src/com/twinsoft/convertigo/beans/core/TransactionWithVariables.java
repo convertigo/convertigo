@@ -612,7 +612,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		checkSubLoaded();
 		
 		List<String> vVariables = new Vector<String>(variables.size());
-		if ( useAuthenticatedUserAsCacheKey() )
+		if ( isAuthenticatedUserAsCacheKey() )
 			vVariables.add("userID="+context.getAuthenticatedUser());
 		for (String variableName : variables.keySet()) {
 			if (includeVariableIntoRequestString(variableName)) {
