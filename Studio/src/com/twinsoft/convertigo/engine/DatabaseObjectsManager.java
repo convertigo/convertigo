@@ -1219,7 +1219,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 			throws EngineException {
 		try {
 			DatabaseObject databaseObject = DatabaseObject.read(node);
-			databaseObject.isImporting = true;
 			if (parentDatabaseObject != null) {
 				parentDatabaseObject.add(databaseObject);
 			}

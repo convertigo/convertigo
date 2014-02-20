@@ -818,20 +818,22 @@ public class SqlTransaction extends TransactionWithVariables {
 	}
 	
 	private boolean checkVariables(List<SqlQueryInfos> sqlQueries) {
-		for(SqlQueryInfos sqlQuery : sqlQueries){
-			Map<String, String> variables  = sqlQuery.getParametersMap();
-			if(sqlQuery.orderedParametersList != null && variables != null){
-				if(sqlQuery.orderedParametersList.size() != 0 && variables.size() != 0){
-					for(String key : sqlQuery.orderedParametersList){
-						if( !getParameterValue( key, this.getVariableVisibility(key) ).toString().equals( variables.get(key) ) )
-							return false;	
+		
+		if (sqlQueries!=null) {
+			for(SqlQueryInfos sqlQuery : sqlQueries){
+				Map<String, String> variables  = sqlQuery.getParametersMap();
+				if(sqlQuery.orderedParametersList != null && variables != null){
+					if(sqlQuery.orderedParametersList.size() != 0 && variables.size() != 0){
+						for(String key : sqlQuery.orderedParametersList){
+							if( !getParameterValue( key, this.getVariableVisibility(key) ).toString().equals( variables.get(key) ) )
+								return false;	
+						}
 					}
 				}
-			}else{
-				initializeQueries(true);
-				checkVariables(preparedSqlQueries);
-				return checkVariables(preparedSqlQueries);
 			}
+		} else {
+			initializeQueries(true);
+			return checkVariables(preparedSqlQueries);
 		}
 		return true;
 	}
@@ -1191,7 +1193,9 @@ public class SqlTransaction extends TransactionWithVariables {
 	 */
 	public void setSqlQuery(String string) {
 		sqlQuery = string;
-		initializeQueries(true);
+		if(!isImporting) {
+			initializeQueries(true);
+		}
 	}
 
 	/**
