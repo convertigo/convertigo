@@ -472,21 +472,21 @@ public class EnginePropertiesManager {
 		XULRUNNER_WORK ("xulrunner.work", "${user.workspace}/xulrunner-work", "XulRunner work directory", PropertyCategory.XulRunner),
 
 		/** SECURITY TOKEN */
-		SECURITY_TOKEN_LIFE_TIME ("security_token.life_time", "20", "Security tokens lifetime (in seconds)", PropertyCategory.SecurityToken),
+		SECURITY_TOKEN_LIFE_TIME ("security_token.life_time", "20", "Security token lifetime (in seconds)", PropertyCategory.SecurityToken),
 		@PropertyOptions(propertyType = PropertyType.PasswordHash)
 		SECURITY_TOKEN_PASSWORD ("security_token.password", ""+"c8o-password".hashCode(), "Security token generator password", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = SecurityTokenMode.class)
-		SECURITY_TOKEN_MODE ("security_token.mode", SecurityTokenMode.memory.getValue(), "Storage Mode", PropertyCategory.SecurityToken),
+		SECURITY_TOKEN_MODE ("security_token.mode", SecurityTokenMode.memory.getValue(), "Storage mode", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
-		SECURITY_TOKEN_PERSISTENCE_DIALECT ("security_token.persistence.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect", "Persistence Dialect", PropertyCategory.SecurityToken),
+		SECURITY_TOKEN_PERSISTENCE_DIALECT ("security_token.persistence.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect", "Persistence dialect", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
-		SECURITY_TOKEN_PERSISTENCE_JDBC_DRIVER ("security_token.persistence.jdbc.driver", "org.mariadb.jdbc.Driver", "JDBC Driver", PropertyCategory.SecurityToken),
+		SECURITY_TOKEN_PERSISTENCE_JDBC_DRIVER ("security_token.persistence.jdbc.driver", "org.mariadb.jdbc.Driver", "JDBC driver", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
 		SECURITY_TOKEN_PERSISTENCE_JDBC_URL ("security_token.persistence.jdbc.url", "jdbc:mysql://localhost:3306/c8oSecurityToken", "JDBC URL", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
-		SECURITY_TOKEN_PERSISTENCE_JDBC_USERNAME ("security_token.persistence.jdbc.username", "", "JDBC Username", PropertyCategory.SecurityToken),
+		SECURITY_TOKEN_PERSISTENCE_JDBC_USERNAME ("security_token.persistence.jdbc.username", "", "JDBC username", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
-		SECURITY_TOKEN_PERSISTENCE_JDBC_PASSWORD ("security_token.persistence.jdbc.password", "", "JDBC Password", PropertyCategory.SecurityToken),
+		SECURITY_TOKEN_PERSISTENCE_JDBC_PASSWORD ("security_token.persistence.jdbc.password", "", "JDBC password", PropertyCategory.SecurityToken),
 		
 		/** SSL */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
