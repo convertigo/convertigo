@@ -84,7 +84,7 @@ public class Get extends TextService {
 		
 		SecurityToken token = Engine.theApp.securityTokenManager.generateToken(userID, data);
 		
-		return token.tokenID;
+		return token.getTokenID();
 	}
 	
 }
