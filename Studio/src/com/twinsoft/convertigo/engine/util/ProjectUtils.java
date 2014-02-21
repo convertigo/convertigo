@@ -1,19 +1,23 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
+* Copyright (c) 2009-2014 Convertigo. All Rights Reserved.
+*
+* The copyright to the computer  program(s) herein  is the property
+* of Convertigo.
+* The program(s) may  be used  and/or copied  only with the written
+* permission  of  Convertigo  or in accordance  with  the terms and
+* conditions  stipulated  in the agreement/contract under which the
+* program(s) have been supplied.
+*
+* Convertigo makes  no  representations  or  warranties  about  the
+* suitability of the software, either express or implied, including
+* but  not  limited  to  the implied warranties of merchantability,
+* fitness for a particular purpose, or non-infringement. Convertigo
+* shall  not  be  liable for  any damage  suffered by licensee as a
+* result of using,  modifying or  distributing this software or its
+* derivatives.
+*/
+
+/*
  * $URL$
  * $Author$
  * $Revision$
@@ -54,6 +58,12 @@ import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.connectors.CicsConnector;
+import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
+import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
+import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
+import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -459,7 +469,16 @@ public class ProjectUtils {
 						int depth = 0;
 						int sequenceJavascriptLines;
 						int sequenceJavascriptFunction;
-    					int connectorCount = 0;
+						
+    					int connectorCount = 0;    					
+						int httpConnectorCount = 0;
+						int httpsConnectorCount = 0;
+						int htmlConnectorCount = 0;
+						int cicsConnectorCount = 0;
+						int siteClipperConnectorCount = 0;
+						int sqlConnectorCount = 0;
+						int javelinConnectorCount = 0;
+    					
     					int htmlScreenclassCount = 0;
     					int htmlCriteriaCount = 0;
     					int siteClipperScreenclassCount = 0;
@@ -474,7 +493,6 @@ public class ProjectUtils {
     					int javelinExtractionRuleCount = 0;
     					int javelinEntryHandlerCount = 0;
     					int javelinExitHandlerCount = 0;
-    					int javelinFunctionCount = 0;
     					int javelinHandlerCount = 0;
     					int javelinJavascriptLines = 0;
     					int statementCount = 0;
@@ -494,16 +512,20 @@ public class ProjectUtils {
     					/*
     					 * transaction counters
     					 */
+    					int transactionCount = 0;
     					int transactionWithVariablesCount = 0;
+    					
     					int htmltransactionCount = 0;
-    					int httptransactionCount = 0;
+    					int httpTransactionCount = 0;
+    					int httpsTransactionCount = 0;
+    					int xmlHttpTransactionCount = 0;
+    					int xmlHttpsTransactionCount = 0;
     					int jsonHttpTransactionCount = 0;
+    					int jsonHttpsTransactionCount = 0;
     					int proxyTransactionCount = 0;
     					int siteClipperTransactionCount = 0;
-    					int xmlHttpTransactionCount = 0;
     					int javelinTransactionCount = 0;
     					int sqlTransactionCount = 0;
-    					int transactionCount = 0;
     					int totalC8oObjects = 0;
     					
     					public void go(DatabaseObject project) {
@@ -511,6 +533,8 @@ public class ProjectUtils {
     		                	String projectName = project.getName();                
     							
 								init(project);
+								
+								connectorCount = htmlConnectorCount + httpConnectorCount + httpsConnectorCount + cicsConnectorCount + siteClipperConnectorCount + sqlConnectorCount + javelinConnectorCount;
 								
 								totalC8oObjects = 1  
 										+ connectorCount	// connectors
@@ -527,14 +551,16 @@ public class ProjectUtils {
 										+ javelinEntryHandlerCount
 										+ javelinExitHandlerCount
 										+ javelinHandlerCount
-										+ javelinFunctionCount
 										+ javelinTransactionVariableCount
 										+ sqlTransactionCount
 										+ sqlTransactionVariableCount
 										+ sheetCount
 										+ jsonHttpTransactionCount
+										+ jsonHttpsTransactionCount
 										+ xmlHttpTransactionCount
-										+ httptransactionCount
+										+ xmlHttpsTransactionCount
+										+ httpTransactionCount
+										+ httpsTransactionCount
 										+ proxyTransactionCount
 										+ siteClipperTransactionCount
 										+ siteClipperScreenclassCount
@@ -546,8 +572,7 @@ public class ProjectUtils {
 										+ poolCount
 										+ referenceCount
 										+ testcaseCount
-										+ testcaseVariableCount;
-								
+										+ testcaseVariableCount;								
 							
 								displayString = projectName + " contains " + totalC8oObjects + " objects<br/>"								// ok
 										+ " connectorCount = " + connectorCount;															// ok
@@ -581,8 +606,8 @@ public class ProjectUtils {
 										+ "&nbsp;criteriaCount = " + javelinCriteriaCount + "<br/>"
 										+ "&nbsp;extractionRuleCount = " + javelinExtractionRuleCount + "<br/>"
 										+ "&nbsp;transactionCount = " + javelinTransactionCount + "<br/>"											// ok
-										+ "&nbsp;handlerCount (Entry = " + javelinEntryHandlerCount + ", Exit = " + javelinExitHandlerCount + ", Screenclass = " + javelinHandlerCount + ", functions = " + javelinFunctionCount 
-										+ "), total = " + (int)(javelinEntryHandlerCount + javelinExitHandlerCount + javelinHandlerCount + javelinFunctionCount) + " in " + javelinJavascriptLines + " lines<br/>"										
+										+ "&nbsp;handlerCount (Entry = " + javelinEntryHandlerCount + ", Exit = " + javelinExitHandlerCount + ", Screenclass = " + javelinHandlerCount + "), total = " 
+										+ (int)(javelinEntryHandlerCount + javelinExitHandlerCount + javelinHandlerCount) + " in " + javelinJavascriptLines + " lines<br/>"										
 										+ "&nbsp;variableCount = " + javelinTransactionVariableCount;
 									
 									result.put("Javelin connector", displayString);
@@ -613,12 +638,24 @@ public class ProjectUtils {
 								if (jsonHttpTransactionCount > 0) {
 									
 									displayString = 
-										"&nbsp;JSONTransactionCount = " + jsonHttpTransactionCount + "<br/>"										// ok
-										+ "&nbsp;xmlTransactionCount = " + xmlHttpTransactionCount + "<br/>"											// ok
-										+ "&nbsp;HTTPtransactionCount = " + httptransactionCount;
+										"&nbsp;JSONTransactionCount = " + jsonHttpTransactionCount + "<br/>"									// ok
+										+ "&nbsp;xmlTransactionCount = " + xmlHttpTransactionCount + "<br/>"									// ok
+										+ "&nbsp;HTTPtransactionCount = " + httpTransactionCount;
 
 									result.put("HTTP connector", displayString);
 								}						
+
+								/*
+								 * Https connector
+								 */
+								if (httpsConnectorCount > 0) {
+									displayString = 
+										"&nbsp;JsonTransactionCount = " + jsonHttpsTransactionCount + "<br/>"									// ok
+										+ "&nbsp;XmlTransactionCount = " + xmlHttpsTransactionCount + "<br/>"									// ok
+										+ "&nbsp;HttpTransactionCount = " + httpsTransactionCount;												// ok
+									
+									result.put("HTTPS connector", displayString);
+								}			
 
 								/*
 								 * Proxy connector
@@ -630,7 +667,7 @@ public class ProjectUtils {
 
 									result.put("Proxy connector", displayString);
 								}						
-
+								
 								/*
 								 * Siteclipper connector
 								 */
@@ -638,7 +675,7 @@ public class ProjectUtils {
 									
 									displayString = 
 										"&nbsp;TransactionCount = " + siteClipperTransactionCount + "<br/>"										// ok
-										+ "&nbsp;screenclassCount = " + siteClipperScreenclassCount + "<br/>"										// ok
+										+ "&nbsp;screenclassCount = " + siteClipperScreenclassCount + "<br/>"									// ok
 										+ "&nbsp;criteriaCount = " + siteClipperCriteriaCount;
 									
 									result.put("SiteClipper connector", displayString);
@@ -651,7 +688,7 @@ public class ProjectUtils {
 									
 									displayString = 
 										"&nbsp;sequenceCount = " + sequenceCount + "<br/>"														// ok
-										+ "&nbsp;stepCount = " + stepCount + "<br/>"																// ok
+										+ "&nbsp;stepCount = " + stepCount + "<br/>"															// ok
 										+ "&nbsp;variableCount = " + sequenceVariableCount + "<br/>"
 										+ "&nbsp;javascriptCode = " + sequenceJavascriptFunction + " functions in " + sequenceJavascriptLines + " lines"
 										+  ((boolean)(sequenceJavascriptFunction == 0) ? " (declarations or so)":"");
@@ -695,26 +732,54 @@ public class ProjectUtils {
 						@Override
 						protected void walk(DatabaseObject databaseObject) throws Exception {
 							depth++;
+							
 							// String name = databaseObject.getName();
 							
 							// deal with connectors
-							if (databaseObject instanceof Connector) {    								
-								connectorCount++;
-							}							
+							if (databaseObject instanceof Connector) {
+								if (databaseObject instanceof HtmlConnector) {
+									htmlConnectorCount++;
+								}
+								else
+								if (databaseObject instanceof HttpConnector) {
+									if (((HttpConnector)databaseObject).isHttps()) 
+										httpsConnectorCount++;
+									else
+										httpConnectorCount++;
+								}
+								else
+								if (databaseObject instanceof CicsConnector) {
+									cicsConnectorCount++;
+								}
+								else
+								if (databaseObject instanceof SiteClipperConnector) {
+									siteClipperConnectorCount++;
+								}
+								else
+								if (databaseObject instanceof SqlConnector) {
+									sqlConnectorCount++;
+								}
+								else
+								if (databaseObject instanceof JavelinConnector) {
+									javelinConnectorCount++;
+								}
+							}					
+/*							
 							else
 							if (databaseObject instanceof Reference) {    								
 								referenceCount++;
-							}							
-						else 																// deal with screenclasses
+							}
+*/														
+							else // deal with screenclasses
 							if (databaseObject instanceof ScreenClass) {
-								if (databaseObject instanceof JavelinScreenClass) {			// deal with javelinScreenClasses    								
+								if (databaseObject instanceof JavelinScreenClass) {	// deal with javelinScreenClasses    								
 									javelinScreenclassCount++;
 								}
 								else 
-								if (databaseObject instanceof SiteClipperScreenClass) {		// deal with siteClipperScreenClasses    								
+								if (databaseObject instanceof SiteClipperScreenClass) {	// deal with siteClipperScreenClasses    								
 									siteClipperScreenclassCount++;
 								}
-								else {														// deal with html ScreenClasses
+								else {												// deal with html ScreenClasses
 									htmlScreenclassCount++;
 								}
 							}
@@ -748,15 +813,24 @@ public class ProjectUtils {
 									}
 									else
 									if (databaseObject instanceof JsonHttpTransaction) {
-										jsonHttpTransactionCount++;
+										if (((HttpConnector)databaseObject.getParent()).isHttps())
+											jsonHttpsTransactionCount++;
+										else
+											jsonHttpTransactionCount++;
 									}
 									else
 									if (databaseObject instanceof HttpTransaction) {
-										httptransactionCount++;
+										if (((HttpConnector)databaseObject.getParent()).isHttps())
+											httpsTransactionCount++;
+										else
+											httpTransactionCount++;
 									}
 									else
 									if (databaseObject instanceof XmlHttpTransaction) {
-										xmlHttpTransactionCount++;
+										if (((HttpConnector)databaseObject.getParent()).isHttps())
+											xmlHttpsTransactionCount++;
+										else
+											xmlHttpTransactionCount++;
 									}								
 									else
 									if (databaseObject instanceof ProxyTransaction) {
@@ -790,15 +864,17 @@ public class ProjectUtils {
 														javelinExitHandlerCount++;
 													} else {
 														// TYPE_OTHER
-														javelinFunctionCount++;
+														javelinHandlerCount++;
 													}
 												} catch(StringIndexOutOfBoundsException e) {
 													// Ignore
 												}
 											}
 										}
+
 										// compute total number of lines of javascript
 										javelinJavascriptLines += lineNumber;
+										
 										javelinTransactionCount++;
 									}
 									else
@@ -821,8 +897,11 @@ public class ProjectUtils {
 											    }
 											}
 										}
+										
 										sqlTransactionCount++;
 									}
+									
+									transactionWithVariablesCount++;
 								}
 								else { // transaction with no variables
 									transactionCount++;
