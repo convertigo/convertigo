@@ -34,6 +34,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.Vector;
+import java.util.Map.Entry;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
@@ -468,13 +469,14 @@ public abstract class GenericRequester extends Requester {
 //				context.portalUserName = securityToken.userID;
 				if (context.httpSession != null) {
 //					context.httpSession.setAttribute("authenticatedUser", context.portalUserName);
-					context.httpSession.setAttribute("authenticatedUser", securityToken.userID);
+					context.httpSession.setAttribute("authenticatedUser", securityToken.getUserID());
 					Engine.logContext.debug("Authenticated user added in the HTTP session");
 				}
 				
-				if (!securityToken.data.isEmpty()) {
-					for (String key : securityToken.data.keySet()) {
-						String value = securityToken.data.get(key);
+				if (!securityToken.getData().isEmpty()) {
+					for (Entry<String, String> entry : securityToken.getData().entrySet()) {
+						String key = entry.getKey();
+						String value = entry.getValue();
 						context.set(key, value);
 						Engine.logContext.debug("Added security data in the context: " + key + "=" + value);
 					}
