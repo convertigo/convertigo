@@ -33,6 +33,7 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -70,8 +71,8 @@ import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
 import com.twinsoft.convertigo.engine.SecurityToken;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class GenericRequester extends Requester {
 	
@@ -451,15 +452,16 @@ public abstract class GenericRequester extends Requester {
 				Engine.logContext.debug("The security token is \"" + securityToken + "\".");
 				
 				// Update the context with the security token information
-				context.portalUserName = securityToken.userID;
+				context.portalUserName = securityToken.getUserID();
 				if (context.httpSession != null) {
 					context.httpSession.setAttribute("authenticatedUser", context.portalUserName);
 					Engine.logContext.debug("Authenticated user added in the HTTP session");
 				}
 				
-				if (!securityToken.data.isEmpty()) {
-					for (String key : securityToken.data.keySet()) {
-						String value = securityToken.data.get(key);
+				if (!securityToken.getData().isEmpty()) {
+					for (Entry<String, String> entry : securityToken.getData().entrySet()) {
+						String key = entry.getKey();
+						String value = entry.getValue();
 						context.set(key, value);
 						Engine.logContext.debug("Added security data in the context: " + key + "=" + value);
 					}
