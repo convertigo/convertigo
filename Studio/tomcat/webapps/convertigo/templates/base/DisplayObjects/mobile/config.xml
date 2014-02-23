@@ -10,23 +10,52 @@
 	<author href="http://www.convertigo.com" email="sales@convertigo.com">Convertigo
 	</author>
 	
-<!-- See the following page for more documentation about config.xml:
-	 https://build.phonegap.com/docs/config-xml  -->
-	 
-	<gap:platforms>
-		<gap:platform minVersion="2.1" name="android"/>
-		<gap:platform name="webos"/>
-		<gap:platform name="iOS"/>
-		<gap:platform name="symbian.wrt"/>
-		<gap:platform name="blackberry" project="widgets"/>
-		<gap:platform name="winphone"/>
-	</gap:platforms>
+	<!--
+		See the following page for more documentation about config.xml:
+		https://build.phonegap.com/docs/config-xml
+	-->
 	
-	<preference name="phonegap-version" value="2.9.0" />
-    <preference name="orientation"      value="default" />
-    <preference name="target-device"    value="universal" />
-    <preference name="fullscreen"       value="false" />
+	<!-- Customize your app and platform with the preference element. -->
+    <preference name="phonegap-version"           value="3.3.0" />          <!-- all: current version of PhoneGap -->
+    <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
+    <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
+    <preference name="fullscreen"                 value="true" />           <!-- all: hides the status bar at the top of the screen -->
+    <preference name="prerendered-icon"           value="true" />           <!-- ios: if icon is prerendered, iOS will not apply it's gloss to the app's icon on the user's home screen -->
+    <preference name="ios-statusbarstyle"         value="black-opaque" />   <!-- ios: black-translucent will appear black because the PhoneGap webview doesn't go beneath the status bar -->
+    <preference name="detect-data-types"          value="true" />           <!-- ios: controls whether data types (such as phone no. and dates) are automatically turned into links by the system -->
+    <preference name="exit-on-suspend"            value="false" />          <!-- ios: if set to true, app will terminate when home button is pressed -->
+    <preference name="auto-hide-splash-screen"    value="true" />           <!-- ios: if set to false, the splash screen must be hidden using a JavaScript API -->
+    <preference name="disable-cursor"             value="false" />          <!-- blackberry: prevents a mouse-icon/cursor from being displayed on the app -->
+    <preference name="android-minSdkVersion"      value="7" />              <!-- android: MIN SDK version supported on the target device. MAX version is blank by default. -->
+    <preference name="android-installLocation"    value="auto" />           <!-- android: app install location. 'auto' will choose. 'internalOnly' is device memory. 'preferExternal' is SDCard. -->
 
+    <!-- Core plugins mandatory for FlashUpdate service -->
+    <gap:plugin name="org.apache.cordova.device" />
+    <gap:plugin name="org.apache.cordova.file" />
+    <gap:plugin name="org.apache.cordova.file-transfer" />
+    <gap:plugin name="org.apache.cordova.console" />
+    
+    <!-- Other optional Core plugins, comment them out if you want to reduce the package size -->
+    <gap:plugin name="org.apache.cordova.battery-status" />
+    <gap:plugin name="org.apache.cordova.camera" />
+    <gap:plugin name="org.apache.cordova.media-capture" />
+    <gap:plugin name="org.apache.cordova.contacts" />
+    <gap:plugin name="org.apache.cordova.device-motion" />
+    <gap:plugin name="org.apache.cordova.device-orientation" />
+    <gap:plugin name="org.apache.cordova.dialogs" />
+    <gap:plugin name="org.apache.cordova.geolocation" />
+    <gap:plugin name="org.apache.cordova.globalization" />
+    <gap:plugin name="org.apache.cordova.inappbrowser" />
+    <gap:plugin name="org.apache.cordova.media" />
+    <gap:plugin name="org.apache.cordova.network-information" />
+    <gap:plugin name="org.apache.cordova.splashscreen" />
+    <gap:plugin name="org.apache.cordova.vibration" />
+
+    <!-- Other optional plugins, comment them out if you want to reduce the package size -->
+    <gap:plugin name="com.phonegap.plugins.pushplugin" />				<!--  If you want to use the Push feature -->
+    <gap:plugin name="com.phonegap.plugins.barcodescanner" />			<!--  If you want to use the barcode reader -->
+    
+    <!-- Icons multi devices -->
 	<icon src="icon.png"/>
 	<icon src="res/icon/android/icon36ldpi.png"   gap:platform="android"    gap:density="ldpi" />
     <icon src="res/icon/android/icon48mdpi.png"   gap:platform="android"    gap:density="mdpi" />
@@ -41,7 +70,8 @@
     <icon src="res/icon/webos/icon64.png"         gap:platform="webos" />
     <icon src="res/icon/winphone/icon48.png"      gap:platform="winphone" />
     <icon src="res/icon/winphone/icon173tile.png" gap:platform="winphone"   gap:role="background" />
-	
+
+    <!-- Splash sereens -->
 	<gap:splash src="res/splash/android/ldpi.png"  			     gap:platform="android" gap:density="ldpi" />
     <gap:splash src="res/splash/android/mdpi.png"  			     gap:platform="android" gap:density="mdpi" />
     <gap:splash src="res/splash/android/hdpi.png"  			     gap:platform="android" gap:density="hdpi" />
@@ -57,7 +87,6 @@
     <gap:splash src="res/splash/ios/splashiPadLandscape2x.png"   gap:platform="ios"     width="2008" height="1536" />
     <gap:splash src="res/splash/winphone/splash.jpg" 		     gap:platform="winphone" />
 
-<!-- 	<gap:plugin name="com.phonegap.plugins.pushplugin" /> -->
 
 	<!-- If you do not want any permissions to be added to your app, add the
     following tag to your config.xml; you will still have the INTERNET
@@ -66,13 +95,6 @@
 	
 	<!-- Currently supported through this interface and to enable individual permissions use the following examples: -->
 	<feature name="http://api.phonegap.com/1.0/device" />
-	<!-- <feature name="http://api.phonegap.com/1.0/camera"/>-->
-	<!-- <feature name="http://api.phonegap.com/1.0/contacts"/>-->
-	<!-- <feature name="http://api.phonegap.com/1.0/file"/>-->
-	<!-- <feature name="http://api.phonegap.com/1.0/geolocation"/>-->
-	<!-- <feature name="http://api.phonegap.com/1.0/media"/>-->
-	<!-- <feature name="http://api.phonegap.com/1.0/network"/>-->
-	<!-- <feature name="http://api.phonegap.com/1.0/notification"/>-->
 
 	<!--
 		Expose access to all URIs, including the file and http protocols
