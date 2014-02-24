@@ -478,7 +478,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = SecurityTokenMode.class)
 		SECURITY_TOKEN_MODE ("security_token.mode", SecurityTokenMode.memory.getValue(), "Storage mode", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
-		SECURITY_TOKEN_PERSISTENCE_DIALECT ("security_token.persistence.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect", "Persistence dialect", PropertyCategory.SecurityToken),
+		SECURITY_TOKEN_PERSISTENCE_DIALECT ("security_token.persistence.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect", "SQL dialect", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
 		SECURITY_TOKEN_PERSISTENCE_JDBC_DRIVER ("security_token.persistence.jdbc.driver", "org.mariadb.jdbc.Driver", "JDBC driver", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
