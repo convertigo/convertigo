@@ -312,9 +312,9 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		SOAP_REQUEST_ADD_XML_ENCODING_CHARSET ("soap.request.add_xml_encoding_charset", "false", "Add XML encoding charset for SOAP requests", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		THROW_HTTP_500 ("throw_http_500", "true", "Throw HTTP 500 in case of uncoverable servlet error", PropertyCategory.Main),
+		THROW_HTTP_500 ("throw_http_500", "true", "Throw HTTP 500 in case of unrecoverable servlet error", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
-		HIDING_ERROR_INFORMATION ("hiding_error_information", "false", "Hide errors informations", PropertyCategory.Main),
+		HIDING_ERROR_INFORMATION ("hiding_error_information", "false", "Hide detailed information in case of unrecoverable servlet error", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)
 		THROW_HTTP_500_SOAP_FAULT ("throw_http_500.soap_fault", "true", "Throw HTTP 500 in case of SOAP fault", PropertyCategory.Main),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean, visibility = Visibility.HIDDEN)
@@ -477,7 +477,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = SecurityTokenMode.class)
 		SECURITY_TOKEN_MODE ("security_token.mode", SecurityTokenMode.memory.getValue(), "Storage mode", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
-		SECURITY_TOKEN_PERSISTENCE_DIALECT ("security_token.persistence.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect", "Persistence dialect", PropertyCategory.SecurityToken),
+		SECURITY_TOKEN_PERSISTENCE_DIALECT ("security_token.persistence.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect", "SQL dialect", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
 		SECURITY_TOKEN_PERSISTENCE_JDBC_DRIVER ("security_token.persistence.jdbc.driver", "org.mariadb.jdbc.Driver", "JDBC driver", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
