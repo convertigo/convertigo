@@ -486,7 +486,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = SecurityTokenMode.class)
 		SECURITY_TOKEN_MODE ("security_token.mode", SecurityTokenMode.memory.getValue(), "Storage mode", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
-		SECURITY_TOKEN_PERSISTENCE_DIALECT ("security_token.persistence.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect", "SQL dialect", PropertyCategory.SecurityToken),
+		SECURITY_TOKEN_PERSISTENCE_DIALECT ("security_token.persistence.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect", "SQL Dialect", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
 		SECURITY_TOKEN_PERSISTENCE_JDBC_DRIVER ("security_token.persistence.jdbc.driver", "org.mariadb.jdbc.Driver", "JDBC driver", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
@@ -523,7 +523,7 @@ public class EnginePropertiesManager {
 
 		/** ANALYTICS ADVANCE */
 		@PropertyOptions(advance = true)
-		BILLING_PERSISTENCE_DIALECT ("billing.persistence.dialect", "org.hibernate.dialect.HSQLDialect", "SQL dialect", PropertyCategory.Billing),
+		BILLING_PERSISTENCE_DIALECT ("billing.persistence.dialect", "org.hibernate.dialect.HSQLDialect", "SQL Dialect", PropertyCategory.Billing),
 		@PropertyOptions(advance = true)
 		BILLING_PERSISTENCE_JDBC_DRIVER ("billing.persistence.jdbc.driver", "org.hsqldb.jdbcDriver", "JDBC driver", PropertyCategory.Billing),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
