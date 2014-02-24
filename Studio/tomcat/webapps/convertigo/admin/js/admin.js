@@ -124,7 +124,12 @@ function checkAuthentication(){
 			} else {
 				document.location.href = "login.html";
 			}
-		},		
+		},
+		error : function (xhr, ajaxOptions, thrownError) {
+			if (xhr.status==503) {
+				showError("Server seems unreacheable");
+			}
+		},
         global: false
 	});
 }
