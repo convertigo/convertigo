@@ -251,7 +251,7 @@ public class EnginePropertiesManager {
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
     	Carioca ("Legacy Carioca portal"),
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
-    	Billing ("Supervision"),
+    	Billing ("Analytics"),
     	Notifications ("Notifications"),
     	MobileBuilder ("Mobile builder"),
     	@CategoryOptions(visibility = Visibility.HIDDEN)
@@ -486,7 +486,7 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = SecurityTokenMode.class)
 		SECURITY_TOKEN_MODE ("security_token.mode", SecurityTokenMode.memory.getValue(), "Storage mode", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
-		SECURITY_TOKEN_PERSISTENCE_DIALECT ("security_token.persistence.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect", "Persistence dialect", PropertyCategory.SecurityToken),
+		SECURITY_TOKEN_PERSISTENCE_DIALECT ("security_token.persistence.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect", "SQL dialect", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
 		SECURITY_TOKEN_PERSISTENCE_JDBC_DRIVER ("security_token.persistence.jdbc.driver", "org.mariadb.jdbc.Driver", "JDBC driver", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true)
@@ -517,21 +517,21 @@ public class EnginePropertiesManager {
 		CARIOCA_SESSION_KEY_LIFE_TIME ("carioca.session_key.life_time", "60", "Default session key life time (in seconds)", PropertyCategory.Carioca),
 		CARIOCA_URL ("carioca.url", "${user.workspace}/minime", "Carioca access URL", PropertyCategory.Carioca),
 
-		/** SUPERVISION */
+		/** ANALYTICS */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
-		BILLING_ENABLED ("billing.enabled", "false", "Enable supervision", PropertyCategory.Billing),
+		BILLING_ENABLED ("billing.enabled", "false", "Enable analytics", PropertyCategory.Billing),
 
-		/** SUPERVISION ADVANCE */
+		/** ANALYTICS ADVANCE */
 		@PropertyOptions(advance = true)
-		BILLING_PERSISTENCE_DIALECT ("billing.persistence.dialect", "org.hibernate.dialect.HSQLDialect", "Persistence Dialect", PropertyCategory.Billing),
+		BILLING_PERSISTENCE_DIALECT ("billing.persistence.dialect", "org.hibernate.dialect.HSQLDialect", "SQL dialect", PropertyCategory.Billing),
 		@PropertyOptions(advance = true)
-		BILLING_PERSISTENCE_JDBC_DRIVER ("billing.persistence.jdbc.driver", "org.hsqldb.jdbcDriver", "JDBC Driver", PropertyCategory.Billing),
+		BILLING_PERSISTENCE_JDBC_DRIVER ("billing.persistence.jdbc.driver", "org.hsqldb.jdbcDriver", "JDBC driver", PropertyCategory.Billing),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
-		BILLING_PERSISTENCE_JDBC_PASSWORD ("billing.persistence.jdbc.password", "", "JDBC Password", PropertyCategory.Billing),
+		BILLING_PERSISTENCE_JDBC_PASSWORD ("billing.persistence.jdbc.password", "", "JDBC password", PropertyCategory.Billing),
 		@PropertyOptions(advance = true)
 		BILLING_PERSISTENCE_JDBC_URL ("billing.persistence.jdbc.url", "jdbc:hsqldb:file:${user.workspace}/databases/hsqldb_billing", "JDBC URL", PropertyCategory.Billing),
 		@PropertyOptions(advance = true)
-		BILLING_PERSISTENCE_JDBC_USERNAME ("billing.persistence.jdbc.username", "sa", "JDBC Username", PropertyCategory.Billing),
+		BILLING_PERSISTENCE_JDBC_USERNAME ("billing.persistence.jdbc.username", "sa", "JDBC username", PropertyCategory.Billing),
 
 		/** NOTIFICATIONS */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
