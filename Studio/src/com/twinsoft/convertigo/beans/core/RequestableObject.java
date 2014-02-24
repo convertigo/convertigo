@@ -902,19 +902,6 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 	    		Engine.logBeans.error("[RequestableObject] Could not backup wsdlTypes for requestable \""+ getName() +"\" (v 4.6.0)", e);
 	    	}
         }
-        try {
-	        // Add case of migration to the new cache editor
-	        if (VersionUtils.compare(version, "7.1.0") < 0) {
-				if ( !getResponseExpiryDate().equals("") ){
-					setResponseExpiryDate(getResponseExpiryDate()+";false");
-					
-					hasChanged = true;
-					Engine.logBeans.warn("[RequestableObject] The object \"" + getName() + "\" has been updated to version 7.1.0; cache parameters property");
-				}
-	        }
-    	} catch(Exception e) {
-    		throw new EngineException("Unable to migrate the cache parameters for requestable \"" + getName() + "\".", e);
-    	}
 	}
 
 	@Override

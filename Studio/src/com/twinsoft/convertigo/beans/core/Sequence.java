@@ -364,7 +364,10 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public String getRequestString(Context context) {
 		checkSubLoaded();
 		
-		List<String> vVariables = new Vector<String>(variables.size());
+		List<String> vVariables = new Vector<String>(variables.size());		
+		//Use authenticated user as cache key
+		if ( isAuthenticatedUserAsCacheKey() )
+			vVariables.add("userID="+context.getAuthenticatedUser());
 		for (String variableName : variables.keySet()) {
 			if (includeVariableIntoRequestString(variableName)) {
 				vVariables.add(variableName + "=" + variables.get(variableName));
