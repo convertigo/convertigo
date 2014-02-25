@@ -43,6 +43,7 @@ var F = {
 	endPoint: null,
 	projectName: null,
 	localBase: null,
+	appBase: null,
 	timeout: 0,
 	firstLaunch: true,
 	clickEvent: typeof(document.ontouchstart) == "undefined" ? "click" : "touchstart",
@@ -135,7 +136,9 @@ var F = {
 	getEnv: function () {
 		F.debug("getEnv");
 		
-		var url = window.location.href.replace(F.reTailUrl, "$1/env.json");
+		F.appBase = window.location.href.replace(F.reTailUrl, "$1");
+		
+		var url = F.appBase + "/env.json";
 		$.ajax({
 			dataType: "json",
 			url: url,
@@ -202,22 +205,42 @@ var F = {
 			endPoint: F.endPoint,
 			projectName: F.projectName,
 			localBase: F.localBase,
-			firstLaunch: F.firstLaunch
+			firstLaunch: F.firstLaunch,
+			appBase: F.appBase
 		};
 		
 		if (F.local) {
 			window.location.href = "file://" + F.localBase + "/index.html#" + encodeURI(JSON.stringify(env));
 			window.location.reload();
 		} else {
-			var url = window.location.href.replace(F.reTailUrl, "$1/cordova.js");
+			var filesToCopy = ["cordova.js", "cordova_plugins.js"];
+			if (typeof (cordova.define) != "undefined") {
+				$.each(cordova.define.moduleMap["cordova/plugin_list"].exports, function (index, plugin) {
+					filesToCopy.push(plugin.file);
+				});
+			}
+			
+			F.copyCordovaFiles(filesToCopy, function () {
+				F.debug("all cordova files writen");
+//				alert("all cordova files writen");
+				window.location.href = "file://" + F.localBase + "/index.html#" + encodeURI(JSON.stringify(env));				
+			});
+		}
+	},
+	
+	copyCordovaFiles: function (files, success) {
+//		alert("copyCordovaFiles: " + JSON.stringify(files));
+		if (files.length) {
+			var file = files.shift();
+//			alert("copyCordovaFiles " + F.appBase + "/" + file);
 			$.ajax({
 				dataType: "text",
-				url: url,
+				url: F.appBase + "/" + file,
 				success: function (text) {
 					try {
-						F.write(F.localBase + "/cordova.js", text, function () {
-							F.debug("cordova.js writen");
-							window.location.href = "file://" + F.localBase + "/index.html#" + encodeURI(JSON.stringify(env));
+						F.write(F.localBase + "/" + file, text, function () {
+							F.debug(file + " writen");
+							F.copyCordovaFiles(files, success);
 						}, function (err) {
 							F.error("write failed", err);
 						});
@@ -228,7 +251,9 @@ var F = {
 				error: function (xhr, status, err) {
 					F.error("failed cordova.js", err);
 				}
-			});			
+			});
+		} else {
+			success();
 		}
 	},
 	
@@ -470,18 +495,47 @@ var F = {
 			F.error(err);
 		});
 	},
-	
+		
 	write: function (filePath, content, success, error) {
-		F.fileSystem.root.getFile(filePath, {create: true, exclusive: false}, function (fileEntry) {
-			fileEntry.createWriter(function (writer) {
-				writer.onwrite = success;
-				writer.write(content);
+		F.debug("try to write to " + filePath);
+//		alert("try to write to " + filePath + ": " + (content.length && content.lenght > 20 ?content.substring(20):content));		
+		
+		var doWrite = function (parentDir, filePath) {
+			F.debug("really to " + filePath);
+//			alert("really to " + filePath);
+			parentDir.getFile(filePath, {create: true, exclusive: false}, function (fileEntry) {
+				fileEntry.createWriter(function (writer) {
+					writer.onwrite = success;
+					writer.write(content);
+				}, function (err) {
+					error("createWriter failed", err);
+				});
 			}, function (err) {
-				error("createWriter failed", err);
+				error("getFile failed", err);
 			});
-		}, function (err) {
-			error("getfile failed", err);
-		});
+		};
+		
+		if (filePath.indexOf(F.localBase) == 0) {
+//			alert("mkDirs");
+//			var dirs = filePath.substring(F.localBase.length + 1).split("/");
+			var dirs = filePath.split("/");
+			
+			if (dirs.length > 0) {
+				dirs[0] = "/" + dirs[0];
+			}
+			
+			var mkDirs = function (parentDir) {
+				if (dirs.length > 1) {
+					parentDir.getDirectory(dirs.shift(), {create: true}, mkDirs, error);
+				} else {
+					doWrite(parentDir, dirs.shift());
+				}
+			};
+			mkDirs(F.fileSystem.root);
+		} else {
+//			alert("doWrite");
+			doWrite(F.fileSystem.root, filePath);
+		}
 	},
 	
 	message: function (message) {
