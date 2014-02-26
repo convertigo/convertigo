@@ -574,8 +574,8 @@ public class ProjectUtils {
 										+ testcaseCount
 										+ testcaseVariableCount;								
 							
-								displayString = projectName + " contains " + totalC8oObjects + " objects<br/>"								// ok
-										+ " connectorCount = " + connectorCount;															// ok
+								displayString = totalC8oObjects + " object(s)<br/>"														// ok
+										+ connectorCount +" connector(s)";															// ok
 								
 								result.put(projectName, displayString);
 								
@@ -586,11 +586,11 @@ public class ProjectUtils {
 								if (htmltransactionCount > 0) {
 									
 									displayString = 
-										"&nbsp;screenclassCount = " + htmlScreenclassCount + "<br/>"											// ok
-										+ "&nbsp;criteriaCount = " + htmlCriteriaCount + "<br/>"
-										+ "&nbsp;extractionRuleCount = " + htmlExtractionRuleCount + "<br/>"
+										(htmlScreenclassCount>0 ? "&nbsp;screenclassCount = " + htmlScreenclassCount + "<br/>" : "")											// ok
+										+ (htmlCriteriaCount>0 ? "&nbsp;criteriaCount = " + htmlCriteriaCount + "<br/>" : "")
+										+ (htmlExtractionRuleCount>0 ? "&nbsp;extractionRuleCount = " + htmlExtractionRuleCount + "<br/>" : "")
 										+ "&nbsp;transactionCount = " + htmltransactionCount + "<br/>"											// ok
-										+ "&nbsp;transactionVariableCount = " + htmlTransactionVariableCount + "<br/>"
+										+ (htmlTransactionVariableCount>0 ? "&nbsp;transactionVariableCount = " + htmlTransactionVariableCount + "<br/>" : "")
 										+ "&nbsp;statementCount (handlers=" + handlerstatementCount + ", statements=" + statementCount +  ", total=" + (int)(handlerstatementCount + statementCount) + ")";
 									
 									result.put("HTML connector", displayString);
@@ -603,12 +603,12 @@ public class ProjectUtils {
 									
 									displayString = 
 										"&nbsp;screenclassCount = " + javelinScreenclassCount + "<br/>"											// ok
-										+ "&nbsp;criteriaCount = " + javelinCriteriaCount + "<br/>"
-										+ "&nbsp;extractionRuleCount = " + javelinExtractionRuleCount + "<br/>"
-										+ "&nbsp;transactionCount = " + javelinTransactionCount + "<br/>"											// ok
+										+ (javelinCriteriaCount>0 ? "&nbsp;criteriaCount = " + javelinCriteriaCount + "<br/>" : "")
+										+ (javelinExtractionRuleCount>0 ? "&nbsp;extractionRuleCount = " + javelinExtractionRuleCount + "<br/>" : "")
+										+ (javelinTransactionCount>0 ? "&nbsp;transactionCount = " + javelinTransactionCount + "<br/>" : "")											// ok
 										+ "&nbsp;handlerCount (Entry = " + javelinEntryHandlerCount + ", Exit = " + javelinExitHandlerCount + ", Screenclass = " + javelinHandlerCount + "), total = " 
 										+ (int)(javelinEntryHandlerCount + javelinExitHandlerCount + javelinHandlerCount) + " in " + javelinJavascriptLines + " lines<br/>"										
-										+ "&nbsp;variableCount = " + javelinTransactionVariableCount;
+										+ (javelinTransactionVariableCount>0 ? "&nbsp;variableCount = " + javelinTransactionVariableCount : "");
 									
 									result.put("Javelin connector", displayString);
 								}						
@@ -620,8 +620,8 @@ public class ProjectUtils {
 									
 									displayString = 
 										"&nbsp;sqltransactionCount = " + sqlTransactionCount + "<br/>"											// ok
-										+ "&nbsp;selectInQueryCount = " + selectInQueryCount + "<br/>"											// ok
-										+ "&nbsp;transactionVariableCount = " + sqlTransactionVariableCount;
+										+ (selectInQueryCount>0 ? "&nbsp;selectInQueryCount = " + selectInQueryCount + "<br/>" : "")											// ok
+										+ (sqlTransactionVariableCount>0 ? "&nbsp;transactionVariableCount = " + sqlTransactionVariableCount : "");
 
 									if (sheetCount > 0) {
 										displayString += 
@@ -635,12 +635,16 @@ public class ProjectUtils {
 								/*
 								 * Http connector
 								 */
+								if(httpConnectorCount>0) {
+									displayString = 
+										"&nbsp;connectorCount = " + httpConnectorCount + "<br/>";
+								}
 								if (jsonHttpTransactionCount > 0) {
 									
-									displayString = 
+									displayString +=
 										"&nbsp;JSONTransactionCount = " + jsonHttpTransactionCount + "<br/>"									// ok
-										+ "&nbsp;xmlTransactionCount = " + xmlHttpTransactionCount + "<br/>"									// ok
-										+ "&nbsp;HTTPtransactionCount = " + httpTransactionCount;
+										+ (xmlHttpTransactionCount>0 ? "&nbsp;XmlTransactionCount = " + xmlHttpTransactionCount + "<br/>" : "")	// ok
+										+ (httpTransactionCount>0 ? "&nbsp;HTTPtransactionCount = " + httpTransactionCount : "");
 
 									result.put("HTTP connector", displayString);
 								}						
@@ -650,9 +654,10 @@ public class ProjectUtils {
 								 */
 								if (httpsConnectorCount > 0) {
 									displayString = 
-										"&nbsp;JsonTransactionCount = " + jsonHttpsTransactionCount + "<br/>"									// ok
-										+ "&nbsp;XmlTransactionCount = " + xmlHttpsTransactionCount + "<br/>"									// ok
-										+ "&nbsp;HttpTransactionCount = " + httpsTransactionCount;												// ok
+										"&nbsp;connectorCount = " + httpsConnectorCount + "<br/>"
+										+ (jsonHttpsTransactionCount>0 ? "&nbsp;JSONTransactionCount = " + jsonHttpsTransactionCount + "<br/>" :"")		// ok
+										+ (xmlHttpsTransactionCount>0 ? "&nbsp;XmlTransactionCount = " + xmlHttpsTransactionCount + "<br/>"	: "")		// ok
+										+ (httpsTransactionCount>0 ? "&nbsp;HTTPStransactionCount = " + httpsTransactionCount : "");														// ok
 									
 									result.put("HTTPS connector", displayString);
 								}			
@@ -674,9 +679,9 @@ public class ProjectUtils {
 								if (siteClipperTransactionCount > 0) {
 									
 									displayString = 
-										"&nbsp;TransactionCount = " + siteClipperTransactionCount + "<br/>"										// ok
-										+ "&nbsp;screenclassCount = " + siteClipperScreenclassCount + "<br/>"									// ok
-										+ "&nbsp;criteriaCount = " + siteClipperCriteriaCount;
+										"&nbsp;TransactionCount = " + siteClipperTransactionCount + "<br/>"											// ok
+										+ (siteClipperScreenclassCount>0 ? "&nbsp;screenclassCount = " + siteClipperScreenclassCount + "<br/>" :"")	// ok
+										+ (siteClipperCriteriaCount>0 ? "&nbsp;criteriaCount = " + siteClipperCriteriaCount : "");
 									
 									result.put("SiteClipper connector", displayString);
 								}						
@@ -688,8 +693,8 @@ public class ProjectUtils {
 									
 									displayString = 
 										"&nbsp;sequenceCount = " + sequenceCount + "<br/>"														// ok
-										+ "&nbsp;stepCount = " + stepCount + "<br/>"															// ok
-										+ "&nbsp;variableCount = " + sequenceVariableCount + "<br/>"
+										+ (stepCount>0 ? "&nbsp;stepCount = " + stepCount + "<br/>"	: "")														// ok
+										+ (sequenceVariableCount>0 ? "&nbsp;variableCount = " + sequenceVariableCount + "<br/>" : "")
 										+ "&nbsp;javascriptCode = " + sequenceJavascriptFunction + " functions in " + sequenceJavascriptLines + " lines"
 										+  ((boolean)(sequenceJavascriptFunction == 0) ? " (declarations or so)":"");
 									
@@ -718,7 +723,7 @@ public class ProjectUtils {
 									
 									displayString =
 										"&nbsp;testcaseCount = " + testcaseCount + "<br/>"
-										+ "&nbsp;testcaseVariableCount = " + testcaseVariableCount;
+										+ (testcaseVariableCount>0 ? "&nbsp;testcaseVariableCount = " + testcaseVariableCount : "");
 									
 									result.put("Test cases", displayString);
 								}
