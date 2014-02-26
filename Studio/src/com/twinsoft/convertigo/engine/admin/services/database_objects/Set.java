@@ -51,7 +51,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 public class Set extends XmlService {
 	private TwsCachedXPathAPI xpath;
 	private Node postElt;
-
+	
 	private Object getPropertyValue(DatabaseObject object, String propertyName)
 			throws TransformerException, CompilablePropertyException {
 		Node nodetmp = xpath.selectSingleNode(postElt, "./property[@name=\"" + propertyName
@@ -65,14 +65,6 @@ public class Set extends XmlService {
 
 		return DatabaseObject.compileProperty(object, propertyName, propertyValue);
 	}
-
-//	private String getPropertyValue(String propertyName) throws TransformerException {
-//		Node nodetmp = xpath.selectSingleNode(postElt, "./property[@name=\"" + propertyName
-//				+ "\"]/*[1]/@value");
-//		if (nodetmp == null)
-//			return "";
-//		return nodetmp.getNodeValue();
-//	}
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element root = document.getDocumentElement();
@@ -89,7 +81,6 @@ public class Set extends XmlService {
 			String objectQName = xpath.selectSingleNode(postElt, "./@qname").getNodeValue();
 			DatabaseObject object = map.get(objectQName);
 
-//			String comment = getPropertyValue("comment");
 			String comment = getPropertyValue(object, "comment").toString();
 			object.setComment(comment);
 
@@ -112,10 +103,8 @@ public class Set extends XmlService {
 				String propertyName = propertyDescriptor.getName();
 				
 				Method setter = propertyDescriptor.getWriteMethod();
+				
 
-//				String propertyTypeString = xpath.selectSingleNode(postElt,
-//						"./property[@name=\"" + propertyName + "\"]/*[1]")
-//						.getNodeName();
 				Class<?> propertyTypeClass = propertyDescriptor.getReadMethod().getReturnType();
 				if (propertyTypeClass.isPrimitive()) {
 					propertyTypeClass = ClassUtils.primitiveToWrapper(propertyTypeClass);
@@ -127,7 +116,17 @@ public class Set extends XmlService {
 					Object oPropertyValue = createObject(propertyTypeClass, propertyValue);
 	
 					if (object.isCipheredProperty(propertyName)) {
-						oPropertyValue = DatabaseObject.encryptPropertyValue(oPropertyValue);
+						
+						Method getter = propertyDescriptor.getReadMethod();
+						String initialValue = (String) getter.invoke(object, (Object[]) null);
+						
+						//oPropertyValue = DatabaseObject.encryptPropertyValue(oPropertyValue);
+						if (oPropertyValue.equals(initialValue) || 
+								DatabaseObject.encryptPropertyValue(initialValue).equals(oPropertyValue)) {
+							oPropertyValue = initialValue;
+						}else{
+							object.hasChanged = true;
+						}
 					}
 					
 					if (oPropertyValue != null) {
@@ -159,14 +158,14 @@ public class Set extends XmlService {
 		Object oPropertyValue = null;
 
 		if (Number.class.isAssignableFrom(propertyClass) ||
-				Boolean.class.isAssignableFrom(propertyClass)) {
+				Boolean.class.isAssignableFrom(propertyClass) ||
+				String.class.isAssignableFrom(propertyClass)) {
 			try {
-				oPropertyValue = propertyClass.getConstructor(String.class).newInstance(value);		
+				oPropertyValue = propertyClass.getConstructor(String.class).newInstance(value);	
 			} catch (Exception e) {
 				throw new ServiceException("Error when create the object:\n"+e.getMessage());
 			}
 		}
 		return oPropertyValue;
-		
 	}
 }

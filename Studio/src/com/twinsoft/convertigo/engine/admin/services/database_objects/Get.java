@@ -48,7 +48,7 @@ public class Get extends XmlService {
 		String qname = ServiceUtils.getRequiredParameter(request, "qname");
 		Map<String, DatabaseObject> map = com.twinsoft.convertigo.engine.admin.services.projects.Get.getDatabaseObjectByQName(request);
 		DatabaseObject res = map.get(qname);
-		Element elt = res.toXml(document, ExportOption.bIncludeBlackListedElements, ExportOption.bIncludeCompiledValue, ExportOption.bIncludeDisplayName, ExportOption.bIncludeEditorClass, ExportOption.bIncludeShortDescription);
+		Element elt = res.toXml(document, ExportOption.bIncludeBlackListedElements, ExportOption.bIncludeCompiledValue, ExportOption.bIncludeDisplayName, ExportOption.bIncludeEditorClass, ExportOption.bIncludeShortDescription, ExportOption.bHidePassword);
 		elt.setAttribute("qname", qname);
 		root.appendChild(elt);
 	}

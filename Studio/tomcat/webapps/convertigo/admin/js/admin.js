@@ -79,10 +79,12 @@ $(window).ready(function() {
 	initWidgetContainer();
 
 	$("select").live("mousewheel", {fn: function (delta) {
-		var index = this.selectedIndex + delta;
-		if (0 <= index && index < this.length) {
-			this.selectedIndex = index;
-			$(this).change();
+		if (!$(this).attr("disabled")) {
+			var index = this.selectedIndex + delta;
+			if (0 <= index && index < this.length) {
+				this.selectedIndex = index;
+				$(this).change();
+			}
 		}
 	}}, simpleWheel);
 	

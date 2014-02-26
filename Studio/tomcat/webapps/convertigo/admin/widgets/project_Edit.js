@@ -231,7 +231,12 @@ function loadElement(elementQName, $treeitem) {
 		
 		$("#projectEditObjectPropertiesList").html($projectEditObjectPropertiesListTable);		
 		$("input[type=checkbox]").click(function() {
-			$(this).attr("value", $(this).attr("checked"));
+			if($(this).attr("value")=="true") {
+				$(this).attr("value", "false");
+			} else {
+				$(this).attr("value", "true");
+			}
+			$(this).prop("checked");
 		});
 		$(".projectEditorPropertyHelpIcon > img").click(function(){
 			showInfo($(this).data("long_description"));
@@ -249,7 +254,6 @@ function addProperty($xmlProperty) {
 		
 	if ($xmlProperty.children().get(0).nodeName == "xmlizable") {
 		return $ResponseOfPropertyTd.append(addVectorProperty(propertyName, editor, $xmlProperty));
-		
 	}
 
 	// TODO handle array and table
@@ -300,8 +304,9 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 			
 			
 		} else if ($possibleValues.length > 0){			
-			$responseField=getInputCopyOf("projectEditInput-combo");			
+			$responseField=getInputCopyOf("projectEditInput-combo");
 			$option=$responseField.find("option").clone();
+			$responseField.children().remove();
 			$possibleValues.find("value").each(function(){
 				$responseField.append($option.clone().text($(this).text()));
 			});
@@ -311,10 +316,7 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 			if (propertyJavaClassName == "java.lang.Boolean") {				
 				$responseField=getInputCopyOf("projectEditInput-checkbox");	
 				if ($xmlPropertyValue.attr("value") == "true"){
-					$responseField.attr("checked","checked");
-				}
-				else {
-					$responseField.removeAttr("checked");
+					$responseField.prop("checked",true);
 				}
 			}else{
 				if ($xmlProperty.attr("isMasked") == "true") {
@@ -324,14 +326,17 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 					$responseField=$("#projectEditInput-text").clone();
 				}
 			}
-									
+							
 			$responseField.attr("value",value).data("propertyName",propertyName);	
-			
+
 			if (propertyEditor != "null" && propertyEditor != "TextEditor") {
 				$responseField.attr("disabled","disabled");
 			}
 			else {				
 				$responseField.attr("class","projectEdit-form-item");
+				if ($responseField.attr("disabled")) {
+					$responseField.removeAttr( "disabled" );
+				}
 			}				
 			
 		}
@@ -448,7 +453,7 @@ function projectStats() {
 				$(xml).find("statistics").children("*").each(function() {
 					if (this.tagName != projectName) {
 						htmlStats += "<table><tr><td>"
-						htmlStats += "<img src=\"images/"+this.tagName.toLowerCase()+"_16x16.png\" /></td>";
+						htmlStats += "<img src=\"images/stats_"+this.tagName.toLowerCase()+"_16x16.png\" /></td>";
 						htmlStats += "<td><strong>"+this.tagName.replace("_"," ")+"</strong><br/>"+$(this).text()+"<br/><br/></td>";
 						htmlStats += "</tr></table>";
 					}

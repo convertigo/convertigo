@@ -109,7 +109,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	}
 	
 	public enum ExportOption {
-		bIncludeDisplayName, bIncludeCompiledValue, bIncludeShortDescription, bIncludeEditorClass, bIncludeBlackListedElements, bIncludeVersion;
+		bIncludeDisplayName, bIncludeCompiledValue, bIncludeShortDescription, bIncludeEditorClass, bIncludeBlackListedElements, bIncludeVersion, bHidePassword;
 	}
 
 	transient protected static long lastTime = 0;
@@ -518,7 +518,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				propertyElement.setAttribute("name", name);
 
 				// Encrypts value if needed
-				if (isCipheredProperty(name) && !exportOptions.contains(ExportOption.bIncludeDisplayName)) {
+				//if (isCipheredProperty(name) && !this.exportOptions.contains(ExportOption.bIncludeDisplayName)) {
+				if (isCipheredProperty(name) && 
+						( this.exportOptions.contains(ExportOption.bHidePassword) || 
+								!this.exportOptions.contains(ExportOption.bIncludeDisplayName))) {
 					cypheredValue = encryptPropertyValue(value);
 					if (!value.equals(cypheredValue)) {
 						value = cypheredValue;
