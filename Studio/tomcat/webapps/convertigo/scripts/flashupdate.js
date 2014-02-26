@@ -35,7 +35,7 @@ var F = {
 	local: null,
 	currentFiles: null,
 	remoteFiles: null,
-	fileSystem: null,
+	flashUpdateDir: null,
 	platform: "n/a",
 	uuid: "n/a",
 	debugStream: "",
@@ -75,26 +75,7 @@ var F = {
 				$("#main").show();
 			}
 		}
-		if (F.fileSystem == null) {
-			if (typeof(LocalFileSystem) == "undefined") {
-				LocalFileSystem = window;
-			}
-			F.debug("window.requestFileSystem typeof " + typeof(window.requestFileSystem));
-			F.debug("window.requestFileSystem " + window.requestFileSystem);
-			F.debug("window.webkitRequestFileSystem typeof " + typeof(window.webkitRequestFileSystem));
-			F.debug("window.webkitRequestFileSystem " + window.webkitRequestFileSystem);
-			window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
-			window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function (fileSystem) {
-				try {
-					F.fileSystem = fileSystem;
-					F.init();
-				} catch (err) {
-					F.error("catch init fileSystem", err);
-				}
-			}, function (err) {
-				error("FS failed", err);
-			});
-		} else if (F.currentFiles == null) {
+		if (F.currentFiles == null) {
 			var url = window.location.href.replace(F.reTailUrl, "$1/files.json");
 			$.ajax({
 				dataType: "json",
@@ -127,7 +108,9 @@ var F = {
 		F.debug("isLocal");
 		
 		if (F.local) {
-			F.isFlashUpdate();
+			F.getFlashUpdateDir(function () {
+				F.isFlashUpdate();
+			});
 		} else {
 			F.getEnv();
 		}
@@ -145,15 +128,13 @@ var F = {
 			success: function (data) {
 				try {
 					$.extend(F, data);
-					F.remoteBase = F.endPoint + "/projects/" + F.projectName + "/_private/flashupdate";
-					
-					if (device.platform == "Android") {
-						F.localBase = "/data/data/" + F.applicationId + "/flashupdate";
-					} else {
-						F.localBase = F.fileSystem.root.fullPath + "/flashupdate"
-					}
-					
-					F.hasLocal();
+					F.getFlashUpdateDir(function () {
+						F.remoteBase = F.endPoint + "/projects/" + F.projectName + "/_private/flashupdate";
+						
+						F.localBase = F.flashUpdateDir.fullPath;
+						
+						F.hasLocal();
+					});
 				} catch (err) {
 					F.error("catch init env", err);
 				}
@@ -164,12 +145,45 @@ var F = {
 		});
 	},
 	
+	getFlashUpdateDir: function (success) {
+		if (F.flashUpdateDir == null) {
+			if (typeof(LocalFileSystem) == "undefined") {
+				LocalFileSystem = window;
+			}
+			
+			window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
+			
+			window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function (fileSystem) {
+				try {
+					var flashUpdatePath = "/flashupdate";
+					
+					if (device.platform == "Android") {
+						flashUpdatePath = "/data/data/" + F.applicationId + flashUpdatePath;
+					}
+					
+					F.debug("requesting flashupdate directory: " + flashUpdatePath);
+					
+					fileSystem.root.getDirectory(flashUpdatePath, {create: true}, function (flashUpdateDir) {
+						F.flashUpdateDir = flashUpdateDir;
+						success();
+					});
+				} catch (err) {
+					F.error("catch init fileSystem", err);
+				}
+			}, function (err) {
+				F.error("FS failed", err);
+			});
+		} else {
+			success();
+		}
+	},
+ 	
 	hasLocal: function () {
-		F.debug("hasLocal");
+		F.debug("hasLocal: check for " + F.localBase + "/files.json");
 		
 		$.ajax({
 			dataType: "json",
-			url: "file://" + F.localBase + "/files.json",
+			url: F.localBase + "/files.json",
 			success: function (data) {
 				try {
 					F.isLocalNewer(data);
@@ -206,11 +220,12 @@ var F = {
 			projectName: F.projectName,
 			localBase: F.localBase,
 			firstLaunch: F.firstLaunch,
+			applicationId: F.applicationId,
 			appBase: F.appBase
 		};
 		
 		if (F.local) {
-			window.location.href = "file://" + F.localBase + "/index.html#" + encodeURI(JSON.stringify(env));
+			window.location.href = F.localBase + "/index.html#" + encodeURI(JSON.stringify(env));
 			window.location.reload();
 		} else {
 			var filesToCopy = ["cordova.js", "cordova_plugins.js"];
@@ -222,23 +237,22 @@ var F = {
 			
 			F.copyCordovaFiles(filesToCopy, function () {
 				F.debug("all cordova files writen");
-//				alert("all cordova files writen");
-				window.location.href = "file://" + F.localBase + "/index.html#" + encodeURI(JSON.stringify(env));				
+				
+				window.location.href = F.localBase + "/index.html#" + encodeURI(JSON.stringify(env));				
 			});
 		}
 	},
 	
 	copyCordovaFiles: function (files, success) {
-//		alert("copyCordovaFiles: " + JSON.stringify(files));
 		if (files.length) {
 			var file = files.shift();
-//			alert("copyCordovaFiles " + F.appBase + "/" + file);
+			
 			$.ajax({
 				dataType: "text",
 				url: F.appBase + "/" + file,
 				success: function (text) {
 					try {
-						F.write(F.localBase + "/" + file, text, function () {
+						F.write(file, text, function () {
 							F.debug(file + " writen");
 							F.copyCordovaFiles(files, success);
 						}, function (err) {
@@ -386,9 +400,8 @@ var F = {
 			var file = F.currentFiles.files[i];
 			var remoteFile = indexedFiles[file.uri];
 			if (typeof(remoteFile) == "undefined") {
-				var filePath = F.localBase + file.uri;
 				F.debug("try delete " + file.uri);
-				F.fileSystem.root.getFile(filePath, {create: false, exclusive: false}, function (fileEntry) {
+				F.flashUpdateDir.getFile(file.uri, {create: false, exclusive: false}, function (fileEntry) {
 					F.debug("delete file " + file.uri);
 					try {
 						fileEntry.remove(function () {
@@ -403,7 +416,7 @@ var F = {
 						checkDone();
 					}
 				}, function () {
-					F.debug("not existing " + filePath);
+					F.debug("not existing " + file.uri);
 					checkDone();
 				});
 			} else {
@@ -457,17 +470,21 @@ var F = {
 				
 				nbTransfert++;
 				totalSize += file.size;
-		    	new FileTransfer().download(
-			    	encodeURI(F.remoteBase + file.uri),
-			    	F.localBase + file.uri,
-			    	function () {
-			    		checkDone(file);
-			    	},
-			    	function (err) {
-		    			F.error("failed to FileTransfer ", err);
-			    		checkDone(file);
-			    	}
-		    	);
+				F.mkParentDirs(file.uri, function (parentDir, fileName) {
+					new FileTransfer().download(
+						encodeURI(F.remoteBase + file.uri),
+						F.localBase + file.uri,
+						function () {
+							checkDone(file);
+						},
+						function (err) {
+							F.error("failed to FileTransfer ", err);
+							checkDone(file);
+						}
+					);
+				}, function () {
+					F.error("failed to mkParentDirs")
+				});
 			} else {
 				checkDone();
 			}
@@ -479,7 +496,7 @@ var F = {
 	downloadFinished: function (nbTransfert) {
 		F.debug("downloadFinished");
 		
-		F.write(F.localBase + "/files.json", JSON.stringify(F.remoteFiles), function () {
+		F.write("files.json", JSON.stringify(F.remoteFiles), function () {
 			F.debug("files.json writen");
 			
 			try {
@@ -498,44 +515,37 @@ var F = {
 		
 	write: function (filePath, content, success, error) {
 		F.debug("try to write to " + filePath);
-//		alert("try to write to " + filePath + ": " + (content.length && content.lenght > 20 ?content.substring(20):content));		
 		
-		var doWrite = function (parentDir, filePath) {
-			F.debug("really to " + filePath);
-//			alert("really to " + filePath);
-			parentDir.getFile(filePath, {create: true, exclusive: false}, function (fileEntry) {
+		F.mkParentDirs(filePath, function (parentDir, fileName) {
+			F.debug("really write to " + fileName);
+			parentDir.getFile(fileName, {create: true, exclusive: false}, function (fileEntry) {
 				fileEntry.createWriter(function (writer) {
 					writer.onwrite = success;
 					writer.write(content);
 				}, function (err) {
-					error("createWriter failed", err);
+					F.error("createWriter failed", err);
 				});
 			}, function (err) {
-				error("getFile failed", err);
+				F.error("getFile failed", err);
 			});
-		};
-		
-		if (filePath.indexOf(F.localBase) == 0) {
-//			alert("mkDirs");
-//			var dirs = filePath.substring(F.localBase.length + 1).split("/");
-			var dirs = filePath.split("/");
-			
-			if (dirs.length > 0) {
-				dirs[0] = "/" + dirs[0];
-			}
-			
-			var mkDirs = function (parentDir) {
-				if (dirs.length > 1) {
-					parentDir.getDirectory(dirs.shift(), {create: true}, mkDirs, error);
+		}, error);
+	},
+	
+	mkParentDirs: function (filePath, success, error) {
+		var dirs = filePath.split("/");
+		var mkDirs = function (parentDir) {
+			if (dirs.length > 1) {
+				var dir = dirs.shift();
+				if (dir.length) {
+					parentDir.getDirectory(dir, {create: true}, mkDirs, error);
 				} else {
-					doWrite(parentDir, dirs.shift());
+					mkDirs(parentDir);
 				}
-			};
-			mkDirs(F.fileSystem.root);
-		} else {
-//			alert("doWrite");
-			doWrite(F.fileSystem.root, filePath);
-		}
+			} else {
+				success(parentDir, dirs.shift());
+			}
+		};
+		mkDirs(F.flashUpdateDir);
 	},
 	
 	message: function (message) {
