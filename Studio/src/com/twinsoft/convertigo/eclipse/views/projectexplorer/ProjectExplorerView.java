@@ -1465,17 +1465,18 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 						// Functions
 						List<HandlersDeclarationTreeObject> treeObjects = new LinkedList<HandlersDeclarationTreeObject>();
-						String line;
+						String line, lineReaded;
 						int lineNumber = 0;
 						BufferedReader br = new BufferedReader(new StringReader(transaction.handlers));
-
-						while ((line = br.readLine()) != null) {
-							line = line.trim();
+						
+						line = br.readLine();
+						while (line != null) {
+							lineReaded = line.trim();
 							lineNumber++;
-							if (line.startsWith("function ")) {
+							if (lineReaded.startsWith("function ")) {
 								try {
-									String functionName = line.substring(9, line.indexOf(')') + 1);
-									HandlersDeclarationTreeObject handlersDeclarationTreeObject;
+									String functionName = lineReaded.substring(9, lineReaded.indexOf(')') + 1);
+									HandlersDeclarationTreeObject handlersDeclarationTreeObject = null;
 
 									if (functionName.endsWith(JavelinTransaction.EVENT_ENTRY_HANDLER + "()")) {
 										handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_FUNCTION_SCREEN_CLASS_ENTRY, lineNumber);
@@ -1484,11 +1485,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									} else {
 										handlersDeclarationTreeObject = new HandlersDeclarationTreeObject(viewer, functionName, HandlersDeclarationTreeObject.TYPE_OTHER, lineNumber);
 									}
-									treeObjects.add(handlersDeclarationTreeObject);
+									if (handlersDeclarationTreeObject != null) {
+										treeObjects.add(handlersDeclarationTreeObject);
+									}
 								} catch(StringIndexOutOfBoundsException e) {
-									// Ignore
+									throw new EngineException("Exception in reading line of a transaction", e);
 								}
 							}
+							line = br.readLine();
 						}
 
 						if (treeObjects.size() != 0) {
