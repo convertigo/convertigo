@@ -22,12 +22,18 @@
 
 package com.twinsoft.convertigo.eclipse.dialogs;
 
+import java.io.File;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 
@@ -36,6 +42,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 	public ProgressBar progressBar = null;
 	public Label labelProgression = null;
 	public Combo combo = null;
+	public Button browseButton = null;
 	/**
 	 * @param parent
 	 * @param style
@@ -49,10 +56,18 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 	 */
 	@Override
 	protected void initialize() {
+		final Composite container = this;
+		GridLayout gridLayout = new GridLayout();
+		gridLayout.numColumns = 2;
+		gridLayout.makeColumnsEqualWidth = false;
+
+		container.setLayout(gridLayout);
+		
 		Label description = new Label(this, SWT.NONE);
-		description.setText("Please enter a valid WSDL url :");
+		description.setText("Please enter a valid WSDL url or select your WSDL file using the \"Browse\" button:");
 		GridData data = new GridData ();
 		data.horizontalAlignment = GridData.FILL;
+		data.horizontalSpan = 2;
 		data.grabExcessHorizontalSpace = true;
 		description.setLayoutData (data);
 		
@@ -63,10 +78,39 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		data0.horizontalAlignment = GridData.FILL;
 		data0.grabExcessHorizontalSpace = true;
 		combo.setLayoutData (data0);
-
+		
+		browseButton = new Button(this, SWT.NONE);
+		browseButton.setText("Browse...");
+		data0 = new GridData ();
+		data0.horizontalAlignment = GridData.FILL;
+		data0.grabExcessHorizontalSpace = true;
+		combo.setLayoutData (data0);
+		
+		//Event click browse button
+		browseButton.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				FileDialog dialog = new FileDialog(container.getShell(), SWT.NULL);
+				dialog.setFilterExtensions(new String[]{"*.wsdl"});
+				dialog.setText("Select your WSDL file");
+				String path = dialog.open();
+				if (path != null) {
+					File file = new File(path);
+					if (file.isFile()) {
+						combo.add("file:///"+file.getAbsolutePath());
+						combo.select(combo.getItemCount()-1);
+					}
+				}
+				
+			}
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {}
+		});
+		
 		progressBar = new ProgressBar(this, SWT.NONE);
 		GridData data1 = new GridData ();
 		data1.horizontalAlignment = GridData.FILL;
+		data1.horizontalSpan = 2;
 		data1.grabExcessHorizontalSpace = true;
 		progressBar.setLayoutData (data1);
 
@@ -74,11 +118,10 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		labelProgression.setText("Progression");
 		GridData data2 = new GridData ();
 		data2.horizontalAlignment = GridData.FILL;
+		data2.horizontalSpan = 2;
 		data2.grabExcessHorizontalSpace = true;
 		labelProgression.setLayoutData (data2);
 		
-		GridLayout gridLayout = new GridLayout();
-		this.setLayout(gridLayout);
 		setSize(new Point(402, 99));
 	}
 
