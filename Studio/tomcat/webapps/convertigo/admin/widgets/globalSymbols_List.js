@@ -203,6 +203,7 @@ function addSymbol(xml) {
 				"Add" : function() {
 					var symbolName = $("#addName").val();
 					var value = $("#addValue").val();
+					value = value.replace(">","&gt;").replace("<","&lt;");
 					
 					if (symbolName && value) {
 						var add = $("#symbolsList").jqGrid(
@@ -251,6 +252,7 @@ function editSymbol(symbolName, symbolValue) {
 				"Edit" : function() {
 					var name = $("#addName").val();
 					var value = $("#addValue").val();
+					value = value.replace(">","&gt;").replace("<","&lt;");
 					
 					if (name && value) {
 						//delete old symbol

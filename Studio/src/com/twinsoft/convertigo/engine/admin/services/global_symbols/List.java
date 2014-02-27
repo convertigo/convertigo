@@ -68,7 +68,7 @@ public class List extends XmlService{
  
 			Element symbolElement = document.createElement("symbol");
 			symbolElement.setAttribute("name", symbol);
-			symbolElement.setAttribute("value", symbolValue);
+			symbolElement.setAttribute("value", symbolValue.replaceAll(">", "&gt;").replaceAll("<", "&lt;"));
 			symbolsListElement.appendChild(symbolElement);
     	}	
 	}

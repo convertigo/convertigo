@@ -50,7 +50,7 @@ public class Update extends XmlService {
         if (isempty.equals("false") && symbols != null) {
 	        for (int i=0; i < symbols.length ; i++) {
 	        	String [] values = symbols[i].split("=");
-	        	prop.setProperty(values[0], values[1]);
+	        	prop.setProperty(values[0], values[1].replaceAll("&gt;", ">").replaceAll("&lt;", "<"));
 	        } 
         }
         prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");        
