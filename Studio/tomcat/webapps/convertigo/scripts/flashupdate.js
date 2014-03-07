@@ -131,7 +131,7 @@ var F = {
 					F.getFlashUpdateDir(function () {
 						F.remoteBase = F.endPoint + "/projects/" + F.projectName + "/_private/flashupdate";
 						
-						F.localBase = F.flashUpdateDir.fullPath;
+						F.localBase = F.flashUpdateDir.nativeURL;
 						
 						F.hasLocal();
 					});
@@ -155,16 +155,17 @@ var F = {
 			
 			window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function (fileSystem) {
 				try {
-					var flashUpdatePath = "/flashupdate";
-					
-					if (device.platform == "Android") {
-						flashUpdatePath = "/data/data/" + F.applicationId + flashUpdatePath;
-					}
+					var flashUpdatePath = "flashupdate";
 					
 					F.debug("requesting flashupdate directory: " + flashUpdatePath);
 					
 					fileSystem.root.getDirectory(flashUpdatePath, {create: true}, function (flashUpdateDir) {
 						F.flashUpdateDir = flashUpdateDir;
+												
+						F.debug("flashupdate directory fullPath: " + flashUpdateDir.fullPath);
+						F.debug("flashupdate directory nativeURL: " + flashUpdateDir.nativeURL);
+						F.debug("flashupdate directory toURL(): " + flashUpdateDir.toURL());
+						
 						success();
 					});
 				} catch (err) {
