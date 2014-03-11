@@ -487,6 +487,23 @@ public class SchemaManager implements AbstractManager {
 							SchemaMeta.setSchema(obj, xs);
 							return super.on(obj);
 						}
+						
+						@Override
+						protected void walkAttribute(XmlSchema xmlSchema, XmlSchemaAttribute obj) {
+							// Fixed issue for soap-enc arrayType attribute (rpc mode)
+							Attr[] attrs = obj.getUnhandledAttributes();
+							List<Attr> list = new ArrayList<Attr>();
+							if (attrs != null) {
+								for (Attr attribute : attrs) {
+									if (attribute.getNodeName().startsWith("xmlns") && attribute.getNodeValue().equals(""))
+										;// remove empty namespace
+									else
+										list.add(attribute);
+								}
+								obj.setUnhandledAttributes(list.toArray(new Attr[list.size()]));
+							}
+							super.walkAttribute(xmlSchema, obj);
+						}
 
 					}.init(xs);
 				}

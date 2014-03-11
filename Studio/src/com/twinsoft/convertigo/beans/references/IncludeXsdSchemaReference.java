@@ -44,7 +44,6 @@ public class IncludeXsdSchemaReference extends XsdSchemaReference implements ISc
 				// check for same namespace
 				if (XmlSchemaUtils.hasSameNamespace(schema, includedSchema)) {
 					// initialize include
-					schemaInclude.setSchemaLocation(getReferenceUrl().toString());
 					schemaInclude.setSchema(includedSchema);
 				}
 				else throw new EngineException("Incorrect schema include +" +

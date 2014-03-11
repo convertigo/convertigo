@@ -69,7 +69,6 @@ public class ProjectSchemaReference extends ImportXsdSchemaReference {
 			String tns = Project.getProjectTargetNamespace(pname);
 			XmlSchema importedSchema = collection.schemaForNamespace(tns);
 			if (importedSchema != null) {
-				//schemaImport.setSchemaLocation(getReferenceUrl().toString());
 				schemaImport.setNamespace(importedSchema.getTargetNamespace());
 				schemaImport.setSchema(importedSchema);
 			}

@@ -41,6 +41,9 @@ import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
 import org.apache.ws.commons.schema.utils.NamespacePrefixList;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -91,11 +94,72 @@ public class SchemaUtils {
 	
 	public static XmlSchema loadSchema(URL xsdUrl, XmlSchemaCollection xmlSchemaCollection) throws SAXException, IOException {
 		if (xsdUrl != null) {
+			// build document from url
 			Document xsdDocument = getDefaultDocumentBuilder().parse(xsdUrl.toString());
+			
+			// add soap-encoding import if needed (for validation)
+			addSoapEncSchemaImport(xsdDocument.getDocumentElement());
+			
 			XmlSchema xmlSchema = xmlSchemaCollection.read(xsdDocument, xsdUrl.toString(), null);
 			return xmlSchema;
 		}
 		return null;
+	}
+	
+	public static Element getSchemaImport(Element schemaElement, String namespace) {
+		if (schemaElement != null) {
+			NodeList imports = schemaElement.getElementsByTagNameNS(Constants.URI_2001_SCHEMA_XSD, "import");
+			for (int i=0; i<imports.getLength(); i++) {
+				Element importElement = (Element)imports.item(i);
+				if (namespace.equals((importElement).getAttribute("namespace"))) {
+					return importElement;
+				}
+			}
+		}
+		return null;
+	}
+	
+	public static void addSchemaImport(Element schemaElement, String namespace, String location) {
+		if (schemaElement != null) {
+			Element importElement = getSchemaImport(schemaElement, namespace);
+			if (importElement == null) {
+				Element imp = schemaElement.getOwnerDocument().createElementNS(Constants.URI_2001_SCHEMA_XSD, "import");
+				imp.setAttribute("namespace", namespace);
+				imp.setAttribute("schemaLocation", location);
+				schemaElement.insertBefore(imp, schemaElement.getFirstChild());
+			}
+		}
+	}
+	
+	public final static String URI_SOAP_ENC = "http://schemas.xmlsoap.org/soap/encoding/";
+	
+	public static void addSoapEncSchemaImport(Element schemaElement) {
+		if (useSoapEncArrayType(schemaElement)) {
+			addSchemaImport(schemaElement, URI_SOAP_ENC, URI_SOAP_ENC);
+		}
+		else {
+			Element importElement = getSchemaImport(schemaElement, URI_SOAP_ENC);
+			if (importElement != null) {
+				importElement.setAttribute("namespace", URI_SOAP_ENC);
+				importElement.setAttribute("schemaLocation", URI_SOAP_ENC);
+			}
+		}
+	}
+	
+	public static boolean useSoapEncArrayType(Element schemaElement) {
+		if (schemaElement != null) {
+			NodeList attributes = schemaElement.getElementsByTagNameNS(Constants.URI_2001_SCHEMA_XSD, "attribute");
+			for (int i=0; i<attributes.getLength(); i++) {
+				Element attribute = (Element)attributes.item(i);
+				NamedNodeMap map = attribute.getAttributes();
+				for (int j = 0; j < map.getLength() ; j++) {
+					if (map.item(j).getNodeName().endsWith("arrayType")) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 	
 	public static XmlSchema loadSchema(String sDocument, XmlSchemaCollection xmlSchemaCollection) throws SAXException, IOException {

@@ -28,13 +28,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.wsdl.Binding;
 import javax.wsdl.Definition;
 import javax.wsdl.Import;
 import javax.wsdl.Types;
 import javax.wsdl.extensions.ExtensibilityElement;
 import javax.wsdl.extensions.schema.Schema;
+import javax.wsdl.extensions.soap.SOAPBinding;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
+import javax.xml.namespace.QName;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -43,10 +46,10 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.ISchemaReader;
 import com.twinsoft.convertigo.beans.core.IWsdlReader;
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.SchemaManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.SchemaUtils;
 
 public abstract class WsdlSchemaReference extends RemoteFileReference implements ISchemaReference, ISchemaReader, IWsdlReader {
 
@@ -73,15 +76,15 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 						Element element = ((Schema)extensibilityElement).getElement();
 						
 						// overwrites elementFormDefault, attributeFormDefault
-						element.setAttribute("elementFormDefault", Project.XSD_FORM_UNQUALIFIED);
-						element.setAttribute("attributeFormDefault", Project.XSD_FORM_UNQUALIFIED);
+						//element.setAttribute("elementFormDefault", Project.XSD_FORM_UNQUALIFIED);
+						//element.setAttribute("attributeFormDefault", Project.XSD_FORM_UNQUALIFIED);
+						
+						// check for targetNamespace declaration
+						if (!element.hasAttribute("targetNamespace"))
+							element.setAttribute("targetNamespace", definition.getTargetNamespace());
 						
 						// read schema
 						XmlSchema xmlSchema = c.read(element);
-						
-						// check for targetNamespace
-						if (xmlSchema.getTargetNamespace() == null)
-							xmlSchema.setTargetNamespace(definition.getTargetNamespace());
 						
 						String schemaNamespace = xmlSchema.getTargetNamespace();
 						namespaceList.add(schemaNamespace);
@@ -96,8 +99,15 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 			String baseURI = ((DefaultURIResolver)c.getSchemaResolver()).getCollectionBaseURI();
 			if (baseURI != null) collection.setBaseUri(baseURI);
 			for (XmlSchema xs : c.getXmlSchemas()) {
-				if (namespaceList.contains(xs.getTargetNamespace())) {
-					collection.read(xs.getSchemaDocument(),null);
+				String nsuri = xs.getTargetNamespace();
+				if (namespaceList.contains(nsuri)) {
+					// ! because of xsd:include it is possible to have more than one schema with the same nsuri !
+					// ! we must retrieve the whole schema through collection.schemaForNamespace instead of using xs !
+					if (collection.schemaForNamespace(nsuri) == null) {
+						if (c.schemaForNamespace(nsuri) != null) {
+							collection.read(c.schemaForNamespace(nsuri).getSchemaDocument(),null);
+						}
+					}
 				}
 			}
 			
@@ -161,8 +171,39 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 				list.addAll(readWsdlImports(def));
 			}
 		}
+		
+		// add soap-encoding import if needed (for validation)
+		addRpcSoapEncImport(definition);
+		
 		list.add(definition);
 		return list;
 	}
 
+	protected void addRpcSoapEncImport(Definition definition) {
+		boolean hasRpc = false;
+		Map<QName, Binding> bmap = GenericUtils.cast(definition.getBindings());
+		Iterator<QName> it = bmap.keySet().iterator();
+		while (it.hasNext()) {
+			Binding bind = bmap.get(it.next());
+			List<ExtensibilityElement> exs = GenericUtils.cast(bind.getExtensibilityElements());
+			for (ExtensibilityElement ee : exs) {
+				if (ee instanceof SOAPBinding) {
+					if (((SOAPBinding)ee).getStyle().toLowerCase().equals("rpc")) {
+						hasRpc = true;
+					}
+				}
+			}
+		}
+		if (hasRpc) {
+			Types types = definition.getTypes();
+			Iterator<?> exs = types.getExtensibilityElements().iterator();
+			while (exs.hasNext()) {
+				ExtensibilityElement ee = (ExtensibilityElement)exs.next();
+				if (ee instanceof Schema) {
+					Element se = ((Schema)ee).getElement();
+					SchemaUtils.addSoapEncSchemaImport(se);
+				}
+			}
+		}
+	}
 }

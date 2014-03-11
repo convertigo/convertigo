@@ -263,18 +263,13 @@ public class WsReference {
 				   	for (int j=0; j<iface.getOperationCount(); j++) {
 				   		WsdlOperation wsdlOperation = (WsdlOperation)iface.getOperationAt(j);
 				   		List<RequestableHttpVariable> variables = new ArrayList<RequestableHttpVariable>();
-				   		XmlHttpTransaction xmlHttpTransaction = createTransaction(xmlSchema, iface, wsdlOperation, variables, projectName, httpConnector);
+					   	XmlHttpTransaction xmlHttpTransaction = createTransaction(xmlSchemaCollection, xmlSchema, iface, wsdlOperation, variables, projectName, httpConnector);
+			   			// Adds transaction
 				   		if (xmlHttpTransaction != null) {
-				   			// Adds transaction
 				   			httpConnector.add(xmlHttpTransaction);
 				   			if (!hasDefaultTransaction) {
 				   				xmlHttpTransaction.setByDefault();
 				   				hasDefaultTransaction = true;
-				   			}
-				   			// Adds variables
-				   			for (RequestableHttpVariable variable: variables) {
-				   				//System.out.println("adding "+ variable.getName());
-				   				xmlHttpTransaction.add(variable);
 				   			}
 				   		}
 				   	}
@@ -328,7 +323,7 @@ public class WsReference {
 	   	return httpConnector;
 	}
 	
-	private XmlHttpTransaction createTransaction(XmlSchema xmlSchema, WsdlInterface iface, WsdlOperation operation, List<RequestableHttpVariable> variables, String projectName, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException {
+	private XmlHttpTransaction createTransaction(XmlSchemaCollection xmlSchemaCollection, XmlSchema xmlSchema, WsdlInterface iface, WsdlOperation operation, List<RequestableHttpVariable> variables, String projectName, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException {
 		XmlHttpTransaction xmlHttpTransaction = null;
 	   	WsdlRequest request;
 	   	//String responseXml;
@@ -382,11 +377,12 @@ public class WsReference {
    			
    			xmlHttpTransaction.setHttpParameters(parameters);
    			
-   			// Set SOAP response element
    			QName qname = null;
    			boolean bRPC = false;
    			String style = operation.getStyle();
    			if (style.toUpperCase().equals("RPC")) bRPC = true;
+   			
+   			// Set SOAP response element
    			if (bRPC) {
    				try {
 					MessagePart[] parts = operation.getDefaultResponseParts();
@@ -456,8 +452,14 @@ public class WsReference {
 			//String responseTemplate = Engine.PROJECTS_DIRECTORY + "/"+ projectName + responseTemplateName;
 			
 			xmlHttpTransaction.setRequestTemplate(requestTemplateName);
-			createTemplate(requestDoc, requestTemplate);
+			saveTemplate(requestDoc, requestTemplate);
 			//createTemplate(responseDoc, responseTemplate);
+			
+   			// Adds variables
+   			for (RequestableHttpVariable variable: variables) {
+   				//System.out.println("adding "+ variable.getName());
+   				xmlHttpTransaction.add(variable);
+   			}
 			
 			xmlHttpTransaction.hasChanged = true;
 	   	}
@@ -645,7 +647,7 @@ public class WsReference {
 //		return xmlHttpTransaction;
 //	}
 	
-	private void createTemplate(Document doc, String templateDir) throws EngineException {
+	private void saveTemplate(Document doc, String templateDir) throws EngineException {
 		setTaskLabel("Creating template \""+templateDir+"\"...");
 		try {
             Source source = new DOMSource(doc);
@@ -670,9 +672,18 @@ public class WsReference {
 					elementName = longName + "_" + elementName;
 				
 				if (!element.getAttribute("soapenc:arrayType").equals("") && !element.hasChildNodes()) {
+					String avalue = element.getAttribute("soapenc:arrayType");
+					element.setAttribute("soapenc:arrayType", avalue.replaceAll("\\[\\]", "[1]"));
+					
 					Element child = element.getOwnerDocument().createElement("item");
-					child.setAttribute("xsi:type", "xsd:string");
-					child.appendChild(element.getOwnerDocument().createTextNode("?"));
+					String atype = avalue.replaceAll("\\[\\]", "");
+					child.setAttribute("xsi:type", atype);
+					if (atype.startsWith("xsd:")) {
+						String variableName = elementName + "_item";
+						child.appendChild(element.getOwnerDocument().createTextNode("$("+ variableName.toUpperCase() +")"));
+						RequestableHttpVariable httpVariable = createVariable(true, variableName, new QName(Constants.URI_2001_SCHEMA_XSD,atype.split(":")[1]));
+						variables.add(httpVariable);
+					}
 					element.appendChild(child);
 				}
 				
@@ -682,6 +693,7 @@ public class WsReference {
 					Node child = map.item(i);
 					if (child.getNodeName().equals("soapenc:arrayType")) continue;
 					if (child.getNodeName().equals("xsi:type")) continue;
+					if (child.getNodeName().equals("soapenv:encodingStyle")) continue;
 					
 					String variableName = getVariableName(variables, elementName + "_" + child.getLocalName());
 					

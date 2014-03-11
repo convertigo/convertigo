@@ -116,6 +116,7 @@ import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
+import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaWalker;
@@ -346,6 +347,7 @@ public class WebServiceServlet extends GenericServlet {
 			for (XmlSchema xmlSchema: xmlSchemaCollection.getXmlSchemas()) {
 				String tns = xmlSchema.getTargetNamespace();
 				if (tns.equals(Constants.URI_2001_SCHEMA_XSD)) continue;
+				if (tns.equals(SchemaUtils.URI_SOAP_ENC)) continue;
 				
 				if (wsdlSchemaCollection.schemaForNamespace(tns) == null) {
 					wsdlSchemaCollection.read(xmlSchema.getSchemaDocument().getDocumentElement());
@@ -356,6 +358,7 @@ public class WebServiceServlet extends GenericServlet {
 			Map<String, Schema> schemaMap = new HashMap<String, Schema>();
 			for (XmlSchema xmlSchema: wsdlSchemaCollection.getXmlSchemas()) {
 				if (xmlSchema.getTargetNamespace().equals(Constants.URI_2001_SCHEMA_XSD)) continue;
+				if (xmlSchema.getTargetNamespace().equals(SchemaUtils.URI_SOAP_ENC)) continue;
 				
 				String tns = xmlSchema.getTargetNamespace();
 				

@@ -43,7 +43,7 @@ public class ImportWsdlSchemaReference extends WsdlSchemaReference implements IS
 			if (importedSchema != null) {
 				// check for different namespace
 				if (!XmlSchemaUtils.hasSameNamespace(schema, importedSchema)) {
-					// initialize import
+					// initialize import 
 					schemaImport.setNamespace(importedSchema.getTargetNamespace());
 					schemaImport.setSchema(importedSchema);
 				}

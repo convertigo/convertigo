@@ -44,7 +44,6 @@ public class ImportXsdSchemaReference extends XsdSchemaReference implements ISch
 				// check for different namespace
 				if (!XmlSchemaUtils.hasSameNamespace(schema, importedSchema)) {
 					// initialize import
-					schemaImport.setSchemaLocation(getReferenceUrl().toString());
 					schemaImport.setNamespace(importedSchema.getTargetNamespace());
 					schemaImport.setSchema(importedSchema);
 				}
