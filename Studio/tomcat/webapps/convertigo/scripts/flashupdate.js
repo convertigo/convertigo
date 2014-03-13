@@ -1,5 +1,7 @@
 /*
 
+/!\ Following workflow not up to date /!\
+
 isLocal ?
  yes > isFlashUpdate
  no > getEnv, hasLocal
@@ -32,7 +34,7 @@ downloadFiles ?
 
 var F = {
 	reTailUrl: new RegExp("([^#?]*)/.*"),
-	local: null,
+	isLocal: false,
 	currentFiles: null,
 	remoteFiles: null,
 	flashUpdateDir: null,
@@ -41,6 +43,7 @@ var F = {
 	debugStream: "",
 	remoteBase: null,
 	endPoint: null,
+	applicationName: null,
 	projectName: null,
 	localBase: null,
 	appBase: null,
@@ -50,6 +53,7 @@ var F = {
 	
 	debug: function (msg) {
 		F.debugStream += msg + "\n";
+		console.log("debug: " + msg);
 	},
 	
 	error: function (msg, err) {
@@ -60,60 +64,36 @@ var F = {
 			} catch (e) {}
     		msg += "\nException: " + sErr;
 		}
+		console.log("error: " + msg);
 		alert(F.debugStream + "\n" + msg);
 	},
 	
 	init: function () {
-		if (F.local == null) {
-			if (F.local = window.location.hash.length != 0) {
-				var env = window.location.hash.substring(1);
-				F.debug("Retrieve env");
-				env = JSON.parse(decodeURI(env));
-				$.extend(F, env);
-			}
-			if (F.firstLaunch) {
-				$("#main").show();
-			}
-		}
-		if (F.currentFiles == null) {
-			var url = window.location.href.replace(F.reTailUrl, "$1/files.json");
-			$.ajax({
-				dataType: "json",
-				url: url,
-				success: function (data) {
-					try {
-						F.currentFiles = data;
-						F.init();
-					} catch (err) {
-						F.error("catch init currentFile", err);
-					}
-				},
-				error: function (xhr, status, err) {
-					F.error("failed to retrieve current file list: " + url, err);
-				}
-			});
-		} else {
-			try {
-				F.platform = device.platform;
-				F.uuid = device.uuid;
-			} catch (err) {
-				// device feature disabled in config.xml
-			}
-			
-			F.isLocal();
-		}
-	},
-	
-	isLocal: function () {
-		F.debug("isLocal");
+		F.debug("init");
 		
-		if (F.local) {
-			F.getFlashUpdateDir(function () {
-				F.isFlashUpdate();
-			});
-		} else {
-			F.getEnv();
+		try {
+			F.platform = device.platform;
+			F.uuid = device.uuid;
+		} catch (err) {
+			// device feature disabled in config.xml
 		}
+		
+		var url = window.location.href.replace(F.reTailUrl, "$1/files.json");
+		$.ajax({
+			dataType: "json",
+			url: url,
+			success: function (data) {
+				try {
+					F.currentFiles = data;
+					F.getEnv();
+				} catch (err) {
+					F.error("catch init currentFile", err);
+				}
+			},
+			error: function (xhr, status, err) {
+				F.error("failed to retrieve current file list: " + url, err);
+			}
+		});
 	},
 	
 	getEnv: function () {
@@ -128,55 +108,46 @@ var F = {
 			success: function (data) {
 				try {
 					$.extend(F, data);
-					F.getFlashUpdateDir(function () {
-						F.remoteBase = F.endPoint + "/projects/" + F.projectName + "/_private/flashupdate";
-						
-						F.localBase = F.flashUpdateDir.nativeURL;
-						
-						F.hasLocal();
-					});
+					F.remoteBase = F.endPoint + "/projects/" + F.projectName + "/_private/flashupdate";
+					
+					if (F.firstLaunch) {
+						$("#main").show();
+					}
+					
+					F.getFlashUpdateDir();
 				} catch (err) {
 					F.error("catch init env", err);
 				}
 			},
 			error: function (xhr, status, err) {
-				F.error("failed to retrieve current file list: " + url, err);
+				F.error("failed to retrieve env.json file: " + url, err);
 			}
 		});
 	},
 	
-	getFlashUpdateDir: function (success) {
-		if (F.flashUpdateDir == null) {
-			if (typeof(LocalFileSystem) == "undefined") {
-				LocalFileSystem = window;
+	getFlashUpdateDir: function () {
+		F.debug("getFlashUpdateDir");
+		
+		window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function (fileSystem) {
+			try {
+				F.debug("getDirectory flashupdate");				
+				fileSystem.root.getDirectory("flashupdate", {create: true}, function (flashUpdateDir) {
+					F.flashUpdateDir = flashUpdateDir;
+					F.localBase = flashUpdateDir.toURL();
+					F.webLocalBase = flashUpdateDir.nativeURL ? flashUpdateDir.nativeURL : F.localBase;
+					
+					if (F.isLocal) {
+						F.isFlashUpdate();
+					} else {
+						F.hasLocal();
+					}
+				});
+			} catch (err) {
+				F.error("getDirectory flashupdate failed", err);
 			}
-			
-			window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
-			
-			window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function (fileSystem) {
-				try {
-					var flashUpdatePath = "flashupdate";
-					
-					F.debug("requesting flashupdate directory: " + flashUpdatePath);
-					
-					fileSystem.root.getDirectory(flashUpdatePath, {create: true}, function (flashUpdateDir) {
-						F.flashUpdateDir = flashUpdateDir;
-												
-						F.debug("flashupdate directory fullPath: " + flashUpdateDir.fullPath);
-						F.debug("flashupdate directory nativeURL: " + flashUpdateDir.nativeURL);
-						F.debug("flashupdate directory toURL(): " + flashUpdateDir.toURL());
-						
-						success();
-					});
-				} catch (err) {
-					F.error("catch init fileSystem", err);
-				}
-			}, function (err) {
-				F.error("FS failed", err);
-			});
-		} else {
-			success();
-		}
+		}, function (err) {
+			F.error("requestFileSystem failed", err);
+		});
 	},
  	
 	hasLocal: function () {
@@ -216,32 +187,33 @@ var F = {
 		F.debug("redirectLocal");
 		
 		var env = {
-			remoteBase: F.remoteBase,
-			endPoint: F.endPoint,
-			projectName: F.projectName,
-			localBase: F.localBase,
-			firstLaunch: F.firstLaunch,
 			applicationId: F.applicationId,
-			appBase: F.appBase
+			applicationName: F.applicationName,
+			projectName: F.projectName,
+			endPoint: F.endPoint,
+			firstLaunch: F.firstLaunch,
+			isLocal: true
 		};
 		
-		if (F.local) {
-			window.location.href = F.localBase + "/index.html#" + encodeURI(JSON.stringify(env));
-			window.location.reload();
-		} else {
-			var filesToCopy = ["cordova.js", "cordova_plugins.js"];
-			if (typeof (cordova.define) != "undefined") {
-				$.each(cordova.define.moduleMap["cordova/plugin_list"].exports, function (index, plugin) {
-					filesToCopy.push(plugin.file);
+		F.write("env.json", JSON.stringify(env), function () {
+			F.debug("env.json written");
+			
+			if (F.isLocal) {
+				window.location.reload();
+			} else {
+				var filesToCopy = ["cordova.js", "cordova_plugins.js"];
+				if (typeof (cordova.define) != "undefined") {
+					$.each(cordova.define.moduleMap["cordova/plugin_list"].exports, function (index, plugin) {
+						filesToCopy.push(plugin.file);
+					});
+				}
+				
+				F.copyCordovaFiles(filesToCopy, function () {
+					F.debug("all cordova files writen");
+					window.location.href = F.webLocalBase + "/index.html";				
 				});
 			}
-			
-			F.copyCordovaFiles(filesToCopy, function () {
-				F.debug("all cordova files writen");
-				
-				window.location.href = F.localBase + "/index.html#" + encodeURI(JSON.stringify(env));				
-			});
-		}
+		});
 	},
 	
 	copyCordovaFiles: function (files, success) {
@@ -278,7 +250,7 @@ var F = {
 		$("#checkingUpdate").show();
 		
 		if (F.remoteFiles == null) {
-			$(".dataProjectName").text(F.projectName);
+			$(".dataProjectName").text(F.applicationName);
 			
 			$.ajax({
 				dataType: "json",
@@ -358,7 +330,7 @@ var F = {
 	doUpdate: function () {
 		F.debug("doUpdate");
 		
-		if (F.local) {
+		if (F.isLocal) {
 			F.doRemoveUnexisting();
 		} else {
 			F.downloadFiles();
@@ -397,12 +369,11 @@ var F = {
 			}
 		}
 		
-		for (i = 0; i < F.currentFiles.files.length; i++) {
-			var file = F.currentFiles.files[i];
+		$.each(F.currentFiles.files, function (i, file) {
 			var remoteFile = indexedFiles[file.uri];
 			if (typeof(remoteFile) == "undefined") {
 				F.debug("try delete " + file.uri);
-				F.flashUpdateDir.getFile(file.uri, {create: false, exclusive: false}, function (fileEntry) {
+				F.flashUpdateDir.getFile(file.uri.substring(1), {create: false, exclusive: false}, function (fileEntry) {
 					F.debug("delete file " + file.uri);
 					try {
 						fileEntry.remove(function () {
@@ -413,7 +384,7 @@ var F = {
 							checkDone();
 						});
 					} catch (err) {
-						F.debug("delete DONE (" + err + ") " + file.uri);
+						F.debug("delete exception (" + err + ") " + file.uri);
 						checkDone();
 					}
 				}, function () {
@@ -423,7 +394,7 @@ var F = {
 			} else {
 				checkDone();
 			}
-		}
+		});
 		checkDone();
 	},
 	
@@ -466,7 +437,7 @@ var F = {
 		
 		$.each(F.remoteFiles.files, function (index, file) {
 			var localFile = indexedFiles[file.uri];
-			if (!F.local || (!localFile || file.date > localFile.date || file.size != localFile.size)) {
+			if (!F.isLocal || (!localFile || file.date > localFile.date || file.size != localFile.size)) {
 				F.debug("FileTransfer " + file.uri);
 				
 				nbTransfert++;
