@@ -209,9 +209,7 @@ public class Migration7_0_0 {
 							// Create transaction schema
 							String targetNamespace = projectSchema.getTargetNamespace();
 							String prefix = projectSchema.getNamespaceContext().getPrefix(targetNamespace);
-							String elementFormDefault = projectSchema.getElementFormDefault().getValue();
-							String attributeFormDefault = projectSchema.getAttributeFormDefault().getValue();
-							XmlSchema transactionSchema = SchemaUtils.createSchema(prefix, targetNamespace, elementFormDefault, attributeFormDefault);
+							XmlSchema transactionSchema = SchemaUtils.createSchema(prefix, targetNamespace, Project.XSD_FORM_UNQUALIFIED, Project.XSD_FORM_UNQUALIFIED);
 							
 							// Add required prefix declarations
 							List<String> nsList = new LinkedList<String>();
@@ -306,7 +304,7 @@ public class Migration7_0_0 {
 			else {// Should only happen for projects which version <= 4.6.0 
 				XmlSchemaCollection collection = new XmlSchemaCollection();
 				String prefix = project.getName()+"_ns";
-				projectSchema = SchemaUtils.createSchema(prefix, project.getNamespaceUri(), project.getSchemaElementForm(), project.getSchemaElementForm());
+				projectSchema = SchemaUtils.createSchema(prefix, project.getNamespaceUri(), Project.XSD_FORM_UNQUALIFIED, Project.XSD_FORM_UNQUALIFIED);
 				SchemaMeta.setCollection(projectSchema, collection);
 				
 				for (Connector connector: project.getConnectorsList()) {

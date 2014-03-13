@@ -1737,6 +1737,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement eSequence = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
 		eSequence.setName(getName() + "Response");
+		eSequence.setQName(new QName(schema.getTargetNamespace(), eSequence.getName()));
 
 		XmlSchemaComplexType tSequence = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaComplexType(schema));
 		eSequence.setSchemaType(tSequence);
@@ -1787,6 +1788,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 
 		eDocument = XmlSchemaUtils.makeDynamicReadOnly(this, new XmlSchemaElement());
 		eDocument.setName(getName());
+		eDocument.setQName(new QName(schema.getTargetNamespace(), eDocument.getName()));
 		eDocument.setSchemaTypeName(cType.getQName());
 
 		XmlSchemaUtils.add(schema, eDocument);
