@@ -78,7 +78,7 @@ var F = {
 			// device feature disabled in config.xml
 		}
 		
-		var url = window.location.href.replace(F.reTailUrl, "$1/files.json");
+		var url = window.location.href.replace(F.reTailUrl, "$1/files.json");// NO CACHE ?!
 		$.ajax({
 			dataType: "json",
 			url: url,
@@ -134,7 +134,18 @@ var F = {
 				fileSystem.root.getDirectory("flashupdate", {create: true}, function (flashUpdateDir) {
 					F.flashUpdateDir = flashUpdateDir;
 					F.localBase = flashUpdateDir.toURL();
+					
+					if (!F.localBase) {
+						F.localBase = flashUpdateDir.fullPath;
+					}
+					
 					F.webLocalBase = flashUpdateDir.nativeURL ? flashUpdateDir.nativeURL : F.localBase;
+					if (!F.webLocalBase) {
+						F.webLocalBase = flashUpdateDir.fullPath;
+					}
+					
+					F.localBase = F.localBase.replace(new RegExp("/$"), "");
+					F.webLocalBase = F.webLocalBase.replace(new RegExp("/$"), "");
 					
 					if (F.isLocal) {
 						F.isFlashUpdate();
@@ -226,7 +237,6 @@ var F = {
 				success: function (text) {
 					try {
 						F.write(file, text, function () {
-							F.debug(file + " writen");
 							F.copyCordovaFiles(files, success);
 						}, function (err) {
 							F.error("write failed", err);
@@ -489,7 +499,6 @@ var F = {
 		F.debug("try to write to " + filePath);
 		
 		F.mkParentDirs(filePath, function (parentDir, fileName) {
-			F.debug("really write to " + fileName);
 			parentDir.getFile(fileName, {create: true, exclusive: false}, function (fileEntry) {
 				fileEntry.createWriter(function (writer) {
 					writer.onwrite = success;
