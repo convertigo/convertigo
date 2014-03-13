@@ -565,7 +565,19 @@ public class SchemaManager implements AbstractManager {
 		catch (Exception e) {}
 	}
 	
-	private static void addConvertigoErrorObjects(XmlSchema schema) {
+	public static void updateConvertigoErrorObjects(XmlSchema schema) {
+		XmlSchemaType type = null;
+		if ((type = schema.getTypeByName("ConvertigoErrorContextVariable")) != null)
+			XmlSchemaUtils.remove(schema, type);
+		if ((type = schema.getTypeByName("ConvertigoErrorContext")) != null)
+			XmlSchemaUtils.remove(schema, type);
+		if ((type = schema.getTypeByName("ConvertigoError")) != null)
+			XmlSchemaUtils.remove(schema, type);
+		
+		SchemaManager.addConvertigoErrorObjects(schema);
+	}
+	
+	public static void addConvertigoErrorObjects(XmlSchema schema) {
 		XmlSchemaComplexType cConvertigoErrorContextVariableType = new XmlSchemaComplexType(schema);
 		cConvertigoErrorContextVariableType.setName("ConvertigoErrorContextVariable");
 		XmlSchemaObjectCollection attributes = cConvertigoErrorContextVariableType.getAttributes();

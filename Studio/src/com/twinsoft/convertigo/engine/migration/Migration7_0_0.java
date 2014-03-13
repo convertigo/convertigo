@@ -79,6 +79,7 @@ import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.SchemaManager;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
@@ -157,6 +158,7 @@ public class Migration7_0_0 {
 					
 				});
 				projectSchema = SchemaUtils.loadSchema(new File(projectXsdFilePath), collection);
+				SchemaManager.updateConvertigoErrorObjects(projectSchema);
 				SchemaMeta.setCollection(projectSchema, collection);
 				
 				for (Connector connector: project.getConnectorsList()) {
@@ -209,9 +211,7 @@ public class Migration7_0_0 {
 							// Create transaction schema
 							String targetNamespace = projectSchema.getTargetNamespace();
 							String prefix = projectSchema.getNamespaceContext().getPrefix(targetNamespace);
-							String elementFormDefault = projectSchema.getElementFormDefault().getValue();
-							String attributeFormDefault = projectSchema.getAttributeFormDefault().getValue();
-							XmlSchema transactionSchema = SchemaUtils.createSchema(prefix, targetNamespace, elementFormDefault, attributeFormDefault);
+							XmlSchema transactionSchema = SchemaUtils.createSchema(prefix, targetNamespace, Project.XSD_FORM_UNQUALIFIED, Project.XSD_FORM_UNQUALIFIED);
 							
 							// Add required prefix declarations
 							List<String> nsList = new LinkedList<String>();
@@ -278,6 +278,9 @@ public class Migration7_0_0 {
 								Transaction.addSchemaResponseType(transactionSchema, transaction);
 							}
 							
+							// Add c8o error objects (for internal xsd edition only)
+							SchemaManager.updateConvertigoErrorObjects(transactionSchema);
+							
 							// Save schema to file
 							String transactionXsdFilePath = transaction.getSchemaFilePath();
 							new File(transaction.getSchemaFileDirPath()).mkdirs();
@@ -306,7 +309,8 @@ public class Migration7_0_0 {
 			else {// Should only happen for projects which version <= 4.6.0 
 				XmlSchemaCollection collection = new XmlSchemaCollection();
 				String prefix = project.getName()+"_ns";
-				projectSchema = SchemaUtils.createSchema(prefix, project.getNamespaceUri(), project.getSchemaElementForm(), project.getSchemaElementForm());
+				projectSchema = SchemaUtils.createSchema(prefix, project.getNamespaceUri(), Project.XSD_FORM_UNQUALIFIED, Project.XSD_FORM_UNQUALIFIED);
+				SchemaManager.addConvertigoErrorObjects(projectSchema);
 				SchemaMeta.setCollection(projectSchema, collection);
 				
 				for (Connector connector: project.getConnectorsList()) {
@@ -319,6 +323,7 @@ public class Migration7_0_0 {
 				}
 			}
 			
+			// Handle sequence objects
 			for (Sequence sequence: project.getSequencesList()) {
 				handleSteps(projectSchema,referenceMap, sequence.getSteps());
 				handleRequestableVariable(sequence.getVariablesList());

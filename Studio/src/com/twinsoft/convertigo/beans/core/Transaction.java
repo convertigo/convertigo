@@ -59,6 +59,7 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.SchemaManager;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -602,7 +603,6 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
     							+" attributeFormDefault=\""+getProject().getSchemaElementForm()+"\""
     							+" elementFormDefault=\""+getProject().getSchemaElementForm()+"\""
     							+" targetNamespace=\""+getProject().getTargetNamespace()+"\">\n"
-    						+ Engine.getExceptionSchema().replaceAll("p_ns", p_ns)
     						+ xsdElements
     						+ xsdTypes
     						+ "</xsd:schema>";
@@ -612,6 +612,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 			new File(getSchemaFileDirPath()).mkdirs();
     		try {
 				XmlSchema xmlSchema = SchemaUtils.loadSchema(xsdDom, new XmlSchemaCollection());
+				SchemaManager.updateConvertigoErrorObjects(xmlSchema);
 				
 				QName responseTypeQName = new QName(xmlSchema.getTargetNamespace(), responseType);
 				XmlSchemaComplexType cType = (XmlSchemaComplexType) xmlSchema.getSchemaTypes().getItem(responseTypeQName);

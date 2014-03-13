@@ -37,6 +37,7 @@ import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.apache.ws.commons.schema.XmlSchemaInclude;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
+import org.apache.ws.commons.schema.XmlSchemaObjectTable;
 import org.apache.ws.commons.schema.XmlSchemaSerializer.XmlSchemaSerializerException;
 import org.apache.ws.commons.schema.XmlSchemaSimpleType;
 import org.apache.ws.commons.schema.XmlSchemaSimpleTypeContent;
@@ -562,11 +563,9 @@ public class XmlSchemaUtils {
 
 	public static void add(XmlSchema schema, XmlSchemaObject object) {
 		if (object instanceof XmlSchemaImport) {
-			schema.getIncludes().add(object);
-			schema.getItems().add(object);
+			add(schema, (XmlSchemaImport) object);
 		} else if (object instanceof XmlSchemaInclude) {
-			schema.getIncludes().add(object);
-			schema.getItems().add(object);
+			add(schema, (XmlSchemaInclude) object);
 		} else if (object instanceof XmlSchemaElement) {
 			add(schema, (XmlSchemaElement) object);
 		} else if (object instanceof XmlSchemaType) {
@@ -582,42 +581,145 @@ public class XmlSchemaUtils {
 		}
 	}
 	
-	public static void add(XmlSchema schema, XmlSchemaElement element) {
-		QName qName = element.getQName();
-		if (qName == null) {
-			qName = new QName(schema.getTargetNamespace(), element.getName());
+	public static void remove(XmlSchema schema, XmlSchemaObject object) {
+		if (object instanceof XmlSchemaImport) {
+			remove(schema, (XmlSchemaImport) object);
+		} else if (object instanceof XmlSchemaInclude) {
+			remove(schema, (XmlSchemaInclude) object);
+		} else if (object instanceof XmlSchemaElement) {
+			remove(schema, (XmlSchemaElement) object);
+		} else if (object instanceof XmlSchemaType) {
+			remove(schema, (XmlSchemaType) object);
+		} else if (object instanceof XmlSchemaGroup) {
+			remove(schema, (XmlSchemaGroup) object);
+		} else if (object instanceof XmlSchemaAttributeGroup) {
+			remove(schema, (XmlSchemaAttributeGroup) object);
+		} else if (object instanceof XmlSchemaAttribute) {
+			remove(schema, (XmlSchemaAttribute) object);
+		} else {
+			schema.getItems().remove(object);
 		}
-		if (schema.getElementByName(qName) == null) {
+	}
+
+	public static void add(XmlSchema schema, XmlSchemaImport _import) {
+		if (!schema.getIncludes().contains(_import)) {
+			schema.getIncludes().add(_import);
+			schema.getItems().add(_import);
+		}
+	}
+	
+	public static void remove(XmlSchema schema, XmlSchemaImport _import) {
+		if (schema.getIncludes().contains(_import)) {
+			schema.getIncludes().remove(_import);
+			schema.getItems().remove(_import);
+		}
+	}
+
+	public static void add(XmlSchema schema, XmlSchemaInclude _include) {
+		if (!schema.getIncludes().contains(_include)) {
+			schema.getIncludes().add(_include);
+			schema.getItems().add(_include);
+		}
+	}
+
+	public static void remove(XmlSchema schema, XmlSchemaInclude _include) {
+		if (schema.getIncludes().contains(_include)) {
+			schema.getIncludes().remove(_include);
+			schema.getItems().remove(_include);
+		}
+	}
+
+	public static void add(XmlSchema schema, XmlSchemaElement element) {
+		QName qname = element.getQName();
+		if (qname == null) {
+			qname = new QName(schema.getTargetNamespace(), element.getName());
+		}
+		if (schema.getElementByName(qname) == null) {
+			schema.getElements().add(qname, element);
 			schema.getItems().add(element);
-			schema.getElements().add(qName, element);
+		}
+	}
+	
+	public static void remove(XmlSchema schema, XmlSchemaElement element) {
+		QName qname = element.getQName();
+		if (schema.getElementByName(qname) != null) {
+			schema.getItems().remove(element);
+			remove(schema.getElements(), qname);
 		}
 	}
 	
 	public static void add(XmlSchema schema, XmlSchemaType type) {
-		if (schema.getTypeByName(type.getQName()) == null) {
-			schema.getItems().add(type);
+		QName qname = type.getQName();
+		if (schema.getTypeByName(qname) == null) {
 			schema.addType(type);
+			schema.getItems().add(type);
 		}
 	}
 	
+	public static void remove(XmlSchema schema, XmlSchemaType type) {
+		QName qname = type.getQName();
+		if (schema.getTypeByName(qname) != null) {
+			schema.getItems().remove(type);
+			remove(schema.getSchemaTypes(), qname);
+		}
+	}
+
 	public static void add(XmlSchema schema, XmlSchemaGroup group) {
-		if (schema.getGroups().getItem(group.getName()) == null) {
+		QName qname = group.getName();
+		if (schema.getGroups().getItem(qname) == null) {
+			schema.getGroups().add(qname, group);
 			schema.getItems().add(group);
-			schema.getGroups().add(group.getName(), group);
+		}
+	}
+	
+	public static void remove(XmlSchema schema, XmlSchemaGroup group) {
+		QName qname = group.getName();
+		if (schema.getGroups().getItem(qname) != null) {
+			schema.getItems().remove(group);
+			remove(schema.getGroups(), qname);
 		}
 	}
 	
 	public static void add(XmlSchema schema, XmlSchemaAttributeGroup attributeGroup) {
-		if (schema.getAttributeGroups().getItem(attributeGroup.getName()) == null) {
-			schema.getAttributeGroups().add(attributeGroup.getName(), attributeGroup);
+		QName qname = attributeGroup.getName();
+		if (schema.getAttributeGroups().getItem(qname) == null) {
+			schema.getAttributeGroups().add(qname, attributeGroup);
 			schema.getItems().add(attributeGroup);
 		}
 	}
 	
+	public static void remove(XmlSchema schema, XmlSchemaAttributeGroup attributeGroup) {
+		QName qname = attributeGroup.getName();
+		if (schema.getAttributeGroups().getItem(qname) != null) {
+			schema.getItems().remove(attributeGroup);
+			remove(schema.getAttributeGroups(), qname);
+		}
+	}
+
 	public static void add(XmlSchema schema, XmlSchemaAttribute attribute) {
-		if (schema.getAttributes().getItem(attribute.getQName()) == null) {
-			schema.getAttributes().add(attribute.getQName(), attribute);
+		QName qname = attribute.getQName();
+		if (schema.getAttributes().getItem(qname) == null) {
+			schema.getAttributes().add(qname, attribute);
 			schema.getItems().add(attribute);
 		}
 	}
+	
+	public static void remove(XmlSchema schema, XmlSchemaAttribute attribute) {
+		QName qname = attribute.getQName();
+		if (schema.getAttributes().getItem(qname) != null) {
+			schema.getItems().remove(attribute);
+			remove(schema.getAttributes(), qname);
+		}
+	}
+	
+	protected static void remove(XmlSchemaObjectTable objectTable, QName qname) {
+		Iterator<QName> it = GenericUtils.cast(objectTable.getNames());
+		while (it.hasNext()) {
+			if (it.next().toString().equals(qname.toString())) {
+				it.remove();
+				return;
+			}
+		}
+	}
+
 }
