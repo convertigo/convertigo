@@ -34,6 +34,7 @@ downloadFiles ?
 
 var F = {
 	reTailUrl: new RegExp("([^#?]*)/.*"),
+	startTime: new Date().getTime(),
 	isLocal: false,
 	currentFiles: null,
 	remoteFiles: null,
@@ -46,6 +47,7 @@ var F = {
 	applicationName: null,
 	projectName: null,
 	localBase: null,
+	webLocalBase: null,
 	appBase: null,
 	timeout: 0,
 	firstLaunch: true,
@@ -78,7 +80,11 @@ var F = {
 			// device feature disabled in config.xml
 		}
 		
-		var url = window.location.href.replace(F.reTailUrl, "$1/files.json");// NO CACHE ?!
+		$.ajaxSetup({
+			cache: false
+		});
+		
+		var url = window.location.href.replace(F.reTailUrl, "$1/files.json");
 		$.ajax({
 			dataType: "json",
 			url: url,
@@ -454,7 +460,7 @@ var F = {
 				totalSize += file.size;
 				F.mkParentDirs(file.uri, function (parentDir, fileName) {
 					new FileTransfer().download(
-						encodeURI(F.remoteBase + file.uri),
+						encodeURI(F.remoteBase + file.uri + "?" + F.startTime),
 						F.localBase + file.uri,
 						function () {
 							checkDone(file);
