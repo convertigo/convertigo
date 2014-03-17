@@ -533,7 +533,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 
     			if ((databaseObject != null) && (databaseObject instanceof MobileDevice)) {
     				final MobileDevice mobileDevice = (MobileDevice)treeObject.getObject();
-    				String displayName = CachedIntrospector.getBeanInfo(mobileDevice.getClass()).getBeanDescriptor().getDisplayName();
     				
     				// get the application name from the Mobile devices's property or if empty the project's name
     				final String applicationName = ((MobileApplication)mobileDevice.getParent()).getApplicationName().isEmpty() ?
