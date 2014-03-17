@@ -36,6 +36,7 @@ var F = {
 	reTailUrl: new RegExp("([^#?]*)/.*"),
 	startTime: new Date().getTime(),
 	isLocal: false,
+	canCopyFromApp: false,
 	currentFiles: null,
 	remoteFiles: null,
 	flashUpdateDir: null,
@@ -74,6 +75,9 @@ var F = {
 		F.debug("init");
 		
 		try {
+			if (device.platform == "Android" || device.platform == "Win32NT") {
+				F.canCopyFromApp = true;
+			}
 			F.platform = device.platform;
 			F.uuid = device.uuid;
 		} catch (err) {
@@ -182,7 +186,11 @@ var F = {
 			},
 			error: function (xhr, status, err) {
 				try {
-					F.isFlashUpdate();
+					if (F.canCopyFromApp) {
+						F.downloadFiles(true);
+					} else {
+						F.isFlashUpdate();
+					}
 				} catch (err) {
 					F.error("catch hasLocal error", err);
 				}
@@ -196,7 +204,11 @@ var F = {
 		if (F.currentFiles.date < files.date) {
 			F.redirectLocal();
 		} else {
-			F.isFlashUpdate();
+			if (F.canCopyFromApp) {
+				F.doRemoveUnexisting(true, files.files);
+			} else {
+				F.isFlashUpdate();
+			}
 		}
 	},
 	
@@ -347,9 +359,9 @@ var F = {
 		F.debug("doUpdate");
 		
 		if (F.isLocal) {
-			F.doRemoveUnexisting();
+			F.doRemoveUnexisting(false);
 		} else {
-			F.downloadFiles();
+			F.downloadFiles(false);
 		}
 	},
 	
@@ -369,23 +381,27 @@ var F = {
 		return indexedFiles;
 	},
 	
-	doRemoveUnexisting: function () {
+	doRemoveUnexisting: function (fromApp, files) {
 		F.debug("doRemoveUnexisting");
 		
-		var indexedFiles = F.filesIndexer(F.remoteFiles.files);
+		var indexedFiles = fromApp ? {} : F.filesIndexer(F.remoteFiles.files);
 		var i, curFile = 0;
+		
+		if (typeof(files) == "undefined") {
+			files = F.currentFiles.files;
+		}
 		
 		var checkDone = function () {
 			try {
-				if ((curFile++) == F.currentFiles.files.length) {
-					F.downloadFiles();
+				if ((curFile++) == files.length) {
+					F.downloadFiles(fromApp);
 				}
 			} catch (err) {
 				F.error("catch doRemoveUnexisting checkDone", err);
 			}
 		}
 		
-		$.each(F.currentFiles.files, function (i, file) {
+		$.each(files, function (i, file) {
 			var remoteFile = indexedFiles[file.uri];
 			if (typeof(remoteFile) == "undefined") {
 				F.debug("try delete " + file.uri);
@@ -414,13 +430,17 @@ var F = {
 		checkDone();
 	},
 	
-	downloadFiles: function () {
+	downloadFiles: function (fromApp) {
 		F.debug("downloadFiles");
 		
 		var indexedFiles = F.filesIndexer(F.currentFiles.files);
 		var curFile = 0, nbTransfert = 0, totalSize = 0, curSize = 0;
-		
-		$("#progress").show();
+
+		if (fromApp) {
+			F.remoteFiles = F.currentFiles;
+		} else {
+			$("#progress").show();
+		}
 		
 		var $canvas = $("#progressGauge");
 		var context = $canvas[0].getContext("2d");
@@ -460,7 +480,7 @@ var F = {
 				totalSize += file.size;
 				F.mkParentDirs(file.uri, function (parentDir, fileName) {
 					new FileTransfer().download(
-						encodeURI(F.remoteBase + file.uri + "?" + F.startTime),
+						encodeURI((fromApp ? F.appBase : F.remoteBase) + file.uri + "?" + F.startTime),
 						F.localBase + file.uri,
 						function () {
 							checkDone(file);
@@ -502,8 +522,6 @@ var F = {
 	},
 		
 	write: function (filePath, content, success, error) {
-		F.debug("try to write to " + filePath);
-		
 		F.mkParentDirs(filePath, function (parentDir, fileName) {
 			parentDir.getFile(fileName, {create: true, exclusive: false}, function (fileEntry) {
 				fileEntry.createWriter(function (writer) {
