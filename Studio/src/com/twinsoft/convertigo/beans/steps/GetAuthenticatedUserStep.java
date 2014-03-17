@@ -25,8 +25,6 @@ package com.twinsoft.convertigo.beans.steps;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -40,7 +38,6 @@ public class GetAuthenticatedUserStep extends StepWithExpressions implements ICo
 	
 	private static final long serialVersionUID = 1430960819073513105L;
 	
-	private String userID = null;
 	private String nodeName = "authenticatedUserID";
 	
 	public GetAuthenticatedUserStep() {
@@ -81,19 +78,10 @@ public class GetAuthenticatedUserStep extends StepWithExpressions implements ICo
 	public String getStepNodeName() {
 		return getNodeName();
 	}
-	
-	@Override
-	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
-			userID = getSequence().context.getAuthenticatedUser();
-			return super.stepExecute(javascriptContext, scope);
-		}
-		return false;
-	}
 
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
-		String nodeValue = userID;
+		String nodeValue = getSequence().context.getAuthenticatedUser();
 		if (nodeValue != null && nodeValue.length() > 0) {
 			Node text = doc.createTextNode(nodeValue);
 			stepNode.appendChild(text);
