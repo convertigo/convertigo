@@ -830,6 +830,39 @@
             id="convertigo.criteriaContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject">
       </objectContribution>
+      <objectContribution
+	       id="convertigo.CordovaContribution"
+	       objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileDeviceTreeObject">
+	       <menu
+	         id="convertigo.menu.action.cordova"
+             label="Cordova"
+             path="cordova">
+           </menu>
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
+	             enablesFor="1"
+	             icon="icons/studio/build_locally_16x16.png"
+	             id="convertigo.action.buildLocally"
+	             label="Local build"
+	             menubarPath="convertigo.menu.action.cordova/content">
+	       </action>
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.AddPluginAction"
+	             enablesFor="1"
+	             icon="icons/studio/add_plugin_16x16.png"
+	             id="convertigo.action.addPlugin"
+	             label="Add plugin..."
+	             menubarPath="convertigo.menu.action.cordova/content">
+	       </action>
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.RemovePluginAction"
+	             enablesFor="1"
+	             icon="icons/studio/remove_plugin_16x16.png"
+	             id="convertigo.action.removePlugin"
+	             label="Remove Plugin..."
+	             menubarPath="convertigo.menu.action.cordova/content">
+	       </action>
+	  </objectContribution>
 	  <objectContribution
 	        id="convertigo.launchMobileDeviceProjectContribution"
 	        objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileDeviceTreeObject">
