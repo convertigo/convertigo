@@ -27,6 +27,18 @@ import com.twinsoft.convertigo.engine.parsers.events.SimpleEvent;
 public class CreateEventStatement extends SimpleEventStatement {
 	private static final long serialVersionUID = -3143932444773103163L;
 
+	public CreateEventStatement() {
+		this(SimpleEvent.action_click, "");
+	}
+	
+	public CreateEventStatement(String xpath) {
+		this(SimpleEvent.action_click, xpath);
+	}
+
+	public CreateEventStatement(String action, String xpath) {
+		super(action, xpath);
+	}
+	
 	public String[] getActionStrings() {
 		return SimpleEvent.getActions();
 	}
