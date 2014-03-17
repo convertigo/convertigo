@@ -62,8 +62,8 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.ImportWsReference;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
-import com.twinsoft.convertigo.engine.util.WsReference;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
@@ -491,27 +491,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			throw new CoreException(status);
 		}
 	}
-
-	class ImportWsReference extends WsReference {
-		IProgressMonitor monitor;
-
-		public ImportWsReference(String wsdlURL, IProgressMonitor monitor) {
-			super(wsdlURL);
-			this.monitor = monitor;
-		}
-
-		@Override
-		public void setTaskLabel(String text) {
-			monitor.setTaskName(text);
-			monitor.worked(1);
-		}
-
-		@Override
-		protected HttpConnector importInto(Project project) throws Exception {
-			return super.importInto(project);
-		}
-	}
-
+	
 	private Project createFromBlankProject(IProgressMonitor monitor) throws Exception {
 		Project project = null;
 		String projectArchivePath = "";

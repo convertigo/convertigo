@@ -33,7 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.engine.util.WsReference;
+import com.twinsoft.convertigo.engine.util.ImportWsReference;
 
 public class WsReferenceImportDialog extends MyAbstractDialog implements Runnable {
 
@@ -41,7 +41,6 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 	private Label labelProgression = null;
 	private Combo combo = null;
 	private String wsdlURL = null;
-	
 	private Project project;
 	private HttpConnector httpConnector = null;
 	
@@ -121,7 +120,7 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		Throwable ex = null;
 		try {
 			progressBarThread.start();
-			ImportWsReference wsr = new ImportWsReference(wsdlURL);
+			ImportWsReference wsr = new ImportWsReference(wsdlURL, null);
 			httpConnector = wsr.importInto(project);
 		}
 		catch (Throwable e) {
@@ -169,20 +168,6 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		});
 	}
 
-	class ImportWsReference extends WsReference {
-		public ImportWsReference(String wsdlURL) {
-			super(wsdlURL);
-		}
 
-		@Override
-		public void setTaskLabel(String text) {
-			setTextLabel(text);
-		}
-
-		@Override
-		protected HttpConnector importInto(Project project) throws Exception {
-			return super.importInto(project);
-		}
-	}
 	
 }
