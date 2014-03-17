@@ -47,8 +47,6 @@ public class SessionSetStep extends StepWithExpressions implements IComplexTypeA
 	private String key = "";
 	private SmartType expression = new SmartType();
 	
-	private String value;
-	
 	public SessionSetStep() {
 		super();
 		setOutput(false);
@@ -77,15 +75,14 @@ public class SessionSetStep extends StepWithExpressions implements IComplexTypeA
 	
 	@Override
 	public String getStepNodeName() {
-		return "context";
+		return "session";
 	}
 	
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
 			if (getSequence().context != null) {
-				getSequence().context.httpSession.setAttribute(key, expression.getExpression());
-				value = (String) getSequence().context.httpSession.getAttribute(key);			
+				evaluate(javascriptContext, scope, expression);
 				return super.stepExecute(javascriptContext, scope);
 			}
 		}
@@ -98,8 +95,9 @@ public class SessionSetStep extends StepWithExpressions implements IComplexTypeA
 		if (string != null && string.length() > 0) {
 			stepNode.setAttribute("key", string);
 		}
-		
-		string = value;
+
+		string = expression.getSingleString(this);
+		getSequence().context.httpSession.setAttribute(key, string);	
 		if (string != null && string.length() > 0) {
 			stepNode.setAttribute("expression", string);
 		}

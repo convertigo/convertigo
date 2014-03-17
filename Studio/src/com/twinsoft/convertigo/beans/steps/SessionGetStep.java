@@ -22,16 +22,12 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Scriptable;
-
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.apache.ws.commons.schema.constants.Constants;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -39,8 +35,8 @@ import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 
 public class SessionGetStep extends StepWithExpressions implements IComplexTypeAffectation {
@@ -49,7 +45,6 @@ public class SessionGetStep extends StepWithExpressions implements IComplexTypeA
 	
 	private String key = "";
 	
-	private String value;
 	
 	public SessionGetStep() {
 		super();
@@ -79,20 +74,9 @@ public class SessionGetStep extends StepWithExpressions implements IComplexTypeA
 
 	@Override
 	public String getStepNodeName() {
-		return "context";
+		return "session";
 	}
 	
-	@Override
-	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
-		if (isEnable()) {
-			if (getSequence().context != null) {
-				value = (String) getSequence().context.httpSession.getAttribute(key);		
-				return super.stepExecute(javascriptContext, scope);
-			}
-		}
-		return false;
-	}
-
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		String string = key;
@@ -100,7 +84,7 @@ public class SessionGetStep extends StepWithExpressions implements IComplexTypeA
 			stepNode.setAttribute("key", string);
 		}
 		
-		string = value;
+		string = (String) getSequence().context.httpSession.getAttribute(key);
 		if (string != null && string.length() > 0) {
 			stepNode.setAttribute("expression", string);
 		}
