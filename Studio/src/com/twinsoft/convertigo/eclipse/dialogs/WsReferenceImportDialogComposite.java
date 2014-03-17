@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
+import org.eclipse.swt.widgets.Text;
 
 public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite {
 
@@ -43,6 +44,8 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 	public Label labelProgression = null;
 	public Combo combo = null;
 	public Button browseButton = null;
+	public Button useAuthentication = null;
+	public Text loginText = null, passwordText = null;
 	/**
 	 * @param parent
 	 * @param style
@@ -121,6 +124,35 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		data2.horizontalSpan = 2;
 		data2.grabExcessHorizontalSpace = true;
 		labelProgression.setLayoutData (data2);
+		
+		useAuthentication = new Button(this, SWT.CHECK);
+		useAuthentication.setText("WSDL URL need an authenfication");
+		useAuthentication.setSelection(false);
+		useAuthentication.setLayoutData(data2);
+		
+		useAuthentication.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				loginText.setEnabled(useAuthentication.getSelection());
+				passwordText.setEnabled(useAuthentication.getSelection());
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				loginText.setEnabled(useAuthentication.getSelection());
+				passwordText.setEnabled(useAuthentication.getSelection());
+			}
+		});
+		
+		loginText = new Text(this, SWT.NONE);
+		loginText.setMessage("Login");
+		loginText.setEnabled(false);
+		loginText.setLayoutData(data2);
+		
+		passwordText = new Text(this, SWT.SINGLE | SWT.PASSWORD);
+		passwordText.setMessage("Password");
+		passwordText.setEnabled(false);
+		passwordText.setLayoutData(data);
 		
 		setSize(new Point(402, 99));
 	}

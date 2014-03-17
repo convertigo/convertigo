@@ -10,7 +10,6 @@ public class ImportWsReference extends WsReference {
 
 		public ImportWsReference(String wsdlURL, IProgressMonitor monitor) {
 			super(wsdlURL);
-			this.monitor = monitor;
 		}
 
 		@Override
@@ -26,5 +25,10 @@ public class ImportWsReference extends WsReference {
 		@Override
 		public HttpConnector importInto(Project project) throws Exception {
 			return super.importInto(project);
+		}
+		
+		@Override
+		public HttpConnector importIntoAuthenticated(Project project, String login, String password) throws Exception {
+			return super.importIntoAuthenticated(project, login, password);
 		}
 }

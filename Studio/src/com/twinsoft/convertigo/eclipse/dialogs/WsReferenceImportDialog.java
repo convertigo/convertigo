@@ -23,12 +23,14 @@
 package com.twinsoft.convertigo.eclipse.dialogs;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -39,6 +41,8 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 
 	private ProgressBar progressBar = null;
 	private Label labelProgression = null;
+	private Button useAuthentication = null;
+	private Text loginText = null, passwordText = null;
 	private Combo combo = null;
 	private String wsdlURL = null;
 	private Project project;
@@ -69,6 +73,9 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 			combo = ((WsReferenceImportDialogComposite)dialogComposite).combo;
 			progressBar = ((WsReferenceImportDialogComposite)dialogComposite).progressBar;
 			labelProgression = ((WsReferenceImportDialogComposite)dialogComposite).labelProgression;
+			useAuthentication = ((WsReferenceImportDialogComposite)dialogComposite).useAuthentication;
+			loginText = ((WsReferenceImportDialogComposite)dialogComposite).loginText;
+			passwordText = ((WsReferenceImportDialogComposite)dialogComposite).passwordText;
 			
 			wsdlURL = combo.getText();
 			if (wsdlURL.startsWith("http://") || wsdlURL.startsWith("https://") || wsdlURL.startsWith("file://")) {
@@ -93,6 +100,8 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 
 	public void run() {
 		final Display display = getParentShell().getDisplay();
+		final boolean[] isAuthenticated = new boolean[1];
+		final String[] ids = new String[2];
 		Thread progressBarThread = new Thread("Progress Bar thread") {
 			public void run() {
 				int i = 0;
@@ -103,6 +112,9 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 						final int j = i;
 						display.asyncExec(new Runnable() {
 							public void run() {
+								isAuthenticated[0] = useAuthentication.getSelection();
+								ids[0] = loginText.getText();
+								ids[1] = passwordText.getText();
 								if (!progressBar.isDisposed())
 									progressBar.setSelection(j);
 							}
@@ -118,10 +130,14 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		};
 
 		Throwable ex = null;
-		try {
+		try {		
 			progressBarThread.start();
 			ImportWsReference wsr = new ImportWsReference(wsdlURL, null);
-			httpConnector = wsr.importInto(project);
+			if (!isAuthenticated[0]) {
+				httpConnector = wsr.importInto(project); 
+			} else { 
+				httpConnector = wsr.importIntoAuthenticated(project, ids[0], ids[1]); 
+			}
 		}
 		catch (Throwable e) {
 			ex = e;

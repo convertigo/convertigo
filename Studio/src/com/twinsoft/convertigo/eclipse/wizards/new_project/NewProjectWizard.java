@@ -471,7 +471,15 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 
 				String wsdlURL = page10.getWsdlURL();
 				ImportWsReference wsr = new ImportWsReference(wsdlURL, monitor);
-				HttpConnector httpConnector = wsr.importInto(project);
+				
+				HttpConnector httpConnector = null;
+				if (!page10.useAuthentication()) {
+					httpConnector = wsr.importInto(project);
+				} else {
+					httpConnector = wsr.importIntoAuthenticated(project, page10.getAuthenticationIDs()[0], 
+							page10.getAuthenticationIDs()[1]);
+				}
+				
 				if (httpConnector != null) {
 					Connector defaultConnector = project.getDefaultConnector();
 					project.setDefaultConnector(httpConnector);

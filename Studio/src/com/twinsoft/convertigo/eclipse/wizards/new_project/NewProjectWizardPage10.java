@@ -48,12 +48,43 @@ public class NewProjectWizardPage10 extends WizardPage {
 				}, this.getWizard());
 				
 		setControl(container);
+		
 		wsdlURL = ((NewProjectWizardComposite10) getControl()).combo.getText();
+		
 		setPageComplete(isValidURL());
 	}
 	
 	protected String getWsdlURL() {
 		return wsdlURL;
+	}
+	
+	protected boolean useAuthentication() {
+		final boolean useAuthentication[] = new boolean[1];
+		
+		getShell().getDisplay().asyncExec(new Runnable() {
+
+			@Override
+			public void run() {
+				useAuthentication[0] = ((NewProjectWizardComposite10) getControl()).useAuthentication.getSelection();
+			}
+			
+		});
+		return useAuthentication[0];
+	}
+	
+	protected String[] getAuthenticationIDs(){
+		final String ids[] = new String[2];
+		
+		getShell().getDisplay().asyncExec(new Runnable() {
+
+			@Override
+			public void run() {
+				ids[0] = ((NewProjectWizardComposite10) getControl()).loginText.getText();
+				ids[1] = ((NewProjectWizardComposite10) getControl()).passwordText.getText();
+			}
+			
+		});
+		return ids;
 	}
 	
 	private boolean isValidURL() {

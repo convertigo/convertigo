@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.engine.util;
 
-import java.io.CharConversionException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -46,7 +45,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.constants.Constants;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -74,7 +72,6 @@ import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ProxyMode;
@@ -83,7 +80,7 @@ import com.twinsoft.convertigo.engine.Version;
 
 public class WsReference {
 	private WebServiceReference reference = null;
-	private IProgressMonitor monitor = null;
+	
 	public WsReference(String wsdlURL) {
 	   	reference = new WebServiceReference();
 	   	reference.setUrlpath(wsdlURL);
@@ -97,9 +94,19 @@ public class WsReference {
 		return reference;
 	}
 	
-	protected HttpConnector importInto(Project project, IProgressMonitor monitor) throws Exception {
-		this.monitor = monitor;
-		return importInto(project);
+	protected HttpConnector importIntoAuthenticated(Project project, String login, String password) throws Exception {
+		HttpConnector httpConnector = null;
+		//We add login/password into the connection
+		System.setProperty("soapui.loader.username", login);
+		System.setProperty("soapui.loader.password", password);
+
+		httpConnector =  importInto(project);
+		
+		//We clear login/password
+		System.setProperty("soapui.loader.username", "");
+		System.setProperty("soapui.loader.password", "");
+		
+		return httpConnector;
 	}
 	
 	protected HttpConnector importInto(Project project) throws Exception {
@@ -116,12 +123,7 @@ public class WsReference {
 	   				project.add(httpConnector);
 			}
 		} catch (Exception e) {
-			if ( e.getCause().getClass().equals(CharConversionException.class) && 
-					e.getMessage().equals("java.io.CharConversionException: Malformed UTF-8 character: 0xea 0x74 0x65")) {
-				return ConvertigoPlugin.basicAuthenticatedImportWSDL(project, reference.getUrlpath(), this.monitor);
-			} else {
-				throw e;
-			}
+			throw e;
 		}
 		return httpConnector;
 	}

@@ -103,7 +103,6 @@ import org.eclipse.ui.views.properties.PropertySheet;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
-import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.BlockFactory;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Criteria;
@@ -118,7 +117,6 @@ import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.actions.SetupAction;
 import com.twinsoft.convertigo.eclipse.dialogs.GlobalsSymbolsWarnDialog;
 import com.twinsoft.convertigo.eclipse.dialogs.ProjectDeployErrorDialog;
-import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceImportLoginPasswordDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditorInput;
@@ -131,7 +129,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
-import com.twinsoft.convertigo.engine.util.ImportWsReference;
 import com.twinsoft.convertigo.engine.util.SimpleCipher;
 import com.twinsoft.util.Log;
 
@@ -301,52 +298,6 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			}
 		});
 		return result;
-	}
-	
-	public static HttpConnector basicAuthenticatedImportWSDL(Project project, String wsdlURL, IProgressMonitor monitor) {
-		final Display display = getDisplay();
-		final HttpConnector[] httpConnect = new HttpConnector[1];
-		final Project proj = project;
-		final String WSDLURL = wsdlURL;
-		final IProgressMonitor monit = monitor;
-		
-		display.syncExec(new Runnable() {
-		    public void run() {
-				new WsReferenceImportLoginPasswordDialog(display.getActiveShell()).open();
-				String[] basicAuthenticatedValues = 
-						WsReferenceImportLoginPasswordDialog.basicAuthenticatedValues;
-				
-				if (basicAuthenticatedValues[0] != null && !basicAuthenticatedValues[0].equals("")
-						|| basicAuthenticatedValues[1] != null && !basicAuthenticatedValues[1].equals("")) {
-					try {
-						//We add login/password into the connection
-						System.setProperty("soapui.loader.username",
-								basicAuthenticatedValues[0]);
-						System.setProperty("soapui.loader.password",
-								basicAuthenticatedValues[1]);
-						
-						ImportWsReference wsr = new ImportWsReference(WSDLURL, monit);
-						HttpConnector httpConnector = wsr.importInto(proj);
-						
-						//We clear login/password
-						System.setProperty("soapui.loader.username", "");
-						System.setProperty("soapui.loader.password", "");
-
-						httpConnect[0] = httpConnector;
-					} catch (Exception e) {
-						ConvertigoPlugin.logException(e, "Error while trying to authenticated for the import WSDL");
-					}
-				} else {
-					try {
-						throw new Exception ("Authentication informations are invalid!");
-					} catch (Exception e) {
-						ConvertigoPlugin.logException(e, "Error while trying to authenticated for the import WSDL");
-					}
-				}
-		    }
-		});
-		
-		return httpConnect[0];
 	}
 
 	public static void infoMessageBox(final String message) {
