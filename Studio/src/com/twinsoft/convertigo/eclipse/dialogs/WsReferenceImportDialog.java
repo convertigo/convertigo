@@ -100,8 +100,6 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 
 	public void run() {
 		final Display display = getParentShell().getDisplay();
-		final boolean[] isAuthenticated = new boolean[1];
-		final String[] ids = new String[2];
 		Thread progressBarThread = new Thread("Progress Bar thread") {
 			public void run() {
 				int i = 0;
@@ -112,9 +110,6 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 						final int j = i;
 						display.asyncExec(new Runnable() {
 							public void run() {
-								isAuthenticated[0] = useAuthentication.getSelection();
-								ids[0] = loginText.getText();
-								ids[1] = passwordText.getText();
 								if (!progressBar.isDisposed())
 									progressBar.setSelection(j);
 							}
@@ -133,10 +128,10 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		try {		
 			progressBarThread.start();
 			ImportWsReference wsr = new ImportWsReference(wsdlURL, null);
-			if (!isAuthenticated[0]) {
+			if (!isAuthenticated(display)) {
 				httpConnector = wsr.importInto(project); 
 			} else { 
-				httpConnector = wsr.importIntoAuthenticated(project, ids[0], ids[1]); 
+				httpConnector = wsr.importIntoAuthenticated(project, getLogin(display), getPassword(display)); 
 			}
 		}
 		catch (Throwable e) {
@@ -160,6 +155,36 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 				ConvertigoPlugin.logException(ex, "Unable to import from WSDL");
 			}
 		}
+	}
+	
+	private boolean isAuthenticated(Display display) {
+		final boolean[] isAuthenticated = new boolean[1];
+		display.syncExec(new Runnable() {
+			public void run() {
+				isAuthenticated[0] = useAuthentication.getSelection();
+			}
+		});
+		return isAuthenticated[0];
+	}
+	
+	private String getLogin(Display display) {
+		final String[] login = new String[1];
+		display.syncExec(new Runnable() {
+			public void run() {
+				login[0] = loginText.getText();
+			}
+		});
+		return login[0];
+	}
+	
+	private String getPassword(Display display) {
+		final String[] password = new String[1];
+		display.syncExec(new Runnable() {
+			public void run() {
+				password[0] = passwordText.getText();
+			}
+		});
+		return password[0];
 	}
 
 	/**

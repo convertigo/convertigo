@@ -95,7 +95,7 @@ public class WsReference {
 	}
 	
 	protected HttpConnector importIntoAuthenticated(Project project, String login, String password) throws Exception {
-		HttpConnector httpConnector = null;
+		HttpConnector httpConnector = null; 
 		//We add login/password into the connection
 		System.setProperty("soapui.loader.username", login);
 		System.setProperty("soapui.loader.password", password);
@@ -123,7 +123,7 @@ public class WsReference {
 	   				project.add(httpConnector);
 			}
 		} catch (Exception e) {
-			throw e;
+			throw new EngineException("Unable to import the project \""+project.getName()+"\"", e);
 		}
 		return httpConnector;
 	}

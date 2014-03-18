@@ -61,7 +61,7 @@ public class NewProjectWizardPage10 extends WizardPage {
 	protected boolean useAuthentication() {
 		final boolean useAuthentication[] = new boolean[1];
 		
-		getShell().getDisplay().asyncExec(new Runnable() {
+		getShell().getDisplay().syncExec(new Runnable() {
 
 			@Override
 			public void run() {
@@ -72,19 +72,30 @@ public class NewProjectWizardPage10 extends WizardPage {
 		return useAuthentication[0];
 	}
 	
-	protected String[] getAuthenticationIDs(){
-		final String ids[] = new String[2];
+	protected String getLogin(){
+		final String login[] = new String[1];
 		
-		getShell().getDisplay().asyncExec(new Runnable() {
-
+		getShell().getDisplay().syncExec(new Runnable() {
 			@Override
 			public void run() {
-				ids[0] = ((NewProjectWizardComposite10) getControl()).loginText.getText();
-				ids[1] = ((NewProjectWizardComposite10) getControl()).passwordText.getText();
+				login[0] = ((NewProjectWizardComposite10) getControl()).loginText.getText();
 			}
 			
 		});
-		return ids;
+		return login[0];
+	}
+	
+	protected String getPassword(){
+		final String password[] = new String[1];
+		
+		getShell().getDisplay().syncExec(new Runnable() {
+			@Override
+			public void run() {
+				password[0] = ((NewProjectWizardComposite10) getControl()).passwordText.getText();
+			}
+			
+		});
+		return password[0];
 	}
 	
 	private boolean isValidURL() {

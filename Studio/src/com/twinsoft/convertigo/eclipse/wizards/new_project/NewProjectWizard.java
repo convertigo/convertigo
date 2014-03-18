@@ -476,8 +476,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				if (!page10.useAuthentication()) {
 					httpConnector = wsr.importInto(project);
 				} else {
-					httpConnector = wsr.importIntoAuthenticated(project, page10.getAuthenticationIDs()[0], 
-							page10.getAuthenticationIDs()[1]);
+					httpConnector = wsr.importIntoAuthenticated(project, page10.getLogin(), 
+							page10.getPassword());
 				}
 				
 				if (httpConnector != null) {
