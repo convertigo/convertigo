@@ -81,12 +81,16 @@ public class SessionGetStep extends StepWithExpressions implements IComplexTypeA
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		String string = key;
 		if (string != null && string.length() > 0) {
-			stepNode.setAttribute("key", string);
+			Element keyElement = doc.createElement("key");
+			keyElement.setTextContent(string);
+			stepNode.appendChild(keyElement);
 		}
 		
 		string = (String) getSequence().context.httpSession.getAttribute(key);
 		if (string != null && string.length() > 0) {
-			stepNode.setAttribute("expression", string);
+			Element expressionElement = doc.createElement("expression");
+			expressionElement.setTextContent(string);
+			stepNode.appendChild(expressionElement);
 		}
 	}
 	

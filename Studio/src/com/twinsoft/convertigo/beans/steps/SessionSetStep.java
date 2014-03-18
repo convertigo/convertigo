@@ -90,16 +90,20 @@ public class SessionSetStep extends StepWithExpressions implements IComplexTypeA
 	}
 
 	@Override
-	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
+	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {		
 		String string = key;
 		if (string != null && string.length() > 0) {
-			stepNode.setAttribute("key", string);
+			Element keyElement = doc.createElement("key");
+			keyElement.setTextContent(string);
+			stepNode.appendChild(keyElement);
 		}
 
 		string = expression.getSingleString(this);
 		getSequence().context.httpSession.setAttribute(key, string);	
 		if (string != null && string.length() > 0) {
-			stepNode.setAttribute("expression", string);
+			Element expressionElement = doc.createElement("expression");
+			expressionElement.setTextContent(string);
+			stepNode.appendChild(expressionElement);
 		}
 	}
 	
