@@ -180,7 +180,8 @@ public abstract class GenericServlet extends HttpServlet {
 				String xsltEngine = EnginePropertiesManager
 						.getProperty(EnginePropertiesManager.PropertyName.DOCUMENT_XSLT_ENGINE);
 				boolean isMsXml = (xmlEngine.equals("msxml")) && (xsltEngine.equals("msxml"));
-
+				
+				//if(1==1) throw new ServletException("test");
 				try {
 					if (isMsXml) {
 						ComThread.InitMTA();
@@ -351,22 +352,35 @@ public abstract class GenericServlet extends HttpServlet {
 
 	public void processException(HttpServletRequest request, HttpServletResponse response, Exception e)
 			throws ServletException {
+		boolean hide_error = EnginePropertiesManager.getProperty( PropertyName.HIDING_ERROR_INFORMATION ).equals( "true" );
 		boolean bThrowHTTP500 = Boolean.parseBoolean(EnginePropertiesManager
 				.getProperty(EnginePropertiesManager.PropertyName.THROW_HTTP_500));
 
 		Engine.logEngine.error("Unexpected exception", e);
 
 		if (bThrowHTTP500) {
-			throw new ServletException(e);
+			if(hide_error) 
+				throw new ServletException();
+			else
+				throw new ServletException(e);
 		} else {
 			try {
-				response.addHeader("Convertigo-Exception", e.getClass().getName());
+				if (hide_error) 
+					response.addHeader("Convertigo-Exception", "");
+				else
+					response.addHeader("Convertigo-Exception", e.getClass().getName());
 				response.setContentType("text/plain");
 				PrintWriter out = response.getWriter();
-				out.println("Convertigo error: " + e.getMessage());
+				if (hide_error) 
+					out.println("Convertigo error:");
+				else
+					out.println("Convertigo error: " + e.getMessage());
 			} catch (IOException e1) {
 				Engine.logEngine.error("Unexpected exception", e1);
-				throw new ServletException(e);
+				if (hide_error) 
+					throw new ServletException();
+				else
+					throw new ServletException(e);
 			}
 		}
 	}

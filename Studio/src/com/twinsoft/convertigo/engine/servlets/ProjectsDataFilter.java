@@ -53,6 +53,7 @@ public class ProjectsDataFilter implements Filter {
 	private static Pattern p_forbidden = Pattern.compile("^/(?:([^/]+$)|(?:(.*?)/\\2\\.xml)|(?:(?:.*?)/_private(?:$|(?!/flashupdate).*)))$");
 	
     public void doFilter(ServletRequest _request, ServletResponse _response, FilterChain chain) throws IOException, ServletException {
+    	boolean hide_error = EnginePropertiesManager.getProperty( PropertyName.HIDING_ERROR_INFORMATION ).equals( "true" );
     	Engine.logContext.debug("Entering projects data servlet filter");
 
 		HttpServletRequest request = (HttpServletRequest) _request;
@@ -95,7 +96,8 @@ public class ProjectsDataFilter implements Filter {
     	
     	Matcher m_forbidden = p_forbidden.matcher(pathInfo); 
     	if (m_forbidden.matches() && (m_forbidden.group(1) == null || !(new File(requestedObject).isDirectory()))) {
-			response.sendError(HttpServletResponse.SC_FORBIDDEN);
+    		if (hide_error == false) 
+    			response.sendError(HttpServletResponse.SC_FORBIDDEN);
 			return;
     	}
     	
@@ -104,8 +106,10 @@ public class ProjectsDataFilter implements Filter {
         	Engine.logContext.debug("index.jps remapped to '" + requestedObject + "'");
     	}
     	else if (requestedObject.endsWith(".jsp")) {
-        	Engine.logContext.error("JSP required, but not allowed! (" + requestURI + ")");
-    		response.sendError(HttpServletResponse.SC_FORBIDDEN, requestURI + ": JSP is not allowed!");
+    		if (hide_error == false) {
+    			Engine.logContext.error("JSP required, but not allowed! (" + requestURI + ")");
+    			response.sendError(HttpServletResponse.SC_FORBIDDEN, requestURI + ": JSP is not allowed!");
+    		}
     		return;
     	}
     	
@@ -113,8 +117,10 @@ public class ProjectsDataFilter implements Filter {
     	
     	String s = file.getCanonicalPath();
     	if (!s.startsWith(Engine.PROJECTS_PATH)) {
-        	Engine.logContext.error(requestURI + ": access to directories outside the projects repository is not allowed!");
-    		response.sendError(HttpServletResponse.SC_FORBIDDEN, requestURI + ": access to directories outside the projects repository is not allowed!");
+    		if (hide_error == false) {
+    			Engine.logContext.error(requestURI + ": access to directories outside the projects repository is not allowed!");
+    			response.sendError(HttpServletResponse.SC_FORBIDDEN, requestURI + ": access to directories outside the projects repository is not allowed!");
+    		}
     		return;
     	}
     	

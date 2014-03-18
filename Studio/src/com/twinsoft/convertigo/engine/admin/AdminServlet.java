@@ -31,9 +31,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.AuthenticationException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.admin.services.Service;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
@@ -66,6 +68,7 @@ public class AdminServlet extends HttpServlet {
 	}
 
 	private void doRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+		boolean hide_error = EnginePropertiesManager.getProperty( PropertyName.HIDING_ERROR_INFORMATION ).equals( "true" );
 		try {
 			String serviceName = "";
 			try {
@@ -104,29 +107,40 @@ public class AdminServlet extends HttpServlet {
 				service.run(serviceName, request, response);
 			}
 			catch (ClassNotFoundException e) {
-				String message = "Unknown admin service '" + serviceName + "'";
-				Engine.logAdmin.error(message);
-				ServiceUtils.handleError(message, response);
+				if (hide_error == false) {
+					String message = "Unknown admin service '" + serviceName + "'";
+					Engine.logAdmin.error(message);
+					ServiceUtils.handleError(message, response);
+				}
 			}
 			catch (NoClassDefFoundError e) {
-				String message = "Unknown admin service '" + serviceName + "'";
-				Engine.logAdmin.error(message);
-				ServiceUtils.handleError(message, response);
+				if (hide_error == false) {
+					String message = "Unknown admin service '" + serviceName + "'";
+					Engine.logAdmin.error(message);
+					ServiceUtils.handleError(message, response);
+				}
 			}
 			catch (AuthenticationException e) {
-				String authMessage = e.getMessage();
-				Engine.logAdmin.warn(authMessage);
-				ServiceUtils.handleError(authMessage, response);
+				if (hide_error == false) {
+					String authMessage = e.getMessage();
+					Engine.logAdmin.warn(authMessage);
+					ServiceUtils.handleError(authMessage, response);
+				}
 			}
 			catch (Exception e) {
-				Engine.logAdmin.error("Unable to execute the service '" + serviceName + "'", e);
-				ServiceUtils.handleError(e, response);
+				if (hide_error == false) {
+					Engine.logAdmin.error("Unable to execute the service '"
+							+ serviceName + "'", e);
+					ServiceUtils.handleError(e, response);
+				}
 			}
 			finally {
 				response.flushBuffer();
 			}
 		} catch (Throwable e) {
-			throw new ServletException(e);
+			if (!hide_error) {
+				throw new ServletException(e);
+			}
 		}
 	}
 
