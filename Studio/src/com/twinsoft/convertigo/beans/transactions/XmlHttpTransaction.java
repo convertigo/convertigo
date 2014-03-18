@@ -179,12 +179,11 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 				if ((ename.indexOf("SOAPENV:") != -1) || (ename.indexOf("SOAP-ENV:") != -1) || (ename.indexOf("SOAP:") != -1)) {
 					if (ename.indexOf(":BODY") != -1) {
 						return ((Element)node);
-					}
-					else {
-						return getSoapBodyResponseElement((Element)node);
-					}
+					} else
+						continue;
 				}
         	}
+			return getSoapBodyResponseElement((Element)node);
         }
         return null;
 	}
