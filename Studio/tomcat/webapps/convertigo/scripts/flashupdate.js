@@ -50,8 +50,10 @@ var F = {
 	localBase: null,
 	webLocalBase: null,
 	appBase: null,
+	fsProtocol: null,
 	timeout: 0,
 	firstLaunch: true,
+	cordovaVersion: null,
 	clickEvent: typeof(document.ontouchstart) == "undefined" ? "click" : "touchstart",
 	
 	debug: function (msg) {
@@ -74,12 +76,23 @@ var F = {
 	init: function () {
 		F.debug("init");
 		
+		if (typeof(FILESYSTEM_PROTOCOL) != "undefined") {
+			F.fsProtocol = FILESYSTEM_PROTOCOL;
+			F.debug("fsProtocol: " + F.fsProtocol);
+		}
+		
+		if (typeof(cordova.version) != "undefined") {
+			F.cordovaVersion = cordova.version;
+			F.debug("cordovaVersion: " + F.cordovaVersion);
+		}
+		
 		try {
-			if (device.platform == "Android" || device.platform == "Win32NT") {
-				F.canCopyFromApp = true;
-			}
 			F.platform = device.platform;
 			F.uuid = device.uuid;
+			
+			if ((F.platform == "Android" && F.cordovaVersion) || F.platform == "Win32NT") {
+				F.canCopyFromApp = true;
+			}
 		} catch (err) {
 			// device feature disabled in config.xml
 		}
@@ -140,10 +153,20 @@ var F = {
 		
 		window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function (fileSystem) {
 			try {
-				F.debug("getDirectory flashupdate");				
-				fileSystem.root.getDirectory("flashupdate", {create: true}, function (flashUpdateDir) {
+				var fuPath = "flashupdate";
+				
+				if (!F.fsProtocol && F.platform == "Android") {
+					fuPath = "/data/data/" + F.applicationId + "/flashupdate";
+				}
+				
+				F.debug("getDirectory " + fuPath);
+							
+				fileSystem.root.getDirectory(fuPath, {create: true}, function (flashUpdateDir) {
 					F.flashUpdateDir = flashUpdateDir;
-					F.localBase = flashUpdateDir.toURL();
+					
+					if (F.fsProtocol) {
+						F.localBase = flashUpdateDir.toURL();
+					}
 					
 					if (!F.localBase) {
 						F.localBase = flashUpdateDir.fullPath;
@@ -230,11 +253,14 @@ var F = {
 			if (F.isLocal) {
 				window.location.reload();
 			} else {
-				var filesToCopy = ["cordova.js", "cordova_plugins.js"];
-				if (typeof (cordova.define) != "undefined") {
-					$.each(cordova.define.moduleMap["cordova/plugin_list"].exports, function (index, plugin) {
-						filesToCopy.push(plugin.file);
-					});
+				var filesToCopy = ["cordova.js"];
+				if (F.cordovaVersion) {
+					filesToCopy.push("cordova_plugins.js");
+					if (typeof (cordova.define) != "undefined") {
+						$.each(cordova.define.moduleMap["cordova/plugin_list"].exports, function (index, plugin) {
+							filesToCopy.push(plugin.file);
+						});
+					}
 				}
 				
 				F.copyCordovaFiles(filesToCopy, function () {
@@ -486,7 +512,10 @@ var F = {
 							checkDone(file);
 						},
 						function (err) {
-							F.error("failed to FileTransfer ", err);
+							if (file.uri != "/config.xml") {
+								F.error("failed to FileTransfer ", err);
+							}
+							
 							checkDone(file);
 						}
 					);
