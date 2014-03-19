@@ -93,17 +93,17 @@ public class ConvertigoError {
 		Text text;
 
 		if (EnginePropertiesManager.getProperty(PropertyName.HIDING_ERROR_INFORMATION ).equals("false") ) {
-			error.setAttribute("type", getErrorType().getType());
 			if (context != null) {
 				if (context.projectName != null)
-					error.setAttribute("project",context.projectName);
+					error.setAttributeNS("","project",context.projectName);
 				if (context.connectorName != null)
-					error.setAttribute("connector", context.connectorName);
+					error.setAttributeNS("","connector", context.connectorName);
 				if (context.transactionName != null)
-					error.setAttribute("transaction",  context.transactionName);
+					error.setAttributeNS("","transaction",  context.transactionName);
 				if (context.sequenceName != null)
-					error.setAttribute("sequence",  context.sequenceName);
+					error.setAttributeNS("","sequence",  context.sequenceName);
 			}
+			error.setAttributeNS("","type", getErrorType().getType());
 			
 			Element code = document.createElement("code");
 			text = document.createTextNode(String.valueOf(getErrorCode()));
