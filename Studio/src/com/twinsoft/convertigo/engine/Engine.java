@@ -46,7 +46,6 @@ import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Text;
 
 import com.twinsoft.api.SessionManager;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -1326,57 +1325,16 @@ public class Engine {
 
 	public Document getErrorDocument(Throwable e, Requester requester, Context context) throws Exception {
 		// Generate the XML document for error
-		Document document = requester.createDOM("UTF-8");
+		Document document = buildErrorDocument(e, requester, context);
 		context.outputDocument = document;
-
-		Text text;
-
-		Element doc = document.createElement("document");
-		document.appendChild(doc);
-		
-		Element error = document.createElement("error");
-		doc.appendChild(error);
-		
-		if ( EnginePropertiesManager.getProperty( PropertyName.HIDING_ERROR_INFORMATION ).equals( "false" ) ){
-			error.setAttribute("project", (context.projectName == null ? "?" : context.projectName));
-			error.setAttribute("connector", (context.connectorName == null ? "?" : context.connectorName));
-			error.setAttribute("transaction", (context.transactionName == null ? "?" : context.transactionName));
-		
-			Element econtext = document.createElement("context");
-			for (String key : context.keys()) {
-				Object value = context.get(key);
-				if ((value != null) && (value instanceof String)) {
-					Element variable = document.createElement("variable");
-					variable.setAttribute("name", key);
-					variable.setAttribute("value", (String) value);
-					econtext.appendChild(variable);
-				}
-			}
-	
-			error.appendChild(econtext);
-	
-			Element exception = document.createElement("exception");
-			text = document.createTextNode(e.getClass().getName());
-			exception.appendChild(text);
-			error.appendChild(exception);
-	
-			Element message = document.createElement("message");
-			text = document.createTextNode(e.getMessage());
-			message.appendChild(text);
-			error.appendChild(message);
-	
-			Element stackTrace = document.createElement("stacktrace");
-			String jss = Log.getStackTrace(e);
-			jss = jss.replace('\r', ' ');
-			text = document.createTextNode(jss);
-			stackTrace.appendChild(text);
-			error.appendChild(stackTrace);
-	
-			fireDocumentGenerated(new EngineEvent(context.outputDocument));
-		}
+		fireDocumentGenerated(new EngineEvent(context.outputDocument));
 		return document;
 	}
 
+	public static Document buildErrorDocument(Throwable e, Requester requester, Context context) throws Exception {
+		return ConvertigoError.get(e).buildErrorDocument(requester, context);
+	}
+	
 	public static String getExceptionSchema() {
 		String exceptionSchema = "";
 		exceptionSchema += "  <xsd:complexType name=\"ConvertigoError\">\n";

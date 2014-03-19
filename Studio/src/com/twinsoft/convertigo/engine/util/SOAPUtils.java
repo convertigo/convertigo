@@ -161,7 +161,7 @@ public class SOAPUtils {
 			SOAPBody sb = se.getBody();
 			SOAPFault fault = sb.addFault();
 	
-			fault.setFaultString(stepException == null ? faultString : stepException.message);
+			fault.setFaultString(stepException == null ? faultString : stepException.getErrorMessage());
 			
 			fault.setFaultCode("soapenv:Server");
 
@@ -194,11 +194,12 @@ public class SOAPUtils {
 			}
 			else {
 				// Details property of ExceptionStep is not empty
-				if (!(("").equals(stepException.details) || stepException.details.startsWith("org.mozilla.javascript.Undefined"))) {
+				String details = stepException.getErrorDetails();
+				if (!(("").equals(details) || details.startsWith("org.mozilla.javascript.Undefined"))) {
 					Detail detail = fault.addDetail();
 					// If step's exception detail is an XML document, insert it in the detail SOAP part
 					try {
-						InputStream inputStream = (InputStream) new ByteArrayInputStream(stepException.details.getBytes("UTF-8"));
+						InputStream inputStream = (InputStream) new ByteArrayInputStream(details.getBytes("UTF-8"));
 						DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 						documentBuilderFactory.setNamespaceAware(true);
 						documentBuilderFactory.setValidating(true);
@@ -209,7 +210,7 @@ public class SOAPUtils {
 						// Probably not an XML DOM, insert as CDATA
 						name = soapFactory.createName("content");
 						detailEntry = detail.addDetailEntry(name);
-						detailEntry.addTextNode(stepException.details);
+						detailEntry.addTextNode(details);
 					}
 				}
 			}

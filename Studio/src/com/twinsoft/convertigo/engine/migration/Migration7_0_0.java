@@ -77,9 +77,9 @@ import com.twinsoft.convertigo.beans.steps.XMLActionStep;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
+import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.SchemaManager;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
@@ -158,7 +158,7 @@ public class Migration7_0_0 {
 					
 				});
 				projectSchema = SchemaUtils.loadSchema(new File(projectXsdFilePath), collection);
-				SchemaManager.updateConvertigoErrorObjects(projectSchema);
+				ConvertigoError.updateXmlSchemaObjects(projectSchema);
 				SchemaMeta.setCollection(projectSchema, collection);
 				
 				for (Connector connector: project.getConnectorsList()) {
@@ -279,7 +279,7 @@ public class Migration7_0_0 {
 							}
 							
 							// Add c8o error objects (for internal xsd edition only)
-							SchemaManager.updateConvertigoErrorObjects(transactionSchema);
+							ConvertigoError.updateXmlSchemaObjects(transactionSchema);
 							
 							// Save schema to file
 							String transactionXsdFilePath = transaction.getSchemaFilePath();
@@ -310,7 +310,7 @@ public class Migration7_0_0 {
 				XmlSchemaCollection collection = new XmlSchemaCollection();
 				String prefix = project.getName()+"_ns";
 				projectSchema = SchemaUtils.createSchema(prefix, project.getNamespaceUri(), Project.XSD_FORM_UNQUALIFIED, Project.XSD_FORM_UNQUALIFIED);
-				SchemaManager.addConvertigoErrorObjects(projectSchema);
+				ConvertigoError.addXmlSchemaObjects(projectSchema);
 				SchemaMeta.setCollection(projectSchema, collection);
 				
 				for (Connector connector: project.getConnectorsList()) {

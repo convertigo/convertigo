@@ -5,8 +5,8 @@ import com.twinsoft.convertigo.engine.EngineException;
 public class StepException extends EngineException {
 	private static final long serialVersionUID = -3021122246529079529L;
 
-	public String message;
-	public String details;
+	private String message;
+	private String details;
 
 	public StepException(String message, String details) {
 		super(null);
@@ -16,7 +16,17 @@ public class StepException extends EngineException {
 	}
 	
 	@Override
+	public String getErrorMessage() {
+		return message;
+	}
+
+	@Override
+	public String getErrorDetails() {
+		return details;
+	}
+
+	@Override
 	public String getMessage() {
-		return message + "\nDetails: " + details;
+		return message + " - " + details;
 	}
 }

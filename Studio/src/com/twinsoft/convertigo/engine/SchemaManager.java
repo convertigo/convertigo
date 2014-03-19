@@ -18,7 +18,6 @@ import org.apache.ws.commons.schema.XmlSchemaAttributeGroup;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
-import org.apache.ws.commons.schema.XmlSchemaEnumerationFacet;
 import org.apache.ws.commons.schema.XmlSchemaForm;
 import org.apache.ws.commons.schema.XmlSchemaGroup;
 import org.apache.ws.commons.schema.XmlSchemaGroupBase;
@@ -30,8 +29,6 @@ import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.apache.ws.commons.schema.XmlSchemaSimpleContent;
 import org.apache.ws.commons.schema.XmlSchemaSimpleContentExtension;
-import org.apache.ws.commons.schema.XmlSchemaSimpleType;
-import org.apache.ws.commons.schema.XmlSchemaSimpleTypeRestriction;
 import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
@@ -123,7 +120,7 @@ public class SchemaManager implements AbstractManager {
 			try {
 				schema.setElementFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
 				schema.setAttributeFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
-				addConvertigoErrorObjects(schema);
+				ConvertigoError.addXmlSchemaObjects(schema);
 				
 				// static and read-only generation : references, transactions, sequences declaration
 				new WalkHelper() {
@@ -563,84 +560,6 @@ public class SchemaManager implements AbstractManager {
 			}
 		}
 		catch (Exception e) {}
-	}
-	
-	public static void updateConvertigoErrorObjects(XmlSchema schema) {
-		XmlSchemaType type = null;
-		if ((type = schema.getTypeByName("ConvertigoErrorContextVariable")) != null)
-			XmlSchemaUtils.remove(schema, type);
-		if ((type = schema.getTypeByName("ConvertigoErrorContext")) != null)
-			XmlSchemaUtils.remove(schema, type);
-		if ((type = schema.getTypeByName("ConvertigoError")) != null)
-			XmlSchemaUtils.remove(schema, type);
-		
-		SchemaManager.addConvertigoErrorObjects(schema);
-	}
-	
-	public static void addConvertigoErrorObjects(XmlSchema schema) {
-		XmlSchemaComplexType cConvertigoErrorContextVariableType = new XmlSchemaComplexType(schema);
-		cConvertigoErrorContextVariableType.setName("ConvertigoErrorContextVariable");
-		XmlSchemaObjectCollection attributes = cConvertigoErrorContextVariableType.getAttributes();
-		XmlSchemaAttribute aName = new XmlSchemaAttribute();
-		aName.setName("name");
-		aName.setSchemaTypeName(Constants.XSD_STRING);
-		attributes.add(aName);
-		XmlSchemaAttribute aValue = new XmlSchemaAttribute();
-		aValue.setName("value");
-		aValue.setSchemaTypeName(Constants.XSD_STRING);
-		attributes.add(aValue);
-		XmlSchemaUtils.add(schema, cConvertigoErrorContextVariableType);
-
-		XmlSchemaComplexType cConvertigoErrorContextType = new XmlSchemaComplexType(schema);
-		cConvertigoErrorContextType.setName("ConvertigoErrorContext");
-		XmlSchemaSequence sequence = new XmlSchemaSequence();
-		cConvertigoErrorContextType.setParticle(sequence);
-		XmlSchemaElement eVariable = new XmlSchemaElement();
-		eVariable.setName("variable");
-		eVariable.setSchemaTypeName(cConvertigoErrorContextVariableType.getQName());
-		eVariable.setMaxOccurs(Long.MAX_VALUE);
-		eVariable.setMinOccurs(0);
-		sequence.getItems().add(eVariable);
-		XmlSchemaUtils.add(schema, cConvertigoErrorContextType);
-
-		XmlSchemaSimpleType sConvertigoErrorType = new XmlSchemaSimpleType(schema);
-		XmlSchemaSimpleTypeRestriction sConvertigoErrorTypeRestriction = new XmlSchemaSimpleTypeRestriction();
-		sConvertigoErrorTypeRestriction.setBaseTypeName(Constants.XSD_STRING);
-		XmlSchemaObjectCollection sConvertigoErrorTypeRestrictionFacets = sConvertigoErrorTypeRestriction.getFacets();
-		sConvertigoErrorTypeRestrictionFacets.add(new XmlSchemaEnumerationFacet("c8o", false));
-		sConvertigoErrorTypeRestrictionFacets.add(new XmlSchemaEnumerationFacet("project", false));
-		sConvertigoErrorType.setContent(sConvertigoErrorTypeRestriction);
-		
-		XmlSchemaComplexType cConvertigoErrorType = new XmlSchemaComplexType(schema);
-		cConvertigoErrorType.setName("ConvertigoError");
-		attributes = cConvertigoErrorType.getAttributes();
-		aName = new XmlSchemaAttribute();
-		aName.setName("type");
-		aName.setSchemaType(sConvertigoErrorType);
-		attributes.add(aName);
-		sequence = new XmlSchemaSequence();
-		cConvertigoErrorType.setParticle(sequence);
-		XmlSchemaElement eCode = new XmlSchemaElement();
-		eCode.setName("code");
-		eCode.setSchemaTypeName(Constants.XSD_INTEGER);
-		sequence.getItems().add(eCode);
-		XmlSchemaElement eMessage = new XmlSchemaElement();
-		eMessage.setName("message");
-		eMessage.setSchemaTypeName(Constants.XSD_STRING);
-		sequence.getItems().add(eMessage);
-		XmlSchemaElement eContext = new XmlSchemaElement();
-		eContext.setName("context");
-		eContext.setSchemaTypeName(cConvertigoErrorContextType.getQName());
-		sequence.getItems().add(eContext);
-		XmlSchemaElement eException = new XmlSchemaElement();
-		eException.setName("exception");
-		eException.setSchemaTypeName(Constants.XSD_STRING);
-		sequence.getItems().add(eException);
-		XmlSchemaElement eStacktrace = new XmlSchemaElement();
-		eStacktrace.setName("stacktrace");
-		eStacktrace.setSchemaTypeName(Constants.XSD_STRING);
-		sequence.getItems().add(eStacktrace);
-		XmlSchemaUtils.add(schema, cConvertigoErrorType);
 	}
 	
 	private XmlSchemaSimpleContentExtension makeSimpleContentExtension(DatabaseObject databaseObject, XmlSchemaElement element, XmlSchemaComplexType cType) {

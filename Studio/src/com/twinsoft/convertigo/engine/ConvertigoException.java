@@ -29,6 +29,8 @@ public class ConvertigoException extends Exception {
 
 	private static final long serialVersionUID = -1744965690693358173L;
 
+	private ConvertigoError error = null;
+	
 	public ConvertigoException() {
         super();
     }
@@ -43,5 +45,29 @@ public class ConvertigoException extends Exception {
         if (System.getProperty("java.specification.version").compareTo("1.4") >= 0) {
             initCause(cause);
         }
+    }
+    
+    public String getErrorMessage() {
+    	return getMessage();
+    }
+    
+    public String getErrorDetails() {
+		String details = "";
+		Throwable eCause = this;
+		while ((eCause = eCause.getCause()) != null)  {
+			if (eCause.getMessage() != null) {
+				if (details.length() > 0)
+					details += ", ";
+				details += eCause.getMessage();
+			}
+		}
+    	return details;
+    }
+
+    public ConvertigoError getError() {
+    	if (error == null) {
+    		error = ConvertigoError.initError(this);
+    	}
+    	return error;
     }
 }

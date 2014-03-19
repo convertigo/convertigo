@@ -56,10 +56,10 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.SchemaManager;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -612,7 +612,7 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 			new File(getSchemaFileDirPath()).mkdirs();
     		try {
 				XmlSchema xmlSchema = SchemaUtils.loadSchema(xsdDom, new XmlSchemaCollection());
-				SchemaManager.updateConvertigoErrorObjects(xmlSchema);
+				ConvertigoError.updateXmlSchemaObjects(xmlSchema);
 				
 				QName responseTypeQName = new QName(xmlSchema.getTargetNamespace(), responseType);
 				XmlSchemaComplexType cType = (XmlSchemaComplexType) xmlSchema.getSchemaTypes().getItem(responseTypeQName);
