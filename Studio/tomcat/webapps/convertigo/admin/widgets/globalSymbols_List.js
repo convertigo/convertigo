@@ -30,6 +30,21 @@ function globalSymbols_List_init() {
 	}).click(function(){
 		addSymbol();
 	});
+	
+	initializeImportSymbol();	
+	$("#importSymbol").button({
+		icons : {
+			primary : "ui-icon-arrowthick-1-n"
+		}
+	});
+	$("#exportSymbol").button({
+		icons : {
+			primary : "ui-icon-arrowthick-1-s"
+		}
+	}).click(function(){
+		exportSymbol();
+	});
+	
 	$("#updateSymbols").button("disable");
 	
 	$("#symbolsListButtonDeleteAll").button({				
@@ -323,4 +338,36 @@ function updateSymbol() {
 
 			globalSymbols_List_init();
 		});
+}
+
+function initializeImportSymbol() {
+
+	var ajaxUpload = new AjaxUpload("importSymbol", {
+		action : "services/global_symbols.Import",			
+		responseType : "xml",		
+		onSubmit : function(file, ext) {			
+			var str = ".properties";
+			if (file.match(str + "$") != str) {
+				showError("<p>The global symbols file '" + file + "' is not a valid properties file</p>");
+				return false;
+			}
+	
+			startWait(50);
+		},
+		onComplete : function(file, response) {
+			clearInterval(this.tim_progress);
+			endWait();
+			if ($(response).find("error").length > 0) {
+				showError("<p>An unexpected error occurs.</p>", $(response).text());
+			} else {
+				showInfo($(response).text());
+				$("").dialog("close");
+			}
+			globalSymbols_List_update();
+		}
+	});	
+}
+
+function exportSymbol() {
+	window.open( "services/global_symbols.Export");
 }
