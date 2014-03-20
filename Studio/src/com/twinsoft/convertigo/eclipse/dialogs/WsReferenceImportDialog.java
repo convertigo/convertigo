@@ -127,7 +127,7 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		Throwable ex = null;
 		try {		
 			progressBarThread.start();
-			ImportWsReference wsr = new ImportWsReference(wsdlURL, null);
+			ImportWsReference wsr = new ImportWsReference(wsdlURL);
 			if (!isAuthenticated(display)) {
 				httpConnector = wsr.importInto(project); 
 			} else { 

@@ -1,25 +1,17 @@
 package com.twinsoft.convertigo.engine.util;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.core.Project;
 
 public class ImportWsReference extends WsReference {
-		IProgressMonitor monitor;
 
-		public ImportWsReference(String wsdlURL, IProgressMonitor monitor) {
+		public ImportWsReference(String wsdlURL) {
 			super(wsdlURL);
 		}
 
 		@Override
 		public void setTaskLabel(String text) {
-			if (monitor != null) {
-				monitor.setTaskName(text);
-				monitor.worked(1);
-			} else {
-				super.setTaskLabel(text);
-			}
+			super.setTaskLabel(text);
 		}
 
 		@Override
