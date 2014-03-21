@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.eclipse.dialogs;
 
 import java.io.File;
+import java.net.MalformedURLException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -37,6 +38,8 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
+
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
 public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite {
 
@@ -100,7 +103,12 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 				if (path != null) {
 					File file = new File(path);
 					if (file.isFile()) {
-						combo.add("file:///"+file.getAbsolutePath());
+						try {
+							String fileUrl = file.toURI().toURL().toString();
+							combo.add(fileUrl.replaceAll("file:/", "file:///"));
+						} catch (MalformedURLException e1) {
+							ConvertigoPlugin.logException(e1, "Unexpected exception");
+						}
 						combo.select(combo.getItemCount()-1);
 					}
 				}
