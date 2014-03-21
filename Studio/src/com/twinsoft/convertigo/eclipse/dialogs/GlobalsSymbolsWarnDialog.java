@@ -1,6 +1,8 @@
 
 package com.twinsoft.convertigo.eclipse.dialogs;
 
+import java.util.List;
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
@@ -9,9 +11,9 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -110,13 +112,17 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		//First message
 		gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 		
-		String[] symbolsNames = DatabaseObject.extractSymbol(propertyValue);
+		List<String> symbolsNames = DatabaseObject.extractSymbol(propertyValue);
 		textFailure = new StyledText(container, SWT.WRAP);
-		if (symbolsNames.length==1) {
-			textFailure.setText("Undefined Global Symbol(s): "+symbolsNames[0]);
+		if (symbolsNames.size() == 1) {
+			textFailure.setText("Undefined Global Symbol: "+symbolsNames.get(0));
 			textFailure.setFocus();
 		}
-
+		if (symbolsNames.size() > 1) {
+			textFailure.setText(symbolsNames.size()+" Undefined Global Symbols");
+			textFailure.setFocus();
+		}
+		
 		textFailure.setEditable(false);
 		FontData[] fD = textFailure.getFont().getFontData();
 		fD[0].setHeight(10);
@@ -124,10 +130,17 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		textFailure.setLayoutData(gridData);
 		textFailure.setBackground(back);
 		
-		if (symbolsNames[0]!=null) {
+		if (symbolsNames.size()==1) {
 			styleBold = new StyleRange();
-			styleBold.start = 28;
-			styleBold.length = symbolsNames[0].length();
+			styleBold.start = 25;
+			styleBold.length = symbolsNames.get(0).length();
+			styleBold.fontStyle = SWT.BOLD;
+			textFailure.setStyleRange(styleBold);
+		}
+		if (symbolsNames.size()>1) {
+			styleBold = new StyleRange();
+			styleBold.start = 0;
+			styleBold.length = (symbolsNames.size()+"").length();
 			styleBold.fontStyle = SWT.BOLD;
 			textFailure.setStyleRange(styleBold);
 		}
@@ -202,14 +215,14 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					doThisForAllCurrentProjectSymbols = buttonDoThis.getSelection();
-					buttonOk.setText(doThisForAllCurrentProjectSymbols==true ? "Create symbols" : "Create '"+DatabaseObject.extractSymbol(propertyValue)[0]+"' symbol");
+					buttonOk.setText(doThisForAllCurrentProjectSymbols==true ? "Create symbols" : "Create '"+DatabaseObject.extractSymbol(propertyValue).get(0)+"' symbol");
 					buttonIgnore.setText(doThisForAllCurrentProjectSymbols==true ? "Ignore all" : "Ignore");
 				}
 				
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
 					doThisForAllCurrentProjectSymbols = buttonDoThis.getSelection();
-					buttonOk.setText(doThisForAllCurrentProjectSymbols==true ? "Create symbols" : "Create '"+DatabaseObject.extractSymbol(propertyValue)[0]+"' symbol");
+					buttonOk.setText(doThisForAllCurrentProjectSymbols==true ? "Create symbols" : "Create '"+DatabaseObject.extractSymbol(propertyValue).get(0)+"' symbol");
 					buttonIgnore.setText(doThisForAllCurrentProjectSymbols==true ? "Ignore all" : "Ignore");
 				}
 			});
@@ -249,9 +262,9 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 	
-		String[] symbolsNames = DatabaseObject.extractSymbol(propertyValue);
-		if (symbolsNames.length==1) {
-			buttonOk = createButton(parent, IDialogConstants.OK_ID, "Create '"+symbolsNames[0]+"' symbol", true);
+		List<String> symbolsNames = DatabaseObject.extractSymbol(propertyValue);
+		if (symbolsNames.size()==1) {
+			buttonOk = createButton(parent, IDialogConstants.OK_ID, "Create '"+symbolsNames.get(0)+"' symbol", true);
 		}else{
 			buttonOk = createButton(parent, IDialogConstants.OK_ID, "Create symbols", true);
 		}

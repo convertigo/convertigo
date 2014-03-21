@@ -64,10 +64,10 @@ import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.Criteria;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.DatabaseObject.ExportOption;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -370,10 +370,12 @@ public class ProjectUtils {
 			}
 		}
 		
-		Set<String> symbols = null;
+		Map<String, HashSet<String>> symbols = null;
 		if ((symbols = currentDBO.getSymbolsErrors()) != null) {
-			for (String symb : symbols) {
-				globalSymbols.add(symb);
+			for (String key : symbols.keySet()) {
+				for (String symb : symbols.get(key)) {
+					globalSymbols.add(symb);
+				}
 			}
 		}		
 	}
@@ -420,14 +422,16 @@ public class ProjectUtils {
 		
 		if ((dboChildrens = currentDBO.getAllChildren()) != null) {
 			for (DatabaseObject dboChild : dboChildrens) {
-				createUndefinedGlobalSymbols(dboChild,globalSymbols);
+				createUndefinedGlobalSymbols(dboChild, globalSymbols);
 			}
 		}
 		
-		Set<String> symbols = null;
+		Map<String, HashSet<String>> symbols = null;
 		if ((symbols = currentDBO.getSymbolsErrors()) != null) {
-			for (String symb : symbols) {
-				globalSymbols.put(symb,null);
+			for (String key : symbols.keySet()) {
+				for (String symb : symbols.get(key)) {
+					globalSymbols.put(symb,null);
+				}
 			}
 		}
 		
@@ -450,7 +454,7 @@ public class ProjectUtils {
 		}
 		
 		if (currentDBO.getSymbolsErrors() != null) {
-			currentDBO.setSymbolsErrors(new HashSet<String>());
+			currentDBO.setSymbolsErrors(new HashMap<String, HashSet<String>>());
 		}
 		if (currentDBO instanceof Project){
 			((Project)currentDBO).undefinedGlobalSymbols = false;

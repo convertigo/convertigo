@@ -32,10 +32,10 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -391,7 +391,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public void clearCacheIfSymbolError(String projectName) {
 		synchronized (projects) {
 			if(projects.containsKey(projectName)) {
-				Set<String> symbolsErrors = projects.get(projectName).getSymbolsErrors();
+				Map<String, HashSet<String>> symbolsErrors = projects.get(projectName).getSymbolsErrors();
 				if (symbolsErrors != null && symbolsErrors.size() > 0) {
 					projects.remove(projectName);
 				}

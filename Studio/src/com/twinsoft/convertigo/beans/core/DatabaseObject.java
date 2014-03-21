@@ -38,11 +38,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -83,9 +81,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	private static final long serialVersionUID = -873065042105207891L;
 
 	public static final String PROPERTY_XMLNAME = "xmlname";
-	public static final Pattern patternSymbolName = Pattern.compile(".*\\$\\{([^\\{\\}]*)\\}.*");
+	public static final Pattern patternSymbolName = Pattern.compile("\\$\\{([^\\{\\}]*)\\}");
 	
-	private transient Set<String> symbolsErrors = null;
+	private transient Map<String, HashSet<String>> symbolsErrors = null;
 	private transient static Map<String,String> symbolsDefaultsValues = null;
 
 	private static class SubLoader extends WalkHelper {
@@ -177,9 +175,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 	public void checkSymbols() throws EngineException {
 		if (symbolsErrors != null) {
-			Iterator<String> iterator = symbolsErrors.iterator();
-			if (iterator.hasNext()) {
-				String message = "The property '"+iterator.next()+"' of '"+getName()+"' have an undefined global symbol!";
+			
+			for(String property : symbolsErrors.keySet()) {
+				String message = "The property '"+property+"' of '"+getName()+"' have an undefined global symbol!";
 				if (Engine.isStudioMode()) {
 					try {
 						Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin"); 
@@ -267,10 +265,14 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 	public Project getProject() {
 		DatabaseObject databaseObject = this;
-		while (!(databaseObject instanceof Project)) {
+		while (!(databaseObject instanceof Project) && databaseObject != null) { 
 			databaseObject = databaseObject.getParent();
 		}
-		return (Project) databaseObject;
+		
+		if (databaseObject == null)
+			return null;
+		else
+			return (Project) databaseObject;
 	}
 
 	public Connector getConnector() {
@@ -775,7 +777,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 					}
 
 					propertyObjectValue = compileProperty(databaseObject, propertyType, propertyName,
-							propertyObjectValue);
+							propertyObjectValue, null);
 					propertyValue = propertyObjectValue.toString();
 
 					if ((propertyType == int.class) || (propertyType == Integer.class)) {
@@ -867,7 +869,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 	public static Object compileProperty(DatabaseObject databaseObject, String propertyName,
 			Object propertyObjectValue) throws CompilablePropertyException {
-		return compileProperty(databaseObject, String.class, propertyName, propertyObjectValue);
+		return compileProperty(databaseObject, String.class, propertyName, propertyObjectValue,null);
 	}
 
 	public static class CompilablePropertyException extends EngineException {
@@ -878,13 +880,13 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	}
 
 	public static Object compileProperty(DatabaseObject databaseObject, Class<?> propertyType,
-			String propertyName, Object propertyObjectValue) throws CompilablePropertyException {
+			String propertyName, Object propertyObjectValue, Object propertyObjectOldValue) throws CompilablePropertyException {
 		// This a property that does not need to be compiled; remove source
 		// value if any
 		
 		if (!valueIsCompilable(propertyObjectValue)) {
 			databaseObject.removeCompilablePropertySourceValue(propertyName);
-			databaseObject.removeSymbolError(propertyObjectValue.toString());
+			databaseObject.removeSymbolError(propertyName, propertyObjectValue, propertyObjectOldValue);
 			return propertyObjectValue;
 		}
 		
@@ -921,7 +923,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				if (Engine.isStudioMode()) {			
 					try {
 						// When loading/opening project
-						
 						if (intoStack("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectLoadingJob")) {
 							if (doThisForAll == false) {
 								openSymbolWarningDialog(projectName, propertyName, propertyObjectValue, objectName, 
@@ -948,24 +949,24 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				// Add warn message into the log
 				Engine.logBeans.warn(message);
 				if (createUndefinedSymbol == false) {
-					databaseObject.addSymbolError(propertyObjectValue.toString());
+					databaseObject.addSymbolError(propertyName, propertyObjectValue.toString());
 				} else if (doThisForAll == true) {
-					databaseObject.addSymbolError(propertyObjectValue.toString());
+					databaseObject.addSymbolError(propertyName, propertyObjectValue.toString());
 				}
 				DatabaseObjectsManager.getProjectLoadingData().undefinedGlobalSymbol = true;
 				
 				if ((propertyType != String.class)) {
 					return "0";
 				}
-				
-			} else { 
-				databaseObject.removeSymbolError(propertyObjectValue.toString());
-			}
+			} 
+			
+			databaseObject.removeSymbolError(propertyName, propertyObjectValue, propertyObjectOldValue);
+			
 		} else if (propertyObjectValue instanceof XMLVector<?>) {
 			try {
 				XMLVector<Object> xmlv = new XMLVector<Object>(GenericUtils.<XMLVector<Object>> cast(propertyObjectValue));
 				for (int i = 0; i < xmlv.size(); i++) {
-					compileProperty(databaseObject, propertyType, propertyName, xmlv.get(i));
+					compileProperty(databaseObject, propertyType, propertyName, xmlv.get(i),null);
 				}
 			} catch (Exception e) {
 				
@@ -974,7 +975,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			SmartType smartType = (SmartType) propertyObjectValue;
 			if (smartType.isUseExpression()) {
 				smartType = smartType.clone();
-				compileProperty(databaseObject, propertyType, propertyName, smartType.getExpression());
+				compileProperty(databaseObject, propertyType, propertyName, smartType.getExpression(),null);
 			}
 		}
 		return compiledValue;
@@ -994,7 +995,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		
 		if (createUndefinedSymbol == true) {
 			//Create current symbol
-			ProjectUtils.createUndefinedGlobalSymbol(extractSymbol(propertyObjectValue.toString()));
+			ProjectUtils.createUndefinedGlobalSymbol((String[]) extractSymbol(propertyObjectValue.toString()).toArray());
 		}
 	}
 	
@@ -1276,7 +1277,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 							childNode, Node.ELEMENT_NODE));
 					Engine.logBeans.trace("  value='" + propertyObjectValue.toString() + "'");
 					propertyObjectValue = compileProperty(databaseObject, propertyType, propertyName,
-							propertyObjectValue);
+							propertyObjectValue,null);
 
 					Method setter = pd.getWriteMethod();
 					Engine.logBeans.trace("  setter='" + setter.getName() + "'");
@@ -1459,43 +1460,62 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		}
 	}
 	
-	public void addSymbolError(String propertyValue){
-		String[] value = extractSymbol(propertyValue);
-		
+	public void addSymbolError(String propertyName, String propertyValue){
+		List<String> values = extractSymbol(propertyValue); 
+
 		if (symbolsErrors == null) {
-			symbolsErrors = new HashSet<String>();
+			symbolsErrors = new HashMap<String, HashSet<String>>();
 		}
 		
-		for (int i = 0 ; i < value.length ; i++) {
-			symbolsErrors.add(value[i]);
+		HashSet<String> setValues = symbolsErrors.get(propertyName);
+		if(setValues == null)
+			setValues = new HashSet<String>();
+		setValues.addAll(values);
+		if (setValues.size()>0) {
+			symbolsErrors.put(propertyName, setValues);
+			if (getProject() != null) {
+				getProject().undefinedGlobalSymbols = true;
+			}
 		}
 	}
 	
-	public void removeSymbolError(String propertyValue){
-		String[] value = extractSymbol(propertyValue);
-		
-		if (symbolsErrors != null) {
-			for (int i = 0 ; i < value.length ; i++) {
-				symbolsErrors.remove(value[i]);
+	public void removeSymbolError(String propertyName, Object propertyValue, Object propertyOldValue){
+		if (propertyValue != null && propertyOldValue != null) {
+			List<String> values = extractSymbol(propertyValue.toString());
+			List<String> oldValues = extractSymbol(propertyOldValue.toString());
+						
+			if (symbolsErrors != null) {
+				if (values.size()==0) {
+					symbolsErrors.remove(propertyName);
+				} else {
+					for (String oldValue : oldValues) {
+						HashSet<String> symbErr = symbolsErrors.get(propertyName);
+						if (!values.contains(oldValue)) {
+							symbErr.remove(oldValue);											
+						}
+						symbolsErrors.remove(propertyName);
+						symbolsErrors.put(propertyName, symbErr);
+					}
+				}
+				if (symbolsErrors.size()==0) {
+					getProject().undefinedGlobalSymbols = false;
+				} 
 			}
-			if (symbolsErrors.size()==0) {
-				getProject().undefinedGlobalSymbols = false;
-			} 
-		}		
+		}
 	}
 	
 	public boolean isSymbolError(){
 		return (symbolsErrors != null && symbolsErrors.size() != 0);		
 	}
 	
-	public Set<String> getSymbolsErrors(){
+	public Map<String, HashSet<String>> getSymbolsErrors(){
 		if (isSymbolError()) {
 			return symbolsErrors;
 		}
 		return null;
 	}
 	
-	public void setSymbolsErrors(Set<String> symbolsErrors){
+	public void setSymbolsErrors(Map<String, HashSet<String>> symbolsErrors){
 		if (symbolsErrors!=null) {
 			this.symbolsErrors = symbolsErrors;
 		}
@@ -1505,7 +1525,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		return symbolsDefaultsValues;
 	}
 	
-	public static String[] extractSymbol(String propertyValue) {
+	public static List<String> extractSymbol(String propertyValue) {
 		Matcher m = patternSymbolName.matcher(propertyValue);
 		List<String> extract = new LinkedList<String>();
 		
@@ -1513,10 +1533,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			extract.add(m.group(1));
 		}
 		
-		if (extract.size() == 0) {
-			return new String[1];
-		} else {
-			return (String[]) extract.toArray(new String[extract.size()]);
-		}
+		return extract;
 	}
 }
