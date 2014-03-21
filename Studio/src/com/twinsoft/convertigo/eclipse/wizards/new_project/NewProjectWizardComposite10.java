@@ -22,6 +22,9 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
+import java.io.File;
+import java.net.MalformedURLException;
+
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyListener;
@@ -32,15 +35,19 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
+
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
 public class NewProjectWizardComposite10 extends Composite {
 	private ModifyListener modifyListener;
 	public ProgressBar progressBar = null;
 	public Label labelProgression = null;
 	public Combo combo = null;
+	public Button browseButton = null;
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
 	
@@ -51,12 +58,18 @@ public class NewProjectWizardComposite10 extends Composite {
 	}
 
 	protected void initialize() {
+		final Composite container = this;
 		GridLayout gridLayout = new GridLayout();
+		gridLayout.numColumns = 2;
+		gridLayout.makeColumnsEqualWidth = false;
+		
+		container.setLayout(gridLayout);
 		
 		Label description = new Label(this, SWT.NONE);
 		description.setText("Please enter a valid WSDL url:");
 		GridData data = new GridData ();
 		data.horizontalAlignment = GridData.FILL;
+		data.horizontalSpan = 2;
 		data.grabExcessHorizontalSpace = true;
 		description.setLayoutData (data);
 		
@@ -69,8 +82,39 @@ public class NewProjectWizardComposite10 extends Composite {
 		data = new GridData ();
 		data.horizontalAlignment = GridData.FILL;
 		data.grabExcessHorizontalSpace = true;		
-		data.verticalIndent = 4;
 		combo.setLayoutData(data);
+		
+		browseButton = new Button(this, SWT.NONE);
+		browseButton.setText("Browse...");
+		data = new GridData ();
+		data.horizontalAlignment = GridData.FILL;
+		data.grabExcessHorizontalSpace = true;
+		combo.setLayoutData (data);
+		
+		//Event click browse button
+		browseButton.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				FileDialog dialog = new FileDialog(container.getShell(), SWT.NULL);
+				dialog.setFilterExtensions(new String[]{"*.wsdl"});
+				dialog.setText("Select your WSDL file");
+				String path = dialog.open();
+				if (path != null) {
+					File file = new File(path);
+					if (file.isFile()) {
+						try {
+							String fileUrl = file.toURI().toURL().toString();
+							combo.add(fileUrl.replaceAll("file:/", "file:///"));
+						} catch (MalformedURLException e1) {
+							ConvertigoPlugin.logException(e1, "Unexpected exception");
+						}
+						combo.select(combo.getItemCount()-1);
+					}
+				}
+			}
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {}
+		});
 		
 		useAuthentication = new Button(this, SWT.CHECK);
 		useAuthentication.setText("WSDL URL need an authenfication");
@@ -103,8 +147,7 @@ public class NewProjectWizardComposite10 extends Composite {
 		passwordText.setMessage("Password");
 		passwordText.setEnabled(false);
 		passwordText.setLayoutData(data);
-		
-		this.setLayout(gridLayout);
+
 		//setSize(new Point(402, 99));
 	}
 }
