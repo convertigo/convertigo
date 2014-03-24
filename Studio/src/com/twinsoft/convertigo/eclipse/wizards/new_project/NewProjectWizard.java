@@ -857,8 +857,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 						connectorProperties, "name", "https");
 				((Element) property.getElementsByTagName("java.lang.Boolean").item(0))
 						.removeAttribute("value");
-				// ((Element)property.getElementsByTagName("java.lang.Boolean").item(0)).setAttribute("value",
-				// Boolean.toString(page6.isBSSL()));
+				((Element) property.getElementsByTagName("java.lang.Boolean").item(0)).setAttribute("value", 
+						Boolean.toString(page6.isBSSL()));
 				monitor.setTaskName("Connector https mode updated");
 				monitor.worked(1);
 				break;
