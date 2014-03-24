@@ -82,6 +82,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public NewProjectWizardPage11 page11;
 	public NewProjectWizardPageSummarySampleProject pageSummarySampleProject;
 	public ConfigureSQLConnectorPage configureSQLConnectorPage;
+	public SQLQueriesPage enterSQLQueriesPage;
 
 	// Holds the current selection when the wizard was called
 	private ISelection selection;
@@ -318,9 +319,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			page1 = new NewProjectWizardPage1(selection);
 			page2 = new NewProjectWizardPage2(selection);
 			configureSQLConnectorPage = new ConfigureSQLConnectorPage(selection);
+			enterSQLQueriesPage = new SQLQueriesPage(selection);
 			addPage(page1);
 			addPage(page2);
 			addPage(configureSQLConnectorPage);
+			addPage(enterSQLQueriesPage);
 			break;
 
 		case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
@@ -920,7 +923,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 						configureSQLConnectorPage.getPassword());
 				monitor.setTaskName("Password updated");
 				monitor.worked(1);
-
+							
 				break;
 				
 			case TEMPLATE_SITE_CLIPPER:
@@ -951,6 +954,15 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
 						page11.getTargetURL());
 				monitor.setTaskName("Host url updated");
+				monitor.worked(1);
+				break;
+			case TEMPLATE_SQL_CONNECTOR:
+				property = (Element) XMLUtils.findNodeByAttributeValue(
+						transactionProperties, "name", "sqlQuery");
+				((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
+				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
+						enterSQLQueriesPage.getSQLQueries());
+				monitor.setTaskName("SQL queries updated");
 				monitor.worked(1);
 				break;
 			default:
