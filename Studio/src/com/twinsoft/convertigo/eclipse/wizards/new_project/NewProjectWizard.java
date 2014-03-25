@@ -54,14 +54,17 @@ import org.xml.sax.SAXException;
 
 import com.twinsoft.api.Session;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.MobileDevice;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.CarUtils;
 import com.twinsoft.convertigo.engine.util.ImportWsReference;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -945,7 +948,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			Element transactionElem = (Element) dom.getDocumentElement().getElementsByTagName("transaction")
 					.item(0);
 			NodeList transactionProperties = transactionElem.getElementsByTagName("property");
-
+			
 			switch (templateId) {
 			case TEMPLATE_SITE_CLIPPER:
 				property = (Element) XMLUtils.findNodeByAttributeValue(
@@ -957,11 +960,12 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				monitor.worked(1);
 				break;
 			case TEMPLATE_SQL_CONNECTOR:
+				String sqlQueries = enterSQLQueriesPage.getSQLQueries();
 				property = (Element) XMLUtils.findNodeByAttributeValue(
 						transactionProperties, "name", "sqlQuery");
 				((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
 				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-						enterSQLQueriesPage.getSQLQueries());
+						sqlQueries);
 				monitor.setTaskName("SQL queries updated");
 				monitor.worked(1);
 				break;
@@ -998,13 +1002,14 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 
 			monitor.setTaskName("Old xml file deleted");
 			monitor.worked(1);
-
-//TODO: Remove this code when template projects will be migrated
+			
+			//TODO: Remove this code when template projects will be migrated
+			String projectPath = newProjectDir + "/" + newProjectName;
 			try {
 				// Update XSD file
 				try {
 					ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, oldProjectName, newProjectName);
-					ProjectUtils.renameConnector(newProjectDir + "/" + newProjectName + ".xsd", oldConnectorName,
+					ProjectUtils.renameConnector(projectPath + ".xsd", oldConnectorName,
 							newConnectorName);
 	
 					monitor.setTaskName("Project XSD file updated");
@@ -1016,9 +1021,9 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				// Update WSDL file
 				try {
 					ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, oldProjectName, newProjectName);
-					ProjectUtils.renameConnector(newProjectDir + "/" + newProjectName + ".wsdl", oldConnectorName,
+					ProjectUtils.renameConnector(projectPath + ".wsdl", oldConnectorName,
 							newConnectorName);
-	
+
 					monitor.setTaskName("Project WSDL file updated");
 					monitor.worked(1);
 				} catch (Exception e) {
@@ -1026,11 +1031,28 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 							e);
 				}
 			} catch (ConvertigoException e) { }
-// End TODO
+			// End TODO
+			
 			// Import the project from the new .xml file
-			project = Engine.theApp.databaseObjectsManager.importProject(newProjectDir + "/" + newProjectName
-					+ ".xml");
+			project = Engine.theApp.databaseObjectsManager.importProject(projectPath + ".xml");
+			
+			// In the case we want to predefine with the new project wizard a SQL query
+			switch(templateId) {
+				case TEMPLATE_SQL_CONNECTOR :
+					try {																	
+						SqlConnector connector = (SqlConnector) project
+								.getDefaultConnector();
+						SqlTransaction transaction = connector
+								.getDefaultTransaction();
 
+						String sqlQuery = transaction.getSqlQuery();
+						transaction.setSqlQuery(sqlQuery);
+						CarUtils.exportProject(project, projectPath + ".xml");
+					} catch (Exception e) {
+						Engine.logDatabaseObjectManager.error("An error occured while initialize SQL project \""+projectName+"\"",e);
+					}
+				break;
+			}
 			monitor.setTaskName("Project loaded");
 			monitor.worked(1);
 

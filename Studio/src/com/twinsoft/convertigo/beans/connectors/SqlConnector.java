@@ -534,6 +534,11 @@ public class SqlConnector extends Connector {
 		}
 		return super.isCipheredProperty(propertyName);
 	}
+	
+	@Override
+	public SqlTransaction getDefaultTransaction() throws EngineException {
+		return (SqlTransaction) super.getDefaultTransaction();
+	}
 
 	public long getIdleConnectionTestTime() {
 		return idleConnectionTestTime;
