@@ -41,6 +41,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.resolver.DefaultURIResolver;
 import org.w3c.dom.Element;
 
@@ -50,6 +51,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.SchemaManager;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public abstract class WsdlSchemaReference extends RemoteFileReference implements ISchemaReference, ISchemaReader, IWsdlReader {
 
@@ -60,6 +62,7 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 			List<String> namespaceList = new ArrayList<String>();
 			String mainSchemaNamespace = null;
 			XmlSchema mainSchema = null;
+			boolean bImport = false;
 			
 			// First read all schemas from WSDL in a new Collection
 			List<Definition> definitions = readWsdl();
@@ -101,11 +104,26 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 			for (XmlSchema xs : c.getXmlSchemas()) {
 				String nsuri = xs.getTargetNamespace();
 				if (namespaceList.contains(nsuri)) {
-					// ! because of xsd:include it is possible to have more than one schema with the same nsuri !
-					// ! we must retrieve the whole schema through collection.schemaForNamespace instead of using xs !
 					if (collection.schemaForNamespace(nsuri) == null) {
+						// ! schema with this ns does not exist !
+						// ! because of xsd:include it is possible to have more than one schema with the same nsuri !
+						// ! we must retrieve the whole schema through collection.schemaForNamespace instead of using xs !
 						if (c.schemaForNamespace(nsuri) != null) {
 							collection.read(c.schemaForNamespace(nsuri).getSchemaDocument(),null);
+							if (nsuri.equals(mainSchemaNamespace)) {
+								bImport = true;
+							}
+						}
+					}
+					else {
+						if (!bImport) {
+							// ! a previously imported (from wsdl) schema already exist with same ns !
+							// ! we need to add all items to existing schema !
+							XmlSchema xc1 = c.schemaForNamespace(nsuri);
+							XmlSchema xc2 = collection.schemaForNamespace(nsuri);
+							for (XmlSchemaObject ob : new XmlSchemaUtils.XmlSchemaObjectCollectionList<XmlSchemaObject>(xc1.getItems())) {
+								XmlSchemaUtils.add(xc2, ob);
+							}
 						}
 					}
 				}
@@ -132,7 +150,10 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 			
 			// Remember main schema to import in project's one
 			if (mainSchemaNamespace != null) {
-				mainSchema = collection.schemaForNamespace(mainSchemaNamespace);
+				if (bImport)
+					mainSchema = collection.schemaForNamespace(mainSchemaNamespace);
+				else
+					mainSchema = null;
 			}
 			
 			return mainSchema;
@@ -188,7 +209,8 @@ public abstract class WsdlSchemaReference extends RemoteFileReference implements
 			List<ExtensibilityElement> exs = GenericUtils.cast(bind.getExtensibilityElements());
 			for (ExtensibilityElement ee : exs) {
 				if (ee instanceof SOAPBinding) {
-					if (((SOAPBinding)ee).getStyle().toLowerCase().equals("rpc")) {
+					String style = ((SOAPBinding)ee).getStyle();
+					if (style != null && style.toLowerCase().equals("rpc")) {
 						hasRpc = true;
 					}
 				}
