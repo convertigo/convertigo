@@ -148,7 +148,6 @@ public class BeansDoc {
 				.getBeanDescriptor();
 		PropertyDescriptor[] propertyDescriptors = beanInfo
 				.getPropertyDescriptors();
-		int len = propertyDescriptors.length;
 		
 
 		Element elementBean = document.createElement("bean");
@@ -207,14 +206,13 @@ public class BeansDoc {
 			elementSub.appendChild(elementText);
 			elementBean.appendChild(elementSub);
 	
-			for (int i = 0; i < len; i++) {
-				PropertyDescriptor databaseObjectPropertyDescriptor = propertyDescriptors[i];
-	
+			for (PropertyDescriptor databaseObjectPropertyDescriptor : propertyDescriptors) {
+				
 				// Don't display hidden property descriptors
 				if (databaseObjectPropertyDescriptor.isHidden()) {
 					continue;
 				}
-	
+				
 				Method getter = databaseObjectPropertyDescriptor.getReadMethod();
 				Method setter = databaseObjectPropertyDescriptor.getWriteMethod();
 	
@@ -248,9 +246,15 @@ public class BeansDoc {
 				elementBean.appendChild(elementProperty);
 	
 				elementSub = document.createElement("type");
-				elementText = document
-						.createTextNode(databaseObjectPropertyDescriptor
-								.getPropertyType().getSimpleName());
+				if (databaseObjectPropertyDescriptor.getValue("scriptable") != null && 
+						databaseObjectPropertyDescriptor.getValue("scriptable").toString().equals("true")) {
+					elementText = document
+							.createTextNode("JS expression");
+				} else {
+					elementText = document
+							.createTextNode(databaseObjectPropertyDescriptor
+									.getPropertyType().getSimpleName());
+				}
 				elementSub.appendChild(elementText);
 				elementProperty.appendChild(elementSub);
 	
