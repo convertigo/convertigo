@@ -41,7 +41,7 @@ public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[9];
+			properties = new PropertyDescriptor[10];
 			
 			properties[0] = new PropertyDescriptor("baseDir", beanClass, "getBaseDir", "setBaseDir");
 			properties[0].setDisplayName(getExternalizedString("property.baseDir.display_name"));
@@ -73,16 +73,27 @@ public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[6].setShortDescription(getExternalizedString("property.basicPassword.short_description"));
 			properties[6].setExpert(true);
 			
-			properties[7] = new PropertyDescriptor("httpHeaderForward", beanClass, "getHttpHeaderForward", "setHttpHeaderForward");
-			properties[7].setDisplayName(getExternalizedString("property.httpHeaderForward.display_name"));
-			properties[7].setShortDescription(getExternalizedString("property.httpHeaderForward.short_description"));
+			properties[7] = new PropertyDescriptor("authenticationType", beanClass, "getAuthenticationType", "setAuthenticationType");
+			properties[7].setDisplayName(getExternalizedString("property.authenticationType.display_name"));
+			properties[7].setShortDescription(getExternalizedString("property.authenticationType.short_description"));
+			properties[7].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
 			properties[7].setExpert(true);
-			properties[7].setPropertyEditorClass(getEditorClass("HttpHeaderForwardEditor"));
 			
-			properties[8] = new PropertyDescriptor("urlEncodingCharset", beanClass, "getUrlEncodingCharset", "setUrlEncodingCharset");
-			properties[8].setDisplayName(getExternalizedString("property.urlEncodingCharset.display_name"));
-			properties[8].setShortDescription(getExternalizedString("property.urlEncodingCharset.short_description"));
+			properties[8] = new PropertyDescriptor("NTLMAuthenticationDomain", beanClass, "getNTLMAuthenticationDomain", "setNTLMAuthenticationDomain");
+			properties[8].setDisplayName(getExternalizedString("property.NTLMAuthenticationDomain.display_name"));
+			properties[8].setShortDescription(getExternalizedString("property.authenticationNTLMDomain.short_description"));
 			properties[8].setExpert(true);
+			
+			properties[9] = new PropertyDescriptor("httpHeaderForward", beanClass, "getHttpHeaderForward", "setHttpHeaderForward");
+			properties[9].setDisplayName(getExternalizedString("property.httpHeaderForward.display_name"));
+			properties[9].setShortDescription(getExternalizedString("property.httpHeaderForward.short_description"));
+			properties[9].setExpert(true);
+			properties[9].setPropertyEditorClass(getEditorClass("HttpHeaderForwardEditor"));
+			
+			properties[10] = new PropertyDescriptor("urlEncodingCharset", beanClass, "getUrlEncodingCharset", "setUrlEncodingCharset");
+			properties[10].setDisplayName(getExternalizedString("property.urlEncodingCharset.display_name"));
+			properties[10].setShortDescription(getExternalizedString("property.urlEncodingCharset.short_description"));
+			properties[10].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

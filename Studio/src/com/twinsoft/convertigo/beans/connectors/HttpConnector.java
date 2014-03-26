@@ -58,6 +58,7 @@ import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.NTCredentials;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
@@ -83,6 +84,7 @@ import org.w3c.dom.Text;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
+import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
@@ -112,7 +114,7 @@ import com.twinsoft.util.StringEx;
 /**
  * The Connector class is the base class for all connectors.
  */
-public class HttpConnector extends Connector {
+public class HttpConnector extends Connector implements ITagsProperty {
 
 	private static final long serialVersionUID = -3169027624556390926L;
 
@@ -248,7 +250,7 @@ public class HttpConnector extends Connector {
 	}
 
 	@Override
-	public void prepareForTransaction(Context context) throws EngineException {
+	public void prepareForTransaction(Context context) throws EngineException {	
 		Engine.logBeans.debug("(HttpConnector) Preparing for transaction");
 
 		if (Boolean.parseBoolean(EnginePropertiesManager.getProperty(PropertyName.SSL_DEBUG))) {
@@ -807,6 +809,11 @@ public class HttpConnector extends Connector {
 	}
 
 	private void getHttpState(Context context) {
+		if (authenticationPropertiesHasChanged) {
+			context.httpState = null;
+			authenticationPropertiesHasChanged = false;			
+		}	
+		
 		if (context.httpState == null) {
 			Engine.logBeans
 					.debug("(HttpConnector) Creating new HttpState for context id " + context.contextID);
@@ -817,11 +824,22 @@ public class HttpConnector extends Connector {
 			if (!basicUser.equals("") || !basicPassword.equals("") || (givenBasicUser != null) || (givenBasicPassword != null)) {
 				String userName = ((givenBasicUser == null) ? basicUser : givenBasicUser);
 				String userPassword = ((givenBasicPassword == null) ? basicPassword : givenBasicPassword);
-				// httpState.setCredentials(realm, server, new
-				// UsernamePasswordCredentials(userName, userPassword));
-				httpState.setCredentials(new AuthScope(server, AuthScope.ANY_PORT, AuthScope.ANY_REALM),
+
+				if ( authenticationType.equals(AuthenticationMode.BASIC.name()) ) {
+					httpState.setCredentials(new AuthScope(server, AuthScope.ANY_PORT, AuthScope.ANY_REALM),
 						new UsernamePasswordCredentials(userName, userPassword));
-				Engine.logBeans.debug("(HttpConnector) Credentials: " + userName + ": ******");
+					Engine.logBeans.debug("(HttpConnector) Credentials: " + userName + ": ******");
+				} else {
+					httpState.setCredentials(new AuthScope(server, AuthScope.ANY_PORT, AuthScope.ANY_REALM),
+						new NTCredentials(
+							userName, 										// Username
+							userPassword,									// Password
+							(hostConfiguration.getHost() == null ? server : 
+								hostConfiguration.getHost()),				// Host
+							NTLMAuthenticationDomain)						// Domain
+					);
+					Engine.logBeans.debug("(HttpConnector) NTLM: " + userName + ": ******");
+				}
 			}
 
 			context.httpState = httpState;
@@ -1406,7 +1424,9 @@ public class HttpConnector extends Connector {
 		}
 		return absoluteUrl;
 	}
-
+	
+	private boolean authenticationPropertiesHasChanged = false;
+	
 	/** Holds value of property trustAllServerCertificates. */
 	private boolean trustAllServerCertificates = true;
 
@@ -1436,6 +1456,7 @@ public class HttpConnector extends Connector {
 	 */
 	public void setServer(String server) {
 		this.server = server;
+		authenticationPropertiesHasChanged = true;
 	}
 
 	/** Holds value of property basicUser. */
@@ -1458,6 +1479,7 @@ public class HttpConnector extends Connector {
 	 */
 	public void setBasicUser(String basicUser) {
 		this.basicUser = basicUser;
+		authenticationPropertiesHasChanged = true;
 	}
 
 	/** Holds value of property basicPassword. */
@@ -1480,8 +1502,71 @@ public class HttpConnector extends Connector {
 	 */
 	public void setBasicPassword(String basicPassword) {
 		this.basicPassword = basicPassword;
+		authenticationPropertiesHasChanged = true;
 	}
-
+	
+	public enum AuthenticationMode {
+		BASIC,
+		NTLM;
+		
+		final static String[] authenticationModes = new String[] {
+			BASIC.name(),
+			NTLM.name()
+		};
+	}
+	
+	/**
+	 * Holds value of property authenticationType.
+	 */
+	private String authenticationType = AuthenticationMode.BASIC.name();
+	
+	/**
+	 * Getter for property authenticationType.
+	 * @return the authenticationType
+	 */
+	public String getAuthenticationType() {
+		return authenticationType;
+	}
+	
+	/**
+	 * Holds value of property NTLMAuthenticationDomain.
+	 */
+	private String NTLMAuthenticationDomain = "";
+	
+	/**
+	 * Getter for property NTLMAuthenticationDomain.
+	 * @return the NTLMAuthenticationDomain
+	 */
+	public String getNTLMAuthenticationDomain() {
+		return NTLMAuthenticationDomain;
+	}
+	
+	/**
+	 * Setter for property NTLMAuthenticationDomain.
+	 * @param NTLMAuthenticationDomain
+	 */
+	public void setNTLMAuthenticationDomain(String NTLMAuthenticationDomain) {
+		this.NTLMAuthenticationDomain = NTLMAuthenticationDomain;
+		authenticationPropertiesHasChanged = true;
+	}
+	
+	@Override
+	public String[] getTagsForProperty(String propertyName) {
+		if (propertyName.equals("authenticationType")) {
+			return AuthenticationMode.authenticationModes;
+		}
+		return super.getTagsForProperty(propertyName);
+	}
+	
+	/**
+	 * Setter for property authenticationType.
+	 * @param authenticationType
+	 */
+	public void setAuthenticationType(String authenticationType) {
+		this.authenticationType = authenticationType;
+		authenticationPropertiesHasChanged = true;
+	}
+	
 	/** Holds value of givenBasicUser. */
 	transient private String givenBasicUser = null;
 
