@@ -447,6 +447,7 @@ function projectStats() {
 		                }
 			        }]
 				});
+				$("#statisticsGlobalProjectName").html(projectName);
 				$("#statisticsGlobalProjectInfo").html($(xml).find("statistics").children(projectName).text().replace("<br/>",", "));
 				
 				var htmlStats = "";

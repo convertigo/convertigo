@@ -1557,19 +1557,31 @@ a.start {
 	position: relative;
 	top: 2px;
 }
-
 .alertGlobalSymbols, .alertGlobalSymbols.ui-widget-content {
 	font-weight: bold;
 	background: #FCE4E4;
 }
-
 #dialog-deploy-project {
 	display: none;
 }
-
 #dialog-statistics-project {
 	text-align:left;
 	display: none;
+}
+/* Project edit */
+#dialog-statistics-project .bgButtonAction {
+	height: 30px;
+}
+#dialog-statistics-project #statisticsGlobalProjectInfo {
+	position: absolute;
+	top: 0;
+	right: 10px;
+}
+#dialog-statistics-project #statisticTable {
+	margin-left: -17px;	
+}
+#dialog-statistics-project #statisticTable td {
+	vertical-align: top;
 }
 
 /* = SYMBOLS WIDGET
