@@ -81,7 +81,7 @@ public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
 			
 			properties[8] = new PropertyDescriptor("NTLMAuthenticationDomain", beanClass, "getNTLMAuthenticationDomain", "setNTLMAuthenticationDomain");
 			properties[8].setDisplayName(getExternalizedString("property.NTLMAuthenticationDomain.display_name"));
-			properties[8].setShortDescription(getExternalizedString("property.authenticationNTLMDomain.short_description"));
+			properties[8].setShortDescription(getExternalizedString("property.NTLMAuthenticationDomain.short_description"));
 			properties[8].setExpert(true);
 			
 			properties[9] = new PropertyDescriptor("httpHeaderForward", beanClass, "getHttpHeaderForward", "setHttpHeaderForward");
