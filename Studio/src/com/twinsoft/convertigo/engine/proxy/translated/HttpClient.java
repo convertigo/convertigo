@@ -274,10 +274,10 @@ public class HttpClient {
 				httpMethodParams.setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
 			}
 
-			String basicUser = connector.getBasicUser();
-			String basicPassword = connector.getBasicPassword();
-			String givenBasicUser = connector.getGivenBasicUser();
-			String givenBasicPassword = connector.getGivenBasicPassword();
+			String basicUser = connector.getAuthUser();
+			String basicPassword = connector.getAuthPassword();
+			String givenBasicUser = connector.getGivenAuthUser();
+			String givenBasicPassword = connector.getGivenAuthPassword();
 
 			// Basic authentication configuration
 			String realm = null;

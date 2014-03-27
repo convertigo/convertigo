@@ -63,14 +63,14 @@ public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[4].setDisplayName(getExternalizedString("property.trustAllServerCertificates.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.trustAllServerCertificates.short_description"));
 			
-			properties[5] = new PropertyDescriptor("basicUser", beanClass, "getBasicUser", "setBasicUser");
-			properties[5].setDisplayName(getExternalizedString("property.basicUser.display_name"));
-			properties[5].setShortDescription(getExternalizedString("property.basicUser.short_description"));
+			properties[5] = new PropertyDescriptor("authUser", beanClass, "getAuthUser", "setAuthUser");
+			properties[5].setDisplayName(getExternalizedString("property.authUser.display_name"));
+			properties[5].setShortDescription(getExternalizedString("property.authUser.short_description"));
 			properties[5].setExpert(true);
 			
-			properties[6] = new PropertyDescriptor("basicPassword", beanClass, "getBasicPassword", "setBasicPassword");
-			properties[6].setDisplayName(getExternalizedString("property.basicPassword.display_name"));
-			properties[6].setShortDescription(getExternalizedString("property.basicPassword.short_description"));
+			properties[6] = new PropertyDescriptor("authPassword", beanClass, "getAuthPassword", "setAuthPassword");
+			properties[6].setDisplayName(getExternalizedString("property.authPassword.display_name"));
+			properties[6].setShortDescription(getExternalizedString("property.authPassword.short_description"));
 			properties[6].setExpert(true);
 			
 			properties[7] = new PropertyDescriptor("authenticationType", beanClass, "getAuthenticationType", "setAuthenticationType");

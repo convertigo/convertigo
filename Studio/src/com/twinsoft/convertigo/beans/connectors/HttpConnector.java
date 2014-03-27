@@ -821,11 +821,11 @@ public class HttpConnector extends Connector implements ITagsProperty {
 
 			// Basic authentication configuration
 			String realm = null;
-			if (!basicUser.equals("") || !basicPassword.equals("") || (givenBasicUser != null) || (givenBasicPassword != null)) {
-				String userName = ((givenBasicUser == null) ? basicUser : givenBasicUser);
-				String userPassword = ((givenBasicPassword == null) ? basicPassword : givenBasicPassword);
+			if (!authUser.equals("") || !authPassword.equals("") || (givenAuthUser != null) || (givenAuthPassword != null)) {
+				String userName = ((givenAuthUser == null) ? authUser : givenAuthUser);
+				String userPassword = ((givenAuthPassword == null) ? authPassword : givenAuthPassword);
 
-				if ( authenticationType.equals(AuthenticationMode.BASIC.name()) ) {
+				if ( authenticationType.equals(AuthenticationMode.Basic.name()) ) {
 					httpState.setCredentials(new AuthScope(server, AuthScope.ANY_PORT, AuthScope.ANY_REALM),
 						new UsernamePasswordCredentials(userName, userPassword));
 					Engine.logBeans.debug("(HttpConnector) Credentials: " + userName + ": ******");
@@ -1459,58 +1459,58 @@ public class HttpConnector extends Connector implements ITagsProperty {
 		authenticationPropertiesHasChanged = true;
 	}
 
-	/** Holds value of property basicUser. */
-	private String basicUser = "";
+	/** Holds value of property authUser. */
+	private String authUser = "";
 
 	/**
-	 * Getter for property basicUser.
+	 * Getter for property authUser.
 	 * 
-	 * @return the basicUser
+	 * @return the authUser
 	 */
-	public String getBasicUser() {
-		return basicUser;
+	public String getAuthUser() {
+		return authUser;
 	}
 
 	/**
-	 * Setter for property basicUser.
+	 * Setter for property authUser.
 	 * 
-	 * @param basicUser
-	 *            the basicUser to set
+	 * @param authUser
+	 *            the authUser to set
 	 */
-	public void setBasicUser(String basicUser) {
-		this.basicUser = basicUser;
+	public void setAuthUser(String authUser) {
+		this.authUser = authUser;
 		authenticationPropertiesHasChanged = true;
 	}
 
-	/** Holds value of property basicPassword. */
-	private String basicPassword = "";
+	/** Holds value of property authPassword. */
+	private String authPassword = "";
 
 	/**
-	 * Getter for property basicPassword.
+	 * Getter for property authPassword.
 	 * 
-	 * @return the basicPassword
+	 * @return the authPassword
 	 */
-	public String getBasicPassword() {
-		return basicPassword;
+	public String getAuthPassword() {
+		return authPassword;
 	}
 
 	/**
-	 * Setter for property basicPassword.
+	 * Setter for property authPassword.
 	 * 
-	 * @param basicPassword
-	 *            the basicPassword to set
+	 * @param authPassword
+	 *            the authPassword to set
 	 */
-	public void setBasicPassword(String basicPassword) {
-		this.basicPassword = basicPassword;
+	public void setAuthPassword(String authPassword) {
+		this.authPassword = authPassword;
 		authenticationPropertiesHasChanged = true;
 	}
 	
 	public enum AuthenticationMode {
-		BASIC,
+		Basic,
 		NTLM;
 		
 		final static String[] authenticationModes = new String[] {
-			BASIC.name(),
+			Basic.name(),
 			NTLM.name()
 		};
 	}
@@ -1518,7 +1518,7 @@ public class HttpConnector extends Connector implements ITagsProperty {
 	/**
 	 * Holds value of property authenticationType.
 	 */
-	private String authenticationType = AuthenticationMode.BASIC.name();
+	private String authenticationType = AuthenticationMode.Basic.name();
 	
 	/**
 	 * Getter for property authenticationType.
@@ -1567,25 +1567,25 @@ public class HttpConnector extends Connector implements ITagsProperty {
 		authenticationPropertiesHasChanged = true;
 	}
 	
-	/** Holds value of givenBasicUser. */
-	transient private String givenBasicUser = null;
+	/** Holds value of givenAuthUser. */
+	transient private String givenAuthUser = null;
 
-	public String getGivenBasicUser() {
-		return givenBasicUser;
+	public String getGivenAuthUser() {
+		return givenAuthUser;
 	}
 
-	public void setGivenBasicUser(String givenBasicUser) {
-		this.givenBasicUser = givenBasicUser;
+	public void setGivenAuthUser(String givenAuthUser) {
+		this.givenAuthUser = givenAuthUser;
 	}
 
-	transient private String givenBasicPassword = null;
+	transient private String givenAuthPassword = null;
 
-	public String getGivenBasicPassword() {
-		return givenBasicPassword;
+	public String getGivenAuthPassword() {
+		return givenAuthPassword;
 	}
 
-	public void setGivenBasicPassword(String givenBasicPassword) {
-		this.givenBasicPassword = givenBasicPassword;
+	public void setGivenAuthPassword(String givenAuthPassword) {
+		this.givenAuthPassword = givenAuthPassword;
 	}
 
 	/**
@@ -1690,7 +1690,7 @@ public class HttpConnector extends Connector implements ITagsProperty {
 	
 	@Override
 	public boolean isMaskedProperty(Visibility target, String propertyName) {
-		if ("basicPassword".equals(propertyName)) {
+		if ("authPassword".equals(propertyName)) {
 			return true;
 		}
 		return super.isMaskedProperty(target, propertyName);
@@ -1698,7 +1698,7 @@ public class HttpConnector extends Connector implements ITagsProperty {
 
 	@Override
 	public boolean isCipheredProperty(String propertyName) {
-		if ("basicPassword".equals(propertyName)) {
+		if ("authPassword".equals(propertyName)) {
 			return true;
 		}
 		return super.isCipheredProperty(propertyName);

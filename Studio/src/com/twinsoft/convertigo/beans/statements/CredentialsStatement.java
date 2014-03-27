@@ -116,9 +116,9 @@ public class CredentialsStatement extends Statement {
 
 				// Set basic credentials on connector
 				HtmlConnector htmlConnector = (HtmlConnector) getParentTransaction().getParent();
-				htmlConnector.setGivenBasicUser(_user);
+				htmlConnector.setGivenAuthUser(_user);
 				Engine.logBeans.debug("(CredentialsStatement) User '" + _user + "' has been set on http connector.");
-				htmlConnector.setGivenBasicPassword(_password);
+				htmlConnector.setGivenAuthPassword(_password);
 				Engine.logBeans.debug("(CredentialsStatement) Password '******' has been set on http connector.");
 				htmlConnector.getHtmlParser().setCredentials(htmlConnector.context, _user, _password, forceBasic);
 				

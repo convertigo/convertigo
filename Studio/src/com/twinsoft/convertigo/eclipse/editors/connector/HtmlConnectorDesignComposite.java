@@ -583,8 +583,8 @@ public class HtmlConnectorDesignComposite extends Composite implements EngineLis
 	 */
 	private void createWebViewer() throws MaxCvsExceededException, KeyExpiredException {
 		// Retrieve Basic credentials of connector
-		String user = htmlConnector.getBasicUser();
-		String password = htmlConnector.getBasicPassword();
+		String user = htmlConnector.getAuthUser();
+		String password = htmlConnector.getAuthPassword();
 		user = user.equals("") ? null : user;
 
 		IWebViewerStudio webViewer = new XulWebViewerImpl(htmlConnector.context,lowerSashForm, SWT.NONE);

@@ -339,10 +339,10 @@ public class ReverseProxyServlet extends HttpServlet {
 
 			HttpState httpState = getHttpState(proxyHttpConnector, context);
 
-			String basicUser = proxyHttpConnector.getBasicUser();
-			String basicPassword = proxyHttpConnector.getBasicPassword();
-			String givenBasicUser = proxyHttpConnector.getGivenBasicUser();
-			String givenBasicPassword = proxyHttpConnector.getGivenBasicPassword();
+			String basicUser = proxyHttpConnector.getAuthUser();
+			String basicPassword = proxyHttpConnector.getAuthPassword();
+			String givenBasicUser = proxyHttpConnector.getGivenAuthUser();
+			String givenBasicPassword = proxyHttpConnector.getGivenAuthPassword();
 
 			// Basic authentication configuration
 			String realm = null;
