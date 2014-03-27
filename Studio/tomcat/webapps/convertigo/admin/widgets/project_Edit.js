@@ -31,7 +31,7 @@ function project_Edit_init() {
 	}).click(function() {
 		projectEditObjectSubmitProperties();
 	});
-	$('#projectEditUndefinedSymbolsInfoSubmit').click(function() { 
+	$('#projectEditUndefinedSymbolsInfoSubmit').button().click(function() { 
         projectDeclareGlobalSymbols(); 
 	});
 	
@@ -51,7 +51,8 @@ function project_Edit_update() {
 function loadProjectGSymbol(projectName){	
 	callService("projects.GetUndefinedSymbols", function(xml) {
 		if ($(xml).find("undefined_symbols")) {
-			var htmlCode = "<h2>Undefined Global Symbols</h2>";
+			var htmlCode = "<h2><img border=\"0\" class=\"iconAlertGlobalSymbols\" title=\"Click here to create undefined global symbols\" src=\"images/convertigo-administration-alert-global-symbols.png\"> Undefined Global Symbols</h2>";
+			htmlCode += "<p>This are your \"Undefined Global Symbols\" for this project: </p>";
 			htmlCode += "<ul>";
 			$(xml).find("undefined_symbols").children().each(function() {
 				htmlCode += "<li>"+$(this).text()+"</li>";
@@ -242,7 +243,7 @@ function loadElement(elementQName, $treeitem) {
 			showInfo($(this).data("long_description"));
 		});
 		xmlDatabaseObject = xml;		
-		$("#projectEditObjectProperties").css("margin-top", Math.max(0, $treeitem.position().top - ($("#projectEditObjectProperties").height() / 2)));
+		//$("#projectEditObjectProperties").css("margin-top", Math.max(0, $treeitem.position().top - ($("#projectEditObjectProperties").height() / 2)));
 	}, {"qname":elementQName});
 }
 

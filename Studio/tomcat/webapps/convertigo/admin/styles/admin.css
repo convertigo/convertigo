@@ -1404,94 +1404,6 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	cursor: pointer;
 }
 
-/* = PROJECT TREE VIEW
----------------------------------------------------------------------- */
-
-.projectEdit-editedObject { 
-    color:black;
-    font-weight: bold;  
-    cursor: pointer;
-}
-
-#projectEditDivTree li {
-	list-style-image: none;
-}
-
-.projectEdit-selectableElement {
-	cursor: pointer;
-}
-
-#projectEditUndefinedSymbolsInfo {
-	background: #FCE4E4;
-}
-
-.properties-group {
-	background-color: #B5D3E7;
-	/*background-color:red;*/
-	color: black;
-	font-weight: bold;
-}
-
-#projectEditDivTree {
-	float: left;
-	width: 30%;
-	height: 100%;
-	margin-top: 10px;	
-}
-
-#projectEditObjectProperties {
-	width: 68%;
-	float: right;
-    border:1px solid #EAEAEA;
-    background-color: white;
-    padding: 2px;
-    -moz-border-radius: 10px 10px 10px 10px/ 10px 10px 10px 10px;
-	-webkit-border-radius: 10px 10px 10px 10px/ 10px 10px 10px 10px;
-	-khtml-border-radius: 10px 10px 10px 10px/ 10px 10px 10px 10px;
-}
-
-#projectEditPropertyTable {
-	width: 100%;  
-}
-
-.projectEditorPropertyName{
-	width: 20%; 	
-}
-
-.projectEditorPropertyHelpIcon{
-	width: 1%; 
-}
-
-.projectEditorPropertyHelpIcon > img{
-	filter:alpha(opacity=75);
-	-moz-opacity:0.75;
-	-khtml-opacity: 0.75;
-	opacity: 0.75;
-	cursor: pointer;
-}
-	
-.longDescriptionComputer{
-	font-family: courier;
-}
-
-.longDescriptionReference{
-	font-style:italic;
-}
-	
-.longDescriptionProductFonction{
-	font-weight:bold;
-}
-	
-.projectEditorPropertyFieldValue *{
-	width: 99%; 	
-}
-
-#projectEditObjectSubmitProperties{
-	float: right;
-	margin: 3px;
-}
-
-
 /* = COMMON
 ---------------------------------------------------------------------- */
 .spacerH {
@@ -1550,6 +1462,105 @@ a.start {
 /* = PROJECT WIDGET
 ---------------------------------------------------------------------- */
 
+/* = Project Edit, Tree View
+-------------------------- */
+.projectEdit-editedObject { 
+    color:black;
+    font-weight: bold;  
+    cursor: pointer;
+}
+#projectEditDivTree li {
+	list-style-image: none;
+}
+.projectEdit-selectableElement {
+	cursor: pointer;
+}
+.properties-group {
+	background-color: #B5D3E7;
+	/*background-color:red;*/
+	color: black;
+	font-weight: bold;
+}
+#projectEditDivTree {
+	float: left;
+	width: 30%;
+	height: 100%;
+	margin-top: 10px;	
+}
+#projectEditObjectProperties {
+	width: 68%;
+	float: right;
+	margin-top: 10px;
+    border:1px solid #EAEAEA;
+    background-color: white;
+    padding: 2px;
+    -moz-border-radius: 10px 10px 10px 10px/ 10px 10px 10px 10px;
+	-webkit-border-radius: 10px 10px 10px 10px/ 10px 10px 10px 10px;
+	-khtml-border-radius: 10px 10px 10px 10px/ 10px 10px 10px 10px;
+}
+#projectEditPropertyTable {
+	width: 100%;  
+}
+.projectEditorPropertyName {
+	width: 20%; 	
+}
+.projectEditorPropertyHelpIcon {
+	width: 1%; 
+}
+.projectEditorPropertyHelpIcon > img {
+	filter:alpha(opacity=75);
+	-moz-opacity:0.75;
+	-khtml-opacity: 0.75;
+	opacity: 0.75;
+	cursor: pointer;
+}
+.longDescriptionComputer {
+	font-family: courier;
+}
+.longDescriptionReference {
+	font-style:italic;
+}
+.longDescriptionProductFonction {
+	font-weight:bold;
+}
+.projectEditorPropertyFieldValue * {
+	width: 99%; 	
+}
+#projectEditObjectSubmitProperties {
+	float: right;
+	margin: 3px;
+}
+
+/* = Global Symbols
+-------------------------- */
+#projectEditUndefinedSymbolsInfo {
+	background-color: #f3f2f1; /*#FCE4E4*/
+	border: 1px solid #ff0000;
+	margin: 16px 4px 10px 1px;
+	padding: 10px;
+}
+.undefinedGlobalSymbolError h2 {
+	color: #ff0000;
+}
+.undefinedGlobalSymbolError ul {
+	margin-left: 0;
+	padding-left: 0;
+}
+.undefinedGlobalSymbolError li {
+	/*float: left;*/
+	padding: 5px 10px;
+	/*margin: 0 5px;*/
+	margin: 2px 5px;
+	size: 12px;
+	font-weight: bold;
+	line-height: normal;
+	list-style: none;
+	color: #000000;
+	background-color: #ddd;
+}
+#projectEditUndefinedSymbolsInfoSubmit {
+	/*float: right;*/
+}
 #projectsAssembleXsl {
 	margin-left: 30px;
 }
@@ -1564,11 +1575,12 @@ a.start {
 #dialog-deploy-project {
 	display: none;
 }
+/* = Statistics
+-------------------------- */
 #dialog-statistics-project {
 	text-align:left;
 	display: none;
 }
-/* Project edit */
 #dialog-statistics-project .bgButtonAction {
 	height: 30px;
 }
