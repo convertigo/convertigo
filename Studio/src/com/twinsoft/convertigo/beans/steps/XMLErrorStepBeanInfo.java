@@ -33,8 +33,8 @@ public class XMLErrorStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = XMLErrorStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.StepWithExpressions.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/complex_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/complex_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/xmlErrorStructure_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/xmlErrorStructure_32x32.png";
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/XMLErrorStep");
 			
