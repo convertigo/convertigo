@@ -27,6 +27,7 @@ import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,12 +62,15 @@ public class RsaManager implements AbstractManager {
 	}
 
     public String decrypt(String encrypted, HttpSession session) {
+    	Engine.logEngine.debug("(RsaManager) Start to decode for session: " + session.getId());
     	Cipher dec = (Cipher) session.getAttribute(key.cipher.toString());
     	
     	if (dec == null) {
     		Engine.logEngine.warn("(RsaManager) No cipher is session " + session.getId());
     		throw securityException;
     	}
+		
+		Engine.logEngine.trace("(RsaManager) [" + session.getId() + "] Use RSA key pair from session.\nPublic key: " + session.getAttribute(key.publickey.toString()) + "\nPrivate key: " + session.getAttribute("rsaprivatekey"));
     	
         StringBuffer result = new StringBuffer();
         try {
@@ -79,6 +83,7 @@ public class RsaManager implements AbstractManager {
                 		offset++;
                 	}
 					result.append(new String(decryptedBlock, offset, decryptedBlock.length-offset, "utf-8"));
+					Engine.logEngine.trace("(RsaManager) [" + session.getId() + "] Currently decoded: " + result);
 				} catch (UnsupportedEncodingException e) {
 					Engine.logEngine.warn("(RsaManager) Failed to decode decryptedBlock", e);
 				}
@@ -93,15 +98,25 @@ public class RsaManager implements AbstractManager {
         
     	synchronized (session) {
 	        Long exTs = (Long) session.getAttribute(key.rsaTimestamp.toString());
+	        if (exTs == null) {
+	        	Engine.logEngine.debug("(RsaManager) [" + session.getId() + "] No previous timestamp");
+	        } else {
+	        	Engine.logEngine.debug("(RsaManager) [" + session.getId() + "] Retrieve previous timestamp: " + exTs);
+	        }
+			
 	    	Matcher findTS = findTimestamp.matcher(query);
 	    	
 	    	if (findTS.matches()) {
 	    		try {
+	    			Engine.logEngine.trace("(RsaManager) [" + session.getId() + "] Extract timestamp: " + findTS.group(1));
 	    			Long newTs = Long.parseLong(findTS.group(1));
 	    			
+	    			Engine.logEngine.debug("(RsaManager) [" + session.getId() + "] Compare " + newTs + " > " + exTs);
 	    			if (exTs == null || newTs > exTs) {
 	    				Engine.logEngine.debug("(RsaManager) Update timestamp for session " + session.getId());
 	    				session.setAttribute(key.rsaTimestamp.toString(), newTs);
+	    				
+	    				Engine.logEngine.trace("(RsaManager) [" + session.getId() + "] Rest of the query: " + findTS.group(2));
 	        			return findTS.group(2);
 	        		}
 	    		} catch (NumberFormatException e) {
@@ -130,11 +145,19 @@ public class RsaManager implements AbstractManager {
 	    		RSAPublicKey pk = (RSAPublicKey) kp.getPublic();
 	    		publicKey = pk.getPublicExponent().toString(16) + '|' + pk.getModulus().toString(16) + '|' + getMaxDigits(keyLength);
 	    		
+	    		RSAPrivateKey prk = (RSAPrivateKey) kp.getPrivate();
+	    		String privKey = prk.getPrivateExponent().toString(16) + '|' + prk.getModulus().toString(16) + '|' + getMaxDigits(keyLength);
+	    		session.setAttribute("rsaprivatekey", privKey);
+	    		
 	    		session.setAttribute(key.publickey.toString(), publicKey);
 	    		session.setAttribute(key.cipher.toString(), dec);
+	    		
+	    		Engine.logEngine.trace("(RsaManager) [" + session.getId() + "] New RSA key pair for session.\nPublic key: " + publicKey + "\nPrivate key: " + privKey);
 	    	} catch (Exception e) {
 	    		Engine.logEngine.warn("Can't create publicKey for session " + session.getId(), e);
 	    	}
+    	} else {
+    		Engine.logEngine.trace("(RsaManager) [" + session.getId() + "] PublicKey retrieved from session: " + publicKey);
     	}
     	return publicKey;
     }
