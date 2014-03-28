@@ -866,10 +866,15 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		}
 		return false;
 	}
-
+	
+	public static Object compileProperty(DatabaseObject databaseObject, String propertyName,
+			Object propertyObjectValue, Object propertyObjectCompiledValue) throws CompilablePropertyException {
+		return compileProperty(databaseObject, String.class, propertyName, propertyObjectValue, propertyObjectCompiledValue);
+	}
+	
 	public static Object compileProperty(DatabaseObject databaseObject, String propertyName,
 			Object propertyObjectValue) throws CompilablePropertyException {
-		return compileProperty(databaseObject, String.class, propertyName, propertyObjectValue,null);
+		return compileProperty(databaseObject, String.class, propertyName, propertyObjectValue, null);
 	}
 
 	public static class CompilablePropertyException extends EngineException {

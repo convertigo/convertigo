@@ -55,15 +55,27 @@ public class Set extends XmlService {
 	private Object getPropertyValue(DatabaseObject object, String propertyName)
 			throws TransformerException, CompilablePropertyException {
 		Node nodetmp = xpath.selectSingleNode(postElt, "./property[@name=\"" + propertyName
-				+ "\"]/*[1]/@value");
+				+ "\"]/*[1]");
+		
 		String propertyValue = null;
+		Object propertyCompiledValue = null;
+		
 		if (nodetmp == null)
 			throw new IllegalArgumentException("Property '" + propertyName
 					+ "' not found for object '" + object.getQName() + "'");
+		
+		Node nodeValue = xpath.selectSingleNode(nodetmp, "./@value");
+		if (nodeValue == null)
+			throw new IllegalArgumentException("Property '" + propertyName
+					+ "' not found for object '" + object.getQName() + "'");
 
-		propertyValue = nodetmp.getNodeValue();
-
-		return DatabaseObject.compileProperty(object, propertyName, propertyValue);
+		propertyValue = nodeValue.getNodeValue();
+		Node nodeCompiledValue = xpath.selectSingleNode(nodetmp, "./@compiledValue");
+		if (nodeCompiledValue != null) {
+			propertyCompiledValue = nodeCompiledValue.getNodeValue();
+		}
+		
+		return DatabaseObject.compileProperty(object, propertyName, propertyValue, propertyCompiledValue);
 	}
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
@@ -111,8 +123,8 @@ public class Set extends XmlService {
 				}
 				
 				try{
-					String propertyValue = getPropertyValue(object, propertyName).toString();
-					
+					String propertyValue = getPropertyValue(object, propertyName).toString(); 
+
 					Object oPropertyValue = createObject(propertyTypeClass, propertyValue);
 	
 					if (object.isCipheredProperty(propertyName)) {
@@ -120,7 +132,6 @@ public class Set extends XmlService {
 						Method getter = propertyDescriptor.getReadMethod();
 						String initialValue = (String) getter.invoke(object, (Object[]) null);
 						
-						//oPropertyValue = DatabaseObject.encryptPropertyValue(oPropertyValue);
 						if (oPropertyValue.equals(initialValue) || 
 								DatabaseObject.encryptPropertyValue(initialValue).equals(oPropertyValue)) {
 							oPropertyValue = initialValue;

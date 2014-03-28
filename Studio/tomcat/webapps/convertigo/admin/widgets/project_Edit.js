@@ -48,7 +48,8 @@ function project_Edit_update() {
 	$("#project_Edit").hide();
 }
 
-function loadProjectGSymbol(projectName){	
+function loadProjectGSymbol(projectName){
+	project_Name = projectName;
 	callService("projects.GetUndefinedSymbols", function(xml) {
 		if ($(xml).find("undefined_symbols")) {
 			var htmlCode = "<h2><img border=\"0\" class=\"iconAlertGlobalSymbols\" title=\"Click here to create undefined global symbols\" src=\"images/convertigo-administration-alert-global-symbols.png\"> Undefined Global Symbols</h2>";
@@ -60,7 +61,12 @@ function loadProjectGSymbol(projectName){
 			htmlCode += "</ul>";
 			
 			$("#projectEditUndefinedSymbolsInfoList").html(htmlCode);
-			$("#projectEditUndefinedSymbolsInfo").show();
+			if ($("#projectEditUndefinedSymbolsInfoList ul:has(li)").length == 0) {
+				$("#projectEditUndefinedSymbolsInfoList").html("");
+				$("#projectEditUndefinedSymbolsInfo").hide();
+			} else {
+				$("#projectEditUndefinedSymbolsInfo").show();
+			}
 		}else {
 			$("#projectEditUndefinedSymbolsInfo").hide();
 		}
@@ -72,7 +78,7 @@ function loadProjectGSymbol(projectName){
 
 // This variable contains the XML DOM returned by the database_objects.Get service
 var xmlDatabaseObject;
-
+var project_Name;
 function loadProject(projectName) {
 
 	startWait(30);
@@ -179,6 +185,7 @@ function loadElement(elementQName, $treeitem) {
 		var caroleOdd=true;
 		$projectEditObjectPropertiesListTable.find(".projectEditObjectType").text($xml.find("admin > *").first().attr("displayName"));		
 		$projectEditObjectPropertiesListTable.find(".projectEditObjectVersion").text($xml.find("admin > *").first().attr("version"));
+		$projectEditObjectPropertiesListTable.find(".projectEditObjectName").text($xml.find("property[name=name] > *").first().attr("value"));
 		$projectEditObjectPropertiesListTable.find(".projectEditObjectName").text($xml.find("property[name=name] > *").first().attr("value"));
 		
 		$xml.find("property[isHidden!=true]").each(
@@ -376,7 +383,6 @@ function addVectorProperty(propertyName, editor, $xmlProperty) {
 }
 
 function projectEditObjectSubmitProperties() {
-
 	var $xmlResponse = $(xmlDatabaseObject);
 
 	$(".projectEdit-form-item").each(
@@ -398,7 +404,7 @@ function projectEditObjectSubmitProperties() {
 			if ($(xml).find("response").attr("state")==="error") {
 				showError("<p>"+$(xml).find("response").attr("message")+"</p>",$(xml).find("stackTrace").text()); 
 			}
-
+			loadProjectGSymbol(project_Name);
 			projects_List_update();
 		}
 		, domToString2(node)
