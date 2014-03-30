@@ -49,6 +49,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.xpath.CachedXPathAPI;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
@@ -56,6 +58,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileDevice;
@@ -66,6 +73,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
 public class BuildLocallyAction extends MyAbstractAction {
@@ -518,6 +526,121 @@ public class BuildLocallyAction extends MyAbstractAction {
 		process.waitFor();
 	}
 	
+	
+	private String getCordovaPlatform(String deviceType)
+	{
+		String cordovaPlatform = "android";
+		if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.Android"))
+			cordovaPlatform = "android";
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.IPad"))
+			cordovaPlatform = "ios";
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.IPhone3"))
+			cordovaPlatform = "ios";
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.IPhone4"))
+			cordovaPlatform = "ios";
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6"))
+			cordovaPlatform = "blackberry";
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.WindowsPhone7"))
+			cordovaPlatform = "wp7";
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.WindowsPhone8"))
+			cordovaPlatform = "wp8";
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.Windows8"))
+			cordovaPlatform = "windows8";
+		return cordovaPlatform;
+	}
+	
+	/**
+	 * Explore Config.xml and copy needed resources to appropriate platforms folders.
+	 * 
+	 * @param wwwDir
+	 * @param platform
+	 * @param cordovaDir
+	 */
+	private void ProcessConfigXMLResources(File wwwDir, String platform, File cordovaDir)
+	{
+		try {
+			Document doc = XMLUtils.loadXml(new File(wwwDir, "config.xml"));
+			CachedXPathAPI xpathApi = new CachedXPathAPI();
+			
+			if (platform.equalsIgnoreCase("android")) {
+				NodeList icons = xpathApi.selectNodeList(doc.getDocumentElement(), "//icon[@platform = 'android']");
+				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
+				NodeList splashes = xpathApi.selectNodeList(doc.getDocumentElement(), "//*[local-name()='splash' and @platform = 'android']");
+				
+				// Copy the icons to the correct res directory
+				for(int i=0; i< icons.getLength(); i++) {
+					Node icon = icons.item(i);
+					NamedNodeMap nodeMap = icon.getAttributes();
+					String source = nodeMap.getNamedItem("src").getTextContent();
+					String density = nodeMap.getNamedItem("gap:density").getTextContent();
+					File iconSrc = new File(wwwDir, source);
+					File dest = new File(cordovaDir, "platforms/" + platform + "/res/drawable-" + density + "/icon.png");
+					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
+					FileUtils.copyFile(iconSrc, dest);
+					if (density.equalsIgnoreCase("ldpi")) {
+						// special case for ldpi assume it goes also in the drawable folder
+						dest = new File(cordovaDir, "platforms/" + platform + "/res/drawable/icon.png");
+						Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
+						FileUtils.copyFile(iconSrc, dest);
+					}
+				}
+				
+				// now the stuff for splashes
+				for(int i=0; i< splashes.getLength(); i++) {
+					Node splash = splashes.item(i);
+					NamedNodeMap nodeMap = splash.getAttributes();
+					String source = nodeMap.getNamedItem("src").getTextContent();
+					String density = nodeMap.getNamedItem("gap:density").getTextContent();
+					File splashSrc = new File(wwwDir, source);
+					File dest = new File(cordovaDir, "platforms/" + platform + "/res/drawable-" + density + "/splash.png");
+					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
+					FileUtils.copyFile(splashSrc, dest);
+					if (density.equalsIgnoreCase("ldpi")) {
+						// special case for ldpi assume it goes also in the drawable folder
+						dest = new File(cordovaDir, "platforms/" + platform + "/res/drawable/splash.png");
+						Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
+						FileUtils.copyFile(splashSrc, dest);
+					}
+				}
+				
+			}
+			if (platform.equalsIgnoreCase("ios")) {
+				// TODO : Do the IOS Stuff..
+			}
+			// TODO : and any other platforms
+
+
+			// We have to add the the root Config.xml all our app's config.xml preferences.
+			// Cordova will use this file to generates the platform specifc config.xml
+			
+			Document rootConfigXML = XMLUtils.loadXml(new File(cordovaDir, "config.xml"));  // The root config.xml
+			NodeList preferences = xpathApi.selectNodeList(doc.getDocumentElement(), "//preference"); 
+			for (int i=0; i< preferences.getLength(); i++) {
+				Node preference = preferences.item(i);
+				Element elt = rootConfigXML.createElement("preference");
+				String name = preference.getAttributes().getNamedItem("name").getTextContent();
+				String value = preference.getAttributes().getNamedItem("value").getTextContent();
+				elt.setAttribute("name", name);
+				elt.setAttribute("value", value);
+				Engine.logEngine.debug("Adding preference'" + name + "' with value '" + value + "'");					
+				rootConfigXML.importNode(elt, true);
+				rootConfigXML.getFirstChild().appendChild(elt);
+				
+			}
+			Engine.logEngine.trace("New config.xml is: " + XMLUtils.prettyPrintDOM(rootConfigXML));
+			File resXmlFile = new File(cordovaDir, "config.xml");
+			FileUtils.deleteQuietly(resXmlFile);
+			XMLUtils.saveXml(rootConfigXML, resXmlFile.getAbsolutePath());
+			
+			// Last part , as all resources has been copied to the correct location, we can remove
+			// our www/res directory before packaging to save build time and size...
+			FileUtils.deleteDirectory(new File(wwwDir, "res"));
+			
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to process config.xml in your project, check the file's validity");
+		}
+	}
+	
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
@@ -575,14 +698,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 			        	CustomDialog customDialog = new CustomDialog(
     							shell,
     							"Create a Cordova environment",
-    							"The cordova environment has not been created yet. Creating the environment\n" +
-    							"must be done once by project. This project's environment will be shared by all \n" +
-    							"mobile devices for local build.\n\n" +
+    							"The cordova environment for this project has not been created yet. Creating the\n" +
+    							"environment must be done once by project. This project's environment will be shared\n" +
+    							"by all mobile devices for local build.\n\n" +
     							"You have to install Cordova on your local machine to be able to build locally.\n" +
     							"If Cordova is not yet installed, click 'No' and download cordova from :\n" +
     							"http://cordova.apache.org . Be sure to follow all instruction on Cordova's\n" +
     							"Web site to setup your local Cordova build system. \n\n" +
-    							"Do you want to create a Cordova environment now ?",
+    							"Do you want to create a Cordova environment for your project now ?",
     							500, 280,
     							new ButtonSpec("Yes", true),
     							new ButtonSpec("No", false)
@@ -597,6 +720,9 @@ public class BuildLocallyAction extends MyAbstractAction {
     						runCordovaCommand("plugin add  org.apache.cordova.file", cordovaDir);
     						runCordovaCommand("plugin add  org.apache.cordova.file-transfer", cordovaDir);
     						runCordovaCommand("plugin add  org.apache.cordova.device", cordovaDir);
+    						
+    						// Add all mandatory plugins for Push Notifications
+    						runCordovaCommand("plugin add  https://github.com/phonegap-build/PushPlugin.git", cordovaDir);
     						
     						Engine.logEngine.debug("Cordova environment is now ready.");
     					} else {
@@ -625,29 +751,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        			           wwwDir.getAbsolutePath());
 					        	Engine.logEngine.debug("ZIP expanded in : " + wwwDir.getAbsolutePath());
 					        	
-					        	// Step 4: Build using Cordova the specific platform.
-					        	String deviceType = mobileDevice.getClass().getName();
-					        	
-					        	String cordovaPlatform = "android";
-					        	if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.Android"))
-					        		cordovaPlatform = "android";
-					        	else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.IPad"))
-					        		cordovaPlatform = "ios";
-					        	else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.IPhone3"))
-					        		cordovaPlatform = "ios";
-					        	else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.IPhone4"))
-					        		cordovaPlatform = "ios";
-					        	else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6"))
-					        		cordovaPlatform = "blackberry";
-					        	else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.WindowsPhone7"))
-					        		cordovaPlatform = "wp7";
-					        	else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.WindowsPhone8"))
-					        		cordovaPlatform = "wp8";
-					        	else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.Windows8"))
-					        		cordovaPlatform = "windows8";
-		
+					        	// Step 3Bis : Add platform and Read And process Config.xml to copy needed icons and splash resources
 					        	File cordovaDir = new File(privateDir.getAbsolutePath() + "/" + BuildLocallyAction.cordovaDir);
+					        	String deviceType = mobileDevice.getClass().getName();
+					        	String cordovaPlatform = getCordovaPlatform(deviceType);
 					        	runCordovaCommand("platform add " + cordovaPlatform, cordovaDir);
+					        	ProcessConfigXMLResources(wwwDir, cordovaPlatform, cordovaDir);
+					        	
+					        	// Step 4: Build using Cordova the specific platform.
 					        	runCordovaCommand("build " + cordovaPlatform, cordovaDir);
 					        	return org.eclipse.core.runtime.Status.OK_STATUS;
 					        	
