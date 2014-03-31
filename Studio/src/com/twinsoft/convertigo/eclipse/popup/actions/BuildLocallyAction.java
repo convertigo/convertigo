@@ -607,6 +607,41 @@ public class BuildLocallyAction extends MyAbstractAction {
 			if (platform.equalsIgnoreCase("ios")) {
 				// TODO : Do the IOS Stuff..
 			}
+			
+			if (platform.equalsIgnoreCase("wp7") || platform.equalsIgnoreCase("wp8")) {
+				// TODO : Do the Windows Phone Stuff
+				NodeList icons = xpathApi.selectNodeList(doc.getDocumentElement(), "//icon[@platform = 'winphone']");
+				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
+				NodeList splashes = xpathApi.selectNodeList(doc.getDocumentElement(), "//*[local-name()='splash' and @platform = 'winphone']");
+				for(int i=0; i< icons.getLength(); i++) {
+					Node icon = icons.item(i);
+					NamedNodeMap nodeMap = icon.getAttributes();
+					String source = nodeMap.getNamedItem("src").getTextContent();
+					String role   = nodeMap.getNamedItem("gap:role").getTextContent();
+					File iconSrc = new File(wwwDir, source);
+					File dest = new File(cordovaDir, "platforms/" + platform + "/ApplicationIcon.png");
+					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
+					FileUtils.copyFile(iconSrc, dest);
+					if (role.equalsIgnoreCase("background")) {
+						// special case for background 
+						dest = new File(cordovaDir, "platforms/" + platform + "/Background.png");
+						Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
+						FileUtils.copyFile(iconSrc, dest);
+					}
+				}
+				
+				// now the stuff for splashes
+				for(int i=0; i< splashes.getLength(); i++) {
+					Node splash = splashes.item(i);
+					NamedNodeMap nodeMap = splash.getAttributes();
+					String source = nodeMap.getNamedItem("src").getTextContent();
+					File splashSrc = new File(wwwDir, source);
+					File dest = new File(cordovaDir, "platforms/" + platform + "/SplashScreenImage.jpg");
+					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
+					FileUtils.copyFile(splashSrc, dest);
+				}
+			}
+
 			// TODO : and any other platforms
 
 
