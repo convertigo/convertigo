@@ -541,7 +541,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6"))
 			cordovaPlatform = "blackberry";
 		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.WindowsPhone7"))
-			cordovaPlatform = "wp7";
+			cordovaPlatform = "wp8";
 		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.WindowsPhone8"))
 			cordovaPlatform = "wp8";
 		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.Windows8"))
@@ -617,7 +617,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 					Node icon = icons.item(i);
 					NamedNodeMap nodeMap = icon.getAttributes();
 					String source = nodeMap.getNamedItem("src").getTextContent();
-					String role   = nodeMap.getNamedItem("gap:role").getTextContent();
+					String role   = (nodeMap.getNamedItem("gap:role") != null) ? nodeMap.getNamedItem("gap:role").getTextContent() : "";
 					File iconSrc = new File(wwwDir, source);
 					File dest = new File(cordovaDir, "platforms/" + platform + "/ApplicationIcon.png");
 					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
