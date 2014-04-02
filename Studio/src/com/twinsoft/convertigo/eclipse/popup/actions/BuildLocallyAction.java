@@ -502,20 +502,36 @@ public class BuildLocallyAction extends MyAbstractAction {
 		/**
 		 * todo : handle command for Linux and MacOS (Should be cordova.sh...)
 		 */
-		process = Runtime.getRuntime().exec("cordova.cmd " + Command,
+		String system = System.getProperty("os.name");
+		String shell = "cordova.cmd";
+		if (system.toLowerCase().indexOf("windows") != -1) {
+			shell = "cordova.cmd";
+		} else if (system.toLowerCase().indexOf("mac") != -1) {
+			shell = "cordova";
+		}
+		
+		process = Runtime.getRuntime().exec(shell + " " + Command,
 											envp,
 											projectDir
 		);
 		
 		InputStream is = process.getInputStream();
+		InputStream es = process.getErrorStream();
+		
 		final BufferedReader bis = new BufferedReader(new InputStreamReader(is));
+		final BufferedReader bes = new BufferedReader(new InputStreamReader(es));
+		
 		Thread readOutputThread = new Thread(new Runnable() {
 			@Override
 	        public void run() {
 				try {
 					String line;
+
 					while ((line = bis.readLine()) != null) {
 						Engine.logEngine.debug(line);
+					}
+					while ((line = bes.readLine()) != null) {
+						Engine.logEngine.error(line);
 					}
 				} catch (IOException e) {
 					Engine.logEngine.error("Error while executing cordova command", e);
