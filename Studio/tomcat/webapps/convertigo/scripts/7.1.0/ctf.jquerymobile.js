@@ -59,7 +59,7 @@ $.extend(true, C8O, {
 				$elt.trigger("create");
 		         if (!C8O.isUndefined($elt.listview)) {
 		        	 try {
-		        		 $elt.listview().listview("refresh");
+		        		 $elt.listview("refresh");
 		        	 } catch (e) {
 		        		 C8O.log.trace("ctf.jqm : listview failed to refresh", e);
 		        	 }
