@@ -37,6 +37,7 @@ import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.ConvertigoError;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.ErrorType;
 
@@ -99,7 +100,11 @@ public class XMLErrorStep extends StepWithExpressions implements IComplexTypeAff
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		try {
-			ConvertigoError err = ConvertigoError.initError(Integer.parseInt(code.getSingleString(this)), ErrorType.Project, new StepException(message.getSingleString(this), details.getSingleString(this)));
+			String sCode, eMessage, eDetails;
+			int eCode = (sCode = code.getSingleString(this)) == null ? -1 : sCode.equals("") ? -1:Integer.parseInt(sCode);
+			eMessage = (eMessage = message.getSingleString(this)) == null ? "" : eMessage;
+			eDetails = (eDetails = details.getSingleString(this)) == null ? "" : eDetails;
+			ConvertigoError err = ConvertigoError.initError(eCode, ErrorType.Project, new StepException(eMessage, eDetails));
 			Document document = err.buildErrorDocument(getSequence().getRequester(), getSequence().context);
 			Element error = (Element) document.getElementsByTagName("error").item(0);
 			NodeList children = error.getChildNodes();
@@ -114,7 +119,9 @@ public class XMLErrorStep extends StepWithExpressions implements IComplexTypeAff
 				stepNode.setAttributeNS("", attr.getName(), attr.getNodeValue());
 			}
 		} catch (Exception e) {
-			throw new EngineException("Unable to generate XMLErrorStep document");
+			setErrorStatus(true);
+			Engine.logBeans.error("An error occured while generating values from XMLErrorStep", e);
+			//throw new EngineException("Unable to generate XMLErrorStep",e);
 		}
 	}
 	
