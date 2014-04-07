@@ -308,24 +308,17 @@ ul li {
 
 .qrcode_row {
 	background-color: #7ce6ff;
+	text-align: center;
 }
-.qrcode_platform {
+
+.qrcode_row * {
+	margin: 2px;
+}
+
+.qrcode_platform, .qrcode_install, .qrcode_version, .qrcode_phonegap_version {
 	color: white;
 	font-family:Verdana;
 	font-weight: bold;
-}
-.qrcode_install {
-	color: white;
-	font-size: 6pt;
-}
-.qrcode_content {
-	width: 162px;
-	height: 162px;
-	/*background: transparent url("../images/new/logo_c8o_bgQRcode.png") no-repeat center center;*/
-}
-.qrcode_content a {
-	vertical-align:bottom;
-	color:white;
 }
 .window_corner_topL {
 	width:15px;
@@ -753,9 +746,8 @@ ul.connectors .acc {
 	cursor:pointer;
 }
 
-.btn_exe_link {
-	float: right;
-	margin-left: 5px;	
+.btn_container {
+	text-align: right;
 }
 
 .btn_gen_gadget {
@@ -800,4 +792,8 @@ ul.connectors .acc {
 	background-color:#fff;
 	width:60%;
 	padding-left:10px;
+}
+.property_name {
+	font-weight: bolder;
+}
 }

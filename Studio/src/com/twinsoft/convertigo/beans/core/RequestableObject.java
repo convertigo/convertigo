@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.util.LogWrapper;
 import com.twinsoft.convertigo.engine.util.ThreadUtils;
@@ -65,7 +66,7 @@ import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
 
-public abstract class RequestableObject extends DatabaseObject implements ISheetContainer {
+public abstract class RequestableObject extends DatabaseObject implements ISheetContainer, ITagsProperty {
 
 	private static final long serialVersionUID = -8343815173166853025L;
 	protected enum DOC_ATTR {
@@ -81,10 +82,6 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     public static final int SHEET_LOCATION_NONE = 0;
     public static final int SHEET_LOCATION_FROM_REQUESTABLE = 1;
     public static final int SHEET_LOCATION_FROM_LAST_DETECTED_OBJECT_OF_REQUESTABLE = 2;
-
-    public static final int ACCESSIBILITY_PUBLIC = 0;
-    public static final int ACCESSIBILITY_HIDDEN = 1;
-    public static final int ACCESSIBILITY_PRIVATE = 2;
     
     protected final static String fake_root = "document";
     
@@ -177,7 +174,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     }
     
     protected String getWsdlBackupDir() throws Exception {
-    	return Engine.PROJECTS_PATH + "/"+ getProject().getName() + "/backup-wsdl";
+    	return getProject().getDirPath() + "/backup-wsdl";
     }
     
     protected String getWsdlBackupDir(Element element) throws Exception {
@@ -516,6 +513,10 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         return this.accessibility;
     }
     
+    public Accessibility getAccessibilityEnum() {
+        return Accessibility.valueOf(accessibility);
+    }
+    
     /** Setter for property accessibility.
      * @param accessibility New value of property accessibility.
      */
@@ -523,16 +524,20 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         this.accessibility = accessibility;
     }
     
+    public void setAccessibility(Accessibility accessibility) {
+        this.accessibility = accessibility.code();
+    }
+    
     public boolean isPublicAccessibility() {
-    	return accessibility == ACCESSIBILITY_PUBLIC;
+    	return accessibility == Accessibility.Public.code();
     }
 	
     public boolean isPrivateAccessibility() {
-    	return accessibility == ACCESSIBILITY_PRIVATE;
+    	return accessibility == Accessibility.Private.code();
     }
 	
     public boolean isHiddenAccessibility() {
-    	return accessibility == ACCESSIBILITY_HIDDEN;
+    	return accessibility == Accessibility.Hidden.code();
     }
 	
     private boolean secureConnectionRequired = false;
@@ -876,9 +881,9 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
             if (VersionUtils.compare(version, "6.1.2") < 0) {
 				boolean publicMethod = (Boolean) XMLUtils.findPropertyValue(element, "publicMethod");
 				if (publicMethod) {
-					setAccessibility(ACCESSIBILITY_PUBLIC);
+					setAccessibility(Accessibility.Public);
 				} else {
-					setAccessibility(ACCESSIBILITY_HIDDEN);
+					setAccessibility(Accessibility.Hidden);
 				}
 				
                 hasChanged = true;
@@ -954,5 +959,12 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		
 	public void onCachedResponse() {
 		
+	}
+	
+	public String[] getTagsForProperty(String propertyName) {
+		if ("accessibility".equals(propertyName)) {
+			return Accessibility.accessibilities;
+		}
+		return null;
 	}
 }

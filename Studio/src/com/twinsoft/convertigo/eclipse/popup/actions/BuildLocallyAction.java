@@ -59,13 +59,13 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.MobileApplication;
-import com.twinsoft.convertigo.beans.core.MobileDevice;
+import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
 import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
@@ -546,21 +546,21 @@ public class BuildLocallyAction extends MyAbstractAction {
 	private String getCordovaPlatform(String deviceType)
 	{
 		String cordovaPlatform = "android";
-		if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.Android"))
+		if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.Android"))
 			cordovaPlatform = "android";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.IPad"))
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.IPad"))
 			cordovaPlatform = "ios";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.IPhone3"))
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.IPhone3"))
 			cordovaPlatform = "ios";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.IPhone4"))
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.IPhone4"))
 			cordovaPlatform = "ios";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6"))
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.BlackBerry6"))
 			cordovaPlatform = "blackberry";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.WindowsPhone7"))
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone7"))
 			cordovaPlatform = "wp8";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.WindowsPhone8"))
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8"))
 			cordovaPlatform = "wp8";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobiledevices.Windows8"))
+		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.Windows8"))
 			cordovaPlatform = "windows8";
 		return cordovaPlatform;
 	}
@@ -704,11 +704,11 @@ public class BuildLocallyAction extends MyAbstractAction {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
     			Object databaseObject = treeObject.getObject();
 
-    			if ((databaseObject != null) && (databaseObject instanceof MobileDevice)) {
-    				final MobileDevice mobileDevice = (MobileDevice)treeObject.getObject();
+    			if ((databaseObject != null) && (databaseObject instanceof MobilePlatform)) {
+    				final MobilePlatform mobileDevice = (MobilePlatform) treeObject.getObject();
     				
     				// get the application name from the Mobile devices's property or if empty the project's name
-    				final String applicationName = ((MobileApplication)mobileDevice.getParent()).getApplicationName().isEmpty() ?
+    				final String applicationName = ((MobileApplication) mobileDevice.getParent()).getApplicationName().isEmpty() ?
     								ConvertigoPlugin.projectManager.currentProject.getName() :
     								((MobileApplication)mobileDevice.getParent()).getApplicationName();
     								
@@ -794,7 +794,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	// Step 2 call Mobile packager to build ZIP package, simulate a fake HttpRequest
 					        	InternalRequest myRequest = new InternalRequest();
 					        	myRequest.setParameter("application", applicationName);
-					        	File mobileArchiveFile = MobileResourceHelper.makeZipPackage(myRequest);
+					        	MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(myRequest, BuildLocallyAction.cordovaDir + "/www");
+					        	File mobileArchiveFile = mobileResourceHelper.makeZipPackage();
 					        	Engine.logEngine.debug("ZIP Build package created in : " + mobileArchiveFile.getAbsolutePath());
 					        	
 					        	// Step 3 : Unzip in the www directory

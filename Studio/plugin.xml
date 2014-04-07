@@ -832,7 +832,7 @@
       </objectContribution>
       <objectContribution
 	       id="convertigo.CordovaContribution"
-	       objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileDeviceTreeObject">
+	       objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePlatformTreeObject">
 	       <menu
 	         id="convertigo.menu.action.cordova"
              label="Cordova"
@@ -864,21 +864,21 @@
 	       </action>
 	  </objectContribution>
 	  <objectContribution
-	        id="convertigo.launchMobileDeviceProjectContribution"
-	        objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileDeviceTreeObject">
+	        id="convertigo.launchMobileApplicationProjectContribution"
+	        objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject">
 	       <action
-	             class="com.twinsoft.convertigo.eclipse.popup.actions.LaunchMobileDeviceProjectAction"
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.LaunchMobileApplicationProjectAction"
 	             enablesFor="1"
 	             icon="icons/studio/launch_test_platform_16x16.png"
-	             id="convertigo.action.launchMobileDeviceProject"
+	             id="convertigo.action.launchMobileApplicationProject"
 	             label="Launch in test platform"
 	             menubarPath="run">
 	       </action>
 	       <action
-	             class="com.twinsoft.convertigo.eclipse.popup.actions.LaunchMobileDeviceFullScreenProjectAction"
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.LaunchMobileApplicationFullScreenProjectAction"
 	             enablesFor="1"
 	             icon="icons/studio/launch_fullscreen_16x16.png"
-	             id="convertigo.action.launchMobileDeviceFullScreenProject"
+	             id="convertigo.action.launchMobileApplicationFullScreenProject"
 	             label="Launch Fullscreen"
 	             menubarPath="run">
 	       </action>
@@ -887,11 +887,11 @@
             id="convertigo.mobileApplicationContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject">
          <action
-               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobileDeviceAction"
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateMobilePlatformAction"
                enablesFor="1"
                icon="icons/studio/new.gif"
-               id="convertigo.action.newMobileDevice"
-               label="Mobile device"
+               id="convertigo.action.newMobilePlatform"
+               label="Mobile platform"
                menubarPath="convertigo.menu.new/content">
          </action>
       </objectContribution>

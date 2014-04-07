@@ -116,7 +116,7 @@ import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.ITablesProperty;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
-import com.twinsoft.convertigo.beans.core.MobileDevice;
+import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
@@ -173,7 +173,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.HandlersDecla
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IEditableTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IPropertyTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileDeviceTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePlatformTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject;
@@ -235,7 +235,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_DBO_SEQUENCE = 0x10F;
 	public static final int TREE_OBJECT_TYPE_DBO_TESTCASE = 0x110;
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILEAPPLICATION = 0x112;
-	public static final int TREE_OBJECT_TYPE_DBO_MOBILEDEVICE = 0x111;
+	public static final int TREE_OBJECT_TYPE_DBO_MOBILEPLATFORM = 0x111;
 
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE = 0x300;
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_ROW = 0x301;
@@ -256,7 +256,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_FOLDER_STEPS = 0x209;
 	public static final int TREE_OBJECT_TYPE_FOLDER_VARIABLES = 0x20A;
 	public static final int TREE_OBJECT_TYPE_FOLDER_TESTCASES = 0x20B;
-	public static final int TREE_OBJECT_TYPE_FOLDER_MOBILEDEVICES = 0x20C;
+	public static final int TREE_OBJECT_TYPE_FOLDER_MOBILEPLATFORMS = 0x20C;
 
 	public static final int TREE_OBJECT_TYPE_MISC = 0x8000;						// 1000 0000 0000 0000
 
@@ -1284,8 +1284,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						} else if (databaseObject instanceof MobileApplication) {
 							databaseObjectTreeObject = new MobileApplicationTreeObject(viewer, (MobileApplication) databaseObject, false);
 
-						} else if (databaseObject instanceof MobileDevice) {
-							databaseObjectTreeObject = new MobileDeviceTreeObject(viewer, (MobileDevice) databaseObject, false);
+						} else if (databaseObject instanceof MobilePlatform) {
+							databaseObjectTreeObject = new MobilePlatformTreeObject(viewer, (MobilePlatform) databaseObject, false);
 
 						} else if (databaseObject instanceof Reference) {
 							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_REFERENCES;
@@ -2177,8 +2177,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			else if (databaseObject instanceof MobileApplication) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILEAPPLICATION;
 			}
-			else if (databaseObject instanceof MobileDevice) {
-				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILEDEVICE;
+			else if (databaseObject instanceof MobilePlatform) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_MOBILEPLATFORM;
 			}
 			else if (databaseObject instanceof Criteria) {
 				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_CRITERIA;

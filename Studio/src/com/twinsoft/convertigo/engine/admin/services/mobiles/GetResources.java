@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper.Keys;
 
 @ServiceDefinition(
 		name = "GetResources",
@@ -43,22 +44,15 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 		returnValue = ""
 	)
 public class GetResources extends JSonService {
-	enum Keys {
-		application,
-		platform,
-		uuid,
-		flashUpdateEnabled,
-		requireUserConfirmation;
-	};
 	
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
-		String application = request.getParameter(Keys.application.toString());
-		String platform = request.getParameter(Keys.platform.toString());
-		String uuid = request.getParameter(Keys.uuid.toString());
+		String project = Keys.project.value(request);
+		String platform = Keys.platform.value(request);
+		String uuid = Keys.uuid.value(request);
 		
-		Engine.logAdmin.debug("(mobile.GetResources) Requested for application " + application + " by the platform " + platform + " and the uuid " + uuid);
+		Engine.logAdmin.debug("(mobile.GetResources) Requested for project " + project + " by the platform " + platform + " and the uuid " + uuid);
 		
-		final MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(application, "_private/flashupdate");
+		final MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(request, "mobile/flashupdate");
 		
 		if (mobileResourceHelper.mobileApplication.getEnableFlashUpdate()) {
 			response.put(Keys.flashUpdateEnabled.toString(), true);
@@ -67,36 +61,38 @@ public class GetResources extends JSonService {
 			boolean changed = false;
 			if (Engine.isStudioMode() && mobileResourceHelper.destDir.exists()) {
 				try {
-					FileUtils.listFiles(mobileResourceHelper.mobileDir, new IOFileFilter() {
+					for (File directory: mobileResourceHelper.mobileDir) {
+						FileUtils.listFiles(directory, new IOFileFilter() {
 
-						public boolean accept(File file) {
-							if (MobileResourceHelper.defaultFilter.accept(file)) {
-								if (FileUtils.isFileNewer(file, mobileResourceHelper.destDir)) {
-									throw new RuntimeException();
+							public boolean accept(File file) {
+								if (MobileResourceHelper.defaultFilter.accept(file)) {
+									if (FileUtils.isFileNewer(file, mobileResourceHelper.destDir)) {
+										throw new RuntimeException();
+									}
+									return true;
+								} else {
+									return false;
 								}
-								return true;
-							} else {
-								return false;
 							}
-						}
 
-						public boolean accept(File file, String path) {
-							return accept(new File(file, path));
-						}
-						
-					}, MobileResourceHelper.defaultFilter);
+							public boolean accept(File file, String path) {
+								return accept(new File(file, path));
+							}
+							
+						}, MobileResourceHelper.defaultFilter);
+					}
 				} catch (RuntimeException e) {
 					changed = true;
 				}
 			}
 
 			if (!mobileResourceHelper.destDir.exists() || changed) {
-				mobileResourceHelper.prepareFiles(request, new FileFilter() {
+				mobileResourceHelper.prepareFiles(new FileFilter() {
 					
 					public boolean accept(File pathname) {
 						boolean ok = MobileResourceHelper.defaultFilter.accept(pathname) &&
-							! new File(mobileResourceHelper.mobileDir, "config.xml").equals(pathname) &&
-							! new File(mobileResourceHelper.mobileDir, "res").equals(pathname);
+							! new File(mobileResourceHelper.getCurrentMobileDir(), "config.xml").equals(pathname) &&
+							! new File(mobileResourceHelper.getCurrentMobileDir(), "res").equals(pathname);
 						return ok;
 					}
 					

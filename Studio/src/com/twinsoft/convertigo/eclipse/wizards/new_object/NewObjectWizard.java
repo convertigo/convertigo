@@ -52,7 +52,7 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ExtractionRule;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
-import com.twinsoft.convertigo.beans.core.MobileDevice;
+import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Pool;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
@@ -198,9 +198,9 @@ public class NewObjectWizard extends Wizard {
 				objectExplorerPageTitle = "New Mobile Application";
 				objectExplorerPageMessage = "Please select a mobile application template.";
 			}
-			else if (beanClass.equals(MobileDevice.class)) {
-				objectExplorerPageTitle = "New Mobile Device";
-				objectExplorerPageMessage = "Please select a mobile device template.";
+			else if (beanClass.equals(MobilePlatform.class)) {
+				objectExplorerPageTitle = "New Mobile Platform";
+				objectExplorerPageMessage = "Please select a mobile platform template.";
 			}
 			
 			addBeanPages(objectExplorerPageTitle, objectExplorerPageMessage, beanClass);

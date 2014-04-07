@@ -158,46 +158,49 @@
                                                                 <ul class="acc connectors" id="acc">
                                                                     <li class="mobiles hidden">
                                                                         <!-- Accordion green first level -->
-                                                                        <h6 class="sub_connectors">Mobile device (s)</h6>
+                                                                        <h6 class="sub_connectors">Mobile application</h6>
                                                                         <div class="acc-section">
                                                                             <div class="acc-content">
-                                                                                <!-- Added BUILD panel here, before mobile devices -->
+																				<table class="table">
+																					<tr>
+																						<td class="property_name">Application name</td>
+																						<td><span id="build_application_name" /></td>
+																					</tr>
+																					<tr>
+																						<td class="property_name">Convertigo server endpoint</td>
+																						<td><span id="build_endpoint" /></td>
+																					</tr>
+																					<tr>
+																						<td class="property_name">Application ID</td>
+																						<td><span id="build_application_id" /></td>
+																					</tr>
+																					<tr>
+																						<td class="property_name">Application version</td>
+																						<td><span id="build_application_version" /></td>
+																					</tr>
+																				</table>
+																		<!-- Added BUILD panel here, before mobile platforms -->
                                                                             	<ul class="acc requestables">
 	                                                                            	<li style="margin:0px;" class="requestable">
-																	                    <h6 class="build">Build mobile applications</h6>
+																	                    <h6 class="build">Web App</h6>
 																	                    <!--
 																	                    Built application endpoint: <input type="text" id="build_endpoint" size="60"/><br/>
 		                                                                                Application ID: <input type="text" id="build_application_id" size="60"/>
 		                                                                                <a class="btn_build"></a>-->
 																	                    <div class="acc-section">
-																	                        <div class="acc-content">
-																	                            <table class="table requestable_variables">
-																					                <tr class="variable">
-                                                                                                        <td class="variable_name">Application name</td>
-                                                                                                        <td class="variable_type"><div id="build_application_name"/></td>
-                                                                                                    </tr>
-																	                                <tr class="variable">
-																					                    <td class="variable_name">Convertigo server endpoint</td>
-																					                    <td class="variable_type"><div id="build_endpoint"/></td>
-																					                </tr>
-																					                <tr class="variable">
-                                                                                                        <td class="variable_name">Application ID</td>
-                                                                                                        <td class="variable_type"><div id="build_application_id"/></td>
-                                                                                                    </tr>
-																	                                <tr class="requestable_variables_footer">
-																	                                    <td colspan="2" height="10"></td>
-																	                                </tr>                                                                                                       
-																	                                <tr>
-																	                                    <td>
-																	                                    	<a href="#" class="btn_build">Build mobile devices</a>
-																	                                    </td>
-																	                                    <td> 
-																	                                    	<a href="#" class="btn_get_source">Get source package</a>
-																	                                    </td>																                                    
-																	                                </tr>
-																	                            </table>
-																	                        </div>
-																	                    </div>
+																							<div class="acc-content">
+																								<div class="mobile_platform">
+																									<div class="qrcode_row">
+																										<div class="qrcode_platform">Web Application</div>
+																										<div class="qrcode_install">URL</div>
+																										<div class="webapp qrcode_content"><input type="hidden" value="" class="build_url" /> <a target="_blank"></a></div>
+																									</div>
+																									<div class="btn_container">
+																										<a href="#" class="platform_link btn_exe_link">Execute here</a>
+																									</div>
+																								</div>
+																							</div>
+																						</div>
 																	                </li>
                                                                             	</ul>
                                                                             	<!-- End of added BUILD panel -->
@@ -326,44 +329,26 @@
 				</li>
 			</ul>
 			<ul>
-				<li style="margin:0px;" class="device" id="device_name">
-					<h6><span class="device_status"></span><span class="device_name" style="position:relative;top:0px;left:10px;">…</span></h6>
+				<li style="margin:0px;" class="platform">
+					<h6><span class="platform_status"></span><span class="platform_name" style="position:relative;top:0px;left:10px;">…</span></h6>
 					<div class="acc-section">
 						<div class="acc-content">
-							<table class="table mobile_device" >
-								<tr class="qrcode_row">
-									<td align="center">
-										<span class="qrcode_platform"></span><br/>
-										<span class="qrcode_install"></span>
-									</td>
-									<td style="background-color:white"></td>
-									<td align="center">
-										<span class="qrcode_platform">Web Application</span><br/>
-										<span class="qrcode_install">URL</span>
-									</td>
-								</tr>
-								<tr class="qrcode_row" valign="middle" align="center" >
-									<td class="install qrcode_content">
-										<input type="hidden" value="none" class="build_status" />
-										<input type="hidden" value="" class="build_url" />
-										<img src="images/new/logo_c8o_bgQRcode.png" class="logo_c8o"/>
-										<br/>
-										<a></a>
-									</td>
-									<td style="background-color:white"></td>
-									<td class="webapp qrcode_content">
-										<input type="hidden" value="" class="build_url" />
-										<a target="_blank"></a>
-									</td>
-								</tr>
-								<tr>
-									<td></td>
-									<td colspan="2" valign="bottom">
-										<input type="hidden" class="device_layout" />
-										<a href="#" class="device_link btn_exe_link">Execute</a>
-									</td>
-								</tr>
-							</table>
+							<div class="mobile_platform" >
+								<div class="qrcode_row">
+										<div>Platform <span class="qrcode_platform"></span> Package <span class="qrcode_install"></span></div>
+										<div>Application <span class="qrcode_version"></span> Phonegap <span class="qrcode_phonegap_version"></span></div>
+										<div class="install qrcode_content">
+											<input type="hidden" value="none" class="build_status" />
+											<input type="hidden" value="" class="build_url" />
+											<img src="images/new/logo_c8o_bgQRcode.png" class="logo_c8o"/>
+											<a></a>
+										</div>
+								</div>
+								<div class="btn_container">
+                                   	<a href="#" class="btn_get_source">Get source package</a>
+                                   	<a href="#" class="btn_build">Build mobile platform</a>
+								</div>
+							</div>
 						</div>
 					</div>
 				</li>
@@ -380,7 +365,6 @@
 									</tr>                                                                                                         
 									<tr>
 										<td colspan="4">
-											<input type="hidden" value="none" class="device_layout" />
 											<a href="#" class="requestable_link btn_exe_link">Execute</a>
 											<a href="#" class="requestable_link btn_gen_gadget">Generate gadget URL</a>										
 										</td>
@@ -444,7 +428,6 @@
 				<li>
 					<table class="table tablegrey testcase_variables"></table>
 					<br/>
-					<input type="hidden" value="none" class="device_layout" />
                     <a href="#" class="requestable_testcase_link btn_exe_link">Execute</a>
 					<a href="#" class="requestable_testcase_link btn_gen_gadget">Generate gadget</a>
 					<a href="#" class="btn_edit_testcase">Edit</a>	

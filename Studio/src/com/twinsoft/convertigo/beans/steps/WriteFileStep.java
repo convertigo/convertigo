@@ -239,8 +239,7 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		if (filePath != null) {
-			String projectName = getProject().getName();
-			String projectPath = Engine.PROJECTS_PATH + "/" + projectName + "/";
+			String projectPath = getProject().getDirPath() + "/";
 			
 			filePath = filePath.replace('\\', '/');
 			projectPath = projectPath.replace('\\', '/');

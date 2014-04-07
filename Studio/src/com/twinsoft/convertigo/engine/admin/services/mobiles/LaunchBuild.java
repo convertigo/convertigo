@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
 import java.io.File;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +32,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
@@ -41,12 +39,11 @@ import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.twinsoft.convertigo.beans.core.MobileDevice;
-import com.twinsoft.convertigo.beans.mobiledevices.Android;
-import com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6;
-import com.twinsoft.convertigo.beans.mobiledevices.IPad;
-import com.twinsoft.convertigo.beans.mobiledevices.IPhone3;
-import com.twinsoft.convertigo.beans.mobiledevices.IPhone4;
+import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.beans.core.MobilePlatform;
+import com.twinsoft.convertigo.beans.mobileplatforms.Android;
+import com.twinsoft.convertigo.beans.mobileplatforms.BlackBerry;
+import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -63,152 +60,114 @@ public class LaunchBuild extends XmlService {
 	
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
-		synchronized(buildLock) {
-			String application = request.getParameter("application");
-			final MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(application, "_private/mobile/www");
-			String finalApplicationName = mobileResourceHelper.mobileApplication.getComputedApplicationName();
+		synchronized(buildLock) {			
+			final MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(request, "mobile/www");
+			MobileApplication mobileApplication = mobileResourceHelper.mobileApplication;
+			MobilePlatform mobilePlatform = mobileResourceHelper.mobilePlatform;
 			
-			File mobileArchiveFile = MobileResourceHelper.makeZipPackage(request);
+			String finalApplicationName = mobileApplication.getComputedApplicationName();
+			File mobileArchiveFile = mobileResourceHelper.makeZipPackage();
 			
 			// Login to the mobile builder platform
-			String mobileBuilderPlatformURL = EnginePropertiesManager
-					.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
-			
-			String mobileBuilderPlatformUsername;
-			String mobileBuilderPlatformPassword;
-			if (!mobileResourceHelper.mobileApplication.getKey().equals("") && 
-					!mobileResourceHelper.mobileApplication.getPassword().equals("")) {
-				mobileBuilderPlatformUsername = mobileResourceHelper.mobileApplication.getKey();
-				mobileBuilderPlatformPassword = mobileResourceHelper.mobileApplication.getPassword(); 
-			} else {
-				mobileBuilderPlatformUsername = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_USERNAME);
-				mobileBuilderPlatformPassword = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
-			}
-			//iOS
-			String mobileBuilderIOSCertificateTitle = "";
-			String mobileBuilderIOSCertificatePw = "";
-			
-			//ANDROID
-			String mobileBuilderAndroidCertificateTitle = "";
-			String mobileBuilderAndroidCertificatePw = "";
-			String mobileBuilderAndroidKeystorePw = "";
-			
-			//BLACKBERRY
-			String mobileBuilderBBKeyTitle = "";
-			String mobileBuilderBBKeyPw = "";
-			
-			//WINDOWSPHONE7
-			
-			
-			for (MobileDevice mobileDevice : mobileResourceHelper.mobileApplication.getMobileDeviceList()) {
-				String deviceName = mobileDevice.getClass().getSimpleName();
-				//iOS
-				if (deviceName.equals("iPad") ) {
-					if (!((IPad) mobileDevice).getiOSCertificateTitle().equals("") && !((IPad) mobileDevice).getiOSCertificatePw().equals("")) {
-						mobileBuilderIOSCertificateTitle = ((IPad) mobileDevice).getiOSCertificateTitle();
-						mobileBuilderIOSCertificatePw = ((IPad) mobileDevice).getiOSCertificatePw();
-					} else {
-						mobileBuilderIOSCertificateTitle = EnginePropertiesManager
-								.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
-						mobileBuilderIOSCertificatePw = EnginePropertiesManager
-								.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_PW);
-					}
-				} 
-				
-				if (deviceName.equals("iPhone 3")) {
-					if (!((IPhone3) mobileDevice).getiOSCertificateTitle().equals("") && !((IPhone3) mobileDevice).getiOSCertificatePw().equals("")) {
-						mobileBuilderIOSCertificateTitle = ((IPhone3) mobileDevice).getiOSCertificateTitle();
-						mobileBuilderIOSCertificatePw = ((IPhone3) mobileDevice).getiOSCertificatePw();  
-					} else {
-						mobileBuilderIOSCertificateTitle = EnginePropertiesManager
-								.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
-						mobileBuilderIOSCertificatePw = EnginePropertiesManager
-								.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_PW);
-					}
-				} 
-				
-				if (deviceName.equals("iPhone 4")) { 
-					if (!((IPhone4) mobileDevice).getiOSCertificateTitle().equals("") && !((IPhone4) mobileDevice).getiOSCertificatePw().equals("")) {
-						mobileBuilderIOSCertificateTitle = ((IPhone4) mobileDevice).getiOSCertificateTitle();
-						mobileBuilderIOSCertificatePw = ((IPhone4) mobileDevice).getiOSCertificatePw();  
-					} else {
-						mobileBuilderIOSCertificateTitle = EnginePropertiesManager
-								.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
-						mobileBuilderIOSCertificatePw = EnginePropertiesManager
-								.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_PW);
-					}
-			    } 
-				
-				//ANDROID
-				if (deviceName.equals("Android")) { 
-					if (!((Android) mobileDevice).getAndroidCertificateTitle().equals("") && !((Android) mobileDevice).getAndroidCertificatePw().equals("") 
-							&& !((Android) mobileDevice).getAndroidKeystorePw().equals("")) {
-						mobileBuilderAndroidCertificateTitle = ((Android) mobileDevice).getAndroidCertificateTitle();
-						mobileBuilderAndroidCertificatePw = ((Android) mobileDevice).getAndroidCertificatePw();
-						mobileBuilderAndroidKeystorePw = ((Android) mobileDevice).getAndroidKeystorePw();
-					} else {
-						mobileBuilderAndroidCertificateTitle = EnginePropertiesManager
-								.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_TITLE);
-						mobileBuilderAndroidCertificatePw = EnginePropertiesManager
-								.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_PW);
-						mobileBuilderAndroidKeystorePw = EnginePropertiesManager
-								.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_KEYSTORE_PW);
-					}
-				} 
-				
-				//BLACKBERRY
-				if (deviceName.equals("BlackBerry 6")) { 
-					if (!((BlackBerry6) mobileDevice).getBbKeyTitle().equals("") && !((BlackBerry6) mobileDevice).getBbKeyPw().equals("")) {
-						mobileBuilderBBKeyTitle = ((BlackBerry6) mobileDevice).getBbKeyTitle();
-						mobileBuilderBBKeyPw = ((BlackBerry6) mobileDevice).getBbKeyPw();
-					} else {
-						mobileBuilderBBKeyTitle = EnginePropertiesManager
-								.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_TITLE);
-						mobileBuilderBBKeyPw = EnginePropertiesManager
-								.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_PW);
-					}
-				} 
-			}
-			
-			PostMethod method;
-			int methodStatusCode;
-			InputStream methodBodyContentInputStream;
+			String mobileBuilderPlatformURL = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
 			
 			Map<String, String[]> params = new HashMap<String, String[]>();
-			params.put("application", new String[]{finalApplicationName});
-			params.put("username", new String[]{mobileBuilderPlatformUsername});
-			params.put("password", new String[]{mobileBuilderPlatformPassword});
 			
-			params.put("iOSCertificateTitle", new String[]{mobileBuilderIOSCertificateTitle});
-			params.put("iOSCertificatePw", new String[]{mobileBuilderIOSCertificatePw});
-			params.put("androidCertificateTitle", new String[]{mobileBuilderAndroidCertificateTitle});
-			params.put("androidCertificatePw", new String[]{mobileBuilderAndroidCertificatePw});
-			params.put("androidKeystorePw", new String[]{mobileBuilderAndroidKeystorePw});
-			params.put("bbKeyTitle", new String[]{mobileBuilderBBKeyTitle});
-			params.put("bbKeyPw", new String[]{mobileBuilderBBKeyPw});
+			params.put("application", new String[]{finalApplicationName});
+			params.put("platformName", new String[]{mobilePlatform.getName()});
+			params.put("platformType", new String[]{mobilePlatform.getType()});
+			
+			String builderUsername;
+			String builderPassword;
+			
+			if (!mobileApplication.getKey().equals("")) {
+				builderUsername = mobileApplication.getKey();
+				builderPassword = mobileApplication.getPassword(); 
+			} else {
+				builderUsername = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_USERNAME);
+				builderPassword = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
+			}
 
+			params.put("username", new String[]{builderUsername});
+			params.put("password", new String[]{builderPassword});
+			
+			//iOS
+			if (mobilePlatform instanceof IOs) {
+				IOs ios = (IOs) mobilePlatform;
+				
+				String title, pw;
+				
+				if (!ios.getiOSCertificateTitle().equals("")) {
+					title = ios.getiOSCertificateTitle();
+					pw = ios.getiOSCertificatePw();
+				} else {
+					title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
+					pw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_PW);
+				}
+				
+				params.put("iOSCertificateTitle", new String[]{title});
+				params.put("iOSCertificatePw", new String[]{pw});
+			}
+			
+			//Android
+			if (mobilePlatform instanceof Android) {
+				Android android = (Android) mobilePlatform;
+				
+				String title, certificatePw, keystorePw;
+				
+				if (!android.getAndroidCertificateTitle().equals("")) {
+					title = android.getAndroidCertificateTitle();
+					certificatePw = android.getAndroidCertificatePw();
+					keystorePw = android.getAndroidKeystorePw();
+				} else {
+					title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_TITLE);
+					certificatePw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_CERTIFICATE_PW);
+					keystorePw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_ANDROID_KEYSTORE_PW);
+				}
+				
+				params.put("androidCertificateTitle", new String[]{title});
+				params.put("androidCertificatePw", new String[]{certificatePw});
+				params.put("androidKeystorePw", new String[]{keystorePw});
+			}
+			
+			//Blackberry
+			if (mobilePlatform instanceof BlackBerry) { 
+				BlackBerry blackberry = (BlackBerry) mobilePlatform;
+				
+				String title, pw;
+				
+				if (!blackberry.getBbKeyTitle().equals("")) {
+					title = blackberry.getBbKeyTitle();
+					pw = blackberry.getBbKeyPw();
+				} else {
+					title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_TITLE);
+					pw = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_PW);
+				}
+				
+				params.put("bbKeyTitle", new String[]{title});
+				params.put("bbKeyPw", new String[]{pw});
+			}
+			
 			// Launch the mobile build
 			URL url = new URL(mobileBuilderPlatformURL + "/build?" + URLUtils.mapToQuery(params));
 			
 			HostConfiguration hostConfiguration = new HostConfiguration();
-			hostConfiguration.setHost(new URI(url.toString(), true));
+			hostConfiguration.setHost(url.getHost());
 			HttpState httpState = new HttpState();
 			Engine.theApp.proxyManager.setProxy(hostConfiguration, httpState, url);
 			
-			method = new PostMethod(url.toString());
+			PostMethod method = new PostMethod(url.toString());
 			
 			FileRequestEntity entity = new FileRequestEntity(mobileArchiveFile, null);
 			method.setRequestEntity(entity);
 
-			methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
-			methodBodyContentInputStream = method.getResponseBodyAsStream();
-			byte[] httpBytes = IOUtils.toByteArray(methodBodyContentInputStream);
-			String sResult = new String(httpBytes, "UTF-8");
-
+			int methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
+			String sResult = IOUtils.toString(method.getResponseBodyAsStream(), "UTF-8");
+			
 			if (methodStatusCode != HttpStatus.SC_OK) {
 				throw new ServiceException("Unable to build application '" + finalApplicationName + "'; reason: " + sResult);
 			}
-
+			
 			JSONObject jsonObject = new JSONObject(sResult);
 			Element statusElement = document.createElement("application");
 			statusElement.setAttribute("id", jsonObject.getString("id"));

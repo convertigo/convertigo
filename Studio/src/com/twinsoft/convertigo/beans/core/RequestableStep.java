@@ -278,7 +278,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	}
 	
     protected String getWsdlBackupDir() throws Exception {
-    	return Engine.PROJECTS_PATH + "/"+ getProject().getName() + "/backup-wsdl";
+    	return getProject().getDirPath() + "/backup-wsdl";
     }
 	
     protected String getWsdlBackupDir(Element element) throws Exception {

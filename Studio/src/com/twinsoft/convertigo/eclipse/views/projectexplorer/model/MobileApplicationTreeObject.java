@@ -22,9 +22,13 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.core.MobileApplication;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 
 public class MobileApplicationTreeObject extends DatabaseObjectTreeObject {
 
@@ -38,7 +42,20 @@ public class MobileApplicationTreeObject extends DatabaseObjectTreeObject {
 
 	@Override
 	public MobileApplication getObject() {
-		return (MobileApplication)super.getObject();
+		return (MobileApplication) super.getObject();
 	}
 
+	@Override
+	public void setParent(TreeParent parent) {
+		super.setParent(parent);
+		refreshResourceFolder();
+	}
+	
+	private void refreshResourceFolder() {
+		try {
+			getProjectTreeObject().getIProject().getFolder(getObject().getRelativeResourcePath()).refreshLocal(IResource.DEPTH_INFINITE, null);
+		} catch (CoreException e) {
+			ConvertigoPlugin.logWarning(e, "Failed to refresh the mobile platform folder in resource view");
+		}
+	}
 }

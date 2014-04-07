@@ -11,6 +11,7 @@ import org.apache.commons.io.IOUtils;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper.Keys;
 
 @ServiceDefinition(
 		name = "GetSourcePackage",
@@ -22,14 +23,15 @@ public class GetSourcePackage extends DownloadService {
 	
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws  Exception {
+		String project = Keys.project.value(request);
+		String platform = Keys.platform.value(request);
 		
-		String application = request.getParameter("application");
-		
-		File mobileArchiveFile = MobileResourceHelper.makeZipPackage(request);
+		MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(request, "mobile/www");
+		File mobileArchiveFile = mobileResourceHelper.makeZipPackage();
 				
 		FileInputStream archiveInputStream = new FileInputStream(mobileArchiveFile);		
 		
-		response.setHeader("Content-Disposition", "attachment; filename=\"" + application + "_SourcePackage.zip\"");
+		response.setHeader("Content-Disposition", "attachment; filename=\"" + project + "_" + platform + "_SourcePackage.zip\"");
 		response.setContentType("application/octet-stream");
 		
 		IOUtils.copy(archiveInputStream, response.getOutputStream());		

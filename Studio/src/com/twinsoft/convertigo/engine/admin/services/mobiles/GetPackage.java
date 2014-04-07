@@ -37,6 +37,7 @@ import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
 
+import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -44,6 +45,7 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper.Keys;
 
 @ServiceDefinition(
 		name = "GetBuildUrl",
@@ -55,17 +57,16 @@ public class GetPackage extends DownloadService {
 
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws  Exception {
-		String application = request.getParameter("application");
-		String platform = request.getParameter("platform");
+		String project = Keys.project.value(request);
+		String platformName = Keys.platform.value(request);
 		
-		String finalApplicationName = GetBuildStatus.getFinalApplicationName(application);
+		MobileApplication mobileApplication = GetBuildStatus.getMobileApplication(project);
 		
-		String mobileBuilderPlatformURL = EnginePropertiesManager
-				.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
-		String mobileBuilderPlatformUsername = EnginePropertiesManager
-				.getProperty(PropertyName.MOBILE_BUILDER_USERNAME);
-		String mobileBuilderPlatformPassword = EnginePropertiesManager
-				.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
+		String finalApplicationName = mobileApplication.getComputedApplicationName();
+		
+		String mobileBuilderPlatformURL = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
+		String mobileBuilderPlatformUsername = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_USERNAME);
+		String mobileBuilderPlatformPassword = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
 		
 		PostMethod method;
 		int methodStatusCode;
@@ -84,7 +85,7 @@ public class GetPackage extends DownloadService {
 			method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 			method.setRequestBody(new NameValuePair[] {
 					new NameValuePair("application", finalApplicationName),
-					new NameValuePair("platform", platform),
+					new NameValuePair("platformName", platformName),
 					new NameValuePair("username", mobileBuilderPlatformUsername),
 					new NameValuePair("password", mobileBuilderPlatformPassword) });
 
@@ -94,14 +95,14 @@ public class GetPackage extends DownloadService {
 			if (methodStatusCode != HttpStatus.SC_OK) {
 				byte[] httpBytes = IOUtils.toByteArray(methodBodyContentInputStream);
 				String sResult = new String(httpBytes, "UTF-8");
-				throw new ServiceException("Unable to get package for application '" + application + "' (final app name: '" + finalApplicationName + "'); reason: " + sResult);
+				throw new ServiceException("Unable to get package for project '" + project + "' (final app name: '" + finalApplicationName + "'); reason: " + sResult);
 			}
 
 			try {
 				String contentDisposition = method.getResponseHeader("Content-Disposition").getValue();
 				response.setHeader("Content-Disposition", contentDisposition);
 			} catch (Exception e) {
-				response.setHeader("Content-Disposition", "attachment; filename=\"" + application + "\"");
+				response.setHeader("Content-Disposition", "attachment; filename=\"" + project + "\"");
 			} 
 			
 			try {

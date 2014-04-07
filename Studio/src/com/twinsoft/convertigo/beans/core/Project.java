@@ -469,8 +469,12 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 		return oldName;
 	}
 	
+	public String getDirPath() {
+		return Engine.PROJECTS_PATH + "/" + getName();
+	}
+	
 	public String getXsdDirPath() {
-		return Engine.PROJECTS_PATH + "/" + getName() + "/" + XSD_FOLDER_NAME;
+		return getDirPath() + "/" + XSD_FOLDER_NAME;
 	}
 
 	public String getXsdInternalDirPath() {
@@ -478,7 +482,7 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 	}
 	
 	public String getWsdlDirPath() {
-		return Engine.PROJECTS_PATH + "/" + getName() + "/" + WSDL_FOLDER_NAME;
+		return getDirPath() + "/" + getName() + "/" + WSDL_FOLDER_NAME;
 	}
 	
 	@Override

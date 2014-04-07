@@ -69,6 +69,7 @@ $.extend(true, C8O, {
 $(document).on("deviceready", function() {
 	C8O.log.info("c8o.cordova: on deviceready");
 	if (C8O._hook("device_ready")) {
+		navigator.splashscreen.hide();
 		C8O.log.info("c8o.cordova:window.plugins " + window.plugins);
 		C8O.log.info("c8o.cordova:window.plugins.pushNotification " + window.plugins.pushNotification);
 		

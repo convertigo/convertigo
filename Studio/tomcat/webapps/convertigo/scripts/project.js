@@ -20,39 +20,23 @@
  * $Date$
  */
 
-var vars, defs = {
-	dpi : 96,
-	classnames : {
-		Android : "HtcDesire",
-		BlackBerry6 : "BlackBerryTorch",
-		IPad : "iPad1",
-		IPhone3 : "iPhone3",
-		IPhone4 : "iPhone4",
-		WindowsPhone7 : "NokiaLumia920"
-	},
-	phones : {
-		iPad1 : { name : "iPad 1", dpi : 132, os: "ios", install: "IPA", useragent: "iphone" },
-		iPhone4 : { name : "iPhone 4", dpi : 163, os: "ios", install: "IPA", useragent: "iphone" },
-		iPhone3 : { name : "iPhone 3", dpi : 163, os: "ios", install: "IPA", useragent: "iphone" },
-		HtcDesire : { name : "HTC Desire", dpi : 169, os: "android", install: "APK", useragent: "android" },
-    	BlackBerryTorch : { name : "BlackBerry Torch", dpi : 187.5, os: "blackberry", install: "JAD", useragent: "blackberry" },
-    	NokiaLumia920 : { name : "Nokia Lumia 920", dpi : 166, os: "winphone", install: "XAP", useragent: "winphone" }
-	}
-};
+var vars;
 
-function addMobileDevice($device, $parent) {
-	var $device_div = $("#templates .device").clone();
+function addMobilePlatform($platform, $parent) {
+	var $platform_div = $("#templates .platform").clone();
 		
-	setName($device_div.find(".device_name"), $device);
-	$device_div.attr('id', $device.attr('classname'));
-	$device_div.attr('path', $device.attr('ressource_path'));
+	setName($platform_div.find(".platform_name"), $platform);
+	$platform_div.find(".qrcode_platform").text($platform.attr("displayName"));
+	$platform_div.find(".qrcode_install").text($platform.attr("packageType"));
 	
-	var layout = defs.classnames[$device.attr("classname")];
-	if (typeof(layout) === "undefined") {
-		layout = "none";
-	}
-	$device_div.find(".device_layout").attr("value", layout);
-	$parent.append($device_div);
+	var params = $.param({
+		project: vars.projectName,
+		platform: $platform.attr("name")
+	});
+	
+	$platform_div.find(".btn_get_source").attr("href", vars.base_url + "admin/services/mobiles.GetSourcePackage?" + params);
+	$platform_div.find(".btn_build").attr("href", vars.base_url + "admin/services/mobiles.LaunchBuild?" + params);
+	$parent.append($platform_div);
 }
 
 function parseJSONarray(value) {
@@ -71,9 +55,9 @@ function waitDivBuildHide() {
 }
 
 function waitDivBuildShow() {
-	$("#wait_div_build").show();
 	$("#wait_div_build img").attr("src", getLoadingImageUrl());
 	$("#wait_div_build p").text("Uploading project to cloud build");
+	$("#wait_div_build").show();
 	$("#wait_div_build").css("display", "block");
 }
 
@@ -178,62 +162,42 @@ function alignPusher() {
 	}
 }
 
-function showQRCode($parent, $device, isBlackberry) {
-	//var $td = $(this);
-	var $td = $parent;
-	
-	//var href = "projects/" + vars.projectName + "/DisplayObjects/mobile/index.html";
-	var href = "projects/" + vars.projectName + "/" + $device.attr('ressource_path');
+function showQRCode($td) {	
+	var href = "projects/" + vars.projectName + "/DisplayObjects/mobile/index.html";
+	$td.parents(".mobile_platform:first").find("a.btn_exe_link").attr("href",  href);
 	var build_url = $td.find(".build_url").attr("value");
 	var target_url = (build_url === "") ? vars.base_url + href : build_url;
 	if (build_url != "") {
 		href = build_url;
 	}
 	
-	var img_url = "images/new/logo_c8o_bgQRcode.png";
-	if (!isBlackberry) {
-		img_url = vars.base_url + "qrcode?" + $.param({
-			o : "image/png",
-			e : "L",
-			s : 4,
-			d : target_url
-		});
-		
-		$td.find(">a").empty().attr("href", href).append($("<img/>").attr("src", img_url).attr("title", "qrcode").attr("alt", "error, maybe too long url"));
-	} else {
-		$td.find(">a").empty().attr("href", href).append($("<img/>").attr("src", img_url));
-		var $qrcode_platform = $td.find(".qrcode_platform");
-		if ($qrcode_platform.length == 0) {
-			$qrcode_platform =	$("<div/>").attr("class", "qrcode_platform").appendTo($td);
-		}
-		$qrcode_platform.text("Please find the generated application in your PhoneGap build platform.");
-	}
+	var img_url = vars.base_url + "qrcode?" + $.param({
+		o : "image/png",
+		e : "L",
+		s : 4,
+		d : target_url
+	});
+	
+	$td.find(">a").empty().attr("href", href).append($("<img/>").attr("src", img_url).attr("title", "qrcode").attr("alt", "error, maybe too long url"));
 }
 
-function launchCliplet(url, mobile_layout, scale) {
+function launchCliplet(url) {
 	vars.last_url = url;
-	vars.last_layout = mobile_layout;
-	if (mobile_layout === "none") {
-		var $iframe = $("#cliplet_div_iframe");
-		if (isC8oCall() && $iframe.length && typeof($iframe[0].contentWindow.C8O) !== "undefined") {
-			$iframe[0].contentWindow.C8O.call(url.substring(url.indexOf("?") + 1));
-		} else {
-			$("#window_exe_content").empty().append("<iframe id='cliplet_div_iframe' frameborder='0' src='" + url + "'></iframe>");
-			$iframe.slideDown(500);
-		}
+	var $iframe = $("#cliplet_div_iframe");
+	if (isC8oCall() && $iframe.length && typeof($iframe[0].contentWindow.C8O) !== "undefined") {
+		$iframe[0].contentWindow.C8O.call(url.substring(url.indexOf("?") + 1));
 	} else {
-		var $phone = $("<div/>").addClass(mobile_layout + "_mask").addClass("common_mask").appendTo($("#window_exe_content").empty());
-		$("<iframe frameborder='0' src='"+url+"'></iframe>").addClass(mobile_layout + "_contenu").addClass("common_contenu").appendTo($phone)[0].useragent = defs.phones[mobile_layout].useragent;
-		setMobileScale(scale);
+		$("#window_exe_content").empty().append("<iframe id='cliplet_div_iframe' frameborder='0' src='" + url + "'></iframe>");
+		$iframe.slideDown(500);
 	}
 	fixWidth();
 }
 
-function setMobileScale(scale) {
+function setScale(scale) {
 	var $phone = $("#window_exe_content > div");
 	var $iframe = $phone.find("> iframe");
 	
-	vars.last_scale = scale = (scale === "auto") ? (defs.dpi / defs.phones[vars.last_layout].dpi) : (scale * 1.0);
+	vars.last_scale = scale = (scale === "auto") ? 0.5 : (scale * 1.0);
 	$phone.css("-webkit-transform", "scale(" + scale + ")").css("-webkit-transform-origin", "top left");
 }
 
@@ -243,13 +207,6 @@ function setLink($a, params) {
 	} else {
 		$a.attr("href", "projects/" + vars.projectName + "/" + getRequester() + "?" + toUrl(params));
 	}
-}
-
-//function setLinkForMobileDevice(a) {
-function setLinkForMobileDevice($device, $parent) {
-	var $a = $parent;
-	//$a.attr("href", "projects/" + vars.projectName + "/DisplayObjects/mobile/index.html");
-	$a.attr("href", "projects/" + vars.projectName + "/" + $device.attr('ressource_path'));
 }
 
 function setLinkForRequestable(a) {
@@ -277,18 +234,6 @@ function setName($elt, $xml) {
 	$elt.text($xml.attr("name")).attr("title", $xml.attr("comment"));	
 }
 
-function setMobileDeviceLayout($elt, $xml) {
-	var layout = "none";
-	var classname = $xml.attr("classname");
-	if (classname === "Android") layout = "HtcDesire";
-	else if (classname === "BlackBerry6") layout = "BlackBerryTorch";
-	else if (classname === "IPad") layout = "iPad1";
-	else if (classname === "IPhone3") layout = "iPhone3";
-	else if (classname === "IPhone4") layout = "iPhone4";
-	else if (classname === "WindowsPhone7") layout = "NokiaLumia920";
-	$elt.attr("value", layout);
-}
-
 function toUrl(params) {
 	var parts = [];
 	$.each(params, function (key, value) {
@@ -312,97 +257,85 @@ function getCurrentEndpoint() {
 	return endpoint + (endpoint.match(/\/$/) ? "" : "/") + "projects/" + vars.projectName + "/";
 }
 
-function launchPhoneGapBuild() {		
-	var applicationID = $("#build_application_id").text();
-	
+function launchPhoneGapBuild($li) {
 	$("body").css("cursor", "progress");
-	$(".device_status").attr("title","build requested").empty();
-	$("#main .btn_build, .btn_get_source").button("disable");
+	$li.find(".platform_status").attr("title","build requested").empty();
+	$("#main .btn_build, #main .btn_get_source").button("disable");
 	
 	waitDivBuildShow();
 	
 	$.ajax({
-		type : "POST",
-		url : "admin/services/mobiles.LaunchBuild",
-		data : { "application" : vars.projectName, "endpoint" : getCurrentEndpoint(), "applicationID" : applicationID },
+		type : "GET",
+		url : $li.find(".btn_build").attr("href"),
 		dataType : "xml",
 		success : function(xml) {
 			waitDivBuildHide();
-			$("#main .btn_build, .btn_get_source").button("enable");			
+			$("#main .btn_build, #main .btn_get_source").button("enable");			
 			$("body").css("cursor", "auto");
-			$("#main .install.qrcode_content").each(function() {
-				$(this).find(".build_status").attr("value","starting");
-				$(this).find("> a").empty().append($("<img/>").attr("src", getLoadingImageUrl()));
-			});
-			setTimeout(function() {$("#main .install.qrcode_content").each(getPhoneGapBuildStatus);}, 1000);
+			$li.find(".build_status").attr("value","starting");
+			$li.find("> a").empty().append($("<img/>").attr("src", getLoadingImageUrl()));
+			setTimeout(function() {$li.find(".install.qrcode_content").each(getPhoneGapBuildStatus);}, 1000);
 		},
 		error : function(xml) {			
 			waitDivBuildHide();
-			$("#main .btn_build, .btn_get_source").button("enable");
+			$("#main .btn_build, #main .btn_get_source").button("enable");
 			$("body").css("cursor", "auto");
-			var $message = $(xml.responseXML).find("message").text();
-			alert("Build Error:\n" + $message);
+			var message = $(xml.responseXML).find("message").text();
+			alert("Build Error:\n" + message);
 		}
 	});
 	$("#main .wait_status_build").css("display","none");
 }
 
-function getPhoneGapBuildUrl() {
-	var $td = $(this);
-	var device_layout = $td.parents("li:first").find(".device_layout").attr("value");
-	var device_platform = defs.phones[device_layout].os;
-	var isBlackberry = (device_platform ===  defs.phones.BlackBerryTorch.os);
-	
-	var url = vars.base_url + "admin/services/mobiles.GetPackage?application=" + vars.projectName + "&platform=" + device_platform;
-	$td.find(".build_url").attr("value",url);
-	//showQRCode.call($td, isBlackberry);
-	showQRCode($(this), $td, isBlackberry);
+function getPhoneGapBuildUrl($td) {
+	var platform_name = $td.parents(".platform:first").find(".platform_name").text();
+	var url = vars.base_url + "admin/services/mobiles.GetPackage?project=" + vars.projectName + "&platform=" + platform_name;
+	$td.find(".build_url").attr("value", url);
+	showQRCode($td);
 }
 
 function getPhoneGapBuildStatus() {
 	var $td = $(this);
-	var device_layout = $td.parents("li:first").find(".device_layout").attr("value");
-	var device_platform = defs.phones[device_layout].os;
-	var device_install = defs.phones[device_layout].install;
-	
-	$td.parents("table:first").find(".qrcode_platform:first").empty().text(device_platform.toUpperCase());
-	$td.parents("table:first").find(".qrcode_install:first").empty().text(device_install);
+	var $platform = $td.parents(".platform:first");
+	var platform_name = $platform.find(".platform_name").text();
 	
 	$.ajax({
 		type : "POST",
 		url : "admin/services/mobiles.GetBuildStatus",
-		data : { "application" : vars.projectName, "platform" : device_platform },
+		data : { "project" : vars.projectName, "platform" : platform_name },
 		dataType : "xml",
 		success : function(xml) {
 			var $build = $(xml).find("build:first");
 			if ($build.length > 0) {
 				var status = $build.attr("status");
 				if (status === "none") {
-					$td.parents("li:first").find(".device_status").attr("title","not built").empty().append("<img src=\"images/new/build_none.png\" />");
+					$platform.find(".platform_status").attr("title","not built").empty().append("<img src=\"images/new/build_none.png\" />");
 					$td.find(".build_status").attr("value","none");
 					$td.find("> a").empty().append("NOT BUILT");
 				}
 				else if (status === "error") {
-					$td.parents("li:first").find(".device_status").attr("title","build in error").empty().append("<img src=\"images/new/build_none.png\" />");
+					$platform.find(".platform_status").attr("title","build in error").empty().append("<img src=\"images/new/build_none.png\" />");
 					$td.find(".build_status").attr("value","error");
 					$td.find("> a").empty().append("BUILD ERROR:<br/>" + $build.attr("error"));		
 				}
 				else if (status === "pending") {
-					$td.parents("li:first").find(".device_status").attr("title","build pending").empty().append("<img src=\"images/new/build_pending.png\" />");
+					$platform.find(".platform_status").attr("title","build pending").empty().append("<img src=\"images/new/build_pending.png\" />");
 					$td.find(".build_status").attr("value","pending");
 					$td.find("> a").empty().append($("<img/>").attr("src", getLoadingImageUrl()));
-					setTimeout(function() { getPhoneGapBuildStatus.call($td); }, 10000);
+					setTimeout(function() { getPhoneGapBuildStatus.call($td); }, 5000);
 				}
 				else if (status === "complete") {
-					$td.parents("li:first").find(".device_status").attr("title","build complete").empty().append("<img src=\"images/new/build_complete.png\" />");
+					$platform.find(".platform_status").attr("title","build complete").empty().append("<img src=\"images/new/build_complete.png\" />");
 					$td.find(".build_status").attr("value","complete");
-					getPhoneGapBuildUrl.call($td);		
-				}			
+					getPhoneGapBuildUrl($td);		
+				}
+				$platform.find(".qrcode_version").text($build.attr("version"));
+				$platform.find(".qrcode_phonegap_version").text($build.attr("phonegap_version"));
 			}
 		},
 		error : function(xml) {
 			var $message = $(xml.responseXML).find("message").text();
-			$td.parents("li:first").find(".device_status").attr("title","build in error").empty().append("<img src=\"images/new/build_none.png\" />");
+			$td.parents("li:first").find(".platform_status").attr("title","build in error").empty().append("<img src=\"images/new/build_none.png\" />");
 			$td.find(".build_status").attr("value","error");
 			$td.find("> a").empty().append("BUILD ERROR:<br/>"+$message);
 
@@ -549,7 +482,7 @@ $(document).ready(function() {
 	initCommon(function () {
 		call("projects.GetTestPlatform", {projectName : vars.projectName}, function (xml) {
 			$("#acc .connector").remove();
-			$("#acc .device").remove();
+			$("#acc .platform").remove();
 			$("#acc .sequences .requestables").empty();
 			$(".acc>li>h6").unbind('click');
 			
@@ -598,27 +531,24 @@ $(document).ready(function() {
 				var applicationID = $mobileApplication.attr("applicationID");
 				$("#build_application_id").text(applicationID);
 				
-				$(".btn_get_source").attr("href", vars.base_url + "admin/services/mobiles.GetSourcePackage?" + $.param({
-					application: vars.projectName,
-					applicationID: $("#build_application_id").text(),
-					endpoint: getCurrentEndpoint()
-				}));
+				var applicationVersion = $mobileApplication.attr("applicationVersion");
+				$("#build_application_version").text(applicationVersion);
 				
-				// Add mobile devices
-				var $devices = $mobileApplication.find(">mobiledevice");
-				if ($devices.length > 0) {
+				showQRCode($("#main .webapp.qrcode_content"), false);
+				
+				// Add mobile platforms
+				var $platforms = $mobileApplication.find(">mobileplatform");
+				if ($platforms.length > 0) {
 					$(".mobiles:first").removeClass("hidden");
-					$devices.each(function () {
-						addMobileDevice($(this), $(".mobiles:first .requestables:first"));
-						setLinkForMobileDevice($(this), $("#main a.device_link"));	
-						showQRCode($("#main .webapp.qrcode_content"), $(this), false);
+					$platforms.each(function () {
+						addMobilePlatform($(this), $(".mobiles:first .requestables:first"));
 					});
 					
 					if ($.browser.webkit) {
 						$("#window_exe_increase").removeClass("hidden");
 						$("#window_exe_decrease").removeClass("hidden");
 					}
-					$("h6:first").click();
+					//$("h6:first").click();
 				} else {
 					$(".connector_name").each(function(){
 						if ($(this).text() == $project.attr("defaultConnector")) {
@@ -635,9 +565,7 @@ $(document).ready(function() {
 					});
 				}
 			}
-			
-			//$("#main a.device_link").each(setLinkForMobileDevice);
-			
+						
 			$("#main a.requestable_link").each(setLinkForRequestable);
 			
 			$("#main a.requestable_testcase_link").each(setLinkForTestCase);
@@ -675,7 +603,7 @@ $(document).ready(function() {
 			});
 				
 			$("#main .btn_build").click(function() {
-				launchPhoneGapBuild();
+				launchPhoneGapBuild($(this).parents(".platform:first"));
 				return false;
 			});
 			
@@ -686,7 +614,6 @@ $(document).ready(function() {
 			
 			$("#main .btn_exe_link").click(function () {
 				var $requestable = $(this).parents(".requestable:first");
-				var layout = $(this).parent().find(".device_layout").attr("value");
 				var href = $(this).parent().find("a").attr("href");
 				
 				var genUrl = window.location.href.replace(new RegExp("^(.*/).*$"), "$1") + href;
@@ -757,7 +684,7 @@ $(document).ready(function() {
 					if (getRequester() === ".pxml") {
 						href += "&__content_type=text/plain"
 					}
-					launchCliplet(href, layout, "auto");
+					launchCliplet(href);
 				}
 				return false;
 			});
@@ -800,14 +727,14 @@ $(document).ready(function() {
 			$("#window_exe_increase").click(function () {
 				if (vars.last_url) {
 					var scale = vars.last_scale * 1.0 + 0.05;
-					setMobileScale(scale <= 2 ? scale : 2);
+					setScale(scale <= 2 ? scale : 2);
 				}
 			});
 	
 			$("#window_exe_decrease").click(function () {
 				if (vars.last_url) {
 					var scale = vars.last_scale * 1.0 - 0.05;
-					setMobileScale(scale >= 0.25 ? scale : 0.25);
+					setScale(scale >= 0.25 ? scale : 0.25);
 				}
 			});
 			
@@ -848,23 +775,8 @@ $(document).ready(function() {
 			});
 	
 			$("#main .install.qrcode_content").each(getPhoneGapBuildStatus);
-			//$("#main .webapp.qrcode_content").each(function () {
-			//	showQRCode.call($(this), false)
-			//});
 			
-			//Autorun the device passed in parameter
-			if ( linkString[2] != undefined ){
-					//Open the "Mobile Devices" sub connectors
-					$("h6.sub_connectors")[0].click();
-					//Open the specific device passed in parameter
-					$( "#"+(parameters.device.match( "^i(.*)") == null ? 
-							parameters.device : "I"+parameters.device.match( "^i(.*)")[1])+
-							" h6" ).click();
-					//Execute the test of the specific device passed in parameter
-					$( "#"+(parameters.device.match( "^i(.*)") == null ? 
-							parameters.device : "I"+parameters.device.match( "^i(.*)")[1])+
-							" a" ).click();
-			}
+			$(".sub_connectors:first").click().parent().find(".requestable h6:first").click();
 		});
 	});		
 });

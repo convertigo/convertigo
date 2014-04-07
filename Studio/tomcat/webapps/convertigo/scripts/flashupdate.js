@@ -593,6 +593,7 @@ $(function () {
 	} else {
 		document.addEventListener("deviceready", function() {
 			try {
+				navigator.splashscreen.hide();
 				F.init();
 			} catch (err) {
 				F.error("catch deviceready", err);

@@ -69,6 +69,13 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.mobileplatforms.Android;
+import com.twinsoft.convertigo.beans.mobileplatforms.BlackBerry;
+import com.twinsoft.convertigo.beans.mobileplatforms.BlackBerry10;
+import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
+import com.twinsoft.convertigo.beans.mobileplatforms.Windows8;
+import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone7;
+import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8;
 import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
@@ -99,9 +106,54 @@ public class Migration7_0_0 {
 				projectNode.appendChild(mobileApplicationElement);
 				
 				Node[] mobileDeviceNodes = XMLUtils.toNodeArray(mobileDevicesNodeList);
+				boolean hasAndroid = false;
+				boolean hasIOs = false;
+				boolean hasBlackBerry = false;
+				
 				for (Node mobileDeviceNode : mobileDeviceNodes) {
-					projectNode.removeChild(mobileDeviceNode);
-					mobileApplicationElement.appendChild(mobileDeviceNode);
+					Element mobileDevice = (Element) mobileDeviceNode;
+					String classname = mobileDevice.getAttribute("classname");
+					
+					if (classname == null) {
+						// may never arrived
+					} else if (classname.equals("com.twinsoft.convertigo.beans.mobiledevices.Android")) {
+						hasAndroid = true;
+					} else if (classname.equals("com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6")) {
+						hasBlackBerry = true;
+					} else if (classname.startsWith("com.twinsoft.convertigo.beans.mobiledevices.IP")) {
+						hasIOs = true;
+					}
+					
+					projectNode.removeChild(mobileDevice);
+				}
+				
+				if (hasAndroid) {
+					mobileApplicationElement.appendChild(new Android().toXml(document));
+				}
+				if (hasIOs) {
+					mobileApplicationElement.appendChild(new IOs().toXml(document));
+				}
+				if (hasBlackBerry) {
+					mobileApplicationElement.appendChild(new BlackBerry().toXml(document));
+					mobileApplicationElement.appendChild(new BlackBerry10().toXml(document));
+				}
+				if (hasAndroid && hasIOs && hasBlackBerry) {
+					mobileApplicationElement.appendChild(new WindowsPhone7().toXml(document));
+					mobileApplicationElement.appendChild(new WindowsPhone8().toXml(document));
+					mobileApplicationElement.appendChild(new Windows8().toXml(document));
+				}
+				
+				String projectName = "" + XMLUtils.findPropertyValue(projectNode, "name");
+				File mobileFolder = new File(Engine.PROJECTS_PATH + "/" + projectName + "/DisplayObjects/mobile");
+				if (mobileFolder.exists()) {
+					FileUtils.write(
+						new File(mobileFolder, "mobile_project_migrated.txt"),
+						"Your mobile project has been migrated.\n" +
+						"Now, we make per platform configuration and resources.\n" +
+						"You may customize your config.xml (the existing one will never used) and dispatch your existing specific resources per platform (see the 'platforms' folder).\n" +
+						"You can delete this file after reading it.",
+						"UTF-8"
+					);
 				}
 			}
     	}

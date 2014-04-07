@@ -22,14 +22,21 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 /**
@@ -39,6 +46,8 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 
 	private static final long serialVersionUID = 5414379401296015511L;
 	
+	private static final Pattern p_version = Pattern.compile("(\\d+)(\\.\\d+)?(\\.\\d+)?");
+	
 	public enum FlashUpdateBuildMode {
 		full,
 		light;
@@ -47,17 +56,6 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 			full.name(),
 			light.name()
 		};
-	}
-	
-	public enum PhoneGapFeatures {
-		device,
-		camera,
-		contacts,
-		file,
-		geolocation,
-		media,
-		network,
-		notification
 	}
 	
 	private boolean enableFlashUpdate = true;
@@ -70,17 +68,11 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 	private String applicationId = "";
 	private String applicationName = "";
 	private String applicationDescription = "";
+	private String applicationVersion = "";
 	private String applicationAuthorName = "Convertigo";
 	private String applicationAuthorEmail = "sales@convertigo.com";
 	private String applicationAuthorSite = "http://www.convertigo.com";
-	private boolean applicationFeatureDevice = false;
-	private boolean applicationFeatureCamera = false;
-	private boolean applicationFeatureContacts = false;
-	private boolean applicationFeatureFile = false;
-	private boolean applicationFeatureGeolocation = false;
-	private boolean applicationFeatureMedia = false;
-	private boolean applicationFeatureNetwork = false;
-	private boolean applicationFeatureNotification= false;
+	private String accessibility = Accessibility.Private.name();
 	
 	private String endpoint = "";
 
@@ -136,21 +128,21 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 	@Override
 	public MobileApplication clone() throws CloneNotSupportedException {
 		MobileApplication clonedObject = (MobileApplication) super.clone();
-		clonedObject.vMobileDevices = new LinkedList<MobileDevice>();
+		clonedObject.vMobilePlatforms = new LinkedList<MobilePlatform>();
 		return clonedObject;
 	}
 
 	@Override
 	public List<DatabaseObject> getAllChildren() {	
 		List<DatabaseObject> rep = super.getAllChildren();
-		rep.addAll(getMobileDeviceList());
+		rep.addAll(getMobilePlatformList());
 		return rep;
 	}
 
 	@Override
     public void add(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof MobileDevice) {
-			addMobileDevice((MobileDevice) databaseObject);
+		if (databaseObject instanceof MobilePlatform) {
+			addMobilePlatform((MobilePlatform) databaseObject);
 		} else {
 			throw new EngineException("You cannot add to a mobile application a database object of type " + databaseObject.getClass().getName());
 		}
@@ -158,8 +150,8 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 
     @Override
     public void remove(DatabaseObject databaseObject) throws EngineException {
-		if (databaseObject instanceof MobileDevice) {
-			removeMobileDevice((MobileDevice) databaseObject);
+		if (databaseObject instanceof MobilePlatform) {
+			removeMobilePlatform((MobilePlatform) databaseObject);
 		} else {
 			throw new EngineException("You cannot remove from a mobile application a database object of type " + databaseObject.getClass().getName());
 		}
@@ -167,33 +159,33 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
     }
 	
 	/**
-	 * The list of available mobile device for this project.
+	 * The list of available mobile platform for this project.
 	 */
-	transient private List<MobileDevice> vMobileDevices = new LinkedList<MobileDevice>();
+	transient private List<MobilePlatform> vMobilePlatforms = new LinkedList<MobilePlatform>();
 
-	protected void addMobileDevice(MobileDevice device) throws EngineException {
+	protected void addMobilePlatform(MobilePlatform mobilePlatform) throws EngineException {
 		checkSubLoaded();
-		String newDatabaseObjectName = getChildBeanName(vMobileDevices, device.getName(), device.bNew);
-		device.setName(newDatabaseObjectName);
-		vMobileDevices.add(device);
-		super.add(device);
+		String newDatabaseObjectName = getChildBeanName(vMobilePlatforms, mobilePlatform.getName(), mobilePlatform.bNew);
+		mobilePlatform.setName(newDatabaseObjectName);
+		vMobilePlatforms.add(mobilePlatform);
+		super.add(mobilePlatform);
 	}
 
-	public void removeMobileDevice(MobileDevice device) throws EngineException {
+	public void removeMobilePlatform(MobilePlatform mobilePlatform) throws EngineException {
 		checkSubLoaded();
-		vMobileDevices.remove(device);
+		vMobilePlatforms.remove(mobilePlatform);
 	}
 
-	public List<MobileDevice> getMobileDeviceList() {
+	public List<MobilePlatform> getMobilePlatformList() {
 		checkSubLoaded();
-		return sort(vMobileDevices);
+		return sort(vMobilePlatforms);
 	}
 
-	public MobileDevice getMobileDeviceByName(String deviceName) throws EngineException {
+	public MobilePlatform getMobilePlatformByName(String platformName) throws EngineException {
 		checkSubLoaded();
-		for (MobileDevice device : vMobileDevices)
-			if (device.getName().equalsIgnoreCase(deviceName)) return device;
-		throw new EngineException("There is no mobile device named \"" + deviceName + "\" found into this project.");
+		for (MobilePlatform mobilePlatform : vMobilePlatforms)
+			if (mobilePlatform.getName().equalsIgnoreCase(platformName)) return mobilePlatform;
+		throw new EngineException("There is no mobile platform named \"" + platformName + "\" found into this project.");
 	}
 	
 	public String getComputedApplicationId() {
@@ -225,7 +217,10 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 	public String[] getTagsForProperty(String propertyName) {
 		if ("buildMode".equals(propertyName)) {
 			return FlashUpdateBuildMode.buildModes;
+		} else if ("accessibility".equals(propertyName)) {
+			return Accessibility.accessibilities;
 		}
+		
 		return new String[0];
 	}
 
@@ -273,90 +268,12 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 		this.applicationAuthorSite = applicationAuthorSite;
 	}
 
-	public boolean isApplicationFeatureDevice() {
-		return applicationFeatureDevice;
-	}
-
-	public void setApplicationFeatureDevice(boolean applicationFeatureDevice) {
-		this.applicationFeatureDevice = applicationFeatureDevice;
-	}
-
-	public boolean isApplicationFeatureCamera() {
-		return applicationFeatureCamera;
-	}
-
-	public void setApplicationFeatureCamera(boolean applicationFeatureCamera) {
-		this.applicationFeatureCamera = applicationFeatureCamera;
-	}
-
-	public boolean isApplicationFeatureContacts() {
-		return applicationFeatureContacts;
-	}
-
-	public void setApplicationFeatureContacts(boolean applicationFeatureContacts) {
-		this.applicationFeatureContacts = applicationFeatureContacts;
-	}
-
-	public boolean isApplicationFeatureFile() {
-		return applicationFeatureFile;
-	}
-
-	public void setApplicationFeatureFile(boolean applicationFeatureFile) {
-		this.applicationFeatureFile = applicationFeatureFile;
-	}
-
-	public boolean isApplicationFeatureGeolocation() {
-		return applicationFeatureGeolocation;
-	}
-
-	public void setApplicationFeatureGeolocation(boolean applicationFeatureGeolocation) {
-		this.applicationFeatureGeolocation = applicationFeatureGeolocation;
-	}
-
-	public boolean isApplicationFeatureMedia() {
-		return applicationFeatureMedia;
-	}
-
-	public void setApplicationFeatureMedia(boolean applicationFeatureMedia) {
-		this.applicationFeatureMedia = applicationFeatureMedia;
-	}
-
-	public boolean isApplicationFeatureNetwork() {
-		return applicationFeatureNetwork;
-	}
-
-	public void setApplicationFeatureNetwork(boolean applicationFeatureNetwork) {
-		this.applicationFeatureNetwork = applicationFeatureNetwork;
-	}
-
-	public boolean isApplicationFeatureNotification() {
-		return applicationFeatureNotification;
-	}
-
-	public void setApplicationFeatureNotification(boolean applicationFeatureNotification) {
-		this.applicationFeatureNotification = applicationFeatureNotification;
-	}
-
 	public long getFlashUpdateTimeout() {
 		return flashUpdateTimeout;
 	}
 
 	public void setFlashUpdateTimeout(long flashUpdateTimeout) {
 		this.flashUpdateTimeout = flashUpdateTimeout;
-	}
-	
-	public boolean isFeature(PhoneGapFeatures feature) {
-		switch (feature) {
-		case camera: return applicationFeatureCamera;
-		case contacts: return applicationFeatureContacts;
-		case device: return applicationFeatureDevice;
-		case file: return applicationFeatureFile;
-		case geolocation: return applicationFeatureGeolocation;
-		case media: return applicationFeatureMedia;
-		case network: return applicationFeatureNetwork;
-		case notification: return applicationFeatureNotification;
-		}
-		return false;
 	}
 	
 	private String key = "";
@@ -376,5 +293,72 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getAccessibility() {
+		return accessibility;
+	}
+
+	public Accessibility getAccessibilityEnum() {
+		return Accessibility.valueOf(accessibility);
+	}
+
+	public void setAccessibility(String accessibility) {
+		this.accessibility = accessibility;
+	}
+
+	public void setAccessibility(Accessibility accessibility) {
+		this.accessibility = accessibility.name();
+	}
+	
+	public String getRelativeResourcePath() {
+		return "DisplayObjects/mobile";
+	}
+	
+	public File getResourceFolder() {
+		return new File(getProject().getDirPath() + "/" + getRelativeResourcePath());
+	}
+	
+	@Override
+	public void setParent(DatabaseObject databaseObject) {
+		super.setParent(databaseObject);
+		checkFolder();
+	}
+	
+	private void checkFolder() {
+		File folder = getResourceFolder();
+		if (!folder.exists()) {
+			try {
+				File templateFolder = new File(Engine.TEMPLATES_PATH, "base/DisplayObjects/mobile");
+				FileUtils.copyDirectory(templateFolder, folder);
+			} catch (IOException e) {
+				Engine.logBeans.warn("(MobileApplication) The folder '" + folder.getAbsolutePath() + "' doesn't exist and can't be created", e);
+			}
+		}
+	}
+	
+	public String getApplicationVersion() {
+		return applicationVersion;
+	}
+
+	public void setApplicationVersion(String applicationVersion) {
+		this.applicationVersion = applicationVersion;
+	}
+	
+	public String getComputedApplicationVersion() {
+		String version = applicationVersion.length() > 0 ? applicationVersion : getProject().getVersion();
+		Matcher matcher = p_version.matcher(version);
+		if (matcher.find()) {
+			version = matcher.group(0);
+			if (matcher.group(2) == null) {
+				version += ".0.0";
+			} else if (matcher.group(3) == null) {
+				version += ".0";
+			}
+		} else {
+			version = "0.0.1";
+		}
+		
+		return version;
 	}
 }

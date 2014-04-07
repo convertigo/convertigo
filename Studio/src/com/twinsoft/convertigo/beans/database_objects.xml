@@ -105,29 +105,32 @@
 	<group name="Mobile Application">
 		<category>
 			<beans>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.core.MobileApplication">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
                 </bean>
 			</beans>
 		</category>
 		<category name="Devices">
-			<beans groupname="Mobile devices">
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.Android">
+			<beans groupname="Mobile Platforms">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobileplatforms.Android">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.BlackBerry6">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobileplatforms.BlackBerry">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPad">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobileplatforms.BlackBerry10">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPhone3">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobileplatforms.IOs">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.IPhone4">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobileplatforms.Windows8">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
-				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.mobiledevices.WindowsPhone7">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone7">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
+				</bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.MobileApplication"/>
 				</bean>
 			</beans>
