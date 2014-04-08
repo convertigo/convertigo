@@ -244,26 +244,6 @@
             project="true">
             <description>Creates a BULL DKUxxx Web style webization project.</description> 
             </wizard>
-      <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New3270FlexWizard"
-            icon="icons/studio/flex_color_32x32.gif"
-            id="com.twinsoft.convertigo.eclipse.wizards.New3270FlexWizard"
-            name="3270 Flex Style"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates an IBM 3270 Flex webization project.</description> 
-            </wizard>
-      <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyweb"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.New5250FlexWizard"
-            icon="icons/studio/flex_color_32x32.gif"
-            id="com.twinsoft.convertigo.eclipse.wizards.New5250FlexWizard"
-            name="5250 Flex Style"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates an IBM 5250 Flex webization project.</description> 
-            </wizard>
 <!-- Legacy integration projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"

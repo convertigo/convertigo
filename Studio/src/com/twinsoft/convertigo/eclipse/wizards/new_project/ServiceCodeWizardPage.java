@@ -181,8 +181,6 @@ public class ServiceCodeWizardPage extends WizardPage {
 				break;
 			case NewProjectWizard.TEMPLATE_WEB_HTML_IBM_3270:
 			case NewProjectWizard.TEMPLATE_WEB_HTML_IBM_5250:
-			case NewProjectWizard.TEMPLATE_FLEX_IBM_3270:
-			case NewProjectWizard.TEMPLATE_FLEX_IBM_5250:
 			case NewProjectWizard.TEMPLATE_EAI_IBM_3270:
 			case NewProjectWizard.TEMPLATE_EAI_IBM_5250:
 			case NewProjectWizard.TEMPLATE_EAI_UNIX_VT220:

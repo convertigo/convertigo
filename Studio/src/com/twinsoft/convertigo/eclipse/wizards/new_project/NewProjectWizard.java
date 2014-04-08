@@ -103,8 +103,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_WEB_HTML_BULL_DKU_7107 = 102;
 	public static final int TEMPLATE_WEB_GREENSCREEN_IBM_3270 = 150;
 	public static final int TEMPLATE_WEB_GREENSCREEN_IBM_5250 = 151;
-	public static final int TEMPLATE_FLEX_IBM_3270 = 110;
-	public static final int TEMPLATE_FLEX_IBM_5250 = 111;
 	public static final int TEMPLATE_MOBILE_IBM_3270 = 200;
 	public static final int TEMPLATE_MOBILE_IBM_5250 = 201;
 	public static final int TEMPLATE_EAI_IBM_3270 = 300;
@@ -165,7 +163,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	// to import blank project
 	public static final String JAVELIN_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME = "template_javelin.car";
 	public static final String DKU_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME = "template_javelinDKU.car";
-	public static final String JAVELIN_FLEX_TEMPLATE_PROJECT_FILE_NAME = "template_FLEX.car";
 	public static final String WEB_CLIPPING_TEMPLATE_PROJECT_FILE_NAME = "template_webClipping.car";
 	public static final String JAVELIN_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_javelinIntegration.car";
 	public static final String WEB_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_webIntegration.car";
@@ -268,8 +265,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case TEMPLATE_WEB_HTML_BULL_DKU_7107:
 		case TEMPLATE_WEB_HTML_IBM_3270:
 		case TEMPLATE_WEB_HTML_IBM_5250:
-		case TEMPLATE_FLEX_IBM_3270:
-		case TEMPLATE_FLEX_IBM_5250:
 		case TEMPLATE_EAI_IBM_3270:
 		case TEMPLATE_EAI_IBM_5250:
 		case TEMPLATE_EAI_BULL_DKU_7107:
@@ -412,8 +407,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_WEB_HTML_BULL_DKU_7107:
 			case TEMPLATE_WEB_HTML_IBM_3270:
 			case TEMPLATE_WEB_HTML_IBM_5250:
-			case TEMPLATE_FLEX_IBM_3270:
-			case TEMPLATE_FLEX_IBM_5250:
 			case TEMPLATE_WEB_CLIPPING_CONNECTOR:
 			case TEMPLATE_EAI_BULL_DKU_7107:
 			case TEMPLATE_EAI_IBM_3270:
@@ -550,12 +543,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 					+ JAVELIN_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME;
 			oldProjectName = JAVELIN_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME.substring(0,
 					JAVELIN_PUBLISHER_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case TEMPLATE_FLEX_IBM_3270:
-		case TEMPLATE_FLEX_IBM_5250:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + JAVELIN_FLEX_TEMPLATE_PROJECT_FILE_NAME;
-			oldProjectName = JAVELIN_FLEX_TEMPLATE_PROJECT_FILE_NAME.substring(0,
-					JAVELIN_FLEX_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case TEMPLATE_EAI_BULL_DKU_7107:
 		case TEMPLATE_EAI_IBM_3270:
@@ -695,14 +682,12 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				emulatorTechnologyName = "BullDKU7107"; //$NON-NLS-1$
 				break;
 			case TEMPLATE_WEB_HTML_IBM_3270:
-			case TEMPLATE_FLEX_IBM_3270:
 			case TEMPLATE_EAI_IBM_3270:
 				newEmulatorTechnology = Session.SNA;
 				newIbmTerminalType = "IBM-3279";
 				emulatorTechnologyName = "IBM3270"; //$NON-NLS-1$
 				break;
 			case TEMPLATE_WEB_HTML_IBM_5250:
-			case TEMPLATE_FLEX_IBM_5250:
 			case TEMPLATE_EAI_IBM_5250:
 				newEmulatorTechnology = Session.AS400;
 				newIbmTerminalType = "IBM-3179";
@@ -765,8 +750,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_WEB_HTML_BULL_DKU_7107:
 			case TEMPLATE_WEB_HTML_IBM_3270:
 			case TEMPLATE_WEB_HTML_IBM_5250:
-			case TEMPLATE_FLEX_IBM_3270:
-			case TEMPLATE_FLEX_IBM_5250:
 			case TEMPLATE_EAI_BULL_DKU_7107:
 			case TEMPLATE_EAI_IBM_3270:
 			case TEMPLATE_EAI_IBM_5250:
