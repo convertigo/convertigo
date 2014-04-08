@@ -28,13 +28,15 @@ import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
+import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class XMLComplexStep extends StepWithExpressions implements IComplexTypeAffectation {
+public class XMLComplexStep extends StepWithExpressions implements IComplexTypeAffectation, IElementRefAffectation {
 
 	private static final long serialVersionUID = 7002348210812220725L;
 
@@ -59,8 +61,11 @@ public class XMLComplexStep extends StepWithExpressions implements IComplexTypeA
 
 	@Override
 	public String toString() {
+		XmlQName xmlQName = getXmlElementRefAffectation();
+		xmlQName = xmlQName.isEmpty() ? getXmlComplexTypeAffectation():xmlQName;
+		
 		String text = this.getComment();
-		String tag = "<"+ nodeName +"> " + getComplexTypeAffectation();
+		String tag = "<"+ getStepNodeName() +"> " + xmlQName.getQName();
 		return tag + (!text.equals("") ? " // "+text:"");
 	}
 	
@@ -82,6 +87,8 @@ public class XMLComplexStep extends StepWithExpressions implements IComplexTypeA
 
 	@Override
 	public String getStepNodeName() {
+		if (!getXmlElementRefAffectation().isEmpty())
+			return getXmlElementRefAffectation().getQName().getLocalPart();		
 		return getNodeName();
 	}
 

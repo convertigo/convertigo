@@ -141,7 +141,7 @@ public class SchemaViewLabelDecorator implements ILabelDecorator {
 				
 				int size = SchemaMeta.getReferencedDatabaseObjects(xso).size();
 				
-				if (size > 1 || size == 0 && element instanceof XmlSchemaComplexType && ((XmlSchemaComplexType) element).getName() != null) {
+				if (size > 1 || size >= 0 && element instanceof XmlSchemaComplexType && ((XmlSchemaComplexType) element).getName() != null) {
 					decoratedText += " (" + size + ")";
 				}
 				

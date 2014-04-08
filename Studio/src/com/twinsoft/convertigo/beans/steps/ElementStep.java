@@ -40,7 +40,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
+import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
@@ -50,7 +52,7 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class ElementStep extends StepWithExpressions implements IComplexTypeAffectation, ISimpleTypeAffectation {
+public class ElementStep extends StepWithExpressions implements IComplexTypeAffectation, ISimpleTypeAffectation, IElementRefAffectation {
 
 	private static final long serialVersionUID = 3276050659362959159L;
 	
@@ -96,7 +98,9 @@ public class ElementStep extends StepWithExpressions implements IComplexTypeAffe
 		try {
 			label += " " + getLabel();
 		} catch (EngineException e) {}
-		return "<"+ nodeName +">" + label + " " + getComplexTypeAffectation() + (!text.equals("") ? " // "+text:"");
+		XmlQName xmlQName = getXmlElementRefAffectation();
+		xmlQName = xmlQName.isEmpty() ? getXmlComplexTypeAffectation():xmlQName;
+		return "<"+ getStepNodeName() +">" + label + " " + xmlQName.getQName() + (!text.equals("") ? " // "+text:"");
 	}
 
 	protected boolean workOnSource() {
@@ -133,6 +137,8 @@ public class ElementStep extends StepWithExpressions implements IComplexTypeAffe
 
 	@Override
 	public String getStepNodeName() {
+		if (!getXmlElementRefAffectation().isEmpty())
+			return getXmlElementRefAffectation().getQName().getLocalPart();		
 		return getNodeName();
 	}
 

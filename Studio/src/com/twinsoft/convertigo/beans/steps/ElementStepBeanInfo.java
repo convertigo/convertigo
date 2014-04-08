@@ -63,6 +63,7 @@ public class ElementStepBeanInfo extends MySimpleBeanInfo {
             
             getPropertyDescriptor("xmlComplexTypeAffectation").setHidden(false);
             getPropertyDescriptor("xmlSimpleTypeAffectation").setHidden(false);
+            getPropertyDescriptor("xmlElementRefAffectation").setHidden(false);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

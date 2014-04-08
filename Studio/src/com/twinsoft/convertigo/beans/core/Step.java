@@ -78,7 +78,8 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
     private boolean output = false;
     private XmlQName xmlComplexTypeAffectation = new XmlQName();
     private XmlQName xmlSimpleTypeAffectation = new XmlQName(Constants.XSD_STRING);
-
+    private XmlQName xmlElementRefAffectation = new XmlQName();
+    
 	transient protected boolean xml = false;
     transient protected List<Sheet> vSheets = new LinkedList<Sheet>();
 	transient protected Hashtable<Long, String> executedSteps = null;
@@ -1043,7 +1044,12 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	public XmlSchemaObject getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement element = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
-		element.setName(getStepNodeName());
+		if (getXmlElementRefAffectation().isEmpty()) {
+			element.setName(getStepNodeName());
+		}
+		else {
+			element.setRefName(getXmlElementRefAffectation().getQName());
+		}
 		addXmlSchemaAnnotation(element);
 		return element;
 	}
@@ -1116,5 +1122,17 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			qName = Constants.XSD_STRING;
 		}
 		return qName;
+	}
+	
+	public XmlQName getXmlElementRefAffectation() {
+		return xmlElementRefAffectation;
+	}
+
+	public void setXmlElementRefAffectation(XmlQName xmlElementRefAffectation) {
+		this.xmlElementRefAffectation = xmlElementRefAffectation;
+	}
+
+	public QName getElementRefAffectation() {
+		return getXmlElementRefAffectation().getQName();
 	}
 }

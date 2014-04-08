@@ -9,6 +9,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -43,11 +45,13 @@ import org.xml.sax.SAXException;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
+import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaImportGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaIncludeGenerator;
 import com.twinsoft.convertigo.beans.core.ISchemaParticleGenerator;
+import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -262,14 +266,7 @@ public class SchemaManager implements AbstractManager {
 							
 							XmlSchemaComplexType cType = (XmlSchemaComplexType) schema.getTypeByName(sequence.getComplexTypeAffectation().getLocalPart());
 							
-							// add the 'error' element
 							XmlSchemaSequence xmlSeq = XmlSchemaUtils.makeDynamicReadOnly(databaseObject, new XmlSchemaSequence());
-							XmlSchemaElement eError = XmlSchemaUtils.makeDynamicReadOnly(databaseObject, new XmlSchemaElement());
-							eError.setName("error");
-							eError.setMinOccurs(0);
-							eError.setMaxOccurs(1);
-							eError.setSchemaTypeName(schema.getTypeByName("ConvertigoError").getQName());
-							xmlSeq.getItems().add(eError);
 							cType.setParticle(xmlSeq);
 							
 							// add particles
@@ -283,6 +280,38 @@ public class SchemaManager implements AbstractManager {
 							for (XmlSchemaAttribute attribute : attributeChildren) {
 								cType.getAttributes().add(attribute);
 							}
+							
+							// add the 'error' element if needed
+							XmlSchemaType eType = schema.getTypeByName("ConvertigoError");
+							if (eType != null) {
+								boolean found = false;
+								Set<DatabaseObject> dbos = SchemaMeta.getReferencedDatabaseObjects(eType);
+								for (DatabaseObject dbo : dbos) {
+									if (dbo instanceof Step) {
+										Step errorStep = (Step)dbo;
+										if (errorStep.getSequence().equals(sequence) && errorStep.getStepNodeName().equals("error")) {
+											found = true;
+											break;
+										}
+									}
+								}
+								if (!found) {
+									XmlSchemaElement eError = XmlSchemaUtils.makeDynamicReadOnly(databaseObject, new XmlSchemaElement());
+									eError.setName("error");
+									eError.setMinOccurs(0);
+									eError.setMaxOccurs(1);
+									eError.setSchemaTypeName(eType.getQName());
+									xmlSeq.getItems().add(eError);
+									SchemaMeta.getReferencedDatabaseObjects(eType).add(sequence);
+								}
+							}
+							
+						//--------------------------- For Further Use -------------------------------------------------//
+							//Modify schema to avoid 'cosamb' (same tagname&type in different groupBase at same level)
+							//TODO : IfThenElse steps must be modified for xsd:sequence instead of xsd:choice
+							//TODO : Then/Else steps must be modified to add minOccurs=0 on xsd:sequence
+							//TODO : review/improve cosnoamb(XmlSchema, XmlSchemaGroupBase, XmlSchemaGroupBase) method
+						//---------------------------------------------------------------------------------------------//
 							
 						}
 						// Step case
@@ -300,13 +329,42 @@ public class SchemaManager implements AbstractManager {
 								List<XmlSchemaParticle> myParticleChildren = null;
 								List<XmlSchemaAttribute> myAttributeChildren = null;
 								
+								// is base affected ?
+								@SuppressWarnings("unused")
+								XmlSchemaType base = null;
+								QName baseQName = step instanceof ISimpleTypeAffectation ? ((ISimpleTypeAffectation) step).getSimpleTypeAffectation() : null;
+								if (baseQName != null && baseQName.getLocalPart().length() > 0) {
+									base = baseQName.getNamespaceURI().length() == 0 ? schema.getTypeByName(baseQName.getLocalPart()) : collection.getTypeByQName(baseQName);
+								}
+								
 								// is type affected ?
 								XmlSchemaType type = null;
-								QName qName = step instanceof IComplexTypeAffectation ? ((IComplexTypeAffectation) step).getComplexTypeAffectation() : null;
-								if (qName != null && qName.getLocalPart().length() > 0) {
-									type = qName.getNamespaceURI().length() == 0 ? schema.getTypeByName(qName.getLocalPart()) : collection.getTypeByQName(qName);
+								QName typeQName = step instanceof IComplexTypeAffectation ? ((IComplexTypeAffectation) step).getComplexTypeAffectation() : null;
+								if (typeQName != null && typeQName.getLocalPart().length() > 0) {
+									type = typeQName.getNamespaceURI().length() == 0 ? schema.getTypeByName(typeQName.getLocalPart()) : collection.getTypeByQName(typeQName);
 								}
 
+								// is element affected ?
+								XmlSchemaElement ref = null;
+								QName refQName = step instanceof IElementRefAffectation ? ((IElementRefAffectation) step).getElementRefAffectation() : null;
+								if (refQName != null && refQName.getLocalPart().length() > 0) {
+									ref = refQName.getNamespaceURI().length() == 0 ? schema.getElementByName(refQName.getLocalPart()) : collection.getElementByQName(refQName);
+									
+									typeQName = new QName(schema.getTargetNamespace(),refQName.getLocalPart()+"Type");
+									
+									if (ref == null && refQName.getNamespaceURI().equals(schema.getTargetNamespace())) {
+										ref = XmlSchemaUtils.makeDynamic(step, new XmlSchemaElement());
+										ref.setQName(refQName);
+										ref.setName(refQName.getLocalPart());
+										ref.setSchemaTypeName(baseQName);
+										XmlSchemaUtils.add(schema, ref);
+									}
+									else if (ref != null) {
+										ref.setSchemaTypeName(baseQName);
+										type = typeQName.getNamespaceURI().length() == 0 ? schema.getTypeByName(typeQName.getLocalPart()) : collection.getTypeByQName(typeQName);
+									}
+								}
+								
 								if (type == null || !SchemaMeta.isReadOnly(type)) {
 
 									// prepare to receive children
@@ -335,7 +393,7 @@ public class SchemaManager implements AbstractManager {
 										parentParticleChildren.add(particle);
 										
 										// retrieve the xsd:element to add children
-										XmlSchemaElement element = SchemaMeta.getContainerXmlSchemaElement(particle);
+										XmlSchemaElement element = SchemaMeta.getContainerXmlSchemaElement(ref == null ? particle : ref);
 
 										// retrieve the group to add children if any
 										XmlSchemaGroupBase group = SchemaMeta.getContainerXmlSchemaGroupBase(element != null ? element : particle);
@@ -383,7 +441,7 @@ public class SchemaManager implements AbstractManager {
 
 										if (element != null) {
 											// check if the type is named
-											if (qName != null && qName.getLocalPart().length() > 0) {
+											if (typeQName != null && typeQName.getLocalPart().length() > 0) {
 												if (cType == null) {
 													cType = XmlSchemaUtils.makeDynamic(step, new XmlSchemaComplexType(schema));
 													makeSimpleContentExtension(step, element, cType);
@@ -391,7 +449,7 @@ public class SchemaManager implements AbstractManager {
 
 												if (type == null) {
 													// the type doesn't exist, declare it
-													cType.setName(qName.getLocalPart());
+													cType.setName(typeQName.getLocalPart());
 													schema.addType(cType);
 													schema.getItems().add(cType);
 												} else {
@@ -429,8 +487,9 @@ public class SchemaManager implements AbstractManager {
 								} else {
 									// re-use read only type									
 									XmlSchemaElement elt = XmlSchemaUtils.makeDynamic(step, new XmlSchemaElement());
+									SchemaMeta.getReferencedDatabaseObjects(type).add(step);
 									elt.setName(step.getStepNodeName());
-									elt.setSchemaTypeName(qName);
+									elt.setSchemaTypeName(typeQName);
 									particleChildren.add(elt);
 								}
 							}
@@ -568,6 +627,13 @@ public class SchemaManager implements AbstractManager {
 			// the type must be customized, create an extension
 			element.setSchemaTypeName(null);
 
+			return makeSimpleContentExtension(databaseObject, cType, typeName);
+		}
+		return null;
+	}
+	
+	private XmlSchemaSimpleContentExtension makeSimpleContentExtension(DatabaseObject databaseObject, XmlSchemaComplexType cType, QName typeName) {
+		if (typeName != null) {
 			XmlSchemaSimpleContent sContent = XmlSchemaUtils.makeDynamic(databaseObject, new XmlSchemaSimpleContent());
 			cType.setContentModel(sContent);
 
@@ -579,6 +645,175 @@ public class SchemaManager implements AbstractManager {
 			return sContentExt;
 		}
 		return null;
+	}
+
+	private static XmlSchemaParticle cosnoamb(XmlSchema xmlSchema, XmlSchemaGroupBase xmlParentSchemaGroupBase, XmlSchemaParticle xmlSchemaParticle) {
+		if (xmlSchemaParticle instanceof XmlSchemaElement) {
+			return (XmlSchemaParticle)xmlSchemaParticle;
+		}
+		else if (xmlSchemaParticle instanceof XmlSchemaGroupBase) {
+			XmlSchemaGroupBase xmlSchemaGroupBase =  cosnoamb(xmlSchema, xmlParentSchemaGroupBase, (XmlSchemaGroupBase)xmlSchemaParticle);
+			return xmlSchemaGroupBase;
+		}
+		return xmlSchemaParticle;
+	}
+	
+	private static XmlSchemaGroupBase cosnoamb(XmlSchema xmlSchema, XmlSchemaGroupBase xmlParentSchemaGroupBase, XmlSchemaGroupBase xmlSchemaGroupBase) {
+		System.out.println(" xmlSchemaGroupBase@"+xmlSchemaGroupBase.hashCode());
+		List<XmlSchemaParticle> items = new XmlSchemaUtils.XmlSchemaObjectCollectionList<XmlSchemaParticle>(xmlSchemaGroupBase.getItems());
+		int size = items.size();
+		int i = 0, j = 1;
+		
+		if (size > 1 ) {
+			while (i < size) {
+				XmlSchemaParticle item1 = cosnoamb(xmlSchema, xmlSchemaGroupBase, items.get(i));
+				while (j <= size-1) {
+					XmlSchemaParticle item2 = cosnoamb(xmlSchema, xmlSchemaGroupBase, items.get(j));
+					if (compare(xmlSchema, xmlSchemaGroupBase, item1, item2) == 0) {
+						items = new XmlSchemaUtils.XmlSchemaObjectCollectionList<XmlSchemaParticle>(xmlSchemaGroupBase.getItems());
+						size = items.size();
+						item1 = items.get(j-1);
+					}
+					else {
+						j++;
+						break;
+					}
+				}
+				i++;
+			}
+		}
+		return xmlSchemaGroupBase;
+	}
+	
+	
+	private static int compare(XmlSchema xmlSchema, XmlSchemaGroupBase xmlSchemaGroupBase, XmlSchemaParticle item1, XmlSchemaParticle item2) {
+		Comparator<XmlSchemaElement> c = new Comparator<XmlSchemaElement>() {
+			@Override
+			public int compare(XmlSchemaElement e1, XmlSchemaElement e2) {
+				String name1 = e1.getName().equals("") ? e1.getRefName().getLocalPart():e1.getName();
+				String name2 = e2.getName().equals("") ? e2.getRefName().getLocalPart():e2.getName();
+				System.out.println("  comparing " +  name1 +" and " + name2 +" ...");
+				int result = -1;
+				if (name1.equals(name2)) {
+					if (e1.getRefName()!=null && e1.getRefName()!=null)
+						result = e1.getRefName().equals(e2.getRefName()) ? 0:-1;
+					else if (e1.getSchemaTypeName()!=null && e2.getSchemaTypeName()!=null)
+						result = e1.getSchemaTypeName().equals(e2.getSchemaTypeName()) ? 0:-1;
+					else if (e1.getSchemaType()!=null && e2.getSchemaType()!=null)
+						result = e1.getSchemaType().equals(e2.getSchemaType()) ? 0:-1;
+					
+					if (result == 0) {
+						
+					}
+				}
+				return result;
+			}
+		};
+		
+		Map<XmlSchemaElement, XmlSchemaGroupBase> map1 = getFirstElement(xmlSchemaGroupBase, item1);
+		Map<XmlSchemaElement, XmlSchemaGroupBase> map2 = getFirstElement(xmlSchemaGroupBase, item2);
+		
+		Entry<XmlSchemaElement, XmlSchemaGroupBase>  o1 = null, o2 = null;
+		if (!map1.isEmpty()) o1 = map1.entrySet().iterator().next();
+		if (!map2.isEmpty()) o2 = map2.entrySet().iterator().next();
+		if (o1 != null && o2 != null) {
+			XmlSchemaElement e1 = o1.getKey();
+			XmlSchemaGroupBase g1 = o1.getValue();
+			XmlSchemaElement e2 = o2.getKey();
+			XmlSchemaGroupBase g2 = o2.getValue();
+			if (c.compare(e1, e2) == 0) {
+				System.out.println("     cosamb between (XmlSchemaElement@" + e1.hashCode()+") and (XmlSchemaElement@" + e2.hashCode()+") !");
+				List<Long> dimensions = getMinMaxOccurs(xmlSchemaGroupBase, o1,o2);
+				if (!dimensions.isEmpty()) {
+					int index = XmlSchemaUtils.indexOf(xmlSchemaGroupBase.getItems(), item1);
+					XmlSchemaUtils.remove(g1.getItems(), e1);
+					XmlSchemaUtils.remove(g2.getItems(), e2);
+					xmlSchemaGroupBase.getItems().setItem(index, e1);
+					e1.setMinOccurs(dimensions.get(0));
+					e1.setMaxOccurs(dimensions.get(1));
+					
+					// for source picker
+					//DatabaseObject dbo2 = SchemaMeta.getReferencedDatabaseObjects(e2).iterator().next();
+					//SchemaMeta.setXmlSchemaObject(xmlSchema,dbo2,e1);
+					
+					SchemaMeta.getReferencedDatabaseObjects(e1).addAll(SchemaMeta.getReferencedDatabaseObjects(e2));
+					return 0;
+				}
+			}
+		}
+		else {
+			if (o2 == null) {
+				XmlSchemaUtils.remove(xmlSchemaGroupBase.getItems(), item2);
+				return 0;
+			}
+		}
+		return -1;
+	}
+
+	private static List<Long> getMinMaxOccurs(XmlSchemaGroupBase xmlSchemaGroupBase, Entry<XmlSchemaElement, XmlSchemaGroupBase> o1, Entry<XmlSchemaElement, XmlSchemaGroupBase> o2) {
+		List<Long> dimensions = new ArrayList<Long>();
+		XmlSchemaElement e1 = o1.getKey();
+		XmlSchemaGroupBase g1 = o1.getValue();
+		XmlSchemaElement e2 = o2.getKey();
+		XmlSchemaGroupBase g2 = o2.getValue();
+		
+		long g1Min = g1.getMinOccurs();
+		long g1Max = g1.getMaxOccurs();
+		long e1Min = e1.getMinOccurs();
+		long e1Max = e1.getMaxOccurs();
+		
+		long g2Min = g2.getMinOccurs();
+		long g2Max = g2.getMaxOccurs();
+		long e2Min = e2.getMinOccurs();
+		long e2Max = e2.getMaxOccurs();
+		
+		if (g1.hashCode() == g2.hashCode()) {
+			dimensions.add(e1Min + e2Min);
+			dimensions.add(e1Max + e2Max);
+		}
+		else {
+			if (xmlSchemaGroupBase.hashCode() != g1.hashCode() && xmlSchemaGroupBase.hashCode() != g2.hashCode()) {
+				if (g1Min == g2Min) {
+					if (g1Max == g2Max) {
+						if (e1Min == e2Max && e1Max == e2Max) {
+							dimensions.add(g1Min);
+							dimensions.add(e1Max + e2Max);
+						}
+					}
+					else {
+						//TODO
+					}
+				}
+				else {
+					//TODO
+				}
+			}
+			else {
+				dimensions.add(e1Min);
+				dimensions.add(e1Max);
+			}
+		}
+		return dimensions;
+	}
+
+	private static Map<XmlSchemaElement, XmlSchemaGroupBase> getFirstElement(XmlSchemaGroupBase parentSchemaGroupBase, XmlSchemaParticle particle) {
+		Map<XmlSchemaElement, XmlSchemaGroupBase> map = new HashMap<XmlSchemaElement, XmlSchemaGroupBase>();
+		if (particle instanceof XmlSchemaElement) {
+			map.put((XmlSchemaElement)particle, parentSchemaGroupBase);
+		}
+		else if (particle instanceof XmlSchemaGroupBase) {
+			XmlSchemaGroupBase xmlSchemaGroupBase = (XmlSchemaGroupBase)particle;
+			List<XmlSchemaParticle> items = new XmlSchemaUtils.XmlSchemaObjectCollectionList<XmlSchemaParticle>(xmlSchemaGroupBase.getItems());
+			if (items.size() > 0) {
+				if (items.get(0) instanceof XmlSchemaElement) {
+					map.put((XmlSchemaElement)items.get(0), xmlSchemaGroupBase);
+				}
+				else {
+					map = getFirstElement(xmlSchemaGroupBase, items.get(0));
+				}
+			}
+		}
+		return map;
 	}
 	
 	private static void merge(XmlSchemaComplexType first, XmlSchemaComplexType second) {

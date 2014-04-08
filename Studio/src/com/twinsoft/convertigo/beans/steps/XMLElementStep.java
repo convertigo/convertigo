@@ -35,7 +35,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
+import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
+import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -44,8 +46,9 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
-public class XMLElementStep extends StepWithExpressions implements IStepSourceContainer, IComplexTypeAffectation, ISimpleTypeAffectation {
+public class XMLElementStep extends StepWithExpressions implements IStepSourceContainer, IComplexTypeAffectation, ISimpleTypeAffectation, IElementRefAffectation {
 
 	private static final long serialVersionUID = -427374285639844989L;
 	
@@ -82,7 +85,9 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 			label += (sourceDefinition.size() > 0) ? " @("+ getLabel()+")":" =\""+nodeText+"\"";
 		} catch (EngineException e) {
 		}
-		return "<"+ nodeName +">" + label + " " + getComplexTypeAffectation() + (!text.equals("") ? " // "+text:"");
+		XmlQName xmlQName = getXmlElementRefAffectation();
+		xmlQName = xmlQName.isEmpty() ? getXmlComplexTypeAffectation():xmlQName;
+		return "<"+ getStepNodeName() +">" + label + " " + xmlQName.getQName() + (!text.equals("") ? " // "+text:"");
 	}
 	
 	protected boolean workOnSource() {
@@ -112,6 +117,8 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 
 	@Override
 	public String getStepNodeName() {
+		if (!getXmlElementRefAffectation().isEmpty())
+			return getXmlElementRefAffectation().getQName().getLocalPart();		
 		return getNodeName();
 	}
 	
@@ -202,8 +209,15 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 	
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
-		element.setSchemaTypeName(getSimpleTypeAffectation());
+		XmlSchemaElement element = XmlSchemaUtils.makeDynamic(this, new XmlSchemaElement());
+		if (!getXmlElementRefAffectation().isEmpty()) {
+			element.setName("");
+			element.setRefName(getElementRefAffectation());
+		}
+		else {
+			element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
+			element.setSchemaTypeName(getSimpleTypeAffectation());
+		}
 		return element;
 	}
 }

@@ -722,4 +722,28 @@ public class XmlSchemaUtils {
 		}
 	}
 
+	public static void remove(XmlSchemaObjectCollection xmlSchemaObjectCollection, XmlSchemaObject xmlSchemaObject) {
+		Iterator<XmlSchemaObject> it = GenericUtils.cast(xmlSchemaObjectCollection.getIterator());
+		while (it.hasNext()) {
+			XmlSchemaObject ob = it.next();
+			if (ob.hashCode() == (xmlSchemaObject.hashCode())) {
+				it.remove();
+				return;
+			}
+		}
+	}
+	
+	public static int indexOf(XmlSchemaObjectCollection xmlSchemaObjectCollection, XmlSchemaObject xmlSchemaObject) {
+		Iterator<XmlSchemaObject> it = GenericUtils.cast(xmlSchemaObjectCollection.getIterator());
+		int i = 0;
+		while (it.hasNext()) {
+			XmlSchemaObject ob = it.next();
+			if (ob.hashCode() == (xmlSchemaObject.hashCode())) {
+				return i;
+			}
+			i++;
+		}
+		return -1;
+	}
+
 }
