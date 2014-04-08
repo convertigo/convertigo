@@ -206,7 +206,7 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     }
     
     public static String getIconName(BeanInfo bean, int iconType) {
-    	return (String) bean.getBeanDescriptor().getValue("icon" + iconType);
+    	return bean != null ? (String) bean.getBeanDescriptor().getValue("icon" + iconType) : null;
     }
     
     protected PropertyDescriptor getPropertyDescriptor(String name) throws IntrospectionException {
