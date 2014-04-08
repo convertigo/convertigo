@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.text.DateFormat;
 import java.text.ParsePosition;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,8 +38,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.engine.Engine;
-
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 public class TemporalInputStream extends InputStream {
 	private final static Pattern split_dot = Pattern.compile("\\.");

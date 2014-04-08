@@ -63,7 +63,6 @@
 	<classpathentry kind="lib" path="lib/jtds-1.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/apache/batik/batik.jar"/>
 	<classpathentry kind="lib" path="lib/apache/bcel/bcel-5.2.jar"/>
-	<classpathentry kind="lib" path="lib/backport/backport-util-concurrent-3.1.jar"/>
 	<classpathentry kind="lib" path="lib/soapui/bcprov-jdk15-141.jar"/>
 	<classpathentry kind="lib" path="lib/soapui/commons-beanutils-1.7.0.jar"/>
 	<classpathentry kind="lib" path="lib/soapui/commons-cli-1.0.jar"/>

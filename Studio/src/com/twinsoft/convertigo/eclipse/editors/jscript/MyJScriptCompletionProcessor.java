@@ -27,21 +27,19 @@ import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ContextInformation;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
-import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.wst.jsdt.ui.text.java.ContentAssistInvocationContext;
 import org.eclipse.wst.jsdt.ui.text.java.IJavaCompletionProposalComputer;
-import org.mozilla.javascript.edu.emory.mathcs.backport.java.util.Arrays;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
@@ -219,6 +217,8 @@ public class MyJScriptCompletionProcessor implements IJavaCompletionProposalComp
 	/*
 	 * @see org.eclipse.jface.text.contentassist.ICompletionProposalComputer#computeContextInformation(org.eclipse.jface.text.contentassist.TextContentAssistInvocationContext, org.eclipse.core.runtime.IProgressMonitor)
 	 */
+    @SuppressWarnings("rawtypes")
+	@Override
 	public List computeContextInformation(ContentAssistInvocationContext context, IProgressMonitor monitor) {
 		return null;
 	}
@@ -250,8 +250,8 @@ public class MyJScriptCompletionProcessor implements IJavaCompletionProposalComp
      * (non-Javadoc)
      * @see org.eclipse.jface.text.contentassist.IContentAssistProcessor#computeCompletionProposals(org.eclipse.jface.text.ITextViewer, int)
      */
-    
-	public List computeCompletionProposals(ContentAssistInvocationContext context, IProgressMonitor monitor) 
+	@Override
+	public List<ICompletionProposal> computeCompletionProposals(ContentAssistInvocationContext context, IProgressMonitor monitor) 
 	{
 		IDocument				document	= context.getDocument();
 		int						offset		= context.getInvocationOffset();
@@ -299,8 +299,7 @@ public class MyJScriptCompletionProcessor implements IJavaCompletionProposalComp
 			return null;
 		}
 	}
-
-
+	
 	public void sessionEnded() {
 		return;
 	}

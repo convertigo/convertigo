@@ -22,6 +22,7 @@
 
 package com.twinsoft.convertigo.beans.core;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,8 +54,6 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
-
-import edu.emory.mathcs.backport.java.util.Collections;
 
 public abstract class TransactionWithVariables extends Transaction implements IVariableContainer, ITestCaseContainer, IContainerOrdered {
     

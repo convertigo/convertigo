@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.engine.admin.services.logs;
 
 import java.io.File;
 import java.security.InvalidParameterException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -33,12 +34,10 @@ import javax.servlet.http.HttpServletRequest;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.admin.logmanager.LogManager;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
-
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 @ServiceDefinition(
 		name = "Purge",
