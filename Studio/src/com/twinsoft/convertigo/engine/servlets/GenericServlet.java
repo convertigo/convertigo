@@ -104,19 +104,41 @@ public abstract class GenericServlet extends HttpServlet {
 	}
 
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException,
-			java.io.IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
 		doRequest(request, response);
 	}
 
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
-			java.io.IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
 		doRequest(request, response);
 	}
 
-	protected void doRequest(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, java.io.IOException {
+	@Override
+	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+		doRequest(request, response);
+	}
+
+	@Override
+	protected void doHead(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+		doRequest(request, response);
+	}
+
+	@Override
+	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+		doRequest(request, response);
+	}
+
+	@Override
+	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+		doRequest(request, response);
+	}
+
+	@Override
+	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
+		doRequest(request, response);
+	}
+
+	protected void doRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, java.io.IOException {
 		HttpServletRequestTwsWrapper wrapped_request = new HttpServletRequestTwsWrapper(request);
 		request = wrapped_request;
 

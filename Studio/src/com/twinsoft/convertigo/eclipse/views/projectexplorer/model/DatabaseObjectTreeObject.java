@@ -568,24 +568,24 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	            	value = ((Boolean) value).booleanValue() ? new Integer(0) : new Integer(1); 
 	            }
 	            else if ((pec != null) && PropertyWithTagsEditor.class.isAssignableFrom(pec)) {
-	        		if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)) {      			
+	        		if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec) && !(value instanceof Integer)) {      			
 	        			Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
 	        			String[] tags = (String[]) getTags.invoke(null, new Object[] { this, propertyName } );
-	        			
-		        		int i;
-		        		for (i = 0 ; i < tags.length ; i++) {
-	        				if (tags[i].equals(value)) {
-	        					value = new Integer(i);
-	        					break;
-	        				}
-	        			}
-		        		
-		        		// if we did not find our string in the tag list set value to index 0
-		        		if (i == tags.length) {
-		        			value = new Integer(0);
-		                    String message = "Incorrect property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
-		                    ConvertigoPlugin.logWarning(message);
-		        		}
+
+        				int i;
+        				for (i = 0 ; i < tags.length ; i++) {
+        					if (tags[i].equals(value)) {
+        						value = new Integer(i);
+        						break;
+        					}
+        				}
+
+        				// if we did not find our string in the tag list set value to index 0
+        				if (i == tags.length) {
+        					value = new Integer(0);
+        					String message = "Incorrect property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
+        					ConvertigoPlugin.logWarning(message);
+        				}
 	        		}
 	        		if ((EmulatorTechnologyEditor.class.equals(pec))) {
 	            		Method getEmulatorClassNames = pec.getDeclaredMethod("getEmulatorClassNames", new Class[] { DatabaseObjectTreeObject.class });
@@ -675,18 +675,18 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			Class<?> propertyClass = databaseObjectPropertyDescriptor.getPropertyType();
 			Class<?> pec = databaseObjectPropertyDescriptor.getPropertyEditorClass();
 			
-    		if ((pec != null) && (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec))) {
-        			Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
-        			String[] tags = (String[]) getTags.invoke(null, new Object[] { this, propertyName } );
-            		
-            		try {
-            			value = tags[((Integer) value).intValue()];
-            		}
-            		catch (ArrayIndexOutOfBoundsException e) {
-            			value = "";
-	                    String message = "Incorrect property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
-	                    ConvertigoPlugin.logWarning(message);
-            		}
+    		if ((pec != null) && (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)) && propertyClass != int.class && propertyClass != Integer.class) {
+    			Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
+    			String[] tags = (String[]) getTags.invoke(null, new Object[] { this, propertyName } );
+        		
+        		try {
+        			value = tags[((Integer) value).intValue()];
+        		}
+        		catch (ArrayIndexOutOfBoundsException e) {
+        			value = "";
+                    String message = "Incorrect property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
+                    ConvertigoPlugin.logWarning(message);
+        		}
             }
     		if ((EmulatorTechnologyEditor.class.equals(pec))) {
         		Method getEmulatorClassNames = pec.getDeclaredMethod("getEmulatorClassNames", new Class[] { DatabaseObjectTreeObject.class });
