@@ -97,10 +97,6 @@ class InputDocumentBuilder {
 			
 			Engine.logContext.info("Javelin field: '" + parameterName + "' = '" + parameterValue + "'");
 		}
-		// This is a stub's value
-		else if (parameterName.equals(Parameter.Stub.getName()) && Boolean.parseBoolean(parameterValue)) {
-			context.isStubRequested = true;
-		}
 		// This is the document signature
 		else if (parameterName.equals(Parameter.JavelinSignature.getName())) {
 			Element item = context.inputDocument.createElement("document-signature");
@@ -190,12 +186,6 @@ class InputDocumentBuilder {
 			transactionVariablesElement.appendChild(item);
 			
 			Engine.logContext.info("Input test case = '" + parameterValue + "'");
-		}
-		// User reference
-		else if (Parameter.UserReference.getName().equals(parameterName)) {
-			context.userReference = parameterValue;
-			
-			Engine.logContext.info("User reference = '" + parameterValue + "'");
 		}
 		// This is an internal parameter
 		else if (parameterName.startsWith("__")) {

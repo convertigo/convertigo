@@ -602,6 +602,19 @@ public abstract class GenericRequester extends Requester {
 				context.set(Parameter.ResponseExpiryDate.getName(), parameterValue);
 			}
 		}
+		// This is a stub's value
+		else if (parameterName.equals(Parameter.Stub.getName())) {
+			if (parameterValue != null && Boolean.parseBoolean(parameterValue)) {
+				context.isStubRequested = true;
+			}
+		}
+		// This is the user reference
+		else if (parameterName.equals(Parameter.UserReference.getName())) {
+			if (parameterValue != null) {
+				context.userReference = parameterValue;
+				Engine.logContext.info("User reference = '" + parameterValue + "'");
+			}
+		}
 	}
 
 	@Override
