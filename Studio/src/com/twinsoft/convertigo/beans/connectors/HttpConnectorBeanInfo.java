@@ -41,7 +41,7 @@ public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			properties = new PropertyDescriptor[10];
+			properties = new PropertyDescriptor[11];
 			
 			properties[0] = new PropertyDescriptor("baseDir", beanClass, "getBaseDir", "setBaseDir");
 			properties[0].setDisplayName(getExternalizedString("property.baseDir.display_name"));
