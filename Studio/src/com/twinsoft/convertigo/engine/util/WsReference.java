@@ -312,29 +312,41 @@ public class WsReference {
    		   	
    		   	String[] endPoints = iface.getEndpoints();
    		   	String endPoint = endPoints[0];
+   		   	
    		   	String host, server, port, baseDir;
-   		   	
-   		   	boolean isHttps = endPoint.indexOf("https://") != -1;
-   		   	httpConnector.setHttps(isHttps);
-   		   	
-   		   	int beginIndex = endPoint.indexOf("://") + "://".length();
-   		   	int endIndex = endPoint.indexOf ("/", beginIndex);
-   		   	host = endPoint.substring(beginIndex, endIndex);
-   		   	
-   		   	int middleIndex = host.indexOf(":");
-   		   	if (middleIndex != -1) {
-   		   		server = host.substring(0, middleIndex);
-   		   		port = host.substring(middleIndex+1);
+   		   	boolean isHttps = endPoint.startsWith("https://");
+   		   	if (endPoint.indexOf("://") != -1) {
+	   		   	int beginIndex = endPoint.indexOf("://") + "://".length();
+	   		   	int endIndex = endPoint.indexOf("/", beginIndex);
+	   		   	if (endIndex != -1) {
+	   		   		host = endPoint.substring(beginIndex, endIndex);
+	   		   		baseDir = endPoint.substring(endIndex+1);
+	   		   	}
+	   		   	else {
+	   		   		host = endPoint.substring(beginIndex);
+	   		   		baseDir = "";
+	   		   	}
+	   		   	
+	   		   	int middleIndex = host.indexOf(":");
+	   		   	if (middleIndex != -1) {
+	   		   		server = host.substring(0, middleIndex);
+	   		   		port = host.substring(middleIndex+1);
+	   		   	}
+	   		   	else {
+	   		   		server = host;
+	   		   		port = isHttps ? "443":"80";
+	   		   	}
    		   	}
    		   	else {
-   		   		server = host;
+   		   		server = endPoint;
    		   		port = isHttps ? "443":"80";
+   		   		baseDir = "";
    		   	}
+   		   	
+   		   	httpConnector.setHttps(isHttps);
    		   	httpConnector.setServer(server);
    		   	httpConnector.setPort(Integer.valueOf(port).intValue());
-   		   	
-   		   	baseDir = endPoint.substring(endIndex+1);
-   		   	httpConnector.setBaseDir("/"+baseDir);
+		   	httpConnector.setBaseDir("/"+baseDir);
    		   	httpConnector.hasChanged = true;
    		}
 	   	return httpConnector;
