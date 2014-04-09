@@ -543,28 +543,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 	}
 	
 	
-	private String getCordovaPlatform(String deviceType)
-	{
-		String cordovaPlatform = "android";
-		if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.Android"))
-			cordovaPlatform = "android";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.IPad"))
-			cordovaPlatform = "ios";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.IPhone3"))
-			cordovaPlatform = "ios";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.IPhone4"))
-			cordovaPlatform = "ios";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.BlackBerry6"))
-			cordovaPlatform = "blackberry";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone7"))
-			cordovaPlatform = "wp8";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8"))
-			cordovaPlatform = "wp8";
-		else if (deviceType.equalsIgnoreCase("com.twinsoft.convertigo.beans.mobileplatforms.Windows8"))
-			cordovaPlatform = "windows8";
-		return cordovaPlatform;
-	}
-	
+		
 	/**
 	 * Explore Config.xml and copy needed resources to appropriate platforms folders.
 	 * 
@@ -793,7 +772,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	
 					        	// Step 2 call Mobile packager to build ZIP package, simulate a fake HttpRequest
 					        	InternalRequest myRequest = new InternalRequest();
-					        	myRequest.setParameter("application", applicationName);
+					        	myRequest.setParameter("project", applicationName);
+					        	myRequest.setParameter("platform", mobileDevice.getType());
 					        	MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(myRequest, BuildLocallyAction.cordovaDir + "/www");
 					        	File mobileArchiveFile = mobileResourceHelper.makeZipPackage();
 					        	Engine.logEngine.debug("ZIP Build package created in : " + mobileArchiveFile.getAbsolutePath());
@@ -805,8 +785,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	
 					        	// Step 3Bis : Add platform and Read And process Config.xml to copy needed icons and splash resources
 					        	File cordovaDir = new File(privateDir.getAbsolutePath() + "/" + BuildLocallyAction.cordovaDir);
-					        	String deviceType = mobileDevice.getClass().getName();
-					        	String cordovaPlatform = getCordovaPlatform(deviceType);
+					        	String cordovaPlatform = mobileDevice.getType().toLowerCase();
 					        	runCordovaCommand("platform add " + cordovaPlatform, cordovaDir);
 					        	ProcessConfigXMLResources(wwwDir, cordovaPlatform, cordovaDir);
 					        	
