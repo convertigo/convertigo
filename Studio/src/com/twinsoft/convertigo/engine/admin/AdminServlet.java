@@ -56,6 +56,7 @@ public class AdminServlet extends HttpServlet {
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
+    @Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doRequest(request, response);
 	}
@@ -63,12 +64,19 @@ public class AdminServlet extends HttpServlet {
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
+	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		doRequest(request, response);
 	}
 
 	private void doRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-		boolean hide_error = EnginePropertiesManager.getProperty( PropertyName.HIDING_ERROR_INFORMATION ).equals( "true" );
+		boolean show_error = false;
+		try {
+			show_error = !EnginePropertiesManager.getProperty(PropertyName.HIDING_ERROR_INFORMATION).equals("true");
+		} catch (Exception e) {
+			Engine.logAdmin.debug("Failed to retrieve property: " + e.getClass() + " (" + e.getMessage() + ")");
+		}
+				
 		try {
 			String serviceName = "";
 			try {
@@ -107,30 +115,30 @@ public class AdminServlet extends HttpServlet {
 				service.run(serviceName, request, response);
 			}
 			catch (ClassNotFoundException e) {
-				if (hide_error == false) {
-					String message = "Unknown admin service '" + serviceName + "'";
-					Engine.logAdmin.error(message);
+				String message = "Unknown admin service '" + serviceName + "'";
+				Engine.logAdmin.error(message);
+				if (show_error) {
 					ServiceUtils.handleError(message, response);
 				}
 			}
 			catch (NoClassDefFoundError e) {
-				if (hide_error == false) {
-					String message = "Unknown admin service '" + serviceName + "'";
-					Engine.logAdmin.error(message);
+				String message = "Unknown admin service '" + serviceName + "'";
+				Engine.logAdmin.error(message);
+				if (show_error) {
 					ServiceUtils.handleError(message, response);
 				}
 			}
 			catch (AuthenticationException e) {
-				if (hide_error == false) {
-					String authMessage = e.getMessage();
-					Engine.logAdmin.warn(authMessage);
+				String authMessage = e.getMessage();
+				Engine.logAdmin.warn(authMessage);
+				if (show_error) {
 					ServiceUtils.handleError(authMessage, response);
 				}
 			}
 			catch (Exception e) {
-				if (hide_error == false) {
-					Engine.logAdmin.error("Unable to execute the service '"
-							+ serviceName + "'", e);
+				Engine.logAdmin.error("Unable to execute the service '"
+						+ serviceName + "'", e);
+				if (show_error) {
 					ServiceUtils.handleError(e, response);
 				}
 			}
@@ -138,7 +146,7 @@ public class AdminServlet extends HttpServlet {
 				response.flushBuffer();
 			}
 		} catch (Throwable e) {
-			if (!hide_error) {
+			if (show_error) {
 				throw new ServletException(e);
 			}
 		}

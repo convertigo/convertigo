@@ -696,6 +696,10 @@ public class EnginePropertiesManager {
         	throw new IllegalArgumentException("Null property key");
         }
 
+		if (properties == null) {
+			throw new IllegalStateException("Not initialized EnginePropertiesManager");
+		}
+
     	String result = system_properties.getProperty(SYSTEM_PROP_PREFIX + property);
     	if (result == null) {
     		result = properties.getProperty(property.key);
@@ -765,6 +769,10 @@ public class EnginePropertiesManager {
     	if (system_properties.containsKey(SYSTEM_PROP_PREFIX + property.getKey())) {
     		exvalue = (String) system_properties.put(SYSTEM_PROP_PREFIX + property.getKey(), value);
     	} else {
+    		if (properties == null) {
+    			throw new IllegalStateException("Not initialized EnginePropertiesManager");
+    		}
+    		
     		value = encodeValue(property.getType(), value);
     		exvalue = (String) properties.put(property.getKey(), value);
     	}
@@ -949,6 +957,9 @@ public class EnginePropertiesManager {
 
     public static String getPropertiesAsString(String title, Properties propertiesToGet) {
     	if (propertiesToGet == null) {
+    		if (properties == null) {
+    			throw new IllegalStateException("Not initialized EnginePropertiesManager");
+    		}
     		propertiesToGet = properties;
     	}
     	
@@ -994,6 +1005,9 @@ public class EnginePropertiesManager {
 	}
 
 	public static void load(ByteArrayInputStream byteArrayInputStream) throws IOException {
+		if (properties == null) {
+			throw new IllegalStateException("Not initialized EnginePropertiesManager");
+		}
 		properties.load(byteArrayInputStream);		
 	}
 	
