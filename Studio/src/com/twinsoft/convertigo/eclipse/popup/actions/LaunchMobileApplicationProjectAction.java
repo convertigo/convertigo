@@ -59,7 +59,7 @@ public class LaunchMobileApplicationProjectAction extends MyAbstractAction {
     				// Test plateform
     				Program.launch(
     						EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue()+"/project.html#" 
-    								+ mobileApplication.getProject() + "?device=web");
+    								+ mobileApplication.getProject() + "?launch=webapp");
     			}
     		}
         	

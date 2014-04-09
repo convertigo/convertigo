@@ -45,12 +45,14 @@ import com.twinsoft.convertigo.beans.mobileplatforms.Android;
 import com.twinsoft.convertigo.beans.mobileplatforms.BlackBerry;
 import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.AuthenticationException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 
 @ServiceDefinition(name = "LaunchBuild", roles = { Role.ANONYMOUS }, parameters = {}, returnValue = "")
@@ -60,9 +62,19 @@ public class LaunchBuild extends XmlService {
 	
 	@Override
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
-		synchronized(buildLock) {			
+		synchronized(buildLock) {
 			final MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(request, "mobile/www");
 			MobileApplication mobileApplication = mobileResourceHelper.mobileApplication;
+			
+			if (mobileApplication == null) {
+				throw new ServiceException("no such mobile application");
+			} else {
+				boolean bAdminRole = Engine.authenticatedSessionManager.hasRole(request.getSession(), Role.WEB_ADMIN);
+				if (!bAdminRole && mobileApplication.getAccessibilityEnum() == Accessibility.Private) {
+					throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
+				}
+			}
+			
 			MobilePlatform mobilePlatform = mobileResourceHelper.mobilePlatform;
 			
 			String finalApplicationName = mobileApplication.getComputedApplicationName();

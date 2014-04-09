@@ -39,6 +39,7 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.AuthenticationException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -47,6 +48,7 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper.Keys;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
 
 @ServiceDefinition(name = "GetBuildStatus", roles = { Role.ANONYMOUS }, parameters = {}, returnValue = "")
 public class GetBuildStatus extends XmlService {
@@ -56,6 +58,15 @@ public class GetBuildStatus extends XmlService {
 		String project = Keys.project.value(request);
 		
 		MobileApplication mobileApplication = getMobileApplication(project);
+		
+		if (mobileApplication == null) {
+			throw new ServiceException("no such mobile application");
+		} else {
+			boolean bAdminRole = Engine.authenticatedSessionManager.hasRole(request.getSession(), Role.WEB_ADMIN);
+			if (!bAdminRole && mobileApplication.getAccessibilityEnum() == Accessibility.Private) {
+				throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
+			}
+		}
 		
 		String platformName = Keys.platform.value(request);
 

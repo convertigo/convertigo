@@ -39,6 +39,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.AuthenticationException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -46,6 +47,7 @@ import com.twinsoft.convertigo.engine.admin.services.DownloadService;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper.Keys;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
 
 @ServiceDefinition(
 		name = "GetBuildUrl",
@@ -58,10 +60,19 @@ public class GetPackage extends DownloadService {
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws  Exception {
 		String project = Keys.project.value(request);
-		String platformName = Keys.platform.value(request);
 		
 		MobileApplication mobileApplication = GetBuildStatus.getMobileApplication(project);
 		
+		if (mobileApplication == null) {
+			throw new ServiceException("no such mobile application");
+		} else {
+			boolean bAdminRole = Engine.authenticatedSessionManager.hasRole(request.getSession(), Role.WEB_ADMIN);
+			if (!bAdminRole && mobileApplication.getAccessibilityEnum() == Accessibility.Private) {
+				throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
+			}
+		}
+
+		String platformName = Keys.platform.value(request);
 		String finalApplicationName = mobileApplication.getComputedApplicationName();
 		
 		String mobileBuilderPlatformURL = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
