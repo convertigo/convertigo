@@ -452,7 +452,9 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
     }
     
     public void removeMobileApplication(MobileApplication mobileApplication) {
-    	this.mobileApplication = mobileApplication;
+    	if (mobileApplication != null && mobileApplication.equals(this.mobileApplication)) {
+    		this.mobileApplication = null;
+    	}
     }
 
 	@Override
