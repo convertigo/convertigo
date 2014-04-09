@@ -822,14 +822,16 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		return false;
 	}
 	
-	private void flushDocument() {
+	private void flushDocument() throws EngineException {
 		if (sequence.runningThread.bContinue) {
 			if (isOutput()) sequence.flushStepDocument(executeTimeID, xmlHttpDocument);
 			Node rootNode = outputDocument.getDocumentElement();
 			Node newChild = outputDocument.importNode(xmlHttpDocument.getDocumentElement(), true);
-			//outputDocument.replaceChild(newChild, rootNode);
-			//Sequence schema
-			((Element)rootNode).getElementsByTagName(getStepNodeName()).item(0).appendChild(newChild);
+			Node stepNode = ((Element)rootNode).getElementsByTagName(getStepNodeName()).item(0);
+			stepNode.appendChild(newChild);
+			if (parent instanceof Step) {
+				((Step)parent).replaceChildNode(stepNode);
+			}
 		}
 	}
 
