@@ -601,6 +601,34 @@ public class BuildLocallyAction extends MyAbstractAction {
 			}
 			if (platform.equalsIgnoreCase("ios")) {
 				// TODO : Do the IOS Stuff..
+				NodeList icons = xpathApi.selectNodeList(doc.getDocumentElement(), "//icon[@platform = 'ios']");
+				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
+				NodeList splashes = xpathApi.selectNodeList(doc.getDocumentElement(), "//*[local-name()='splash' and @platform = 'ios']");
+				
+				// Copy the icons to the correct res directory
+				for(int i=0; i< icons.getLength(); i++) {
+					Node icon = icons.item(i);
+					NamedNodeMap nodeMap = icon.getAttributes();
+					String source = nodeMap.getNamedItem("src").getTextContent();
+					String height = nodeMap.getNamedItem("height").getTextContent();
+					File iconSrc = new File(wwwDir, source);
+					File dest = new File(cordovaDir, "platforms/" + platform + "/Resources/icons/icon-" + height + ".png");
+					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
+					FileUtils.copyFile(iconSrc, dest);
+				}
+				
+				
+				// now the stuff for splashes
+				for(int i=0; i< splashes.getLength(); i++) {
+					Node splash = splashes.item(i);
+					NamedNodeMap nodeMap = splash.getAttributes();
+					String source = nodeMap.getNamedItem("src").getTextContent();
+					String height = nodeMap.getNamedItem("height").getTextContent();
+					File splashSrc = new File(wwwDir, source);
+					File dest = new File(cordovaDir, "platforms/" + platform + "/Resources/splash/splash-" + height + ".png");
+					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
+					FileUtils.copyFile(splashSrc, dest);
+				}
 			}
 			
 			if (platform.equalsIgnoreCase("wp7") || platform.equalsIgnoreCase("wp8")) {
