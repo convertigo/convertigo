@@ -203,10 +203,9 @@ public class MobileResourceHelper {
 										sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "\"");
 										writeStringToFile(outFile, sJs);
 									} else if (file.matches(".*/c8o\\.core\\..*?js")) {
-										serverJsFile = outFile;
-										String sJs = FileUtils.readFileToString(serverJsFile);
+										String sJs = FileUtils.readFileToString(outFile);
 										sJs = sJs.replaceAll(Pattern.quote("endpoint_url: \"\""), "endpoint_url: \"" + endPoint + "\"");
-										FileUtils.writeStringToFile(serverJsFile, sJs);
+										writeStringToFile(outFile, sJs);
 									}
 									
 									if (file.matches(".*/flashupdate_.*?\\.css")) {
@@ -343,9 +342,11 @@ public class MobileResourceHelper {
 		json = new JSONObject();
 		json.put("applicationId", mobileApplication.getComputedApplicationId());
 		json.put("applicationName", finalApplicationName);
+		json.put("platformName", mobilePlatform.getName());
 		json.put("projectName", project.getName());
 		json.put("endPoint", endpoint);
 		json.put("timeout", mobileApplication.getFlashUpdateTimeout());
+		json.put("remoteBase", endpoint + "/projects/" + project.getName() + (destDir.getAbsolutePath().substring(projectDir.getAbsolutePath().length()).replaceFirst("www", "flashupdate")));
 		FileUtils.write(new File(destDir, "env.json"), json.toString());
 		
 		File configFile = new File(destDir, "config.xml");

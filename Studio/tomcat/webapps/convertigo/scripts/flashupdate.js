@@ -47,6 +47,7 @@ var F = {
 	endPoint: null,
 	applicationName: null,
 	projectName: null,
+	platformName: null,
 	localBase: null,
 	webLocalBase: null,
 	appBase: null,
@@ -131,7 +132,6 @@ var F = {
 			success: function (data) {
 				try {
 					$.extend(F, data);
-					F.remoteBase = F.endPoint + "/projects/" + F.projectName + "/_private/flashupdate";
 					
 					if (F.firstLaunch) {
 						$("#main").show();
@@ -244,6 +244,8 @@ var F = {
 			projectName: F.projectName,
 			endPoint: F.endPoint,
 			firstLaunch: F.firstLaunch,
+			remoteBase: F.remoteBase,
+			platformName: F.platformName,
 			isLocal: true
 		};
 		
@@ -310,8 +312,9 @@ var F = {
 				dataType: "json",
 				url: F.endPoint + "/admin/services/mobiles.GetResources",
 				data: {
-					application: F.projectName,
-					platform: F.platform,
+					project: F.projectName,
+					platform: F.platformName,
+					platformDetected: F.platfom,
 					uuid: F.uuid
 				},
 				success: function (data) {
@@ -330,7 +333,7 @@ var F = {
 			});
 		} else {
 			$("#checkingUpdate").hide();
-			
+						
 			if (F.currentFiles.lightBuild) {
 				if (F.remoteFiles.flashUpdateEnabled) {
 					F.doUpdate();
@@ -431,7 +434,7 @@ var F = {
 			var remoteFile = indexedFiles[file.uri];
 			if (typeof(remoteFile) == "undefined") {
 				F.debug("try delete " + file.uri);
-				F.flashUpdateDir.getFile(file.uri.substring(1), {create: false, exclusive: false}, function (fileEntry) {
+				F.flashUpdateDir.getFile(file.uri, {create: false, exclusive: false}, function (fileEntry) {
 					F.debug("delete file " + file.uri);
 					try {
 						fileEntry.remove(function () {
@@ -506,13 +509,13 @@ var F = {
 				totalSize += file.size;
 				F.mkParentDirs(file.uri, function (parentDir, fileName) {
 					new FileTransfer().download(
-						encodeURI((fromApp ? F.appBase : F.remoteBase) + file.uri + "?" + F.startTime),
-						F.localBase + file.uri,
+						encodeURI((fromApp ? F.appBase : F.remoteBase) + "/" + file.uri + "?" + F.startTime),
+						F.localBase + "/" + file.uri,
 						function () {
 							checkDone(file);
 						},
 						function (err) {
-							if (file.uri != "/config.xml") {
+							if (file.uri != "config.xml") {
 								F.error("failed to FileTransfer ", err);
 							}
 							

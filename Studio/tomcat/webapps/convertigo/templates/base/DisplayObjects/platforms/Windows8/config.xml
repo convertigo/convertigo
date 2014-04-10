@@ -35,10 +35,16 @@
 	
 	<gap:splash src="splash.png" />
 	
+	<!-- If you do not want any permissions to be added to your app, add the
+    following tag to your config.xml; you will still have the INTERNET
+    permission on your app, which PhoneGap requires. -->
+	<preference name="permissions" value="none"/>
+	
     <!-- Core plugins mandatory for FlashUpdate service -->
     <gap:plugin name="org.apache.cordova.device" />
     <gap:plugin name="org.apache.cordova.file" />
     <gap:plugin name="org.apache.cordova.file-transfer" />
+    <gap:plugin name="org.apache.cordova.splashscreen" />
     
 	<!-- Useful for debugging -->
 	<gap:plugin name="org.apache.cordova.console" />
@@ -56,7 +62,6 @@
 <!--     <gap:plugin name="org.apache.cordova.inappbrowser" /> -->
 <!--     <gap:plugin name="org.apache.cordova.media" /> -->
 <!--     <gap:plugin name="org.apache.cordova.network-information" /> -->
-<!--     <gap:plugin name="org.apache.cordova.splashscreen" /> -->
 <!--     <gap:plugin name="org.apache.cordova.vibration" /> -->
 
     <!-- Other optional plugins -->

@@ -776,7 +776,13 @@ $(document).ready(function() {
 	
 			$("#main .install.qrcode_content").each(getPhoneGapBuildStatus);
 			
-			$(".sub_connectors:first").click().parent().find(".requestable h6:first").click();
+			if (typeof parameters.launch != "undefined") {
+				if (parameters.launch == "webapp") {
+					$(".mobiles .sub_connectors:first").click().parent().find(".requestable h6:first").click().parent().find(".btn_exe_link").click();
+				}
+			} else {
+				$(".sub_connectors:first").click().parent().find(".requestable h6:first").click();
+			}
 		});
 	});		
 });
