@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<!-- optional ios meta -->
+		<!-- show the splashscreen in ios webapp mode -->
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		
+		<!-- You may use the other optional metas -->
+		<!-- <meta name="apple-touch-fullscreen" content="yes" />-->
+		<!-- <meta name="apple-mobile-web-app-status-bar-style" content="black" />-->
+		<!-- <meta name="format-detection" content="telephone=no" />-->
+		
+		<!-- viewport -->
+		<!-- use this viewport for standard webApp + PhoneGap -->
+		<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
+		
+		<!-- use this viewport for iPhone iOS 4 and iOS 5 webApp -->
+		<!-- <meta name="viewport" content="user-scalable=yes, width=device-width, height=device-height, initial-scale=1" />-->
+		
+		<!-- use this viewport for iPad webApp -->
+		<!-- <meta name="viewport" content="user-scalable=no, width=device-width, height=device-height, initial-scale=1" />-->
+		
+		<title>Convertigo jQueryMobile project</title>
+		
+		<!--
+			by default, your project will use the latest JS and CSS resources version provided in the Convertigo server
+			where it is deployed. If you want to use a specific version, comment out the current links and comment in
+			the /x.x.x version of links to the resource you want to use. Be sure to use the same version for all the links
+			to the resources.
+			
+			Also, all links are by default on the minified version of the resources. We provide for your convenience links
+			to the non minifed versions, just commend out the non minified and comment in the minified links if you want to
+			use	them.
+		-->
+			 	
+		
+    	<!-- CSS inclusions -->
+		<link href="../../../../css/jquery.mobile.min.css" rel="stylesheet" type="text/css" />
+		
+<!-- 	<link href="../../../../css/jquery.mobile.css" rel="stylesheet" type="text/css" /> -->
+<!-- 	<link href="../../../../css/7.1.0/jquery.mobile.min.css" rel="stylesheet" type="text/css" /> -->
+<!-- 	<link href="../../../../css/7.1.0/jquery.mobile.css" rel="stylesheet" type="text/css" /> -->
+
+		<!--
+			Local project custom css
+			===================================
+			custom.css will hold all your custom CSS styles
+		-->
+		<link href="css/custom.css" rel="stylesheet" />
+
+		
+		<!-- Scripts inclusions -->
+        <!--
+        	PhoneGap JS library
+        	===================
+        	To use some phonegap/cordova APIs (GPS, Sensors, Camera, Etc..)
+        -->
+        <script src="cordova.js" type="text/javascript"></script>
+        
+        <!--
+        	jQuery library (2.x)
+        	==============
+        	Convertigo mobile apps are based on JQuery. the following links will reference the current jQuery
+        	library.
+        -->
+		<script src="../../../../scripts/jquery2.min.js" type="text/javascript"></script>
+<!-- 	<script src="../../../../scripts/jquery2.js" type="text/javascript"></script> -->
+<!-- 	<script src="../../../../scripts/7.1.0/jquery2.min.js" type="text/javascript"></script> -->
+<!-- 	<script src="../../../../scripts/7.1.0/jquery2.js" type="text/javascript"></script> -->
+		
+		<!--
+			Convertigo jQuery c8o mobilelib
+			===============================
+			The following links will reference the Convertigo mobilelib providing your application's access
+			to the Convertigo Server. Be sure all the links are placed in the following order.
+			You can find documentation about CTF here:
+			http://help.convertigo.com/lastest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
+			or
+			http://help.convertigo.com/7.1.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
+		-->
+		<script src="../../../../scripts/c8o.core.js" type="text/javascript"></script>
+		<script src="../../../../scripts/c8o.jquerymobile.js" type="text/javascript"></script>
+<!-- 		<script src="../../../../scripts/c8o.cordova.js" type="text/javascript"></script> -->
+		<script src="../../../../scripts/ctf.core.js" type="text/javascript"></script>
+		<script src="../../../../scripts/ctf.jquerymobile.js" type="text/javascript"></script>
+		
+<!-- 	<script src="../../../../scripts/7.1.0/c8o.core.js" type="text/javascript"></script> -->
+<!-- 	<script src="../../../../scripts/7.1.0/c8o.jquerymobile.js" type="text/javascript"></script> -->
+<!-- 	<script src="../../../../scripts/7.1.0/c8o.cordova.js" type="text/javascript"></script> -->
+<!-- 	<script src="../../../../scripts/7.1.0/ctf.core.js" type="text/javascript"></script> -->
+<!-- 	<script src="../../../../scripts/7.1.0/ctf.jquerymobile.js" type="text/javascript"></script> -->
+		
+		<!--
+			Local project custom script
+			===================================
+			custom.js will hold all your custom logic and controller.
+			WARNING : Be sure this link is placed between the "jQuery c8o mobilelib" and the "JQuery Mobile" library.  
+		-->
+		<script src="js/custom.js" type="text/javascript"></script>
+		
+		<!--
+			jQuery mobile library
+			=====================
+			Provides the mobile UI features to your app.
+			WARNING: Must be the last link referenced in the <head> section.
+		-->
+		<script src="../../../../scripts/jquery.mobile.min.js" type="text/javascript"></script>
+<!-- 	<script src="../../../../scripts/jquery.mobile.js" type="text/javascript"></script> -->
+<!-- 	<script src="../../../../scripts/7.1.0/jquery.mobile.min.js" type="text/javascript"></script> -->
+<!-- 	<script src="../../../../scripts/7.1.0/jquery.mobile.js" type="text/javascript"></script> -->
+
+	</head>
+	
+	<body>
+        <!-- Hello world page -->
+		<div data-role="page" id="welcome" data-title="Welcome page">
+			<!-- top bar -->
+			<div data-role="header" data-position="fixed" >
+				<h1>Welcome</h1>			
+			</div>
+			
+			<!-- content -->
+			<div data-role="content">
+				Hello World !
+			</div>
+			
+			<!-- footer -->
+			<div data-role="footer" data-position="fixed" >
+				<h1>© Convertigo</h1>			
+			</div>
+		</div>
+	</body>
+</html>

@@ -58,7 +58,7 @@ $.extend(true, C8O, {
 				if (C8O.isDefined(e.message) && e.message.indexOf("'loader'") == -1) {
        		 		C8O.log.error("c8o.jqm : failed to show loading", e);
 				} else {
-					C8O.log.trace("c8o.jqm : failed to show loading " + e);
+					C8O.log.trace("c8o.jqm : failed to hide loading " + e);
 				}
 			}
 		}

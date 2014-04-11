@@ -1,14 +1,28 @@
 /*******************************************************
  *******************************************************
  * public C8O API for CEMS 7.1.0
- * for a jQuery desktop application
+ * for a jQuery Mobile application using the CTF
  * 
  * Dependences in HTML file:
  * * jquery(.min).js
  * * c8o.core.js
- * * c8o.desktop.js
- * * [ctf.core.js] (include to use CTF instead of XSL)
+ * * c8o.jquerymobile.js
+ * * ~ c8o.cordova.js (for builded application)
+ * * ctf.core.js
+ * * ctf.jquerymobile.js
  * * custom.js (this file)
+ * * jquery.mobile(.min).js
+ * 
+ * Please find documentation of CTF here:
+ * * http://help.convertigo.com/lastest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
+ * or
+ * * http://help.convertigo.com/7.1.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
+ * 
+ * and the documenation of internationalization (i18n) here:
+ * * http://help.convertigo.com/lastest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
+ * or
+ * * http://help.convertigo.com/7.1.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
+ * 
  *******************************************************
  *******************************************************/
 
@@ -20,65 +34,151 @@
 $.extend(true, C8O, {
 	/**
 	 * init_vars variables values can only be set before the "init_finish" hook,
-	 * by the code or by the first query,
+	 * by the code,
 	 * their values must be strings, 
 	 * their state cannot be modified later.
-	 * 
-	 * If set by query, variable name should be preceded by __
-	 * for example: ?__enc=true&... or #__enc=true&...
 	 */
 	init_vars: {
 //		enc: "false", /** enables rsa encoding */
-//		i18n: "", /** in case of multi-language application, force usage of the language selected. Empty string while select the browser language */
-//		testplatform: "auto" /** auto/true/false: automatically redirect to the testplatform if no parameter is set, force testplaform if true or just call C8O if false */
+//		i18n: "" /** in case of multi-language application, force usage of the language selected. Empty string will select the browser language */
 	},
 	
 	/**
-	 * ro_vars variables values can only be set directly here, not dynamically
+	 * ro_vars read-only variables values can only be set directly here, not dynamically
 	 */
 	ro_vars: {
 //		i18n_files: [] /** list of language available for the application. The first is the default language. The application must have an i18n folder with 1 file per language like: i18n/en.json */
 	},
 	
 	/**
-	 * vars variables values can be set at any time, 
-	 * by the code, by the query or by passing arguments to C8O.call(), 
+	 * cordova read-only variables values can only be set directly here, not dynamically. Used by c8o.cordova.js
+	 */
+	cordova: {
+//		androidSenderID: ""
+	},
+	
+	/**
+	 * vars variables values can be set at any time.
+	 * by the code, or by passing arguments to C8O.call() by adding __ 
 	 * their values must be strings,
 	 * their state can be modified later.
 	 * 
 	 * Value can be modified by code, 
 	 * for example: C8O.vars.ajax_method="GET"
-	 * 
-	 * If set by query, variable name should be preceded by __
-	 * for example: ?__ajax_method=GET&... or #__ajax_method=GET&...
 	 */
 	vars: {
 //		ajax_method: "POST", /** POST/GET: http method to request CEMS */
-//		auto_refresh: "true", /** true/false: allow auto refresh feature for clipping */
-//		auto_resize: "true", /** true/false: allow C8O to perform resize after content filled */
 //		endpoint_url: "", /** base of the URL CEMS calls. Should not be modified */
-//		first_call: "true", /** true/false: automatically call convertigo using the page query/hash parameters, after the init_finished hook */
+//		first_call: "false", /** true/false: automatically call convertigo using the page query/hash parameters, after the init_finished hook */
 //		log_level: "warn", /** none/error/warn/info/debug/trace: filter logs that appear in the browser console */
 //		log_line: "false", /** true/false: add an extra line on Chrome console with a link to the log */
-//		requester_prefix: "", /** string prepend to the .xml or .cxml requester */
-//		resize_offset: "50", /** integer: number of pixel added to the automatic resize */
-//		send_portal_username: "true", /** true/false: (gatein only) automatically add a portal_username parameter with the name of the logger user */
-//		target_append: "false", /** true/false: append content to target_id or to body element */
-//		target_id: "", /** element id: element id for result insertion or a selected jquery object */
-//		use_siteclipper_plugin: "true", /** true/false: use the iframe encapsulation for siteclipper request */
-//		xsl_side: "client" /** client/server: force the side of the xsl transformation */
-	}
+//		requester_prefix: "" /** string prepend to the .xml or .cxml requester */
+	},
+	
+	options: {
+//		loading: {} /** loading option object argument for the $.mobile.loading("show") called by C8O.waitShow() */
+	},
+	
+	routingTable: [
+//		{
+//			/**
+//			* calledRequest parameter
+//			* indicates on which requestables result the actions occur
+//			* Can be one or more requestables, comma separated with the form :
+//			* [project].connector.transaction
+//			* or
+//			* [project].sequence
+//			* or
+//			* [project].connector.* or [project].* or *
+//			*/
+//			calledRequest: "<the called C8O requestables>",
+//
+//			/**
+//			* actions parameter
+//			* array of actions, all executed in order if the current result match the 'calledRequest'
+//			*/
+//			actions: [
+//				{
+//					/**
+//					 * afterRendering function
+//					 * called after the rendering process.
+//					 * $doc: JQuery object of the XML document response
+//					 * c8oData: key/value parameters of the request
+//					 */
+//					afterRendering: function ($doc, c8oData) {
+//					
+//					},
+//	
+//					/**
+//					 * beforeRendering function
+//					 * called before the rendering process.
+//					 * $doc: JQuery object of the XML document response
+//					 * c8oData: key/value parameters of the request
+//					 */
+//					beforeRendering: function ($doc, c8oData) {
+//						
+//					},
+//	
+//					/**
+//					 * condition function or selector
+//					 * can be either a jQuery selector on the C8O XML response or a JavaScript function.
+//					 * Called before the page changes.
+//					 * The condition is considered as validated if the jQuery selector returns a non empty list,
+//					 * or if the JS function returns true
+//					 * $doc: JQuery object of the XML document response
+//					 * c8oData: key/value parameters of the request
+//					 */
+//					condition: "jQuery selector",
+//					condition: function ($doc, c8oData) {
+//						return true;
+//					},
+//	
+//					/**
+//					 * fromPage parameter
+//					 * list of HTML element ID defining the page we come from
+//					 * before calling the C8O request
+//				 	* (useful in order to route to different pages according to the origin page).
+//					 * Use the .is(selector) from JQuery.
+//					 * Sample: “#page1, #page2, #page3 ”
+//					 */
+//					fromPage: "",
+//	
+//					/**
+//					 * goToPage parameter
+//					 * an HTML page or an HTML element ID to display after the C8O call.
+//					 * If not present, it means a local rendering (i.e. in the same page).
+//					 */
+//					goToPage: "",
+//	
+//					/**
+//					 * options parameter
+//					 * an optional transition information
+//					 * (matching the jQueryMobile transition object format)
+//					 * used to display the page given in the goToPage parameter.
+//					 */
+//					options: {}
+//				}
+//			]
+//		},
+//		/** full template condensed, must be comma separated */
+//		{
+//			calledRequest: "<the called C8O requestables>",
+//			actions: [
+//				{
+//					afterRendering: function ($doc, c8oData) {
+//					},
+//					beforeRendering: function ($doc, c8oData) {
+//					},
+//					condition: "<jQuery selector or function>",
+//					fromPage: "<page ID>",
+//					goToPage: "<page ID>",
+//					options: {
+//					}
+//				}
+//			]
+//		}
+	]
 });
-
-/**
- * ReadOnly variables are also available
- * C8.ro_vars variables values can be READ at any time by the code 
- * and must not be modified.
- * 
- * C8O.ro_vars.portal_username: string containing the name of the current logged user (gatein only)
- * C8O.ro_vars.widget_name: string containing the name of the current widget, if any 
- */
-
 
 /*******************************************************
  * Functions *
@@ -118,15 +218,14 @@ $.extend(true, C8O, {
  */
 //C8O.appendValue(data, key, value);
 
-/** 
- *  doMashupEvent function
- *  dispatch a mashup event to the current container if any
- *  via the invocation of mashup_event hook
- *  event_name: string of the parameter name to automatically send
- *  payload (optional): key/value map object ( {key: "value"} ) or an HTML Element.
- *                             In case of HTML Element, its attributes are transformed to a key/value map object.
+/**
+ * appendValues function
+ * merge values of the source Object into the data Object
+ * using appendValue on each source keys
+ * data: Object (key/value) that will be modified
+ * source: Object (key/value) that will be merged into data but not modified
  */
-//C8O.doMashupEvent(event_name, payload);
+//C8O.appendValues(data, source);
 
 /**
  * call function
@@ -135,7 +234,7 @@ $.extend(true, C8O, {
  * data: string (query form) or Object (key/value) or HTML Form element
  *          used as AJAX parameters
  */
-//C8O.call(data)
+//C8O.call(data);
 
 /**
  * canLog function
@@ -144,7 +243,7 @@ $.extend(true, C8O, {
  * return: true > can log
  *           false > cannot log
  */
-//C8O.canLog(level)
+//C8O.canLog(level);
 
 /**
  * convertHTML function
@@ -153,7 +252,7 @@ $.extend(true, C8O, {
  * output (optional): HTML element where the input copy is appended
  * return: HTML element, output element or a new <fragment> element with the imported input
  */
-//C8O.convertHTML(input, output)
+//C8O.convertHTML(input, output);
 
 /**
  * formToData function
@@ -164,38 +263,13 @@ $.extend(true, C8O, {
  * data (optional): object (key/value) where values are copied
  * return: the data object or a new one with copied form's inputs values
  */
-//C8O.formToData($form, data)
+//C8O.formToData($form, data);
 
 /**
  * getBrowserLanguage function
  * return: a string of the current detected language, in 2 characters
  */
-//C8O.getBrowserLanguage()
-
-/**
- * doNavigationBarEvent function
- * for HTML connector only
- * send an action to the navigation bar of the connector
- * action: string of value 'backward', 'forward', 'stop' or 'refresh'
- */
-//C8O.doNavigationBarEvent(action);
-
-/**
- * doReconnect function
- * reload the current window with the initial query
- */
-//C8O.doReconnect();
-
-/**
- * doResize function
- * perform a resize of the frame element if any
- * and calculate automatically the height if not provided
- * height (optional): number of the iframe height in pixel
- *                          automatically calculed if empty
- * options (optional): options parameter for the jquery animate() function
- *                          see http://api.jquery.com/animate/ for more details
- */
-//C8O.doResize(height, options);
+//C8O.getBrowserLanguage();
 
 /**
  * getLastCallParameter function
@@ -226,7 +300,7 @@ $.extend(true, C8O, {
 //C8O.isUndefined(obj);
 
 /**
- * log object
+ * log object and functions
  * write the msg string into the console.log if available
  * or call the hook "log" if added.
  * msg: string with the message to log
@@ -269,18 +343,16 @@ $.extend(true, C8O, {
 /**
  * waitHide function
  * hide the wait screen
- * by removing the element with the id wait_div
+ * by hiding the #c8oloading element and stop jquerymobile loading
  */
 //C8O.waitHide();
 
 /**
  * waitShow function
  * show the wait screen
- * by putting the wait_div in the body element
+ * by showing the #c8oloading element and start jquerymobile loading
  */
 //C8O.waitShow();
-
-
 
 /*******************************************************
  * List of possible hooks *
@@ -362,12 +434,11 @@ $.extend(true, C8O, {
 /**
  *  init_finished hook
  *  used at page loading after C8O initialization
- *  can modify data parameter of the first call
  *  or break the processing of request
  *  
  *  params: key/value object decoded from the current query or hash string
  *  
- *  return: true > lets C8O perform the first call
+ *  return: true > lets CTF handle the document
  *             false > break the processing of request
  */
 //C8O.addHook("init_finished", function (params) {
@@ -394,129 +465,41 @@ $.extend(true, C8O, {
 //});
 
 /**
- *  mashup_event hook
- *  used for handle doMashupEvent call
- *  and used to implement how to forward event
- *  to the 'mashup' container
+ *  push_notification hook
+ *  ** Needs cordova.js + c8o.cordova.js **
+ *  Hook called when a notification is received on the mobile device
  *  
- *  eventName: name of the event
- *  payload: key/value map object
+ *  level: "string" sender of the notification : GCM (Google) or APN (Apple)
+ *  msg: "string" the message content of the notification
+ *  event: "object" the raw object from the notification, sender specific
+ *  return: true > lets c8o.cordova handle the response (Apple badge or sound)
+ *            false > do nothing
  */
-//C8O.addHook("mashup_event", function (eventName, payload) {
-//
-//});
-
-/**
- *  receive_mashup_event hook
- *  used for handle Mashup event for this widget
- *  to the 'mashup' container
- *  
- *  event.origin: widget name of the event source
- *  event.name: name of the event
- *  event.payload: key/value map object
- *  event.target: widget name of the event target
- *  event.type: type of the event, the default is 'call'
- *  
- *  return: true > lets C8O consume the event
- *             false > event ignored by C8O
- */
-//C8O.addHook("receive_mashup_event", function (event) {
+//C8O.addHook("push_notification", function (sender, msg, event) {
 //	return true;
 //});
 
 /**
- *  resize_calculation hook
- *  used after the content is filled
- *  for calculate the height of the
- *  iframe element
+ *  push_register_failed hook
+ *  ** Needs cordova.js + c8o.cordova.js **
+ *  Hook called when the registration failed on the mobile
  *  
- *  return: false > bypass C8O resize 
- *             type of 'number' > height for the iframe
- *             other > do standard resize
+ *  error: "string" cause of the error
  */
-//C8O.addHook("resize_calculation", function () {
-//	return true;
-//});
-
-
-/**
- *  result_filled hook
- *  used after the content is filled
- *  but before set event listener
- *  and iframe resize
- *  
- *  $container: jquery object where the content has been added
- *  
- *  return: true > lets C8O perform the init 
- *             false > bypass C8O resize
- */
-//C8O.addHook("result_filled", function ($container) {
-//	return true;
-//});
-
-/**
- *  siteclipper_page_loaded hook
- *  used after a siteclipped page is loaded
- *  and automatically resized
- *  
- *  doc: document object of the current siteclipped page loaded
- */
-//C8O.addHook("siteclipper_page_loaded", function (doc) {
+//C8O.addHook("push_register_failed", function (error) {
 //	
 //});
 
 /**
- *  siteclipper_page_unloaded hook
- *  used when a siteclipped page is unloaded
+ *  push_register_success hook
+ *  ** Needs cordova.js + c8o.cordova.js **
+ *  Hook called when the registration success on the mobile
  *  
- *  $iframe: jQuery object with the iframe container of the siteclipped page selected
- *  
- *  return: true > lets C8O perform recude the iframe 
- *             false > bypass C8O resize
+ *  result: content from the notification system
+ *  return: true > lets c8o.cordova handle the response and notify C8O PushManager
+ *            false > do nothing
  */
-//C8O.addHook("siteclipper_page_unloaded", function ($iframe) {
-//	return true;
-//});
-
-/**
- *  text_response hook
- *  used for tweak, retrieve value or do transformation
- *  using the text response from CEMS (after a server XSL transformation)
- *  
- *  aText: array with only one string, aText[0], of the text received
- *            and can be replaced by a new value
- *  return: true > lets C8O perform the inclusion in the DOM
- *             false > break the processing of the C8O
- */
-//C8O.addHook("text_response", function (aText) {
-//  var text = aText[0];
-//	return true;
-//});
-
-/**
- *  wait_hide hook
- *  used after xml_response execution
- *  or on C8O.waitHide() call
- *  and hide the transparent mask
- *  
- *  return: true > lets C8O hide the loading mask
- *             false > doesn't hide anything
- */
-//C8O.addHook("wait_hide", function () {
-//	return true;
-//});
-
-/**
- *  wait_show hook
- *  used at C8O.call calling
- *  or on C8O.waitShow() call
- *  and display a transparent mask
- *  that prevents the user to act
- *  
- *  return: true > lets C8O display the loading mask
- *             false > doesn't display anything
- */
-//C8O.addHook("wait_show", function () {
+//C8O.addHook("push_register_success", function (result) {
 //	return true;
 //});
 
@@ -526,9 +509,9 @@ $.extend(true, C8O, {
  *  using the XML response from CEMS
  *  
  *  xml: pure DOM document
- *  return: true > lets C8O perform the xml
+ *  return: true > lets the CTF perform the xml
  *             false > break the processing of xml
  */
-//C8O.addHook("xml_response", function (xml) {
+//C8O.addHook("xml_response", function (xml, data) {
 //	return true;
 //});

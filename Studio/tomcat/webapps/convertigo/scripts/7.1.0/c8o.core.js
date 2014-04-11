@@ -662,8 +662,7 @@ C8O = {
 $.ajaxSettings.traditional = true;
 $.ajaxSetup({
 	type: C8O.vars.ajax_method,
-	dataType: "xml", 
-	
+	dataType: "xml"
 });
 
 (function () {
