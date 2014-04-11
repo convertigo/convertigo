@@ -339,6 +339,12 @@ public class MobileResourceHelper {
 		listFiles(json);
 		FileUtils.write(new File(destDir, "files.json"), json.toString());
 		
+		String remoteBase = endpoint + "/projects/" + project.getName() + "/" + destDir.toURI().toString().substring(projectDir.toURI().toString().length());
+		remoteBase = remoteBase.replaceFirst("www", "flashupdate");
+		if (remoteBase.endsWith("/")) {
+			remoteBase = remoteBase.substring(0, remoteBase.length() - 1);
+		}
+		
 		json = new JSONObject();
 		json.put("applicationId", mobileApplication.getComputedApplicationId());
 		json.put("applicationName", finalApplicationName);
@@ -346,7 +352,7 @@ public class MobileResourceHelper {
 		json.put("projectName", project.getName());
 		json.put("endPoint", endpoint);
 		json.put("timeout", mobileApplication.getFlashUpdateTimeout());
-		json.put("remoteBase", endpoint + "/projects/" + project.getName() + (destDir.getAbsolutePath().substring(projectDir.getAbsolutePath().length()).replaceFirst("www", "flashupdate")));
+		json.put("remoteBase", remoteBase);
 		FileUtils.write(new File(destDir, "env.json"), json.toString());
 		
 		File configFile = new File(destDir, "config.xml");
