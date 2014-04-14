@@ -63,7 +63,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Undefined Global Symbols");
-		newShell.setSize(410,270); 
+		newShell.setSize(470,270); 
 		display = newShell.getDisplay();
 	}
 

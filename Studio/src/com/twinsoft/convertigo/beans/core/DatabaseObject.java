@@ -928,7 +928,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				if (Engine.isStudioMode()) {			
 					try {
 						// When loading/opening project
-						if (intoStack("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectLoadingJob")) {
+						if (intoStack("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectLoadingJob") || 
+								intoStack("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView")) {
 							if (doThisForAll == false) {
 								openSymbolWarningDialog(projectName, propertyName, propertyObjectValue, objectName, 
 										databaseObject, createUndefinedSymbol, doThisForAll, true);
