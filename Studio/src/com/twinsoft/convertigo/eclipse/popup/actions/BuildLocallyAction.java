@@ -778,6 +778,9 @@ public class BuildLocallyAction extends MyAbstractAction {
     						runCordovaCommand("plugin add  org.apache.cordova.file", cordovaDir);
     						runCordovaCommand("plugin add  org.apache.cordova.file-transfer", cordovaDir);
     						runCordovaCommand("plugin add  org.apache.cordova.device", cordovaDir);
+    						runCordovaCommand("plugin add  org.apache.cordova.splashscreen", cordovaDir);
+    						
+    				
     						
     						// Add all mandatory plugins for Push Notifications
     						runCordovaCommand("plugin add  https://github.com/phonegap-build/PushPlugin.git", cordovaDir);
