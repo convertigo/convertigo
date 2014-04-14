@@ -71,7 +71,7 @@ function loadProjectGSymbol(projectName){
 			$("#projectEditUndefinedSymbolsInfo").hide();
 		}
 	}, 
-	{"projectName":projectName});
+	{"projectName":project_Name});
 	
 	loadProject(projectName);
 }
@@ -80,7 +80,7 @@ function loadProjectGSymbol(projectName){
 var xmlDatabaseObject;
 var project_Name;
 function loadProject(projectName) {
-
+	project_Name = projectName;
 	startWait(30);
 
 	callService("projects.Get", function(xml) {
@@ -124,7 +124,7 @@ function loadProject(projectName) {
 
 		$("#projectTreeWidgetRoot").click();
 		endWait();		
-	}, {"projectName":projectName});
+	}, {"projectName":project_Name});
 
 }
 
@@ -417,7 +417,6 @@ function projectEditObjectSubmitProperties() {
 }
 
 function projectDeclareGlobalSymbols() { 	 
-	var projectName = $(".projectEditObjectName").text();
 	
 	callService("global_symbols.Create",  
 		function(xml) { 
@@ -429,14 +428,13 @@ function projectDeclareGlobalSymbols() {
 				showError("<p>"+$(xml).find("response").attr("message")+"</p>",$(xml).find("stackTrace").text()); 
 			}
 		} 
-		, {"projectName":projectName}  
+		, {"projectName":project_Name}  
 	); 
 	
 	projects_List_update();
 } 
 
 function projectStats() { 	 
-	var projectName = $(".projectEditObjectName").text();
 	
 	callService("projects.GetStatistic",  
 		function(xml) { 
@@ -454,12 +452,12 @@ function projectStats() {
 		                }
 			        }]
 				});
-				$("#statisticsGlobalProjectName").html(projectName);
-				$("#statisticsGlobalProjectInfo").html($(xml).find("statistics").children(projectName).text().replace("<br/>",", "));
+				$("#statisticsGlobalProjectName").html(project_Name);
+				$("#statisticsGlobalProjectInfo").html($(xml).find("statistics").children(project_Name).text().replace("<br/>",", "));
 				
 				var htmlStats = "";
 				$(xml).find("statistics").children("*").each(function() {
-					if (this.tagName != projectName) {
+					if (this.tagName != project_Name) {
 						htmlStats += "<table><tr><td>"
 						htmlStats += "<img src=\"images/stats_"+this.tagName.toLowerCase()+"_16x16.png\" /></td>";
 						htmlStats += "<td><strong>"+this.tagName.replace("_"," ")+"</strong><br/>"+$(this).text()+"<br/><br/></td>";
@@ -472,6 +470,6 @@ function projectStats() {
 				$("#statisticsProjectInfo").hide();
 			}
 		} 
-		, {"projectName":projectName}  
+		, {"projectName":project_Name}  
 	); 
 } 
