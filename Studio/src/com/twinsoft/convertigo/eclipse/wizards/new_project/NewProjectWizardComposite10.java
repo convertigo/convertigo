@@ -96,7 +96,7 @@ public class NewProjectWizardComposite10 extends Composite {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				FileDialog dialog = new FileDialog(container.getShell(), SWT.NULL);
-				dialog.setFilterExtensions(new String[]{"*.wsdl"});
+				dialog.setFilterExtensions(new String[]{"*.wsdl", "*.xml"});
 				dialog.setText("Select your WSDL file");
 				String path = dialog.open();
 				if (path != null) {
@@ -116,12 +116,14 @@ public class NewProjectWizardComposite10 extends Composite {
 			public void widgetDefaultSelected(SelectionEvent e) {}
 		});
 		
+		data = new GridData ();
+		data.horizontalAlignment = GridData.FILL;
+		data.horizontalSpan = 2;
+		data.grabExcessHorizontalSpace = true;		
+		
 		useAuthentication = new Button(this, SWT.CHECK);
 		useAuthentication.setText("WSDL URL need an authenfication");
 		useAuthentication.setSelection(false);
-		data = new GridData ();
-		data.horizontalAlignment = GridData.FILL;
-		data.grabExcessHorizontalSpace = true;		
 		useAuthentication.setLayoutData(data);
 		
 		useAuthentication.addSelectionListener(new SelectionListener() {

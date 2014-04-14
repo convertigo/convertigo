@@ -97,7 +97,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				FileDialog dialog = new FileDialog(container.getShell(), SWT.NULL);
-				dialog.setFilterExtensions(new String[]{"*.wsdl"});
+				dialog.setFilterExtensions(new String[]{"*.wsdl","*.xml"});
 				dialog.setText("Select your WSDL file");
 				String path = dialog.open();
 				if (path != null) {
