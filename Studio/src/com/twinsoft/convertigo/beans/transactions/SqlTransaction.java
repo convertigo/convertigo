@@ -818,16 +818,23 @@ public class SqlTransaction extends TransactionWithVariables {
 	}
 	
 	private boolean checkVariables(List<SqlQueryInfos> sqlQueries) {
-		
+
 		if (sqlQueries!=null) {
 			for(SqlQueryInfos sqlQuery : sqlQueries){
 				Map<String, String> variables  = sqlQuery.getParametersMap();
-				if(sqlQuery.orderedParametersList != null && variables != null){
-					if(sqlQuery.orderedParametersList.size() != 0 && variables.size() != 0){
-						for(String key : sqlQuery.orderedParametersList){
+				if (sqlQuery.orderedParametersList != null && variables != null){
+					if (sqlQuery.orderedParametersList.size() != 0 && variables.size() != 0){
+						for (String key : sqlQuery.orderedParametersList){
 							if( !getParameterValue( key, this.getVariableVisibility(key) ).toString().equals( variables.get(key) ) )
 								return false;	
 						}
+					}
+				}
+				
+				if (sqlQuery.otherParametersList != null && sqlQuery.otherParametersList.size() != 0) {
+					for (String key : sqlQuery.otherParametersList){
+						if( !getParameterValue( key, this.getVariableVisibility(key) ).toString().equals( variables.get(key) ) )
+							return false;	
 					}
 				}
 			}
@@ -835,6 +842,7 @@ public class SqlTransaction extends TransactionWithVariables {
 			initializeQueries(true);
 			return checkVariables(preparedSqlQueries);
 		}
+		
 		return true;
 	}
 
