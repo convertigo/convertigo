@@ -602,30 +602,30 @@ public class XmlSchemaUtils {
 	}
 
 	public static void add(XmlSchema schema, XmlSchemaImport _import) {
-		if (!schema.getIncludes().contains(_import)) {
+		if (indexOf(schema.getIncludes(), _import) == -1) {
 			schema.getIncludes().add(_import);
 			schema.getItems().add(_import);
 		}
 	}
 	
 	public static void remove(XmlSchema schema, XmlSchemaImport _import) {
-		if (schema.getIncludes().contains(_import)) {
-			schema.getIncludes().remove(_import);
-			schema.getItems().remove(_import);
+		if (indexOf(schema.getIncludes(), _import) != -1) {
+			remove(schema.getIncludes(), _import);
+			remove(schema.getItems(), _import);
 		}
 	}
 
 	public static void add(XmlSchema schema, XmlSchemaInclude _include) {
-		if (!schema.getIncludes().contains(_include)) {
+		if (indexOf(schema.getIncludes(), _include) == -1) {
 			schema.getIncludes().add(_include);
 			schema.getItems().add(_include);
 		}
 	}
 
 	public static void remove(XmlSchema schema, XmlSchemaInclude _include) {
-		if (schema.getIncludes().contains(_include)) {
-			schema.getIncludes().remove(_include);
-			schema.getItems().remove(_include);
+		if (indexOf(schema.getIncludes(), _include) != -1) {
+			remove(schema.getIncludes(), _include);
+			remove(schema.getItems(), _include);
 		}
 	}
 
