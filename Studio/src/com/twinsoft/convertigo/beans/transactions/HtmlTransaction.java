@@ -994,7 +994,7 @@ public class HtmlTransaction extends HttpTransaction {
 		schema += "<xsd:schema>\n";
 		
 		String all, obSchema;
-		all = "<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"error\" type=\"p_ns:ConvertigoError\"/>\n";
+		all = "";
 		for (i=0; i<schemas.size(); i++) {
 			obSchema = schemas.get(i);
 			all += obSchema;
@@ -1011,6 +1011,7 @@ public class HtmlTransaction extends HttpTransaction {
 			
 			schema += "<xsd:complexType name=\""+ transactionName +"\">\n";
 			schema += "<xsd:sequence>\n";
+			schema += "<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"error\" type=\"p_ns:ConvertigoError\"/>\n";
 			schema += "<xsd:group minOccurs=\"0\" maxOccurs=\"1\" ref=\"p_ns:"+groupName+"\"/>\n";
 			schema += "</xsd:sequence>\n";
 			schema += "</xsd:complexType>\n";
@@ -1024,6 +1025,7 @@ public class HtmlTransaction extends HttpTransaction {
 		else {
 			schema += "<xsd:complexType name=\""+ transactionName +"\">\n";
 			schema += "<xsd:sequence>\n";
+			schema += "<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"error\" type=\"p_ns:ConvertigoError\"/>\n";
 			schema += all;
 			schema += "</xsd:sequence>\n";
 			schema += "</xsd:complexType>\n";
