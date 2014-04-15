@@ -316,9 +316,12 @@ public class Migration7_0_0 {
 							for (QName qname: map.keySet()) {
 								if (qname.getNamespaceURI().equals(targetNamespace)) {
 									XmlSchemaObject ob = map.get(qname);
+									
+									if (qname.getLocalPart().startsWith("ConvertigoError"))
+										continue;
 									transactionSchema.getItems().add(ob);
 									
-									// Add missing response error and attributes
+									// Add missing response error element and attributes
 									if (qname.equals(responseTypeQName)) {
 										Transaction.addSchemaResponseObjects(transactionSchema, (XmlSchemaComplexType) ob);
 									}
