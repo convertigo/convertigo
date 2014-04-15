@@ -804,8 +804,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	// Step 2 call Mobile packager to build ZIP package, simulate a fake HttpRequest
 					        	InternalRequest myRequest = new InternalRequest();
 					        	myRequest.setParameter("project", applicationName);
-					        	myRequest.setParameter("platform", mobileDevice.getType());
-					        	MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(myRequest, BuildLocallyAction.cordovaDir + "/www");
+					        	myRequest.setParameter("platform", mobileDevice.getName());
+					        	MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(myRequest, "mobile/flashupdate");
 					        	File mobileArchiveFile = mobileResourceHelper.makeZipPackage();
 					        	Engine.logEngine.debug("ZIP Build package created in : " + mobileArchiveFile.getAbsolutePath());
 					        	
