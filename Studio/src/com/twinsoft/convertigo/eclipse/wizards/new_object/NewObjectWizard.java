@@ -90,6 +90,7 @@ import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.EmulatorTechnologyWizardPage;
+import com.twinsoft.convertigo.eclipse.wizards.new_project.SQLQueriesWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.ServiceCodeWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.ProjectSchemaWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.WebServiceWizardPage;
@@ -110,6 +111,7 @@ public class NewObjectWizard extends Wizard {
 	
     private ObjectExplorerWizardPage objectExplorerPage = null;
     private ObjectInfoWizardPage objectInfoPage = null;
+    private SQLQueriesWizardPage sqlQueriesWizardPage = null;
     
     public DatabaseObject newBean = null;
 
@@ -228,7 +230,10 @@ public class NewObjectWizard extends Wizard {
 				this.addPage(new XMLTableWizardPage(xpath, dom));
 			}
 		}
-		
+		if (parentObject instanceof SqlConnector) {
+			sqlQueriesWizardPage = new SQLQueriesWizardPage();
+			this.addPage(sqlQueriesWizardPage);
+		}
 		if (beanClass.equals(Connector.class)) {
 			// add emulator technology wizard page
 			EmulatorTechnologyWizardPage emulatorTechnologyPage = new EmulatorTechnologyWizardPage();
@@ -275,7 +280,8 @@ public class NewObjectWizard extends Wizard {
 	
 	@Override
 	public boolean canFinish() {
-		return (getContainer().getCurrentPage().getNextPage() == null && getContainer().getCurrentPage().isPageComplete());
+		return (getContainer().getCurrentPage().getNextPage() == getPage("SQLQueriesWizardPage") || 
+				getContainer().getCurrentPage().getNextPage() == null && getContainer().getCurrentPage().isPageComplete());
 	}
 
 	private void doFinish(IProgressMonitor monitor) throws CoreException {
@@ -429,6 +435,10 @@ public class NewObjectWizard extends Wizard {
 							WebServiceReference webServiceReference = (WebServiceReference)newBean;
 							ImportWsReference wsr = new ImportWsReference(webServiceReference, monitor);
 							wsr.importInto(project);
+						}
+						
+						if (newBean instanceof SqlTransaction) {
+							((SqlTransaction) newBean).setSqlQuery(sqlQueriesWizardPage.getSQLQueries());
 						}
 						
 						ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");

@@ -56,6 +56,7 @@ import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
+import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
@@ -249,6 +250,9 @@ public class ObjectInfoWizardPage extends WizardPage {
 			}
 			else if (dbo instanceof WebServiceReference) {
 				return getWizard().getPage("WebServiceWizardPage");
+			}
+			else if (dbo instanceof SqlTransaction){
+				return getWizard().getPage("SQLQueriesWizardPage");
 			}
 		}
 		catch (NullPointerException e) {
