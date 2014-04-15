@@ -551,11 +551,23 @@ public class BuildLocallyAction extends MyAbstractAction {
 	 * @param platform
 	 * @param cordovaDir
 	 */
-	private void ProcessConfigXMLResources(File wwwDir, String platform, File cordovaDir)
+	private void ProcessConfigXMLResources(File wwwDir, String platform, File cordovaDir) throws Throwable
 	{
 		try {
 			Document doc = XMLUtils.loadXml(new File(wwwDir, "config.xml"));
 			CachedXPathAPI xpathApi = new CachedXPathAPI();
+			
+			/*
+			 * Handle plugins in the config.xml file
+			 */
+			NodeList plugins = xpathApi.selectNodeList(doc.getDocumentElement(), "//*[local-name()='plugin']");
+			for(int i=0; i< plugins.getLength(); i++) {
+				Node plugin = plugins.item(i);
+				String pluginName = plugin.getAttributes().getNamedItem("name").getTextContent();
+				Engine.logEngine.debug("Adding plugin " + pluginName);
+				runCordovaCommand("plugin add " + pluginName, cordovaDir);
+			}
+
 			
 			if (platform.equalsIgnoreCase("android")) {
 				NodeList icons = xpathApi.selectNodeList(doc.getDocumentElement(), "//icon[@platform = 'android']");
@@ -773,17 +785,6 @@ public class BuildLocallyAction extends MyAbstractAction {
     						//create a local Cordova Environment
 				        	File cordovaDir = new File(privateDir.getAbsolutePath() + "/" + BuildLocallyAction.cordovaDir);
     						runCordovaCommand("create " + BuildLocallyAction.cordovaDir + " " + applicationId + " " + applicationName, privateDir);
-    						
-    						// Add all mandatory plugins for Flash Update
-    						runCordovaCommand("plugin add  org.apache.cordova.file", cordovaDir);
-    						runCordovaCommand("plugin add  org.apache.cordova.file-transfer", cordovaDir);
-    						runCordovaCommand("plugin add  org.apache.cordova.device", cordovaDir);
-    						runCordovaCommand("plugin add  org.apache.cordova.splashscreen", cordovaDir);
-    						
-    				
-    						
-    						// Add all mandatory plugins for Push Notifications
-    						runCordovaCommand("plugin add  https://github.com/phonegap-build/PushPlugin.git", cordovaDir);
     						
     						Engine.logEngine.debug("Cordova environment is now ready.");
     					} else {
