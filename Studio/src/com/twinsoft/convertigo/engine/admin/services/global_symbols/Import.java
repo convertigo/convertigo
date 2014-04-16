@@ -53,7 +53,6 @@ public class Import extends UploadService {
 					false);
 		}
 
-		Engine.logAdmin.info("UploadService - request: "+request+", document: "+document+", item: "+item);
 		super.doUpload(request, document, item);	
 		
 		//We rename the old global symbol file
@@ -107,7 +106,6 @@ public class Import extends UploadService {
 
 	@Override
 	protected String getRepository() {
-		// TODO Auto-generated method stub
-		return null;
+		return Engine.CONFIGURATION_PATH + "/";
 	}	
 }

@@ -33,7 +33,6 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.w3c.dom.Document;
 
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public abstract class UploadService extends XmlService {
@@ -66,7 +65,6 @@ public abstract class UploadService extends XmlService {
 	protected void doUpload(HttpServletRequest request, Document document, FileItem item) throws Exception {
 		File fullFile = new File(item.getName());
 		File savedFile = new File(getRepository(), fullFile.getName());
-		Engine.logAdmin.info("savedFile: "+savedFile.getAbsolutePath());
 		item.write(savedFile);
 	}
 
