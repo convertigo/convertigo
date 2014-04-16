@@ -52,6 +52,8 @@ public class Import extends UploadService {
 					+ item.getName() + " has failed. The file is not valid (.properties required).", "error",
 					false);
 		}
+
+		Engine.logAdmin.info("UploadService - request: "+request+", document: "+document+", item: "+item);
 		super.doUpload(request, document, item);	
 		
 		//We rename the old global symbol file
