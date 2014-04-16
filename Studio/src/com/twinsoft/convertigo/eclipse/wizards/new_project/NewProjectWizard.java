@@ -714,6 +714,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			monitor.setTaskName("Project renamed");
 			monitor.worked(1);
 
+			// empty project version
+			property = (Element) XMLUtils.findNodeByAttributeValue(projectProperties, "name", "version");
+			((Element) property.getElementsByTagName("java.lang.String").item(0)).removeAttribute("value");
+			((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value","");
+			
 			// rename connector in .xml file for all projects
 			String oldConnectorName = "unknown";
 			String newConnectorName = "NewConnector";
