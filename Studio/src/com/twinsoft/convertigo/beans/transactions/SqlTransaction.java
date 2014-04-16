@@ -136,6 +136,10 @@ public class SqlTransaction extends TransactionWithVariables {
 	
 	private boolean autoCommit = true;
 	
+	private String xmlDefaultRowTagname = "row";
+	
+	private String xmlDefaultColumnTagname = "column";
+	
 	/** SqlQueryInfos class **/
 	public class SqlQueryInfos {
 		
@@ -650,7 +654,7 @@ public class SqlTransaction extends TransactionWithVariables {
 									
 									String tableName = entry.getKey();
 									child = doc.createElement("xsd:element");
-									child.setAttribute("name",((xmlOutput == XML_RAW) ? "row":tableName));
+									child.setAttribute("name",((xmlOutput == XML_RAW) ? getRowTagname():tableName));
 									child.setAttribute("minOccurs","0");
 									child.setAttribute("maxOccurs","unbounded");
 									if ((firstLoop && (xmlOutput == XML_RAW)) || (xmlOutput != XML_RAW)) {
@@ -687,7 +691,7 @@ public class SqlTransaction extends TransactionWithVariables {
 											parentElt.appendChild(child);
 										} else if (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) {
 											child = doc.createElement("xsd:element");
-											child.setAttribute("name","column");
+											child.setAttribute("name",getColumnTagname());
 											child.setAttribute("type",type);
 											parentElt.appendChild(child);
 											Element child2 = doc.createElement("xsd:attribute");
@@ -1045,7 +1049,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		Element element = null;
 		
 		for (List<String> line : lines) {
-			element = doc.createElement("row");
+			element = doc.createElement(getRowTagname());
 
 			Iterator<String> lineIterator = line.iterator();
 			for (String columnName : columnHeaders) {
@@ -1120,7 +1124,7 @@ public class SqlTransaction extends TransactionWithVariables {
 					String tagName;
 					
 					if (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) {
-						tagName = "row";
+						tagName = getRowTagname();
 					}
 					else {
 						tagName = StringUtils.normalize(rowElt.get(keywords._tagname.name()));
@@ -1145,7 +1149,7 @@ public class SqlTransaction extends TransactionWithVariables {
 								element.appendChild(node);
 							}
 							else if (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) {
-								Element node = doc.createElement("column");
+								Element node = doc.createElement(getColumnTagname());
 								node.setAttribute("name", columnName);
 								node.appendChild(doc.createTextNode(value));
 								element.appendChild(node);
@@ -1260,5 +1264,32 @@ public class SqlTransaction extends TransactionWithVariables {
 		this.autoCommit = autoCommit;
 	}
 
+	public String getXmlDefaultRowTagname() {
+		return xmlDefaultRowTagname;
+	}
+
+	public void setXmlDefaultRowTagname(String xmlDefaultRowTagname) {
+		this.xmlDefaultRowTagname = xmlDefaultRowTagname;
+	}
+
+	public String getXmlDefaultColumnTagname() {
+		return xmlDefaultColumnTagname;
+	}
+
+	public void setXmlDefaultColumnTagname(String xmlDefaultColumnTagname) {
+		this.xmlDefaultColumnTagname = xmlDefaultColumnTagname;
+	}
+	
+	private String getRowTagname() {
+		String tagname = getXmlDefaultRowTagname();
+		tagname = tagname.equals("") ? "row":tagname;
+		return StringUtils.normalize(tagname);
+	}
+
+	private String getColumnTagname() {
+		String tagname = getXmlDefaultColumnTagname();
+		tagname = tagname.equals("") ? "column":tagname;
+		return StringUtils.normalize(tagname);
+	}
 }
 

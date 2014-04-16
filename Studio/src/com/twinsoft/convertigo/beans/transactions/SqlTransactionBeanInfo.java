@@ -35,7 +35,7 @@ public class SqlTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/sqltransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/sqltransaction_color_32x32.png";
 
-			properties = new PropertyDescriptor[5];
+			properties = new PropertyDescriptor[7];
 			
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/SqlTransaction");
 			
@@ -67,6 +67,14 @@ public class SqlTransactionBeanInfo extends MySimpleBeanInfo {
 			properties[4] = new PropertyDescriptor("autoCommit", beanClass, "getAutoCommit", "setAutoCommit");
 			properties[4].setDisplayName(getExternalizedString("property.autoCommit.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.autoCommit.short_description"));
+			
+			properties[5] = new PropertyDescriptor("xmlDefaultRowTagname", beanClass, "getXmlDefaultRowTagname", "setXmlDefaultRowTagname");
+			properties[5].setDisplayName(getExternalizedString("property.xmlDefaultRowTagname.display_name"));
+			properties[5].setShortDescription(getExternalizedString("property.xmlDefaultRowTagname.short_description"));
+			
+			properties[6] = new PropertyDescriptor("xmlDefaultColumnTagname", beanClass, "getXmlDefaultColumnTagname", "setXmlDefaultColumnTagname");
+			properties[6].setDisplayName(getExternalizedString("property.xmlDefaultColumnTagname.display_name"));
+			properties[6].setShortDescription(getExternalizedString("property.xmlDefaultColumnTagname.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
