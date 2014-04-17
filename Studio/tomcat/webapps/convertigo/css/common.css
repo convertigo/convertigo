@@ -192,8 +192,11 @@ a img {
 	width: 24%;
 	padding: 10px;
 	font-weight: bold;
-	border: 10px solid rgba(0,0,0,0.4);	
-	background-color: rgba(255,255,255,0.8);
+	/* hack ie */
+	border: 10px solid rgba(0,0,0,0.4) !important;	
+	background-color: rgba(255,255,255,0.8) !important;
+	border: 10px solid #ccc;	
+	background-color: #fff;	
 	z-index: 99999;
 }
 #wait_div_build img {
