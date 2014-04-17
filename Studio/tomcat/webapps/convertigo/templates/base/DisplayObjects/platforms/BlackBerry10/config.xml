@@ -37,13 +37,18 @@
 	<icon src="icon.png"/>
 	
 	<!-- BlackBerry icons -->
-    <icon src="res/icon/icon80.png"     		  gap:platform="blackberry" />
-    <icon src="res/icon/icon80.png"     		  gap:platform="blackberry" gap:state="hover"/>
+    <icon src="res/icon/icon86.png" />
+    <icon src="res/icon/icon86over.png" rim="hover"/>
+	<icon src="res/icon/icon150.png" />
 	
 	<gap:splash src="splash.png" />
 
     <!-- BlackBerry splash -->
-    <gap:splash src="res/splash/splash225.png"       	     gap:platform="blackberry" />
+    <rim:splash src="splash720x720.png" />
+    <rim:splash src="splash1280x720.png" />
+    <rim:splash src="splash720x1280.png" />
+    <rim:splash src="splash1280x768.png" />
+    <rim:splash src="splash768x1280.png" />
 	
 	<!-- If you do not want any permissions to be added to your app, add the
     following tag to your config.xml; you will still have the INTERNET

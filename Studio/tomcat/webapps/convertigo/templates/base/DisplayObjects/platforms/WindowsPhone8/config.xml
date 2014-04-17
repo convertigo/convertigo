@@ -32,8 +32,9 @@
 	<icon src="icon.png"/>
 	
 	<!-- Windows Phone 8 icons -->
-    <icon src="res/icon/icon48.png"      gap:platform="winphone" />
-    <icon src="res/icon/icon173tile.png" gap:platform="winphone"   gap:role="background" />
+    <icon src="res/icon/icon48.png"      	gap:platform="winphone" />
+    <icon src="res/icon/icon62tile.png" 	gap:platform="winphone"   gap:role="background" />
+    <icon src="res/icon/icon173tile.png" 	gap:platform="winphone"   gap:role="background" />
 	
 	<gap:splash src="splash.png" />
 	

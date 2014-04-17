@@ -40,22 +40,21 @@
 	<icon src="icon.png"/>
 	
 	<!-- IOs icons -->
-    <icon src="res/icon/icon57.png"           gap:platform="ios"        width="57" height="57" />
-    <icon src="res/icon/icon72.png"           gap:platform="ios"        width="72" height="72" />
-    <icon src="res/icon/icon572x.png"         gap:platform="ios"        width="114" height="114" />
-    <icon src="res/icon/icon722x.png"         gap:platform="ios"        width="144" height="144" />
-	
+    <icon src="res/icon/icon57.png"         gap:platform="ios"	width="57"		height="57" 	/> 	<!-- iPhone -->
+    <icon src="res/icon/icon72.png"         gap:platform="ios"	width="72"		height="72" 	/>	<!-- iPad -->
+    <icon src="res/icon/icon572x.png"       gap:platform="ios"	width="114"		height="114" 	/>	<!-- iPhone 4 Retina Display -->
+    <icon src="res/icon/icon722x.png"       gap:platform="ios"	width="144"		height="144" 	/>	<!-- iPad 3 Retina Display -->
+   
 	<gap:splash src="splash.png" />
 	
 	<!-- IOs splash -->
-    <gap:splash src="res/splash/splashiPhone.png"   	     gap:platform="ios"     width="320" height="480" />
-    <gap:splash src="res/splash/splashiPhoneLandscape.png"   gap:platform="ios"     width="480" height="320" />
-    <gap:splash src="res/splash/splashiPhone2x.png" 	     gap:platform="ios"     width="640" height="960" />
-    <gap:splash src="res/splash/splashiPhoneLandscape2x.png" gap:platform="ios"     width="960" height="640" />
-    <gap:splash src="res/splash/splashiPad.png"     	     gap:platform="ios"     width="768" height="1024" />
-    <gap:splash src="res/splash/splashiPadLandscape.png"     gap:platform="ios"     width="1024" height="768" />
-    <gap:splash src="res/splash/splashiPad2x.png"     	     gap:platform="ios"     width="1536" height="2008" />
-    <gap:splash src="res/splash/splashiPadLandscape2x.png"   gap:platform="ios"     width="2008" height="1536" />
+    <gap:splash src="res/splash/Default568h2xiphone.png"		gap:platform="ios"     width="640" height="1136" 	/>	<!-- iPhone -->
+    <gap:splash src="res/splash/DefaultLandscape2xipad.png"		gap:platform="ios"     width="2048" height="1496" 	/>	<!-- iPad -->
+    <gap:splash src="res/splash/DefaultLandscapeipad.png"		gap:platform="ios"     width="1024" height="748" 	/>	<!-- iPad -->
+    <gap:splash src="res/splash/DefaultPortrait2xipad.png"		gap:platform="ios"     width="1536" height="2008" 	/>	<!-- iPad -->
+    <gap:splash src="res/splash/DefaultPortraitipad.png"		gap:platform="ios"     width="768" height="1004" 	/>	<!-- iPad -->
+    <gap:splash src="res/splash/Default2xiphone.png"			gap:platform="ios"     width="640" height="960" 	/>	<!-- iPhone -->
+    <gap:splash src="res/splash/Defaultiphone.png"				gap:platform="ios"     width="320" height="480" 	/>	<!-- iPhone -->
 	
 	<!-- If you do not want any permissions to be added to your app, add the
     following tag to your config.xml; you will still have the INTERNET
