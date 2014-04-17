@@ -161,22 +161,22 @@
                                                                         <h6 class="sub_connectors">Mobile application</h6>
                                                                         <div class="acc-section">
                                                                             <div class="acc-content">
-																				<table class="table">
+																				<table cellspacing="0" cellpadding="5" class="table contentTable">
 																					<tr>
-																						<td class="property_name">Application name</td>
-																						<td><span id="build_application_name" /></td>
+																						<td class="property_name table_row_even">Application name</td>
+																						<td class="table_row_even"><span id="build_application_name" /></td>
 																					</tr>
 																					<tr>
-																						<td class="property_name">Convertigo server endpoint</td>
-																						<td><span id="build_endpoint" /></td>
+																						<td class="property_name table_row_even">Convertigo server endpoint</td>
+																						<td class="table_row_even"><span id="build_endpoint" /></td>
 																					</tr>
 																					<tr>
-																						<td class="property_name">Application ID</td>
-																						<td><span id="build_application_id" /></td>
+																						<td class="property_name table_row_even">Application ID</td>
+																						<td class="table_row_even"><span id="build_application_id" /></td>
 																					</tr>
 																					<tr>
-																						<td class="property_name">Application version</td>
-																						<td><span id="build_application_version" /></td>
+																						<td class="property_name table_row_even">Application version</td>
+																						<td class="table_row_even"><span id="build_application_version" /></td>
 																					</tr>
 																				</table>
 																		<!-- Added BUILD panel here, before mobile platforms -->
@@ -191,8 +191,8 @@
 																							<div class="acc-content">
 																								<div class="mobile_platform">
 																									<div class="qrcode_row">
-																										<div class="qrcode_platform">Web Application</div>
-																										<div class="qrcode_install">URL</div>
+																										<div class="qrcode_platform table_row_even">Web Application</div>
+																										<div class="qrcode_install table_row_even">URL</div>
 																										<div class="webapp qrcode_content"><input type="hidden" value="" class="build_url" /> <a target="_blank"></a></div>
 																									</div>
 																									<div class="btn_container">
@@ -285,7 +285,18 @@
                                                                     	</td>
                                                                     </tr>
                                                                 	<tr>	
-                                                                    	<td colspan="3"><div id="window_exe_content"></div></td>
+                                                                    	<td colspan="3">
+	                                                                    	<div id="window_exe_content">
+<!-- 	                                                                    		<div class="device"> -->
+<!-- 																					<div class="button"></div> -->
+<!-- 																					<div class="lock"></div> -->
+<!-- 																					<div class="camera"></div> -->
+<!-- 																					<div class="inner"></div> -->
+<!-- 																					<div class="screen"></div> -->
+<!-- 																					<div class="home"></div> -->
+<!-- 																				</div> -->
+																			</div>
+                                                                    	</td>
                                                                     </tr>                                                                                                                                     
                                                                 </table>
                                                             </div> 
@@ -335,8 +346,8 @@
 						<div class="acc-content">
 							<div class="mobile_platform" >
 								<div class="qrcode_row">
-										<div>Platform <span class="qrcode_platform"></span> Package <span class="qrcode_install"></span></div>
-										<div>Application <span class="qrcode_version"></span> Phonegap <span class="qrcode_phonegap_version"></span></div>
+										<div class="table_row_even">Platform <span class="qrcode_platform"></span> Package <span class="qrcode_install"></span></div>
+										<div class="table_row_even">Application <span class="qrcode_version"></span> Phonegap <span class="qrcode_phonegap_version"></span></div>
 										<div class="install qrcode_content">
 											<input type="hidden" value="none" class="build_status" />
 											<input type="hidden" value="" class="build_url" />

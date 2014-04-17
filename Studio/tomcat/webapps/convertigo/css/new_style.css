@@ -277,6 +277,10 @@ ul li {
 	width: 100%;
 	font-size:11px;
 }
+.contentTable {
+	border-spacing: 2px;
+	padding: 5px 5px;
+}
 .table_cell {
 	/*display: table-cell;*/
 	font-size: 8pt;
@@ -307,18 +311,25 @@ ul li {
 /* rewriting common style */
 
 .qrcode_row {
-	background-color: #7ce6ff;
+	/*background-color: #7ce6ff;*/
 	text-align: center;
 }
-
 .qrcode_row * {
 	margin: 2px;
 }
-
+.qrcode_row div {
+	padding: 4px;
+}	
 .qrcode_platform, .qrcode_install, .qrcode_version, .qrcode_phonegap_version {
-	color: white;
-	font-family:Verdana;
+	font-family: Verdana, sans-serif;
 	font-weight: bold;
+}
+.qrcode_content a {
+	display: block;
+	padding-top: 8px;
+}
+.qrcode_content img {
+	padding: 3px;
 }
 .window_corner_topL {
 	width:15px;
@@ -434,6 +445,142 @@ img {
 	vertical-align:top;	
 }
 
+/* Device */
+.device, .device div, *:before, *:after {
+	-webkit-transition: all 500ms cubic-bezier(0.175, 0.885, 0.320, 1);
+	-webkit-transition: all 500ms cubic-bezier(0.175, 0.885, 0.320, 1.275);
+	-moz-transition: all 500ms cubic-bezier(0.175, 0.885, 0.320, 1.275);
+	-o-transition: all 500ms cubic-bezier(0.175, 0.885, 0.320, 1.275);
+	transition: all 500ms cubic-bezier(0.175, 0.885, 0.320, 1.275);
+}
+.device {
+	padding: 50px 15px 50px 15px;
+	-webkit-border-radius: 20px;
+	border-radius: 20px;
+	width: 320px;
+	height: 568px;
+	margin: 50px auto;
+	background: #181818;
+	position: relative;
+}
+.device:before {
+	-webkit-border-radius: 600px / 50px;
+	border-radius: 600px / 50px;
+	background: inherit;
+	content: '';
+	top: 0;
+	position: absolute;
+	height: 103.1%;
+	width: calc(100% - 26px);
+	top: 50%;
+	left: 50%;
+	-moz-transform: translateX(-50%) translateY(-50%);
+	-webkit-transform: translateX(-50%) translateY(-50%);
+	-o-transform: translateX(-50%) translateY(-50%);
+	-ms-transform: translateX(-50%) translateY(-50%);
+	transform: translateX(-50%) translateY(-50%);
+}
+.button {
+	width: 3px;
+	position: absolute;
+	left: -3px;
+	top: 110px;
+	height: 100px;
+	background: inherit;
+	-webkit-border-radius: 2px 0px 0px 2px;
+	border-radius: 2px 0px 0px 2px;
+}
+.lock {
+	width: 3px;
+	position: absolute;
+	right: -3px;
+	top: 70px;
+	height: 45px;
+	background: inherit;
+	-webkit-border-radius: 0px 2px 2px 0px;
+	border-radius: 0px 2px 2px 0px;
+}
+.camera {
+	background: #3c3d3d;
+	width: 10px;
+	height: 10px;
+	position: absolute;
+	top: 18px;
+	left: 50%;
+	z-index: 3;
+	margin-left: -5px;
+	-moz-border-radius: 100%;
+	-webkit-border-radius: 100%;
+	border-radius: 100%;
+}
+.camera:before {
+	background: #3c3d3d;
+	width: 6px;
+	height: 6px;
+	content: '';
+	display: block;
+	position: absolute;
+	top: 2px;
+	left: -100px;
+	z-index: 3;
+	-moz-border-radius: 100%;
+	-webkit-border-radius: 100%;
+	border-radius: 100%;
+}
+.inner {
+	width: calc(100% - 8px);
+	height: calc(100% - 6px);
+	position: absolute;
+	top: 3px;
+	left: 4px;
+	-webkit-border-radius: 20px;
+	border-radius: 20px;
+	background: #1e1e1e;
+}
+.inner:before {
+	-webkit-border-radius: 600px / 50px;
+	border-radius: 600px / 50px;
+	background: inherit;
+	content: '';
+	top: 0;
+	position: absolute;
+	height: 103.0%;
+	width: calc(100% - 26px);
+	top: 50%;
+	left: 50%;
+	-moz-transform: translateX(-50%) translateY(-50%);
+	-webkit-transform: translateX(-50%) translateY(-50%);
+	-o-transform: translateX(-50%) translateY(-50%);
+	-ms-transform: translateX(-50%) translateY(-50%);
+	transform: translateX(-50%) translateY(-50%);
+}
+.device .screen {
+	width: 100%;
+	position: relative;
+	height: 100%;
+	z-index: 2;
+	text-align: left;
+	text-indent: -999px;
+	display: block;
+	-webkit-border-radius: 1px;
+	border-radius: 1px;
+	-webkit-box-shadow: 0 0 0 3px #111;
+	box-shadow: 0 0 0 3px #111;
+}
+.home {
+	-moz-border-radius: 20px;
+	-webkit-border-radius: 20px;
+	border-radius: 20px;
+	width: 40px;
+	-webkit-box-shadow: inset 0 0 0 4px #0C0C0C;
+	box-shadow: inset 0 0 0 4px #0C0C0C;
+	height: 40px;
+	position: absolute;
+	left: 50%;
+	margin-left: -18px;
+	bottom: 1px;
+	z-index: 3;
+}
 /* Execute window */
 .window_exe {
 	width:100% !important;
@@ -748,6 +895,14 @@ ul.connectors .acc {
 
 .btn_container {
 	text-align: right;
+	background-color: #eee;
+	padding: 10px;
+	margin: 0;
+	position: relative;
+	bottom: -5px;
+	left: -5px;
+	width: 98%;
+	right: -57px;
 }
 
 .btn_gen_gadget {
