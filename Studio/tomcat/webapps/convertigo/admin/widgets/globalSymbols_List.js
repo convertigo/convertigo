@@ -34,12 +34,12 @@ function globalSymbols_List_init() {
 	initializeImportSymbol();	
 	$("#importSymbol").button({
 		icons : {
-			primary : "ui-icon-arrowthick-1-n"
+			primary : "ui-icon-arrowthick-1-s"
 		}
 	});
 	$("#exportSymbol").button({
 		icons : {
-			primary : "ui-icon-arrowthick-1-s"
+			primary : "ui-icon-arrowthick-1-n"
 		}
 	}).click(function(){
 		exportSymbol();
