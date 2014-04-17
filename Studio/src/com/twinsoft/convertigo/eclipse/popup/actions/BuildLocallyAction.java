@@ -79,6 +79,7 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
 public class BuildLocallyAction extends MyAbstractAction {
 
 	static final String cordovaDir = "cordova";
+	String cmdOutput;
 
 	/**
 	 * 
@@ -489,7 +490,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		    Engine.logEngine.error("Failed to delete file: " + f);
 	}
 
-	private void runCordovaCommand(String Command, File projectDir) throws Throwable {
+	private String runCordovaCommand(String Command, File projectDir) throws Throwable {
 		final Process process;
 		String[] envp = null;
 		Map<String, String> envmap;
@@ -521,6 +522,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		final BufferedReader bis = new BufferedReader(new InputStreamReader(is));
 		final BufferedReader bes = new BufferedReader(new InputStreamReader(es));
 		
+		cmdOutput = "";
 		Thread readOutputThread = new Thread(new Runnable() {
 			@Override
 	        public void run() {
@@ -529,6 +531,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 
 					while ((line = bis.readLine()) != null) {
 						Engine.logEngine.debug(line);
+						BuildLocallyAction.this.cmdOutput += line;
 					}
 					while ((line = bes.readLine()) != null) {
 						Engine.logEngine.error(line);
@@ -540,6 +543,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		});
 		readOutputThread.start();
 		process.waitFor();
+		return cmdOutput;
 	}
 	
 	
@@ -558,14 +562,18 @@ public class BuildLocallyAction extends MyAbstractAction {
 			CachedXPathAPI xpathApi = new CachedXPathAPI();
 			
 			/*
-			 * Handle plugins in the config.xml file
+			 * Handle plugins in the config.xml file and test to see if the plugin is not already installed
 			 */
+			Engine.logEngine.debug("Checking installed plugins... ");
+			String installedPlugins = runCordovaCommand("plugin list ", cordovaDir);
 			NodeList plugins = xpathApi.selectNodeList(doc.getDocumentElement(), "//*[local-name()='plugin']");
 			for(int i=0; i< plugins.getLength(); i++) {
 				Node plugin = plugins.item(i);
 				String pluginName = plugin.getAttributes().getNamedItem("name").getTextContent();
-				Engine.logEngine.debug("Adding plugin " + pluginName);
-				runCordovaCommand("plugin add " + pluginName, cordovaDir);
+				if (installedPlugins.indexOf(pluginName) == -1) {
+					Engine.logEngine.debug("Adding plugin " + pluginName);
+					runCordovaCommand("plugin add " + pluginName, cordovaDir);
+				}	
 			}
 
 			
