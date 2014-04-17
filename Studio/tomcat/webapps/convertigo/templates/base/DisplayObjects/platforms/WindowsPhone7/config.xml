@@ -58,10 +58,7 @@
 <!--     <feature name="http://api.phonegap.com/1.0/network"/> -->
 <!--     <feature name="http://api.phonegap.com/1.0/notification"/> -->
 	
-	<!--
-		Expose access to all URIs, including the file and http protocols
-	-->
-	<access origin="https://*" subdomains="true"/>
+	<!-- Expose access to all URIs, including the file and http protocols	-->
 	<access origin="*" subdomains="true"/>
 
 </widget>
