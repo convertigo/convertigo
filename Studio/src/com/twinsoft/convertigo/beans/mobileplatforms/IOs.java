@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.mobileplatforms;
 
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 
 public class IOs extends MobilePlatform {
 
@@ -50,5 +51,13 @@ public class IOs extends MobilePlatform {
 	@Override
 	public String getPackageType() {
 		return "ipa";
+	}
+	
+	@Override
+	public boolean isMaskedProperty(Visibility target, String propertyName) {
+		if ("iOSCertificatePw".equals(propertyName)) {
+			return true;
+		}
+		return super.isMaskedProperty(target, propertyName);
 	}
 }

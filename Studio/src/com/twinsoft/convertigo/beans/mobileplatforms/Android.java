@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.mobileplatforms;
 
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 
 public class Android extends MobilePlatform {
 
@@ -59,5 +60,17 @@ public class Android extends MobilePlatform {
 	@Override
 	public String getPackageType() {
 		return "apk";
+	}
+	
+	@Override
+	public boolean isMaskedProperty(Visibility target, String propertyName) {
+		if ("androidCertificatePw".equals(propertyName)) {
+			return true;
+		}
+		
+		if ("androidKeystorePw".equals(propertyName)) {
+			return true;
+		}
+		return super.isMaskedProperty(target, propertyName);
 	}
 }

@@ -37,6 +37,7 @@ import org.apache.commons.lang.StringUtils;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 /**
@@ -323,6 +324,19 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 	public void setParent(DatabaseObject databaseObject) {
 		super.setParent(databaseObject);
 		checkFolder();
+	}
+	@Override
+	public void addSymbolError(String propertyName, String propertyValue) {
+		// TODO Auto-generated method stub
+		super.addSymbolError(propertyName, propertyValue);
+	}
+	
+	@Override
+	public boolean isMaskedProperty(Visibility target, String propertyName) {
+		if ("password".equals(propertyName)) {
+			return true;
+		}
+		return super.isMaskedProperty(target, propertyName);
 	}
 	
 	private void checkFolder() {

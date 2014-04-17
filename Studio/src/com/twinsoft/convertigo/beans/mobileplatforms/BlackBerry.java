@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.mobileplatforms;
 
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
+import com.twinsoft.convertigo.engine.enums.Visibility;
 
 public class BlackBerry extends MobilePlatform {
 
@@ -50,4 +51,13 @@ public class BlackBerry extends MobilePlatform {
 	public String getPackageType() {
 		return "jad";
 	}
+	
+	@Override
+	public boolean isMaskedProperty(Visibility target, String propertyName) {
+		if ("bbKeyPw".equals(propertyName)) {
+			return true;
+		}
+		return super.isMaskedProperty(target, propertyName);
+	}
+
 }

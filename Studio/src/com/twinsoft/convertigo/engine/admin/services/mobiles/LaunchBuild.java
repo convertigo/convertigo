@@ -44,6 +44,8 @@ import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.mobileplatforms.Android;
 import com.twinsoft.convertigo.beans.mobileplatforms.BlackBerry;
 import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
+import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone7;
+import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.AuthenticationException;
 import com.twinsoft.convertigo.engine.Engine;
@@ -158,6 +160,42 @@ public class LaunchBuild extends XmlService {
 				
 				params.put("bbKeyTitle", new String[]{title});
 				params.put("bbKeyPw", new String[]{pw});
+			}
+			
+			//Windows Phone 8
+			if (mobilePlatform instanceof WindowsPhone8) { 
+				WindowsPhone8 windowsPhone8 = (WindowsPhone8) mobilePlatform;
+				
+				String title, id;
+				
+				if (!windowsPhone8.getWindowsPhone8PublisherIDTitle().equals("")) {
+					title = windowsPhone8.getWindowsPhone8PublisherIDTitle();
+					id = windowsPhone8.getWindowsPhone8PublisherID();
+				} else {
+					title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID_TITLE);
+					id = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID);
+				}
+				
+				params.put("windowsPhone8PublisherIDTitle", new String[]{title});
+				params.put("windowsPhone8PublisherID", new String[]{id});
+			}
+			
+			//Windows Phone 7
+			if (mobilePlatform instanceof WindowsPhone7) { 
+				WindowsPhone7 windowsPhone7 = (WindowsPhone7) mobilePlatform;
+				
+				String title, id;
+				
+				if (!windowsPhone7.getWindowsPhone7PublisherIDTitle().equals("")) {
+					title = windowsPhone7.getWindowsPhone7PublisherIDTitle();
+					id = windowsPhone7.getWindowsPhone7PublisherID();
+				} else {
+					title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID_TITLE);
+					id = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID);
+				}
+				
+				params.put("windowsPhone7PublisherIDTitle", new String[]{title});
+				params.put("windowsPhone7PublisherID", new String[]{id});
 			}
 			
 			// Launch the mobile build

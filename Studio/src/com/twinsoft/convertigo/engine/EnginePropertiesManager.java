@@ -559,8 +559,12 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
 		MOBILE_BUILDER_IOS_CERTIFICATE_PW ("mobile.builder.ios_certificate_pw", "", "iOS certificate password", PropertyCategory.MobileBuilder),
 		
-		//WINDOWSPHONE7
-		
+		//WINDOWSPHONE
+		MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID_TITLE ("mobile.builder.windows_phone_publisher_id_title", "", "Windows Phone publisher ID title", PropertyCategory.MobileBuilder),
+		MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID ("mobile.builder.windows_phone_publisher_id", "", "Windows Phone publisher ID", PropertyCategory.MobileBuilder),
+
+		//WINDOWS8
+				
 		//ANDROID
 		MOBILE_BUILDER_ANDROID_CERTIFICATE_TITLE ("mobile.builder.android_certificate_title", "", "Android certificate title", PropertyCategory.MobileBuilder),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
