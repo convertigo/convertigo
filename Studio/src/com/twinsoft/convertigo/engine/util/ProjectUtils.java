@@ -266,6 +266,23 @@ public class ProjectUtils {
 		}
 	}
 
+	public static void xsdRenameProject(String filePath, String sourceProjectName, String targetProjectName) throws Exception {
+		if (filePath.endsWith(".xsd")) {
+			List<Replacement> replacements = new ArrayList<Replacement>();
+			replacements.add(new Replacement("/"+sourceProjectName, "/"+targetProjectName));
+			replacements.add(new Replacement(sourceProjectName+"_ns", targetProjectName+"_ns"));
+			makeReplacementsInFile(replacements, filePath);
+		}
+	}
+	
+	public static void xsdRenameConnector(String filePath, String oldName, String newName) throws Exception {
+		if (filePath.endsWith(".xsd")) {
+			List<Replacement> replacements = new ArrayList<Replacement>();
+			replacements.add(new Replacement(oldName+"__", newName+"__"));
+			makeReplacementsInFile(replacements, filePath);
+		}
+	}
+
 	public static void getFullProjectDOM(Document document,String projectName, StreamSource xslFilter) throws TransformerFactoryConfigurationError, EngineException, TransformerException{
 		Element root = document.getDocumentElement();
 		getFullProjectDOM(document,projectName);

@@ -32,6 +32,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -961,36 +962,37 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			monitor.setTaskName("Old xml file deleted");
 			monitor.worked(1);
 			
-			//TODO: Remove this code when template projects will be migrated
-			String projectPath = newProjectDir + "/" + newProjectName;
 			try {
-				// Update XSD file
-				try {
-					ProjectUtils.renameXsdFile(Engine.PROJECTS_PATH, oldProjectName, newProjectName);
-					ProjectUtils.renameConnector(projectPath + ".xsd", oldConnectorName,
-							newConnectorName);
-	
-					monitor.setTaskName("Project XSD file updated");
-					monitor.worked(1);
-				} catch (Exception e) {
-					throw new ConvertigoException("Unable update the .xsd file \"" + oldProjectName + ".xsd\".", e);
+				String xsdInternalPath = newProjectDir + "/" + Project.XSD_FOLDER_NAME + "/" + Project.XSD_INTERNAL_FOLDER_NAME;
+				File xsdInternalDir = new File(xsdInternalPath).getCanonicalFile();
+				boolean needConnectorRename = !(oldConnectorName.equals(newConnectorName));
+				if (needConnectorRename) {
+					File srcDir = new File(xsdInternalDir+ "/"+ oldConnectorName).getCanonicalFile();
+					File destDir = new File(xsdInternalDir+ "/"+ newConnectorName).getCanonicalFile();
+					FileUtils.moveDirectory(srcDir, destDir);
 				}
-	
-				// Update WSDL file
-				try {
-					ProjectUtils.renameWsdlFile(Engine.PROJECTS_PATH, oldProjectName, newProjectName);
-					ProjectUtils.renameConnector(projectPath + ".wsdl", oldConnectorName,
-							newConnectorName);
-
-					monitor.setTaskName("Project WSDL file updated");
-					monitor.worked(1);
-				} catch (Exception e) {
-					throw new ConvertigoException("Unable update the .wsdl file \"" + oldProjectName + ".wsdl\".",
-							e);
+				for (File connectorDir : xsdInternalDir.listFiles()) {
+					if (connectorDir.isDirectory()) {
+						String connectorName = connectorDir.getName();
+						for (File transactionXsdFile : connectorDir.listFiles()) {
+							String xsdFilePath = transactionXsdFile.getCanonicalPath();
+							ProjectUtils.xsdRenameProject(xsdFilePath, oldProjectName, newProjectName);
+							if (needConnectorRename && connectorName.equals(newConnectorName)) {
+								ProjectUtils.xsdRenameConnector(xsdFilePath, oldConnectorName, newConnectorName);
+							}
+						}
+					}
 				}
-			} catch (ConvertigoException e) { }
-			// End TODO
+				
+				monitor.setTaskName("Schemas updated");
+				monitor.worked(1);
+				
+			} catch (ConvertigoException e) {
+				Engine.logDatabaseObjectManager.error("An error occured while updating transaction schemas", e);
+			}
 			
+			String projectPath = newProjectDir + "/" + newProjectName;
+
 			// Import the project from the new .xml file
 			project = Engine.theApp.databaseObjectsManager.importProject(projectPath + ".xml");
 			
