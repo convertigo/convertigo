@@ -30,6 +30,7 @@ import javax.xml.transform.TransformerException;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -305,11 +306,23 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 						Document doc = XmlSchemaUtils.getDomInstance(object, references);
 						NodeList list = getXPathAPI().selectNodeList(doc.getDocumentElement(), anchor);
 						if (list != null) {
+							boolean isList = false;
+							if (list.getLength() > 1) {
+								isList = true;
+								object = XmlSchemaUtils.makeDynamic(this, new XmlSchemaSequence());
+							}
+							
 							for (int i = 0; i < list.getLength(); i++) {
 								Node node = list.item(i);
 								XmlSchemaObject referenced = references.get(node);
 								if (referenced != null) {
-									object = referenced;
+									if (isList) {
+										XmlSchemaSequence xmlSchemaSequence = (XmlSchemaSequence)object;
+										xmlSchemaSequence.getItems().add(referenced);
+									}
+									else {
+										object = referenced;
+									}
 								}
 							}
 						}
