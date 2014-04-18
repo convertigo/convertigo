@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Comparator;
@@ -34,6 +33,8 @@ import javax.xml.transform.TransformerException;
 
 import org.apache.xpath.CachedXPathAPI;
 import org.apache.xpath.objects.XObject;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -41,7 +42,6 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -106,7 +106,7 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 	}
 	
 	public String toJsString() {
-		return "";
+		return optionSort;
 	}
 	
 	public XMLVector<String> getSourceDefinition() {
@@ -188,8 +188,8 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 						Date d1 = null, d2 = null;
 						DateFormat dateFormat;
 						
-						if ( getOptionSort() != null && getOptionSort() != "" ){
-							dateFormat = new SimpleDateFormat(getOptionSort());
+						if ( toJsString() != null && toJsString() != "" ){
+							dateFormat = new SimpleDateFormat( toJsString() );
 						} else {
 							dateFormat = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
 						}
@@ -197,9 +197,8 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 						try {
 							d1 = dateFormat.parse(s1);
 							d2 = dateFormat.parse(s2);
-							
-						} catch (ParseException e) {
-							Engine.logBeans.error("Error during parsing Date: \n"+e.getMessage());
+						} catch (Exception e) {
+							throw new RuntimeException("Error when parsing Date: \n"+e.getMessage());
 						}
 
 						return d1.compareTo(d2);
@@ -212,17 +211,12 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 				
 				// Get the value of the node in function of the XPATH Expression
 				private String getNodeValue(Node n, String xpathExpression){
-					String ret = "";
-					
 					try {
 						XObject xo = cachedXPathAPI.eval(n, xpathExpression);
-						ret = xo.toString();
-						
+						return xo.toString();
 					} catch (TransformerException e) {
-						Engine.logBeans.error( "Error during sorting of the XML document: "+e.getMessage() );
+						throw new RuntimeException( "Error during sorting of the XML document: "+e.getMessage() );
 					}
-					
-					return ret;
 				}
 				
 				// Convert the "string" to "double"
@@ -231,12 +225,9 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 					
 					try {
 						return Double.parseDouble( str.replace(",", ".") );
-						
 					} catch (NumberFormatException e) {
-						Engine.logBeans.error("Error during parsing double: \n"+e.getMessage());
-						
+						throw new RuntimeException( "Error during parsing double: \n"+e.getMessage());
 					}
-					return 0;
 				}
 			};
 			
@@ -252,6 +243,15 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 		}
 		
 		return null;
+	}
+	
+	@Override
+	protected boolean stepExecute(Context javascriptContext, Scriptable scope)
+			throws EngineException {
+		if (isEnable() && !getOptionSort().equals("")) {
+			evaluate(javascriptContext, scope, getOptionSort(), "optionSort", true);
+		}
+		return super.stepExecute(javascriptContext, scope);
 	}
 	
 	protected StepSource getTargetSource() throws EngineException {
