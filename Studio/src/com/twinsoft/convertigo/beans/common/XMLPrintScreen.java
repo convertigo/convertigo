@@ -113,7 +113,7 @@ public class XMLPrintScreen extends HtmlExtractionRule implements ITagsProperty 
 		if ("imageFormat".equals(propertyName)) {
 			return ImageFormat.imageFormats;
 		}
-		return null;
+		return new String[0];
 	}
 
 	public int getHeight() {

@@ -578,15 +578,17 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 						} catch (Exception ex) {
 							sResults = new String[0];
 						}
-						if (sResults.length > 0) {
-							Element possibleValues = document.createElement("possibleValues");
-							Element possibleValue = null;
-							for (int j = 0; j < sResults.length; j++) {
-								possibleValue = document.createElement("value");
-								possibleValue.setTextContent(sResults[j]);
-								possibleValues.appendChild(possibleValue);
+						if (sResults != null) {
+							if (sResults.length > 0) {
+								Element possibleValues = document.createElement("possibleValues");
+								Element possibleValue = null;
+								for (int j = 0; j < sResults.length; j++) {
+									possibleValue = document.createElement("value");
+									possibleValue.setTextContent(sResults[j]);
+									possibleValues.appendChild(possibleValue);
+								}
+								propertyElement.appendChild(possibleValues);
 							}
-							propertyElement.appendChild(possibleValues);
 						}
 					}
 					propertyElement.setAttribute("editorClass", message);

@@ -108,7 +108,7 @@ public class GetAttachmentStatement extends Statement implements ITagsProperty {
 			}
 			return tags;
 		}
-		return null;
+		return new String[0];
 	}
 	
 	public Policy getPolicyObject() {

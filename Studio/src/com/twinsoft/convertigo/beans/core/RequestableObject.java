@@ -965,6 +965,6 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		if ("accessibility".equals(propertyName)) {
 			return Accessibility.accessibilities;
 		}
-		return null;
+		return new String[0];
 	}
 }
