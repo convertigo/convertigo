@@ -124,7 +124,13 @@ a:hover {
 	width: 100%;	
 	height: 600px;
 }
-
+#window_exe_content_mobile #cliplet_div_iframe {
+	position: absolute;	
+	top: 0;
+	left: 0;
+	height: 568px;
+	z-index: 20;
+}
 .logo {
 	width: 195px;
 	height: 70px;
@@ -617,7 +623,7 @@ img {
 	background: transparent url(../images/new/window_exe_top_right.png) top left;
 	background-repeat:no-repeat;
 }
-#window_exe_content {
+#window_exe_content, #window_exe_device {
 	background: none;
 	border:#f3f2f1 1px solid;
 	padding:5px 15px;

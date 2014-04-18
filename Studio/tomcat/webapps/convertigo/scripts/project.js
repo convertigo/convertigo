@@ -187,7 +187,7 @@ function launchCliplet(url) {
 	if (isC8oCall() && $iframe.length && typeof($iframe[0].contentWindow.C8O) !== "undefined") {
 		$iframe[0].contentWindow.C8O.call(url.substring(url.indexOf("?") + 1));
 	} else {
-		$("#window_exe_content").empty().append("<iframe id='cliplet_div_iframe' frameborder='0' src='" + url + "'></iframe>");
+		$("#window_exe_content, #window_exe_content_mobile").empty().append("<iframe id='cliplet_div_iframe' frameborder='0' src='" + url + "'></iframe>");
 		$iframe.slideDown(500);
 	}
 	fixWidth();
@@ -451,6 +451,10 @@ function parseQuery(params, query) {
 }
 
 $(document).ready(function() {
+	//initialize exe content bloc
+	$("#window_exe_content").show();
+	$("#window_exe_device").hide();
+	
 	if (window.location.hash.length === 0) {
 		return;
 	}
@@ -612,7 +616,7 @@ $(document).ready(function() {
 				return false;
 			});
 			
-			$("#main .btn_exe_link").click(function () {
+			$("#main .btn_exe_link").click(function () {				
 				var $requestable = $(this).parents(".requestable:first");
 				var href = $(this).parent().find("a").attr("href");
 				
@@ -620,6 +624,17 @@ $(document).ready(function() {
 				
 				$("#main .gen_url").text(genUrl).attr("href", genUrl);
 				$("#main .window_exe_generated_url").css("display", "block");
+				
+				// check mobile or not
+				var $window_exe_content;
+				if( $(this).parents(".mobiles").length ){
+					$window_exe_content = $("#window_exe_content_mobile");
+					$("#window_exe_device").show();
+					$("#window_exe_content").hide();
+				}else{
+					$window_exe_content = $("#window_exe_content").show();
+					$("#window_exe_device").hide();
+				}
 				
 				// check for file upload
 				if ($requestable.find(".value_file").length > 0) {
@@ -659,7 +674,7 @@ $(document).ready(function() {
 									src : url + "#__first_call=false"
 								}).one("load", function () {
 									$iframe[0].contentWindow.C8O.call($form[0]);
-								}).appendTo($("#window_exe_content").empty());
+								}).appendTo($window_exe_content.empty());
 							} else {
 								$iframe = $("<iframe/>").attr({
 									id : "cliplet_div_iframe",
@@ -670,7 +685,7 @@ $(document).ready(function() {
 										$form.attr("action", $form.attr("action") + "?__content_type=text/plain");
 									}
 									$form.attr("target", this.contentWindow.name = "tesplatformIframe").submit();
-								}).appendTo($("#window_exe_content").empty());
+								}).appendTo($window_exe_content.empty());
 							}
 							$iframe.slideDown(500);
 						}
@@ -721,7 +736,7 @@ $(document).ready(function() {
 			});
 			
 			$("#window_exe_close").click(function () {
-				$("#window_exe_content").empty();
+				$("#window_exe_content, #window_exe_content_mobile").empty();
 			});
 			
 			$("#window_exe_increase").click(function () {
@@ -762,7 +777,7 @@ $(document).ready(function() {
 				$("#main .window_exe_generated_url").css("display", "none");
 				var $message = $("#templates .gadget_message").clone();
 				$message.find(".gadget_url").text(url);
-				$("#window_exe_content").empty().append($message);
+				$("#window_exe_content, #window_exe_content_mobile").empty().append($message);
 				$.ajax({
 					dataType : "text",
 					url : url,
