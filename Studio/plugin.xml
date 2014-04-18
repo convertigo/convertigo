@@ -1211,7 +1211,7 @@
 			   enablesFor="1"
 			   icon="icons/studio/declare_global_symbols_16x16.png"
 			   id="convertigo.action.declareGlobalSymbolsFromThisProject"
-			   label="Create global symbols"
+			   label="Create Global Symbols"
 			   menubarPath="service"/>
 		 <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CustomStatisticsAction"
@@ -1301,7 +1301,7 @@
 	             enablesFor="1"
 	             icon="icons/studio/open_test_platform_16x16.png"
 	             id="convertigo.action.openProjectTestPlatform"
-	             label="Open test platform"
+	             label="Open Test Platform"
 	             menubarPath="stats">
 	       </action>
 	  </objectContribution>
