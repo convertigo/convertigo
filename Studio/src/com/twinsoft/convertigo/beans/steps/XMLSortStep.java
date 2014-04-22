@@ -27,14 +27,21 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.transform.TransformerException;
 
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAll;
+import org.apache.ws.commons.schema.XmlSchemaCollection;
+import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.xpath.CachedXPathAPI;
 import org.apache.xpath.objects.XObject;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -43,7 +50,9 @@ import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 
@@ -295,5 +304,51 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 			};
 		}
 		return new String[0];
+	}
+	
+	@Override
+	public XmlSchemaObject getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		try {
+			StepSource source = getTargetSource();
+			if (!source.isEmpty()) {
+				XmlSchemaObject object = SchemaMeta.getXmlSchemaObject(schema, source.getStep());
+				if (object != null) {
+					SchemaMeta.setSchema(object, schema);
+					String xpath = source.getXpath();
+					String anchor = source.getAnchor() + getTargetXPath();
+					if (!".".equals(xpath)) {
+						Map<Node, XmlSchemaObject> references = new HashMap<Node, XmlSchemaObject>();
+						Document doc = XmlSchemaUtils.getDomInstance(object, references);
+						NodeList list = getXPathAPI().selectNodeList(doc.getDocumentElement(), anchor);
+						if (list != null) {
+							boolean isList = false;
+							if (list.getLength() > 1) {
+								isList = true;
+								object = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAll());
+							}
+							
+							for (int i = 0; i < list.getLength(); i++) {
+								Node node = list.item(i);
+								XmlSchemaObject referenced = references.get(node);
+								if (referenced != null) {
+									if (isList) {
+										XmlSchemaAll xmlSchemaAll = (XmlSchemaAll)object;
+										xmlSchemaAll.getItems().add(referenced);
+									}
+									else {
+										object = referenced;
+									}
+								}
+							}
+						}
+					}
+					return object;
+				}
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return super.getXmlSchemaObject(collection, schema);
 	}
 }
