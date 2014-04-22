@@ -460,28 +460,41 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				return;
 
 			case TEMPLATE_WEB_SERVICE_REFERENCE:
-				projectName = page1.getProjectName();
-				monitor.beginTask("Creating project " + projectName, 7);
-				Project project = createFromBlankProject(monitor);
-
-				String wsdlURL = page10.getWsdlURL();
-				ImportWsReference wsr = new ImportWsReference(wsdlURL);
-				
-				HttpConnector httpConnector = null;
-				if (!page10.useAuthentication()) {
-					httpConnector = wsr.importInto(project);
-				} else {
-					httpConnector = wsr.importIntoAuthenticated(project, page10.getLogin(), 
-							page10.getPassword());
+				try {
+					projectName = page1.getProjectName();
+					monitor.beginTask("Creating project " + projectName, 7);
+					Project project = createFromBlankProject(monitor);
+	
+					String wsdlURL = page10.getWsdlURL();
+					ImportWsReference wsr = new ImportWsReference(wsdlURL);
+					
+					HttpConnector httpConnector = null;
+					if (!page10.useAuthentication()) {
+						httpConnector = wsr.importInto(project);
+					} else {
+						httpConnector = wsr.importIntoAuthenticated(project, page10.getLogin(), 
+								page10.getPassword());
+					}
+					
+					if (httpConnector != null) {
+						Connector defaultConnector = project.getDefaultConnector();
+						project.setDefaultConnector(httpConnector);
+						defaultConnector.delete();
+					}
+					return;
+				} catch (Exception e) {
+					// Delete everything
+					try {
+						Engine.logBeans
+								.error("An error occured while creating project, everything will be deleted. Please see Studio logs for more informations.",
+										null);
+						Engine.theApp.databaseObjectsManager.deleteProject(projectName, false, false);
+						projectName = null; // avoid load of project in view
+					} catch (Exception ex) {
+					}
+	
+					throw new Exception("Unable to create new project from given WSDL.", e);
 				}
-				
-				if (httpConnector != null) {
-					Connector defaultConnector = project.getDefaultConnector();
-					project.setDefaultConnector(httpConnector);
-					defaultConnector.delete();
-				}
-				return;
-				
 			default:
 				throw new EngineException("Attempt to create new project, with templateId " + templateId
 						+ " unknown.");

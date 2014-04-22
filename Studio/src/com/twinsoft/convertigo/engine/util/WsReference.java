@@ -123,7 +123,18 @@ public class WsReference {
 	   				project.add(httpConnector);
 			}
 		} catch (Exception e) {
-			throw new EngineException("Unable to import the project \""+project.getName()+"\"", e);
+			try {
+				if (webServiceReference != null) {
+					project.remove(webServiceReference);
+					webServiceReference = null;
+				}
+				if (httpConnector != null) {
+					project.remove(httpConnector);
+					httpConnector = null;
+				}
+			}
+			catch (Exception ex) {}
+			throw new EngineException("Unable to import the web service reference : Invalid WSDL", e);
 		}
 		return httpConnector;
 	}
