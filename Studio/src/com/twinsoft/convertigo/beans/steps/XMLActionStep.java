@@ -66,7 +66,7 @@ abstract public class XMLActionStep extends Step implements ISimpleTypeAffectati
 				StepSource stepSource = getDefinitionsSource(i);
 				if (stepSource != null) {
 					if (stepSource.getLabel().equals("! broken source !"))
-						return " (! broken source in variable !)";
+						return " (! broken source in concatenated items !)";
 				}
 			}
 		}
