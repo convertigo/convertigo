@@ -47,6 +47,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 	public Label labelProgression = null;
 	public Combo combo = null;
 	public Button browseButton = null;
+	private WsReferenceAuthenticatedComposite wsRefAuthenticated = null;
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
 	/**
@@ -57,9 +58,6 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		super(parent, style);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.eclipse.dialogs.MyAbstractDialogComposite#initialize()
-	 */
 	@Override
 	protected void initialize() {
 		final Composite container = this;
@@ -127,40 +125,22 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 
 		labelProgression = new Label(this, SWT.NONE);
 		labelProgression.setText("Progression");
-		GridData data2 = new GridData ();
-		data2.horizontalAlignment = GridData.FILL;
-		data2.horizontalSpan = 2;
-		data2.grabExcessHorizontalSpace = true;
-		labelProgression.setLayoutData (data2);
+		data1 = new GridData ();
+		data1.horizontalAlignment = GridData.FILL;
+		data1.horizontalSpan = 2;
+		data1.grabExcessHorizontalSpace = true;
+		labelProgression.setLayoutData (data1);
 		
-		useAuthentication = new Button(this, SWT.CHECK);
-		useAuthentication.setText("WSDL URL need an authenfication");
-		useAuthentication.setSelection(false);
-		useAuthentication.setLayoutData(data2);
+		/* Authenticated Composite for import WS Reference */
+		data1 = new GridData ();
+		data1.horizontalAlignment = GridData.FILL;
+		data1.horizontalSpan = 2;
+		data1.grabExcessHorizontalSpace = true;
+		wsRefAuthenticated = new WsReferenceAuthenticatedComposite(this, SWT.NONE, data1);
 		
-		useAuthentication.addSelectionListener(new SelectionListener() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				loginText.setEnabled(useAuthentication.getSelection());
-				passwordText.setEnabled(useAuthentication.getSelection());
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				loginText.setEnabled(useAuthentication.getSelection());
-				passwordText.setEnabled(useAuthentication.getSelection());
-			}
-		});
-		
-		loginText = new Text(this, SWT.NONE);
-		loginText.setMessage("Login");
-		loginText.setEnabled(false);
-		loginText.setLayoutData(data2);
-		
-		passwordText = new Text(this, SWT.SINGLE | SWT.PASSWORD);
-		passwordText.setMessage("Password");
-		passwordText.setEnabled(false);
-		passwordText.setLayoutData(data);
+		useAuthentication = wsRefAuthenticated.useAuthentication;
+		loginText = wsRefAuthenticated.loginText;
+		passwordText = wsRefAuthenticated.passwordText;
 		
 		setSize(new Point(402, 99));
 	}

@@ -35,6 +35,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Text;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.beans.common.DefaultBlockFactory;
@@ -93,14 +96,15 @@ import com.twinsoft.convertigo.eclipse.wizards.new_project.EmulatorTechnologyWiz
 import com.twinsoft.convertigo.eclipse.wizards.new_project.SQLQueriesWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.ServiceCodeWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.ProjectSchemaWizardPage;
+import com.twinsoft.convertigo.eclipse.wizards.references.SchemaFileWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.WebServiceWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.WsdlSchemaFileWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.references.XsdSchemaFileWizardPage;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.ImportWsReference;
 import com.twinsoft.convertigo.engine.util.StringUtils;
-import com.twinsoft.convertigo.engine.util.WsReference;
 
 public class NewObjectWizard extends Wizard {
 	
@@ -112,7 +116,10 @@ public class NewObjectWizard extends Wizard {
     private ObjectExplorerWizardPage objectExplorerPage = null;
     private ObjectInfoWizardPage objectInfoPage = null;
     private SQLQueriesWizardPage sqlQueriesWizardPage = null;
+    private WsdlSchemaFileWizardPage wsdlSchemaWizardPage = null;
     
+	public Button useAuthentication = null;
+	public Text loginText = null, passwordText = null;
     public DatabaseObject newBean = null;
 
     public NewObjectWizard(DatabaseObject selectedDatabaseObject, String newClassName, String xpath, Document dom) {
@@ -250,7 +257,7 @@ public class NewObjectWizard extends Wizard {
 			XsdSchemaFileWizardPage xsdSchemaWizardPage = new XsdSchemaFileWizardPage(parentObject);
 			this.addPage(xsdSchemaWizardPage);
 			
-			WsdlSchemaFileWizardPage wsdlSchemaWizardPage = new WsdlSchemaFileWizardPage(parentObject);
+			wsdlSchemaWizardPage = new WsdlSchemaFileWizardPage(parentObject);
 			this.addPage(wsdlSchemaWizardPage);
 			
 			WebServiceWizardPage webServiceWizardPage = new WebServiceWizardPage(parentObject);
@@ -433,8 +440,19 @@ public class NewObjectWizard extends Wizard {
 						if (newBean instanceof WebServiceReference) {
 							Project project = (Project)parentObject;
 							WebServiceReference webServiceReference = (WebServiceReference)newBean;
-							ImportWsReference wsr = new ImportWsReference(webServiceReference, monitor);
-							wsr.importInto(project);
+							ImportWsReference wsr = new ImportWsReference(webServiceReference);
+							
+							useAuthentication = ((SchemaFileWizardPage)wsdlSchemaWizardPage).useAuthentication;
+							loginText = ((SchemaFileWizardPage)wsdlSchemaWizardPage).loginText;
+							passwordText = ((SchemaFileWizardPage)wsdlSchemaWizardPage).passwordText;
+							
+							Display display = this.getShell().getDisplay();
+							if (!isAuthenticated(display)) {
+								wsr.importInto(project); 
+							} else { 
+								wsr.importIntoAuthenticated(project, getLogin(display), getPassword(display)); 
+							}
+							//wsr.importInto(project);
 						}
 						
 						if (newBean instanceof SqlTransaction) {
@@ -597,23 +615,33 @@ public class NewObjectWizard extends Wizard {
 		}
     }
     
-	class ImportWsReference extends WsReference {
-		IProgressMonitor monitor;
-
-		public ImportWsReference(WebServiceReference reference, IProgressMonitor monitor) {
-			super(reference);
-			this.monitor = monitor;
-		}
-
-		@Override
-		public void setTaskLabel(String text) {
-			monitor.setTaskName(text);
-			monitor.worked(1);
-		}
-
-		@Override
-		protected HttpConnector importInto(Project project) throws Exception {
-			return super.importInto(project);
-		}
+    private boolean isAuthenticated(Display display) {
+		final boolean[] isAuthenticated = new boolean[1];
+		display.syncExec(new Runnable() {
+			public void run() {
+				isAuthenticated[0] = useAuthentication.getSelection();
+			}
+		});
+		return isAuthenticated[0];
+	}
+	
+	private String getLogin(Display display) {
+		final String[] login = new String[1];
+		display.syncExec(new Runnable() {
+			public void run() {
+				login[0] = loginText.getText();
+			}
+		});
+		return login[0];
+	}
+	
+	private String getPassword(Display display) {
+		final String[] password = new String[1];
+		display.syncExec(new Runnable() {
+			public void run() {
+				password[0] = passwordText.getText();
+			}
+		});
+		return password[0];
 	}
 }

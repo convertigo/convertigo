@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceAuthenticatedComposite;
 
 public class NewProjectWizardComposite10 extends Composite {
 	private ModifyListener modifyListener;
@@ -48,6 +49,8 @@ public class NewProjectWizardComposite10 extends Composite {
 	public Label labelProgression = null;
 	public Combo combo = null;
 	public Button browseButton = null;
+	
+	private WsReferenceAuthenticatedComposite wsRefAuthenticated = null;
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
 	
@@ -121,35 +124,11 @@ public class NewProjectWizardComposite10 extends Composite {
 		data.horizontalSpan = 2;
 		data.grabExcessHorizontalSpace = true;		
 		
-		useAuthentication = new Button(this, SWT.CHECK);
-		useAuthentication.setText("WSDL URL need an authenfication");
-		useAuthentication.setSelection(false);
-		useAuthentication.setLayoutData(data);
+		/* Authenticated Composite for import WS Reference */
+		wsRefAuthenticated = new WsReferenceAuthenticatedComposite(this, SWT.NONE, data);
 		
-		useAuthentication.addSelectionListener(new SelectionListener() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				loginText.setEnabled(useAuthentication.getSelection());
-				passwordText.setEnabled(useAuthentication.getSelection());
-			}
-			
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				loginText.setEnabled(useAuthentication.getSelection());
-				passwordText.setEnabled(useAuthentication.getSelection());
-			}
-		});
-		
-		loginText = new Text(this, SWT.NONE);
-		loginText.setMessage("Login");
-		loginText.setEnabled(false);
-		loginText.setLayoutData(data);
-		
-		passwordText = new Text(this, SWT.SINGLE | SWT.PASSWORD);
-		passwordText.setMessage("Password");
-		passwordText.setEnabled(false);
-		passwordText.setLayoutData(data);
-
-		//setSize(new Point(402, 99));
+		useAuthentication = wsRefAuthenticated.useAuthentication;
+		loginText = wsRefAuthenticated.loginText;
+		passwordText = wsRefAuthenticated.passwordText;
 	}
 }

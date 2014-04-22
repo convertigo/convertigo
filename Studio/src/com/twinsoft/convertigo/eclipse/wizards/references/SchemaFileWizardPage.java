@@ -34,12 +34,14 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceAuthenticatedComposite;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.ObjectExplorerWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
 import com.twinsoft.convertigo.engine.Engine;
@@ -48,6 +50,9 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 	private String[] filterExtension = new String[]{"*.xsd"};
 	private String[] filterNames = new String[]{"XSD files"};
 	private Object parentObject = null;
+	private WsReferenceAuthenticatedComposite wsRefAuthenticated = null;
+	public Button useAuthentication = null;
+	public Text loginText = null, passwordText = null;
 	
 	private FileFieldEditor editor = null;
 	private String filePath = "";
@@ -120,17 +125,24 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 			}
 		});
 		
-		initialize();
+		/* Authenticated Composite for import WS Reference */
+		GridData data2 = new GridData ();
+		data2.horizontalAlignment = GridData.FILL;
+		data2.horizontalSpan = 3;
+		data2.grabExcessHorizontalSpace = true;
+		
+		wsRefAuthenticated = new WsReferenceAuthenticatedComposite(container, SWT.NONE, data2);
+		
+		useAuthentication = wsRefAuthenticated.useAuthentication;
+		loginText = wsRefAuthenticated.loginText;
+		passwordText = wsRefAuthenticated.passwordText;
+		
 		dialogChanged();
 		setControl(container);
 	}
 
 	protected DatabaseObject getDbo() {
 		return ((ObjectExplorerWizardPage)getWizard().getPage("ObjectExplorerWizardPage")).getCreatedBean();
-	}
-	
-	private void initialize() {
-		
 	}
 	
 	private String getProjectName() {
@@ -197,10 +209,16 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 					}
 				}
 			}
+		} 
+		else if (useAuthentication.getSelection() && 
+				(loginText.getText().equals("") || passwordText.getText().equals("")) ) {
+			message = "Please enter login and password";
 		}
 		else {
 			message = "Please enter an url OR choose a file";
 		}
+		
+
 		
 		updateStatus(message);
 	}

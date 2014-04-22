@@ -28,8 +28,8 @@ public class WsdlSchemaFileWizardPage extends SchemaFileWizardPage {
 
 	public WsdlSchemaFileWizardPage(Object parentObject) {
 		super(parentObject, "WsdlSchemaFileWizardPage");
-		setFilterExtension(new String[]{"*.wsdl"});
-		setFilterNames(new String[]{"WSDL files"});
+		setFilterExtension(new String[]{"*.wsdl", "*.xml"});
+		setFilterNames(new String[]{"WSDL files", "XML files"});
 	}
 
 	@Override
