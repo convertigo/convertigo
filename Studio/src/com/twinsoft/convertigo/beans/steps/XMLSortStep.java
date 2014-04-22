@@ -105,6 +105,7 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 		return source;
 	}
 	
+	@Override
 	public String toJsString() {
 		return optionSort;
 	}
@@ -188,12 +189,13 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 						Date d1 = null, d2 = null;
 						DateFormat dateFormat;
 						
-						if ( toJsString() != null && toJsString() != "" ){
-							dateFormat = new SimpleDateFormat( toJsString() );
+						if ( evaluated != null && !evaluated.equals("") ){
+							dateFormat = new SimpleDateFormat( evaluated.toString() );
 						} else {
 							dateFormat = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
 						}
-						 
+						dateFormat.setLenient(false);
+						
 						try {
 							d1 = dateFormat.parse(s1);
 							d2 = dateFormat.parse(s2);
@@ -248,10 +250,11 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope)
 			throws EngineException {
-		if (isEnable() && !getOptionSort().equals("")) {
+		if (isEnable()) {
 			evaluate(javascriptContext, scope, getOptionSort(), "optionSort", true);
+			return super.stepExecute(javascriptContext, scope);
 		}
-		return super.stepExecute(javascriptContext, scope);
+		return false;
 	}
 	
 	protected StepSource getTargetSource() throws EngineException {
