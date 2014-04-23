@@ -308,47 +308,48 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 	
 	@Override
 	public XmlSchemaObject getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
-		try {
-			StepSource source = getTargetSource();
-			if (!source.isEmpty()) {
-				XmlSchemaObject object = SchemaMeta.getXmlSchemaObject(schema, source.getStep());
-				if (object != null) {
-					SchemaMeta.setSchema(object, schema);
-					String xpath = source.getXpath();
-					String anchor = source.getAnchor() + getTargetXPath();
-					if (!".".equals(xpath)) {
-						Map<Node, XmlSchemaObject> references = new HashMap<Node, XmlSchemaObject>();
-						Document doc = XmlSchemaUtils.getDomInstance(object, references);
-						NodeList list = getXPathAPI().selectNodeList(doc.getDocumentElement(), anchor);
-						if (list != null) {
-							boolean isList = false;
-							if (list.getLength() > 1) {
-								isList = true;
-								object = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAll());
-							}
-							
-							for (int i = 0; i < list.getLength(); i++) {
-								Node node = list.item(i);
-								XmlSchemaObject referenced = references.get(node);
-								if (referenced != null) {
-									if (isList) {
-										XmlSchemaAll xmlSchemaAll = (XmlSchemaAll)object;
-										xmlSchemaAll.getItems().add(referenced);
-									}
-									else {
-										object = referenced;
-									}
-								}
-							}
-						}
-					}
-					return object;
-				}
-			}
-		} catch (Exception e) {
-			// TODO: handle exception
-			e.printStackTrace();
-		}
+		//TODO
+//		try {
+//			StepSource source = getTargetSource();
+//			if (!source.isEmpty()) {
+//				XmlSchemaObject object = SchemaMeta.getXmlSchemaObject(schema, source.getStep());
+//				if (object != null) {
+//					SchemaMeta.setSchema(object, schema);
+//					String xpath = source.getXpath();
+//					String anchor = source.getAnchor() + getTargetXPath();
+//					if (!".".equals(xpath)) {
+//						Map<Node, XmlSchemaObject> references = new HashMap<Node, XmlSchemaObject>();
+//						Document doc = XmlSchemaUtils.getDomInstance(object, references);
+//						NodeList list = getXPathAPI().selectNodeList(doc.getDocumentElement(), anchor);
+//						if (list != null) {
+//							boolean isList = false;
+//							if (list.getLength() > 1) {
+//								isList = true;
+//								object = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAll());
+//							}
+//							
+//							for (int i = 0; i < list.getLength(); i++) {
+//								Node node = list.item(i);
+//								XmlSchemaObject referenced = references.get(node);
+//								if (referenced != null) {
+//									if (isList) {
+//										XmlSchemaAll xmlSchemaAll = (XmlSchemaAll)object;
+//										xmlSchemaAll.getItems().add(referenced);
+//									}
+//									else {
+//										object = referenced;
+//									}
+//								}
+//							}
+//						}
+//					}
+//					return object;
+//				}
+//			}
+//		} catch (Exception e) {
+//			// TODO: handle exception
+//			e.printStackTrace();
+//		}
 		return super.getXmlSchemaObject(collection, schema);
 	}
 }
