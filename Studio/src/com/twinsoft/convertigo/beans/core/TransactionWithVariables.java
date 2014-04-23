@@ -318,7 +318,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	public Variable getVariable(String variableName) {
 		checkSubLoaded();
 		
-		for (int i=0; i<vVariables.size(); i++) {
+		for (int i=0; i < vVariables.size(); i++) {
 			RequestableVariable variable = (RequestableVariable)vVariables.get(i);
 			if (variable.getName().equals(variableName)) {
 				return variable;

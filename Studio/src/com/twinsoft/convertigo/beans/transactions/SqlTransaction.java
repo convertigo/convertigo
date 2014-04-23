@@ -36,7 +36,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.mozilla.javascript.Undefined;
+import org.mozilla.javascript.UniqueTag;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -45,7 +49,7 @@ import org.w3c.dom.ProcessingInstruction;
 
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TransactionTreeObject.SqlQueryInfos;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -74,19 +78,22 @@ public class SqlTransaction extends TransactionWithVariables {
 	}	
 
 	/** The SqlConnector for transaction. */
-	public transient SqlConnector connector = null;
+	transient private SqlConnector connector = null;
+
+	/** The PreparedStatement to execute queries */
+	transient private PreparedStatement preparedStatement = null;
 	
 	/** The type of query. */
 	transient private int type = -1;
 	
-	/** The PreparedStatement to execute queries */
-	public transient PreparedStatement preparedStatement = null;
-		
+	/** List of SqlQuery with type, the query and parameters **/
+	transient private List<SqlQueryInfos> preparedSqlQueries = null;
+
 	/** Holds value of property sqlQuery. */
-	public String sqlQuery = "";
+	private String sqlQuery = "";
 	
 	/** Holds value of property maxResult. */
-	public String maxResult = "";
+	private String maxResult = "";
 	
 	public static int TYPE_SELECT = 0;
 
@@ -130,6 +137,129 @@ public class SqlTransaction extends TransactionWithVariables {
 	
 	private String xmlDefaultColumnTagname = "column";
 	
+	/** SqlQueryInfos class **/
+	public class SqlQueryInfos {
+		
+		private String query = "";
+		
+		private SqlTransaction sqlTransaction;
+		
+		private int type;
+		
+		/** Query's ordered parameter names */
+		private List<String> orderedParametersList = null;
+		
+		/** Just use for the parameterized parameter like {{id}} **/
+		private List<String> otherParametersList = null;
+		
+		/** Query's parameters map (name and value) */
+		private Map<String, String> parametersMap = new HashMap<String, String>();
+		
+		public SqlQueryInfos(String thequery, SqlTransaction sqlTransaction, boolean updateDefinitions){
+			this.query = thequery.replaceAll("\n", " ").replaceAll("\r", "").trim();
+			this.sqlTransaction = sqlTransaction;
+			findType();
+			this.query = prepareParameters(updateDefinitions);
+		}
+		
+		private void findType(){
+			if (query.toUpperCase().indexOf("SELECT") == 0)
+				type = 0;
+			else if (query.toUpperCase().indexOf("UPDATE") == 0)
+				type = 1;
+			else if (query.toUpperCase().indexOf("INSERT") == 0)
+				type = 2;
+			else if (query.toUpperCase().indexOf("DELETE") == 0)
+				type = 3;
+			else if (query.toUpperCase().indexOf("REPLACE") == 0)
+				type = 4;
+			else if (query.toUpperCase().indexOf("CREATE TABLE") == 0)
+				type = 5;
+			else if (query.toUpperCase().indexOf("DROP TABLE") == 0)
+				type = 6;
+			else if (query.toUpperCase().indexOf("TRUNCATE TABLE") == 0)
+				type = 7;
+			else type = 99;
+		}
+		
+		/** We prepare the query and create lists **/
+		private String prepareParameters(boolean updateDefinitions){
+			String preparedSqlQuery = "";
+
+			if ( query != null && (bNew || updateDefinitions)) {
+				preparedSqlQuery = query;
+				// Handled the case if we have value like {{id}} or "{{id}}" or '{{id}}' (i.e: table name or instructions)		
+				Pattern pattern = Pattern.compile("\\{\\{([a-zA-Z0-9_]+)\\}\\}");
+				Matcher matcher = pattern.matcher(query);
+				
+				// Retrieve parameter names
+				orderedParametersList = new ArrayList<String>(); // for parameters like {id}
+				otherParametersList = new ArrayList<String>();	 // for parameters like {{id}}
+				
+				// Clear parameters Map
+				parametersMap.clear();
+				
+				while (matcher.find()) {
+					String parameterName = matcher.group(1);
+					String parameterValue = getParameterValue(parameterName, sqlTransaction.getVariableVisibility(parameterName)).toString();
+					preparedSqlQuery = preparedSqlQuery.replace("{{"+parameterName+"}}", parameterValue);
+					
+					// Add the parameterName into the ArrayList if is looks like {{id}}.	
+					otherParametersList.add(parameterName);
+					
+					matcher = pattern.matcher(preparedSqlQuery);
+					
+					updateVariable(updateDefinitions, parameterName);
+				}
+				
+				// Handled the case if we have value like {id} (i.e: parameters value)	
+				pattern = Pattern.compile("([\"']?)\\{([a-zA-Z0-9_]+)\\}\\1");
+				matcher = pattern.matcher(preparedSqlQuery);
+				
+				while (matcher.find()) {
+					String parameterName = matcher.group(2);	
+					String parameterValue = getParameterValue(parameterName, sqlTransaction.getVariableVisibility(parameterName)).toString();
+	
+					// Add the parameterName into the ArrayList if is looks like {id} and not {{id}}.	
+					orderedParametersList.add(parameterName);
+					
+					// Update the parameters map if needed
+					if (!parametersMap.containsKey(parameterName)) {
+						parametersMap.put(parameterName, parameterValue);
+					}
+					
+					updateVariable(updateDefinitions, parameterName);
+					
+				}				
+				// Replace parameter by question mark (for parameter value injection)
+				preparedSqlQuery = matcher.replaceAll("?");
+				
+			}
+			return preparedSqlQuery;
+		}
+		
+		public String getQuery(){
+			return query;
+		}
+		
+		public int getType(){
+			return type;
+		}
+		
+		public List<String> getOrderedParametersList(){
+			return orderedParametersList;
+		}
+		
+		public List<String> getOtherParametersList(){
+			return otherParametersList;
+		}
+		
+		public Map<String, String> getParametersMap(){
+			return parametersMap;
+		}
+	}
+	/** End of SqlQueryInfos class **/
+	
 	public SqlTransaction() {
 		super();
 	}
@@ -138,15 +268,15 @@ public class SqlTransaction extends TransactionWithVariables {
     public SqlTransaction clone() throws CloneNotSupportedException {
     	SqlTransaction clonedObject = (SqlTransaction) super.clone();
     	clonedObject.connector = null;
-//    	clonedObject.preparedStatement = null;
+    	clonedObject.preparedStatement = null;
     	clonedObject.type = type;
         return clonedObject;
     }
 	
 	@Override
 	protected void finalize() throws Throwable {
-//		if (preparedStatement != null)
-//			preparedStatement.close();
+		if (preparedStatement != null)
+			preparedStatement.close();
 		
 		super.finalize();
 	}
@@ -178,8 +308,117 @@ public class SqlTransaction extends TransactionWithVariables {
 		return null;
 	}
 	
-	/** List of SqlQuery with type, the query and parameters **/
-	transient public List<SqlQueryInfos> preparedSqlQueries = null;
+	private List<SqlQueryInfos> initializeQueries(boolean updateDefinitions){
+		if (preparedSqlQueries != null ) {
+			preparedSqlQueries.clear();
+		} else {
+			preparedSqlQueries = new ArrayList<SqlQueryInfos>();
+		}
+		
+		// We split the sqlQuery in list array of multiple sqlQuery
+		String[] sqlQueries = sqlQuery.split(";");
+		
+		if ( sqlQueries != null) {
+			// We loop every query of the String tab and create SqlQueryInfos element for the preparedSqlQueries list
+			for ( int i = 0 ; i < sqlQueries.length ; i++ ){
+				if ( sqlQueries[i] != null  && !sqlQueries[i].equals(" ") ) {
+					SqlQueryInfos sqlQueryInfos = new SqlQueryInfos(sqlQueries[i], this, updateDefinitions);
+					preparedSqlQueries.add(sqlQueryInfos);
+				}
+			}
+		}
+		
+		return preparedSqlQueries;
+	}
+	
+	private Object getParameterValue(String parameterName, int variableVisibility){
+		Object variableValue = null;
+
+		// Scope parameter
+		if (scope != null) {
+			variableValue = scope.get(parameterName, scope);
+			if (variableValue instanceof Undefined)
+				variableValue = null;
+			if (variableValue instanceof UniqueTag && ((UniqueTag) variableValue).equals(UniqueTag.NOT_FOUND)) 
+				variableValue = null;
+			if (variableValue != null)
+				Engine.logBeans.trace("(SqlTransaction) scope value: "+ Visibility.Logs.printValue(variableVisibility,variableValue));
+		}
+		
+		// Otherwise Transaction parameter (USELESS)
+		if (variableValue == null) {
+			variableValue = variables.get(parameterName);
+			if (variableValue != null)
+				Engine.logBeans.trace("(SqlTransaction) parameter value: "+ Visibility.Logs.printValue(variableVisibility,variableValue));
+		}
+		
+		// Otherwise context parameter
+		if (variableValue == null && context != null) {
+			variableValue = (context.get(parameterName) == null ? null : context.get(parameterName));
+			if (variableValue != null)
+				Engine.logBeans.trace("(SqlTransaction) context value: "+ Visibility.Logs.printValue(variableVisibility,variableValue));
+		}
+		
+		// Otherwise default transaction parameter value
+		if (variableValue == null) {
+			variableValue = getVariableValue(parameterName);
+			if (variableValue != null)
+				Engine.logBeans.trace("(SqlTransaction) default value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+		}
+		
+		if (variableValue == null)
+			Engine.logBeans.trace("(SqlTransaction) "+parameterName+" none value found");
+		
+		return variableValue = ((variableValue == null)? new String(""):variableValue);
+	}
+
+	private String prepareQuery(List<String> logHiddenValues, SqlQueryInfos sqlQueryInfos) throws 
+		SQLException, ClassNotFoundException, EngineException {
+		
+		checkSubLoaded();
+
+		logHiddenValues.clear();
+		
+		String preparedSqlQuery = sqlQueryInfos.getQuery();
+		
+		// Limit number of result
+		if (sqlQueryInfos.getType() == SqlTransaction.TYPE_SELECT) {
+			if (!maxResult.equals("") && preparedSqlQuery.toUpperCase().indexOf("LIMIT") == -1) {
+				if (preparedSqlQuery.lastIndexOf(';') == -1)
+					preparedSqlQuery += " limit " + maxResult + ";";
+				else
+					preparedSqlQuery = preparedSqlQuery.substring(0, preparedSqlQuery.lastIndexOf(';')) + " limit " + maxResult + ";";
+			}
+		}
+		
+		if (Engine.logBeans.isDebugEnabled())
+			Engine.logBeans.debug("(SqlTransaction) Preparing query '" + Visibility.Logs.replaceValues(logHiddenValues, preparedSqlQuery) + "'.");
+		
+		preparedStatement = connector.prepareStatement(preparedSqlQuery, sqlQueryInfos.getParametersMap(), sqlQueryInfos.getOrderedParametersList());
+		return preparedSqlQuery;
+	}
+	
+	private void updateVariable(boolean updateDefinitions, String parameterName){
+		if (updateDefinitions && (getVariable(parameterName) == null)) {
+			try {
+				if (!StringUtils.isNormalized(parameterName))
+					throw new EngineException("Parameter name is not normalized : \""+parameterName+"\".");
+				
+				RequestableVariable variable = new RequestableVariable();
+				variable.setName(parameterName);
+				variable.setDescription(parameterName);
+				variable.setWsdl(Boolean.TRUE);
+				variable.setCachedKey(Boolean.TRUE);
+				addVariable(variable);
+
+				variable.bNew = true;
+				variable.hasChanged = true;
+				hasChanged = true;
+			} catch(EngineException e) {
+				Engine.logBeans.error("Could not add variable '"+parameterName+"' for SqlTransaction '"+ getName() +"'", null);
+			}
+		}
+	}
 	
 	@Override
 	public void runCore() throws EngineException {
@@ -205,11 +444,11 @@ public class SqlTransaction extends TransactionWithVariables {
 				return;
 			
 			// We check variables and initialize queries if we have a change
-//			if ( checkVariables(preparedSqlQueries)==false )
-//				preparedSqlQueries = initializeQueries(true);
+			if ( checkVariables(preparedSqlQueries)==false )
+				preparedSqlQueries = initializeQueries(true);
 					
-//			if( preparedSqlQueries.get(0).getParametersMap().size() != 0 )
-//				preparedSqlQueries.get(0).getParametersMap().get(preparedSqlQueries.get(0).getOrderedParametersList().get(0));
+			if( preparedSqlQueries.get(0).getParametersMap().size() != 0 )
+				preparedSqlQueries.get(0).getParametersMap().get(preparedSqlQueries.get(0).getOrderedParametersList().get(0));
 			
 			for (SqlQueryInfos sqlQueryInfos : preparedSqlQueries){
 				
@@ -545,6 +784,40 @@ public class SqlTransaction extends TransactionWithVariables {
 			}
 		}
 	}
+	
+	private boolean checkVariables(List<SqlQueryInfos> sqlQueries) {
+
+		if (sqlQueries != null) {
+			for(SqlQueryInfos sqlQuery : sqlQueries){
+				Map<String, String> variables  = sqlQuery.getParametersMap();
+				if (sqlQuery.orderedParametersList != null && variables != null){
+					if (sqlQuery.orderedParametersList.size() != 0 && variables.size() != 0){
+						for (String key : sqlQuery.orderedParametersList){
+							if( !getParameterValue( key, this.getVariableVisibility(key) ).toString().equals( variables.get(key) ) )
+								return false;	
+						}
+					}
+				}
+				
+				if (sqlQuery.otherParametersList != null && sqlQuery.otherParametersList.size() != 0) {
+					for (String key : sqlQuery.otherParametersList){
+						if( !getParameterValue( key, this.getVariableVisibility(key) ).toString().equals( variables.get(key) ) )
+							return false;	
+					}
+				}
+			}
+		} else {
+			initializeQueries(true);
+			return checkVariables(preparedSqlQueries);
+		}
+		
+		return true;
+	}
+	
+	public List<SqlQueryInfos> getPreparedSqlQueries(){
+		return preparedSqlQueries;
+	}
+	
 
 	@Override
     protected void cleanup() {
@@ -563,28 +836,6 @@ public class SqlTransaction extends TransactionWithVariables {
     	return xsdType;
     }
     
-	private String prepareQuery(List<String> logHiddenValues, SqlQueryInfos sqlQueryInfos) throws SQLException, ClassNotFoundException, EngineException {
-		logHiddenValues.clear();
-		
-		String preparedSqlQuery = sqlQueryInfos.getQuery();
-				
-		// Limit number of result
-		if (sqlQueryInfos.getType() == SqlTransaction.TYPE_SELECT) {
-			if (!maxResult.equals("") && preparedSqlQuery.toUpperCase().indexOf("LIMIT") == -1) {
-				if (preparedSqlQuery.lastIndexOf(';') == -1)
-					preparedSqlQuery += " limit " + maxResult + ";";
-				else
-					preparedSqlQuery = preparedSqlQuery.substring(0, preparedSqlQuery.lastIndexOf(';')) + " limit " + maxResult + ";";
-			}
-		}
-		
-		if (Engine.logBeans.isDebugEnabled())
-			Engine.logBeans.debug("(SqlTransaction) Preparing query '" + Visibility.Logs.replaceValues(logHiddenValues, preparedSqlQuery) + "'.");
-		
-		preparedStatement = connector.prepareStatement(preparedSqlQuery, sqlQueryInfos.getParametersMap(), sqlQueryInfos.getOrderedParametersList());
-		return preparedSqlQuery;
-	}
-	
 /*
 	public String generateWsdlType(Document document) throws Exception {
 		ResultSet rs = null;
@@ -923,9 +1174,9 @@ public class SqlTransaction extends TransactionWithVariables {
 	 */
 	public void setSqlQuery(String string) {
 		sqlQuery = string;
-//		if(!isImporting) {
-//			initializeQueries(true);
-//		}
+		if(!isImporting) {
+			initializeQueries(true);
+		}
 	}
 
 	/**
