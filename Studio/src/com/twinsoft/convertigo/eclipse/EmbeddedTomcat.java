@@ -62,6 +62,7 @@ public class EmbeddedTomcat implements Runnable {
 			// Create an embedded server
 			System.out.println("(EmbeddedTomcat) Creating a new instance of EmbeddedTomcat");
 			embedded = new Tomcat();
+			embedded.enableNaming();
 			
 			// Assemble and install a default HTTP connector
 			int httpConnectorPort = 8080;

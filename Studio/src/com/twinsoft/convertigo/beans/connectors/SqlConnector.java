@@ -113,18 +113,16 @@ public class SqlConnector extends Connector {
 		return clonedObject;
 	}
 	
-	public Connection getJNDIConnection(){
+	public Connection getJNDIConnection() throws NamingException, SQLException {
 		Connection conn = null;
 		if (jdbcDriverClassName.equals("JNDI")) {
-			try {
-				javax.naming.Context initContext = new InitialContext(); 
-				DataSource ds = (DataSource) initContext.lookup("java:/comp/env/"+jdbcURL);
+				javax.naming.Context initContext = new InitialContext();
+				javax.naming.Context envCtx = (javax.naming.Context) initContext.lookup("java:comp/env");
+
+				// Look up our data source
+				DataSource ds = (DataSource) envCtx.lookup(jdbcURL);
+				
 				conn = ds.getConnection();
-			} catch (NamingException e) {
-				e.getMessage();
-			} catch (SQLException e) {
-				e.getMessage();
-			}
 		}
 		return conn;
 	}
@@ -219,7 +217,9 @@ public class SqlConnector extends Connector {
 			Engine.logBeans.debug("[SqlConnector] Connecting...");
 			connection = Engine.theApp.sqlConnectionManager.getConnection(this);// manager handles retry
 		} catch (SQLException e) {
-			throw new EngineException("Unable to retrieve a valid connection from pool",e);
+			throw new EngineException("Unable to retrieve a valid connection from pool", e);
+		} catch (NamingException e) {
+			throw new EngineException("Unable to find the JNDI resource", e);
 		}
 
 		Engine.logBeans.debug("[SqlConnector] Open connection ("+connection.hashCode()+") on database " + realJdbcURL);

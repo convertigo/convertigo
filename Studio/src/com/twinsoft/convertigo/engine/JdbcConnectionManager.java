@@ -28,7 +28,10 @@ import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import javax.naming.NamingException;
+
 import org.apache.tomcat.dbcp.dbcp.BasicDataSource;
+
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 
 public class JdbcConnectionManager implements AbstractManager {
@@ -172,7 +175,7 @@ public class JdbcConnectionManager implements AbstractManager {
 		return connector.getQName();
 	}
 	
-	public Connection getConnection(SqlConnector connector) throws SQLException, ClassNotFoundException {
+	public Connection getConnection(SqlConnector connector) throws SQLException, ClassNotFoundException, NamingException {
 		Connection connection;
 		Engine.logEngine.debug("(JdbcConnectionManager) Trying to get a SQL connection...");
 		
