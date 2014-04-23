@@ -79,6 +79,7 @@ function loadProjectGSymbol(projectName){
 // This variable contains the XML DOM returned by the database_objects.Get service
 var xmlDatabaseObject;
 var project_Name;
+
 function loadProject(projectName) {
 	project_Name = projectName;
 	startWait(30);
@@ -315,8 +316,14 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 			$responseField=getInputCopyOf("projectEditInput-combo");
 			$option=$responseField.find("option").clone();
 			$responseField.children().remove();
+			var i = 0;
 			$possibleValues.find("value").each(function(){
-				$responseField.append($option.clone().text($(this).text()));
+				if (propertyJavaClassName == "java.lang.Integer") {
+					$responseField.append($option.clone().text($(this).text()).attr("value", ""+i));
+					i++;
+				} else {
+					$responseField.append($option.clone().text($(this).text()));
+				}
 			});
 			$responseField.val(value).data("propertyName",propertyName);
 		} else {
