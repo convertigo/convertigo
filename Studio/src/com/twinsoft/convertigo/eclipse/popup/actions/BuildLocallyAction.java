@@ -490,6 +490,15 @@ public class BuildLocallyAction extends MyAbstractAction {
 		    Engine.logEngine.error("Failed to delete file: " + f);
 	}
 
+	/**
+	 * Runs a Cordova command and returns the output stream. This will wait until the command is finished. 
+	 * Output stream and error stream are logged in  the console.
+	 * 
+	 * @param Command
+	 * @param projectDir
+	 * @return
+	 * @throws Throwable
+	 */
 	private String runCordovaCommand(String Command, File projectDir) throws Throwable {
 		final Process process;
 		String[] envp = null;
@@ -549,7 +558,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 	
 		
 	/**
-	 * Explore Config.xml and copy needed resources to appropriate platforms folders.
+	 * Explore Config.xml, handle plugins and copy needed resources to appropriate platforms folders.
 	 * 
 	 * @param wwwDir
 	 * @param platform
@@ -685,7 +694,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 				}
 			}
 
-			// TODO : and any other platforms
+			// TODO : and any other platforms BB10 for example
 
 
 			// We have to add the the root Config.xml all our app's config.xml preferences.
@@ -719,7 +728,12 @@ public class BuildLocallyAction extends MyAbstractAction {
 		}
 	}
 	
-	
+	/**
+	 * Returns a cordova platform name from the MobilePlatform.type() name
+	 * 
+	 * @param deviceType
+	 * @return
+	 */
 	
 	String computeCordovaPlatform(String deviceType) {
 		if (deviceType.equalsIgnoreCase("WindowsPhone8"))
@@ -728,6 +742,35 @@ public class BuildLocallyAction extends MyAbstractAction {
 			return "wp7";
 		else 
 			return deviceType;
+	}
+	
+	/**
+	 * Check is the current os can build the specified platform.
+	 * 
+	 * @param platform
+	 * @return
+	 */
+	private boolean checkPlatformCompatibility(MobilePlatform platform) {
+		String osname = System.getProperty("os.name", "generic").toLowerCase();
+		String os;
+		
+	    if (osname.startsWith("windows")) {
+	      os =  "win32";
+	    }
+	    else if (osname.startsWith("linux")) {
+	      os =   "linux";
+	    }
+	    else if (osname.startsWith("sunos")) {
+	      os =   "solaris";
+	    }
+	    else if (osname.startsWith("mac") || osname.startsWith("darwin")) {
+	      os =   "mac";
+	    }
+	    else 
+	      os =   "generic";
+	    
+	    // TODO : Implement Compatibility matrix
+	    return true;
 	}
 	
 	public void run() {
@@ -744,6 +787,31 @@ public class BuildLocallyAction extends MyAbstractAction {
 
     			if ((databaseObject != null) && (databaseObject instanceof MobilePlatform)) {
     				final MobilePlatform mobileDevice = (MobilePlatform) treeObject.getObject();
+    				if (!checkPlatformCompatibility(mobileDevice)) {
+    					CustomDialog customDialog = new CustomDialog(
+    							shell,
+    							"This platform cannot be built on this workstation",
+    							"On Windows workstations you can build\n" +
+    							"- Android\n" +
+    							"- Windows Phone 8\n" +
+    							"- Windows Phone 7\n" +
+    							"- Windows 8 \n" +
+    							"- Blackberry 10 \n" +
+    							"\n" +
+    							"On Mac OS workstations you can build\n" +
+    							"- iOS\n" +
+    							"- Blackberry 10 \n" +
+    							"- Android\n" +
+    							"\n" +
+    							"On Linux workstations you can build\n" +
+    							"- Blackberry 10 \n" +
+    							"- Android\n",
+    							350, 340,
+    							new ButtonSpec("Ok", false)
+    					);
+    					customDialog.open();
+    					return;
+    				}
     				
     				// get the application name from the Mobile devices's property or if empty the project's name
     				final String applicationName = ((MobileApplication) mobileDevice.getParent()).getApplicationName().isEmpty() ?
@@ -802,7 +870,6 @@ public class BuildLocallyAction extends MyAbstractAction {
     					int response = customDialog.open();
     					if (response == 0) {
     						//create a local Cordova Environment
-				        	File cordovaDir = new File(privateDir.getAbsolutePath() + "/" + BuildLocallyAction.cordovaDir);
     						runCordovaCommand("create " + BuildLocallyAction.cordovaDir + " " + applicationId + " " + applicationName, privateDir);
     						
     						Engine.logEngine.debug("Cordova environment is now ready.");
