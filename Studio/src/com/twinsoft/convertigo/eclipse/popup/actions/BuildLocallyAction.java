@@ -722,9 +722,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 	
 	
 	String computeCordovaPlatform(String deviceType) {
-		if (deviceType.equalsIgnoreCase("windows_phone_8"))
+		if (deviceType.equalsIgnoreCase("WindowsPhone8"))
 			return "wp8";
-		else if (deviceType.equalsIgnoreCase("windows_phone_7"))
+		else if (deviceType.equalsIgnoreCase("WindowsPhone7"))
 			return "wp7";
 		else 
 			return deviceType;
@@ -836,7 +836,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	
 					        	// Step 3Bis : Add platform and Read And process Config.xml to copy needed icons and splash resources
 					        	File cordovaDir = new File(privateDir.getAbsolutePath() + "/" + BuildLocallyAction.cordovaDir);
-					        	String cordovaPlatform = computeCordovaPlatform(mobileDevice.getName().toLowerCase());
+					        	String cordovaPlatform = computeCordovaPlatform(mobileDevice.getType().toLowerCase());
 					        	runCordovaCommand("platform add " + cordovaPlatform, cordovaDir);
 					        	ProcessConfigXMLResources(wwwDir, cordovaPlatform, cordovaDir);
 					        	
