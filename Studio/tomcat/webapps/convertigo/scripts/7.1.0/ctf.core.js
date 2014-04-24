@@ -383,7 +383,7 @@ $.extend(true, C8O, {
 			
 			var action = null;
 			try {
-				action = JSON.parse($element.attr("data-c8o-action"));
+				action = JSON.parse($element.attr("data-c8o-call-action"));
 			} catch (e) {}
 			if (action != null) {
 				C8O._processAction(null, c8oCallParams, action);
