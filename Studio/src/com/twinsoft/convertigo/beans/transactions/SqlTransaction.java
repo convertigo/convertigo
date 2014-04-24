@@ -308,7 +308,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		return null;
 	}
 	
-	private List<SqlQueryInfos> initializeQueries(boolean updateDefinitions){
+	public List<SqlQueryInfos> initializeQueries(boolean updateDefinitions){
 		if (preparedSqlQueries != null ) {
 			preparedSqlQueries.clear();
 		} else {
@@ -1174,9 +1174,6 @@ public class SqlTransaction extends TransactionWithVariables {
 	 */
 	public void setSqlQuery(String string) {
 		sqlQuery = string;
-		if(!isImporting) {
-			initializeQueries(true);
-		}
 	}
 
 	/**

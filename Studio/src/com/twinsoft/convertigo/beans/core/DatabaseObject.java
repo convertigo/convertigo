@@ -693,7 +693,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		try {
 			Engine.logBeans.trace("Creating object of class \"" + objectClassName + "\"");
 			databaseObject = (DatabaseObject) Class.forName(objectClassName).newInstance();
-			databaseObject.isImporting = true;
 		} catch (Exception e) {
 			String s = node.getNodeName();// XMLUtils.prettyPrintDOM(node);
 			String message = "Unable to create a new instance of the object from the serialized XML data.\n"

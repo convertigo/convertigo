@@ -456,7 +456,9 @@ public class NewObjectWizard extends Wizard {
 						}
 						
 						if (newBean instanceof SqlTransaction) {
-							((SqlTransaction) newBean).setSqlQuery(sqlQueriesWizardPage.getSQLQueries());
+							SqlTransaction sqlTransaction = (SqlTransaction)newBean;
+							sqlTransaction.setSqlQuery(sqlQueriesWizardPage.getSQLQueries());
+							sqlTransaction.initializeQueries(true);
 						}
 						
 						ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");

@@ -111,6 +111,8 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
     		    	try {
     		    		//TODO
     		    		SqlTransaction sqlTransaction = (SqlTransaction) databaseObject;
+    		    		sqlTransaction.initializeQueries(true);
+    		    		
     		    		detectVariables( sqlTransaction.getPreparedSqlQueries(), 
     		    				sqlTransaction.getVariablesList());
     		    		
