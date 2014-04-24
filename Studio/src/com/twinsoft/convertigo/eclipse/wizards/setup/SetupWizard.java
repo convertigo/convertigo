@@ -13,11 +13,9 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.contrib.ssl.EasySSLProtocolSocketFactory;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.protocol.Protocol;
-import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jface.wizard.Wizard;
 import org.w3c.dom.Document;
@@ -28,6 +26,7 @@ import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.ProductVersion;
 import com.twinsoft.convertigo.engine.ProxyManager;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -266,11 +265,13 @@ public class SetupWizard extends Wizard {
 			try {
 				Protocol myhttps = new Protocol(
 						"https",
-						(ProtocolSocketFactory) new EasySSLProtocolSocketFactory(),
+						MySSLSocketFactory.getSSLSocketFactory(null, null, null, null, true),
 						port);
 				hostConfiguration.setHost(host, port, myhttps);
 				url[0] = matcher.group(3);
 			} catch (Exception e) {
+				e.printStackTrace();
+				e.printStackTrace();
 			}
 		}
 

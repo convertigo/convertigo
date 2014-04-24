@@ -54,6 +54,7 @@ import org.xml.sax.SAXException;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 
 public class RemoteAdmin {
 
@@ -213,7 +214,7 @@ public class RemoteAdmin {
 		
 		try {
 			if (bHttps && bTrustAllCertificates) {	
-				ProtocolSocketFactory socketFactory = new EasySSLProtocolSocketFactory();
+				ProtocolSocketFactory socketFactory = MySSLSocketFactory.getSSLSocketFactory(null, null, null, null, true);
 				myhttps = new Protocol("https", socketFactory, serverPort);
 				Protocol.registerProtocol("https", myhttps);
 
@@ -297,10 +298,10 @@ public class RemoteAdmin {
 			throw new RemoteAdminException(
 					"Unable to reach the Convertigo server: \n"
 							+ "(IOException) " + e.getMessage(), e);
-		} catch (GeneralSecurityException e) {
+		} catch (Exception e) {
 			throw new RemoteAdminException(
 					"Unable to reach the Convertigo server: \n"
-							+ "(GeneralSecurityException) " + e.getMessage(), e);
+							+ "(Exception) " + e.getMessage(), e);
 		} finally {
 			Protocol.unregisterProtocol("https");
 			if (deployMethod != null)
