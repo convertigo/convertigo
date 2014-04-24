@@ -694,22 +694,10 @@
          point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension
             targetID="org.eclipse.ui.resourcePerspective">
-         <newWizardShortcut
-               id="org.eclipse.jdt.ui.wizards.NewProjectCreationWizard">
-         </newWizardShortcut>
-         <viewShortcut
-               id="org.eclipse.jdt.ui.TypeHierarchy">
-         </viewShortcut>
-         <perspectiveShortcut
-               id="org.eclipse.debug.ui.DebugPerspective">
-         </perspectiveShortcut>
-         <actionSet
-               id="org.eclipse.jdt.ui.JavaActionSet">
-         </actionSet>
          <view
                relative="org.eclipse.ui.views.ResourceNavigator"
                relationship="stack"
-               id="org.eclipse.jdt.ui.PackageExplorer">
+               id="com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView">
          </view>
       </perspectiveExtension>
       <perspectiveExtension
