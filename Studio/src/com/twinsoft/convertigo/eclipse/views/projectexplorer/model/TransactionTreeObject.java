@@ -23,7 +23,11 @@
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -46,7 +50,6 @@ import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
-import com.twinsoft.convertigo.beans.transactions.SqlTransaction.SqlQueryInfos;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptTransactionEditor;
@@ -109,11 +112,11 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 			else if ("sqlQuery".equals(propertyName)) {
 				if (treeObject.equals(this)) {
     		    	try {
-    		    		//TODO
     		    		SqlTransaction sqlTransaction = (SqlTransaction) databaseObject;
     		    		sqlTransaction.initializeQueries(true);
     		    		
-    		    		detectVariables( sqlTransaction.getPreparedSqlQueries(), 
+    		    		String oldValue = (String)treeObjectEvent.oldValue;
+    		    		detectVariables( sqlTransaction.getSqlQuery(), oldValue,
     		    				sqlTransaction.getVariablesList());
     		    		
     					ConvertigoPlugin.getDefault().getProjectExplorerView().reloadTreeObject(this);
@@ -296,45 +299,72 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 	}
 	
 	/** SQL TRANSACTION **/
-	private void detectVariables( List<SqlQueryInfos> preparedSqlQueries, 
+	private void detectVariables( String queries, String oldQueries, 
 			List<RequestableVariable> listVariables ){
 		
-		if (preparedSqlQueries != null ) {
+		if (queries != null && !queries.equals("")) {
 			// We create an another List which permit to compare and update variables
-			List<String> allParametersList = createAllParametersList(preparedSqlQueries);
+			Set<String> newSQLQueriesVariablesNames = getSetVariableNames(queries);
+			Set<String> oldSQLQueriesVariablesNames = getSetVariableNames(oldQueries);
 			
 			// Modify variables definition if needed
-			if ( listVariables != null ) {
+			if ( listVariables != null && 
+					!oldSQLQueriesVariablesNames.equals(newSQLQueriesVariablesNames) ) {
+				
 				for ( RequestableVariable variable : listVariables ) {
-					String parameterName = variable.getName();
-					if ( !allParametersList.contains( parameterName ) ) {
+					String variableName = variable.getName();
+					
+					if (oldSQLQueriesVariablesNames.contains(variableName) &&
+							!newSQLQueriesVariablesNames.contains(variableName)) {
+						
 						try {
 							MessageBox messageBox = new MessageBox(new Shell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO); 
-							messageBox.setMessage("Do you really want to delete the variable \""+variable.getName()+"\"?"); 
-							messageBox.setText("Delete \""+variable.getName()+"\"?"); 
+							messageBox.setMessage("Do you really want to delete the variable \""+variableName+"\"?"); 
+							messageBox.setText("Delete \""+variableName+"\"?"); 
 
 							if (messageBox.open() == SWT.YES) { 
 								variable.delete();               
 							} 
 						} catch (EngineException e) {
-							ConvertigoPlugin.logException(e, "Error when we delete the variable."); 
+							ConvertigoPlugin.logException(e, "Error when deleting the variable \""+variableName+"\""); 
 						}
+						
 					}
-				}
-			}			
+				}						
+			}
 		}
 	}
 	
-	// We create an list with all parameters to permit to update if needed
-	private List<String> createAllParametersList(List<SqlQueryInfos> sqlQueries){
-		List<String> allParametersList = new ArrayList<String>();
+	// Permit to get all variables names from SQL query(ies)
+	private Set<String> getSetVariableNames(String sqlQueries){
+		String[] arrayQueries = sqlQueries.split(";");
+		Set<String> listVariablesNames = new HashSet<String>();
 		
-		for (SqlQueryInfos sqlQueryInfos : sqlQueries){
-			if( sqlQueryInfos.getOtherParametersList() != null && sqlQueryInfos.getOrderedParametersList() != null) {
-				allParametersList.addAll(sqlQueryInfos.getOtherParametersList());
-				allParametersList.addAll(sqlQueryInfos.getOrderedParametersList());
+		for (String query: arrayQueries) {
+			if (!query.replaceAll(" ", "").equals("")) {
+				
+				//We delete all symbols
+				sqlQueries = sqlQueries.replaceAll("\\$\\{[^\\{\\}]*\\}", "");
+				
+				Pattern pattern = Pattern.compile("\\{\\{([a-zA-Z0-9_]+)\\}\\}");
+				Matcher matcher = pattern.matcher(sqlQueries);
+				
+				while (matcher.find()) {
+					String variableName = matcher.group(1);
+					listVariablesNames.add(variableName);
+				}
+				sqlQueries = sqlQueries.replaceAll("\\{\\{[a-zA-Z0-9_]+\\}\\}", "");
+				
+				pattern = Pattern.compile("([\"']?)\\{([a-zA-Z0-9_]+)\\}\\1");
+				matcher = pattern.matcher(sqlQueries);
+				
+				while (matcher.find()) {
+					String variableName = matcher.group(2);
+					listVariablesNames.add(variableName);
+				}
 			}
 		}
-		return allParametersList;
+		
+		return listVariablesNames;
 	}
 }
