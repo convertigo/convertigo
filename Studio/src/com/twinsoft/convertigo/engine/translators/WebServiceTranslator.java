@@ -474,7 +474,7 @@ public class WebServiceTranslator implements Translator {
 			Element element = (Element)node;
 			
 			boolean toAdd = true;
-			if (!includeResponseElement && localName.equalsIgnoreCase("response")) {
+			if (!includeResponseElement && "response".equalsIgnoreCase(localName)) {
 				toAdd = false;
 			}
 			if ("http://schemas.xmlsoap.org/soap/envelope/".equals(element.getParentNode().getNamespaceURI()) ||
