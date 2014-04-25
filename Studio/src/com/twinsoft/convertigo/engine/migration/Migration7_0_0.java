@@ -188,23 +188,29 @@ public class Migration7_0_0 {
 					public InputSource resolveEntity(String targetNamespace, String schemaLocation, String baseUri) {
 						// Case of a c8o project location
 						if (schemaLocation.startsWith("../") && schemaLocation.endsWith(".xsd")) {
-							// Case c8o project is already migrated
-							if (!new File(Engine.PROJECTS_PATH + schemaLocation.substring(2)).exists()) {
+							try {
 								String targetProjectName = schemaLocation.substring(3, schemaLocation.indexOf("/",3));
-								try {
-									Document doc = Engine.theApp.schemaManager.getSchemaForProject(targetProjectName).getSchemaDocument();
-									DOMSource source = new DOMSource(doc);
-									StringWriter writer = new StringWriter();
-									StreamResult result = new StreamResult(writer);
-									TransformerFactory.newInstance().newTransformer().transform(source, result);
-									StringReader reader = new StringReader(writer.toString());
-									return new InputSource(reader);
-								} catch (Exception e) {
-									Engine.logDatabaseObjectManager.warn("[Migration 7.0.0] Unable to find schema location \""+schemaLocation+"\"",e);
-									return null;
+								File pDir = new File(Engine.PROJECTS_PATH + "/" + targetProjectName);
+								if (pDir.exists()) {
+									File pFile = new File(Engine.PROJECTS_PATH + schemaLocation.substring(2));
+									// Case c8o project is already migrated
+									if (!pFile.exists()) {
+										Document doc = Engine.theApp.schemaManager.getSchemaForProject(targetProjectName).getSchemaDocument();
+										DOMSource source = new DOMSource(doc);
+										StringWriter writer = new StringWriter();
+										StreamResult result = new StreamResult(writer);
+										TransformerFactory.newInstance().newTransformer().transform(source, result);
+										StringReader reader = new StringReader(writer.toString());
+										return new InputSource(reader);
+									}
 								}
+								return null;
+							} catch (Exception e) {
+								Engine.logDatabaseObjectManager.warn("[Migration 7.0.0] Unable to find schema location \""+schemaLocation+"\"",e);
+								return null;
 							}
 						}
+
 						return super.resolveEntity(targetNamespace, schemaLocation, baseUri);
 					}
 					
@@ -291,6 +297,11 @@ public class Migration7_0_0 {
 									XmlSchemaObject xmlSchemaObject = includes.getItem(i);
 									if (xmlSchemaObject instanceof XmlSchemaImport) {
 										if (((XmlSchemaImport) xmlSchemaObject).getNamespace().equals(namespaceURI)) {
+											
+											// do not allow import with same ns !
+											if (namespaceURI.equals(project.getTargetNamespace()))
+												continue;
+											
 											String location = ((XmlSchemaImport) xmlSchemaObject).getSchemaLocation();
 											
 											// This is a convertigo project reference
@@ -331,6 +342,11 @@ public class Migration7_0_0 {
 							// Add missing ResponseType (with document)
 							if (map.containsKey(responseTypeQName)) {
 								Transaction.addSchemaResponseType(transactionSchema, transaction);
+							}
+							
+							// Add everything
+							if (map.isEmpty()) {
+								Transaction.addSchemaObjects(transactionSchema, transaction);
 							}
 							
 							// Add c8o error objects (for internal xsd edition only)
@@ -406,9 +422,11 @@ public class Migration7_0_0 {
 	
 	private static void copyXsdOfProject(String projectName, File destDir) throws IOException {
 		File srcDir = new File(Engine.PROJECTS_PATH + "/" + projectName);
-		Collection<File> xsdFiles = GenericUtils.cast(FileUtils.listFiles(srcDir, new String[] { "xsd" }, false));
-		for (File file: xsdFiles) {
-			FileUtils.copyFileToDirectory(file, destDir);
+		if (srcDir.exists()) {
+			Collection<File> xsdFiles = GenericUtils.cast(FileUtils.listFiles(srcDir, new String[] { "xsd" }, false));
+			for (File file: xsdFiles) {
+				FileUtils.copyFileToDirectory(file, destDir);
+			}
 		}
 	}
 	

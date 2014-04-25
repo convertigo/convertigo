@@ -491,7 +491,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		HashMap<Long, String> stepTypes = new HashMap<Long, String>();
 		
 		String 	schema = "<?xml version=\"1.0\" encoding=\""+ getEncodingCharSet() +"\" ?>\n";
-		schema += "<xsd:schema>\n";
+		schema += "<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n";
 		schema += "\t<xsd:complexType name=\""+ getName() + "Response\">\n";
 		schema += "\t\t<xsd:sequence>\n";
 		schema += "\t\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"error\" type=\"p_ns:ConvertigoError\" />\n";
@@ -509,7 +509,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 		schema += "</xsd:schema>\n";
 		
 		String prettyPrintedText = XMLUtils.prettyPrintDOM(schema);
-		int index = prettyPrintedText.indexOf("<xsd:schema>") + "<xsd:schema>".length();
+		int index = prettyPrintedText.indexOf("<xsd:schema") + "<xsd:schema".length();
 		index = prettyPrintedText.indexOf('\n', index);
 		prettyPrintedText = prettyPrintedText.substring(index + 1);
 		prettyPrintedText = prettyPrintedText.substring(0,prettyPrintedText.indexOf("</xsd:schema>"));

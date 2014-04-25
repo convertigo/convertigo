@@ -991,7 +991,7 @@ public class HtmlTransaction extends HttpTransaction {
 		String transactionName = StringUtils.normalize(prefix + getName(), true) + "Response";
 		
 		String 	schema = "<?xml version=\"1.0\" encoding=\""+ getEncodingCharSet() +"\" ?>\n";
-		schema += "<xsd:schema>\n";
+		schema += "<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n";
 		
 		String all, obSchema;
 		all = "";
@@ -1033,7 +1033,7 @@ public class HtmlTransaction extends HttpTransaction {
 		schema += "</xsd:schema>\n";
 
 		String prettyPrintedText = XMLUtils.prettyPrintDOM(schema);
-		int index = prettyPrintedText.indexOf("<xsd:schema>") + "<xsd:schema>".length();
+		int index = prettyPrintedText.indexOf("<xsd:schema") + "<xsd:schema".length();
 		index = prettyPrintedText.indexOf('\n', index);
 		prettyPrintedText = prettyPrintedText.substring(index + 1);
 		prettyPrintedText = prettyPrintedText.substring(0,prettyPrintedText.indexOf("</xsd:schema>"));

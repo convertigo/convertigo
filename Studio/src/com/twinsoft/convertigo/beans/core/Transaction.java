@@ -660,6 +660,14 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 		return xmlSchema;
 	}
 	
+	public static void addSchemaObjects(XmlSchema xmlSchema, Transaction transaction) {
+		transaction.addSchemaRequestElement(xmlSchema);
+		transaction.addSchemaRequestDataType(xmlSchema);
+		transaction.addSchemaResponseElement(xmlSchema);
+		transaction.addSchemaResponseType(xmlSchema);
+		transaction.addSchemaResponseDataType(xmlSchema);
+	}
+	
 	protected XmlSchemaAnnotation addSchemaCommentAnnotation(XmlSchemaAnnotated annoted, String comment) {
 		XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
 		if ((comment != null) && (comment.length() > 0)) {
