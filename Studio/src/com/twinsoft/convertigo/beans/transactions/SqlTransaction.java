@@ -336,9 +336,9 @@ public class SqlTransaction extends TransactionWithVariables {
 		
 		if ( sqlQueries != null) {
 			// We loop every query of the String tab and create SqlQueryInfos element for the preparedSqlQueries list
-			for ( int i = 0 ; i < sqlQueries.length ; i++ ){
-				if ( sqlQueries[i] != null  && !sqlQueries[i].equals(" ") ) {
-					SqlQueryInfos sqlQueryInfos = new SqlQueryInfos(sqlQueries[i], this, updateDefinitions);
+			for ( String query : sqlQueries ){
+				if ( query != null && !query.trim().replaceAll(" ", "").equals("")) {
+					SqlQueryInfos sqlQueryInfos = new SqlQueryInfos(query, this, updateDefinitions);
 					preparedSqlQueries.add(sqlQueryInfos);
 				}
 			}
