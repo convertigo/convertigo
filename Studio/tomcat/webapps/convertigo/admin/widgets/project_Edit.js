@@ -53,7 +53,7 @@ function loadProjectGSymbol(projectName){
 	callService("projects.GetUndefinedSymbols", function(xml) {
 		if ($(xml).find("undefined_symbols")) {
 			var htmlCode = "<h2><img border=\"0\" class=\"iconAlertGlobalSymbols\" title=\"Click here to create undefined global symbols\" src=\"images/convertigo-administration-alert-global-symbols.png\"> Undefined Global Symbols</h2>";
-			htmlCode += "<p>This are your \"Undefined Global Symbols\" for this project: </p>";
+			htmlCode += "<p>Find here the undefined Global Symbols for this project: </p>";
 			htmlCode += "<ul>";
 			$(xml).find("undefined_symbols").children().each(function() {
 				htmlCode += "<li>"+$(this).text()+"</li>";
