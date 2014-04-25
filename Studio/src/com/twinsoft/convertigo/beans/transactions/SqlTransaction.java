@@ -185,12 +185,27 @@ public class SqlTransaction extends TransactionWithVariables {
 		/** We prepare the query and create lists **/
 		private String prepareParameters(boolean updateDefinitions){
 			String preparedSqlQuery = "";
-
+			
 			if ( query != null && (bNew || updateDefinitions)) {
 				preparedSqlQuery = query;
+					
+				// Handled the case if we have global symbol
+				Pattern pattern = Pattern.compile("\\$\\{([^\\{\\}]*)\\}");
+				Matcher matcher = pattern.matcher(preparedSqlQuery);
+				
+				while (matcher.find()) {
+					String symbolName = matcher.group(1);
+					String symbolValue = Engine.theApp.databaseObjectsManager.getSymbolValue(symbolName);
+					if (symbolValue == null) {
+						symbolValue = "0";
+					}
+					
+					preparedSqlQuery = preparedSqlQuery.replaceFirst("\\$\\{([^\\{\\}]*)\\}", symbolValue);
+				}
+				
 				// Handled the case if we have value like {{id}} or "{{id}}" or '{{id}}' (i.e: table name or instructions)		
-				Pattern pattern = Pattern.compile("\\{\\{([a-zA-Z0-9_]+)\\}\\}");
-				Matcher matcher = pattern.matcher(query);
+				pattern = Pattern.compile("\\{\\{([a-zA-Z0-9_]+)\\}\\}");
+				matcher = pattern.matcher(preparedSqlQuery);
 				
 				// Retrieve parameter names
 				orderedParametersList = new ArrayList<String>(); // for parameters like {id}
@@ -201,7 +216,8 @@ public class SqlTransaction extends TransactionWithVariables {
 				
 				while (matcher.find()) {
 					String parameterName = matcher.group(1);
-					String parameterValue = getParameterValue(parameterName, sqlTransaction.getVariableVisibility(parameterName)).toString();
+					String parameterValue = getParameterValue(parameterName, 
+							sqlTransaction.getVariableVisibility(parameterName)).toString();
 					preparedSqlQuery = preparedSqlQuery.replace("{{"+parameterName+"}}", parameterValue);
 					
 					// Add the parameterName into the ArrayList if is looks like {{id}}.	
@@ -218,7 +234,8 @@ public class SqlTransaction extends TransactionWithVariables {
 				
 				while (matcher.find()) {
 					String parameterName = matcher.group(2);	
-					String parameterValue = getParameterValue(parameterName, sqlTransaction.getVariableVisibility(parameterName)).toString();
+					String parameterValue = getParameterValue(parameterName, 
+							sqlTransaction.getVariableVisibility(parameterName)).toString();
 	
 					// Add the parameterName into the ArrayList if is looks like {id} and not {{id}}.	
 					orderedParametersList.add(parameterName);
@@ -229,12 +246,11 @@ public class SqlTransaction extends TransactionWithVariables {
 					}
 					
 					updateVariable(updateDefinitions, parameterName);
-					
 				}				
 				// Replace parameter by question mark (for parameter value injection)
 				preparedSqlQuery = matcher.replaceAll("?");
-				
 			}
+			
 			return preparedSqlQuery;
 		}
 		

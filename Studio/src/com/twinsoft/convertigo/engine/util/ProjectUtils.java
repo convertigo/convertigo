@@ -397,7 +397,7 @@ public class ProjectUtils {
 		}		
 	}
 	
-	public static void createUndefinedGlobalSymbol(String[] symbolsUndefined) throws Exception {
+	public static void createUndefinedGlobalSymbol(List<String> symbolsUndefined) throws Exception {
 		Properties prop = new Properties();
         prop.load(new FileInputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()));
 		
@@ -430,7 +430,6 @@ public class ProjectUtils {
 	        } 
         }
 		prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");
-   
 		Engine.theApp.databaseObjectsManager.updateSymbols(prop);
 	}
 	

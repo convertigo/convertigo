@@ -955,9 +955,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				
 				// Add warn message into the log
 				Engine.logBeans.warn(message);
-				if (createUndefinedSymbol == false) {
-					databaseObject.addSymbolError(propertyName, propertyObjectValue.toString());
-				} else if (doThisForAll == true) {
+				
+				createUndefinedSymbol = DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol;
+				doThisForAll = DatabaseObjectsManager.getProjectLoadingData().doThisForAll;
+				
+				if ( !createUndefinedSymbol && (doThisForAll == true  || doThisForAll == false) ){
 					databaseObject.addSymbolError(propertyName, propertyObjectValue.toString());
 				}
 				DatabaseObjectsManager.getProjectLoadingData().undefinedGlobalSymbol = true;
@@ -1002,7 +1004,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		
 		if (createUndefinedSymbol == true) {
 			//Create current symbol
-			ProjectUtils.createUndefinedGlobalSymbol((String[]) extractSymbol(propertyObjectValue.toString()).toArray());
+			if (propertyObjectValue != null) {
+				ProjectUtils.createUndefinedGlobalSymbol(extractSymbol(propertyObjectValue.toString()));
+			}
 		}
 	}
 	
@@ -1035,6 +1039,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				int k = 0;
 				while ((i != -1) && (i < sPropertyObjectValue.length())) {
 					compiledObjectValue += sPropertyObjectValue.substring(k, i);
+					
 					int j = sPropertyObjectValue.indexOf("}", i + 3);
 					while (j + 1 < sPropertyObjectValue.length()) {
 						if (sPropertyObjectValue.charAt(j + 1) == '}') {
@@ -1398,7 +1403,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			} catch (DatabaseObjectNotFoundException e) {
 				Engine.logBeans.error("Database object not found: " + e.getMessage());
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				Engine.logBeans.error("Another Exception: " + e.getMessage(), e);
 			}
 		}
@@ -1468,9 +1472,9 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	}
 	
 	public void addSymbolError(String propertyName, String propertyValue){
-		List<String> values = extractSymbol(propertyValue); 
+		List<String> values = extractSymbol(propertyValue ); 
 
-		if (symbolsErrors == null) {
+		if (symbolsErrors == null) { 
 			symbolsErrors = new HashMap<String, HashSet<String>>();
 		}
 		
@@ -1537,7 +1541,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		List<String> extract = new LinkedList<String>();
 		
 		while (m.find()) {
-			extract.add(m.group(1));
+			String extractName = m.group(1);
+			if (Engine.theApp.databaseObjectsManager.getSymbolValue(extractName) ==  null) {
+				extract.add(extractName);
+			}
 		}
 		
 		return extract;
