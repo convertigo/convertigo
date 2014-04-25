@@ -244,7 +244,9 @@ function addSymbol(xml) {
 					} else {
 						showInfo("Please enter name and value"); 
 					}
-
+					
+					$("#addName").val("");
+					$("#addValue").val("");
 					return false;
 				},
 				Cancel : function() {
