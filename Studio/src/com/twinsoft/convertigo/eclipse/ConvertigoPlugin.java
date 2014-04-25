@@ -54,6 +54,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.operation.ModalContext;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.window.Window;
@@ -283,9 +284,17 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			final String propertyValue, final String objectName, final String objectType, final boolean showCheckBox) {
 		final Display display = getDisplay();
 		final boolean[] result = {false,false};
+
 		display.syncExec(new Runnable() {
 			public void run() {
 				try {
+					int level = ModalContext.getModalLevel();
+					if (level > 0) {
+						// prevents double modal windows: dead lock on linux/gtk studio
+						getDisplay().syncExec(this);
+						return;
+					} 
+					
 					dialogGlobalSymbols = new GlobalsSymbolsWarnDialog(getDisplay().getActiveShell(), projectName, propertyName,
 							propertyValue, objectName, objectType, showCheckBox);
 					dialogGlobalSymbols.open();
