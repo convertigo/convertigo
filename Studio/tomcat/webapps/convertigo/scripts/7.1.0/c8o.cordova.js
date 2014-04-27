@@ -64,7 +64,7 @@ $.extend(true, C8O, {
 			  }
 		}
 	}
-};
+});
 
 $(document).on("deviceready", function() {
 	C8O.log.info("c8o.cordova: on deviceready");
