@@ -688,7 +688,6 @@ public class SchemaManager implements AbstractManager {
 	
 	private static int compare(XmlSchema xmlSchema, XmlSchemaGroupBase xmlSchemaGroupBase, XmlSchemaParticle item1, XmlSchemaParticle item2) {
 		Comparator<XmlSchemaElement> c = new Comparator<XmlSchemaElement>() {
-			@Override
 			public int compare(XmlSchemaElement e1, XmlSchemaElement e2) {
 				String name1 = e1.getName().equals("") ? e1.getRefName().getLocalPart():e1.getName();
 				String name2 = e2.getName().equals("") ? e2.getRefName().getLocalPart():e2.getName();
