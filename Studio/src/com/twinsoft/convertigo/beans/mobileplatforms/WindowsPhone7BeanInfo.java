@@ -33,8 +33,8 @@ public class WindowsPhone7BeanInfo extends MySimpleBeanInfo {
 			beanClass = WindowsPhone7.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.MobilePlatform.class;
 
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windowsphone_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windowsphone_color_32x32.png";
+		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windowsphone7_color_16x16.png";
+		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windowsphone7_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/mobileplatforms/res/WindowsPhone7");
 

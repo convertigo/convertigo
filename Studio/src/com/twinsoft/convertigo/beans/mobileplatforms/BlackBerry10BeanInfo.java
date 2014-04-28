@@ -33,8 +33,8 @@ public class BlackBerry10BeanInfo extends MySimpleBeanInfo {
 			beanClass = BlackBerry10.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.MobilePlatform.class;
 
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/blackberry_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/blackberry_color_32x32.png";
+		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/blackberry10_color_16x16.png";
+		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/blackberry10_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/mobileplatforms/res/BlackBerry10");
 

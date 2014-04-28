@@ -33,8 +33,8 @@ public class Windows8BeanInfo extends MySimpleBeanInfo {
 			beanClass = Windows8.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.MobilePlatform.class;
 
-		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windowsphone_color_16x16.png";
-		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windowsphone_color_32x32.png";
+		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windows8_color_16x16.png";
+		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windows8_color_32x32.png";
 
 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/mobileplatforms/res/Windows8");
 
