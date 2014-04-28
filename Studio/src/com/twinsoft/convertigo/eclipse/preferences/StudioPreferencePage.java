@@ -40,6 +40,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private ComboFieldEditor comboLevel = null;
 	private BooleanFieldEditor cbHighlight = null;
 	private BooleanFieldEditor cbIgnoreNews = null;
+	private BooleanFieldEditor cbValidateXmlSchema = null;
 	private IntegerFieldEditor intTracePlayerPort = null;
 	
 	public StudioPreferencePage() {
@@ -74,6 +75,13 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbHighlight.setPreferenceStore(getPreferenceStore());
 		cbHighlight.load();
 				
+		cbValidateXmlSchema = new BooleanFieldEditor(
+				ConvertigoPlugin.PREFERENCE_XMLSCHEMA_VALIDATE,
+				"Validate schema and response compliance", groupGeneral);
+		cbValidateXmlSchema.setPage(this);
+		cbValidateXmlSchema.setPreferenceStore(getPreferenceStore());
+		cbValidateXmlSchema.load();
+
 		cbIgnoreNews = new BooleanFieldEditor(
 				ConvertigoPlugin.PREFERENCE_IGNORE_NEWS,
 				"Automatically dismiss the splashscreen", groupGeneral);
@@ -115,6 +123,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		cbHighlight.loadDefault();
 		intTracePlayerPort.loadDefault();
 		cbIgnoreNews.loadDefault();
+		cbValidateXmlSchema.loadDefault();
 		
 		super.performDefaults();
 	}
@@ -126,11 +135,13 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	public boolean performOk() {
 		ConvertigoPlugin.setLogLevel(Integer.valueOf(comboLevel.getValue(),10));
 		ConvertigoPlugin.setHighlightDetectedObject(cbHighlight.getBooleanValue());
+		ConvertigoPlugin.setValidateXmlSchema(cbValidateXmlSchema.getBooleanValue());
 		
 		comboLevel.store();
 		cbHighlight.store();
 		intTracePlayerPort.store();
 		cbIgnoreNews.store();
+		cbValidateXmlSchema.store();
 		
 		return super.performOk();
 	}

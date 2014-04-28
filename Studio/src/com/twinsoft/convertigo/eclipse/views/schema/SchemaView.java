@@ -86,7 +86,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	
 	private boolean needRefresh;
 	private String projectName;
-	
+
 	private Thread workingThread;
 	private Queue<Runnable> tasks = new ConcurrentLinkedQueue<Runnable>();
 	private EngineListenerHelper engineListener = new EngineListenerHelper() {
@@ -94,6 +94,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		@Override
 		public void documentGenerated(final Document document) {
 			final Element documentElement = document.getDocumentElement();
+			final boolean needValidate = ConvertigoPlugin.getValidateXmlSchema();
 			if (documentElement != null) {
 				String project = documentElement.getAttribute("project");
 				if (project != null && project.equals(projectName)) {
@@ -102,44 +103,56 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 					String transaction = documentElement.getAttribute("transaction");
 					final String requestableName = sequence != null && sequence.length() > 0 ? sequence : connector + "__" + transaction;
 					
-					Display.getDefault().asyncExec(new Runnable() {
-
-						public void run() {
-							message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
-							message.setText("Waiting for " + projectName + " " + requestableName + " XML response validation");
-						}
-						
-					});
-					
-					tasks.add(new Runnable() {
-
-						public void run() {
-							final Exception[] exception = {null};
-							try {
-								Engine.theApp.schemaManager.validateResponse(projectName, requestableName, document);
-							} catch (SAXException e) {
-								exception[0] = e;
+					if (needValidate) {
+						Display.getDefault().asyncExec(new Runnable() {
+	
+							public void run() {
+								message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
+								message.setText("Waiting for " + projectName + " " + requestableName + " XML response validation");
 							}
 							
-							Display.getDefault().asyncExec(new Runnable() {
-
-								public void run() {
-									if (message != null && !message.isDisposed()) {
-										if (exception[0] == null) {
-											message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
-											message.setText("The " + projectName + " " + requestableName + " XML response is valid.");
-										} else {
-											message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
-											message.setText("The " + projectName + " " + requestableName + " XML response is invalid : " + exception[0].getMessage());
-										}
-										content.layout(true);
-									}
+						});
+						
+						tasks.add(new Runnable() {
+	
+							public void run() {
+								final Exception[] exception = {null};
+								try {
+									Engine.theApp.schemaManager.validateResponse(projectName, requestableName, document);
+								} catch (SAXException e) {
+									exception[0] = e;
 								}
 								
-							});
-						}
-						
-					});
+								Display.getDefault().asyncExec(new Runnable() {
+	
+									public void run() {
+										if (message != null && !message.isDisposed()) {
+											if (exception[0] == null) {
+												message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+												message.setText("The " + projectName + " " + requestableName + " XML response is valid.");
+											} else {
+												message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
+												message.setText("The " + projectName + " " + requestableName + " XML response is invalid : " + exception[0].getMessage());
+											}
+											content.layout(true);
+										}
+									}
+									
+								});
+							}
+							
+						});
+					}
+					else {
+						Display.getDefault().asyncExec(new Runnable() {
+							
+							public void run() {
+								message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+								message.setText("'" + projectName + "' schema generated.");
+							}
+							
+						});
+					}
 				}
 			}
 		}
@@ -252,7 +265,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 		
 		message = new Label(composite, SWT.WRAP);
 		message.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		message.setText("No schema to validate");
+		message.setText("No schema to generate");
 		
 		// MAIN SASH FORM
 		SashForm sashForm = new SashForm(content, SWT.NONE);
@@ -500,7 +513,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 				nodeTreeViewer.setInput(null);
 				domTree.fillDomTree(null);
 				message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
-				message.setText("Waiting for the " + projectName + " schema validation");
+				message.setText("Waiting for the " + projectName + " schema generation...");
 				
 				final boolean fullSchema = internalSchema.getSelection();
 
@@ -528,27 +541,41 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	
 								});
 	
-								final Exception[] exception = {null};
-								try {
-									XmlSchemaUtils.validate(xmlSchemaCollection);
-								} catch (SAXException e) {
-									exception[0] = e;
-								}
-	
-								Display.getDefault().asyncExec(new Runnable() {
-	
-									public void run() {
-										if (exception[0] == null) {
-											message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
-											message.setText("The " + projectName + " schema is valid.");
-										} else {
-											message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
-											message.setText("The " + projectName + " schema is invalid : " + exception[0].getMessage());
-										}
-										content.layout(true);
+								final boolean needValidate = ConvertigoPlugin.getValidateXmlSchema();
+								if (needValidate) {
+									final Exception[] exception = {null};
+									try {
+										XmlSchemaUtils.validate(xmlSchemaCollection);
+									} catch (SAXException e) {
+										exception[0] = e;
 									}
-	
-								});
+		
+									Display.getDefault().asyncExec(new Runnable() {
+		
+										public void run() {
+											if (exception[0] == null) {
+												message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+												message.setText("The " + projectName + " schema is valid.");
+											} else {
+												message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_RED));
+												message.setText("The " + projectName + " schema is invalid : " + exception[0].getMessage());
+											}
+											content.layout(true);
+										}
+		
+									});
+								}
+								else {
+									Display.getDefault().asyncExec(new Runnable() {
+										
+										public void run() {
+											message.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_DARK_GREEN));
+											message.setText("'" + projectName + "' schema generated.");
+											content.layout(true);
+										}
+		
+									});
+								}
 							} catch (Exception e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
