@@ -911,7 +911,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	}
 
 	public static boolean getValidateXmlSchema() {
-		return validateXmlSchema;
+        IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
+        validateXmlSchema = preferenceStore.getBoolean(ConvertigoPlugin.PREFERENCE_XMLSCHEMA_VALIDATE);
+        return validateXmlSchema;
 	}
 
 	/**
