@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.variables;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class StepMultiValuedVariableBeanInfo extends MySimpleBeanInfo {
@@ -40,6 +42,10 @@ public class StepMultiValuedVariableBeanInfo extends MySimpleBeanInfo {
 			shortDescription = getExternalizedString("short_description");
 			
 			getPropertyDescriptor("bSoapArray").setHidden(false);
+			
+			PropertyDescriptor property = getPropertyDescriptor("sourceDefinition");
+			property.setDisplayName(getExternalizedString("property.sourceDefinition.display_name"));
+			property.setShortDescription(getExternalizedString("property.sourceDefinition.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
