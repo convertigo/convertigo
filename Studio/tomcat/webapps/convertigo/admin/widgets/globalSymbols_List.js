@@ -44,7 +44,18 @@ function globalSymbols_List_init() {
 	}).click(function(){
 		exportSymbol();
 	});
-	
+	$("#importSymbolUpload").button({
+		icons : {
+			primary : "ui-icon-document"
+		}
+	});
+	$("#importSymbolCancel").button({
+		icons : {
+			primary : "ui-icon-circle-close"
+		}
+	}).click(function(){
+		$("#dialog-confirm-symbols").dialog("close");
+	});
 	$("#updateSymbols").button("disable");
 	
 	$("#symbolsListButtonDeleteAll").button({				
@@ -134,6 +145,17 @@ function globalSymbols_List_init() {
 		} else {
 			$("#symbolsListButtonDeleteAll").button("disable");
 		}
+	});
+	
+	$("#dialog-confirm-symbols").dialog({
+		resizable: false,
+		autoOpen: false,
+		modal: true,
+		width: 500
+	});
+	
+	$("#importSymbol").click(function () {
+		$("#dialog-confirm-symbols").dialog("open");
 	});
 	
 	//When press ENTER
@@ -344,10 +366,11 @@ function updateSymbol() {
 
 function initializeImportSymbol() {
 
-	var ajaxUpload = new AjaxUpload("importSymbol", {
+	var ajaxUpload = new AjaxUpload("importSymbolUpload", {
 		action : "services/global_symbols.Import",			
 		responseType : "xml",		
-		onSubmit : function(file, ext) {			
+		onSubmit : function(file, ext) {
+			$("#dialog-confirm-symbols").dialog("close");
 			var str = ".properties";
 			if (file.match(str + "$") != str) {
 				showError("<p>The global symbols file '" + file + "' is not a valid properties file</p>");
