@@ -36,7 +36,7 @@ public class ProductVersion {
     	ProductVersion.minorProductVersion + "." +
     	ProductVersion.servicePack;
     
-    public static String helpVersion = "6.3.2"; /** release = productVersion */
+    public static String helpVersion = null; /** release = productVersion */
     
     public static String fullProductVersionID =
     		ProductVersion.productVersion +
