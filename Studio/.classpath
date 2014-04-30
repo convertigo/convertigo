@@ -68,11 +68,13 @@
 	<classpathentry kind="lib" path="lib/soapui/commons-cli-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/xerces-2_11_0/xercesImpl.jar" sourcepath="/ExternalJavaSources/Xerces-J-src.2.11.0.zip"/>
 	<classpathentry kind="lib" path="lib/xerces-2_11_0/xml-apis.jar" sourcepath="/ExternalJavaSources/xml-apis-1.3.04-sources.jar"/>
-	<classpathentry kind="lib" path="tomcat/lib/ecj-4.2.2.jar"/>
+	<classpathentry kind="lib" path="tomcat/lib/ecj-P20140317-1600.jar"/>
 	<classpathentry kind="lib" path="tomcat/lib/tomcat-dbcp.jar"/>
 	<classpathentry kind="lib" path="tomcat/lib/tomcat-embed-core.jar"/>
+	<classpathentry kind="lib" path="tomcat/lib/tomcat-embed-el.jar"/>
 	<classpathentry kind="lib" path="tomcat/lib/tomcat-embed-jasper.jar"/>
 	<classpathentry kind="lib" path="tomcat/lib/tomcat-embed-logging-juli.jar"/>
+	<classpathentry kind="lib" path="tomcat/lib/tomcat7-embed-websocket.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="lib/soapui/not-yet-commons-ssl-0.3.11.jar"/>
 	<classpathentry kind="lib" path="lib/soapui/soapui-3.5.1.jar"/>
