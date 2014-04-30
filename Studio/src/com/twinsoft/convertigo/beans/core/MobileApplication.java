@@ -73,7 +73,7 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 	private String applicationAuthorName = "Convertigo";
 	private String applicationAuthorEmail = "sales@convertigo.com";
 	private String applicationAuthorSite = "http://www.convertigo.com";
-	private String accessibility = Accessibility.Private.name();
+	private String accessibility = Accessibility.Public.name();
 	
 	private String endpoint = "";
 
