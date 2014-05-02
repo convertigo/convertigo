@@ -246,6 +246,7 @@ var F = {
 			firstLaunch: F.firstLaunch,
 			remoteBase: F.remoteBase,
 			platformName: F.platformName,
+			timeout: F.timeout,
 			isLocal: true
 		};
 		
