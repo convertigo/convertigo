@@ -828,6 +828,7 @@ C8O.addHook("init_finished", function () {
 	
 	C8O.vars.xsl_side = "none";
 	C8O.removeRecallParameter("__connector");
+	C8O.addRecallParameter("__removeNamespaces", "true");
 	
 	$(document).on("click", ":not(form)[data-c8o-call]", function () {
 		var callMode = $(this).attr("data-c8o-call-mode");
