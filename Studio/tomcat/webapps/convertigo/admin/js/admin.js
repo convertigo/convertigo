@@ -291,10 +291,7 @@ function loadWidget(widgetId, widgetOptions) {
 		//Get engine version
 		var getEngineVersion = "";
 		callService("engine.GetStatus", function(xml) {
-			getEngineVersion = $(xml).find("version").attr("engine");
-			if(getEngineVersion == "") {
-				getEngineVersion = "latest";
-			}
+			getEngineVersion = $(xml).find("version").attr("engine");			
 		});		
 		loadHTML(
 			"widgets/" + widgetId + ".html",
@@ -304,6 +301,11 @@ function loadWidget(widgetId, widgetOptions) {
 				//Condition added by alexandret
 				//Get Url for each widgets to go to help informations
 				var urlHelp = "";
+				
+				if(getEngineVersion == "" || !getEngineVersion) {
+					getEngineVersion = "latest";
+				}
+
 				switch (widgetId)
 				{
 					//home page
@@ -354,7 +356,7 @@ function loadWidget(widgetId, widgetOptions) {
 						break;
 					//Symbols page
 					case "globalSymbols_List":
-						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/412Homepage.html";
+						urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/411Globalsymbols.html";
 						break;					
 				}
 				//show icon help button

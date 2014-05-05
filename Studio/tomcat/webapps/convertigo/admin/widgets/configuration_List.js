@@ -45,7 +45,7 @@ function configuration_List_init () {
 	var getEngineVersion = "";
 	callService("engine.GetStatus", function(xml) {
 		getEngineVersion = $(xml).find("version").attr("engine");
-		if(getEngineVersion == "") {
+		if(getEngineVersion == "" || !getEngineVersion) {
 			getEngineVersion = "latest";
 		}
 	});		
@@ -107,13 +107,13 @@ function configuration_List_init () {
 					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4214LegacyCariocaportal.html";
 					break;
 				case "Billing":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4215Supervision.html";
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4215Analytics.html";
 					break;
 				case "Notifications":
 					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4216Notifications.html";
 					break;
 				case "MobileBuilder":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/42Configuration.html";
+					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4217Mobilebuilder.html";
 					break;
 			}
 

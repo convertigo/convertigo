@@ -45,7 +45,7 @@ function scheduler_ListTasks_init () {
 	var getEngineVersion = "";
 	callService("engine.GetStatus", function(xml) {
 		getEngineVersion = $(xml).find("version").attr("engine");
-		if(getEngineVersion == "") {
+		if(getEngineVersion == "" || !getEngineVersion) {
 			getEngineVersion = "latest";
 		}
 		$("#helpJobs").attr("href", "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/492Jobstable.html");
