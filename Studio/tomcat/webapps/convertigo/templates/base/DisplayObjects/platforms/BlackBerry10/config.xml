@@ -30,6 +30,7 @@
     <preference name="fullscreen"                 value="true" />           <!-- all: hides the status bar at the top of the screen -->
     <preference name="splashscreen"    			  value="splash" />         <!-- all: The splash screen resource if built without phonegap build -->
     <preference name="disable-cursor"             value="false" />          <!-- blackberry: prevents a mouse-icon/cursor from being displayed on the app -->
+    <preference name="WebSecurity" 			      value="disable"/>			<!-- blackberry 10 : allow cross domain without specific whitelist -->
     
 	<!-- Mandatory preferences for FlashUpdate service -->
 	<preference name="AndroidPersistentFileLocation" value="Internal" />
