@@ -149,10 +149,6 @@
             name="Web integration"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
       <category
-            id="com.twinsoft.convertigo.eclipse.convertigowebclipping"
-            name="Web clipping"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
-      <category
             id="com.twinsoft.convertigo.eclipse.convertigosequencer"
             name="Sequencer"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo">
@@ -164,10 +160,6 @@
       <category
             id="com.twinsoft.convertigo.eclipse.convertigolibraries"
             name="Libraries"
-            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
-      <category
-            id="com.twinsoft.convertigo.eclipse.convertigohubs"
-            name="Mashup composition"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
       <category
             id="com.twinsoft.convertigo.eclipse.convertigositeclipper"
@@ -202,16 +194,16 @@
             id="com.twinsoft.convertigo.eclipse.convertigodemos"
             name="Mashup demo projects"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"/>
-<!-- Mobilizer projects -->
+<!-- Mobile projects -->
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigomobile"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewEmptyJQueryMobileWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewEmptyJQueryMobileWizard"
-            name="Mobile application empty project"
+            name="Mobile application project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Creates a Mobile project based on jQuery Mobile and CTF frameworks, which features are configurable (simply uncomment them inside code).</description> 
+            <description>Creates a Mobile application project based on jQuery Mobile and CTF frameworks.</description> 
             </wizard>
 <!-- Legacy publishing projects -->
       <wizard
@@ -277,16 +269,6 @@
             </wizard>
       <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewMinitelConnectorWizard"
-            icon="icons/studio/javelinconnector_color_32x32.gif"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewMinitelConnectorWizard"
-            name="Minitel Screen"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates a Minitel Screen based WebService connector project.</description> 
-            </wizard>
-      <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolegacyintegration"
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewVT220ConnectorWizard"
             icon="icons/studio/javelinconnector_color_32x32.gif"
             id="com.twinsoft.convertigo.eclipse.wizards.NewVT220ConnectorWizard"
@@ -315,17 +297,6 @@
             preferredPerspectives="convertigo"
             project="true">
             <description>Creates an HTML website based WebService connector project.</description> 
-            </wizard>
-<!-- Web clipping projects -->
-       <wizard
-            category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigowebclipping"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewWebClippingConnectorWizard"
-            icon="icons/studio/htmlconnector_color_32x32.gif"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewWebClippingConnectorWizard"
-            name="Web Clipping"
-            preferredPerspectives="convertigo"
-            project="true">
-            <description>Creates an HTML Web Clipping connector project.</description> 
             </wizard>
 <!-- Sequencer projects -->
        <wizard
@@ -396,20 +367,10 @@
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCMSWizard"
              icon="icons/studio/sequence_color_32x32.gif"
              id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCMSWizard"
-             name="Mashup sequencing"
+             name="Sequencing project"
              preferredPerspectives="convertigo"
              project="true">
           <description>Imports the mashup sequencer sample project to use with Convertigo Mashup Sequencer Quick Guide documentation.</description>
-       </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewDocumentationSampleCWCWizard"
-             icon="icons/studio/htmlconnector_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewDocumentationSampleCWCWizard"
-             name="Web clipping"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the web clipping sample project to use with Convertigo Web Clipper Quick Guide documentation.</description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigodocumentationsamples"
@@ -498,10 +459,10 @@
             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerSimpleAppWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerSimpleAppWizard"
-            name="Convertigo simple mobile app sample project"
+            name="Searching conference rooms mobile sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports a mobile sample project based on jQuery Mobile and CTF frameworks.</description> 
+            <description>Imports a mobile sample project allowing to search a conference room, and localize them on a map. The project is based on jQuery Mobile and CTF frameworks.</description> 
        </wizard>
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
@@ -511,7 +472,7 @@
             name="CTF gallery sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports the CTF gallery sample project.</description> 
+            <description>Imports the CTF gallery project, demonstrating several functionalities of the CTF librairy.</description> 
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
@@ -533,16 +494,7 @@
              project="true">
           <description>Imports a sample project creating a MobTV mobile application. The project is based on jQuery Mobile and CTF frameworks, and makes searches on the programme-tv.net website to dynamically get data.</description>
        </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerConvertigoWebMobileWizard"
-             icon="icons/studio/demo_c8o_web_mobile_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerConvertigoWebMobileWizard"
-             name="Convertigo web mobile sample project"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports a sample project creating a light Convertigo website as a mobile application. The project is based on jQuery Mobile and CTF frameworks, and dynamically gets data from Convertigo website's Feature matrix page.</description>
-       </wizard>
+      
 <!-- HelloWorld sample project -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"
@@ -552,7 +504,7 @@
              name="HelloWorld sample project"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports an HSQLDB database sample project.</description>
+          <description>Imports a sample project containing each type of connector.</description>
        </wizard>
 <!-- SQL connector sample projects -->
        <wizard
@@ -609,26 +561,6 @@
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryGoogleSpreadsheetsWizard"
-             icon="icons/studio/library_googleSpreadsheets_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleSpreadsheetsWizard"
-             name="Google Spreadsheets"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the Convertigo Google Spreadsheets library project.</description>
-       </wizard>
-       <!--<wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
-             class="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleDocsWizard"
-             icon="icons/studio/library_googleDocs_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryGoogleDocsWizard"
-             name="Google Docs"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports the convertigo Google Docs library project</description>
-       </wizard>-->
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryKeyringWizard"
              icon="icons/studio/library_keyring_color_32x32.png"
              id="com.twinsoft.convertigo.eclipse.wizards.NewLibraryKeyringWizard"
@@ -677,17 +609,6 @@
              preferredPerspectives="convertigo"
              project="true">
           <description>Imports the convertigo mashup demo project.</description>
-       </wizard>
-<!-- Interaction hub projects -->
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigohubs"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewInteractionHubWizard"
-             icon="icons/studio/interaction_hub_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewInteractionHubWizard"
-             name="Interaction hub"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Creates an interaction hub project.</description>
        </wizard>
    </extension>
    <extension
