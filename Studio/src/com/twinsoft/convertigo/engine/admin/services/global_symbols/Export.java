@@ -17,11 +17,6 @@
 
 package com.twinsoft.convertigo.engine.admin.services.global_symbols;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.OutputStream;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -40,29 +35,11 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 public class Export extends DownloadService {
 
 	@Override
-	protected void writeResponseResult(HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
+	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		response.setHeader("Content-Disposition", "attachment; filename=\"global_symbols.properties\"");
 		response.setContentType("text/plain");	   
 		
-		String globalSymbolsFilePath = Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath();
-		File f = new File(globalSymbolsFilePath);
-
-		response.setHeader("Content-Length", "" + f.length());
-		if (f.exists()) {
-			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
-			OutputStream outStream = response.getOutputStream();
-			
-			byte[] buffer = new byte[1024];
-			int nbReadBytes;	
-			
-			while ((nbReadBytes = bis.read(buffer, 0, 1024)) > 0) {
-				outStream.write(buffer, 0, nbReadBytes);
-			}			
-			bis.close();
-		} else {
-			throw new IllegalArgumentException("The global symbols file doesn't exist!");			
-		}
+		Engine.theApp.databaseObjectsManager.symbolsStore(response.getOutputStream());
 
 		String message = "The global symbols file has been exported.";
 		Engine.logAdmin.info(message);

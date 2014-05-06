@@ -33,24 +33,29 @@ import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 
 @ServiceDefinition(
-		name = "List",
+		name = "Delete",
 		roles = { Role.WEB_ADMIN },
 		parameters = {},
-		returnValue = "the global symbols list"
+		returnValue = "delete a global symbol"
 	)
-public class List extends XmlService{
+public class Delete extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
+		String symbolName = request.getParameter("symbolName");
+		
 		Element root = document.getDocumentElement();
-        
-        Element symbolsListElement = document.createElement("symbols");
-        root.appendChild(symbolsListElement);
-        
-    	for (String symbolName : Engine.theApp.databaseObjectsManager.symbolsGetNames()) { 
-			Element symbolElement = document.createElement("symbol");
-			symbolElement.setAttribute("name", symbolName);
-			symbolElement.setAttribute("value", Engine.theApp.databaseObjectsManager.symbolsGetValue(symbolName));
-			symbolsListElement.appendChild(symbolElement);
-    	}	
+		Element response = document.createElement("response");
+
+		try {
+			Engine.theApp.databaseObjectsManager.symbolsDelete(symbolName);
+			response.setAttribute("state", "success");
+			response.setAttribute("message","Global symbol '" + symbolName + "' have been successfully deleted!");
+		} catch (Exception e) {
+			Engine.logBeans.error("Error during deleting the global symbol!\n" + e.getMessage());
+			
+			response.setAttribute("state", "error");
+			response.setAttribute("message","Error during deleting the global symbol!\n" + e.getMessage());
+		}
+		root.appendChild(response);		
 	}
 }

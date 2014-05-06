@@ -27,12 +27,10 @@ import javax.servlet.http.HttpServletRequest;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
-import com.twinsoft.convertigo.engine.util.ProjectUtils;
 
 @ServiceDefinition(
 		name = "Create",
@@ -47,9 +45,8 @@ public class Create extends XmlService {
 		String projectName = request.getParameter("projectName");
 		Element response = document.createElement("response");
 
-		try {		
-			Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
-			ProjectUtils.createUndefinedGlobalSymbols(project);
+		try {
+			Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(projectName);
 			response.setAttribute("state", "success");
 			response.setAttribute("message","Global symbols have been successfully declared!");
 		} catch (Exception e) {

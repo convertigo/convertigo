@@ -26,7 +26,6 @@ import java.beans.BeanDescriptor;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
@@ -38,16 +37,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.xml.parsers.DocumentBuilder;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -57,18 +54,17 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.Version;
 import com.twinsoft.convertigo.beans.common.XMLVector;
-import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.engine.DatabaseObjectNotFoundException;
 import com.twinsoft.convertigo.engine.DatabaseObjectsManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
+import com.twinsoft.convertigo.engine.UndefinedSymbolsException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
@@ -83,8 +79,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	public static final String PROPERTY_XMLNAME = "xmlname";
 	public static final Pattern patternSymbolName = Pattern.compile("\\$\\{([^\\{\\}]*)\\}");
 	
-	private transient Map<String, HashSet<String>> symbolsErrors = null;
-	private transient static Map<String,String> symbolsDefaultsValues = null;
+	private transient Map<String, Set<String>> symbolsErrors = null;
 
 	private static class SubLoader extends WalkHelper {
 		DatabaseObject databaseObject;
@@ -174,9 +169,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	}
 
 	public void checkSymbols() throws EngineException {
-		if (symbolsErrors != null) {
-			
-			for(String property : symbolsErrors.keySet()) {
+		if (isSymbolError()) {
+			for (String property : symbolsErrors.keySet()) {
 				String message = "The property '"+property+"' of '"+getName()+"' have an undefined global symbol!";
 				if (Engine.isStudioMode()) {
 					try {
@@ -500,14 +494,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				Object uncompiledValue = getCompilablePropertySourceValue(name);
 				Object compiledValue = null;
 				Object cypheredValue = null;
-				Object value;
+				Object value = getter.invoke(this);
 
-				if (uncompiledValue == null) {
-					Object args[] = {};
-					value = getter.invoke(this, args);
-				} else {
+				if (uncompiledValue != null) {
+					compiledValue = value;
 					value = uncompiledValue;
-					compiledValue = getCompiledValue(value);
 				}
 
 				// Only write non-null values
@@ -730,11 +721,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			Class<?> propertyType;
 			NamedNodeMap childAttributes;
 			boolean maskValue = false;
-
-			// First find the object's name
-//			String name = (String) XMLUtils.findPropertyValue(element, "name");
-//			DatabaseObjectsManager.getProjectLoadingData().databaseObjectName = name;
-
+			
 			for (int i = 0; i < len; i++) {
 				childNode = childNodes.item(i);
 				if (childNode.getNodeType() != Node.ELEMENT_NODE) {
@@ -777,8 +764,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 					} catch (Exception e) {
 					}
 
-					propertyObjectValue = compileProperty(databaseObject, propertyType, propertyName,
-							propertyObjectValue, null);
+					propertyObjectValue = databaseObject.compileProperty(propertyType, propertyName, propertyObjectValue, null);
 					propertyValue = propertyObjectValue.toString();
 
 					if ((propertyType == int.class) || (propertyType == Integer.class)) {
@@ -851,31 +837,13 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 		return databaseObject;
 	}
-
-	public static boolean valueIsCompilable(Object propertyObjectValue) {
-		if (propertyObjectValue instanceof String) {
-			return (propertyObjectValue.toString().indexOf("${") != -1);
-		} else if (propertyObjectValue instanceof XMLVector<?>) {
-			XMLVector<Object> xmlv = new XMLVector<Object>(
-					GenericUtils.<XMLVector<Object>> cast(propertyObjectValue));
-			for (int i = 0; i < xmlv.size(); i++) {
-				Object ob = xmlv.get(i);
-				if (valueIsCompilable(ob)) {
-					return true;
-				}
-			}
-		}
-		return false;
+	
+	public Object compileProperty(String propertyName, Object propertyObjectValue, Object propertyObjectCompiledValue) throws CompilablePropertyException {
+		return compileProperty(String.class, propertyName, propertyObjectValue, propertyObjectCompiledValue);
 	}
 	
-	public static Object compileProperty(DatabaseObject databaseObject, String propertyName,
-			Object propertyObjectValue, Object propertyObjectCompiledValue) throws CompilablePropertyException {
-		return compileProperty(databaseObject, String.class, propertyName, propertyObjectValue, propertyObjectCompiledValue);
-	}
-	
-	public static Object compileProperty(DatabaseObject databaseObject, String propertyName,
-			Object propertyObjectValue) throws CompilablePropertyException {
-		return compileProperty(databaseObject, String.class, propertyName, propertyObjectValue, null);
+	public Object compileProperty(String propertyName, Object propertyObjectValue) throws CompilablePropertyException {
+		return compileProperty(String.class, propertyName, propertyObjectValue, null);
 	}
 
 	public static class CompilablePropertyException extends EngineException {
@@ -885,236 +853,128 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		}
 	}
 
-	public static Object compileProperty(DatabaseObject databaseObject, Class<?> propertyType,
-			String propertyName, Object propertyObjectValue, Object propertyObjectOldValue) throws CompilablePropertyException {
+	public Object compileProperty(Class<?> propertyType, String propertyName, Object propertyObjectValue, Object propertyObjectOldValue) throws CompilablePropertyException {
 		// This a property that does not need to be compiled; remove source
 		// value if any
 		
-		if (!valueIsCompilable(propertyObjectValue)) {
-			databaseObject.removeCompilablePropertySourceValue(propertyName);
-			databaseObject.removeSymbolError(propertyName, propertyObjectValue, propertyObjectOldValue);
+		try {
+			Object compiled = Engine.theApp.databaseObjectsManager.getCompiledValue(propertyObjectValue);
+			removeCompilablePropertySourceValue(propertyName);
+			removeSymbolError(propertyName, propertyObjectValue, propertyObjectOldValue);
+			
+			if (compiled == propertyObjectValue) {
+				return propertyObjectValue;
+			} else {
+				setCompilablePropertySourceValue(propertyName, propertyObjectValue);
+				return compiled;
+			}
+		} catch (UndefinedSymbolsException e) {
+			setCompilablePropertySourceValue(propertyName, propertyObjectValue);
+			addSymbolError(propertyName, e.undefinedSymbols());
 			return propertyObjectValue;
 		}
 		
-		// Update source value and retrieve compiled value
-		databaseObject.setCompilablePropertySourceValue(propertyName, propertyObjectValue);
-		
-		// Reset compilation error message
-		DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure = null;
-		Object compiledValue = getCompiledValue(propertyType, propertyObjectValue);
-		
-		if (propertyObjectValue instanceof String) {
-			
-			Engine.logBeans.trace("  source value='" + propertyObjectValue.toString() + "'");
-
-			if (DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure != null) {
-				
-				String failure = DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure;
-				String objectName = databaseObject.getName();
-				String projectName = DatabaseObjectsManager.getProjectLoadingData().projectName;
-				if (projectName == null){
-					projectName = databaseObject.getProject().toString();
-				}			
-				
-				String message = "Compilation error for property '" + propertyName + "': \n\n"
-						+ failure + "\n"
-						+ "Property value: '" + propertyObjectValue + "'\n"
-						+ "Object name: '" + objectName + "'\n"
-						+ "Object type: '" + databaseObject.getDatabaseType() + "'\n"
-						+ "Project: '" + projectName + "'";
-				
-				boolean createUndefinedSymbol = DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol;
-				boolean doThisForAll = DatabaseObjectsManager.getProjectLoadingData().doThisForAll;
-				
-				if (Engine.isStudioMode()) {			
-					try {
-						// When loading/opening project
-						if (intoStack("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectLoadingJob") || 
-								intoStack("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView")) {
-							if (doThisForAll == false) {
-								openSymbolWarningDialog(projectName, propertyName, propertyObjectValue, objectName, 
-										databaseObject, createUndefinedSymbol, doThisForAll, true);
-							} 
-						} 
-						// When edition a property value
-						else if (intoStack("org.eclipse.ui.views.properties.PropertySheetEntry")) {
-							if (doThisForAll == false) {
-								openSymbolWarningDialog(projectName, propertyName, propertyObjectValue, objectName, 
-										databaseObject, createUndefinedSymbol, doThisForAll, false);
-							} 
-						} 
-						// When using the admin console
-						else {
-							DatabaseObjectsManager.getProjectLoadingData().doThisForAll = true;
-							DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol = false;
-						}	
-					} catch (Exception e) {
-						Engine.logBeans.warn(message+"\n"+e.getMessage());
-					}
-				}
-				
-				// Add warn message into the log
-				Engine.logBeans.warn(message);
-				
-				createUndefinedSymbol = DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol;
-				doThisForAll = DatabaseObjectsManager.getProjectLoadingData().doThisForAll;
-				
-				if ( !createUndefinedSymbol && (doThisForAll == true  || doThisForAll == false) ){
-					databaseObject.addSymbolError(propertyName, propertyObjectValue.toString());
-				}
-				DatabaseObjectsManager.getProjectLoadingData().undefinedGlobalSymbol = true;
-				
-				if ((propertyType != String.class)) {
-					return "0";
-				}
-			} 
-			
-			databaseObject.removeSymbolError(propertyName, propertyObjectValue, propertyObjectOldValue);
-			
-		} else if (propertyObjectValue instanceof XMLVector<?>) {
-			try {
-				XMLVector<Object> xmlv = new XMLVector<Object>(GenericUtils.<XMLVector<Object>> cast(propertyObjectValue));
-				for (int i = 0; i < xmlv.size(); i++) {
-					compileProperty(databaseObject, propertyType, propertyName, xmlv.get(i),null);
-				}
-			} catch (Exception e) {
-				
-			}
-		} else if (propertyObjectValue instanceof SmartType) {
-			SmartType smartType = (SmartType) propertyObjectValue;
-			if (smartType.isUseExpression()) {
-				smartType = smartType.clone();
-				compileProperty(databaseObject, propertyType, propertyName, smartType.getExpression(),null);
-			}
-		}
-		return compiledValue;
+//		if (!valueIsCompilable(propertyObjectValue)) {
+//			databaseObject.removeCompilablePropertySourceValue(propertyName);
+//			databaseObject.removeSymbolError(propertyName, propertyObjectValue, propertyObjectOldValue);
+//			return propertyObjectValue;
+//		}
+//		
+//		// Update source value and retrieve compiled value
+//		databaseObject.setCompilablePropertySourceValue(propertyName, propertyObjectValue);
+//		
+//		// Reset compilation error message
+//		DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure = null;
+//		Object compiledValue = getCompiledValue(propertyType, propertyObjectValue);
+//		
+//		if (propertyObjectValue instanceof String) {
+//			
+//			Engine.logBeans.trace("  source value='" + propertyObjectValue.toString() + "'");
+//
+//			if (DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure != null) {
+//				
+//				String failure = DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure;
+//				String objectName = databaseObject.getName();
+//				String projectName = DatabaseObjectsManager.getProjectLoadingData().projectName;
+//				if (projectName == null){
+//					projectName = databaseObject.getProject().toString();
+//				}			
+//				
+//				String message = "Compilation error for property '" + propertyName + "': \n\n"
+//						+ failure + "\n"
+//						+ "Property value: '" + propertyObjectValue + "'\n"
+//						+ "Object name: '" + objectName + "'\n"
+//						+ "Object type: '" + databaseObject.getDatabaseType() + "'\n"
+//						+ "Project: '" + projectName + "'";
+//				
+//				boolean createUndefinedSymbol = DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol;
+//				boolean doThisForAll = DatabaseObjectsManager.getProjectLoadingData().doThisForAll;
+//				
+//				if (Engine.isStudioMode()) {			
+//					try {
+//						// When loading/opening project
+//						if (intoStack("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectLoadingJob") || 
+//								intoStack("com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView")) {
+//							if (doThisForAll == false) {
+//								openSymbolWarningDialog(projectName, propertyName, propertyObjectValue, objectName, 
+//										databaseObject, createUndefinedSymbol, doThisForAll, true);
+//							} 
+//						} 
+//						// When edition a property value
+//						else if (intoStack("org.eclipse.ui.views.properties.PropertySheetEntry")) {
+//							if (doThisForAll == false) {
+//								openSymbolWarningDialog(projectName, propertyName, propertyObjectValue, objectName, 
+//										databaseObject, createUndefinedSymbol, doThisForAll, false);
+//							} 
+//						} 
+//						// When using the admin console
+//						else {
+//							DatabaseObjectsManager.getProjectLoadingData().doThisForAll = true;
+//							DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol = false;
+//						}	
+//					} catch (Exception e) {
+//						Engine.logBeans.warn(message+"\n"+e.getMessage());
+//					}
+//				}
+//				
+//				// Add warn message into the log
+//				Engine.logBeans.warn(message);
+//				
+//				createUndefinedSymbol = DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol;
+//				doThisForAll = DatabaseObjectsManager.getProjectLoadingData().doThisForAll;
+//				
+//				if ( !createUndefinedSymbol && (doThisForAll == true  || doThisForAll == false) ){
+//					databaseObject.addSymbolError(propertyName, propertyObjectValue.toString());
+//				}
+//				DatabaseObjectsManager.getProjectLoadingData().undefinedGlobalSymbol = true;
+//				
+//				if ((propertyType != String.class)) {
+//					return "0";
+//				}
+//			} 
+//			
+//			databaseObject.removeSymbolError(propertyName, propertyObjectValue, propertyObjectOldValue);
+//			
+//		} else if (propertyObjectValue instanceof XMLVector<?>) {
+//			try {
+//				XMLVector<Object> xmlv = new XMLVector<Object>(GenericUtils.<XMLVector<Object>> cast(propertyObjectValue));
+//				for (int i = 0; i < xmlv.size(); i++) {
+//					compileProperty(databaseObject, propertyType, propertyName, xmlv.get(i),null);
+//				}
+//			} catch (Exception e) {
+//				
+//			}
+//		} else if (propertyObjectValue instanceof SmartType) {
+//			SmartType smartType = (SmartType) propertyObjectValue;
+//			if (smartType.isUseExpression()) {
+//				smartType = smartType.clone();
+//				compileProperty(databaseObject, propertyType, propertyName, smartType.getExpression(),null);
+//			}
+//		}
+//		return compiledValue;
 	}
 	
-	private static void openSymbolWarningDialog(String projectName, String propertyName, Object propertyObjectValue, String objectName, 
-			DatabaseObject databaseObject, boolean createUndefinedSymbol, boolean doThisForAll, boolean showCheckBox) throws Exception{
-		Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin");
-		Method m = convertigoPlugin.getMethod("warningGlobalSymbols", String.class, String.class, String.class, String.class, String.class, boolean.class);
-		boolean[] actions = (boolean[])m.invoke(null, projectName, propertyName, propertyObjectValue, objectName, databaseObject.getDatabaseType(), showCheckBox);
-		
-		DatabaseObjectsManager.getProjectLoadingData().createUndefinedSymbol = actions[0];
-		DatabaseObjectsManager.getProjectLoadingData().doThisForAll = actions[1];
-		
-		createUndefinedSymbol = actions[0];
-		doThisForAll = actions[1];
-		
-		if (createUndefinedSymbol == true) {
-			//Create current symbol
-			if (propertyObjectValue != null) {
-				ProjectUtils.createUndefinedGlobalSymbol(extractSymbol(propertyObjectValue.toString()));
-			}
-		}
-	}
-	
-	private static boolean intoStack(String className){
-		StackTraceElement[] stacks = Thread.currentThread().getStackTrace();
-		for (StackTraceElement stack : stacks) {
-			if (stack.getClassName().equals(className)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	public static Object getCompiledValue(Class<?> propertyType, Object propertyObjectValue) {
-		Object compiledValue = getCompiledValue(propertyObjectValue);
-		if ((compiledValue instanceof String) && (propertyType != String.class)) {
-			compiledValue = "".equals(compiledValue) ? "80" : compiledValue;
-		}
-		return compiledValue;
-	}
 
-	private static Object getCompiledValue(Object propertyObjectValue) {
-		if (propertyObjectValue instanceof String) {
-			String sPropertyObjectValue = propertyObjectValue.toString();
-			String compiledObjectValue = "";
-			String symbolCompiledValue = null;
-			try {
-				int i = sPropertyObjectValue.indexOf("${");
-
-				int k = 0;
-				while ((i != -1) && (i < sPropertyObjectValue.length())) {
-					compiledObjectValue += sPropertyObjectValue.substring(k, i);
-					
-					int j = sPropertyObjectValue.indexOf("}", i + 3);
-					while (j + 1 < sPropertyObjectValue.length()) {
-						if (sPropertyObjectValue.charAt(j + 1) == '}') {
-							j = sPropertyObjectValue.indexOf("}", j + 2);
-						} else {
-							break;
-						}
-					}
-					if (j == -1) {
-						DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure = "Syntax error: "
-								+ sPropertyObjectValue;
-						return propertyObjectValue;
-					} else {
-						String symbol = sPropertyObjectValue.substring(i + 2, j);
-						int idxEqual = symbol.indexOf('=');
-						String symbolName = idxEqual == -1 ? symbol : symbol.substring(0, idxEqual);
-						String symbolDefaultValue = idxEqual == -1 ? null : symbol.substring(idxEqual + 1)
-								.replaceAll("\\}\\}", "}");
-						symbolCompiledValue = Engine.theApp.databaseObjectsManager.getSymbolValue(symbolName);
-
-						if (symbolCompiledValue == null) {
-							if (symbolDefaultValue == null) {
-								DatabaseObjectsManager.getProjectLoadingData().compilablePropertyFailure = "'"
-										+ symbolName + "' symbol not found in the global symbols file";
-								
-								return propertyObjectValue;
-							} else {
-								symbolCompiledValue = symbolDefaultValue;
-								if (symbolsDefaultsValues == null)
-									symbolsDefaultsValues = new HashMap<String,String>();
-								symbolsDefaultsValues.put(symbolName,symbolDefaultValue);
-							}
-						}
-
-						compiledObjectValue += symbolCompiledValue;
-
-						i = j + 1;
-					}
-
-					k = i;
-					if (i < sPropertyObjectValue.length()) {
-						i = sPropertyObjectValue.indexOf("${", i);
-					}
-				}
-
-				// Add end of string
-				if (k < sPropertyObjectValue.length()) {
-					compiledObjectValue += sPropertyObjectValue.substring(k);
-				}
-
-				return compiledObjectValue;
-			} catch (StringIndexOutOfBoundsException e) {
-				// Ignore: syntax error
-			}
-		} else if (propertyObjectValue instanceof XMLVector<?>) {
-			try {
-				XMLVector<Object> xmlv = new XMLVector<Object>(
-						GenericUtils.<XMLVector<Object>> cast(propertyObjectValue));
-				for (int i = 0; i < xmlv.size(); i++) {
-					Object ob = xmlv.get(i);
-					xmlv.set(i, getCompiledValue(ob));
-				}
-				return xmlv;
-			} catch (Exception e) {
-			}
-		} else if (propertyObjectValue instanceof SmartType) {
-			SmartType smartType = (SmartType) propertyObjectValue;
-			if (smartType.isUseExpression()) {
-				smartType = smartType.clone();
-				smartType.setExpression((String) getCompiledValue(smartType.getExpression()));
-				return smartType;
-			}
-		}
-		return propertyObjectValue;
-	}
 
 	public boolean isMaskedProperty(Visibility target, String propertyName) {
 		return false;
@@ -1181,145 +1041,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		}
 		return propertyValue;
 	}
-
-	/**
-	 * Reloads the object from XML serialized data.
-	 */
-	public void reload(String serializationData) throws EngineException {
-		Element rootElement = null;
-		try {
-			Engine.logBeans.trace("[DatabaseObject.reload()] serializationData:\n" + serializationData);
-
-			DocumentBuilder documentBuilder = XMLUtils.getDefaultDocumentBuilder();
-			Document document = documentBuilder.parse(new ByteArrayInputStream(serializationData.getBytes()));
-
-			rootElement = document.getDocumentElement();
-		} catch (Exception e) {
-			throw new EngineException("Unable to reload the object from the serialized data.", e);
-		}
-
-		reload(rootElement);
-	}
-
-	public void reload(Node node) throws EngineException {
-		String objectClassName = "n/a";
-		String childNodeName = "n/a";
-		String propertyName = "n/a";
-		String propertyValue = "n/a";
-		DatabaseObject databaseObject = null;
-		Element element = (Element) node;
-
-		objectClassName = element.getAttribute("classname");
-
-		String version = element.getAttribute("version");
-		if (VersionUtils.compareProductVersion(Version.version, version) < 0) {
-			String message = "Unable to reload from an object of product version superior to the current beans product version ("
-					+ com.twinsoft.convertigo.beans.Version.version
-					+ ").\n"
-					+ "Object class: "
-					+ objectClassName + "\n" + "Object version: " + version;
-			EngineException ee = new EngineException(message);
-			throw ee;
-		}
-
-		try {
-			Engine.logBeans.trace("Creating object " + objectClassName);
-			databaseObject = (DatabaseObject) Class.forName(objectClassName).newInstance();
-		} catch (Exception e) {
-			String message = "Unable to create a new instance of the object from the serialized XML data."
-					+ "Object class: " + objectClassName + "\n" + "Object version: " + version;
-			EngineException ee = new EngineException(message, e);
-			throw ee;
-		}
-
-		try {
-			// Performs custom configuration before object de-serialization
-			databaseObject.preconfigure(element);
-		} catch (Exception e) {
-			String s = XMLUtils.prettyPrintDOM(node);
-			String message = "Unable to configure the object from serialized XML data before its creation.\n"
-					+ "Object class: " + objectClassName + "\n" + "XML data:\n" + s;
-			EngineException ee = new EngineException(message, e);
-			throw ee;
-		}
-
-		try {
-			long priority = new Long(element.getAttribute("priority")).longValue();
-			this.priority = priority;
-
-			Class<? extends DatabaseObject> databaseObjectClass = this.getClass();
-			BeanInfo bi = CachedIntrospector.getBeanInfo(databaseObjectClass);
-			PropertyDescriptor[] pds = bi.getPropertyDescriptors();
-
-			NodeList childNodes = element.getChildNodes();
-			int len = childNodes.getLength();
-
-			Node childNode;
-			PropertyDescriptor pd;
-			Object propertyObjectValue;
-			Class<?> propertyType;
-			NamedNodeMap childAttributes;
-
-			for (int i = 0; i < len; i++) {
-				childNode = childNodes.item(i);
-
-				if (childNode.getNodeType() != Node.ELEMENT_NODE) {
-					continue;
-				}
-
-				childNodeName = childNode.getNodeName();
-
-				Engine.logBeans.trace("Analyzing node '" + childNodeName + "'");
-
-				if (childNodeName.equalsIgnoreCase("property")) {
-
-					childAttributes = childNode.getAttributes();
-					propertyName = childAttributes.getNamedItem("name").getNodeValue();
-					Engine.logBeans.trace("  name = '" + propertyName + "'");
-					pd = findPropertyDescriptor(pds, propertyName);
-
-					if (pd == null) {
-						Engine.logBeans.warn("Unable to find the definition of property \"" + propertyName
-								+ "\"; skipping.");
-						continue;
-					}
-
-					propertyType = pd.getPropertyType();
-					propertyObjectValue = XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(
-							childNode, Node.ELEMENT_NODE));
-					Engine.logBeans.trace("  value='" + propertyObjectValue.toString() + "'");
-					propertyObjectValue = compileProperty(databaseObject, propertyType, propertyName,
-							propertyObjectValue,null);
-
-					Method setter = pd.getWriteMethod();
-					Engine.logBeans.trace("  setter='" + setter.getName() + "'");
-					Engine.logBeans.trace("  param type='" + propertyObjectValue.getClass().getName() + "'");
-					Engine.logBeans.trace("  expected type='" + propertyType.getName() + "'");
-					setter.invoke(this, new Object[] { propertyObjectValue });
-				}
-			}
-		} catch (CompilablePropertyException e) {
-			throw e;
-		} catch (Exception e) {
-			String message = "Unable to set the object properties from the serialized XML data."
-					+ "Object class: " + objectClassName + "\n" + "XML analyzed node: " + childNodeName + "\n"
-					+ "Property name: " + propertyName + "\n" + "Property value: " + propertyValue;
-			EngineException ee = new EngineException(message, e);
-			throw ee;
-		}
-
-		try {
-			// Performs custom configuration
-			this.configure(element);
-		} catch (Exception e) {
-			String s = XMLUtils.prettyPrintDOM(node);
-			String message = "Unable to configure the object from serialized XML data after its creation.\n"
-					+ "Object class: " + objectClassName + "\n" + "XML data:\n" + s;
-			EngineException ee = new EngineException(message, e);
-			throw ee;
-		}
-	}
-
+	
 	protected static PropertyDescriptor findPropertyDescriptor(PropertyDescriptor[] pds, String pn) {
 		int len = pds.length;
 		PropertyDescriptor pd;
@@ -1470,83 +1192,35 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			hasChanged = true;
 		}
 	}
-	
-	public void addSymbolError(String propertyName, String propertyValue){
-		List<String> values = extractSymbol(propertyValue ); 
-
-		if (symbolsErrors == null) { 
-			symbolsErrors = new HashMap<String, HashSet<String>>();
+	public void addSymbolError(String propertyName, Set<String> undefinedSymbols) { 
+		if (symbolsErrors == null) {
+			symbolsErrors = new HashMap<String, Set<String>>();
 		}
 		
-		HashSet<String> setValues = symbolsErrors.get(propertyName);
-		if(setValues == null)
-			setValues = new HashSet<String>();
-		setValues.addAll(values);
-		if (setValues.size()>0) {
-			symbolsErrors.put(propertyName, setValues);
-			if (getProject() != null) {
-				getProject().undefinedGlobalSymbols = true;
-			}
-		}
+		symbolsErrors.put(propertyName, undefinedSymbols);
+		DatabaseObjectsManager.getProjectLoadingData().undefinedGlobalSymbol = true;
 	}
 	
-	public void removeSymbolError(String propertyName, Object propertyValue, Object propertyOldValue){
-		if (propertyValue != null && propertyOldValue != null) {
-			List<String> values = extractSymbol(propertyValue.toString());
-			List<String> oldValues = extractSymbol(propertyOldValue.toString());
-						
+	private synchronized void removeSymbolError(String propertyName, Object propertyValue, Object propertyOldValue) {
+		if (propertyValue != null && propertyOldValue != null) {						
 			if (symbolsErrors != null) {
-				if (values.size()==0) {
-					symbolsErrors.remove(propertyName);
-				} else {
-					for (String oldValue : oldValues) {
-						HashSet<String> symbErr = symbolsErrors.get(propertyName);
-						if (!values.contains(oldValue)) {
-							symbErr.remove(oldValue);											
-						}
-						symbolsErrors.remove(propertyName);
-						symbolsErrors.put(propertyName, symbErr);
-					}
+				symbolsErrors.remove(propertyName);
+				if (symbolsErrors.isEmpty()) {
+					symbolsErrors = null;
 				}
-				if (symbolsErrors.size()==0) {
-					getProject().undefinedGlobalSymbols = false;
-				} 
 			}
 		}
 	}
 	
-	public boolean isSymbolError(){
-		return (symbolsErrors != null && symbolsErrors.size() != 0);		
+	public synchronized boolean isSymbolError() {
+		return symbolsErrors != null;		
 	}
 	
-	public Map<String, HashSet<String>> getSymbolsErrors(){
-		if (isSymbolError()) {
-			return symbolsErrors;
-		}
-		return null;
+	public synchronized Map<String, Set<String>> getSymbolsErrors() {
+		return symbolsErrors;
 	}
 	
-	public void setSymbolsErrors(Map<String, HashSet<String>> symbolsErrors){
-		if (symbolsErrors!=null) {
-			this.symbolsErrors = symbolsErrors;
-		}
-	}
-	
-	public Map<String,String> getSymbolsDefaulsValues(){
-		return symbolsDefaultsValues;
-	}
-	
-	public static List<String> extractSymbol(String propertyValue) {
-		Matcher m = patternSymbolName.matcher(propertyValue);
-		List<String> extract = new LinkedList<String>();
-		
-		while (m.find()) {
-			String extractName = m.group(1);
-			if (Engine.theApp.databaseObjectsManager.getSymbolValue(extractName) ==  null) {
-				extract.add(extractName);
-			}
-		}
-		
-		return extract;
+	public Set<String> getSymbolsErrors(String parameterName) {
+		return symbolsErrors == null ? null : symbolsErrors.get(parameterName);
 	}
 }

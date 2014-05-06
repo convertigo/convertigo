@@ -31,7 +31,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
-import com.twinsoft.convertigo.engine.util.ProjectUtils;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class DeclareGlobalSymbolsFromThisProjectAction extends MyAbstractAction {
 	
@@ -39,6 +39,7 @@ public class DeclareGlobalSymbolsFromThisProjectAction extends MyAbstractAction 
 		super();
 	}
 
+	@Override
 	public void run() {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
@@ -55,8 +56,7 @@ public class DeclareGlobalSymbolsFromThisProjectAction extends MyAbstractAction 
     			//For each database object from the current project we find the undefined global symbols
     			if ((databaseObject != null) && (databaseObject instanceof Project)) {
     				Project project = (Project)treeObject.getObject();
-    				
-    				ProjectUtils.createUndefinedGlobalSymbols(project);
+    				Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(project.getName());
     				
     				//Reload the project
     				explorerView.reloadProject(treeObject);

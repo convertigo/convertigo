@@ -27,6 +27,7 @@ import java.beans.BeanInfo;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
@@ -80,6 +81,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.ConvertigoException;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -128,6 +130,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 	 */
 	public boolean isDefault = false;
     
+	private boolean isValueInProcess = false;
+	
     public DatabaseObjectTreeObject(Viewer viewer, DatabaseObject object) {
     	this(viewer,object,false);
 	}
@@ -663,12 +667,14 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		Object oldValue = getPropertyValue(id);
 		String propertyName = (String) id;
 		
-		if (oldValue != null && oldValue.equals(value)) {
+		if (isValueInProcess || (oldValue != null && oldValue.equals(value))) {
 			return;
 		}
 		
 		try {
+			isValueInProcess = true;
 			java.beans.PropertyDescriptor databaseObjectPropertyDescriptor = getPropertyDescriptor(propertyName);
+	        TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
 
 			if (databaseObjectPropertyDescriptor == null) return;
 
@@ -699,18 +705,30 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			if ((propertyClass == boolean.class) || (propertyClass == Boolean.class)) {
             	if (((Integer) value).intValue() == 0) value = Boolean.TRUE;
             	else value = Boolean.FALSE;
-			}
-			else
-			{
-				// Retrieve old compiled value if any
-				if (oldValue.toString().indexOf("${") != -1)
-					oldValue = DatabaseObject.getCompiledValue(propertyClass, oldValue);
-				
-				// Retrieve compiled value or remove source value if any
-				if (value.toString().indexOf("${") == -1)
-					databaseObject.removeCompilablePropertySourceValue(propertyName);
-				
-				value = DatabaseObject.compileProperty(databaseObject, propertyClass, propertyName, value, oldValue); 
+			} else {
+				boolean changed;
+				do {
+					changed = false;
+					boolean wasSymbolError = databaseObject.isSymbolError();
+					value = databaseObject.compileProperty(propertyClass, propertyName, value, oldValue);
+					Set<String> symbolsErrors = databaseObject.getSymbolsErrors(propertyName);
+					if (symbolsErrors != null) {
+						boolean[] res = ConvertigoPlugin.warningGlobalSymbols(databaseObject.getProject().getName(),
+								databaseObject.getName(), databaseObject.getDatabaseType(),
+								propertyName, "" + databaseObject.getCompilablePropertySourceValue(propertyName),
+								symbolsErrors, false);
+						changed = res[0];
+						if (changed) {
+							Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(symbolsErrors);
+						} else {
+							databaseObject.getProject().undefinedGlobalSymbols = true;
+							viewer.update(getProjectTreeObject(), null);
+						}
+					} else if (wasSymbolError) {
+						Engine.theApp.databaseObjectsManager.symbolsProjectCheckUndefined(databaseObject.getProject().getName());
+						viewer.update(getProjectTreeObject(), null);
+					}
+				} while (changed);
 				
 				if ((propertyClass == int.class) || (propertyClass == Integer.class)) {
 					if (!(value instanceof Integer))	value = new Integer(value.toString());
@@ -798,7 +816,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				setEnabled(value.equals(true));
 			}
 			
-	        TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
         	viewer.update(this, null);
         	// Fix #2528 #2533 : commented next line because of stack overflow on multiselection
 	        //viewer.setSelection(viewer.getSelection(),true);
@@ -830,6 +847,9 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
             String message = "Error while trying to set property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
             ConvertigoPlugin.logException(e, message);
         }
+		finally {
+			isValueInProcess = false;
+		}
 	}
 	
 	protected java.beans.PropertyDescriptor getPropertyDescriptor(String propertyName) {

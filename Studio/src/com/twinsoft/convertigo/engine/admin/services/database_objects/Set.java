@@ -75,7 +75,7 @@ public class Set extends XmlService {
 			propertyCompiledValue = nodeCompiledValue.getNodeValue();
 		}
 		
-		return DatabaseObject.compileProperty(object, propertyName, propertyValue, propertyCompiledValue);
+		return object.compileProperty(propertyName, propertyValue, propertyCompiledValue);
 	}
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {

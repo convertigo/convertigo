@@ -27,18 +27,25 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.event.EventListenerList;
 import javax.xml.parsers.ParserConfigurationException;
@@ -51,6 +58,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
@@ -61,6 +69,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.steps.ReadFileStep;
+import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLActionStep;
 import com.twinsoft.convertigo.beans.steps.XMLGenerateDatesStep;
@@ -72,6 +81,7 @@ import com.twinsoft.convertigo.engine.dbo_explorer.DboExplorerManager;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboGroup;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboParent;
 import com.twinsoft.convertigo.engine.dbo_explorer.DboUtils;
+import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.migration.Migration001;
 import com.twinsoft.convertigo.engine.migration.Migration3_0_0;
 import com.twinsoft.convertigo.engine.migration.Migration5_0_0;
@@ -91,6 +101,9 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
  * repository and restoring them from the Convertigo database repository.
  */
 public class DatabaseObjectsManager implements AbstractManager {
+	private static Pattern pValidSymbolName = Pattern.compile("[\\{=}\\r\\n]");
+	private static Pattern pFindSymbol = Pattern.compile("\\$\\{([^\\{\\r\\n]*?)(?:=(.*?))?}");
+	
 	private Map<String, Project> projects;
 	
 	//
@@ -98,11 +111,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	/**
 	 * The symbols repository for compiling text properties.
 	 */
-	private Map<String, String> symbolsMap;
-
-	public String getSymbolValue(String symbolName) {
-		return symbolsMap.get(symbolName);
-	}
+	private Properties symbolsProperties;
 
 	// private static String XSL_NAMESPACE_URI =
 	// "http://www.w3.org/1999/XSL/Transform";
@@ -112,64 +121,12 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 	public void init() throws EngineException {
 		projects = new HashMap<String, Project>();
-		symbolsMapInit();
-	}
-
-	private void symbolsMapInit() {
-		globalSymbolsFilePath = System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE_COMPATIBILITY,  
-				System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE, 
-                        Engine.CONFIGURATION_PATH + "/global_symbols.properties")); 		
-		Properties prop = new Properties();
-
-		try { 
-			prop.load(new FileInputStream(globalSymbolsFilePath));
-		} catch (FileNotFoundException e) {
-			Engine.logDatabaseObjectManager.warn("The symbols file specified in JVM argument as \""
-					+ globalSymbolsFilePath + "\" does not exist! Creating a new one...");
-			
-			// Create the global_symbols.properties file into the default workspace
-			File globalSymbolsProperties = new File(Engine.CONFIGURATION_PATH + "/global_symbols.properties");
-			try {
-				prop.store(new FileOutputStream(globalSymbolsProperties.getAbsolutePath()), "global symbols");
-				Engine.logDatabaseObjectManager.info("New global symbols file created: "+globalSymbolsProperties.getAbsolutePath());
-			} catch (Exception e1) {
-				Engine.logDatabaseObjectManager.error("Error while creating the global_symbols.properties file; symbols won't be calculated.", e1);
-				return;
-			}
-		} catch (IOException e) {
-			Engine.logDatabaseObjectManager.error(
-					"Error while reading symbols file specified in JVM argument as \"" + globalSymbolsFilePath
-							+ "\"; symbols won't be calculated.", e);
-			return;
-		}
-
-		updateSymbols(prop);
-		
-		Engine.logEngine.info("Symbols file \"" + globalSymbolsFilePath
-				+ "\" loaded!");
-	}
-
-	public void updateSymbols(Properties map) {
-		symbolsMap = new HashMap<String, String>(map.size());
-		
-		// Enumeration of the properties
-		Enumeration<?> propsEnum = map.propertyNames();
-		String propertyName, propertyValue;
-
-		while (propsEnum.hasMoreElements()) {
-			propertyName = (String) propsEnum.nextElement();
-			propertyValue = map.getProperty(propertyName, "");
-			symbolsMap.put(propertyName, propertyValue);
-		}
-		
-		synchronized (projects) {
-			projects.clear();
-		}
+		symbolsInit();
 	}
 	
 	public void destroy() throws EngineException {
 		projects = null;
-		symbolsMap = null;
+		symbolsProperties = null;
 	}
 
 	private EventListenerList databaseObjectListeners = new EventListenerList();
@@ -245,9 +202,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 		public ProjectLoadingData() {}
 
 		public String projectName;
-		public String compilablePropertyFailure;
-		public boolean doThisForAll = false;
-		public boolean createUndefinedSymbol = false;
 		public boolean undefinedGlobalSymbol = false;
 	}
 
@@ -279,12 +233,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 
 			try {
 				checkForEngineMigrationProcess(projectName);
-				project = importProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");
-				if(getProjectLoadingData().createUndefinedSymbol==true && getProjectLoadingData().doThisForAll==true){
-					ProjectUtils.createUndefinedGlobalSymbols(project);
-					ProjectUtils.removeUndefinedGlobalSymbols(project);
-				}
-				
+				project = importProject(Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xml");				
 			} catch (ClassCastException e) {
 				throw new EngineException("The requested object \"" + projectName + "\" is not a project!", e);
 			} catch (ProjectInMigrationProcessException e) {
@@ -391,8 +340,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public void clearCacheIfSymbolError(String projectName) {
 		synchronized (projects) {
 			if(projects.containsKey(projectName)) {
-				Map<String, HashSet<String>> symbolsErrors = projects.get(projectName).getSymbolsErrors();
-				if (symbolsErrors != null && symbolsErrors.size() > 0) {
+				if (projects.get(projectName).undefinedGlobalSymbols) {
 					projects.remove(projectName);
 				}
 			}	
@@ -1342,7 +1290,291 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 
 	}
-	public String getGlobalSymbolsFilePath(){
-		return globalSymbolsFilePath;
+	
+	public String getCompiledValue(String value) throws UndefinedSymbolsException {
+		Matcher mFindSymbol = pFindSymbol.matcher(value);
+		if (mFindSymbol.find(0)) {
+			int start = 0;
+			StringBuffer newValue = new StringBuffer();
+			Set<String> undefinedSymbols = null;
+			do {
+				newValue.append(value.substring(start, mFindSymbol.start()));
+				
+				String name = mFindSymbol.group(1);
+				String def = mFindSymbol.group(2);
+				
+				String symbolValue = symbolsGetValue(name);
+				
+				if (symbolValue == null) {
+					if (def != null) {
+						symbolValue = def;
+					} else {
+						if (undefinedSymbols == null) {
+							undefinedSymbols = new HashSet<String>();
+						}
+						undefinedSymbols.add(name);
+						symbolValue = "" + undefinedSymbols.size();
+					}
+				}
+				
+				newValue.append(symbolValue);
+				
+				start = mFindSymbol.end();
+			} while (mFindSymbol.find(start));
+			
+			if (undefinedSymbols != null) {
+				throw new UndefinedSymbolsException(undefinedSymbols);
+			}
+			
+			newValue.append(value.substring(start));
+			return newValue.toString();
+		} else {
+			return value;
+		}
+	}
+	
+	public Object getCompiledValue(Object propertyObjectValue) throws UndefinedSymbolsException {
+		if (propertyObjectValue instanceof String) {
+			return getCompiledValue((String) propertyObjectValue);
+		} else if (propertyObjectValue instanceof XMLVector<?>) {
+			try {
+				UndefinedSymbolsException undefinedSymbolsException = null;
+				
+				XMLVector<Object> xmlv = GenericUtils.<XMLVector<Object>> cast(propertyObjectValue);
+				
+				for (int i = 0; i < xmlv.size(); i++) {
+					Object ob = xmlv.get(i);
+					try {
+						Object compiled = getCompiledValue(ob);
+						if (ob != compiled) { // symbol case
+							if (xmlv == propertyObjectValue) {
+								xmlv = new XMLVector<Object>(xmlv);
+							}
+							xmlv.set(i, compiled);	
+						}
+					} catch (UndefinedSymbolsException e) {
+						if (undefinedSymbolsException == null) {
+							undefinedSymbolsException = e;
+						} else {
+							undefinedSymbolsException.append(e);
+						}
+					}
+				}
+				
+				if (undefinedSymbolsException != null) {
+					throw undefinedSymbolsException;
+				}
+				
+				return xmlv;
+			} catch (Exception e) {
+			}
+		} else if (propertyObjectValue instanceof SmartType) {
+			SmartType smartType = (SmartType) propertyObjectValue;
+			if (smartType.isUseExpression()) {
+				String expression = smartType.getExpression();
+				String compiled = getCompiledValue(expression);
+				if (compiled != expression) {
+					smartType = smartType.clone();
+					smartType.setExpression(compiled);
+				}
+				return smartType;
+			}
+		}
+		
+		return propertyObjectValue;
+	}
+	
+	private void symbolsInit() {
+		globalSymbolsFilePath = System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE_COMPATIBILITY,  
+				System.getProperty(Engine.JVM_PROPERTY_GLOBAL_SYMBOLS_FILE, 
+                        Engine.CONFIGURATION_PATH + "/global_symbols.properties")); 		
+		Properties prop = new Properties();
+
+		try { 
+			prop.load(new FileInputStream(globalSymbolsFilePath));
+		} catch (FileNotFoundException e) {
+			Engine.logDatabaseObjectManager.warn("The symbols file specified in JVM argument as \""
+					+ globalSymbolsFilePath + "\" does not exist! Creating a new one...");
+			
+			// Create the global_symbols.properties file into the default workspace
+			File globalSymbolsProperties = new File(Engine.CONFIGURATION_PATH + "/global_symbols.properties");
+			globalSymbolsFilePath = globalSymbolsProperties.getAbsolutePath();
+			try {
+				prop.store(new FileOutputStream(globalSymbolsProperties.getAbsolutePath()), "global symbols");
+				Engine.logDatabaseObjectManager.info("New global symbols file created: "+globalSymbolsProperties.getAbsolutePath());
+			} catch (Exception e1) {
+				Engine.logDatabaseObjectManager.error("Error while creating the global_symbols.properties file; symbols won't be calculated.", e1);
+				return;
+			}
+		} catch (IOException e) {
+			Engine.logDatabaseObjectManager.error(
+					"Error while reading symbols file specified in JVM argument as \"" + globalSymbolsFilePath
+							+ "\"; symbols won't be calculated.", e);
+			return;
+		}
+		
+		symbolsProperties = new Properties();
+		symbolsLoad(prop);
+		
+		Engine.logEngine.info("Symbols file \"" + globalSymbolsFilePath + "\" loaded!");
+	}
+	
+	private void symbolsLoad(Properties map) {		
+		// Enumeration of the properties
+		Enumeration<String> propsEnum = GenericUtils.cast(map.propertyNames());
+
+		while (propsEnum.hasMoreElements()) {
+			String propertyName = propsEnum.nextElement();
+			try {
+				symbolsAdd(propertyName, map.getProperty(propertyName, ""));
+			} catch (Exception e) {
+				Engine.logEngine.info("Don't add invalid symbol '" + propertyName + "'", e);
+			}
+		}
+	}
+	
+	public void symbolsStore(OutputStream out) throws IOException {
+		symbolsProperties.store(out, "global symbols");
+	}
+	
+	public void symbolsUpdate(Properties map) {
+		File f = new File(globalSymbolsFilePath);
+		File oldFile = null;
+		if (f.exists()) {
+			Date date = new Date();
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			
+			File parentFile = f.getParentFile();
+			oldFile = new File(parentFile, f.getName().replaceAll(".properties", "_" + dateFormat.format(date) + ".properties"));
+			
+			int i = 1;
+			while (oldFile.exists()) {
+				oldFile = new File(parentFile, f.getName().replaceAll(".properties", "_" + dateFormat.format(date) + "_" + i + ".properties"));
+				i++;
+			}
+			f.renameTo(oldFile);
+		}
+		symbolsProperties.clear();
+		symbolsLoad(map);
+	}
+
+	private void symbolsUpdated() {
+		try {
+			symbolsProperties.store(new FileOutputStream(globalSymbolsFilePath), "global symbols");
+		} catch (Exception e) {
+			Engine.logEngine.error("Failed to store symbols!", e);
+		}		
+		synchronized (projects) {
+			projects.clear();
+		}
+	}
+	
+	public void symbolsCreateUndefined(Set<String> symbolsUndefined) throws Exception {
+		for (String symbolUndefined : symbolsUndefined) {
+			symbolsAdd(symbolUndefined, "0");
+		}
+	}
+	
+	public String symbolsGetValue(String symbolName) {
+		return symbolsProperties.getProperty(symbolName);
+	}
+	
+	public SortedSet<String> symbolsGetNames() {
+		return new TreeSet<String>(GenericUtils.<Set<String>>cast(symbolsProperties.keySet()));
+	}
+	
+	private void symbolsValidName(String symbolName) {
+		if (symbolName == null || symbolName.isEmpty()) {
+			throw new IllegalArgumentException("The symbol name must not be empty");
+		} else if (pValidSymbolName.matcher(symbolName).find()) {
+			throw new IllegalArgumentException("The symbol name must not contain the following caracters '{', '=', or '}'");
+		}
+	}
+	
+	public void symbolsAdd(String symbolName, String symbolValue) {
+		symbolsValidName(symbolName);
+		synchronized (symbolsProperties) {
+			if (symbolsProperties.containsKey(symbolName)) {
+				throw new IllegalArgumentException("The symbol name is already defined");
+			} else {
+				symbolsProperties.put(symbolName, symbolValue);
+			}
+			symbolsUpdated();
+		}
+	}
+
+	public void symbolsEdit(String oldSymbolName, String symbolName, String symbolValue) {
+		symbolsValidName(symbolName);
+		synchronized (symbolsProperties) {
+			symbolsProperties.remove(oldSymbolName);
+			symbolsProperties.put(symbolName, symbolValue);
+		}
+		symbolsUpdated();
+	}
+
+	public void symbolsDelete(String symbolName) {
+		synchronized (symbolsProperties) {
+			symbolsProperties.remove(symbolName);
+		}
+		symbolsUpdated();
+	}
+
+	public void symbolsDeleteAll() {
+		synchronized (symbolsProperties) {
+			symbolsProperties.clear();
+		}
+		symbolsUpdated();
+	}
+	
+	public boolean symbolsProjectCheckUndefined(String projectName) throws Exception {
+		final Project project = getOriginalProjectByName(projectName);
+		if (project.undefinedGlobalSymbols) {
+			project.undefinedGlobalSymbols = false;
+			new WalkHelper() {
+			
+				@Override
+				protected void walk(DatabaseObject databaseObject) throws Exception {
+					if (databaseObject.isSymbolError()) {
+						project.undefinedGlobalSymbols = true;
+					} else {
+						super.walk(databaseObject);
+					}
+				}
+				
+			}.init(project);
+		}
+		return project.undefinedGlobalSymbols;
+	}
+	
+	public Set<String> symbolsGetUndefined(String projectName) throws Exception {
+		Project project = getOriginalProjectByName(projectName);
+		final Set<String> allUndefinedSymbols = new HashSet<String>();
+		
+		if (project.undefinedGlobalSymbols) {
+			new WalkHelper() {
+				
+				@Override
+				protected void walk(DatabaseObject databaseObject) throws Exception {
+					if (databaseObject.isSymbolError()) {
+						for (Set<String> undefinedSymbols : databaseObject.getSymbolsErrors().values()) {
+							allUndefinedSymbols.addAll(undefinedSymbols);
+						}
+					}
+					super.walk(databaseObject);
+				}
+				
+			}.init(project);
+		}
+		
+		return allUndefinedSymbols;
+	}
+	
+	public void symbolsCreateUndefined(String projectName) throws Exception {
+		symbolsCreateUndefined(symbolsGetUndefined(projectName));
+	}
+
+	// should be removed after the SqlTransaction with symbol review
+	public String getSymbolValue(String symbolName) {
+		return symbolsGetValue(symbolName);
 	}
 }

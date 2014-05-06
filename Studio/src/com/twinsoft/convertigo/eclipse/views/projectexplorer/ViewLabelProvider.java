@@ -41,6 +41,7 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
@@ -104,7 +105,7 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 	public String getText(Object obj) {
 		if (obj instanceof DatabaseObjectTreeObject) {
 			DatabaseObject dbo = ((DatabaseObjectTreeObject) obj).getObject();
-			if (dbo.isSymbolError()) {
+			if (dbo.isSymbolError() || (dbo instanceof Project && ((Project) dbo).undefinedGlobalSymbols)) {
 				return obj.toString() + " (! undefined symbol !)"; 
 			}
 		}

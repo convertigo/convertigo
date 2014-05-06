@@ -33,24 +33,31 @@ import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 
 @ServiceDefinition(
-		name = "List",
+		name = "Edit",
 		roles = { Role.WEB_ADMIN },
 		parameters = {},
-		returnValue = "the global symbols list"
+		returnValue = "edit an existing global symbol"
 	)
-public class List extends XmlService{
+public class Edit extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
+		String symbolName = request.getParameter("symbolName");
+		String symbolValue = request.getParameter("symbolValue");
+		String oldSymbolName = request.getParameter("oldSymbolName");
+		
 		Element root = document.getDocumentElement();
-        
-        Element symbolsListElement = document.createElement("symbols");
-        root.appendChild(symbolsListElement);
-        
-    	for (String symbolName : Engine.theApp.databaseObjectsManager.symbolsGetNames()) { 
-			Element symbolElement = document.createElement("symbol");
-			symbolElement.setAttribute("name", symbolName);
-			symbolElement.setAttribute("value", Engine.theApp.databaseObjectsManager.symbolsGetValue(symbolName));
-			symbolsListElement.appendChild(symbolElement);
-    	}	
+		Element response = document.createElement("response");
+
+		try {
+			Engine.theApp.databaseObjectsManager.symbolsEdit(oldSymbolName, symbolName, symbolValue);
+			response.setAttribute("state", "success");
+			response.setAttribute("message","Global symbol '" + symbolName + "' have been successfully edited!");
+		} catch (Exception e) {
+			Engine.logBeans.error("Error during editing the global symbol!\n" + e.getMessage());
+			
+			response.setAttribute("state", "error");
+			response.setAttribute("message","Error during editing the global symbol!\n" + e.getMessage());
+		}
+		root.appendChild(response);		
 	}
 }

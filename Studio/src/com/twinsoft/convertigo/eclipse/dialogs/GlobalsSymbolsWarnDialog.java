@@ -1,7 +1,7 @@
 
 package com.twinsoft.convertigo.eclipse.dialogs;
 
-import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -23,9 +23,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.util.ProjectUtils;
 
 public class GlobalsSymbolsWarnDialog extends Dialog {
 	
@@ -38,15 +36,18 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	private boolean createAll = false;
 	private boolean showCheckBox = true;
 	private String projectName, propertyName,
-	propertyValue, objectName, objectType; 
+	propertyValue, objectName, objectType;
+	private Set<String> undefinedSymbols;
 	private Display display;
  
 	/**
 	 * Create the dialog.
 	 * @param parentShell, errorMessage
 	 */
-	public GlobalsSymbolsWarnDialog(Shell parentShell, String projectName, String propertyName,
-			String propertyValue, String objectName, String objectType, boolean showCheckBox) {
+	public GlobalsSymbolsWarnDialog(Shell parentShell, String projectName,
+			String objectName, String objectType,
+			String propertyName, String propertyValue,
+			Set<String> undefinedSymbols, boolean showCheckBox) {
 		super(parentShell);
 		this.projectName = projectName;
 		this.propertyName = propertyName;
@@ -54,7 +55,8 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		this.objectName = objectName;
 		this.objectType = objectType;
 		this.showCheckBox = showCheckBox;
-		this.setShellStyle(SWT.DIALOG_TRIM | SWT.RESIZE);
+		this.undefinedSymbols = undefinedSymbols;
+		this.setShellStyle(SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
 	}
 
 	protected void configureShell(Shell newShell) {
@@ -109,14 +111,14 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		//First message
 		gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 		
-		List<String> symbolsNames = DatabaseObject.extractSymbol(propertyValue);
 		textFailure = new StyledText(container, SWT.WRAP);
-		if (symbolsNames.size() == 1) {
-			textFailure.setText("Undefined Global Symbol: "+symbolsNames.get(0));
+		if (undefinedSymbols.size() == 1) {
+			textFailure.setText("Undefined Global Symbol: " + undefinedSymbols.iterator().next());
 			textFailure.setFocus();
 		}
-		if (symbolsNames.size() > 1) {
-			textFailure.setText(symbolsNames.size()+" Undefined Global Symbols");
+		
+		if (undefinedSymbols.size() > 1) {
+			textFailure.setText(undefinedSymbols.size()+" undefined Global Symbols: " + undefinedSymbols);
 			textFailure.setFocus();
 		}
 		
@@ -127,17 +129,17 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		textFailure.setLayoutData(gridData);
 		textFailure.setBackground(back);
 		
-		if (symbolsNames.size()==1) {
+		if (undefinedSymbols.size() == 1) {
 			styleBold = new StyleRange();
 			styleBold.start = 25;
-			styleBold.length = symbolsNames.get(0).length();
+			styleBold.length = undefinedSymbols.iterator().next().length();
 			styleBold.fontStyle = SWT.BOLD;
 			textFailure.setStyleRange(styleBold);
 		}
-		if (symbolsNames.size()>1) {
+		if (undefinedSymbols.size() > 1) {
 			styleBold = new StyleRange();
 			styleBold.start = 0;
-			styleBold.length = (symbolsNames.size()+"").length();
+			styleBold.length = (undefinedSymbols.size()+"").length();
 			styleBold.fontStyle = SWT.BOLD;
 			textFailure.setStyleRange(styleBold);
 		}
@@ -168,9 +170,9 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		labelObjectType.setLayoutData(gridData);
 		labelObjectType.setBackground(back);
 		
-		if (objectName!=null && objectType!=null) {
+		if (objectName != null && objectType != null) {
 			styleBold = new StyleRange();
-			styleBold.start = objectType.length()+10;
+			styleBold.start = objectType.length() + 10;
 			styleBold.length = objectName.length();
 			styleBold.fontStyle = SWT.BOLD;
 			labelObjectType.setStyleRange(styleBold);
@@ -181,13 +183,13 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		
 		labelProperty = new StyledText(container, SWT.WRAP);
 		labelProperty.setEditable(false);
-		labelProperty.setText("     ●  "+propertyName+": "+propertyValue);
+		labelProperty.setText("     ●  " + propertyName + ": " + propertyValue);
 		labelProperty.setLayoutData(gridData);
 		labelProperty.setBackground(back);
 		
-		if (propertyValue!=null && propertyName!=null) {
+		if (propertyValue != null && propertyName != null) {
 			styleBold = new StyleRange();
-			styleBold.start = propertyName.length()+10;
+			styleBold.start = propertyName.length() + 10;
 			styleBold.length = propertyValue.length();
 			styleBold.fontStyle = SWT.BOLD;
 			labelProperty.setStyleRange(styleBold);
@@ -202,7 +204,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		labelInfo.setForeground(new Color(display, 0, 164, 200));
 		labelInfo.setLayoutData(gridData);
 		
-		if (showCheckBox==true) {
+		if (showCheckBox) {
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			gridData.horizontalSpan = 3;
 	
@@ -212,15 +214,12 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					doThisForAllCurrentProjectSymbols = buttonDoThis.getSelection();
-					buttonOk.setText(doThisForAllCurrentProjectSymbols==true ? "Create symbols" : "Create '"+DatabaseObject.extractSymbol(propertyValue).get(0)+"' symbol");
-					buttonIgnore.setText(doThisForAllCurrentProjectSymbols==true ? "Ignore all" : "Ignore");
+//					buttonOk.setText(doThisForAllCurrentProjectSymbols ? "Create symbols" : "Create '"+DatabaseObject.extractSymbol(propertyValue).get(0)+"' symbol");
+					buttonIgnore.setText(doThisForAllCurrentProjectSymbols ? "Ignore all" : "Ignore");
 				}
 				
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) {
-					doThisForAllCurrentProjectSymbols = buttonDoThis.getSelection();
-					buttonOk.setText(doThisForAllCurrentProjectSymbols==true ? "Create symbols" : "Create '"+DatabaseObject.extractSymbol(propertyValue).get(0)+"' symbol");
-					buttonIgnore.setText(doThisForAllCurrentProjectSymbols==true ? "Ignore all" : "Ignore");
 				}
 			});
 			buttonDoThis.setText("Do this for all current project symbols");
@@ -241,12 +240,6 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	protected void okPressed() {
 		try {
 			createAll = true;
-			ProjectUtils.addUndefinedGlobalSymbol(propertyValue);
-			
-			//Refresh the project 
-//			ProjectExplorerView projectExplorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-//			TreeObject treeObject = projectExplorerView.findTreeObjectByUserObjectQName(projectName);
-//			projectExplorerView.reloadProject(treeObject);
 		} catch (Exception e) {
 			Engine.logBeans.error("Error during saving the global symbols file!\n"+e.getMessage());
 		}
@@ -257,12 +250,10 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	 * @param parent
 	 */
 	@Override
-	protected void createButtonsForButtonBar(Composite parent) {
-	
-		List<String> symbolsNames = DatabaseObject.extractSymbol(propertyValue);
-		if (symbolsNames.size()==1) {
-			buttonOk = createButton(parent, IDialogConstants.OK_ID, "Create '"+symbolsNames.get(0)+"' symbol", true);
-		}else{
+	protected void createButtonsForButtonBar(Composite parent) {		
+		if (undefinedSymbols.size() == 1) {
+			buttonOk = createButton(parent, IDialogConstants.OK_ID, "Create '" + undefinedSymbols.iterator().next() + "' symbol", true);
+		} else {
 			buttonOk = createButton(parent, IDialogConstants.OK_ID, "Create symbols", true);
 		}
 		
@@ -278,8 +269,6 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 			
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				createAll = false;
-				close();
 			}
 		});
 	}

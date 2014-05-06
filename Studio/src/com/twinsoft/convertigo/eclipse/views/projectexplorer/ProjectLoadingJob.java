@@ -25,6 +25,8 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -56,6 +58,7 @@ import com.twinsoft.convertigo.engine.DatabaseObjectLoadedEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ProjectInMigrationProcessException;
+import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 
 public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 
@@ -66,7 +69,6 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 	private UnloadedProjectTreeObject unloadedProjectTreeObject;
 	private IProgressMonitor monitor;
 	private Viewer viewer;
-	//private IProject project;
 	private boolean isCopy;
 	private String originalName;
 	
@@ -105,6 +107,38 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 			try {
 				Engine.theApp.databaseObjectsManager.clearCacheIfSymbolError(projectName);
 				project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+				if (project.undefinedGlobalSymbols) {
+					synchronized (Engine.theApp.databaseObjectsManager) { // parallel projects opening with undefined symbols, check after the first wizard
+						project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+						if (project.undefinedGlobalSymbols) {
+							new WalkHelper() {
+								boolean create = false;
+								boolean forAll = false;
+								
+								@Override
+								protected void walk(DatabaseObject databaseObject) throws Exception {
+									if (databaseObject.isSymbolError()) {
+										for (Entry<String, Set<String>> entry : databaseObject.getSymbolsErrors().entrySet()) {
+											if (!forAll) {
+												boolean [] response = ConvertigoPlugin.warningGlobalSymbols(projectName,
+														databaseObject.getName(), databaseObject.getDatabaseType(),
+														entry.getKey(), "" + databaseObject.getCompilablePropertySourceValue(entry.getKey()),
+														entry.getValue(), true);
+												create = response[0];
+												forAll = response[1];
+											}
+											if (create) {
+												Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(entry.getValue());
+											}
+										}
+									}
+									super.walk(databaseObject);
+								}
+							}.init(project);
+							project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+						}
+					}
+				}
 			}
 			finally {
 				Engine.theApp.databaseObjectsManager.removeDatabaseObjectListener(this);

@@ -325,11 +325,6 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 		super.setParent(databaseObject);
 		checkFolder();
 	}
-	@Override
-	public void addSymbolError(String propertyName, String propertyValue) {
-		// TODO Auto-generated method stub
-		super.addSymbolError(propertyName, propertyValue);
-	}
 	
 	@Override
 	public boolean isMaskedProperty(Visibility target, String propertyName) {

@@ -424,12 +424,11 @@ function projectEditObjectSubmitProperties() {
 }
 
 function projectDeclareGlobalSymbols() { 	 
-	
 	callService("global_symbols.Create",  
 		function(xml) { 
 			if ($(xml).find("response").attr("state")==="success") {
 				showInfo("<p>"+$(xml).find("response").attr("message")+"</p>");
-				project_Edit_init();
+				project_Edit_update();
 			}
 			if ($(xml).find("response").attr("state")==="error") {
 				showError("<p>"+$(xml).find("response").attr("message")+"</p>",$(xml).find("stackTrace").text()); 

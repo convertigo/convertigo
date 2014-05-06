@@ -17,12 +17,7 @@
 
 package com.twinsoft.convertigo.engine.admin.services.global_symbols;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -53,51 +48,19 @@ public class Import extends UploadService {
 					false);
 		}
 
-		super.doUpload(request, document, item);	
-		
-		//We rename the old global symbol file
-		String globalSymbolsFilePath = 
-				Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath();
-		File f = new File(globalSymbolsFilePath);
-		File oldFile = null;
-		if (f.exists()) {
-			Date date = new Date();
-			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-			
-			String oldFilePath = f.getParent()
-					+ File.separator
-					+ f.getName().replaceAll(".properties",
-							"_" + dateFormat.format(date) + ".properties");
-			oldFile = new File(oldFilePath);
-			
-			int i = 1;
-			while (oldFile.exists()) {
-				if (i > 1) {
-					oldFile = new File(oldFile.getParent() + File.separator + 
-							oldFile.getName().replaceAll("_"+(i-1)+".properties", "_"+i+".properties"));
-				} else {
-					oldFile = new File(oldFile.getParent() + File.separator + 
-						oldFile.getName().replaceAll(".properties", "_"+i+".properties"));
-				}
-				i++;
-			}
-			f.renameTo(oldFile);
-		}
+		super.doUpload(request, document, item);
 		
 		//We save the global symbols imported file
 		Properties prop = new Properties();
 		try {
 			prop.load(item.getInputStream());	
 		} catch (IOException ioe) {
-			oldFile.renameTo(new File(globalSymbolsFilePath));
-			
-			String message = "Unable to load property file:\n"+ioe.getMessage();
+			String message = "Unable to load property file:\n" + ioe.getMessage();
 			ServiceUtils.addMessage(document, document.getDocumentElement(), message, "message", false);
 			throw new EngineException("Unable to load property file", ioe);
 		}
 		
-		prop.store(new FileOutputStream(globalSymbolsFilePath), "global symbols");
-		Engine.theApp.databaseObjectsManager.updateSymbols(prop);	
+		Engine.theApp.databaseObjectsManager.symbolsUpdate(prop);	
 		
 		String message = "The global symbols file has been successfully imported.";
 		Engine.logAdmin.info(message);

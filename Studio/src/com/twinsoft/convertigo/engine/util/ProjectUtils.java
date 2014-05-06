@@ -30,21 +30,14 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -339,143 +332,6 @@ public class ProjectUtils {
 		}
 		return false;
 	}
-	/**
-	 * Add an undefined global symbol
-	 * @param undefinedGlobalSymbol
-	 * @throws Exception
-	 */
-	public static void addUndefinedGlobalSymbol(String undefinedGlobalSymbol) throws Exception {	
-		//Update the global symbols file
-		Properties prop = new Properties();
-        prop.load(new FileInputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()));
-        
-        String globalSymbol = "";
-        Pattern p = Pattern.compile("\\$\\{([^\\{\\}]*)\\}"); 
-        Matcher m = p.matcher(undefinedGlobalSymbol); 
-         
-        while (m.find()) { 
-        	globalSymbol = m.group(1); 
-     	} 
-        
-        if (globalSymbol != null && !globalSymbol.equals("")) {
-        	String[] globalSymbolSplit = globalSymbol.split("=");
-	        prop.setProperty(globalSymbolSplit[0], globalSymbolSplit.length == 1 ? "0" : globalSymbolSplit[1]);
-        }
-		prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");
-   
-		Engine.theApp.databaseObjectsManager.updateSymbols(prop);
-	}
-	/**
-	 * Add undefined global symbols
-	 * @param currentProject
-	 * @throws Exception
-	 */
-	public static Set<String> getUndefinedGlobalSymbols(Project currentProject) throws Exception {
-		Set<String> globalSymbols = new HashSet<String>();
-		
-		getUndefinedGlobalSymbols(currentProject, globalSymbols);
-		
-		return globalSymbols;
-	}
-	
-	private static void getUndefinedGlobalSymbols(DatabaseObject currentDBO, Set<String> globalSymbols){
-		List<DatabaseObject> dboChildrens = null;
-		
-		if ((dboChildrens = currentDBO.getAllChildren()) != null) {
-			for (DatabaseObject dboChild : dboChildrens) {
-				getUndefinedGlobalSymbols(dboChild, globalSymbols);
-			}
-		}
-		
-		Map<String, HashSet<String>> symbols = null;
-		if ((symbols = currentDBO.getSymbolsErrors()) != null) {
-			for (String key : symbols.keySet()) {
-				for (String symb : symbols.get(key)) {
-					globalSymbols.add(symb);
-				}
-			}
-		}		
-	}
-	
-	public static void createUndefinedGlobalSymbol(List<String> symbolsUndefined) throws Exception {
-		Properties prop = new Properties();
-        prop.load(new FileInputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()));
-		
-		for (String symbolUndefined : symbolsUndefined) {
-			prop.setProperty(symbolUndefined, "0" );
-		}
-		
-		//Update the global symbols file
-		prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");
-		Engine.theApp.databaseObjectsManager.updateSymbols(prop);
-	}
-	
-	
-	/**
-	 * Add undefined global symbols
-	 * @param currentProject
-	 * @throws Exception
-	 */
-	public static void createUndefinedGlobalSymbols(Project currentProject) throws Exception {
-		Map<String,String> globalSymbols = new HashMap<String,String>();
-		createUndefinedGlobalSymbols(currentProject, globalSymbols);
-		
-		//Update the global symbols file
-		Properties prop = new Properties();
-        prop.load(new FileInputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()));
-        
-        if (globalSymbols != null) {
-	        for (String symbol : globalSymbols.keySet()) {
-	        	prop.setProperty(symbol, globalSymbols.get(symbol) == null ? "0" : globalSymbols.get(symbol));
-	        } 
-        }
-		prop.store(new FileOutputStream(Engine.theApp.databaseObjectsManager.getGlobalSymbolsFilePath()), "global symbols");
-		Engine.theApp.databaseObjectsManager.updateSymbols(prop);
-	}
-	
-	private static void createUndefinedGlobalSymbols(DatabaseObject currentDBO, Map<String,String> globalSymbols){
-		List<DatabaseObject> dboChildrens = null;
-		
-		if ((dboChildrens = currentDBO.getAllChildren()) != null) {
-			for (DatabaseObject dboChild : dboChildrens) {
-				createUndefinedGlobalSymbols(dboChild, globalSymbols);
-			}
-		}
-		
-		Map<String, HashSet<String>> symbols = null;
-		if ((symbols = currentDBO.getSymbolsErrors()) != null) {
-			for (String key : symbols.keySet()) {
-				for (String symb : symbols.get(key)) {
-					globalSymbols.put(symb,null);
-				}
-			}
-		}
-		
-		//We add the symbol with default value
-		Map<String,String> symbolsDefaultsValues = null;
-		if ((symbolsDefaultsValues = currentDBO.getSymbolsDefaulsValues()) != null) {
-			for (String symb : symbolsDefaultsValues.keySet()) {
-				globalSymbols.put(symb, symbolsDefaultsValues.get(symb));
-			}
-		}		
-	}
-	
-	public static void removeUndefinedGlobalSymbols(DatabaseObject currentDBO) {
-		List<DatabaseObject> dboChildrens = null;
-		
-		if ((dboChildrens = currentDBO.getAllChildren()) != null) {
-			for (DatabaseObject dboChild : dboChildrens) {
-				removeUndefinedGlobalSymbols(dboChild);
-			}
-		}
-		
-		if (currentDBO.getSymbolsErrors() != null) {
-			currentDBO.setSymbolsErrors(new HashMap<String, HashSet<String>>());
-		}
-		if (currentDBO instanceof Project){
-			((Project)currentDBO).undefinedGlobalSymbols = false;
-		}
-	}
 	
 	public static Map<String,String> getStatByProject(Project project) throws Exception {
 		final Map<String,String> result = new HashMap<String,String>();
@@ -486,6 +342,7 @@ public class ProjectUtils {
 					new WalkHelper() {
 						String displayString = "";
 
+						@SuppressWarnings("unused")
 						int depth = 0;
 						int sequenceJavascriptLines;
 						int sequenceJavascriptFunction;
@@ -518,8 +375,10 @@ public class ProjectUtils {
     					int statementCount = 0;
     					int poolCount = 0;
     					int handlerstatementCount = 0;
+						@SuppressWarnings("unused")
     					int reqVariableCount = 0;
     					int sequenceVariableCount = 0;
+						@SuppressWarnings("unused")
     					int transactionVariableCount = 0;
     					int testcaseVariableCount = 0;
     					int testcaseCount = 0;
@@ -532,7 +391,9 @@ public class ProjectUtils {
     					/*
     					 * transaction counters
     					 */
+						@SuppressWarnings("unused")
     					int transactionCount = 0;
+						@SuppressWarnings("unused")
     					int transactionWithVariablesCount = 0;
     					
     					int htmltransactionCount = 0;
@@ -747,8 +608,6 @@ public class ProjectUtils {
 									
 									result.put("Test cases", displayString);
 								}
-							
-								
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -1018,7 +877,6 @@ public class ProjectUtils {
 						}				
 						
 					}.go(project);
-					
     			} catch (Exception e) {
     				// Just ignore, should never happen
     			}

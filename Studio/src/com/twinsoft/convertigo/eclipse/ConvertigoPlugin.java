@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -278,35 +279,38 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	public static void warningMessageBox(String message) {
 		ConvertigoPlugin.messageBoxWithoutReturnCode(message, SWT.OK | SWT.ICON_WARNING);
 	}
-	
-	private static GlobalsSymbolsWarnDialog dialogGlobalSymbols = null;
-	
-	public static boolean[] warningGlobalSymbols(final String projectName, final String propertyName,
-			final String propertyValue, final String objectName, final String objectType, final boolean showCheckBox) {
-		final Display display = getDisplay();
+		
+	public static boolean[] warningGlobalSymbols(final String projectName,
+			final String objectName, final String objectType,
+			final String propertyName, final String propertyValue,
+			final Set<String> undefinedSymboles, final boolean showCheckBox) {
 		final boolean[] result = {false,false};
-
-		display.syncExec(new Runnable() {
-			public void run() {
-				try {
-					int level = ModalContext.getModalLevel();
-					if (level > 0) {
-						// prevents double modal windows: dead lock on linux/gtk studio
-						getDisplay().syncExec(this);
-						return;
-					} 
-					
-					dialogGlobalSymbols = new GlobalsSymbolsWarnDialog(getDisplay().getActiveShell(), projectName, propertyName,
-							propertyValue, objectName, objectType, showCheckBox);
-					dialogGlobalSymbols.open();
-					
-					result[0] = dialogGlobalSymbols.getCreateAction();
-					result[1] = dialogGlobalSymbols.getCheckButtonSelection();
-				} catch (Exception e){
-					ConvertigoPlugin.logException(e, "Error while trying to open warning global symbols box");
+		
+		getDisplay().syncExec(
+			new Runnable() {
+				public void run() {
+					try {
+						int level = ModalContext.getModalLevel();
+						if (level > 0) {
+							// prevents double modal windows: dead lock on linux/gtk studio
+							getDisplay().syncExec(this);
+							return;
+						} 
+						
+						GlobalsSymbolsWarnDialog dialogGlobalSymbols = new GlobalsSymbolsWarnDialog(getDisplay().getActiveShell(), projectName,
+								objectName, objectType,
+								propertyName, propertyValue,
+								undefinedSymboles, showCheckBox);
+						dialogGlobalSymbols.open();
+						
+						result[0] = dialogGlobalSymbols.getCreateAction();
+						result[1] = dialogGlobalSymbols.getCheckButtonSelection();
+					} catch (Exception e){
+						ConvertigoPlugin.logException(e, "Error while trying to open warning global symbols box");
+					}
 				}
 			}
-		});
+		);
 		return result;
 	}
 
