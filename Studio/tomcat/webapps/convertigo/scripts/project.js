@@ -607,7 +607,12 @@ $(document).ready(function() {
 			});
 				
 			$("#main .btn_build").click(function() {
-				launchPhoneGapBuild($(this).parents(".platform:first"));
+				var currentEndpoint = getCurrentEndpoint();
+				if( currentEndpoint.indexOf("localhost") == -1 ){
+					launchPhoneGapBuild($(this).parents(".platform:first"));
+				}else{
+					alert("The Convertigo endpoint enabling the mobile app to access Convertigo server points to \"localhost\".\n\n You will not be able to test your application on a mobile device unless you configure the endpoint in the projects's\n->Mobile_Application->Convertigo Server Endpoint to your Studio's endpoint. \n\n(http://<your studio ip or dns>:18080/convertigo)\n");
+				}
 				return false;
 			});
 			
