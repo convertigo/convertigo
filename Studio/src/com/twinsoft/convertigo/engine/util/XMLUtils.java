@@ -62,15 +62,12 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
-import org.w3c.dom.Comment;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.ProcessingInstruction;
-import org.w3c.dom.Text;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -1073,51 +1070,37 @@ public class XMLUtils {
 	}
 	
 	public static void copyNodeWithoutNamespace(Document document, Node parentNode, Node sourceNode) {
+		Node destinationNode;
 		if (sourceNode instanceof Document) {
-			// Copy child nodes
-			NodeList childNodes = sourceNode.getChildNodes();
-			int len = childNodes.getLength();
-			for (int i = 0; i < len; i++) {
-				copyNodeWithoutNamespace(document, parentNode, childNodes.item(i));
-			}
-		}
-		else if (sourceNode instanceof ProcessingInstruction) {
-			Node destinationNode = document.createProcessingInstruction("xml",
-					"version=\"1.0\" encoding=\"UTF-8\"");
-			parentNode.appendChild(destinationNode);
-		}
-		else if (sourceNode instanceof Text) {
-			parentNode.setTextContent(sourceNode.getTextContent());
-		}
-		else if (sourceNode instanceof Comment) {
-			Node destinationNode = document.createComment(sourceNode.getTextContent());
-			parentNode.appendChild(destinationNode);
-		}
-		else {
-			String localName = XMLUtils.getLocalName(sourceNode);
-			
-			Node destinationNode = document.createElement(localName);
-			parentNode.appendChild(destinationNode);
-			
-			// Copy attributes
-			NamedNodeMap attributes = sourceNode.getAttributes();
-			for (int i = 0; i < attributes.getLength(); i++) {
-				Node sourceAttribute = attributes.item(i);
+			destinationNode = parentNode;
+		} else {
+			if (sourceNode instanceof Element) {
+				String localName = XMLUtils.getLocalName(sourceNode);
+				destinationNode = document.createElement(localName);
 				
-				String prefix = XMLUtils.getPrefix(sourceAttribute);
-				
-				if (!prefix.equalsIgnoreCase("xmlns")) {
-					((Element) destinationNode).setAttribute(XMLUtils.getLocalName(sourceAttribute),
-							sourceAttribute.getNodeValue());
+				// Copy attributes
+				NamedNodeMap attributes = sourceNode.getAttributes();
+				for (int i = 0; i < attributes.getLength(); i++) {
+					Node sourceAttribute = attributes.item(i);
+					
+					String prefix = XMLUtils.getPrefix(sourceAttribute);
+					
+					if (!prefix.equalsIgnoreCase("xmlns")) {
+						((Element) destinationNode).setAttribute(XMLUtils.getLocalName(sourceAttribute),
+								sourceAttribute.getNodeValue());
+					}
 				}
+			} else {
+				destinationNode = document.importNode(sourceNode, false);
 			}
 			
-			// Copy child nodes
-			NodeList childNodes = sourceNode.getChildNodes();
-			int len = childNodes.getLength();
-			for (int i = 0; i < len; i++) {
-				XMLUtils.copyNodeWithoutNamespace(document, destinationNode, childNodes.item(i));
-			}
+			parentNode.appendChild(destinationNode);
+		}
+		
+		NodeList childNodes = sourceNode.getChildNodes();
+		int len = childNodes.getLength();
+		for (int i = 0; i < len; i++) {
+			XMLUtils.copyNodeWithoutNamespace(document, destinationNode, childNodes.item(i));
 		}
 	}
 	
