@@ -1,19 +1,23 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2009-2014 Convertigo. All Rights Reserved.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
+ * The copyright to the computer  program(s) herein  is the property
+ * of Convertigo.
+ * The program(s) may  be used  and/or copied  only with the written
+ * permission  of  Convertigo  or in accordance  with  the terms and
+ * conditions  stipulated  in the agreement/contract under which the
+ * program(s) have been supplied.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
+ * Convertigo makes  no  representations  or  warranties  about  the
+ * suitability of the software, either express or implied, including
+ * but  not  limited  to  the implied warranties of merchantability,
+ * fitness for a particular purpose, or non-infringement. Convertigo
+ * shall  not  be  liable for  any damage  suffered by licensee as a
+ * result of using,  modifying or  distributing this software or its
+ * derivatives.
+ */
+
+/*
  * $URL$
  * $Author$
  * $Revision$
@@ -112,6 +116,15 @@ public class SqlTransaction extends TransactionWithVariables {
 	public static int TYPE_TRUNCATE_TABLE = 7;		// jmc 13/06/25
 
 	public static int TYPE_UNKNOWN = 99;
+
+	/** Holds value of property Auto-commit. */
+	public static int AUTOCOMMIT_OFF = 0; 	
+
+	public static int AUTOCOMMIT_EACH = 1;			// jmc 14/05/06
+
+	public static int AUTOCOMMIT_END = 2;
+	
+	private int autoCommit = AUTOCOMMIT_EACH; 
 	
 	/** Holds value of property xmlOutput. */
 	private int xmlOutput = 0; 
@@ -130,8 +143,6 @@ public class SqlTransaction extends TransactionWithVariables {
 
 	/** Holds value of property xmlGrouping. */
 	private boolean xmlGrouping = false;
-	
-	private boolean autoCommit = true;
 	
 	private String xmlDefaultRowTagname = "row";
 	
@@ -507,7 +518,7 @@ public class SqlTransaction extends TransactionWithVariables {
 						ResultSet rs = null;
 						try {
 							// We set the auto-commit in function of the SqlTransaction parameter
-							connector.connection.setAutoCommit( autoCommit );
+							connector.connection.setAutoCommit( (autoCommit == AUTOCOMMIT_OFF) ? false:true);
 							// We execute the query
 							//rs = preparedStatement.executeQuery();
 							preparedStatement.execute();
@@ -528,7 +539,7 @@ public class SqlTransaction extends TransactionWithVariables {
 									rs = preparedStatement.getResultSet();
 								} catch(Exception e1) {
 									// We rollback if error and if the property auto-commit is false
-									if( autoCommit == false )
+									if(autoCommit == AUTOCOMMIT_OFF)
 										connector.connection.rollback();
 									
 									// We get the exception error message
@@ -702,7 +713,7 @@ public class SqlTransaction extends TransactionWithVariables {
 					else {
 						try {
 							// setAutoCommit
-							connector.connection.setAutoCommit( autoCommit );
+							connector.connection.setAutoCommit((autoCommit == AUTOCOMMIT_OFF) ? false:true);
 							nb = preparedStatement.executeUpdate();
 						}
 						// Retry once (should not happens)
@@ -718,7 +729,7 @@ public class SqlTransaction extends TransactionWithVariables {
 								} catch (Exception e1) {
 									
 									// We rollback if error and if in auto commit false mode
-									if( autoCommit == false )
+									if(autoCommit == AUTOCOMMIT_OFF)
 										connector.connection.rollback();
 				
 									// We get the exception error message
@@ -774,7 +785,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		
 			}
 			// We commit if auto-commit parameter is false
-			if (getAutoCommit() == false) {
+			if (autoCommit == AUTOCOMMIT_OFF) {
 				connector.connection.commit();
 			}
 
@@ -809,7 +820,9 @@ public class SqlTransaction extends TransactionWithVariables {
 				if (sqlQuery.orderedParametersList != null && variables != null){
 					if (sqlQuery.orderedParametersList.size() != 0 && variables.size() != 0){
 						for (String key : sqlQuery.orderedParametersList){
-							if( !getParameterValue( key, this.getVariableVisibility(key) ).toString().equals( variables.get(key) ) )
+							String valueKey = getParameterValue( key, this.getVariableVisibility(key) ).toString();
+							String valueVar = variables.get(key);
+							if( !valueKey.equals(valueVar))
 								return false;	
 						}
 					}
@@ -817,7 +830,9 @@ public class SqlTransaction extends TransactionWithVariables {
 				
 				if (sqlQuery.otherParametersList != null && sqlQuery.otherParametersList.size() != 0) {
 					for (String key : sqlQuery.otherParametersList){
-						if( !getParameterValue( key, this.getVariableVisibility(key) ).toString().equals( variables.get(key) ) )
+						String valueKey = getParameterValue( key, this.getVariableVisibility(key) ).toString();
+						String valueVar = variables.get(key);
+						if( !valueKey.equals(valueVar))
 							return false;	
 					}
 				}
@@ -1238,11 +1253,11 @@ public class SqlTransaction extends TransactionWithVariables {
 		this.maxResult = maxResult;
 	}
 
-	public boolean getAutoCommit() {
+	public int getAutoCommit() {
 		return autoCommit;
 	}
 
-	public void setAutoCommit(boolean autoCommit) {
+	public void setAutoCommit(int autoCommit) {
 		this.autoCommit = autoCommit;
 	}
 
