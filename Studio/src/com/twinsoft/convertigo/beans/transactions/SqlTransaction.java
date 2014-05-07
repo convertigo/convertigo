@@ -199,24 +199,10 @@ public class SqlTransaction extends TransactionWithVariables {
 			
 			if ( query != null && (bNew || updateDefinitions)) {
 				preparedSqlQuery = query;
-					
-				// Handled the case if we have global symbol
-				Pattern pattern = Pattern.compile("\\$\\{([^\\{\\}]*)\\}");
-				Matcher matcher = pattern.matcher(preparedSqlQuery);
-				
-				while (matcher.find()) {
-					String symbolName = matcher.group(1);
-					String symbolValue = Engine.theApp.databaseObjectsManager.getSymbolValue(symbolName);
-					if (symbolValue == null) {
-						symbolValue = "0";
-					}
-					
-					preparedSqlQuery = preparedSqlQuery.replaceFirst("\\$\\{([^\\{\\}]*)\\}", symbolValue);
-				}
-				
+								
 				// Handled the case if we have value like {{id}} or "{{id}}" or '{{id}}' (i.e: table name or instructions)		
-				pattern = Pattern.compile("\\{\\{([a-zA-Z0-9_]+)\\}\\}");
-				matcher = pattern.matcher(preparedSqlQuery);
+				Pattern pattern = Pattern.compile("\\{\\{([a-zA-Z0-9_]+)\\}\\}");
+				Matcher matcher = pattern.matcher(preparedSqlQuery);
 				
 				// Retrieve parameter names
 				orderedParametersList = new ArrayList<String>(); // for parameters like {id}
@@ -471,11 +457,13 @@ public class SqlTransaction extends TransactionWithVariables {
 				return;
 			
 			// We check variables and initialize queries if we have a change
-			if ( checkVariables(preparedSqlQueries)==false )
+			if (!checkVariables(preparedSqlQueries)) {
 				preparedSqlQueries = initializeQueries(true);
+			}
 					
-			if( preparedSqlQueries.get(0).getParametersMap().size() != 0 )
+			if (!preparedSqlQueries.get(0).getParametersMap().isEmpty()) {
 				preparedSqlQueries.get(0).getParametersMap().get(preparedSqlQueries.get(0).getOrderedParametersList().get(0));
+			}
 			
 			for (SqlQueryInfos sqlQueryInfos : preparedSqlQueries){
 				
@@ -518,7 +506,7 @@ public class SqlTransaction extends TransactionWithVariables {
 						ResultSet rs = null;
 						try {
 							// We set the auto-commit in function of the SqlTransaction parameter
-							connector.connection.setAutoCommit( (autoCommit == AUTOCOMMIT_OFF) ? false:true);
+							connector.connection.setAutoCommit(autoCommit != AUTOCOMMIT_OFF);
 							// We execute the query
 							//rs = preparedStatement.executeQuery();
 							preparedStatement.execute();
@@ -713,7 +701,7 @@ public class SqlTransaction extends TransactionWithVariables {
 					else {
 						try {
 							// setAutoCommit
-							connector.connection.setAutoCommit((autoCommit == AUTOCOMMIT_OFF) ? false:true);
+							connector.connection.setAutoCommit(autoCommit != AUTOCOMMIT_OFF);
 							nb = preparedStatement.executeUpdate();
 						}
 						// Retry once (should not happens)

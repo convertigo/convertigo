@@ -82,6 +82,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.UndefinedSymbolsException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -711,6 +712,13 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 					changed = false;
 					boolean wasSymbolError = databaseObject.isSymbolError();
 					value = databaseObject.compileProperty(propertyClass, propertyName, value, oldValue);
+					
+					try {
+						oldValue = Engine.theApp.databaseObjectsManager.getCompiledValue(oldValue);
+					} catch (UndefinedSymbolsException e) {
+						oldValue = e.incompletValue();
+					}
+					
 					Set<String> symbolsErrors = databaseObject.getSymbolsErrors(propertyName);
 					if (symbolsErrors != null) {
 						boolean[] res = ConvertigoPlugin.warningGlobalSymbols(databaseObject.getProject().getName(),

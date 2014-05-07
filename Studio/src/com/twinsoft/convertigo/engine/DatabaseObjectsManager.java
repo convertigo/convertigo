@@ -337,10 +337,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 	
-	public void clearCacheIfSymbolError(String projectName) {
+	public void clearCacheIfSymbolError(String projectName) throws Exception {
 		synchronized (projects) {
 			if(projects.containsKey(projectName)) {
-				if (projects.get(projectName).undefinedGlobalSymbols) {
+				if (symbolsProjectCheckUndefined(projectName)) {
 					projects.remove(projectName);
 				}
 			}	
@@ -1313,7 +1313,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 							undefinedSymbols = new HashSet<String>();
 						}
 						undefinedSymbols.add(name);
-						symbolValue = "" + undefinedSymbols.size();
+						symbolValue = "";
 					}
 				}
 				
@@ -1321,12 +1321,13 @@ public class DatabaseObjectsManager implements AbstractManager {
 				
 				start = mFindSymbol.end();
 			} while (mFindSymbol.find(start));
+
+			newValue.append(value.substring(start));
 			
 			if (undefinedSymbols != null) {
-				throw new UndefinedSymbolsException(undefinedSymbols);
+				throw new UndefinedSymbolsException(undefinedSymbols, newValue.toString());
 			}
 			
-			newValue.append(value.substring(start));
 			return newValue.toString();
 		} else {
 			return value;
@@ -1336,48 +1337,53 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public Object getCompiledValue(Object propertyObjectValue) throws UndefinedSymbolsException {
 		if (propertyObjectValue instanceof String) {
 			return getCompiledValue((String) propertyObjectValue);
-		} else if (propertyObjectValue instanceof XMLVector<?>) {
-			try {
-				UndefinedSymbolsException undefinedSymbolsException = null;
-				
+		} else {
+			Set<String> undefinedSymbols = null;
+			if (propertyObjectValue instanceof XMLVector<?>) {
+
 				XMLVector<Object> xmlv = GenericUtils.<XMLVector<Object>> cast(propertyObjectValue);
-				
+
 				for (int i = 0; i < xmlv.size(); i++) {
 					Object ob = xmlv.get(i);
+					Object compiled;
+
 					try {
-						Object compiled = getCompiledValue(ob);
-						if (ob != compiled) { // symbol case
-							if (xmlv == propertyObjectValue) {
-								xmlv = new XMLVector<Object>(xmlv);
-							}
-							xmlv.set(i, compiled);	
-						}
+						compiled = getCompiledValue(ob);
 					} catch (UndefinedSymbolsException e) {
-						if (undefinedSymbolsException == null) {
-							undefinedSymbolsException = e;
-						} else {
-							undefinedSymbolsException.append(e);
+						compiled = e.incompletValue();
+						if (undefinedSymbols == null) {
+							undefinedSymbols = new HashSet<String>();
 						}
+						undefinedSymbols.addAll(e.undefinedSymbols());
+					}
+
+					if (ob != compiled) { // symbol case
+						if (xmlv == propertyObjectValue) {
+							propertyObjectValue = xmlv = new XMLVector<Object>(xmlv);
+						}
+						xmlv.set(i, compiled);	
 					}
 				}
-				
-				if (undefinedSymbolsException != null) {
-					throw undefinedSymbolsException;
+			} else if (propertyObjectValue instanceof SmartType) {
+				SmartType smartType = (SmartType) propertyObjectValue;
+				if (smartType.isUseExpression()) {
+					String expression = smartType.getExpression();
+					String compiled;
+					try {
+						compiled = getCompiledValue(expression);
+					} catch (UndefinedSymbolsException e) {
+						compiled = (String) e.incompletValue();
+						undefinedSymbols = e.undefinedSymbols();
+					}
+					if (compiled != expression) {
+						propertyObjectValue = smartType = smartType.clone();
+						smartType.setExpression(compiled);
+					}
 				}
-				
-				return xmlv;
-			} catch (Exception e) {
 			}
-		} else if (propertyObjectValue instanceof SmartType) {
-			SmartType smartType = (SmartType) propertyObjectValue;
-			if (smartType.isUseExpression()) {
-				String expression = smartType.getExpression();
-				String compiled = getCompiledValue(expression);
-				if (compiled != expression) {
-					smartType = smartType.clone();
-					smartType.setExpression(compiled);
-				}
-				return smartType;
+			
+			if (undefinedSymbols != null) {
+				throw new UndefinedSymbolsException(undefinedSymbols, propertyObjectValue);
 			}
 		}
 		
@@ -1571,10 +1577,5 @@ public class DatabaseObjectsManager implements AbstractManager {
 	
 	public void symbolsCreateUndefined(String projectName) throws Exception {
 		symbolsCreateUndefined(symbolsGetUndefined(projectName));
-	}
-
-	// should be removed after the SqlTransaction with symbol review
-	public String getSymbolValue(String symbolName) {
-		return symbolsGetValue(symbolName);
 	}
 }

@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
-import java.util.regex.Pattern;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -78,7 +77,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	private static final long serialVersionUID = -873065042105207891L;
 
 	public static final String PROPERTY_XMLNAME = "xmlname";
-	public static final Pattern patternSymbolName = Pattern.compile("\\$\\{([^\\{\\}]*)\\}");
 	
 	private transient Map<String, Set<String>> symbolsErrors = null;
 
@@ -824,19 +822,20 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		return compileProperty(String.class, propertyName, propertyObjectValue, propertyObjectCompiledValue);
 	}
 
-	public Object compileProperty(Class<?> propertyType, String propertyName, Object propertyObjectValue, Object propertyObjectOldValue) {	
+	public Object compileProperty(Class<?> propertyType, String propertyName, Object propertyObjectValue, Object propertyObjectOldValue) {
+		Object compiled;
 		try {
-			Object compiled = Engine.theApp.databaseObjectsManager.getCompiledValue(propertyObjectValue);
+			compiled = Engine.theApp.databaseObjectsManager.getCompiledValue(propertyObjectValue);
 			removeCompilablePropertySourceValue(propertyName);
-			removeSymbolError(propertyName, propertyObjectValue, propertyObjectOldValue);
-			
-			if (compiled != propertyObjectValue) {
-				setCompilablePropertySourceValue(propertyName, propertyObjectValue);
-				propertyObjectValue = compiled;
-			}
+			removeSymbolError(propertyName);
 		} catch (UndefinedSymbolsException e) {
-			setCompilablePropertySourceValue(propertyName, propertyObjectValue);
 			addSymbolError(propertyName, e.undefinedSymbols());
+			compiled = e.incompletValue();
+		}
+		
+		if (compiled != propertyObjectValue) {
+			setCompilablePropertySourceValue(propertyName, propertyObjectValue);
+			propertyObjectValue = compiled;
 		}
 
 		propertyType = ClassUtils.primitiveToWrapper(propertyType);
@@ -1080,13 +1079,11 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		DatabaseObjectsManager.getProjectLoadingData().undefinedGlobalSymbol = true;
 	}
 	
-	private synchronized void removeSymbolError(String propertyName, Object propertyValue, Object propertyOldValue) {
-		if (propertyValue != null && propertyOldValue != null) {						
-			if (symbolsErrors != null) {
-				symbolsErrors.remove(propertyName);
-				if (symbolsErrors.isEmpty()) {
-					symbolsErrors = null;
-				}
+	private synchronized void removeSymbolError(String propertyName) {
+		if (symbolsErrors != null) {
+			symbolsErrors.remove(propertyName);
+			if (symbolsErrors.isEmpty()) {
+				symbolsErrors = null;
 			}
 		}
 	}
