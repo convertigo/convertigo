@@ -729,28 +729,6 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 						viewer.update(getProjectTreeObject(), null);
 					}
 				} while (changed);
-				
-				if ((propertyClass == int.class) || (propertyClass == Integer.class)) {
-					if (!(value instanceof Integer))	value = new Integer(value.toString());
-				}
-				else if ((propertyClass == double.class) || (propertyClass == Double.class)) {
-					value = new Double(value.toString());
-				}
-				else if ((propertyClass == byte.class) || (propertyClass == Byte.class)){ 
-					value = new Byte(value.toString());
-				}
-				else if ((propertyClass == short.class) || (propertyClass == Short.class)){ 
-					value = new Short(value.toString());
-				}
-				else if ((propertyClass == long.class) || (propertyClass == Long.class)) {
-					value = new Long(value.toString());
-				}
-				else if ((propertyClass == float.class) || (propertyClass == Float.class)) {
-					value = new Float(value.toString());
-				}
-				else if ((propertyClass == double.class) || (propertyClass == Double.class)) {
-					value = new Double(value.toString());
-				}
 			}
 			
 			// Must rename bean when normalizedScreenClassName changed

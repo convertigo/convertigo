@@ -102,7 +102,7 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
  */
 public class DatabaseObjectsManager implements AbstractManager {
 	private static Pattern pValidSymbolName = Pattern.compile("[\\{=}\\r\\n]");
-	private static Pattern pFindSymbol = Pattern.compile("\\$\\{([^\\{\\r\\n]*?)(?:=(.*?))?}");
+	private static Pattern pFindSymbol = Pattern.compile("\\$\\{([^\\{\\r\\n]*?)(?:=(.*?(?<!\\\\)))?}");
 	
 	private Map<String, Project> projects;
 	
@@ -1307,7 +1307,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				
 				if (symbolValue == null) {
 					if (def != null) {
-						symbolValue = def;
+						symbolValue = def.replace("\\}", "}");
 					} else {
 						if (undefinedSymbols == null) {
 							undefinedSymbols = new HashSet<String>();
@@ -1471,7 +1471,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 	
 	public void symbolsCreateUndefined(Set<String> symbolsUndefined) throws Exception {
 		for (String symbolUndefined : symbolsUndefined) {
-			symbolsAdd(symbolUndefined, "0");
+			symbolsAdd(symbolUndefined, "");
 		}
 	}
 	

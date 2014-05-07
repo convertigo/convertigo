@@ -46,6 +46,7 @@ import java.util.regex.Pattern;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+import org.apache.commons.lang3.ClassUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -715,7 +716,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			NodeList childNodes = element.getChildNodes();
 			int len = childNodes.getLength();
 
-			Node childNode;
 			PropertyDescriptor pd;
 			Object propertyObjectValue;
 			Class<?> propertyType;
@@ -723,7 +723,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			boolean maskValue = false;
 			
 			for (int i = 0; i < len; i++) {
-				childNode = childNodes.item(i);
+				Node childNode = childNodes.item(i);
 				if (childNode.getNodeType() != Node.ELEMENT_NODE) {
 					continue;
 				}
@@ -766,23 +766,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 
 					propertyObjectValue = databaseObject.compileProperty(propertyType, propertyName, propertyObjectValue, null);
 					propertyValue = propertyObjectValue.toString();
-
-					if ((propertyType == int.class) || (propertyType == Integer.class)) {
-						propertyObjectValue = new Integer(propertyValue);
-					} else if ((propertyType == double.class) || (propertyType == Double.class)) {
-						propertyObjectValue = new Double(propertyValue);
-					} else if ((propertyType == byte.class) || (propertyType == Byte.class)) {
-						propertyObjectValue = new Byte(propertyValue);
-					} else if ((propertyType == short.class) || (propertyType == Short.class)) {
-						propertyObjectValue = new Short(propertyValue);
-					} else if ((propertyType == long.class) || (propertyType == Long.class)) {
-						propertyObjectValue = new Long(propertyValue);
-					} else if ((propertyType == float.class) || (propertyType == Float.class)) {
-						propertyObjectValue = new Float(propertyValue);
-					} else if ((propertyType == double.class) || (propertyType == Double.class)) {
-						propertyObjectValue = new Double(propertyValue);
-					}
-
+					
 					Method setter = pd.getWriteMethod();
 					Engine.logBeans.trace("  setter='" + setter.getName() + "'");
 					Engine.logBeans.trace("  param type='" + propertyObjectValue.getClass().getName() + "'");
@@ -813,8 +797,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 					}
 				}
 			}
-		} catch (CompilablePropertyException e) {
-			throw e;
 		} catch (Exception e) {
 			String message = "Unable to set the object properties from the serialized XML data.\n"
 					+ "Object class: '" + objectClassName + "'\n" + "XML analyzed node: " + childNodeName
@@ -838,41 +820,39 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		return databaseObject;
 	}
 	
-	public Object compileProperty(String propertyName, Object propertyObjectValue, Object propertyObjectCompiledValue) throws CompilablePropertyException {
+	public Object compileProperty(String propertyName, Object propertyObjectValue, Object propertyObjectCompiledValue) {
 		return compileProperty(String.class, propertyName, propertyObjectValue, propertyObjectCompiledValue);
 	}
-	
-	public Object compileProperty(String propertyName, Object propertyObjectValue) throws CompilablePropertyException {
-		return compileProperty(String.class, propertyName, propertyObjectValue, null);
-	}
 
-	public static class CompilablePropertyException extends EngineException {
-		private static final long serialVersionUID = 3634645762377621083L;
-		public CompilablePropertyException(String message) {
-			super(message);
-		}
-	}
-
-	public Object compileProperty(Class<?> propertyType, String propertyName, Object propertyObjectValue, Object propertyObjectOldValue) throws CompilablePropertyException {
-		// This a property that does not need to be compiled; remove source
-		// value if any
-		
+	public Object compileProperty(Class<?> propertyType, String propertyName, Object propertyObjectValue, Object propertyObjectOldValue) {	
 		try {
 			Object compiled = Engine.theApp.databaseObjectsManager.getCompiledValue(propertyObjectValue);
 			removeCompilablePropertySourceValue(propertyName);
 			removeSymbolError(propertyName, propertyObjectValue, propertyObjectOldValue);
 			
-			if (compiled == propertyObjectValue) {
-				return propertyObjectValue;
-			} else {
+			if (compiled != propertyObjectValue) {
 				setCompilablePropertySourceValue(propertyName, propertyObjectValue);
-				return compiled;
+				propertyObjectValue = compiled;
 			}
 		} catch (UndefinedSymbolsException e) {
 			setCompilablePropertySourceValue(propertyName, propertyObjectValue);
 			addSymbolError(propertyName, e.undefinedSymbols());
-			return propertyObjectValue;
 		}
+
+		propertyType = ClassUtils.primitiveToWrapper(propertyType);
+		if (Number.class.isAssignableFrom(propertyType)) {
+			try {
+				try {
+					propertyObjectValue = propertyType.getConstructor(String.class).newInstance(propertyObjectValue.toString());
+				} catch (Exception e) {
+					Engine.logBeans.warn("(DatabaseObject) Failed to parse '" + propertyObjectValue + "' as " + propertyType.getSimpleName() + ". Set 0 instead.");
+					propertyObjectValue = propertyType.getConstructor(String.class).newInstance("0");
+				}
+			} catch (Exception e) {
+				Engine.logBeans.error("(DatabaseObject) Failed to parse '" + propertyObjectValue + "' as " + propertyType.getSimpleName());
+			}
+		}
+		return propertyObjectValue;
 	}
 	
 
@@ -1019,8 +999,6 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 			isSubLoaded = true;
 			try {
 				subLoader.get().init(this);
-			} catch (CompilablePropertyException e) {
-				Engine.logBeans.error(e.getMessage());
 			} catch (EngineException e) {
 				Engine.logBeans.error("(DatabaseObject) getSubDatabaseObjects failed with EngineException!", e);
 			} catch (DatabaseObjectNotFoundException e) {
