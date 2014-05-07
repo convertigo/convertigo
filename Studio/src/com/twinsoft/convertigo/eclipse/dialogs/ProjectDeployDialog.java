@@ -263,22 +263,19 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 				}
 			}
 	
-			display.asyncExec(new Runnable() {
-				public void run() {
-					if (causeStackTrace != null) {
-						ConvertigoPlugin.logDeployException(e, errorMessage, causeStackTrace);
-					}
-					else {
-						ConvertigoPlugin.logError(e.getMessage(), true);
-					}
-				};
-			});
+			if (causeStackTrace != null) {
+				ConvertigoPlugin.logDeployException(e, errorMessage, causeStackTrace);
+			}
+			else {
+				ConvertigoPlugin.logError(e.getMessage(), true);
+			}
 		}
 		finally {
 			progressBarThread.interrupt();
 			display.asyncExec(new Runnable() {
 				public void run() {
-					progressBar.setSelection(0);
+					if (!progressBar.isDisposed())
+						progressBar.setSelection(0);
 				}
 			});
 		}
@@ -336,19 +333,21 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 		}
 		finally {
 			final Display display = getParentShell().getDisplay();
-			display.asyncExec(new Runnable() {
-				public void run() {
-					if (bFinished) {
-						setTextLabel("The archive deployment has been correctly done.");
-						getButton(IDialogConstants.OK_ID).setEnabled(false);
-						getButton(IDialogConstants.CANCEL_ID).setText("Finish");
+			if (display != null)
+				display.asyncExec(new Runnable() {
+					public void run() {
+						if (bFinished) {
+							setTextLabel("The archive deployment has been correctly done.");
+							getButton(IDialogConstants.OK_ID).setEnabled(false);
+							getButton(IDialogConstants.CANCEL_ID).setText("Finish");
+						}
+						else {
+							if (getButton(IDialogConstants.OK_ID) != null)
+								getButton(IDialogConstants.OK_ID).setEnabled(true);
+							setTextLabel("Progression");
+						}
 					}
-					else {
-						getButton(IDialogConstants.OK_ID).setEnabled(true);
-						setTextLabel("Progression");
-					}
-				}
-			});
+				});
 		}
 	}
 	
