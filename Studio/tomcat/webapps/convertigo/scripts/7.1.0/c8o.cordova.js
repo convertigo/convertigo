@@ -24,7 +24,7 @@ $.extend(true, C8O, {
 	
 	_cordova_notify_push_server: function (token) {
 	    C8O._call({
-	    	__project: "C8oPushManager",
+	    	__project: "lib_PushManager",
 	    	__sequence: "RegisterDevice",
 	    	token: token
 	    });
@@ -39,7 +39,7 @@ $.extend(true, C8O, {
 		        	C8O.log.info("c8o.cordova: onNotificationGCM registered regid: " + event.regid);
 		        	
 		        	if (C8O._hook("push_register_success", event.regid)) {
-		        		C8O._cordova_notify_push_server(event.regid);
+		        		C8O._cordova_notify_push_server("gcm:" + event.regid);
 		        	}
 		        }
 		        break;
@@ -108,7 +108,7 @@ $(document).on("deviceready", function() {
 					C8O.log.info("c8o.cordova: PushNotificationRegistered: " + result);
 					if (typeof result == "string") {
 						if (C8O._hook("push_register_success", result)) {
-							C8O._cordova_notify_push_server(result);
+							C8O._cordova_notify_push_server("apns:" + result);
 						}
 					}
 				},
