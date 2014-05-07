@@ -142,6 +142,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int LIBRARY_GOOGLE_SPREADSHEETS = 801;
 	public static final int LIBRARY_GOOGLE_DOCS = 802;
 	public static final int LIBRARY_KEYRING = 803;
+	public static final int LIBRARY_PUSH_MANAGER = 804;
 	public static final int DEMOS_SALESFORCE = 900;
 	public static final int DEMOS_USDIRECTORY = 901;
 	public static final int DEMOS_LEGACYCRM = 902;
@@ -193,6 +194,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleSpreadsheets.car";
 	public static final String GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleDocs.car";
 	public static final String KEYRING_LIBRARY_PROJECT_FILE_NAME = "lib_Keyring.car";
+	public static final String PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME = "lib_PushManager.car";
 	// mashup demo
 	public static final String SALESFORCE_DEMO_PROJECT_FILE_NAME = "demo_SalesForce.car";
 	public static final String USDIRECTORY_DEMO_PROJECT_FILE_NAME = "demo_usDirectory.car";
@@ -254,6 +256,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_GOOGLE_SPREADSHEETS:
 		case LIBRARY_GOOGLE_DOCS:
 		case LIBRARY_KEYRING:
+		case LIBRARY_PUSH_MANAGER:
 		case DEMOS_SALESFORCE:
 		case DEMOS_USDIRECTORY:
 		case DEMOS_LEGACYCRM:
@@ -451,6 +454,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case LIBRARY_GOOGLE_SPREADSHEETS:
 			case LIBRARY_GOOGLE_DOCS:
 			case LIBRARY_KEYRING:
+			case LIBRARY_PUSH_MANAGER:
 			case DEMOS_SALESFORCE:
 			case DEMOS_USDIRECTORY:
 			case DEMOS_LEGACYCRM:
@@ -1141,6 +1145,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_KEYRING:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + KEYRING_LIBRARY_PROJECT_FILE_NAME;
 			projectName = KEYRING_LIBRARY_PROJECT_FILE_NAME.substring(0, KEYRING_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case LIBRARY_PUSH_MANAGER:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME;
+			projectName = PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME.substring(0, PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case DEMOS_SALESFORCE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SALESFORCE_DEMO_PROJECT_FILE_NAME;
