@@ -84,7 +84,8 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 	}
 	
     void fillList() {
-        list.removeAll();
+    	if (list.isDisposed())
+    		return;
         
         Set<String> deploymentConfigurationNames = new HashSet<String>();        
         deploymentConfigurationNames = ConvertigoPlugin.deploymentConfigurationManager.getAllDeploymentConfigurationNames();

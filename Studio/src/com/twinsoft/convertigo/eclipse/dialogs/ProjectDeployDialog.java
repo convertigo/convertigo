@@ -338,8 +338,10 @@ public class ProjectDeployDialog extends MyAbstractDialog implements Runnable {
 					public void run() {
 						if (bFinished) {
 							setTextLabel("The archive deployment has been correctly done.");
-							getButton(IDialogConstants.OK_ID).setEnabled(false);
-							getButton(IDialogConstants.CANCEL_ID).setText("Finish");
+							if (getButton(IDialogConstants.OK_ID) != null) {
+								getButton(IDialogConstants.OK_ID).setEnabled(false);
+								getButton(IDialogConstants.CANCEL_ID).setText("Finish");
+							}
 						}
 						else {
 							if (getButton(IDialogConstants.OK_ID) != null)
