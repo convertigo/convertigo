@@ -207,7 +207,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer, 
 				// use this line to send message with payload data 
 				Message message = new Message.Builder() 
 										.collapseKey("1") 
-										.timeToLive(60 * 60 * 24 * 30) // 30 days 
+										.timeToLive(3600)
 										.delayWhileIdle(true) 
 										.addData("message", sPayload) 
 										.build(); 
