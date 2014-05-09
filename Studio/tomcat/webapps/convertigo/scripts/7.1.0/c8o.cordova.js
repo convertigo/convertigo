@@ -105,10 +105,14 @@ $(document).on("deviceready", function() {
 			
 			pushNotification.register(
 				function (result) {
-					C8O.log.info("c8o.cordova: PushNotificationRegistered: " + result);
-					if (typeof result == "string") {
-						if (C8O._hook("push_register_success", result)) {
-							C8O._cordova_notify_push_server("apns:" + result);
+					if (device.platform == 'android' || device.platform == 'Android') {
+						C8O.log.info("c8o.cordova: Android PushNotificationRegistered: " + result);
+					} else {
+						C8O.log.info("c8o.cordova: iOS PushNotificationRegistered: " + result);
+						if (typeof result == "string") {
+							if (C8O._hook("push_register_success", result)) {
+								C8O._cordova_notify_push_server("apns:" + result);
+							}
 						}
 					}
 				},
