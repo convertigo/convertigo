@@ -180,7 +180,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer, 
 
 	protected void PushToGCM(Context javascriptContext, Scriptable scope) throws EngineException, Exception
 	{
-		Engine.logBeans.debug("Push notification, Notifiyng Andoid devices");
+		Engine.logBeans.debug("Push notification, Notifying Android devices");
 		try {
 			evaluate(javascriptContext, scope, this.GCMApiKey, "gcmapikey", false);
 			sGCMApiKey = evaluated instanceof Undefined ? "" : evaluated.toString();
