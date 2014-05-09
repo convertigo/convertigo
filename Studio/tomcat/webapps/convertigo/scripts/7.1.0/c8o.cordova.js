@@ -24,7 +24,7 @@ $.extend(true, C8O, {
 	
 	_cordova_notify_push_server: function (token) {
 	    C8O._call({
-	    	__project: "lib_PushManager",
+	    	__project: "C8oPushManager",
 	    	__sequence: "RegisterDevice",
 	    	token: token
 	    });
@@ -39,22 +39,13 @@ $.extend(true, C8O, {
 		        	C8O.log.info("c8o.cordova: onNotificationGCM registered regid: " + event.regid);
 		        	
 		        	if (C8O._hook("push_register_success", event.regid)) {
-		        		C8O._cordova_notify_push_server("gcm:" + event.regid);
+		        		C8O._cordova_notify_push_server(event.regid);
 		        	}
 		        }
 		        break;
-
-	        case "message":
-	        	C8O.log.debug("c8o.cordova: onNotificationGCM message");
-	        	C8O._hook("push_notification", "GCM", event.payload, event);
-	        	break;
-
-	        case "error":
-	        	C8O.log.debug("c8o.cordova: onNotificationGCM error");
-	        	break;
-	        	
+		        
 	        default:
-	        	C8O.log.debug("c8o.cordova: onNotificationGCM unknown GCM event :" + event.event);
+	        	C8O._hook("push_notification", "GCM", "TBD", event);
 	        	break;
 	    }
 	},
@@ -114,14 +105,10 @@ $(document).on("deviceready", function() {
 			
 			pushNotification.register(
 				function (result) {
-					if (device.platform == 'android' || device.platform == 'Android') {
-						C8O.log.info("c8o.cordova: Android PushNotificationRegistered: " + result);
-					} else {
-						C8O.log.info("c8o.cordova: iOS PushNotificationRegistered: " + result);
-						if (typeof result == "string") {
-							if (C8O._hook("push_register_success", result)) {
-								C8O._cordova_notify_push_server("apns:" + result);
-							}
+					C8O.log.info("c8o.cordova: PushNotificationRegistered: " + result);
+					if (typeof result == "string") {
+						if (C8O._hook("push_register_success", result)) {
+							C8O._cordova_notify_push_server(result);
 						}
 					}
 				},
