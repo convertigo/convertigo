@@ -36,6 +36,8 @@ import org.apache.commons.lang.StringUtils;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
@@ -76,6 +78,8 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 	private String accessibility = Accessibility.Public.name();
 	
 	private String endpoint = "";
+	
+	private String authenticationToken = "";
 
 	 public MobileApplication() {
         super();
@@ -276,25 +280,6 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 	public void setFlashUpdateTimeout(long flashUpdateTimeout) {
 		this.flashUpdateTimeout = flashUpdateTimeout;
 	}
-	
-	private String key = "";
-	private String password = "";
-	
-	public String getKey() {
-		return key;
-	}
-
-	public void setKey(String key) {
-		this.key = key;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
 
 	public String getAccessibility() {
 		return accessibility;
@@ -328,7 +313,7 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 	
 	@Override
 	public boolean isMaskedProperty(Visibility target, String propertyName) {
-		if ("password".equals(propertyName)) {
+		if ("authenticationToken".equals(propertyName)) {
 			return true;
 		}
 		return super.isMaskedProperty(target, propertyName);
@@ -369,5 +354,19 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 		}
 		
 		return version;
+	}
+
+	public String getAuthenticationToken() {
+		return authenticationToken;
+	}
+
+	public void setAuthenticationToken(String authenticationToken) {
+		this.authenticationToken = authenticationToken;
+	}
+
+	public String getComputedAuthenticationToken() {
+		return authenticationToken.length() == 0 ?
+				EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_AUTHENTICATION_TOKEN) :
+				authenticationToken;
 	}
 }

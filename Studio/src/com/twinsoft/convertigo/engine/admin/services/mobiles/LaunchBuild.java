@@ -42,10 +42,9 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.mobileplatforms.Android;
-import com.twinsoft.convertigo.beans.mobileplatforms.BlackBerry;
+import com.twinsoft.convertigo.beans.mobileplatforms.BlackBerryKeyProvider;
 import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
-import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone7;
-import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhone8;
+import com.twinsoft.convertigo.beans.mobileplatforms.WindowsPhoneKeyProvider;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.AuthenticationException;
 import com.twinsoft.convertigo.engine.Engine;
@@ -90,29 +89,15 @@ public class LaunchBuild extends XmlService {
 			params.put("application", new String[]{finalApplicationName});
 			params.put("platformName", new String[]{mobilePlatform.getName()});
 			params.put("platformType", new String[]{mobilePlatform.getType()});
-			
-			String builderUsername;
-			String builderPassword;
-			
-			if (!mobileApplication.getKey().equals("")) {
-				builderUsername = mobileApplication.getKey();
-				builderPassword = mobileApplication.getPassword(); 
-			} else {
-				builderUsername = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_USERNAME);
-				builderPassword = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
-			}
-
-			params.put("username", new String[]{builderUsername});
-			params.put("password", new String[]{builderPassword});
+			params.put("auth_token", new String[]{mobileApplication.getComputedAuthenticationToken()});
 			
 			//iOS
 			if (mobilePlatform instanceof IOs) {
 				IOs ios = (IOs) mobilePlatform;
 				
-				String title, pw;
+				String pw, title = ios.getiOSCertificateTitle();
 				
-				if (!ios.getiOSCertificateTitle().equals("")) {
-					title = ios.getiOSCertificateTitle();
+				if (!title.equals("")) {
 					pw = ios.getiOSCertificatePw();
 				} else {
 					title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_IOS_CERTIFICATE_TITLE);
@@ -127,10 +112,9 @@ public class LaunchBuild extends XmlService {
 			if (mobilePlatform instanceof Android) {
 				Android android = (Android) mobilePlatform;
 				
-				String title, certificatePw, keystorePw;
+				String certificatePw, keystorePw, title = android.getAndroidCertificateTitle();
 				
-				if (!android.getAndroidCertificateTitle().equals("")) {
-					title = android.getAndroidCertificateTitle();
+				if (!title.equals("")) {
 					certificatePw = android.getAndroidCertificatePw();
 					keystorePw = android.getAndroidKeystorePw();
 				} else {
@@ -145,13 +129,12 @@ public class LaunchBuild extends XmlService {
 			}
 			
 			//Blackberry
-			if (mobilePlatform instanceof BlackBerry) { 
-				BlackBerry blackberry = (BlackBerry) mobilePlatform;
+			if (mobilePlatform instanceof BlackBerryKeyProvider) { 
+				BlackBerryKeyProvider blackberry = (BlackBerryKeyProvider) mobilePlatform;
 				
-				String title, pw;
+				String pw, title = blackberry.getBbKeyTitle();
 				
-				if (!blackberry.getBbKeyTitle().equals("")) {
-					title = blackberry.getBbKeyTitle();
+				if (!title.equals("")) {
 					pw = blackberry.getBbKeyPw();
 				} else {
 					title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_BB_KEY_TITLE);
@@ -162,40 +145,17 @@ public class LaunchBuild extends XmlService {
 				params.put("bbKeyPw", new String[]{pw});
 			}
 			
-			//Windows Phone 8
-			if (mobilePlatform instanceof WindowsPhone8) { 
-				WindowsPhone8 windowsPhone8 = (WindowsPhone8) mobilePlatform;
+			//Windows Phone
+			if (mobilePlatform instanceof WindowsPhoneKeyProvider) { 
+				WindowsPhoneKeyProvider windowsPhone = (WindowsPhoneKeyProvider) mobilePlatform;
 				
-				String title, id;
+				String title = windowsPhone.getWinphonePublisherIdTitle();
 				
-				if (!windowsPhone8.getWindowsPhone8PublisherIDTitle().equals("")) {
-					title = windowsPhone8.getWindowsPhone8PublisherIDTitle();
-					id = windowsPhone8.getWindowsPhone8PublisherID();
-				} else {
+				if (title.equals("")) {
 					title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID_TITLE);
-					id = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID);
 				}
 				
-				params.put("windowsPhone8PublisherIDTitle", new String[]{title});
-				params.put("windowsPhone8PublisherID", new String[]{id});
-			}
-			
-			//Windows Phone 7
-			if (mobilePlatform instanceof WindowsPhone7) { 
-				WindowsPhone7 windowsPhone7 = (WindowsPhone7) mobilePlatform;
-				
-				String title, id;
-				
-				if (!windowsPhone7.getWindowsPhone7PublisherIDTitle().equals("")) {
-					title = windowsPhone7.getWindowsPhone7PublisherIDTitle();
-					id = windowsPhone7.getWindowsPhone7PublisherID();
-				} else {
-					title = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID_TITLE);
-					id = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID);
-				}
-				
-				params.put("windowsPhone7PublisherIDTitle", new String[]{title});
-				params.put("windowsPhone7PublisherID", new String[]{id});
+				params.put("winphonePublisherIdTitle", new String[]{title});
 			}
 			
 			// Launch the mobile build

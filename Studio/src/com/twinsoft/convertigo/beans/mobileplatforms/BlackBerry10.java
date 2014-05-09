@@ -25,7 +25,7 @@ package com.twinsoft.convertigo.beans.mobileplatforms;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 
-public class BlackBerry10 extends MobilePlatform {
+public class BlackBerry10 extends MobilePlatform implements BlackBerryKeyProvider {
 
 	private static final long serialVersionUID = 1092999336588542619L;
 	
@@ -35,6 +35,7 @@ public class BlackBerry10 extends MobilePlatform {
 	public String getBbKeyTitle() {
 		return bbKeyTitle;
 	}
+	
 	public void setBbKeyTitle(String bbKeyTitle) {
 		this.bbKeyTitle = bbKeyTitle;
 	}

@@ -25,7 +25,7 @@ package com.twinsoft.convertigo.beans.mobileplatforms;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 
-public class BlackBerry extends MobilePlatform {
+public class BlackBerry extends MobilePlatform implements BlackBerryKeyProvider {
 
 	private static final long serialVersionUID = 1092999336588542618L;
 	

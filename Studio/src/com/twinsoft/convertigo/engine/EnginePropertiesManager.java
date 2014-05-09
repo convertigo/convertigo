@@ -548,12 +548,8 @@ public class EnginePropertiesManager {
 		NOTIFICATIONS_SMTP_PASSWORD ("notifications.smtp.password", "", "STMP password", PropertyCategory.Notifications),
 		
 		/** MOBILE BUILDER */
-		//@PropertyOptions(propertyType = PropertyType.Boolean)
-		//MOBILE_BUILDER_ ("mobile.builder.", "false", "Don't use the default Phonegap account", PropertyCategory.MobileBuilder),
-		
-		MOBILE_BUILDER_USERNAME ("mobile.builder.username", "", "Mobile builder username", PropertyCategory.MobileBuilder),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
-		MOBILE_BUILDER_PASSWORD ("mobile.builder.password", "", "Mobile builder password", PropertyCategory.MobileBuilder),
+		MOBILE_BUILDER_AUTHENTICATION_TOKEN ("mobile.builder.auth_token", "", "Mobile builder authentication token", PropertyCategory.MobileBuilder),
 		//iOS
 		MOBILE_BUILDER_IOS_CERTIFICATE_TITLE ("mobile.builder.ios_certificate_title", "", "iOS certificate title", PropertyCategory.MobileBuilder),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
@@ -561,9 +557,6 @@ public class EnginePropertiesManager {
 		
 		//WINDOWSPHONE
 		MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID_TITLE ("mobile.builder.windows_phone_publisher_id_title", "", "Windows Phone publisher ID title", PropertyCategory.MobileBuilder),
-		MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID ("mobile.builder.windows_phone_publisher_id", "", "Windows Phone publisher ID", PropertyCategory.MobileBuilder),
-
-		//WINDOWS8
 				
 		//ANDROID
 		MOBILE_BUILDER_ANDROID_CERTIFICATE_TITLE ("mobile.builder.android_certificate_title", "", "Android certificate title", PropertyCategory.MobileBuilder),

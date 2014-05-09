@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" id="$(ApplicationID)$" version="$(ApplicationVersion)$">
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" xmlns:rim="http://www.blackberry.com/ns/widgets" id="$(ApplicationID)$" version="$(ApplicationVersion)$">
     <!-- Temporary config.xml file, because BlackBerry 10 build is not yet supported by build.phonegap.com -->
 	<!-- Find configuration details for this file here : http://docs.build.phonegap.com/en_US/3.3.0/ -->
     
@@ -31,10 +31,7 @@
     <preference name="splashscreen"    			  value="splash" />         <!-- all: The splash screen resource if built without phonegap build -->
     <preference name="disable-cursor"             value="false" />          <!-- blackberry: prevents a mouse-icon/cursor from being displayed on the app -->
     <preference name="WebSecurity" 			      value="disable"/>			<!-- blackberry 10 : allow cross domain without specific whitelist -->
-    
-	<!-- Mandatory preferences for FlashUpdate service -->
-	<preference name="AndroidPersistentFileLocation" value="Internal" />
-	
+    	
 	<icon src="icon.png"/>
 	
 	<!-- BlackBerry icons -->

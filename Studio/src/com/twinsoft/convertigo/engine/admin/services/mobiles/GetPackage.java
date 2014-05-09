@@ -76,8 +76,6 @@ public class GetPackage extends DownloadService {
 		String finalApplicationName = mobileApplication.getComputedApplicationName();
 		
 		String mobileBuilderPlatformURL = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
-		String mobileBuilderPlatformUsername = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_USERNAME);
-		String mobileBuilderPlatformPassword = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
 		
 		PostMethod method;
 		int methodStatusCode;
@@ -95,10 +93,10 @@ public class GetPackage extends DownloadService {
 		try {
 			method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 			method.setRequestBody(new NameValuePair[] {
-					new NameValuePair("application", finalApplicationName),
-					new NameValuePair("platformName", platformName),
-					new NameValuePair("username", mobileBuilderPlatformUsername),
-					new NameValuePair("password", mobileBuilderPlatformPassword) });
+				new NameValuePair("application", finalApplicationName),
+				new NameValuePair("platformName", platformName),
+				new NameValuePair("auth_token", mobileApplication.getComputedAuthenticationToken())
+			});
 
 			methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);
 			methodBodyContentInputStream = method.getResponseBodyAsStream();

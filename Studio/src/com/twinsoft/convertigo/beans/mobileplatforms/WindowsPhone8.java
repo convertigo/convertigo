@@ -24,28 +24,18 @@ package com.twinsoft.convertigo.beans.mobileplatforms;
 
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 
-public class WindowsPhone8 extends MobilePlatform {
+public class WindowsPhone8 extends MobilePlatform implements WindowsPhoneKeyProvider {
 
 	private static final long serialVersionUID = 1092999336588542622L;
 	
-	private String windowsPhone8PublisherIDTitle = "";
-	private String windowsPhone8PublisherID = "";
-	
-	public String getWindowsPhone8PublisherIDTitle() {
-		return windowsPhone8PublisherIDTitle;
+	private String winphonePublisherIdTitle = "";
+
+	public String getWinphonePublisherIdTitle() {
+		return winphonePublisherIdTitle;
 	}
 
-	public void setWindowsPhone8PublisherIDTitle(
-			String windowsPhone8PublisherIDTitle) {
-		this.windowsPhone8PublisherIDTitle = windowsPhone8PublisherIDTitle;
-	}
-
-	public String getWindowsPhone8PublisherID() {
-		return windowsPhone8PublisherID;
-	}
-
-	public void setWindowsPhone8PublisherID(String windowsPhone8PublisherID) {
-		this.windowsPhone8PublisherID = windowsPhone8PublisherID;
+	public void setWinphonePublisherIdTitle(String winphonePublisherIdTitle) {
+		this.winphonePublisherIdTitle = winphonePublisherIdTitle;
 	}
 
 	@Override

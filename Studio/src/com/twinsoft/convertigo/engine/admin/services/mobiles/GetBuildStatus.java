@@ -71,8 +71,6 @@ public class GetBuildStatus extends XmlService {
 		String platformName = Keys.platform.value(request);
 
 		String mobileBuilderPlatformURL = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PLATFORM_URL);
-		String mobileBuilderPlatformUsername = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_USERNAME);
-		String mobileBuilderPlatformPassword = EnginePropertiesManager.getProperty(PropertyName.MOBILE_BUILDER_PASSWORD);
 
 		URL url = new URL(mobileBuilderPlatformURL + "/getstatus");
 		
@@ -87,10 +85,10 @@ public class GetBuildStatus extends XmlService {
 		try {
 			method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 			method.setRequestBody(new NameValuePair[] {
-					new NameValuePair("application", mobileApplication.getComputedApplicationName()),
-					new NameValuePair("platformName", platformName),
-					new NameValuePair("username", mobileBuilderPlatformUsername),
-					new NameValuePair("password", mobileBuilderPlatformPassword) });
+				new NameValuePair("application", mobileApplication.getComputedApplicationName()),
+				new NameValuePair("platformName", platformName),
+				new NameValuePair("auth_token", mobileApplication.getComputedAuthenticationToken())
+			});
 			
 			
 			int methodStatusCode = Engine.theApp.httpClient.executeMethod(hostConfiguration, method, httpState);

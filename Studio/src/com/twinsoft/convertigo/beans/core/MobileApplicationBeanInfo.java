@@ -39,7 +39,7 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[15];
+			properties = new PropertyDescriptor[14];
 			
             properties[0] = new PropertyDescriptor("enableFlashUpdate", MobileApplication.class, "getEnableFlashUpdate", "setEnableFlashUpdate");
             properties[0].setDisplayName(getExternalizedString("property.enableFlashUpdate.display_name"));
@@ -89,25 +89,20 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
             properties[10].setShortDescription(getExternalizedString("property.flashUpdateTimeout.short_description"));
 			properties[10].setExpert(true);
             
-			properties[11] = new PropertyDescriptor("key", MobileApplication.class, "getKey", "setKey");
-			properties[11].setDisplayName(getExternalizedString("property.key.display_name"));
-			properties[11].setShortDescription(getExternalizedString("property.key.short_description"));
+			properties[11] = new PropertyDescriptor("authenticationToken", MobileApplication.class, "getAuthenticationToken", "setAuthenticationToken");
+			properties[11].setDisplayName(getExternalizedString("property.authenticationToken.display_name"));
+			properties[11].setShortDescription(getExternalizedString("property.authenticationToken.short_description"));
 			properties[11].setExpert(true);
 			
-			properties[12] = new PropertyDescriptor("password", MobileApplication.class, "getPassword", "setPassword");
-			properties[12].setDisplayName(getExternalizedString("property.password.display_name"));
-			properties[12].setShortDescription(getExternalizedString("property.password.short_description"));
+			properties[12] = new PropertyDescriptor("accessibility", MobileApplication.class, "getAccessibility", "setAccessibility");
+			properties[12].setDisplayName(getExternalizedString("property.accessibility.display_name"));
+			properties[12].setShortDescription(getExternalizedString("property.accessibility.short_description"));
+            properties[12].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
 			properties[12].setExpert(true);
 			
-			properties[13] = new PropertyDescriptor("accessibility", MobileApplication.class, "getAccessibility", "setAccessibility");
-			properties[13].setDisplayName(getExternalizedString("property.accessibility.display_name"));
-			properties[13].setShortDescription(getExternalizedString("property.accessibility.short_description"));
-            properties[13].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
-			properties[13].setExpert(true);
-			
-			properties[14] = new PropertyDescriptor("applicationVersion", MobileApplication.class, "getApplicationVersion", "setApplicationVersion");
-			properties[14].setDisplayName(getExternalizedString("property.applicationVersion.display_name"));
-			properties[14].setShortDescription(getExternalizedString("property.applicationVersion.short_description"));
+			properties[13] = new PropertyDescriptor("applicationVersion", MobileApplication.class, "getApplicationVersion", "setApplicationVersion");
+			properties[13].setDisplayName(getExternalizedString("property.applicationVersion.display_name"));
+			properties[13].setShortDescription(getExternalizedString("property.applicationVersion.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

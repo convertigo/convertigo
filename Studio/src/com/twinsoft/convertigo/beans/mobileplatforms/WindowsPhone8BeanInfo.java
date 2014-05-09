@@ -41,17 +41,12 @@ public class WindowsPhone8BeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 			
-			properties = new PropertyDescriptor[2];
+			properties = new PropertyDescriptor[1];
 			
-			properties[0] = new PropertyDescriptor("windowsPhone8PublisherIDTitle", beanClass, "getWindowsPhone8PublisherIDTitle", "setWindowsPhone8PublisherIDTitle");
-			properties[0].setDisplayName(getExternalizedString("property.windowsPhone8PublisherIDTitle.display_name"));
-			properties[0].setShortDescription(getExternalizedString("property.windowsPhone8PublisherIDTitle.short_description"));
+			properties[0] = new PropertyDescriptor("winphonePublisherIdTitle", beanClass, "getWinphonePublisherIdTitle", "setWinphonePublisherIdTitle");
+			properties[0].setDisplayName(getExternalizedString("property.winphonePublisherIdTitle.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.winphonePublisherIdTitle.short_description"));
 			properties[0].setExpert(true);
-			
-			properties[1] = new PropertyDescriptor("windowsPhone8PublisherID", beanClass, "getWindowsPhone8PublisherID", "setWindowsPhone8PublisherID");
-			properties[1].setDisplayName(getExternalizedString("property.windowsPhone8PublisherID.display_name"));
-			properties[1].setShortDescription(getExternalizedString("property.windowsPhone8PublisherID.short_description"));
-			properties[1].setExpert(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
