@@ -9,6 +9,17 @@
  * * c8o.desktop.js
  * * [ctf.core.js] (include to use CTF instead of XSL)
  * * custom.js (this file)
+ * 
+ * You can find documentation about Convertigo Templating Framework here:
+ * http://help.convertigo.com/latest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
+ * or
+ * http://help.convertigo.com/7.1.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
+ * 
+ * You can find documentation about Convertigo Internationalization Framework (CTF plugin) here:
+ * http://help.convertigo.com/latest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
+ * or
+ * http://help.convertigo.com/7.1.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
+ * 
  *******************************************************
  *******************************************************/
 

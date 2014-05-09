@@ -13,15 +13,15 @@
  * * custom.js (this file)
  * * jquery.mobile(.min).js
  * 
- * Please find documentation of CTF here:
- * * http://help.convertigo.com/lastest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
+ * You can find documentation about Convertigo Templating Framework here:
+ * http://help.convertigo.com/latest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
  * or
- * * http://help.convertigo.com/7.1.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
+ * http://help.convertigo.com/7.1.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
  * 
- * and the documenation of internationalization (i18n) here:
- * * http://help.convertigo.com/lastest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
+ * You can find documentation about Convertigo Internationalization Framework (CTF plugin) here:
+ * http://help.convertigo.com/latest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
  * or
- * * http://help.convertigo.com/7.1.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
+ * http://help.convertigo.com/7.1.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
  * 
  *******************************************************
  *******************************************************/
@@ -139,7 +139,7 @@ $.extend(true, C8O, {
 //					 * before calling the C8O request
 //				 	* (useful in order to route to different pages according to the origin page).
 //					 * Use the .is(selector) from JQuery.
-//					 * Sample: “#page1, #page2, #page3 ”
+//					 * Sample: "#page1, #page2, #page3"
 //					 */
 //					fromPage: "",
 //	
@@ -165,15 +165,16 @@ $.extend(true, C8O, {
 //			calledRequest: "<the called C8O requestables>",
 //			actions: [
 //				{
-//					afterRendering: function ($doc, c8oData) {
-//					},
-//					beforeRendering: function ($doc, c8oData) {
-//					},
 //					condition: "<jQuery selector or function>",
 //					fromPage: "<page ID>",
 //					goToPage: "<page ID>",
 //					options: {
+//					},
+//					beforeRendering: function ($doc, c8oData) {
+//					},
+//					afterRendering: function ($doc, c8oData) {
 //					}
+//					
 //				}
 //			]
 //		}
