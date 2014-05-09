@@ -43,9 +43,18 @@ $.extend(true, C8O, {
 		        	}
 		        }
 		        break;
-		        
+
+	        case "message":
+	        	C8O.log.debug("c8o.cordova: onNotificationGCM message");
+	        	C8O._hook("push_notification", "GCM", event.payload, event);
+	        	break;
+
+	        case "error":
+	        	C8O.log.debug("c8o.cordova: onNotificationGCM error");
+	        	break;
+	        	
 	        default:
-	        	C8O._hook("push_notification", "GCM", "TBD", event);
+	        	C8O.log.debug("c8o.cordova: onNotificationGCM unknown GCM event :" + event.event);
 	        	break;
 	    }
 	},
