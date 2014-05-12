@@ -3,7 +3,7 @@
 	<!-- Temporary config.xml file, because Windows 8 build is not yet supported by build.phonegap.com -->
 	<!-- Find configuration details for this file here : http://docs.build.phonegap.com/en_US/3.3.0/ -->
     
-	<!-- Available templace variables, replaced before build by Convertigo -->	
+	<!-- Available template variables, replaced before build by Convertigo -->	
 	<!-- $(ApplicationID)$ : the unique identifier for your application. To support all supported platforms, this *must* be reverse-domain name style (e.g. 'com.yourcompany.yourapp') -->
 	<!-- $(ApplicationVersion)$ : for best results, use a major/minor/patch style version, with three numbers, such as '0.0.1'-->
 	<!-- $(ApplicationName)$ : the name of the application -->
