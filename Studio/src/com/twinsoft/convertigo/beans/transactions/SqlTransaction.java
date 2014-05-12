@@ -31,7 +31,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -48,7 +47,6 @@ import org.mozilla.javascript.UniqueTag;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
@@ -301,24 +299,7 @@ public class SqlTransaction extends TransactionWithVariables {
 
 	@Override
 	public String getRequestString(Context context) {
-		if (context != null) {
-			String requestString = context.projectName + " " + context.transactionName;
-			Document doc = context.inputDocument;
-			if (doc != null) {
-				NodeList list = doc.getElementsByTagName("variable");
-				String[] vVariables = new String[list.getLength()]; 
-				for (int i=0; i<list.getLength(); i++) {
-					Element elt = (Element) list.item(i);
-					String name = elt.getAttribute("name");
-					String value = elt.getAttribute("value");
-					vVariables[i]=name + "=" + value;
-				}
-				Arrays.sort(vVariables);		
-				requestString += " " + Arrays.toString(vVariables);
-			}
-			return requestString;
-		}
-		return null;
+		return super.getRequestString(context);
 	}
 	
 	public List<SqlQueryInfos> initializeQueries(boolean updateDefinitions){
