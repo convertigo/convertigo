@@ -163,7 +163,7 @@ function updateProjectsList(xml) {
 											btnExport : "<a href=\"services/projects.Export?projectName="
 												+ projectName
 												+ "\"><img border=\"0\" title=\"Make CAR archive from the project\" src=\"images/convertigo-administration-picto-save.png\"></a>",
-											btnTest : "<a target=\"_new\" href=\"../project.html#" + projectName
+											btnTest : "<a target=\"_blank\" href=\"../project.html#" + projectName
 												+ "\"><img border=\"0\" title=\"Test the project\" src=\"images/convertigo-administration-picto-test-platform.png\"></a>"
 										});
 					});
