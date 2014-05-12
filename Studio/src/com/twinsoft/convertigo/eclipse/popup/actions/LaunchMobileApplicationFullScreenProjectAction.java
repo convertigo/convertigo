@@ -58,9 +58,7 @@ public class LaunchMobileApplicationFullScreenProjectAction extends MyAbstractAc
     				Program.launch(
     						EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue() 
     								+ "/projects/" 
-    								+ mobileApplication.getProject().getName() + "/" 
-    								+ mobileApplication.getResourceFolder() + "/"
-    								+ "index.html");
+    								+ mobileApplication.getProject().getName() + "/DisplayObjects/mobile/index.html");
     			}
     		}
         	
