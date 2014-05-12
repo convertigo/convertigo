@@ -81,21 +81,21 @@
 		</category>
 		<category name="References">
 			<beans groupname="Schema references">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.ImportWsdlSchemaReference">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.references.ImportWsdlSchemaReference">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.IncludeXsdSchemaReference">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.references.IncludeXsdSchemaReference">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
 				</bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.ProjectSchemaReference">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.references.ProjectSchemaReference">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
 				</bean>
 			</beans>
 			<beans groupname="Web Service references">
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.references.WebServiceReference">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.references.WebServiceReference">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
 				</bean>
 			</beans>
