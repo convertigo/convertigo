@@ -247,18 +247,7 @@ function changeProperty(key, value) {
 }
 
 function createDOM(rootElement) {
-	var xmlDoc;
-	if ($.browser.msie) {
-		// Bugfix IE #1624
-		xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
-		xmlDoc.async = false;
-		xmlDoc.appendChild(xmlDoc.createElement(rootElement));
-	}
-	else {
-		xmlDoc = document.implementation.createDocument("", rootElement, null);
-	}
-	
-	return xmlDoc;
+	return document.implementation.createDocument("", rootElement, null);
 }
 
 function updateConfiguration () {

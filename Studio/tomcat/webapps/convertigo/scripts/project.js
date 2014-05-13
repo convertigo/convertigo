@@ -548,10 +548,8 @@ $(document).ready(function() {
 						addMobilePlatform($(this), $(".mobiles:first .requestables:first"));
 					});
 					
-					if ($.browser.webkit) {
-						$("#window_exe_increase").removeClass("hidden");
-						$("#window_exe_decrease").removeClass("hidden");
-					}
+					$("#window_exe_increase").removeClass("hidden");
+					$("#window_exe_decrease").removeClass("hidden");
 					//$("h6:first").click();
 				} else {
 					$(".connector_name").each(function(){
@@ -719,13 +717,13 @@ $(document).ready(function() {
 				$check.parents(".requestable").find("a.requestable_link").each(setLinkForRequestable);
 			});
 			
-			$("#main .link_value_remove").live("click", function () {
+			$("#main .link_value_remove").on("click", function () {
 				var $requestable = $(this).parents(".requestable");
 				$(this).parents(".new_multi_valued").remove();
 				$requestable.find("a.requestable_link").each(setLinkForRequestable);
 				return false;
 			});
-			$("#main .link_value_add").live("click", function () {
+			$("#main .link_value_add").on("click", function () {
 				var $variable_type = $(this).parents(".variable_type");
 				var $variable_multi_new = $("#templates .new_multi_valued").filter($variable_type.data("isFileUpload") ? ".value_file" : $variable_type.data("isMasked") ? ".value_password" : ".value_text").clone();
 				$variable_multi_new.find(".variable_value").attr("name", $variable_type.data("name")).val("").change(function () {

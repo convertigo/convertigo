@@ -78,7 +78,7 @@ $(window).ready(function() {
 
 	initWidgetContainer();
 
-	$("select").live("mousewheel", {fn: function (delta) {
+	$("select").on("mousewheel", {fn: function (delta) {
 		if (!$(this).attr("disabled")) {
 			var index = this.selectedIndex + delta;
 			if (0 <= index && index < this.length) {
@@ -88,7 +88,7 @@ $(window).ready(function() {
 		}
 	}}, simpleWheel);
 	
-	$("button").live("click", function () {
+	$("button").on("click", function () {
 		$(this).blur();
 	});
 	

@@ -119,16 +119,19 @@ public class ProjectLoadingJob extends Job implements DatabaseObjectListener {
 								protected void walk(DatabaseObject databaseObject) throws Exception {
 									if (databaseObject.isSymbolError()) {
 										for (Entry<String, Set<String>> entry : databaseObject.getSymbolsErrors().entrySet()) {
-											if (!forAll) {
-												boolean [] response = ConvertigoPlugin.warningGlobalSymbols(projectName,
-														databaseObject.getName(), databaseObject.getDatabaseType(),
-														entry.getKey(), "" + databaseObject.getCompilablePropertySourceValue(entry.getKey()),
-														entry.getValue(), true);
-												create = response[0];
-												forAll = response[1];
-											}
-											if (create) {
-												Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(entry.getValue());
+											Set<String> undefinedSymbols = Engine.theApp.databaseObjectsManager.symbolsSetCheckUndefined(entry.getValue());
+											if (!undefinedSymbols.isEmpty()) {
+												if (!forAll) {
+													boolean [] response = ConvertigoPlugin.warningGlobalSymbols(projectName,
+															databaseObject.getName(), databaseObject.getDatabaseType(),
+															entry.getKey(), "" + databaseObject.getCompilablePropertySourceValue(entry.getKey()),
+															undefinedSymbols, true);
+													create = response[0];
+													forAll = response[1];
+												}
+												if (create) {
+													Engine.theApp.databaseObjectsManager.symbolsCreateUndefined(undefinedSymbols);
+												}
 											}
 										}
 									}

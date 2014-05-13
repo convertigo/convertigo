@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -240,8 +241,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 				throw new EngineException("Unable to load the project \"" + projectName
 						+ "\": the project is in migration process.", e);
 			} catch (Exception e) {
-				throw new EngineException("Unable to create the undefined global symbols for the project \"" + projectName
-						+ "\"", e);
+				throw new EngineException("Unable to load the project \"" + projectName + "\"", e);
 			} finally {
 				long t1 = Calendar.getInstance().getTime().getTime();
 				Engine.logDatabaseObjectManager.trace("Project loaded in " + (t1 - t0) + " ms");
@@ -939,7 +939,11 @@ public class DatabaseObjectsManager implements AbstractManager {
 									+ "\" has been partially migrated. It may not work properly. Please import it trought the Studio and export/upload it again.");
 				}
 			}
-
+			
+			if (project.undefinedGlobalSymbols) {
+				Engine.logDatabaseObjectManager.error("Project \"" + projectName + "\" contains undefined global symbols: " + symbolsGetUndefined(projectName));
+			}
+			
 			Engine.logDatabaseObjectManager.info("Project \"" + projectName + "\" imported!");
 
 			return project;
@@ -1485,8 +1489,8 @@ public class DatabaseObjectsManager implements AbstractManager {
 		return symbolsProperties.getProperty(symbolName);
 	}
 	
-	public SortedSet<String> symbolsGetNames() {
-		return new TreeSet<String>(GenericUtils.<Set<String>>cast(symbolsProperties.keySet()));
+	public Set<String> symbolsGetNames() {
+		return Collections.unmodifiableSet(GenericUtils.<Set<String>>cast(symbolsProperties.keySet()));
 	}
 	
 	private void symbolsValidName(String symbolName) {
@@ -1572,10 +1576,23 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}.init(project);
 		}
 		
-		return allUndefinedSymbols;
+		return Collections.unmodifiableSet(allUndefinedSymbols);
 	}
 	
 	public void symbolsCreateUndefined(String projectName) throws Exception {
-		symbolsCreateUndefined(symbolsGetUndefined(projectName));
+		Set<String> undefinedSymbols = symbolsGetUndefined(projectName);
+		symbolsCreateUndefined(undefinedSymbols);
+		Engine.logDatabaseObjectManager.info("The undefined global symbols for the project \"" + projectName + "\" are declared: " + undefinedSymbols);
+	}
+
+	public Set<String> symbolsSetCheckUndefined(Set<String> value) {
+		for (String name : value) {
+			if (symbolsProperties.containsKey(name)) {
+				value = new HashSet<String>(value);
+				value.removeAll(symbolsProperties.keySet());
+				return Collections.unmodifiableSet(value);
+			}
+		}
+		return value;
 	}
 }

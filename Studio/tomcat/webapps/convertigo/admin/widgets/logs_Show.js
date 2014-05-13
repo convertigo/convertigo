@@ -169,12 +169,6 @@ function logs_Show_init(options) {
 	$("#logToggleHelp").click(onLogToggleHelpClick);
 
 	$(".log-column-selector").click(onLogColumnSelectorClick);
-
-	//related to #2228 to allow extra column to be resized
-	if ($.browser.mozilla) {
-		var maxExtraSize = $("#logTable").width() / 4;
-		changecss(".log-column-extra", "max-width", maxExtraSize + "px"); 
-	}
 	
 	setOptions(options);
 	
@@ -384,7 +378,6 @@ function onLogPurgeSlide (value) {
 
 function onWindowResize() {
 	setDivTableSize();
-	resizeLogMessage();
 }
 
 function toggleColumnVisibility(columnName) {
@@ -395,7 +388,6 @@ function toggleColumnVisibility(columnName) {
 	}
 	changecss(".log-column-" + columnName, "display", newdisplay);
 	columnVisibility[columnName] = display;
-	resizeLogMessage();
 }
 
 function resetOptions() {
@@ -471,8 +463,6 @@ function onLogGetSuccess(json, textStatus, jqXHR) {
 	bHasMoreResults = json.hasMoreResults;
 	$logTableBody.append(linesToAdd);
 	
-	resizeLogMessage();
-
 	addContextMenuToNewLines(startIndex);
 	
 	var logDivTable = $logDivTable[0];
@@ -734,24 +724,4 @@ function updatePurgeSlider () {
 			$("#logPurgeSlider").slider("option", { disabled : true, max : 0 });
 		}
 	}, { action : "list_files" });
-}
-
-// fix #1739 - Unwanted horizontal scroll bar with Firefox in the logviewer
-function resizeLogMessage() {
-	if ($.browser.mozilla) {
-		var log_message_width = $(".log-message:first").width();
-		if (log_message_width != undefined) {
-			var overwidth = $logDivTable.hasClass("log-full-screen") ?
-				$("#logTable").width() - $logDivTable.width() :
-				$("#maincontent").width() - $("#mainheader").width();
-			if (overwidth <= 0) { // lets message take its fullsize then recompute its best size
-				changecss(".log-message", "width", "auto");
-				if (arguments.length === 0) { // prevent loop, recall only one time
-					resizeLogMessage(true);
-				}
-			} else {
-				changecss(".log-message", "width", (log_message_width - overwidth - 25) +"px"); // 25 ~ scrollbar width								
-			}
-		}
-	}
 }

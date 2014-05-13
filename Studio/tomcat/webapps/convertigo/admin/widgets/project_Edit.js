@@ -395,9 +395,9 @@ function projectEditObjectSubmitProperties() {
 	$(".projectEdit-form-item").each(
 		function() {
 			var $property = $xmlResponse.find("property[name=" + $(this).data("propertyName") + "]");
-			var $value = $property.find("*[value],*[value=]");
+			var $value = $property.find("[value]");
 			var value = $(this).val();
-			$property.find("*[value],*[value=]").attr('value', $(this).val());
+			$property.find("[value]").attr('value', $(this).val());
 		}
 	);
 
@@ -433,11 +433,11 @@ function projectDeclareGlobalSymbols() {
 			if ($(xml).find("response").attr("state")==="error") {
 				showError("<p>"+$(xml).find("response").attr("message")+"</p>",$(xml).find("stackTrace").text()); 
 			}
+			
+			projects_List_update();
 		} 
 		, {"projectName":project_Name}  
-	); 
-	
-	projects_List_update();
+	);
 } 
 
 function projectStats() { 	 

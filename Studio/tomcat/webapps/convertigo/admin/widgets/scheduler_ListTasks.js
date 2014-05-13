@@ -89,6 +89,7 @@ function scheduler_ListTasks_init () {
 				sortable : false,
 				width : 10
 		} ],
+		ignoreCase : true,
 		autowidth : true,
 		viewrecords : true,
 		height : "auto",

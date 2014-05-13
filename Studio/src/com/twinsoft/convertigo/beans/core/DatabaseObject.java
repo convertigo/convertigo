@@ -170,7 +170,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	public void checkSymbols() throws EngineException {
 		if (isSymbolError()) {
 			for (String property : symbolsErrors.keySet()) {
-				String message = "The property '"+property+"' of '"+getName()+"' have an undefined global symbol!";
+				String message = "The property '" + property + "' of '" + getName() + "' has an undefined global symbol!";
 				if (Engine.isStudioMode()) {
 					try {
 						Class<?> convertigoPlugin = Class.forName("com.twinsoft.convertigo.eclipse.ConvertigoPlugin"); 

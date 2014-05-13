@@ -102,6 +102,7 @@ function globalSymbols_List_init() {
 				sortable : false,
 				align : "center"
 			} ],
+			ignoreCase : true,
 			autowidth : true,
 			cellEdit : false,
 			viewrecords : true,
@@ -163,6 +164,7 @@ function updateGlobalSymbolsList(xml) {
 			});
 	});
 	if($("#symbolsList tr:gt(0)").length) {
+		$("#symbolsList_name .ui-jqgrid-sortable").click().click();
 		$("#symbolsListButtonDeleteAll").button("enable");
 	} else {
 		$("#symbolsListButtonDeleteAll").button("disable");

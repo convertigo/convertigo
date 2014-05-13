@@ -34,8 +34,9 @@ function projects_List_init() {
 		icons : {
 			primary : "ui-icon-closethick"
 		}
-	}).click(function(){
-		showConfirm("Are you sure you want to delete all the projects?",function(){
+	}).click(function() {
+		showConfirm("Are you sure you want to delete all the projects?", function() {
+			$("#project_Edit").hide();
 			startWait(50);
 			$("#projectsList tr:gt(0)").each(function(){			
 				callService("projects.Delete",function(){},{"projectName":$(this).attr('id')});
@@ -101,6 +102,7 @@ function projects_List_init() {
 				sortable : false,
 				align : "center"
 			} ],
+			ignoreCase : true,
 			autowidth : true,
 			viewrecords : true,
 			height : 'auto',

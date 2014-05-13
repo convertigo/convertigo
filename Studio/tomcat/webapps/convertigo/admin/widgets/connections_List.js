@@ -159,6 +159,7 @@ function connections_List_init() {
 						width : 100,						
 						align : 'left'
 					} ],
+					ignoreCase : true,
 					autowidth : true,
 					viewrecords : true,
 					height : 'auto',

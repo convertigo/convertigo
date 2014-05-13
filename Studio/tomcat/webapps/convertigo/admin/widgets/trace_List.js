@@ -59,6 +59,7 @@ function trace_List_init() {
 			sortable : false,
 			align : "center"
 		} ],
+		ignoreCase : true,
 		autowidth : true,
 		viewrecords : true,
 		height : 'auto',

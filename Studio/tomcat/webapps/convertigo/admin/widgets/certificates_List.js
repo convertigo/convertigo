@@ -129,6 +129,7 @@ function certificates_List_init(){
 					sortable : false,
 					align : "center"
 				} ],
+				ignoreCase : true,
 				autowidth : true,
 				viewrecords : true,
 				height : 'auto',
@@ -170,6 +171,7 @@ function certificates_List_init(){
 					sortable : false,
 					align : "center"
 				}],
+				ignoreCase : true,
 				autowidth : true,
 				viewrecords : true,
 				height : 'auto',
@@ -223,6 +225,7 @@ function certificates_List_init(){
 					align : "center"
 				}
 				],
+				ignoreCase : true,
 				autowidth : true,
 				viewrecords : true,
 				height : 'auto',
