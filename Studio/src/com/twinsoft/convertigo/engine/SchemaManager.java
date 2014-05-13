@@ -1010,12 +1010,30 @@ public class SchemaManager implements AbstractManager {
 				String prefix = collection.getNamespaceContext().getPrefix(targetNamespace);
 				String requestableName = sequence != null && sequence.length() > 0 ? sequence : connector + "__" + transaction;
 				String tagname = prefix+":"+requestableName + "Response";
-				
+				QName qname = new QName(targetNamespace, requestableName + "Response");
+
+				Project p = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(project);
+				boolean isIncludeResponseElement = true;
+				if (!"".equals(sequence)) {
+					try {
+						Sequence seqObj = p.getSequenceByName(sequence);
+						isIncludeResponseElement = seqObj.isIncludeResponseElement();
+					}
+					catch (Exception e) {}
+				}
 				
 				Document responseDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 				Element requestableResponse = responseDoc.createElementNS(targetNamespace, tagname);
-				Node renamed = responseDoc.renameNode(responseDoc.importNode(documentElement, true), "", "response");
-				requestableResponse.appendChild(renamed);
+				if (isIncludeResponseElement) {
+					Node renamed = responseDoc.renameNode(responseDoc.importNode(documentElement, true), "", "response");
+					requestableResponse.appendChild(renamed);
+				}
+				else {
+					NodeList children = documentElement.getChildNodes();
+					for (int i=0; i<children.getLength(); i++) {
+						requestableResponse.appendChild(responseDoc.importNode(children.item(i), true));
+					}
+				}
 				
 				final Map<XmlSchemaObject, List<List<XmlSchemaObject>>> map = new LinkedHashMap<XmlSchemaObject, List<List<XmlSchemaObject>>>();
 				new XmlSchemaWalker(true, true) {
@@ -1065,8 +1083,11 @@ public class SchemaManager implements AbstractManager {
 							boolean elementQualified = SchemaMeta.getSchema(xso).getElementFormDefault().getValue().equals("qualified");
 							boolean attributeQualified = SchemaMeta.getSchema(xso).getAttributeFormDefault().getValue().equals("qualified");
 							boolean isQualified = (xsoQName != null && !xsoQName.getNamespaceURI().equals("")) || (xso instanceof XmlSchemaElement ? elementQualified : attributeQualified);
-							String targetNamespace = SchemaMeta.getSchema(xso).getTargetNamespace();
+							//String targetNamespace = SchemaMeta.getSchema(xso).getTargetNamespace();
+							//String prefix = SchemaMeta.getCollection(xso).getNamespaceContext().getPrefix(targetNamespace);
+							String targetNamespace = xsoQName != null && !xsoQName.getNamespaceURI().equals("") ? xsoQName.getNamespaceURI():SchemaMeta.getSchema(xso).getTargetNamespace();
 							String prefix = SchemaMeta.getCollection(xso).getNamespaceContext().getPrefix(targetNamespace);
+							prefix = prefix == null ? (xsoQName != null && !xsoQName.getNamespaceURI().equals("") ? xsoQName.getPrefix():""):prefix;
 							
 							if (isQualified)
 								node = doc.renameNode(node, targetNamespace, prefix+":"+localName);
@@ -1077,16 +1098,45 @@ public class SchemaManager implements AbstractManager {
 								Element element = (Element)node;
 								
 								if (element.hasAttributes()) {
-									List<Node> list = new ArrayList<Node>();
 									NamedNodeMap attributes = element.getAttributes();
+									List<Node> list = new ArrayList<Node>();
 									for (int i=0; i <attributes.getLength(); i++) {
 										Node attr = attributes.item(i);
 										String attrNodeName = attr.getNodeName();
-										if (attrNodeName.equals("xsi:type") || 
-											attrNodeName.startsWith("xmlns:") ||
-											attrNodeName.endsWith(":encodingStyle"))
-										{
-											list.add(attr);
+
+										boolean found = false;
+										for (XmlSchemaObject a : map.get(xso).get(1)) {
+											if (makeCompliant(a, attr)) {
+												found = true;
+												break;
+											}
+										}
+										
+										if (!found) {
+											if (attrNodeName.equals("xsi:type") || attrNodeName.startsWith("xmlns:") || attrNodeName.endsWith(":encodingStyle"))
+											{
+												list.add(attr);
+											}
+										}
+										else {
+											if (attrNodeName.startsWith("xsi:")) {
+												attr = doc.renameNode(attr, Constants.URI_2001_SCHEMA_XSI, attrNodeName);
+												
+												String attrNodeValue = attr.getNodeValue();
+												int index = attrNodeValue.indexOf(":");
+												if (index !=- 1) {
+													String pref = attrNodeValue.substring(0, index);
+													if (attributes.getNamedItem("xmlns:"+pref) == null) {
+														String ns = SchemaMeta.getCollection(xso).getNamespaceContext().getNamespaceURI(pref);
+														if ("".equals(ns) || ns == null)
+															ns = SchemaMeta.getSchema(xso).getTargetNamespace();
+														element.setAttributeNS(Constants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:"+pref, ns);
+													}
+												}
+											}
+											if (attrNodeName.startsWith("xmlns:")) {
+												attr = doc.renameNode(attr, Constants.XMLNS_ATTRIBUTE_NS_URI, attrNodeName);
+											}
 										}
 									}
 									
@@ -1094,20 +1144,6 @@ public class SchemaManager implements AbstractManager {
 										element.removeAttributeNode((Attr) attr);
 									}
 									
-									attributes = element.getAttributes();
-									for (int i=0; i <attributes.getLength(); i++) {
-										Node attr = attributes.item(i);
-										String attrNodeName = attr.getNodeName();
-										if (attrNodeName.startsWith("xsi:")) {
-											attr = doc.renameNode(attr, Constants.URI_2001_SCHEMA_XSI, attrNodeName);
-										}
-										
-										for (XmlSchemaObject a : map.get(xso).get(1)) {
-											if (makeCompliant(a, attr)) {
-												break;
-											}
-										}
-									}
 								}
 								
 								if (element.hasChildNodes()) {
@@ -1278,7 +1314,7 @@ public class SchemaManager implements AbstractManager {
 						
 					}
 					
-				}.init(schema, new QName(targetNamespace, requestableName + "Response"), requestableResponse);
+				}.init(schema, qname, requestableResponse);
 		
 				responseDoc.appendChild(requestableResponse);
 				//System.out.println(XMLUtils.prettyPrintDOM(responseDoc));

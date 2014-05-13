@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
+import javax.xml.namespace.QName;
+
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -253,10 +255,19 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 	
 	@Override
 	public XmlSchemaAttribute getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
+		String namespace = getNodeNameSpace();
+		String namespaceURI = getNodeNameSpaceURI();
+		boolean hasQName = !namespace.equals("") && !namespaceURI.equals("");
+		
 		XmlSchemaAttribute attribute = XmlSchemaUtils.makeDynamic(this, new XmlSchemaAttribute());
 		attribute.setName(getStepNodeName());
 		attribute.setSchemaTypeName(getSimpleTypeAffectation());
-		attribute.setUse(XmlSchemaUtils.attributeUseRequired);
+		if (hasQName) {
+			attribute.setQName(new QName(namespaceURI,getStepNodeName(),namespace));
+		}
+		else {
+			attribute.setUse(XmlSchemaUtils.attributeUseRequired);
+		}
 		addXmlSchemaAnnotation(attribute);
 		return attribute;
 	}

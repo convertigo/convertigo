@@ -528,12 +528,17 @@ public class WebServiceTranslator implements Translator {
 	    				}
 	    			}
 					
-					NamedNodeMap attributes = element.getAttributes();
-		            int len = attributes.getLength();
-		            for (int i = 0 ; i < len ; i++) {
-		            	Node item = attributes.item(i);
-		            	addSoapElement(context, se, soapElement, item);
-		            }
+	            	if (!includeResponseElement && "response".equalsIgnoreCase(localName)) {
+	            		// do not add attributes
+	            	}
+	            	else {
+						NamedNodeMap attributes = element.getAttributes();
+			            int len = attributes.getLength();
+			            for (int i = 0 ; i < len ; i++) {
+			            	Node item = attributes.item(i);
+			            	addSoapElement(context, se, soapElement, item);
+			            }
+	            	}
 				}
 				
 				if (element.hasChildNodes()) {

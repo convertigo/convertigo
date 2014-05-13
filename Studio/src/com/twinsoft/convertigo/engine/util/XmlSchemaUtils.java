@@ -187,7 +187,12 @@ public class XmlSchemaUtils {
 	
 	final public static Comparator<XmlSchemaAttribute> attributeNameComparator = new Comparator<XmlSchemaAttribute>() {
 		public int compare(XmlSchemaAttribute o1, XmlSchemaAttribute o2) {
-			return o1.getName().compareTo(o2.getName());
+			try {
+				return o1.getName().compareTo(o2.getName());
+			}
+			catch (Exception e) {
+				return 0;
+			}
 		}
 	};
 	
