@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.engine.cache;
 
 import java.util.Date;
 
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.ProcessingInstruction;
 
@@ -56,7 +58,7 @@ public abstract class CacheManager extends AbstractRunnableManager {
 		Document response = null;
 		CacheEntry cacheEntry;
 		String	supervision = null;
-		
+
 		if (context.isStubRequested) {
 			String stubFileName = null;
 			if (context.requestedObject instanceof Transaction) {
@@ -65,7 +67,7 @@ public abstract class CacheManager extends AbstractRunnableManager {
 						+ "/stubs/"
 						+ context.requestedObject.getParent().getName() + "."
 						+ context.requestedObject.getName() + ".xml";
-				
+
 			} else if (context.requestedObject instanceof Sequence) {
 				stubFileName = Engine.PROJECTS_PATH + "/"
 						+ context.requestedObject.getProject().getName()
@@ -74,154 +76,167 @@ public abstract class CacheManager extends AbstractRunnableManager {
 			try {
 				response = XMLUtils.parseDOM(stubFileName);
 				response.getDocumentElement().setAttribute("fromStub", "true");
-				return response;
 			} catch (Exception e) {
 				Engine.logCacheManager.error("Error while parsing " + stubFileName + " file");
 				throw new EngineException("Unable to load response from Stub", e);
 			}
-		}
-
-		context.requestedObject.parseInputDocument(context);
-		if (context.httpServletRequest != null) {
-			try {
-				supervision = context.httpServletRequest.getParameter(Parameter.Supervision.getName());
-			} catch (Exception e) {
-				Engine.logCacheManager.warn("Error while getting '"+Parameter.Supervision.getName()+"' parameter, probably in async job ?");
-			}
-		}
-		
-		long expiryDate = context.requestedObject.getResponseExpiryDateInMillis();
-		
-		// Cache not enabled
-		if(EnginePropertiesManager.getPropertyAsBoolean(PropertyName.DISABLE_CACHE)){
-			Engine.logCacheManager.debug("Cache not enabled explicitly");
-
-			response = context.requestedObject.run(requester, context);
-			response.getDocumentElement().setAttribute("fromcache", "false");
-			response.getDocumentElement().setAttribute("fromStub", "false");
-		}
-		// Not cached transaction
-		else if (expiryDate <= 0) {
-			Engine.logCacheManager.trace("The response is not cachable");
-			
-			response = context.requestedObject.run(requester, context);
-			response.getDocumentElement().setAttribute("fromcache", "false");
-			response.getDocumentElement().setAttribute("fromStub", "false");
-		}
-		// Cached transaction
-		else {
-			String requestString = context.requestedObject.getRequestString(context);
-
-			if (context.noCache) {
-				Engine.logCacheManager.debug("Ignoring cache for request: " + requestString);
+		} else {
+			context.requestedObject.parseInputDocument(context);
+			if (context.httpServletRequest != null) {
 				try {
-					cacheEntry = (CacheEntry) getCacheEntry(requestString);
-					if (cacheEntry != null) removeStoredResponse(cacheEntry);
-					cacheEntry = null;
-				}
-				catch(Exception e) {
-					Engine.logCacheManager.error("Unable to remove the stored response from the cache repository!", e);
+					supervision = context.httpServletRequest.getParameter(Parameter.Supervision.getName());
+				} catch (Exception e) {
+					Engine.logCacheManager.warn("Error while getting '"+Parameter.Supervision.getName()+"' parameter, probably in async job ?");
 				}
 			}
-			else {
-				Engine.logCacheManager.debug("Searched request string: " + requestString);
 
-				try {
-					cacheEntry = (CacheEntry) getCacheEntry(requestString);
-				}
-				catch(Exception e) {
-					Engine.logCacheManager.error("Unable to find the cache entry!", e);
-					cacheEntry = null;
-				}
+			long expiryDate = context.requestedObject.getResponseExpiryDateInMillis();
 
-				Engine.logCacheManager.debug("Found cache entry: " + cacheEntry);
-				
-				if (cacheEntry != null) {
-					if (cacheEntryHasExpired(cacheEntry)) {
-						Engine.logCacheManager.debug("Response [" + cacheEntry.toString() + "] has expired! Removing the current response and requesting a new response...");
-						try {
-							removeStoredResponse(cacheEntry);
-							cacheEntry = null;
-						}
-						catch(Exception e) {
-							Engine.logCacheManager.error("Unable to remove the stored response from the cache repository!", e);
-						}
-					}
-					else if ((cacheEntry.sheetUrl == null) && (context.isXsltRequest) &&
-							(context.requestedObject.getSheetLocation() == Transaction.SHEET_LOCATION_FROM_LAST_DETECTED_OBJECT_OF_REQUESTABLE)) {
-						Engine.logCacheManager.debug("Ignoring cache for request: " + requestString + " because a XSLT procees has been required and no sheet information has been stored into the cache entry.");
-						try {
-							removeStoredResponse(cacheEntry);
-							cacheEntry = null;
-						}
-						catch(Exception e) {
-							Engine.logCacheManager.error("(CacheManager) Unable to remove the stored response from the cache repository!", e);
-						}
-					}
-					else {
-						context.cacheEntry = cacheEntry;
-						
-						// Update the statistics events
-						context.requestedObject.setStatisticsOfRequestFromCache();
-						String t = context.statistics.start(EngineStatistics.GENERATE_DOM);
-						
-						try {
-							response = getStoredResponse(requester, cacheEntry);
-							if (response != null) {
-								response.getDocumentElement().setAttribute("fromcache", "true");
-								response.getDocumentElement().setAttribute("fromStub", "false");
-								ProcessingInstruction pi = response.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + context.requestedObject.getEncodingCharSet() + "\"");
-								response.insertBefore(pi, response.getFirstChild());
-								context.outputDocument = response; // response has been overridden - needed by billings!
-								
-								if (context.requestedObject != null) {
-									context.requestedObject.onCachedResponse();
-								}
-							}
-							else{
-								Engine.logCacheManager.debug("Response from cache is null: removing the cache entry.");
-								removeStoredResponse(cacheEntry);
-							}
-						}
-						catch(Exception e) {
-							Engine.logCacheManager.error("Unable to get the stored response from the cache repository!", e);
-							response = null;
-						}
-						finally {
-							context.statistics.stop(t);
-						}
-					}
-				}
-			}
-			
-			if (response == null) {
+			// Cache not enabled
+			if(EnginePropertiesManager.getPropertyAsBoolean(PropertyName.DISABLE_CACHE)){
+				Engine.logCacheManager.debug("Cache not enabled explicitly");
+
 				response = context.requestedObject.run(requester, context);
-				if (Engine.logCacheManager.isTraceEnabled())
-					Engine.logCacheManager.trace("Cache manager: document returned:\n" + XMLUtils.prettyPrintDOM(response));
 				response.getDocumentElement().setAttribute("fromcache", "false");
 				response.getDocumentElement().setAttribute("fromStub", "false");
+			}
+			// Not cached transaction
+			else if (expiryDate <= 0) {
+				Engine.logCacheManager.trace("The response is not cachable");
 
-				// Store the response only if the transaction handlers has not
-				// disabled the cache feature...
-	    		if (supervision != null) {
-	    			Engine.logCacheManager.debug("Supervision mode => disable caching");
-	    			context.isCacheEnabled = false;
-				}
+				response = context.requestedObject.run(requester, context);
+				response.getDocumentElement().setAttribute("fromcache", "false");
+				response.getDocumentElement().setAttribute("fromStub", "false");
+			}
+			// Cached transaction
+			else {
+				String requestString = context.requestedObject.getRequestString(context);
 
-	    		if (context.isCacheEnabled) {
+				if (context.noCache) {
+					Engine.logCacheManager.debug("Ignoring cache for request: " + requestString);
 					try {
-						response.getDocumentElement().setAttribute("expires", new Date(expiryDate).toString());
-						cacheEntry = storeResponse(response, requestString, expiryDate);
-						context.cacheEntry = cacheEntry;
-						Engine.logCacheManager.info("The expiration Date " +  new Date(expiryDate).toString());
+						cacheEntry = (CacheEntry) getCacheEntry(requestString);
+						if (cacheEntry != null) removeStoredResponse(cacheEntry);
+						cacheEntry = null;
 					}
 					catch(Exception e) {
-						Engine.logCacheManager.error("(CacheManager) Unable to store the response into the cache repository!", e);
+						Engine.logCacheManager.error("Unable to remove the stored response from the cache repository!", e);
 					}
 				}
 				else {
-					Engine.logCacheManager.debug("Cache has been disabled!");
+					Engine.logCacheManager.debug("Searched request string: " + requestString);
+
+					try {
+						cacheEntry = (CacheEntry) getCacheEntry(requestString);
+					}
+					catch(Exception e) {
+						Engine.logCacheManager.error("Unable to find the cache entry!", e);
+						cacheEntry = null;
+					}
+
+					Engine.logCacheManager.debug("Found cache entry: " + cacheEntry);
+
+					if (cacheEntry != null) {
+						if (cacheEntryHasExpired(cacheEntry)) {
+							Engine.logCacheManager.debug("Response [" + cacheEntry.toString() + "] has expired! Removing the current response and requesting a new response...");
+							try {
+								removeStoredResponse(cacheEntry);
+								cacheEntry = null;
+							}
+							catch(Exception e) {
+								Engine.logCacheManager.error("Unable to remove the stored response from the cache repository!", e);
+							}
+						}
+						else if ((cacheEntry.sheetUrl == null) && (context.isXsltRequest) &&
+								(context.requestedObject.getSheetLocation() == Transaction.SHEET_LOCATION_FROM_LAST_DETECTED_OBJECT_OF_REQUESTABLE)) {
+							Engine.logCacheManager.debug("Ignoring cache for request: " + requestString + " because a XSLT procees has been required and no sheet information has been stored into the cache entry.");
+							try {
+								removeStoredResponse(cacheEntry);
+								cacheEntry = null;
+							}
+							catch(Exception e) {
+								Engine.logCacheManager.error("(CacheManager) Unable to remove the stored response from the cache repository!", e);
+							}
+						}
+						else {
+							context.cacheEntry = cacheEntry;
+
+							// Update the statistics events
+							context.requestedObject.setStatisticsOfRequestFromCache();
+							String t = context.statistics.start(EngineStatistics.GENERATE_DOM);
+
+							try {
+								response = getStoredResponse(requester, cacheEntry);
+								if (response != null) {
+									response.getDocumentElement().setAttribute("fromcache", "true");
+									response.getDocumentElement().setAttribute("fromStub", "false");
+									ProcessingInstruction pi = response.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"" + context.requestedObject.getEncodingCharSet() + "\"");
+									response.insertBefore(pi, response.getFirstChild());
+									context.outputDocument = response; // response has been overridden - needed by billings!
+
+									if (context.requestedObject != null) {
+										context.requestedObject.onCachedResponse();
+									}
+								}
+								else{
+									Engine.logCacheManager.debug("Response from cache is null: removing the cache entry.");
+									removeStoredResponse(cacheEntry);
+								}
+							}
+							catch(Exception e) {
+								Engine.logCacheManager.error("Unable to get the stored response from the cache repository!", e);
+								response = null;
+							}
+							finally {
+								context.statistics.stop(t);
+							}
+						}
+					}
 				}
+
+				if (response == null) {
+					response = context.requestedObject.run(requester, context);
+					if (Engine.logCacheManager.isTraceEnabled())
+						Engine.logCacheManager.trace("Cache manager: document returned:\n" + XMLUtils.prettyPrintDOM(response));
+					response.getDocumentElement().setAttribute("fromcache", "false");
+					response.getDocumentElement().setAttribute("fromStub", "false");
+
+					// Store the response only if the transaction handlers has not
+					// disabled the cache feature...
+					if (supervision != null) {
+						Engine.logCacheManager.debug("Supervision mode => disable caching");
+						context.isCacheEnabled = false;
+					}
+
+					if (context.isCacheEnabled) {
+						try {
+							response.getDocumentElement().setAttribute("expires", new Date(expiryDate).toString());
+							cacheEntry = storeResponse(response, requestString, expiryDate);
+							context.cacheEntry = cacheEntry;
+							Engine.logCacheManager.info("The expiration Date " +  new Date(expiryDate).toString());
+						}
+						catch(Exception e) {
+							Engine.logCacheManager.error("(CacheManager) Unable to store the response into the cache repository!", e);
+						}
+					}
+					else {
+						Engine.logCacheManager.debug("Cache has been disabled!");
+					}
+				}
+			}
+		}
+		
+		if (context.removeNamespaces) {
+			try {
+				Engine.logEngine.debug("Removing namespaces...");
+				response = XMLUtils.copyDocumentWithoutNamespace(response);
+				
+				if (Engine.logEngine.isDebugEnabled()) {
+					String result = XMLUtils.prettyPrintDOM(response);
+					Engine.logEngine.debug("Namespaces removed:\n" + result);
+				}
+			} catch (ParserConfigurationException e) {
+				Engine.logCacheManager.error("(CacheManager) Failed to remove namespaces!", e);
 			}
 		}
 

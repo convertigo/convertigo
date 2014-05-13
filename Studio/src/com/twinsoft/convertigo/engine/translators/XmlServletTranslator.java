@@ -22,33 +22,7 @@
 
 package com.twinsoft.convertigo.engine.translators;
 
-import org.w3c.dom.Document;
-
-import com.twinsoft.convertigo.engine.Context;
-import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class XmlServletTranslator extends DefaultServletTranslator {
-
-	@Override
-	public Object buildOutputData(Context context, Object convertigoResponse) throws Exception {
-		if (context.removeNamespaces) {
-			Engine.logEngine.debug("Removing namespaces...");
-			Document document = (Document) convertigoResponse;
-
-			// Remove all namespace information (i.e declarations and namespace
-			// prefixes in all nodes)
-			Document newDocument = XMLUtils.copyDocumentWithoutNamespace(document);
-			
-			if (Engine.logEngine.isDebugEnabled()) {
-				String result = XMLUtils.prettyPrintDOM(newDocument);
-				Engine.logEngine.debug("Namespaces removed:\n" + result);
-			}
-			
-			return newDocument;
-		} else {
-			return convertigoResponse;
-		}
-	}
 
 }

@@ -1069,7 +1069,7 @@ public class XMLUtils {
 		return newDocument;
 	}
 	
-	public static void copyNodeWithoutNamespace(Document document, Node parentNode, Node sourceNode) {
+	private static void copyNodeWithoutNamespace(Document document, Node parentNode, Node sourceNode) {
 		Node destinationNode;
 		if (sourceNode instanceof Document) {
 			destinationNode = parentNode;

@@ -123,11 +123,11 @@ public class DefaultInternalTranslator implements Translator {
 	}
 
 	public String getContextName(byte[] data) throws Exception {
-		throw new EngineException("The DefaultServletTranslator translator does not support the getContextName() method");
+		throw new EngineException("The DefaultInternalTranslator translator does not support the getContextName() method");
 	}
 
 	public String getProjectName(byte[] data) throws Exception {
-		throw new EngineException("The DefaultServletTranslator translator does not support the getProjectName() method");
+		throw new EngineException("The DefaultInternalTranslator translator does not support the getProjectName() method");
 	}
 
 }
