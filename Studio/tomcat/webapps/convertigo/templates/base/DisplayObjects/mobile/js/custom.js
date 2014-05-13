@@ -470,11 +470,15 @@ $.extend(true, C8O, {
  *  ** Needs cordova.js + c8o.cordova.js **
  *  Hook called when a notification is received on the mobile device
  *  
- *  level: "string" sender of the notification : GCM (Google) or APN (Apple)
- *  msg: "string" the message content of the notification
- *  event: "object" the raw object from the notification, sender specific
+ *  sender: "string" sender of the notification : GCM (Google) or APN (Apple)
+ *  msg:    "string" the message content of the notification
+ *  event:  "object" the raw object from the notification, sender specific
  *  return: true > lets c8o.cordova handle the response (Apple badge or sound)
  *            false > do nothing
+ *            
+ *  note:  documentation of event object can be found here :
+ *  https://github.com/phonegap-build/PushPlugin
+ *            
  */
 //C8O.addHook("push_notification", function (sender, msg, event) {
 //	return true;
