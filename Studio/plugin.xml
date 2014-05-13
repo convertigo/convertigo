@@ -472,7 +472,7 @@
             name="CTF gallery sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports the CTF gallery project, demonstrating several functionalities of the CTF librairy.</description> 
+            <description>Imports the CTF gallery project, demonstrating several functionalities of the Convertigo Templating Framework library.</description> 
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
@@ -558,7 +558,7 @@
              project="true">
           <description>Creates an HTTP based Web Service connector project to invoke a remote SOAP web service, by importing its WSDL description file.</description>
        </wizard>
-<!-- Librairies projects -->
+<!-- Libraries projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigolibraries"
              class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewLibraryGoogleMapsWizard"
