@@ -46,7 +46,7 @@ $.extend(true, C8O, {
 
 	        case "message":
 	        	C8O.log.debug("c8o.cordova: onNotificationGCM message");
-	        	C8O._hook("push_notification", "GCM", event.payload, event);
+	        	C8O._hook("push_notification", "GCM", event.payload.message, event);
 	        	break;
 
 	        case "error":
@@ -61,7 +61,7 @@ $.extend(true, C8O, {
 
 	
 	_cordova_onNotificationAPN: function (event) {
-		if (C8O._hook("push_notification", "APN", "TBD", event)) {
+		if (C8O._hook("push_notification", "APN", event.alert, event)) {
 			  if (event.sound) {
 			        var snd = new Media(event.sound);
 			        snd.play();
