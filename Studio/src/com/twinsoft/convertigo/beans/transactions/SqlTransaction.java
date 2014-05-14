@@ -116,11 +116,11 @@ public class SqlTransaction extends TransactionWithVariables {
 	public static int TYPE_UNKNOWN = 99;
 
 	/** Holds value of property Auto-commit. */
-	public static int AUTOCOMMIT_OFF = 0; 	
+	public static final int AUTOCOMMIT_OFF = 0; 	
 
-	public static int AUTOCOMMIT_EACH = 1;			// jmc 14/05/06
+	public static final int AUTOCOMMIT_EACH = 1;			// jmc 14/05/06
 
-	public static int AUTOCOMMIT_END = 2;
+	public static final int AUTOCOMMIT_END = 2;
 	
 	private int autoCommit = AUTOCOMMIT_EACH; 
 	
@@ -419,6 +419,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		Document doc = null;
 		Element sql_output = null;
 		boolean studioMode = Engine.isStudioMode();
+		boolean rollbackDone = false;
 		String prefix = getXsdTypePrefix();
 		int numberOfResults = 0;
 		int nb = 0;
@@ -445,10 +446,10 @@ public class SqlTransaction extends TransactionWithVariables {
 			if (!preparedSqlQueries.get(0).getParametersMap().isEmpty()) {
 				preparedSqlQueries.get(0).getParametersMap().get(preparedSqlQueries.get(0).getOrderedParametersList().get(0));
 			}
-			
+
 			for (SqlQueryInfos sqlQueryInfos : preparedSqlQueries){
-				
-				if ( errorMessageSQL.equals("") ) {			
+
+				if (errorMessageSQL.equals("")) {			
 					// Prepare the query and retrieve its type
 					String query = prepareQuery(logHiddenValues, sqlQueryInfos);
 					
@@ -487,9 +488,9 @@ public class SqlTransaction extends TransactionWithVariables {
 						ResultSet rs = null;
 						try {
 							// We set the auto-commit in function of the SqlTransaction parameter
-							connector.connection.setAutoCommit(autoCommit != AUTOCOMMIT_OFF);
+							connector.connection.setAutoCommit(autoCommit == AUTOCOMMIT_EACH);
+
 							// We execute the query
-							//rs = preparedStatement.executeQuery();
 							preparedStatement.execute();
 							rs = preparedStatement.getResultSet();
 						}
@@ -503,16 +504,28 @@ public class SqlTransaction extends TransactionWithVariables {
 								query = prepareQuery(logHiddenValues, sqlQueryInfos);
 								try {
 									// We execute the query
-									//rs = preparedStatement.executeQuery();
 									preparedStatement.execute();
 									rs = preparedStatement.getResultSet();
 								} catch(Exception e1) {
-									// We rollback if error and if the property auto-commit is false
-									if(autoCommit == AUTOCOMMIT_OFF)
-										connector.connection.rollback();
-									
 									// We get the exception error message
 									errorMessageSQL = e1.getMessage();
+
+									// We rollback if error and if in auto commit false mode
+									if (autoCommit != AUTOCOMMIT_EACH) {
+										try {
+							                connector.connection.rollback();
+
+							                if (Engine.logBeans.isTraceEnabled())
+												Engine.logBeans.trace("(SqlTransaction) An exception occured : Transactions are being rolled back");
+							            } catch(SQLException excep) {
+							            	if (Engine.logBeans.isTraceEnabled()) {
+												// We get the exception error message
+												errorMessageSQL = excep.getMessage();
+							            	}
+							            }										
+										
+										rollbackDone = true;									
+									}
 									
 									if (Engine.logBeans.isTraceEnabled())
 										Engine.logBeans.trace("(SqlTransaction) An exception occured :" + errorMessageSQL);
@@ -681,8 +694,10 @@ public class SqlTransaction extends TransactionWithVariables {
 					// Execute the 'UPDATE/INSERT/DELETE' query
 					else {
 						try {
-							// setAutoCommit
-							connector.connection.setAutoCommit(autoCommit != AUTOCOMMIT_OFF);
+							// We set the auto-commit in function of the SqlTransaction parameter
+							connector.connection.setAutoCommit(autoCommit == AUTOCOMMIT_EACH);
+							
+							// We execute the query
 							nb = preparedStatement.executeUpdate();
 						}
 						// Retry once (should not happens)
@@ -695,15 +710,28 @@ public class SqlTransaction extends TransactionWithVariables {
 								query = prepareQuery(logHiddenValues, sqlQueryInfos);
 								try {
 									nb = preparedStatement.executeUpdate();
-								} catch (Exception e1) {
-									
-									// We rollback if error and if in auto commit false mode
-									if(autoCommit == AUTOCOMMIT_OFF)
-										connector.connection.rollback();
-				
+								} catch (Exception e1) {									
 									// We get the exception error message
 									errorMessageSQL = e1.getMessage();
+									nb = -1;
 									
+									// We rollback if error and if in auto commit false mode
+									if (autoCommit != AUTOCOMMIT_EACH) {
+										try {
+							                connector.connection.rollback();
+
+							                if (Engine.logBeans.isTraceEnabled())
+												Engine.logBeans.trace("(SqlTransaction) An exception occured : Transactions are being rolled back");
+							            } catch(SQLException excep) {
+							            	if (Engine.logBeans.isTraceEnabled()) {
+												// We get the exception error message
+												errorMessageSQL = excep.getMessage();
+							            	}
+							            }										
+										
+										rollbackDone = true;									
+									}
+
 									if (Engine.logBeans.isTraceEnabled())
 										Engine.logBeans.trace("(SqlTransaction) An exception occured :" + errorMessageSQL);
 								}
@@ -729,7 +757,7 @@ public class SqlTransaction extends TransactionWithVariables {
 					
 				// Build XML response
 				Element sql;
-				if (rows != null && errorMessageSQL.equals("")){
+				if ((rows != null) && errorMessageSQL.equals("")){
 					if (xmlOutput == XML_RAW || xmlOutput == XML_FLAT_ELEMENT) {
 						sql = parseResultsFlat(lines, columnHeaders);
 					} else {
@@ -737,7 +765,7 @@ public class SqlTransaction extends TransactionWithVariables {
 					}					
 					
 				//In case of error during the execution of the request we pull up the error node
-				} else if( !errorMessageSQL.equals("")) {
+				} else if (!errorMessageSQL.equals("")) {
 					sql = parseResults(-1);
 				} else {
 					sql = parseResults(nb);
@@ -748,16 +776,22 @@ public class SqlTransaction extends TransactionWithVariables {
 					outputDocumentRootElement.appendChild(sql);
 					score +=1;
 				}
-				if (!errorMessageSQL.equals("")) {
+				
+				if (!errorMessageSQL.equals(""))
 					break;
-				}
-		
 			}
-			// We commit if auto-commit parameter is false
-			if (autoCommit == AUTOCOMMIT_OFF) {
-				connector.connection.commit();
+			
+			// We commit if auto-commit parameter is false			
+			if (!rollbackDone && (autoCommit == AUTOCOMMIT_END)) {
+				try {
+					connector.connection.commit();
+	            } catch(SQLException excep) {
+	            	if (Engine.logBeans.isTraceEnabled()) {
+						// We get the exception error message
+						errorMessageSQL = excep.getMessage();
+	            	}
+	            }										
 			}
-
 		}
 		catch (Exception e) {
 			connector.setData(null,null);
