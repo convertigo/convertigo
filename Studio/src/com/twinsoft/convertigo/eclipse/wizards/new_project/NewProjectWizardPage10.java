@@ -99,7 +99,7 @@ public class NewProjectWizardPage10 extends WizardPage {
 	}
 	
 	private boolean isValidURL() {
-		return wsdlURL.startsWith("http://") || wsdlURL.startsWith("https://") || wsdlURL.startsWith("file://");
+		return wsdlURL.startsWith("http://") || wsdlURL.startsWith("https://") || wsdlURL.startsWith("file:/");
 	}
 	
 	private void dialogChanged() {

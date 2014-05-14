@@ -42,6 +42,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceAuthenticatedComposite;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class NewProjectWizardComposite10 extends Composite {
 	private ModifyListener modifyListener;
@@ -106,8 +107,7 @@ public class NewProjectWizardComposite10 extends Composite {
 					File file = new File(path);
 					if (file.isFile()) {
 						try {
-							String fileUrl = file.toURI().toURL().toString();
-							combo.add(fileUrl.replaceAll("file:/", "file:///"));
+							combo.add(FileUtils.toUriString(file));
 						} catch (MalformedURLException e1) {
 							ConvertigoPlugin.logException(e1, "Unexpected exception");
 						}

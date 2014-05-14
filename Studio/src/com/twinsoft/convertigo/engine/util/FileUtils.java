@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.net.MalformedURLException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -127,5 +128,10 @@ public class FileUtils extends org.apache.commons.io.FileUtils {
 		} finally {
 			if (br != null) br.close();
 		}
+	}
+	
+	public static String toUriString(File file) throws MalformedURLException {
+		String fileUrl = file.toURI().toURL().toString();
+		return fileUrl;
 	}
 }

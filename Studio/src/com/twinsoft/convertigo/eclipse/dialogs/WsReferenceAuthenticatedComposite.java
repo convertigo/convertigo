@@ -45,7 +45,7 @@ public class WsReferenceAuthenticatedComposite extends Composite {
 		this.setLayoutData(data);
 		
 		useAuthentication = new Button(this, SWT.CHECK);
-		useAuthentication.setText("WSDL URL need an authenfication");
+		useAuthentication.setText("URL need an authenfication");
 		useAuthentication.setSelection(false);
 		useAuthentication.setLayoutData(data);
 		

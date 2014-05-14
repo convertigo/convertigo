@@ -40,6 +40,7 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite {
 
@@ -102,8 +103,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 					File file = new File(path);
 					if (file.isFile()) {
 						try {
-							String fileUrl = file.toURI().toURL().toString();
-							combo.add(fileUrl.replaceAll("file:/", "file:///"));
+							combo.add(FileUtils.toUriString(file));
 						} catch (MalformedURLException e1) {
 							ConvertigoPlugin.logException(e1, "Unexpected exception");
 						}

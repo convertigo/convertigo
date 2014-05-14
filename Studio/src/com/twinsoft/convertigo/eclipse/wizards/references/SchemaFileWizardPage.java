@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceAuthenticatedComposite
 import com.twinsoft.convertigo.eclipse.wizards.new_object.ObjectExplorerWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public abstract class SchemaFileWizardPage extends WizardPage {
 	private String[] filterExtension = new String[]{"*.xsd"};
@@ -185,7 +186,7 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 							boolean isExternal = !xsdFilePath.startsWith(projectPath) && !xsdFilePath.startsWith(workspacePath);
 							
 							if (isExternal) {
-								SchemaFileWizardPage.this.url.setText(file.toURI().toURL().toString());
+								SchemaFileWizardPage.this.url.setText(FileUtils.toUriString(file));
 							}
 							else {
 								if (xsdFilePath.startsWith(projectPath))

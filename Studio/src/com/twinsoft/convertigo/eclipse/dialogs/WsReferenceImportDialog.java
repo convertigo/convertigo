@@ -78,7 +78,7 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 			passwordText = ((WsReferenceImportDialogComposite)dialogComposite).passwordText;
 			
 			wsdlURL = combo.getText();
-			if (wsdlURL.startsWith("http://") || wsdlURL.startsWith("https://") || wsdlURL.startsWith("file://")) {
+			if (wsdlURL.startsWith("http://") || wsdlURL.startsWith("https://") || wsdlURL.startsWith("file:/")) {
 				getButton(IDialogConstants.OK_ID).setEnabled(false);
 				getButton(IDialogConstants.CANCEL_ID).setEnabled(false);
 
