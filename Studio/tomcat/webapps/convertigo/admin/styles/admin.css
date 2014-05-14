@@ -1498,9 +1498,11 @@ a.start {
 	-webkit-border-radius: 10px 10px 10px 10px/ 10px 10px 10px 10px;
 	-khtml-border-radius: 10px 10px 10px 10px/ 10px 10px 10px 10px;
 }
-#projectEditPropertyTable {
+
+.projectEditPropertyTable {
 	width: 100%;  
 }
+
 .projectEditorPropertyName {
 	width: 20%; 	
 }

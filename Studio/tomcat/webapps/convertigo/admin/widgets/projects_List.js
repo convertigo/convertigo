@@ -295,10 +295,10 @@ function reloadProject(projectName) {
 
 function editProject(projectName, alertUndefinedSymbol) {
 	//see projectEdit.js
-	if (alertUndefinedSymbol==true) {
+	if (alertUndefinedSymbol) {
 		loadProjectGSymbol(projectName);
 	} else {
 		$("#projectEditUndefinedSymbolsInfo").hide();
-		loadProject(projectName);
 	}
+	loadProject(projectName);
 }

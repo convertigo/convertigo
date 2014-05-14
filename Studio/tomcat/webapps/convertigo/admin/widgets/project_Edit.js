@@ -72,8 +72,6 @@ function loadProjectGSymbol(projectName){
 		}
 	}, 
 	{"projectName":project_Name});
-	
-	loadProject(projectName);
 }
 
 // This variable contains the XML DOM returned by the database_objects.Get service
@@ -132,7 +130,7 @@ function loadProject(projectName) {
 function constructTree($xml, $tree) {
 	var tagName;
 	var displayName;
-	var img;		
+	var img;
 	var treeCategories=new Array();	
 	// for each element of project.Get
 	$xml.children("*").each(function() {
@@ -180,10 +178,9 @@ function loadElement(elementQName, $treeitem) {
 
 	callService("database_objects.Get", function(xml) {
 
-		var $projectEditObjectPropertiesListTable=$("#projectEditPropertyTable-template").clone();
-		$projectEditObjectPropertiesListTable.attr("id","projectEditPropertyTable");		
+		var $projectEditObjectPropertiesListTable = $("#projectEditTemplate .projectEditPropertyTable").clone();	
 		var $xml = $(xml);
-		var caroleOdd=true;
+		var caroleOdd = true;
 		$projectEditObjectPropertiesListTable.find(".projectEditObjectType").text($xml.find("admin > *").first().attr("displayName"));		
 		$projectEditObjectPropertiesListTable.find(".projectEditObjectVersion").text($xml.find("admin > *").first().attr("version"));
 		$projectEditObjectPropertiesListTable.find(".projectEditObjectName").text($xml.find("property[name=name] > *").first().attr("value"));
@@ -192,11 +189,11 @@ function loadElement(elementQName, $treeitem) {
 		$xml.find("property[isHidden!=true]").each(
 				function() {					
 					var $propertyLine_xml;					
-					$propertyLine_xml = $("#projectEdit-template").find(".projectEdit-propertyLine").first().clone();
+					$propertyLine_xml = $("#projectEditTemplate .projectEdit-propertyLine").clone();
 					if(caroleOdd)
-						$propertyLine_xml.attr("class","main_odd");
+						$propertyLine_xml.attr("class", "main_odd");
 					else{
-						$propertyLine_xml.attr("class","main_even");
+						$propertyLine_xml.attr("class", "main_even");
 					}
 					caroleOdd =! caroleOdd;					
 					var short_description = 
@@ -240,12 +237,7 @@ function loadElement(elementQName, $treeitem) {
 		
 		$("#projectEditObjectPropertiesList").html($projectEditObjectPropertiesListTable);		
 		$("input[type=checkbox]").click(function() {
-			if($(this).attr("value")=="true") {
-				$(this).attr("value", "false");
-			} else {
-				$(this).attr("value", "true");
-			}
-			$(this).prop("checked");
+			$(this).attr("value", "" + $(this).prop("checked"));
 		});
 		$(".projectEditorPropertyHelpIcon > img").click(function(){
 			showInfo($(this).data("long_description"));
@@ -313,8 +305,8 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 			
 			
 		} else if ($possibleValues.length > 0){			
-			$responseField=getInputCopyOf("projectEditInput-combo");
-			$option=$responseField.find("option").clone();
+			$responseField = getInputCopyOf("projectEditInputCombo");
+			$option = $responseField.find("option").clone();
 			$responseField.children().remove();
 			var i = 0;
 			$possibleValues.find("value").each(function(){
@@ -329,16 +321,16 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 		} else {
 			
 			if (propertyJavaClassName == "java.lang.Boolean") {				
-				$responseField=getInputCopyOf("projectEditInput-checkbox");	
+				$responseField=getInputCopyOf("projectEditInputCheckbox");	
 				if ($xmlPropertyValue.attr("value") == "true"){
 					$responseField.prop("checked", true);
 				}
 			}else{
 				if ($xmlProperty.attr("isMasked") == "true") {
-					$responseField=$("#projectEditInput-password").clone();
+					$responseField= $("#projectEditTemplate .projectEditInputPassword").clone();
 				}
 				else {
-					$responseField=$("#projectEditInput-text").clone();
+					$responseField= $("#projectEditTemplate .projectEditInputText").clone();
 				}
 			}
 							
@@ -371,8 +363,7 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 }
 
 function getInputCopyOf(inputId){	
-	$response=$("#"+inputId).clone();
-	$response.removeAttr("id");
+	$response = $("#projectEditTemplate ." + inputId).clone();
 	return $response;
 }
 
