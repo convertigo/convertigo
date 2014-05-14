@@ -171,6 +171,7 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 	private Element getSoapBodyResponseElement(Element element) {
 		NodeList childNodes = element.getChildNodes();
 		int len = childNodes.getLength();
+		Element soapBody = null;
 		Node node;
         for (int i = 0 ; i < len ; i++) {
         	node = childNodes.item(i);
@@ -178,12 +179,15 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
         		String ename = ((Element)node).getNodeName().toUpperCase();
 				if ((ename.indexOf("SOAPENV:") != -1) || (ename.indexOf("SOAP-ENV:") != -1) || (ename.indexOf("SOAP:") != -1)) {
 					if (ename.indexOf(":BODY") != -1) {
-						return ((Element)node);
-					} else
-						continue;
+						soapBody = ((Element)node);
+					} else {
+						soapBody = getSoapBodyResponseElement((Element)node);
+					}
 				}
         	}
-			return getSoapBodyResponseElement((Element)node);
+        	if (soapBody != null) {
+        		return soapBody;
+        	}
         }
         return null;
 	}
