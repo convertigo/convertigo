@@ -196,7 +196,7 @@ function projectsDeploy(xml) {
 			action : "services/projects.Deploy",			
 			responseType : "xml",		
 			onSubmit : function(file, ext) {			
-				this._settings.action = "services/projects.Deploy?bAssembleXsl=" + $("#projectsAssembleXsl").is(":checked");
+				this._settings.action = "services/projects.Deploy?bAssembleXsl=" + $("#projectsAssembleXsl").prop("checked");
 				var str = ".car";
 				if (file.match(str + "$") != str) {
 					showError("<p>The project '" + file + "' is not a valid archive (*.car)</p>");

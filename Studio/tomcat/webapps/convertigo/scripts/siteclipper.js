@@ -29,9 +29,9 @@ $(window).ready(function () {
 				$(postInstruction.path).val(postInstruction.value);
 			} else if (type == "SetChecked") {
 				if (postInstruction.checked) {
-					$(postInstruction.path).attr("checked", "checked");
+					$(postInstruction.path).prop("checked", true);
 				} else {
-					$(postInstruction.path).removeAttr("checked");
+					$(postInstruction.path).prop("checked", false);
 				}
 			} else if (type == "Click") {
 				$(postInstruction.path).click();

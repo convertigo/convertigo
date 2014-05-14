@@ -412,21 +412,21 @@ function UpdateAuthAndUser($line){
 		 if(virtualServeur!=undefined){					 
 			 
 			 if(imputationGroup.length<=0 || imputationGroup==VIRTUAL_SERVER_MESSAGE){
-				 $line.find("td[aria-describedby='certificatesUserMappings_user'] > input").attr("disabled","true").val(GROUP_MESSAGE);
+				 $line.find("td[aria-describedby='certificatesUserMappings_user'] > input").prop("disabled", true).val(GROUP_MESSAGE);
 			 }
 			 else{
 				 $cell=$line.find("td[aria-describedby='certificatesUserMappings_user'] > input");
-				 $cell.removeAttr("disabled");
+				 $cell.prop("disabled", false);
 				 val= $cell.val();
 				 if(val==GROUP_MESSAGE)
 					 $cell.val("");
 			 }
 			 if(virtualServeur.length<=0){
-				 $line.find("td[aria-describedby='certificatesUserMappings_authorizationGroup'] > input").attr("disabled","true").val(VIRTUAL_SERVER_MESSAGE);
+				 $line.find("td[aria-describedby='certificatesUserMappings_authorizationGroup'] > input").prop("disabled", true).val(VIRTUAL_SERVER_MESSAGE);
 			 }else{				
 				 
 				 $cell=$line.find("td[aria-describedby='certificatesUserMappings_authorizationGroup'] > input");
-				 $cell.removeAttr("disabled");
+				 $cell.prop("disabled", false);
 				 val= $cell.val();
 				 if(val==VIRTUAL_SERVER_MESSAGE)
 					 $cell.val("");

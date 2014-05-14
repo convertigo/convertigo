@@ -79,7 +79,7 @@ $(window).ready(function() {
 	initWidgetContainer();
 
 	$("select").on("mousewheel", {fn: function (delta) {
-		if (!$(this).attr("disabled")) {
+		if (!$(this).prop("disabled")) {
 			var index = this.selectedIndex + delta;
 			if (0 <= index && index < this.length) {
 				this.selectedIndex = index;

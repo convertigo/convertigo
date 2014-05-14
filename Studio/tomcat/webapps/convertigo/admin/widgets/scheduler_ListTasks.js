@@ -221,11 +221,11 @@ function scheduler_ListTasks_init () {
 				});
 				
 				if ($last_element_xml !== null) {
-					$requestableParameters.find("input[type=checkbox]").attr("checked", null);
+					$requestableParameters.find("input[type=checkbox]").prop("checked", false);
 					$last_element_xml.find(">parameter").each(function () {
 						var $input = $requestableParameters.find("input[name=requestable_parameter_" + $(this).attr("name") + "]");
 						$input.val($(this).text());
-						$input.closest("tr").find("input[type=checkbox]").attr("checked", "checked");
+						$input.closest("tr").find("input[type=checkbox]").prop("checked", true);
 					});
 				}
 				
@@ -276,9 +276,9 @@ function scheduler_ListTasks_init () {
 function display_editor (optTitle, id) {
 	$(".schedulerNewScheduledJob:first").parent().children().add("#schedulerCronWizard").hide();
 	if (id === "schedulerNewScheduledJob") {
-		$("#schedulerDialogNameField").attr("disabled", "disabled");
+		$("#schedulerDialogNameField").prop("disabled", true);
 	} else {
-		$("#schedulerDialogNameField").removeAttr("disabled");
+		$("#schedulerDialogNameField").prop("disabled", false);
 	}
 	//activate the variable part
 	$("." + id).show();	
@@ -363,9 +363,9 @@ function fillDialog ($element_xml) {
 			var $input = $("#schedulerDialogAddEntry *[name=" + key + "]");
 			if ($input.is("[type=checkbox]")) {
 				if ("true" === attr) {
-					$input.attr("checked", "checked");
+					$input.prop("checked", true);
 				} else {
-					$input.removeAttr("checked");
+					$input.prop("checked", false);
 				}
 			} else {
 				$input.val(attr).change();	
@@ -392,9 +392,9 @@ function saveElement () {
 			var $param = $(this);
 			var name = $param.attr("name");
 			if ($param.is("[type=checkbox]")) {
-				params[name] = $param.is(":checked");
+				params[name] = $param.prop("checked");
 			} else {
-				if (name.indexOf("requestable_parameter_") === 0 && !$param.closest("tr").find("input[type=checkbox]").is(":checked")) {
+				if (name.indexOf("requestable_parameter_") === 0 && !$param.closest("tr").find("input[type=checkbox]").prop("checked")) {
 					// ignore parameter not "send"
 				} else {
 					params[name] = $param.val();

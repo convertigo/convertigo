@@ -204,10 +204,10 @@ function onLogDivTableScroll() {
 }
 
 function onLogOptionsRealTimeClick() {
-	bRealTime = this.checked;
+	bRealTime = $(this).prop("checked");
 	$("#logOptionsDivDate").fadeToggle();
 	if (bRealTime) {
-		$("#logOptionsRealTimeAutoScroll").button("enable").attr("checked", "checked").button("refresh");
+		$("#logOptionsRealTimeAutoScroll").button("enable").prop("checked", true).button("refresh");
 		onLogOptionsRealTimeAutoScrollClick();
 		
 		$("#logOptionsUpdate").button("disable");
@@ -217,7 +217,7 @@ function onLogOptionsRealTimeClick() {
 		getLines();
 	}
 	else {
-		$("#logOptionsRealTimeAutoScroll").button("disable").removeAttr("checked").button("refresh");
+		$("#logOptionsRealTimeAutoScroll").button("disable").prop("checked", false).button("refresh");
 		$("#logOptionsUpdate").button("enable");
 		$("#logOptionsGoToEnd").button("enable");
 	}
@@ -229,7 +229,7 @@ function onLogOptionsUpdateClick() {
 }
 
 function onLogOptionsRealTimeAutoScrollClick() {
-	realtimeAutoScroll = $("#logOptionsRealTimeAutoScroll").attr("checked") == "checked";
+	realtimeAutoScroll = $("#logOptionsRealTimeAutoScroll").prop("checked");
 }
 
 function onLogOptionsFullScreenClick() {
@@ -391,10 +391,10 @@ function toggleColumnVisibility(columnName) {
 }
 
 function resetOptions() {
-	$(".log-reset-to-checked").attr("checked", "checked");
-	$(".log-reset-to-unchecked").removeAttr("checked");
+	$(".log-reset-to-checked").prop("checked", true);
+	$(".log-reset-to-unchecked").prop("checked", false);
 	
-	$("#logOptionsRealTimeAutoScroll").removeAttr("checked").button("disable").button("refresh");
+	$("#logOptionsRealTimeAutoScroll").prop("checked", false).button("disable").button("refresh");
 	$("#logOptionsDivDate:not(:visible)").fadeToggle();
 	if ($(".log-column-level:visible").length > 0) {
 		toggleColumnVisibility("level");

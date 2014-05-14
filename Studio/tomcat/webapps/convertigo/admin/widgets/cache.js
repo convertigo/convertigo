@@ -24,15 +24,15 @@ function cache_update(){
 	callService("cache.ShowProperties", function(xml){
 		
 		$(xml).find("cacheType").each(function() {			
-			$("input[name=cacheType]").removeAttr("checked");
+			$("input[name=cacheType]").prop("checked", false);
 			
 			var  n=$(this).parent().find("*").length;					
 			if(n>1){//database			
-				$("#cacheTypeRadioDatabase").attr("checked","checked");
+				$("#cacheTypeRadioDatabase").prop("checked", true);
 				$("#cacheConfigurationDiv").show();		
 			}
 			else{//file			
-				$("#cacheTypeRadioFile").attr("checked","checked");
+				$("#cacheTypeRadioFile").prop("checked", true);
 				$("#cacheConfigurationDiv").hide();
 			
 			}

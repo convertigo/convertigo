@@ -148,7 +148,7 @@ function configuration_List_init () {
 				case "Boolean":
 					$property_value = $property.find(".config-checkbox:first");
 					if (originalValue === "true") {
-						$property_value.attr("checked", "checked");
+						$property_value.prop("checked", true);
 					}
 					break;
 				case "Array":
@@ -219,7 +219,7 @@ function configuration_List_init () {
 		});
 
 		$('input.config-checkbox').change(function () {
-			changeProperty($(this).attr("name"), $(this).is(':checked') ? "true" : "false");
+			changeProperty($(this).attr("name"), $(this).prop("checked") ? "true" : "false");
 		});
 
 		$("form.config-update-form").submit(function () {

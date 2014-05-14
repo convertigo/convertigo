@@ -331,7 +331,7 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 			if (propertyJavaClassName == "java.lang.Boolean") {				
 				$responseField=getInputCopyOf("projectEditInput-checkbox");	
 				if ($xmlPropertyValue.attr("value") == "true"){
-					$responseField.prop("checked",true);
+					$responseField.prop("checked", true);
 				}
 			}else{
 				if ($xmlProperty.attr("isMasked") == "true") {
@@ -345,12 +345,12 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 			$responseField.attr("value",value).data("propertyName",propertyName);	
 
 			if (propertyEditor != "null" && propertyEditor != "TextEditor") {
-				$responseField.attr("disabled","disabled");
+				$responseField.prop("disabled", true);
 			}
 			else {				
 				$responseField.attr("class","projectEdit-form-item");
-				if ($responseField.attr("disabled")) {
-					$responseField.removeAttr( "disabled" );
+				if ($responseField.prop("disabled")) {
+					$responseField.prop("disabled", false);
 				}
 			}				
 			
@@ -359,7 +359,7 @@ function addPropertyContent(propertyName, propertyEditor, $xmlPropertyValue, $xm
 			$responseField.attr("title",$xmlPropertyValue.attr("compiledValue"));
 		}
 		if ($xmlProperty.attr("blackListed")) {			
-			$responseField.attr("disabled","disabled");
+			$responseField.prop("disabled", true);
 		}
 		$propertyContent.append($responseField);
 		if ($xmlPropertyValue.attr('compiledValue') != undefined) {

@@ -371,29 +371,29 @@ function copyVariables($testcase) {
 			} else {
 				$variable.find(".variable_value").val(value);
 			}
-			variableEnableCheck($variable.find(".variable_enable").attr("checked", "checked"));
+			variableEnableCheck($variable.find(".variable_enable").prop("checked", true));
 		} else {
-			variableEnableCheck($variable.find(".variable_enable").removeAttr("checked"));
+			variableEnableCheck($variable.find(".variable_enable").prop("checked", false));
 		}
 	});
 	$requestable.find("a.requestable_link").each(setLinkForRequestable);
 }
 
 function variableEnableCheck($check) {
-	if ($check.attr("checked")) {
-		$check.parent().prev().find(".variable_value").removeAttr("disabled");
+	if ($check.prop("checked")) {
+		$check.parent().prev().find(".variable_value").prop("disabled", false);
 	} else {
-		$check.parent().prev().find(".variable_value").attr("disabled", "disabled");
+		$check.parent().prev().find(".variable_value").prop("disabled", true);
 	}
 }
 
 function isC8oCall() {
 	var $c8o_call = $("#check_mode_c8o_call");
-	return !$c8o_call.attr("disabled") && $c8o_call.attr("checked");
+	return !$c8o_call.prop("disabled") && $c8o_call.prop("checked");
 }
 
 function isFullscreen() {
-	return $('#check_mode_fullscreen').attr("checked");
+	return $('#check_mode_fullscreen').prop("checked");
 }
 
 function getRequester() {
