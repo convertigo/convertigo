@@ -606,10 +606,22 @@ $(document).ready(function() {
 				
 			$("#main .btn_build").click(function() {
 				var currentEndpoint = getCurrentEndpoint();
-				if( currentEndpoint.indexOf("localhost") == -1 ){
+				var localIpFound = "";
+				if( currentEndpoint.indexOf("localhost") != -1) 
+					localIpFound = "localhost";
+				if( currentEndpoint.indexOf("127.0.0.1") != -1) 
+					localIpFound = "127.0.0.1";
+				
+				if(localIpFound != ""){
+					alert("You will not be able to test your application on a mobile device with a Convertigo endpoint pointing to \"" + localIpFound +"\".\n\n" +
+							"You have to configure your mobile application's endpoint to the URL of your Convertigo, accessible from your device (Intranet or Internet).\n\n" +
+							"To do so, in the mobile project, edit the \"Convertigo Server endpoint\" property of the \"Mobile application\".\n\n" +
+							"It should contain a URL of the following form: \n" +
+							"http://<your convertigo ip or dns>:<port>/convertigo \n" +
+							"or \n" +
+							"https://<your cloud name>.convertigo.net/cems \n");
+				} else {
 					launchPhoneGapBuild($(this).parents(".platform:first"));
-				}else{
-					alert("The Convertigo endpoint enabling the mobile app to access Convertigo server points to \"localhost\".\n\n You will not be able to test your application on a mobile device unless you configure the endpoint in the projects's\n->Mobile_Application->Convertigo Server Endpoint to your Studio's endpoint. \n\n(http://<your studio ip or dns>:18080/convertigo)\n");
 				}
 				return false;
 			});
