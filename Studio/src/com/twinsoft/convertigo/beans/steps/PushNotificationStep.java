@@ -60,16 +60,28 @@ public class PushNotificationStep extends Step implements IStepSourceContainer, 
 	private String certificatePassword = "\"<your .p12 certificate password>\"";
 	private String apnsNotificationType = "Message";
 	private String GCMApiKey = "\"<configure your api key here>\"";
+	private int    AndroidTimeToLive = 3600;
 	
+
 	private transient StepSource source = null;
 	private transient StepSource tokenSource = null;
 	private transient String     sClientCertificate;
 	private transient String     sCertificatePassword;
 	private transient String     sPayload;
 	private transient String 	 sGCMApiKey;
+
 	
 	public PushNotificationStep() {
 		super();
+	}
+
+	
+	public int getAndroidTimeToLive() {
+		return AndroidTimeToLive;
+	}
+
+	public void setAndroidTimeToLive(int androidTimeToLive) {
+		AndroidTimeToLive = androidTimeToLive;
 	}
 
 	protected StepSource getSource() {
@@ -207,7 +219,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer, 
 				// use this line to send message with payload data 
 				Message message = new Message.Builder() 
 										.collapseKey("1") 
-										.timeToLive(3600)
+										.timeToLive(AndroidTimeToLive)
 										.delayWhileIdle(true) 
 										.addData("message", sPayload) 
 										.build(); 

@@ -41,7 +41,7 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[6];
+			properties = new PropertyDescriptor[7];
 			
 			properties[0] = new PropertyDescriptor("token", beanClass, "getTokens", "setTokens");
             properties[0].setDisplayName(getExternalizedString("property.token.display_name"));
@@ -75,7 +75,15 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
 			properties[5].setDisplayName(getExternalizedString("property.sourceDefinition.display_name"));
 			properties[5].setShortDescription(getExternalizedString("property.sourceDefinition.short_description"));
 			properties[5].setPropertyEditorClass(getEditorClass("StepSourceEditor"));
-            
+
+			properties[6] = new PropertyDescriptor("androidTimeToLive", beanClass, "getAndroidTimeToLive", "setAndroidTimeToLive");
+			properties[6].setExpert(false);
+			properties[6].setDisplayName(getExternalizedString("property.androidTimeToLive.display_name"));
+			properties[6].setShortDescription(getExternalizedString("property.androidTimeToLive.short_description"));
+            properties[6].setValue("scriptable", Boolean.TRUE);
+			
+			
+			
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
