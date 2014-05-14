@@ -175,7 +175,7 @@ public class LaunchBuild extends XmlService {
 			String sResult = IOUtils.toString(method.getResponseBodyAsStream(), "UTF-8");
 			
 			if (methodStatusCode != HttpStatus.SC_OK) {
-				throw new ServiceException("Unable to build application '" + finalApplicationName + "'; reason: " + sResult);
+				throw new ServiceException("Unable to build application '" + finalApplicationName + "'.\n" + sResult);
 			}
 			
 			JSONObject jsonObject = new JSONObject(sResult);

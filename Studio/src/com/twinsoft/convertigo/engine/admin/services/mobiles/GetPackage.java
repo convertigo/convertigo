@@ -104,7 +104,7 @@ public class GetPackage extends DownloadService {
 			if (methodStatusCode != HttpStatus.SC_OK) {
 				byte[] httpBytes = IOUtils.toByteArray(methodBodyContentInputStream);
 				String sResult = new String(httpBytes, "UTF-8");
-				throw new ServiceException("Unable to get package for project '" + project + "' (final app name: '" + finalApplicationName + "'); reason: " + sResult);
+				throw new ServiceException("Unable to get package for project '" + project + "' (final app name: '" + finalApplicationName + "').\n" + sResult);
 			}
 
 			try {

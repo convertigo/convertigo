@@ -99,7 +99,7 @@ public class GetBuildStatus extends XmlService {
 
 			if (methodStatusCode != HttpStatus.SC_OK) {
 				throw new ServiceException("Unable to get building status for application '" + project
-						+ "' (final app name: '" + mobileApplication.getComputedApplicationName() + "'); reason: " + sResult);
+						+ "' (final app name: '" + mobileApplication.getComputedApplicationName() + "').\n" + sResult);
 			}
 
 			jsonResult = new JSONObject(sResult);
