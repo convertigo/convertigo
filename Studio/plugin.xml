@@ -504,6 +504,16 @@
              project="true">
           <description>Imports a vacation management mobile application sample project. The project is based on jQuery Mobile and CTF frameworks, and uses fake data from XML files in the project loaded thanks to a sequence.</description>
        </wizard>
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobileLocalCacheWizard"
+             icon="icons/studio/demo_localCache_color_32x32.png"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobileLocalCacheWizard"
+             name="Local cache sample project"
+             preferredPerspectives="convertigo"
+             project="true">
+          <description>Imports a mobile sample project similar to the Searching conference rooms mobile sample project but which includes local cache feature. When the mobile application receives a response from Convertigo, it is cached locally thanks to JavaScript code. When the mobile application cannot reach Convertigo, or cannot access the network, the local data are used.</description>
+       </wizard>
        
 <!-- HelloWorld sample project -->
        <wizard
