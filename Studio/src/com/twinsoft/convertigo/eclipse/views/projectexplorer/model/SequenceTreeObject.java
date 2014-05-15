@@ -22,9 +22,7 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -68,7 +66,9 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 	@Override
 	protected void remove() {
 		super.remove();
-		getObject().loadedProjects.clear();
+		synchronized (getObject().loadedProjects) {
+			getObject().loadedProjects.clear();
+		}
 	}
 	
 	@Override
@@ -124,11 +124,7 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 		TreeParent invisibleRoot = ((ViewContentProvider)((TreeViewer)viewer).getContentProvider()).getTreeRoot();
 		Sequence sequence = getObject();
 		
-		List<String> list = new ArrayList<String>();
-		Enumeration<String> names = sequence.getLoadedProjectNames();
-		while (names.hasMoreElements()) {
-			list.add(names.nextElement());
-		}
+		Set<String> loadedProject = sequence.getLoadedProjectNames();
 		
 		for (TreeObject treeObject : invisibleRoot.getChildren()) {
 			if (treeObject instanceof ProjectTreeObject) {
@@ -139,11 +135,12 @@ public class SequenceTreeObject extends DatabaseObjectTreeObject implements IEdi
 				sequence.removeLoaded(((UnloadedProjectTreeObject)treeObject).getName());
 			}
 			
-			if (list.contains(treeObject.getName()))
-				list.remove(treeObject.getName());
+			if (loadedProject.contains(treeObject.getName())) {
+				loadedProject.remove(treeObject.getName());
+			}
 		}
 		
-		for (String projectName: list) {
+		for (String projectName: loadedProject) {
 			sequence.removeLoaded(projectName);
 		}
 	}

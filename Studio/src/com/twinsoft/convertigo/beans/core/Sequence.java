@@ -27,11 +27,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.event.EventListenerList;
@@ -574,42 +576,47 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	vAllSteps = null;
     }
     
-    public Enumeration<String> getLoadedProjectNames() {
-    	return loadedProjects.keys();
+    public Set<String> getLoadedProjectNames() {
+    	synchronized (loadedProjects) {
+        	return new HashSet<String>(loadedProjects.keySet());			
+		}
     }
     
 	public Project getLoadedProject(String projectName) throws EngineException {
 		Project project = getProject();
 		
-		if (Engine.isStudioMode() || (Engine.isEngineMode() && loadedProjects.isEmpty()))
-			loadedProjects.put(project.getName(), project);
-		
-		Project loadedProject = (Project) loadedProjects.get(projectName);
-		if (loadedProject != null) {
-			Engine.logBeans.trace("Current project name : " + project + ", requested projectName :" + projectName + " already loaded");
+		synchronized (loadedProjects) {
+			if (Engine.isStudioMode() || (Engine.isEngineMode() && loadedProjects.isEmpty()))
+				loadedProjects.put(project.getName(), project);
+			
+			Project loadedProject = (Project) loadedProjects.get(projectName);
+			if (loadedProject != null) {
+				Engine.logBeans.trace("Current project name : " + project + ", requested projectName :" + projectName + " already loaded");
+			}
+			else {
+				Engine.logBeans.trace("Current project name : " + project + ", loading requested projectName :" + projectName);
+				loadedProject = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
+				loadedProjects.put(projectName, loadedProject);
+			}
+			return loadedProject;
 		}
-		else {
-			Engine.logBeans.trace("Current project name : " + project + ", loading requested projectName :" + projectName);
-			loadedProject = Engine.theApp.databaseObjectsManager.getProjectByName(projectName);
-			loadedProjects.put(projectName, loadedProject);
-		}
-		return loadedProject;
 	}
     
 	public void setLoadedProject(Project project) {
 		if (project != null) {
 			String projectName = project.getName();
-			Project p = (Project)loadedProjects.get(projectName);
-			if ((p == null) || ((p != null) && (!p.equals(project)))) {
-				loadedProjects.put(projectName, project);
-				Engine.logBeans.trace("Updated sequence '"+getName()+"' with project "+ projectName +"("+project.hashCode()+")");
+			synchronized (loadedProjects) {
+				Project p = (Project)loadedProjects.get(projectName);
+				if ((p == null) || ((p != null) && (!p.equals(project)))) {
+					loadedProjects.put(projectName, project);
+					Engine.logBeans.trace("Updated sequence '"+getName()+"' with project "+ projectName +"("+project.hashCode()+")");
+				}
 			}
 		}
 	}
 	
 	public void removeLoaded(String projectName) {
-		Project p = (Project)loadedProjects.get(projectName);
-		if (p != null) {
+		synchronized (loadedProjects) {
 			loadedProjects.remove(projectName);
 		}
 	}
@@ -1176,7 +1183,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	}
     	if (loadedProjects != null) {
     		if (Engine.isEngineMode()) {
-    			loadedProjects.clear();
+    			synchronized (loadedProjects) {
+    				loadedProjects.clear();
+    			}
     		}
     	}
     	stepHttpState = null;
