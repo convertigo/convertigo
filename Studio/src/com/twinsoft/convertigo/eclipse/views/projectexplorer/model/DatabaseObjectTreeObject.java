@@ -711,7 +711,7 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 				do {
 					changed = false;
 					boolean wasSymbolError = databaseObject.isSymbolError();
-					value = databaseObject.compileProperty(propertyClass, propertyName, value, oldValue);
+					value = databaseObject.compileProperty(propertyClass, propertyName, value);
 					
 					try {
 						oldValue = Engine.theApp.databaseObjectsManager.getCompiledValue(oldValue);
@@ -955,14 +955,8 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 		}
 		return treeObject;
 	}
-
-	@Override
-	public TreeObject findTreeObjectByUserObjectQName(String databaseObjectQName) {
-		if (databaseObjectQName != null && (!isInherited) && (getObject().getQName().equals(databaseObjectQName)))
-			return this;
-		return null;
-	}
 	
+	@Override
 	public boolean testAttribute(Object target, String name, String value) {
 		if (name.equals("isStatementWithExpressions")) {
 			DatabaseObject databaseObject = getObject();

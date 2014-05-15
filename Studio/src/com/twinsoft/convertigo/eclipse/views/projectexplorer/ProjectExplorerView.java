@@ -2067,28 +2067,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		return null;
 	}
 	
-	public DatabaseObjectTreeObject findTreeObjectByUserObjectQName(String databaseObjectQName) {
-		DatabaseObjectTreeObject databaseTreeObject = null;
-		ViewContentProvider provider = (ViewContentProvider)viewer.getContentProvider();
-		if (provider != null) {
-			Object[] objects = provider.getElements(getViewSite());
-			for (int i=0; i<objects.length; i++) {
-				TreeObject treeObject = (TreeObject)objects[i];
-				if (treeObject instanceof ProjectTreeObject) {
-					Project project = (Project)treeObject.getObject();
-					if (project.getQName().equals(databaseObjectQName)) {
-						databaseTreeObject = (ProjectTreeObject)treeObject;
-						break;
-					}
-					else {
-						databaseTreeObject = (DatabaseObjectTreeObject)((ProjectTreeObject)treeObject).findTreeObjectByUserObjectQName(databaseObjectQName);
-					}
-				}
-			}
-		}
-		return databaseTreeObject;
-	}
-	
 	public static int getTreeObjectType(TreePath path) {
 		TreeObject treeNode = (TreeObject)path.getLastPathComponent();
 		return getTreeObjectType(treeNode);

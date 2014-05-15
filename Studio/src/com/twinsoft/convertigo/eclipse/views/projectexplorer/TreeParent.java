@@ -27,7 +27,6 @@ import java.util.List;
 
 import org.eclipse.jface.viewers.Viewer;
 
-import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -121,27 +120,6 @@ public abstract class TreeParent extends TreeObject {
 				for(TreeObject child :getChildren()){
 					if (child instanceof TreeParent) {
 						treeObject = ((TreeParent)child).findTreeObjectByUserObject(databaseObject);
-						if (treeObject != null)
-							break;
-					}
-				}
-			}
-		}
-		return treeObject;
-	}
-	
-	public TreeObject findTreeObjectByUserObjectQName(String databaseObjectQName) {
-		TreeObject treeObject = null;
-		if (databaseObjectQName != null) {
-			if (getObject() instanceof DatabaseObject) {
-				DatabaseObject databaseObject = (DatabaseObject)getObject();
-				if (databaseObject.getQName().equals(databaseObjectQName))
-					treeObject = this;
-			}
-			else {
-				for(TreeObject child :getChildren()){
-					if (child instanceof TreeParent) {
-						treeObject = ((TreeParent)child).findTreeObjectByUserObjectQName(databaseObjectQName);
 						if (treeObject != null)
 							break;
 					}

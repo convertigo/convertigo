@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
@@ -762,7 +763,7 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 					} catch (Exception e) {
 					}
 
-					propertyObjectValue = databaseObject.compileProperty(propertyType, propertyName, propertyObjectValue, null);
+					propertyObjectValue = databaseObject.compileProperty(propertyType, propertyName, propertyObjectValue);
 					propertyValue = propertyObjectValue.toString();
 					
 					Method setter = pd.getWriteMethod();
@@ -818,15 +819,14 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		return databaseObject;
 	}
 	
-	public Object compileProperty(String propertyName, Object propertyObjectValue, Object propertyObjectCompiledValue) {
-		return compileProperty(String.class, propertyName, propertyObjectValue, propertyObjectCompiledValue);
+	public Object compileProperty(String propertyName, Object propertyObjectValue) {
+		return compileProperty(String.class, propertyName, propertyObjectValue);
 	}
 
-	public Object compileProperty(Class<?> propertyType, String propertyName, Object propertyObjectValue, Object propertyObjectOldValue) {
+	public Object compileProperty(Class<?> propertyType, String propertyName, Object propertyObjectValue) {
 		Object compiled;
 		try {
 			compiled = Engine.theApp.databaseObjectsManager.getCompiledValue(propertyObjectValue);
-			removeCompilablePropertySourceValue(propertyName);
 			removeSymbolError(propertyName);
 		} catch (UndefinedSymbolsException e) {
 			addSymbolError(propertyName, e.undefinedSymbols());
@@ -836,6 +836,8 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 		if (compiled != propertyObjectValue) {
 			setCompilablePropertySourceValue(propertyName, propertyObjectValue);
 			propertyObjectValue = compiled;
+		} else {
+			removeCompilablePropertySourceValue(propertyName);
 		}
 
 		propertyType = ClassUtils.primitiveToWrapper(propertyType);
@@ -1098,5 +1100,19 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	
 	public Set<String> getSymbolsErrors(String parameterName) {
 		return symbolsErrors == null ? null : symbolsErrors.get(parameterName);
+	}
+	
+	public void updateSymbols() throws Exception {
+		if (!compilablePropertySourceValuesMap.isEmpty()) {
+			PropertyDescriptor[] propertyDescriptors = CachedIntrospector.getBeanInfo(getClass()).getPropertyDescriptors();
+			for (Entry<String, Object> propertySource : compilablePropertySourceValuesMap.entrySet()) {
+				String propertyName = propertySource.getKey();
+				Object propertyValue = propertySource.getValue();
+				PropertyDescriptor propertyDescriptor = findPropertyDescriptor(propertyDescriptors, propertyName);
+				Class<?> propertyType = propertyDescriptor.getPropertyType();
+				Object newValue = compileProperty(propertyType, propertyName, propertyValue);
+				propertyDescriptor.getWriteMethod().invoke(this, newValue);
+			}
+		}
 	}
 }

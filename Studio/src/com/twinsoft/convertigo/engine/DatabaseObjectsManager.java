@@ -107,7 +107,6 @@ public class DatabaseObjectsManager implements AbstractManager {
 	
 	private Map<String, Project> projects;
 	
-	//
 	private String globalSymbolsFilePath = null;
 	/**
 	 * The symbols repository for compiling text properties.
@@ -1432,14 +1431,18 @@ public class DatabaseObjectsManager implements AbstractManager {
 	private void symbolsLoad(Properties map) {		
 		// Enumeration of the properties
 		Enumeration<String> propsEnum = GenericUtils.cast(map.propertyNames());
-
+		boolean needUpdate = false;
 		while (propsEnum.hasMoreElements()) {
 			String propertyName = propsEnum.nextElement();
 			try {
 				symbolsAdd(propertyName, map.getProperty(propertyName, ""));
+				needUpdate = true;
 			} catch (Exception e) {
 				Engine.logEngine.info("Don't add invalid symbol '" + propertyName + "'", e);
 			}
+		}
+		if (needUpdate) {
+			symbolsUpdated();
 		}
 	}
 	
@@ -1473,15 +1476,33 @@ public class DatabaseObjectsManager implements AbstractManager {
 			symbolsProperties.store(new FileOutputStream(globalSymbolsFilePath), "global symbols");
 		} catch (Exception e) {
 			Engine.logEngine.error("Failed to store symbols!", e);
-		}		
-		synchronized (projects) {
-			projects.clear();
+		}
+		
+		for (Project project : projects.values()) {
+			getProjectLoadingData().undefinedGlobalSymbol = false;
+			try {
+				new WalkHelper() {
+
+					@Override
+					protected void walk(DatabaseObject databaseObject) throws Exception {
+						databaseObject.updateSymbols();
+						super.walk(databaseObject);
+					}
+					
+				}.init(project);
+			} catch (Exception e) {
+				Engine.logDatabaseObjectManager.error("Failed to update symbols of '" + project.getName() + "' project.", e);
+			}
+			project.undefinedGlobalSymbols = getProjectLoadingData().undefinedGlobalSymbol;
 		}
 	}
 	
 	public void symbolsCreateUndefined(Set<String> symbolsUndefined) throws Exception {
-		for (String symbolUndefined : symbolsUndefined) {
-			symbolsAdd(symbolUndefined, "");
+		if (!symbolsUndefined.isEmpty()) {
+			for (String symbolUndefined : symbolsUndefined) {
+				symbolsAdd(symbolUndefined, "", false);
+			}
+			symbolsUpdated();
 		}
 	}
 	
@@ -1501,7 +1522,7 @@ public class DatabaseObjectsManager implements AbstractManager {
 		}
 	}
 	
-	public void symbolsAdd(String symbolName, String symbolValue) {
+	private void symbolsAdd(String symbolName, String symbolValue, boolean update) {
 		symbolsValidName(symbolName);
 		synchronized (symbolsProperties) {
 			if (symbolsProperties.containsKey(symbolName)) {
@@ -1509,8 +1530,14 @@ public class DatabaseObjectsManager implements AbstractManager {
 			} else {
 				symbolsProperties.put(symbolName, symbolValue);
 			}
-			symbolsUpdated();
+			if (update) {
+				symbolsUpdated();
+			}
 		}
+	}
+	
+	public void symbolsAdd(String symbolName, String symbolValue) {
+		symbolsAdd(symbolName, symbolValue, true);
 	}
 
 	public void symbolsEdit(String oldSymbolName, String symbolName, String symbolValue) {

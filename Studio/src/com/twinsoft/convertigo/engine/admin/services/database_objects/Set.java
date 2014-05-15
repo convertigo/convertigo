@@ -55,10 +55,7 @@ public class Set extends XmlService {
 			throws TransformerException {
 		Node nodetmp = xpath.selectSingleNode(postElt, "./property[@name=\"" + propertyName
 				+ "\"]/*[1]");
-		
-		String propertyValue = null;
-		Object propertyCompiledValue = null;
-		
+				
 		if (nodetmp == null)
 			throw new IllegalArgumentException("Property '" + propertyName
 					+ "' not found for object '" + object.getQName() + "'");
@@ -68,13 +65,9 @@ public class Set extends XmlService {
 			throw new IllegalArgumentException("Property '" + propertyName
 					+ "' not found for object '" + object.getQName() + "'");
 
-		propertyValue = nodeValue.getNodeValue();
-		Node nodeCompiledValue = xpath.selectSingleNode(nodetmp, "./@compiledValue");
-		if (nodeCompiledValue != null) {
-			propertyCompiledValue = nodeCompiledValue.getNodeValue();
-		}
+		String propertyValue = nodeValue.getNodeValue();
 		
-		return object.compileProperty(propertyName, propertyValue, propertyCompiledValue);
+		return object.compileProperty(propertyName, propertyValue);
 	}
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
