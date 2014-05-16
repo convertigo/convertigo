@@ -352,24 +352,14 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		
 		getSite().setSelectionProvider(viewer);
 		
-		int nbRetry = 0;
-		while (!Engine.isStartFailed && !Engine.isStarted) {
-			try {
-				Thread.sleep(500);
-				nbRetry++;
-			} catch (InterruptedException e) {
-				// Ignore
+		ConvertigoPlugin.runAtStartup(new Runnable() {
+
+			@Override
+			public void run() {
+				initialize();
 			}
 			
-			// Aborting if too many retries
-			if (nbRetry > 360) {
-				return;
-			}
-		}
-
-		if (Engine.isStarted) {
-			initialize();
-		}
+		});
 	}
 
 	public void initialize() {

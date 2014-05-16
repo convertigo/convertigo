@@ -33,6 +33,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Properties;
@@ -198,6 +200,8 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	private ResourceBundle resourceBundle;
 
 	private boolean shuttingDown = false;
+	
+	private List<Runnable> runAtStartup = new LinkedList<Runnable>();
 	
 	private static Log studioLog;
 
@@ -772,6 +776,11 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 							}
 							
 							studioLog.message("Embedded Tomcat started");
+							
+							for (Runnable runnable : runAtStartup) {
+								Display.getDefault().asyncExec(runnable);
+							}
+							runAtStartup.clear();
 						}
 						
 					}, "Wait Embedded Tomcat started").start();
@@ -785,6 +794,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		
 		try {
 			decodePsc();
+			//Engine.isStartFailed = true;
 			afterPscOk.run();
 			if (afterPscException[0] != null) {
 				throw afterPscException[0];
@@ -1636,5 +1646,14 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		psc = Crypto2.encodeToHexString("registration", psc);
 		
 		return psc;
+	}
+	
+	static public void runAtStartup(Runnable runnable) {
+		if (Engine.isStarted) {
+			runnable.run();
+		} else {
+			plugin.runAtStartup.add(runnable);
+		}
+		
 	}
 }
