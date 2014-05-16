@@ -67,6 +67,7 @@ public class SetupWizard extends Wizard {
 		super();
 		generateUniqueID();
 		setNeedsProgressMonitor(true);
+		setWindowTitle("Personal Studio Configuration");
 	}
 
 	private void generateUniqueID() {
