@@ -86,7 +86,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	transient private PreparedStatement preparedStatement = null;
 	
 	/** The type of query. */
-	transient private int type = -1;
+	transient private SqlKeywords type = SqlKeywords.unknown;
 	
 	/** List of SqlQuery with type, the query and parameters **/
 	transient private List<SqlQueryInfos> preparedSqlQueries = null;
@@ -96,33 +96,23 @@ public class SqlTransaction extends TransactionWithVariables {
 	
 	/** Holds value of property maxResult. */
 	private String maxResult = "";
-	
-	public static int TYPE_SELECT = 0;
 
-	public static int TYPE_UPDATE = 1;
-	
-	public static int TYPE_INSERT = 2;
-	
-	public static int TYPE_DELETE = 3;
-	
-	public static int TYPE_REPLACE = 4;
-	
-	public static int TYPE_CREATE_TABLE = 5;
-	
-	public static int TYPE_DROP_TABLE = 6;
+	private enum SqlKeywords {
+		select, update, insert, delete, replace, create_table, drop_table, truncate_table, commit, rollback, unknown;
+	}	
 
-	public static int TYPE_TRUNCATE_TABLE = 7;		// jmc 13/06/25
-
-	public static int TYPE_UNKNOWN = 99;
-
+	private enum AutoCommitMode {
+		autocommit_off, autocommit_each, autocommit_end; 
+	}
+	
 	/** Holds value of property Auto-commit. */
 	public static final int AUTOCOMMIT_OFF = 0; 	
 
-	public static final int AUTOCOMMIT_EACH = 1;			// jmc 14/05/06
+	public static final int AUTOCOMMIT_EACH = 1;	// jmc 14/05/06
 
 	public static final int AUTOCOMMIT_END = 2;
 	
-	private int autoCommit = AUTOCOMMIT_EACH; 
+	private int autoCommit = AutoCommitMode.autocommit_each.ordinal(); 
 	
 	/** Holds value of property xmlOutput. */
 	private int xmlOutput = 0; 
@@ -153,7 +143,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		
 		private SqlTransaction sqlTransaction;
 		
-		private int type;
+		private SqlKeywords type;
 		
 		/** Query's ordered parameter names */
 		private List<String> orderedParametersList = null;
@@ -163,32 +153,37 @@ public class SqlTransaction extends TransactionWithVariables {
 		
 		/** Query's parameters map (name and value) */
 		private Map<String, String> parametersMap = new HashMap<String, String>();
+
+		private void findType(){
+			if (query.toUpperCase().indexOf("SELECT") == 0)
+				type = SqlKeywords.select;
+			else if (query.toUpperCase().indexOf("UPDATE") == 0)
+				type = SqlKeywords.update;
+			else if (query.toUpperCase().indexOf("INSERT") == 0)
+				type = SqlKeywords.insert;
+			else if (query.toUpperCase().indexOf("DELETE") == 0)
+				type = SqlKeywords.delete;
+			else if (query.toUpperCase().indexOf("REPLACE") == 0)
+				type = SqlKeywords.replace;
+			else if (query.toUpperCase().indexOf("CREATE TABLE") == 0)
+				type = SqlKeywords.create_table;
+			else if (query.toUpperCase().indexOf("DROP TABLE") == 0)
+				type = SqlKeywords.drop_table;
+			else if (query.toUpperCase().indexOf("TRUNCATE TABLE") == 0)
+				type = SqlKeywords.truncate_table;
+			else if (query.toUpperCase().indexOf("COMMIT") == 0)
+				type = SqlKeywords.commit;
+			else if (query.toUpperCase().indexOf("ROLLBACK") == 0)
+				type = SqlKeywords.rollback;
+			else 
+				type = SqlKeywords.unknown;
+		}
 		
 		public SqlQueryInfos(String thequery, SqlTransaction sqlTransaction, boolean updateDefinitions){
 			this.query = thequery.replaceAll("\n", " ").replaceAll("\r", "").trim();
 			this.sqlTransaction = sqlTransaction;
 			findType();
 			this.query = prepareParameters(updateDefinitions);
-		}
-		
-		private void findType(){
-			if (query.toUpperCase().indexOf("SELECT") == 0)
-				type = 0;
-			else if (query.toUpperCase().indexOf("UPDATE") == 0)
-				type = 1;
-			else if (query.toUpperCase().indexOf("INSERT") == 0)
-				type = 2;
-			else if (query.toUpperCase().indexOf("DELETE") == 0)
-				type = 3;
-			else if (query.toUpperCase().indexOf("REPLACE") == 0)
-				type = 4;
-			else if (query.toUpperCase().indexOf("CREATE TABLE") == 0)
-				type = 5;
-			else if (query.toUpperCase().indexOf("DROP TABLE") == 0)
-				type = 6;
-			else if (query.toUpperCase().indexOf("TRUNCATE TABLE") == 0)
-				type = 7;
-			else type = 99;
 		}
 		
 		/** We prepare the query and create lists **/
@@ -253,7 +248,7 @@ public class SqlTransaction extends TransactionWithVariables {
 			return query;
 		}
 		
-		public int getType(){
+		public SqlKeywords getType(){
 			return type;
 		}
 		
@@ -376,7 +371,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		String preparedSqlQuery = sqlQueryInfos.getQuery();
 		
 		// Limit number of result
-		if (sqlQueryInfos.getType() == SqlTransaction.TYPE_SELECT) {
+		if (sqlQueryInfos.getType() == SqlKeywords.select) {
 			if (!maxResult.equals("") && preparedSqlQuery.toUpperCase().indexOf("LIMIT") == -1) {
 				if (preparedSqlQuery.lastIndexOf(';') == -1)
 					preparedSqlQuery += " limit " + maxResult + ";";
@@ -475,7 +470,7 @@ public class SqlTransaction extends TransactionWithVariables {
 						sql_output.setAttribute("name","sql_output");
 						sql_output.setAttribute("minOccurs","0");
 						sql_output.setAttribute("maxOccurs","1");
-						if ((sqlQueryInfos.getType() != SqlTransaction.TYPE_SELECT) && (sqlQueryInfos.getType() != SqlTransaction.TYPE_UNKNOWN))
+						if ((sqlQueryInfos.getType() != SqlKeywords.select) && (sqlQueryInfos.getType() != SqlKeywords.unknown))
 							sql_output.setAttribute("type", "xsd:string");
 						all.appendChild(sql_output);
 					}
@@ -484,264 +479,311 @@ public class SqlTransaction extends TransactionWithVariables {
 						return;
 					
 					// Execute the SELECT query
-					if (sqlQueryInfos.getType() == SqlTransaction.TYPE_SELECT || sqlQueryInfos.getType() == SqlTransaction.TYPE_UNKNOWN) {
-						ResultSet rs = null;
-						try {
-							// We set the auto-commit in function of the SqlTransaction parameter
-							connector.connection.setAutoCommit(autoCommit == AUTOCOMMIT_EACH);
+					switch(sqlQueryInfos.getType()) {
+						case commit:
+							try {
+								// We set the auto-commit in function of the SqlTransaction parameter
+								connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
 
-							// We execute the query
-							preparedStatement.execute();
-							rs = preparedStatement.getResultSet();
-						}
-						// Retry once (should not happens)
-						catch(Exception e) {
-							if (runningThread.bContinue) {
-								if (Engine.logBeans.isTraceEnabled())
-									Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
-								if (Engine.logBeans.isDebugEnabled())
-									Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
-								query = prepareQuery(logHiddenValues, sqlQueryInfos);
-								try {
-									// We execute the query
-									preparedStatement.execute();
-									rs = preparedStatement.getResultSet();
-								} catch(Exception e1) {
+								connector.connection.commit();
+								nb = 0;
+				            } catch(SQLException excep) {
+				            	if (Engine.logBeans.isTraceEnabled()) {
 									// We get the exception error message
-									errorMessageSQL = e1.getMessage();
+									errorMessageSQL = excep.getMessage();
+				            	}
+				            }
+							break;
+							
+						case rollback:
+							try {
+								// We set the auto-commit in function of the SqlTransaction parameter
+								connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
 
-									// We rollback if error and if in auto commit false mode
-									if (autoCommit != AUTOCOMMIT_EACH) {
-										try {
-							                connector.connection.rollback();
+								connector.connection.rollback();
 
-							                if (Engine.logBeans.isTraceEnabled())
-												Engine.logBeans.trace("(SqlTransaction) An exception occured : Transactions are being rolled back");
-							            } catch(SQLException excep) {
-							            	if (Engine.logBeans.isTraceEnabled()) {
-												// We get the exception error message
-												errorMessageSQL = excep.getMessage();
-							            	}
-							            }										
-										
-										rollbackDone = true;									
-									}
-									
+				                if (Engine.logBeans.isTraceEnabled())
+									Engine.logBeans.trace("(SqlTransaction) Explicit rollback");
+				            } catch(SQLException excep) {
+				            	if (Engine.logBeans.isTraceEnabled()) {
+									// We get the exception error message
+									errorMessageSQL = excep.getMessage();
+				            	}
+				            }										
+							
+							rollbackDone = true;									
+							break;
+					
+						case select:
+							ResultSet rs = null;
+							try {
+								// We set the auto-commit in function of the SqlTransaction parameter
+								connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
+
+								// We execute the query
+								preparedStatement.execute();
+								rs = preparedStatement.getResultSet();
+							}
+							// Retry once (should not happens)
+							catch(Exception e) {
+								if (runningThread.bContinue) {
 									if (Engine.logBeans.isTraceEnabled())
-										Engine.logBeans.trace("(SqlTransaction) An exception occured :" + errorMessageSQL);
-								}
-							}
-						}
-						
-						if (rs != null) {
-							Map<String,List<List<Object>>> tables = new LinkedHashMap<String, List<List<Object>>>();
-							columnHeaders = new LinkedList<String>();
-							lines = new LinkedList<List<String>>();
-							rows = new LinkedList<List<Map<String,String>>>();
-								
-							// Retrieve column names, class and table names
-							String tableNameToUse = "TABLE";
-							ResultSetMetaData rsmd = rs.getMetaData();
-							
-							if (rsmd == null) throw new EngineException("Invalid query '" + query + "'");
-							
-							int numberOfColumns = rsmd.getColumnCount();
-							for (int i=1; i <= numberOfColumns; i++) {
-								List<List<Object>> columns = null;
-								Integer columnIndex = new Integer(i);
-								String columnName = rsmd.getColumnLabel(i);
-								String columnClassName = rsmd.getColumnClassName(i);
-								String tableName = rsmd.getTableName(i);
-								tableNameToUse = (tableName.equals("") ? tableNameToUse:tableName);
-								if (tableNameToUse == null) throw new EngineException("Invalid query '" + query + "'");
-								
-								if (!tables.containsKey(tableNameToUse)) {
-									columns = new LinkedList<List<Object>>();
-									tables.put(tableNameToUse, columns);
-								}
-								else
-									columns = tables.get(tableNameToUse);
-								columnHeaders.add(columnName);
-								List<Object> column = new ArrayList<Object>(3);
-								column.add(columnIndex);
-								column.add(columnName);
-								column.add(columnClassName);
-								columns.add(column);
-								Engine.logBeans.trace("(SqlTransaction) "+ tableNameToUse+"."+columnName + " (" + columnClassName + ")");
-							}
-						
-							// Retrieve results
-							while (rs.next()) {
-								List<String> line = new ArrayList<String>(Collections.nCopies(numberOfColumns, ""));
-								
-								List<Map<String,String>> row = new ArrayList<Map<String,String>>(tables.size());
-								int j = 0;
-								for(Entry<String,List<List<Object>>> entry : tables.entrySet()) {
-									String tableName = entry.getKey();
-									Map<String,String> elementTable = new LinkedHashMap<String, String>();
-									elementTable.put(keywords._tagname.name(), tableName);
-									elementTable.put(keywords._level.name(), (++j) + "0");
-									for (List<Object> col : entry.getValue()) {
-										String columnName = (String) col.get(1);
-										int index = (Integer) col.get(0);
-										Object ob = null;
-										try {
-											ob = rs.getObject(index);
-										} catch (SQLException e) {
-											Engine.logBeans.error("(SqlTransaction) Exception while getting object for column " + index, e);
+										Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
+									if (Engine.logBeans.isDebugEnabled())
+										Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
+									query = prepareQuery(logHiddenValues, sqlQueryInfos);
+									try {
+										// We execute the query
+										preparedStatement.execute();
+										rs = preparedStatement.getResultSet();
+									} catch(Exception e1) {
+										// We get the exception error message
+										errorMessageSQL = e1.getMessage();
+
+										// We rollback if error and if in auto commit false mode
+										if (autoCommit != AutoCommitMode.autocommit_each.ordinal()) {
+											try {
+								                connector.connection.rollback();
+
+								                if (Engine.logBeans.isTraceEnabled())
+													Engine.logBeans.trace("(SqlTransaction) An exception occured : Transactions are being rolled back");
+								            } catch(SQLException excep) {
+								            	if (Engine.logBeans.isTraceEnabled()) {
+													// We get the exception error message
+													errorMessageSQL = excep.getMessage();
+								            	}
+								            }										
+											
+											rollbackDone = true;									
 										}
-										String resu = "";
-										if (ob != null) {
-											if (ob instanceof byte[]) resu = new String((byte[]) ob, "UTF-8"); // See #3043
-											else resu = ob.toString();
-										}
-										Engine.logBeans.trace("(SqlTransaction) Retrieved value ("+resu+") for column " + columnName + ", line " + (j-1) + ".");
-										line.set(index-1, resu);
 										
-										int cpt = 1;
-										String t = "";
-										while (elementTable.containsKey(columnName + t)) {
-											t ="_" + String.valueOf(cpt);											
-											cpt++;
-										}										
-										
-										elementTable.put(columnName + t, resu);
+										if (Engine.logBeans.isTraceEnabled())
+											Engine.logBeans.trace("(SqlTransaction) An exception occured :" + errorMessageSQL);
 									}
-									row.add(elementTable);
 								}
-								Engine.logBeans.trace("(SqlTransaction) "+ line.toString());
-								lines.add(line);
-								rows.add(row);
-								numberOfResults++;
 							}
 							
-							if (studioMode) {
-								Element parentElt = sql_output, child = null;
-								boolean firstLoop = true;
-								for(Entry<String,List<List<Object>>> entry : tables.entrySet()) {
-									if (firstLoop) {
-										parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:complexType"));
-										parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
-									} else if (xmlOutput == XML_AUTO)
-										parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
+							if (rs != null) {
+								Map<String,List<List<Object>>> tables = new LinkedHashMap<String, List<List<Object>>>();
+								columnHeaders = new LinkedList<String>();
+								lines = new LinkedList<List<String>>();
+								rows = new LinkedList<List<Map<String,String>>>();
 									
-									String tableName = entry.getKey();
-									child = doc.createElement("xsd:element");
-									child.setAttribute("name",((xmlOutput == XML_RAW) ? getRowTagname():tableName));
-									child.setAttribute("minOccurs","0");
-									child.setAttribute("maxOccurs","unbounded");
-									if ((firstLoop && (xmlOutput == XML_RAW)) || (xmlOutput != XML_RAW)) {
-										parentElt = (Element)parentElt.appendChild(child);
-										parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:complexType"));
+								// Retrieve column names, class and table names
+								String tableNameToUse = "TABLE";
+								ResultSetMetaData rsmd = rs.getMetaData();
+								
+								if (rsmd == null) throw new EngineException("Invalid query '" + query + "'");
+								
+								int numberOfColumns = rsmd.getColumnCount();
+								for (int i=1; i <= numberOfColumns; i++) {
+									List<List<Object>> columns = null;
+									Integer columnIndex = new Integer(i);
+									String columnName = rsmd.getColumnLabel(i);
+									String columnClassName = rsmd.getColumnClassName(i);
+									String tableName = rsmd.getTableName(i);
+									tableNameToUse = (tableName.equals("") ? tableNameToUse:tableName);
+									if (tableNameToUse == null) throw new EngineException("Invalid query '" + query + "'");
+									
+									if (!tables.containsKey(tableNameToUse)) {
+										columns = new LinkedList<List<Object>>();
+										tables.put(tableNameToUse, columns);
 									}
+									else
+										columns = tables.get(tableNameToUse);
+									columnHeaders.add(columnName);
+									List<Object> column = new ArrayList<Object>(3);
+									column.add(columnIndex);
+									column.add(columnName);
+									column.add(columnClassName);
+									columns.add(column);
+									Engine.logBeans.trace("(SqlTransaction) "+ tableNameToUse+"."+columnName + " (" + columnClassName + ")");
+								}
+							
+								// Retrieve results
+								while (rs.next()) {
+									List<String> line = new ArrayList<String>(Collections.nCopies(numberOfColumns, ""));
 									
-									boolean firstLoop_ = true;
-									for (List<Object> col : entry.getValue()) {
-										if (firstLoop_ && ((xmlOutput == XML_ELEMENT) || (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES))) {
-											child = doc.createElement("xsd:sequence");
+									List<Map<String,String>> row = new ArrayList<Map<String,String>>(tables.size());
+									int j = 0;
+									for(Entry<String,List<List<Object>>> entry : tables.entrySet()) {
+										String tableName = entry.getKey();
+										Map<String,String> elementTable = new LinkedHashMap<String, String>();
+										elementTable.put(keywords._tagname.name(), tableName);
+										elementTable.put(keywords._level.name(), (++j) + "0");
+										for (List<Object> col : entry.getValue()) {
+											String columnName = (String) col.get(1);
+											int index = (Integer) col.get(0);
+											Object ob = null;
+											try {
+												ob = rs.getObject(index);
+											} catch (SQLException e) {
+												Engine.logBeans.error("(SqlTransaction) Exception while getting object for column " + index, e);
+											}
+											String resu = "";
+											if (ob != null) {
+												if (ob instanceof byte[]) resu = new String((byte[]) ob, "UTF-8"); // See #3043
+												else resu = ob.toString();
+											}
+											Engine.logBeans.trace("(SqlTransaction) Retrieved value ("+resu+") for column " + columnName + ", line " + (j-1) + ".");
+											line.set(index-1, resu);
+											
+											int cpt = 1;
+											String t = "";
+											while (elementTable.containsKey(columnName + t)) {
+												t ="_" + String.valueOf(cpt);											
+												cpt++;
+											}										
+											
+											elementTable.put(columnName + t, resu);
+										}
+										row.add(elementTable);
+									}
+									Engine.logBeans.trace("(SqlTransaction) "+ line.toString());
+									lines.add(line);
+									rows.add(row);
+									numberOfResults++;
+								}
+								
+								if (studioMode) {
+									Element parentElt = sql_output, child = null;
+									boolean firstLoop = true;
+									for(Entry<String,List<List<Object>>> entry : tables.entrySet()) {
+										if (firstLoop) {
+											parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:complexType"));
+											parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
+										} else if (xmlOutput == XML_AUTO)
+											parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
+										
+										String tableName = entry.getKey();
+										child = doc.createElement("xsd:element");
+										child.setAttribute("name",((xmlOutput == XML_RAW) ? getRowTagname():tableName));
+										child.setAttribute("minOccurs","0");
+										child.setAttribute("maxOccurs","unbounded");
+										if ((firstLoop && (xmlOutput == XML_RAW)) || (xmlOutput != XML_RAW)) {
 											parentElt = (Element)parentElt.appendChild(child);
+											parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:complexType"));
 										}
-										String columnName = (String)col.get(1);
-										String columnClassName = (String)col.get(2);
-										String type = null;
 										
-										if (columnClassName.equalsIgnoreCase("java.lang.Integer"))
-											type = "xsd:integer";
-										else if (columnClassName.equalsIgnoreCase("java.lang.Double"))
-											type = "xsd:double";
-										else if (columnClassName.equalsIgnoreCase("java.lang.Long"))
-											type = "xsd:long";
-										else if (columnClassName.equalsIgnoreCase("java.lang.Short"))
-											type = "xsd:short";
-										else if (columnClassName.equalsIgnoreCase("java.sql.Timestamp"))
-											type = "xsd:dateTime";
-										else type = "xsd:string";
-										
-										if (xmlOutput == XML_ELEMENT) {
-											child = doc.createElement("xsd:element");
-											child.setAttribute("name",columnName);
-											child.setAttribute("type",type);
-											parentElt.appendChild(child);
-										} else if (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) {
-											child = doc.createElement("xsd:element");
-											child.setAttribute("name",getColumnTagname());
-											child.setAttribute("type",type);
-											parentElt.appendChild(child);
-											Element child2 = doc.createElement("xsd:attribute");
-											child2.setAttribute("name",columnName);
-											child.appendChild(child2);
-										} else {
-											child = doc.createElement("xsd:attribute");
-											child.setAttribute("name",columnName);
-											child.setAttribute("type",type);
-											parentElt.appendChild(child);
+										boolean firstLoop_ = true;
+										for (List<Object> col : entry.getValue()) {
+											if (firstLoop_ && ((xmlOutput == XML_ELEMENT) || (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES))) {
+												child = doc.createElement("xsd:sequence");
+												parentElt = (Element)parentElt.appendChild(child);
+											}
+											String columnName = (String)col.get(1);
+											String columnClassName = (String)col.get(2);
+											String type = null;
+											
+											if (columnClassName.equalsIgnoreCase("java.lang.Integer"))
+												type = "xsd:integer";
+											else if (columnClassName.equalsIgnoreCase("java.lang.Double"))
+												type = "xsd:double";
+											else if (columnClassName.equalsIgnoreCase("java.lang.Long"))
+												type = "xsd:long";
+											else if (columnClassName.equalsIgnoreCase("java.lang.Short"))
+												type = "xsd:short";
+											else if (columnClassName.equalsIgnoreCase("java.sql.Timestamp"))
+												type = "xsd:dateTime";
+											else type = "xsd:string";
+											
+											if (xmlOutput == XML_ELEMENT) {
+												child = doc.createElement("xsd:element");
+												child.setAttribute("name",columnName);
+												child.setAttribute("type",type);
+												parentElt.appendChild(child);
+											} else if (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) {
+												child = doc.createElement("xsd:element");
+												child.setAttribute("name",getColumnTagname());
+												child.setAttribute("type",type);
+												parentElt.appendChild(child);
+												Element child2 = doc.createElement("xsd:attribute");
+												child2.setAttribute("name",columnName);
+												child.appendChild(child2);
+											} else {
+												child = doc.createElement("xsd:attribute");
+												child.setAttribute("name",columnName);
+												child.setAttribute("type",type);
+												parentElt.appendChild(child);
+											}
+											firstLoop_ = false;
 										}
-										firstLoop_ = false;
+										firstLoop = false;
 									}
-									firstLoop = false;
 								}
 							}
-						}
-								
-						if (rs == null) {
-							Engine.logBeans.warn("(SqlTransaction) Could not execute query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'"); 
-							// We put the number of results at -1, because we have an error
-							numberOfResults = -1;
-						} else {
-							Engine.logBeans.debug("(SqlTransaction) Query executed successfully (" + numberOfResults + " results)"); 
-						}
-					}
-					// Execute the 'UPDATE/INSERT/DELETE' query
-					else {
-						try {
-							// We set the auto-commit in function of the SqlTransaction parameter
-							connector.connection.setAutoCommit(autoCommit == AUTOCOMMIT_EACH);
-							
-							// We execute the query
-							nb = preparedStatement.executeUpdate();
-						}
-						// Retry once (should not happens)
-						catch (Exception e) {
-							if (runningThread.bContinue) {
-								if (Engine.logBeans.isTraceEnabled())
-									Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
-								if (Engine.logBeans.isDebugEnabled())
-									Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
-								query = prepareQuery(logHiddenValues, sqlQueryInfos);
-								try {
-									nb = preparedStatement.executeUpdate();
-								} catch (Exception e1) {									
-									// We get the exception error message
-									errorMessageSQL = e1.getMessage();
-									nb = -1;
 									
-									// We rollback if error and if in auto commit false mode
-									if (autoCommit != AUTOCOMMIT_EACH) {
-										try {
-							                connector.connection.rollback();
-
-							                if (Engine.logBeans.isTraceEnabled())
-												Engine.logBeans.trace("(SqlTransaction) An exception occured : Transactions are being rolled back");
-							            } catch(SQLException excep) {
-							            	if (Engine.logBeans.isTraceEnabled()) {
-												// We get the exception error message
-												errorMessageSQL = excep.getMessage();
-							            	}
-							            }										
-										
-										rollbackDone = true;									
-									}
-
+							if ((rs == null) && (sqlQueryInfos.getType() == SqlKeywords.select)) {
+								Engine.logBeans.warn("(SqlTransaction) Could not execute query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'"); 
+								// We put the number of results at -1, because we have an error
+								numberOfResults = -1;
+							} else {
+								Engine.logBeans.debug("(SqlTransaction) Query executed successfully (" + numberOfResults + " results)"); 
+							}
+							break;
+							
+						case replace:
+						case create_table:
+						case drop_table:
+						case truncate_table:
+						case update:
+						case insert:
+						case delete:
+							try {
+								// We set the auto-commit in function of the SqlTransaction parameter
+								connector.connection.setAutoCommit(autoCommit == AutoCommitMode.autocommit_each.ordinal());
+								
+								// We execute the query
+								nb = preparedStatement.executeUpdate();
+							}
+							// Retry once (should not happens)
+							catch (Exception e) {
+								if (runningThread.bContinue) {
 									if (Engine.logBeans.isTraceEnabled())
-										Engine.logBeans.trace("(SqlTransaction) An exception occured :" + errorMessageSQL);
+										Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
+									if (Engine.logBeans.isDebugEnabled())
+										Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
+									query = prepareQuery(logHiddenValues, sqlQueryInfos);
+									try {
+										nb = preparedStatement.executeUpdate();
+									} catch (Exception e1) {									
+										// We get the exception error message
+										errorMessageSQL = e1.getMessage();
+										nb = -1;
+										
+										// We rollback if error and if in auto commit false mode
+										if (autoCommit != AutoCommitMode.autocommit_each.ordinal()) {
+											try {
+								                connector.connection.rollback();
+
+								                if (Engine.logBeans.isTraceEnabled())
+													Engine.logBeans.trace("(SqlTransaction) An exception occured : Transactions are being rolled back");
+								            } catch(SQLException excep) {
+								            	if (Engine.logBeans.isTraceEnabled()) {
+													// We get the exception error message
+													errorMessageSQL = excep.getMessage();
+								            	}
+								            }										
+											
+											rollbackDone = true;									
+										}
+
+										if (Engine.logBeans.isTraceEnabled())
+											Engine.logBeans.trace("(SqlTransaction) An exception occured :" + errorMessageSQL);
+									}
 								}
 							}
-						}
-						
-						if (nb < 0)
-							Engine.logBeans.warn("(SqlTransaction) Could not execute query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
-						else
-							Engine.logBeans.debug("(SqlTransaction) Query executed successfully (returned " + nb + ").");
+							
+							if (nb < 0)
+								Engine.logBeans.warn("(SqlTransaction) Could not execute query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
+							else
+								Engine.logBeans.debug("(SqlTransaction) Query executed successfully (returned " + nb + ").");
+							
+							break;
+							
+						case unknown:
+						default:
+							break;
 					}
 				}
 				
@@ -782,7 +824,7 @@ public class SqlTransaction extends TransactionWithVariables {
 			}
 			
 			// We commit if auto-commit parameter is false			
-			if (!rollbackDone && (autoCommit == AUTOCOMMIT_END)) {
+			if (!rollbackDone && (autoCommit == AutoCommitMode.autocommit_end.ordinal())) {
 				try {
 					connector.connection.commit();
 	            } catch(SQLException excep) {
