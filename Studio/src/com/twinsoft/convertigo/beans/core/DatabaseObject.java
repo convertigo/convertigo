@@ -1095,10 +1095,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 	}
 	
 	public synchronized Map<String, Set<String>> getSymbolsErrors() {
-		return symbolsErrors;
+		return new HashMap<String, Set<String>>(symbolsErrors);
 	}
 	
-	public Set<String> getSymbolsErrors(String parameterName) {
+	public synchronized Set<String> getSymbolsErrors(String parameterName) {
 		return symbolsErrors == null ? null : symbolsErrors.get(parameterName);
 	}
 	
