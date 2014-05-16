@@ -550,6 +550,19 @@ public class EnginePropertiesManager {
 		/** MOBILE BUILDER */
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
 		MOBILE_BUILDER_AUTHENTICATION_TOKEN ("mobile.builder.auth_token", "", "Mobile builder authentication token", PropertyCategory.MobileBuilder),
+
+		//ANDROID
+		MOBILE_BUILDER_ANDROID_CERTIFICATE_TITLE ("mobile.builder.android_certificate_title", "", "Android certificate title", PropertyCategory.MobileBuilder),
+		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
+		MOBILE_BUILDER_ANDROID_CERTIFICATE_PW ("mobile.builder.android_certificate_pw", "", "Android certificate password", PropertyCategory.MobileBuilder),
+		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
+		MOBILE_BUILDER_ANDROID_KEYSTORE_PW ("mobile.builder.android_keystore_pw", "", "Android keyStore password", PropertyCategory.MobileBuilder),
+
+		//BLACKBERRY
+		MOBILE_BUILDER_BB_KEY_TITLE ("mobile.builder.bb_key_title", "", "BlackBerry key title", PropertyCategory.MobileBuilder),
+		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
+		MOBILE_BUILDER_BB_KEY_PW ("mobile.builder.bb_key_pw", "", "BlackBerry key password", PropertyCategory.MobileBuilder),
+		
 		//iOS
 		MOBILE_BUILDER_IOS_CERTIFICATE_TITLE ("mobile.builder.ios_certificate_title", "", "iOS certificate title", PropertyCategory.MobileBuilder),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
@@ -557,18 +570,6 @@ public class EnginePropertiesManager {
 		
 		//WINDOWSPHONE
 		MOBILE_BUILDER_WINDOWSPHONE_PUBLISHER_ID_TITLE ("mobile.builder.windows_phone_publisher_id_title", "", "Windows Phone publisher ID title", PropertyCategory.MobileBuilder),
-				
-		//ANDROID
-		MOBILE_BUILDER_ANDROID_CERTIFICATE_TITLE ("mobile.builder.android_certificate_title", "", "Android certificate title", PropertyCategory.MobileBuilder),
-		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
-		MOBILE_BUILDER_ANDROID_CERTIFICATE_PW ("mobile.builder.android_certificate_pw", "", "Android certificate password", PropertyCategory.MobileBuilder),
-		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
-		MOBILE_BUILDER_ANDROID_KEYSTORE_PW ("mobile.builder.android_keystore_pw", "", "Android keyStore password", PropertyCategory.MobileBuilder),
-		
-		//BLACKBERRY
-		MOBILE_BUILDER_BB_KEY_TITLE ("mobile.builder.bb_key_title", "", "BlackBerry key title", PropertyCategory.MobileBuilder),
-		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
-		MOBILE_BUILDER_BB_KEY_PW ("mobile.builder.bb_key_pw", "", "BlackBerry key password", PropertyCategory.MobileBuilder),
 		
 		@PropertyOptions(advance = true)
 		MOBILE_BUILDER_PLATFORM_URL ("mobile.builder.platform_url", "https://build.convertigo.net/cmb/PhoneGapBuilder", "Mobile builder platform URL", PropertyCategory.MobileBuilder),
