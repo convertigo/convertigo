@@ -39,28 +39,35 @@ public abstract class TreeParent extends TreeObject {
 	}
 	
 	public void addChild(TreeObject child) {
-		children.add(child);
+		synchronized (children) {
+			children.add(child);			
+		}
 		child.setParent(this);
 	}
 
 	public void addChild(int index, TreeObject child) {
-		children.add(index, child);
+		synchronized (children) {
+			children.add(index, child);
+		}
 		child.setParent(this);
 	}
 	
 	public void removeChild(TreeObject child) {
-		children.remove(child);
+		synchronized (children) {
+			children.remove(child);
+		}
 		child.setParent(null);
 		if (child instanceof TreeParent) {
-			((TreeParent)child).removeAllChildren();
+			((TreeParent) child).removeAllChildren();
 		}
 	}
 	
 	public void removeAllChildren() {
 		if (!children.isEmpty()) {
-	    	for(TreeObject child : GenericUtils.clone(getChildren())){
-	    		if (child instanceof TreeParent)
-	    			((TreeParent)child).removeAllChildren();
+	    	for (TreeObject child : GenericUtils.clone(getChildren())) {
+	    		if (child instanceof TreeParent) {
+	    			((TreeParent) child).removeAllChildren();
+	    		}
 	    		removeChild(child);
 	    	}
 	    }
@@ -68,44 +75,49 @@ public abstract class TreeParent extends TreeObject {
 	
 	public TreeObject getPreviousSibling(TreeObject child) {
 		TreeObject prevChild = null;
-		int pos;
-		if (!children.isEmpty()) {
-			if (children.contains(child)) {
-				pos = children.indexOf(child);
-				try {
-					prevChild = (TreeObject)children.get(pos-1);
+		synchronized (children) {
+			if (!children.isEmpty()) {
+				if (children.contains(child)) {
+					int pos = children.indexOf(child);
+					try {
+						prevChild = (TreeObject) children.get(pos - 1);
+					}
+					catch (Exception e) {}
 				}
-				catch (Exception e) {}
 			}
 		}
 		return prevChild;
 	}
 	public TreeObject getNextSibling(TreeObject child) {
 		TreeObject nextChild = null;
-		int pos;
-		if (!children.isEmpty()) {
-			if (children.contains(child)) {
-				pos = children.indexOf(child);
-				try {
-					nextChild = (TreeObject)children.get(pos+1);
+		synchronized (children) {
+			if (!children.isEmpty()) {
+				if (children.contains(child)) {
+					int pos = children.indexOf(child);
+					try {
+						nextChild = (TreeObject) children.get(pos + 1);
+					}
+					catch (Exception e) {}
 				}
-				catch (Exception e) {}
 			}
 		}
 		return nextChild;
 	}
 	
 	public List<? extends TreeObject> getChildren() {
-		return children;
+		synchronized (children) {
+			return GenericUtils.clone(children);
+		}
 	}
 	
 	public List<? extends TreeObject> getAllChildren() {
 		List<TreeObject> list = new ArrayList<TreeObject>(); 
-		if (!children.isEmpty()) {
-	    	for(TreeObject child : GenericUtils.clone(getChildren())){
+		if (hasChildren()) {
+	    	for(TreeObject child : getChildren()) {
 	    		list.add(child);
-	    		if (child instanceof TreeParent)
-	    			list.addAll(((TreeParent)child).getAllChildren());
+	    		if (child instanceof TreeParent) {
+	    			list.addAll(((TreeParent) child).getAllChildren());
+	    		}
 	    	}
 	    }
 		return list;
@@ -114,14 +126,15 @@ public abstract class TreeParent extends TreeObject {
 	public TreeObject findTreeObjectByUserObject(Object databaseObject) {
 		TreeObject treeObject = null;
 		if (databaseObject != null) {
-			if (getObject().equals(databaseObject))
+			if (getObject().equals(databaseObject)) {
 				treeObject = this;
-			else {
-				for(TreeObject child :getChildren()){
+			} else {
+				for (TreeObject child : getChildren()) {
 					if (child instanceof TreeParent) {
-						treeObject = ((TreeParent)child).findTreeObjectByUserObject(databaseObject);
-						if (treeObject != null)
+						treeObject = ((TreeParent) child).findTreeObjectByUserObject(databaseObject);
+						if (treeObject != null) {
 							break;
+						}
 					}
 				}
 			}
@@ -130,14 +143,20 @@ public abstract class TreeParent extends TreeObject {
 	}
 	
 	public boolean hasChildren() {
-		return children.size()>0;
+		synchronized (children) {
+			return !children.isEmpty();
+		}
 	}
 	
 	public int indexOf(TreeObject child) {
-		return children.indexOf(child);
+		synchronized (children) {
+			return children.indexOf(child);
+		}
 	}
 	
 	public int numberOfChildren() {
-		return children.size();
+		synchronized (children) {
+			return children.size();
+		}
 	}
 }
