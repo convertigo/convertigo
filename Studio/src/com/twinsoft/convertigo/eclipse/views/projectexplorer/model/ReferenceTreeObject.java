@@ -29,6 +29,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 
@@ -89,13 +90,19 @@ public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		if (treeObject instanceof DatabaseObjectTreeObject) {
-			//DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
+			DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
 			String propertyName = treeObjectEvent.propertyName;
 			propertyName = ((propertyName == null) ? "":propertyName);
 			
 			// If a bean name has changed
 			if (propertyName.equals("name")) {
 				handlesBeanNameChanged(treeObjectEvent);
+			}
+			else {
+				ProjectSchemaReference reference = (ProjectSchemaReference)getObject();
+				if (databaseObject.getProject().getName().equals(reference.getProjectName())) {
+					Engine.theApp.schemaManager.clearCache(reference.getProject().getName());
+				}
 			}
 		}
 	}
