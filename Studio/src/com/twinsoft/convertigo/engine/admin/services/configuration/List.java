@@ -70,8 +70,15 @@ public class List extends XmlService{
 	        		String originalValue = EnginePropertiesManager.getOriginalProperty(property);
 	        		switch (property.getType()) {
 	        		case PasswordHash:
+	        			if ("0".equals(value)) {
+	        				value = "";
+	        			}
 	        		case PasswordPlain:
-	        			originalValue = value = "????????????????";
+	        			if (value.length() > 0) {
+	        				originalValue = value = "••••••••••••••••";
+	        			} else {
+		        			originalValue = "";
+	        			}
 	        			break;
 	        		}
 	        		Element propertyElement = document.createElement("property");

@@ -1391,6 +1391,22 @@ li.ui-state-hover, .ui-widget-content li.ui-state-hover, .ui-widget-header li.ui
 	width: 400px;
 }
 
+.config-password::-webkit-input-placeholder { /* WebKit browsers */
+	color: black;
+}
+
+.config-password:-moz-placeholder { /* Mozilla Firefox 4 - 18 */
+	color: black;
+}
+
+.config-password::-moz-placeholder { /* Mozilla Firefox 19+ */
+	color: black;
+}
+
+.config-password:-ms-input-placeholder { /* Internet Explorer 10+ */
+	color: black;
+}
+
 .config-text-area {
 	width: 400px;
 	height: 200px;
