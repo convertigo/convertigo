@@ -619,7 +619,8 @@ $(document).ready(function() {
 							"It should contain a URL of the following form: \n" +
 							"http://<your convertigo ip or dns>:<port>/convertigo \n" +
 							"or \n" +
-							"https://<your cloud name>.convertigo.net/cems \n");
+							"https://<your cloud name>.convertigo.net/cems \n" +
+							"You can also directly access this Test Platform page using the correct URL.\n");
 				} else {
 					launchPhoneGapBuild($(this).parents(".platform:first"));
 				}
