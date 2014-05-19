@@ -36,7 +36,7 @@ public class FieldBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/field_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/field_color_32x32.png";
 
- 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/Field");
+ 			resourceBundle = getResourceBundle("res/Field");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

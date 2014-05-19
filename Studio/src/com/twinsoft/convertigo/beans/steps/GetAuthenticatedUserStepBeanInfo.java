@@ -37,7 +37,7 @@ public class GetAuthenticatedUserStepBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/getAuthenticatedUser_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/getAuthenticatedUser_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/GetAuthenticatedUserStep");
+			resourceBundle = getResourceBundle("res/GetAuthenticatedUserStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

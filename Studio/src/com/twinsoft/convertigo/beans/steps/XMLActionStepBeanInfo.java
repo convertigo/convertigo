@@ -34,7 +34,7 @@ public class XMLActionStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = XMLActionStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/XMLActionStep");
+			resourceBundle = getResourceBundle("res/XMLActionStep");
 			
 			properties = new PropertyDescriptor[2];
 

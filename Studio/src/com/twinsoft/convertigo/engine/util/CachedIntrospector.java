@@ -13,6 +13,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class CachedIntrospector {
 	private final static Map<Class<? extends DatabaseObject>, BeanInfo> cache = Collections.synchronizedMap(new WeakHashMap<Class<? extends DatabaseObject>, BeanInfo>());
@@ -26,6 +27,9 @@ public class CachedIntrospector {
 	}
 	
 	public static void prefetchDatabaseObjects() {
+		long time = System.currentTimeMillis();
+		final long[] count = {0};
+		Engine.logEngine.debug("(CachedIntrospector) Start to prefetch beans");
 		InputStream inputStream = CachedIntrospector.class.getResourceAsStream("/com/twinsoft/convertigo/beans/database_objects.xml");
 		try {
 			XMLUtils.saxParse(inputStream, new DefaultHandler() {
@@ -39,6 +43,7 @@ public class CachedIntrospector {
 							try {
 								Class<? extends DatabaseObject> cl = (Class<? extends DatabaseObject>) Class.forName(classname);
 								getBeanInfo(cl);
+								count[0]++;
 							} catch (ClassNotFoundException e) {
 								// silent exception
 							} catch (IntrospectionException e) {
@@ -53,6 +58,8 @@ public class CachedIntrospector {
 		} catch (Exception e) {
 			// silent exception
 		}
+		time = System.currentTimeMillis() - time;
+		Engine.logEngine.info("(CachedIntrospector) " + count[0] + " beans prefetched in " + time + " ms");
 	}
 	
 	public static void prefetchDatabaseObjectsAsync() {

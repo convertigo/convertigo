@@ -36,7 +36,7 @@ public class ClientInstructionSetValueBeanInfo extends MySimpleBeanInfo {
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_clientinstructionsetvalue_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_clientinstructionsetvalue_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/ClientInstructionSetValue");
+			resourceBundle = getResourceBundle("res/ClientInstructionSetValue");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

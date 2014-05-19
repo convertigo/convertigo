@@ -38,7 +38,7 @@ public class WebClipperBeanInfo extends MySimpleBeanInfo {
 
 		    properties = new PropertyDescriptor[5];
 		    
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/WebClipper");
+			resourceBundle = getResourceBundle("res/WebClipper");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

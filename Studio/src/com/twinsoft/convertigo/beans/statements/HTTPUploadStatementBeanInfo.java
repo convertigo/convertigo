@@ -38,7 +38,7 @@ public class HTTPUploadStatementBeanInfo extends MySimpleBeanInfo {
 			
 			properties = new PropertyDescriptor[2];
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/HTTPUploadStatement");
+			resourceBundle = getResourceBundle("res/HTTPUploadStatement");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

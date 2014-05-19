@@ -31,7 +31,7 @@ public class StatementWithExpressionsBeanInfo extends MySimpleBeanInfo {
 			beanClass = StatementWithExpressions.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Statement.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/StatementWithExpressions");
+			resourceBundle = getResourceBundle("res/StatementWithExpressions");
 
 			properties = new PropertyDescriptor[1];
 

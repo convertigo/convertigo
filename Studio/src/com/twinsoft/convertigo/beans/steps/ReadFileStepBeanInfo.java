@@ -33,7 +33,7 @@ public class ReadFileStepBeanInfo extends MySimpleBeanInfo{
 			beanClass = ReadFileStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/ReadFileStep");
+			resourceBundle = getResourceBundle("res/ReadFileStep");
 			
 			properties = new PropertyDescriptor[1];
 			

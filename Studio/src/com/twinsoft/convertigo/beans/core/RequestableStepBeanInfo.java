@@ -31,7 +31,7 @@ public class RequestableStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = RequestableStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/RequestableStep");
+			resourceBundle = getResourceBundle("res/RequestableStep");
 			
 			properties = new PropertyDescriptor[3];
 			

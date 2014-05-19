@@ -40,7 +40,7 @@ public class MenuBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/menu_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/menu_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/vdx/res/Menu");
+			resourceBundle = getResourceBundle("res/Menu");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

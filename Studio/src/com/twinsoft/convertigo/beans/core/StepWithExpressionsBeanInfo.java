@@ -31,7 +31,7 @@ public class StepWithExpressionsBeanInfo extends MySimpleBeanInfo {
 			beanClass = StepWithExpressions.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/StepWithExpressions");
+			resourceBundle = getResourceBundle("res/StepWithExpressions");
 
 			properties = new PropertyDescriptor[1];
 

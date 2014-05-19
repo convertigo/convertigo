@@ -14,7 +14,7 @@ public class MoveStepBeanInfo extends MySimpleBeanInfo{
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/move_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/move_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/MoveStep");
+			resourceBundle = getResourceBundle("res/MoveStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");	          

@@ -33,7 +33,7 @@ public class HeaderBeanInfo extends MySimpleBeanInfo {
 			beanClass = Header.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.siteclipper.BaseRule.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/Header");
+			resourceBundle = getResourceBundle("res/Header");
 
 			properties = new PropertyDescriptor[2];
 			

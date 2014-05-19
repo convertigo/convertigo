@@ -33,7 +33,7 @@ public class AbstractEventStatementBeanInfo extends MySimpleBeanInfo {
 			beanClass = AbstractEventStatement.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.statements.XpathableStatement.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/AbstractEventStatement");
+			resourceBundle = getResourceBundle("res/AbstractEventStatement");
 			
 			properties = new PropertyDescriptor[1];
 

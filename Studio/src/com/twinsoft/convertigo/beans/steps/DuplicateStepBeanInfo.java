@@ -14,7 +14,7 @@ public class DuplicateStepBeanInfo extends MySimpleBeanInfo{
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/duplicate_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/duplicate_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/DuplicateStep");
+			resourceBundle = getResourceBundle("res/DuplicateStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");	          

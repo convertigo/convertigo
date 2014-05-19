@@ -33,7 +33,7 @@ public class WriteFileStepBeanInfo extends MySimpleBeanInfo{
 			beanClass = WriteFileStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/WriteFileStep");
+			resourceBundle = getResourceBundle("res/WriteFileStep");
 			
 			properties = new PropertyDescriptor[5];
 			

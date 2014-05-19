@@ -36,7 +36,7 @@ public class SplitFieldsBeanInfo extends MySimpleBeanInfo {
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/splitfields_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/splitfields_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/SplitFields");
+			resourceBundle = getResourceBundle("res/SplitFields");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

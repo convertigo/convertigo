@@ -33,7 +33,7 @@ public class FileInjectorBeanInfo extends MySimpleBeanInfo {
 			beanClass = FileInjector.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.siteclipper.Injector.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/FileInjector");
+			resourceBundle = getResourceBundle("res/FileInjector");
 
 			properties = new PropertyDescriptor[1];
 			

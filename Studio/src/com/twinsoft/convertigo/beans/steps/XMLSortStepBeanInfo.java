@@ -36,7 +36,7 @@ public class XMLSortStepBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/sortstep_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/sortstep_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/XMLSortStep");
+			resourceBundle = getResourceBundle("res/XMLSortStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

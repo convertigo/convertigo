@@ -38,7 +38,7 @@ public class CicsTransactionBeanInfo extends MySimpleBeanInfo {
 
 			properties = new PropertyDescriptor[7];
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/CicsTransaction");
+			resourceBundle = getResourceBundle("res/CicsTransaction");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

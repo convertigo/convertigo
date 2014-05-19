@@ -33,7 +33,7 @@ public class XpathableStatementBeanInfo extends MySimpleBeanInfo {
 			beanClass = XpathableStatement.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Statement.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/XpathableStatement");
+			resourceBundle = getResourceBundle("res/XpathableStatement");
 			
 			properties = new PropertyDescriptor[2];
 			

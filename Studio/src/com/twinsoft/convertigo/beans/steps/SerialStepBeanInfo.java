@@ -36,7 +36,7 @@ public class SerialStepBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/serial_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/serial_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/SerialStep");
+			resourceBundle = getResourceBundle("res/SerialStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

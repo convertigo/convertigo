@@ -31,7 +31,7 @@ public class CriteriaBeanInfo extends MySimpleBeanInfo {
 			beanClass = Criteria.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.DatabaseObject.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/Criteria");
+			resourceBundle = getResourceBundle("res/Criteria");
 			
 			properties = new PropertyDescriptor[1];
 			

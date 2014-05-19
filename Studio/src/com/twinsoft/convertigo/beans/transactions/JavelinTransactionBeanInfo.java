@@ -38,7 +38,7 @@ public class JavelinTransactionBeanInfo extends MySimpleBeanInfo {
 
 			properties = new PropertyDescriptor[6];
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/JavelinTransaction");
+			resourceBundle = getResourceBundle("res/JavelinTransaction");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

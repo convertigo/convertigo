@@ -33,7 +33,7 @@ public class LegacyScreenCriteriaBeanInfo extends MySimpleBeanInfo {
 			beanClass = LegacyScreenCriteria.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Criteria.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/LegacyScreenCriteria");
+			resourceBundle = getResourceBundle("res/LegacyScreenCriteria");
 
 			properties = new PropertyDescriptor[3];
 			

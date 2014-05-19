@@ -31,7 +31,7 @@ public class VariableBeanInfo extends MySimpleBeanInfo {
 			beanClass = Variable.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.DatabaseObject.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/Variable");
+			resourceBundle = getResourceBundle("res/Variable");
 
 			properties = new PropertyDescriptor[4];
 			

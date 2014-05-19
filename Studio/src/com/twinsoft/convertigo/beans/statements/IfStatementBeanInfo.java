@@ -34,7 +34,7 @@ public class IfStatementBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/if_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/if_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/IfStatement");
+			resourceBundle = getResourceBundle("res/IfStatement");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

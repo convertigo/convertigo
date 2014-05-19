@@ -36,7 +36,7 @@ public class SiteClipperTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/siteclippertransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/siteclippertransaction_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/SiteClipperTransaction");
+			resourceBundle = getResourceBundle("res/SiteClipperTransaction");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

@@ -31,7 +31,7 @@ public class LoopStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = LoopStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.steps.BlockStep.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/LoopStep");
+			resourceBundle = getResourceBundle("res/LoopStep");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

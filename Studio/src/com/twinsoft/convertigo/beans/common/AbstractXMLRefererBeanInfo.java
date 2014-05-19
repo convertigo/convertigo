@@ -34,7 +34,7 @@ public class AbstractXMLRefererBeanInfo extends MySimpleBeanInfo {
 			beanClass = AbstractXMLReferer.class;
 			additionalBeanClass = HtmlExtractionRule.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/AbstractXMLReferer");
+			resourceBundle = getResourceBundle("res/AbstractXMLReferer");
 
 			properties = new PropertyDescriptor[1];
 			

@@ -37,7 +37,7 @@ public class XmlHttpTransactionBeanInfo extends MySimpleBeanInfo {
 
 			properties = new PropertyDescriptor[4];
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/XmlHttpTransaction");
+			resourceBundle = getResourceBundle("res/XmlHttpTransaction");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

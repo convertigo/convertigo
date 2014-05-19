@@ -34,7 +34,7 @@ public class XMLGenerateStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = XMLGenerateStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/XMLGenerateStep");
+			resourceBundle = getResourceBundle("res/XMLGenerateStep");
 			
 			properties = new PropertyDescriptor[1];
 

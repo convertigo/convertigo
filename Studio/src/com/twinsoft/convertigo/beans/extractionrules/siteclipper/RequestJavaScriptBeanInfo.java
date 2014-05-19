@@ -34,7 +34,7 @@ public class RequestJavaScriptBeanInfo extends MySimpleBeanInfo {
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/requestjavascript_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/requestjavascript_color_32x32.png";
 	
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/RequestJavaScript");
+			resourceBundle = getResourceBundle("res/RequestJavaScript");
 	
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

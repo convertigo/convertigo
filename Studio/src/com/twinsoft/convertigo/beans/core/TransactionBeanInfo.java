@@ -31,7 +31,7 @@ public class TransactionBeanInfo extends MySimpleBeanInfo {
 			beanClass =  Transaction.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.RequestableObject.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/Transaction");
+			resourceBundle = getResourceBundle("res/Transaction");
 			
 			properties = new PropertyDescriptor[1];
 

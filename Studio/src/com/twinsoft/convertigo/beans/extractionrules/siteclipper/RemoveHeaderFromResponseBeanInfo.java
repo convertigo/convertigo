@@ -34,7 +34,7 @@ public class RemoveHeaderFromResponseBeanInfo extends MySimpleBeanInfo {
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_removeheaderResponse_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_removeheaderResponse_color_32x32.png";
 	
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/RemoveHeaderFromResponse");
+			resourceBundle = getResourceBundle("res/RemoveHeaderFromResponse");
 	
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

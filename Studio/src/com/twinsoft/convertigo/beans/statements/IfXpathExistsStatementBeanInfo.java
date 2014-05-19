@@ -36,7 +36,7 @@ public class IfXpathExistsStatementBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/ifxpathexists_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/ifxpathexists_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/IfXpathExistsStatement");
+			resourceBundle = getResourceBundle("res/IfXpathExistsStatement");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

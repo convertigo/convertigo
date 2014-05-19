@@ -36,7 +36,7 @@ public class MatchUrlBeanInfo extends MySimpleBeanInfo {
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/criteria/siteclipper/images/match_url_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/criteria/siteclipper/images/match_url_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/criteria/siteclipper/res/MatchUrl");
+			resourceBundle = getResourceBundle("res/MatchUrl");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");			

@@ -33,7 +33,7 @@ public class CriteriaWithRegexBeanInfo extends MySimpleBeanInfo {
 			beanClass = CriteriaWithRegex.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.criteria.siteclipper.BaseCriteria.class;
 	
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/criteria/siteclipper/res/CriteriaWithRegex");
+			resourceBundle = getResourceBundle("res/CriteriaWithRegex");
 	
 			properties = new PropertyDescriptor[1];
 			

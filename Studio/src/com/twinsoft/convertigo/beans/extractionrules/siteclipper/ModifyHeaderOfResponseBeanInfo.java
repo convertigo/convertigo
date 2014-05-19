@@ -34,7 +34,7 @@ public class ModifyHeaderOfResponseBeanInfo extends MySimpleBeanInfo {
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_modifyheaderResponse_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_modifyheaderResponse_color_32x32.png";
 	
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/ModifyHeaderOfResponse");
+			resourceBundle = getResourceBundle("res/ModifyHeaderOfResponse");
 	
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

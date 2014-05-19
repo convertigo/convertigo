@@ -31,7 +31,7 @@ public class SequenceBeanInfo extends MySimpleBeanInfo {
 			beanClass =  Sequence.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.RequestableObject.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/Sequence");
+			resourceBundle = getResourceBundle("res/Sequence");
 			
 			properties = new PropertyDescriptor[3];
 			

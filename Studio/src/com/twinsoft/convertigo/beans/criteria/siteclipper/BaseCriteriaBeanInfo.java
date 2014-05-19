@@ -31,7 +31,7 @@ public class BaseCriteriaBeanInfo extends MySimpleBeanInfo {
 			beanClass = BaseCriteria.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.Criteria.class;
 	
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/criteria/siteclipper/res/BaseCriteria");
+			resourceBundle = getResourceBundle("res/BaseCriteria");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

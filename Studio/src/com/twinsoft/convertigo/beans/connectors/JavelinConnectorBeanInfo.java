@@ -36,7 +36,7 @@ public class JavelinConnectorBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/connectors/images/javelinconnector_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/connectors/images/javelinconnector_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/connectors/res/JavelinConnector");
+			resourceBundle = getResourceBundle("res/JavelinConnector");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

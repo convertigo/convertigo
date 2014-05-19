@@ -34,7 +34,7 @@ public class FunctionStatementBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/function_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/function_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/FunctionStatement");
+			resourceBundle = getResourceBundle("res/FunctionStatement");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

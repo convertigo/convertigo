@@ -31,7 +31,7 @@ public class ReferenceBeanInfo extends MySimpleBeanInfo {
 			beanClass = Reference.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.DatabaseObject.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/Reference");
+			resourceBundle = getResourceBundle("res/Reference");
 			
 			properties = new PropertyDescriptor[0];
 		}

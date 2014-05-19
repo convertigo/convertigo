@@ -36,7 +36,7 @@ public class RequestableVariableBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/variables/images/variable_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/variables/images/variable_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/variables/res/RequestableVariable");
+			resourceBundle = getResourceBundle("res/RequestableVariable");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

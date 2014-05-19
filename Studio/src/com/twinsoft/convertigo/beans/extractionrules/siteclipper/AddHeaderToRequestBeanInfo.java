@@ -34,7 +34,7 @@ public class AddHeaderToRequestBeanInfo extends MySimpleBeanInfo {
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_addheaderRequest_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_addheaderRequest_color_32x32.png";
 	
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/AddHeaderToRequest");
+			resourceBundle = getResourceBundle("res/AddHeaderToRequest");
 	
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

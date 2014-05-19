@@ -36,7 +36,7 @@ public class BrowserPropertyChangeStatementBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/browserpropertychange_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/browserpropertychange_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/BrowserPropertyChangeStatement");
+			resourceBundle = getResourceBundle("res/BrowserPropertyChangeStatement");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

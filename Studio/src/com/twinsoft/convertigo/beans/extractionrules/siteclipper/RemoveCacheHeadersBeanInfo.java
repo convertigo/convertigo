@@ -31,7 +31,7 @@ public class RemoveCacheHeadersBeanInfo extends MySimpleBeanInfo{
 			beanClass = RemoveCacheHeaders.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.siteclipper.BaseRule.class;
 	
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/RemoveCacheHeaders");
+			resourceBundle = getResourceBundle("res/RemoveCacheHeaders");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

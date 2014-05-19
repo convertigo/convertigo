@@ -36,7 +36,7 @@ public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/connectors/images/httpconnector_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/connectors/images/httpconnector_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/connectors/res/HttpConnector");
+			resourceBundle = getResourceBundle("res/HttpConnector");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

@@ -33,7 +33,7 @@ public class JavelinExtractionRuleBeanInfo extends MySimpleBeanInfo {
 			beanClass = JavelinExtractionRule.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.ExtractionRule.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/res/JavelinExtractionRule");
+			resourceBundle = getResourceBundle("res/JavelinExtractionRule");
 
 			properties = new PropertyDescriptor[4];
 			

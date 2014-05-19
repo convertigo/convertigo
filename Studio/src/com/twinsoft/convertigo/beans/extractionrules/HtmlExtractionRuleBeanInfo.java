@@ -33,7 +33,7 @@ public class HtmlExtractionRuleBeanInfo extends MySimpleBeanInfo {
 			beanClass = HtmlExtractionRule.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.ExtractionRule.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/res/HtmlExtractionRule");
+			resourceBundle = getResourceBundle("res/HtmlExtractionRule");
 
 			properties = new PropertyDescriptor[1];
 			

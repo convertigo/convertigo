@@ -36,7 +36,7 @@ public class LogStepBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/log_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/log_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/LogStep");
+			resourceBundle = getResourceBundle("res/LogStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

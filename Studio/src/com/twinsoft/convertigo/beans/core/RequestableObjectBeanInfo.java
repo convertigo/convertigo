@@ -31,7 +31,7 @@ public class RequestableObjectBeanInfo extends MySimpleBeanInfo {
 			beanClass =  RequestableObject.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.DatabaseObject.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/RequestableObject");
+			resourceBundle = getResourceBundle("res/RequestableObject");
 			
 			properties = new PropertyDescriptor[11];
 			

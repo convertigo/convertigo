@@ -33,7 +33,7 @@ public class TestStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = TestStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.steps.BlockStep.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/TestStep");
+			resourceBundle = getResourceBundle("res/TestStep");
 			
 			properties = new PropertyDescriptor[1];
 

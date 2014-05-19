@@ -39,7 +39,7 @@ public class CommandBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/command_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/command_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/Command");
+			resourceBundle = getResourceBundle("res/Command");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

@@ -36,7 +36,7 @@ public class ReplaceStringBeanInfo extends MySimpleBeanInfo {
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_string_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_string_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/ReplaceString");
+			resourceBundle = getResourceBundle("res/ReplaceString");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

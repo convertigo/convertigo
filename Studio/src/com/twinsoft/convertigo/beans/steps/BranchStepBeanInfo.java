@@ -33,7 +33,7 @@ public class BranchStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = BranchStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.StepWithExpressions.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/BranchStep");
+			resourceBundle = getResourceBundle("res/BranchStep");
 
 			properties = new PropertyDescriptor[2];
 

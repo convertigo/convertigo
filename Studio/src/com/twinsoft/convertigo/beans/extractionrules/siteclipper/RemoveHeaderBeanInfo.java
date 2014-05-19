@@ -31,7 +31,7 @@ public class RemoveHeaderBeanInfo extends MySimpleBeanInfo {
 			beanClass = RemoveHeader.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.siteclipper.Header.class;
 	
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/RemoveHeader");
+			resourceBundle = getResourceBundle("res/RemoveHeader");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

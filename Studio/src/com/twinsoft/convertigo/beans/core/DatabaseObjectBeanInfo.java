@@ -31,7 +31,7 @@ public class DatabaseObjectBeanInfo extends MySimpleBeanInfo {
 			beanClass = DatabaseObject.class;
 			additionalBeanClass = null;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/DatabaseObject");
+			resourceBundle = getResourceBundle("res/DatabaseObject");
 
 			properties = new PropertyDescriptor[2];
 

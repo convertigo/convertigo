@@ -31,7 +31,7 @@ public class BaseRuleBeanInfo extends MySimpleBeanInfo {
 			beanClass = BaseRule.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.ExtractionRule.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/BaseRule");
+			resourceBundle = getResourceBundle("res/BaseRule");
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

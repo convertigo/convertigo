@@ -34,7 +34,7 @@ public class ScreenClassBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/screenclass_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/screenclass_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/ScreenClass");
+			resourceBundle = getResourceBundle("res/ScreenClass");
 
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

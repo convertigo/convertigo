@@ -39,7 +39,7 @@ public class HTTPStatementBeanInfo extends MySimpleBeanInfo {
 			
 			properties = new PropertyDescriptor[10];
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/HTTPStatement");
+			resourceBundle = getResourceBundle("res/HTTPStatement");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

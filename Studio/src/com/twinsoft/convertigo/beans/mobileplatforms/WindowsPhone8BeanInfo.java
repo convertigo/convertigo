@@ -36,7 +36,7 @@ public class WindowsPhone8BeanInfo extends MySimpleBeanInfo {
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windowsphone8_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/windowsphone8_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/mobileplatforms/res/WindowsPhone8");
+			resourceBundle = getResourceBundle("res/WindowsPhone8");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

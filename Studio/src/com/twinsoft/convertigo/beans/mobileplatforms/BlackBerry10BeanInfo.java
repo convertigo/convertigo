@@ -36,7 +36,7 @@ public class BlackBerry10BeanInfo extends MySimpleBeanInfo {
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/blackberry10_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/blackberry10_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/mobileplatforms/res/BlackBerry10");
+			resourceBundle = getResourceBundle("res/BlackBerry10");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

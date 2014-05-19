@@ -36,7 +36,7 @@ public class ExternalBrowserTransactionBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/core/images/transaction_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/ExternalBrowserTransaction");
+			resourceBundle = getResourceBundle("res/ExternalBrowserTransaction");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

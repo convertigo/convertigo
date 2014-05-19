@@ -34,7 +34,7 @@ public class DoWhileStatementBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/do_while_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/do_while_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/DoWhileStatement");
+			resourceBundle = getResourceBundle("res/DoWhileStatement");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

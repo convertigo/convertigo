@@ -54,7 +54,7 @@ public class TableBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/table_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/table_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/Table");
+			resourceBundle = getResourceBundle("res/Table");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

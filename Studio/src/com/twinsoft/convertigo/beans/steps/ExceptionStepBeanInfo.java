@@ -36,7 +36,7 @@ public class ExceptionStepBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/exception_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/exception_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/ExceptionStep");
+			resourceBundle = getResourceBundle("res/ExceptionStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

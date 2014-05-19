@@ -35,7 +35,7 @@ public class SiteClipperConnectorBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/connectors/images/siteclipperconnector_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/connectors/images/siteclipperconnector_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/connectors/res/SiteClipperConnector");
+			resourceBundle = getResourceBundle("res/SiteClipperConnector");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

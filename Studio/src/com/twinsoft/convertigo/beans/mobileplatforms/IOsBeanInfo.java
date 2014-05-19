@@ -36,7 +36,7 @@ public class IOsBeanInfo extends MySimpleBeanInfo {
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/ios_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/mobileplatforms/images/ios_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/mobileplatforms/res/IOs");
+			resourceBundle = getResourceBundle("res/IOs");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

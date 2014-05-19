@@ -32,7 +32,7 @@ public class XsdSchemaReferenceBeanInfo extends MySimpleBeanInfo {
 			beanClass = XsdSchemaReference.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.references.RemoteFileReference.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/references/res/XsdSchemaReference");
+			resourceBundle = getResourceBundle("res/XsdSchemaReference");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

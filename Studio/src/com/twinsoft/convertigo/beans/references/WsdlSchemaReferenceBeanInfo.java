@@ -32,7 +32,7 @@ public class WsdlSchemaReferenceBeanInfo extends MySimpleBeanInfo {
 			beanClass = WsdlSchemaReference.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.references.RemoteFileReference.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/references/res/WsdlSchemaReference");
+			resourceBundle = getResourceBundle("res/WsdlSchemaReference");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

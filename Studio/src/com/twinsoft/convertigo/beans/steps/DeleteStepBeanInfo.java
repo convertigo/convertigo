@@ -14,7 +14,7 @@ public class DeleteStepBeanInfo extends MySimpleBeanInfo{
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/delete_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/delete_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/DeleteStep");
+			resourceBundle = getResourceBundle("res/DeleteStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");	          

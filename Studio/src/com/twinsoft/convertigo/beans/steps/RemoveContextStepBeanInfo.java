@@ -36,7 +36,7 @@ public class RemoveContextStepBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/remove_context_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/remove_context_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/RemoveContextStep");
+			resourceBundle = getResourceBundle("res/RemoveContextStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");	          

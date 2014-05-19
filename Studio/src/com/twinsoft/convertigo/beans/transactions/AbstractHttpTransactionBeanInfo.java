@@ -35,7 +35,7 @@ public class AbstractHttpTransactionBeanInfo extends MySimpleBeanInfo {
 			beanClass = AbstractHttpTransaction.class;
 			additionalBeanClass = TransactionWithVariables.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/AbstractHttpTransaction");
+			resourceBundle = getResourceBundle("res/AbstractHttpTransaction");
 
 			properties = new PropertyDescriptor[8];
 			

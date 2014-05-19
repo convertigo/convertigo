@@ -37,7 +37,7 @@ public class AttributeStepBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/jattrib_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/jattrib_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/AttributeStep");
+			resourceBundle = getResourceBundle("res/AttributeStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

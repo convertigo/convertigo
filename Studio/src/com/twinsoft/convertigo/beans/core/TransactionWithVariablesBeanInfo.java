@@ -31,7 +31,7 @@ public class TransactionWithVariablesBeanInfo extends MySimpleBeanInfo {
 			beanClass =  TransactionWithVariables.class;
 			additionalBeanClass = Transaction.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/TransactionWithVariables");
+			resourceBundle = getResourceBundle("res/TransactionWithVariables");
 
 			properties = new PropertyDescriptor[2];
 			

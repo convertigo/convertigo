@@ -29,7 +29,9 @@ import java.beans.IntrospectionException;
 import java.beans.MethodDescriptor;
 import java.beans.PropertyDescriptor;
 import java.beans.SimpleBeanInfo;
+import java.io.IOException;
 import java.util.Collections;
+import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
 import org.apache.commons.lang.ArrayUtils;
@@ -244,5 +246,9 @@ public class MySimpleBeanInfo extends SimpleBeanInfo {
     		}
     		additionalPropertiesLoaded = true;
     	}
+    }
+    
+    protected ResourceBundle getResourceBundle(String path) throws IOException {
+    	return new PropertyResourceBundle(beanClass.getResourceAsStream(path + ".properties"));
     }
 }

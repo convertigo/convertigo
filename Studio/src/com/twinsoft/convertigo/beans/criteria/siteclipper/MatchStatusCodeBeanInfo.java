@@ -34,7 +34,7 @@ public class MatchStatusCodeBeanInfo extends MySimpleBeanInfo {
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/criteria/siteclipper/images/match_statusCode_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/criteria/siteclipper/images/match_statusCode_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/criteria/siteclipper/res/MatchStatusCode");
+			resourceBundle = getResourceBundle("res/MatchStatusCode");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");			

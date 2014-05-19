@@ -14,7 +14,7 @@ public class CreateDirectoryStepBeanInfo extends MySimpleBeanInfo{
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/createDirectory_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/createDirectory_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/CreateDirectoryStep");
+			resourceBundle = getResourceBundle("res/CreateDirectoryStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");	          

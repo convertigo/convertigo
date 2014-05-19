@@ -41,7 +41,7 @@ public class SqlTransactionBeanInfo extends MySimpleBeanInfo {
 
 			properties = new PropertyDescriptor[7];
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/transactions/res/SqlTransaction");
+			resourceBundle = getResourceBundle("res/SqlTransaction");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

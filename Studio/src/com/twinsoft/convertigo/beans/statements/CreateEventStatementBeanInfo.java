@@ -36,7 +36,7 @@ public class CreateEventStatementBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/create_event_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/create_event_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/CreateEventStatement");
+			resourceBundle = getResourceBundle("res/CreateEventStatement");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

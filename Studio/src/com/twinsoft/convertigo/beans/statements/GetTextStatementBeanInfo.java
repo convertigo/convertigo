@@ -34,7 +34,7 @@ public class GetTextStatementBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/getText_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/getText_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/GetTextStatement");
+			resourceBundle = getResourceBundle("res/GetTextStatement");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

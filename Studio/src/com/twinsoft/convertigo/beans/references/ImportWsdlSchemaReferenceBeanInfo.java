@@ -33,7 +33,7 @@ public class ImportWsdlSchemaReferenceBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/references/images/WsdlSchemaReference_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/references/images/WsdlSchemaReference_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/references/res/ImportWsdlSchemaReference");
+			resourceBundle = getResourceBundle("res/ImportWsdlSchemaReference");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

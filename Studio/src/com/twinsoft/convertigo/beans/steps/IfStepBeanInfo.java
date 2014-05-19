@@ -34,7 +34,7 @@ public class IfStepBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/jif_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/jif_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/IfStep");
+			resourceBundle = getResourceBundle("res/IfStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

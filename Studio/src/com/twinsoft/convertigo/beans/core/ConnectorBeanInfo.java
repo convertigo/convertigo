@@ -31,7 +31,7 @@ public class ConnectorBeanInfo extends MySimpleBeanInfo {
 			beanClass = Connector.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.DatabaseObject.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/Connector");
+			resourceBundle = getResourceBundle("res/Connector");
 
 			properties = new PropertyDescriptor[3];
 			

@@ -35,7 +35,7 @@ public class ProjectSchemaReferenceBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/references/images/ProjectSchemaReference_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/references/images/ProjectSchemaReference_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/references/res/ProjectSchemaReference");
+			resourceBundle = getResourceBundle("res/ProjectSchemaReference");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

@@ -33,7 +33,7 @@ public class BlockStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = BlockStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.StepWithExpressions.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/BlockStep");
+			resourceBundle = getResourceBundle("res/BlockStep");
 
 			properties = new PropertyDescriptor[1];
 

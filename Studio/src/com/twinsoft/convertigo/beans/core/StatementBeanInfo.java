@@ -31,7 +31,7 @@ public class StatementBeanInfo extends MySimpleBeanInfo {
 			beanClass = Statement.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.DatabaseObject.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/Statement");
+			resourceBundle = getResourceBundle("res/Statement");
 			
 			properties = new PropertyDescriptor[1];
 			

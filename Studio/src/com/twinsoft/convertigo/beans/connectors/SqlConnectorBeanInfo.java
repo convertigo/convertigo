@@ -35,7 +35,7 @@ public class SqlConnectorBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/connectors/images/sqlconnector_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/connectors/images/sqlconnector_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/connectors/res/SqlConnector");
+			resourceBundle = getResourceBundle("res/SqlConnector");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

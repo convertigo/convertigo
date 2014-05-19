@@ -31,7 +31,7 @@ public class MobilePlatformBeanInfo extends MySimpleBeanInfo {
 			beanClass = MobilePlatform.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.DatabaseObject.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/core/res/MobilePlatform");
+			resourceBundle = getResourceBundle("res/MobilePlatform");
 			
 			properties = new PropertyDescriptor[0];
 		}

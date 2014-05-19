@@ -34,7 +34,7 @@ public class AddHeaderToResponseBeanInfo extends MySimpleBeanInfo {
 		    iconNameC16 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_addheaderResponse_color_16x16.png";
 		    iconNameC32 = "/com/twinsoft/convertigo/beans/extractionrules/siteclipper/images/rule_addheaderResponse_color_32x32.png";
 	
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/AddHeaderToResponse");
+			resourceBundle = getResourceBundle("res/AddHeaderToResponse");
 	
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

@@ -36,7 +36,7 @@ public class RecordForSiteClipperStatementBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/RecordForSiteClipperStatement_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/RecordForSiteClipperStatement_color_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/RecordForSiteClipperStatement");
+			resourceBundle = getResourceBundle("res/RecordForSiteClipperStatement");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

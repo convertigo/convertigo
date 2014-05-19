@@ -37,7 +37,7 @@ public class ContainerBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/common/images/container_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/common/images/container_color_32x32.png";
 
- 			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/common/res/Container");
+ 			resourceBundle = getResourceBundle("res/Container");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

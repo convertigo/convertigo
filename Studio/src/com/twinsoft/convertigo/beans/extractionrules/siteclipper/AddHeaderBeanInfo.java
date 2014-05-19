@@ -31,7 +31,7 @@ public class AddHeaderBeanInfo extends MySimpleBeanInfo {
 			beanClass = AddHeader.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.extractionrules.siteclipper.Header.class;
 	
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/AddHeader");
+			resourceBundle = getResourceBundle("res/AddHeader");
 			
 			getPropertyDescriptor("headerValue").setHidden(false);
 		}

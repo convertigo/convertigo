@@ -36,7 +36,7 @@ public class WriteBase64StepBeanInfo extends MySimpleBeanInfo{
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/b64W_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/b64W_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/WriteBase64Step");
+			resourceBundle = getResourceBundle("res/WriteBase64Step");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");	          

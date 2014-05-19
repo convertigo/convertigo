@@ -33,7 +33,7 @@ public class JavaScriptBeanInfo extends MySimpleBeanInfo {
 			beanClass = JavaScript.class;
 			additionalBeanClass = BaseRule.class;
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/extractionrules/siteclipper/res/JavaScript");
+			resourceBundle = getResourceBundle("res/JavaScript");
 
 			properties = new PropertyDescriptor[1];
 			

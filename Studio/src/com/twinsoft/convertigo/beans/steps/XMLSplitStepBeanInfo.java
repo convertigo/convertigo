@@ -36,7 +36,7 @@ public class XMLSplitStepBeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/splitstep_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/splitstep_32x32.png";
 			
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/steps/res/XMLSplitStep");
+			resourceBundle = getResourceBundle("res/XMLSplitStep");
 			
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");

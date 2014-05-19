@@ -36,7 +36,7 @@ public class CommandSNABeanInfo extends MySimpleBeanInfo {
 			iconNameC16 = "/com/twinsoft/convertigo/beans/sna/images/command_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/sna/images/command_color_32x32.png";
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/sna/res/CommandSNA");
+			resourceBundle = getResourceBundle("res/CommandSNA");
 
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

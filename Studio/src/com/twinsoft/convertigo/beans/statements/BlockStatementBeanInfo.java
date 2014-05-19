@@ -33,7 +33,7 @@ public class BlockStatementBeanInfo extends MySimpleBeanInfo {
 			beanClass = BlockStatement.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.core.StatementWithExpressions.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/statements/res/BlockStatement");
+			resourceBundle = getResourceBundle("res/BlockStatement");
 			
 			properties = new PropertyDescriptor[1];
 

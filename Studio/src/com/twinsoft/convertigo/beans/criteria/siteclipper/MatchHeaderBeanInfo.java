@@ -33,7 +33,7 @@ public class MatchHeaderBeanInfo extends MySimpleBeanInfo {
 			beanClass = MatchHeader.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.criteria.siteclipper.CriteriaWithRegex.class;
 
-			resourceBundle = java.util.ResourceBundle.getBundle("com/twinsoft/convertigo/beans/criteria/siteclipper/res/MatchHeader");
+			resourceBundle = getResourceBundle("res/MatchHeader");
 
 			properties = new PropertyDescriptor[1];
 					    
