@@ -539,7 +539,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 					String line;
 
 					while ((line = bis.readLine()) != null) {
-						Engine.logEngine.debug(line);
+						Engine.logEngine.info(line);
 						BuildLocallyAction.this.cmdOutput += line;
 					}
 					while ((line = bes.readLine()) != null) {
@@ -573,14 +573,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 			/*
 			 * Handle plugins in the config.xml file and test to see if the plugin is not already installed
 			 */
-			Engine.logEngine.debug("Checking installed plugins... ");
+			Engine.logEngine.info("Checking installed plugins... ");
 			String installedPlugins = runCordovaCommand("plugin list ", cordovaDir);
 			NodeList plugins = xpathApi.selectNodeList(doc.getDocumentElement(), "//*[local-name()='plugin']");
 			for(int i=0; i< plugins.getLength(); i++) {
 				Node plugin = plugins.item(i);
 				String pluginName = plugin.getAttributes().getNamedItem("name").getTextContent();
 				if (installedPlugins.indexOf(pluginName) == -1) {
-					Engine.logEngine.debug("Adding plugin " + pluginName);
+					Engine.logEngine.info("Adding plugin " + pluginName);
 					runCordovaCommand("plugin add " + pluginName, cordovaDir);
 				}	
 			}
@@ -709,7 +709,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 				String value = preference.getAttributes().getNamedItem("value").getTextContent();
 				elt.setAttribute("name", name);
 				elt.setAttribute("value", value);
-				Engine.logEngine.debug("Adding preference'" + name + "' with value '" + value + "'");					
+				Engine.logEngine.info("Adding preference'" + name + "' with value '" + value + "'");					
 				rootConfigXML.importNode(elt, true);
 				rootConfigXML.getFirstChild().appendChild(elt);
 				
@@ -774,6 +774,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 	}
 	
 	public void run() {
+		String actionID = action.getId();
+		Engine.logEngine.debug("Running " + actionID + " action");
+		
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
 		Shell shell = getParentShell();
@@ -872,7 +875,7 @@ public class BuildLocallyAction extends MyAbstractAction {
     						//create a local Cordova Environment
     						runCordovaCommand("create " + BuildLocallyAction.cordovaDir + " " + applicationId + " " + applicationName, privateDir);
     						
-    						Engine.logEngine.debug("Cordova environment is now ready.");
+    						Engine.logEngine.info("Cordova environment is now ready.");
     					} else {
     						return;
     					}
@@ -890,16 +893,16 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	
 					        	// Step 2 call Mobile packager to build ZIP package, simulate a fake HttpRequest
 					        	InternalRequest myRequest = new InternalRequest();
-					        	myRequest.setParameter("project", applicationName);
+					        	myRequest.setParameter("project", ConvertigoPlugin.projectManager.currentProject.getName());
 					        	myRequest.setParameter("platform", mobileDevice.getName());
 					        	MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(myRequest, "mobile/flashupdate");
 					        	File mobileArchiveFile = mobileResourceHelper.makeZipPackage();
-					        	Engine.logEngine.debug("ZIP Build package created in : " + mobileArchiveFile.getAbsolutePath());
+					        	Engine.logEngine.info("ZIP Build package created in : " + mobileArchiveFile.getAbsolutePath());
 					        	
 					        	// Step 3 : Unzip in the www directory
 					        	ZipUtils.expandZip(mobileArchiveFile.getAbsolutePath(),
 					        			           wwwDir.getAbsolutePath());
-					        	Engine.logEngine.debug("ZIP expanded in : " + wwwDir.getAbsolutePath());
+					        	Engine.logEngine.info("ZIP expanded in : " + wwwDir.getAbsolutePath());
 					        	
 					        	// Step 3Bis : Add platform and Read And process Config.xml to copy needed icons and splash resources
 					        	File cordovaDir = new File(privateDir.getAbsolutePath() + "/" + BuildLocallyAction.cordovaDir);
