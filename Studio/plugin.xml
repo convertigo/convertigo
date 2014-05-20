@@ -749,6 +749,9 @@
             id="convertigo.criteriaContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject">
       </objectContribution>
+
+      
+      <!-- Uncomment for local build menu
       <objectContribution
 	       id="convertigo.CordovaContribution"
 	       objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePlatformTreeObject">
@@ -766,22 +769,34 @@
 	             menubarPath="convertigo.menu.action.cordova/content">
 	       </action>
 	       <action
-	             class="com.twinsoft.convertigo.eclipse.popup.actions.AddPluginAction"
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
 	             enablesFor="1"
-	             icon="icons/studio/add_plugin_16x16.png"
-	             id="convertigo.action.addPlugin"
-	             label="Add plugin..."
+	             icon="icons/studio/run_locally_16x16.png"
+	             id="convertigo.action.runLocally"
+	             label="Run on Device"
 	             menubarPath="convertigo.menu.action.cordova/content">
 	       </action>
 	       <action
-	             class="com.twinsoft.convertigo.eclipse.popup.actions.RemovePluginAction"
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
 	             enablesFor="1"
-	             icon="icons/studio/remove_plugin_16x16.png"
-	             id="convertigo.action.removePlugin"
-	             label="Remove Plugin..."
+	             icon="icons/studio/emulate_locally_16x16.png"
+	             id="convertigo.action.emulateLocally"
+	             label="Run on Emulator"
+	             menubarPath="convertigo.menu.action.cordova/content">
+	       </action>
+	       <action
+	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
+	             enablesFor="1"
+	             icon="icons/studio/remove_cordova_platform_16x16.png"
+	             id="convertigo.action.removeCordovaPlatform"
+	             label="Remove platform"
 	             menubarPath="convertigo.menu.action.cordova/content">
 	       </action>
 	  </objectContribution>
+	  -->
+
+
+
 	  <objectContribution
 	        id="convertigo.launchMobileApplicationProjectContribution"
 	        objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobileApplicationTreeObject">
