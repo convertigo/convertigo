@@ -148,8 +148,8 @@ C8O = {
 					C8O._define.recall_params[key] = data[key];
 				}
 				if (C8O._define.recall_params[key]) {
-					C8O.log.debug("c8o.core: add value of recall parameter '" + key + "' = '" + data[key] + "'");
 					data[key] = C8O._define.recall_params[key];
+					C8O.log.debug("c8o.core: add value of recall parameter '" + key + "' = '" + data[key] + "'");
 				} else {
 					delete data[key];
 				}

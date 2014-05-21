@@ -34,7 +34,7 @@ $.extend(true, C8O, {
 			onPageBeforeCreate($page);
 			if (!$page.data("c8o-ctf-init")) {
 				C8O.log.debug("ctf.jqm : new DOM page loaded, initialize CTF on it");
-				$(this).data("c8o-ctf-init", true);
+				$page.data("c8o-ctf-init", true);
 				C8O._ctfjqm_onDocumentReadyEnd(callback, $page);
 			}
 		};
