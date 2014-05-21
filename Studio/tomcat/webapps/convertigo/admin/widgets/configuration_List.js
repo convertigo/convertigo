@@ -40,16 +40,7 @@ function configuration_List_init () {
 			primary : "ui-icon-disk"
 		}
 	});
-	
-	//Get engine version
-	var getEngineVersion = "";
-	callService("engine.GetStatus", function(xml) {
-		getEngineVersion = $(xml).find("version").attr("engine");
-		if(getEngineVersion == "" || !getEngineVersion) {
-			getEngineVersion = "latest";
-		}
-	});		
-	
+		
 	var $template = $("#config-template");
 	var $ul = $("<ul/>").attr("id","config-category-list");
 	callService("configuration.List", function (xml) {
@@ -64,56 +55,56 @@ function configuration_List_init () {
 			}
 			
 			//Get Url for each widgets
-			var urlHelp = "";
+			var urlHelp = "http://help.convertigo.com/" + engineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/";
 			switch ($x_category.attr("name"))
 			{
 				case "Main":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/422Mainparameters.html";
+					urlHelp += "422Mainparameters.html";
 					break;
 				case "Account":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/423Accounts.html";
+					urlHelp += "423Accounts.html";
 					break;
 				case "Logs":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/424Logs.html";
+					urlHelp += "424Logs.html";
 					break;
 				case "Context":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/425Realtimeactivitymonitoring.html";
+					urlHelp += "425Realtimeactivitymonitoring.html";
 					break;
 				case "XmlGeneration":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/426XMLgeneration.html";
+					urlHelp += "426XMLgeneration.html";
 					break;
 				case "XulRunner":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/427HTMLparser.html";
+					urlHelp += "427HTMLparser.html";
 					break;
 				case "HttpClient":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/428HTTPclient.html";
+					urlHelp += "428HTTPclient.html";
 					break;
 				case "Network":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/429Network.html";
+					urlHelp += "429Network.html";
 					break;
 				case "Proxy":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4210Proxy.html";
+					urlHelp += "4210Proxy.html";
 					break;
 				case "SecurityToken":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4211Securitytoken.html";
+					urlHelp += "4211Securitytoken.html";
 					break;
 				case "Ssl":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4212SSL.html";
+					urlHelp += "4212SSL.html";
 					break;
 				case "Cache":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4213Cache.html";
+					urlHelp += "4213Cache.html";
 					break;
 				case "Carioca":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4214LegacyCariocaportal.html";
+					urlHelp += "4214LegacyCariocaportal.html";
 					break;
 				case "Billing":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4215Analytics.html";
+					urlHelp += "4215Analytics.html";
 					break;
 				case "Notifications":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4216Notifications.html";
+					urlHelp += "4216Notifications.html";
 					break;
 				case "MobileBuilder":
-					urlHelp = "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/4217Mobilebuilder.html";
+					urlHelp += "4217Mobilebuilder.html";
 					break;
 			}
 

@@ -41,17 +41,9 @@ var setting_order = ["name", "enabled", "description", "jobName", "scheduleName"
 
 function scheduler_ListTasks_init () {
 	////////////////////////////////////////HELP MANAGEMENT//////////////////////////////////
-	//Get engine version
-	var getEngineVersion = "";
-	callService("engine.GetStatus", function(xml) {
-		getEngineVersion = $(xml).find("version").attr("engine");
-		if(getEngineVersion == "" || !getEngineVersion) {
-			getEngineVersion = "latest";
-		}
-		$("#helpJobs").attr("href", "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/492Jobstable.html");
-		$("#helpSchedules").attr("href", "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/493Schedulestable.html");
-		$("#helpScheduledJobs").attr("href", "http://help.convertigo.com/" + getEngineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/494ScheduledJobstable.html");
-	});	
+	$("#helpJobs").attr("href", "http://help.convertigo.com/" + engineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/492Jobstable.html");
+	$("#helpSchedules").attr("href", "http://help.convertigo.com/" + engineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/493Schedulestable.html");
+	$("#helpScheduledJobs").attr("href", "http://help.convertigo.com/" + engineVersion + "/topic/com.twinsoft.convertigo.studio.help/help/helpOperatingGuide/494ScheduledJobstable.html");	
 	////////////////////////////////////////INITIALIZATION OF THE TABLE//////////////////////
 	$(".scheduledTableData").jqGrid({
 		datatype : "local",
