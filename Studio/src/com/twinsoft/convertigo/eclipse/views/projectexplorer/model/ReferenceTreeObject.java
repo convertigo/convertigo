@@ -99,9 +99,12 @@ public class ReferenceTreeObject extends DatabaseObjectTreeObject {
 				handlesBeanNameChanged(treeObjectEvent);
 			}
 			else {
-				ProjectSchemaReference reference = (ProjectSchemaReference)getObject();
-				if (databaseObject.getProject().getName().equals(reference.getProjectName())) {
-					Engine.theApp.schemaManager.clearCache(reference.getProject().getName());
+				// If a referenced project has changed, clear current project schema
+				if (getObject() instanceof ProjectSchemaReference) {
+					ProjectSchemaReference reference = (ProjectSchemaReference)getObject();
+					if (databaseObject.getProject().getName().equals(reference.getProjectName())) {
+						Engine.theApp.schemaManager.clearCache(reference.getProject().getName());
+					}
 				}
 			}
 		}
