@@ -873,7 +873,7 @@ public class BuildLocallyAction extends MyAbstractAction {
     					int response = customDialog.open();
     					if (response == 0) {
     						//create a local Cordova Environment
-    						runCordovaCommand("create " + BuildLocallyAction.cordovaDir + " " + applicationId + " " + applicationName, privateDir);
+    						runCordovaCommand("create " + BuildLocallyAction.cordovaDir + " " + applicationId + " " + ConvertigoPlugin.projectManager.currentProject.getName(), privateDir);
     						
     						Engine.logEngine.info("Cordova environment is now ready.");
     					} else {
