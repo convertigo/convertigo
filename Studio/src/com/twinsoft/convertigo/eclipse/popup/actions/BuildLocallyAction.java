@@ -579,6 +579,11 @@ public class BuildLocallyAction extends MyAbstractAction {
 			for(int i=0; i< plugins.getLength(); i++) {
 				Node plugin = plugins.item(i);
 				String pluginName = plugin.getAttributes().getNamedItem("name").getTextContent();
+				
+				// Plugin may have a version number, compare without it
+				if (pluginName.indexOf('@') != -1)
+					pluginName = pluginName.substring(0, pluginName.indexOf('@'));
+				
 				if (installedPlugins.indexOf(pluginName) == -1) {
 					Engine.logEngine.info("Adding plugin " + pluginName);
 					runCordovaCommand("plugin add " + pluginName, cordovaDir);
