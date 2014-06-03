@@ -515,6 +515,7 @@ public class SqlTransaction extends TransactionWithVariables {
 							break;
 					
 						case select:
+						case unknown:
 							ResultSet rs = null;
 							try {
 								// We set the auto-commit in function of the SqlTransaction parameter
@@ -781,7 +782,6 @@ public class SqlTransaction extends TransactionWithVariables {
 							
 							break;
 							
-						case unknown:
 						default:
 							break;
 					}
