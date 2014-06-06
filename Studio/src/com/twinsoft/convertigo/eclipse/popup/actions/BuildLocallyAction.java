@@ -726,7 +726,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 			
 			// Last part , as all resources has been copied to the correct location, we can remove
 			// our www/res directory before packaging to save build time and size...
-			FileUtils.deleteDirectory(new File(wwwDir, "res"));
+			// FileUtils.deleteDirectory(new File(wwwDir, "res"));
 			
 		} catch (Exception e) {
 			ConvertigoPlugin.logException(e, "Unable to process config.xml in your project, check the file's validity");
