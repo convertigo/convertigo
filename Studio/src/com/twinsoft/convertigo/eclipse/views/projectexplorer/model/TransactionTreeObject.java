@@ -37,7 +37,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
@@ -318,19 +317,19 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 							!newSQLQueriesVariablesNames.contains(variableName)) {
 						
 						try {
-							MessageBox messageBox = new MessageBox(new Shell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO); 
-							messageBox.setMessage("Do you really want to delete the variable \""+variableName+"\"?"); 
-							messageBox.setText("Delete \""+variableName+"\"?"); 
-
-							if (messageBox.open() == SWT.YES) { 
-								variable.delete();               
-							} 
+							MessageBox messageBox = new MessageBox(viewer.getControl().getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO); 
+							messageBox.setMessage("Do you really want to delete the variable \""+variableName+"\"?");
+							messageBox.setText("Delete \""+variableName+"\"?");
+							
+							if (messageBox.open() == SWT.YES) {
+								variable.delete();
+							}
 						} catch (EngineException e) {
-							ConvertigoPlugin.logException(e, "Error when deleting the variable \""+variableName+"\""); 
+							ConvertigoPlugin.logException(e, "Error when deleting the variable \""+variableName+"\"");
 						}
 						
 					}
-				}						
+				}
 			}
 		}
 	}

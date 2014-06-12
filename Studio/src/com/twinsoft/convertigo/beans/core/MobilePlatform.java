@@ -90,7 +90,7 @@ public abstract class MobilePlatform extends DatabaseObject {
 	
 	private void checkFolder(String oldName) {
 		if (oldName != null && !oldName.equals(getName())) {
-			File oldFolder = new File(getProject().getDirPath() + "/DisplayObjects/platform/" + oldName);
+			File oldFolder = new File(getProject().getDirPath() + "/DisplayObjects/platforms/" + oldName);
 			if (oldFolder.exists()) {
 				File newFolder = getResourceFolder();
 				if (!newFolder.exists()) {

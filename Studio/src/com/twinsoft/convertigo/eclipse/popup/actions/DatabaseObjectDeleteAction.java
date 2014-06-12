@@ -27,14 +27,17 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.beans.core.Sequence;
@@ -168,13 +171,12 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		DatabaseObject databaseObject = (DatabaseObject) treeObject.getObject();
 		DatabaseObject parent = databaseObject.getParent();
 		
-		while ((treeParent != null) && (!(treeParent instanceof DatabaseObjectTreeObject)))
+		while ((treeParent != null) && (!(treeParent instanceof DatabaseObjectTreeObject))) {
 			treeParent = treeParent.getParent();
+		}
 		
-		if (treeParent != null)
-			parentTreeObject = (DatabaseObjectTreeObject)treeParent;
-		
-		if (treeObject.isUnderCvs) {
+		if (treeParent != null) {
+			parentTreeObject = (DatabaseObjectTreeObject) treeParent;
 		}
 		
 		delete(databaseObject);
@@ -183,11 +185,13 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			ConvertigoPlugin.projectManager.save(parent, false);*/
 		
 		// Do not save after a deletion anymore
-		if (parent != null)
+		if (parent != null) {
 			parentTreeObject.hasBeenModified(true);
+		}
 				
-		if ((parentTreeObject != null) && !treeNodesToUpdate.contains(parentTreeObject))
+		if ((parentTreeObject != null) && !treeNodesToUpdate.contains(parentTreeObject)) {
 			treeNodesToUpdate.add(parentTreeObject);
+		}
 		
 	}
 	
@@ -248,8 +252,19 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 				throw new EngineException("Cannot delete this step!");
 			}
 		}
+		else if (databaseObject instanceof MobilePlatform) {
+			MobilePlatform mobilePlatform = (MobilePlatform) databaseObject;
+			File resourceFolder = mobilePlatform.getResourceFolder();
+			if (resourceFolder.exists()) {
+				MessageBox messageBox = new MessageBox(getParentShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+				messageBox.setMessage("Do you want to delete the whole resource folder \"" + mobilePlatform.getRelativeResourcePath() + "\"?"); 
+				messageBox.setText("Delete the \""+resourceFolder.getName()+"\" folder?");
+				if (messageBox.open() == SWT.YES) {
+					FileUtils.deleteQuietly(resourceFolder);
+				}
+			}
+		}
 		
-		String databaseObjectQName = databaseObject.getQName();
 		if (databaseObject instanceof Project) {
 			// Deleted project will be backup, car will be deleted to avoid its deployment at engine restart
 			//Engine.theApp.databaseObjectsManager.deleteProject(databaseObject.getName());
@@ -259,7 +274,8 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 		else {
 			databaseObject.delete();
 		}
-		ConvertigoPlugin.logDebug("The object \"" + databaseObjectQName + "\" has been deleted from the database repository!");
+		
+		ConvertigoPlugin.logDebug("The object \"" + databaseObject.getQName() + "\" has been deleted from the database repository!");
     }
 	
 	//TODO : add DeleteEdit class
