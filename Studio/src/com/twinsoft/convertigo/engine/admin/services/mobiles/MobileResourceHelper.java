@@ -316,14 +316,15 @@ public class MobileResourceHelper {
 				
 				public boolean accept(File pathname) {
 					try {
+						File dir;
 						boolean ok = MobileResourceHelper.defaultFilter.accept(pathname) && (
 							new File(currentMobileDir, "index.html").equals(pathname) ||
 							new File(currentMobileDir, "config.xml").equals(pathname) ||
 							new File(currentMobileDir, "icon.png").equals(pathname) ||
-							new File(currentMobileDir, "flashupdate").equals(pathname) ||
-							FileUtils.directoryContains(new File(currentMobileDir, "flashupdate"), pathname) ||
-							new File(currentMobileDir, "res").equals(pathname) ||
-							FileUtils.directoryContains(new File(currentMobileDir, "res"), pathname));
+							(dir = new File(currentMobileDir, "res")).equals(pathname) ||
+							(dir.exists() && FileUtils.directoryContains(dir, pathname)) ||
+							(dir = new File(currentMobileDir, "flashupdate")).equals(pathname) ||
+							(dir.exists() && FileUtils.directoryContains(dir, pathname)));
 						return ok;
 					} catch(Exception e) {
 						return false;
