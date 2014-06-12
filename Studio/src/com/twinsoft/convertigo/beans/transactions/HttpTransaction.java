@@ -28,6 +28,7 @@ import org.w3c.dom.CDATASection;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.util.Base64;
 
@@ -59,14 +60,20 @@ public class HttpTransaction extends AbstractHttpTransaction {
         try {
         	String stringData = "";
         	
-        	if (dataEncoding == HTTP_DATA_ENCODING_STRING) {
+        	if (httpData == null || httpData.length == 0) {
+        		// nothing to do
+        	}
+        	else if (dataEncoding == HTTP_DATA_ENCODING_STRING) {
             	String charset  = ((HttpConnector) parent).getCharset();
 
-            	if(charset==null) charset = "ascii";
-            	try{
+            	if (charset == null) {
+            		charset = "ascii";
+            	}
+            	try {
             		stringData = new String(httpData, charset);
-            	}catch (UnsupportedEncodingException e) {
-            		stringData = new String(httpData,"ascii");
+            	} catch (UnsupportedEncodingException e) {
+            		Engine.logBeans.warn("(HttpTransaction) Unsupported Encoding to decode the response, use ascii instead",  e);
+            		stringData = new String(httpData, "ascii");
             	}
         	}
         	else if (dataEncoding == HTTP_DATA_ENCODING_BASE64) {
