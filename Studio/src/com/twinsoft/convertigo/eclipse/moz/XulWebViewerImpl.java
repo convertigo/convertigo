@@ -562,7 +562,7 @@ public class XulWebViewerImpl extends AbstractXulWebViewer implements nsIHttpHea
 			if(uriToRequest.containsKey(key)){
 				fireHttpProxyEventListeners(
 						new HttpProxyEvent(
-								context.contextID,								//running context id
+								getConvertigoContext().contextID,								//running context id
 								(String)uriToRequest.get(key),			//request
 								responseString.toString(),				//response
 								"",										//path
