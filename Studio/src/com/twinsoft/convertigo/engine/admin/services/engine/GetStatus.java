@@ -23,7 +23,11 @@
 package com.twinsoft.convertigo.engine.admin.services.engine;
 
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.util.Calendar;
+import java.util.Locale;
 import java.util.Properties;
+import java.util.TimeZone;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -42,28 +46,31 @@ import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 		roles = { Role.TEST_PLATFORM },
 		parameters = {},
 		returnValue = "the engine status"
-	)
+		)
 public class GetStatus extends XmlService {
 
 	protected void getServiceResult(HttpServletRequest request, Document document) throws Exception {
 		Element rootElement = document.getDocumentElement();
-        
-		long currentTimeSec = System.currentTimeMillis() / 1000;
-		long startDateSec = Engine.startStopDate / 1000;
-        long runningElapseDays = (currentTimeSec - startDateSec) / 86400;
-        long runningElapseHours = ((currentTimeSec - startDateSec) / 3600) % 24;
-        long runningElapseMin = ((currentTimeSec - startDateSec) / 60) % 60;
-        long runningElapseSec = (currentTimeSec - startDateSec) % 60;
 
-        Element versionElement = document.createElement("version");
-        versionElement.setAttribute("product", com.twinsoft.convertigo.engine.Version.fullProductVersion);
-        versionElement.setAttribute("id", com.twinsoft.convertigo.engine.Version.fullProductVersionID);
-        versionElement.setAttribute("beans", com.twinsoft.convertigo.beans.Version.version);
-        versionElement.setAttribute("engine", com.twinsoft.convertigo.engine.Version.version);
-        versionElement.setAttribute("build", com.twinsoft.convertigo.engine.Version.revision);
-        rootElement.appendChild(versionElement);
-        
-        try {
+		Locale locale = Locale.getDefault();
+		String timezone = Calendar.getInstance().getTimeZone().getDisplayName(false, TimeZone.SHORT);
+		long now = System.currentTimeMillis();
+		long currentTimeSec = now / 1000;
+		long startDateSec = Engine.startStopDate / 1000;
+		long runningElapseDays = (currentTimeSec - startDateSec) / 86400;
+		long runningElapseHours = ((currentTimeSec - startDateSec) / 3600) % 24;
+		long runningElapseMin = ((currentTimeSec - startDateSec) / 60) % 60;
+		long runningElapseSec = (currentTimeSec - startDateSec) % 60;
+
+		Element versionElement = document.createElement("version");
+		versionElement.setAttribute("product", com.twinsoft.convertigo.engine.Version.fullProductVersion);
+		versionElement.setAttribute("id", com.twinsoft.convertigo.engine.Version.fullProductVersionID);
+		versionElement.setAttribute("beans", com.twinsoft.convertigo.beans.Version.version);
+		versionElement.setAttribute("engine", com.twinsoft.convertigo.engine.Version.version);
+		versionElement.setAttribute("build", com.twinsoft.convertigo.engine.Version.revision);
+		rootElement.appendChild(versionElement);
+
+		try {
 			Element buildElement = document.createElement("build");
 			Properties properties = new Properties();
 			ServletContext servletContext = request.getSession().getServletContext();
@@ -79,37 +86,39 @@ public class GetStatus extends XmlService {
 			// Ignore
 			Engine.logAdmin.error("Unable to get build info", e);
 		}
-        
-        Element EngineState = document.createElement("engineState");        
-        Text textStart = null;
-        if(Engine.isStarted)
-        	textStart = document.createTextNode("started");
-        else
-        	textStart = document.createTextNode("stopped");
-        EngineState.appendChild(textStart);
-        rootElement.appendChild(EngineState);
-        
-        Element startStopDateElement = document.createElement("startStopDate");
-        Text textNode = document.createTextNode(String.valueOf(Engine.startStopDate));
-        startStopDateElement.appendChild(textNode);
-        rootElement.appendChild(startStopDateElement);
-        
-        Element runningElapseElement = document.createElement("runningElapse");
-        runningElapseElement.setAttribute("days", String.valueOf(runningElapseDays));
-        runningElapseElement.setAttribute("hours", String.valueOf(runningElapseHours));
-        runningElapseElement.setAttribute("minutes", String.valueOf(runningElapseMin));
-        runningElapseElement.setAttribute("seconds", String.valueOf(runningElapseSec));
-        textNode = document.createTextNode("");
-        runningElapseElement.appendChild(textNode);
-        rootElement.appendChild(runningElapseElement);
-        
-        Element dateTime=document.createElement("time");
-        dateTime.setTextContent(""+System.currentTimeMillis());       
-        rootElement.appendChild(dateTime);
+
+		Element EngineState = document.createElement("engineState");
+		Text textStart = null;
+		if (Engine.isStarted) {
+			textStart = document.createTextNode("started");
+		} else {
+			textStart = document.createTextNode("stopped");
+		}
+		EngineState.appendChild(textStart);
+		rootElement.appendChild(EngineState);
+
+		Element startStopDateElement = document.createElement("startStopDate");
+		Text textNode = document.createTextNode(String.valueOf(Engine.startStopDate));
+		startStopDateElement.appendChild(textNode);
+		startStopDateElement.setAttribute("localeFormatted", DateFormat.getDateInstance(DateFormat.LONG, locale).format(Engine.startStopDate) + " - " + DateFormat.getTimeInstance(DateFormat.MEDIUM, locale).format(Engine.startStopDate));
+		startStopDateElement.setAttribute("locale", locale.toString());
+		startStopDateElement.setAttribute("timezone", timezone);
+		rootElement.appendChild(startStopDateElement);
+
+		Element runningElapseElement = document.createElement("runningElapse");
+		runningElapseElement.setAttribute("days", String.valueOf(runningElapseDays));
+		runningElapseElement.setAttribute("hours", String.valueOf(runningElapseHours));
+		runningElapseElement.setAttribute("minutes", String.valueOf(runningElapseMin));
+		runningElapseElement.setAttribute("seconds", String.valueOf(runningElapseSec));
+		textNode = document.createTextNode(String.valueOf(now - Engine.startStopDate));
+		runningElapseElement.appendChild(textNode);
+		rootElement.appendChild(runningElapseElement);
+
+		Element dateTime = document.createElement("time");
+		dateTime.setTextContent(String.valueOf(now));
+		dateTime.setAttribute("localeFormatted", DateFormat.getDateInstance(DateFormat.LONG, locale).format(now) + " - " + DateFormat.getTimeInstance(DateFormat.MEDIUM, locale).format(now));
+		dateTime.setAttribute("locale", locale.toString());
+		dateTime.setAttribute("timezone", timezone);
+		rootElement.appendChild(dateTime);
 	}
-	
-	
-
 }
-
-
