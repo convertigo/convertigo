@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.engine;
 
 import java.net.Socket;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -103,8 +104,7 @@ public class MyX509KeyManager implements X509KeyManager {
 
 			Principal issuer = null, previousIssuer;
 			ArrayList<X509Certificate> chainList = new ArrayList<X509Certificate>();
-			Enumeration<String> enumAliases;
-
+			
 			Engine.logCertificateManager.trace("MyX509KeyManager.getCertificateChain(): searching for certificate chain...");			
 			do {
 				chainList.add(certificate);
@@ -112,20 +112,21 @@ public class MyX509KeyManager implements X509KeyManager {
 				
 				previousIssuer = issuer;
 				issuer = (Principal) certificate.getIssuerDN();
+				certificate = null;
 				Engine.logCertificateManager.trace("MyX509KeyManager.getCertificateChain(): issuer=" + issuer.toString());				
 				
-				if (issuer.equals(previousIssuer)) break;
-
-				enumAliases = trustStore.aliases();
-				certificate = null;
-				while (enumAliases.hasMoreElements()) {
-					alias = (String) enumAliases.nextElement();
-					certificate = (X509Certificate) trustStore.getCertificate(alias);
-					Engine.logCertificateManager.trace("MyX509KeyManager.getCertificateChain(): certificate=" + certificate.toString());
-					if (certificate.getSubjectDN().equals(issuer)) {
-						Engine.logCertificateManager.trace("MyX509KeyManager.getCertificateChain(): issuer found; break");
-						break;
+				if (issuer.equals(previousIssuer)) {
+					Engine.logCertificateManager.trace("MyX509KeyManager.getCertificateChain(): same issuer, stop the chain");
+				} else {
+					certificate = getCertificateFromSubjectDN(keyStore, issuer);
+					if (certificate == null) {
+						Engine.logCertificateManager.debug("MyX509KeyManager.getCertificateChain(): issuer=" + issuer.toString() + " not found in keyStore");
+						certificate = getCertificateFromSubjectDN(trustStore, issuer);
+						if (certificate == null) {
+							Engine.logCertificateManager.warn("MyX509KeyManager.getCertificateChain(): issuer=" + issuer.toString() + " not found in keyStore nor in trustStore");
+						}
 					}
+					
 				}
 			} while (certificate != null);
 			
@@ -138,6 +139,18 @@ public class MyX509KeyManager implements X509KeyManager {
 			Engine.logCertificateManager.error("MyX509KeyManager.getCertificateChain(): Error while updating certificate chain; returning implementor certificate chain", e);
 			return impl.getCertificateChain(alias);
 		}
+	}
+	
+	private static X509Certificate getCertificateFromSubjectDN(KeyStore store, Principal issuer) throws KeyStoreException {
+		for (Enumeration<String> alias = store.aliases(); alias.hasMoreElements(); ) {
+			X509Certificate certificate = (X509Certificate) store.getCertificate(alias.nextElement());
+			Engine.logCertificateManager.trace("MyX509KeyManager.getCertificateFromSubjectDN(): certificate=" + certificate.toString());
+			if (certificate.getSubjectDN().equals(issuer)) {
+				Engine.logCertificateManager.trace("MyX509KeyManager.getCertificateChain(): issuer found; break");
+				return certificate;
+			}
+		}
+		return null;		
 	}
 
 	public java.security.PrivateKey getPrivateKey(String alias) {
