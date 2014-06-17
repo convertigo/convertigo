@@ -312,7 +312,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 
 		case TEMPLATE_WEB_SERVICE_REFERENCE:
 			page1 = new NewProjectWizardPage1(selection);
-			page10 = new NewProjectWizardPage10(selection);
+			page10 = new NewProjectWizardPage10(selection, projectName);
 			addPage(page1);
 			addPage(page10);
 			break;
@@ -473,7 +473,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 					monitor.beginTask("Creating project " + projectName, 7);
 					Project project = createFromBlankProject(monitor);
 	
-					String wsdlURL = page10.getWsdlURL();
+					String wsdlURL = page10.getWsdlURL().toString();
 					ImportWsReference wsr = new ImportWsReference(wsdlURL);
 					
 					HttpConnector httpConnector = null;

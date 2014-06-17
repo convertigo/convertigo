@@ -23,32 +23,32 @@
 package com.twinsoft.convertigo.eclipse.dialogs;
 
 import java.io.File;
-import java.net.MalformedURLException;
 
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
 
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite {
 
-	public ProgressBar progressBar = null;
-	public Label labelProgression = null;
-	public Combo combo = null;
-	public Button browseButton = null;
-	private WsReferenceAuthenticatedComposite wsRefAuthenticated = null;
+	private FileFieldEditor editor = null;
+	private Combo combo = null;
+	private String filePath = "";
+	private WsReferenceComposite wsRefAuthenticated = null;
+	private Object parentObject = null;
+	
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
 	/**
@@ -68,90 +68,81 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 
 		container.setLayout(gridLayout);
 		
-		Label description = new Label(this, SWT.NONE);
-		description.setText("Please enter a valid WSDL url or select your WSDL file using the \"Browse\" button:");
-		GridData data = new GridData ();
-		data.horizontalAlignment = GridData.FILL;
-		data.horizontalSpan = 2;
-		data.grabExcessHorizontalSpace = true;
-		description.setLayoutData (data);
-		
-		combo = new Combo(this, SWT.NONE);
-		combo.add("http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL");
-		combo.select(0);
-		GridData data0 = new GridData ();
-		data0.horizontalAlignment = GridData.FILL;
-		data0.grabExcessHorizontalSpace = true;
-		combo.setLayoutData (data0);
-		
-		browseButton = new Button(this, SWT.NONE);
-		browseButton.setText("Browse...");
-		data0 = new GridData ();
-		data0.horizontalAlignment = GridData.FILL;
-		data0.grabExcessHorizontalSpace = true;
-		combo.setLayoutData (data0);
-		
-		//Event click browse button
-		browseButton.addSelectionListener(new SelectionListener() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				FileDialog dialog = new FileDialog(container.getShell(), SWT.NULL);
-				dialog.setFilterExtensions(new String[]{"*.wsdl","*.xml"});
-				dialog.setText("Select your WSDL file");
-				String path = dialog.open();
-				if (path != null) {
-					File file = new File(path);
-					if (file.isFile()) {
-						try {
-							combo.add(FileUtils.toUriString(file));
-						} catch (MalformedURLException e1) {
-							ConvertigoPlugin.logException(e1, "Unexpected exception");
-						}
-						combo.select(combo.getItemCount()-1);
-					}
-				}
-				
-			}
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {}
-		});
-		
-		progressBar = new ProgressBar(this, SWT.NONE);
+		/* Authenticated Composite for import WS Reference */
 		GridData data1 = new GridData ();
 		data1.horizontalAlignment = GridData.FILL;
-		data1.horizontalSpan = 2;
 		data1.grabExcessHorizontalSpace = true;
-		progressBar.setLayoutData (data1);
-
-		labelProgression = new Label(this, SWT.NONE);
-		labelProgression.setText("Progression");
-		data1 = new GridData ();
-		data1.horizontalAlignment = GridData.FILL;
-		data1.horizontalSpan = 2;
-		data1.grabExcessHorizontalSpace = true;
-		labelProgression.setLayoutData (data1);
 		
-		/* Authenticated Composite for import WS Reference */
-		data1 = new GridData ();
-		data1.horizontalAlignment = GridData.FILL;
-		data1.horizontalSpan = 2;
-		data1.grabExcessHorizontalSpace = true;
-		wsRefAuthenticated = new WsReferenceAuthenticatedComposite(this, SWT.NONE, data1);
+		wsRefAuthenticated = new WsReferenceComposite(this, SWT.NONE, data1);
+		
+		combo = wsRefAuthenticated.combo;
+		
+		editor = wsRefAuthenticated.editor;
+		Composite fileSelectionArea = wsRefAuthenticated.fileSelectionArea;
+		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
+			public void modifyText(ModifyEvent e) {
+				IPath path = new Path(WsReferenceImportDialogComposite.this.editor.getStringValue());
+				filePath = path.toString();
+				dialogChanged();
+			}
+		});
 		
 		useAuthentication = wsRefAuthenticated.useAuthentication;
 		loginText = wsRefAuthenticated.loginText;
 		passwordText = wsRefAuthenticated.passwordText;
-		
-		setSize(new Point(402, 99));
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.eclipse.dialogs.MyAbstractDialogComposite#getValue(java.lang.String)
-	 */
 	@Override
 	public Object getValue(String name) {
 		return null;
 	}
 
+	private void dialogChanged() {
+		if (!filePath.equals("")) {
+			File file = new File(filePath);
+			if (file.exists()) {
+				String[] filterExtensions = wsRefAuthenticated.getFilterExtension()[0].split(";");
+				for (String fileFilter: filterExtensions) {
+					String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));
+					if (filePath.endsWith(fileExtension)) {
+						try {
+							String xsdFilePath = new File(filePath).getCanonicalPath();
+							String projectPath = (new File(Engine.PROJECTS_PATH +"/"+ getProjectName())).getCanonicalPath();
+							String workspacePath = (new File(Engine.USER_WORKSPACE_PATH)).getCanonicalPath();
+							
+							boolean isExternal = !xsdFilePath.startsWith(projectPath) && !xsdFilePath.startsWith(workspacePath);
+							
+							if (isExternal) {
+								combo.add(FileUtils.toUriString(file));
+								combo.select(combo.getItemCount()-1);
+							} else {
+								if (xsdFilePath.startsWith(projectPath))
+									xsdFilePath = "./" + xsdFilePath.substring(projectPath.length());
+								else if (xsdFilePath.startsWith(workspacePath))
+									xsdFilePath = "." + xsdFilePath.substring(workspacePath.length());
+								xsdFilePath = xsdFilePath.replaceAll("\\\\", "/");
+							}
+						} catch (Exception e) {
+							Engine.logBeans.error("An error occured while creating project with WS reference", e);
+						}
+					}
+				}
+			}
+		} 
+	}
+	
+	private String getProjectName() {
+		if (parentObject instanceof Project) {
+			return ((Project)parentObject).getName();
+		}
+		return "";
+	}
+	
+	public void setParentObject(Object parentObject) {
+		this.parentObject = parentObject;
+	}
+	
+	public String getURL() {
+		return combo.getText();
+	}
 }

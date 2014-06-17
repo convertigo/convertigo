@@ -29,18 +29,17 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Composite;
 
-
 public class NewProjectWizardPage10 extends WizardPage {
-	private String wsdlURL;
+	private String projectName;
 	
-	public NewProjectWizardPage10(ISelection selection) {
+	public NewProjectWizardPage10(ISelection selection, String projectName) {
 		super("wizardPage");
 		setTitle("Import web service reference");
 		setDescription("This step creates a new http connector to invoke the remote web service");
 	}
 
 	public void createControl(Composite parent) {
-		Composite container = new NewProjectWizardComposite10(parent, SWT.NULL,
+		Composite container = new NewProjectWizardComposite10(parent, projectName, SWT.NULL,
 				new ModifyListener() {
 					public void modifyText(ModifyEvent e) {
 						dialogChanged();
@@ -49,13 +48,21 @@ public class NewProjectWizardPage10 extends WizardPage {
 				
 		setControl(container);
 		
-		wsdlURL = ((NewProjectWizardComposite10) getControl()).combo.getText();
-		
 		setPageComplete(isValidURL());
 	}
 	
 	protected String getWsdlURL() {
-		return wsdlURL;
+		final String[] wsdlURL = new String[1];
+		
+		getShell().getDisplay().syncExec(new Runnable() {
+
+			@Override
+			public void run() {
+				wsdlURL[0] = ((NewProjectWizardComposite10) getControl()).combo.getText();
+			}
+			
+		});
+		return wsdlURL[0];
 	}
 	
 	protected boolean useAuthentication() {
@@ -99,11 +106,11 @@ public class NewProjectWizardPage10 extends WizardPage {
 	}
 	
 	private boolean isValidURL() {
-		return wsdlURL.startsWith("http://") || wsdlURL.startsWith("https://") || wsdlURL.startsWith("file:/");
+		return getWsdlURL().startsWith("http://") || getWsdlURL().startsWith("https://") || getWsdlURL().startsWith("file:/");
 	}
 	
 	private void dialogChanged() {
-		wsdlURL = ((NewProjectWizardComposite10) getControl()).combo.getText();
+		String wsdlURL = getWsdlURL();
 		if (wsdlURL.length() == 0) {
 			updateStatus("Please enter the WSDL url of remote web service");
 			return;

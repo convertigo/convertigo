@@ -35,13 +35,13 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
-import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceAuthenticatedComposite;
+import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceComposite;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.ObjectExplorerWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
 import com.twinsoft.convertigo.engine.Engine;
@@ -51,13 +51,14 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 	private String[] filterExtension = new String[]{"*.xsd"};
 	private String[] filterNames = new String[]{"XSD files"};
 	private Object parentObject = null;
-	private WsReferenceAuthenticatedComposite wsRefAuthenticated = null;
+	private WsReferenceComposite wsRefAuthenticated = null;
+	
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
 	
 	private FileFieldEditor editor = null;
+	private Combo combo = null;
 	private String filePath = "";
-	private Text url = null;
 	private String urlPath = "";
 	
 	public SchemaFileWizardPage(Object parentObject, String pageName) {
@@ -90,49 +91,34 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 		layout.numColumns = 3;
 		layout.horizontalSpacing = 15;
 		layout.verticalSpacing = 9;
-
-		Label label1 = new Label(container, SWT.NULL);
-		label1.setText("&Enter URL:");
 		
-		GridData data = new GridData ();
-		data.horizontalAlignment = GridData.FILL;
-		data.horizontalSpan = 2;
-		data.grabExcessHorizontalSpace = true;
-		url = new Text (container, SWT.BORDER);
-		url.setLayoutData (data);
-		url.addModifyListener(new ModifyListener(){
-			public void modifyText(ModifyEvent e) {
-				urlPath = SchemaFileWizardPage.this.url.getText();
-				dialogChanged();
-			}
-		});
-		
-		
-		Composite fileSelectionArea = new Composite(container, SWT.NONE);
-		GridData fileSelectionData = new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL);
-		fileSelectionData.horizontalSpan = 3;
-		fileSelectionArea.setLayoutData(fileSelectionData);
-
-		editor = new FileFieldEditor("fileSelect","Select File: ",fileSelectionArea);
-		editor.setFilterExtensions(filterExtension);
-		editor.setFilterNames(filterNames);
-		editor.setFilterPath(Engine.PROJECTS_PATH +"/"+ getProjectName());
-		editor.getTextControl(fileSelectionArea).setEnabled(false);
-		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
-			public void modifyText(ModifyEvent e) {
-				IPath path = new Path(SchemaFileWizardPage.this.editor.getStringValue());
-				filePath = path.toString();
-				dialogChanged();
-			}
-		});
-		
-		/* Authenticated Composite for import WS Reference */
+		/* Composite for import WS Reference */
 		GridData data2 = new GridData ();
 		data2.horizontalAlignment = GridData.FILL;
 		data2.horizontalSpan = 3;
 		data2.grabExcessHorizontalSpace = true;
 		
-		wsRefAuthenticated = new WsReferenceAuthenticatedComposite(container, SWT.NONE, data2);
+		wsRefAuthenticated = new WsReferenceComposite(container, SWT.NONE, data2, 
+				filterExtension, filterNames);
+		
+		combo = wsRefAuthenticated.combo;
+		combo.addModifyListener(new ModifyListener(){
+			public void modifyText(ModifyEvent e) {
+				urlPath = SchemaFileWizardPage.this.combo.getText();
+				dialogChanged();
+			}
+		});
+		
+		editor = wsRefAuthenticated.editor;
+		Composite fileSelectionArea = wsRefAuthenticated.fileSelectionArea;
+		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
+			public void modifyText(ModifyEvent e) {
+				IPath path = new Path(SchemaFileWizardPage.this.editor.getStringValue());
+				filePath = path.toString();
+				combo.add(filePath);
+				dialogChanged();
+			}
+		});
 		
 		useAuthentication = wsRefAuthenticated.useAuthentication;
 		loginText = wsRefAuthenticated.loginText;
@@ -186,7 +172,7 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 							boolean isExternal = !xsdFilePath.startsWith(projectPath) && !xsdFilePath.startsWith(workspacePath);
 							
 							if (isExternal) {
-								SchemaFileWizardPage.this.url.setText(FileUtils.toUriString(file));
+								SchemaFileWizardPage.this.combo.setText(FileUtils.toUriString(file));
 							}
 							else {
 								if (xsdFilePath.startsWith(projectPath))
@@ -219,13 +205,8 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 			message = "Please enter an url OR choose a file";
 		}
 		
-
-		
 		updateStatus(message);
 	}
-	
-	protected abstract void setDboFilePath(String filepath);
-	protected abstract void setDboUrlPath(String urlpath);
 	
 	private void updateStatus(String message) {
 		setErrorMessage(message);
@@ -241,4 +222,7 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 	public IWizardPage getNextPage() {
 		return null;
 	}
+	
+	protected abstract void setDboFilePath(String filepath);
+	protected abstract void setDboUrlPath(String urlpath);
 }

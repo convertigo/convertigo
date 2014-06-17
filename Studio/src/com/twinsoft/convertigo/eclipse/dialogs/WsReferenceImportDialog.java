@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.eclipse.dialogs;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
@@ -43,7 +42,6 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 	private Label labelProgression = null;
 	private Button useAuthentication = null;
 	private Text loginText = null, passwordText = null;
-	private Combo combo = null;
 	private String wsdlURL = null;
 	private Project project;
 	private HttpConnector httpConnector = null;
@@ -70,14 +68,13 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 
 	protected void okPressed() {
 		try {
-			combo = ((WsReferenceImportDialogComposite)dialogComposite).combo;
-			progressBar = ((WsReferenceImportDialogComposite)dialogComposite).progressBar;
-			labelProgression = ((WsReferenceImportDialogComposite)dialogComposite).labelProgression;
-			useAuthentication = ((WsReferenceImportDialogComposite)dialogComposite).useAuthentication;
-			loginText = ((WsReferenceImportDialogComposite)dialogComposite).loginText;
-			passwordText = ((WsReferenceImportDialogComposite)dialogComposite).passwordText;
+			((WsReferenceImportDialogComposite)dialogComposite).setParentObject(project);
+
+			useAuthentication = ( (WsReferenceImportDialogComposite)dialogComposite ).useAuthentication;
+			loginText = ( (WsReferenceImportDialogComposite)dialogComposite ).loginText;
+			passwordText = ( (WsReferenceImportDialogComposite)dialogComposite ).passwordText;
 			
-			wsdlURL = combo.getText();
+			wsdlURL = ( (WsReferenceImportDialogComposite)dialogComposite ).getURL();
 			if (wsdlURL.startsWith("http://") || wsdlURL.startsWith("https://") || wsdlURL.startsWith("file:/")) {
 				getButton(IDialogConstants.OK_ID).setEnabled(false);
 				getButton(IDialogConstants.CANCEL_ID).setEnabled(false);
