@@ -310,11 +310,12 @@ public class ContextManager extends AbstractRunnableManager {
 		// improve context removal on session unbound process
 		try {
 			HttpSession httpSession = (HttpSession)HttpSessionListener.httpSessions.get(sessionID);
-			@SuppressWarnings("unchecked")
-			ArrayList<Context> contextList = (ArrayList<Context>)httpSession.getAttribute("contexts");
-			int size = contextList.size();
-			Engine.logContextManager.debug("(ContextManager) Contexts from the session " + sessionID + ": "+ size);
-			return size > 0 ? false:true;
+			synchronized (httpSession) {
+				ArrayList<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
+				int size = contextList.size();
+				Engine.logContextManager.debug("(ContextManager) Contexts from the session " + sessionID + ": "+ size);
+				return size > 0 ? false:true;
+			}
 		}
 		catch (Exception e) {
 		}
@@ -455,12 +456,14 @@ public class ContextManager extends AbstractRunnableManager {
 			/* Fix: #1754 - Slower transaction execution with many session */
 			// HTTP session maintain its own context list in order to
 			// improve context removal on session unbound process
-			HttpSession httpSession = context.httpSession;
+			// See also #4198 which fix a regression
+			String sessionID = context.httpSession != null ? context.httpSession.getId() :
+									context.contextID.substring(0,context.contextID.indexOf("_"));
+			HttpSession httpSession = (HttpSession)HttpSessionListener.httpSessions.get(sessionID);
 			if (httpSession != null) {
 				synchronized (httpSession) {
 					try {
-						@SuppressWarnings("unchecked")
-						ArrayList<Context> contextList = (ArrayList<Context>)httpSession.getAttribute("contexts");
+						ArrayList<Context> contextList = GenericUtils.cast(httpSession.getAttribute("contexts"));
 						if ((contextList != null) && contextList.contains(context)) {
 							contextList.remove(context);
 							Engine.logContextManager.debug("(ContextManager) context " + contextID + " has been removed from http session's context list");
