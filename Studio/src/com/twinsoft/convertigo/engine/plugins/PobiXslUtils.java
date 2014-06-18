@@ -476,8 +476,9 @@ public class PobiXslUtils {
 				Integer.parseInt(nextModule, 10);
 				isNumberedModule = true;
 			} catch (Exception e) {}
-			nextUrl += ".cxml?"+Parameter.Transaction.getName()+"=" + (isNumberedModule ? "m":"") + nextModule;
-			String red = getResponseExpiryDate(contextId, nextModule, id);
+			String nextTransaction = (isNumberedModule ? "m":"") + nextModule;
+			nextUrl += ".cxml?"+Parameter.Transaction.getName()+"=" + nextTransaction;
+			String red = getResponseExpiryDate(contextId, nextTransaction, id);
 			if (!red.equals(""))
 				nextUrl += "&__responseExpiryDate=" + escapeString("absolute,"+red);
 			nextUrl += "&id=" + escapeString(id);
