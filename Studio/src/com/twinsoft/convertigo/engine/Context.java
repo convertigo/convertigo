@@ -71,6 +71,7 @@ import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.engine.cache.CacheEntry;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.parsers.HtmlParser;
 import com.twinsoft.convertigo.engine.parsers.XulRecorder;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
@@ -207,6 +208,9 @@ public class Context extends AbstractContext implements Cloneable {
 		
 		if (steps != null)
 			steps.clear();
+		
+		// Reset last responseExpiryDate set (#4201)
+		remove(Parameter.ResponseExpiryDate.getName());
 		
 		Engine.logContext.debug("Context reset");
 	}
