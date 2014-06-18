@@ -26,6 +26,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.regex.Pattern;
 
 import javax.xml.transform.TransformerException;
 
@@ -39,6 +41,10 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.util.StringEx;
 
 public class PobiXslUtils {
+	
+	public static final int cstNothing = 0;
+	public static final int cstSiren = 1;
+	public static final int cstBDFKey = 2;
 	
 	public static String getNodeValue(Node node) {
 		String value = null;
@@ -408,11 +414,30 @@ public class PobiXslUtils {
 		return XslUtils.getContextVariableValue(contextId,"backurl");
 	}
 
-	public static String getResponseExpiryDate(String contextId, String module) {
+	public static String getResponseExpiryDate(String contextId, String module, String id) {
 		String mod = module.startsWith("m") ? module.toUpperCase().substring(1):module.toUpperCase();
 		String modules = "|"+XslUtils.getContextValue(contextId, "modules")+"|";
 		String caches = "|"+XslUtils.getContextValue(contextId, "caches")+"|";
 		try {
+			if (module.equals("m27") || module.equals("m37")) {
+				try {
+					int iCheckIdent = iCheckIdentifiant(id);
+					if (iCheckIdent == cstSiren) {
+						if (module.equals("m27"))
+							mod = "2S";
+						if (module.equals("m37"))
+							mod = "3S";
+					}
+					if (iCheckIdent == cstBDFKey) {
+						if (module.equals("m27"))
+							mod = "2D";
+						if (module.equals("m37"))
+							mod = "3D";
+					}
+				}
+				catch (Exception e) {
+				}
+			}
 			if (modules.indexOf("|"+mod+"|") != -1) {
 				ArrayList<String> ar1 = new ArrayList<String>(Arrays.asList(modules.split("\\|",-1)));
 				ArrayList<String> ar2 = new ArrayList<String>(Arrays.asList(caches.split("\\|",-1)));
@@ -452,7 +477,7 @@ public class PobiXslUtils {
 				isNumberedModule = true;
 			} catch (Exception e) {}
 			nextUrl += ".cxml?"+Parameter.Transaction.getName()+"=" + (isNumberedModule ? "m":"") + nextModule;
-			String red = getResponseExpiryDate(contextId, nextModule);
+			String red = getResponseExpiryDate(contextId, nextModule, id);
 			if (!red.equals(""))
 				nextUrl += "&__responseExpiryDate=" + escapeString("absolute,"+red);
 			nextUrl += "&id=" + escapeString(id);
@@ -477,7 +502,7 @@ public class PobiXslUtils {
 				int index = nextIds.indexOf(' ');
 				String nextId = escapeString(index == -1 ? nextIds : nextIds.substring(0, index));
 				nextUrl += ".cxml?"+Parameter.Transaction.getName()+"=" + transactionId;
-				String red = getResponseExpiryDate(contextId, transactionId);
+				String red = getResponseExpiryDate(contextId, transactionId, nextId);
 				if (!red.equals(""))
 					nextUrl += "&__responseExpiryDate=" + escapeString("absolute,"+red);				
 				nextUrl += "&id=" + escapeString(nextId);
@@ -681,5 +706,257 @@ public class PobiXslUtils {
 			}
 		}
 		return false;
+	}
+	
+	// fonction qui teste l'identifiant
+	public static int iCheckIdentifiant(String sIdent) {
+		int iCheckIdent = cstSiren; // on suppose que c'est un n°siren
+		char sLetter1;
+		if (!bCheckSirenNumber(sIdent)) { // ce n'est pas un n°siren
+			if (!bCheckBirthDay(sIdent.substring(0,6))) { // erreur au niveau de la date de naissance
+				iCheckIdent = cstNothing;
+			}
+			else {
+				
+				try {
+					sLetter1 = sIdent.charAt(6);
+					String nom = sIdent.substring(6);
+					if ((isNum("" + sLetter1)) || (sLetter1 == ' ')) { // erreur au niveau de la premiere lettre
+						iCheckIdent = cstNothing;
+					}
+					else {
+						if (!bCheckBdfKeySuffix(nom)) { // erreur au niveau des chiffres
+							iCheckIdent = cstNothing;
+						}
+						else {
+							if (!bCheckBdfKeyBlank(nom)) { // erreur au niveau des blancs
+								iCheckIdent = cstNothing;
+							}
+							else {
+								iCheckIdent = cstBDFKey;
+							}
+						}
+					}
+				} catch (StringIndexOutOfBoundsException e) {
+					iCheckIdent = cstNothing;
+				}
+			}
+		}
+
+		return iCheckIdent;
+	}
+
+	// fonction qui valide un code guichet
+	public static boolean bCheckCdGuichet(String sCdGuichet) {
+		try {		
+			if (sCdGuichet.length() == 5) {
+				Integer.parseInt(sCdGuichet);
+				return true;
+			}
+		}
+		catch(NumberFormatException e) {}
+		
+		return false;
+	}
+	
+	private static boolean isNaN(String s) {
+		try {		
+			Integer.parseInt(s);
+		}
+		catch(NumberFormatException e) {
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean isNum(String s) {
+		try {		
+			Integer.parseInt(s);
+		}
+		catch(NumberFormatException e) {
+			return false;
+		}
+		return true;
+	}
+	
+	// validation cleBDF pour FICP
+	public static boolean validClePP(String sKey) {
+		String regExp = "^\\d{6}[A-Z]+$";
+		String key = sKey.trim().toUpperCase();
+		
+		// Test du format 6 numeriques suivis d'au moins 1 caract. MAJ
+		if (!Pattern.matches(regExp, key))
+			return false;
+		
+		int day = Integer.parseInt(key.substring(0, 2), 10);
+		int month = Integer.parseInt(key.substring(2, 4), 10);
+		int year = Integer.parseInt(key.substring(4, 6), 10) + 1900;
+		
+		//Test des cas personnes nees a l'etranger 0000AA ou 00MMAA
+		if ( !(day == 0 && month == 0 ) 
+			&& ( (month < 1 || month > 12) || (day < 0 || day > 31)
+				|| (year < 1900 || year > 2050)
+				|| ((month == 4 || month == 6 || month == 9 || month == 11) && day == 31 )))
+		{
+			return false;
+		}
+		else if (month == 2 && ((day > 29) || ((day == 29 &&
+					(year%4 != 0 || (year%4 == 0 &&
+					(year%100 == 0 && year%400 != 0 )))))))
+		{
+			return false;
+		}
+
+		return true;
+	}
+	
+	// public static qui verifie qu'on a bien un numéro SIREN
+	private static boolean bCheckSirenNumber(String sString) {
+		int iLengthIdent = sString.length(); // longueur de l'identifiant
+		boolean bIsSiren = false;
+		
+		if ((iLengthIdent == 9) && (sString.indexOf(" ") == -1) && (isNum(sString))) {
+			if (sString.substring(0, 2).equals("20")) {
+				bIsSiren = true;
+			}
+			else {
+				if (nGetAlgoSiren(sString) % 10 == 0) { // multiple de 10 ?
+					bIsSiren = true ;
+				}
+			}
+		}
+		return bIsSiren;
+	}
+
+	// function qui retourne le resultat de l'algorithme siren qui doit être
+	// multiple de 10
+	private static int nGetAlgoSiren(String sString) {
+		int iLengthString = sString.length();
+		int nAlgoSiren = 0;
+		
+		if (iLengthString == 9) {
+			nAlgoSiren = 0;
+		}
+
+		if (sString.length() != 0) {
+			int nTemp;
+			if (iLengthString % 2 == 0) { // rang pair
+				nTemp = 2 * Integer.parseInt(sString.substring(0, 1));
+				try {
+					String sTemp = Integer.toString(nTemp);
+					if (sTemp.length() == 2) {	
+						nTemp = Integer.parseInt(sTemp.substring(0, 1)) + Integer.parseInt(sTemp.substring(1, 2));
+					}
+				}
+				catch(NumberFormatException e) {}
+				nAlgoSiren += nTemp + nGetAlgoSiren(sString.substring(1));
+			}
+			else { // rang impair
+				try {
+					nAlgoSiren += Integer.parseInt(sString.substring(0, 1)) + nGetAlgoSiren(sString.substring(1));
+				}
+				catch(NumberFormatException e) {}
+			}
+		}
+		return nAlgoSiren;
+	}
+
+	private static boolean bCheckDate(int nDay, int nMonth, int nYear) {
+		Date ladate = new Date(nYear, nMonth-1, nDay);
+		return ((nYear == (ladate.getYear())) && (nMonth == (ladate.getMonth() + 1)) && (nDay == ladate.getDate()));
+	}
+	
+	// public static qui vérifie la validité de la date
+	private static boolean bCheckBirthDay(String sDate) {
+		boolean bIsDate = false;
+
+		// exception
+		if (sDate.equals("000000")) {
+			bIsDate = true;
+		}
+		else {
+			try {
+				// exception encore
+				if ((sDate.substring(0, 2).equals("00"))
+						&& (Integer.parseInt(sDate.substring(2, 4)) >= 0)
+						&& (Integer.parseInt(sDate.substring(2, 4)) < 13)
+						&& (Integer.parseInt(sDate.substring(4, 6)) >= 0)
+						&& (Integer.parseInt(sDate.substring(4, 6)) < 100)) {
+					bIsDate = true;
+				}
+				else {
+					bIsDate = bCheckDate(
+							Integer.parseInt(sDate.substring(0, 2)),
+							Integer.parseInt(sDate.substring(2, 4)),
+							Integer.parseInt("20" + sDate.substring(4, 6)));
+				}
+			}
+			catch (NumberFormatException e) {
+				return false;
+			}
+		}
+		return bIsDate;
+	}
+			
+	// fonction récursive qui verifie que si la chaine comporte un chiffre,
+	// il s'agit du premier du suffixe
+	private static boolean bCheckBdfKeySuffix(String sString) {
+		boolean bIsCheck = true;
+		if (sString.length() > 0) {
+			char sLetter = sString.charAt(0);
+			if (isNum("" + sLetter)) { // la lettre est un chiffre
+				// on verifie qu'il s'agit des 2 derniers caracteres
+				if ((sString.length() != 2) || isNaN(sString)) {
+					bIsCheck = false;
+				}
+			}
+			else {
+				bIsCheck = bCheckBdfKeySuffix(sString.substring(1));
+			}
+		}
+
+		return bIsCheck;
+	}
+
+	// fonction qui verifie :
+	// si la chaine comporte des blancs, ils sont contigus et en fin de zone
+	// la chaine hors suffixe fait au maximum 5 caracteres
+	private static boolean bCheckBdfKeyBlank(String sString) {
+		int iBlank, iLetter;
+		String sLetter, sBlank;
+
+		// on retire le suffixe s'il est présent
+		if (sString.length() > 3) {
+			if (isNum(sString.substring(sString.length() - 2))) {
+				sString = sString.substring(0, sString.length() - 2);
+			}
+		}
+
+		if (sString.length() > 5) {
+			return false;
+		}
+		else {
+			sLetter = sString.substring(0, 1);
+			if (!sLetter.equals("")) {
+				iBlank = sString.indexOf(" ");
+				if (iBlank != -1) {
+					// les blancs doivent être contigus et en fin de zone
+					sBlank = sString.substring(iBlank);
+					sBlank = sBlank.trim();
+					if (sBlank.length() != 0) {
+						return false;
+					}
+				}
+				sString = sString.toUpperCase();
+				while (sString.length() > 0) {
+					iLetter = sString.charAt(0);
+					if ((iLetter < 65 || iLetter > 90 ) && iLetter != 32) {
+						return false;
+					}
+					sString = sString.substring(1);
+				}
+			}
+		}
+		return true;
 	}
 }
