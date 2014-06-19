@@ -174,10 +174,10 @@ public class PobiXmlBiller extends PobiBiller {
 				cleBDF = element.getChildNodes().item(0).getNodeValue();
 				nodeList = document.getDocumentElement().getElementsByTagName("LIG1");
 				element = (Element) nodeList.item(0);
-				cleBDF += "/"+ element.getChildNodes().item(0).getNodeValue();
+				cleBDF += "/"+ (element.hasChildNodes() ? element.getChildNodes().item(0).getNodeValue():"");
 				nodeList = document.getDocumentElement().getElementsByTagName("LIG2");
 				element = (Element) nodeList.item(0);
-				cleBDF += "/"+ element.getChildNodes().item(0).getNodeValue();
+				cleBDF += "/"+ (element.hasChildNodes() ? element.getChildNodes().item(0).getNodeValue():"");
 			}
 			else {
 				// Relevé personne physique
