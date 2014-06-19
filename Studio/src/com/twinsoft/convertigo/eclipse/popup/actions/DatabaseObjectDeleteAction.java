@@ -207,14 +207,21 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			
 			projectName = databaseObject.getParent().getName();
 			
+			MessageBox messageBox = new MessageBox(getParentShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+			messageBox.setText("Also delete linked resources?");
+			
 			// Delete soap templates for this connector
 			dirPath = Engine.PROJECTS_PATH + "/"+ projectName + "/soap-templates/" + databaseObject.getName();
 			dir = new File(dirPath);
 			if (dir.exists()) {
-				try {
-					DatabaseObjectsManager.deleteDir(dir);
-				} catch (IOException e) {
-					ConvertigoPlugin.logDebug("Unable to delete directory \""+ dirPath+"\"!");
+				messageBox.setMessage("Some resources are linked to the deleted connector.\n\n" +
+						"Do you also want to delete folder:\n\n\""+dirPath+"\""); 
+				if (messageBox.open() == SWT.YES) {			
+					try {
+						DatabaseObjectsManager.deleteDir(dir);
+					} catch (IOException e) {
+						ConvertigoPlugin.logDebug("Unable to delete directory \""+ dirPath+"\"!");
+					}
 				}
 			}
 			
@@ -222,10 +229,15 @@ public class DatabaseObjectDeleteAction extends MyAbstractAction {
 			dirPath = Engine.PROJECTS_PATH + "/"+ projectName + "/Traces/" + databaseObject.getName();
 			dir = new File(dirPath);
 			if (dir.exists()) {
-				try {
-					DatabaseObjectsManager.deleteDir(dir);
-				} catch (IOException e) {
-					ConvertigoPlugin.logDebug("Unable to delete directory \""+ dirPath+"\"!");
+				messageBox.setMessage("Some resources are linked to the deleted connector.\n\n" +
+						"Do you also want to delete folder:\n\n\""+dirPath+"\""); 
+				
+				if (messageBox.open() == SWT.YES) {		
+					try {
+						DatabaseObjectsManager.deleteDir(dir);
+					} catch (IOException e) {
+						ConvertigoPlugin.logDebug("Unable to delete directory \""+ dirPath+"\"!");
+					}
 				}
 			}
 
