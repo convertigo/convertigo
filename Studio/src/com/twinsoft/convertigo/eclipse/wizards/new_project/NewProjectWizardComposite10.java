@@ -73,13 +73,14 @@ public class NewProjectWizardComposite10 extends Composite {
 		
 		/* Authenticated Composite for import WS Reference */
 		wsRefAuthenticated = new WsReferenceComposite(this, SWT.NONE, data);
-		combo = wsRefAuthenticated.combo;
-		editor = wsRefAuthenticated.editor;		
-		useAuthentication = wsRefAuthenticated.useAuthentication;
-		loginText = wsRefAuthenticated.loginText;
-		passwordText = wsRefAuthenticated.passwordText;
 		
-		Composite fileSelectionArea = wsRefAuthenticated.fileSelectionArea;
+		combo = wsRefAuthenticated.getCombo();
+		editor = wsRefAuthenticated.getEditor();		
+		useAuthentication = wsRefAuthenticated.getUseAuthentication();
+		loginText = wsRefAuthenticated.getLoginText();
+		passwordText = wsRefAuthenticated.getPasswordText();
+		
+		Composite fileSelectionArea = wsRefAuthenticated.getFileSelectionArea();
 		
 		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {

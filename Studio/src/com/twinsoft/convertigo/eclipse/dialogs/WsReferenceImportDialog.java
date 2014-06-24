@@ -65,14 +65,15 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 	public WsReferenceImportDialog(Shell parentShell, Class<? extends Composite> dialogAreaClass, String dialogTitle, int width, int height) {
 		super(parentShell, dialogAreaClass, dialogTitle, width, height);
 	}
-
-	protected void okPressed() {
+	
+	protected void okPressed() {		
 		try {
 			((WsReferenceImportDialogComposite)dialogComposite).setParentObject(project);
 
 			useAuthentication = ( (WsReferenceImportDialogComposite)dialogComposite ).useAuthentication;
 			loginText = ( (WsReferenceImportDialogComposite)dialogComposite ).loginText;
 			passwordText = ( (WsReferenceImportDialogComposite)dialogComposite ).passwordText;
+			progressBar = ( (WsReferenceImportDialogComposite)dialogComposite ).progressBar;
 			
 			wsdlURL = ( (WsReferenceImportDialogComposite)dialogComposite ).getURL();
 			if (wsdlURL.startsWith("http://") || wsdlURL.startsWith("https://") || wsdlURL.startsWith("file:/")) {
@@ -85,17 +86,15 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 			else {
 				setTextLabel("You must enter a valid URL!");
 			}
+			
 		}
 		catch (Throwable e) {
 			ConvertigoPlugin.logException(e, "Unable to import WSDL reference!");
 		}
-		finally {
-			getButton(IDialogConstants.OK_ID).setEnabled(true);
-			getButton(IDialogConstants.CANCEL_ID).setEnabled(true);
-		}
 	}
 
-	public void run() {
+	public void run() {		
+		
 		final Display display = getParentShell().getDisplay();
 		Thread progressBarThread = new Thread("Progress Bar thread") {
 			public void run() {
@@ -136,6 +135,7 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 			ex = e;
 		}
 		finally {
+			
 			try {
 				progressBarThread.interrupt();
 				

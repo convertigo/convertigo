@@ -34,6 +34,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.core.Project;
@@ -51,6 +52,7 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 	
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
+	public ProgressBar progressBar = null;
 	/**
 	 * @param parent
 	 * @param style
@@ -75,10 +77,10 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		
 		wsRefAuthenticated = new WsReferenceComposite(this, SWT.NONE, data1);
 		
-		combo = wsRefAuthenticated.combo;
+		combo = wsRefAuthenticated.getCombo();
 		
-		editor = wsRefAuthenticated.editor;
-		Composite fileSelectionArea = wsRefAuthenticated.fileSelectionArea;
+		editor = wsRefAuthenticated.getEditor();
+		Composite fileSelectionArea = wsRefAuthenticated.getFileSelectionArea();
 		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {
 				IPath path = new Path(WsReferenceImportDialogComposite.this.editor.getStringValue());
@@ -87,9 +89,12 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 			}
 		});
 		
-		useAuthentication = wsRefAuthenticated.useAuthentication;
-		loginText = wsRefAuthenticated.loginText;
-		passwordText = wsRefAuthenticated.passwordText;
+		useAuthentication = wsRefAuthenticated.getUseAuthentication();
+		loginText = wsRefAuthenticated.getLoginText();
+		passwordText = wsRefAuthenticated.getPasswordText();
+		
+		progressBar = new ProgressBar(this, SWT.NONE);	
+		progressBar.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, true, 2, 1));
 	}
 
 	@Override

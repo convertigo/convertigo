@@ -33,15 +33,14 @@ import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
 
 public class WsReferenceComposite extends Composite {
 	private String[] filterExtension = new String[]{"*.wsdl", "*.xml"};
-	private String[] filterNames =  new String[]{"WSDL files", "XML files"};
+	private String[] filterNames = new String[]{"WSDL files", "XML files"};
+	private Button useAuthentication = null;
+	private Text loginText = null;
+	private Text passwordText = null;
 	
-	public Button useAuthentication = null;
-	public Text loginText = null;
-	public Text passwordText = null;
-	
-	public Combo combo = null;
-	public FileFieldEditor editor = null;
-	public Composite fileSelectionArea = null;
+	private Combo combo = null;
+	private FileFieldEditor editor = null;
+	private Composite fileSelectionArea = null;
 	
 	private GridData data = null;
 	
@@ -50,46 +49,42 @@ public class WsReferenceComposite extends Composite {
 		this.data = gridData;
 		initialize();
 	}
-
-	public WsReferenceComposite(Composite parent, int style, GridData gridData,
-			String[] filterExtension, String[] filterNames) {
-		this (parent, style, gridData);
-		this.filterExtension = filterExtension;
-		this.filterNames = filterNames;
-	}
 	
 	private void initialize() {
-		this.setLayout(new GridLayout());
+		GridLayout layout = new GridLayout();
+		layout.numColumns = 2;
+		this.setLayout(layout);
 		this.setLayoutData(data);
 		
-		Label label1 = new Label(this, SWT.NULL);
-		label1.setText("&Enter URL:");
-		label1.setLayoutData(new GridData());
+		GridData gridData = new GridData();
+				
+		Label label1 = new Label(this, SWT.NONE);
+		label1.setText("Enter URL:  ");
+		label1.setLayoutData(gridData);
 		
-		GridData data = new GridData ();
-		data.horizontalAlignment = GridData.FILL;
-		data.grabExcessHorizontalSpace = true;
+		gridData = new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL);
 		
 		/** IMPORT WS REFERENCE PART **/
 		
 		combo = new Combo(this, SWT.BORDER);
+		combo.setLayoutData(gridData);
+		
+		fileSelectionArea = new Composite(this, SWT.NONE);
+		GridData fileSelectionData = new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL);
+		fileSelectionData.horizontalSpan = 2;
+		fileSelectionArea.setLayoutData(fileSelectionData);
+
+		gridData = new GridData ();
+		gridData.horizontalAlignment = GridData.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.horizontalSpan = 3;
+		
+		editor = new FileFieldEditor("fileSelect", "Select File: ", fileSelectionArea);
+		editor.setFilterExtensions(filterExtension);
 		if (filterExtension[0].equals("*.wsdl")) {
 			combo.add("http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL");
 			combo.select(0);
 		}
-		combo.setLayoutData(data);
-		
-		fileSelectionArea = new Composite(this, SWT.NONE);
-		GridData fileSelectionData = new GridData(GridData.GRAB_HORIZONTAL | GridData.FILL_HORIZONTAL);
-		fileSelectionData.horizontalSpan = 3;
-		fileSelectionArea.setLayoutData(fileSelectionData);
-
-		data = new GridData ();
-		data.horizontalAlignment = GridData.FILL;
-		data.grabExcessHorizontalSpace = true;
-		
-		editor = new FileFieldEditor("fileSelect","Select File: ", fileSelectionArea);
-		editor.setFilterExtensions(filterExtension);
 		editor.setFilterNames(filterNames);
 		editor.getTextControl(fileSelectionArea).setEnabled(false);
 		
@@ -98,7 +93,7 @@ public class WsReferenceComposite extends Composite {
 		useAuthentication = new Button(this, SWT.CHECK);
 		useAuthentication.setText("URL need an authenfication");
 		useAuthentication.setSelection(false);
-		useAuthentication.setLayoutData(data);
+		useAuthentication.setLayoutData(gridData);
 		
 		useAuthentication.addSelectionListener(new SelectionListener() {
 			@Override
@@ -117,28 +112,59 @@ public class WsReferenceComposite extends Composite {
 		loginText = new Text(this, SWT.NONE);
 		loginText.setMessage("Login");
 		loginText.setEnabled(false);
-		loginText.setLayoutData(data);
+		loginText.setLayoutData(gridData);
 		
 		passwordText = new Text(this, SWT.SINGLE | SWT.PASSWORD);
 		passwordText.setMessage("Password");
 		passwordText.setEnabled(false);
-		passwordText.setLayoutData(data);
-		
+		passwordText.setLayoutData(gridData);
+	}
+	
+	public void setFilterExtension(String[] filterExtension) {
+		if (filterExtension != null && filterExtension.length > 0) {
+			this.filterExtension = filterExtension;
+			editor.setFilterExtensions(filterExtension);
+			if (!filterExtension[0].equals("*.wsdl")) {
+				combo.removeAll();
+			} else {
+				combo.add("http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL");
+				combo.select(0);
+			}
+		}
+	}
+	
+	public void setFilterNames(String[] filterNames){
+		if (filterNames != null && filterNames.length > 0) {
+			this.filterNames = filterNames;
+			editor.setFilterNames(filterNames);
+		}
 	}
 	
 	public String[] getFilterExtension() {
 		return filterExtension;
 	}
 
-	public void setFilterExtension(String[] filterExtension) {
-		this.filterExtension = filterExtension;
-	}
-
 	public Composite getFileSelectionArea() {
 		return fileSelectionArea;
 	}
+	
+	public Combo getCombo() {
+		return combo;
+	}
+	
+	public FileFieldEditor getEditor(){
+		return editor;
+	}
+	
+	public Button getUseAuthentication() {
+		return useAuthentication;
+	}
 
-	public void setFileSelectionArea(Composite fileSelectionArea) {
-		this.fileSelectionArea = fileSelectionArea;
+	public Text getLoginText() {
+		return loginText;
+	}
+
+	public Text getPasswordText() {
+		return passwordText;
 	}
 }

@@ -440,11 +440,13 @@ public class NewObjectWizard extends Wizard {
 						if (newBean instanceof WebServiceReference) {
 							Project project = (Project)parentObject;
 							WebServiceReference webServiceReference = (WebServiceReference)newBean;
+							webServiceReference.setUrlpath(((SchemaFileWizardPage)wsdlSchemaWizardPage).getWsdlURL());
 							ImportWsReference wsr = new ImportWsReference(webServiceReference);
 							
-							useAuthentication = ((SchemaFileWizardPage)wsdlSchemaWizardPage).useAuthentication;
-							loginText = ((SchemaFileWizardPage)wsdlSchemaWizardPage).loginText;
-							passwordText = ((SchemaFileWizardPage)wsdlSchemaWizardPage).passwordText;
+							useAuthentication = ((SchemaFileWizardPage)wsdlSchemaWizardPage).getUseAuthentication();
+							loginText = ((SchemaFileWizardPage)wsdlSchemaWizardPage).getLoginText();
+							passwordText = ((SchemaFileWizardPage)wsdlSchemaWizardPage).getPasswordText();
+							
 							
 							Display display = this.getShell().getDisplay();
 							if (!isAuthenticated(display)) {
@@ -452,7 +454,7 @@ public class NewObjectWizard extends Wizard {
 							} else { 
 								wsr.importIntoAuthenticated(project, getLogin(display), getPassword(display)); 
 							}
-							//wsr.importInto(project);
+
 						}
 						
 						if (newBean instanceof SqlTransaction) {
