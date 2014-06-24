@@ -55,6 +55,10 @@
 			<definition>Call mode to be auto, timer</definition>
 		</entry>
 		<entry>
+			<keyword>data-c8o-call-action="</keyword>
+			<definition>performs a page change just before the call</definition>
+		</entry>
+		<entry>
 			<keyword>data-c8o-each="</keyword>
 			<definition>Iterate on selector for all children</definition>
 		</entry>
