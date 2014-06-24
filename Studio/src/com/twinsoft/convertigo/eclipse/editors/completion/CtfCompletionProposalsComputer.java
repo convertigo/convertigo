@@ -296,7 +296,7 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 						String alreadyTyped = document.get(oFound + 1, len);
 
 						/*
-						 * deal with c8o-call
+						 * deal with c8o-call (find related transactions and sequences)
 						 */
 						if (alreadyTyped.startsWith("data-c8o-call=\"") || alreadyTyped.startsWith("data-c8o-listen=\"")) {
 							// We are typing in the content of a data-c8o-call
@@ -496,3 +496,4 @@ public class CtfCompletionProposalsComputer implements ICompletionProposalComput
 		// TODO Auto-generated method stub
 	}
 }
+

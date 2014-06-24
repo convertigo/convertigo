@@ -51,6 +51,10 @@
 			<definition>Define a conditional call</definition>
 		</entry>
 		<entry>
+			<keyword>data-c8o-call-action="</keyword>
+			<definition>performs a page change just before the call</definition>
+		</entry>
+		<entry>
 			<keyword>data-c8o-call-mode="</keyword>
 			<definition>Call mode to be auto, timer</definition>
 		</entry>
