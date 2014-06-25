@@ -2185,6 +2185,13 @@
                   menubarPath="import">
             </action>
             <action
+                  class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceImportFromXmlAction"
+                  enablesFor="1"
+                  id="convertigo.action.seq.importXML"
+                  label="Import step&apos;s structure from xml"
+                  menubarPath="import">
+            </action>
+            <action
                   class="com.twinsoft.convertigo.eclipse.popup.actions.CreateEmptyStubAction"
                   id="convertigo.action.seq.createEmptyStub"
                   label="Create empty stub"
