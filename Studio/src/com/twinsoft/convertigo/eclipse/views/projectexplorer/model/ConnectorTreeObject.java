@@ -38,6 +38,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
+import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -197,6 +198,22 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 			// If a bean name has changed
 			if (propertyName.equals("name")) {
 				handlesBeanNameChanged(treeObjectEvent);
+			}
+			else {
+				// if this connector has changed
+				if (treeObject.equals(this)) {
+					Connector connector = this.getObject();
+					
+					if (connector instanceof SapJcoConnector) {
+						try {
+							((SapJcoConnector)connector).getSapJCoProvider().
+								getDestinationDataEventListener().updated("Convertigo");
+						}
+						catch (Exception e) {
+							ConvertigoPlugin.logWarning(e, "Could not update sap provider !");
+						}
+					}
+				}
 			}
 		}
 	}

@@ -41,6 +41,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAnnotation;
 import org.apache.ws.commons.schema.XmlSchemaAppInfo;
@@ -411,9 +412,9 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
     	String xsdRequestData = null;
     	RequestableVariable variable = null;
     	xsdRequestData = 	"  <xsd:complexType name=\""+ getName() + "RequestData\">\n";
-		xsdRequestData += 	"    <xsd:annotation>\n";
-		xsdRequestData += 	"      <xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-		xsdRequestData += 	"    </xsd:annotation>\n";
+		//xsdRequestData += 	"    <xsd:annotation>\n";
+		//xsdRequestData += 	"      <xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
+		//xsdRequestData += 	"    </xsd:annotation>\n";
     	xsdRequestData +=	"    <xsd:sequence>\n";
 		for (int i=0; i<numberOfVariables(); i++) {
 			variable = (RequestableVariable)getVariable(i);
@@ -422,7 +423,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 					xsdRequestData += "      <xsd:element minOccurs=\"1\" maxOccurs=\"1\" name=\""+variable.getName()+"\" >\n";
 					xsdRequestData += "        <xsd:annotation>\n";
 					xsdRequestData += "          <xsd:documentation>"+ XMLUtils.getCDataXml(variable.getComment()) +"</xsd:documentation>\n";
-					xsdRequestData += "          <xsd:appinfo>"+ variable.getDescription() +"</xsd:appinfo>\n";
+					xsdRequestData += "          <xsd:appinfo>"+ StringEscapeUtils.escapeXml(variable.getDescription()) +"</xsd:appinfo>\n";
 					xsdRequestData += "        </xsd:annotation>\n";
 					xsdRequestData += "        <xsd:complexType>\n";
 					xsdRequestData += "          <xsd:sequence>\n";
@@ -435,7 +436,7 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 					xsdRequestData += "      <xsd:element minOccurs=\"1\" maxOccurs=\"1\" name=\""+variable.getName()+"\" type=\""+variable.getSchemaType()+"\">\n";
 					xsdRequestData += "        <xsd:annotation>\n";
 					xsdRequestData += "          <xsd:documentation>"+ XMLUtils.getCDataXml(variable.getComment()) +"</xsd:documentation>\n";
-					xsdRequestData += "          <xsd:appinfo>"+ variable.getDescription() +"</xsd:appinfo>\n";
+					xsdRequestData += "          <xsd:appinfo>"+ StringEscapeUtils.escapeXml(variable.getDescription()) +"</xsd:appinfo>\n";
 					xsdRequestData += "        </xsd:annotation>\n";
 					xsdRequestData += "      </xsd:element>\n";
 				}

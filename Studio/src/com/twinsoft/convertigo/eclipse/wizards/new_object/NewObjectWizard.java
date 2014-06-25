@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.beans.connectors.ExternalBrowserConnector;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
+import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -88,9 +89,11 @@ import com.twinsoft.convertigo.beans.transactions.ExternalBrowserTransaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
+import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.EmulatorTechnologyWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.new_project.SQLQueriesWizardPage;
@@ -570,6 +573,24 @@ public class NewObjectWizard extends Wizard {
 			httpConnector.add(transaction);
 			httpConnector.setDefaultTransaction(transaction);
 		}
+    	
+		else if (connector instanceof SapJcoConnector) {
+			SapJcoConnector sapConnector = (SapJcoConnector)connector;
+			SapJcoTransaction transaction = new SapJcoTransaction();
+			transaction.hasChanged = true;
+			transaction.bNew = true;
+			transaction.setName("RFC_FUNCTION_SEARCH");
+			transaction.setBapiName("RFC_FUNCTION_SEARCH");
+			RequestableVariable variable = new RequestableVariable();
+			variable.hasChanged = true;
+			variable.bNew = true;
+			variable.setName("FUNCNAME");
+			variable.setValueOrNull("BAPI_*");
+			transaction.add(variable);
+			sapConnector.add(transaction);
+			sapConnector.setDefaultTransaction(transaction);
+		}
+    	
 		else if (connector instanceof SqlConnector) {
 			SqlConnector sqlConnector = (SqlConnector)connector;
 			sqlConnector.setJdbcDriverClassName("org.hsqldb.jdbcDriver");

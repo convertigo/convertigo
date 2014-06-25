@@ -37,22 +37,27 @@
 		<link>
 			<name>src/com/convertigo/externalbrowser/common</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.1.x/src/java/com/convertigo/externalbrowser/common</locationURI>
+			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.2.x/src/java/com/convertigo/externalbrowser/common</locationURI>
 		</link>
 		<link>
 			<name>src/com/convertigo/externalbrowser/agent/stub</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.1.x/src/java/com/convertigo/externalbrowser/agent/stub</locationURI>
+			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.2.x/src/java/com/convertigo/externalbrowser/agent/stub</locationURI>
 		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/externalbrowser</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.1.x/src/java/com/twinsoft/convertigo/engine/externalbrowser</locationURI>
+			<locationURI>WORKSPACE_LOC/CemsExternalBrowser_7.2.x/src/java/com/twinsoft/convertigo/engine/externalbrowser</locationURI>
 		</link>
 		<link>
 			<name>src/com/twinsoft/convertigo/engine/parsers</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/CemsHtmlParsers_7.1.x/src/com/twinsoft/convertigo/engine/parsers</locationURI>
+			<locationURI>WORKSPACE_LOC/CemsHtmlParsers_7.2.x/src/com/twinsoft/convertigo/engine/parsers</locationURI>
+		</link>
+		<link>
+			<name>src/com/twinsoft/convertigo/engine/providers</name>
+			<type>2</type>
+			<locationURI>WORKSPACE_LOC/SapConnector_7.2.x/src/com/twinsoft/convertigo/engine/providers</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

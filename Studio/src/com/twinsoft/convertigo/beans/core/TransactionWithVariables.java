@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -674,9 +675,9 @@ public abstract class TransactionWithVariables extends Transaction implements IV
     	String xsdRequestData = null;
     	RequestableVariable variable = null;
     	xsdRequestData = 	"  <xsd:complexType name=\""+ prefix + getName() + "RequestData\">\n";
-		xsdRequestData += 	"    <xsd:annotation>\n";
-		xsdRequestData += 	"      <xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-		xsdRequestData += 	"    </xsd:annotation>\n";
+		//xsdRequestData += 	"    <xsd:annotation>\n";
+		//xsdRequestData += 	"      <xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
+		//xsdRequestData += 	"    </xsd:annotation>\n";
     	xsdRequestData +=	"    <xsd:sequence>\n";
 		for (int i=0; i<numberOfVariables(); i++) {
 			variable = (RequestableVariable)getVariable(i);
@@ -685,7 +686,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 					xsdRequestData += "      <xsd:element minOccurs=\"1\" maxOccurs=\"1\" name=\""+variable.getName()+"\" >\n";
 					xsdRequestData += "        <xsd:annotation>\n";
 					xsdRequestData += "          <xsd:documentation>"+ XMLUtils.getCDataXml(variable.getComment()) +"</xsd:documentation>\n";
-					xsdRequestData += "          <xsd:appinfo>"+ variable.getDescription() +"</xsd:appinfo>\n";
+					xsdRequestData += "          <xsd:appinfo>"+ StringEscapeUtils.escapeXml(variable.getDescription()) +"</xsd:appinfo>\n";
 					xsdRequestData += "        </xsd:annotation>\n";
 					xsdRequestData += "        <xsd:complexType>\n";
 					xsdRequestData += "          <xsd:sequence>\n";
@@ -698,7 +699,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 					xsdRequestData += "      <xsd:element minOccurs=\"1\" maxOccurs=\"1\" name=\""+variable.getName()+"\" type=\""+variable.getSchemaType()+"\">\n";
 					xsdRequestData += "        <xsd:annotation>\n";
 					xsdRequestData += "          <xsd:documentation>"+ XMLUtils.getCDataXml(variable.getComment()) +"</xsd:documentation>\n";
-					xsdRequestData += "          <xsd:appinfo>"+ variable.getDescription() +"</xsd:appinfo>\n";
+					xsdRequestData += "          <xsd:appinfo>"+ StringEscapeUtils.escapeXml(variable.getDescription()) +"</xsd:appinfo>\n";
 					xsdRequestData += "        </xsd:annotation>\n";
 					xsdRequestData += "      </xsd:element>\n";
 				}
@@ -712,7 +713,8 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 	@Override
 	protected String generateXsdResponseData(Document document, boolean extract) throws Exception {
     	StringEx sx = new StringEx(extract ? extractXsdType(document):generateWsdlType(document));
-    	sx.replace(getName() + "Response", getName() + "ResponseData");
+    	//sx.replace(getName() + "Response", getName() + "ResponseData");
+    	sx.replace(getName() + "Response\"", getName() + "ResponseData\"");
     	sx.replaceAll("\"p_ns:", "\""+ getProject().getName() + "_ns:");
     	String xsdResponseData = "  " + sx.toString();
     	return xsdResponseData;
@@ -868,7 +870,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 					//xmlSchemaElement.setSchemaTypeName(typeName);
 					xmlSchemaElement.setSchemaTypeName(variable.getTypeAffectation());
 					
-					addSchemaCommentAnnotation(xmlSchemaElement, variable.getComment());
+					addSchemaCommentAnnotation(xmlSchemaElement, variable.getComment(), variable.getDescription());
 					
 					xmlSchemaSequence.getItems().add(xmlSchemaElement);
 				}

@@ -62,6 +62,7 @@ import com.twinsoft.convertigo.beans.connectors.ExternalBrowserConnector;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
 import com.twinsoft.convertigo.beans.connectors.JavelinConnector;
+import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
@@ -971,6 +972,8 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			compositeConnectorClass = CicsConnectorComposite.class;
 		} else if (connector instanceof SqlConnector) {
 			compositeConnectorClass = SqlConnectorComposite.class;
+		} else if (connector instanceof SapJcoConnector) {
+			compositeConnectorClass = SapJcoConnectorComposite.class;
 		} else if (connector instanceof SiteClipperConnector) {
 			compositeConnectorClass = SiteClipperConnectorComposite.class;
 		} else if (connector instanceof ExternalBrowserConnector) {
@@ -1092,7 +1095,16 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				if ((children.length >= 2) && (children[1] instanceof HtmlConnectorDesignComposite))
 					children[1].moveBelow(null);
 			}
-		} else {
+		}
+		else if (connector instanceof SapJcoConnector) {
+			try {
+				compositeDesign = new SapJcoConnectorDesignComposite(connector, tabFolderOutputDesign, SWT.NONE);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		else {
 			compositeDesign = new Composite(tabFolderOutputDesign, SWT.NONE);
 			labelNoDesign = new Label(compositeDesign, SWT.NONE | SWT.WRAP);
 			labelNoDesign.setFont(new Font(null, "Tahoma", 10, 0));
@@ -1114,6 +1126,8 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		compositeConnector.close();
 		if (compositeDesign instanceof HtmlConnectorDesignComposite)
 			((HtmlConnectorDesignComposite) compositeDesign).close();
+		if (compositeDesign instanceof SapJcoConnectorDesignComposite)
+			((SapJcoConnectorDesignComposite) compositeDesign).close();
 
 		// Remove Studio context
 		Engine.theApp.contextManager.remove(context);

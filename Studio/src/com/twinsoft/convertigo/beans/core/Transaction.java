@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAnnotated;
 import org.apache.ws.commons.schema.XmlSchemaAnnotation;
+import org.apache.ws.commons.schema.XmlSchemaAppInfo;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
@@ -669,13 +670,23 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 	}
 	
 	protected XmlSchemaAnnotation addSchemaCommentAnnotation(XmlSchemaAnnotated annoted, String comment) {
+		return addSchemaCommentAnnotation(annoted, comment, "");
+	}
+	
+	protected XmlSchemaAnnotation addSchemaCommentAnnotation(XmlSchemaAnnotated annoted, String comment, String description) {
 		XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
 		if ((comment != null) && (comment.length() > 0)) {
 			XmlSchemaDocumentation documentation = new XmlSchemaDocumentation();
-			documentation.setSource(XMLUtils.getCDataXml(comment));
+			documentation.setMarkup(XMLUtils.asNodeList(new String[]{XMLUtils.getCDataXml(comment)}));
 			annotation.getItems().add(documentation);
-			annoted.setAnnotation(annotation);
 		}
+		if ((description != null) && (description.length() > 0)) {
+			XmlSchemaAppInfo appInfo = new XmlSchemaAppInfo();
+			appInfo.setMarkup(XMLUtils.asNodeList(new String[]{description}));
+			annotation.getItems().add(appInfo);
+			
+		}
+		annoted.setAnnotation(annotation);
 		return annotation;
 	}
 	
