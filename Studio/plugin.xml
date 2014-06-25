@@ -1610,6 +1610,20 @@
                </objectState>
             </enablement>
          </action>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateReferenceAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newReference"
+               label="Reference"
+               menubarPath="convertigo.menu.new/content">
+            <enablement>
+               <objectState
+                     name="folderType"
+                     value="14">
+               </objectState>
+            </enablement>
+         </action>
          <menu
                id="convertigo.menu.new"
                label="New"
