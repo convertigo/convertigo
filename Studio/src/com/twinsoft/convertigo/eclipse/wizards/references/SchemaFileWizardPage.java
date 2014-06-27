@@ -23,6 +23,8 @@
 package com.twinsoft.convertigo.eclipse.wizards.references;
 
 import java.io.File;
+import java.net.URL;
+import java.util.Arrays;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -31,6 +33,8 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -40,13 +44,14 @@ import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.eclipse.dialogs.IWsReferenceComposite;
 import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceComposite;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.ObjectExplorerWizardPage;
 import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
-public abstract class SchemaFileWizardPage extends WizardPage {
+public abstract class SchemaFileWizardPage extends WizardPage implements IWsReferenceComposite {
 	private String[] filterExtension = new String[]{"*.xsd"};
 	private String[] filterNames = new String[]{"XSD files"};
 	private Object parentObject = null;
@@ -58,6 +63,7 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 	private FileFieldEditor editor = null;
 	private Combo combo = null;
 	private String filePath = "";
+	private String urlPath = "";
 	
 	public SchemaFileWizardPage(Object parentObject, String pageName) {
 		super(pageName);
@@ -93,6 +99,7 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 	public Button getUseAuthentication() {
 		return useAuthentication;
 	}
+	
 	public void createControl(Composite parent) {
 		Composite container = new Composite(parent, SWT.NULL);
 		GridLayout layout = new GridLayout();
@@ -114,8 +121,7 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 		combo = wsRefAuthenticated.getCombo();
 		combo.addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {
-				filePath = combo.getText();
-				dialogChanged();
+				comboChanged();
 			}
 		});
 		
@@ -123,15 +129,34 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 		Composite fileSelectionArea = wsRefAuthenticated.getFileSelectionArea();
 		editor.getTextControl(fileSelectionArea).addModifyListener(new ModifyListener(){
 			public void modifyText(ModifyEvent e) {
-				IPath path = new Path(editor.getStringValue());
-				filePath = path.toString();
-				dialogChanged();
+				editorChanged();
 			}
 		});
 		
 		useAuthentication = wsRefAuthenticated.getUseAuthentication();
+		useAuthentication.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				dialogChanged();
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				dialogChanged();
+			}
+		});
+		
+		ModifyListener ml = new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				dialogChanged();
+			}
+		};
+		
 		loginText = wsRefAuthenticated.getLoginText();
+		loginText.addModifyListener(ml);
 		passwordText = wsRefAuthenticated.getPasswordText();
+		passwordText.addModifyListener(ml);
 		
 		dialogChanged();
 		setControl(container);
@@ -148,9 +173,23 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 		return "";
 	}
 	
-	private void dialogChanged() {
+	@Override
+	public void dialogChanged() {
 		String message = null;
-		if (!filePath.equals("")) {
+		if (!urlPath.equals("")) {
+			try {
+				new URL(urlPath);
+				try {
+					setDboUrlPath(urlPath);
+				} catch (NullPointerException e) {
+					message = "New Bean has not been instantiated";
+				}
+			}
+			catch (Exception e) {
+				message = "Please enter a valid URL";
+			}
+		}
+		else if (!filePath.equals("")) {
 			File file = new File(filePath);
 			if (!file.exists()) {
 				message = "Please select an existing file";
@@ -168,8 +207,14 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 							boolean isExternal = !xsdFilePath.startsWith(projectPath) && !xsdFilePath.startsWith(workspacePath);
 							
 							if (isExternal) {
-								combo.add(FileUtils.toUriString(file));
-								combo.select(combo.getItemCount()-1);
+								String uriFile = FileUtils.toUriString(file);
+								if(!Arrays.asList(combo.getItems()).contains(uriFile)){
+									combo.add(uriFile);
+									combo.select(combo.getItemCount()-1);
+								} else {
+									combo.select(wsRefAuthenticated.getItem(uriFile));
+								}
+								
 							}
 							else {
 								if (xsdFilePath.startsWith(projectPath))
@@ -193,14 +238,42 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 					}
 				}
 			}
-		} 
-		
-		if (useAuthentication.getSelection() && 
+		} else if (useAuthentication.getSelection() && 
 				(loginText.getText().equals("") || passwordText.getText().equals("")) ) {
 			message = "Please enter login and password";
+		} else if (urlPath.equals("") && combo.isVisible()) {
+			message = "Please enter an URL!";
+		} 
+		
+		setTextStatus(message);
+	}
+	
+	@Override
+	public void comboChanged() {
+		urlPath = combo.getText();
+		dialogChanged();
+	}
+	
+	@Override
+	public void editorChanged() {
+		IPath path = new Path(editor.getStringValue());
+		filePath = path.toString();
+		dialogChanged();
+	}
+	
+	@Override
+	public void setTextStatus(String message) {		
+		if(message==null && !wsRefAuthenticated.isValidURL()){
+			setErrorMessage("Please enter a valid URL");	
+		} else {
+			setErrorMessage(message);	
 		}
 		
-		updateStatus(message);
+		if (wsRefAuthenticated.isValidURL()){
+			setPageComplete(message==null);
+		} else {
+			setPageComplete(false);
+		}
 	}
 	
 	public String getWsdlURL(){
@@ -215,11 +288,6 @@ public abstract class SchemaFileWizardPage extends WizardPage {
 
 		});
 		return wsdlURL[0];
-	}
-	
-	private void updateStatus(String message) {
-		setErrorMessage(message);
-		setPageComplete(message == null);
 	}
 	
 	@Override

@@ -39,7 +39,7 @@ import com.twinsoft.convertigo.engine.util.ImportWsReference;
 public class WsReferenceImportDialog extends MyAbstractDialog implements Runnable {
 
 	private ProgressBar progressBar = null;
-	private Label labelProgression = null;
+	protected Label labelInformation = null;
 	private Button useAuthentication = null;
 	private Text loginText = null, passwordText = null;
 	private String wsdlURL = null;
@@ -69,7 +69,10 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 	protected void okPressed() {		
 		try {
 			((WsReferenceImportDialogComposite)dialogComposite).setParentObject(project);
-
+			((WsReferenceImportDialogComposite)dialogComposite).setOKButton(this.getButton(OK));
+			
+			labelInformation = ( (WsReferenceImportDialogComposite)dialogComposite ).labelInformation; 
+			
 			useAuthentication = ( (WsReferenceImportDialogComposite)dialogComposite ).useAuthentication;
 			loginText = ( (WsReferenceImportDialogComposite)dialogComposite ).loginText;
 			passwordText = ( (WsReferenceImportDialogComposite)dialogComposite ).passwordText;
@@ -82,9 +85,6 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 
 				Thread thread = new Thread(this);
 				thread.start();
-			}
-			else {
-				setTextLabel("You must enter a valid URL!");
 			}
 			
 		}
@@ -196,17 +196,8 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 		return httpConnector;
 	}
 	
-	public void setTextLabel(String text) {
-		final Display display = getParentShell().getDisplay();
-		final String labelText = text;
-		display.asyncExec(new Runnable() {
-			public void run() {
-				if (!labelProgression.isDisposed())
-					labelProgression.setText(labelText);
-			}
-		});
+	public Button getButtonOK(){
+		return getButton(OK);
 	}
-
-
 	
 }
