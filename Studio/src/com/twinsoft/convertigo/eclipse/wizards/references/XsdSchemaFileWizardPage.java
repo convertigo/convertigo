@@ -41,4 +41,28 @@ public class XsdSchemaFileWizardPage extends SchemaFileWizardPage {
 	protected void setDboUrlPath(String urlpath) {
 		((XsdSchemaReference)getDbo()).setUrlpath(urlpath);
 	}
+	
+	@Override
+	public void dialogChanged() {
+		// TODO Auto-generated method stub
+		super.dialogChanged();
+	}
+
+	@Override
+	public void comboChanged() {
+		// TODO Auto-generated method stub
+		super.comboChanged();
+	}
+
+	@Override
+	public void editorChanged() {
+		// TODO Auto-generated method stub
+		super.editorChanged();
+	}
+
+	@Override
+	public void setTextStatus(String message) {
+		// TODO Auto-generated method stub
+		super.setTextStatus(message);
+	}
 }

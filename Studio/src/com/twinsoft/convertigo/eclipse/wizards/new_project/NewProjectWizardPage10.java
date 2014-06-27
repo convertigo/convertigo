@@ -25,8 +25,6 @@ package com.twinsoft.convertigo.eclipse.wizards.new_project;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Composite;
 
 public class NewProjectWizardPage10 extends WizardPage {
@@ -39,15 +37,8 @@ public class NewProjectWizardPage10 extends WizardPage {
 	}
 
 	public void createControl(Composite parent) {
-		Composite container = new NewProjectWizardComposite10(parent, projectName, SWT.NULL,
-				new ModifyListener() {
-					public void modifyText(ModifyEvent e) {
-						dialogChanged();
-					}
-				}, this.getWizard());
-				
+		Composite container = new NewProjectWizardComposite10(parent, projectName, SWT.NULL, this);
 		setControl(container);
-		
 		setPageComplete(isValidURL());
 	}
 	
@@ -106,25 +97,8 @@ public class NewProjectWizardPage10 extends WizardPage {
 	}
 	
 	private boolean isValidURL() {
-		return getWsdlURL().startsWith("http://") || getWsdlURL().startsWith("https://") || getWsdlURL().startsWith("file:/");
-	}
-	
-	private void dialogChanged() {
 		String wsdlURL = getWsdlURL();
-		if (wsdlURL.length() == 0) {
-			updateStatus("Please enter the WSDL url of remote web service");
-			return;
-		}
-		if (!isValidURL()) {
-			updateStatus("Please enter a valid WSDL url");
-			return;
-		}
-		updateStatus(null);
-	}
-
-	private void updateStatus(String message) {
-		setErrorMessage(message);
-		setPageComplete(message == null);
+		return ((wsdlURL.startsWith("http://") || wsdlURL.startsWith("https://") || wsdlURL.startsWith("file:/")) && !(wsdlURL.replaceAll(" ", "").equals("")));
 	}
 }
 	

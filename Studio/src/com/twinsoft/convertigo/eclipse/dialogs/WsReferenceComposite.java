@@ -18,6 +18,8 @@
 
 package com.twinsoft.convertigo.eclipse.dialogs;
 
+import java.util.Arrays;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -129,8 +131,11 @@ public class WsReferenceComposite extends Composite {
 			if (!filterExtension[0].equals("*.wsdl")) {
 				combo.removeAll();
 			} else {
-				combo.add("http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL");
-				combo.select(0);
+				String url = "http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL";
+				if(!Arrays.asList(combo.getItems()).contains(url)){
+					combo.add(url);
+					combo.select(0);
+				}
 			}
 		}
 	}
@@ -170,4 +175,19 @@ public class WsReferenceComposite extends Composite {
 	public Text getPasswordText() {
 		return passwordText;
  	}
+	
+	public boolean isValidURL() {
+		String wsdlURL = combo.getText();
+		return ((wsdlURL.startsWith("http://") || wsdlURL.startsWith("https://") || wsdlURL.startsWith("file:/")) && !(wsdlURL.replaceAll(" ", "").equals("")));
+	}
+
+	
+	public int getItem(String uriFile){
+		for (int i = 0; i < combo.getItemCount(); i++){
+			if(combo.getItem(i).equals(uriFile)){
+				return i;
+			}
+		}
+		return -1;
+	}
 }

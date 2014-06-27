@@ -34,6 +34,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
@@ -290,8 +291,13 @@ public class NewObjectWizard extends Wizard {
 	
 	@Override
 	public boolean canFinish() {
-		return (getContainer().getCurrentPage().getNextPage() == getPage("SQLQueriesWizardPage") || 
+		IWizardPage nextPage = getPage("SQLQueriesWizardPage");
+		if (nextPage!=null) {
+			return (getContainer().getCurrentPage().getNextPage() == getPage("SQLQueriesWizardPage") || 
 				getContainer().getCurrentPage().getNextPage() == null && getContainer().getCurrentPage().isPageComplete());
+		} else {
+			return (getContainer().getCurrentPage().getNextPage() == null && getContainer().getCurrentPage().isPageComplete());
+		}
 	}
 
 	private void doFinish(IProgressMonitor monitor) throws CoreException {
