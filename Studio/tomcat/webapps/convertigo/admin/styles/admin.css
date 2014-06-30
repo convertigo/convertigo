@@ -135,6 +135,15 @@ table {
 	font-size: 12px;
 	color: #818181;
 }
+.txtAlignLeft {
+	text-align: left;
+}
+.txtAlignRight {
+	text-align: right;
+}
+.txtAlignCenter {
+	text-align: center;
+}
 .clear {
 	clear:both;
 }
@@ -1592,6 +1601,13 @@ a.start {
 }
 #dialog-deploy-project {
 	display: none;
+}
+#dialog-confirm-symbols p {
+	text-align: left;
+}
+.iconAlertGlobalSymbolsImport {
+	float:left;
+	margin-right: 10px;
 }
 /* = Statistics
 -------------------------- */
