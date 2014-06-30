@@ -34,6 +34,10 @@
     <preference name="exit-on-suspend"            value="false" />          <!-- ios: if set to true, app will terminate when home button is pressed -->
     <preference name="auto-hide-splash-screen"    value="true" />           <!-- ios: if set to false, the splash screen must be hidden using a JavaScript API -->
     
+    <!-- To avoid app scrolling -->
+<!--    <preference name="DisallowOverscroll" value="true" /> -->
+<!-- 	<preference name="webviewbounce" value="false" /> -->
+
 	<!-- Mandatory preferences for FlashUpdate service -->
 	<preference name="iosPersistentFileLocation" value="Library" />
 
@@ -69,6 +73,18 @@
     
 	<!-- Useful for debugging -->
 	<gap:plugin name="org.apache.cordova.console" />
+	
+	<!-- Status bar plugin for iOS 7 -->
+	<gap:plugin name="com.phonegap.plugin.statusbar" />
+	
+	<!-- Status bar plugin use -->	
+	<gap:config-file platform="ios" parent="UIStatusBarHidden">
+	    <false/>
+	</gap:config-file>
+	
+	<gap:config-file platform="ios" parent="UIViewControllerBasedStatusBarAppearance">
+	    <true/>
+	</gap:config-file>
     
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
 <!--     <gap:plugin name="org.apache.cordova.battery-status" /> -->
