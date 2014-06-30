@@ -407,7 +407,7 @@ public class WsReference {
 
    			xmlv = new XMLVector<String>();
    			xmlv.addElement("SOAPAction");
-   			xmlv.addElement(actionName.equals("") ? operationName:actionName);
+   			xmlv.addElement(""); // fix #4215 - SOAPAction header must be empty
    			parameters.addElement(xmlv);
 
    			xmlv = new XMLVector<String>();
