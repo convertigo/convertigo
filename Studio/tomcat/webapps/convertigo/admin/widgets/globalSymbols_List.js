@@ -207,7 +207,7 @@ function addSymbol(xml, mode) {
 			title : "Add symbol",
 			modal : true,
 			buttons : {
-				"Add" : function () {
+				"Ok" : function () {
 					callService("global_symbols.Add", function(xml) {
 						var $response = $(xml).find("response:first");  
 						if ($response.attr("state") == "success") {
@@ -235,7 +235,7 @@ function editSymbol(symbolName, symbolValue) {
 			title : "Edit symbol",
 			modal : true,
 			buttons : {
-				"Edit" : function() {
+				"Ok" : function() {
 					callService("global_symbols.Edit", function(xml) {
 						var $response = $(xml).find("response:first");  
 						if ($response.attr("state") == "success") {
