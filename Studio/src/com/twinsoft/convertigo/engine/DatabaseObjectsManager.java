@@ -104,6 +104,7 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
 public class DatabaseObjectsManager implements AbstractManager {
 	private static Pattern pValidSymbolName = Pattern.compile("[\\{=}\\r\\n]");
 	private static Pattern pFindSymbol = Pattern.compile("\\$\\{([^\\{\\r\\n]*?)(?:=(.*?(?<!\\\\)))?}");
+	private static Pattern pFindEnv = Pattern.compile("\\%([^\\r\\n]*?)(?:=(.*?(?<!\\\\)))?\\%");
 	
 	private Map<String, Project> projects;
 	
@@ -1320,6 +1321,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 					}
 				}
 				
+				// Handle environment variables %name%, %name=def%, %name=def\\%%,  
+				symbolValue = replaceEnvValues(symbolValue);
+				
 				newValue.append(symbolValue);
 				
 				start = mFindSymbol.end();
@@ -1335,6 +1339,50 @@ public class DatabaseObjectsManager implements AbstractManager {
 		} else {
 			return value;
 		}
+	}
+	
+	private String replaceEnvValues(String symbolValue) {
+		Matcher mFindEnv = pFindEnv.matcher(symbolValue);
+		
+		// If there is at least an environment variable
+		if (mFindEnv.find(0)) {
+			int start = 0;
+			// The symbol value re-builded
+			StringBuffer newValue = new StringBuffer();
+			do {
+				// Append the string between the last occurrence and the next one
+				newValue.append(symbolValue.substring(start, mFindEnv.start()));
+				
+				// Get the environment variable name and its default value
+				String name = mFindEnv.group(1);
+				String def = mFindEnv.group(2);				
+				
+				String envValue = System.getenv(name);
+				
+				if (envValue == null) {
+					if (def != null) {
+						envValue = def.replace("\\%", "%");
+					} else {
+						// If the environment variable is not defined and there is not default value neither
+						Engine.logDatabaseObjectManager.error("The environment variable "  + name + " is undifined.");
+						envValue = mFindEnv.group(0);
+					}
+				}
+				
+				// Append the value of the environment variable
+				newValue.append(envValue);
+				
+				start = mFindEnv.end();
+			} while (mFindEnv.find(start)); // While there is an environment variable
+			
+			// Append the string between the last occurrence and the end
+			newValue.append(symbolValue.substring(start));
+			
+			return newValue.toString();
+			
+		} else {
+			return symbolValue;
+		}		
 	}
 	
 	public Object getCompiledValue(Object propertyObjectValue) throws UndefinedSymbolsException {
