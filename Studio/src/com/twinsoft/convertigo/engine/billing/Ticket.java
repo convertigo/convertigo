@@ -41,6 +41,7 @@ public class Ticket {
 	protected String connectorType		= "";
 	protected String requestableName	= "";
 	protected String requestableType	= "";
+	protected String sessionID			= "";
 	
 	public Ticket() {
 	}
@@ -142,6 +143,15 @@ public class Ticket {
 	public void setRequestableType(String requestableType) {
 		this.requestableType = requestableType;
 	}
+
+	public String getSessionID() {
+		return sessionID;
+	}
+
+	public void setSessionID(String sessionID) {
+		this.sessionID = sessionID;
+	}
+	
 	
 	@Override
 	public String toString() {

@@ -31,6 +31,7 @@ import org.hibernate.exception.JDBCConnectionException;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.billing.BillingException;
+import com.twinsoft.convertigo.engine.billing.GAnalyticsTicketManager;
 import com.twinsoft.convertigo.engine.billing.HibernateTicketManager;
 import com.twinsoft.convertigo.engine.billing.ITicketManager;
 import com.twinsoft.convertigo.engine.billing.Ticket;
@@ -128,6 +129,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			ticket.setRequestableType(context.requestedObject.getClass().getSimpleName());
 			ticket.setResponseTime((responseTime == null) ? context.statistics.getLatestDuration(EngineStatistics.GET_DOCUMENT):responseTime);
 			ticket.setScore((score == null) ? context.requestedObject.getScore():score);
+			ticket.setSessionID(context.httpSession.getId());
 			
 			synchronized (tickets) {
 				tickets.add(ticket);
@@ -156,6 +158,10 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 				configuration.setProperty("hibernate.connection.password", EnginePropertiesManager.getProperty(PropertyName.BILLING_PERSISTENCE_JDBC_PASSWORD));
 				configuration.setProperty("hibernate.dialect", EnginePropertiesManager.getProperty(PropertyName.BILLING_PERSISTENCE_DIALECT));
 				manager = new HibernateTicketManager(configuration, Engine.logBillers);
+				
+				// TODO : Have the  GAnalyticsTicketManager activated using engine configuration console..
+				// manager = new GAnalyticsTicketManager(configuration, Engine.logBillers);
+				
 			} catch (Throwable t) {
 				throw new EngineException("TicketManager instanciation failed", t);
 			}
