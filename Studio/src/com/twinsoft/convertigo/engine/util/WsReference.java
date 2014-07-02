@@ -42,6 +42,11 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.constants.Constants;
@@ -95,18 +100,44 @@ public class WsReference {
 	}
 	
 	protected HttpConnector importIntoAuthenticated(Project project, String login, String password) throws Exception {
-		HttpConnector httpConnector = null; 
+		HttpConnector httpConnector = null;
 		//We add login/password into the connection
 		System.setProperty("soapui.loader.username", login);
 		System.setProperty("soapui.loader.password", password);
-
-		httpConnector =  importInto(project);
 		
+		try{
+			tryAuthentication(login, password);
+		} catch (Exception e) {
+			throw new Exception ("Authentication failure!", e);
+		}
+		
+		httpConnector = importInto(project);
+
 		//We clear login/password
 		System.setProperty("soapui.loader.username", "");
 		System.setProperty("soapui.loader.password", "");
 		
 		return httpConnector;
+	}
+	
+	private void tryAuthentication(String username, String password) throws Exception {
+		URL urlToConnect = reference.getUrl();
+
+        HttpClient client = new HttpClient();
+
+		client.getState().setCredentials(
+				new AuthScope(urlToConnect.getHost(), urlToConnect.getPort()),
+				new UsernamePasswordCredentials(username, password)
+		);
+        
+        GetMethod get = new GetMethod(reference.getUrlpath());
+        get.setDoAuthentication( true );
+        
+        int statuscode = client.executeMethod(get);
+        
+        if (statuscode == HttpStatus.SC_UNAUTHORIZED) {
+        	throw new Exception(HttpStatus.SC_UNAUTHORIZED + " - Unauthorized connection!");
+        }
 	}
 	
 	protected HttpConnector importInto(Project project) throws Exception {
@@ -268,7 +299,7 @@ public class WsReference {
 		String projectDir = Engine.PROJECTS_PATH + "/"+ projectName;
 		
 	   	WsdlProject wsdlProject = new WsdlProject();
-	   	WsdlInterface[] wsdls = WsdlImporter.importWsdl(wsdlProject, wsdlUrl);
+	   	WsdlInterface[] wsdls = WsdlImporter.importWsdl(wsdlProject, wsdlUrl); 	
 	   	
 	   	boolean hasDefaultTransaction;
 	   	WsdlInterface iface;
