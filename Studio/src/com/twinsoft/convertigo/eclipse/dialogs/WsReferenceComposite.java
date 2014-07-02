@@ -93,7 +93,7 @@ public class WsReferenceComposite extends Composite {
 		/** AUTHENTICATION PART **/
 		
 		useAuthentication = new Button(this, SWT.CHECK);
-		useAuthentication.setText("URL need an authenfication");
+		useAuthentication.setText("URL need an authentication");
 		useAuthentication.setSelection(false);
 		useAuthentication.setLayoutData(gridData);
 		

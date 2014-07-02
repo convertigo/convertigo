@@ -93,7 +93,7 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 	}
 	
 	public Text getLoginText() {
-		return passwordText;
+		return loginText;
 	}
 	
 	public Button getUseAuthentication() {
@@ -238,11 +238,11 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 					}
 				}
 			}
-		} else if (useAuthentication.getSelection() && 
+		} 
+		
+		if (useAuthentication.getSelection() && 
 				(loginText.getText().equals("") || passwordText.getText().equals("")) ) {
 			message = "Please enter login and password";
-		} else if (urlPath.equals("") && combo.isVisible()) {
-			message = "Please enter an URL!";
 		} 
 		
 		setTextStatus(message);
