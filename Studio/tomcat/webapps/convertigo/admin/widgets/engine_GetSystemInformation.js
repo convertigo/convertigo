@@ -21,7 +21,7 @@
  */
 
 function engine_GetSystemInformation_init(){
-	$("#sysinfoGetJavaSystemProperties").button({ icons: { primary: "ui-icon-script" } });
+	$("#sysinfoGetJavaSystemProperties, #sysinfoGetEnvironmentVariables").button({ icons: { primary: "ui-icon-script" } });
 
 	initSystemInformationDialogs();
 	engine_GetSystemInformation_update();
@@ -71,4 +71,52 @@ function initSystemInformationDialogs() {
 
 		return false;
 	});
+	
+	$("<div id=\"sysinfoDialogEnvironmentVariables\"></div>")
+		.html("<table id=\"environmentVariablesList2\"/>") // Have to use a different ID that table in environùentVariables_List.html
+		.dialog({
+			autoOpen: false,
+			title: "Environment variables",
+		    modal: true,
+		    width: 800,
+		    height: 600,
+		    buttons: {
+		        Ok: function() {
+		            $(this).dialog('close');
+		        }
+		    }
+		});
+	
+	$("#sysinfoGetEnvironmentVariables").click(function() {
+		if (typeof(environmentVariables_List_init) == "undefined") {
+			$.getScript("./widgets/environmentVariables_List.js", function () {
+				environmentVariables_List_init("#environmentVariablesList2");
+			});
+		} else {
+			if (!$("#environmentVariablesList2").hasClass("ui-jqgrid-btable")) {
+				environmentVariables_List_init("#environmentVariablesList2");
+			}
+		}
+		$("#sysinfoDialogEnvironmentVariables").dialog('open');
+//		$.getScript("./widgets/environmentVariables_List.js", function(){
+//			
+//			// alert("Script loaded and executed.");
+//			
+//			environmentVariables_List_init();
+//			$("#sysinfoDialogEnvironmentVariables").dialog('open');
+//			
+//			});
+		
+		// Call environmentVariables_List.js environmentVariables_List_init()
+		
+		/*$.get("services/engine.GetEnvironmentVariables", { }, 
+			function(xml) {
+				$("#sysinfoDialogEnvironmentVariables > textarea").text($(xml).find("admin").text());
+				$("#sysinfoDialogEnvironmentVariables").dialog('open');
+			}
+		);*/
+	
+		return false;
+	});
+	
 };

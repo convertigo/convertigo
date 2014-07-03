@@ -625,6 +625,10 @@ table {
 	text-align: center;
 }
 
+#sysinfoDialogEnvironmentVariables {
+	overflow-x: hidden;
+}
+
 /* == common style widget content
 ----------------------------------------*/
 
