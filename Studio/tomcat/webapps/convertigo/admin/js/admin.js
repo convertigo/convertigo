@@ -355,9 +355,12 @@ function loadWidget(widgetId, widgetOptions) {
 						urlHelp += "411Globalsymbols.html";
 						break;					
 				}
-				//show icon help button
-				$tmp.find(".widget_content_topcenter").first().html('<a href="' + urlHelp + '" class="widget_content_help" target="_blank">' + '</a>' + '<h3>' + $("#" + widgetId).attr("displayName") + '</h3>');
-
+				if( widgetId != "environmentVariables_List"){
+					//show icon help button
+					$tmp.find(".widget_content_topcenter").first().html('<a href="' + urlHelp + '" class="widget_content_help" target="_blank">' + '</a>' + '<h3>' + $("#" + widgetId).attr("displayName") + '</h3>');
+				}else{
+					$tmp.find(".widget_content_topcenter").first().html('<h3>' + $("#" + widgetId).attr("displayName") + '</h3>');
+				}
 				// End condition
 				$("#" + widgetId).append($tmp.find("div[class=widget]").children().first());
 				window[widgetId + "_init"](widgetOptions);

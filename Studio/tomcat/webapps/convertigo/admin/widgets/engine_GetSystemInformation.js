@@ -98,23 +98,6 @@ function initSystemInformationDialogs() {
 			}
 		}
 		$("#sysinfoDialogEnvironmentVariables").dialog('open');
-//		$.getScript("./widgets/environmentVariables_List.js", function(){
-//			
-//			// alert("Script loaded and executed.");
-//			
-//			environmentVariables_List_init();
-//			$("#sysinfoDialogEnvironmentVariables").dialog('open');
-//			
-//			});
-		
-		// Call environmentVariables_List.js environmentVariables_List_init()
-		
-		/*$.get("services/engine.GetEnvironmentVariables", { }, 
-			function(xml) {
-				$("#sysinfoDialogEnvironmentVariables > textarea").text($(xml).find("admin").text());
-				$("#sysinfoDialogEnvironmentVariables").dialog('open');
-			}
-		);*/
 	
 		return false;
 	});
