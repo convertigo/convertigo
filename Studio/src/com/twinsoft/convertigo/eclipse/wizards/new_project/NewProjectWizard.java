@@ -143,10 +143,13 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int LIBRARY_GOOGLE_DOCS = 802;
 	public static final int LIBRARY_KEYRING = 803;
 	public static final int LIBRARY_PUSH_MANAGER = 804;
+	public static final int LIBRARY_TWITTER = 805;
+	// demos
 	public static final int DEMOS_SALESFORCE = 900;
 	public static final int DEMOS_USDIRECTORY = 901;
 	public static final int DEMOS_LEGACYCRM = 902;
 	public static final int DEMOS_MASHUP = 903;
+	
 	public static final int TEMPLATE_INTERACTION_HUB = 1000;
 	public static final int TEMPLATE_SITE_CLIPPER = 1100;
 	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE = 1300;
@@ -197,6 +200,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String GOOGLE_DOCS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleDocs.car";
 	public static final String KEYRING_LIBRARY_PROJECT_FILE_NAME = "lib_Keyring.car";
 	public static final String PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME = "lib_PushManager.car";
+	public static final String TWITTER_LIBRARY_PROJECT_FILE_NAME = "lib_Twitter.car";
 	// mashup demo
 	public static final String SALESFORCE_DEMO_PROJECT_FILE_NAME = "demo_SalesForce.car";
 	public static final String USDIRECTORY_DEMO_PROJECT_FILE_NAME = "demo_usDirectory.car";
@@ -260,6 +264,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_GOOGLE_DOCS:
 		case LIBRARY_KEYRING:
 		case LIBRARY_PUSH_MANAGER:
+		case LIBRARY_TWITTER:
 		case DEMOS_SALESFORCE:
 		case DEMOS_USDIRECTORY:
 		case DEMOS_LEGACYCRM:
@@ -459,6 +464,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case LIBRARY_GOOGLE_DOCS:
 			case LIBRARY_KEYRING:
 			case LIBRARY_PUSH_MANAGER:
+			case LIBRARY_TWITTER:
 			case DEMOS_SALESFORCE:
 			case DEMOS_USDIRECTORY:
 			case DEMOS_LEGACYCRM:
@@ -1153,6 +1159,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_PUSH_MANAGER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME;
 			projectName = PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME.substring(0, PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case LIBRARY_TWITTER:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + TWITTER_LIBRARY_PROJECT_FILE_NAME;
+			projectName = TWITTER_LIBRARY_PROJECT_FILE_NAME.substring(0, TWITTER_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case DEMOS_SALESFORCE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SALESFORCE_DEMO_PROJECT_FILE_NAME;
