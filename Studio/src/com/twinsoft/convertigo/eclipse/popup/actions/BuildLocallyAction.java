@@ -579,6 +579,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 			for(int i=0; i< plugins.getLength(); i++) {
 				Node plugin = plugins.item(i);
 				String pluginName = plugin.getAttributes().getNamedItem("name").getTextContent();
+				String gitUrl = null;
+				if (plugin.getAttributes().getNamedItem("git") != null)
+					gitUrl     = plugin.getAttributes().getNamedItem("git").getTextContent();
 				
 				// Plugin may have a version number, compare without it
 				if (pluginName.indexOf('@') != -1)
@@ -586,7 +589,11 @@ public class BuildLocallyAction extends MyAbstractAction {
 				
 				if (installedPlugins.indexOf(pluginName) == -1) {
 					Engine.logEngine.info("Adding plugin " + pluginName);
-					runCordovaCommand("plugin add " + pluginName, cordovaDir);
+					// if we have a gitUrl use it in priority
+					if (gitUrl != null)
+						runCordovaCommand("plugin add " + gitUrl, cordovaDir);
+					else
+						runCordovaCommand("plugin add " + pluginName, cordovaDir);
 				}	
 			}
 
