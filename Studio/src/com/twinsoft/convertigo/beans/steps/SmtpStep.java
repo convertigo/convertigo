@@ -259,7 +259,7 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 					}
 					
 					if (sContentType.length() == 0) {
-						sContentType = fileXSL != null ? "text/html" : "text/plain";
+						sContentType = fileXSL != null ? "text/html; charset=UTF-8" : "text/plain; charset=UTF-8";
 					}
 
 					Transformer transformer = fileXSL != null ?
