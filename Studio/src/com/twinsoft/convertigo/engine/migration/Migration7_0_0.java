@@ -490,6 +490,11 @@ public class Migration7_0_0 {
 				}
 			}
 			
+			if (step instanceof TransactionStep) {
+				XMLVector<String> definition = ((TransactionStep)step).getConnectionStringDefinition();
+				handleSourceDefinition(definition);
+			}
+			
 			if (step instanceof IStepSourceContainer) {
 				/** Case step's xpath has not been migrated when project has been deployed
 				 ** on a 5.0 server from a Studio with an older version **/
