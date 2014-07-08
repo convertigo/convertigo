@@ -25,6 +25,15 @@ package com.twinsoft.convertigo.eclipse.dialogs;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import javax.xml.namespace.QName;
+
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.apache.ws.commons.schema.XmlSchemaObject;
+import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
+import org.apache.ws.commons.schema.XmlSchemaParticle;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -32,19 +41,10 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.util.StringUtils;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.convertigo.engine.util.XSDUtils;
-import com.twinsoft.convertigo.engine.util.XSDUtils.XSD;
-import com.twinsoft.convertigo.engine.util.XSDUtils.XmlGenerationDescription;
 
 public class TransactionXSDTypesDialogComposite extends MyAbstractDialogComposite {
 
@@ -127,37 +127,23 @@ public class TransactionXSDTypesDialogComposite extends MyAbstractDialogComposit
 	
 	private ArrayList<String> getTypesListFromXsd() {
 		ArrayList<String> types = new ArrayList<String>();
-		String projectName = transaction.getProject().getName();
-		String xsdURI = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.xsd";
 		try {
-			String prefix = transaction.getXsdTypePrefix();
-			String transactionName = StringUtils.normalize(prefix + transaction.getName(), true);
-
-			XSD xsd = XSDUtils.getXSD(xsdURI);
-			XmlGenerationDescription xmlDescription = xsd.getXmlGenerationDescription();
-			xmlDescription.setOutputOccurences(false);
-			xmlDescription.setOutputSchemaTypeCData(true);
-			xmlDescription.setOutputOccursAttribute(false);
-			xmlDescription.setOutputElementWithNS(false);
-
-			Document xsdDom = xsd.generateTypeXmlStructure(projectName+"_ns", transactionName +"ResponseData");
-			NodeList children = xsdDom.getDocumentElement().getChildNodes();
-			Element element;
-			Node node;
-			for (int i=0;i<children.getLength();i++) {
-				node = children.item(i);
-				if (node.getNodeType() == Node.ELEMENT_NODE) {
-					element = findChildElementByTagName((Element)node,"schema-type");
-					if (element != null) {
-						Node cdata = XMLUtils.findChildNode(element, Node.CDATA_SECTION_NODE);
-						if (cdata != null) {
-							String value = cdata.getNodeValue().trim();
-							value = value.replaceAll("minOccurs=\\\"\\w+\\\"\\s", "");
-							value = value.replaceAll("maxOccurs=\\\"\\w+\\\"\\s", "");
-							value = value.replaceAll(" />", "/>");
-							value = value.trim();
-							types.add(value);
-						}
+			String tns = transaction.getProject().getTargetNamespace();
+			String projectName = transaction.getProject().getName();
+			XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(projectName, false);
+			QName responseTypeQName = new QName(tns, transaction.getXsdResponseTypeName());
+			XmlSchemaComplexType xmlSchemaType = (XmlSchemaComplexType) schema.getTypeByName(responseTypeQName);
+			XmlSchemaParticle xmlSchemaParticle = xmlSchemaType.getParticle();
+			if (xmlSchemaParticle != null && xmlSchemaParticle instanceof XmlSchemaSequence) {
+				XmlSchemaObjectCollection xmlSchemaObjectCollection = ((XmlSchemaSequence)xmlSchemaParticle).getItems();
+				for (int i=0;i<xmlSchemaObjectCollection.getCount();i++) {
+					XmlSchemaObject xso = xmlSchemaObjectCollection.getItem(i);
+					if (xso instanceof XmlSchemaElement) {
+						XmlSchemaElement xmlSchemaElement = (XmlSchemaElement)xso;
+						String elName = xmlSchemaElement.getName();
+						QName elType = xmlSchemaElement.getSchemaTypeName();
+						String value = "<xsd:element name=\""+elName+"\" type=\""+elType.getPrefix()+":"+elType.getLocalPart()+"\"/>";
+						types.add(value);
 					}
 				}
 			}
@@ -167,20 +153,6 @@ public class TransactionXSDTypesDialogComposite extends MyAbstractDialogComposit
 		return types;
 	}
 	
-	private Element findChildElementByTagName(Element element, String tagName) {
-		Element elt = null;
-		Node node;
-		NodeList children = element.getChildNodes();
-		for (int i=0;i<children.getLength();i++) {
-			node = children.item(i);
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				elt = (Element)node;
-				if (elt.getTagName().equals(tagName))
-					break;
-			}
-		}
-		return elt;
-	}
 	protected void generateXSDTypes() {
 		String[] types = list.getSelection();
 		

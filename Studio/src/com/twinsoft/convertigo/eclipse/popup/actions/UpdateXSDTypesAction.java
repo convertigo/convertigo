@@ -47,6 +47,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class UpdateXSDTypesAction extends MyAbstractAction {
@@ -199,6 +200,7 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
                     	}
                     	
                     	requestable.hasChanged = true;
+                    	Engine.theApp.schemaManager.clearCache(requestable.getProject().getName());
                     	explorerView.refreshFirstSelectedTreeObject();
                     	
                     	// fire event for schema regeneration in schema view
