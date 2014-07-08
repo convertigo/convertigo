@@ -154,7 +154,6 @@ import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectDeleteAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DatabaseObjectIncreasePriorityAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableColumnAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.DeletePropertyTableRowAction;
-import com.twinsoft.convertigo.eclipse.popup.actions.ProjectValidateXSDAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.RedoAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.SequenceExecuteSelectedAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.ShowStepInPickerAction;
@@ -288,9 +287,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	private Action tracePlayAction;
 	private Action executeSequence;
 	private Action executeTestCase;
-	private Action projectValidateXSDAction;
 	private Action showStepInPickerAction;
-	//private Action projectCleanXSDAction;
 
 	public Action projectExplorerSaveAllAction;
 
@@ -409,7 +406,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	private void handleKeyReleased(KeyEvent event) {
 		boolean bCtrl = (((event.stateMask & SWT.CONTROL) != 0) || ((event.stateMask & SWT.CTRL) != 0));
-		boolean bAlt = (event.stateMask & SWT.ALT) != 0;
+		//boolean bAlt = (event.stateMask & SWT.ALT) != 0;
 		int stateMask = event.stateMask;
 		int keyCode = event.keyCode;
 		char c = event.character;
@@ -442,13 +439,6 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				} else if (object instanceof PropertyTableColumnTreeObject) {
 					deletePropertyTableColumnAction.run();
 				}
-			}
-		}
-		
-		if (bAlt) {
-			// Schema validation
-			if (c == 'j') {
-				projectValidateXSDAction.run();
 			}
 		}
 		
@@ -577,9 +567,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		transactionEditHandlersAction = new TransactionEditHandlersAction();
 		executeSequence = new SequenceExecuteSelectedAction();
 		executeTestCase = new TestCaseExecuteSelectedAction();
-		projectValidateXSDAction = new ProjectValidateXSDAction();
 		showStepInPickerAction = new ShowStepInPickerAction();
-		//projectCleanXSDAction = new ProjectCleanXSDAction();
 	}
 
 	private EventListenerList treeObjectListeners = new EventListenerList();
