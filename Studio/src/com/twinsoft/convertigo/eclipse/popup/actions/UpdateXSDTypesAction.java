@@ -36,7 +36,6 @@ import org.w3c.dom.Document;
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
-import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
@@ -44,7 +43,6 @@ import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.dialogs.TransactionXSDTypesDialog;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
-import com.twinsoft.convertigo.eclipse.editors.sequence.SequenceEditor;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ProjectTreeObject;
@@ -181,23 +179,6 @@ public class UpdateXSDTypesAction extends MyAbstractAction {
                         	
     	                    result = requestable.generateXsdTypes(document, extract);
                         }
-                    }
-                    else if (requestable instanceof Sequence) {
-                    	if (extract) {
-                    		SequenceEditor sequenceEditor = projectTreeObject.getSequenceEditor((Sequence)requestable);
-    	                    if (sequenceEditor == null) {
-                        		ConvertigoPlugin.infoMessageBox("Please open connector first.");
-    	                    	return;
-        	                }
-    	                    document = sequenceEditor.getLastGeneratedDocument();
-    	                    if (document == null) {
-    	                    	ConvertigoPlugin.infoMessageBox("You should first generate the XML document before trying to extract the XSD types.");
-    	                    	return;
-    	                    }
-                    		
-                    	}
-                    	
-                    	result = requestable.generateXsdTypes(document, extract);
                     }
                     
                     if ((result != null) && (!result.equals(""))) {
