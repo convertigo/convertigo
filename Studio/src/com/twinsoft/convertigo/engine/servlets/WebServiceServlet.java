@@ -29,7 +29,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
@@ -37,7 +36,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,8 +87,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-
 import com.ibm.wsdl.DefinitionImpl;
 import com.ibm.wsdl.extensions.PopulatedExtensionRegistry;
 import com.ibm.wsdl.extensions.schema.SchemaConstants;
@@ -100,13 +96,10 @@ import com.ibm.wsdl.extensions.soap.SOAPBodyImpl;
 import com.ibm.wsdl.extensions.soap.SOAPOperationImpl;
 import com.ibm.wsdl.xml.WSDLWriterImpl;
 import com.twinsoft.convertigo.beans.core.Connector;
-import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Transaction;
-import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
-import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -117,8 +110,6 @@ import com.twinsoft.convertigo.engine.requesters.WebServiceServletRequester;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.SOAPUtils;
 import com.twinsoft.convertigo.engine.util.SchemaUtils;
-import com.twinsoft.convertigo.engine.util.StringUtils;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaWalker;
 
 public class WebServiceServlet extends GenericServlet {
@@ -640,377 +631,7 @@ public class WebServiceServlet extends GenericServlet {
 		}
     }
     
-    public static String generateWsdl(boolean bRPC, String servletURI, Project project) throws EngineException {
-    	Engine.logEngine.debug("(WebServiceServlet) Generating WSDL...");
-    	
-    	String encoding = "UTF-8";
-    	String projectName = project.getName();
-    	String targetNameSpace = project.getTargetNamespace();
-    	
-        String wsdl = "";
-		try {
-			wsdl = new String(wsdl.getBytes("ISO-8859-1"));
-		} catch (UnsupportedEncodingException e1) {
-		}
-        wsdl += "<?xml version=\"1.0\" encoding=\""+ encoding +"\"?>\n";
-        wsdl += "<definitions name=\"" + projectName + "\" " +
-                "targetNamespace=\"" + targetNameSpace + "\" " +
-                "xmlns:p_ns=\"" + targetNameSpace + "\" " +
-                "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" " +
-                "xmlns:wsdl=\"http://schemas.xmlsoap.org/wsdl/\" " +
-                "xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\" " +
-                "xmlns:soapenc=\"http://schemas.xmlsoap.org/soap/encoding/\" " +
-                "xmlns=\"http://schemas.xmlsoap.org/wsdl/\">\n\n";
-
-
-		List<Connector> vConnectors = project.getConnectorsList();
-
-		//RequestableObject requestable;
-		String requestableName;
-        
-		boolean bArrayOfStringToBeDefined = false;
-
-		// Retrieve all sequences
-		List<RequestableObject> vRequestables = new LinkedList<RequestableObject>();
-		vRequestables.addAll(project.getSequencesList());
-		
-		// Retrieve all transactions
-		for (Connector connector : vConnectors)
-			vRequestables.addAll(connector.getTransactionsList());
-
-		
-    	Engine.logEngine.debug("(WebServiceServlet) Generating types...");
-		wsdl += "    <types>\n\n";
-		if (bRPC) {
-			//wsdl += "        <xsd:schema targetNamespace=\"" + targetNameSpace + "\">\n";
-			wsdl += "        <xsd:schema  targetNamespace=\"" + targetNameSpace + "\" xmlns=\"http://www.w3.org/2001/XMLSchema\">\n";
-			wsdl += "        <xsd:import  schemaLocation=\"http://schemas.xmlsoap.org/soap/encoding/\"  namespace=\"http://schemas.xmlsoap.org/soap/encoding/\"/>";
-			
-		}
-		else {
-			wsdl += "        <xsd:schema  elementFormDefault=\"qualified\" targetNamespace=\"" + targetNameSpace + "\">\n";
-			wsdl += "        <xsd:import  schemaLocation=\"http://schemas.xmlsoap.org/soap/encoding/\"  namespace=\"http://schemas.xmlsoap.org/soap/encoding/\"/>";
-		}
-
-		for (RequestableObject requestable : vRequestables) {
-			requestableName = requestable.getName();
-			Connector connector = requestable.getConnector();
-			String prefix = (connector == null) ? "": connector.getName()+ "__";
-
-			if (StringUtils.normalize(requestable.getName(), true).equals(requestableName)) {
-				if (requestable.isPublicAccessibility()) {
-					Engine.logEngine.debug("(WebServiceServlet) Generating input type for requestable '" + requestableName + "'");
-					
-					if (!bRPC) {
-						wsdl += "<xsd:element name=\"" + prefix + requestableName + "\">\n";
-						wsdl += "<xsd:complexType>\n";
-						wsdl += "<xsd:annotation>\n";
-						wsdl += "<xsd:documentation>"+ requestable.getComment() +"</xsd:documentation>\n";
-						wsdl += "</xsd:annotation>\n";
-						wsdl += "<xsd:sequence>\n";
-					}
-
-					IVariableContainer container = (IVariableContainer) requestable;
-					int len = container.numberOfVariables();
-					RequestableVariable variable;
-					String variableName;
-					for (int j = 0 ; j < len ; j++) {
-						variable = (RequestableVariable)container.getVariable(j);
-						if (variable != null) {
-							variableName = variable.getName();
-							
-							// Include in WSDL?
-							if (variable.isWsdl()) {
-								// Multivalued?
-								if (variable.isMultiValued()) {
-									bArrayOfStringToBeDefined = true;
-								}
-
-								if (!bRPC) {
-									if (variable.isMultiValued()) {
-										wsdl += "<xsd:element minOccurs=\"1\" maxOccurs=\"1\" name=\"" + variableName + "\" type=\"p_ns:ArrayOfString\">\n";
-									}
-									else {
-										wsdl += "<xsd:element minOccurs=\"1\" maxOccurs=\"1\" name=\"" + variableName + "\" type=\""+ variable.getSchemaType()+"\">\n";
-									}
-									wsdl += "<xsd:annotation>\n";
-									wsdl += "<xsd:documentation>"+ variable.getDescription() +"</xsd:documentation>\n";
-									wsdl += "</xsd:annotation>\n";
-									wsdl += "</xsd:element>\n";
-								}
-							}
-						}
-					}
-
-					if (!bRPC) {
-						wsdl += "</xsd:sequence>\n";
-						wsdl += "</xsd:complexType>\n";
-						wsdl += "</xsd:element>\n";
-					}
-					
-					Engine.logEngine.debug("(WebServiceServlet) Generating output type for requestable '" + requestableName + "'");
-					if (!bRPC) {
-						wsdl += "<xsd:element name=\"" + prefix + requestableName + "Response\">\n";
-						wsdl += "<xsd:complexType>\n";
-						wsdl += "<xsd:sequence>\n";
-						wsdl += "<xsd:element name=\"response\" type=\"p_ns:" + prefix + requestableName + "Data\"/>\n";
-						wsdl += "</xsd:sequence>\n";
-						wsdl += "</xsd:complexType>\n";
-						wsdl += "</xsd:element>\n";
-					}
-
-					if (!(requestable instanceof HtmlTransaction)) {
-						if ((requestable.wsdlType != null) && (requestable.wsdlType.length() != 0)) {
-							wsdl += requestable.wsdlType + "\n";
-						}
-					}
-				}
-			}
-			// import wsdlType for ALL HTML transaction!
-			if (requestable instanceof HtmlTransaction) {
-				if ((requestable.wsdlType != null) && (requestable.wsdlType.length() != 0)) {
-					wsdl += requestable.wsdlType + "\n";
-				}
-			}
-		}
-		
-		if ((bArrayOfStringToBeDefined)) {
-			wsdl += getWsdlTypeForArray(bRPC) + "\n";
-		}		
-
-		wsdl += Engine.getExceptionSchema() + "\n";
-		wsdl += "        </xsd:schema>\n\n";
-		wsdl += "    </types>\n";
-
-		
-    	Engine.logEngine.debug("(WebServiceServlet) Generating messages...");
-
-		for (RequestableObject requestable : vRequestables) {			
-			if (requestable.isPublicAccessibility() && (requestable instanceof IVariableContainer)) {
-				requestableName = StringUtils.normalize(requestable.getName(), true);
-				Connector connector = requestable.getConnector();
-				String prefix = (connector == null) ? "": connector.getName()+ "__";
-				if (requestableName.equals(requestable.getName())) {
-			    	Engine.logEngine.debug("(WebServiceServlet) Generating message: '" + prefix + requestableName + "SoapRequest'");
-					wsdl += "    <message name=\"" + prefix + requestableName + "SoapRequest\">\n";
-
-					if (bRPC) {
-						// Including requestable variables
-						IVariableContainer container = (IVariableContainer) requestable;
-						int len = container.numberOfVariables();
-						RequestableVariable variable;
-						String variableName;
-						for (int j = 0 ; j < len ; j++) {
-							variable = (RequestableVariable)container.getVariable(j);
-							if (variable != null) {
-								variableName = variable.getName();
-								// Include in WSDL?
-								if (variable.isWsdl()) {
-									// Multivalued?
-									if (variable.isMultiValued()) {
-										wsdl += "        <part name=\"" + variableName + "\" type=\"p_ns:ArrayOfString\"/>\n";
-									}
-									else {
-										wsdl += "        <part name=\"" + variableName + "\" type=\""+ variable.getSchemaType() +"\"/>\n";
-									}
-								}
-							}
-						}
-					}
-					else {
-						wsdl += "        <part name=\"parameters\" element=\"p_ns:" + prefix + requestableName + "\"/>\n";
-					}
-
-					wsdl += "    </message>\n";
-			    	Engine.logEngine.debug("(WebServiceServlet) Generating message: '" + prefix + requestableName + "SoapResponse'");
-					wsdl += "    <message name=\"" + prefix + requestableName + "SoapResponse\">\n";
-					if (bRPC) {
-						if ((requestable.wsdlType != null) && (requestable.wsdlType.length() != 0)) {
-							wsdl += "        <part name=\"response\" type=\"p_ns:" + prefix + requestableName + "Response\"/>\n";
-						}
-						else {
-							wsdl += "        <part name=\"response\" type=\"xsd:string\"/>\n";
-						}
-					}
-					else {
-						wsdl += "        <part name=\"parameters\" element=\"p_ns:" + prefix + requestableName + "Response\"/>\n";
-					}
-					wsdl += "    </message>\n\n";
-				}
-				else {
-					Engine.logEngine.warn("(WebServiceServlet) Ignoring the requestable '" + requestable.getName() + "' because its name is not valid for web service.");
-				}
-			}
-		}
-
-    	Engine.logEngine.debug("(WebServiceServlet) Generating operations...");
-        wsdl += "    <portType name=\"" + projectName + "SoapPortType\">\n";
-
-        for (RequestableObject requestable : vRequestables) {
-            Connector connector = requestable.getConnector();
-            String prefix = (connector == null) ? "": connector.getName()+ "__";
-            if (requestable.isPublicAccessibility()) {
-                requestableName = StringUtils.normalize(requestable.getName(), true);
-                if (requestableName.equals(requestable.getName())) {
-			    	Engine.logEngine.debug("(WebServiceServlet) Generating operation: '" + prefix + requestableName + "'");
-	                wsdl += "        <operation name=\"" + prefix + requestableName + "\">\n";
-	                wsdl += "            <input message=\"p_ns:" + prefix + requestableName + "SoapRequest\"/>\n";
-	                wsdl += "            <output message=\"p_ns:" + prefix + requestableName + "SoapResponse\"/>\n";
-	                wsdl += "        </operation>\n";
-				}
-            }
-        }
-
-		wsdl += "    </portType>\n\n";
-
-    	Engine.logEngine.debug("(WebServiceServlet) Generating bindings...");
-        wsdl += "    <binding name=\"" + projectName + "SoapBinding\" type=\"p_ns:" + projectName + "SoapPortType\">\n\n";
-
-        if (bRPC) {
-            wsdl += "        <soap:binding style=\"rpc\" transport=\"http://schemas.xmlsoap.org/soap/http\"/>\n";
-        }
-        else {
-            wsdl += "        <soap:binding style=\"document\" transport=\"http://schemas.xmlsoap.org/soap/http\"/>\n";
-        }
-
-        for (RequestableObject requestable : vRequestables) {
-            Connector connector = requestable.getConnector();
-            String prefix = (connector == null) ? "": connector.getName()+ "__";
-            if (requestable.isPublicAccessibility()) {
-                requestableName = StringUtils.normalize(requestable.getName(), true);
-				if (requestableName.equals(requestable.getName())) {
-	                Engine.logEngine.debug("(WebServiceServlet) Generating binding: '" + prefix + requestableName + "'");
-	                wsdl += "        <operation name=\"" + prefix + requestableName + "\">\n";
-	                if (bRPC) {
-	                	wsdl += "            <soap:operation soapAction=\"" + targetNameSpace + "?" + prefix + requestableName + "\"/>\n";
-	                }
-	                else {
-	                	wsdl += "            <soap:operation soapAction=\"" + projectName + "?" + prefix + requestableName + "\"/>\n";
-	                }
-	                wsdl += "            <input>\n";
-	                if (bRPC) {
-		                wsdl += "                <soap:body use=\"encoded\" namespace=\"" + targetNameSpace + "\" encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"/>\n";
-	                }
-	                else {
-		                wsdl += "                <soap:body use=\"literal\"/>\n";
-	                }
-	                wsdl += "            </input>\n";
-	                wsdl += "            <output>\n";
-	                if (bRPC) {
-		                wsdl += "                <soap:body use=\"encoded\" namespace=\"" + targetNameSpace + "\" encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"/>\n";
-	                }
-	                else {
-		                wsdl += "                <soap:body use=\"literal\"/>\n";
-	                }
-	                wsdl += "            </output>\n";
-	                wsdl += "        </operation>\n";
-				}
-            }
-        }
-
-        wsdl += "    </binding>\n";
-
-    	Engine.logEngine.debug("(WebServiceServlet) Generating services...");
-        wsdl += "    <service name=\"" + projectName + "\">\n";
-        wsdl += "        <port name=\"" + projectName + "Soap\" binding=\"p_ns:" + projectName + "SoapBinding\">\n";
-        wsdl += "            <soap:address location=\"" + servletURI + "\"/>\n";
-        wsdl += "        </port>\n";
-        wsdl += "    </service>\n\n";
-
-        wsdl += "</definitions>\n";
-
-        // Update types
-		if (!bRPC) {
-			try {
-				NodeList complexTypes;
-				Element element;
-
-				Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(wsdl)));
-
-	    		complexTypes = document.getElementsByTagName("xsd:complexType");
-
-				for (RequestableObject requestable : vRequestables) {
-					requestableName = requestable.getName();
-					Connector connector = requestable.getConnector();
-					String prefix = (connector == null) ? "": connector.getName()+ "__";
-
-					if (StringUtils.normalize(requestable.getName(), true).equals(requestableName)) {
-						if (requestable.isPublicAccessibility()) {
-							Engine.logEngine.debug("(WebServiceServlet) [document/literal mode] Updating input type for requestable '" + requestableName + "'");
-
-							element = (Element) XMLUtils.findNodeByAttributeValue(complexTypes, "name", prefix + requestableName + "Response");
-							
-							if (element == null) {
-								throw new EngineException("The requestable \"" + requestableName + "\" has been declared as public method but does not provide WSDL types.");
-							}
-							
-							element.setAttribute("name", prefix + requestableName + "Data");
-							
-							//if (!(requestable instanceof HtmlTransaction)) {
-							//	Node schemaNode = document.getElementsByTagName("xsd:schema").item(0);
-							//	NodeList nodeList = XMLUtils.findChildNode(element, Node.ELEMENT_NODE).getChildNodes();
-							//	int len = nodeList.getLength();
-							//	for (int i = 0; i < len; i++) {
-							//		if (nodeList.item(i) instanceof Element) {
-							//			element = (Element) nodeList.item(i);
-							//			String att = element.getAttribute("type");
-							//			if (att.startsWith("tns")) {
-							//				// Update type
-							//				element.setAttribute("type", att + "_Literal");
-							//				
-							//				// Remove RPC type
-							//				Node node = XMLUtils.findNodeByAttributeValue(complexTypes, "name", att.substring(4));
-							//				schemaNode.removeChild(node);
-							//			}
-							//		}
-							//	}
-							//}
-						}
-					}
-				}
-
-				wsdl = XMLUtils.prettyPrintDOMWithEncoding(document,encoding);
-			}
-			catch(Exception e) {
-				Engine.logEngine.error("(WebServiceServlet) Unable to update types for document/literal WSDL", e);
-				throw new EngineException("Unable to update types for document/literal WSDL", e);
-			}
-		}
-        
-        Engine.logEngine.debug("(WebServiceServlet) WSDL generated");
-        
-        return wsdl;
-    }
-    
-    private static String getWsdlTypeForArray(boolean bRPC) {
-    	String wsdlType = "";
-
-    	wsdlType += "<xsd:complexType name=\"ArrayOfString\">\n";
-    	if (bRPC) {
-    	/*
-	    	wsdlType += "<xsd:complexContent mixed=\"false\">\n";
-	    	wsdlType += "<xsd:restriction base=\"soapenc:Array\">\n";
-	    	wsdlType += "<xsd:attribute d7p1:arrayType=\"xsd:string[]\" ref=\"soapenc:arrayType\" xmlns:d7p1=\"http://schemas.xmlsoap.org/wsdl/\" />";
-	    	wsdlType += "</xsd:restriction>\n";
-	    	wsdlType += "</xsd:complexContent>\n";
-	    */
-	    	wsdlType += "<xsd:complexContent>\n";
-	    	wsdlType += "<xsd:restriction base=\"soapenc:Array\">\n";
-	    	wsdlType += "<xsd:attribute ref=\"soapenc:arrayType\" wsdl:arrayType=\"xsd:string[]\"/>";
-	    	wsdlType += "</xsd:restriction>\n";
-	    	wsdlType += "</xsd:complexContent>\n";
-    	}
-    	else {
-	    	wsdlType += "<xsd:sequence>\n";
-	    	wsdlType += "<xsd:element minOccurs=\"0\" maxOccurs=\"unbounded\" name=\"item\" type=\"xsd:string\" />";
-	    	wsdlType += "</xsd:sequence>\n";
-    	}
-    	wsdlType += "</xsd:complexType>\n";
-
-    	return wsdlType;
-    }
-    
-	private SOAPMessage getSOAPMessage(HttpServletRequest request) throws SOAPException, IOException {
+    private SOAPMessage getSOAPMessage(HttpServletRequest request) throws SOAPException, IOException {
 		
 		SOAPMessage requestMessage = (SOAPMessage) request.getAttribute(REQUEST_MESSAGE_ATTRIBUTE);
 		if (requestMessage == null) {
