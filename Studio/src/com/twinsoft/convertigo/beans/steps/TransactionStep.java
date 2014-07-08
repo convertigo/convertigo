@@ -439,47 +439,6 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		}
 	}
 
-//	protected Node generateXmlFromXsd() throws EngineException {
-//		try {
-//			Project p = getTargetProject(projectName);
-//			Connector connector = (connectorName.equals("") ? p.getDefaultConnector() : p
-//					.getConnectorByName(connectorName));
-//			Transaction transaction = (transactionName.equals("") ? connector.getDefaultTransaction()
-//					: connector.getTransactionByName(transactionName));
-//			String prefix = transaction.getXsdTypePrefix();
-//
-//			String xsdURI = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".temp.xsd";
-//			if (!(new File(xsdURI).exists()))
-//				xsdURI = Engine.PROJECTS_PATH + "/" + projectName + "/" + projectName + ".xsd";
-//
-//			// Load xsd from file
-//			XSD xsd = XSDUtils.getXSD(xsdURI);
-//
-//			// Transaction DOM sample
-//			Document xsdDom = xsd.generateTypeXmlStructure(projectName + "_ns", prefix + transaction.getName()
-//					+ "ResponseData");
-//
-//			wsdlDom = getSequence().createDOM();
-//			Element element = wsdlDom.createElement(getStepNodeName());
-//			element.appendChild(wsdlDom.importNode(xsdDom.getDocumentElement(), true));
-//			wsdlDom.getDocumentElement().appendChild(element);
-//
-//			if (wsdlDom != null) {
-//				Engine.logBeans.debug("(TransactionStep) WSDL Dom successfully generated");
-//				String encodingCharset = getParentSequence().getEncodingCharSet();
-//				if (Engine.logBeans.isTraceEnabled())
-//					Engine.logBeans.trace(XMLUtils.prettyPrintDOMWithEncoding(wsdlDom, encodingCharset));
-//
-//				wsdlDomDirty = false;
-//				return wsdlDom.getDocumentElement();
-//			} else
-//				return null;
-//		} catch (Exception e) {
-//			wsdlDom = null;
-//			throw new EngineException("Unable to generate XML document from XSD project file", e);
-//		}
-//	}
-
 	@Override
 	protected Node generateWsdlDom() throws EngineException {
 		try {
