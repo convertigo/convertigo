@@ -86,6 +86,8 @@ public class WsReferenceComposite extends Composite {
 		editor.setFilterExtensions(filterExtension);
 		if (filterExtension[0].equals("*.wsdl")) {
 			combo.add("http://www.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL");
+			combo.add("http://demo.convertigo.net/cems/projects/globalCompany_HR_WS/.wsl?wsdl");
+			combo.add("http://demo.convertigo.net/cems/projects/globalCompany_accounting_WS/.wsl?wsdl");
 			combo.select(0);
 		}
 		editor.setFilterNames(filterNames);
