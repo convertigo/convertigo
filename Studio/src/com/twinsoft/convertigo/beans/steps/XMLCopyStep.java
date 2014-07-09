@@ -25,8 +25,6 @@ package com.twinsoft.convertigo.beans.steps;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.transform.TransformerException;
-
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaObject;
@@ -40,10 +38,8 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLCopyStep extends Step implements IStepSourceContainer {
@@ -116,53 +112,6 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 	}
 
 	@Override
-	protected Node createWsdlDom() throws EngineException {
-		wsdlDom = getSequence().createDOM();
-		Element element = wsdlDom.getDocumentElement();
-		try {
-			Document doc = getSource().getWsdlDom();
-			String anchor = getSource().getAnchor();
-//			Step step = getSource().getStep();
-//			String xpath = getSource().getXpath();
-//			if (!(step instanceof RequestableStep)) {
-//					xpath = xpath.replaceFirst(".", step.getStepNodeName());
-//			}
-//			NodeList list = getXPathAPI().selectNodeList(doc.getDocumentElement(), xpath);
-			NodeList list = getXPathAPI().selectNodeList(doc.getDocumentElement(), anchor);
-			if (list != null) {
-				for (int i=0; i<list.getLength(); i++) {
-					Node imported = wsdlDom.importNode(list.item(i), true);
-					element.appendChild(imported);
-				}
-			}
-		} catch (Exception e) {
-			wsdlDom = null;
-			throw new EngineException("Unable to create WSDL document",e);
-		}
-		wsdlDomDirty = false;
-		return element;
-	}
-
-	@Override
-	protected Node generateWsdlDom() throws EngineException {
-		Element element = null;
-		if (isXml()) {
-	    	try {
-	    		if (wsdlDomDirty || (wsdlDom == null)) {
-	    			element = (Element)createWsdlDom();
-	    		}
-	    		else
-	    			element = (Element)wsdlDom.getDocumentElement();
-	    	}
-	    	catch (Exception e) {
-	    		wsdlDom = null;
-	    		throw new EngineException("Unable to generate WSDL document",e);
-	    	}
-		}
-		return element;
-	}
-
-	@Override
 	protected Node createStepNode() throws EngineException {
 		Document doc = getOutputDocument();
 		Element stepNode = doc.getDocumentElement();
@@ -201,73 +150,6 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 		removeUselessAttributes(stepNode);
 	}
 
-	@Override
-	public String getSchemaType(String tns) {
-		if  (!getSource().isEmpty()) {
-			try {
-				if (isOutput()) {
-					String schema = getTargetSchema(null);
-					int j1 = schema.indexOf(">");
-					int j2 = schema.indexOf("/>");
-					if ((j1 != -1) && (j2 != -1) && (j2+1 == j1)) {
-						int index = schema.indexOf("type=");
-						if ((index != -1) && (index < j2)) {
-							char c = schema.charAt(index+5);
-							int i1 = index+6;
-							int i2 = schema.indexOf(c,i1);
-							String type = schema.substring(i1, i2);
-							return type;
-						}
-					}
-				}
-			} catch (EngineException e) {}
-		}
-		return "";
-	}
-	
-	@Override
-	public String getSchema(String tns, String occurs) throws EngineException {
-		schema = "";
-		schema += getTargetSchema(occurs);
-		
-		return isEnable() && isOutput() ? schema:"";
-	}
-
-	private String getTargetSchema(String occurs) throws EngineException {
-		String targetSchema = "";
-		if  (!getSource().isEmpty()) {
-			Document doc = getSource().getWsdlDom();
-			String anchor = getSource().getAnchor();
-			try {
-				NodeList list = getXPathAPI().selectNodeList(doc.getDocumentElement(), anchor);
-				if (list != null) {
-					for (int i=0; i<list.getLength(); i++) {
-						Node node = list.item(i);
-						if (node.getNodeType()== Node.ELEMENT_NODE) {
-				            NodeList childNodes = ((Element)node).getElementsByTagName("schema-type");
-				            int len = childNodes.getLength();
-				            if (len > 0) {
-				                Node childNode = childNodes.item(0);
-				                Node cdata = XMLUtils.findChildNode(childNode, Node.CDATA_SECTION_NODE);
-				                if (cdata != null) {
-				                	targetSchema += "\t\t\t" + cdata.getNodeValue()+ "\n";
-				                }
-				            }
-						}
-						else if (node.getNodeType()== Node.ATTRIBUTE_NODE) {
-							targetSchema += "\t\t\t<xsd:attribute use=\"optional\" name=\""+ node.getNodeName()+"\" type=\"xsd:string\" />\n";
-						}
-					}
-				}
-			} catch (TransformerException e) {
-				Engine.logBeans.warn("Unable to retrieve schema for XMLCopyStep \""+ getName() +"\"", e);
-				targetSchema = "";
-			}
-		}
-		
-		return targetSchema;
-	}
-	
 	protected StepSource getTargetSource() throws EngineException {
 		StepSource source = getSource();
 		if (!source.isEmpty()) {

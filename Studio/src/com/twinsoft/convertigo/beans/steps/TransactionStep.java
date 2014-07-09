@@ -30,7 +30,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -65,13 +64,11 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
-import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.util.StringEx;
 
 public class TransactionStep extends RequestableStep implements ITagsProperty {
 
@@ -379,84 +376,6 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		}
 	}
 
-	public void importWSDLTypes() throws EngineException {
-		// Retrieve WSDL from transaction's project
-		getWsdl(null);
-		// Generate an XML representation of WSDL types
-		generateWsdlDom();
-
-		if (!wsdlType.equals(""))
-			setWsdlDomDirty();
-	}
-
-	public void importWSDLTypes(Document document) throws EngineException {
-		// Retrieve WSDL from transaction's project
-		getWsdl(document);
-		// Generate an XML representation of WSDL types
-		generateWsdlDom();
-
-		if (!wsdlType.equals(""))
-			setWsdlDomDirty();
-	}
-
-	private void getWsdl(Document document) throws EngineException {
-		if (document == null) {
-			Project p = getTargetProject(projectName);
-			Connector connector = (connectorName.equals("") ? p.getDefaultConnector() : p
-					.getConnectorByName(connectorName));
-			Transaction transaction = (transactionName.equals("") ? connector.getDefaultTransaction()
-					: connector.getTransactionByName(transactionName));
-			String prefix = transaction.getXsdTypePrefix();
-
-			if (transaction.isPublicAccessibility()) {
-				String wsdl = WebServiceServlet.generateWsdl(false, "", p);
-
-				try {
-					wsdlType = new String(wsdl.getBytes("ISO-8859-1"));
-					StringEx sx = new StringEx(wsdlType);
-					sx.replace("encoding=\"UTF-8\"", "encoding=\"ISO-8859-1\"");
-					sx.replace("</xsd:schema>", "<xsd:element name=\"targetRequestable\" type=\"p_ns:"
-							+ prefix + transaction.getName() + "Response\"/></xsd:schema>");
-					wsdlType = sx.toString();
-					hasChanged = true;
-					Engine.logBeans.debug("(TransactionStep) WSDL successfully retrieved");
-				} catch (UnsupportedEncodingException e) {
-					throw new EngineException("Unable to retrieve WSDL from target transaction", e);
-				}
-			} else {
-				throw new EngineException("The target transaction must be a public method");
-			}
-		} else {
-			wsdlType = XMLUtils.prettyPrintDOMWithEncoding(document, "ISO-8859-1");
-			wsdlType = wsdlType.substring(0, wsdlType.indexOf("</document>") + "</document>".length());
-			StringEx sx = new StringEx(wsdlType);
-			sx.replace("encoding=\"UTF-8\"", "encoding=\"ISO-8859-1\"");
-			sx.replaceAll("<![CDATA[", "<cdata>");
-			sx.replaceAll("]]>", "</cdata>");
-			wsdlType = sx.toString();
-			hasChanged = true;
-			Engine.logBeans.debug("(TransactionStep) WSDL successfully retrieved");
-		}
-	}
-
-	@Override
-	protected Node generateWsdlDom() throws EngineException {
-		try {
-			//return generateXmlFromXsd();
-			return null;
-		} catch (Exception e) {
-			wsdlDom = null;
-			throw new EngineException("Unable to generate WSDL document", e);
-		}
-	}
-
-	@Override
-	public Document getWsdlDom() throws EngineException {
-		if (wsdlDomDirty || (wsdlDom == null))
-			generateWsdlDom();
-		return wsdlDom;
-	}
-
 	protected byte[] executeMethod() throws IOException, URIException, MalformedURLException, EngineException {
 		Header[] requestHeaders, responseHeaders = null;
 		byte[] result = null;
@@ -700,40 +619,6 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		return StringUtils.normalize("Call_"+getSourceTransaction()) + (label.equals("") ? "":" ") + label + (!text.equals("") ? " // "+text:"");
 	}
 	
-	@Override
-	public String getSchemaType(String tns) {
-		return tns + ":" + getStepNodeName() + priority + "StepType";
-	}
-
-	@Override
-	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs)
-			throws EngineException {
-		Project p = getTargetProject(projectName);
-		Connector connector = (connectorName.equals("") ? p.getDefaultConnector() : p
-				.getConnectorByName(connectorName));
-		Transaction transaction = (transactionName.equals("") ? connector.getDefaultTransaction() : connector
-				.getTransactionByName(transactionName));
-		String prefix = transaction.getXsdTypePrefix();
-
-		String stepTypeSchema = "";
-		stepTypeSchema += "\t<xsd:complexType name=\"" + getSchemaTypeName(tns) + "\">\n";
-		stepTypeSchema += "\t\t<xsd:annotation>\n";
-		stepTypeSchema += "\t\t\t<xsd:documentation>" + XMLUtils.getCDataXml(getComment())
-				+ "</xsd:documentation>\n";
-		stepTypeSchema += "\t\t</xsd:annotation>\n";
-		stepTypeSchema += "\t\t<xsd:sequence>\n";
-		stepTypeSchema += "\t\t\t<xsd:element name=\"document\" minOccurs=\"0\" type=\"" + p.getName()
-				+ "_ns:" + prefix + transaction.getName() + "ResponseData\">\n";
-		stepTypeSchema += "\t\t\t\t<xsd:annotation>\n";
-		stepTypeSchema += "\t\t\t\t\t<xsd:documentation>" + XMLUtils.getCDataXml(transaction.getComment())
-				+ "</xsd:documentation>\n";
-		stepTypeSchema += "\t\t\t\t</xsd:annotation>\n";
-		stepTypeSchema += "\t\t\t</xsd:element>\n";
-		stepTypeSchema += "\t\t</xsd:sequence>\n";
-		stepTypeSchema += "\t</xsd:complexType>\n";
-		stepTypes.put(new Long(priority), stepTypeSchema);
-	}
-
 	public String getSourceTransaction() {
 		return sourceTransaction;
 	}

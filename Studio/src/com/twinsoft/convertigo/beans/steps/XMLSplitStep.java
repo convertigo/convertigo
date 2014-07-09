@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -106,23 +105,6 @@ public class XMLSplitStep extends XMLElementStep {
 	}
 
 	@Override
-	protected Node createWsdlDom() throws EngineException {
-		Element element = (Element)super.createWsdlDom();
-		if (element != null) {
-			int count = getTagsCount();
-			if (count > 0) {
-				for (int i=0; i<count; i++) {
-					element.appendChild(wsdlDom.createElement(getTag(i)));
-				}
-			}
-			else {
-				element.appendChild(wsdlDom.createElement("split"));
-			}
-		}
-		return element;
-	}
-
-	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		boolean useDefaultValue = true;
 		NodeList list = getContextValues();
@@ -194,38 +176,6 @@ public class XMLSplitStep extends XMLElementStep {
 		return list;
 	}
 	
-	@Override
-	public String getSchemaType(String tns) {
-		return tns +":"+ getStepNodeName() + priority +"StepType";
-	}
-	
-	@Override
-	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs) throws EngineException {
-		int count = getTagsCount();
-		
-		String stepTypeSchema = "";
-		stepTypeSchema += "\t<xsd:complexType name=\""+ getSchemaTypeName(tns) +"\">\n";
-    	if (count > 0) {
-			stepTypeSchema += "\t\t<xsd:element name=\"splits\">\n";
-			stepTypeSchema += "\t\t\t<xsd:complexType>\n";
-    	}
-		stepTypeSchema += "\t\t\t<xsd:sequence>\n";
-		for (int i=0; i<count; i++) {
-			String tag = getTag(i);
-			if (!tag.equals("split"))
-				stepTypeSchema += "\t\t\t<xsd:element minOccurs=\"0\" name=\""+ tag +"\" type=\""+ getSchemaDataType(tns) +"\" />\n";
-		}
-		stepTypeSchema += "\t\t\t<xsd:element minOccurs=\"0\" name=\"split\" type=\""+ getSchemaDataType(tns) +"\" />\n";
-		stepTypeSchema += "\t\t\t</xsd:sequence>\n";
-		if (count > 0) {
-	    	stepTypeSchema += "\t\t\t</xsd:complexType>\n";
-	    	stepTypeSchema += "\t\t</xsd:element>\n";
-    	}
-		stepTypeSchema += "\t</xsd:complexType>\n";
-		
-		stepTypes.put(new Long(priority), stepTypeSchema);
-	}
-
 	@Override
 	public String toString() {
 		String text = this.getComment();

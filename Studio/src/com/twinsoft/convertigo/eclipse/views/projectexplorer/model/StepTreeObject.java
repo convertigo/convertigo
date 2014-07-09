@@ -46,7 +46,6 @@ import com.twinsoft.convertigo.beans.steps.IfFileExistStep;
 import com.twinsoft.convertigo.beans.steps.IfFileExistThenElseStep;
 import com.twinsoft.convertigo.beans.steps.IfStep;
 import com.twinsoft.convertigo.beans.steps.IfThenElseStep;
-import com.twinsoft.convertigo.beans.steps.InputVariablesStep;
 import com.twinsoft.convertigo.beans.steps.IsInStep;
 import com.twinsoft.convertigo.beans.steps.IsInThenElseStep;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
@@ -57,7 +56,6 @@ import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
 import com.twinsoft.convertigo.beans.steps.XMLConcatStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
-import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStepEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.xml.XMLSequenceStepEditorInput;
@@ -89,8 +87,8 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 	@Override
 	public void hasBeenModified(boolean modified) {
 		super.hasBeenModified(modified);
-		if (modified)
-			getObject().setWsdlDomDirty();
+//		if (modified)
+//			getObject().setWsdlDomDirty();
 	}
 	
 	@Override
@@ -99,30 +97,13 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 		
 		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
 		if (treeObject instanceof DatabaseObjectTreeObject) {
-			DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
+			//DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
 			String propertyName = treeObjectEvent.propertyName;
 			propertyName = ((propertyName == null) ? "":propertyName);
 			
 			// If a bean name has changed
 			if (propertyName.equals("name")) {
 				handlesBeanNameChanged(treeObjectEvent);
-			}
-			
-			if (databaseObject instanceof Project) {
-				if (propertyName.equals("xsdFile")) {
-					if (getObject() instanceof SequenceStep) {
-						SequenceStep sequenceStep = (SequenceStep)getObject();
-						if (sequenceStep.getProjectName().equals(databaseObject.getName())) {
-							sequenceStep.setWsdlDomDirty();
-						}
-					}
-					else if (getObject() instanceof TransactionStep) {
-						TransactionStep transactionStep = (TransactionStep)getObject();
-						if (transactionStep.getProjectName().equals(databaseObject.getName())) {
-							transactionStep.setWsdlDomDirty();
-						}
-					}
-				}
 			}
 		}
 	}
@@ -224,40 +205,11 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 				}
 			}
 		}
-		
-		if (getObject() instanceof InputVariablesStep) {
-			// Case of variable rename
-			if (databaseObject instanceof RequestableVariable) {
-				InputVariablesStep ivs = (InputVariablesStep)getObject();
-				if (ivs.getSequence().equals(databaseObject.getParent())) {
-					ivs.setWsdlDomDirty(); // set dirty flag in order to regenerate dom
-				}
-			}
-		}
-		
 	}
 	
 	@Override
 	public void treeObjectAdded(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectAdded(treeObjectEvent);
-		
-		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
-		Object object = getObject();
-		
-		if (treeObject instanceof DatabaseObjectTreeObject) {
-			DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
-			
-			// A requestable variable has been added
-			if (databaseObject instanceof RequestableVariable) {
-				// Case this is an InputVariableStep
-				if (object instanceof InputVariablesStep) {
-					InputVariablesStep ivs = (InputVariablesStep)getObject();
-					if (ivs.getSequence().equals(databaseObject.getParent())) {
-						ivs.setWsdlDomDirty(); // set dirty flag in order to regenerate dom
-					}
-				}
-			}
-		}
 	}
 
 	@Override
@@ -296,21 +248,6 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 		    		
 				} catch (Exception e) {
 					ConvertigoPlugin.logWarning(e, "Could not update Sequence step \""+ getName()+"\" !");
-				}
-			}
-		}
-		
-		// Case this is an InputVariables step
-		if (object instanceof InputVariablesStep) {
-			InputVariablesStep ivs = (InputVariablesStep)object;
-			if (treeObject.getObject() instanceof RequestableVariable) {
-				try {
-					DatabaseObject dbo = (DatabaseObject)treeObject.getParent().getParent().getObject();
-					if (dbo.equals(ivs.getSequence())) {
-						ivs.setWsdlDomDirty(); // set dirty flag in order to regenerate dom
-					}
-				} catch (Exception e) {
-					ConvertigoPlugin.logWarning(e, "Could not notify Sequence step \""+ getName()+"\" !");
 				}
 			}
 		}

@@ -40,11 +40,16 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
+import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaImport;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
+import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.apache.ws.commons.schema.XmlSchemaSimpleType;
+import org.apache.ws.commons.schema.XmlSchemaType;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.apache.ws.commons.schema.resolver.DefaultURIResolver;
 import org.apache.ws.commons.schema.utils.NamespaceMap;
@@ -81,6 +86,7 @@ import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLActionStep;
+import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.transactions.XmlHttpTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
@@ -529,6 +535,7 @@ public class Migration7_0_0 {
 			}
 			
 			String namespaceURI = null;
+			
 			// Case of Requestable steps
 			if (targetProjectName != null) {
 				try {
@@ -553,28 +560,56 @@ public class Migration7_0_0 {
 			}
 			// Other steps
 			else {
-				String targetNamespace = projectSchema.getTargetNamespace();
-				String targetPrefix = projectSchema.getNamespaceContext().getPrefix(targetNamespace);
-				
-				String s = null;
 				try {
-					s = step.getSchemaType(targetPrefix);
+					String targetNamespace = projectSchema.getTargetNamespace();
+					String targetPrefix = projectSchema.getNamespaceContext().getPrefix(targetNamespace);
+					
+					String s = null;
+					try {
+						if (step instanceof XMLCopyStep) {
+							XmlSchemaCollection collection = SchemaMeta.getCollection(projectSchema);
+							XmlSchemaObject ob = step.getXmlSchemaObject(collection, projectSchema);
+							if (ob != null) {
+								if (ob instanceof XmlSchemaSequence) {
+									ob = ((XmlSchemaSequence)ob).getItems().getItem(0);
+								}
+								if (ob instanceof XmlSchemaElement || ob instanceof XmlSchemaAttribute) {
+									QName schemaTypeName = ob instanceof XmlSchemaElement ? ((XmlSchemaElement)ob).getSchemaTypeName():((XmlSchemaAttribute)ob).getSchemaTypeName();
+									String schemaTypePrefix = projectSchema.getNamespaceContext().getPrefix(schemaTypeName.getNamespaceURI());
+									String schemaTypeLocalName = schemaTypeName.getLocalPart();
+									s = schemaTypePrefix + ":" + schemaTypeLocalName;
+								}
+							}
+						}
+						else {
+							String schemaType = step.getSchemaDataType();
+							s = schemaType.equals("")?"xsd:string":schemaType;
+						}
+					} catch (Exception e) {
+						s = "xsd:string";
+					}
+					
+					if ((s != null) && (!s.equals("")) && (!s.startsWith("xsd:"))) {
+						String prefix = s.split(":")[0];
+						typeLocalName = s.split(":")[1];
+						if (prefix.equals(targetPrefix)) {
+							// ignore
+						}
+						else {
+							// Retrieve namespace uri
+							namespaceURI = projectSchema.getNamespaceContext().getNamespaceURI(prefix);
+							
+							// Set step's typeQName
+							QName qname = new QName(namespaceURI,typeLocalName);
+							XmlSchemaType schemaType = projectSchema.getTypeByName(qname);
+							if (schemaType instanceof XmlSchemaComplexType)
+								step.setXmlComplexTypeAffectation(new XmlQName(qname));
+							if (schemaType instanceof XmlSchemaSimpleType)
+								step.setXmlSimpleTypeAffectation(new XmlQName(qname));
+						}
+					}
 				} catch (Exception e) {
-					s = "xsd:string";
-				}
-				if ((s != null) && (!s.equals("")) && (!s.startsWith("xsd:"))) {
-					String prefix = s.split(":")[0];
-					typeLocalName = s.split(":")[1];
-					if (prefix.equals(targetPrefix)) {
-						// TODO: ignore or handle XmlCopy ??
-					}
-					else {
-						// Retrieve namespace uri
-						namespaceURI = projectSchema.getNamespaceContext().getNamespaceURI(prefix);
-						
-						// Set step's typeQName
-						step.setXmlComplexTypeAffectation(new XmlQName(new QName(namespaceURI,typeLocalName)));
-					}
+					
 				}
 			}
 			

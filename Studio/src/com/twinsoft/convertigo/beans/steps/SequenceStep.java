@@ -30,7 +30,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -43,8 +42,6 @@ import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import com.twinsoft.convertigo.beans.core.IContextMaintainer;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -58,12 +55,10 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EngineStatistics;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.enums.Visibility;
-import com.twinsoft.convertigo.engine.servlets.WebServiceServlet;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.util.StringEx;
 
 public class SequenceStep extends RequestableStep implements ITagsProperty{
 	private static final long serialVersionUID = -8066934224685627694L;
@@ -274,61 +269,6 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		}
 	}
 	
-	public void importWSDLTypes() throws EngineException {
-		// Retrieve WSDL from sequence project
-		getWsdl();
-		// Generate an XML representation of WSDL types
-		generateWsdlDom();
-		
-		if (!wsdlType.equals(""))
-			setWsdlDomDirty();
-	}
-
-	private void getWsdl() throws EngineException {
-		Project p = getTargetProject(projectName);
-		List<Sequence> v = p.getSequencesList();
-		Sequence seq = (sequenceName.equals("") ? (v.isEmpty() ? null: (Sequence)v.get(0)):p.getSequenceByName(sequenceName));
-		
-		if (seq.isPublicAccessibility()) {
-			String wsdl = WebServiceServlet.generateWsdl(false, "", p);
-			
-			try {
-				wsdlType = new String(wsdl.getBytes("ISO-8859-1"));
-				StringEx sx = new StringEx(wsdlType);
-				sx.replace("encoding=\"UTF-8\"", "encoding=\"ISO-8859-1\"");
-				sx.replace("</xsd:schema>", "<xsd:element name=\"targetRequestable\" type=\"p_ns:"+ seq.getName() +"Response\"/></xsd:schema>");
-				wsdlType = sx.toString();
-				hasChanged = true;
-				Engine.logBeans.debug("(SequenceStep) WSDL successfully retrieved");
-			} catch (UnsupportedEncodingException e) {
-				throw new EngineException("Unable to retrieve WSDL from target sequence",e);
-			}
-		}
-		else {
-			throw new EngineException("The target sequence must be a public method");
-		}
-		
-	}
-	
-	@Override
-    protected Node generateWsdlDom() throws EngineException {
-    	try {
-    		//return generateXmlFromXsd();
-    		return null;
-    	}
-    	catch (Exception e) {
-    		wsdlDom = null;
-    		throw new EngineException("Unable to generate WSDL document",e);
-    	}
-    }
-
-	@Override
-    public Document getWsdlDom() throws EngineException {
-    	if (wsdlDomDirty || (wsdlDom == null))
-    		generateWsdlDom();
-    	return wsdlDom;
-    }
-
     protected byte[] executeMethod() throws IOException, URIException, MalformedURLException, EngineException {
 		Header[] requestHeaders, responseHeaders = null;
 		byte[] result = null;
@@ -523,41 +463,6 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 		return StringUtils.normalize("Call_"+getSourceSequence()) + (label.equals("") ? "":" ") + label + (!text.equals("") ? " // "+text:"");
 	}
 	
-	@Override
-	public String getSchemaType(String tns) {
-		return tns +":"+ getStepNodeName() + priority +"StepType";
-	}
-	
-	@Override
-	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs) throws EngineException {
-		Project p = getTargetProject(projectName);
-		List<Sequence> v = p.getSequencesList();
-		Sequence seq = (sequenceName.equals("") ? (v.isEmpty() ? null: (Sequence)v.get(0)):p.getSequenceByName(sequenceName));
-
-		String stepTypeSchema = "";
-		stepTypeSchema += "\t<xsd:complexType name=\""+ getSchemaTypeName(tns) +"\">\n";
-		stepTypeSchema += "\t\t<xsd:annotation>\n";
-		stepTypeSchema += "\t\t\t<xsd:documentation>"+ getComment() +"</xsd:documentation>\n";
-		stepTypeSchema += "\t\t</xsd:annotation>\n";
-		
-		boolean isRecursive = (getProject().getName().equals(p.getName()) && 
-								getParentSequence().getName().equals(seq.getName()));
-		if (!isRecursive) {// ignore recursion on sequence
-			stepTypeSchema += "\t\t<xsd:sequence>\n";
-			stepTypeSchema += "\t\t\t<xsd:element name=\"document\" minOccurs=\"0\" type=\""+ p.getName() + "_ns:" + seq.getName() +"ResponseData\">\n";
-			stepTypeSchema += "\t\t\t\t<xsd:annotation>\n";
-			stepTypeSchema += "\t\t\t\t\t<xsd:documentation>"+ seq.getComment() +"</xsd:documentation>\n";
-			stepTypeSchema += "\t\t\t\t</xsd:annotation>\n";
-			stepTypeSchema += "\t\t\t</xsd:element>\n";
-			stepTypeSchema += "\t\t\t</xsd:sequence>\n";
-		}
-		else {
-			stepTypeSchema += "<!-- IGONRE RECURSION -->";
-		}
-		stepTypeSchema += "\t</xsd:complexType>\n";
-		stepTypes.put(new Long(priority), stepTypeSchema);
-	}
-
 	public String getSourceSequence() {
 		return sourceSequence;
 	}

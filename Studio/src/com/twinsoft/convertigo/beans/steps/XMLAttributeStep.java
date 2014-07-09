@@ -39,7 +39,6 @@ import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLAttributeStep extends Step implements IStepSourceContainer, ISchemaAttributeGenerator, ISimpleTypeAffectation {
@@ -149,32 +148,6 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 	}
 
 	@Override
-	protected Node createWsdlDom() throws EngineException {
-		wsdlDom = getSequence().createDOM();
-		wsdlDom.getDocumentElement().setAttribute(nodeName, "");
-		Node attr = wsdlDom.getDocumentElement().getAttributeNode(nodeName);
-		wsdlDomDirty = false;
-		return attr;
-	}
-
-	@Override
-	protected Node generateWsdlDom() throws EngineException {
-		Attr attr = null;
-    	try {
-    		if (wsdlDomDirty || (wsdlDom == null)) {
-    			attr = (Attr)createWsdlDom();
-    		}
-    		else
-    			attr = (Attr)wsdlDom.getDocumentElement().getAttributeNode(getStepNodeName());
-    		return attr;
-    	}
-    	catch (Exception e) {
-    		wsdlDom = null;
-    		throw new EngineException("Unable to generate WSDL document",e);
-    	}
-	}
-
-	@Override
 	protected Node createStepNode() throws EngineException {
 		Attr stepNode = null;
 		Document doc = getOutputDocument();
@@ -241,18 +214,6 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 		return stepNode;
 	}
 
-	@Override
-	public String getSchema(String tns, String occurs) throws EngineException {
-		schema = "";
-		schema += "\t\t\t<xsd:attribute use=\"optional\" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
-		schema += "\t\t\t\t<xsd:annotation>\n";
-		schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-		schema += "\t\t\t\t</xsd:annotation>\n";
-		schema += "\t\t\t</xsd:attribute>\n";
-		
-		return isEnable() && isOutput() ? schema:"";
-	}
-	
 	@Override
 	public XmlSchemaAttribute getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		String namespace = getNodeNameSpace();

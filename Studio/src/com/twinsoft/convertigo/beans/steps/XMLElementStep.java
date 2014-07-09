@@ -22,8 +22,6 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
-import java.util.HashMap;
-
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaElement;
@@ -40,12 +38,10 @@ import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
-import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLElementStep extends StepWithExpressions implements IStepSourceContainer, IComplexTypeAffectation, ISimpleTypeAffectation, IElementRefAffectation {
@@ -167,44 +163,6 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
     		return super.executeNextStep(javascriptContext, scope);
     	}
     	return false;
-	}
-	
-	@Override
-	public String getSchemaType(String tns) {
-		return hasSteps() ? tns +":"+ getStepNodeName() + priority +"StepType":getSchemaDataType(tns);
-	}
-	
-	@Override
-	public String getSchema(String tns, String occurs) throws EngineException {
-		schema = "";
-		String maxOccurs = (occurs == null) ? "":"maxOccurs=\""+occurs+"\"";
-		schema += "\t\t\t<xsd:element minOccurs=\"0\" "+maxOccurs+" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
-		schema += "\t\t\t\t<xsd:annotation>\n";
-		schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-		schema += "\t\t\t\t</xsd:annotation>\n";
-		schema += "\t\t\t</xsd:element>\n";
-		
-		return isEnable() && isOutput() ? schema:"";
-	}
-
-	@Override
-	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs) throws EngineException {
-		if (hasSteps()) { // if has attributes
-			String stepTypeSchema = "";
-			stepTypeSchema += "\t<xsd:complexType name=\""+ getSchemaTypeName(tns) +"\">\n";
-			stepTypeSchema += "\t\t<xsd:simpleContent>\n";
-			stepTypeSchema += "\t\t\t\t<xsd:extension base=\""+ getSchemaDataType(tns) +"\">\n";
-			// Adds attributes
-			for (Step step: getSteps()) {
-				step.addSchemaType(stepTypes, "p_ns");
-				stepTypeSchema += step.getSchema(tns);
-			}
-			stepTypeSchema += "\t\t\t\t</xsd:extension>\n";
-			stepTypeSchema += "\t\t</xsd:simpleContent>\n";
-			stepTypeSchema += "\t</xsd:complexType>\n";
-			
-			stepTypes.put(new Long(priority), stepTypeSchema);
-		}
 	}
 	
 	@Override

@@ -29,7 +29,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +40,6 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpState;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAnnotation;
 import org.apache.ws.commons.schema.XmlSchemaAppInfo;
@@ -81,9 +79,7 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.convertigo.engine.util.XSDExtractor;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
-import com.twinsoft.util.StringEx;
 
 public abstract class Sequence extends RequestableObject implements IVariableContainer, ITestCaseContainer, IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator, IComplexTypeAffectation {
 
@@ -409,136 +405,23 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 	
 	@Override
 	public String generateXsdRequestData() throws Exception {
-    	String xsdRequestData = null;
-    	RequestableVariable variable = null;
-    	xsdRequestData = 	"  <xsd:complexType name=\""+ getName() + "RequestData\">\n";
-		//xsdRequestData += 	"    <xsd:annotation>\n";
-		//xsdRequestData += 	"      <xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-		//xsdRequestData += 	"    </xsd:annotation>\n";
-    	xsdRequestData +=	"    <xsd:sequence>\n";
-		for (int i=0; i<numberOfVariables(); i++) {
-			variable = (RequestableVariable)getVariable(i);
-			if (variable.isWsdl()) {
-				if (variable.isMultiValued()) {
-					xsdRequestData += "      <xsd:element minOccurs=\"1\" maxOccurs=\"1\" name=\""+variable.getName()+"\" >\n";
-					xsdRequestData += "        <xsd:annotation>\n";
-					xsdRequestData += "          <xsd:documentation>"+ XMLUtils.getCDataXml(variable.getComment()) +"</xsd:documentation>\n";
-					xsdRequestData += "          <xsd:appinfo>"+ StringEscapeUtils.escapeXml(variable.getDescription()) +"</xsd:appinfo>\n";
-					xsdRequestData += "        </xsd:annotation>\n";
-					xsdRequestData += "        <xsd:complexType>\n";
-					xsdRequestData += "          <xsd:sequence>\n";
-					xsdRequestData += "            <xsd:element minOccurs=\"0\" maxOccurs=\"unbounded\" name=\"item\" type=\""+variable.getSchemaType()+"\" />\n";
-					xsdRequestData += "          </xsd:sequence>\n";
-					xsdRequestData += "        </xsd:complexType>\n";
-					xsdRequestData += "      </xsd:element>\n";
-				}
-				else {
-					xsdRequestData += "      <xsd:element minOccurs=\"1\" maxOccurs=\"1\" name=\""+variable.getName()+"\" type=\""+variable.getSchemaType()+"\">\n";
-					xsdRequestData += "        <xsd:annotation>\n";
-					xsdRequestData += "          <xsd:documentation>"+ XMLUtils.getCDataXml(variable.getComment()) +"</xsd:documentation>\n";
-					xsdRequestData += "          <xsd:appinfo>"+ StringEscapeUtils.escapeXml(variable.getDescription()) +"</xsd:appinfo>\n";
-					xsdRequestData += "        </xsd:annotation>\n";
-					xsdRequestData += "      </xsd:element>\n";
-				}
-			}
-		}
-		xsdRequestData +=	"    </xsd:sequence>\n";
-		xsdRequestData +=	"  </xsd:complexType>\n";
-    	return xsdRequestData;
+		return null;
     }
 
 	@Override
 	protected String generateXsdResponseData(Document document, boolean extract) throws Exception {
-    	StringEx sx = new StringEx(extract ? extractXsdType(document):generateWsdlType(document));
-    	sx.replace(getName() + "Response", getName() + "ResponseData");
-    	sx.replaceAll("\"p_ns:", "\""+ getProject().getName() + "_ns:");
-    	String xsdResponseData = sx.toString();
-    	return xsdResponseData;
+		return null;
     }
 
 	@Override
 	protected String extractXsdType(Document document) throws Exception {
-		String ePrefix = getXsdExtractPrefix();
-		Document xsdDom = XSDExtractor.extractXSD(ePrefix, document);
-		
-		// Add the ConvertigoError element
-		NodeList list = xsdDom.getDocumentElement().getElementsByTagName("xsd:complexType");
-		for (int i=0; i<list.getLength(); i++) {
-			Element el = (Element)list.item(i);
-			if (el.getAttribute("name").equals(ePrefix+"documentType")) {
-				NodeList l = el.getElementsByTagName("xsd:sequence");
-				Element se = l.getLength() > 0 ? (Element)l.item(0):(Element)el.insertBefore(xsdDom.createElement("xsd:sequence"),(Element)el.getFirstChild());
-				if (se != null) {
-					Element error = xsdDom.createElement("xsd:element");
-					error.setAttribute("name", "error");
-					error.setAttribute("type", "p_ns:ConvertigoError");
-					error.setAttribute("minOccurs", "0");
-					error.setAttribute("maxOccurs", "1");
-					se.appendChild(error);
-				}
-			}
-		}
-		
-		String tPrefix = getXsdTypePrefix();
-		String prettyPrintedText = XMLUtils.prettyPrintDOM(xsdDom);
-		prettyPrintedText = prettyPrintedText.substring(prettyPrintedText.indexOf("<xsd:schema>") + "<xsd:schema>".length());
-		prettyPrintedText = prettyPrintedText.substring(0, prettyPrintedText.indexOf("</xsd:schema>"));
-		prettyPrintedText = prettyPrintedText.replaceAll("<xsd:element name=\"document\" type=\"p_ns:"+ePrefix+"documentType\"/>", "");
-		prettyPrintedText = prettyPrintedText.replaceAll("<xsd:complexType name=\""+ePrefix+"documentType\">", "<xsd:complexType name=\""+ tPrefix + getName() + "Response\">");
-		return prettyPrintedText;
+		return null;
 	}
 
 	@Override
 	public String generateWsdlType(Document document) throws Exception {
-		//Sequence schema
-		HashMap<Long, String> stepTypes = new HashMap<Long, String>();
-		
-		String 	schema = "<?xml version=\"1.0\" encoding=\""+ getEncodingCharSet() +"\" ?>\n";
-		schema += "<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n";
-		schema += "\t<xsd:complexType name=\""+ getName() + "Response\">\n";
-		schema += "\t\t<xsd:sequence>\n";
-		schema += "\t\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"error\" type=\"p_ns:ConvertigoError\" />\n";
-		for (Step step: getSteps()) {
-			step.addSchemaType(stepTypes, "p_ns");
-			schema += step.getSchema("p_ns");
-		}
-		schema += "\t\t</xsd:sequence>\n";
-		schema += "\t</xsd:complexType>\n";
-		
-		Iterator<String> it = stepTypes.values().iterator();
-		while (it.hasNext()) {
-			schema += it.next();
-		}
-		schema += "</xsd:schema>\n";
-		
-		String prettyPrintedText = XMLUtils.prettyPrintDOM(schema);
-		int index = prettyPrintedText.indexOf("<xsd:schema") + "<xsd:schema".length();
-		index = prettyPrintedText.indexOf('\n', index);
-		prettyPrintedText = prettyPrintedText.substring(index + 1);
-		prettyPrintedText = prettyPrintedText.substring(0,prettyPrintedText.indexOf("</xsd:schema>"));
-		//prettyPrintedText = removeTab(prettyPrintedText);
-		return prettyPrintedText;
+		return null;
 	}
-
-/*
-	// Changes source xpath to relative xpath in steps
-	public void configureSteps() throws EngineException {
-		boolean bUpdateSteps = new Boolean(Engine.getProperty(Engine.ConfigurationProperties.UPDATE_STEPS)).booleanValue();
-		if (bUpdateSteps) {
-			checkSubLoaded();
-			
-			vAllSteps = null;
-			for (int i=0; i < numberOfSteps(); i++) {
-				Step step = (Step)getSteps().elementAt(i);
-				if (step != null) {
-					step.configureStep();
-				}
-				else
-					Engine.logBeans.warn("[Sequence] The step \"" + getName() + "\" (priority="+priority+") is null");
-			}
-		}
-	}
-*/
 
 	@Override
 	public void add(DatabaseObject databaseObject) throws EngineException {
@@ -805,28 +688,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
         
        	insertOrderedStep(step,null);
     }
-
-    /*private void initializeOrderedSteps() {
-    	XMLVector steps = new XMLVector();
-    	XMLVector ordered = new XMLVector();
-    	
-    	Vector v = new Vector(vSteps);
-    	v = sort(v, false);
-    	String s = "Sorted Steps [";
-		for (int i=0;i<v.size();i++) {
-			Step step = (Step)v.elementAt(i);
-			if (step.parent.equals(this)) step.hasChanged = true;
-    		s += "("+step.getName()+":"+step.priority+" -> "+step.newPriority+")";
-			ordered.addElement(new Long(step.newPriority));
-		}
-    	s += "]";
-    	Engine.logBeans.debug("["+ name +"] " + s);
-    	
-    	steps.addElement(ordered);
-		setOrderedSteps(steps);
-		debugSteps();
-		hasChanged = true;
-    }*/
 
     public void insertOrderedStep(Step step, Long after) {
     	XMLVector<Long> ordered = orderedSteps.elementAt(0);
@@ -1201,15 +1062,6 @@ public abstract class Sequence extends RequestableObject implements IVariableCon
 			}
 		}
 	}
-
-	/*private void decreaseLoadedStepInstances(Long stepPriority) {
-		if (stepPriority != null) {
-			Step step = (Step)loadedSteps.get(stepPriority);
-			if (step != null) {
-				if (step.copiesOfInstance > 0) step.copiesOfInstance--;
-			}
-		}
-	}*/
 
 	private void cleanCopie(String timeID) {
 		if (timeID != null) {

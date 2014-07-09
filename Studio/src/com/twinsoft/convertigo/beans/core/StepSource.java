@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -136,12 +135,6 @@ public class StepSource {
 		if (definition.size() > 0)
 			return getStep().isXml();
 		return false;
-	}
-	
-	public Document getWsdlDom() throws EngineException {
-		if (definition.size() > 0)
-			return getStep().getWsdlDom();
-		return null;
 	}
 	
 	public NodeList getContextValues() throws EngineException {

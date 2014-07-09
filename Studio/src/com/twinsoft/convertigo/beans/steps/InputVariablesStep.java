@@ -1,7 +1,6 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.lang.reflect.Array;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +30,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class InputVariablesStep extends Step implements ISchemaParticleGenerator {
@@ -93,58 +91,6 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 	@Override
 	public String toJsString() {
 		return "";
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.twinsoft.convertigo.beans.core.Step#createWsdlDom()
-	 */
-	@Override
-	protected Node createWsdlDom() throws EngineException {
-		Element element = (Element) super.createWsdlDom();
-		for (RequestableVariable rv : getParentSequence().getAllVariables()) {
-			Element rvel = wsdlDom.createElement(rv.getName());
-			element.appendChild(rvel);
-		}
-		return element;
-	}
-
-	@Override
-	public String getSchemaType(String tns) {
-		return tns + ":" + getStepNodeName() + priority + "StepType";
-	}
-
-	@Override
-	public String getSchema(String tns, String occurs) throws EngineException {
-		schema = "";
-		String maxOccurs = (occurs == null) ? "" : "maxOccurs=\"" + occurs + "\"";
-		schema += "\t\t\t<xsd:element minOccurs=\"0\" " + maxOccurs + " name=\"" + getStepNodeName()
-				+ "\" type=\"" + getSchemaType(tns) + "\">\n";
-		schema += "\t\t\t\t<xsd:annotation>\n";
-		schema += "\t\t\t\t\t<xsd:documentation>" + XMLUtils.getCDataXml(getComment())
-				+ "</xsd:documentation>\n";
-		schema += "\t\t\t\t</xsd:annotation>\n";
-		schema += "\t\t\t</xsd:element>\n";
-
-		return isEnable() && isOutput() ? schema : "";
-	}
-
-	@Override
-	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs)
-			throws EngineException {
-		String maxOccurs, stepTypeSchema = "";
-		stepTypeSchema += "\t<xsd:complexType name=\"" + getSchemaTypeName(tns) + "\">\n";
-		stepTypeSchema += "\t\t<xsd:sequence>\n";
-		for (RequestableVariable rv : getParentSequence().getAllVariables()) {
-			maxOccurs = rv.isMultiValued() ? "maxOccurs=\"unbounded\"" : "";
-			stepTypeSchema += "\t\t\t<xsd:element minOccurs=\"0\" " + maxOccurs + " name=\"" + rv.getName()
-					+ "\" type=\"" + rv.getSchemaType() + "\" />\n";
-		}
-		stepTypeSchema += "\t\t</xsd:sequence>\n";
-		stepTypeSchema += "\t</xsd:complexType>\n";
-
-		stepTypes.put(new Long(priority), stepTypeSchema);
 	}
 
 	@Override

@@ -291,35 +291,6 @@ public class ProcessExecStep extends Step {
 		return false;
 	}
 
-	@Override
-	public String getSchemaType(String tns) {
-		return tns + ":" + getStepNodeName() + priority + "StepType";
-	}
-
-	@Override
-	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs)
-			throws EngineException {
-		String stepTypeSchema = "";
-		stepTypeSchema += "\t<xsd:complexType name=\"" + getSchemaTypeName(tns) + "\">\n";
-		stepTypeSchema += "\t\t<xsd:sequence>\n";
-		stepTypeSchema += "\t\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"error\" type=\"xsd:string\" />\n";
-		stepTypeSchema += "\t\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"output\" type=\"xsd:string\" />\n";
-		stepTypeSchema += "\t\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"1\" name=\"exit\" type=\"xsd:int\" />\n";
-		stepTypeSchema += "\t\t</xsd:sequence>\n";
-		stepTypeSchema += "\t</xsd:complexType>\n";
-
-		stepTypes.put(new Long(priority), stepTypeSchema);
-	}
-
-	@Override
-	protected Node createWsdlDom() throws EngineException {
-		Element element = (Element) super.createWsdlDom();
-		element.appendChild(wsdlDom.createElement("error"));
-		element.appendChild(wsdlDom.createElement("output"));
-		element.appendChild(wsdlDom.createElement("exit"));
-		return element;
-	}
-
 	class ProcessStreamReaderThread implements Runnable {
 		boolean bContinue = true;
 		Node outputNode;

@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,7 +46,6 @@ import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.JavaScriptException;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
-import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -88,14 +86,11 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	transient protected boolean stepDone = false;
 	transient protected Sequence sequence = null;
 	transient protected Document outputDocument = null;
-	transient protected Document wsdlDom = null;
-	transient protected boolean wsdlDomDirty = false;
 	transient protected String executeTimeID = "";
 	transient private boolean inError = false;
 	transient private int cloneNumber = 0;
 	
 	transient public IContextMaintainer transactionContextMaintainer = null;
-	transient protected String schema = "";
 	
 	public Step() {
         super();
@@ -116,8 +111,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		clonedObject.cloneNumber = ++cloneNumber;
 		clonedObject.transactionContextMaintainer = null;
 		clonedObject.executedSteps = null;
-		clonedObject.wsdlDom = null;
-		clonedObject.wsdlDomDirty = false;
 		clonedObject.httpState = null;
 		clonedObject.xpathApi = null;
 		clonedObject.inError = false;
@@ -126,7 +119,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		clonedObject.vSheets = new LinkedList<Sheet>();
 		clonedObject.newPriority = newPriority;
 		clonedObject.outputDocument = null;
-		clonedObject.schema = "";
 		return clonedObject;
 	}
     
@@ -173,7 +165,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	protected void cleanCopy() {
 		//System.out.println("Clean copy of step " + name + "("+executeTimeID+")");
-		wsdlDom = null;
 		httpState = null;
 		xpathApi = null;
 		parent = null;
@@ -199,60 +190,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return transactionContextMaintainer;
 	}
 
-/*
-	protected void configureStep() throws EngineException {
-		Engine.logBeans.debug("[Step] Updating step \"" + getName() + "\" ("+getClass().getName()+") ");
-
-		if (workOnSource()) {
-			StepSource stepSource = getSource();
-			if (stepSource != null) {
-				if (configureStep(stepSource, getSequence().loadedSteps)) {
-					hasChanged = true;
-				}
-			}
-		}
-	}
-	
-	protected boolean configureStep(StepSource stepSource, Hashtable loadedSteps) throws EngineException {
-		try {
-			if (stepSource != null) {
-				String stepSourcePriority = stepSource.getPriority();
-				if (stepSourcePriority != null) {
-					Long key = new Long(stepSourcePriority);
-					if (key != null) {
-						Step step = (Step)loadedSteps.get(key);
-						if (step != null) {
-							String anchor;
-							if (step.workOnSource())
-								anchor = step.getSource().getAnchor();
-							else
-								anchor = step.getAnchor();
-							
-							anchor = anchor.replaceAll("\\[.*\\]", "");
-							
-							String path = stepSource.getXpath();
-							if (path.indexOf(anchor) == 0) {
-								StringEx sx = new StringEx(path);
-								sx.replace(anchor, ".");
-								stepSource.setXpath(sx.toString());
-								Engine.logBeans.debug("[Step] The source ("+path+") for \"" + getName() + "\" (priority="+priority+") has been updated");
-								return true;
-							}
-							else {
-								Engine.logBeans.warn("[Step] The source ("+path+") for \"" + getName() + "\" (priority="+priority+") coudn't be updated!");
-							}
-						}
-					}
-				}
-			}
-			return false;
-		}
-		catch (Exception e) {
-			com.twinsoft.convertigo.engine.Engine.logBeans.error("Unexpected exception", e);
-			throw new EngineException("Unable to configure stepSource",e);
-		}
-	}
-*/
 	protected String encodeValue(String value) {
 		String s = value;
 		if (s != null) {
@@ -624,58 +561,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return contextXpath;
 	}
 	
-	public void setWsdlDomDirty() {
-		wsdlDomDirty = true;
-		if (parent instanceof Step)
-			((Step)parent).setWsdlDomDirty();
-	}
-	
-	protected Node createWsdlDom() throws EngineException {
-		wsdlDom = getSequence().createDOM();
-		Element element = wsdlDom.createElement(getStepNodeName());
-		Element schemaType = wsdlDom.createElement("schema-type");
-		CDATASection cDATASection = wsdlDom.createCDATASection(schema);
-        schemaType.appendChild(cDATASection);
-        element.appendChild(schemaType);
-		
-		wsdlDom.getDocumentElement().appendChild(element);
-		wsdlDomDirty = false;
-		return element;
-	}
-	
-	protected Node generateWsdlDom() throws EngineException {
-		Element element = null;
-		if (isXml()) {
-	    	try {
-	    		if (wsdlDomDirty || (wsdlDom == null)) {
-	    			element = (Element)createWsdlDom();
-	    		}
-	    		else
-	    			element = (Element)wsdlDom.getDocumentElement().getElementsByTagName(getStepNodeName()).item(0);
-	    	}
-	    	catch (Exception e) {
-	    		wsdlDom = null;
-	    		throw new EngineException("Unable to generate WSDL document",e);
-	    	}
-		}
-		else {
-			element = getSequence().createDOM().getDocumentElement();
-		}
-		return element;
-	}
-	
-	public Document getWsdlDom() throws EngineException {
-		if (!isXml()) {
-			if (workOnSource()) {
-				return getSource().getWsdlDom();
-			}
-		}
-		
-   		generateWsdlDom();
-    	
-    	return wsdlDom;
-	}
-	
 	public String getAnchor() throws EngineException {
 		if (!isXml()) {
 			if (workOnSource())
@@ -1005,31 +890,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	public abstract String toJsString();
 		
-	public String getSchemaType(String tns) {
-		return getSchemaDataType(tns);
-	}
-	
-	public String getSchemaTypeName(String tns) {
-		String schemaType = getSchemaType(tns);
-		return schemaType.substring(schemaType.indexOf(":")+1);
-	}
-	
-	public String getSchema(String tns) throws EngineException {
-		return getSchema(tns, null);
-	}
-
-	public String getSchema(String tns, String occurs) throws EngineException {
-		schema = "";
-		String maxOccurs = (occurs == null) ? "":"maxOccurs=\""+occurs+"\"";
-		schema += "\t\t\t<xsd:element minOccurs=\"0\" "+maxOccurs+" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
-		schema += "\t\t\t\t<xsd:annotation>\n";
-		schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-		schema += "\t\t\t\t</xsd:annotation>\n";
-		schema += "\t\t\t</xsd:element>\n";
-		
-		return isEnable() && isOutput() ? schema:"";
-	}
-	
 	protected void addXmlSchemaAnnotation(XmlSchemaAnnotated annoted) {
 		String comment = getComment();
 		if (comment != null && comment.length() > 0) {
@@ -1058,14 +918,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return isOutput();
 	}
 
-	public void addSchemaType(HashMap<Long, String> stepTypes, String tns) throws EngineException {
-		addSchemaType(stepTypes, tns, null);
-	}
-	
-	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs) throws EngineException {
-		
-	}
-
 	/* (non-Javadoc)
 	 * @see com.twinsoft.convertigo.beans.core.DatabaseObject#toXml(org.w3c.dom.Document)
 	 */
@@ -1079,11 +931,6 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return element;
 	}
 
-	protected String getSchemaDataType(String tns) {
-		String schemaType = getSchemaDataType();
-		return schemaType.equals("")?"xsd:string":schemaType;
-	}
-	
 	public String getSchemaDataType() {
 		return schemaDataType;
 	}

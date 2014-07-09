@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
@@ -41,19 +40,12 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.steps.BranchStep;
-import com.twinsoft.convertigo.beans.steps.LoopStep;
 import com.twinsoft.convertigo.beans.steps.ParallelStep;
-import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
-import com.twinsoft.convertigo.beans.steps.XMLCopyStep;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public abstract class StepWithExpressions extends Step implements IContextMaintainer, IContainerOrdered, ISchemaParticleGenerator {
@@ -209,94 +201,6 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 	}
 	
 	@Override
-	protected Node createWsdlDom() throws EngineException {
-		Element element = (Element)super.createWsdlDom();
-		if (element != null) {
-			Document doc = element.getOwnerDocument();
-			if (hasSteps()) {
-	    		for (int i=0; i<numberOfSteps(); i++) {
-	    			Step step = (Step)getSteps().get(i);
-	    			if (step.isXml()) {
-		    			Node node = step.generateWsdlDom();
-		    			if (node != null) {
-		    				Node importedNode = doc.importNode(node, true);
-							if (importedNode.getNodeType() == Node.ATTRIBUTE_NODE) {
-								element.setAttribute(importedNode.getNodeName(), importedNode.getNodeValue());
-							}
-							else {
-								if (step instanceof XMLCopyStep) {
-									NodeList children = node.getChildNodes();
-									for (int j=0;j<children.getLength();j++) {
-										element.appendChild(doc.importNode(children.item(j),true));
-									}
-								}
-								else
-									element.appendChild(importedNode);
-							}
-		    			}
-	    			}
-	    			else {
-	    				if (step instanceof StepWithExpressions) {
-			    			Element fake = (Element)step.createWsdlDom();
-			    			if (fake != null) {
-			    				boolean isLoopStep = step instanceof LoopStep;
-			    				NodeList list = fake.getChildNodes();
-			    				for (int j=0; j<list.getLength();j++) {
-			    					Node node = list.item(j);
-					    			if (node != null) {
-					    				Node importedNode = doc.importNode(node, true);
-					    				if (isLoopStep) addOccursInCData(importedNode);
-					    				element.appendChild(importedNode);
-					    			}
-			    				}
-			    			}
-	    				}
-	    			}
-	    		}
-			}
-		}
-		return element;
-	}
-	
-	private void addOccursInCData(Node importedNode) {
-		// Adds maxOccurs in schema : used by XMLCopyStep
-		if (importedNode != null) {
-			if (importedNode instanceof Element) {
-	            NodeList childNodes = ((Element)importedNode).getElementsByTagName("schema-type");
-	            int len = childNodes.getLength();
-	            for (int i=0; i<len; i++) {
-	                Node childNode = childNodes.item(i);
-	                Node cdata = XMLUtils.findChildNode(childNode, Node.CDATA_SECTION_NODE);
-	                if (cdata != null) {
-		                String nodeValue = cdata.getNodeValue();
-		                nodeValue = nodeValue.indexOf("maxOccurs=")==-1 ? nodeValue.replaceFirst("/>", " maxOccurs=\"unbounded\"/>"):nodeValue;
-	                	cdata.setNodeValue(nodeValue);
-	                }
-	            }
-			}
-		}
-	}
-
-	@Override
-	protected Node generateWsdlDom() throws EngineException {
-		return super.generateWsdlDom();
-	}
-/*	
-	protected void configureStep() throws EngineException {
-		super.configureStep();
-		
-    	vAllSteps = null;
-		for (int i=0; i < numberOfSteps(); i++) {
-			Step step = (Step)getSteps().elementAt(i);
-			if (step != null) {
-				step.configureStep();
-			}
-			else
-				Engine.logBeans.warn("[StepWithExpressions] The step \"" + getName() + "\" (priority="+priority+") is null");
-		}
-	}
-*/	
-	@Override
     public void add(DatabaseObject databaseObject) throws EngineException {
         if (databaseObject instanceof Step) {
         	addStep((Step) databaseObject);
@@ -392,28 +296,6 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
         debugSteps();
     	return sort(vSteps);
     }
-    
-    /*private void initializeOrderedSteps() {
-    	XMLVector steps = new XMLVector();
-    	XMLVector ordered = new XMLVector();
-    	
-    	Vector v = new Vector(vSteps);
-    	v = sort(v, false);
-    	String s = "Sorted Steps [";
-		for (int i=0;i<v.size();i++) {
-			Step step = (Step)v.elementAt(i);
-			if (step.parent.equals(this)) step.hasChanged = true;
-    		s += "("+step.getName()+":"+step.priority+" -> "+step.newPriority+")";
-			ordered.addElement(new Long(step.newPriority));
-		}
-    	s += "]";
-    	Engine.logBeans.debug("["+ name +"] " + s);
-    	
-    	steps.addElement(ordered);
-		setOrderedSteps(steps);
-		debugSteps();
-		hasChanged = true;
-    }*/
     
     /**
      * Get representation of order for quick sort of a given database object.
@@ -518,66 +400,6 @@ public abstract class StepWithExpressions extends Step implements IContextMainta
 			}
 			Engine.logBeans.trace("["+ getName() +"] Ordered Steps ["+ steps + "]");
 		}
-	}
-	
-	@Override
-	public String getSchemaType(String tns) {
-		return tns +":"+ getStepNodeName() + priority +"StepType";
-	}
-	
-	@Override
-	public String getSchema(String tns, String occurs) throws EngineException {
-		boolean isLoopStep = this instanceof LoopStep;
-		String maxOccurs = isLoopStep ? "maxOccurs=\"unbounded\"":((occurs == null) ? "":"maxOccurs=\""+occurs+"\"");
-		schema = "";
-		schema += "\t\t\t<xsd:element minOccurs=\"0\" "+maxOccurs+" name=\""+ getStepNodeName()+"\" type=\""+ getSchemaType(tns) +"\">\n";
-		schema += "\t\t\t\t<xsd:annotation>\n";
-		schema += "\t\t\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-		schema += "\t\t\t\t</xsd:annotation>\n";
-		schema += "\t\t\t</xsd:element>\n";
-		
-		String s = "";
-		if (isEnable()) {
-			if (isOutput())
-				s = schema;
-			else {
-				for (Step step: getSteps()) {
-					s += step.getSchema(tns, (isLoopStep ? "unbounded":occurs));
-				}			
-			}
-		}
-		return s;
-	}
-	
-	@Override
-	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs) throws EngineException {
-		boolean isLoopStep = this instanceof LoopStep;
-		String attrStepsSchema = "";
-		String stepTypeSchema = "";
-		
-		occurs = (isOutput() ? null:(isLoopStep ? "unbounded":occurs));
-		
-		stepTypeSchema += "\t<xsd:complexType name=\""+ getSchemaTypeName(tns) +"\">\n";
-		stepTypeSchema += "\t\t<xsd:annotation>\n";
-		stepTypeSchema += "\t\t\t<xsd:documentation>"+ XMLUtils.getCDataXml(getComment()) +"</xsd:documentation>\n";
-		stepTypeSchema += "\t\t</xsd:annotation>\n";
-		stepTypeSchema += "\t\t<xsd:sequence>\n";
-		
-		for (Step step: getSteps()) {
-			step.addSchemaType(stepTypes, "p_ns", occurs);
-			if (step instanceof XMLAttributeStep)
-    			attrStepsSchema += step.getSchema(tns, occurs);
-			else
-				stepTypeSchema += step.getSchema(tns, occurs);
-		}
-
-		stepTypeSchema += "\t\t</xsd:sequence>\n";
-    	stepTypeSchema += attrStepsSchema;
-		stepTypeSchema += "\t</xsd:complexType>\n";
-		
-		if (!(!isXml() && !isOutput()))
-			stepTypes.put(new Long(priority), stepTypeSchema);
-		
 	}
 	
 	public String toJsString() {

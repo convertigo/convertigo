@@ -27,7 +27,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.Vector;
@@ -40,7 +39,6 @@ import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.apache.ws.commons.schema.constants.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
@@ -239,22 +237,6 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 	}
 
 	@Override
-	protected Node createWsdlDom() throws EngineException {
-		Element element = (Element)super.createWsdlDom();
-		if (element != null) {
-			Element date = wsdlDom.createElement("date");
-			if (split) {
-				date.appendChild(wsdlDom.createElement("dayOfWeek"));
-				date.appendChild(wsdlDom.createElement("day"));
-				date.appendChild(wsdlDom.createElement("month"));
-				date.appendChild(wsdlDom.createElement("year"));
-			}
-			element.appendChild(date);
-		}
-		return element;
-	}
-
-	@Override
 	protected void createStepNodeValue(Document doc, Element stepNode) throws EngineException {
 		boolean bInvalid = false;
 		try {
@@ -391,41 +373,8 @@ public class XMLGenerateDatesStep extends XMLGenerateStep implements ITagsProper
 	}
 	
 	@Override
-	public String getSchemaType(String tns) {
-		return tns +":"+ getStepNodeName() + priority +"StepType";
-	}
-	
-	
-	@Override
 	public String getSchemaDataType() {
 		return "xsd:string"; //"xsd:date";
-	}
-
-	@Override
-	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs) throws EngineException {
-		String stepTypeSchema = "";
-		stepTypeSchema += "\t<xsd:complexType name=\""+ getSchemaTypeName(tns) +"\">\n";
-		stepTypeSchema += "\t<xsd:sequence>\n";
-    	if (split) {
-        	stepTypeSchema += "\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"unbounded\" name=\"date\">\n";
-        	stepTypeSchema += "\t\t\t<xsd:complexType>\n";
-    		stepTypeSchema += "\t\t\t<xsd:sequence>\n";
-    		stepTypeSchema += "\t\t\t<xsd:element name=\"dayOfWeek\" type=\"xsd:string\" />\n";
-    		stepTypeSchema += "\t\t\t<xsd:element name=\"day\" type=\"xsd:string\" />\n";
-    		stepTypeSchema += "\t\t\t<xsd:element name=\"month\" type=\"xsd:string\" />\n";
-    		stepTypeSchema += "\t\t\t<xsd:element name=\"year\" type=\"xsd:string\" />\n";
-    		stepTypeSchema += "\t\t\t</xsd:sequence>\n";
-        	stepTypeSchema += "\t\t\t</xsd:complexType>\n";
-        	stepTypeSchema += "\t\t</xsd:element>\n";
-    	}
-    	else {
-        	stepTypeSchema += "\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"unbounded\" name=\"date\" type=\""+ getSchemaDataType(tns) +"\" />\n";
-    	}
-    	stepTypeSchema += "\t</xsd:sequence>\n";
-		stepTypeSchema += "\t</xsd:complexType>\n";
-		
-		stepTypes.put(new Long(priority), stepTypeSchema);
-		
 	}
 
 	@Override

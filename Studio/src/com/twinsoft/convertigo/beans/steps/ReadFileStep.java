@@ -124,14 +124,6 @@ public abstract class ReadFileStep extends Step {
 	}
 
 	@Override
-    public Document getWsdlDom() throws EngineException {
-    	if (wsdlDomDirty || wsdlDom == null) {
-    		generateWsdlDom();
-    	}
-    	return wsdlDom;
-    }
-	
-	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
 			if (super.stepExecute(javascriptContext, scope)) {
@@ -186,28 +178,6 @@ public abstract class ReadFileStep extends Step {
 	}
 	
 	protected abstract Document read(String filePath, boolean schema) throws EngineException;
-	
-	@Override
-	protected Node generateWsdlDom() throws EngineException {
-		try {
-			String filePath = evaluateDataFileName(null, null);
-			Document schemaDoc = read(filePath, true);
-			Element schemaRoot = schemaDoc.getDocumentElement();
-			
-			wsdlDomDirty = true;
-			Element wsdlRoot = (Element) super.generateWsdlDom();
-			wsdlDom = wsdlRoot.getOwnerDocument();
-			Element newRoot = (Element) wsdlDom.importNode(schemaRoot, true);
-			wsdlRoot.appendChild(newRoot);
-			
-			wsdlDomDirty = false;
-			return wsdlDom.getDocumentElement();
-		}
-		catch (Exception e) {
-    		wsdlDom = null;
-    		throw new EngineException("Unable to generate WSDL document",e);
-		}
-	}
 	
 	private String evaluateDataFileName(Context javascriptContext, Scriptable scope) throws EngineException {
 		return evaluateToString(javascriptContext, scope, dataFile, "dataFile", true);

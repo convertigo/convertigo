@@ -23,8 +23,6 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
-import java.util.HashMap;
-
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -38,8 +36,6 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
@@ -153,42 +149,6 @@ public class ListDirStep extends Step {
 		return false;
 	}
 
-	@Override
-	public String getSchemaType(String tns) {
-		return tns +":"+ getStepNodeName() + priority +"StepType";
-	}
-	
-	@Override
-	public void addSchemaType(HashMap<Long, String> stepTypes, String tns, String occurs) throws EngineException {
-		String stepTypeSchema = "";
-		stepTypeSchema += "\t<xsd:complexType name=\""+ getSchemaTypeName(tns) +"\">\n";
-		stepTypeSchema += "\t\t<xsd:sequence>\n";
-		stepTypeSchema += "\t\t\t<xsd:element minOccurs=\"0\" maxOccurs=\"unbounded\" name=\"file\" type=\"xsd:string\" >\n";
-		stepTypeSchema += "\t\t\t\t<xsd:complexType>\n";
-		stepTypeSchema += "\t\t\t\t\t<xsd:simpleContent>\n";
-		stepTypeSchema += "\t\t\t\t\t\t<xsd:extension base=\"xsd:string\">\n";
-		stepTypeSchema += "\t\t\t\t\t\t\t<xsd:attribute name=\"lastModified\" type=\"xsd:long\" />\n";
-		stepTypeSchema += "\t\t\t\t\t\t\t<xsd:attribute name=\"size\" type=\"xsd:long\" />\n";
-		stepTypeSchema += "\t\t\t\t\t\t</xsd:extension>\n";
-		stepTypeSchema += "\t\t\t\t\t</xsd:simpleContent>\n";
-		stepTypeSchema += "\t\t\t\t</xsd:complexType>\n";
-		stepTypeSchema += "\t\t\t</xsd:element>\n";
-		stepTypeSchema += "\t\t</xsd:sequence>\n";
-		stepTypeSchema += "\t</xsd:complexType>\n";
-		
-		stepTypes.put(new Long(priority), stepTypeSchema);
-	}
-	
-	@Override
-	protected Node createWsdlDom() throws EngineException {
-		Element element = (Element) super.createWsdlDom();
-		Element file = wsdlDom.createElement("file");
-		file.setAttribute("lastModified", "");
-		file.setAttribute("size", "");
-		element.appendChild(file);
-		return element;
-	}
-	
 	@Override
 	public XmlSchemaElement getXmlSchemaObject(XmlSchemaCollection collection, XmlSchema schema) {
 		XmlSchemaElement element = (XmlSchemaElement) super.getXmlSchemaObject(collection, schema);
