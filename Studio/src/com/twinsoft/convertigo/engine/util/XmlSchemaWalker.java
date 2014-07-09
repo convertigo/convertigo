@@ -735,8 +735,6 @@ public class XmlSchemaWalker {
 
 	protected void walkAny(XmlSchema xmlSchema, XmlSchemaAny obj) {
 		walkAnnotated(xmlSchema, obj);
-		// TODO Auto-generated method stub
-		
 	}
 
 	protected void walkSimpleContent(XmlSchema xmlSchema, XmlSchemaSimpleContent obj) {
@@ -781,7 +779,6 @@ public class XmlSchemaWalker {
 	
 	protected void walkFacet(XmlSchema xmlSchema, XmlSchemaFacet obj) {
 		walkAnnotated(xmlSchema, obj);
-		// TODO Auto-generated method stub
 	}
 
 	protected void walkField(XmlSchema xmlSchema, XmlSchemaXPath obj) {
@@ -821,8 +818,6 @@ public class XmlSchemaWalker {
 	
 	protected void walkAnyAttribute(XmlSchema xmlSchema, XmlSchemaAnyAttribute obj) {
 		walkAnnotated(xmlSchema, obj);
-		// TODO Auto-generated method stub
-		
 	}
 
 	protected void walkComplexContent(XmlSchema xmlSchema, XmlSchemaComplexContent obj) {

@@ -382,7 +382,6 @@ public class XSDExtractor {
 //		}
 
 		protected void parse() {
-			// TODO Auto-generated method stub
 			
 		}
 

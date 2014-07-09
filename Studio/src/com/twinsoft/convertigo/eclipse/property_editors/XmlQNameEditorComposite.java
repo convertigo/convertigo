@@ -96,7 +96,6 @@ public class XmlQNameEditorComposite extends AbstractDialogComposite {
 			useType = useComplexType || useSimpleType;
 			useRef = "xmlElementRefAffectation".equals(propertyName);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

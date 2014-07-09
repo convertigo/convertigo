@@ -168,12 +168,10 @@ public abstract class BlockStep extends StepWithExpressions {
 	}
 
 	protected StepSource getSource() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	protected boolean workOnSource() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 

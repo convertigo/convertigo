@@ -109,19 +109,16 @@ public class DuplicateStep extends Step {
 
 	@Override
 	protected boolean workOnSource() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	protected StepSource getSource() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String toJsString() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

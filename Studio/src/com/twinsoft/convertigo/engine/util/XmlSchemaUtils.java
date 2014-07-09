@@ -486,10 +486,8 @@ public class XmlSchemaUtils {
 			Validator validator = vSchema.newValidator();
 			validator.validate(source);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (XmlSchemaSerializerException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

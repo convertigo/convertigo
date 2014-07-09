@@ -160,13 +160,11 @@ public class LogStep extends Step implements ITagsProperty {
 
 	@Override
 	protected boolean workOnSource() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	protected StepSource getSource() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 	

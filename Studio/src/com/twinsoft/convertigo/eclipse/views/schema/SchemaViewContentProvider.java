@@ -162,7 +162,6 @@ public class SchemaViewContentProvider implements ITreeContentProvider {
 					}.init(xso, true, true);
 	
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 	
