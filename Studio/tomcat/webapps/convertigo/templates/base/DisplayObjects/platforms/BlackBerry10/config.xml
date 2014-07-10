@@ -21,7 +21,7 @@
 
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
 	 
-	<gap:platform name="blackberry"/>
+	<gap:platform name="blackberry10"/>
 	
 	<!-- Customize your app and platform with the preference element. -->
     <preference name="phonegap-version"           value="3.3.0" />          <!-- all: current version of PhoneGap -->
@@ -42,11 +42,11 @@
 	<gap:splash src="splash.png" />
 
     <!-- BlackBerry splash -->
-    <rim:splash src="splash720x720.png" />
-    <rim:splash src="splash1280x720.png" />
-    <rim:splash src="splash720x1280.png" />
-    <rim:splash src="splash1280x768.png" />
-    <rim:splash src="splash768x1280.png" />
+    <rim:splash src="res/splash720x720.png" />
+    <rim:splash src="res/splash1280x720.png" />
+    <rim:splash src="res/splash720x1280.png" />
+    <rim:splash src="res/splash1280x768.png" />
+    <rim:splash src="res/splash768x1280.png" />
 	
 	<!-- If you do not want any permissions to be added to your app, add the
     following tag to your config.xml; you will still have the INTERNET
