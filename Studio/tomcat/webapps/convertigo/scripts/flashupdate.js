@@ -91,33 +91,38 @@ var F = {
 			F.platform = device.platform;
 			F.uuid = device.uuid;
 			
-			if ((F.platform == "Android" && F.cordovaVersion) || F.platform == "Win32NT") {
+			if ((F.platform == "Android" && F.cordovaVersion) || F.platform == "blackberry10" || F.platform == "Win32NT") {
 				F.canCopyFromApp = true;
 			}
 		} catch (err) {
 			// device feature disabled in config.xml
 		}
 		
-		$.ajaxSetup({
-			cache: false
-		});
-		
-		var url = window.location.href.replace(F.reTailUrl, "$1/files.json");
-		$.ajax({
-			dataType: "json",
-			url: url,
-			success: function (data) {
-				try {
-					F.currentFiles = data;
-					F.getEnv();
-				} catch (err) {
-					F.error("catch init currentFile", err);
+		if (F.platform == "blackberry10") {
+			// unsupported platform
+			F.redirectApp();
+		} else {
+			$.ajaxSetup({
+				cache: false
+			});
+			
+			var url = window.location.href.replace(F.reTailUrl, "$1/files.json");
+			$.ajax({
+				dataType: "json",
+				url: url,
+				success: function (data) {
+					try {
+						F.currentFiles = data;
+						F.getEnv();
+					} catch (err) {
+						F.error("catch init currentFile", err);
+					}
+				},
+				error: function (xhr, status, err) {
+					F.error("failed to retrieve current file list: " + url, err);
 				}
-			},
-			error: function (xhr, status, err) {
-				F.error("failed to retrieve current file list: " + url, err);
-			}
-		});
+			});
+		}
 	},
 	
 	getEnv: function () {
@@ -150,8 +155,9 @@ var F = {
 	
 	getFlashUpdateDir: function () {
 		F.debug("getFlashUpdateDir");
+		var quota = F.platform == "blackberry10" ? Math.pow(1024, 3) : 0;
 		
-		window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function (fileSystem) {
+		window.requestFileSystem(LocalFileSystem.PERSISTENT, quota, function (fileSystem) {
 			try {
 				var fuPath = "flashupdate";
 				
@@ -164,7 +170,7 @@ var F = {
 				fileSystem.root.getDirectory(fuPath, {create: true}, function (flashUpdateDir) {
 					F.flashUpdateDir = flashUpdateDir;
 					
-					if (F.fsProtocol) {
+					if (F.fsProtocol || F.platform == "blackberry10") {
 						F.localBase = flashUpdateDir.toURL();
 					}
 					
@@ -224,7 +230,7 @@ var F = {
 	isLocalNewer: function (files) {
 		F.debug("isLocalNewer");
 		
-		if (F.currentFiles.date < files.date) {
+		if (F.currentFiles.date <= files.date) {
 			F.redirectLocal();
 		} else {
 			if (F.canCopyFromApp) {
@@ -275,30 +281,38 @@ var F = {
 	},
 	
 	copyCordovaFiles: function (files, success) {
-		if (files.length) {
-			var file = files.shift();
-			
+		var curFile = 0;
+		
+		var checkDone = function () {
+			try {
+				if ((++curFile) == files.length) {
+					success();
+				}
+			} catch (err) {
+				F.error("catch copyCordovaFiles checkDone", err);
+			}
+		}
+		
+		$.each(files, function (index, file) {
 			$.ajax({
 				dataType: "text",
 				url: F.appBase + "/" + file,
 				success: function (text) {
 					try {
 						F.write(file, text, function () {
-							F.copyCordovaFiles(files, success);
+							checkDone();
 						}, function (err) {
-							F.error("write failed", err);
+							F.error("write failed: " + file, err);
 						});
 					} catch (err) {
-						F.error("catch redirectLocal success", err);
+						F.error("catch copyCordovaFiles ajax success: " + file, err);
 					}
 				},
 				error: function (xhr, status, err) {
-					F.error("failed cordova.js", err);
+					F.error("failed copyCordovaFiles ajax: " + file, err);
 				}
 			});
-		} else {
-			success();
-		}
+		});
 	},
 	
 	isFlashUpdate: function () {
@@ -509,17 +523,18 @@ var F = {
 				nbTransfert++;
 				totalSize += file.size;
 				F.mkParentDirs(file.uri, function (parentDir, fileName) {
+					var source = (fromApp ? F.appBase : F.remoteBase) + "/" + file.uri + "?" + F.startTime;
+					var destination = F.localBase + "/" + file.uri;
 					new FileTransfer().download(
-						encodeURI((fromApp ? F.appBase : F.remoteBase) + "/" + file.uri + "?" + F.startTime),
-						F.localBase + "/" + file.uri,
+						encodeURI(source),
+						destination,
 						function () {
 							checkDone(file);
 						},
 						function (err) {
 							if (file.uri != "config.xml") {
-								F.error("failed to FileTransfer ", err);
+								F.error("failed to FileTransfer '" + source + "' to '" + destination + "'", err);
 							}
-							
 							checkDone(file);
 						}
 					);
@@ -559,6 +574,7 @@ var F = {
 			parentDir.getFile(fileName, {create: true, exclusive: false}, function (fileEntry) {
 				fileEntry.createWriter(function (writer) {
 					writer.onwrite = success;
+					writer.onerror = error;
 					writer.write(content);
 				}, function (err) {
 					F.error("createWriter failed", err);
