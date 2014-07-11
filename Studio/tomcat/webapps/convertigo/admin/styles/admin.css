@@ -1613,6 +1613,19 @@ a.start {
 	float:left;
 	margin-right: 10px;
 }
+#dialog-confirm-symbols td {
+	background-color: #f3f2f1;
+	padding: 10px;
+	text-align:left;
+}
+#dialog-confirm-symbols small {
+	display: block;
+	padding-left: 21px;
+}
+#table-import-symbols p {
+	margin: 0;
+	margin-left: 21px;
+}
 /* = Statistics
 -------------------------- */
 #dialog-statistics-project {

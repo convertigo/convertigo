@@ -42,25 +42,28 @@ public class Import extends UploadService {
 	
 	@Override
 	protected void doUpload(HttpServletRequest request, Document document, FileItem item) throws Exception {
+		String actionImport = request.getParameter("action-import");
+		if (actionImport.equals("on")){
+			actionImport = request.getParameter("priority");
+		}
+		
 		if (!item.getName().endsWith(".properties")) {
 			ServiceUtils.addMessage(document, document.getDocumentElement(), "The import of the grobal symbol file "
 					+ item.getName() + " has failed. The file is not valid (.properties required).", "error",
 					false);
 		}
-
-		super.doUpload(request, document, item);
 		
 		//We save the global symbols imported file
 		Properties prop = new Properties();
 		try {
-			prop.load(item.getInputStream());	
+			prop.load(item.getInputStream());				
 		} catch (IOException ioe) {
 			String message = "Unable to load property file:\n" + ioe.getMessage();
 			ServiceUtils.addMessage(document, document.getDocumentElement(), message, "message", false);
 			throw new EngineException("Unable to load property file", ioe);
 		}
 		
-		Engine.theApp.databaseObjectsManager.symbolsUpdate(prop);	
+		Engine.theApp.databaseObjectsManager.symbolsUpdate(prop, actionImport);	
 		
 		String message = "The global symbols file has been successfully imported.";
 		Engine.logAdmin.info(message);

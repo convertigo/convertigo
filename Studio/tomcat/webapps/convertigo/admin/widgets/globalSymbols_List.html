@@ -46,13 +46,30 @@
 </html>
 
 <!-- Import dialog box -->
-<form id="dialog-import-symbols" ></form>
-<div id="dialog-confirm-symbols" title="Do you want to continue ?">
+<div id="dialog-confirm-symbols" title="Import Global Symbols">
 	<p>
-		<img src="images/convertigo-administration-alert-global-symbols-35x35.png" class="iconAlertGlobalSymbolsImport" /></span>
-		This action will replace the whole global symbols of the Server.<br/>
-		Actual global symbols list will be saved aside in a backup file.
+		<strong>Select a Global Symbols import mode:</strong>
+		<form id="dialog-import-symbols" >
+		<table id="table-import-symbols">
+			<tr>
+				<td valign="top" width="50%">
+					<input type="radio" name="action-import" value="clear-import" checked><strong>Clear & Import</strong><br/>
+				</td>
+			</tr>
+			<tr>
+				<td valign="top" width="50%">
+					<input type="radio" name="action-import"><strong>Merge symbols</strong>
+					<p>
+						In case of name conflict: 
+						<input type="radio" name="priority" value="priority-server" checked>Priority Server
+						<input type="radio" name="priority" value="priority-import">Priority import
+					</p>
+				</td>
+			</tr>
+		</table>
+		<small><em>Actual global symbols list will be saved aside in a backup file.</em></small>
+		</form>
 	</p>
-	<p><strong>Do you want to continue ?</strong></p>
-	<button id="importSymbolUpload">Yes</button><button id="importSymbolCancel">No</button>
+	<button id="importSymbolUpload">Import</button><button id="importSymbolCancel">Cancel</button>
 </div>
+

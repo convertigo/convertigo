@@ -255,8 +255,10 @@ function editSymbol(symbolName, symbolValue) {
 }
 
 function initializeImportSymbol() {
+	var actionForm = "services/global_symbols.Import";
+	
 	var ajaxUpload = new AjaxUpload("importSymbolUpload", {
-		action : "services/global_symbols.Import",			
+		action : actionForm,			
 		responseType : "xml",		
 		onSubmit : function(file, ext) {
 			$("#dialog-confirm-symbols").dialog("close");
@@ -264,11 +266,13 @@ function initializeImportSymbol() {
 			if (file.match(str + "$") != str) {
 				showError("<p>The global symbols file '" + file + "' is not a valid properties file</p>");
 				return false;
+			} else {
+				this._settings.action = this._settings.action+"?"+ $("#dialog-import-symbols").serialize();
 			}
-	
 			startWait(50);
 		},
 		onComplete : function(file, response) {
+			this._settings.action = actionForm;
 			clearInterval(this.tim_progress);
 			endWait();
 			if ($(response).find("error").length > 0) {

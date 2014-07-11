@@ -1498,8 +1498,9 @@ public class DatabaseObjectsManager implements AbstractManager {
 		symbolsProperties.store(out, "global symbols");
 	}
 	
-	public void symbolsUpdate(Properties map) {
+	public void symbolsUpdate(Properties map, String importAction) {
 		File f = new File(globalSymbolsFilePath);
+		
 		File oldFile = null;
 		if (f.exists()) {
 			Date date = new Date();
@@ -1515,8 +1516,47 @@ public class DatabaseObjectsManager implements AbstractManager {
 			}
 			f.renameTo(oldFile);
 		}
-		symbolsProperties.clear();
-		symbolsLoad(map);
+		//Remove all symbols & import symbols from file
+		if (importAction.equals("clear-import")) {
+			symbolsProperties.clear();
+			symbolsLoad(map);
+		}
+		//Add symbols from imported file and merge with existing symbols from server (priority to server if same key)
+		if (importAction.equals("priority-server")) {
+			symbolsFileImport(map, true);
+		}
+		//Add symbols from imported file and merge with existing symbols from server (priority to import symbols if same key)
+		if (importAction.equals("priority-import")) {
+			symbolsFileImport(map, false);
+		}
+	}
+	
+	private void symbolsFileImport(Properties map, boolean keepServerSymbols) {		
+		// Enumeration of the properties
+		Enumeration<String> propsEnum = GenericUtils.cast(map.propertyNames());
+		boolean needUpdate = false;
+		while (propsEnum.hasMoreElements()) {
+			String propertyName = propsEnum.nextElement();
+			try {
+				if (keepServerSymbols){
+					if (!symbolsProperties.containsKey(propertyName)) {
+						symbolsAdd(propertyName, map.getProperty(propertyName, ""));
+						needUpdate = true;
+					}
+				} else {
+					if (symbolsProperties.containsKey(propertyName)) {
+						symbolsProperties.remove(propertyName);
+					}
+					symbolsAdd(propertyName, map.getProperty(propertyName, ""));
+					needUpdate = true;
+				}
+			} catch (Exception e) {
+				Engine.logEngine.info("Don't add invalid symbol '" + propertyName + "'", e);
+			}
+		}
+		if (needUpdate) {
+			symbolsUpdated();
+		}
 	}
 
 	private void symbolsUpdated() {
