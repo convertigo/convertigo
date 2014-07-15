@@ -42,7 +42,7 @@ function globalSymbols_List_init() {
 			primary : "ui-icon-arrowthick-1-n"
 		}
 	}).click(function(){
-		exportSymbol();
+		exportSymbolButtonsToggle();
 	});
 	$("#importSymbolUpload").button({
 		icons : {
@@ -55,6 +55,21 @@ function globalSymbols_List_init() {
 		}
 	}).click(function(){
 		$("#dialog-confirm-symbols").dialog("close");
+	});
+	
+	$("#symbolsList").on("change", ".selected-symbols", function(){
+		var symb = $(".selected-symbols:checked");
+		if (symb.size() > 0) {
+			$("#validExport").button("enable");
+		} else {
+			$("#validExport").button("disable");
+		}
+		
+		if (symb.size()==$(".selected-symbols").size()){
+			$("#selectAll .ui-button-text").text("Deselect all");
+		} else {
+			$("#selectAll .ui-button-text").text("Select all");
+		}
 	});
 	
 	$("#symbolsListButtonDeleteAll").button({				
@@ -73,11 +88,55 @@ function globalSymbols_List_init() {
 		});					
 	});
 	
+	//hidden buttons bars
+	$("#selectAll").button({				
+		icons : {
+			primary : "ui-icon-closethick"
+		}
+	}).click(function(){
+		$(".selected-symbols").prop("checked", 
+				$("#selectAll .ui-button-text").text() == "Select all" ? true : false );
+		$("#validExport").button(
+				$("#selectAll .ui-button-text").text() == "Select all" ? "enable" : "disable");
+		$("#selectAll .ui-button-text").text(
+				$("#selectAll .ui-button-text").text() == "Select all" ? "Deselect all" : "Select all");
+		
+	});
+	
+	$("#validExport").button({				
+		icons : {
+			primary : "ui-icon-closethick"
+		}
+	}).click(function(){
+		exportSymbolFile();
+	});
+	
+	$("#cancelExport").button({				
+		icons : {
+			primary : "ui-icon-closethick"
+		}
+	}).click(function(){
+		$(".selected-symbols").prop("checked",false);
+		$('#symbolsList').hideCol('checkboxes');
+		$('#symbolsList').showCol('btnEdit');
+		$('#symbolsList').showCol('btnDelete');
+		$("#addSymbol").button("enable");
+		$("#importSymbol").button("enable");
+		$("#symbolsListButtonDeleteAll").button("enable");
+		$("#exportSymbolsButtonAction").hide();
+	});
+	
 	callService("global_symbols.List", function(xml) {
 		$("#symbolsList").jqGrid( {
 			datatype : "local",
-			colNames : ['Name', 'Value', 'Edit','Delete'],
+			colNames : ['', 'Name', 'Value', 'Edit','Delete'],
 			colModel : [ {
+				name : 'checkboxes',
+				index : 'checkboxes',
+				hidden : true,
+				width : 8,
+				align : "center"
+			}, {
 				name : 'name',
 				index : 'name',
 				width : 80,
@@ -130,12 +189,12 @@ function globalSymbols_List_init() {
 	
 	$(document).on("click", ".symbolEdit", function () {
 		var $row = $(this).parents("tr:first");
-		editSymbol($row.find(">td:eq(0)").text(), $row.find(">td:eq(1)").text());
+		editSymbol($row.find(">td:eq(1)").text(), $row.find(">td:eq(2)").text());
 		return false;
 	});
 	
 	$(document).on("click", ".symbolDelete", function () {
-		deleteSymbol($(this).parents("tr:first").find(">td:eq(0)").text());
+		deleteSymbol($(this).parents("tr:first").find(">td:eq(1)").text());
 		return false;
 	});
 }
@@ -157,6 +216,7 @@ function updateGlobalSymbolsList(xml) {
 			"addRowData",
 			"symbolsRow" + index,
 			{
+				checkboxes: "<input type='checkbox' class='selected-symbols' value='"+$(this).attr("name")+"'/>",
 				name : $(this).attr("name"),
 				value : $(this).attr("value"),
 				btnEdit : "<a class=\"symbolEdit\" href=\"#edit\"><img border=\"0\" title=\"Edit\" src=\"images/convertigo-administration-picto-edit.png\"></a>",
@@ -165,7 +225,9 @@ function updateGlobalSymbolsList(xml) {
 	});
 	if($("#symbolsList tr:gt(0)").length) {
 		$("#symbolsList_name .ui-jqgrid-sortable").click().click();
-		$("#symbolsListButtonDeleteAll").button("enable");
+		if ($("#exportSymbolsButtonAction").css("display") == "none"){
+			$("#symbolsListButtonDeleteAll").button("enable");
+		}
 	} else {
 		$("#symbolsListButtonDeleteAll").button("disable");
 	}
@@ -286,6 +348,41 @@ function initializeImportSymbol() {
 	});	
 }
 
-function exportSymbol() {
-	window.open("services/global_symbols.Export");
+function exportSymbolButtonsToggle() {
+	var status;
+	$("#validExport").button("disable");
+	$(".selected-symbols").prop("checked",false);
+	
+	if ($("#exportSymbolsButtonAction").css("display") == "block"){
+		status = "enable";
+		$('#symbolsList').hideCol('checkboxes');
+		$('#symbolsList').showCol('btnEdit');
+		$('#symbolsList').showCol('btnDelete');
+	} else {
+		status = "disable";
+		$('#symbolsList').showCol('checkboxes');
+		$('#symbolsList').hideCol('btnEdit');
+		$('#symbolsList').hideCol('btnDelete');
+	}
+	//Disable buttons from buttons bar
+	$("#addSymbol").button(status);
+	$("#importSymbol").button(status);
+	$("#symbolsListButtonDeleteAll").button(status);
+
+	//hide/show the second buttons bars
+	$("#exportSymbolsButtonAction").toggle();
+}
+
+function exportSymbolFile(){
+	var symbolstoExport = "";
+
+	$(".selected-symbols:checked").each(function(index) {
+		if (symbolstoExport.length != 0) {
+			symbolstoExport += ",";	
+		} 
+		symbolstoExport += "{ 'name' : "+$(this).prop('value')+" }";
+	});
+
+	window.open("services/global_symbols.Export?symbols=" + 
+			symbolstoExport  );
 }

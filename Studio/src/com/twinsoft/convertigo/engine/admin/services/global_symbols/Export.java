@@ -17,8 +17,14 @@
 
 package com.twinsoft.convertigo.engine.admin.services.global_symbols;
 
+import java.io.PrintStream;
+import java.util.Date;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
@@ -36,12 +42,42 @@ public class Export extends DownloadService {
 
 	@Override
 	protected void writeResponseResult(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		response.setHeader("Content-Disposition", "attachment; filename=\"global_symbols.properties\"");
-		response.setContentType("text/plain");	   
+		//We recover selected symbols 
+		String symbols = "{ symbols : [" + request.getParameter("symbols") + "] }";
 		
-		Engine.theApp.databaseObjectsManager.symbolsStore(response.getOutputStream());
+		
+		if ( symbols != null && !symbols.equals("") ) {
+			//Parse string requested parameter to JSON
+			JSONObject jsonObj = new JSONObject(symbols);
+			JSONArray symbolsNames = jsonObj.getJSONArray("symbols");
+			
+			//Write header information
+			String writedString = "#global symbols\n";
+			writedString += "#" + new Date() + "\n";
 
-		String message = "The global symbols file has been exported.";
-		Engine.logAdmin.info(message);
+			//Write symbols saved with name and value for each requested/selected symbols
+			for (int i = 0; i < symbolsNames.length(); i++) {
+				JSONObject jo = symbolsNames.getJSONObject(i);
+				String symbolValue = Engine.theApp.databaseObjectsManager
+						.symbolsGetValue(jo.getString("name"));
+				writedString += jo.getString("name") + "=" + symbolValue + "\n";
+			}
+
+			response.setHeader("Content-Disposition",
+					"attachment; filename=\"global_symbols.properties\"");
+			response.setContentType("text/plain");
+			
+			//We directly write the concatenated string into the output stream of response
+			PrintStream printStream = new PrintStream(response.getOutputStream());
+			printStream.print(writedString);
+			printStream.close();
+
+			String message = "The global symbols file has been exported.";
+			Engine.logAdmin.info(message);
+		} else {
+			String message = "Error when parsing the requested parameter!";
+			Engine.logAdmin.error(message);
+			throw new Exception ("Error when parsing the requested parameter!");
+		}
 	}
 }
