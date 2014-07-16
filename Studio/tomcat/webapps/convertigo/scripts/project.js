@@ -187,7 +187,13 @@ function launchCliplet(url) {
 	if (isC8oCall() && $iframe.length && typeof($iframe[0].contentWindow.C8O) !== "undefined") {
 		$iframe[0].contentWindow.C8O.call(url.substring(url.indexOf("?") + 1));
 	} else {
-		$("#window_exe_content, #window_exe_content_mobile").empty().append("<iframe class='cliplet_div_iframe' frameborder='0' src='" + url + "'></iframe>");
+		//If the project is for mobile device
+		var ismobile = $("#window_exe_device").css("display") == "block";
+		if (ismobile) {
+			$("#window_exe_content_mobile").empty().append("<iframe class='cliplet_div_iframe' frameborder='0' src='" + url + "'></iframe>");
+		} else {
+			$("#window_exe_content").empty().append("<iframe class='cliplet_div_iframe' frameborder='0' src='" + url + "'></iframe>");	
+		}
 		$iframe.slideDown(500);
 	}
 	fixWidth();
