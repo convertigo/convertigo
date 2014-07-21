@@ -57,6 +57,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -67,8 +68,7 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
-import com.twinsoft.convertigo.eclipse.dialogs.CustomDialog;
+import com.twinsoft.convertigo.eclipse.dialogs.BuildLocalSuccessfulDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
@@ -79,6 +79,7 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
 public class BuildLocallyAction extends MyAbstractAction {
 
 	static final String cordovaDir = "cordova";
+	final double versionMinimalRequired = 3.3;
 	String cmdOutput;
 
 	/**
@@ -509,16 +510,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		for (Map.Entry<String, String> entry : envmap.entrySet())
 			envp[i++] = entry.getKey() + "=" + entry.getValue();
 		
-		/**
-		 * todo : handle command for Linux and MacOS (Should be cordova.sh...)
-		 */
-		String system = System.getProperty("os.name");
-		String shell = "cordova.cmd";
-		if (system.toLowerCase().indexOf("windows") != -1) {
-			shell = "cordova.cmd";
-		} else if (system.toLowerCase().indexOf("mac") != -1) {
-			shell = "cordova";
-		}
+		String shell = getShellCommand("cordova");
 		
 		process = Runtime.getRuntime().exec(shell + " " + Command,
 											envp,
@@ -707,10 +699,12 @@ public class BuildLocallyAction extends MyAbstractAction {
 			}
 
 			// TODO : and any other platforms BB10 for example
-
+			
+			
+			// TODO : Add platform Windows 8
 
 			// We have to add the the root Config.xml all our app's config.xml preferences.
-			// Cordova will use this file to generates the platform specifc config.xml
+			// Cordova will use this file to generates the platform specific config.xml
 			
 			Document rootConfigXML = XMLUtils.loadXml(new File(cordovaDir, "config.xml"));  // The root config.xml
 			NodeList preferences = xpathApi.selectNodeList(doc.getDocumentElement(), "//preference"); 
@@ -761,34 +755,85 @@ public class BuildLocallyAction extends MyAbstractAction {
 	 * 
 	 * @param platform
 	 * @return
+	 * @throws Throwable 
 	 */
-	private boolean checkPlatformCompatibility(MobilePlatform platform) {
+	private boolean checkPlatformCompatibility(MobilePlatform platform) throws Throwable {
 		String osname = System.getProperty("os.name", "generic").toLowerCase();
 		String os;
 		
-	    if (osname.startsWith("windows")) {
-	      os =  "win32";
-	    }
-	    else if (osname.startsWith("linux")) {
-	      os =   "linux";
-	    }
-	    else if (osname.startsWith("sunos")) {
-	      os =   "solaris";
-	    }
-	    else if (osname.startsWith("mac") || osname.startsWith("darwin")) {
-	      os =   "mac";
-	    }
-	    else 
-	      os =   "generic";
+		if (osname.startsWith("windows")) {
+			os = "win32";
+		} else if (osname.startsWith("linux")) {
+			os = "linux";
+		} else if (osname.startsWith("sunos")) {
+			os = "solaris";
+		} else if (osname.startsWith("mac") || osname.startsWith("darwin")) {
+			os = "mac";
+		} else {
+			os = "generic";
+		}
 	    
-	    // TODO : Implement Compatibility matrix
-	    return true;
+		// Implement Compatibility matrix
+		// Step 1: Check cordova version, compatibility over 3.3.x
+		File privateDir = getPrivateDir();
+		String version = runCordovaCommand("-v", privateDir);
+		if (!(Double.parseDouble(version.substring(0, 3)) >= versionMinimalRequired)) {
+			return false;
+		}
+
+		// Step 2: Check build local platform with mobile platform
+		if (os.equalsIgnoreCase("win32")
+				&& platform.getType().equalsIgnoreCase("iOS")) {
+			return false;
+		}
+
+		if (os.equalsIgnoreCase("mac")
+				&& platform.getType().startsWith("Windows")) {
+			return false;
+		}
+
+		if (os.equalsIgnoreCase("linux")
+				&& (platform.getType().startsWith("Windows") || platform
+						.getName().equalsIgnoreCase("iOS"))) {
+			return false;
+		}
+		
+		return true;
 	}
 	
 	public void run() {
 		String actionID = action.getId();
 		Engine.logEngine.debug("Running " + actionID + " action");
 		
+		if (actionID.equals("convertigo.action.buildLocallyRelease")){
+			buildLocally("release");
+		}
+		
+		if (actionID.equals("convertigo.action.buildLocallyDebug")){
+			buildLocally("debug");
+		}
+		
+		if (actionID.equals("convertigo.action.runLocally")){
+			runOnDevice();
+		}
+		
+		if (actionID.equals("convertigo.action.emulateLocally")){
+			runOnEmulator();		
+		}
+		
+		if (actionID.equals("convertigo.action.removeCordovaPlatform")){
+			removeCordovaPlatform();
+		}
+		
+		if (actionID.equals("convertigo.action.removeCordovaDirectory")){
+			removeCordovaDirectory();
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	public void buildLocally(final String option) {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
 		Shell shell = getParentShell();
@@ -802,29 +847,50 @@ public class BuildLocallyAction extends MyAbstractAction {
 
     			if ((databaseObject != null) && (databaseObject instanceof MobilePlatform)) {
     				final MobilePlatform mobileDevice = (MobilePlatform) treeObject.getObject();
-    				if (!checkPlatformCompatibility(mobileDevice)) {
-    					CustomDialog customDialog = new CustomDialog(
-    							shell,
-    							"This platform cannot be built on this workstation",
-    							"On Windows workstations you can build\n" +
-    							"- Android\n" +
-    							"- Windows Phone 8\n" +
-    							"- Windows Phone 7\n" +
-    							"- Windows 8 \n" +
-    							"- Blackberry 10 \n" +
-    							"\n" +
-    							"On Mac OS workstations you can build\n" +
-    							"- iOS\n" +
-    							"- Blackberry 10 \n" +
-    							"- Android\n" +
-    							"\n" +
-    							"On Linux workstations you can build\n" +
-    							"- Blackberry 10 \n" +
-    							"- Android\n",
-    							350, 340,
-    							new ButtonSpec("Ok", false)
-    					);
-    					customDialog.open();
+    				
+    				//Check endpoint url is empty or not
+    				if (mobileDevice.getParent() != null) {
+    					Object mobileApplication = mobileDevice.getParent();
+    					if (mobileApplication instanceof MobileApplication) {
+    						if (( (MobileApplication) mobileApplication).getEndpoint().equals("")) {
+    							MessageBox informDialog = new MessageBox(shell,
+    									SWT.ICON_INFORMATION | SWT.OK);
+    							informDialog.setText("Endpoint URL are empty");
+    							informDialog
+    									.setMessage("You need to have an endpoint URL to continue the local build.\n" +
+    											"Please enter a valid endpoint URL in the property \"Convertigo server endpoint\" present on \""+((MobileApplication) mobileApplication).getName()+"\" object.");
+
+    							informDialog.open();
+    							return;
+    						}
+    					}
+    				}
+    				
+    				//Check compatibility with platform mobile and os where we build
+    				if (!checkPlatformCompatibility(mobileDevice)) {   					
+						MessageBox informDialog = new MessageBox(shell,
+								SWT.ICON_INFORMATION | SWT.OK);
+						informDialog.setText("This platform cannot be built");
+						informDialog
+								.setMessage("You need at least cordova 3.3\n"
+										+ "\n"
+										+ "On Windows workstations you can build:\n"
+										+ " - Android\n"
+										+ " - Windows Phone 8\n"
+										+ " - Windows Phone 7\n"
+										+ " - Windows 8 \n"
+										+ " - Blackberry 10 \n"
+										+ "\n"
+										+ "On Mac OS workstations you can build:\n"
+										+ " - iOS\n"
+										+ " - Blackberry 10 \n"
+										+ " - Android\n"
+										+ "\n"
+										+ "On Linux workstations you can build:\n"
+										+ " - Blackberry 10 \n"
+										+ " - Android\n");
+
+						informDialog.open();
     					return;
     				}
     				
@@ -867,23 +933,21 @@ public class BuildLocallyAction extends MyAbstractAction {
 					});
 			        if (cordovaDirs.length == 0) {
 			        	// no Cordova directory has been found ask the user if he wants to create it
-			        	CustomDialog customDialog = new CustomDialog(
-    							shell,
-    							"Create a Cordova environment",
-    							"The cordova environment for this project has not been created yet. Creating the\n" +
-    							"environment must be done once by project. This project's environment will be shared\n" +
-    							"by all mobile devices for local build.\n\n" +
-    							"You have to install Cordova on your local machine to be able to build locally.\n" +
-    							"If Cordova is not yet installed, click 'No' and download cordova from :\n" +
-    							"http://cordova.apache.org . Be sure to follow all instruction on Cordova's\n" +
-    							"Web site to setup your local Cordova build system. \n\n" +
-    							"Do you want to create a Cordova environment for your project now ?",
-    							500, 280,
-    							new ButtonSpec("Yes", true),
-    							new ButtonSpec("No", false)
-    					);
-    					int response = customDialog.open();
-    					if (response == 0) {
+			        	MessageBox customDialog = new MessageBox(shell,
+								SWT.ICON_INFORMATION | SWT.YES | SWT.NO);
+			        	customDialog.setText("Create a Cordova environment");
+			        	customDialog
+								.setMessage("The cordova environment for this project has not been created yet. Creating the\n" +
+		    							"environment must be done once by project. This project's environment will be shared\n" +
+		    							"by all mobile devices for local build.\n\n" +
+		    							"You have to install Cordova on your local machine to be able to build locally.\n" +
+		    							"If Cordova is not yet installed, click 'No' and download cordova from :\n" +
+		    							"http://cordova.apache.org . Be sure to follow all instruction on Cordova's\n" +
+		    							"Web site to setup your local Cordova build system. \n\n" +
+		    							"Do you want to create a Cordova environment for your project now ?"
+		    			);
+						
+    					if (customDialog.open() == SWT.YES) {
     						//create a local Cordova Environment
     						runCordovaCommand("create " + BuildLocallyAction.cordovaDir + " " + applicationId + " " + ConvertigoPlugin.projectManager.currentProject.getName(), privateDir);
     						
@@ -917,13 +981,17 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	Engine.logEngine.info("ZIP expanded in : " + wwwDir.getAbsolutePath());
 					        	
 					        	// Step 3Bis : Add platform and Read And process Config.xml to copy needed icons and splash resources
-					        	File cordovaDir = new File(privateDir.getAbsolutePath() + "/" + BuildLocallyAction.cordovaDir);
+					        	File cordovaDir = getCordovaDir();
 					        	String cordovaPlatform = computeCordovaPlatform(mobileDevice.getType().toLowerCase());
 					        	runCordovaCommand("platform add " + cordovaPlatform, cordovaDir);
 					        	ProcessConfigXMLResources(wwwDir, cordovaPlatform, cordovaDir);
 					        	
 					        	// Step 4: Build using Cordova the specific platform.
-					        	runCordovaCommand("build " + cordovaPlatform, cordovaDir);
+					        	runCordovaCommand("build " + cordovaPlatform + " --"+option, cordovaDir);
+					        	
+					        	// Step 5: Show dialog with path to apk/ipa/xap
+					        	showLocationInstallFile(cordovaPlatform, applicationName, option);
+					        	
 					        	return org.eclipse.core.runtime.Status.OK_STATUS;
 					        	
 							} catch (Throwable e) {
@@ -934,31 +1002,209 @@ public class BuildLocallyAction extends MyAbstractAction {
 		        	};
 		        	buildJob.setUser(true);
 		        	buildJob.schedule();
+		        	
     			}
     		}
-        }
-		
-		catch (IOException ee) {
-        	CustomDialog customDialog = new CustomDialog(
+        } catch (IOException ee) {
+        	MessageBox customDialog = new MessageBox(
 					shell,
-					"Cordova installation not found",
-					"In order to use local build you must install on your workstation a valid\n" +
+					SWT.ICON_INFORMATION | SWT.OK);
+        	customDialog.setText("Cordova installation not found");
+        	customDialog.setMessage("In order to use local build you must install on your workstation a valid\n" +
 					"Cordova build system. You can download and install Cordova from \n" +
 					"http://cordova.apache.org . Be sure to follow all instruction on Cordova\n" +
 					"Web site to setup your local Cordova build system. \n\n" +
-					"This message can also appear if cordova is not in your PATH.",
-					500, 200,
-					new ButtonSpec("Ok", true)
+					"This message can also appear if cordova is not in your PATH."
 			);
 			customDialog.open();
-		}
-        catch (Throwable e) {
+		} catch (Throwable e) {
         	ConvertigoPlugin.logException(e, "Unable to build locally with Cordova");
         }
         finally {
 			shell.setCursor(null);
 			waitCursor.dispose();
         }
+	}
+	
+	private void showLocationInstallFile(final String cordovaPlatform, 
+			final String applicationName, final String buildOption) {
+		final Display display = Display.getDefault();
+		display.asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				File buildedFile = getAbsolutePathOfBuildedFile(applicationName, cordovaPlatform, buildOption);
+				
+				BuildLocalSuccessfulDialog buildSuccessDialog = new BuildLocalSuccessfulDialog(
+						display.getActiveShell(),
+						buildedFile.getAbsolutePath(), applicationName,
+						cordovaPlatform);
+				
+				buildSuccessDialog.open();
+			}
+        });
+    	
+	}
+	
+	
+	public File getAbsolutePathOfBuildedFile(String applicationName, String cordovaPlatform, String buildMode) {
+		String buildedPath = null;
+		
+		if (cordovaPlatform.equals("android")) {
+			buildedPath = getCordovaDir().getAbsolutePath() +
+					"\\platforms\\" + 
+					cordovaPlatform + "\\bin\\" + applicationName + "-" + buildMode + ".apk";
+		} else if (cordovaPlatform.equals("ios")){
+			//TODO : Handle iOS
+		} else if ((cordovaPlatform.equals("wp7")) || (cordovaPlatform.equals("wp8"))) {
+			//TODO : Handle WINPHONE 7 & 8
+		} else if (cordovaPlatform.equals("bb10")){
+			//TODO : Handle BB10
+		} else {
+			return null;
+		}
+		
+		return new File (buildedPath);
+	}
+	
+	/**
+	 * 
+	 */
+	public void runOnEmulator() {
+		final MobilePlatform mobilePlatform = getMobilePlatform();
+
+		if (mobilePlatform != null) {
+			final String platformName = computeCordovaPlatform(mobilePlatform
+					.getType().toLowerCase());
+			Job buildJob = new Job("Run " + platformName
+					+ " platform on emulator in progress...") {
+				@Override
+				protected IStatus run(IProgressMonitor arg0) {
+					try {
+						runCordovaCommand("run " + platformName
+								+ " --emulator --debug", getCordovaDir());
+						return org.eclipse.core.runtime.Status.OK_STATUS;
+					} catch (Throwable thr) {
+						Engine.logEngine
+								.error("Error when trying to run on emulate the required mobile platform!",
+										thr);
+						return org.eclipse.core.runtime.Status.CANCEL_STATUS;
+					}
+				}
+			};
+			buildJob.setUser(true);
+			buildJob.schedule();
+		}
+
+	}
+	
+	/**
+	 * 
+	 */
+	public void runOnDevice() {
+		final MobilePlatform mobilePlatform = getMobilePlatform();
+		if (mobilePlatform != null) {
+			final String platformName = computeCordovaPlatform(mobilePlatform
+					.getType().toLowerCase());
+			Job buildJob = new Job("Run "+platformName+" platform on device in progress...") {
+				@Override
+				protected IStatus run(IProgressMonitor arg0) {
+					try {
+						runCordovaCommand("run "
+								+ platformName
+								+ " --device --debug", getCordovaDir());
+						return org.eclipse.core.runtime.Status.OK_STATUS;
+						
+					} catch (Throwable e) {
+						Engine.logEngine
+						.error("Error when trying to run on device the required mobile platform!",
+								e);
+						return org.eclipse.core.runtime.Status.CANCEL_STATUS;
+					}
+				}
+			};
+			buildJob.setUser(true);
+			buildJob.schedule();
+		}
+
+	}
+	
+	/**
+	 * 
+	 */
+	public void removeCordovaPlatform(){
+		final MobilePlatform mobilePlatform = getMobilePlatform();
+		if (mobilePlatform != null) {
+			final String platformName = computeCordovaPlatform(mobilePlatform
+					.getType().toLowerCase());
+			Job buildJob = new Job("Remove " + platformName + " platform on cordova in progress...") {
+				@Override
+				protected IStatus run(IProgressMonitor arg0) {
+					try {
+
+						runCordovaCommand("platform rm "
+								+ platformName,
+								getCordovaDir());
+
+						return org.eclipse.core.runtime.Status.OK_STATUS;
+
+					} catch (Throwable thr) {
+						Engine.logEngine
+								.error("Error when removing the required mobile platform!",
+										thr);
+						return org.eclipse.core.runtime.Status.CANCEL_STATUS;
+					}
+				}
+			};
+			buildJob.setUser(true);
+			buildJob.schedule();
+		}
+		
+	}
+	
+	/**
+	 * Dialog yes/no which ask to user if we want
+	 * remove the cordova directory present into "_private" directory
+	 * We also explain, what we do and how to recreate the cordova environment
+	 */
+	public void removeCordovaDirectory() {
+		//TODO
+	}
+	
+	private MobilePlatform getMobilePlatform() {
+		ProjectExplorerView explorerView = getProjectExplorerView();
+		if (explorerView != null) {
+			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
+			Object databaseObject = treeObject.getObject();
+
+			if ((databaseObject != null) && (databaseObject instanceof MobilePlatform)) {
+				 return (MobilePlatform) treeObject.getObject();
+			} 
+		}
+		return null;
+	}
+	
+	private File getCordovaDir(){
+		return new File(getPrivateDir().getAbsolutePath() + "/" + BuildLocallyAction.cordovaDir);
+	}
+	
+	private File getPrivateDir() {
+		return new File(Engine.PROJECTS_PATH + "/"
+				+ ConvertigoPlugin.projectManager.currentProject.getName()
+				+ "/_private");
+	}
+	
+	private String getShellCommand(String command){
+		// TODO: Handle command for Linux and MacOS (Should be android.sh...)
+		
+		String system = System.getProperty("os.name");
+		String shell = command + ".cmd";
+		if (system.toLowerCase().indexOf("windows") != -1) {
+			shell = command + ".cmd";
+		} else if (system.toLowerCase().indexOf("mac") != -1) {
+			shell = command;
+		}
+		
+		return shell;
 	}
 
 }
