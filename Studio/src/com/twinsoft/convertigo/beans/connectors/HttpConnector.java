@@ -1226,6 +1226,20 @@ public class HttpConnector extends Connector implements ITagsProperty {
 					}				
 					httpInfoElement.appendChild(httpHeadersElement);
 				}
+				
+				// we add response header information
+				if (responseHeaders.length != 0) {
+					Element httpHeadersElement = doc.createElement("responseHeaders");
+
+					for (int i = 0; i < responseHeaders.length; i++){
+						Element elt = doc.createElement("header");
+						elt.setAttribute("name", responseHeaders[i].toString().substring( 0, responseHeaders[i].toString().indexOf(":") ) );
+						elt.setAttribute("value", responseHeaders[i].toString().substring( responseHeaders[i].toString().indexOf(":")+2 ) );
+						httpHeadersElement.appendChild(elt);
+					}				
+					httpInfoElement.appendChild(httpHeadersElement);
+				}
+				
 				doc.getDocumentElement().appendChild(httpInfoElement);
 			}				
 		} finally {
