@@ -175,8 +175,17 @@ public enum Visibility {
 								for (Variable variable: variableList) {
 									if (variable != null && isMasked(variable.getVisibility())) {
 										for (String key : getVariableKeyNames(variable)) {
-											if (parameterName.equals(key)) {
+											if (parameterName.equals(key) ) {
+												
+												//We delete parent node and re-create to permit to remove all child nodes
+												if (parameter.hasChildNodes()) {
+													SOAPElement parent = parameter.getParentElement();
+													parent.removeChild(parameter);
+													parameter = parent.addChildElement(parameterName);
+												} 
+												
 												parameter.setValue(STRING_MASK);
+												
 											}
 										}
 									}
@@ -213,6 +222,16 @@ public enum Visibility {
 				Attr valueAttrNode;
 				String variableName;
 				Node node;
+				Element firstElement = (Element) variableNodeList.item(0);
+				//Permit to identify if we have an input document or a XSL requestTemplate
+				
+				boolean isInputDoc = false;
+				if (firstElement.getParentNode() != null && firstElement.getParentNode().getNodeName().equals("transaction-variables")){
+					if (firstElement.getParentNode().getParentNode() != null && firstElement.getParentNode().getParentNode().getNodeName().equals("input")) {
+						isInputDoc = true;
+					}
+				}
+				
 				for (int i=0; i<variableNodeList.getLength(); i++) {
 					variableElement = (Element) variableNodeList.item(i);
 					variableName = variableElement.getAttribute("name");
@@ -222,19 +241,25 @@ public enum Visibility {
 						if (variable != null && isMasked(variable.getVisibility())) {
 							for (String key : getVariableKeyNames(variable)) {
 								if (variableName.equals(key)) {
-									// inputDocument
+									// inputDocument with attribute value
 									if (valueAttrNode != null) {
 										valueAttrNode.setNodeValue(STRING_MASK);
 									}
-									// XSL requestTemplate
+									// inputDocument without attribute value but with child nodes | XSL requestTemplate
 									else if (valueNodeList != null) {
-										for (int j=0; j<valueNodeList.getLength(); j++) {
-											node = valueNodeList.item(j);
-											if (node.getNodeType() == Node.ELEMENT_NODE && 
-												((Element)node).getNodeName().equals("value")) {
-													((Element)node).setNodeValue(STRING_MASK);
+										if (isInputDoc) {
+											//Loop we permit to remove all childs
+											for (Node child; (child = variableElement.getFirstChild()) != null; variableElement.removeChild(child));
+											variableElement.setTextContent(STRING_MASK);
+										} else {
+											for (int j=0; j<valueNodeList.getLength(); j++) {
+												node = valueNodeList.item(j);
+												if (node.getNodeType() == Node.ELEMENT_NODE && 
+													((Element)node).getNodeName().equals("value")) {
+														((Element)node).setNodeValue(STRING_MASK);
+												}
 											}
-										}
+										}										
 									}
 								}
 							}
