@@ -317,7 +317,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 
 		case TEMPLATE_WEB_SERVICE_REFERENCE:
 			page1 = new NewProjectWizardPage1(selection);
-			page10 = new NewProjectWizardPage10(selection, projectName);
+			page10 = new NewProjectWizardPage10(selection);
 			addPage(page1);
 			addPage(page10);
 			break;

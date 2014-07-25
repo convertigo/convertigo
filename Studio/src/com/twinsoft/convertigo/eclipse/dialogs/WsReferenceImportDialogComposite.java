@@ -45,9 +45,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Text;
 
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite implements IWsReferenceComposite{
@@ -57,7 +55,6 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 	private String filePath = "";
 	private String urlPath = "";
 	private WsReferenceComposite wsRefAuthenticated = null;
-	private Object parentObject = null;
 	private Button OKButton = null;
 	
 	public Button useAuthentication = null;
@@ -153,17 +150,6 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 		return null;
 	}
 	
-	private String getProjectName() {
-		if (parentObject instanceof Project) {
-			return ((Project)parentObject).getName();
-		}
-		return "";
-	}
-	
-	public void setParentObject(Object parentObject) {
-		this.parentObject = parentObject;
-	}
-	
 	public void setOKButton(Button OKButton) {
 		this.OKButton = OKButton;
 	}
@@ -192,28 +178,13 @@ public class WsReferenceImportDialogComposite extends MyAbstractDialogComposite 
 				for (String fileFilter: filterExtensions) {
 					String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));
 					if (filePath.endsWith(fileExtension)) {
-						try {
-							String xsdFilePath = new File(filePath).getCanonicalPath();
-							String projectPath = (new File(Engine.PROJECTS_PATH +"/"+ getProjectName())).getCanonicalPath();
-							String workspacePath = (new File(Engine.USER_WORKSPACE_PATH)).getCanonicalPath();
-							
-							boolean isExternal = !xsdFilePath.startsWith(projectPath) && !xsdFilePath.startsWith(workspacePath);
-							
-							if (isExternal) {
-								String uriFile = FileUtils.toUriString(file);
-								if(!Arrays.asList(combo.getItems()).contains(uriFile)){
-									combo.add(uriFile);
-									combo.select(combo.getItemCount()-1);
-								} else {
-									combo.select(wsRefAuthenticated.getItem(uriFile));
-								}
-							}
-							else {
-								if (xsdFilePath.startsWith(projectPath))
-									xsdFilePath = "./" + xsdFilePath.substring(projectPath.length());
-								else if (xsdFilePath.startsWith(workspacePath))
-									xsdFilePath = "." + xsdFilePath.substring(workspacePath.length());
-								xsdFilePath = xsdFilePath.replaceAll("\\\\", "/");
+						try {					
+							String uriFile = FileUtils.toUriString(file);
+							if(!Arrays.asList(combo.getItems()).contains(uriFile)){
+								combo.add(uriFile);
+								combo.select(combo.getItemCount()-1);
+							} else {
+								combo.select(wsRefAuthenticated.getItem(uriFile));
 							}
 						} catch (Exception e) {
 							message = e.getMessage();

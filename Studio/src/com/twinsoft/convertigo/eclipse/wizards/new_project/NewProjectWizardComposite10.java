@@ -44,7 +44,6 @@ import org.eclipse.swt.widgets.Text;
 import com.twinsoft.convertigo.eclipse.dialogs.IWsReferenceComposite;
 import com.twinsoft.convertigo.eclipse.dialogs.WsReferenceComposite;
 import com.twinsoft.convertigo.eclipse.wizards.util.FileFieldEditor;
-import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.FileUtils;
 
 public class NewProjectWizardComposite10 extends Composite implements IWsReferenceComposite {
@@ -52,17 +51,15 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 	private FileFieldEditor editor = null;	
 	private String filePath = "";
 	private String urlPath = "";
-	private String projectName = "";
 	private WizardPage parentWizard = null;
 	
 	private WsReferenceComposite wsRefAuthenticated = null;
 	public Button useAuthentication = null;
 	public Text loginText = null, passwordText = null;
 	
-	public NewProjectWizardComposite10(Composite parent, String projectName, int style, WizardPage wizard) {
+	public NewProjectWizardComposite10(Composite parent,  int style, WizardPage wizard) {
 		super(parent, style);
 		this.parentWizard = wizard;
-		this.projectName = projectName;
 		initialize();
 	}
 
@@ -145,28 +142,14 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 					String fileExtension = fileFilter.substring(fileFilter.lastIndexOf("."));
 					if (filePath.endsWith(fileExtension)) {
 						try {
-							String xsdFilePath = new File(filePath).getCanonicalPath();
-							String projectPath = (new File(Engine.PROJECTS_PATH +"/"+ projectName)).getCanonicalPath();
-							String workspacePath = (new File(Engine.USER_WORKSPACE_PATH)).getCanonicalPath();
-							
-							boolean isExternal = !xsdFilePath.startsWith(projectPath) && !xsdFilePath.startsWith(workspacePath);
-							
-							if (isExternal) {
-								String uriFile = FileUtils.toUriString(file);
-								if(!Arrays.asList(combo.getItems()).contains(uriFile)){
-									combo.add(uriFile);
-									combo.select(combo.getItemCount()-1);
-								} else {
-									combo.select(wsRefAuthenticated.getItem(uriFile));
-								}
+							String uriFile = FileUtils.toUriString(file);
+							if(!Arrays.asList(combo.getItems()).contains(uriFile)){
+								combo.add(uriFile);
+								combo.select(combo.getItemCount()-1);
+							} else {
+								combo.select(wsRefAuthenticated.getItem(uriFile));
 							}
-							else {
-								if (xsdFilePath.startsWith(projectPath))
-									xsdFilePath = "./" + xsdFilePath.substring(projectPath.length());
-								else if (xsdFilePath.startsWith(workspacePath))
-									xsdFilePath = "." + xsdFilePath.substring(workspacePath.length());
-								xsdFilePath = xsdFilePath.replaceAll("\\\\", "/");
-							}
+
 						} catch (Exception e) {
 							message = e.getMessage();
 						}
@@ -186,7 +169,7 @@ public class NewProjectWizardComposite10 extends Composite implements IWsReferen
 		
 		setTextStatus(message);
 	}
-
+	
 	@Override
 	public void comboChanged() {
 		urlPath = combo.getText();
