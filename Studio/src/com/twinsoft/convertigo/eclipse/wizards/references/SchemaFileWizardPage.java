@@ -170,10 +170,9 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 		if (parentObject instanceof Project) {
 			return ((Project)parentObject).getName();
 		}
-		return "";
+		return null;
 	}
 	
-	@Override
 	public void dialogChanged() {
 		String message = null;
 		if (!urlPath.equals("")) {
@@ -204,30 +203,31 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 							String projectPath = (new File(Engine.PROJECTS_PATH +"/"+ getProjectName())).getCanonicalPath();
 							String workspacePath = (new File(Engine.USER_WORKSPACE_PATH)).getCanonicalPath();
 							
-							boolean isExternal = !xsdFilePath.startsWith(projectPath) && !xsdFilePath.startsWith(workspacePath);
-							
-							if (isExternal) {
-								String uriFile = FileUtils.toUriString(file);
-								if(!Arrays.asList(combo.getItems()).contains(uriFile)){
-									combo.add(uriFile);
-									combo.select(combo.getItemCount()-1);
-								} else {
-									combo.select(wsRefAuthenticated.getItem(uriFile));
-								}
+							//XSD file
+							if (xsdFilePath.endsWith(".xsd")) {
+								boolean isExternal = !xsdFilePath.startsWith(projectPath) && !xsdFilePath.startsWith(workspacePath);
 								
-							}
-							else {
-								if (xsdFilePath.startsWith(projectPath))
-									xsdFilePath = "./" + xsdFilePath.substring(projectPath.length());
-								else if (xsdFilePath.startsWith(workspacePath))
-									xsdFilePath = "." + xsdFilePath.substring(workspacePath.length());
-								xsdFilePath = xsdFilePath.replaceAll("\\\\", "/");
-								
-								try {
-									setDboFilePath(xsdFilePath);
-								} catch (NullPointerException e) {
-									message = "New Bean has not been instantiated";
+								if (isExternal) {
+									addToCombo(FileUtils.toUriString(file));
 								}
+								else {
+									if (xsdFilePath.startsWith(projectPath))
+										xsdFilePath = "./" + xsdFilePath.substring(projectPath.length());
+									else if (xsdFilePath.startsWith(workspacePath))
+										xsdFilePath = "." + xsdFilePath.substring(workspacePath.length());
+									xsdFilePath = xsdFilePath.replaceAll("\\\\", "/");
+									
+									try {
+										setDboFilePath(xsdFilePath);
+									} catch (NullPointerException e) {
+										message = "New Bean has not been instantiated";
+									}
+									
+									
+								}
+							//WSDL file
+							} else {
+								addToCombo(FileUtils.toUriString(file));
 							}
 						} catch (Exception e) {
 							message = e.getMessage();
@@ -247,6 +247,17 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 		
 		setTextStatus(message);
 	}
+
+	private void addToCombo(String uriFile){
+		if(!Arrays.asList(combo.getItems()).contains(uriFile)){
+			combo.add(uriFile);
+			combo.select(combo.getItemCount()-1);
+		} else {
+			combo.select(wsRefAuthenticated.getItem(uriFile));
+		}
+		
+		urlPath = "";
+	}
 	
 	@Override
 	public void comboChanged() {
@@ -262,18 +273,27 @@ public abstract class SchemaFileWizardPage extends WizardPage implements IWsRefe
 	}
 	
 	@Override
-	public void setTextStatus(String message) {		
-		if(message==null && !wsRefAuthenticated.isValidURL()){
-			setErrorMessage("Please enter a valid URL");	
-		} else {
-			setErrorMessage(message);	
-		}
-		
-		if (wsRefAuthenticated.isValidURL()){
+	public void setTextStatus(String message) {	
+		//XSD file
+		if (filePath.endsWith(".xsd")) {
 			setPageComplete(message==null);
+			setErrorMessage(message);
+			
+		//WSDL file
 		} else {
-			setPageComplete(false);
+			if(message==null && !wsRefAuthenticated.isValidURL()){
+				setErrorMessage("Please enter a valid URL");	
+			} else {
+				setErrorMessage(message);	
+			}
+			
+			if (wsRefAuthenticated.isValidURL()){
+				setPageComplete(message==null);
+			} else {
+				setPageComplete(false);
+			}
 		}
+
 	}
 	
 	public String getWsdlURL(){

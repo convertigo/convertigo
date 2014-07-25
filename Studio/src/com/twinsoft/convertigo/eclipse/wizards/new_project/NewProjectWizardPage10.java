@@ -28,16 +28,15 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
 public class NewProjectWizardPage10 extends WizardPage {
-	private String projectName;
 	
-	public NewProjectWizardPage10(ISelection selection, String projectName) {
+	public NewProjectWizardPage10(ISelection selection) {
 		super("wizardPage");
 		setTitle("Import web service reference");
-		setDescription("This step creates a new http connector to invoke the remote web service");
+		setDescription("This step creates a new http connector to invoke the remote web service");		
 	}
 
 	public void createControl(Composite parent) {
-		Composite container = new NewProjectWizardComposite10(parent, projectName, SWT.NULL, this);
+		Composite container = new NewProjectWizardComposite10(parent, SWT.NULL, this);
 		setControl(container);
 		setPageComplete(isValidURL());
 	}

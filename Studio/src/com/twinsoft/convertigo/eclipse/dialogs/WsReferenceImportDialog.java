@@ -68,7 +68,6 @@ public class WsReferenceImportDialog extends MyAbstractDialog implements Runnabl
 	
 	protected void okPressed() {		
 		try {
-			((WsReferenceImportDialogComposite)dialogComposite).setParentObject(project);
 			((WsReferenceImportDialogComposite)dialogComposite).setOKButton(this.getButton(OK));
 			
 			labelInformation = ( (WsReferenceImportDialogComposite)dialogComposite ).labelInformation; 
