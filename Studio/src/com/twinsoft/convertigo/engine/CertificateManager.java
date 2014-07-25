@@ -38,7 +38,7 @@ import com.twinsoft.convertigo.engine.util.Crypto2;
 
 public class CertificateManager {
 	
-	private static final Collection<String> certificateExtension=Arrays.asList(".udv",".store",".cer",".pfx",".pkcs11"); 
+	private static final Collection<String> certificateExtension = Arrays.asList(".udv",".store",".cer",".pfx",".p12",".pkcs11"); 
 	public static boolean isCertificateExtension(String extensionToTest){
 		return certificateExtension.contains(extensionToTest);
 	}
