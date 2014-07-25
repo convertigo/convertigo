@@ -814,7 +814,7 @@
 	             label="Local build(Debug)"
 	             menubarPath="convertigo.menu.action.cordova/build" />
 	       
-	  </objectContribution> -->
+	  </objectContribution>-->
 
 	  <objectContribution
 	        id="convertigo.launchMobileApplicationProjectContribution"
@@ -1435,9 +1435,9 @@
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
          <visibility>
             <objectState
-                  name="isStatementWithExpressions"
-                  value="true"/>
-         </visibility>
+               name="isStatementWithExpressions"
+               value="true"/>
+         </visibility> 
          <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.CreateStatementAction"
                enablesFor="1"
@@ -1452,7 +1452,49 @@
 		  	   </enablement>
 		  </action>
       </objectContribution>
-            <objectContribution
+      <objectContribution
+            id="convertigo.scHandlerEntryChangeToContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
+         <visibility>
+            <objectState
+               name="objectClassName"
+               value="com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement"/>
+         </visibility>
+    	 <menu
+               id="convertigo.menu.changeTo"
+               label="Change to"
+               path="changeTo" />   
+      	 <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToScExitHandlerStatementAction"
+               enablesFor="1"
+               icon="icons/studio/handlers_sc_exit.gif"
+               id="convertigo.action.changeToExitHandler"
+               label="Exit handler"
+               menubarPath="convertigo.menu.changeTo/content">
+          </action>
+      </objectContribution>
+      <objectContribution
+            id="convertigo.scHandlerExitChangeToContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
+         <visibility>
+            <objectState
+               name="objectClassName"
+               value="com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement"/>
+         </visibility>
+    	 <menu
+               id="convertigo.menu.changeTo"
+               label="Change to"
+               path="changeTo" />   
+      	 <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToScEntryHandlerStatementAction"
+               enablesFor="1"
+               icon="icons/studio/handlers_sc_entry.gif"
+               id="convertigo.action.changeToExitHandler"
+               label="Entry handler"
+               menubarPath="convertigo.menu.changeTo/content">
+          </action>
+      </objectContribution>
+      <objectContribution
             id="convertigo.folderContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ObjectsFolderTreeObject">
          <action
