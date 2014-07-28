@@ -64,71 +64,71 @@ public class ChangeToScEntryHandlerStatementAction extends MyAbstractAction {
     			// For ScExitHandler statement
     			if ((databaseObject != null) && (databaseObject instanceof ScExitHandlerStatement)) {
     				ScExitHandlerStatement scExitHandlerStatement = (ScExitHandlerStatement) databaseObject;
-    				
-    				if (scExitHandlerStatement.hasStatements()) {
-    					
-    					List<Statement> list = scExitHandlerStatement.getStatements();
-    					TreePath[] selectedPaths = new TreePath[list.size()];
-    					for (int i=0; i<list.size(); i++) {
-    						StatementTreeObject statementTreeObject = (StatementTreeObject)explorerView.findTreeObjectByUserObject(list.get(i));
-    						selectedPaths[i] = new TreePath(statementTreeObject);
-    					}
-    						
-						TreeParent treeParent = treeObject.getParent();
-						DatabaseObjectTreeObject parentTreeObject = null;
-						if (treeParent instanceof DatabaseObjectTreeObject)
-							parentTreeObject = (DatabaseObjectTreeObject)treeParent;
-						else
-							parentTreeObject = (DatabaseObjectTreeObject)treeParent.getParent();
+    				   						
+					TreeParent treeParent = treeObject.getParent();
+					DatabaseObjectTreeObject parentTreeObject = null;
+					if (treeParent instanceof DatabaseObjectTreeObject) {
+						parentTreeObject = (DatabaseObjectTreeObject)treeParent;
+					} else {
+						parentTreeObject = (DatabaseObjectTreeObject)treeParent.getParent();
+					}
+					
+	        		if (parentTreeObject != null) {
+						// New ScEntryHandler statement
+	        			ScEntryHandlerStatement scEntryHandlerStatement = new ScEntryHandlerStatement();
+	        			
+	        			// Set properties
+	        			scEntryHandlerStatement.setHandlerResult(scExitHandlerStatement.getHandlerResult());
+	        			scEntryHandlerStatement.setHandlerType(scExitHandlerStatement.getHandlerType());
+	        			scEntryHandlerStatement.setComment(scExitHandlerStatement.getComment());
+	        			scEntryHandlerStatement.setEnable(scExitHandlerStatement.isEnable());
+	        			scEntryHandlerStatement.setPreventFromLoops(scExitHandlerStatement.preventFromLoops());
+	        			scEntryHandlerStatement.setParent(scExitHandlerStatement.getParent());
+	        			scEntryHandlerStatement.setReturnedValue(scExitHandlerStatement.getReturnedValue());
+	        			scEntryHandlerStatement.setVersion(scExitHandlerStatement.getVersion());
+	        			scEntryHandlerStatement.setNormalizedScreenClassName(scExitHandlerStatement.getNormalizedScreenClassName());
+	        			scEntryHandlerStatement.setName("on"+scExitHandlerStatement.getNormalizedScreenClassName()+"Entry");
+	        			
+	        			// Change status of ScEntryHandler statement
+						scEntryHandlerStatement.bNew = true;
+						scEntryHandlerStatement.hasChanged = true;
 						
-		        		if (parentTreeObject != null) {
-    						// New ScEntryHandler statement
-		        			ScEntryHandlerStatement scEntryHandlerStatement = new ScEntryHandlerStatement();
-		        			
-		        			// Set properties
-		        			scEntryHandlerStatement.setHandlerResult(scExitHandlerStatement.getHandlerResult());
-		        			scEntryHandlerStatement.setHandlerType(scExitHandlerStatement.getHandlerType());
-		        			scEntryHandlerStatement.setComment(scExitHandlerStatement.getComment());
-		        			scEntryHandlerStatement.setEnable(scExitHandlerStatement.isEnable());
-		        			scEntryHandlerStatement.setPreventFromLoops(scExitHandlerStatement.preventFromLoops());
-		        			scEntryHandlerStatement.setParent(scExitHandlerStatement.getParent());
-		        			scEntryHandlerStatement.setReturnedValue(scExitHandlerStatement.getReturnedValue());
-		        			scEntryHandlerStatement.setVersion(scExitHandlerStatement.getVersion());
-		        			scEntryHandlerStatement.setNormalizedScreenClassName(scExitHandlerStatement.getNormalizedScreenClassName());
-		        			scEntryHandlerStatement.setName("on"+scExitHandlerStatement.getNormalizedScreenClassName()+"Entry");
-		        			
-		        			// Change status of ScEntryHandler statement
-    						scEntryHandlerStatement.bNew = true;
-    						scEntryHandlerStatement.hasChanged = true;
-    						
-    						// Add new ScEntryHandler statement to parent
-    						DatabaseObject parentDbo = scEntryHandlerStatement.getParent();
-    						parentDbo.add(scEntryHandlerStatement);
-    						
-    						// Add new ScEntryHandler statement in Tree
-    						StatementTreeObject statementTreeObject = new StatementTreeObject(explorerView.viewer, scEntryHandlerStatement);
-    						treeParent.addChild(statementTreeObject);
-
-    						// Cut/Paste statements under screen class exit
-    						if (selectedPaths.length > 0) {
-    							new ClipboardAction(ConvertigoPlugin.clipboardManagerDND).cut(explorerView, selectedPaths, ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT);
+						// Add new ScEntryHandler statement to parent
+						DatabaseObject parentDbo = scEntryHandlerStatement.getParent();
+						parentDbo.add(scEntryHandlerStatement);
+						
+						// Add new ScEntryHandler statement in Tree
+						StatementTreeObject statementTreeObject = new StatementTreeObject(explorerView.viewer, scEntryHandlerStatement);
+						treeParent.addChild(statementTreeObject);
+						
+	    				if (scExitHandlerStatement.hasStatements()) {
+	    					
+	    					List<Statement> list = scExitHandlerStatement.getStatements();
+	    					TreePath[] selectedPaths = new TreePath[list.size()];
+	    					for (int i=0; i<list.size(); i++) {
+	    						StatementTreeObject statementTreeObjects = (StatementTreeObject)explorerView.findTreeObjectByUserObject(list.get(i));
+	    						selectedPaths[i] = new TreePath(statementTreeObjects);
+	    					}
+	    					
+							// Cut/Paste statements under screen class exit
+							if (selectedPaths.length > 0) {
+								new ClipboardAction(ConvertigoPlugin.clipboardManagerDND).cut(explorerView, selectedPaths, ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STATEMENT);
 	    						for (int i = 0 ; i < ConvertigoPlugin.clipboardManagerDND.objects.length ; i++) {
 	    							ConvertigoPlugin.clipboardManagerDND.cutAndPaste(ConvertigoPlugin.clipboardManagerDND.objects[i], statementTreeObject);
 	    						}
 	    						ConvertigoPlugin.clipboardManagerDND.reset();
-    						}
-    						
-    		   				// Delete ScExitHandler statement
-    						scExitHandlerStatement.delete();
-    						
-		        			parentTreeObject.hasBeenModified(true);
-			                explorerView.reloadTreeObject(parentTreeObject);
-			                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(scEntryHandlerStatement));
-		        		}
-					}
-    			}
-    		}
-        	
+							}
+	    				}
+						
+		   				// Delete ScExitHandler statement
+						scExitHandlerStatement.delete();
+						
+	        			parentTreeObject.hasBeenModified(true);
+		                explorerView.reloadTreeObject(parentTreeObject);
+		                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(scEntryHandlerStatement));
+	        		}
+				}
+			}        	
         }
         catch (Throwable e) {
         	ConvertigoPlugin.logException(e, "Unable to change screen class exit handler statement to screen class entry handler statement!");
