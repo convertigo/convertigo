@@ -65,6 +65,7 @@ public class ChangeToIfXpathExistsThenElseStatementAction extends MyAbstractActi
     		if (explorerView != null) {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
     			Object databaseObject = treeObject.getObject();
+    			// IfXpathExists
     			if ((databaseObject != null) && (databaseObject instanceof IfXpathExistsStatement)) {
     				IfXpathExistsStatement ifStatement = (IfXpathExistsStatement) databaseObject;
 					List<Statement> list = ifStatement.getStatements();
@@ -84,7 +85,7 @@ public class ChangeToIfXpathExistsThenElseStatementAction extends MyAbstractActi
 					
 	        		if (parentTreeObject != null) {
 						// New IfXpathExistsThenElseStatement statement
-						IfXpathExistsThenElseStatement ifThenElseStatement = new IfXpathExistsThenElseStatement(ifStatement.getCondition());
+						IfXpathExistsThenElseStatement ifThenElseStatement = new IfXpathExistsThenElseStatement();
 						ifThenElseStatement.bNew = true;
 						ifThenElseStatement.hasChanged = true;
 						
@@ -97,6 +98,13 @@ public class ChangeToIfXpathExistsThenElseStatementAction extends MyAbstractActi
 							int index = ((StatementWithExpressions)parentDbo).getOrderedStatements().get(0).indexOf(ifStatement.priority);
 		   				    ((StatementWithExpressions)parentDbo).getOrderedStatements().get(0).insertElementAt(ifThenElseStatement.priority, index);
 						}
+						
+						// Set properties
+						ifThenElseStatement.setCondition(ifStatement.getCondition());
+						ifThenElseStatement.setComment(ifStatement.getComment());
+						ifThenElseStatement.setEnable(ifStatement.isEnable());
+						ifThenElseStatement.setVersion(ifStatement.getVersion());
+						ifThenElseStatement.setXpath(ifStatement.getXpath());
 						
 						// Add Then/Else statement
 						ThenStatement thenStatement = new ThenStatement();
