@@ -936,7 +936,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							boolean updateReferences = false;
 							int update = 0;
 							// Updates references in SequenceStep/TransactionStep if needed
-							if ((theTreeObject instanceof ProjectTreeObject) || (theTreeObject instanceof SequenceTreeObject) || (theTreeObject instanceof ConnectorTreeObject) || (theTreeObject instanceof TransactionTreeObject)) {
+							if ((theTreeObject instanceof ProjectTreeObject) || (theTreeObject instanceof SequenceTreeObject) || (theTreeObject instanceof ConnectorTreeObject) || (theTreeObject instanceof TransactionTreeObject) || (theTreeObject instanceof VariableTreeObject2)) {
 								String objectType = "";
 								if (theTreeObject instanceof ProjectTreeObject) {
 									objectType = "project";
@@ -949,6 +949,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									updateDlg = true;
 								} else if (theTreeObject instanceof TransactionTreeObject) {
 									objectType = "transaction";
+									updateDlg = true;
+								} else if (theTreeObject instanceof VariableTreeObject2) {
+									objectType = "variable";
 									updateDlg = true;
 								}
 								
