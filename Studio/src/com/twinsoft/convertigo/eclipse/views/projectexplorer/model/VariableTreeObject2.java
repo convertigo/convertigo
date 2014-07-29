@@ -24,8 +24,16 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
 import org.eclipse.jface.viewers.Viewer;
 
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.steps.SequenceStep;
+import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
+import com.twinsoft.convertigo.engine.EngineException;
 
 public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOrderableTreeObject {
 
@@ -62,6 +70,86 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 	@Override
 	public void treeObjectPropertyChanged(TreeObjectEvent treeObjectEvent) {
 		super.treeObjectPropertyChanged(treeObjectEvent);
+		
+		TreeObject treeObject = (TreeObject)treeObjectEvent.getSource();
+		if (treeObject instanceof DatabaseObjectTreeObject) {
+			String propertyName = treeObjectEvent.propertyName;
+			propertyName = ((propertyName == null) ? "" : propertyName);
+			
+			// If a variable name has changed
+			if (propertyName.equals("name")) {
+				handlesBeanNameChanged(treeObjectEvent);
+			}
+		}
 	}
+
+	protected void handlesBeanNameChanged(TreeObjectEvent treeObjectEvent) {
+		DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject)treeObjectEvent.getSource();
+		DatabaseObject databaseObject = (DatabaseObject)treeObject.getObject();
+		Object oldValue = treeObjectEvent.oldValue;
+		Object newValue = treeObjectEvent.newValue;
+		int update = treeObjectEvent.update;
+		
+		// Updates variables references
+		if (update != TreeObjectEvent.UPDATE_NONE) {
+			boolean isLocalProject = false;
+			boolean isSameValue = false;
+			boolean shouldUpdate = false;
+			try {
+				
+				if (getObject() instanceof Variable) {
+					Variable variable = (Variable)getObject();
+					
+					if (databaseObject instanceof RequestableVariable) {
+						
+						isLocalProject = variable.getProject().equals(databaseObject.getProject());
+						isSameValue = variable.getName().equals(oldValue);
+						shouldUpdate = (update == TreeObjectEvent.UPDATE_ALL) || ((update == TreeObjectEvent.UPDATE_LOCAL) && (isLocalProject));
+						
+						// Verify if parent of databaseObject is a transaction
+						if (databaseObject.getParent() instanceof Transaction) {
+							Transaction transaction = (Transaction) databaseObject.getParent();
+							
+							// Case of rename for Call Transaction
+							if (variable.getParent() instanceof TransactionStep) {
+								TransactionStep transactionStep = (TransactionStep) variable.getParent();
+								
+								if (transactionStep.getSourceTransaction().equals(transaction.getProject()+"."+transaction.getConnector()+"."+transaction.getName())) {
+									updateNameReference(isSameValue, shouldUpdate, variable, newValue);									
+								}
+							}
+						}
+						
+						// Verify if parent of databaseObject is a sequence
+						if (databaseObject.getParent() instanceof Sequence) {
+							Sequence sequence = (Sequence) databaseObject.getParent();
+						
+							//Case of rename for Call Sequence
+							if (variable.getParent() instanceof SequenceStep) {
+								SequenceStep sequenceStep = (SequenceStep) variable.getParent();
+								
+								if (sequenceStep.getSourceSequence().equals(sequence.getProject()+"."+sequence.getName())) {
+									updateNameReference(isSameValue, shouldUpdate, variable, newValue);
+								}
+							}
+						}
+						
+					}
+				}	
+				
+			} catch (EngineException e) {
+				ConvertigoPlugin.logException(e, "Unable to rename the variable references of '" + databaseObject.getName() + "'!");
+			}
+
+		}
+	}	
 	
+	private void updateNameReference(boolean isSameValue, boolean shouldUpdate, Variable var, Object newValue) throws EngineException{
+		if (isSameValue && shouldUpdate) {
+			var.setName(newValue.toString());
+			hasBeenModified(true);
+			viewer.refresh();
+			getDescriptors();// refresh editors (e.g labels in combobox)
+		}
+	}
 }
