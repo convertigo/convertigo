@@ -31,8 +31,8 @@ public class IsInThenElseStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = IsInThenElseStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.steps.IsInStep.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/if_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/if_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/ifIsIn_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/ifIsIn_32x32.png";
 			
 			resourceBundle = getResourceBundle("res/IsInThenElseStep");
 			
