@@ -32,6 +32,8 @@ import java.util.Enumeration;
 
 import javax.net.ssl.X509KeyManager;
 
+import org.mozilla.javascript.edu.emory.mathcs.backport.java.util.Arrays;
+
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
 public class MyX509KeyManager implements X509KeyManager {
@@ -60,7 +62,7 @@ public class MyX509KeyManager implements X509KeyManager {
 		Engine.logCertificateManager.trace("MyX509KeyManager.chooseClientAlias(): alias=" + alias);
 		if (alias == null) {
 			String[] issuersToAdd = EnginePropertiesManager.getPropertyAsStringArray(PropertyName.SSL_ISSUERS);
-			Engine.logCertificateManager.debug("MyX509KeyManager.chooseClientAlias(): issuersToAdd=" + issuersToAdd.toString());
+			Engine.logCertificateManager.debug("MyX509KeyManager.chooseClientAlias(): issuersToAdd=" + Arrays.toString(issuersToAdd));
 
 			String alias;
 			int nbIssuersToAdd = issuersToAdd.length;
@@ -132,7 +134,7 @@ public class MyX509KeyManager implements X509KeyManager {
 			
 			X509Certificate[] chain = (X509Certificate[]) chainList.toArray(new X509Certificate[] {});
 			
-			Engine.logCertificateManager.info("Certificate chain: " + chain);
+			Engine.logCertificateManager.info("Certificate chain: " + Arrays.toString(chain));
 			return chain;
 		}
 		catch (Exception e) {
