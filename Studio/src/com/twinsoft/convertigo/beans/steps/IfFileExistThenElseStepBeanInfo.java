@@ -31,8 +31,8 @@ public class IfFileExistThenElseStepBeanInfo extends MySimpleBeanInfo {
 			beanClass = IfFileExistThenElseStep.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.steps.IfFileExistStep.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/if_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/if_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/ifFileExists_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/ifFileExists_32x32.png";
 			
 			resourceBundle = getResourceBundle("res/IfFileExistThenElseStep");
 			
