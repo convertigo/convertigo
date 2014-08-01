@@ -806,19 +806,19 @@ public class BuildLocallyAction extends MyAbstractAction {
 		Engine.logEngine.debug("Running " + actionID + " action");
 		
 		if (actionID.equals("convertigo.action.buildLocallyRelease")){
-			buildLocally("release");
+			buildLocally("release", false, "");
 		}
 		
 		if (actionID.equals("convertigo.action.buildLocallyDebug")){
-			buildLocally("debug");
+			buildLocally("debug", false, "");
 		}
 		
 		if (actionID.equals("convertigo.action.runLocally")){
-			runOnDevice();
+			buildLocally("debug", true, "device");
 		}
 		
 		if (actionID.equals("convertigo.action.emulateLocally")){
-			runOnEmulator();		
+			buildLocally("debug", true, "emulator");
 		}
 		
 		if (actionID.equals("convertigo.action.removeCordovaPlatform")){
@@ -833,7 +833,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 	/**
 	 * 
 	 */
-	public void buildLocally(final String option) {
+	public void buildLocally(final String option, final boolean run, final String target) {
 		Display display = Display.getDefault();
 		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
 		Shell shell = getParentShell();
@@ -958,7 +958,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 			        } 
 			        
 			        // OK we are sure we have a Cordova environment.. Start the build
-		        	Job buildJob = new Job("Local Cordova Build in progress...") {
+		        	Job buildJob = new Job("Local Cordova Build " + (run ? "and Run ":"") + "in progress...") {
 						@Override
 						protected IStatus run(IProgressMonitor arg0) {
 							try {
@@ -986,8 +986,13 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	runCordovaCommand("platform add " + cordovaPlatform, cordovaDir);
 					        	ProcessConfigXMLResources(wwwDir, cordovaPlatform, cordovaDir);
 					        	
-					        	// Step 4: Build using Cordova the specific platform.
-					        	runCordovaCommand("build " + cordovaPlatform + " --"+option, cordovaDir);
+					        	// Step 4: Build or Run using Cordova the specific platform.
+					        	if (run) {
+					        		runCordovaCommand("run " + cordovaPlatform + " --"+option+ " --"+target , cordovaDir);
+					        	} else {
+					        		runCordovaCommand("build " + cordovaPlatform + " --"+option, cordovaDir);
+					        	}
+					        	
 					        	
 					        	// Step 5: Show dialog with path to apk/ipa/xap
 					        	showLocationInstallFile(cordovaPlatform, applicationName, option);
@@ -1066,9 +1071,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 		return new File (buildedPath);
 	}
 	
-	/**
-	 * 
-	 */
+/* Not Used anymore ...
+ * 	
 	public void runOnEmulator() {
 		final MobilePlatform mobilePlatform = getMobilePlatform();
 
@@ -1097,9 +1101,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 
 	}
 	
-	/**
-	 * 
-	 */
 	public void runOnDevice() {
 		final MobilePlatform mobilePlatform = getMobilePlatform();
 		if (mobilePlatform != null) {
@@ -1127,9 +1128,12 @@ public class BuildLocallyAction extends MyAbstractAction {
 		}
 
 	}
-	
+*/
+
 	/**
+	 * Removes the CordovaPlatform...
 	 * 
+	 * Used to clean a broken cordova environment.
 	 */
 	public void removeCordovaPlatform(){
 		final MobilePlatform mobilePlatform = getMobilePlatform();
