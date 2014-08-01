@@ -70,7 +70,7 @@ $.extend(true, C8O, {
 	_jqm_onDocumentReady: C8O._onDocumentReady,
 	_onDocumentReady: function (params) {
 		if (!$.mobile.ajaxBlacklist) {
-			$("<div id=\"c8oloading\"/>").css({backgroundColor: "grey", position: "fixed", width: "100%", height: "100%", opacity: 0.5, "z-index": 99}).hide().appendTo("body");
+			$("<div id=\"c8oloading\"/>").css({backgroundColor: "grey", position: "fixed", width: "100%", height: "100%", opacity: 0.5, "z-index": 9999}).hide().appendTo("body");
 		}
 		
 		$(document).on("pageshow", function () {
