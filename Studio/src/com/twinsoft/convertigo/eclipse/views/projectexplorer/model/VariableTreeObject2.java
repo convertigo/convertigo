@@ -39,7 +39,6 @@ import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
-import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -133,7 +132,7 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 							 * propagation to testCases of variable renaming in a transaction
 							 */
 							if (variable.getParent() instanceof TransactionWithVariables) {
-								propagateVariableRename(treeObjectEvent,  ((TransactionWithVariables)transaction).getTestCasesList(), transaction.getName());								
+								propagateVariableRename(isSameValue, shouldUpdate, treeObjectEvent, ((TransactionWithVariables)transaction).getTestCasesList(), transaction.getName());
 							}
 						}
 						
@@ -154,7 +153,7 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 							 * propagation to testCases of variable renaming in a sequence
 							 */
 							if (variable.getParent() instanceof Sequence) {
-								propagateVariableRename(treeObjectEvent, sequence.getTestCasesList(), sequence.getName());								
+								propagateVariableRename(isSameValue, shouldUpdate, treeObjectEvent, sequence.getTestCasesList(), sequence.getName());								
 							}
 						}
 					}
@@ -166,7 +165,7 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 		}
 	}	
 
-	private void propagateVariableRename(TreeObjectEvent treeObjectEvent, List<TestCase> list, String parentName) {
+	private void propagateVariableRename(boolean isSameValue, boolean shouldUpdate,TreeObjectEvent treeObjectEvent, List<TestCase> list, String parentName) {
 		try {
 			/*
 			 * get the testcases list
@@ -191,6 +190,9 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 								 */
 								if (testCaseVar.getName().equalsIgnoreCase((String)treeObjectEvent.oldValue)) {
 									testCaseVar.setName((String)treeObjectEvent.newValue);
+									testCaseVar.hasChanged = true;
+									
+									updateNameReference(isSameValue, shouldUpdate, testCaseVar, (String)treeObjectEvent.newValue);
 								}
 							}
 						}
@@ -204,7 +206,7 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 	}
 	
 	private void updateNameReference(boolean isSameValue, boolean shouldUpdate, Variable var, Object newValue) throws EngineException{
-		if (isSameValue && shouldUpdate) {
+		if (!isSameValue && shouldUpdate) {		// should be !isSameValue instead of isSameValue to reflect change
 			var.setName(newValue.toString());
 			hasBeenModified(true);
 			viewer.refresh();
