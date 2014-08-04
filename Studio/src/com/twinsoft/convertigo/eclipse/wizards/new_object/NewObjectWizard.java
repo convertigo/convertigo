@@ -90,6 +90,7 @@ import com.twinsoft.convertigo.beans.transactions.ExternalBrowserTransaction;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
+import com.twinsoft.convertigo.beans.transactions.SapJcoLogonTransaction;
 import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
@@ -477,6 +478,11 @@ public class NewObjectWizard extends Wizard {
 							sqlTransaction.initializeQueries(true);
 						}
 						
+						if (newBean instanceof SapJcoLogonTransaction) {
+							SapJcoLogonTransaction sapLogonTransaction = (SapJcoLogonTransaction)newBean;
+							sapLogonTransaction.addCredentialsVariables();
+						}
+
 						ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");
 		    			monitor.setTaskName("Object setted up");
 		    			monitor.worked(1);
@@ -587,6 +593,15 @@ public class NewObjectWizard extends Wizard {
     	
 		else if (connector instanceof SapJcoConnector) {
 			SapJcoConnector sapConnector = (SapJcoConnector)connector;
+			
+			SapJcoLogonTransaction sapLogon = new SapJcoLogonTransaction();
+			sapLogon.hasChanged = true;
+			sapLogon.bNew = true;
+			sapLogon.setName("Logon");
+			sapLogon.addCredentialsVariables();
+			sapConnector.add(sapLogon);
+			sapConnector.setDefaultTransaction(sapLogon);
+			
 			SapJcoTransaction transaction = new SapJcoTransaction();
 			transaction.hasChanged = true;
 			transaction.bNew = true;
@@ -599,7 +614,6 @@ public class NewObjectWizard extends Wizard {
 			variable.setValueOrNull("BAPI_*");
 			transaction.add(variable);
 			sapConnector.add(transaction);
-			sapConnector.setDefaultTransaction(transaction);
 		}
     	
 		else if (connector instanceof SqlConnector) {

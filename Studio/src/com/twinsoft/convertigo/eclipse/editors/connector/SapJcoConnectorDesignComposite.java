@@ -45,7 +45,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
-import com.twinsoft.convertigo.beans.connectors.SapJcoConnector.SapJcoProviderImpl;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -196,7 +195,7 @@ public class SapJcoConnectorDesignComposite extends Composite {
 				shell.setCursor(waitCursor);
 				
 			    ConvertigoPlugin.logDebug("Searching repository...");
-			    Document jcoDoc = sapConnector.getSapJCoProvider().executeJCoSearch(sapConnector, pattern);
+				Document jcoDoc = SapJcoConnector.executeJCoSearch(sapConnector, pattern);
 		        ConvertigoPlugin.logDebug("Search done.");
 		        
 		        if (jcoDoc != null) {
@@ -242,13 +241,12 @@ public class SapJcoConnectorDesignComposite extends Composite {
 			try {
 				shell.setCursor(waitCursor);
 				
-				SapJcoProviderImpl provider = sapConnector.getSapJCoProvider();
 				for (int i=0; i < items.length; i++) {
 					TableItem item = items[i];
 					String bapiName = item.getText(0);
 					String bapiDesc = item.getText(1);
 					ConvertigoPlugin.logDebug("Creating transaction for BAPI '"+bapiName+"' ...");
-					SapJcoTransaction sapJcoTransaction = provider.createSapJcoTransaction(bapiName);
+					SapJcoTransaction sapJcoTransaction = SapJcoConnector.createSapJcoTransaction(sapConnector, bapiName);
 					if (sapJcoTransaction != null) {
 						sapJcoTransaction.setComment(bapiDesc);
 						sapConnector.add(sapJcoTransaction);

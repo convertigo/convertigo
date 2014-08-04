@@ -788,6 +788,9 @@
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.SapJcoTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SapJcoConnector"/>
                 </bean>
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.SapJcoLogonTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SapJcoConnector"/>
+                </bean>
             </beans>
 		</category>
 	</group>

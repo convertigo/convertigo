@@ -24,10 +24,13 @@ package com.twinsoft.convertigo.beans.connectors;
 
 import java.io.File;
 
+import org.w3c.dom.Document;
+
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
+import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -50,6 +53,11 @@ public class SapJcoConnector extends Connector {
 	
     public class SapJcoProviderImpl extends SapJCoProvider {
 
+		@Override
+		protected String getDestinationName() {
+			return getQName();
+		}
+    	
 		@Override
 		protected String getDestinationHost() {
 			return getAsHost();
@@ -84,7 +92,12 @@ public class SapJcoConnector extends Connector {
 		protected String getJcoFunctionFilePath(String functionName) {
 			return getJcoFunctionDirPath() +"/"+functionName+".ser";
 		}
-    	
+
+		@Override
+		protected Context getContext() {
+			return context;
+		}
+
     }
     
 	public SapJcoConnector() {
@@ -93,12 +106,12 @@ public class SapJcoConnector extends Connector {
         try
         {
     		provider = new SapJcoProviderImpl();
-    		provider.register();
-    		Engine.logBeans.debug("[SapConnector] Provider registered");
+    		provider.init();
+    		Engine.logBeans.debug("[SapConnector] Provider created");
         }
-        catch(IllegalStateException providerAlreadyRegisteredException)
+        catch (Exception e)
         {
-			Engine.logBeans.warn("[SapConnector] Provider already registered!");
+			Engine.logBeans.error("[SapConnector] An error occured while creating provider", e);
         }
 	}
 
@@ -109,7 +122,7 @@ public class SapJcoConnector extends Connector {
 			clonedObject = (SapJcoConnector) super.clone();
 			clonedObject.provider = provider;
 		} catch (Exception e) {
-			Engine.logBeans.error("[SapConnector] Failed to clone SapJcoConnector : " + e.getMessage());
+			Engine.logBeans.error("[SapConnector] Failed to clone connector : " + e.getMessage());
 		}
 		return clonedObject;
 	}
@@ -120,14 +133,17 @@ public class SapJcoConnector extends Connector {
 		super.release();
 
 		try {
-			provider.unregister();
-			Engine.logBeans.debug("[SapConnector] Provider unregistered");
+			if (provider != null) {
+				provider.release();
+				Engine.logBeans.debug("[SapConnector] Provider released");
+			}
         } catch (Exception ee) {
-			Engine.logBeans.error("[SapConnector] An error occured while unregistering provider", ee);
+			Engine.logBeans.error("[SapConnector] An error occured while releasing provider", ee);
 		}
 		finally {
 			provider = null;
 		}
+		
 	}
 
 	@Override
@@ -167,10 +183,31 @@ public class SapJcoConnector extends Connector {
 	
 	@Override
 	public void prepareForTransaction(Context context) throws EngineException {
-		SapJcoTransaction sapJcoTransaction = (SapJcoTransaction)context.requestedObject;
-		provider.initJCoFunction(sapJcoTransaction.getBapiName());
+		provider.prepareCustomDestination((SapJcoTransaction)context.requestedObject);
 	}
 
+	public static Document executeJCoSearch(SapJcoConnector connector, String pattern) throws EngineException {
+		SapJcoTransaction transaction = (SapJcoTransaction)connector.newTransaction();
+		transaction.setBapiName("RFC_FUNCTION_SEARCH");
+		RequestableVariable variable = new RequestableVariable();
+		variable.setName("FUNCNAME");
+		variable.setValueOrNull(pattern);
+		transaction.addVariable(variable);
+		return connector.getSapJCoProvider().executeJCoFunction(transaction, true);
+	}
+	
+	public static SapJcoTransaction createSapJcoTransaction(SapJcoConnector sapConnector, String bapiName) throws EngineException {
+		return sapConnector.createTransaction(bapiName);
+	}
+	
+	public Document executeTransaction(SapJcoTransaction transaction) throws EngineException {
+		return getSapJCoProvider().executeJCoFunction(transaction);
+	}
+	
+	protected SapJcoTransaction createTransaction(String bapiName) throws EngineException {
+		return getSapJCoProvider().createSapJcoTransaction(bapiName);
+	}
+	
 	protected String getJcoFunctionDirPath() {
 		String dirPath = getProject().getDirPath()+"/bapis/"+getName();
 		File dir = new File(dirPath);
@@ -234,5 +271,5 @@ public class SapJcoConnector extends Connector {
 	public void setData(Object data) {
 		fireDataChanged(new ConnectorEvent(this, data));
 	}
-	
+
 }

@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserManager;
 import com.twinsoft.convertigo.engine.plugins.AbstractBiller;
 import com.twinsoft.convertigo.engine.plugins.PluginsManager;
+import com.twinsoft.convertigo.engine.providers.SapJcoDestinationDataProvider;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
@@ -727,6 +728,15 @@ public class Engine {
 						Engine.logEngine.warn("Trying to start Xvnc on Linux without DISPLAY environment variable !");
 				}
 
+				// SAP provider registration
+				try {
+					SapJcoDestinationDataProvider.init();
+					Engine.logEngine.debug("SAP destination provider successfully registered");
+				}
+				catch (Exception e) {
+					Engine.logEngine.error("Error while registering SAP destination provider", e);
+				}
+				
 				isStarted = true;
 
 				Engine.logEngine.info("Convertigo engine started");
@@ -836,6 +846,14 @@ public class Engine {
 				if (Engine.theApp.securityTokenManager != null)
 					Engine.theApp.securityTokenManager.destroy();
 
+				Engine.logEngine.info("Unregistering the SAP destination provider");
+				try {
+					SapJcoDestinationDataProvider.destroy();
+				}
+				catch (Exception e) {
+					Engine.logEngine.error("Error while unregistering SAP destination provider", e);
+				}
+				
 				Engine.logEngine.info("The Convertigo Engine has been successfully stopped.");
 			} finally {
 				Engine.startStopDate = System.currentTimeMillis();

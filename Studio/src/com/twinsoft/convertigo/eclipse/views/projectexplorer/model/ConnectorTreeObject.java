@@ -206,11 +206,10 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 					
 					if (connector instanceof SapJcoConnector) {
 						try {
-							((SapJcoConnector)connector).getSapJCoProvider().
-								getDestinationDataEventListener().updated("Convertigo");
+							((SapJcoConnector)connector).getSapJCoProvider().updateDestination();
 						}
 						catch (Exception e) {
-							ConvertigoPlugin.logWarning(e, "Could not update sap provider !");
+							ConvertigoPlugin.logWarning(e, "Could not update SAP destination !");
 						}
 					}
 				}

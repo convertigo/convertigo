@@ -45,9 +45,11 @@ public class SapJcoTransaction extends TransactionWithVariables {
 
 	private static final long serialVersionUID = -3420141243872478042L;
 	
+	public static final String unconfigured_bapi_name = "<Configure BAPI Name Here>";
+	
 	transient SapJcoConnector connector;
 
-	private String bapiName = "<Configure BAPI Name Here>";
+	protected String bapiName = unconfigured_bapi_name;
 
 	public String getBapiName() {
 		return bapiName;
@@ -108,7 +110,7 @@ public class SapJcoTransaction extends TransactionWithVariables {
 		connector = ((SapJcoConnector) parent);
         try {
         	Engine.logBeans.debug("[SAP transaction] BAPI named '"+ bapiName +"' executing ...");
-        	Document jcoDoc = connector.getSapJCoProvider().executeJCoFunction(this);
+        	Document jcoDoc = connector.executeTransaction(this);
         	Engine.logBeans.debug("[SAP transaction] BAPI named '"+ bapiName +"' executed.");
         	
         	if (jcoDoc != null) {
@@ -156,10 +158,11 @@ public class SapJcoTransaction extends TransactionWithVariables {
 		XmlSchemaSequence xmlSchemaSequence = (XmlSchemaSequence)xmlSchemaComplexType.getParticle();
 		if (xmlSchemaSequence == null) xmlSchemaSequence = new XmlSchemaSequence();
 		try {
+			connector = ((SapJcoConnector) parent);
 			SapJcoProviderImpl provider = connector.getSapJCoProvider();
 			XmlSchemaElement sap_output = provider.addJCoFunctionResponseSchema(this, xmlSchema);
 			xmlSchemaSequence.getItems().add(sap_output);
-		} catch (EngineException e) {
+		} catch (Exception e) {
 			Engine.logBeans.error("Unable to generate response schema for SapJcoTransaction named '"+ getName() +"'", e);
 		}
 		xmlSchemaComplexType.setParticle(xmlSchemaSequence);
