@@ -1,19 +1,23 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
+* Copyright (c) 2014 Convertigo. All Rights Reserved.
+*
+* The copyright to the computer  program(s) herein  is the property
+* of Convertigo.
+* The program(s) may  be used  and/or copied  only with the written
+* permission  of  Convertigo  or in accordance  with  the terms and
+* conditions  stipulated  in the agreement/contract under which the
+* program(s) have been supplied.
+*
+* Convertigo makes  no  representations  or  warranties  about  the
+* suitability of the software, either express or implied, including
+* but  not  limited  to  the implied warranties of merchantability,
+* fitness for a particular purpose, or non-infringement. Convertigo
+* shall  not  be  liable for  any damage  suffered by licensee as a
+* result of using,  modifying or  distributing this software or its
+* derivatives.
+*/
+
+/*
  * $URL$
  * $Author$
  * $Revision$
@@ -22,14 +26,20 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import java.util.List;
+
 import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
+import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
+import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.beans.core.Variable;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
@@ -118,6 +128,13 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 									updateNameReference(isSameValue, shouldUpdate, variable, newValue);									
 								}
 							}
+							
+							/*
+							 * propagation to testCases of variable renaming in a transaction
+							 */
+							if (variable.getParent() instanceof TransactionWithVariables) {
+								propagateVariableRename(isSameValue, shouldUpdate, treeObjectEvent, ((TransactionWithVariables)transaction).getTestCasesList(), transaction.getName());
+							}
 						}
 						
 						// Verify if parent of databaseObject is a sequence
@@ -132,20 +149,65 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 									updateNameReference(isSameValue, shouldUpdate, variable, newValue);
 								}
 							}
+							
+							/*
+							 * propagation to testCases of variable renaming in a sequence
+							 */
+							if (variable.getParent() instanceof Sequence) {
+								propagateVariableRename(isSameValue, shouldUpdate, treeObjectEvent, sequence.getTestCasesList(), sequence.getName());								
+							}
 						}
-						
 					}
 				}	
 				
 			} catch (EngineException e) {
 				ConvertigoPlugin.logException(e, "Unable to rename the variable references of '" + databaseObject.getName() + "'!");
 			}
-
 		}
 	}	
+
+	private void propagateVariableRename(boolean isSameValue, boolean shouldUpdate,TreeObjectEvent treeObjectEvent, List<TestCase> list, String parentName) {
+		try {
+			/*
+			 * get the testcases list
+			 */
+			if (list != null) {
+				TestCase testCase;
+				TestCaseVariable testCaseVar;
+				
+				/*
+				 * locate testcase belonging to same sequence
+				 */
+				for (int i=0; i<list.size(); i++) {
+					if (((testCase = (TestCase)list.get(i)) != null) && (testCase.getParent().getName().equals(parentName))) {
+						/*
+						 * get the testcase variables list
+						 */
+						List<TestCaseVariable> varList = testCase.getAllVariables();
+						for (int v=0; v<varList.size(); v++) {
+							if ((testCaseVar = (TestCaseVariable)varList.get(v)) != null) {
+								/*
+								 * if variables have same name, then update the value
+								 */
+								if (testCaseVar.getName().equalsIgnoreCase((String)treeObjectEvent.oldValue)) {
+									testCaseVar.setName((String)treeObjectEvent.newValue);
+									testCaseVar.hasChanged = true;
+									
+									updateNameReference(isSameValue, shouldUpdate, testCaseVar, (String)treeObjectEvent.newValue);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			ConvertigoPlugin.logException(e, "Unable to propagate variable " + (String)treeObjectEvent.oldValue + " renaming to testcase in '" + parentName + "'!");
+		}
+	}
 	
 	private void updateNameReference(boolean isSameValue, boolean shouldUpdate, Variable var, Object newValue) throws EngineException{
-		if (isSameValue && shouldUpdate) {
+		if (!isSameValue && shouldUpdate) {		// should be !isSameValue instead of isSameValue to reflect change
 			var.setName(newValue.toString());
 			hasBeenModified(true);
 			viewer.refresh();
