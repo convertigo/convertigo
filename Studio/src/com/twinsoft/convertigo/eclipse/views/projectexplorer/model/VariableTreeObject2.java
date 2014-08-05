@@ -206,7 +206,7 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 	}
 	
 	private void updateNameReference(boolean isSameValue, boolean shouldUpdate, Variable var, Object newValue) throws EngineException{
-		if (!isSameValue && shouldUpdate) {		// should be !isSameValue instead of isSameValue to reflect change
+		if (isSameValue && shouldUpdate) {		// should be !isSameValue instead of isSameValue to reflect change
 			var.setName(newValue.toString());
 			hasBeenModified(true);
 			viewer.refresh();
