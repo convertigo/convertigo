@@ -733,7 +733,7 @@ public class Engine {
 					SapJcoDestinationDataProvider.init();
 					Engine.logEngine.debug("SAP destination provider successfully registered");
 				}
-				catch (Exception e) {
+				catch (Throwable e) {
 					Engine.logEngine.error("Error while registering SAP destination provider", e);
 				}
 				
