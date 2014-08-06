@@ -132,7 +132,7 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 							 * propagation to testCases of variable renaming in a transaction
 							 */
 							if (variable.getParent() instanceof TransactionWithVariables) {
-								propagateVariableRename(isSameValue, shouldUpdate, treeObjectEvent, ((TransactionWithVariables)transaction).getTestCasesList(), transaction.getName());
+								propagateVariableRename(true, true, treeObjectEvent, ((TransactionWithVariables)transaction).getTestCasesList(), transaction.getName());
 							}
 						}
 						
@@ -153,7 +153,7 @@ public class VariableTreeObject2 extends DatabaseObjectTreeObject implements IOr
 							 * propagation to testCases of variable renaming in a sequence
 							 */
 							if (variable.getParent() instanceof Sequence) {
-								propagateVariableRename(isSameValue, shouldUpdate, treeObjectEvent, sequence.getTestCasesList(), sequence.getName());								
+								propagateVariableRename(true, true, treeObjectEvent, sequence.getTestCasesList(), sequence.getName());								
 							}
 						}
 					}
