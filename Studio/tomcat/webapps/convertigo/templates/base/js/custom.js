@@ -77,7 +77,7 @@ $.extend(true, C8O, {
 //		target_append: "false", /** true/false: append content to target_id or to body element */
 //		target_id: "", /** element id: element id for result insertion or a selected jquery object */
 //		use_siteclipper_plugin: "true", /** true/false: use the iframe encapsulation for siteclipper request */
-//		xsl_side: "client" /** client/server: force the side of the xsl transformation */
+		xsl_side: "none" /** client/server/none: force the side of the xsl transformation or pure XML */
 	}
 });
 

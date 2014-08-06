@@ -39,7 +39,7 @@ $.extend(true, C8O, {
 		target_append: "false", /** true/false */
 		target_id: "",
 		use_siteclipper_plugin: "true", /** true/false */
-		xsl_side: "client" /** client/server */
+		xsl_side: "client" /** client/server/none */
 	},
 	
 	doMashupEvent: function (event_name, payload) {
@@ -294,7 +294,7 @@ $.extend(true, C8O, {
 	
 	_onDocumentReady: function (params) {
 		/** No XSLT engine (see #1336): switch to server mode */
-		if (!window.XSLTProcessor && !window.ActiveXObject) {
+		if (C8O.vars.xsl_side == "client" && (!window.XSLTProcessor && !window.ActiveXObject)) {
 			C8O.log.debug("c8o.desk: no xsl engine, force xsl side server");
 			C8O.vars.xsl_side = "server";
 		}
