@@ -704,7 +704,7 @@ $(document).ready(function() {
 									src : ""
 								}).one("load", function () {
 									if (getRequester() === ".pxml") {
-										if( $(".cliplet_div_iframe").eq(1).parents("#window_exe_device").css("display") == "none" ){
+										if (!$("#window_exe_device").is(":visible")) {
 											$form.attr("action", $form.attr("action") + "?__content_type=text/plain");
 										}
 									}
@@ -721,7 +721,7 @@ $(document).ready(function() {
 					window.open(href);
 				} else {
 					if (getRequester() === ".pxml") {
-						if( $(".cliplet_div_iframe").eq(1).parents("#window_exe_device").css("display") == "none" ){
+						if (!$("#window_exe_device").is(":visible")) {
 							href += "&__content_type=text/plain"
 						}
 					}
