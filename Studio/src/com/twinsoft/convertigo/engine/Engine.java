@@ -850,7 +850,7 @@ public class Engine {
 				try {
 					SapJcoDestinationDataProvider.destroy();
 				}
-				catch (Exception e) {
+				catch (Throwable e) {
 					Engine.logEngine.error("Error while unregistering SAP destination provider", e);
 				}
 				
