@@ -2215,20 +2215,6 @@
                      label="Execute"
                      menubarPath="execute">
                </action>
-               <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.UpdateXSDTypesFromXMLAction"
-                     enablesFor="0"
-                     id="convertigo.action.seq.updateXSDFromXML"
-                     label="Update schema from current generated XML"
-                     menubarPath="xsd">
-               </action>
-               <action
-                     class="com.twinsoft.convertigo.eclipse.popup.actions.UpdateXSDTypesAction"
-                     enablesFor="1"
-                     id="convertigo.action.seq.updateXSD"
-                     label="Update schema from sequence&apos;s definition"
-                     menubarPath="xsd">
-               </action>
             <action
                   class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceImportFromXsdAction"
                   enablesFor="1"
