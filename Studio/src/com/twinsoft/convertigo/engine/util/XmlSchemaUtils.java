@@ -264,8 +264,9 @@ public class XmlSchemaUtils {
 				if (parent instanceof Element) {
 					Element xParent = (Element) parent;
 					String name = obj.getName();
-					String value = "";
-					
+					String value = obj.getFixedValue() != null ? obj.getFixedValue() :
+						obj.getDefaultValue() != null ? obj.getDefaultValue() : "";
+										
 					XmlSchemaSimpleType simpleType = obj.getSchemaType(); 
 					if (simpleType != null) {
 						XmlSchemaSimpleTypeContent simpleTypeContent = simpleType.getContent();
