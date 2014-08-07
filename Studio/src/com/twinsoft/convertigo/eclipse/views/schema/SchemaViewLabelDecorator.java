@@ -123,10 +123,14 @@ public class SchemaViewLabelDecorator implements ILabelDecorator {
 				XmlSchemaObject xso = (XmlSchemaObject) element;
 				
 				XmlSchemaType type = null;
+				String value = null;
 				if (element instanceof XmlSchemaElement) {
 					type = SchemaMeta.getType(xso, ((XmlSchemaElement) element).getSchemaTypeName());
 				} else if (element instanceof XmlSchemaAttribute) {
-					type = SchemaMeta.getType(xso, ((XmlSchemaAttribute) element).getSchemaTypeName());					
+					XmlSchemaAttribute attr = (XmlSchemaAttribute) element;
+					type = SchemaMeta.getType(xso, attr.getSchemaTypeName());	
+					value = attr.getDefaultValue();
+					value = value == null ? attr.getFixedValue() : "default:" + value;
 				} else if (element instanceof XmlSchemaSimpleContentExtension) {
 					type = SchemaMeta.getType(xso, ((XmlSchemaSimpleContentExtension) element).getBaseTypeName());
 				} else if (element instanceof XmlSchemaSimpleTypeRestriction) {
@@ -135,6 +139,11 @@ public class SchemaViewLabelDecorator implements ILabelDecorator {
 					XmlSchemaEnumerationFacet enumerationFacet = (XmlSchemaEnumerationFacet) element;
 					decoratedText += " [" + enumerationFacet.getValue() + "]";
 				}
+
+				if (value != null) {
+					decoratedText += " {" + value + "}";
+				}
+				
 				if (type != null && type instanceof XmlSchemaSimpleType) {
 					decoratedText += " [" + SchemaMeta.getPrefix(type) + ":" + type.getName() + "]";
 				}

@@ -115,17 +115,49 @@ public class SqlTransaction extends TransactionWithVariables {
 	private int autoCommit = AutoCommitMode.autocommit_each.ordinal(); 
 	
 	/** Holds value of property xmlOutput. */
-	private int xmlOutput = 0; 
+	private int xmlOutput = 0;
+	private transient XmlMode xmlMode = XmlMode.parse(xmlOutput);
 	
-	public static int XML_RAW = 0;
-	
-	public static int XML_AUTO = 1;
-
-	public static int XML_ELEMENT = 2;
-	
-	public static int XML_ELEMENT_WITH_ATTRIBUTES = 3;
-	
-	public static int XML_FLAT_ELEMENT = 4;
+	enum XmlMode {
+		raw,						// 0
+		auto,						// 1
+		element,					// 2
+		element_with_attributes,	// 3
+		flat_element;				// 4
+		
+		static XmlMode parse(int i) {
+			return XmlMode.values()[i];
+		}
+		
+		boolean is(XmlMode mode) {
+			return this == mode;
+		}
+		
+		boolean is(XmlMode... modes) {
+			for (XmlMode mode: modes) {
+				if (mode == this) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		boolean isElement() {
+			return is(element, element_with_attributes, flat_element);
+		}
+		
+		boolean isFlat() {
+			return is(raw, flat_element);
+		}
+		
+		boolean useRowTagName() {
+			return is(raw, element_with_attributes, flat_element);
+		}
+		
+		boolean useColumnName() {
+			return is(element, flat_element);
+		}
+	}
 	
 	private String errorMessageSQL = "";
 
@@ -653,54 +685,76 @@ public class SqlTransaction extends TransactionWithVariables {
 										if (firstLoop) {
 											parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:complexType"));
 											parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
-										} else if (xmlOutput == XML_AUTO)
+										} else if (xmlMode.is(XmlMode.auto)) {
 											parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
+										}
 										
 										String tableName = entry.getKey();
 										child = doc.createElement("xsd:element");
-										child.setAttribute("name",((xmlOutput == XML_RAW) ? getRowTagname():tableName));
+										child.setAttribute("name", xmlMode.useRowTagName() ? getRowTagname() : tableName);
 										child.setAttribute("minOccurs","0");
 										child.setAttribute("maxOccurs","unbounded");
-										if ((firstLoop && (xmlOutput == XML_RAW)) || (xmlOutput != XML_RAW)) {
+										if (!xmlMode.isFlat() || firstLoop) {
 											parentElt = (Element)parentElt.appendChild(child);
 											parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:complexType"));
+											
+											if (xmlMode.is(XmlMode.element_with_attributes)) {
+												child = doc.createElement("xsd:attribute");
+												child.setAttribute("name", "name");
+												child.setAttribute("fixed", tableName);
+												parentElt.appendChild(child);
+											}
 										}
 										
 										boolean firstLoop_ = true;
 										for (List<Object> col : entry.getValue()) {
-											if (firstLoop_ && ((xmlOutput == XML_ELEMENT) || (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES))) {
+											if (firstLoop_ && xmlMode.isElement()) {
 												child = doc.createElement("xsd:sequence");
-												parentElt = (Element)parentElt.appendChild(child);
+												parentElt = (Element) parentElt.appendChild(child);
 											}
-											String columnName = (String)col.get(1);
-											String columnClassName = (String)col.get(2);
+											String columnName = (String) col.get(1);
+											String columnClassName = (String) col.get(2);
 											String type = null;
 											
-											if (columnClassName.equalsIgnoreCase("java.lang.Integer"))
+											if (columnClassName.equalsIgnoreCase("java.lang.Integer")) {
 												type = "xsd:integer";
-											else if (columnClassName.equalsIgnoreCase("java.lang.Double"))
+											} else if (columnClassName.equalsIgnoreCase("java.lang.Double")) {
 												type = "xsd:double";
-											else if (columnClassName.equalsIgnoreCase("java.lang.Long"))
+											} else if (columnClassName.equalsIgnoreCase("java.lang.Long")) {
 												type = "xsd:long";
-											else if (columnClassName.equalsIgnoreCase("java.lang.Short"))
+											} else if (columnClassName.equalsIgnoreCase("java.lang.Short")) {
 												type = "xsd:short";
-											else if (columnClassName.equalsIgnoreCase("java.sql.Timestamp"))
+											} else if (columnClassName.equalsIgnoreCase("java.sql.Timestamp")) {
 												type = "xsd:dateTime";
-											else type = "xsd:string";
+											} else {
+												type = "xsd:string";
+											}
 											
-											if (xmlOutput == XML_ELEMENT) {
+											if (xmlMode.useColumnName()) {
 												child = doc.createElement("xsd:element");
 												child.setAttribute("name",columnName);
 												child.setAttribute("type",type);
 												parentElt.appendChild(child);
-											} else if (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) {
-												child = doc.createElement("xsd:element");
-												child.setAttribute("name",getColumnTagname());
-												child.setAttribute("type",type);
-												parentElt.appendChild(child);
-												Element child2 = doc.createElement("xsd:attribute");
-												child2.setAttribute("name",columnName);
-												child.appendChild(child2);
+											} else if (xmlMode.is(XmlMode.element_with_attributes)) {
+												Element xsdElement = doc.createElement("xsd:element");
+												xsdElement.setAttribute("name",getColumnTagname());
+												parentElt.appendChild(xsdElement);
+												
+												Element xsdComplexType = doc.createElement("xsd:complexType");
+												xsdElement.appendChild(xsdComplexType);
+												
+												Element xsdSimpleContent = doc.createElement("xsd:simpleContent");
+												xsdComplexType.appendChild(xsdSimpleContent);
+												
+												Element xsdExtension = doc.createElement("xsd:extension");
+												xsdExtension.setAttribute("base", type);
+												xsdSimpleContent.appendChild(xsdExtension);
+												
+												Element xsdAttribute = doc.createElement("xsd:attribute");
+												xsdAttribute.setAttribute("name", "name");
+												xsdAttribute.setAttribute("fixed", columnName);
+												xsdAttribute.setAttribute("type", "xsd:string");
+												xsdExtension.appendChild(xsdAttribute);
 											} else {
 												child = doc.createElement("xsd:attribute");
 												child.setAttribute("name",columnName);
@@ -800,7 +854,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				// Build XML response
 				Element sql;
 				if ((rows != null) && errorMessageSQL.equals("")){
-					if (xmlOutput == XML_RAW || xmlOutput == XML_FLAT_ELEMENT) {
+					if (xmlMode.isFlat()) {
 						sql = parseResultsFlat(lines, columnHeaders);
 					} else {
 						sql = parseResultsHierarchical(rows, columnHeaders);
@@ -912,163 +966,6 @@ public class SqlTransaction extends TransactionWithVariables {
     	return xsdType;
     }
     
-/*
-	public String generateWsdlType(Document document) throws Exception {
-		ResultSet rs = null;
-		String prettyPrintedText = "";
-		Document doc = createDOM("ISO-8859-1");
-		Element element = null , all = null, sql_output = null, cnv_error = null;
-
-		connector = ((SqlConnector) parent);
-		
-		element = doc.createElement("xsd:complexType");
-		if (!connector.isDefault)
-			element.setAttribute("name",connector.getName() + "__" + name +"Response");
-		else
-			element.setAttribute("name",name +"Response");
-		
-		doc.appendChild(element);
-		
-		all = doc.createElement("xsd:all");
-		element.appendChild(all);
-
-		cnv_error = doc.createElement("xsd:element");
-		cnv_error.setAttribute("name","error");
-		cnv_error.setAttribute("type", "tns:ConvertigoError");
-		cnv_error.setAttribute("minOccurs","0");
-		cnv_error.setAttribute("maxOccurs","1");
-		all.appendChild(cnv_error);
-		
-		sql_output = doc.createElement("xsd:element");
-		sql_output.setAttribute("name","sql_output");
-		sql_output.setAttribute("minOccurs","0");	
-		sql_output.setAttribute("maxOccurs","1");
-		all.appendChild(sql_output);
-		
-		try {
-				
-			// prepare the query
-			String query = prepareQuery();
-	
-			// execute the SELECT query
-			if (type == SqlTransaction.TYPE_SELECT) {
-				Hashtable tables = new Hashtable();
-				Vector tableOrder = new Vector();
-				rs = preparedStatement.executeQuery();
-				if (rs != null) {
-					// Retrieve column names, class and table names
-					String tableNameToUse = "TABLE";
-					ResultSetMetaData rsmd = rs.getMetaData();
-					int numberOfColumns = rsmd.getColumnCount();
-					for (int i=1; i <= numberOfColumns; i++) {
-						Vector columns = null;
-						Integer columnIndex = new Integer(i);
-						String columnName = rsmd.getColumnName(i);
-						String columnClassName = rsmd.getColumnClassName(i);
-						String tableName = rsmd.getTableName(i);
-						tableNameToUse = (tableName.equals("") ? tableNameToUse:tableName);
-						if (tableNameToUse == null) throw new EngineException("Invalid query '" + query + "'");
-						
-						if (!tables.containsKey(tableNameToUse)) {
-							columns = new Vector();
-							tables.put(tableNameToUse,columns);
-							tableOrder.addElement(tableNameToUse);
-						}
-						else
-							columns = (Vector)tables.get(tableNameToUse);
-						Vector column = new Vector();
-						column.addElement(columnIndex);
-						column.addElement(columnName);
-						column.addElement(columnClassName);
-						columns.addElement(column);
-						//Engine.logBeans.trace(tableName+"."+columnName + " (" + columnClassName + ")");
-					}
-					
-					Element parentElt = sql_output, child = null;
-					for (int j=0; j<tableOrder.size(); j++) {
-						if (j==0) {
-							parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:complexType"));
-							parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
-						}
-						else if (xmlOutput == XML_AUTO) {
-							parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:sequence"));
-						}
-						
-						String tableName = (String)tableOrder.elementAt(j);
-						child = doc.createElement("xsd:element");
-						child.setAttribute("name",((xmlOutput == XML_RAW) ? "row":tableName));
-						child.setAttribute("minOccurs","0");
-						child.setAttribute("maxOccurs","unbounded");
-						if (((j==0) && (xmlOutput == XML_RAW)) || (xmlOutput != XML_RAW)) {
-							parentElt = (Element)parentElt.appendChild(child);
-							parentElt = (Element)parentElt.appendChild(doc.createElement("xsd:complexType"));
-						}
-							
-						Vector cols = (Vector)tables.get(tableName);
-						for (int i=0; i < cols.size(); i++) {
-							if ((i==0) && (xmlOutput == XML_ELEMENT)) {
-								child = doc.createElement("xsd:sequence");
-								parentElt = (Element)parentElt.appendChild(child);
-							}
-							String columnName = (String)((Vector)cols.elementAt(i)).elementAt(1);
-							String columnClassName = (String)((Vector)cols.elementAt(i)).elementAt(2);
-							String type = null;
-							
-							if (columnClassName.equalsIgnoreCase("java.lang.Integer"))
-								type = "xsd:integer";
-							else if (columnClassName.equalsIgnoreCase("java.lang.Double"))
-								type = "xsd:double";
-							else if (columnClassName.equalsIgnoreCase("java.lang.Long"))
-								type = "xsd:long";
-							else if (columnClassName.equalsIgnoreCase("java.lang.Short"))
-								type = "xsd:short";
-							else if (columnClassName.equalsIgnoreCase("java.sql.Timestamp"))
-								type = "xsd:dateTime";
-							else
-								type = "xsd:string";
-							
-							if (xmlOutput != XML_ELEMENT) {
-								child = doc.createElement("xsd:attribute");
-								child.setAttribute("name",columnName);
-								child.setAttribute("type",type);
-								parentElt.appendChild(child);
-							}
-							else {
-								child = doc.createElement("xsd:element");
-								child.setAttribute("name",columnName);
-								child.setAttribute("type",type);
-								parentElt.appendChild(child);
-							}
-						}
-					}
-				}
-			}
-			// execute the 'UPDATE/INSERT/DELETE' query
-			else {
-				//nb = preparedStatement.executeUpdate();
-			}
-				
-			// close statement and resulset if exist
-			preparedStatement.close();
-		}
-		catch (Exception e) {
-			throw new EngineException(e.getMessage());
-		}
-		finally {
-			try {
-				if (preparedStatement != null)
-					preparedStatement.close();
-			}
-			catch(SQLException e) {;}
-			preparedStatement = null;
-			rs = null;
-		}
-		
-		prettyPrintedText = XMLUtils.prettyPrintDOM(doc);
-		prettyPrintedText = prettyPrintedText.substring(prettyPrintedText.indexOf("<xsd:"));
-		return prettyPrintedText;
-	}
-*/
 	private Element parseResults(int num) {
 		Document doc = createDOM(getEncodingCharSet());
 		Node document = doc.appendChild(doc.createElement("document"));
@@ -1101,7 +998,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				String normalizedColumnName = StringUtils.normalize(columnName);
 				String value = lineIterator.next();
 
-				if (xmlOutput == XML_RAW) {
+				if (xmlMode.is(XmlMode.raw)) {
 					int x = 1;
 					String t = "";
 					while (!element.getAttribute(normalizedColumnName + t).equals("")) {
@@ -1110,7 +1007,7 @@ public class SqlTransaction extends TransactionWithVariables {
 					}
 
 					element.setAttribute(normalizedColumnName + t,value);
-				} else if (xmlOutput == XML_FLAT_ELEMENT) {
+				} else if (xmlMode.is(XmlMode.flat_element)) {
 					Node node = doc.createElement(normalizedColumnName);
 					node.setTextContent(value);
 					element.appendChild(node);
@@ -1143,11 +1040,9 @@ public class SqlTransaction extends TransactionWithVariables {
 			for(Map<String,String> rowElt : row) {
 				String tag = "row" + i;
 				//int level = Integer.parseInt((String)rowElt.get(keywords._level.name()),10);
-				Engine.logBeans.trace("(SqlTransaction) row"+i+" "+rowElt.toString());
+				Engine.logBeans.trace("(SqlTransaction) row" + i + " " + rowElt.toString());
 				
-				boolean exist = (xmlOutput == XML_RAW || xmlOutput == XML_FLAT_ELEMENT )?
-						elements.containsKey(tag):
-						elements.containsKey(rowElt);
+				boolean exist = xmlMode.isFlat() ? elements.containsKey(tag) : elements.containsKey(rowElt);
 				
 				if (exist) {
 					element = (Element)elements.get(rowElt);
@@ -1168,7 +1063,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				if (!exist) {
 					String tagName;
 					
-					if (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) {
+					if (xmlMode.is(XmlMode.element_with_attributes)) {
 						tagName = getRowTagname();
 					}
 					else {
@@ -1177,7 +1072,7 @@ public class SqlTransaction extends TransactionWithVariables {
 					
 					element = doc.createElement(tagName);
 
-					if (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) {
+					if (xmlMode.is(XmlMode.element_with_attributes)) {
 						element.setAttribute("name", rowElt.get(keywords._tagname.name()));
 					}
 					
@@ -1185,15 +1080,15 @@ public class SqlTransaction extends TransactionWithVariables {
 						if (!keywords.contains(columnName)) {
 							
 							String value = rowElt.get(columnName);
-							if (xmlOutput == XML_AUTO) {
+							if (xmlMode.is(XmlMode.auto)) {
 								element.setAttribute(StringUtils.normalize(columnName),value);
 							}
-							else if (xmlOutput == XML_ELEMENT) {
+							else if (xmlMode.is(XmlMode.element)) {
 								Node node = doc.createElement(StringUtils.normalize(columnName));
 								node.appendChild(doc.createTextNode(value));
 								element.appendChild(node);
 							}
-							else if (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) {
+							else if (xmlMode.is(XmlMode.element_with_attributes)) {
 								Element node = doc.createElement(getColumnTagname());
 								node.setAttribute("name", columnName);
 								node.appendChild(doc.createTextNode(value));
@@ -1202,7 +1097,7 @@ public class SqlTransaction extends TransactionWithVariables {
 						}
 					}
 					
-					if ((xmlOutput == XML_ELEMENT) || (xmlOutput == XML_ELEMENT_WITH_ATTRIBUTES) || (xmlOutput == XML_AUTO)) {
+					if (xmlMode.is(XmlMode.element, XmlMode.element_with_attributes, XmlMode.auto)) {
 						elements.put(rowElt, element);
 					}
 					
@@ -1266,6 +1161,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	 */
 	public void setXmlOutput(int type) {
 		xmlOutput = type;
+		xmlMode = XmlMode.parse(xmlOutput);
 	}
 
 	/**
