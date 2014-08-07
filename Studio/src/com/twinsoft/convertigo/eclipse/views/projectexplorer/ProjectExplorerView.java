@@ -140,6 +140,7 @@ import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.steps.FunctionStep;
 import com.twinsoft.convertigo.beans.transactions.JavelinTransaction;
 import com.twinsoft.convertigo.beans.variables.StepVariable;
+import com.twinsoft.convertigo.beans.variables.TestCaseVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.actions.ProjectExplorerSaveAllAction;
 import com.twinsoft.convertigo.eclipse.dialogs.ButtonSpec;
@@ -968,7 +969,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 									updateDlg = true;
 								} else if (theTreeObject instanceof VariableTreeObject2) {
 									objectType = "variable";
-									updateDlg = true;
+									/* don't set the updateDlg flag when dealing with testcase variable 14/08/06 jmc */
+									updateDlg = ((DatabaseObject)theTreeObject.getObject()) instanceof TestCaseVariable ? false:true;
 								}
 								
 								if (updateDlg) {
