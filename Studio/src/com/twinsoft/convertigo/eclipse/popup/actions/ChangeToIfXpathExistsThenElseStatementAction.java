@@ -22,8 +22,6 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
-import java.util.List;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -38,11 +36,7 @@ import com.twinsoft.convertigo.beans.statements.IfXpathExistsThenElseStatement;
 import com.twinsoft.convertigo.beans.statements.ThenStatement;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreePath;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 
 public class ChangeToIfXpathExistsThenElseStatementAction extends MyAbstractAction {
 
@@ -63,25 +57,13 @@ public class ChangeToIfXpathExistsThenElseStatementAction extends MyAbstractActi
         try {
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
-    			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
-    			Object databaseObject = treeObject.getObject();
+    			DatabaseObjectTreeObject treeObject = (DatabaseObjectTreeObject) explorerView.getFirstSelectedTreeObject();
+    			DatabaseObject databaseObject = treeObject.getObject();
     			// IfXpathExists
     			if ((databaseObject != null) && (databaseObject instanceof IfXpathExistsStatement)) {
     				IfXpathExistsStatement ifStatement = (IfXpathExistsStatement) databaseObject;
-					List<Statement> list = ifStatement.getStatements();
-					TreePath[] selectedPaths = new TreePath[list.size()];
-					for (int i=0; i<list.size(); i++) {
-						StatementTreeObject statementTreeObject = (StatementTreeObject) explorerView.findTreeObjectByUserObject(list.get(i));
-						selectedPaths[i] = new TreePath(statementTreeObject);
-					}
-					
-					TreeParent treeParent = treeObject.getParent();
-					
-					DatabaseObjectTreeObject parentTreeObject = null;
-					if (treeParent instanceof DatabaseObjectTreeObject)
-						parentTreeObject = (DatabaseObjectTreeObject)treeParent;
-					else
-						parentTreeObject = (DatabaseObjectTreeObject)treeParent.getParent();
+										
+					DatabaseObjectTreeObject parentTreeObject = treeObject.getOwnerDatabaseObjectTreeObject();
 					
 	        		if (parentTreeObject != null) {
 						// New IfXpathExistsThenElseStatement statement
@@ -90,21 +72,8 @@ public class ChangeToIfXpathExistsThenElseStatementAction extends MyAbstractActi
 						ifThenElseStatement.hasChanged = true;
 						
 						// Add new IfThenElseStatement statement to parent
-						DatabaseObject parentDbo = ifStatement.getParent();
-						parentDbo.add(ifThenElseStatement);
-						
-						// Set correct order
-						if (parentDbo instanceof StatementWithExpressions) {
-							int index = ((StatementWithExpressions)parentDbo).getOrderedStatements().get(0).indexOf(ifStatement.priority);
-		   				    ((StatementWithExpressions)parentDbo).getOrderedStatements().get(0).insertElementAt(ifThenElseStatement.priority, index);
-						}
-						
-						// Set properties
-						ifThenElseStatement.setCondition(ifStatement.getCondition());
-						ifThenElseStatement.setComment(ifStatement.getComment());
-						ifThenElseStatement.setEnable(ifStatement.isEnable());
-						ifThenElseStatement.setVersion(ifStatement.getVersion());
-						ifThenElseStatement.setXpath(ifStatement.getXpath());
+						StatementWithExpressions parentDbo = (StatementWithExpressions) ifStatement.getParent();
+						parentDbo.addStatementAfter(ifThenElseStatement, ifStatement);
 						
 						// Add Then/Else statement
 						ThenStatement thenStatement = new ThenStatement();
@@ -113,30 +82,27 @@ public class ChangeToIfXpathExistsThenElseStatementAction extends MyAbstractActi
 						ElseStatement elseStatement = new ElseStatement();
 						elseStatement.bNew = true;
 						ifThenElseStatement.addStatement(elseStatement);
-					
-						// Add new IfThenElseStep statement in Tree
-						StatementTreeObject statementTreeObject = new StatementTreeObject(explorerView.viewer,ifThenElseStatement);
-						treeParent.addChild(statementTreeObject);
-						StatementTreeObject thenTreeObject = new StatementTreeObject(explorerView.viewer,thenStatement);
-						statementTreeObject.addChild(thenTreeObject);
-						StatementTreeObject elseTreeObject = new StatementTreeObject(explorerView.viewer,elseStatement);
-						statementTreeObject.addChild(elseTreeObject);
 						
-						// Cut/Paste steps under Then statement
-						if (selectedPaths.length > 0) {
-							new ClipboardAction(ConvertigoPlugin.clipboardManagerDND).cut(explorerView, selectedPaths, ProjectExplorerView.TREE_OBJECT_TYPE_DBO_STEP);
-    						for (int i = 0 ; i < ConvertigoPlugin.clipboardManagerDND.objects.length ; i++) {
-    							ConvertigoPlugin.clipboardManagerDND.cutAndPaste(ConvertigoPlugin.clipboardManagerDND.objects[i], thenTreeObject);
-    						}
-    						ConvertigoPlugin.clipboardManagerDND.reset();
-						}
+						for (Statement statement: ifStatement.getStatements()) {
+							thenStatement.addStatement(statement);
+    					}
+						
+						String name = ifStatement.getName();
+						
+						// Set properties
+						ifThenElseStatement.setCondition(ifStatement.getCondition());
+						ifThenElseStatement.setComment(ifStatement.getComment());
+						ifThenElseStatement.setEnable(ifStatement.isEnable());
+						ifThenElseStatement.setVersion(ifStatement.getVersion());
 						
 		   				// Delete If statement
-						ifStatement.delete();			
-
+						ifStatement.delete();
+						
+						ifThenElseStatement.setName(name);	
+						
 		   				parentTreeObject.hasBeenModified(true);
 		                explorerView.reloadTreeObject(parentTreeObject);
-		                explorerView.setSelectedTreeObject(explorerView.findTreeObjectByUserObject(ifThenElseStatement));
+		                explorerView.setSelectedTreeObject(parentTreeObject.findTreeObjectByUserObject(ifThenElseStatement));
 	        		}
 				}
     		}

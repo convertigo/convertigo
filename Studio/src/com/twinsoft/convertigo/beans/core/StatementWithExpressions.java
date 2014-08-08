@@ -82,7 +82,7 @@ public abstract class StatementWithExpressions extends Statement implements ICon
 		super.remove(databaseObject);
 	}
 
-	public void addStatement(Statement statement) throws EngineException {
+	public void addStatementAfter(Statement statement, Statement afterStatement) throws EngineException {
 		checkSubLoaded();
 		
 		String newDatabaseObjectName = getChildBeanName(vStatements, statement.getName(), statement.bNew);
@@ -92,10 +92,15 @@ public abstract class StatementWithExpressions extends Statement implements ICon
         
         super.add(statement);
         
-        if (!statement.bNew && !handlePriorities)
+        if (!statement.bNew && !handlePriorities) {
         	initializeOrderedStatements();
-        else
-        	insertOrderedStatement(statement,null);
+        } else {
+        	insertOrderedStatement(statement, afterStatement != null ? afterStatement.priority : null);
+        }
+    }
+	
+	public void addStatement(Statement statement) throws EngineException {
+		this.addStatementAfter(statement, null);
     }
 
     public void insertOrderedStatement(Statement statement, Long after) {
