@@ -22,8 +22,6 @@
 
 package com.twinsoft.convertigo.beans.statements;
 
-import java.beans.PropertyDescriptor;
-
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class ScDefaultHandlerStatementBeanInfo extends MySimpleBeanInfo {
@@ -31,7 +29,7 @@ public class ScDefaultHandlerStatementBeanInfo extends MySimpleBeanInfo {
 	public ScDefaultHandlerStatementBeanInfo() {
 		try {
 			beanClass = ScDefaultHandlerStatement.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.statements.HandlerStatement.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.statements.AbstractScHandlerStatement.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/handler_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/handler_32x32.png";
@@ -39,11 +37,7 @@ public class ScDefaultHandlerStatementBeanInfo extends MySimpleBeanInfo {
 			resourceBundle = getResourceBundle("res/ScDefaultHandlerStatement");
 			
 			displayName = resourceBundle.getString("display_name");
-			shortDescription = resourceBundle.getString("short_description");
-			
-			PropertyDescriptor property = getPropertyDescriptor("handlerType");
-			property.setHidden(true);
-			
+			shortDescription = resourceBundle.getString("short_description");			
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

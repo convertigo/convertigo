@@ -30,17 +30,9 @@ import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
-public class ScHandlerStatement extends HandlerStatement{
+public class ScHandlerStatement extends AbstractScHandlerStatement {
 
 	private static final long serialVersionUID = -6843768711473408997L;
-
-    public static final String EVENT_ENTRY_HANDLER = "Entry";
-	public static final String EVENT_EXIT_HANDLER = "Exit";
-	
-	public static final String RETURN_REDETECT = "redetect";
-	public static final String RETURN_CONTINUE = "continue";
-    public static final String RETURN_SKIP = "skip";
-    public static final String RETURN_ACCUMULATE = "accumulate";
 	
     public static final String CHOOSE_SCREENCLASS_NAME = "[Please choose a screen class]";
     
@@ -51,7 +43,7 @@ public class ScHandlerStatement extends HandlerStatement{
 	}
 	
 	public ScHandlerStatement(String handlerType, String normalizedScreenClassName) throws EngineException {
-		super(handlerType, "");
+		super(handlerType);
 		this.normalizedScreenClassName = normalizedScreenClassName.equals(CHOOSE_SCREENCLASS_NAME) ? "" : normalizedScreenClassName;
 		if (handlerType.equals(EVENT_ENTRY_HANDLER)) {
 			setHandlerResult(RETURN_REDETECT);
@@ -76,18 +68,8 @@ public class ScHandlerStatement extends HandlerStatement{
 	public void setNormalizedScreenClassName(String normalizedScreenClassName) {
 		this.normalizedScreenClassName = normalizedScreenClassName;
 	}
-
-	public String[] getTypeStrings() {
-		return new String[] { EVENT_ENTRY_HANDLER, EVENT_EXIT_HANDLER };
-	}
 	
-	public String[] getResultStrings() {
-		if (getHandlerType().equals(EVENT_ENTRY_HANDLER))
-			return new String[] { "", RETURN_CONTINUE, RETURN_REDETECT, RETURN_SKIP };
-		else
-			return new String[] { "", RETURN_ACCUMULATE, RETURN_CONTINUE };
-	}
-	
+	@Override
 	public String[] getTagsForProperty(String propertyName) {
 		if(propertyName.equals("normalizedScreenClassName")){
 	    	HtmlConnector connector = (HtmlConnector) getParent().getParent();

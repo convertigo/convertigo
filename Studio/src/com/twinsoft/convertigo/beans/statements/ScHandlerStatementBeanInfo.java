@@ -31,7 +31,7 @@ public class ScHandlerStatementBeanInfo extends MySimpleBeanInfo {
 	public ScHandlerStatementBeanInfo() {
 		try {
 			beanClass = ScHandlerStatement.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.statements.HandlerStatement.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.statements.AbstractScHandlerStatement.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/statements/images/handler_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/statements/images/handler_32x32.png";
@@ -47,9 +47,6 @@ public class ScHandlerStatementBeanInfo extends MySimpleBeanInfo {
 			properties[0].setDisplayName(getExternalizedString("property.normalizedScreenClassName.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.normalizedScreenClassName.short_description"));
 			properties[0].setPropertyEditorClass(getEditorClass("ScSourceEditor"));
-			
-			PropertyDescriptor property = getPropertyDescriptor("handlerType");
-			property.setHidden(true);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
