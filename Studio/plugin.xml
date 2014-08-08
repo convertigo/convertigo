@@ -1372,6 +1372,7 @@
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfStatementAction"
                      enablesFor="1"
                      id="convertigo.action.changeToIf"
+                     icon="icons/studio/beans/statements/if_16x16.png"
                      label="If"
                      menubarPath="convertigo.menu.statement.changeTo/content">
                   <enablement>
@@ -1385,6 +1386,7 @@
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfThenElseStatementAction"
                      enablesFor="1"
                      id="convertigo.action.changeToIfThenElse"
+                     icon="icons/studio/beans/statements/if_16x16.png"
                      label="IfThenElse"
                      menubarPath="convertigo.menu.statement.changeTo/content">
                   <enablement>
@@ -1398,6 +1400,7 @@
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfXpathExistsStatementAction"
                      enablesFor="1"
                      id="convertigo.action.changeToIfXpathExists"
+                     icon="icons/studio/beans/statements/ifxpathexists_16x16.png"
                      label="IfXpathExists"
                      menubarPath="convertigo.menu.statement.changeTo/content">
                   <enablement>
@@ -1411,6 +1414,7 @@
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToIfXpathExistsThenElseStatementAction"
                      enablesFor="1"
                      id="convertigo.action.changeToIfXpathExistsThenElse"
+                     icon="icons/studio/beans/statements/ifxpathexists_16x16.png"
                      label="IfXpathExistsThenElse"
                      menubarPath="convertigo.menu.statement.changeTo/content">
                   <enablement>
@@ -1756,6 +1760,7 @@
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToMultiValuedVariableAction"
                      enablesFor="1"
                      id="convertigo.action.changeToMultiValuedVariable"
+                     icon="icons/studio/beans/variables/multivaluedvariable_color_16x16.png"
                      label="MultiValued Variable"
                      menubarPath="convertigo.menu.variable.changeTo/content">
                   <enablement>
@@ -1769,6 +1774,7 @@
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToSingleValuedVariableAction"
                      enablesFor="1"
                      id="convertigo.action.changeToSingleValuedVariable"
+                     icon="icons/studio/beans/variables/variable_color_16x16.png"
                      label="SingleValued Variable"
                      menubarPath="convertigo.menu.variable.changeTo/content">
                   <enablement>
