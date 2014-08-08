@@ -1447,9 +1447,14 @@
             id="convertigo.scHandlerEntryChangeToContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
          <visibility>
-            <objectState
-               name="objectClassName"
-               value="com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement"/>
+	         <or>
+	            <objectState
+	               name="objectClassName"
+	               value="com.twinsoft.convertigo.beans.statements.ScEntryHandlerStatement"/>
+	            <objectState
+	               name="objectClassName"
+	               value="com.twinsoft.convertigo.beans.statements.ScEntryDefaultHandlerStatement"/>
+	         </or>
          </visibility>
     	 <menu
                id="convertigo.menu.changeTo"
@@ -1458,7 +1463,7 @@
       	 <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToScExitHandlerStatementAction"
                enablesFor="1"
-               icon="icons/studio/handlers_sc_exit.gif"
+               icon="icons/studio/beans/statements/handler_exit_16x16.png"
                id="convertigo.action.changeToExitHandler"
                label="Exit handler"
                menubarPath="convertigo.menu.changeTo/content">
@@ -1468,9 +1473,14 @@
             id="convertigo.scHandlerExitChangeToContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.StatementTreeObject">
          <visibility>
-            <objectState
-               name="objectClassName"
-               value="com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement"/>
+	         <or>
+	            <objectState
+	               name="objectClassName"
+	               value="com.twinsoft.convertigo.beans.statements.ScExitHandlerStatement"/>
+	            <objectState
+	               name="objectClassName"
+	               value="com.twinsoft.convertigo.beans.statements.ScExitDefaultHandlerStatement"/>
+	         </or>
          </visibility>
     	 <menu
                id="convertigo.menu.changeTo"
@@ -1479,8 +1489,8 @@
       	 <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.ChangeToScEntryHandlerStatementAction"
                enablesFor="1"
-               icon="icons/studio/handlers_sc_entry.gif"
-               id="convertigo.action.changeToExitHandler"
+               icon="icons/studio/beans/statements/handler_entry_16x16.png"
+               id="convertigo.action.changeToEntryHandler"
                label="Entry handler"
                menubarPath="convertigo.menu.changeTo/content">
           </action>
@@ -1963,7 +1973,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIf"
                      label="jSimpleSource"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/jsimplesource_16x16.png"
+                     icon="icons/studio/beans/steps/jsimplesource_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -1977,7 +1987,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIf"
                      label="jSource"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/jsource_16x16.png"
+                     icon="icons/studio/beans/steps/jsource_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -1991,7 +2001,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIf"
                      label="jIf"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/if_16x16.png"
+                     icon="icons/studio/beans/steps/if_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2005,7 +2015,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIfThenElse"
                      label="jIfThenElse"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/if_16x16.png"
+                     icon="icons/studio/beans/steps/if_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2019,7 +2029,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIsIn"
                      label="IsIn"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/if_16x16.png"
+                     icon="icons/studio/beans/steps/if_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2032,7 +2042,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIsInThenElse"
                      label="IsInThenElse"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/if_16x16.png"
+                     icon="icons/studio/beans/steps/if_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2046,7 +2056,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIfExist"
                      label="IfExist"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/if_16x16.png"
+                     icon="icons/studio/beans/steps/if_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2059,7 +2069,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIfExistThenElse"
                      label="IfExistThenElse"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/if_16x16.png"
+                     icon="icons/studio/beans/steps/if_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2072,7 +2082,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIfFileExist"
                      label="IfFileExists"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/if_16x16.png"
+                     icon="icons/studio/beans/steps/if_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2086,7 +2096,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIfFileExistThenElse"
                      label="IfFileExistsThenElse"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/if_16x16.png"
+                     icon="icons/studio/beans/steps/if_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2100,7 +2110,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToXMLConcat"
                      label="XML Concat"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/concatstep_16x16.png"
+                     icon="icons/studio/beans/steps/concatstep_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2114,7 +2124,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToXMLElement"
                      label="XML Element"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/element_16x16.png"
+                     icon="icons/studio/beans/steps/element_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2128,7 +2138,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToXMLAttribute"
                      label="XML Attribute"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/attrib_16x16.png"
+                     icon="icons/studio/beans/steps/attrib_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2142,7 +2152,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToAttribute"
                      label="jAttribute"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/jattrib_16x16.png"
+                     icon="icons/studio/beans/steps/jattrib_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2156,7 +2166,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToElement"
                      label="jElement"
-                     icon="src/com/twinsoft/convertigo/beans/steps/images/jelement_16x16.png"
+                     icon="icons/studio/beans/steps/jelement_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content" >
                   <enablement>
                      <objectState
