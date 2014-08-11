@@ -2016,7 +2016,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIf"
                      label="jIf"
-                     icon="icons/studio/beans/steps/if_16x16.png"
+                     icon="icons/studio/beans/steps/jif_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2030,7 +2030,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIfThenElse"
                      label="jIfThenElse"
-                     icon="icons/studio/beans/steps/if_16x16.png"
+                     icon="icons/studio/beans/steps/jif_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2044,7 +2044,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIsIn"
                      label="IsIn"
-                     icon="icons/studio/beans/steps/if_16x16.png"
+                     icon="icons/studio/beans/steps/ifIsIn_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2057,7 +2057,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIsInThenElse"
                      label="IsInThenElse"
-                     icon="icons/studio/beans/steps/if_16x16.png"
+                     icon="icons/studio/beans/steps/ifIsIn_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2097,7 +2097,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIfFileExist"
                      label="IfFileExists"
-                     icon="icons/studio/beans/steps/if_16x16.png"
+                     icon="icons/studio/beans/steps/ifFileExists_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
@@ -2111,7 +2111,7 @@
                      enablesFor="1"
                      id="convertigo.action.changeToIfFileExistThenElse"
                      label="IfFileExistsThenElse"
-                     icon="icons/studio/beans/steps/if_16x16.png"
+                     icon="icons/studio/beans/steps/ifFileExists_16x16.png"
                      menubarPath="convertigo.menu.step.changeTo/content">
                   <enablement>
                      <objectState
