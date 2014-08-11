@@ -98,6 +98,11 @@ public class JavelinTransaction extends TransactionWithVariables {
      */
     public static final String RETURN_BYPASS = "bypass";
     
+    /**
+     * Asks the algorithm to process like an empty return.
+     */
+    public static final String RETURN_CONTINUE = "continue";
+    
     
     public static final String EVENT_ENTRY_HANDLER = "Entry";
 	public static final String EVENT_EXIT_HANDLER = "Exit";
@@ -484,7 +489,10 @@ public class JavelinTransaction extends TransactionWithVariables {
 		}
 		else if (returnedValue instanceof String) {
 			handlerResult = (String) returnedValue;
-			if (EVENT_ENTRY_HANDLER.equals(handlerType)) {
+			if ("".equals(handlerResult) || RETURN_CONTINUE.equals(handlerResult)) {
+				// handle emptry string "" and "continue" string as an undefined result, for entry and exit handlers
+				handlerResult = "";
+			} else if (EVENT_ENTRY_HANDLER.equals(handlerType)) {
 				if ((!handlerResult.equalsIgnoreCase(RETURN_REDETECT)) && (!handlerResult.equalsIgnoreCase(RETURN_SKIP))) {
 					EngineException ee = new EngineException(
 					 "Wrong return code for the " + handlerType + " handler: " + handlerResult + ".\n" +
@@ -493,8 +501,7 @@ public class JavelinTransaction extends TransactionWithVariables {
 					);
 					throw ee;
 				}
-			}
-			else {
+			} else {
 				if (!handlerResult.equalsIgnoreCase(RETURN_ACCUMULATE)) {
 					EngineException ee = new EngineException(
 						"Wrong return code for the " + handlerType + " handler: " + handlerResult + ".\n" +

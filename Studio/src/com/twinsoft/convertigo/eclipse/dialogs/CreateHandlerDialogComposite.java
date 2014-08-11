@@ -292,6 +292,8 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 						handler += "    //    skip     - means the algorithm skips the xmlization process and \n";
 						handler += "    //               directly goes to the exit handler for the current\n";
 						handler += "    //               screen class.\n";
+						handler += "    //    continue - equivalent to an empty string or no return or empty return,\n";
+						handler += "    //               means the algorithm will continue its process\n";
 						handler += "\n";
 						handler += "    // return \"redetect\";\n";
 						handler += "}\n";
@@ -313,6 +315,8 @@ public class CreateHandlerDialogComposite extends MyAbstractDialogComposite {
 						handler += "    // Possible values are:\n";
 						handler += "    //    accumulate - means the algorithm accumulates XML data and go to\n";
 						handler += "    //                 the next detected screen class.\n";
+						handler += "    //    continue - equivalent to an empty string or no return or empty return,\n";
+						handler += "    //               means the algorithm will continue its process\n";
 						handler += "\n";
 						handler += "    // return \"accumulate\";\n";
 						handler += "}\n";
