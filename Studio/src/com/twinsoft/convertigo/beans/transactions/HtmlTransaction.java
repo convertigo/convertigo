@@ -779,8 +779,11 @@ public class HtmlTransaction extends HttpTransaction {
 		}
 		else if (returnedValue instanceof String) {
 			handlerResult = (String) returnedValue;
-			if (EVENT_ENTRY_HANDLER.equals(handlerType)) {
-				if ((!handlerResult.equalsIgnoreCase(RETURN_REDETECT)) && (!handlerResult.equalsIgnoreCase(RETURN_SKIP)) && (!handlerResult.equalsIgnoreCase(RETURN_CONTINUE)) && (!handlerResult.equals(""))) {
+			if ("".equals(handlerResult) || RETURN_CONTINUE.equals(handlerResult)) {
+				// handle emptry string "" and "continue" string as an undefined result, for entry and exit handlers
+				handlerResult = "";
+			} else if (EVENT_ENTRY_HANDLER.equals(handlerType)) {
+				if (!(handlerResult.equalsIgnoreCase(RETURN_REDETECT) || handlerResult.equalsIgnoreCase(RETURN_SKIP))) {
 					EngineException ee = new EngineException(
 							"Wrong returned code for the " + handlerType + " handler: " + handlerResult + ".\n" +
 							"Transaction: \"" + getName() + "\"\n" +
@@ -788,9 +791,8 @@ public class HtmlTransaction extends HttpTransaction {
 					);
 					throw ee;
 				}
-			}
-			else {
-				if (!handlerResult.equalsIgnoreCase(RETURN_ACCUMULATE) && !handlerResult.equals("")) {
+			} else {
+				if (!handlerResult.equalsIgnoreCase(RETURN_ACCUMULATE)) {
 					EngineException ee = new EngineException(
 							"Wrong returned code for the " + handlerType + " handler: " + handlerResult + ".\n" +
 							"Transaction: \"" + getName() + "\"\n" +
