@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.beans.statements;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class ScExitDefaultHandlerStatementBeanInfo extends MySimpleBeanInfo {
@@ -39,6 +41,9 @@ public class ScExitDefaultHandlerStatementBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
+			PropertyDescriptor property = getPropertyDescriptor("handlerResult");
+            property.setDisplayName(getExternalizedString("property.handlerResult.display_name"));
+            property.setShortDescription(getExternalizedString("property.handlerResult.short_description"));
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);
