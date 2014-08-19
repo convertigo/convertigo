@@ -51,7 +51,7 @@ $.extend(true, C8O, {
 					var attributes = {};
 					for (var i = 0; i < payload.attributes.length; i++) {
 						var attribute = payload.attributes[i];
-						attributes[attribute.nodeName] = attribute.nodeValue;
+						attributes[attribute.name] = attribute.value;
 					}
 					payload = attributes;
 				} catch (e) {

@@ -172,7 +172,7 @@ C8O = {
 			var i;
 			var newelt = document.createElement(input.tagName);
 			for (i = 0 ; i < input.attributes.length ; i++) {
-				newelt.setAttribute(input.attributes[i].nodeName, input.attributes[i].nodeValue);
+				newelt.setAttribute(input.attributes[i].name, input.attributes[i].value);
 			}
 			for (i = 0 ; i < input.childNodes.length ; i++) {
 				C8O.convertHTML(input.childNodes[i], newelt);
@@ -327,10 +327,10 @@ C8O = {
 		if (node.nodeType && (typeof fn_validate != "function" || fn_validate(node, data))) {
 			if (node.nodeType == Node.ELEMENT_NODE) {
 				for (var i = 0; i < node.attributes.length; i++) {
-					var fnr = fn.call(node, node.attributes[i].nodeValue, data);
+					var fnr = fn.call(node, node.attributes[i].value, data);
 					
 					if (fnr != null) {
-						node.attributes[i].nodeValue = fnr;
+						node.attributes[i].value = fnr;
 					}
 				}
 				for (var i = 0; i < node.childNodes.length; i++) {
@@ -402,7 +402,7 @@ C8O = {
 		} else {
 			var attributes = {};
 			for (var i = 0 ; i < element.attributes.length ; i++) {
-				attributes[element.attributes[i].nodeName] = element.attributes[i].nodeValue
+				attributes[element.attributes[i].name] = element.attributes[i].value
 			}
 			return attributes;
 		}

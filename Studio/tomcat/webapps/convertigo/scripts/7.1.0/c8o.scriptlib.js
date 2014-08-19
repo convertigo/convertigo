@@ -42,6 +42,6 @@ function C8O_document_ready () {
 	return true;
 }
 
-document.write("<script type=\"text/javascript\" src=\"../../scripts/6.3.0/jquery.min.js\"><!--script--></script>");
-document.write("<script type=\"text/javascript\" src=\"../../scripts/6.3.0/c8o.core.js\"><!--script--></script>");
-document.write("<script type=\"text/javascript\" src=\"../../scripts/6.3.0/c8o.desktop.js\"><!--script--></script>");
+document.write("<script type=\"text/javascript\" src=\"../../scripts/7.1.0/jquery.min.js\"><!--script--></script>");
+document.write("<script type=\"text/javascript\" src=\"../../scripts/7.1.0/c8o.core.js\"><!--script--></script>");
+document.write("<script type=\"text/javascript\" src=\"../../scripts/7.1.0/c8o.desktop.js\"><!--script--></script>");

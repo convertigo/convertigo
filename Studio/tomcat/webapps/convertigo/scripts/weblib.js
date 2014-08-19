@@ -146,7 +146,7 @@ C8O = {
 					var attributes = {};
 					for (var i = 0; i < payload.attributes.length; i++) {
 						var attribute = payload.attributes[i];
-						attributes[attribute.nodeName] = attribute.nodeValue;
+						attributes[attribute.name] = attribute.value;
 					}
 					payload = attributes;
 				} catch (e) {
@@ -235,17 +235,16 @@ C8O = {
 		if (elt.nodeType) {
 			if (elt.nodeType == Node.ELEMENT_NODE) {
 				for (var i = 0; i < elt.attributes.length; i++) {
-					var fnr = fn(elt.attributes[i].nodeValue, data);
+					var fnr = fn(elt.attributes[i].value, data);
 					
 					if (fnr != null) {
-						elt.attributes[i].nodeValue = fnr;
+						elt.attributes[i].value = fnr;
 					}
 				}
 				for (var i = 0; i < elt.childNodes.length; i++) {
 					C8O.walk(elt.childNodes[i], data, fn);
 				}
-			} else if (elt.nodeType == Node.TEXT_NODE) {
-				var fnr = fn(elt.nodeValue, data);
+			} else if (elt.nodeType == Node.TEXT.value				var fnr = fn(elt.nodeValue, data);
 				
 				if (fnr != null) {
 					elt.nodeValue = fnr;
@@ -437,7 +436,7 @@ C8O = {
 		} else {
 			var attributes = {};
 			for (var i = 0 ; i < element.attributes.length ; i++) {
-				attributes[element.attributes[i].nodeName] = element.attributes[i].nodeValue
+				attributes[element.attributes[i].name] = element.attributes[i].value
 			}
 			return attributes;
 		}

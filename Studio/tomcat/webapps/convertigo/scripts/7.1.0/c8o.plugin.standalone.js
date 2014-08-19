@@ -27,7 +27,7 @@ C8O._init_standalone = function (params) {
 	}
 	var C8O_mashup = window.frameElement.ownerDocument.C8O_mashup;
 	if (params.__hub_page) {
-		C8O._getScript(C8O.ro_vars.plugins_path + "hub.js", function () {
+		C8O._getScript(C8O._define.plugins_path + "hub.js", function () {
 			C8O._hub.init(params);
 			
 			C8O_mashup.HUB = function (message) {

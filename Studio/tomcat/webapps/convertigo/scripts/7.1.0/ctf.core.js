@@ -127,10 +127,10 @@ $.extend(true, C8O, {
 	 */
 	_findUseAttributes: function($component) {
 		$($component[0].attributes).each(function () {
-			var attributeName = this.nodeName;
+			var attributeName = this.name;
 			if (attributeName.indexOf("data-c8o-use-") == 0) {
 				attributeName = attributeName.substring(13);
-				var attributeValue = this.nodeValue;
+				var attributeValue = this.value;
 				C8O._renderUseAttribute($component, attributeName, attributeValue);
 			}
 		});

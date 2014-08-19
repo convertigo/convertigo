@@ -172,7 +172,7 @@ C8O = {
 			var i;
 			var newelt = document.createElement(input.tagName);
 			for (i = 0 ; i < input.attributes.length ; i++) {
-				newelt.setAttribute(input.attributes[i].nodeName, input.attributes[i].nodeValue);
+				newelt.setAttribute(input.attributes[i].name, input.attributes[i].value);
 			}
 			for (i = 0 ; i < input.childNodes.length ; i++) {
 				C8O.convertHTML(input.childNodes[i], newelt);
@@ -327,10 +327,10 @@ C8O = {
 		if (node.nodeType && (typeof fn_validate != "function" || fn_validate(node, data))) {
 			if (node.nodeType == Node.ELEMENT_NODE) {
 				for (var i = 0; i < node.attributes.length; i++) {
-					var fnr = fn.call(node, node.attributes[i].nodeValue, data);
+					var fnr = fn.call(node, node.attributes[i].value, data);
 					
 					if (fnr != null) {
-						node.attributes[i].nodeValue = fnr;
+						node.attributes[i].value = fnr;
 					}
 				}
 				for (var i = 0; i < node.childNodes.length; i++) {
@@ -402,7 +402,7 @@ C8O = {
 		} else {
 			var attributes = {};
 			for (var i = 0 ; i < element.attributes.length ; i++) {
-				attributes[element.attributes[i].nodeName] = element.attributes[i].nodeValue
+				attributes[element.attributes[i].name] = element.attributes[i].value
 			}
 			return attributes;
 		}
@@ -674,14 +674,14 @@ $.ajaxSetup({
 			C8O._define.project = matcher[1];
 			C8O.log.trace("c8o.core: current project is " + C8O._define.project + " in webapp mode");
 			
-			C8O._define.plugins_path = window.location.href.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
+			C8O._define.plugins_path = window.location.href.replace(new RegExp("/projects/.*"), "/scripts/7.1.0/c8o.plugin.");
 		} else {
 			matcher = C8O.vars.endpoint_url.match(new RegExp("/projects/([^/]+)"));
 			if (matcher != null) {
 				C8O._define.project = matcher[1];
 				C8O.log.debug("c8o.core: current project is " + C8O._define.project + " in mobile mode");
 				
-				C8O._define.plugins_path = C8O.vars.endpoint_url.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
+				C8O._define.plugins_path = C8O.vars.endpoint_url.replace(new RegExp("/projects/.*"), "/scripts/7.1.0/c8o.plugin.");
 			} else {
 				C8O.log.warn("c8o.core: cannot determine the current project using " + window.location.href + " or " + C8O.vars.endpoint_url);
 			}
