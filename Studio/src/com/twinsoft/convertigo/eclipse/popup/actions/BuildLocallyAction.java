@@ -569,10 +569,24 @@ public class BuildLocallyAction extends MyAbstractAction {
 			String installedPlugins = runCordovaCommand("plugin list ", cordovaDir);
 			NodeList plugins = xpathApi.selectNodeList(doc.getDocumentElement(), "//*[local-name()='plugin']");
 			for(int i=0; i< plugins.getLength(); i++) {
+				String options = "";
 				Node plugin = plugins.item(i);
 				String pluginName = plugin.getAttributes().getNamedItem("name").getTextContent();
 				String gitUrl = null;
 				String version = null;
+
+				/**
+				 * Build an optional --variable <NAME>=<VALUE> list
+				 */
+				NodeList pluginParams = xpathApi.selectNodeList(plugin, "//param");
+				if (pluginParams.getLength() > 0) {
+					for (int j=0; j< pluginParams.getLength(); j++) {
+						Node param = pluginParams.item(j);
+						if (param.getAttributes().getNamedItem("name") != null && param.getAttributes().getNamedItem("value") != null) {
+							options += " --variable " + param.getAttributes().getNamedItem("name").getTextContent() + "=" + param.getAttributes().getNamedItem("value").getTextContent(); 
+						}
+					}
+				}
 				
 				if (plugin.getAttributes().getNamedItem("git") != null)
 					gitUrl     = plugin.getAttributes().getNamedItem("git").getTextContent();
@@ -583,9 +597,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 					Engine.logEngine.info("Adding plugin " + pluginName);
 					// if we have a gitUrl use it in priority
 					if (gitUrl != null)
-						runCordovaCommand("plugin add " + gitUrl, cordovaDir);
+						runCordovaCommand("plugin add " + gitUrl + options, cordovaDir);
 					else
-						runCordovaCommand("plugin add " + pluginName + (version != null ? "@" + version: ""), cordovaDir);
+						runCordovaCommand("plugin add " + pluginName + (version != null ? "@" + version: "") + options, cordovaDir);
 				}	
 			}
 
