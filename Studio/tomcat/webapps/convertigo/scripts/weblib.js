@@ -244,7 +244,8 @@ C8O = {
 				for (var i = 0; i < elt.childNodes.length; i++) {
 					C8O.walk(elt.childNodes[i], data, fn);
 				}
-			} else if (elt.nodeType == Node.TEXT.value				var fnr = fn(elt.nodeValue, data);
+			} else if (elt.nodeType == Node.TEXT_NODE) {
+				var fnr = fn(elt.nodeValue, data);
 				
 				if (fnr != null) {
 					elt.nodeValue = fnr;
