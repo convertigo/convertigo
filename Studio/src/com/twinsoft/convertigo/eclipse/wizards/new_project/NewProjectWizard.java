@@ -144,6 +144,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int LIBRARY_KEYRING = 803;
 	public static final int LIBRARY_PUSH_MANAGER = 804;
 	public static final int LIBRARY_TWITTER = 805;
+	public static final int LIBRARY_OAUTH = 806;
 	// demos
 	public static final int DEMOS_SALESFORCE = 900;
 	public static final int DEMOS_USDIRECTORY = 901;
@@ -201,6 +202,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String KEYRING_LIBRARY_PROJECT_FILE_NAME = "lib_Keyring.car";
 	public static final String PUSH_MANAGER_LIBRARY_PROJECT_FILE_NAME = "lib_PushManager.car";
 	public static final String TWITTER_LIBRARY_PROJECT_FILE_NAME = "lib_Twitter.car";
+	public static final String OAUTH_LIBRARY_PROJECT_FILE_NAME = "lib_OAuth.car";
 	// mashup demo
 	public static final String SALESFORCE_DEMO_PROJECT_FILE_NAME = "demo_SalesForce.car";
 	public static final String USDIRECTORY_DEMO_PROJECT_FILE_NAME = "demo_usDirectory.car";
@@ -265,6 +267,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_KEYRING:
 		case LIBRARY_PUSH_MANAGER:
 		case LIBRARY_TWITTER:
+		case LIBRARY_OAUTH:
 		case DEMOS_SALESFORCE:
 		case DEMOS_USDIRECTORY:
 		case DEMOS_LEGACYCRM:
@@ -465,6 +468,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case LIBRARY_KEYRING:
 			case LIBRARY_PUSH_MANAGER:
 			case LIBRARY_TWITTER:
+			case LIBRARY_OAUTH:
 			case DEMOS_SALESFORCE:
 			case DEMOS_USDIRECTORY:
 			case DEMOS_LEGACYCRM:
@@ -1163,6 +1167,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case LIBRARY_TWITTER:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + TWITTER_LIBRARY_PROJECT_FILE_NAME;
 			projectName = TWITTER_LIBRARY_PROJECT_FILE_NAME.substring(0, TWITTER_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case LIBRARY_OAUTH:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + OAUTH_LIBRARY_PROJECT_FILE_NAME;
+			projectName = OAUTH_LIBRARY_PROJECT_FILE_NAME.substring(0, OAUTH_LIBRARY_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case DEMOS_SALESFORCE:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SALESFORCE_DEMO_PROJECT_FILE_NAME;
