@@ -1,6 +1,6 @@
 /*******************************************************
  *******************************************************
- * public C8O API for CEMS 7.1.0
+ * public C8O API for CEMS 7.2.0
  * for a jQuery desktop application
  * 
  * Dependences in HTML file:
@@ -13,12 +13,12 @@
  * You can find documentation about Convertigo Templating Framework here:
  * http://help.convertigo.com/latest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
  * or
- * http://help.convertigo.com/7.1.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
+ * http://help.convertigo.com/7.2.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
  * 
  * You can find documentation about Convertigo Internationalization Framework (CTF plugin) here:
  * http://help.convertigo.com/latest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
  * or
- * http://help.convertigo.com/7.1.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
+ * http://help.convertigo.com/7.2.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
  * 
  *******************************************************
  *******************************************************/
@@ -146,7 +146,7 @@ $.extend(true, C8O, {
  * data: string (query form) or Object (key/value) or HTML Form element
  *          used as AJAX parameters
  */
-//C8O.call(data)
+//C8O.call(data);
 
 /**
  * canLog function
@@ -155,7 +155,23 @@ $.extend(true, C8O, {
  * return: true > can log
  *           false > cannot log
  */
-//C8O.canLog(level)
+//C8O.canLog(level);
+
+/**
+ * clearLocalCacheDB function
+ * remove all local cache entries
+ * success (optional): function, callback of the success for the DB cleaning
+ * error (optional): function (err), callback of the failure for the DB cleaning
+ */
+//C8O.clearLocalCacheDB(success, error);
+
+/**
+ * clearLocalCacheDB function
+ * remove all local cache entries
+ * success (optional): function, callback of the success for the DB cleaning
+ * error (optional): function (err), callback of the failure for the DB cleaning
+ */
+//C8O.clearLocalCacheDB(success, error);
 
 /**
  * convertHTML function
@@ -164,7 +180,7 @@ $.extend(true, C8O, {
  * output (optional): HTML element where the input copy is appended
  * return: HTML element, output element or a new <fragment> element with the imported input
  */
-//C8O.convertHTML(input, output)
+//C8O.convertHTML(input, output);
 
 /**
  * formToData function
@@ -175,13 +191,13 @@ $.extend(true, C8O, {
  * data (optional): object (key/value) where values are copied
  * return: the data object or a new one with copied form's inputs values
  */
-//C8O.formToData($form, data)
+//C8O.formToData($form, data);
 
 /**
  * getBrowserLanguage function
  * return: a string of the current detected language, in 2 characters
  */
-//C8O.getBrowserLanguage()
+//C8O.getBrowserLanguage();
 
 /**
  * doNavigationBarEvent function
@@ -259,6 +275,14 @@ $.extend(true, C8O, {
 //C8O.removeRecallParameter(parameter_name);
 
 /**
+ * serializeXML function
+ * return a string representation of the xmlDom Document in a XML format
+ * xmlDom: Document to transform
+ * return: string of the xmlDom Document in a XML format 
+ */
+//C8O.serializeXML(xmlDom);
+
+/**
  * toJSON function
  * return a string representation of the data object (key/value) in a JSON format
  * data: object to transform
@@ -291,7 +315,23 @@ $.extend(true, C8O, {
  */
 //C8O.waitShow();
 
-
+/**
+ * walk function
+ * walk recursively a dom tree and apply a function on each text node and attributes
+ * node: starting node of the walk, children will be walked recursively
+ * data: contextual data passed to fn and fn_validate
+ * fn  : function that process each text ; fn(txt, data, fn_validate){}
+ * 	     this: current node
+ *       txt : text to transform
+ *       data: data passed to the walk function
+ *       fn_validate: fn_validate passed to the walk function
+ *       return: new value of txt, or null to do nothing
+ * fn_validate: function that process each node and can stop the walk for its node
+ *              node: current node to test
+ *              data: data passed to the walk function
+ *              return: true to continue the walk, false to stop
+ */
+//C8O.walk(node, data, fn, fn_validate);
 
 /*******************************************************
  * List of possible hooks *
