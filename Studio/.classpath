@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry excluding="*.properties|*.svn" kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/qrcode.jar"/>
 	<classpathentry kind="lib" path="lib/"/>
 	<classpathentry kind="lib" path="lib/hibernate/antlr-2.7.7.jar"/>
@@ -47,6 +47,8 @@
 	<classpathentry kind="lib" path="lib/rhino-1.7-R4.jar" sourcepath="/ExternalJavaSources/rhino-1.7R4"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-lang3-3.1.jar"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-pool-1.6.jar"/>
+	<classpathentry kind="lib" path="lib/jco/sapjco3.jar"/>
+	<classpathentry kind="lib" path="lib/engine-sapjcoprovider.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="lib" path="lib/jCharts-0.7.2.jar"/>
 	<classpathentry kind="lib" path="lib/directkit.jar"/>
@@ -147,7 +149,5 @@
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/XmlSchema-1.4.7.jar"/>
 	<classpathentry kind="lib" path="lib/signpost-core-1.2.1.2.jar"/>
 	<classpathentry kind="lib" path="lib/internal/ibm-v35876.jar"/>
-	<classpathentry kind="lib" path="lib/jco/sapjco3.jar"/>
-	<classpathentry kind="lib" path="/SapConnector_7.2.x/src/com"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
