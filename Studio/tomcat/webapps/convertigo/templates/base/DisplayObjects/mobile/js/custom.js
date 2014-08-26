@@ -249,14 +249,6 @@ $.extend(true, C8O, {
 //C8O.canLog(level);
 
 /**
- * clearLocalCacheDB function
- * remove all local cache entries
- * success (optional): function, callback of the success for the DB cleaning
- * error (optional): function (err), callback of the failure for the DB cleaning
- */
-//C8O.clearLocalCacheDB(success, error);
-
-/**
  * convertHTML function
  * copy an XML element to an HTML element or create a new fragment
  * input: XML element to copy to an HTML element into the ouput or a new fragment element
@@ -264,6 +256,14 @@ $.extend(true, C8O, {
  * return: HTML element, output element or a new <fragment> element with the imported input
  */
 //C8O.convertHTML(input, output);
+
+/**
+ * deleteAllCacheEntries function
+ * remove all local cache entries
+ * success (optional): function, callback of the success for the DB cleaning
+ * error (optional): function (err), callback of the failure for the DB cleaning
+ */
+//C8O.deleteAllCacheEntries(success, error);
 
 /**
  * formToData function
