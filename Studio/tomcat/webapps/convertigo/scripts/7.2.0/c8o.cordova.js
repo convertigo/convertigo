@@ -243,7 +243,7 @@ if ("cordova" in window) {
 		},
 		
 		_local_cache_download_attachments: function (data, xml, dirName, callback) {
-			if (!C8O.vars.local_cache_parallel_downloads *= 1) {
+			if (!(C8O.vars.local_cache_parallel_downloads *= 1)) {
 				C8O.log.debug("c8o.cdv : _local_cache_download_attachments disabled: C8O.vars.local_cache_parallel_downloads == " + C8O.vars.local_cache_parallel_downloads);
 				return;
 			}
