@@ -32,20 +32,20 @@ if ("cordova" in window) {
 			re_download_url: new RegExp("^https?://.*?(\\.\\w*?)(?:\\?.*)?$")
 		},
 		
-		clearLocalCacheDB: function (success, error) {
-			C8O.log.debug("c8o.cdv : clearLocalCacheDB");
+		deleteAllCacheEntries: function (success, error) {
+			C8O.log.debug("c8o.cdv : deleteAllCacheEntries");
 			
 			C8O._get_cache_db(function (db) {
-				C8O.log.trace("c8o.cdv : clearLocalCacheDB retrieve db");
+				C8O.log.trace("c8o.cdv : deleteAllCacheEntries retrieve db");
 				
 				db.readTransaction(function (tx) {
-					C8O.log.trace("c8o.cdv : clearLocalCacheDB retrieve tx");
+					C8O.log.trace("c8o.cdv : deleteAllCacheEntries retrieve tx");
 					
 					tx.executeSql("SELECT key FROM cacheIndex", [], function (tx, results) {
 						var doneCpt = results.rows.length + 1;
 						var checkDone = function () {
 							if (--doneCpt == 0) {
-								C8O.log.debug("c8o.cdv : clearLocalCacheDB all entries really deleted");
+								C8O.log.debug("c8o.cdv : deleteAllCacheEntries all entries really deleted");
 								if (success) {
 									success();
 								}
@@ -62,21 +62,21 @@ if ("cordova" in window) {
 						
 						checkDone();
 					}, function (err) {
-						C8O.log.error("c8o.cdv : clearLocalCacheDB failed to executeSql", err);
+						C8O.log.error("c8o.cdv : deleteAllCacheEntries failed to executeSql", err);
 						
 						if (error) {
 							error(err);
 						}
 					});
 				}, function(err) {
-					C8O.log.error("c8o.cdv : clearLocalCacheDB failed to optain tx", err);
+					C8O.log.error("c8o.cdv : deleteAllCacheEntries failed to optain tx", err);
 					
 					if (error) {
 						error(err);
 					}
 				});
 			}, function (err) {
-				C8O.log.debug("c8o.cdv : clearLocalCacheDB failed to getCacheDB", err);
+				C8O.log.debug("c8o.cdv : deleteAllCacheEntries failed to getCacheDB", err);
 				
 				if (error) {
 					error(err);

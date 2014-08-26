@@ -163,40 +163,6 @@ C8O = {
 		return $.inArray(level, C8O._define.log_levels) <= $.inArray(C8O.vars.log_level, C8O._define.log_levels);
 	},
 	
-	clearLocalCacheDB: function (success, error) {
-		C8O.log.debug("c8o.core: clearLocalCacheDB");
-		
-		C8O._get_cache_db(function (db) {
-			db.transaction(function (tx) {
-				tx.executeSql("DELETE FROM cacheIndex", [], function () {
-					C8O.log.info("c8o.core: clearLocalCacheDB deleted all entries ok.");
-					
-					if (success) {
-						success()
-					}
-				}, function (err) {
-					C8O.log.error("c8o.core: clearLocalCacheDB failed to DELETE cacheIndex content: " + C8O.toJSON(err));
-					
-					if (error) {
-						error(err);
-					}
-				});
-			}, function(err) {
-				C8O.log.error("c8o.core: clearLocalCacheDB cannot get tx: " + C8O.toJSON(err));
-				
-				if (error) {
-					error(err);
-				}
-			});
-		}, function (err) {
-			C8O.log.error("c8o.core: clearLocalCacheDB cannot delete entries (no DB): " + C8O.toJSON(err));
-
-			if (error) {
-				error(err);
-			}
-		});
-	},
-	
 	convertHTML: function (input, output) {
 		if (C8O.isUndefined(output)) {
 			output = document.createElement("fragment");
@@ -218,6 +184,40 @@ C8O = {
 			break;
 		}
 		return output;
+	},
+	
+	deleteAllCacheEntries: function (success, error) {
+		C8O.log.debug("c8o.core: deleteAllCacheEntries");
+		
+		C8O._get_cache_db(function (db) {
+			db.transaction(function (tx) {
+				tx.executeSql("DELETE FROM cacheIndex", [], function () {
+					C8O.log.info("c8o.core: deleteAllCacheEntries deleted all entries ok.");
+					
+					if (success) {
+						success()
+					}
+				}, function (err) {
+					C8O.log.error("c8o.core: deleteAllCacheEntries failed to DELETE cacheIndex content: " + C8O.toJSON(err));
+					
+					if (error) {
+						error(err);
+					}
+				});
+			}, function(err) {
+				C8O.log.error("c8o.core: deleteAllCacheEntries cannot get tx: " + C8O.toJSON(err));
+				
+				if (error) {
+					error(err);
+				}
+			});
+		}, function (err) {
+			C8O.log.error("c8o.core: deleteAllCacheEntries cannot delete entries (no DB): " + C8O.toJSON(err));
+
+			if (error) {
+				error(err);
+			}
+		});
 	},
 	
 	formToData: function ($form, data) {
