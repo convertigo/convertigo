@@ -106,12 +106,12 @@ public class SequenceEditor extends EditorPart {
 		return sequenceEditorPart;
 	}
 	
-	public void getDocument(String sequenceName, boolean isStubRequested, boolean withXslt) {
-		getDocument(sequenceName, null, isStubRequested, withXslt);
+	public void getDocument(String sequenceName, boolean isStubRequested) {
+		getDocument(sequenceName, null, isStubRequested);
 	}
 	
-	public void getDocument(String sequenceName, String testcaseName, boolean isStubRequested, boolean withXslt) {
-		sequenceEditorPart.getDocument(sequenceName, testcaseName, isStubRequested, withXslt);
+	public void getDocument(String sequenceName, String testcaseName, boolean isStubRequested) {
+		sequenceEditorPart.getDocument(sequenceName, testcaseName, isStubRequested);
 	}
 	
 	public Document getLastGeneratedDocument() {

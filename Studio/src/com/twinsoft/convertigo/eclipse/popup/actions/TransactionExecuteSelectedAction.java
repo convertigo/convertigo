@@ -51,7 +51,6 @@ public class TransactionExecuteSelectedAction extends MyAbstractAction {
 		shell.setCursor(waitCursor);
 		
         try {
-        	boolean withXslt = false;
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
@@ -66,8 +65,7 @@ public class TransactionExecuteSelectedAction extends MyAbstractAction {
     				ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
     				if (connectorEditor != null) {
     					getActivePage().activate(connectorEditor);
-    					connectorEditor.getConnectorEditorPart().clearBrowser();
-    					connectorEditor.getDocument(transaction.getName(), isStubRequested(), withXslt);
+    					connectorEditor.getDocument(transaction.getName(), isStubRequested());
     				}
     			}
     		}

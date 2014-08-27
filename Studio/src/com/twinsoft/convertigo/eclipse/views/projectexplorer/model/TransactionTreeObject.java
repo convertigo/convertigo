@@ -57,8 +57,6 @@ import com.twinsoft.convertigo.eclipse.editors.xml.XMLTransactionEditorInput;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectEvent;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.Replacement;
 import com.twinsoft.convertigo.engine.util.StringUtils;
@@ -67,7 +65,6 @@ import com.twinsoft.util.StringEx;
 public class TransactionTreeObject extends DatabaseObjectTreeObject implements IEditableTreeObject {
 	
 	private boolean isLearning = false;
-	private boolean isDreamface = false;
 	
 	public TransactionTreeObject(Viewer viewer, Transaction object) {
 		this(viewer, object, false);
@@ -227,11 +224,6 @@ public class TransactionTreeObject extends DatabaseObjectTreeObject implements I
 			isLearning = getObject().isLearning;
 			Boolean bool = Boolean.valueOf(value);
 			return bool.equals(Boolean.valueOf(isLearning));
-		}
-		if (name.equals("isDreamface")) {
-			isDreamface = !EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_MASHUP_URL).equals("");
-			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(isDreamface));
 		}
 		return super.testAttribute(target, name, value);
 	}

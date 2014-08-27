@@ -22,21 +22,19 @@
 
 package com.twinsoft.convertigo.eclipse.editors.connector;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.MessageFormat;
 import java.util.EventObject;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.rules.FastPartitioner;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
@@ -70,27 +68,24 @@ import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IScreenClassContainer;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
-import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.eclipse.AnimatedGif;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.xmlscanner.ColorManager;
 import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLConfiguration;
 import com.twinsoft.convertigo.eclipse.editors.xmlscanner.XMLPartitionScanner;
 import com.twinsoft.convertigo.eclipse.popup.actions.CreateScreenClassFromSelectionZoneAction;
-import com.twinsoft.convertigo.eclipse.popup.actions.CreateSheetFromXMLAction;
 import com.twinsoft.convertigo.eclipse.popup.actions.CreateTagNameFromSelectionZoneAction;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineListener;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
+@SuppressWarnings("restriction")
 public class ConnectorEditorPart extends Composite implements Runnable, EngineListener {
 
 	protected IEditorPart editor = null;
@@ -104,7 +99,6 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	private Label labelNoDesign = null;
 	private ToolBar toolBar = null;
 	private Hashtable<String, Integer> toolItemsIds = null;
-	private Action createSheetFromXMLAction = null;
 	private Action createScreenClassFromSelectionZoneAction = null;
 	private Action createTagNameFromSelectionZoneAction = null;
 
@@ -154,8 +148,6 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			"/com/twinsoft/convertigo/eclipse/editors/images/new_line.png"));
 	private Image imageDisableAddFromSelection = new Image(Display.getCurrent(), getClass()
 			.getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/new_line.d.png"));
-	private Image imageGenerateXsl = new Image(Display.getCurrent(), getClass().getResourceAsStream(
-			"/com/twinsoft/convertigo/eclipse/editors/images/sheet.png"));
 	private Image imageTestConnection = new Image(Display.getCurrent(), getClass().getResourceAsStream(
 			"/com/twinsoft/convertigo/eclipse/editors/images/test_connection.png"));
 	private Image imageShowBlocks = new Image(Display.getCurrent(), getClass().getResourceAsStream(
@@ -274,7 +266,6 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		if (toolAccumulate != null)
 			toolAccumulate.setEnabled(false);
 
-		createSheetFromXMLAction = new CreateSheetFromXMLAction();
 		createScreenClassFromSelectionZoneAction = new CreateScreenClassFromSelectionZoneAction();
 		createTagNameFromSelectionZoneAction = new CreateTagNameFromSelectionZoneAction();
 	}
@@ -340,7 +331,6 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	ToolItem toolItemReset = null;
 	ToolItem toolItemGenerateXml = null;
 	ToolItem toolItemStopTransaction = null;
-	ToolItem toolItemGenerateXsl = null;
 	ToolItem toolItemDebug = null;
 	ToolItem toolItemRun = null;
 	ToolItem toolItemPause = null;
@@ -699,25 +689,6 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				incr++;
 			}
 		}
-
-		if (!SiteClipperConnectorComposite.class.equals(compositeConnectorClass)) {
-			new ToolItem(toolBar, SWT.SEPARATOR);
-			incr++;
-
-			toolItemGenerateXsl = new ToolItem(toolBar, SWT.PUSH);
-			toolItemGenerateXsl.setImage(imageGenerateXsl);
-			toolItemGenerateXsl.setToolTipText("Generate XSL");
-			toolItemGenerateXsl.addSelectionListener(new org.eclipse.swt.events.SelectionListener() {
-				public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
-					createSheetFromXMLAction.run();
-				}
-
-				public void widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent e) {
-				}
-			});
-			toolItemsIds.put("GenerateXSL", new Integer(incr));
-			incr++;
-		}
 		
 		if (connector instanceof SqlConnector) {	
 			new ToolItem(toolBar, SWT.SEPARATOR);
@@ -958,7 +929,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		sashForm = new SashForm(compositeOutput, SWT.NONE);
 		sashForm.setLayoutData(gridData3);
 		createCompositeConnector();
-		createTabFolderXmlWebBrowser();
+		createCompositeXml();
 	}
 
 	private Class<?> compositeConnectorClass; // @jve:decl-index=0:
@@ -1040,7 +1011,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	 * 
 	 */
 	private void createCompositeXml() {
-		compositeXml = new Composite(tabFolderXmlWebBrowser, SWT.NONE);
+		compositeXml = new Composite(sashForm, SWT.NONE);
 		compositeXml.setLayout(new FillLayout());
 
 		xmlView = new StructuredTextViewer(compositeXml, null, null, false, SWT.H_SCROLL | SWT.V_SCROLL);
@@ -1160,7 +1131,6 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		imageDisableLink.dispose();
 		imageAddFromSelection.dispose();
 		imageDisableAddFromSelection.dispose();
-		imageGenerateXsl.dispose();
 		imageShowBlocks.dispose();
 		imageNewScreenclass.dispose();
 		imageDisableNewScreenclass.dispose();
@@ -1177,100 +1147,36 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	}
 
 	protected void getDocument() {
-		getDocument(null, false, false);
+		getDocument(null, null, false);
 	}
 
 	protected Context context;
 	private String contextID = null;
 	private String projectName = null;
 
-	public void getDocument(String transactionName, boolean isStubRequested, boolean withXslt) {
-		getDocument(transactionName, null, isStubRequested, withXslt);
+	public void getDocument(String transactionName, String testcaseName, boolean isStubRequested) {
+		final Map<String, String[]> parameters = new HashMap<String, String[]>();
+		
+		parameters.put(Parameter.Connector.getName(), new String[]{connector.getName()});
+		
+		if (transactionName != null) {
+	    	parameters.put(Parameter.Transaction.getName(), new String[]{transactionName});
+		}
+		
+		parameters.put(Parameter.Context.getName(), new String[]{contextID});
+		
+		if (testcaseName != null) {
+			parameters.put(Parameter.Testcase.getName(), new String[]{testcaseName});
+		}
+		
+	    if (isStubRequested) {
+	    	parameters.put(Parameter.Stub.getName(), new String[]{"true"});
+	    }
+	    
+	    ConvertigoPlugin.getDefault().runRequestable(projectName, parameters);
 	}
-
-	public void getDocument(String transactionName, String testcaseName, boolean isStubRequested, boolean withXslt) {
-		String url = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-		boolean isIndexJsp = false;
-		url += "/projects/" + projectName;
-		if (compositeConnectorClass.equals(JavelinConnectorComposite.class)
-				|| compositeConnectorClass.equals(SiteClipperConnectorComposite.class)
-				|| (compositeConnectorClass.equals(HttpConnectorComposite.class) && (compositeDesign instanceof HtmlConnectorDesignComposite))) {
-			isIndexJsp = new File(Engine.PROJECTS_PATH + '/' + projectName + "/index.html").exists()
-					|| new File(Engine.PROJECTS_PATH + '/' + projectName + "/index.jsp").exists();
-			if (isIndexJsp)
-				url += "/";
-			else
-				ConvertigoPlugin.logWarning(null, "You don't have index.html or index.jsp in " + projectName
-						+ " project !", false);
-		}
-		if (!isIndexJsp)
-			url += (withXslt ? "/.cxml" : "/.xml");
-
-		// Report from 4.5: fix #401
-		if (transactionName == null) {
-			try {
-				Transaction defaultTransaction = connector.getDefaultTransaction();
-				if (defaultTransaction != null)
-					transactionName = defaultTransaction.getName();
-			} catch (Exception e1) {
-			}
-		}
-
-        // Check secured connection
-		Transaction transaction = connector.getTransactionByName(transactionName);
-        if (transaction.isSecureConnectionRequired()) {
-			try {
-				URL urlT = new URL(url);
-	        	url = "https://" + urlT.getHost() + ":" + (urlT.getPort() + 1) + urlT.getPath();
-			} catch (MalformedURLException e) {
-				// Just ignore it
-			}
-        }        
-
-		url += "?" 	+ Parameter.Context.getName() + "=" + contextID 
-					+ "&" + Parameter.Connector.getName() + "=" + connector.getName();
-		if (transactionName != null)
-			url += "&" + Parameter.Transaction.getName() + "=" + transactionName;
-		if (testcaseName != null)
-			url += "&" + Parameter.Testcase.getName() + "=" + testcaseName;
-		if (isStubRequested)
-        	url += "&"+Parameter.Stub.getName()+"="+ true;
-
-		try {
-			browser.setUrl(url);
-		} catch (Exception e) {
-			;
-		}
-	}
-
-	// NOT USE
+	
 	public void run() {
-		/*
-		 * try { Transaction transaction; if (transactionName != null) {
-		 * transaction = connector.getTransactionByName(transactionName); } else
-		 * { transaction = connector.getDefaultTransaction(); }
-		 * 
-		 * compositeConnector.initConnector(transaction);
-		 * 
-		 * context = getStudioContext(); context.transactionName =
-		 * transaction.getName(); context.transaction = transaction;
-		 * 
-		 * DefaultRequester defaultRequester = new DefaultRequester();
-		 * defaultRequester.context = context;
-		 * 
-		 * context.inputDocument = defaultRequester.createDOM("ISO-8859-1");
-		 * 
-		 * Element root = context.inputDocument.createElement("input"); Element
-		 * transactionVariablesElement =
-		 * context.inputDocument.createElement("transaction-variables");
-		 * root.appendChild(transactionVariablesElement);
-		 * context.inputDocument.appendChild(root);
-		 * 
-		 * defaultRequester.processRequest(context); } catch(Exception e) {
-		 * ConvertigoPlugin.logException(e,
-		 * "An unexpected exception has occured while processing the transaction."
-		 * ); } finally { transactionName = null; }
-		 */
 	}
 
 	public void transactionStarted(EngineEvent engineEvent) {
@@ -1282,7 +1188,6 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				try {
 					toolItemStopTransaction.setEnabled(true);
 					toolItemGenerateXml.setEnabled(false);
-					toolItemGenerateXsl.setEnabled(false);
 				} catch (Exception e) {
 				}
 
@@ -1302,7 +1207,6 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				try {
 					toolItemStopTransaction.setEnabled(false);
 					toolItemGenerateXml.setEnabled(true);
-					toolItemGenerateXsl.setEnabled(true);
 				} catch (Exception e) {
 				}
 			}
@@ -1312,10 +1216,6 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	public org.w3c.dom.Document lastGeneratedDocument;
 
 	private Composite compositeXml = null;
-
-	private TabFolder tabFolderXmlWebBrowser = null;
-
-	private Browser browser = null;
 
 	private Composite compositeOutputHeader = null;
 
@@ -1378,10 +1278,6 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				xmlView.getDocument().set("");
 			}
 		});
-	}
-	
-	public void clearBrowser() {
-		browser.setUrl("about:blank");
 	}
 
 	public void blocksChanged(EngineEvent engineEvent) {
@@ -1468,30 +1364,6 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	public void sequenceStarted(EngineEvent engineEvent) {
 		if (!checkEventSource(engineEvent))
 			return;
-	}
-
-	/**
-	 * This method initializes tabFolderXmlWebBrowser
-	 * 
-	 */
-	private void createTabFolderXmlWebBrowser() {
-		tabFolderXmlWebBrowser = new TabFolder(sashForm, SWT.TOP);
-		createCompositeXml();
-		TabItem tabItem2 = new TabItem(tabFolderXmlWebBrowser, SWT.NONE);
-		tabItem2.setText("XML");
-		tabItem2.setControl(compositeXml);
-		createBrowser();
-		TabItem tabItem1 = new TabItem(tabFolderXmlWebBrowser, SWT.NONE);
-		tabItem1.setText("Browser");
-		tabItem1.setControl(browser);
-	}
-
-	/**
-	 * This method initializes browser
-	 * 
-	 */
-	private void createBrowser() {
-		browser = new Browser(tabFolderXmlWebBrowser, Engine.isLinux() ? SWT.MOZILLA : SWT.NONE);
 	}
 
 	/**

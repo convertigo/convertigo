@@ -61,7 +61,6 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
 		shell.setCursor(waitCursor);
 		
         try {
-        	boolean withXslt = false;
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
@@ -74,8 +73,7 @@ public class SequenceExecuteSelectedAction extends MyAbstractAction {
     				SequenceEditor sequenceEditor = projectTreeObject.getSequenceEditor(sequence);
     				if (sequenceEditor != null) {
     					getActivePage().activate(sequenceEditor);
-    					sequenceEditor.getSequenceEditorPart().clearBrowser();
-    					sequenceEditor.getDocument(sequence.getName(), isStubRequested(), withXslt);
+    					sequenceEditor.getDocument(sequence.getName(), isStubRequested());
     				}
     			}
     		}

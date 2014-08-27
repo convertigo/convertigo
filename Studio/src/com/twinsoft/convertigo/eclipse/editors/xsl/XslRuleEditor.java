@@ -32,7 +32,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -51,9 +50,8 @@ import org.xml.sax.InputSource;
 import com.twinsoft.convertigo.beans.core.Sheet;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager;
-import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 
+@SuppressWarnings("restriction")
 public class XslRuleEditor extends EditorPart implements IPropertyListener {
 	Composite plane;
 
@@ -71,19 +69,11 @@ public class XslRuleEditor extends EditorPart implements IPropertyListener {
 
 	private SashForm sashForm = null;
 
-	private Browser browser = null;
-
 	private ListenerList listenerList;
-
-	private String projectName;
 
 	private Sheet parentStyleSheet;
 	
 	private String parentStyleSheetUrl;
-
-	private String url = null;
-	
-	private int httpConnectorPort;
 	
 	public XslRuleEditor() {
 		super();
@@ -183,11 +173,9 @@ public class XslRuleEditor extends EditorPart implements IPropertyListener {
 		setInput(input);
 		eSite = site;
 		eInput = input;
-		projectName = ((XslFileEditorInput) input).getProjectName();
 		parentStyleSheet = ((XslFileEditorInput) input).getParentStyleSheet();
 		parentStyleSheetUrl = ((XslFileEditorInput) input).getParentStyleSheetUrl();
-		httpConnectorPort = getHttpConnectorPort();
-		url = "http://localhost:" + httpConnectorPort + "/convertigo/projects/" + projectName + "/index.jsp";
+		
 		setPartName(file.getName());
 	}
 
@@ -255,28 +243,6 @@ public class XslRuleEditor extends EditorPart implements IPropertyListener {
 		sashForm.setLayoutData(gridData1);
 	}
 
-	private int getHttpConnectorPort() {
-		int port = 8080;
-		String convertigoServer = EnginePropertiesManager.getProperty(PropertyName.APPLICATION_SERVER_CONVERTIGO_URL);
-		int i = convertigoServer.indexOf(':',6);
-		if (i != -1) {
-			int j = convertigoServer.indexOf("/convertigo");
-			port = Integer.parseInt(convertigoServer.substring(i+1, j));
-		}
-		ConvertigoPlugin.logDebug2("(XslRuleEditor) HTTP port found :" + port);
-		return port;
-	}
-	
-	/**
-	 * This method initializes browser
-	 * 
-	 */
-/* see #2299 */
-//	private void createBrowser() {
-//		browser = new Browser(sashForm, Engine.isLinux() ? SWT.MOZILLA : SWT.NONE);
-//		browser.setUrl(url);
-//	}
-
 	@Override
 	public void addPropertyListener(IPropertyListener l) {
 		if (listenerList == null)
@@ -312,8 +278,6 @@ public class XslRuleEditor extends EditorPart implements IPropertyListener {
 				path = path.append("../../" + parentStyleSheetUrl);
 				File parentFile = path.toFile();
 				parentFile.setLastModified(System.currentTimeMillis());
-
-				browser.setUrl(url);
 			}
 		}
 	}

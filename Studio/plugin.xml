@@ -12,12 +12,6 @@
             id="com.twinsoft.convertigo.eclipse.editors.xsl.XslRuleEditor"
             name="Xsl rule editor"/>
       <editor
-            class="com.twinsoft.convertigo.eclipse.editors.browser.AdministrationEditor"
-            icon="icons/convertigo_16x16.gif"
-            id="com.twinsoft.convertigo.eclipse.editors.browser.AdministrationEditor"
-            name="Administration editor">
-      </editor>
-      <editor
             class="com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor"
             default="false"
             icon="icons/connector_color_16x16.gif"

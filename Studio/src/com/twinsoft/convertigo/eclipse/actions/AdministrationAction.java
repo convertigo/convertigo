@@ -24,53 +24,26 @@ package com.twinsoft.convertigo.eclipse.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorReference;
-import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.swt.program.Program;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
-import org.eclipse.ui.PartInitException;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.browser.AdministrationEditorInput;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 
 public class AdministrationAction implements IWorkbenchWindowActionDelegate {
-	private IWorkbenchWindow window;
 
 	public void dispose() {
 	}
 
 	public void init(IWorkbenchWindow window) {
-		this.window = window;
 	}
 
 	public void run(IAction action) {
-		IWorkbenchPage activePage = window.getActivePage();
-		if (activePage != null) {
-			try {
-				IEditorPart editorPart = null;
-				
-				IEditorReference[] editorRefs = activePage.getEditorReferences();
-				for (int i=0;i<editorRefs.length;i++) {
-					IEditorReference editorRef = (IEditorReference)editorRefs[i];
-					IEditorInput editorInput = editorRef.getEditorInput();
-					if ((editorInput != null) && (editorInput instanceof AdministrationEditorInput)) {
-						editorPart = editorRef.getEditor(false);
-						activePage.activate(editorPart);
-						break;
-					}
-				}
-				
-				if (editorPart == null) {
-					editorPart = activePage.openEditor(new AdministrationEditorInput(),
-										"com.twinsoft.convertigo.eclipse.editors.browser.AdministrationEditor");
-				}
-				
-			} catch (PartInitException e) {
-				ConvertigoPlugin.logException(e,
-						"Error while loading the Convertigo administration editor");
-			}
+		try {
+			Program.launch(EnginePropertiesManager.PropertyName.APPLICATION_SERVER_CONVERTIGO_URL.getDefaultValue() + "/admin/");
+		} catch (Exception e) {
+			ConvertigoPlugin.logException(e, "Error while opening the Convertigo administration page");
 		}
 	}
 

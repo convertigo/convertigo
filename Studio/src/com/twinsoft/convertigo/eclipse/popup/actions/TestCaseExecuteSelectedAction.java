@@ -56,7 +56,6 @@ public class TestCaseExecuteSelectedAction extends MyAbstractAction {
 		shell.setCursor(waitCursor);
 		
         try {
-        	boolean withXslt = false;
     		ProjectExplorerView explorerView = getProjectExplorerView();
     		if (explorerView != null) {
     			TreeObject treeObject = explorerView.getFirstSelectedTreeObject();
@@ -74,7 +73,7 @@ public class TestCaseExecuteSelectedAction extends MyAbstractAction {
         				ConnectorEditor connectorEditor = projectTreeObject.getConnectorEditor(connector);
         				if (connectorEditor != null) {
         					getActivePage().activate(connectorEditor);
-        					connectorEditor.getDocument(transaction.getName(), testCase.getName(), false, withXslt);
+        					connectorEditor.getDocument(transaction.getName(), testCase.getName(), false);
         				}
     				}
     				if (requestable instanceof Sequence) {
@@ -85,7 +84,7 @@ public class TestCaseExecuteSelectedAction extends MyAbstractAction {
     					SequenceEditor sequenceEditor = projectTreeObject.getSequenceEditor(sequence);
     					if (sequenceEditor != null) {
     						getActivePage().activate(sequenceEditor);
-    						sequenceEditor.getDocument(sequence.getName(), testCase.getName(), false, withXslt);
+    						sequenceEditor.getDocument(sequence.getName(), testCase.getName(), false);
     					}
     				}
     			}

@@ -67,7 +67,6 @@ import com.twinsoft.convertigo.beans.references.ProjectSchemaReference;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.browser.BrowserEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditor;
 import com.twinsoft.convertigo.eclipse.editors.connector.ConnectorEditorInput;
 import com.twinsoft.convertigo.eclipse.editors.jscript.JscriptStatementEditorInput;
@@ -680,10 +679,6 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 							if (((TraceFileEditorInput)editorInput).getConnector().getProject().equals(project)) {
 								closeEditor(activePage, editorRef);
 							}
-						}						
-						// close browser editors
-						else if (editorInput instanceof BrowserEditorInput) {
-							closeEditor(activePage, editorRef);
 						}
 						// close other file editors
 						else if (editorInput instanceof FileEditorInput) {
