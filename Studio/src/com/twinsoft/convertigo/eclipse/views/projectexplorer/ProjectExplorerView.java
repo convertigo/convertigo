@@ -1773,7 +1773,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	}
 
 	protected UnloadedProjectTreeObject unloadProjectTreeObject(ProjectTreeObject projectTreeObject) {
-		if (projectTreeObject == null) throw new IllegalArgumentException("ProjectExplorerView.unloadProjectTreeObject(): project tree object can not be null!");
+		if (projectTreeObject == null) throw new IllegalArgumentException("ProjectExplorerView.unloadProjectTreeObject(): project tree object cannot be null!");
 		String projectName = projectTreeObject.getName();
 		TreeParent invisibleRoot = projectTreeObject.getParent();
 		if (projectTreeObject.close()) {
@@ -2488,7 +2488,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 		}
 		
 		if (importedProject != null) {
-			// project's name may have been changed because of non-normalized name (fix ticket #788 : Can not import project 213.car)
+			// project's name may have been changed because of non-normalized name (fix ticket #788 : Cannot import project 213.car)
 			targetProjectName = importedProject.getName();
 			
 			// loads project into tree view

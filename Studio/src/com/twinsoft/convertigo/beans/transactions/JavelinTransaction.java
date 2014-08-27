@@ -943,7 +943,7 @@ public class JavelinTransaction extends TransactionWithVariables {
         try {
         	tmpBlock = blockFactory.getFirstBlock();
         } catch (NoSuchElementException e) {
-        	Engine.logContext.trace("(JavelinTransaction) Can't apply extraction rules in panels : no block left in block factory.");
+        	Engine.logContext.trace("(JavelinTransaction) Cannot apply extraction rules in panels : no block left in block factory.");
         	return;
         }
         

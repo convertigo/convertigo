@@ -62,9 +62,9 @@ public class TreeDragListener extends DragSourceAdapter {
 					event.data = sXml;
 				}
 			} catch (EngineException e) {
-				ConvertigoPlugin.logException(e, "Can not drag");
+				ConvertigoPlugin.logException(e, "Cannot drag");
 			} catch (ParserConfigurationException ee) {
-				ConvertigoPlugin.logException(ee, "Can not drag");
+				ConvertigoPlugin.logException(ee, "Cannot drag");
 			}
 		}
 	}

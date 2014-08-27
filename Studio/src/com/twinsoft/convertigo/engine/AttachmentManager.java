@@ -109,7 +109,7 @@ public class AttachmentManager {
 						fileOut.write(data);
 						fileOut.close();
 					} catch(IOException e) {
-						Engine.logEngine.error("AttachmentComponent: can't write attachment '" + name + "'", e);
+						Engine.logEngine.error("AttachmentComponent: cannot write attachment '" + name + "'", e);
 					} finally {
 						Engine.theApp.filePropertyManager.releaseMutex(file);
 					}

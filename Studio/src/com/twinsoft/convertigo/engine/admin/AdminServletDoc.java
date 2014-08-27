@@ -83,7 +83,7 @@ public class AdminServletDoc extends HttpServlet {
 		try {
 			ClassLoader cld = Thread.currentThread().getContextClassLoader();
 			if (cld == null) {
-				throw new ClassNotFoundException("Can't get class loader.");
+				throw new ClassNotFoundException("Cannot get class loader.");
 			}
 			// Ask for all resources for the path
 			Enumeration<URL> resources = cld.getResources(pckgname.replace('.',

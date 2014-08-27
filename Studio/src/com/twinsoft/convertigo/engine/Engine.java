@@ -719,7 +719,7 @@ public class Engine {
 									Engine.logEngine.debug("Xvnc successfully started !");
 								}
 							} else {
-								Engine.logEngine.info(vncDir.getAbsolutePath() + " not found or incomplet, can't start Xvnc");
+								Engine.logEngine.info(vncDir.getAbsolutePath() + " not found or incomplet, cannot start Xvnc");
 							}
 						} catch (Exception e) {
 							Engine.logEngine.info("failed to launch Xvnc (maybe already launched", e);

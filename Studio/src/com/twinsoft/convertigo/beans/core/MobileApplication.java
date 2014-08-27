@@ -326,7 +326,7 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 				File templateFolder = new File(Engine.TEMPLATES_PATH, "base/DisplayObjects/mobile");
 				FileUtils.copyDirectory(templateFolder, folder);
 			} catch (IOException e) {
-				Engine.logBeans.warn("(MobileApplication) The folder '" + folder.getAbsolutePath() + "' doesn't exist and can't be created", e);
+				Engine.logBeans.warn("(MobileApplication) The folder '" + folder.getAbsolutePath() + "' doesn't exist and cannot be created", e);
 			}
 		}
 	}

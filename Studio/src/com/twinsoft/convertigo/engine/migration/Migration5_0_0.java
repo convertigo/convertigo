@@ -441,7 +441,7 @@ public class Migration5_0_0 {
         		    	if (!StringUtils.isNormalized(propValue)) {
         		    		normalizedValue = StringUtils.normalize(propValue);
         		    		
-        		    		// special case for project (fix ticket #788 : Can not import project 213.car)
+        		    		// special case for project (fix ticket #788 : Cannot import project 213.car)
         		    		if (elementClassName.equals("com.twinsoft.convertigo.beans.core.Project")) {
         		    			normalizedValue = "project" + normalizedValue;
         		    		}

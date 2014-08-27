@@ -83,7 +83,7 @@ public abstract class MobilePlatform extends DatabaseObject {
 				File templateFolder = new File(Engine.TEMPLATES_PATH, "base/DisplayObjects/platforms/" + getClass().getSimpleName());
 				FileUtils.copyDirectory(templateFolder, folder);
 			} catch (IOException e) {
-				Engine.logBeans.warn("(MobilePlatform) The folder '" + folder.getAbsolutePath() + "' doesn't exist and can't be created", e);
+				Engine.logBeans.warn("(MobilePlatform) The folder '" + folder.getAbsolutePath() + "' doesn't exist and cannot be created", e);
 			}
 		}
 	}

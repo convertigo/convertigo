@@ -471,7 +471,7 @@ public class HtmlTransaction extends HttpTransaction {
 						}
 
 						if (currentXmlDocument == null) {
-							throw new EngineException(alreadyConnected ? "Connector did not reconnect, please verify transaction statefull mode.":"" + " Current document is null. Can not apply extraction rules.");
+							throw new EngineException(alreadyConnected ? "Connector did not reconnect, please verify transaction statefull mode.":"" + " Current document is null. Cannot apply extraction rules.");
 						}
 
 						applyExtractionRules(screenClass, bNotFirstLoop2);

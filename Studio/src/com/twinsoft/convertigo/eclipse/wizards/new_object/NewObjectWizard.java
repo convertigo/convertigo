@@ -345,7 +345,7 @@ public class NewObjectWizard extends Wizard {
 						if (newBean instanceof Criteria) {
 							Connector connector = parentObject.getConnector();
 							if (parentObject.equals(((IScreenClassContainer<?>)connector).getDefaultScreenClass()))
-								throw new EngineException("You can not add a new criterion on default screenclass.");
+								throw new EngineException("You cannot add a new criterion on default screenclass.");
 						}
 							
 						parentObject.add(newBean);

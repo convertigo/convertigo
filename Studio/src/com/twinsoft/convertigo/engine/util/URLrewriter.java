@@ -110,7 +110,7 @@ public class URLrewriter {
 				}
 			}
 		} catch (TransformerException e) {
-			Engine.logEngine.trace("WebClipper can't evaluate STYLE node");
+			Engine.logEngine.trace("WebClipper cannot evaluate STYLE node");
 		}
 	}
 	
@@ -187,7 +187,7 @@ public class URLrewriter {
 				}
 			}
 		} catch (TransformerException e) {
-			Engine.logEngine.trace("WebClipper can't evaluate STYLE node");
+			Engine.logEngine.trace("WebClipper cannot evaluate STYLE node");
 		}
 	}
 	
@@ -216,7 +216,7 @@ public class URLrewriter {
 				attr_n.setValue(rewriteURL(attr_n.getValue()));
 			}
 		} catch (TransformerException e) {
-			Engine.logEngine.trace("WebClipper can't evaluate this xpath : "+attributesXpath);
+			Engine.logEngine.trace("WebClipper cannot evaluate this xpath : "+attributesXpath);
 		}
 	}
 }

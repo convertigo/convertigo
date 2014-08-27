@@ -295,7 +295,7 @@ public class ClipboardAction extends MyAbstractAction {
 		else if (!(targetObject instanceof Step))
 			return null;
 		
-		// Can not paste to IThenElseContainer
+		// cannot paste to IThenElseContainer
 		if (targetObject instanceof IThenElseContainer)
 			return null;
 		else {
@@ -308,16 +308,16 @@ public class ClipboardAction extends MyAbstractAction {
 				// Can paste only on step which may contain children
 				if ((ob instanceof StepWithExpressions) && (!(targetObject instanceof StepWithExpressions)))
 					return null;
-				// Can not paste a ThenStep
+				// cannot paste a ThenStep
 				if (ob instanceof ThenStep)
 					return null;
-				// Can not paste a ElseStep
+				// cannot paste a ElseStep
 				if (ob instanceof ElseStep)
 					return null;
-				// Can not paste a ThenStatement
+				// cannot paste a ThenStatement
 				if (ob instanceof ThenStatement)
 					return null;
-				// Can not paste a ElseStatement
+				// cannot paste a ElseStatement
 				if (ob instanceof ElseStatement)
 					return null;
 				// Special case of XMLElementStep, ElementStep

@@ -94,7 +94,7 @@ public class ProxyHttpConnector extends HttpConnector {
 	transient private Map<String, Replacements> replacementsForMimeType = new HashMap<String, Replacements>();
 	
 	public Replacements getReplacementsForMimeType(String mimeType) {
-		if (mimeType == null) throw new IllegalArgumentException("The parameter 'mimeType' can not be null");
+		if (mimeType == null) throw new IllegalArgumentException("The parameter 'mimeType' cannot be null");
 		
 		Replacements filteredReplacements = replacementsForMimeType.get(mimeType);
 		

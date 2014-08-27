@@ -53,7 +53,7 @@ public class ProjectSchemaReference extends ImportXsdSchemaReference {
 				throw new EngineException("Incorrect schema import: referenced Convertigo project name is empty");
 			}
 			if (pname.equals(getProject().getName())) {
-				throw new EngineException("Incorrect schema import: a project can not reference itself");
+				throw new EngineException("Incorrect schema import: a project cannot reference itself");
 			}
 			if (!Engine.theApp.databaseObjectsManager.existsProject(pname)) {
 				throw new EngineException("Incorrect schema import: the project "+ pname +" does not exist");

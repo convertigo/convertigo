@@ -118,7 +118,7 @@ public class TranslateText extends JavelinExtractionRule {
 							Engine.logBeans.debug("(TranslateText) Dictionary had load " + dictionaryEntry.words.size() + " rules");
 						} catch (Exception e) {
 							dictionaryEntry.words.clear();
-							Engine.logBeans.error("(TranslateText) Error while opening dictionary.\nCan't read the dictionary file \"" + filepath + "\" :\n" + e.getMessage() + "\nPlease refer to the rule documentation.");
+							Engine.logBeans.error("(TranslateText) Error while opening dictionary.\nCannot read the dictionary file \"" + filepath + "\" :\n" + e.getMessage() + "\nPlease refer to the rule documentation.");
 						}
 		    		}
 				}
@@ -158,7 +158,7 @@ public class TranslateText extends JavelinExtractionRule {
 		            			Engine.logBeans.debug("(TranslateText) New orphan word \"" + txt + "\", write to " + orphanspath);
 		            			FileUtils.saveProperties(dictionaryEntry.orphans, file, encoding);
 							} catch (IOException e) {
-								Engine.logBeans.warn("(TranslateText) Can't write the orphan dictionary file \"" + orphanspath + "\" :\n" + e.getMessage());
+								Engine.logBeans.warn("(TranslateText) Cannot write the orphan dictionary file \"" + orphanspath + "\" :\n" + e.getMessage());
 							}
 		            	}
 					}

@@ -101,7 +101,7 @@ public class AdminServlet extends HttpServlet {
 					boolean cloud_forbidden = serviceDefinition.cloud_forbidden();
 					Engine.logAdmin.debug("Is service forbidden for Cloud ? : " + cloud_forbidden);
 					if (cloud_forbidden) {
-						throw new EngineException("The service '" + serviceName + "' can't be acceded on Cloud.");
+						throw new EngineException("The service '" + serviceName + "' cannot be acceded on Cloud.");
 					}
 				}
 				

@@ -154,7 +154,7 @@ public class RsaManager implements AbstractManager {
 	    		
 	    		Engine.logEngine.trace("(RsaManager) [" + session.getId() + "] New RSA key pair for session.\nPublic key: " + publicKey + "\nPrivate key: " + privKey);
 	    	} catch (Exception e) {
-	    		Engine.logEngine.warn("Can't create publicKey for session " + session.getId(), e);
+	    		Engine.logEngine.warn("Cannot create publicKey for session " + session.getId(), e);
 	    	}
     	} else {
     		Engine.logEngine.trace("(RsaManager) [" + session.getId() + "] PublicKey retrieved from session: " + publicKey);

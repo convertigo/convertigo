@@ -2673,7 +2673,7 @@
             lightweight="true"
             state="true"
             location="TOP_LEFT">
-         <description>Decorates Convertigo projects that can not be successfully loaded.</description>
+         <description>Decorates Convertigo projects that cannot be successfully loaded.</description>
          <enablement>
             <and>
                 <objectClass name="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.UnloadedProjectTreeObject"/>

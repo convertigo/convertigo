@@ -353,7 +353,7 @@ public class ContextManager extends AbstractRunnableManager {
     	synchronized(contexts) {
 			if (context == null) {
 				// Silently ignore
-				Engine.logContextManager.warn("Requestable thread can not be stopped because context does not exist any more!");
+				Engine.logContextManager.warn("Requestable thread cannot be stopped because context does not exist any more!");
 				return;
 			}
 			
@@ -377,7 +377,7 @@ public class ContextManager extends AbstractRunnableManager {
     public void remove(Context context) {
 		if (context == null) {
 			// Silently ignore
-			Engine.logContextManager.warn("The context can not be removed because it does not exist any more!");
+			Engine.logContextManager.warn("The context cannot be removed because it does not exist any more!");
 			return;
 		}
 

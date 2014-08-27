@@ -70,7 +70,7 @@ public class WidgetsServlet extends HttpServlet {
 	    	Matcher mat_project = reg_project.matcher(requestUri);
 	    	
 	    	if (!mat_project.find()) {
-	    		response.sendError(500, "can't find project name");
+	    		response.sendError(500, "cannot find project name");
 	    		return;
 	    	}
     		String project_name = mat_project.group(1);

@@ -419,7 +419,7 @@ public class HttpBridge {
 				infoShuttle.siteURL = new URL(sb.toString());
 			}
 			catch (MalformedURLException e) {
-				throw new IllegalArgumentException("can not compose an URL (A): " + sb.toString());
+				throw new IllegalArgumentException("Cannot compose an URL (A): " + sb.toString());
 			}
 		}
 		else {
@@ -427,7 +427,7 @@ public class HttpBridge {
 				infoShuttle.siteURL = gotoURI.toURL();
 			}
 			catch (MalformedURLException e) {
-				throw new IllegalArgumentException("can not compose an URL (B): " + gotoURI.toString());
+				throw new IllegalArgumentException("Cannot compose an URL (B): " + gotoURI.toString());
 			}
 		}
 
