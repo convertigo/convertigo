@@ -150,7 +150,14 @@ if ("cordova" in window) {
 				C8O.log.debug("c8o.cdv : _get_cache_db initializing local_cache_dir");
 				
 				if (window.requestFileSystem) {
-					window.requestFileSystem(LocalFileSystem.PERSISTENT, Math.pow(1024, 3),
+					var quota = 0;
+					try {
+						quota = device.platform == "blackberry10" ? Math.pow(1024, 3) : 0;
+					} catch (err) {
+						C8O.log.warn("c8o.cdv : _get_cache_db cannot determine quota from device.platform, use '0'", err);
+					}
+					
+					window.requestFileSystem(LocalFileSystem.PERSISTENT, quota,
 						function(fileSystem) {
 							C8O.log.debug("c8o.cdv : _get_cache_db LocalFileSystem retrieved");
 							
