@@ -761,36 +761,13 @@ public class XMLUtils {
 	}
 
 	public static Document createDom(String xmlEngine) throws ParserConfigurationException {
-		Document document = null;
-
-		// Java default XML engine
-		if (xmlEngine.equals("java")) {
-			document = getDefaultDocumentBuilder().newDocument();
-		}
-		// MSXML document
-		else if (xmlEngine.equals("msxml")) {
-			document = new com.ms.xml.Document();
-		}
-
+		Document document = getDefaultDocumentBuilder().newDocument();
 		return document;
 	}
 
 	public static Document parseDOM(String xmlEngine, String xml) throws ParserConfigurationException,
 			SAXException, IOException {
-		Document document = null;
-
-		// Java default XML engine
-		if (xmlEngine.equals("java")) {
-			document = getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xml)));
-		}
-		// MSXML engine
-		else if (xmlEngine.equals("msxml")) {
-			com.ms.xml.Document msxmlDocument = new com.ms.xml.Document();
-			document = msxmlDocument;
-			msxmlDocument.setAsync(false);
-			msxmlDocument.loadXML(xml);
-		}
-
+		Document document = getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xml)));
 		return document;
 	}
 

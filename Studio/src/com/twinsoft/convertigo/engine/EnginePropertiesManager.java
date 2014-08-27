@@ -120,31 +120,9 @@ public class EnginePropertiesManager {
 		}
 	}
 	
-	public enum XmlEngine implements ComboEnum {
-		java ("Java/Default"),
-		msxml ("Microsoft XML");
-
-		final String display;
-		final String value;
-		
-		XmlEngine(String display) {
-			this.display = display;
-			this.value = name();
-		}
-
-		public String getDisplay() {
-			return display;
-		}
-
-		public String getValue() {
-			return value;
-		}
-	}
-	
 	public enum XsltEngine implements ComboEnum {
 		xalan_xslt ("xalan/xslt", "Java Xalan"),
-		xalan_xsltc ("xalan/xsltc", "Java Xalan (XSLTC)"),
-		msxml ("Microsoft XML");
+		xalan_xsltc ("xalan/xsltc", "Java Xalan (XSLTC)");
 
 		final String display;
 		final String value;
@@ -437,8 +415,6 @@ public class EnginePropertiesManager {
 		DOCUMENT_INCLUDE_STATISTICS ("document.include_statistics", "false", "Insert statistics in the generated document", PropertyCategory.XmlGeneration),
 
 		/** XML GENERATION ADVANCE */
-		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = XmlEngine.class)
-		DOCUMENT_XML_ENGINE ("document.xml_engine", XmlEngine.java.getValue(), "XML engine", PropertyCategory.XmlGeneration),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Combo, combo = XsltEngine.class)
 		DOCUMENT_XSLT_ENGINE ("document.xslt_engine", XsltEngine.xalan_xsltc.getValue(), "XSLT engine", PropertyCategory.XmlGeneration),
 		@PropertyOptions(advance = true, propertyType = PropertyType.Boolean)

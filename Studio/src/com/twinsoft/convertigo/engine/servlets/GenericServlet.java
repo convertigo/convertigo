@@ -42,7 +42,6 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.w3c.dom.Document;
 
-import com.jacob.com.ComThread;
 import com.twinsoft.convertigo.engine.AttachmentManager.AttachmentDetails;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -196,18 +195,8 @@ public abstract class GenericServlet extends HttpServlet {
 						response.setCharacterEncoding(charset);
 					}
 				}
-
-				String xmlEngine = EnginePropertiesManager
-						.getProperty(EnginePropertiesManager.PropertyName.DOCUMENT_XML_ENGINE);
-				String xsltEngine = EnginePropertiesManager
-						.getProperty(EnginePropertiesManager.PropertyName.DOCUMENT_XSLT_ENGINE);
-				boolean isMsXml = (xmlEngine.equals("msxml")) && (xsltEngine.equals("msxml"));
 				
-				//if(1==1) throw new ServletException("test");
 				try {
-					if (isMsXml) {
-						ComThread.InitMTA();
-					}
 
 					if (result != null) {
 
@@ -290,10 +279,6 @@ public abstract class GenericServlet extends HttpServlet {
 								.debug("[GenericServlet] Supervision mode => invalidating HTTP session in 30s.");
 						// request.getSession().setMaxInactiveInterval(30);
 						removeSession(request, 30);
-					}
-
-					if (isMsXml) {
-						ComThread.Release();
 					}
 
 					// Removes context and session when finished

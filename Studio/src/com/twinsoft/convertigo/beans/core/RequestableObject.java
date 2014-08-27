@@ -50,7 +50,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import com.jacob.com.ComThread;
 import com.twinsoft.convertigo.beans.steps.StepException;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -770,16 +769,8 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
         	context.statistics.stop(workerThreadCreationStatistic);
         	
 			context.steps = new Vector<String>(8, 8);
-
-            String xmlEngine = EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_XML_ENGINE);
-            String xsltEngine = EnginePropertiesManager.getProperty(PropertyName.DOCUMENT_XSLT_ENGINE);
-            boolean isMsXml = (xmlEngine.equals("msxml")) && (xsltEngine.equals("msxml"));
         	
             try {
-                if (isMsXml) {
-                	ComThread.InitMTA();
-                }
-
 				// Creating scripting context
     			javascriptContext = org.mozilla.javascript.Context.enter();
     			scope = javascriptContext.initStandardObjects();
@@ -819,10 +810,7 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
                 exception = e;
             } finally {
 				Engine.logContext.debug("(RequestableObject) Final stage for requested object thread");
-								
-				if (isMsXml)
-                	ComThread.Release();
-
+				
 				if (javascriptContext != null) {
 					removeObjectsFromScope();
 					org.mozilla.javascript.Context.exit();

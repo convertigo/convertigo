@@ -32,8 +32,8 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.Vector;
 import java.util.Map.Entry;
+import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
@@ -57,7 +57,6 @@ import org.w3c.dom.ProcessingInstruction;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
-import com.ms.xml.ParseError;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.ISheetContainer;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -76,8 +75,8 @@ import com.twinsoft.convertigo.engine.NoSuchSecurityTokenException;
 import com.twinsoft.convertigo.engine.SecurityToken;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public abstract class GenericRequester extends Requester {
 	
@@ -160,22 +159,7 @@ public abstract class GenericRequester extends Requester {
     	boolean bLog = !(context.requestedObject instanceof Sequence);
 
     	if (bLog) Engine.logContext.trace("[" + getName() + "] creating DOM");
-    	Document document = null;
-
-    	String xmlEngine = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.DOCUMENT_XML_ENGINE);
-    	if (bLog) Engine.logContext.trace("Required XML engine: " + xmlEngine);
-
-    	// Java default XML engine
-    	if (xmlEngine.equals("java")) {         	
-    		document = XMLUtils.getDefaultDocumentBuilder().newDocument();
-    	}
-    	// MSXML document
-    	else if (xmlEngine.equals("msxml")) {
-    		document = new com.ms.xml.Document();
-    	}
-    	else {
-    		throw new EngineException("Unknown XML engine (" + xmlEngine + "), please check your Convertigo engine properties!");
-    	}
+    	Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
 
     	if (bLog) Engine.logContext.trace("XML class: " + document.getClass().getName());
 
@@ -186,22 +170,7 @@ public abstract class GenericRequester extends Requester {
     }
 
     public org.w3c.dom.Document createDomWithNoXMLDeclaration(String encodingCharSet) throws EngineException, ParserConfigurationException {
-        Document document = null;
-        
-        String xmlEngine = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.DOCUMENT_XML_ENGINE);
-        
-        // Java default XML engine
-        if (xmlEngine.equals("java")) {
-            document = XMLUtils.getDefaultDocumentBuilder().newDocument();
-        }
-        // MSXML document
-        else if (xmlEngine.equals("msxml")) {
-            document = new com.ms.xml.Document();
-        }
-        else {
-            throw new EngineException("Unknown XML engine (" + xmlEngine + "), please check your Convertigo engine properties!");
-        }
-
+        Document document = XMLUtils.getDefaultDocumentBuilder().newDocument();
         return document;
     }
     
@@ -210,29 +179,7 @@ public abstract class GenericRequester extends Requester {
         Engine.logContext.debug("GenericRequester: parsing DOM");
 
         try {
-            Document document = null;
-            
-            String xmlEngine = EnginePropertiesManager.getProperty(EnginePropertiesManager.PropertyName.DOCUMENT_XML_ENGINE);
-            Engine.logContext.debug("Required XML engine: " + xmlEngine);
-            
-            // Java default XML engine
-            if (xmlEngine.equals("java")) {
-        		document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xml)));
-            }
-            // MSXML engine
-            else if (xmlEngine.equals("msxml")) {
-            	com.ms.xml.Document msxmlDocument = new com.ms.xml.Document();
-            	document = msxmlDocument;
-            	msxmlDocument.setAsync(false);
-                if (!msxmlDocument.loadXML(xml)) {
-                	ParseError error = msxmlDocument.getParseError();
-                	throw new Exception("Unable to parse the XML document.\nThe following error #" + error.getErrorCode() + " occurs at line " + error.getLine() + ", column " + error.getLinepos() + ": " + error.getReason() + ".\nLine: " + error.getSrcText());
-                }
-            }
-            else {
-                throw new EngineException("Unknown XML engine (" + xmlEngine + "), please check your Convertigo engine properties!");
-            }
-            
+            Document document = XMLUtils.getDefaultDocumentBuilder().parse(new InputSource(new StringReader(xml)));
             return document;
         }
         catch(Exception e) {
@@ -977,20 +924,7 @@ public abstract class GenericRequester extends Requester {
                         if (inputStream != null) inputStream.close();
                     }
                 }
-            }
-            // MSXML XSLT engine
-            else if (xsltEngine.equals("msxml")) {
-                com.ms.xml.Document xslDocument = new com.ms.xml.Document();
-                com.ms.xml.Document msxmlDocument = ((com.ms.xml.Document) document);
-                Engine.logContext.debug("XSLT engine class: com.ms.xml.Document");
-                xslDocument.setAsync(false);
-                if (!xslDocument.load(context.absoluteSheetUrl.replace('/', '\\'))) {
-                	ParseError error = xslDocument.getParseError();
-                	throw new EngineException("Unable to parse the XSL file \"" + context.absoluteSheetUrl + "\".\nThe following error #" + error.getErrorCode() + " occurs at line " + error.getLine() + ", column " + error.getLinepos() + ": " + error.getReason() + ".\nLine: " + error.getSrcText());
-                }
-                result = msxmlDocument.transformNode(xslDocument);
-            }
-            else {
+            } else {
                 throw new EngineException("Unknown XSLT engine (" + xsltEngine + "), please check your Convertigo engine properties!");
             }
             

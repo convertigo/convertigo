@@ -52,16 +52,12 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="lib" path="lib/jCharts-0.7.2.jar"/>
 	<classpathentry kind="lib" path="lib/directkit.jar"/>
-	<classpathentry kind="lib" path="lib/ejb.jar"/>
 	<classpathentry kind="lib" path="lib/tools.jar"/>
 	<classpathentry kind="lib" path="lib/ws-commons-java5-1.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/avalon.jar"/>
 	<classpathentry kind="lib" path="lib/fop.jar"/>
 	<classpathentry kind="lib" path="lib/dom4j-1.6.1/dom4j-1.6.1.jar"/>
 	<classpathentry kind="lib" path="lib/hsqldb.jar"/>
 	<classpathentry kind="lib" path="lib/jakarta-regexp-1.2.jar"/>
-	<classpathentry kind="lib" path="lib/msxml.jar"/>
-	<classpathentry kind="lib" path="lib/jacob.jar"/>
 	<classpathentry kind="lib" path="lib/jtds-1.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/apache/batik/batik.jar"/>
 	<classpathentry kind="lib" path="lib/apache/bcel/bcel-5.2.jar"/>
