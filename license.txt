@@ -37,7 +37,7 @@ The Software Extended Edition components are delivered and bundled with the Soft
 
 " Software Server "
 One of the Software core components which is for production purposes and executes Project.car files developed with the Software Studio.
-Server is sometime named "Convertigo Enterprise Mobility Server" or "C-EMS" in documentations, web site or installers.
+Server is sometime named "Convertigo Enterprise Mobility Server" or "C-EMS" in documentations, website or installers.
 The Software Server includes CONVERTIGO Mobilizer, CONVERTIGO Widgetizer, CONVERTIGO Sequencer and SQL, REST/SOAP connectors.
 The Software Server installer is installing the Server Software and an administration console to monitor and configure  Software Server.
 The Software Server contains all run time components to run the Projects.car files. 

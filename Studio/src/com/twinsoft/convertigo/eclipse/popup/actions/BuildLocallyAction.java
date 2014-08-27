@@ -957,7 +957,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		    							"You have to install Cordova on your local machine to be able to build locally.\n" +
 		    							"If Cordova is not yet installed, click 'No' and download cordova from :\n" +
 		    							"http://cordova.apache.org . Be sure to follow all instruction on Cordova's\n" +
-		    							"Web site to setup your local Cordova build system. \n\n" +
+		    							"Website to setup your local Cordova build system. \n\n" +
 		    							"Do you want to create a Cordova environment for your project now ?"
 		    			);
 						
@@ -1032,7 +1032,7 @@ public class BuildLocallyAction extends MyAbstractAction {
         	customDialog.setMessage("In order to use local build you must install on your workstation a valid\n" +
 					"Cordova build system. You can download and install Cordova from \n" +
 					"http://cordova.apache.org . Be sure to follow all instruction on Cordova\n" +
-					"Web site to setup your local Cordova build system. \n\n" +
+					"Website to setup your local Cordova build system. \n\n" +
 					"This message can also appear if cordova is not in your PATH."
 			);
 			customDialog.open();
