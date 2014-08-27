@@ -289,7 +289,7 @@ public class BeansDoc {
 		}
 		else {
 			elementSub = document.createElement("short_description");
-			elementText = document.createTextNode("Not yet documented.\nFor more information, do not hesitate to contact us in the forum in our Developer Network web site: http://www.convertigo.com/itcenter.html");
+			elementText = document.createTextNode("Not yet documented.\nFor more information, do not hesitate to contact us in the forum in our Developer Network website: http://www.convertigo.com/itcenter.html");
 			elementSub.appendChild(elementText);
 			elementBean.appendChild(elementSub);
 		}
