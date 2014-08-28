@@ -23,6 +23,8 @@
 package com.twinsoft.convertigo.beans.transactions;
 
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -39,6 +41,8 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 
 	private static final long serialVersionUID = 1494278577299328199L;
 
+	Pattern reJSONP = Pattern.compile("^.*?\\(\\s*([{\\[].*[}\\]])\\s*\\)", Pattern.DOTALL);
+	
 	public JsonHttpTransaction() {
 		super();
 	}
@@ -84,6 +88,12 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 
 		String jsonData = new String(httpData, jsonEncoding);
 		Engine.logBeans.debug("JSON text: " + jsonData);
+		
+		Matcher mJSONP = reJSONP.matcher(jsonData);
+		if (mJSONP.find()) {
+			jsonData = mJSONP.group(1);
+			Engine.logBeans.debug("Detected JSONP response, extracting JSON: " + jsonData);
+		}
 
 		Element outputDocumentRootElement = context.outputDocument.getDocumentElement();
 
