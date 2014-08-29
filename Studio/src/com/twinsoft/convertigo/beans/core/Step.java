@@ -187,7 +187,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	
 	protected TwsCachedXPathAPI getXPathAPI() {
 		if (xpathApi == null) {
-			Engine.logBeans.warn("[Step] Step needed to retrieve new TwsCachedXPathAPI");
+			Engine.logBeans.trace("[Step] Step needed to retrieve new TwsCachedXPathAPI");
 			return xpathApi = new TwsCachedXPathAPI();
 		}
 		return xpathApi;
