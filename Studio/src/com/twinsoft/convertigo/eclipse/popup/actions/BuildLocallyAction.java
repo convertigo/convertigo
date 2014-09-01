@@ -80,7 +80,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 
 	static final String cordovaDir = "cordova";
 	final double versionMinimalRequired = 3.3;
-	String cmdOutput;
+    String cmdOutput;
 
 	/**
 	 * 
@@ -482,13 +482,17 @@ public class BuildLocallyAction extends MyAbstractAction {
 		super();
 	}
 
-	private void delete(File f)  {
+	private boolean delete(File f)  {
 		if (f.isDirectory()) {
 			for (File c : f.listFiles())
 				delete(c);
 			}
-		if (!f.delete())
+		if (!f.delete()){
 		    Engine.logEngine.error("Failed to delete file: " + f);
+			return false;
+		}else {
+			return true;
+		}
 	}
 
 	/**
@@ -664,7 +668,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 					FileUtils.copyFile(iconSrc, dest);
 				}
 				
-				
 				// now the stuff for splashes
 				for(int i=0; i< splashes.getLength(); i++) {
 					Node splash = splashes.item(i);
@@ -679,7 +682,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 			}
 			
 			if (platform.equalsIgnoreCase("wp7") || platform.equalsIgnoreCase("wp8")) {
-				// TODO : Do the Windows Phone Stuff
 				NodeList icons = xpathApi.selectNodeList(doc.getDocumentElement(), "//icon[@platform = 'winphone']");
 				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
 				NodeList splashes = xpathApi.selectNodeList(doc.getDocumentElement(), "//*[local-name()='splash' and @platform = 'winphone']");
@@ -1007,7 +1009,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        		runCordovaCommand("build " + cordovaPlatform + " --"+option, cordovaDir);
 					        	}
 					        	
-					        	
 					        	// Step 5: Show dialog with path to apk/ipa/xap
 					        	showLocationInstallFile(cordovaPlatform, applicationName, option);
 					        	
@@ -1185,7 +1186,34 @@ public class BuildLocallyAction extends MyAbstractAction {
 	 * We also explain, what we do and how to recreate the cordova environment
 	 */
 	public void removeCordovaDirectory() {
-		//TODO
+		
+		MessageBox customDialog = new MessageBox(getParentShell(),
+				SWT.ICON_INFORMATION | SWT.YES | SWT.NO);
+    	customDialog.setText("Remove cordova directory");
+    	customDialog
+				.setMessage("Do you want to remove the Cordova directory located in \"_private\" directory?\n\n" +
+						"It will also remove the Cordova environment!\n\n" +
+						"To recreate the cordova environment, you just need to run a new local build."
+		);
+		
+		if (customDialog.open() == SWT.YES) {
+			//Step 1: Recover the "cordova" directory	
+	        final File cordovaDirectory = getCordovaDir();
+			
+			//Step 2: Remove the "cordova" directory
+	        if (cordovaDirectory.exists()) {
+	        	if (delete(cordovaDirectory)){
+					Engine.logEngine.info("The Cordova environment has been successfull removed.");
+				}      		        	
+				
+	        } else {
+				Engine.logEngine.error("The Cordova environment not removed because doesn't exist.");
+				return;
+	        }
+
+		} else {
+			return;
+		}		
 	}
 	
 	private MobilePlatform getMobilePlatform() {
