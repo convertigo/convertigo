@@ -1076,7 +1076,21 @@ public class BuildLocallyAction extends MyAbstractAction {
 		} else if (cordovaPlatform.equals("ios")){
 			//TODO : Handle iOS
 		} else if ((cordovaPlatform.equals("wp7")) || (cordovaPlatform.equals("wp8"))) {
-			//TODO : Handle WINPHONE 7 & 8
+			String buildMd = buildMode.equals("debug") ? "Debug" : "Release";
+			// WP8
+			if (cordovaPlatform.equals("wp8")) {
+				buildedPath = getCordovaDir().getAbsolutePath() + 
+					"\\platforms\\" + 
+					cordovaPlatform + "\\Bin\\" + buildMd + "\\CordovaAppProj_" + buildMd + "_AnyCPU.xap";
+			}
+			
+			//WP7
+			if (cordovaPlatform.equals("wp7")) {
+				buildedPath = getCordovaDir().getAbsolutePath() + 
+					"\\platforms\\" + 
+					cordovaPlatform + "\\Bin\\" + buildMd + "\\com.convertigo.mobile." + applicationName + ".xap";
+			}
+			
 		} else if (cordovaPlatform.equals("bb10")){
 			//TODO : Handle BB10
 		} else {
