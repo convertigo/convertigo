@@ -440,6 +440,19 @@ $.extend(true, C8O, {
 //});
 
 /**
+ *  device_ready hook
+ *  ** Needs cordova.js + c8o.cordova.js **
+ *  used at device startup (doesn't work on browser) to initialize device things
+ *  or break the processing
+ *  
+ *  return: true > lets C8O perform the init
+ *             false > break the processing of request
+ */
+//C8O.addHook("device_ready", function () {
+//	return true;
+//});
+
+/**
  *  document_ready hook
  *  used at page loading
  *  can perform some DOM tweak
