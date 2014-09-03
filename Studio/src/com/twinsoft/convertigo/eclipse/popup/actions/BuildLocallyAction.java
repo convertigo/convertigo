@@ -1137,8 +1137,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 					"\\platforms\\" + 
 					cordovaPlatform + "\\bin\\" + applicationName + "-" + buildMode + ".apk";
 		} else if (cordovaPlatform.equals("ios")){
-			//TODO
-			
+			// iOS
+			buildedPath = getCordovaDir().getAbsolutePath() +
+					"/platforms/" + cordovaPlatform + "/" + applicationName + ".xcodeproj";
 		} else if ((cordovaPlatform.equals("wp7")) || (cordovaPlatform.equals("wp8"))) {
 			
 			// WP8

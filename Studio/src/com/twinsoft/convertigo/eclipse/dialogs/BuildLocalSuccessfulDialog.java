@@ -22,10 +22,14 @@
 
 package com.twinsoft.convertigo.eclipse.dialogs;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -35,6 +39,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+
+import com.twinsoft.convertigo.engine.Engine;
 
 public class BuildLocalSuccessfulDialog extends Dialog {
 	
@@ -75,7 +81,7 @@ public class BuildLocalSuccessfulDialog extends Dialog {
 		Label label = new Label(container, SWT.NONE);
 		label.setText("Application \"" + applicationName
 				+ "\" has been successfully builded in local."
-				+ "\n\nThe builded file for \""+cordovaPlatform+"\" platform is located:");
+				+ "\nThe builded file for \""+cordovaPlatform+"\" platform is located:");
 		label.setLayoutData(data);
 		
 		data = new GridData(GridData.FILL_HORIZONTAL);
@@ -87,6 +93,15 @@ public class BuildLocalSuccessfulDialog extends Dialog {
 		absolutePath.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
 		absolutePath.setLayoutData(data);
 
+		if (cordovaPlatform.equals("ios")){
+			Label iosNotify = new Label(container, SWT.NONE);
+			data = new GridData(GridData.FILL_HORIZONTAL);
+			data.grabExcessHorizontalSpace = true;
+			
+			iosNotify.setText("\nTo generate your \"ipa\" file you need to open the \".xcodeproj\" with Xcode \napplication and go to the menu \"Product>Archive\".");
+			iosNotify.setLayoutData(data);
+		}
+		
 		return container;
 	}
 
@@ -98,14 +113,33 @@ public class BuildLocalSuccessfulDialog extends Dialog {
 	protected void createButtonsForButtonBar(Composite parent) {
 		Button button = createButton(parent, IDialogConstants.OK_ID, "OK", true);
 		button.setEnabled(true);
-	}
-	
-	/**
-	 * Return the initial size of the dialog.
-	 */
-	@Override
-	protected Point getInitialSize() {
-		return new Point(450, 170);
+		
+		if (!cordovaPlatform.equals(null) && cordovaPlatform.equals("ios")) {
+			Button openXcode = createButton(parent, IDialogConstants.OPEN_ID, "OPEN XCODE", true);
+			openXcode.setEnabled(true);
+			openXcode.addSelectionListener(new SelectionListener() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					//TODO
+					try {
+						Runtime runtime = Runtime.getRuntime();
+						File buildedFile = new File(applicationBuildedPath);
+						if (buildedFile.exists()) {
+							runtime.exec( "open " + applicationBuildedPath );
+						}
+						
+					} catch (IOException e1) {
+						Engine.logEngine.error("Error when trying to open the xcode project:\n" + 
+								e1.getMessage(), e1);
+					} finally {
+						close();
+					}
+				}
+				
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {}
+			});
+		}
 	}
 
 }
