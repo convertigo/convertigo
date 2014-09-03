@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -80,8 +81,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 
 	static final String cordovaDir = "cordova";
 	final double versionMinimalRequired = 3.3;
+	private String projectName = null;
     String cmdOutput;
-
+	
 	/**
 	 * 
 	 * @author opic
@@ -550,8 +552,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 		process.waitFor();
 		return cmdOutput;
 	}
-	
-	
 		
 	/**
 	 * Explore Config.xml, handle plugins and copy needed resources to appropriate platforms folders.
@@ -607,7 +607,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 				}	
 			}
 
-			
+			//ANDROID
 			if (platform.equalsIgnoreCase("android")) {
 				NodeList icons = xpathApi.selectNodeList(doc.getDocumentElement(), "//icon[@platform = 'android']");
 				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
@@ -650,8 +650,13 @@ public class BuildLocallyAction extends MyAbstractAction {
 				}
 				
 			}
+			
+			//iOS
 			if (platform.equalsIgnoreCase("ios")) {
-				// TODO : Do the IOS Stuff..
+				Map<String, String> iconsCorrespondences, splashCorrespondences = new HashMap<String, String>();
+				iconsCorrespondences = getiOSIconsCorrespondences();
+				splashCorrespondences = getiOSSplashCorrespondences();
+				
 				NodeList icons = xpathApi.selectNodeList(doc.getDocumentElement(), "//icon[@platform = 'ios']");
 				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
 				NodeList splashes = xpathApi.selectNodeList(doc.getDocumentElement(), "//*[local-name()='splash' and @platform = 'ios']");
@@ -662,8 +667,13 @@ public class BuildLocallyAction extends MyAbstractAction {
 					NamedNodeMap nodeMap = icon.getAttributes();
 					String source = nodeMap.getNamedItem("src").getTextContent();
 					String height = nodeMap.getNamedItem("height").getTextContent();
+					String width = nodeMap.getNamedItem("width").getTextContent();
+					String iconName = iconsCorrespondences.get(width + "x" + height);
 					File iconSrc = new File(wwwDir, source);
-					File dest = new File(cordovaDir, "platforms/" + platform + "/Resources/icons/icon-" + height + ".png");
+					
+					File dest = new File(cordovaDir, "platforms/" + platform + "/" + projectName + "/Resources/icons/" + iconName );
+					//File dest = new File(cordovaDir, "platforms/" + platform + "/www/res/icon/" + iconName );
+
 					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					FileUtils.copyFile(iconSrc, dest);
 				}
@@ -674,13 +684,19 @@ public class BuildLocallyAction extends MyAbstractAction {
 					NamedNodeMap nodeMap = splash.getAttributes();
 					String source = nodeMap.getNamedItem("src").getTextContent();
 					String height = nodeMap.getNamedItem("height").getTextContent();
+					String width = nodeMap.getNamedItem("width").getTextContent();
 					File splashSrc = new File(wwwDir, source);
-					File dest = new File(cordovaDir, "platforms/" + platform + "/Resources/splash/splash-" + height + ".png");
+					String splashName = splashCorrespondences.get(width + "x" + height);
+					
+					File dest = new File(cordovaDir, "platforms/" + platform + "/" + projectName + "/Resources/splash/" + splashName);
+					//File dest = new File(cordovaDir, "platforms/" + platform + "/www/res/splash/" + splashName);
+					
 					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					FileUtils.copyFile(splashSrc, dest);
 				}
 			}
 			
+			//WINPHONE
 			if (platform.equalsIgnoreCase("wp7") || platform.equalsIgnoreCase("wp8")) {
 				NodeList icons = xpathApi.selectNodeList(doc.getDocumentElement(), "//icon[@platform = 'winphone']");
 				// for splashes, as there is the the 'gap:' name space use the local-name xpath function instead 
@@ -714,9 +730,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 				}
 			}
 
-			// TODO : and any other platforms BB10 for example
-			
-			
+			// TODO : Add platform BB10
 			// TODO : Add platform Windows 8
 
 			// We have to add the the root Config.xml all our app's config.xml preferences.
@@ -750,6 +764,52 @@ public class BuildLocallyAction extends MyAbstractAction {
 		}
 	}
 	
+	private Map<String, String> getiOSIconsCorrespondences() {
+		Map<String, String> iconsCorrespondences = new HashMap<String, String>();
+		//iOS 7.0+ 
+		// iPhone/iPod Touch
+		iconsCorrespondences.put("60x60", "icon-60.png");
+		iconsCorrespondences.put("120x120", "icon-60@2x.png");
+		//iPad
+		iconsCorrespondences.put("76x76", "icon-76.png");
+		iconsCorrespondences.put("152x152", "icon-76@2x.png");
+		//iOS 6.1+
+		//Spotlight Icon
+		iconsCorrespondences.put("40x40", "icon-40.png");
+		iconsCorrespondences.put("80x80", "icon-40@2x.png");
+		//iPhone/iPod Touch
+		iconsCorrespondences.put("57x57", "icon.png");
+		iconsCorrespondences.put("114x114", "icon@2x.png");
+		//iPad
+		iconsCorrespondences.put("72x72", "icon-72.png");
+		iconsCorrespondences.put("144x144", "icon-72@2x.png");
+		//iPhone Spotlight and Settings Icon
+		iconsCorrespondences.put("29x29", "icon-small.png");
+		iconsCorrespondences.put("58x58", "icon-small@2x.png");
+		//iPad Spotlight and Settings Icon
+		iconsCorrespondences.put("50x50", "icon-50.png");
+		iconsCorrespondences.put("100x100", "icon-50@2x.png");
+		
+		return iconsCorrespondences;
+	}
+	
+	private Map<String, String> getiOSSplashCorrespondences() {
+		Map<String, String> splashCorrespondences = new HashMap<String, String>();
+		
+		// iPhone
+		splashCorrespondences.put("640x1136", "Default-568h@2x~iphone.png");
+		splashCorrespondences.put("640x960", "Default@2x~iphone.png");
+		splashCorrespondences.put("320x480", "Default~iphone.png");
+
+		//iPad
+		splashCorrespondences.put("2048x1496", "Default-Landscape@2x~ipad.png");
+		splashCorrespondences.put("1024x748", "Default-Landscape~ipad.png");
+		splashCorrespondences.put("768x1004", "Default-Portrait~ipad.png");
+		splashCorrespondences.put("1536x2008", "Default-Portrait@2x~ipad.png");
+		
+		return splashCorrespondences;
+	}
+
 	/**
 	 * Returns a cordova platform name from the MobilePlatform.type() name
 	 * 
@@ -915,6 +975,8 @@ public class BuildLocallyAction extends MyAbstractAction {
     								ConvertigoPlugin.projectManager.currentProject.getName() :
     								((MobileApplication)mobileDevice.getParent()).getApplicationName();
     								
+					this.projectName = applicationName;
+    								
     				final String applicationId = ((MobileApplication)mobileDevice.getParent()).getApplicationId().isEmpty() ?
 							"com.convertigo.mobile." + ConvertigoPlugin.projectManager.currentProject.getName() :
 							((MobileApplication)mobileDevice.getParent()).getApplicationId();
@@ -965,7 +1027,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 						
     					if (customDialog.open() == SWT.YES) {
     						//create a local Cordova Environment
-    						runCordovaCommand("create " + BuildLocallyAction.cordovaDir + " " + applicationId + " " + "\"" + applicationName +"\"", privateDir);
+    						runCordovaCommand("create " + BuildLocallyAction.cordovaDir + " " + applicationId + " " + applicationName , privateDir);
     						
     						Engine.logEngine.info("Cordova environment is now ready.");
     					} else {
@@ -1004,7 +1066,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	
 					        	// Step 4: Build or Run using Cordova the specific platform.
 					        	if (run) {
-					        		runCordovaCommand("run " + cordovaPlatform + " --"+option+ " --"+target , cordovaDir);
+					        		runCordovaCommand("run " + cordovaPlatform + " --"+option+ " --" + target , cordovaDir);
 					        	} else {
 					        		runCordovaCommand("build " + cordovaPlatform + " --"+option, cordovaDir);
 					        	}
@@ -1049,7 +1111,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 	private void showLocationInstallFile(final String cordovaPlatform, 
 			final String applicationName, final String buildOption) {
 		final Display display = Display.getDefault();
-		display.asyncExec(new Runnable() {
+		display.syncExec(new Runnable() {
 			@Override
 			public void run() {
 				File buildedFile = getAbsolutePathOfBuildedFile(applicationName, cordovaPlatform, buildOption);
@@ -1068,15 +1130,17 @@ public class BuildLocallyAction extends MyAbstractAction {
 	
 	public File getAbsolutePathOfBuildedFile(String applicationName, String cordovaPlatform, String buildMode) {
 		String buildedPath = null;
+		String buildMd = buildMode.equals("debug") ? "Debug" : "Release";
 		
 		if (cordovaPlatform.equals("android")) {
 			buildedPath = getCordovaDir().getAbsolutePath() +
 					"\\platforms\\" + 
 					cordovaPlatform + "\\bin\\" + applicationName + "-" + buildMode + ".apk";
 		} else if (cordovaPlatform.equals("ios")){
-			//TODO : Handle iOS
+			//TODO
+			
 		} else if ((cordovaPlatform.equals("wp7")) || (cordovaPlatform.equals("wp8"))) {
-			String buildMd = buildMode.equals("debug") ? "Debug" : "Release";
+			
 			// WP8
 			if (cordovaPlatform.equals("wp8")) {
 				buildedPath = getCordovaDir().getAbsolutePath() + 
@@ -1099,65 +1163,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 		
 		return new File (buildedPath);
 	}
-	
-/* Not Used anymore ...
- * 	
-	public void runOnEmulator() {
-		final MobilePlatform mobilePlatform = getMobilePlatform();
-
-		if (mobilePlatform != null) {
-			final String platformName = computeCordovaPlatform(mobilePlatform
-					.getType().toLowerCase());
-			Job buildJob = new Job("Run " + platformName
-					+ " platform on emulator in progress...") {
-				@Override
-				protected IStatus run(IProgressMonitor arg0) {
-					try {
-						runCordovaCommand("run " + platformName
-								+ " --emulator --debug", getCordovaDir());
-						return org.eclipse.core.runtime.Status.OK_STATUS;
-					} catch (Throwable thr) {
-						Engine.logEngine
-								.error("Error when trying to run on emulate the required mobile platform!",
-										thr);
-						return org.eclipse.core.runtime.Status.CANCEL_STATUS;
-					}
-				}
-			};
-			buildJob.setUser(true);
-			buildJob.schedule();
-		}
-
-	}
-	
-	public void runOnDevice() {
-		final MobilePlatform mobilePlatform = getMobilePlatform();
-		if (mobilePlatform != null) {
-			final String platformName = computeCordovaPlatform(mobilePlatform
-					.getType().toLowerCase());
-			Job buildJob = new Job("Run "+platformName+" platform on device in progress...") {
-				@Override
-				protected IStatus run(IProgressMonitor arg0) {
-					try {
-						runCordovaCommand("run "
-								+ platformName
-								+ " --device --debug", getCordovaDir());
-						return org.eclipse.core.runtime.Status.OK_STATUS;
-						
-					} catch (Throwable e) {
-						Engine.logEngine
-						.error("Error when trying to run on device the required mobile platform!",
-								e);
-						return org.eclipse.core.runtime.Status.CANCEL_STATUS;
-					}
-				}
-			};
-			buildJob.setUser(true);
-			buildJob.schedule();
-		}
-
-	}
-*/
 
 	/**
 	 * Removes the CordovaPlatform...
