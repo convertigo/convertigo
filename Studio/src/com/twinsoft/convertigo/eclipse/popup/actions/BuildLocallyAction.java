@@ -1135,7 +1135,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		if (cordovaPlatform.equals("android")) {
 			buildedPath = getCordovaDir().getAbsolutePath() +
 					"\\platforms\\" + 
-					cordovaPlatform + "\\bin\\" + applicationName + "-" + buildMode + ".apk";
+					cordovaPlatform + "\\ant-build\\" + applicationName + "-" + buildMode + ".apk";
 		} else if (cordovaPlatform.equals("ios")){
 			// iOS
 			buildedPath = getCordovaDir().getAbsolutePath() +
