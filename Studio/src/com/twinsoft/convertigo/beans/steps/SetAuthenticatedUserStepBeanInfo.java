@@ -1,23 +1,27 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Affero General Public License
- * as published by the Free Software Foundation; either version 3
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see<http://www.gnu.org/licenses/>.
- *
- * $URL: http://sourceus/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/beans/steps/XMLErrorStepBeanInfo.java $
- * $Author: nicolasa $
- * $Revision: 34210 $
- * $Date: 2013-05-22 17:57:15 +0200 (mer., 22 mai 2013) $
+* Copyright (c) 2001-2014 Convertigo. All Rights Reserved.
+*
+* The copyright to the computer  program(s) herein  is the property
+* of Convertigo.
+* The program(s) may  be used  and/or copied  only with the written
+* permission  of  Convertigo  or in accordance  with  the terms and
+* conditions  stipulated  in the agreement/contract under which the
+* program(s) have been supplied.
+*
+* Convertigo makes  no  representations  or  warranties  about  the
+* suitability of the software, either express or implied, including
+* but  not  limited  to  the implied warranties of merchantability,
+* fitness for a particular purpose, or non-infringement. Convertigo
+* shall  not  be  liable for  any damage  suffered by licensee as a
+* result of using,  modifying or  distributing this software or its
+* derivatives.
+*/
+
+/*
+ * $URL: http://sourceus.twinsoft.fr/svn/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/eclipse/editors/completion/CtfCompletionProposalsComputer.java $
+ * $Author: jmc $
+ * $Revision: 37416 $
+ * $Date: 2014-06-24 15:45:16 +0200 (Tue, 24 Jun 2014) $
  */
 
 package com.twinsoft.convertigo.beans.steps;
@@ -31,7 +35,7 @@ public class SetAuthenticatedUserStepBeanInfo extends MySimpleBeanInfo {
 	public SetAuthenticatedUserStepBeanInfo() {
 		try {
 			beanClass = SetAuthenticatedUserStep.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.core.StepWithExpressions.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/setAuthenticatedUser_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/setAuthenticatedUser_32x32.png";
