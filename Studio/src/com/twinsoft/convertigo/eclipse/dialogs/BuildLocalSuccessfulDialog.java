@@ -81,7 +81,7 @@ public class BuildLocalSuccessfulDialog extends Dialog {
 		Label label = new Label(container, SWT.NONE);
 		label.setText("Application \"" + applicationName
 				+ "\" has been successfully built locally."
-				+ "\nThe builded file for \""+cordovaPlatform+"\" platform is located here :");
+				+ "\nThe builded file for \""+cordovaPlatform+"\" platform is located here:");
 		label.setLayoutData(data);
 		
 		data = new GridData(GridData.FILL_HORIZONTAL);
@@ -115,12 +115,12 @@ public class BuildLocalSuccessfulDialog extends Dialog {
 		button.setEnabled(true);
 		
 		if (!cordovaPlatform.equals(null) && cordovaPlatform.equals("ios")) {
-			Button openXcode = createButton(parent, IDialogConstants.OPEN_ID, "OPEN XCODE", true);
+			Button openXcode = createButton(parent, IDialogConstants.OPEN_ID, "Open Xcode", true);
 			openXcode.setEnabled(true);
 			openXcode.addSelectionListener(new SelectionListener() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					//TODO
+
 					try {
 						Runtime runtime = Runtime.getRuntime();
 						File buildedFile = new File(applicationBuildedPath);

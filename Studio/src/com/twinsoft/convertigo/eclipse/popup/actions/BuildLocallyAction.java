@@ -35,6 +35,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.DispatcherType;
@@ -80,9 +82,17 @@ import com.twinsoft.convertigo.engine.util.ZipUtils;
 public class BuildLocallyAction extends MyAbstractAction {
 
 	static final String cordovaDir = "cordova";
-	final double versionMinimalRequired = 3.3;
+	// For minimal version of cordova required 3.4.x
+	final int versionMinimalRequiredDecimalPart = 3;
+	final int versionMinimalRequiredFractionalPart = 4;
+	
 	private String projectName = null;
+	
+	private Process process;
     String cmdOutput;
+    
+	private String osLocal;
+	private String cordovaPlatform;
 	
 	/**
 	 * 
@@ -507,7 +517,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 	 * @throws Throwable
 	 */
 	private String runCordovaCommand(String Command, File projectDir) throws Throwable {
-		final Process process;
 		String[] envp = null;
 		Map<String, String> envmap;
 		envmap = System.getenv();
@@ -528,14 +537,15 @@ public class BuildLocallyAction extends MyAbstractAction {
 		
 		final BufferedReader bis = new BufferedReader(new InputStreamReader(is));
 		final BufferedReader bes = new BufferedReader(new InputStreamReader(es));
-		
+
 		cmdOutput = "";
+
 		Thread readOutputThread = new Thread(new Runnable() {
 			@Override
 	        public void run() {
 				try {
 					String line;
-
+					
 					while ((line = bis.readLine()) != null) {
 						Engine.logEngine.info(line);
 						BuildLocallyAction.this.cmdOutput += line;
@@ -835,40 +845,54 @@ public class BuildLocallyAction extends MyAbstractAction {
 	 */
 	private boolean checkPlatformCompatibility(MobilePlatform platform) throws Throwable {
 		String osname = System.getProperty("os.name", "generic").toLowerCase();
-		String os;
+
 		
 		if (osname.startsWith("windows")) {
-			os = "win32";
+			osLocal = "win32";
 		} else if (osname.startsWith("linux")) {
-			os = "linux";
+			osLocal = "linux";
 		} else if (osname.startsWith("sunos")) {
-			os = "solaris";
+			osLocal = "solaris";
 		} else if (osname.startsWith("mac") || osname.startsWith("darwin")) {
-			os = "mac";
+			osLocal = "mac";
 		} else {
-			os = "generic";
+			osLocal = "generic";
 		}
 	    
 		// Implement Compatibility matrix
 		// Step 1: Check cordova version, compatibility over 3.3.x
 		File privateDir = getPrivateDir();
 		String version = runCordovaCommand("-v", privateDir);
-		if (!(Double.parseDouble(version.substring(0, 3)) >= versionMinimalRequired)) {
+		
+		Pattern pattern = Pattern.compile("^(\\d)+\\.(\\d)+\\.");
+		Matcher matcher = pattern.matcher(version);
+		
+		if (matcher.find()){
+			// We check first just the decimal part
+			if (Integer.parseInt(matcher.group(1)) < versionMinimalRequiredDecimalPart) {
+				return false;
+			// Next we check the fractional part
+			} else if (Integer.parseInt(matcher.group(1)) == versionMinimalRequiredDecimalPart && 
+					Integer.parseInt(matcher.group(2)) < versionMinimalRequiredFractionalPart) {
+				return false;
+			}
+			
+		} else {
 			return false;
 		}
 
 		// Step 2: Check build local platform with mobile platform
-		if (os.equalsIgnoreCase("win32")
+		if (osLocal.equalsIgnoreCase("win32")
 				&& platform.getType().equalsIgnoreCase("iOS")) {
 			return false;
 		}
 
-		if (os.equalsIgnoreCase("mac")
+		if (osLocal.equalsIgnoreCase("mac")
 				&& platform.getType().startsWith("Windows")) {
 			return false;
 		}
 
-		if (os.equalsIgnoreCase("linux")
+		if (osLocal.equalsIgnoreCase("linux")
 				&& (platform.getType().startsWith("Windows") || platform
 						.getName().equalsIgnoreCase("iOS"))) {
 			return false;
@@ -1060,7 +1084,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	
 					        	// Step 3Bis : Add platform and Read And process Config.xml to copy needed icons and splash resources
 					        	File cordovaDir = getCordovaDir();
-					        	String cordovaPlatform = computeCordovaPlatform(mobileDevice.getType().toLowerCase());
+					        	cordovaPlatform = computeCordovaPlatform(mobileDevice.getType().toLowerCase());
 					        	runCordovaCommand("platform add " + cordovaPlatform, cordovaDir);
 					        	ProcessConfigXMLResources(wwwDir, cordovaPlatform, cordovaDir);
 					        	
@@ -1081,7 +1105,28 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	return org.eclipse.core.runtime.Status.CANCEL_STATUS;
 							}
 						}
+
+						@Override
+						protected void canceling() {
+							// UNIX OS
+							if (osLocal != null && (osLocal.equals("linux") || osLocal.equals("mac"))) {
+								if (cordovaPlatform != null && cordovaPlatform.equals("ios")) {
+									//kill the lldb process only for ios build platform
+									try {
+										Runtime.getRuntime().exec("pkill lldb").waitFor();
+									} catch (Exception e) {
+										Engine.logEngine.error("Error during kill of process \"lldb\"\n" + e.getMessage(), e);
+									}
+								}
+
+							}
+							
+							// Others OS
+							process.destroy();
+						}
+						
 		        	};
+		        	
 		        	buildJob.setUser(true);
 		        	buildJob.schedule();
 		        	
@@ -1126,7 +1171,6 @@ public class BuildLocallyAction extends MyAbstractAction {
         });
     	
 	}
-	
 	
 	public File getAbsolutePathOfBuildedFile(String applicationName, String cordovaPlatform, String buildMode) {
 		String buildedPath = null;
@@ -1175,7 +1219,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		if (mobilePlatform != null) {
 			final String platformName = computeCordovaPlatform(mobilePlatform
 					.getType().toLowerCase());
-			Job buildJob = new Job("Remove " + platformName + " platform on cordova in progress...") {
+			Job removeCordovaPlatformJob = new Job("Remove " + platformName + " platform on cordova in progress...") {
 				@Override
 				protected IStatus run(IProgressMonitor arg0) {
 					try {
@@ -1193,9 +1237,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 						return org.eclipse.core.runtime.Status.CANCEL_STATUS;
 					}
 				}
+				
+				@Override
+				protected void canceling() {
+					process.destroy();
+				}
 			};
-			buildJob.setUser(true);
-			buildJob.schedule();
+			removeCordovaPlatformJob.setUser(true);
+			removeCordovaPlatformJob.schedule();
 		}
 		
 	}
