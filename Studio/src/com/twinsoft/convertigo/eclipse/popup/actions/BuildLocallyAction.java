@@ -539,7 +539,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 		final BufferedReader bes = new BufferedReader(new InputStreamReader(es));
 
 		cmdOutput = "";
-
 		Thread readOutputThread = new Thread(new Runnable() {
 			@Override
 	        public void run() {
@@ -658,7 +657,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 						FileUtils.copyFile(splashSrc, dest);
 					}
 				}
-				
 			}
 			
 			//iOS
@@ -715,7 +713,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 					Node icon = icons.item(i);
 					NamedNodeMap nodeMap = icon.getAttributes();
 					String source = nodeMap.getNamedItem("src").getTextContent();
-					String role   = (nodeMap.getNamedItem("gap:role") != null) ? nodeMap.getNamedItem("gap:role").getTextContent() : "";
+					String role = (nodeMap.getNamedItem("gap:role") != null) ? nodeMap.getNamedItem("gap:role").getTextContent() : "";
 					File iconSrc = new File(wwwDir, source);
 					File dest = new File(cordovaDir, "platforms/" + platform + "/ApplicationIcon.png");
 					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
@@ -741,8 +739,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 			}
 
 			// TODO : Add platform BB10
+			if (platform.equalsIgnoreCase("wp7") || platform.equalsIgnoreCase("wp8")) {
+				
+			}
 			// TODO : Add platform Windows 8
-
+			if (platform.equalsIgnoreCase("wp7") || platform.equalsIgnoreCase("wp8")) {
+				
+			}
+			
 			// We have to add the the root Config.xml all our app's config.xml preferences.
 			// Cordova will use this file to generates the platform specific config.xml
 			
@@ -774,6 +778,11 @@ public class BuildLocallyAction extends MyAbstractAction {
 		}
 	}
 	
+	/**
+	 * Methods implements to know which icon goes with which name on ios platform
+	 * in function of height and width
+	 * @return 
+	 */
 	private Map<String, String> getiOSIconsCorrespondences() {
 		Map<String, String> iconsCorrespondences = new HashMap<String, String>();
 		//iOS 7.0+ 
@@ -803,6 +812,11 @@ public class BuildLocallyAction extends MyAbstractAction {
 		return iconsCorrespondences;
 	}
 	
+	/**
+	 * Methods implements to know which splash goes with which name on ios platform
+	 * in function of height and width
+	 * @return 
+	 */
 	private Map<String, String> getiOSSplashCorrespondences() {
 		Map<String, String> splashCorrespondences = new HashMap<String, String>();
 		
@@ -832,7 +846,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 			return "wp8";
 		else if (deviceType.equalsIgnoreCase("WindowsPhone7"))
 			return "wp7";
-		else 
+		else if (deviceType.equalsIgnoreCase("Windows8"))
+			return "win8";
+		else
 			return deviceType;
 	}
 	
@@ -897,6 +913,12 @@ public class BuildLocallyAction extends MyAbstractAction {
 						.getName().equalsIgnoreCase("iOS"))) {
 			return false;
 		}
+		
+		// Step 3: Check if platform is possible to build locally.
+		String deviceType = computeCordovaPlatform(platform.getType());
+    	if (deviceType.equalsIgnoreCase("blackberry10") || deviceType.equals("win8") ){       	
+        	return false;
+    	}
 		
 		return true;
 	}
@@ -988,7 +1010,11 @@ public class BuildLocallyAction extends MyAbstractAction {
 										+ "\n"
 										+ "On Linux workstations you can build:\n"
 										+ " - Blackberry 10 \n"
-										+ " - Android\n");
+										+ " - Android\n"
+										+ "\n"
+										+ "For the moment, this platform is not possible to \"build locally\":\n"
+										+ " - Blackberry 10\n"
+										+ " - Windows 8\n");
 
 						informDialog.open();
     					return;
@@ -1084,7 +1110,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	
 					        	// Step 3Bis : Add platform and Read And process Config.xml to copy needed icons and splash resources
 					        	File cordovaDir = getCordovaDir();
-					        	cordovaPlatform = computeCordovaPlatform(mobileDevice.getType().toLowerCase());
+					        	cordovaPlatform = computeCordovaPlatform(mobileDevice.getType().toLowerCase());				        	
+								
 					        	runCordovaCommand("platform add " + cordovaPlatform, cordovaDir);
 					        	ProcessConfigXMLResources(wwwDir, cordovaPlatform, cordovaDir);
 					        	
@@ -1200,8 +1227,10 @@ public class BuildLocallyAction extends MyAbstractAction {
 					cordovaPlatform + "\\Bin\\" + buildMd + "\\com.convertigo.mobile." + applicationName + ".xap";
 			}
 			
-		} else if (cordovaPlatform.equals("bb10")){
+		} else if (cordovaPlatform.equals("blackberry10")){
 			//TODO : Handle BB10
+		} else if (cordovaPlatform.equals("win8")){
+			//TODO : Handle Windows 8
 		} else {
 			return null;
 		}
