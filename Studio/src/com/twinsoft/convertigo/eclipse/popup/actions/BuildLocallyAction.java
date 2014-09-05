@@ -1261,8 +1261,8 @@ public class BuildLocallyAction extends MyAbstractAction {
     	customDialog.setText("Remove cordova directory");
     	customDialog
 				.setMessage("Do you want to remove the Cordova directory located in \"_private\" directory?\n\n" +
-						"It will also remove the Cordova environment!\n\n" +
-						"To recreate the cordova environment, you just need to run a new local build."
+						"It will also remove this project's Cordova environment!\n\n" +
+						"To recreate the project's Cordova environment, you just need to run a new local build."
 		);
 		
 		if (customDialog.open() == SWT.YES) {
