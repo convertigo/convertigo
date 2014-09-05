@@ -80,7 +80,7 @@ public class BuildLocalSuccessfulDialog extends Dialog {
 		
 		Label label = new Label(container, SWT.NONE);
 		label.setText("Application \"" + applicationName
-				+ "\" has been successfully builded locally."
+				+ "\" has been successfully built locally."
 				+ "\nThe builded file for \""+cordovaPlatform+"\" platform is located here :");
 		label.setLayoutData(data);
 		
