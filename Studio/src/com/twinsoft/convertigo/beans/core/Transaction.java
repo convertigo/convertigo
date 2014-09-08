@@ -601,8 +601,8 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 			
     		String xsdDom = "<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\""
     							+" xmlns:"+p_ns+"=\""+getProject().getTargetNamespace()+"\""
-    							+" attributeFormDefault=\""+getProject().getSchemaElementForm()+"\""
-    							+" elementFormDefault=\""+getProject().getSchemaElementForm()+"\""
+    							+" attributeFormDefault=\""+getProject().getSchemaElementForm().name()+"\""
+    							+" elementFormDefault=\""+getProject().getSchemaElementForm().name()+"\""
     							+" targetNamespace=\""+getProject().getTargetNamespace()+"\">\n"
     						+ xsdElements
     						+ xsdTypes
@@ -648,8 +648,8 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 	protected XmlSchema createSchema() {
 		String prefix = getXsdProjectPrefix();
 		String tns = getXsdProjectNamespace();
-		String elementForm = getProject().getSchemaElementForm();
-		String attributeForm = getProject().getSchemaElementForm();
+		String elementForm = getProject().getSchemaElementForm().name();
+		String attributeForm = getProject().getSchemaElementForm().name();
 		
 		XmlSchema xmlSchema = SchemaUtils.createSchema(prefix, tns, elementForm, attributeForm);
 		addSchemaRequestElement(xmlSchema);
@@ -842,8 +842,8 @@ public abstract class Transaction extends RequestableObject implements ISchemaIn
 				Element schemaElement = xmlSchema.getSchemaDocument().getDocumentElement();
 				schemaElement.setAttribute("targetNamespace", getProject().getTargetNamespace());
 				schemaElement.setAttribute("xmlns:"+prefix, getProject().getTargetNamespace());
-				schemaElement.setAttribute("attributeFormDefault", getProject().getSchemaElementForm());
-				schemaElement.setAttribute("elementFormDefault", getProject().getSchemaElementForm());
+				schemaElement.setAttribute("attributeFormDefault", getProject().getSchemaElementForm().name());
+				schemaElement.setAttribute("elementFormDefault", getProject().getSchemaElementForm().name());
 				
 				XmlSchemaCollection collection = new XmlSchemaCollection();
 				XmlSchema transactionSchema = collection.read(schemaElement);

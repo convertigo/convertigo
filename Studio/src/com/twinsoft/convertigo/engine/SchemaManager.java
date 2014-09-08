@@ -122,8 +122,8 @@ public class SchemaManager implements AbstractManager {
 			SchemaMeta.setCollection(schema, collection);
 
 			try {
-				schema.setElementFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
-				schema.setAttributeFormDefault(new XmlSchemaForm(project.getSchemaElementForm()));
+				schema.setElementFormDefault(new XmlSchemaForm(project.getSchemaElementForm().name()));
+				schema.setAttributeFormDefault(new XmlSchemaForm(project.getSchemaElementForm().name()));
 				ConvertigoError.addXmlSchemaObjects(schema);
 				
 				// static and read-only generation : references, transactions, sequences declaration

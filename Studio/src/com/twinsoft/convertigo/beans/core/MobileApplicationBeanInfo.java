@@ -24,6 +24,10 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.beans.PropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.core.MobileApplication.FlashUpdateBuildMode;
+import com.twinsoft.convertigo.beans.core.MobileApplication.SplashRemoveMode;
+import com.twinsoft.convertigo.engine.enums.Accessibility;
+
 public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
     
 	public MobileApplicationBeanInfo() {
@@ -39,7 +43,7 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
 			displayName = resourceBundle.getString("display_name");
 			shortDescription = resourceBundle.getString("short_description");
 
-			properties = new PropertyDescriptor[14];
+			properties = new PropertyDescriptor[15];
 			
             properties[0] = new PropertyDescriptor("enableFlashUpdate", MobileApplication.class, "getEnableFlashUpdate", "setEnableFlashUpdate");
             properties[0].setDisplayName(getExternalizedString("property.enableFlashUpdate.display_name"));
@@ -48,7 +52,7 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
             properties[1] = new PropertyDescriptor("buildMode", MobileApplication.class, "getBuildMode", "setBuildMode");
             properties[1].setDisplayName(getExternalizedString("property.buildMode.display_name"));
             properties[1].setShortDescription(getExternalizedString("property.buildMode.short_description"));
-            properties[1].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+            properties[1].setPropertyEditorClass(FlashUpdateBuildMode.class);
 			properties[1].setExpert(true);
 
             properties[2] = new PropertyDescriptor("requireUserConfirmation", MobileApplication.class, "getRequireUserConfirmation", "setRequireUserConfirmation");
@@ -97,12 +101,17 @@ public class MobileApplicationBeanInfo extends MySimpleBeanInfo {
 			properties[12] = new PropertyDescriptor("accessibility", MobileApplication.class, "getAccessibility", "setAccessibility");
 			properties[12].setDisplayName(getExternalizedString("property.accessibility.display_name"));
 			properties[12].setShortDescription(getExternalizedString("property.accessibility.short_description"));
-            properties[12].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+            properties[12].setPropertyEditorClass(Accessibility.class);
 			properties[12].setExpert(true);
 			
 			properties[13] = new PropertyDescriptor("applicationVersion", MobileApplication.class, "getApplicationVersion", "setApplicationVersion");
 			properties[13].setDisplayName(getExternalizedString("property.applicationVersion.display_name"));
 			properties[13].setShortDescription(getExternalizedString("property.applicationVersion.short_description"));
+			
+			properties[14] = new PropertyDescriptor("splashRemoveMode", MobileApplication.class, "getSplashRemoveMode", "setSplashRemoveMode");
+			properties[14].setDisplayName(getExternalizedString("property.splashRemoveMode.display_name"));
+			properties[14].setShortDescription(getExternalizedString("property.splashRemoveMode.short_description"));
+            properties[14].setPropertyEditorClass(SplashRemoveMode.class);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

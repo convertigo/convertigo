@@ -35,27 +35,40 @@ downloadFiles ?
 var F = {
 	reTailUrl: new RegExp("([^#?]*)/.*"),
 	startTime: new Date().getTime(),
-	isLocal: false,
 	canCopyFromApp: false,
 	currentFiles: null,
 	remoteFiles: null,
 	flashUpdateDir: null,
-	platform: "n/a",
-	uuid: "n/a",
 	debugStream: "",
-	remoteBase: null,
-	endPoint: null,
-	applicationName: null,
-	projectName: null,
-	platformName: null,
-	localBase: null,
-	webLocalBase: null,
-	appBase: null,
 	fsProtocol: null,
-	timeout: 0,
-	firstLaunch: true,
 	cordovaVersion: null,
+	splashRemoveMode: "afterUpdate",
 	clickEvent: typeof(document.ontouchstart) == "undefined" ? "click" : "touchstart",
+			
+	env: {
+		applicationAuthorName: null,
+		applicationAuthorEmail: null,
+		applicationAuthorWebsite: null,
+		applicationDescription: null,
+		appBase: null,
+		applicationId: null,
+		applicationName: null,
+		builtRevision: null,
+		builtVersion: null,
+		currentRevision: null,
+		currentVersion: null,
+		endPoint: null,	
+		firstLaunch: true,
+		isLocal: false,
+		localBase: null,
+		platform: "n/a",
+		platformName: null,
+		projectName: null,
+		remoteBase: null,
+		timeout: 0,
+		uuid: "n/a",
+		webLocalBase: null
+	},
 	
 	debug: function (msg) {
 		F.debugStream += msg + "\n";
@@ -63,6 +76,8 @@ var F = {
 	},
 	
 	error: function (msg, err) {
+		F.removeSplash();
+		
 		if (typeof(err) != "undefined") {
     		var sErr = "" + err;
 			try {
@@ -88,17 +103,17 @@ var F = {
 		}
 		
 		try {
-			F.platform = device.platform;
-			F.uuid = device.uuid;
+			F.env.platform = device.platform;
+			F.env.uuid = device.uuid;
 			
-			if ((F.platform == "Android" && F.cordovaVersion) || F.platform == "blackberry10" || F.platform == "Win32NT") {
+			if ((F.env.platform == "Android" && F.cordovaVersion) || F.env.platform == "blackberry10" || F.env.platform == "Win32NT") {
 				F.canCopyFromApp = true;
 			}
 		} catch (err) {
 			// device feature disabled in config.xml
 		}
 		
-		if (F.platform == "blackberry10") {
+		if (F.env.platform == "blackberry10") {
 			// unsupported platform
 			F.redirectApp();
 		} else {
@@ -128,17 +143,17 @@ var F = {
 	getEnv: function () {
 		F.debug("getEnv");
 		
-		F.appBase = window.location.href.replace(F.reTailUrl, "$1");
+		F.env.appBase = window.location.href.replace(F.reTailUrl, "$1");
 		
-		var url = F.appBase + "/env.json";
+		var url = F.env.appBase + "/env.json";
 		$.ajax({
 			dataType: "json",
 			url: url,
 			success: function (data) {
 				try {
-					$.extend(F, data);
+					$.extend(true, F.env, data);
 					
-					if (F.firstLaunch) {
+					if (F.env.firstLaunch) {
 						$("#main").show();
 					}
 					
@@ -155,14 +170,14 @@ var F = {
 	
 	getFlashUpdateDir: function () {
 		F.debug("getFlashUpdateDir");
-		var quota = F.platform == "blackberry10" ? Math.pow(1024, 3) : 0;
+		var quota = F.env.platform == "blackberry10" ? Math.pow(1024, 3) : 0;
 		
 		window.requestFileSystem(LocalFileSystem.PERSISTENT, quota, function (fileSystem) {
 			try {
 				var fuPath = "flashupdate";
 				
-				if (!F.fsProtocol && F.platform == "Android") {
-					fuPath = "/data/data/" + F.applicationId + "/flashupdate";
+				if (!F.fsProtocol && F.env.platform == "Android") {
+					fuPath = "/data/data/" + F.env.applicationId + "/flashupdate";
 				}
 				
 				F.debug("getDirectory " + fuPath);
@@ -170,23 +185,23 @@ var F = {
 				fileSystem.root.getDirectory(fuPath, {create: true}, function (flashUpdateDir) {
 					F.flashUpdateDir = flashUpdateDir;
 					
-					if (F.fsProtocol || F.platform == "blackberry10") {
-						F.localBase = flashUpdateDir.toURL();
+					if (F.fsProtocol || F.env.platform == "blackberry10") {
+						F.env.localBase = flashUpdateDir.toURL();
 					}
 					
-					if (!F.localBase) {
-						F.localBase = flashUpdateDir.fullPath;
+					if (!F.env.localBase) {
+						F.env.localBase = flashUpdateDir.fullPath;
 					}
 					
-					F.webLocalBase = flashUpdateDir.nativeURL ? flashUpdateDir.nativeURL : F.localBase;
-					if (!F.webLocalBase) {
-						F.webLocalBase = flashUpdateDir.fullPath;
+					F.env.webLocalBase = flashUpdateDir.nativeURL ? flashUpdateDir.nativeURL : F.env.localBase;
+					if (!F.env.webLocalBase) {
+						F.env.webLocalBase = flashUpdateDir.fullPath;
 					}
 					
-					F.localBase = F.localBase.replace(new RegExp("/$"), "");
-					F.webLocalBase = F.webLocalBase.replace(new RegExp("/$"), "");
+					F.env.localBase = F.env.localBase.replace(new RegExp("/$"), "");
+					F.env.webLocalBase = F.env.webLocalBase.replace(new RegExp("/$"), "");
 					
-					if (F.isLocal) {
+					if (F.env.isLocal) {
 						F.isFlashUpdate();
 					} else {
 						F.hasLocal();
@@ -201,11 +216,11 @@ var F = {
 	},
  	
 	hasLocal: function () {
-		F.debug("hasLocal: check for " + F.localBase + "/files.json");
+		F.debug("hasLocal: check for " + F.env.localBase + "/files.json");
 		
 		$.ajax({
 			dataType: "json",
-			url: F.localBase + "/files.json",
+			url: F.env.localBase + "/files.json",
 			success: function (data) {
 				try {
 					F.isLocalNewer(data);
@@ -244,22 +259,13 @@ var F = {
 	redirectLocal: function () {
 		F.debug("redirectLocal");
 		
-		var env = {
-			applicationId: F.applicationId,
-			applicationName: F.applicationName,
-			projectName: F.projectName,
-			endPoint: F.endPoint,
-			firstLaunch: F.firstLaunch,
-			remoteBase: F.remoteBase,
-			platformName: F.platformName,
-			timeout: F.timeout,
-			isLocal: true
-		};
+		var wasLocal = F.env.isLocal;
+		F.env.isLocal = true;
 		
-		F.write("env.json", JSON.stringify(env), function () {
+		F.write("env.json", JSON.stringify(F.env), function () {
 			F.debug("env.json written");
 			
-			if (F.isLocal) {
+			if (wasLocal) {
 				window.location.reload();
 			} else {
 				var filesToCopy = ["cordova.js"];
@@ -274,7 +280,7 @@ var F = {
 				
 				F.copyCordovaFiles(filesToCopy, function () {
 					F.debug("all cordova files writen");
-					window.location.href = F.webLocalBase + "/index.html";				
+					window.location.href = F.env.webLocalBase + "/index.html";				
 				});
 			}
 		});
@@ -296,7 +302,7 @@ var F = {
 		$.each(files, function (index, file) {
 			$.ajax({
 				dataType: "text",
-				url: F.appBase + "/" + file,
+				url: F.env.appBase + "/" + file,
 				success: function (text) {
 					try {
 						F.write(file, text, function () {
@@ -321,20 +327,29 @@ var F = {
 		$("#checkingUpdate").show();
 		
 		if (F.remoteFiles == null) {
-			$(".dataProjectName").text(F.applicationName);
+			$(".dataProjectName").text(F.env.applicationName);
 			
 			$.ajax({
 				dataType: "json",
-				url: F.endPoint + "/admin/services/mobiles.GetResources",
+				url: F.env.endPoint + "/admin/services/mobiles.GetResources",
 				data: {
-					project: F.projectName,
-					platform: F.platformName,
+					project: F.env.projectName,
+					platform: F.env.platformName,
 					platformDetected: F.platfom,
-					uuid: F.uuid
+					uuid: F.env.uuid
 				},
 				success: function (data) {
 					try {
 						F.remoteFiles = data;
+						
+						if (data.splashRemoveMode) {
+							F.splashRemoveMode = data.splashRemoveMode;
+						}
+						
+						if (data.env) {
+							$.extend(true, F.env, data.env);
+						}
+						
 						F.isFlashUpdate();
 					} catch (err) {
 						F.error("catch isFlashUpdate success", err);
@@ -344,7 +359,7 @@ var F = {
 					F.debug("error: mobiles.GetResources " + err);
 					F.redirectApp();
 				},
-				timeout: F.timeout
+				timeout: F.env.timeout
 			});
 		} else {
 			$("#checkingUpdate").hide();
@@ -367,10 +382,10 @@ var F = {
 		F.debug("isRemoteNewer currentFiles: " + F.currentFiles.date + " remoteFiles: " + F.remoteFiles.date);
 		
 		if (F.currentFiles.date < F.remoteFiles.date) {
-			if (!F.firstLaunch) {
+			if (!F.env.firstLaunch) {
 				$("#main").show();
 			} else {
-				F.firstLaunch = false;
+				F.env.firstLaunch = false;
 			}
 			if (F.remoteFiles.requireUserConfirmation) {
 				F.requireUserConfirmation();
@@ -385,6 +400,7 @@ var F = {
 	requireUserConfirmation: function () {
 		F.debug("requireUserConfirmation");
 		
+		F.removeSplash();
 		$("#requireUserConfirmation").one(F.clickEvent, "#requireUserConfirmationYes, #requireUserConfirmationNo", function () {
 			try {
 				if ($(this).val() == "yes") {
@@ -402,7 +418,7 @@ var F = {
 	doUpdate: function () {
 		F.debug("doUpdate");
 		
-		if (F.isLocal) {
+		if (F.env.isLocal) {
 			F.doRemoveUnexisting(false);
 		} else {
 			F.downloadFiles(false);
@@ -411,6 +427,10 @@ var F = {
 	
 	redirectApp: function () {
 		F.debug("redirectApp");
+		
+		if (F.splashRemoveMode == "afterUpdate") {
+			F.removeSplash();
+		}
 		
 		window.location.href = window.location.href.replace(F.reTailUrl, "$1/app.html");
 	},
@@ -483,6 +503,9 @@ var F = {
 		if (fromApp) {
 			F.remoteFiles = F.currentFiles;
 		} else {
+			if (F.splashRemoveMode == "beforeUpdate") {
+				F.removeSplash();
+			}
 			$("#progress").show();
 		}
 		
@@ -517,14 +540,14 @@ var F = {
 		
 		$.each(F.remoteFiles.files, function (index, file) {
 			var localFile = indexedFiles[file.uri];
-			if (!F.isLocal || (!localFile || file.date > localFile.date || file.size != localFile.size)) {
+			if (!F.env.isLocal || (!localFile || file.date > localFile.date || file.size != localFile.size)) {
 				F.debug("FileTransfer " + file.uri);
 				
 				nbTransfert++;
 				totalSize += file.size;
 				F.mkParentDirs(file.uri, function (parentDir, fileName) {
-					var source = (fromApp ? F.appBase : F.remoteBase) + "/" + file.uri + "?" + F.startTime;
-					var destination = F.localBase + "/" + file.uri;
+					var source = (fromApp ? F.env.appBase : F.env.remoteBase) + "/" + file.uri + "?" + F.startTime;
+					var destination = F.env.localBase + "/" + file.uri;
 					new FileTransfer().download(
 						encodeURI(source),
 						destination,
@@ -604,6 +627,15 @@ var F = {
 	
 	message: function (message) {
 		$("<div/>").add("message").text(message).prependTo("#messages");
+	},
+	
+	removeSplash: function () {
+		F.debug("removeSplash");
+
+		if (navigator && navigator.splashscreen) {
+			navigator.splashscreen.hide();
+			F.debug("removeSplash splash hidden");
+		}
 	}
 };
 
@@ -613,7 +645,6 @@ $(function () {
 	} else {
 		document.addEventListener("deviceready", function() {
 			try {
-				navigator.splashscreen.hide();
 				F.init();
 			} catch (err) {
 				F.error("catch deviceready", err);

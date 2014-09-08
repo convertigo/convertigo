@@ -45,7 +45,7 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 /**
  * This class manages a host application.
  */
-public class MobileApplication extends DatabaseObject implements ITagsProperty {
+public class MobileApplication extends DatabaseObject {
 
 	private static final long serialVersionUID = 5414379401296015511L;
 	
@@ -61,9 +61,28 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 		};
 	}
 	
+	public enum SplashRemoveMode {
+		beforeUpdate("Before Update"),
+		afterUpdate("After Update"),
+		manual("Manual or Timeout");
+		
+		private final String label;
+		
+		private SplashRemoveMode(String label) {
+			this.label = label;
+		}
+
+		@Override
+		public String toString() {
+			return label;
+		}
+	}
+	
 	private boolean enableFlashUpdate = true;
 	
-	private String buildMode = FlashUpdateBuildMode.full.name();
+	private FlashUpdateBuildMode buildMode = FlashUpdateBuildMode.full;
+
+	private SplashRemoveMode splashRemoveMode = SplashRemoveMode.afterUpdate;
 	
 	private boolean requireUserConfirmation = false;
 	private long flashUpdateTimeout = 5000;
@@ -75,13 +94,13 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 	private String applicationAuthorName = "Convertigo";
 	private String applicationAuthorEmail = "sales@convertigo.com";
 	private String applicationAuthorSite = "http://www.convertigo.com";
-	private String accessibility = Accessibility.Public.name();
+	private Accessibility accessibility = Accessibility.Public;
 	
 	private String endpoint = "";
 	
 	private String authenticationToken = "";
-
-	 public MobileApplication() {
+	
+	public MobileApplication() {
         super();
         databaseType = "MobileApplication";
     }
@@ -94,16 +113,20 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 		this.enableFlashUpdate = enableFlashUpdate;
 	}
 
-	public String getBuildMode() {
+	public FlashUpdateBuildMode getBuildMode() {
 		return buildMode;
 	}
 
-	public void setBuildMode(String buildMode) {
+	public void setBuildMode(FlashUpdateBuildMode buildMode) {
 		this.buildMode = buildMode;
 	}
-	
-	public FlashUpdateBuildMode getBuildModeEnum() {
-		return FlashUpdateBuildMode.valueOf(this.buildMode);
+
+	public SplashRemoveMode getSplashRemoveMode() {
+		return splashRemoveMode;
+	}
+
+	public void setSplashRemoveMode(SplashRemoveMode splashRemoveMode) {
+		this.splashRemoveMode = splashRemoveMode;
 	}
 
 	public boolean getRequireUserConfirmation() {
@@ -219,16 +242,6 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 		return endpoint;
 	}
 
-	public String[] getTagsForProperty(String propertyName) {
-		if ("buildMode".equals(propertyName)) {
-			return FlashUpdateBuildMode.buildModes;
-		} else if ("accessibility".equals(propertyName)) {
-			return Accessibility.accessibilities;
-		}
-		
-		return new String[0];
-	}
-
 	public String getApplicationName() {
 		return applicationName;
 	}
@@ -281,20 +294,12 @@ public class MobileApplication extends DatabaseObject implements ITagsProperty {
 		this.flashUpdateTimeout = flashUpdateTimeout;
 	}
 
-	public String getAccessibility() {
+	public Accessibility getAccessibility() {
 		return accessibility;
 	}
 
-	public Accessibility getAccessibilityEnum() {
-		return Accessibility.valueOf(accessibility);
-	}
-
-	public void setAccessibility(String accessibility) {
-		this.accessibility = accessibility;
-	}
-
 	public void setAccessibility(Accessibility accessibility) {
-		this.accessibility = accessibility.name();
+		this.accessibility = accessibility;
 	}
 	
 	public String getRelativeResourcePath() {

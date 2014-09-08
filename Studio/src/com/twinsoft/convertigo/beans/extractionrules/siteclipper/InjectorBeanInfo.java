@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.extractionrules.siteclipper;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.enums.HtmlLocation;
 
 public class InjectorBeanInfo extends MySimpleBeanInfo {
 
@@ -40,7 +41,7 @@ public class InjectorBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("location", beanClass, "getLocation", "setLocation");
 	        properties[0].setDisplayName(getExternalizedString("property.location.display_name"));
 	        properties[0].setShortDescription(getExternalizedString("property.location.short_description"));
-	    	properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+	    	properties[0].setPropertyEditorClass(HtmlLocation.class);
 	    	
 			properties[1] = new PropertyDescriptor("customRegexp", beanClass, "getCustomRegexp", "setCustomRegexp");
 	        properties[1].setDisplayName(getExternalizedString("property.customRegexp.display_name"));

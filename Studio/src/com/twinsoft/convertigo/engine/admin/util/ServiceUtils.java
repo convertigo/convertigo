@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -119,7 +121,13 @@ public class ServiceUtils {
 	        // Bugfix IE #1622: do not forget to set the content type!
 	        response.setContentType("text/xml");
 			response.setCharacterEncoding("UTF-8");
-			XMLUtils.prettyPrintDOMWithEncoding(document, "UTF-8", response.getWriter());
+			Writer writer;
+			try {
+				writer = response.getWriter();
+			} catch (Exception e) {
+				writer = new OutputStreamWriter(response.getOutputStream(), "UTF-8");
+			}
+			XMLUtils.prettyPrintDOMWithEncoding(document, "UTF-8", writer);
 		} catch (Throwable t) {
 			throw new ServiceException("Unable to handle error", t);
 		}

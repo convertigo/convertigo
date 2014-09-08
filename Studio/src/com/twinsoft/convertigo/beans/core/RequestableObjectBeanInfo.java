@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.beans.PropertyDescriptor;
 
+import com.twinsoft.convertigo.engine.enums.Accessibility;
+
 public class RequestableObjectBeanInfo extends MySimpleBeanInfo {
     
 	public RequestableObjectBeanInfo() {
@@ -38,7 +40,7 @@ public class RequestableObjectBeanInfo extends MySimpleBeanInfo {
 			properties[0] = new PropertyDescriptor("accessibility", beanClass, "getAccessibility", "setAccessibility");
 			properties[0].setDisplayName(getExternalizedString("property.accessibility.display_name"));
 			properties[0].setShortDescription(getExternalizedString("property.accessibility.short_description"));
-			properties[0].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[0].setPropertyEditorClass(Accessibility.class);
 			
 			properties[1] = new PropertyDescriptor("sheetLocation", beanClass, "getSheetLocation", "setSheetLocation");
 			properties[1].setDisplayName(getExternalizedString("property.sheetLocation.display_name"));

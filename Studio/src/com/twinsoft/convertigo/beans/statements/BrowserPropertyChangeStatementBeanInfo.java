@@ -25,6 +25,12 @@ package com.twinsoft.convertigo.beans.statements;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.beans.statements.BrowserPropertyChangeStatement.AttachmentMode;
+import com.twinsoft.convertigo.beans.statements.BrowserPropertyChangeStatement.ConvertigoMode;
+import com.twinsoft.convertigo.beans.statements.BrowserPropertyChangeStatement.ImageMode;
+import com.twinsoft.convertigo.beans.statements.BrowserPropertyChangeStatement.JavascriptMode;
+import com.twinsoft.convertigo.beans.statements.BrowserPropertyChangeStatement.PluginMode;
+import com.twinsoft.convertigo.beans.statements.BrowserPropertyChangeStatement.WindowOpenMode;
 
 public class BrowserPropertyChangeStatementBeanInfo extends MySimpleBeanInfo {
     
@@ -90,7 +96,7 @@ public class BrowserPropertyChangeStatementBeanInfo extends MySimpleBeanInfo {
             properties[9] = new PropertyDescriptor("convertigoMode", beanClass, "getConvertigoMode", "setConvertigoMode");
             properties[9].setDisplayName(getExternalizedString("property.convertigomode.display_name"));
             properties[9].setShortDescription(getExternalizedString("property.convertigomode.short_description"));
-            properties[9].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+            properties[9].setPropertyEditorClass(ConvertigoMode.class);
             properties[9].setExpert(true);
             
 			properties[10] = new PropertyDescriptor("bAttachmentChange", beanClass, "getBAttachmentChange", "setBAttachmentChange");
@@ -106,27 +112,27 @@ public class BrowserPropertyChangeStatementBeanInfo extends MySimpleBeanInfo {
 			properties[12] = new PropertyDescriptor("javascriptMode", beanClass, "getJavascriptMode", "setJavascriptMode");
 			properties[12].setDisplayName(getExternalizedString("property.javascriptmode.display_name"));
 			properties[12].setShortDescription(getExternalizedString("property.javascriptmode.short_description"));
-			properties[12].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[12].setPropertyEditorClass(JavascriptMode.class);
 			
 			properties[13] = new PropertyDescriptor("imageMode", beanClass, "getImageMode", "setImageMode");
 			properties[13].setDisplayName(getExternalizedString("property.imagemode.display_name"));
 			properties[13].setShortDescription(getExternalizedString("property.imagemode.short_description"));
-			properties[13].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[13].setPropertyEditorClass(ImageMode.class);
 
 			properties[14] = new PropertyDescriptor("pluginMode", beanClass, "getPluginMode", "setPluginMode");
 			properties[14].setDisplayName(getExternalizedString("property.pluginmode.display_name"));
 			properties[14].setShortDescription(getExternalizedString("property.pluginmode.short_description"));
-			properties[14].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[14].setPropertyEditorClass(PluginMode.class);
 
 			properties[15] = new PropertyDescriptor("attachmentMode", beanClass, "getAttachmentMode", "setAttachmentMode");
 			properties[15].setDisplayName(getExternalizedString("property.attachmentmode.display_name"));
 			properties[15].setShortDescription(getExternalizedString("property.attachmentmode.short_description"));
-			properties[15].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[15].setPropertyEditorClass(AttachmentMode.class);
 
 			properties[16] = new PropertyDescriptor("windowOpenMode", beanClass, "getWindowOpenMode", "setWindowOpenMode");
 			properties[16].setDisplayName(getExternalizedString("property.windowopenmode.display_name"));
 			properties[16].setShortDescription(getExternalizedString("property.windowopenmode.short_description"));
-			properties[16].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[16].setPropertyEditorClass(WindowOpenMode.class);
 		}
 		catch(Exception e) {
 			com.twinsoft.convertigo.engine.Engine.logBeans.error("Exception with bean info; beanClass=" + beanClass.toString(), e);

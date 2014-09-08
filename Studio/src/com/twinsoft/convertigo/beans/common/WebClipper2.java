@@ -32,8 +32,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.twinsoft.convertigo.beans.common.WebClipper.HttpTunnel;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
-import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.parsers.HtmlParser;
@@ -44,16 +44,13 @@ import com.twinsoft.convertigo.engine.util.URLrewriter;
  * This class simply extract a nodelist.
  *
  */
-public class WebClipper2 extends XMLNodeList implements ITagsProperty {
+public class WebClipper2 extends XMLNodeList {
 
 	private static final long serialVersionUID = -6214516945439480891L;
-	public static final String mHttptunnelOff = "disable";
-	public static final String mHttptunnelOnCache = "cache";
-	public static final String mHttptunnelOnNoCache = "no cache";
 
 	/* Properties */
 	private XMLVector<XMLVector<String>> attributes = new XMLVector<XMLVector<String>>();
-	private String mHttpTunnel = mHttptunnelOff;
+	private HttpTunnel mHttpTunnel = HttpTunnel.off;
 	
 	/* Variables */
 	transient private Context 	context 		= null;
@@ -128,16 +125,12 @@ public class WebClipper2 extends XMLNodeList implements ITagsProperty {
 		this.attributes = attributes;
 	}	
 	
-	public String getMHttpTunnel(){
+	public HttpTunnel getMHttpTunnel(){
 		return mHttpTunnel;
 	}
 	
-	public void setMHttpTunnel(String mHttptunnel){
-		if(mHttptunnel.equals(mHttptunnelOff)||
-			mHttptunnel.equals(mHttptunnelOnCache)||
-			mHttptunnel.equals(mHttptunnelOnNoCache)){
-				this.mHttpTunnel = mHttptunnel;
-		}
+	public void setMHttpTunnel(HttpTunnel mHttptunnel){
+		this.mHttpTunnel = mHttptunnel;
 	}
 	
 	protected void generateIds(Element original, Element copy){
@@ -218,16 +211,5 @@ public class WebClipper2 extends XMLNodeList implements ITagsProperty {
 		for(List<String> attribute : attributes)
 				selectXpath.append("|.//@" + attribute.get(0));
 		return selectXpath.length()==0 ? "" : selectXpath.substring(1);
-	}
-	
-	public String[] getTagsForProperty(String propertyName) {
-		if(propertyName.equals("mHttpTunnel")){
-			return new String[]{
-					mHttptunnelOff,
-					mHttptunnelOnCache,
-					mHttptunnelOnNoCache
-			};
-		}
-		return new String[0];
 	}
 }

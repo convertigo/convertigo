@@ -27,21 +27,17 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.transform.TransformerException;
 
 import org.apache.ws.commons.schema.XmlSchema;
-import org.apache.ws.commons.schema.XmlSchemaAll;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.xpath.CachedXPathAPI;
 import org.apache.xpath.objects.XObject;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -50,28 +46,30 @@ import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 
 	private static final long serialVersionUID = 4871778624030668414L;
 	
 	/* COMBO BOX */
-	public static final String ASCENDING_ORDER = "Ascending";
-	public static final String DESCENDING_ORDER = "Descending";
+	public enum Order {
+		Ascending,
+		Descending
+	}
 	
-	public static final String NUMBER_TYPE_ORDER = "Number";
-	public static final String DATE_TYPE_ORDER = "Date";
-	public static final String STRING_TYPE_ORDER = "String";
+	public enum TypeOrder {
+		Number,
+		Date,
+		String
+	}
 	
 	/* PROPERTIES */
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	private String sortXPATHDefinition = "";
 	private String optionSort = "";
-	private String orderSort = ASCENDING_ORDER;
-	private String typeSort = STRING_TYPE_ORDER;
+	private Order orderSort = Order.Ascending;
+	private TypeOrder typeSort = TypeOrder.String;
 
 	private transient StepSource source = null;
 	
@@ -136,29 +134,20 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 		this.sortXPATHDefinition = sortXPATHDefinition;
 	}
 
-	public String getOrderSort(){
+	public Order getOrderSort() {
 		return orderSort;
 	}
 	
-	public void setOrderSort(String orderSort){
-		if(orderSort.equals(ASCENDING_ORDER)||
-			orderSort.equals(DESCENDING_ORDER)){
-			
-			this.orderSort = orderSort;
-		}
+	public void setOrderSort(Order orderSort) {
+		this.orderSort = orderSort;
 	}
 	
-	public String getTypeSort(){
+	public TypeOrder getTypeSort() {
 		return typeSort;
 	}
 	
-	public void setTypeSort(String typeSort){
-		if(typeSort.equals(STRING_TYPE_ORDER)||
-				typeSort.equals(NUMBER_TYPE_ORDER)||
-						typeSort.equals(DATE_TYPE_ORDER)){
-				
-			this.typeSort = typeSort;
-		}
+	public void setTypeSort(TypeOrder typeSort) {
+		this.typeSort = typeSort;
 	}
 	
 	public String getOptionSort() {
@@ -190,11 +179,11 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 					s2 = getNodeValue(n2, xpathExpression);
 				
 					// CASE: NUMBER
-					if ( getTypeSort().equals( NUMBER_TYPE_ORDER ) ) {
+					if (typeSort == TypeOrder.Number) {
 						return Double.compare(getDoubleValue(s1), getDoubleValue(s2));
 					}
 					// CASE: DATE	
-					else if ( getTypeSort().equals( DATE_TYPE_ORDER ) ) {
+					else if (typeSort == TypeOrder.Date) {
 						Date d1 = null, d2 = null;
 						DateFormat dateFormat;
 						
@@ -244,7 +233,7 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 			
 			// We sort the ArrayList in mode ascending or descending 
 			// for that we use the function "compare()"
-			if ( getOrderSort().equals( ASCENDING_ORDER ) ){
+			if (orderSort == Order.Ascending){
 				Collections.sort(nodes, comparator);
 			} else {
 				Collections.sort(nodes, Collections.reverseOrder(comparator));
@@ -266,6 +255,7 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 		return false;
 	}
 	
+	@Override
 	protected StepSource getTargetSource() throws EngineException {
 		StepSource source = getSource();
 		if (!source.isEmpty()) {
@@ -277,6 +267,7 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 		return source;
 	}
 	
+	@Override
 	protected String getTargetXPath() throws EngineException {
 		String xpath = "";
 		StepSource source = getSource();
@@ -287,23 +278,6 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 			}
 		}
 		return xpath;
-	}
-	
-	public String[] getTagsForProperty(String propertyName) {
-		if(propertyName.equals("orderSort")){
-			return new String[]{
-					ASCENDING_ORDER,
-					DESCENDING_ORDER
-			};
-		}
-		if(propertyName.equals("typeSort")){
-			return new String[]{
-					STRING_TYPE_ORDER,
-					NUMBER_TYPE_ORDER,
-					DATE_TYPE_ORDER
-			};
-		}
-		return new String[0];
 	}
 	
 	@Override

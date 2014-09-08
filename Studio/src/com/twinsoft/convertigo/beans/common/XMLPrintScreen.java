@@ -26,14 +26,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
-import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.extractionrules.HtmlExtractionRule;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.enums.ImageFormat;
 import com.twinsoft.convertigo.engine.parsers.PrintScreenRequest;
 import com.twinsoft.convertigo.engine.parsers.PrintScreenResponse;
 
-public class XMLPrintScreen extends HtmlExtractionRule implements ITagsProperty {
+public class XMLPrintScreen extends HtmlExtractionRule {
 
 	private static final long serialVersionUID = 6747023789584983524L;
 
@@ -43,7 +42,7 @@ public class XMLPrintScreen extends HtmlExtractionRule implements ITagsProperty 
 	private int top = 0;
 	private int left = 0;
 	private float scale = 1.0f;
-	private String imageFormat = ImageFormat.png.name();
+	private ImageFormat imageFormat = ImageFormat.png;
 	private boolean includeDataUrl = true;
 	private long minDelay = 100;
 	
@@ -63,7 +62,7 @@ public class XMLPrintScreen extends HtmlExtractionRule implements ITagsProperty 
 	public boolean apply(Document xmlDom, Context context) {
 		try {
 			HtmlConnector htmlConnector = (HtmlConnector) context.getConnector();
-			PrintScreenResponse printScreenResponse = htmlConnector.getHtmlParser().makePrintScreen(context, new PrintScreenRequest(height, width, top, left, scale, getImageFormatEnum(), true, minDelay));
+			PrintScreenResponse printScreenResponse = htmlConnector.getHtmlParser().makePrintScreen(context, new PrintScreenRequest(height, width, top, left, scale, getImageFormat(), true, minDelay));
 			
 			if (printScreenResponse != null) {
 				Document doc = context.outputDocument;
@@ -105,15 +104,12 @@ public class XMLPrintScreen extends HtmlExtractionRule implements ITagsProperty 
 		return "xsd:string";
 	}
 
-	public ImageFormat getImageFormatEnum() {
-		return ImageFormat.valueOf(imageFormat);
+	public ImageFormat getImageFormat() {
+		return imageFormat;
 	}
 
-	public String[] getTagsForProperty(String propertyName) {
-		if ("imageFormat".equals(propertyName)) {
-			return ImageFormat.imageFormats;
-		}
-		return new String[0];
+	public void setImageFormat(ImageFormat imageFormat) {
+		this.imageFormat = imageFormat;
 	}
 
 	public int getHeight() {
@@ -154,14 +150,6 @@ public class XMLPrintScreen extends HtmlExtractionRule implements ITagsProperty 
 
 	public void setScale(float scale) {
 		this.scale = scale;
-	}
-
-	public String getImageFormat() {
-		return imageFormat;
-	}
-
-	public void setImageFormat(String imageFormat) {
-		this.imageFormat = imageFormat;
 	}
 
 	public boolean isIncludeDataUrl() {

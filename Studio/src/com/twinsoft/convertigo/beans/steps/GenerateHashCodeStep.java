@@ -1,6 +1,7 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -13,21 +14,33 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.ISchemaParticleGenerator;
-import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class GenerateHashCodeStep extends Step implements ITagsProperty, ISchemaParticleGenerator {
+public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerator {
 
 	private static final long serialVersionUID = -2873578590344942963L;
 
-	private static String MD5 = "MD5";
-	private static String SHA1 = "SHA-1";
+	public enum HashAlgorithm {
+		MD5("MD5"),
+		SHA1("SHA-1");
+		
+		private final String label;
+		
+		private HashAlgorithm(String label) {
+			this.label = label;
+		}
+		
+		@Override
+		public String toString() {
+			return label;
+		}
+	}
 	
 	private String sourcePath = "";
-	private String hashAlgorithm = "MD5";
+	private HashAlgorithm hashAlgorithm = HashAlgorithm.MD5;
 
 	private transient String sourceFilePath = "";
 	
@@ -78,9 +91,9 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty, ISchema
 				path = FileUtils.readFileToByteArray(sourceFile);
 				
 				String hash = null;
-				if (MD5.equals(hashAlgorithm)) {
+				if (hashAlgorithm == HashAlgorithm.MD5) {
 					hash = org.apache.commons.codec.digest.DigestUtils.md5Hex(path);
-				} else if (SHA1.equals(hashAlgorithm)) {
+				} else if (hashAlgorithm == HashAlgorithm.SHA1) {
 					hash = org.apache.commons.codec.digest.DigestUtils.shaHex(path);
 				}
 				Engine.logBeans.info("File \"" + sourceFilePath	+ "\" has been hashed.");
@@ -137,14 +150,6 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty, ISchema
 	}
 
 	@Override
-	public String[] getTagsForProperty(String propertyName) {
-		if (propertyName.equals("hashAlgorithm")) {
-			return new String[] { MD5, SHA1 };
-		}
-		return super.getTagsForProperty(propertyName);
-	}
-
-	@Override
 	protected boolean workOnSource() {
 		return false;
 	}
@@ -167,11 +172,11 @@ public class GenerateHashCodeStep extends Step implements ITagsProperty, ISchema
 		this.sourcePath = sourcePath;
 	}
 
-	public String getHashAlgorithm() {
+	public HashAlgorithm getHashAlgorithm() {
 		return hashAlgorithm;
 	}
 
-	public void setHashAlgorithm(String hashAlgorithm) {
+	public void setHashAlgorithm(HashAlgorithm hashAlgorithm) {
 		this.hashAlgorithm = hashAlgorithm;
 	}
 	

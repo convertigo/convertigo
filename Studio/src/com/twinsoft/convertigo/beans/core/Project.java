@@ -43,18 +43,32 @@ import com.twinsoft.convertigo.engine.util.VersionUtils;
 /**
  * This class manages a Convertigo Project.
  */
-public class Project extends DatabaseObject implements ITagsProperty, IInfoProperty {
+public class Project extends DatabaseObject implements IInfoProperty {
 
 	private static final long serialVersionUID = -7523308164370975102L;
 
 	public static final int MAX_OBJECT_NAME_LENGTH = 64;
 	
-	public static final String WSDL_STYLE_ALL = "ALL";
-	public static final String WSDL_STYLE_DOC = "DOC/LITERAL";
-	public static final String WSDL_STYLE_RPC = "RPC";
+	public enum WsdlStyle {
+		all("ALL"),
+		docLiteral("DOC/LITERAL"),
+		rpc("RPC");
+		
+		private final String label;
+		
+		private WsdlStyle(String label) {
+			this.label = label;
+		}
+		
+		public String toString() {
+			return label;
+		}
+	}
 	
-	public static final String XSD_FORM_QUALIFIED = "qualified";
-	public static final String XSD_FORM_UNQUALIFIED = "unqualified";
+	public enum XsdForm {
+		qualified,
+		unqualified
+	}
 	
 	public static final String XSD_FOLDER_NAME = "xsd";
 	public static final String XSD_INTERNAL_FOLDER_NAME = "internal";
@@ -73,7 +87,7 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
     /**
      * The WSDL style (Doc/Literal, RPC or Both).
      */
-	private String wsdlStyle = WSDL_STYLE_DOC;
+	private WsdlStyle wsdlStyle = WsdlStyle.docLiteral;
 	
 	/**
 	 * WSDL with inline schema or not
@@ -93,7 +107,7 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 	/**
 	 * The schema element form
 	 */
-	private String schemaElementForm = XSD_FORM_UNQUALIFIED;
+	private XsdForm schemaElementForm = XsdForm.unqualified;
 	
 	/**
 	 * The default connector for this project.
@@ -192,11 +206,11 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
         this.browserDefinitions = browserDefinitions;
     }
     
-    public String getWsdlStyle() {
+    public WsdlStyle getWsdlStyle() {
 		return wsdlStyle;
 	}
 
-	public void setWsdlStyle(String wsdlStyle) {
+	public void setWsdlStyle(WsdlStyle wsdlStyle) {
 		this.wsdlStyle = wsdlStyle;
 	}
 
@@ -232,15 +246,15 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 	/**
 	 * @return the schemaElementForm
 	 */
-	public String getSchemaElementForm() {
+	public XsdForm getSchemaElementForm() {
 		return schemaElementForm;
 	}
 
 	/**
 	 * @param schemaElementForm the schemaElementForm to set
 	 */
-	public void setSchemaElementForm(String schemaElementForm) {
-		this.schemaElementForm = XSD_FORM_UNQUALIFIED; // schemaElementForm
+	public void setSchemaElementForm(XsdForm schemaElementForm) {
+		this.schemaElementForm = XsdForm.unqualified; // schemaElementForm
 	}
 	
 	@Override
@@ -403,19 +417,6 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 		clonedObject.vSequences = new LinkedList<Sequence>();
 		clonedObject.mobileApplication = null;
 		return clonedObject;
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.twinsoft.convertigo.beans.core.ITagsProperty#getTagsForProperty(java.lang.String)
-	 */
-	public String[] getTagsForProperty(String propertyName) {
-		if (propertyName.equals("wsdlStyle")) {
-			return new String[]{WSDL_STYLE_ALL, WSDL_STYLE_DOC, WSDL_STYLE_RPC};
-		}
-		else if (propertyName.equals("schemaElementForm")) {
-			return new String[]{XSD_FORM_QUALIFIED, XSD_FORM_UNQUALIFIED};
-		}
-		return new String[0];
 	}
 	
     @Override

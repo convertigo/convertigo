@@ -26,6 +26,7 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.enums.ImageFormat;
 
 public class XMLPrintScreenBeanInfo extends MySimpleBeanInfo {
     
@@ -72,7 +73,7 @@ public class XMLPrintScreenBeanInfo extends MySimpleBeanInfo {
 			properties[6] = new PropertyDescriptor("imageFormat", beanClass, "getImageFormat", "setImageFormat");
 			properties[6].setDisplayName(getExternalizedString("property.imageFormat.display_name"));
 			properties[6].setShortDescription(getExternalizedString("property.imageFormat.short_description"));
-			properties[6].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[6].setPropertyEditorClass(ImageFormat.class);
 			
 			properties[7] = new PropertyDescriptor("includeDataUrl", beanClass, "isIncludeDataUrl", "setIncludeDataUrl");
 			properties[7].setDisplayName(getExternalizedString("property.includeDataUrl.display_name"));

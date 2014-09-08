@@ -4,6 +4,7 @@ import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.beans.steps.GenerateHashCodeStep.HashAlgorithm;
 
 public class GenerateHashCodeStepBeanInfo extends MySimpleBeanInfo{
 	
@@ -30,7 +31,7 @@ public class GenerateHashCodeStepBeanInfo extends MySimpleBeanInfo{
 	        properties[1] = new PropertyDescriptor("hashAlgorithm", beanClass, "getHashAlgorithm", "setHashAlgorithm");
 			properties[1].setDisplayName(getExternalizedString("property.hashAlgorithm.display_name"));
 	        properties[1].setShortDescription(getExternalizedString("property.hashAlgorithm.short_description"));
-	        properties[1].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+	        properties[1].setPropertyEditorClass(HashAlgorithm.class);
 	        
 	        properties[2] = new PropertyDescriptor("nodeName", beanClass, "getNodeName", "setNodeName");
             properties[2].setDisplayName(getExternalizedString("property.nodeName.display_name"));

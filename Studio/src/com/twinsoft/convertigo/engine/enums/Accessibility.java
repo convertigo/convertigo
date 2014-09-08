@@ -15,12 +15,6 @@ public enum Accessibility {
 		return code;
 	}
 	
-	public final static String[] accessibilities = new String[] {
-		Public.name(),
-		Hidden.name(),
-		Private.name()
-	};
-	
 	public static Accessibility valueOf(int code) {
 		switch (code) {
 		case 0 : return Public;

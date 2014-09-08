@@ -50,6 +50,7 @@ import org.w3c.dom.Text;
 
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Project.XsdForm;
 import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
@@ -405,7 +406,7 @@ public class WebServiceTranslator implements Translator {
             
 			soapMethodResponseElement = sb.addChildElement(se.createName(soapElementName, prefix, targetNamespace));
 
-        	if (Project.XSD_FORM_QUALIFIED.equals(context.project.getSchemaElementForm())) {
+        	if (XsdForm.qualified == context.project.getSchemaElementForm()) {
             	soapMethodResponseElement.addAttribute(se.createName("xmlns"), targetNamespace);
             }
             
@@ -502,7 +503,7 @@ public class WebServiceTranslator implements Translator {
 			
 			if (soapElement != null) {
 				if (soapParent.equals(se.getBody()) && !soapParent.equals(soapElement)) {
-		        	if (Project.XSD_FORM_QUALIFIED.equals(context.project.getSchemaElementForm())) {
+		        	if (XsdForm.qualified == context.project.getSchemaElementForm()) {
 		        		if (soapElement.getAttribute("xmlns") == null) {
 		        			soapElement.addAttribute(se.createName("xmlns"), context.project.getTargetNamespace());
 		        		}
@@ -647,7 +648,7 @@ public class WebServiceTranslator implements Translator {
 				attributePrefix = getPrefix(context.projectName, attributeNsUri);
 			}
 			
-			if (Project.XSD_FORM_QUALIFIED.equals(context.project.getSchemaElementForm()) || isGlobal) {
+			if (XsdForm.qualified == context.project.getSchemaElementForm() || isGlobal) {
 				if (attributePrefix == null) {
 					soapElement.addAttribute(
 							soapEnvelope.createName(attributeName, prefix, targetNamespace),
@@ -733,7 +734,7 @@ public class WebServiceTranslator implements Translator {
 				elementAdded = false;
 			}
 			else {
-				if (Project.XSD_FORM_QUALIFIED.equals(context.project.getSchemaElementForm()) || isGlobal) {
+				if (XsdForm.qualified == context.project.getSchemaElementForm() || isGlobal) {
 					if (elementNodePrefix == null) {
 						childSoapElement = soapElement.addChildElement(soapEnvelope.createName(elementNodeName, prefix, targetNamespace));
 					}

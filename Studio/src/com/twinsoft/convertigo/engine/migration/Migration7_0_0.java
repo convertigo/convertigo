@@ -67,6 +67,7 @@ import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.IVariableContainer;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.Project;
+import com.twinsoft.convertigo.beans.core.Project.XsdForm;
 import com.twinsoft.convertigo.beans.core.Reference;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
@@ -275,7 +276,7 @@ public class Migration7_0_0 {
 							// Create transaction schema
 							String targetNamespace = projectSchema.getTargetNamespace();
 							String prefix = projectSchema.getNamespaceContext().getPrefix(targetNamespace);
-							XmlSchema transactionSchema = SchemaUtils.createSchema(prefix, targetNamespace, Project.XSD_FORM_UNQUALIFIED, Project.XSD_FORM_UNQUALIFIED);
+							XmlSchema transactionSchema = SchemaUtils.createSchema(prefix, targetNamespace, XsdForm.unqualified.name(), XsdForm.unqualified.name());
 							
 							// Add required prefix declarations
 							List<String> nsList = new LinkedList<String>();
@@ -386,7 +387,7 @@ public class Migration7_0_0 {
 			else {// Should only happen for projects which version <= 4.6.0 
 				XmlSchemaCollection collection = new XmlSchemaCollection();
 				String prefix = project.getName()+"_ns";
-				projectSchema = SchemaUtils.createSchema(prefix, project.getNamespaceUri(), Project.XSD_FORM_UNQUALIFIED, Project.XSD_FORM_UNQUALIFIED);
+				projectSchema = SchemaUtils.createSchema(prefix, project.getNamespaceUri(), XsdForm.unqualified.name(), XsdForm.unqualified.name());
 				ConvertigoError.addXmlSchemaObjects(projectSchema);
 				SchemaMeta.setCollection(projectSchema, collection);
 				

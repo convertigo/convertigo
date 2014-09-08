@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.connectors;
 
 import java.beans.PropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.connectors.HttpConnector.AuthenticationMode;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
@@ -76,7 +77,7 @@ public class HttpConnectorBeanInfo extends MySimpleBeanInfo {
 			properties[7] = new PropertyDescriptor("authenticationType", beanClass, "getAuthenticationType", "setAuthenticationType");
 			properties[7].setDisplayName(getExternalizedString("property.authenticationType.display_name"));
 			properties[7].setShortDescription(getExternalizedString("property.authenticationType.short_description"));
-			properties[7].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[7].setPropertyEditorClass(AuthenticationMode.class);
 			properties[7].setExpert(true);
 			
 			properties[8] = new PropertyDescriptor("NTLMAuthenticationDomain", beanClass, "getNTLMAuthenticationDomain", "setNTLMAuthenticationDomain");

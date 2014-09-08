@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.steps;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.beans.steps.PushNotificationStep.ApnsNotificationType;
 
 public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
     
@@ -68,7 +69,7 @@ public class PushNotificationStepBeanInfo extends MySimpleBeanInfo {
 			properties[4] = new PropertyDescriptor("apnsNotificationType", beanClass, "getApnsNotificationType", "setApnsNotificationType");
             properties[4].setDisplayName(getExternalizedString("property.apnsnotificationtype.display_name"));
             properties[4].setShortDescription(getExternalizedString("property.apnsnotificationtype.short_description"));
-            properties[4].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+            properties[4].setPropertyEditorClass(ApnsNotificationType.class);
             
 			properties[5] = new PropertyDescriptor("sourceDefinition", beanClass, "getSourceDefinition", "setSourceDefinition");
 			properties[5].setExpert(false);

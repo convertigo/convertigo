@@ -43,6 +43,7 @@ import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
+import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -168,7 +169,10 @@ public class Set extends XmlService {
 			} catch (Exception e) {
 				throw new ServiceException("Error when create the object:\n"+e.getMessage());
 			}
+		} else if (Enum.class.isAssignableFrom(propertyClass)) {
+			oPropertyValue = EnumUtils.valueOf(propertyClass, value);
 		}
+		
 		return oPropertyValue;
 	}
 }

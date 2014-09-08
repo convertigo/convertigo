@@ -29,70 +29,147 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
-import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.parsers.IWebViewer;
 import com.twinsoft.convertigo.engine.parsers.HtmlParser;
+import com.twinsoft.convertigo.engine.parsers.IWebViewer;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class BrowserPropertyChangeStatement extends Statement implements ITagsProperty{
+public class BrowserPropertyChangeStatement extends Statement {
 	private static final long serialVersionUID = -2138787100756864583L;
 	
-	public static String convertigoModeStudio = "studio mode";
-	public static String convertigoModeEngine = "engine mode";
-	public static String convertigoModeBoth = "both modes";
+	public enum ConvertigoMode {
+		studio("studio mode"),
+		engine("engine mode"),
+		both("both modes");
+		
+		private final String label;
+		
+		private ConvertigoMode(String label) {
+			this.label = label;
+		}
+		
+		@Override
+		public String toString() {
+			return label;
+		}
+	}
 	
-	private String convertigoMode = convertigoModeBoth;
+	public enum JavascriptMode {
+		noChange("no change"),
+		forceOn("force on"),
+		forceOff("force off");
+		
+		private final String label;
+		
+		private JavascriptMode(String label) {
+			this.label = label;
+		}
+		
+		@Override
+		public String toString() {
+			return label;
+		}
+	}
 	
-	public static String javascriptModeNoChange = "no change";
-	public static String javascriptModeForceOn = "force on";
-	public static String javascriptModeForceOff = "force off";
+	public enum ImageMode {
+		noChange("no change"),
+		forceOn("force on"),
+		forceOff("force off");
+		
+		private final String label;
+		
+		private ImageMode(String label) {
+			this.label = label;
+		}
+		
+		@Override
+		public String toString() {
+			return label;
+		}
+	}
+	
+	public enum PluginMode {
+		noChange("no change"),
+		forceOn("force on"),
+		forceOff("force off");
+		
+		private final String label;
+		
+		private PluginMode(String label) {
+			this.label = label;
+		}
+		
+		@Override
+		public String toString() {
+			return label;
+		}
+	}
+	
+	public enum AttachmentMode {
+		noChange("no change"),
+		forceOn("force on"),
+		forceOff("force off");
+		
+		private final String label;
+		
+		private AttachmentMode(String label) {
+			this.label = label;
+		}
+		
+		@Override
+		public String toString() {
+			return label;
+		}
+	}
+	
+	public enum WindowOpenMode {
+		noChange("no change"),
+		forceOnSameWindow("force on same window"),
+		forceOnNewWindow("force on new window"),
+		forceOff("force off");
+		
+		private final String label;
+		
+		private WindowOpenMode(String label) {
+			this.label = label;
+		}
+		
+		@Override
+		public String toString() {
+			return label;
+		}
+	}
+	
+	private ConvertigoMode convertigoMode = ConvertigoMode.both;
 	
 	private boolean bJavascriptChange = false;
 	private boolean bJavascriptStat = true;
 	
-	private String javascriptMode = javascriptModeNoChange;
-	
-	public static String imageModeNoChange = "no change";
-	public static String imageModeForceOn = "force on";
-	public static String imageModeForceOff = "force off";
+	private JavascriptMode javascriptMode = JavascriptMode.noChange;
 	
 	private boolean bImageChange = false;
 	private boolean bImageStat = true;
 	
-	private String imageMode = imageModeNoChange;
-	
-	public static String pluginModeNoChange = "no change";
-	public static String pluginModeForceOn = "force on";
-	public static String pluginModeForceOff = "force off";
+	private ImageMode imageMode = ImageMode.noChange;
 
 	private boolean bPluginChange = false;
 	private boolean bPluginStat = true;
 
-	private String pluginMode = pluginModeNoChange;
-	
-	public static String attachmentModeNoChange = "no change";
-	public static String attachmentModeForceOn = "force on";
-	public static String attachmentModeForceOff = "force off";
+	private PluginMode pluginMode = PluginMode.noChange;
 
 	private boolean bAttachmentChange = false;
 	private boolean bAttachmentStat = true;
 
-	private String attachmentMode = attachmentModeNoChange;
-	
-	public static String windowOpenModeNoChange = "no change";
-	public static String windowOpenModeForceOnSameWindow = "force on same window";
-	public static String windowOpenModeForceOnNewWindow = "force on new window";
-	public static String windowOpenModeForceOff = "force off";
+	private AttachmentMode attachmentMode = AttachmentMode.noChange;
 	
 	private boolean bWindowOpenChange = false;
 	private boolean bWindowOpenStat = true;
 	
-	private String windowOpenMode = windowOpenModeNoChange;
+	private WindowOpenMode windowOpenMode = WindowOpenMode.noChange;
 	
 	private boolean bClearCookies = false;
 	
@@ -139,40 +216,40 @@ public class BrowserPropertyChangeStatement extends Statement implements ITagsPr
 	public boolean execute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
 			if (super.execute(javascriptContext, scope)) {
-				if(convertigoMode.equals(convertigoModeBoth) ||
-				   convertigoMode.equals(convertigoModeStudio) && Engine.isStudioMode() ||
-				   convertigoMode.equals(convertigoModeEngine) && Engine.isEngineMode() ){
+				if(convertigoMode == ConvertigoMode.both ||
+				   convertigoMode == ConvertigoMode.studio && Engine.isStudioMode() ||
+				   convertigoMode == ConvertigoMode.engine && Engine.isEngineMode() ){
 
 					HtmlTransaction htmlTransaction = (HtmlTransaction)getParentTransaction();
 					HtmlConnector htmlConnector = (HtmlConnector)htmlTransaction.getParent();
 
 					HtmlParser htmlParser = htmlConnector.getHtmlParser();
 					
-					if(javascriptMode.equals(javascriptModeForceOn))
+					if(javascriptMode == JavascriptMode.forceOn)
 						htmlParser.setAllowJavascript(htmlTransaction.context, true);
-					else if(javascriptMode.equals(javascriptModeForceOff))
+					else if(javascriptMode == JavascriptMode.forceOff)
 						htmlParser.setAllowJavascript(htmlTransaction.context, false);
 					
-					if(imageMode.equals(imageModeForceOn))
+					if(imageMode == ImageMode.forceOn)
 						htmlParser.setAllowImage(htmlTransaction.context, true);
-					else if(imageMode.equals(imageModeForceOff))
+					else if(imageMode == ImageMode.forceOff)
 						htmlParser.setAllowImage(htmlTransaction.context, false);
 					
-					if(pluginMode.equals(pluginModeForceOn))
+					if(pluginMode == PluginMode.forceOn)
 						htmlParser.setAllowPlugin(htmlTransaction.context, true);
-					else if(pluginMode.equals(pluginModeForceOff))
+					else if(pluginMode == PluginMode.forceOff)
 						htmlParser.setAllowPlugin(htmlTransaction.context, false);
 					
-					if(attachmentMode.equals(attachmentModeForceOn))
+					if(attachmentMode == AttachmentMode.forceOn)
 						htmlParser.setAllowAttachment(htmlTransaction.context, true);
-					else if(attachmentMode.equals(attachmentModeForceOff))
+					else if(attachmentMode == AttachmentMode.forceOff)
 						htmlParser.setAllowAttachment(htmlTransaction.context, false);
 					
-					if(windowOpenMode.equals(windowOpenModeForceOnNewWindow))
+					if(windowOpenMode == WindowOpenMode.forceOnNewWindow)
 						htmlParser.setWindowOpenState(htmlTransaction.context, IWebViewer.windowOpenNewWindow);
-					else if(windowOpenMode.equals(windowOpenModeForceOnSameWindow))
+					else if(windowOpenMode == WindowOpenMode.forceOnSameWindow)
 						htmlParser.setWindowOpenState(htmlTransaction.context, IWebViewer.windowOpenSameWindow);
-					else if(windowOpenMode.equals(windowOpenModeForceOff))
+					else if(windowOpenMode == WindowOpenMode.forceOff)
 						htmlParser.setWindowOpenState(htmlTransaction.context, IWebViewer.windowOpenCancel);
 					
 					if(bClearCookies){
@@ -190,13 +267,13 @@ public class BrowserPropertyChangeStatement extends Statement implements ITagsPr
 	public String toString(){
 		String text = this.getComment();
 		return ("props :" +
-				((!javascriptMode.equals(javascriptModeNoChange))?" js"+(javascriptMode.equals(javascriptModeForceOn)?"On":"Off"):"") +
-				((!imageMode.equals(imageModeNoChange))?" img"+(imageMode.equals(imageModeForceOn)?"On":"Off"):"") +
-				((!pluginMode.equals(pluginModeNoChange))?" pg"+(pluginMode.equals(pluginModeForceOn)?"On":"Off"):"") +
-				((!attachmentMode.equals(attachmentModeNoChange))?" attachment"+(attachmentMode.equals(pluginModeForceOn)?"On":"Off"):"") +
-				((!windowOpenMode.equals(windowOpenModeNoChange))?" wo"+(windowOpenMode.equals(windowOpenModeForceOnNewWindow)?"New":(windowOpenMode.equals(windowOpenModeForceOnSameWindow)?"Same":"Off")):"") +
-				((bClearCookies)?" clearCookies":"")) +
-				(!text.equals("") ? " // "+text:"");
+				(javascriptMode != JavascriptMode.noChange ? " js" + (javascriptMode == JavascriptMode.forceOn ? "On" : "Off") : "") +
+				(imageMode != ImageMode.noChange ? " img" + (imageMode == ImageMode.forceOn ? "On" : "Off") : "") +
+				(pluginMode != PluginMode.noChange ? " pg" + (pluginMode == PluginMode.forceOn ? "On" : "Off") : "") +
+				(attachmentMode != AttachmentMode.noChange ? " attachment" + (attachmentMode == AttachmentMode.forceOn ? "On" : "Off") : "") +
+				(windowOpenMode != WindowOpenMode.noChange ? " wo" + (windowOpenMode == WindowOpenMode.forceOnNewWindow ? "New" : (windowOpenMode == WindowOpenMode.forceOnSameWindow ? "Same" : "Off")) : "") +
+				(bClearCookies ? " clearCookies" : "") +
+				(!text.equals("") ? " // " + text : ""));
 	}
 
     @Override
@@ -276,11 +353,11 @@ public class BrowserPropertyChangeStatement extends Statement implements ITagsPr
 		bWindowOpenStat = windowOpenStat;
 	}
 
-	public String getConvertigoMode() {
+	public ConvertigoMode getConvertigoMode() {
 		return convertigoMode;
 	}
 
-	public void setConvertigoMode(String convertigoMode) {
+	public void setConvertigoMode(ConvertigoMode convertigoMode) {
 		this.convertigoMode = convertigoMode;
 	}
 
@@ -300,86 +377,44 @@ public class BrowserPropertyChangeStatement extends Statement implements ITagsPr
 		bAttachmentStat = attachmentStat;
 	}
 	
-	public String getJavascriptMode() {
+	public JavascriptMode getJavascriptMode() {
 		return javascriptMode;
 	}
 
-	public void setJavascriptMode(String javascriptMode) {
+	public void setJavascriptMode(JavascriptMode javascriptMode) {
 		this.javascriptMode = javascriptMode;
 	}
 
-	public String getImageMode() {
+	public ImageMode getImageMode() {
 		return imageMode;
 	}
 
-	public void setImageMode(String imageMode) {
+	public void setImageMode(ImageMode imageMode) {
 		this.imageMode = imageMode;
 	}
 
-	public String getPluginMode() {
+	public PluginMode getPluginMode() {
 		return pluginMode;
 	}
 
-	public void setPluginMode(String pluginMode) {
+	public void setPluginMode(PluginMode pluginMode) {
 		this.pluginMode = pluginMode;
 	}
 
-	public String getAttachmentMode() {
+	public AttachmentMode getAttachmentMode() {
 		return attachmentMode;
 	}
 
-	public void setAttachmentMode(String attachmentMode) {
+	public void setAttachmentMode(AttachmentMode attachmentMode) {
 		this.attachmentMode = attachmentMode;
 	}
 
-	public String getWindowOpenMode() {
+	public WindowOpenMode getWindowOpenMode() {
 		return windowOpenMode;
 	}
 
-	public void setWindowOpenMode(String windowOpenMode) {
+	public void setWindowOpenMode(WindowOpenMode windowOpenMode) {
 		this.windowOpenMode = windowOpenMode;
-	}
-
-	public String[] getTagsForProperty(String propertyName) {
-		if(propertyName.equals("convertigoMode")){
-			return new String[]{
-					convertigoModeStudio,
-					convertigoModeEngine,
-					convertigoModeBoth
-			};
-		}else if(propertyName.equals("javascriptMode")){
-			return new String[]{
-					javascriptModeNoChange,
-					javascriptModeForceOn,
-					javascriptModeForceOff
-			};
-		}else if(propertyName.equals("imageMode")){
-			return new String[]{
-					imageModeNoChange,
-					imageModeForceOn,
-					imageModeForceOff
-			};
-		}else  if(propertyName.equals("pluginMode")){
-			return new String[]{
-					pluginModeNoChange,
-					pluginModeForceOn,
-					pluginModeForceOff
-			};
-		}else if(propertyName.equals("attachmentMode")){
-			return new String[]{
-					attachmentModeNoChange,
-					attachmentModeForceOn,
-					attachmentModeForceOff
-			};
-		}else if(propertyName.equals("windowOpenMode")){
-			return new String[]{
-					windowOpenModeNoChange,
-					windowOpenModeForceOnNewWindow,
-					windowOpenModeForceOnSameWindow,
-					windowOpenModeForceOff
-			};
-		}
-		return new String[0];
 	}
 
 	@Override
@@ -428,11 +463,11 @@ public class BrowserPropertyChangeStatement extends Statement implements ITagsPr
         }
         
         if (VersionUtils.compare(version, "4.4.1") < 0) {
-        	javascriptMode = bJavascriptChange?(bJavascriptStat?javascriptModeForceOn:javascriptModeForceOff):javascriptModeNoChange;
-        	imageMode = bImageChange?(bImageStat?imageModeForceOn:imageModeForceOff):imageModeNoChange;
-        	pluginMode = bPluginChange?(bPluginStat?pluginModeForceOn:pluginModeForceOff):pluginModeNoChange;
-        	attachmentMode = bAttachmentChange?(bAttachmentStat?attachmentModeForceOn:attachmentModeForceOff):attachmentModeNoChange;
-        	windowOpenMode = bWindowOpenChange?(bWindowOpenStat?windowOpenModeForceOnSameWindow:windowOpenModeForceOff):windowOpenModeNoChange;
+        	javascriptMode = bJavascriptChange ? (bJavascriptStat ? JavascriptMode.forceOn : JavascriptMode.forceOff) : JavascriptMode.noChange;
+        	imageMode = bImageChange? (bImageStat ? ImageMode.forceOn : ImageMode.forceOff) : ImageMode.noChange;
+        	pluginMode = bPluginChange ? (bPluginStat ? PluginMode.forceOn : PluginMode.forceOff) : PluginMode.noChange;
+        	attachmentMode = bAttachmentChange ? (bAttachmentStat ? AttachmentMode.forceOn : AttachmentMode.forceOff) : AttachmentMode.noChange;
+        	windowOpenMode = bWindowOpenChange ? (bWindowOpenStat ? WindowOpenMode.forceOnSameWindow : WindowOpenMode.forceOff) : WindowOpenMode.noChange;
         	
 			hasChanged = true;
 			Engine.logBeans.warn("[HttpStatement] The object \"" + getName()+ "\" has been updated to version 4.4.1");

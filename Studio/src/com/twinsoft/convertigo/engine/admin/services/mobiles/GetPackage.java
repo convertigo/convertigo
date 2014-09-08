@@ -67,7 +67,7 @@ public class GetPackage extends DownloadService {
 			throw new ServiceException("no such mobile application");
 		} else {
 			boolean bAdminRole = Engine.authenticatedSessionManager.hasRole(request.getSession(), Role.WEB_ADMIN);
-			if (!bAdminRole && mobileApplication.getAccessibilityEnum() == Accessibility.Private) {
+			if (!bAdminRole && mobileApplication.getAccessibility() == Accessibility.Private) {
 				throw new AuthenticationException("Authentication failure: user has not sufficient rights!");
 			}
 		}

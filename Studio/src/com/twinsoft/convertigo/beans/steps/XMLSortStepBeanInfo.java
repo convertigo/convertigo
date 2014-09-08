@@ -25,6 +25,8 @@ package com.twinsoft.convertigo.beans.steps;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.beans.steps.XMLSortStep.Order;
+import com.twinsoft.convertigo.beans.steps.XMLSortStep.TypeOrder;
 
 public class XMLSortStepBeanInfo extends MySimpleBeanInfo {
     
@@ -61,7 +63,7 @@ public class XMLSortStepBeanInfo extends MySimpleBeanInfo {
 			properties[2].setExpert(true);
 			properties[2].setDisplayName(getExternalizedString("property.orderSort.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.orderSort.short_description"));
-            properties[2].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+            properties[2].setPropertyEditorClass(Order.class);
 			properties[2].setValue(BLACK_LIST_NAME, Boolean.TRUE);   
             
 			properties[3] = new PropertyDescriptor("optionSort", beanClass, "getOptionSort", "setOptionSort");
@@ -75,7 +77,7 @@ public class XMLSortStepBeanInfo extends MySimpleBeanInfo {
 			properties[4].setExpert(true);
 			properties[4].setDisplayName(getExternalizedString("property.typeSort.display_name"));
 			properties[4].setShortDescription(getExternalizedString("property.typeSort.short_description"));
-            properties[4].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+            properties[4].setPropertyEditorClass(TypeOrder.class);
 			properties[4].setValue(BLACK_LIST_NAME, Boolean.TRUE);   
 			
 		}

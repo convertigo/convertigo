@@ -26,15 +26,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector.Shuttle;
-import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.HtmlLocation;
 import com.twinsoft.convertigo.engine.util.RegexpUtils;
 
-public abstract class Injector extends BaseRule implements IResponseRule, ITagsProperty {
+public abstract class Injector extends BaseRule implements IResponseRule {
 	private static final long serialVersionUID = -2865404303732327509L;
 	
-	private String location = HtmlLocation.head_bottom.name();
+	private HtmlLocation location = HtmlLocation.head_bottom;
 	private String customRegexp = "";
 	transient private Pattern custom_pattern = null;
 	
@@ -46,7 +45,6 @@ public abstract class Injector extends BaseRule implements IResponseRule, ITagsP
 	public boolean applyOnResponse(Shuttle shuttle) {
 		try {
 			String content = shuttle.getResponseAsString();
-			HtmlLocation location = HtmlLocation.valueOf(this.location);
 			Matcher matcher = (location == HtmlLocation.custom) ? getCustomMatcher(content) : location.matcher(content);
 			String newContent = RegexpUtils.inject(matcher, codeToInsert(shuttle));
 			if (newContent != null) {
@@ -79,23 +77,11 @@ public abstract class Injector extends BaseRule implements IResponseRule, ITagsP
 		return customRegexp;
 	}
 
-	public String getLocation() {
+	public HtmlLocation getLocation() {
 		return location;
 	}
 
-	public void setLocation(String location) {
+	public void setLocation(HtmlLocation location) {
 		this.location = location;
-	}
-
-	public String[] getTagsForProperty(String propertyName) {
-		if ("location".equals(propertyName)) {
-			String [] names = new String[HtmlLocation.values().length];
-			int i = 0;
-			for (HtmlLocation l : HtmlLocation.values()) {
-				names[i++] = l.toString();
-			}
-			return names;
-		}
-		return new String[0];
 	}
 }

@@ -56,7 +56,6 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
-import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
@@ -65,10 +64,28 @@ import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
-public class SmtpStep extends Step implements IStepSourceContainer, ITagsProperty {
+public class SmtpStep extends Step implements IStepSourceContainer {
 
 	private static final long serialVersionUID = 3915732415195665643L;
 
+	public enum SmtpAuthType {
+		none("None"),
+		basic("Basic"),
+		startTls("STARTTLS"),
+		sslTls("SSL/TLS");
+		
+		private final String label;
+		
+		private SmtpAuthType(String label) {
+			this.label = label;
+		}
+		
+		@Override
+		public String toString() {
+			return label;
+		}
+	}
+	
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	
 	private String smtpServer = "xxx.xxx.xxx.xxx";
@@ -77,7 +94,7 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 	private String smtpUsername = "";
 	private String smtpPassword = "";
 	private String smtpPort = "25";
-	private String smtpAuthType = "None";
+	private SmtpAuthType smtpAuthType = SmtpAuthType.none;
 	private String smtpSender = "Convertigo <noreply@fakedomain.fake>";
 	private String xslFilepath = "";
 	private String contentType = "";
@@ -153,11 +170,11 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 		this.smtpPort = newSmtpPort;
 	}
 	
-	public String getSmtpAuthType() {
+	public SmtpAuthType getSmtpAuthType() {
 		return smtpAuthType;
 	}
 
-	public void setSmtpAuthType(String newSmtpAuthType) {
+	public void setSmtpAuthType(SmtpAuthType newSmtpAuthType) {
 		this.smtpAuthType = newSmtpAuthType;
 	}
 	
@@ -223,16 +240,6 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 
 	public void setAttachments(XMLVector<XMLVector<String>> attachments) {
 		this.attachments = attachments;
-	}
-
-	@Override
-	public String[] getTagsForProperty(String propertyName) {
-		String[] result = new String[0];
-		if(propertyName.equals("smtpAuthType")){
-			String[] authTypes = {"None","Basic","STARTTLS","SSL/TLS"};
-			result = authTypes;
-		}
-		return result;
 	}
 
 	@Override
@@ -423,7 +430,7 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 				public void run() {
 					Properties props = new Properties();
 					try {
-						if (smtpAuthType.equals("SSL/TLS")){
+						if (smtpAuthType == SmtpAuthType.sslTls){
 							Provider provider = (Provider) Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance();
 							java.security.Security.addProvider(provider);
 							props.put("mail.transport.protocol", "smtps");
@@ -445,7 +452,7 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 							transport.connect(smtpServer, Integer.parseInt(smtpPort), smtpUsername, smtpPassword);
 							transport.sendMessage(message, message.getAllRecipients());
 							transport.close();
-						} else if(smtpAuthType.equals("Basic")) {
+						} else if(smtpAuthType == SmtpAuthType.basic) {
 							props.put("mail.transport.protocol", "smtp");
 							props.put("mail.smtp.host", smtpServer);
 							props.put("mail.smtp.port", smtpPort);
@@ -465,7 +472,7 @@ public class SmtpStep extends Step implements IStepSourceContainer, ITagsPropert
 							transport.connect(smtpServer, Integer.parseInt(smtpPort), smtpUsername, smtpPassword);
 							transport.sendMessage(message, message.getAllRecipients());
 							transport.close();
-						} else if (smtpAuthType.equals("STARTTLS")){
+						} else if (smtpAuthType == SmtpAuthType.startTls){
 							props.put("mail.transport.protocol", "smtp");
 							props.put("mail.smtp.host", smtpServer);
 							props.put("mail.smtp.port", smtpPort);

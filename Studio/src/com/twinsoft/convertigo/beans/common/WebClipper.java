@@ -33,7 +33,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -46,18 +45,32 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
  * This class simply extract a nodelist.
  *
  */
-public class WebClipper extends XMLNodeList implements ITagsProperty {
+public class WebClipper extends XMLNodeList {
 
 	private static final long serialVersionUID = -6214516945439480891L;
-	public static final String mHttptunnelOff = "disable";
-	public static final String mHttptunnelOnCache = "cache";
-	public static final String mHttptunnelOnNoCache = "no cache";
+	
+	public enum HttpTunnel {
+		off("disable"),
+		onCache("cache"),
+		onNoCache("no cache");
+		
+		private final String label;
+		
+		private HttpTunnel(String label) {
+			this.label = label;
+		}
+		
+		@Override
+		public String toString() {
+			return label;
+		}
+	}
 
 	/* Properties */
 	private XMLVector<XMLVector<String>> attributes = new XMLVector<XMLVector<String>>();
 	private boolean bHttpTunnel = false;
 	private String transactionName = "";
-	private String mHttpTunnel = mHttptunnelOff;
+	private HttpTunnel mHttpTunnel = HttpTunnel.off;
 	private boolean extractParent = false;
 
 	/* Variables */
@@ -142,16 +155,12 @@ public class WebClipper extends XMLNodeList implements ITagsProperty {
 		this.bHttpTunnel = bHttpTunnel;
 	}
 	
-	public String getMHttpTunnel() {
+	public HttpTunnel getMHttpTunnel() {
 		return mHttpTunnel;
 	}
 	
-	public void setMHttpTunnel(String mHttptunnel) {
-		if (mHttptunnel.equals(mHttptunnelOff) ||
-			mHttptunnel.equals(mHttptunnelOnCache) ||
-			mHttptunnel.equals(mHttptunnelOnNoCache)) {
-				this.mHttpTunnel = mHttptunnel;
-		}
+	public void setMHttpTunnel(HttpTunnel mHttptunnel) {
+		this.mHttpTunnel = mHttptunnel;
 	}
 
 	public String getTransactionName() {
@@ -403,21 +412,10 @@ public class WebClipper extends XMLNodeList implements ITagsProperty {
             throw ee;
         }
         if (VersionUtils.compare(version, "4.2.1") < 0) {
-        	mHttpTunnel = (bHttpTunnel)?mHttptunnelOnCache:mHttptunnelOff;
+        	mHttpTunnel = bHttpTunnel ? HttpTunnel.onCache : HttpTunnel.off;
 			hasChanged = true;
 			Engine.logBeans.warn("[HttpStatement] The object \"" + getName()+ "\" has been updated to version 4.2.1");
         }
-	}
-
-	public String[] getTagsForProperty(String propertyName) {
-		if (propertyName.equals("mHttpTunnel")) {
-			return new String[] {
-				mHttptunnelOff,
-				mHttptunnelOnCache,
-				mHttptunnelOnNoCache
-			};
-		}
-		return new String[0];
 	}
 	
 	public boolean getExtractParent() {

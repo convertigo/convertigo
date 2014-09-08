@@ -26,20 +26,19 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
-import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Statement;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.AttachmentManager.Policy;
+import com.twinsoft.convertigo.engine.EngineException;
 
-public class GetAttachmentStatement extends Statement implements ITagsProperty {
+public class GetAttachmentStatement extends Statement {
 	private static final long serialVersionUID = -7885157517110593391L;
 	
 	private long timeout = 60000;
 	
 	private long threshold = 500;
 
-	private String policy = Policy.localfile_override.toString();
+	private Policy policy = Policy.localfile_override;
 	
 	private String filename = "";
 	
@@ -52,7 +51,7 @@ public class GetAttachmentStatement extends Statement implements ITagsProperty {
 				evaluate(javascriptContext, scope, filename, "LogStatement", true);
 				String evaluated_filename = (evaluated!=null && !(evaluated instanceof org.mozilla.javascript.Undefined)) ? evaluated.toString() : "";
 				
-				boolean ret = htmlConnector.getHtmlParser().getAttachment(htmlTransaction.context, getPolicyObject(), evaluated_filename, timeout, threshold);
+				boolean ret = htmlConnector.getHtmlParser().getAttachment(htmlTransaction.context, getPolicy(), evaluated_filename, timeout, threshold);
 				if (ret == false) {
 					return true; //TODO: must be false, but do loop
 				}
@@ -83,11 +82,11 @@ public class GetAttachmentStatement extends Statement implements ITagsProperty {
 		this.threshold = threshold;
 	}
 
-	public String getPolicy() {
+	public Policy getPolicy() {
 		return policy;
 	}
 
-	public void setPolicy(String policy) {
+	public void setPolicy(Policy policy) {
 		this.policy = policy;
 	}
 
@@ -97,22 +96,5 @@ public class GetAttachmentStatement extends Statement implements ITagsProperty {
 
 	public void setFilename(String filename) {
 		this.filename = filename;
-	}
-
-	public String[] getTagsForProperty(String propertyName) {
-		if ("policy".equals(propertyName)) {
-			Policy[] policies = Policy.values();
-			String[] tags = new String[policies.length];
-			for (int i=0; i < tags.length; i++) {
-				tags[i] = policies[i].toString();
-			}
-			return tags;
-		}
-		return new String[0];
-	}
-	
-	public Policy getPolicyObject() {
-		Policy policy = Policy.valueOf(this.policy);
-		return policy != null ? policy : Policy.localfile_override;
 	}
 }

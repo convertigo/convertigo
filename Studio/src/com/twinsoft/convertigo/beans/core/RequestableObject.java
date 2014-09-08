@@ -65,7 +65,7 @@ import com.twinsoft.convertigo.engine.util.VersionUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 import com.twinsoft.util.StringEx;
 
-public abstract class RequestableObject extends DatabaseObject implements ISheetContainer, ITagsProperty {
+public abstract class RequestableObject extends DatabaseObject implements ISheetContainer {
 
 	private static final long serialVersionUID = -8343815173166853025L;
 	protected enum DOC_ATTR {
@@ -503,40 +503,32 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
     }
 	
 	/** Holds value of property accessibility. */
-	private int accessibility = 0;
+	private Accessibility accessibility = Accessibility.Public;
 
     /** Getter for property accessibility.
      * @return Value of property accessibility.
      */
-    public int getAccessibility() {
+    public Accessibility getAccessibility() {
         return this.accessibility;
-    }
-    
-    public Accessibility getAccessibilityEnum() {
-        return Accessibility.valueOf(accessibility);
     }
     
     /** Setter for property accessibility.
      * @param accessibility New value of property accessibility.
      */
-    public void setAccessibility(int accessibility) {
+    public void setAccessibility(Accessibility accessibility) {
         this.accessibility = accessibility;
     }
     
-    public void setAccessibility(Accessibility accessibility) {
-        this.accessibility = accessibility.code();
-    }
-    
     public boolean isPublicAccessibility() {
-    	return accessibility == Accessibility.Public.code();
+    	return accessibility == Accessibility.Public;
     }
 	
     public boolean isPrivateAccessibility() {
-    	return accessibility == Accessibility.Private.code();
+    	return accessibility == Accessibility.Private;
     }
 	
     public boolean isHiddenAccessibility() {
-    	return accessibility == Accessibility.Hidden.code();
+    	return accessibility == Accessibility.Hidden;
     }
 	
     private boolean secureConnectionRequired = false;
@@ -947,12 +939,5 @@ public abstract class RequestableObject extends DatabaseObject implements ISheet
 		
 	public void onCachedResponse() {
 		
-	}
-	
-	public String[] getTagsForProperty(String propertyName) {
-		if ("accessibility".equals(propertyName)) {
-			return Accessibility.accessibilities;
-		}
-		return new String[0];
 	}
 }

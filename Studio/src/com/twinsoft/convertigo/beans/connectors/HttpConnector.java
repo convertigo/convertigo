@@ -84,7 +84,6 @@ import org.w3c.dom.Text;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
-import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.AbstractHttpTransaction;
 import com.twinsoft.convertigo.beans.transactions.HttpTransaction;
@@ -114,7 +113,7 @@ import com.twinsoft.util.StringEx;
 /**
  * The Connector class is the base class for all connectors.
  */
-public class HttpConnector extends Connector implements ITagsProperty {
+public class HttpConnector extends Connector {
 
 	private static final long serialVersionUID = -3169027624556390926L;
 
@@ -825,7 +824,7 @@ public class HttpConnector extends Connector implements ITagsProperty {
 				String userName = ((givenAuthUser == null) ? authUser : givenAuthUser);
 				String userPassword = ((givenAuthPassword == null) ? authPassword : givenAuthPassword);
 
-				if ( authenticationType.equals(AuthenticationMode.Basic.name()) ) {
+				if (authenticationType == AuthenticationMode.Basic) {
 					httpState.setCredentials(new AuthScope(server, AuthScope.ANY_PORT, AuthScope.ANY_REALM),
 						new UsernamePasswordCredentials(userName, userPassword));
 					Engine.logBeans.debug("(HttpConnector) Credentials: " + userName + ": ******");
@@ -1521,24 +1520,19 @@ public class HttpConnector extends Connector implements ITagsProperty {
 	
 	public enum AuthenticationMode {
 		Basic,
-		NTLM;
-		
-		final static String[] authenticationModes = new String[] {
-			Basic.name(),
-			NTLM.name()
-		};
+		NTLM
 	}
 	
 	/**
 	 * Holds value of property authenticationType.
 	 */
-	private String authenticationType = AuthenticationMode.Basic.name();
+	private AuthenticationMode authenticationType = AuthenticationMode.Basic;
 	
 	/**
 	 * Getter for property authenticationType.
 	 * @return the authenticationType
 	 */
-	public String getAuthenticationType() {
+	public AuthenticationMode getAuthenticationType() {
 		return authenticationType;
 	}
 	
@@ -1564,19 +1558,11 @@ public class HttpConnector extends Connector implements ITagsProperty {
 		authenticationPropertiesHasChanged = true;
 	}
 	
-	@Override
-	public String[] getTagsForProperty(String propertyName) {
-		if (propertyName.equals("authenticationType")) {
-			return AuthenticationMode.authenticationModes;
-		}
-		return super.getTagsForProperty(propertyName);
-	}
-	
 	/**
 	 * Setter for property authenticationType.
 	 * @param authenticationType
 	 */
-	public void setAuthenticationType(String authenticationType) {
+	public void setAuthenticationType(AuthenticationMode authenticationType) {
 		this.authenticationType = authenticationType;
 		authenticationPropertiesHasChanged = true;
 	}

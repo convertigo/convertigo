@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.beans.connectors;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.httpclient.Cookie;
@@ -59,13 +58,26 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class HtmlConnector extends HttpConnector implements IScreenClassContainer<HtmlScreenClass> {
 
-	public static final String ParseMode_4_0 = "4.0";
-	public static final String ParseMode_4_5 = "4.5";
+	public enum ParseMode {
+		m4_0("4.0"),
+		m4_5("4.5");
+		
+		private final String label;
+		
+		private ParseMode(String label) {
+			this.label = label;
+		}
+		
+		@Override
+		public String toString() {
+			return label;
+		}
+	}
 	
 	private static final long serialVersionUID = -9124803554595732247L;
 
 	private boolean ignoreEmptyAttributes = false; 
-	private String parseMode = ParseMode_4_5;
+	private ParseMode parseMode = ParseMode.m4_5;
 
 	transient private HtmlParser htmlParser = null;
 	transient private Document currentXmlDocument = null;
@@ -347,34 +359,18 @@ public class HtmlConnector extends HttpConnector implements IScreenClassContaine
 	
 	@Override
 	public void release(){
-		if(htmlParser!=null){
+		if (htmlParser != null) {
 			htmlParser.release();
 			htmlParser = null;
 		}
 	}
 
-	public boolean isParseMode(String parseMode) {
-		return this.parseMode.equals(parseMode);
-	}
-	
-	@Override
-	public String[] getTagsForProperty(String propertyName) {
-		if("parseMode".equals(propertyName)){
-			return new String[] {
-					HtmlConnector.ParseMode_4_0,
-					HtmlConnector.ParseMode_4_5
-			};
-		}
-		return super.getTagsForProperty(propertyName);
-	}
-
-	public String getParseMode() {
+	public ParseMode getParseMode() {
 		return parseMode;
 	}
 
-	public void setParseMode(String parseMode) {
-		if(Arrays.asList(getTagsForProperty("parseMode")).contains(parseMode))
-			this.parseMode = parseMode;
+	public void setParseMode(ParseMode parseMode) {
+		this.parseMode = parseMode;
 	}
 	
 	@Override

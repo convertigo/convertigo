@@ -55,8 +55,8 @@ public class GetResources extends JSonService {
 		final MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(request, "mobile/flashupdate");
 		
 		if (mobileResourceHelper.mobileApplication.getEnableFlashUpdate()) {
-			response.put(Keys.flashUpdateEnabled.toString(), true);
-			response.put(Keys.requireUserConfirmation.toString(), mobileResourceHelper.mobileApplication.getRequireUserConfirmation());
+			response.put(Keys.flashUpdateEnabled.name(), true);
+			response.put(Keys.requireUserConfirmation.name(), mobileResourceHelper.mobileApplication.getRequireUserConfirmation());
 			
 			boolean changed = false;
 			if (Engine.isStudioMode() && mobileResourceHelper.destDir.exists()) {
@@ -101,7 +101,15 @@ public class GetResources extends JSonService {
 			
 			mobileResourceHelper.listFiles(response);
 		} else {
-			response.put(Keys.flashUpdateEnabled.toString(), false);
+			response.put(Keys.flashUpdateEnabled.name(), false);
 		}
+		
+		response.put("splashRemoveMode", mobileResourceHelper.mobileApplication.getSplashRemoveMode().name());
+		
+		JSONObject env = new JSONObject();
+		env.put("currentRevision", mobileResourceHelper.destDir.lastModified());
+		env.put("currentVersion", mobileResourceHelper.mobileApplication.getComputedApplicationVersion());
+		
+		response.put("env", env);
 	}	 
 }

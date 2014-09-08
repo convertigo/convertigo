@@ -24,6 +24,9 @@ package com.twinsoft.convertigo.beans.core;
 
 import java.beans.PropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.core.Project.WsdlStyle;
+import com.twinsoft.convertigo.beans.core.Project.XsdForm;
+
 public class ProjectBeanInfo extends MySimpleBeanInfo {
     
 	public ProjectBeanInfo() {
@@ -54,7 +57,7 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			properties[2] = new PropertyDescriptor("wsdlStyle", beanClass, "getWsdlStyle", "setWsdlStyle");
 			properties[2].setDisplayName(getExternalizedString("property.wsdlStyle.display_name"));
 			properties[2].setShortDescription(getExternalizedString("property.wsdlStyle.short_description"));
-			properties[2].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[2].setPropertyEditorClass(WsdlStyle.class);
 			properties[2].setExpert(true);
 			properties[2].setValue(BLACK_LIST_NAME,true);
 			
@@ -73,7 +76,7 @@ public class ProjectBeanInfo extends MySimpleBeanInfo {
 			properties[5] = new PropertyDescriptor("schemaElementForm", beanClass, "getSchemaElementForm", "setSchemaElementForm");
 			properties[5].setDisplayName(getExternalizedString("property.schemaElementForm.display_name"));
 			properties[5].setShortDescription(getExternalizedString("property.schemaElementForm.short_description"));
-			properties[5].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[5].setPropertyEditorClass(XsdForm.class);
 			properties[5].setExpert(true);
 			properties[5].setHidden(true);
 			

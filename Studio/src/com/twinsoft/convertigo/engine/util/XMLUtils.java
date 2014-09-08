@@ -311,7 +311,11 @@ public class XMLUtils {
 			throws Exception {
 		if (object == null)
 			return null;
-
+		
+		if (object instanceof Enum) {
+			object = ((Enum<?>) object).name();
+		}
+		
 		// Simple objects
 		if ((object instanceof Boolean) || (object instanceof Integer) || (object instanceof Double)
 				|| (object instanceof Float) || (object instanceof Character) || (object instanceof Long)

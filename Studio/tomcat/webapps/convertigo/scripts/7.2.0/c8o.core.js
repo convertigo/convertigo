@@ -392,6 +392,7 @@ C8O = {
 	
 	_define: {
 		hooks: {},
+		init_wait: [],
 		last_call_params: {},
 		local_cache_db: null,
 		local_cache_db_size: 2 * 1024 * 1024,
@@ -650,17 +651,21 @@ C8O = {
 				C8O._init_rsa(params);
 			}
 		} else {
-			C8O._define.connector = params.__connector;
-			C8O._define.context = params.__context;
-
-			C8O._retrieve_vars(params);
-			
-			if (C8O._hook("init_finished", params) && C8O.vars.first_call == "true") {
-				C8O.log.debug("c8o.core: make the first_call");
-				C8O.call(params);
-			} else {
-				C8O.log.trace("c8o.core: hide the initial wait div");
-				C8O.waitHide();
+			if (C8O._define.init_wait.length > 0) {
+				C8O._define.init_wait.pop().call(this, params);
+			} else {					
+				C8O._define.connector = params.__connector;
+				C8O._define.context = params.__context;
+	
+				C8O._retrieve_vars(params);
+				
+				if (C8O._hook("init_finished", params) && C8O.vars.first_call == "true") {
+					C8O.log.debug("c8o.core: make the first_call");
+					C8O.call(params);
+				} else {
+					C8O.log.trace("c8o.core: hide the initial wait div");
+					C8O.waitHide();
+				}
 			}
 		}
 	},

@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.connectors;
 
 import java.beans.PropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.connectors.HtmlConnector.ParseMode;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class HtmlConnectorBeanInfo extends MySimpleBeanInfo {
@@ -51,7 +52,7 @@ public class HtmlConnectorBeanInfo extends MySimpleBeanInfo {
             properties[1] = new PropertyDescriptor("parseMode", beanClass, "getParseMode", "setParseMode");
             properties[1].setDisplayName(getExternalizedString("property.parsemode.display_name"));
             properties[1].setShortDescription(getExternalizedString("property.parsemode.short_description"));
-            properties[1].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+            properties[1].setPropertyEditorClass(ParseMode.class);
             properties[1].setExpert(true);
 		}
 		catch(Exception e) {

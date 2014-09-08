@@ -283,6 +283,20 @@ $.extend(true, C8O, {
 //C8O.getBrowserLanguage();
 
 /**
+ *  getCordovaEnv function
+ *  ** Needs cordova.js + c8o.cordova.js **
+ *  return the specific value of the cordova environment or the whole environment (without parameter)
+ *  the following keys should be present:
+ *  	applicationAuthorName, applicationAuthorEmail, applicationAuthorWebsite, applicationDescription, applicationId, applicationName,
+ *  	builtRevision, builtVersion, currentRevision, currentVersion,
+ *  	endPoint, platform, platformName, projectName, uuid.
+ *  
+ *  key (optional): string of the environment key to return, or the whole key/value environment object if no parameter
+ *  return: specific value or whole the cordova environment
+ */
+//C8O.getCordovaEnv(key);
+
+/**
  * getLastCallParameter function
  * used for retrieve a parameter from the previous call
  *  or all parameter in a object key/value
@@ -341,6 +355,20 @@ $.extend(true, C8O, {
 //C8O.serializeXML(xmlDom);
 
 /**
+ *  splashscreenHide function
+ *  ** Needs cordova.js + c8o.cordova.js **
+ *  Hide the cordova splashscreen if any
+ */
+//C8O.splashscreenHide();
+
+/**
+ *  splashscreenHide function
+ *  ** Needs cordova.js + c8o.cordova.js **
+ *  Hide the cordova splashscreen if any
+ */
+//C8O.splashscreenShow();
+
+/**
  * toJSON function
  * return a string representation of the data object (key/value) in a JSON format
  * data: object to transform
@@ -394,7 +422,6 @@ $.extend(true, C8O, {
 /*******************************************************
  * List of possible hooks *
  *******************************************************/
-
 
 /**
  *  call hook

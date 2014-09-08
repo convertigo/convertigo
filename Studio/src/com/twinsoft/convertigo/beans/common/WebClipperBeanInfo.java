@@ -24,6 +24,7 @@ package com.twinsoft.convertigo.beans.common;
 
 import java.beans.PropertyDescriptor;
 
+import com.twinsoft.convertigo.beans.common.WebClipper.HttpTunnel;
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class WebClipperBeanInfo extends MySimpleBeanInfo {
@@ -61,7 +62,7 @@ public class WebClipperBeanInfo extends MySimpleBeanInfo {
 			properties[3] = new PropertyDescriptor("mHttpTunnel", beanClass, "getMHttpTunnel", "setMHttpTunnel");
 			properties[3].setDisplayName(getExternalizedString("property.mHttpTunnel.display_name"));
 			properties[3].setShortDescription(getExternalizedString("property.mHttpTunnel.short_description"));
-			properties[3].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[3].setPropertyEditorClass(HttpTunnel.class);
 			
 			properties[4] = new PropertyDescriptor("extractParent", beanClass, "getExtractParent", "setExtractParent");
 			properties[4].setDisplayName(getExternalizedString("property.extractParent.display_name"));

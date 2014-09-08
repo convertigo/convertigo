@@ -40,25 +40,29 @@ import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Sender;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
-import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
 
-public class PushNotificationStep extends Step implements IStepSourceContainer, ITagsProperty {
+public class PushNotificationStep extends Step implements IStepSourceContainer {
 
 	
 	private static final long serialVersionUID = 3915732415195665643L;
 	
+	enum ApnsNotificationType {
+		Message,
+		Badge,
+		Sound
+	}
 	
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	private XMLVector<String> tokens =  new XMLVector<String>();
 	
 	private String clientCertificate = "\".//<client certificate>.p12\"";
 	private String certificatePassword = "\"<your .p12 certificate password>\"";
-	private String apnsNotificationType = "Message";
+	private ApnsNotificationType apnsNotificationType = ApnsNotificationType.Message;
 	private String GCMApiKey = "\"<configure your api key here>\"";
 	private int    AndroidTimeToLive = 3600;
 	
@@ -141,11 +145,11 @@ public class PushNotificationStep extends Step implements IStepSourceContainer, 
 		this.certificatePassword = nCertificatePassword;
 	}
 	
-	public String getApnsNotificationType() {
+	public ApnsNotificationType getApnsNotificationType() {
 		return apnsNotificationType;
 	}
 
-	public void setApnsNotificationType(String apnsNotificationType) {
+	public void setApnsNotificationType(ApnsNotificationType apnsNotificationType) {
 		this.apnsNotificationType = apnsNotificationType;
 	}
 
@@ -169,18 +173,6 @@ public class PushNotificationStep extends Step implements IStepSourceContainer, 
 
 	protected boolean workOnSource() {
 		return true;
-	}
-
-	@Override
-	public String[] getTagsForProperty(String propertyName) {
-		String[] result = new String[0];
-		
-		if(propertyName.equals("apnsNotificationType")){
-			String[] pushTypes = {"Message","Badge", "Sound"};
-			result = pushTypes;
-		}
-
-		return result;
 	}
 
 	protected String getAbsoluteFilePath(String entry) throws EngineException {
@@ -274,14 +266,14 @@ public class PushNotificationStep extends Step implements IStepSourceContainer, 
 			
 			// Submit the push to JavaPN libarary...
 			PushedNotifications pn;
-			if (apnsNotificationType.equalsIgnoreCase("Message")) {
+			if (apnsNotificationType == ApnsNotificationType.Message) {
 				pn = Push.alert(sPayload,
 								sClientCertificate,
 								sCertificatePassword,
 								true,
 								devicesList);
 				
-			} else if (apnsNotificationType.equalsIgnoreCase("Badge")) {
+			} else if (apnsNotificationType == ApnsNotificationType.Sound) {
 				pn = Push.badge(Integer.parseInt(sPayload, 10),
 								sClientCertificate,
 								sCertificatePassword,

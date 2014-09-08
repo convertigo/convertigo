@@ -26,8 +26,9 @@
     <preference name="phonegap-version"           value="3.3.0" />          <!-- all: current version of PhoneGap -->
     <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
-    <preference name="fullscreen"                 value="false" />           <!-- all: hides the status bar at the top of the screen -->
-    <preference name="splashscreen"    			  value="splash" />         <!-- all: The splash screen resource if built without phonegap build -->
+    <preference name="fullscreen"                 value="false" />          <!-- all: hides the status bar at the top of the screen -->
+    <preference name="SplashScreen"    			  value="splash" />         <!-- all: the splash screen resource if built without phonegap build -->
+    <preference name="SplashScreenDelay"          value="10000" />          <!-- all: sets the default delay of how long the splashscreen appears in milliseconds, this should be the maximum expected start time -->
     <preference name="android-minSdkVersion"      value="7" />              <!-- android: MIN SDK version supported on the target device. MAX version is blank by default. -->
     <preference name="android-installLocation"    value="auto" />           <!-- android: app install location. 'auto' will choose. 'internalOnly' is device memory. 'preferExternal' is SDCard. -->
     

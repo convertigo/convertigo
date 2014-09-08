@@ -303,7 +303,7 @@ public class MobileResourceHelper {
 	
 	public File makeZipPackage() throws Exception {
 		
-		FlashUpdateBuildMode buildMode = mobileApplication.getBuildModeEnum();		
+		FlashUpdateBuildMode buildMode = mobileApplication.getBuildMode();		
 		
 		String finalApplicationName = mobileApplication.getComputedApplicationName();		
 		
@@ -347,13 +347,22 @@ public class MobileResourceHelper {
 		}
 		
 		json = new JSONObject();
+		json.put("applicationAuthorName", mobileApplication.getApplicationAuthorName());
+		json.put("applicationAuthorEmail", mobileApplication.getApplicationAuthorEmail());
+		json.put("applicationAuthorWebsite", mobileApplication.getApplicationAuthorSite());
+		json.put("applicationDescription", mobileApplication.getApplicationDescription());
 		json.put("applicationId", mobileApplication.getComputedApplicationId());
 		json.put("applicationName", finalApplicationName);
+		json.put("builtRevision", destDir.lastModified());
+		json.put("builtVersion", mobileApplication.getComputedApplicationVersion());
+		json.put("currentRevision", destDir.lastModified());
+		json.put("currentVersion", mobileApplication.getComputedApplicationVersion());
+		json.put("endPoint", endpoint);
 		json.put("platformName", mobilePlatform.getName());
 		json.put("projectName", project.getName());
-		json.put("endPoint", endpoint);
-		json.put("timeout", mobileApplication.getFlashUpdateTimeout());
 		json.put("remoteBase", remoteBase);
+		json.put("timeout", mobileApplication.getFlashUpdateTimeout());
+		
 		FileUtils.write(new File(destDir, "env.json"), json.toString());
 		
 		File configFile = new File(destDir, "config.xml");

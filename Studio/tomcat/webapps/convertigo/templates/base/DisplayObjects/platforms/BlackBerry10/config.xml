@@ -28,9 +28,10 @@
     <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
     <preference name="fullscreen"                 value="true" />           <!-- all: hides the status bar at the top of the screen -->
-    <preference name="splashscreen"    			  value="splash" />         <!-- all: The splash screen resource if built without phonegap build -->
+    <preference name="SplashScreen"    			  value="splash" />         <!-- all: the splash screen resource if built without phonegap build -->
+    <preference name="AutoHideSplashScreen"       value="false" />          <!-- blackerry 10: set to false to use the navigator.splashscreen API -->
     <preference name="disable-cursor"             value="false" />          <!-- blackberry: prevents a mouse-icon/cursor from being displayed on the app -->
-    <preference name="WebSecurity" 			      value="disable"/>			<!-- blackberry 10 : allow cross domain without specific whitelist -->
+    <preference name="WebSecurity" 			      value="disable"/>			<!-- blackberry 10: allow cross domain without specific whitelist -->
     	
 	<icon src="icon.png"/>
 	

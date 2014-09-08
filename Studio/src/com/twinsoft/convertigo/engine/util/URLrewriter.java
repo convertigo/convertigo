@@ -32,7 +32,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import com.twinsoft.convertigo.beans.common.WebClipper;
+import com.twinsoft.convertigo.beans.common.WebClipper.HttpTunnel;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -44,7 +44,7 @@ public class URLrewriter {
 	protected String targetPathReferer;
 	protected String targetHost;
 	protected String servletUrl;
-	protected String mHttpTunnel;
+	protected HttpTunnel mHttpTunnel;
 	protected TwsCachedXPathAPI xpathApi;
 	protected String attributesXpath;
 
@@ -61,7 +61,7 @@ public class URLrewriter {
 		}
 	}
 	
-	public URLrewriter(String referer, Context context, String mTunnel, String attributesXpath){
+	public URLrewriter(String referer, Context context, HttpTunnel mTunnel, String attributesXpath){
 		xpathApi = context.getXpathApi();
 		targetReferer = referer;
 		mHttpTunnel = mTunnel;
@@ -84,7 +84,7 @@ public class URLrewriter {
 		
 		targetHost = URLUtils.extractHost(targetReferer);
 		
-		if(mHttpTunnel.equals(WebClipper.mHttptunnelOnCache) || mHttpTunnel.equals(WebClipper.mHttptunnelOnNoCache)){
+		if(mHttpTunnel == HttpTunnel.onCache || mHttpTunnel == HttpTunnel.onNoCache){
 			String requestedUrl = context.httpServletRequest.getRequestURL().toString();
 			int index = requestedUrl.length();
 			for(int i=0 ; i<3 ; i++) index = requestedUrl.lastIndexOf('/', index-1);
@@ -201,8 +201,8 @@ public class URLrewriter {
 		else if(url.startsWith("#") || url.startsWith("?")) newUrl = targetReferer+url;
 		else newUrl = targetPathReferer+url;
 		
-		if(mHttpTunnel.equals(WebClipper.mHttptunnelOnCache)) newUrl = servletUrl+"c/?"+newUrl;
-		else if(mHttpTunnel.equals(WebClipper.mHttptunnelOnNoCache)) newUrl = servletUrl+"n/?"+newUrl;
+		if(mHttpTunnel == HttpTunnel.onCache) newUrl = servletUrl+"c/?"+newUrl;
+		else if(mHttpTunnel == HttpTunnel.onNoCache) newUrl = servletUrl+"n/?"+newUrl;
 		
 		return newUrl;
 	}

@@ -20,8 +20,30 @@
  * $Date$
  */
 
-if ("cordova" in window) {
+$.extend(true, C8O, {
+	_define: {
+		cordovaEnv: {
+			applicationAuthorName: null,
+			applicationAuthorEmail: null,
+			applicationAuthorWebsite: null,
+			applicationDescription: null,
+			applicationId: null,
+			applicationName: null,
+			builtRevision: null,
+			builtVersion: null,
+			currentRevision: null,
+			currentVersion: null,
+			endPoint: null,
+			platform: null,
+			platformName: null,
+			projectName: null,
+			uuid: null
+		}
+	}
+});
 
+if ("cordova" in window) {
+	
 	$.extend(true, C8O, {
 		vars: {
 			local_cache_parallel_downloads: 5
@@ -29,7 +51,8 @@ if ("cordova" in window) {
 		
 		_define: {
 			local_cache_dir: null,
-			re_download_url: new RegExp("^https?://.*?(\\.\\w*?)(?:\\?.*)?$")
+			re_download_url: new RegExp("^https?://.*?(\\.\\w*?)(?:\\?.*)?$"),
+			re_tail_url: new RegExp("([^#?]*)/.*")
 		},
 		
 		deleteAllCacheEntries: function (success, error) {
@@ -82,6 +105,22 @@ if ("cordova" in window) {
 					error(err);
 				}
 			});
+		},
+		
+		getCordovaEnv: function (key) {
+			return C8O.isDefined(key) ? C8O._define.cordovaEnv[key] : C8O._define.cordovaEnv;
+		},
+		
+		splashscreenHide: function () {
+			if (navigator && navigator.splashscreen) {
+				navigator.splashscreen.hide();
+			}
+		},
+		
+		splashscreenShow: function () {
+			if (navigator && navigator.splashscreen) {
+				navigator.splashscreen.show();
+			}
 		},
 		
 		_cordova_notify_push_server: function (token) {
@@ -142,6 +181,34 @@ if ("cordova" in window) {
 			}
 		},
 		
+		_init_cordova: function (params) {
+			var appBase = window.location.href.replace(C8O._define.re_tail_url, "$1");
+			
+			var url = appBase + "/env.json";
+			
+			C8O.log.debug("c8o.cdv : deviceready retrieve env from: " + url);
+			
+			$.ajax({
+				dataType: "json",
+				url: url,
+				success: function (data) {
+					try {
+						$.extend(true, C8O._define.cordovaEnv, data);
+						
+					} catch (err) {
+						C8O.log.error("c8o.cdv : deviceready catch init env", err);
+					}
+					
+					C8O._init(params);
+				},
+				error: function (xhr, status, err) {
+					C8O.log.error("c8o.cdv : deviceready failed to retrieve env.json file: " + url, err);
+					
+					C8O._init(params);					
+				}
+			});
+		},
+		
 		_core_get_cache_db: C8O._get_cache_db,
 		_get_cache_db: function (success, error) {
 			C8O.log.debug("c8o.cdv : _get_cache_db");
@@ -198,7 +265,7 @@ if ("cordova" in window) {
 			C8O._define.local_cache_db.readTransaction(function (tx) {
 				C8O.log.debug("c8o.cdv : _local_cache_delete_entry retrieve tx");				
 				
-				tx.executeSql("SELECT data FROM cacheIndex WHERE key=?", [key], function(tx, results) {
+				tx.executeSql("SELECT data FROM cacheIndex WHERE key=?", [key], function (tx, results) {
 					if (results.rows.length) {
 						var dirName = results.rows.item(0).data;
 						C8O.log.debug("c8o.cdv : _local_cache_delete_entry finds dirName: " + dirName + " for key: " + key);
@@ -490,11 +557,12 @@ if ("cordova" in window) {
 		}
 	});
 	
+	C8O._define.init_wait.push(C8O._init_cordova);
+	
 	$(document).on("deviceready", function() {
 		C8O.log.info("c8o.cdv : cordova on deviceready");
 		
 		if (C8O._hook("device_ready")) {
-			navigator.splashscreen.hide();
 			C8O.log.info("c8o.cdv : window.plugins " + window.plugins);
 
 			if (C8O.isDefined(window.plugins)) {
@@ -507,7 +575,7 @@ if ("cordova" in window) {
 
 					var options;
 
-					if (device.platform == 'android' || device.platform == 'Android') {
+					if (device.platform == "android" || device.platform == "Android") {
 						C8O.log.info("c8o.cdv : Android detected");
 
 						if (C8O.isDefined(C8O.cordova.androidSenderID) && C8O.cordova.androidSenderID.length > 0) {
@@ -532,7 +600,7 @@ if ("cordova" in window) {
 
 					pushNotification.register(
 							function (result) {
-								if (device.platform == 'android' || device.platform == 'Android') {
+								if (device.platform == "android" || device.platform == "Android") {
 									C8O.log.info("c8o.cdv : PushNotificationRegistered for Android: " + result);
 								} else {
 									C8O.log.info("c8o.cdv : PushNotificationRegistered for iOS: " + result);
@@ -557,4 +625,28 @@ if ("cordova" in window) {
 
 } else {
 	C8O.log.warn("c8o.cdv : no cordova available, ignore c8o.cordova.js");
+	
+	$.extend(true, C8O, {
+		deleteAllCacheEntries: function (success, error) {
+			C8O.log.warn("c8o.cdv : deleteAllCacheEntries but no cordova available, just call success");
+			
+			if (success) {
+				success();
+			}
+		},
+		
+		getCordovaEnv: function (key) {
+			C8O.log.warn("c8o.cdv : getCordovaEnv but no cordova available, just return an empty value");
+
+			return C8O.isDefined(key) ? C8O._define.cordovaEnv[key] : C8O._define.cordovaEnv;
+		},
+		
+		splashscreenHide: function () {
+			C8O.log.warn("c8o.cdv : splashscreenHide but no cordova available, do nothing");
+		},
+		
+		splashscreenShow: function () {
+			C8O.log.warn("c8o.cdv : splashscreenShow but no cordova available, do nothing");
+		}
+	});
 }

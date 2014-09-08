@@ -65,6 +65,7 @@ import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.helpers.WalkHelper;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
 import com.twinsoft.convertigo.engine.util.Crypto2;
+import com.twinsoft.convertigo.engine.util.EnumUtils;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -554,21 +555,26 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 				}
 
 				if (exportOptions.contains(ExportOption.bIncludeEditorClass)) {
+					Class<?> pec = propertyDescriptor.getPropertyEditorClass();
 					String message = "";
-					if (propertyDescriptor.getPropertyEditorClass() != null) {
+					if (pec != null) {
 						message = propertyDescriptor.getPropertyEditorClass().toString()
 								.replaceFirst("(.)*\\.", "");
 					} else {
 						message = "null";
 					}
-					if (this instanceof ITagsProperty) {
-						ITagsProperty tagsProperty = (ITagsProperty) this;
+					if (this instanceof ITagsProperty || (pec != null && Enum.class.isAssignableFrom(pec))) {
 						String[] sResults = null;
 						try {
-							sResults = tagsProperty.getTagsForProperty(name);
+							if (this instanceof ITagsProperty) {
+								sResults = ((ITagsProperty) this).getTagsForProperty(name);
+							} else {
+								sResults = EnumUtils.toNames(pec);
+							}
 						} catch (Exception ex) {
 							sResults = new String[0];
 						}
+						
 						if (sResults != null) {
 							if (sResults.length > 0) {
 								Element possibleValues = document.createElement("possibleValues");
@@ -746,6 +752,10 @@ public abstract class DatabaseObject implements Serializable, Cloneable {
 					propertyType = pd.getPropertyType();
 					propertyObjectValue = XMLUtils.readObjectFromXml((Element) XMLUtils.findChildNode(
 							childNode, Node.ELEMENT_NODE));
+					
+					if (Enum.class.isAssignableFrom(propertyType)) {
+						propertyObjectValue = EnumUtils.valueOf(propertyType, propertyObjectValue);
+					}
 
 					// Hides value in log trace if needed
 					if ("false".equals(childElement.getAttribute("traceable"))) {

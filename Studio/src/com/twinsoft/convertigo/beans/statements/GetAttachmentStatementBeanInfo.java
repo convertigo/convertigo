@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.statements;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.engine.AttachmentManager.Policy;
 
 public class GetAttachmentStatementBeanInfo extends MySimpleBeanInfo {
     
@@ -50,7 +51,7 @@ public class GetAttachmentStatementBeanInfo extends MySimpleBeanInfo {
             properties[1] = new PropertyDescriptor("policy", beanClass, "getPolicy", "setPolicy");
             properties[1].setDisplayName(getExternalizedString("property.policy.display_name"));
             properties[1].setShortDescription(getExternalizedString("property.policy.short_description"));
-			properties[1].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+			properties[1].setPropertyEditorClass(Policy.class);
             
             properties[2] = new PropertyDescriptor("filename", beanClass, "getFilename", "setFilename");
             properties[2].setDisplayName(getExternalizedString("property.filename.display_name"));
