@@ -87,8 +87,10 @@ public class BuildLocallyAction extends MyAbstractAction {
 	final int versionMinimalRequiredFractionalPart = 4;
 	
 	private String projectName = null;
+	private String errorLines = null;
 	
 	private Process process;
+	private boolean processCanceled = false;
     String cmdOutput;
     
 	private String osLocal;
@@ -1135,21 +1137,42 @@ public class BuildLocallyAction extends MyAbstractAction {
 
 						@Override
 						protected void canceling() {
-							// UNIX OS
-							if (osLocal != null && (osLocal.equals("linux") || osLocal.equals("mac"))) {
-								if (cordovaPlatform != null && cordovaPlatform.equals("ios")) {
-									//kill the lldb process only for ios build platform
-									try {
-										Runtime.getRuntime().exec("pkill lldb").waitFor();
-									} catch (Exception e) {
-										Engine.logEngine.error("Error during kill of process \"lldb\"\n" + e.getMessage(), e);
-									}
-								}
 
+							//Only for the "Run On Device" action
+							if (run) {
+								if (osLocal != null) {
+									// UNIX OS
+									if (osLocal.equals("linux") || osLocal.equals("mac")) {
+										if (cordovaPlatform != null && cordovaPlatform.equals("ios")) {
+											//kill the lldb process only for ios build platform
+											try {
+												Runtime.getRuntime().exec("pkill lldb").waitFor();
+											} catch (Exception e) {
+												Engine.logEngine.error("Error during kill of process \"lldb\"\n" + e.getMessage(), e);
+											}
+										}
+									}
+									
+									//WINDOWS OS
+									if (osLocal.equals("win32")){
+										if (cordovaPlatform != null && (cordovaPlatform.equals("wp7") || cordovaPlatform.equals("wp8")) ) {
+											//kill the CordovaDeploy.exe program only for Windows Phone 7 & 8 build platform
+											try {
+												Runtime.getRuntime().exec("taskkill /IM CordovaDeploy.exe").waitFor();
+											} catch (Exception e) {
+												Engine.logEngine.error("Error during kill of process \"CordovaDeploy\"\n" + e.getMessage(), e);
+											}
+										}
+									}
+	
+								}
 							}
+							
+							processCanceled = true;
 							
 							// Others OS
 							process.destroy();
+							
 						}
 						
 		        	};
