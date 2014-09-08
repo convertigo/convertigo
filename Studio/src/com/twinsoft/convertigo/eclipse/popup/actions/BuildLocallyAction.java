@@ -71,7 +71,7 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.dialogs.BuildLocalSuccessfulDialog;
+import com.twinsoft.convertigo.eclipse.dialogs.BuildLocallyEndingDialog;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
@@ -546,13 +546,16 @@ public class BuildLocallyAction extends MyAbstractAction {
 	        public void run() {
 				try {
 					String line;
+					processCanceled = false;
 					
 					while ((line = bis.readLine()) != null) {
 						Engine.logEngine.info(line);
 						BuildLocallyAction.this.cmdOutput += line;
 					}
+					errorLines = "";
 					while ((line = bes.readLine()) != null) {
 						Engine.logEngine.error(line);
+						errorLines += new String(line.getBytes()) + "\n";
 					}
 				} catch (IOException e) {
 					Engine.logEngine.error("Error while executing cordova command", e);
@@ -682,7 +685,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 					File iconSrc = new File(wwwDir, source);
 					
 					File dest = new File(cordovaDir, "platforms/" + platform + "/" + projectName + "/Resources/icons/" + iconName );
-					//File dest = new File(cordovaDir, "platforms/" + platform + "/www/res/icon/" + iconName );
 
 					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					FileUtils.copyFile(iconSrc, dest);
@@ -699,7 +701,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 					String splashName = splashCorrespondences.get(width + "x" + height);
 					
 					File dest = new File(cordovaDir, "platforms/" + platform + "/" + projectName + "/Resources/splash/" + splashName);
-					//File dest = new File(cordovaDir, "platforms/" + platform + "/www/res/splash/" + splashName);
 					
 					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					FileUtils.copyFile(splashSrc, dest);
@@ -741,7 +742,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 			}
 
 			// TODO : Add platform BB10
-			if (platform.equalsIgnoreCase("wp7") || platform.equalsIgnoreCase("wp8")) {
+			if (platform.equalsIgnoreCase("blackberry10")) {
 				
 			}
 			// TODO : Add platform Windows 8
@@ -1125,7 +1126,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	}
 					        	
 					        	// Step 5: Show dialog with path to apk/ipa/xap
-					        	showLocationInstallFile(cordovaPlatform, applicationName, option);
+					        	showLocationInstallFile(cordovaPlatform, applicationName, (processCanceled ? 0 : process.exitValue()), errorLines, option);					        	
 					        	
 					        	return org.eclipse.core.runtime.Status.OK_STATUS;
 					        	
@@ -1204,16 +1205,16 @@ public class BuildLocallyAction extends MyAbstractAction {
 	}
 	
 	private void showLocationInstallFile(final String cordovaPlatform, 
-			final String applicationName, final String buildOption) {
+			final String applicationName, final int exitValue, final String errorLines, final String buildOption) {
 		final Display display = Display.getDefault();
 		display.syncExec(new Runnable() {
 			@Override
 			public void run() {
 				File buildedFile = getAbsolutePathOfBuildedFile(applicationName, cordovaPlatform, buildOption);
 				
-				BuildLocalSuccessfulDialog buildSuccessDialog = new BuildLocalSuccessfulDialog(
+				BuildLocallyEndingDialog buildSuccessDialog = new BuildLocallyEndingDialog(
 						display.getActiveShell(),
-						buildedFile.getAbsolutePath(), applicationName,
+						buildedFile.getAbsolutePath(), applicationName, exitValue, errorLines,
 						cordovaPlatform);
 				
 				buildSuccessDialog.open();

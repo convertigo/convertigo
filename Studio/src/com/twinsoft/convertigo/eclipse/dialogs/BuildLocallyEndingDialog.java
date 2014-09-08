@@ -42,28 +42,36 @@ import org.eclipse.swt.widgets.Text;
 
 import com.twinsoft.convertigo.engine.Engine;
 
-public class BuildLocalSuccessfulDialog extends Dialog {
+public class BuildLocallyEndingDialog extends Dialog {
 	
 	private String applicationBuildedPath;
 	private String applicationName;
 	private String cordovaPlatform;
+	private int exitValue;
+	private String errorLines;
 	
 	/**
 	 * Create the dialog.
 	 * @param parentShell
 	 */
-	public BuildLocalSuccessfulDialog(Shell parentShell, String applicationBuildedPath, 
-			String applicationName, String cordovaPlatform) {
+	public BuildLocallyEndingDialog(Shell parentShell, String applicationBuildedPath, 
+			String applicationName, int exitValue, String errorLines, String cordovaPlatform) {
 		super(parentShell);
 		this.applicationBuildedPath = applicationBuildedPath;
 		this.applicationName = applicationName;
 		this.cordovaPlatform = cordovaPlatform;
+		this.exitValue = exitValue;
+		this.errorLines = errorLines;
 	}
 
 	@Override
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
-		newShell.setText("Build local successful");
+		if (exitValue == 0){
+			newShell.setText("Build local successful");
+		} else {
+			newShell.setText("An error occurred!");
+		}
 	}
 
 	/**
@@ -78,29 +86,53 @@ public class BuildLocalSuccessfulDialog extends Dialog {
 		GridData data = new GridData(GridData.FILL_HORIZONTAL);
 		data.grabExcessHorizontalSpace = true;
 		
+		String message = null;
 		Label label = new Label(container, SWT.NONE);
-		label.setText("Application \"" + applicationName
-				+ "\" has been successfully built locally."
-				+ "\nThe builded file for \""+cordovaPlatform+"\" platform is located here:");
+		
+		//Normal ending
+		if (exitValue == 0){
+			message = "Application \"" + applicationName
+					+ "\" has been successfully built locally."
+					+ "\nThe builded file for \""+cordovaPlatform+"\" platform is located here:";
+		//Error ending
+		} else {
+			message = "An error occurred on the \"" + applicationName + "\" application during the \"Local build\"!";
+		}
+		label.setText(message);
 		label.setLayoutData(data);
 		
 		data = new GridData(GridData.FILL_HORIZONTAL);
 		data.grabExcessHorizontalSpace = true;
 		
-		Text absolutePath = new Text(container, SWT.NONE);
-		absolutePath.setText(applicationBuildedPath);
-		absolutePath.setEditable(false);
-		absolutePath.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
-		absolutePath.setLayoutData(data);
-
-		if (cordovaPlatform.equals("ios")){
-			Label iosNotify = new Label(container, SWT.NONE);
-			data = new GridData(GridData.FILL_HORIZONTAL);
-			data.grabExcessHorizontalSpace = true;
+		if (exitValue == 0){
+			Text absolutePath = new Text(container, SWT.NONE);
+			absolutePath.setText(applicationBuildedPath);
+			absolutePath.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
+			absolutePath.setEditable(false);
+			absolutePath.setLayoutData(data);
 			
-			iosNotify.setText("\nTo generate your \"ipa\" file you need to open the \".xcodeproj\" with Xcode \napplication and go to the menu \"Product>Archive\".");
-			iosNotify.setLayoutData(data);
+			if (cordovaPlatform.equals("ios")){
+				Label iosNotify = new Label(container, SWT.NONE);
+				data = new GridData(GridData.FILL_HORIZONTAL);
+				data.grabExcessHorizontalSpace = true;
+				
+				iosNotify.setText("\nTo generate your \"ipa\" file you need to open the \".xcodeproj\" with Xcode \napplication and go to the menu \"Product>Archive\".");
+				iosNotify.setLayoutData(data);
+			}
+		
+		} else {
+
+			if (errorLines != null && !errorLines.equals("")){
+				Text absolutePath = new Text(container, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+				absolutePath.setText(errorLines);
+				absolutePath.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+				absolutePath.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
+				absolutePath.setEditable(false);
+				absolutePath.setLayoutData(data);
+			}
 		}
+		
+
 		
 		return container;
 	}
@@ -114,7 +146,7 @@ public class BuildLocalSuccessfulDialog extends Dialog {
 		Button button = createButton(parent, IDialogConstants.OK_ID, "OK", true);
 		button.setEnabled(true);
 		
-		if (!cordovaPlatform.equals(null) && cordovaPlatform.equals("ios")) {
+		if (!cordovaPlatform.equals(null) && cordovaPlatform.equals("ios") && exitValue == 0) {
 			Button openXcode = createButton(parent, IDialogConstants.OPEN_ID, "Open Xcode", true);
 			openXcode.setEnabled(true);
 			openXcode.addSelectionListener(new SelectionListener() {
