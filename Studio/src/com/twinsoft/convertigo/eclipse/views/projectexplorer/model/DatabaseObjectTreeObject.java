@@ -692,19 +692,18 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			Class<?> propertyClass = databaseObjectPropertyDescriptor.getPropertyType();
 			Class<?> pec = databaseObjectPropertyDescriptor.getPropertyEditorClass();
 			
-    		if (pec != null && propertyClass != int.class && propertyClass != Integer.class) {
+    		if (pec != null && propertyClass != int.class && propertyClass != Integer.class && value instanceof Integer) {
     			Object[] values = null;
 
     			try {
     				if (PropertyWithTagsEditorAdvance.class.isAssignableFrom(pec)) {
     					Method getTags = pec.getMethod("getTags", new Class[] { DatabaseObjectTreeObject.class, String.class });
     					values = (String[]) getTags.invoke(null, new Object[] { this, propertyName } );
+    					value = values[(Integer) value];
     				} else if (Enum.class.isAssignableFrom(pec)) {
     					values = (Enum[]) pec.getMethod("values").invoke(null);
-    				} else {
-    					values = new Object[0];
+    					value = values[(Integer) value];
     				}
-					value = values[(Integer) value];
     			} catch (ArrayIndexOutOfBoundsException e) {
     				value = values.length > 0 ? values[0] : "";
     				String message = "Incorrect property \"" + propertyName + "\" value for the object \"" + databaseObject.getName() + "\".";
