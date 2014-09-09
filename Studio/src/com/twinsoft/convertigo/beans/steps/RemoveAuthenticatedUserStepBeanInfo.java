@@ -29,7 +29,7 @@ public class RemoveAuthenticatedUserStepBeanInfo extends MySimpleBeanInfo {
 	public RemoveAuthenticatedUserStepBeanInfo() {
 		try {
 			beanClass = RemoveAuthenticatedUserStep.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.core.StepWithExpressions.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/removeAuthenticatedUser_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/removeAuthenticatedUser_32x32.png";

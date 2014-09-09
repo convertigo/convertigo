@@ -35,12 +35,12 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.StepSource;
-import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
-public class SessionSetStep extends StepWithExpressions implements IComplexTypeAffectation {
+public class SessionSetStep extends Step implements IComplexTypeAffectation {
 
 	private static final long serialVersionUID = -1894558458026853410L;
 
@@ -149,5 +149,18 @@ public class SessionSetStep extends StepWithExpressions implements IComplexTypeA
 
 	public void setExpression(SmartType expression) {
 		this.expression = expression;
+	}
+
+	@Override
+	public String toJsString() {
+		try {
+			String string = expression.getSingleString(this);
+			if (string != null && string.length() > 0) {
+				return string;
+			}
+			return "";
+		} catch(EngineException e) {
+			return "";
+		}
 	}
 }

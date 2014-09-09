@@ -33,10 +33,10 @@ import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.StepSource;
-import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
 
-public class RemoveAuthenticatedUserStep extends StepWithExpressions implements IComplexTypeAffectation {
+public class RemoveAuthenticatedUserStep extends Step implements IComplexTypeAffectation {
 	
 	private static final long serialVersionUID = 1430960819073513105L;
 	
@@ -97,5 +97,14 @@ public class RemoveAuthenticatedUserStep extends StepWithExpressions implements 
 		element.setSchemaTypeName(getSimpleTypeAffectation());
 		
 		return element;
+	}
+
+	@Override
+	public String toJsString() {
+		String nodeValue = getSequence().context.getAuthenticatedUser();
+		if (nodeValue != null && nodeValue.length() > 0) {
+			return nodeValue;
+		}
+		return "";
 	}
 }

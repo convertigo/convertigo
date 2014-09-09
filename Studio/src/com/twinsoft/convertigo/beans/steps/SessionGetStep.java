@@ -33,13 +33,13 @@ import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.StepSource;
-import com.twinsoft.convertigo.beans.core.StepWithExpressions;
+import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 
-public class SessionGetStep extends StepWithExpressions implements IComplexTypeAffectation {
+public class SessionGetStep extends Step implements IComplexTypeAffectation {
 
 	private static final long serialVersionUID = -1894558458026853410L;
 	
@@ -128,5 +128,14 @@ public class SessionGetStep extends StepWithExpressions implements IComplexTypeA
 
 	public void setKey(String key) {
 		this.key = key;
+	}
+
+	@Override
+	public String toJsString() {
+		String string = (String) getSequence().context.httpSession.getAttribute(key);
+		if (string != null && string.length() > 0) {
+			return string;
+		}
+		return "";
 	}
 }

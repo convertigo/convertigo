@@ -31,7 +31,7 @@ public class SessionSetStepBeanInfo extends MySimpleBeanInfo {
 	public SessionSetStepBeanInfo() {
 		try {
 			beanClass = SessionSetStep.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.core.StepWithExpressions.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/sessionSet_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/sessionSet_32x32.png";

@@ -32,7 +32,7 @@ public class GetAuthenticatedUserStepBeanInfo extends MySimpleBeanInfo {
 	public GetAuthenticatedUserStepBeanInfo() {
 		try {
 			beanClass = GetAuthenticatedUserStep.class;
-			additionalBeanClass = com.twinsoft.convertigo.beans.core.StepWithExpressions.class;
+			additionalBeanClass = com.twinsoft.convertigo.beans.core.Step.class;
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/steps/images/getAuthenticatedUser_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/steps/images/getAuthenticatedUser_32x32.png";
