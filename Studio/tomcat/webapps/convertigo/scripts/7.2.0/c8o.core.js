@@ -379,7 +379,7 @@ C8O = {
 			} else if (node.nodeType == Node.TEXT_NODE) {
 				var fnr = fn.call(node, node.nodeValue, data, fn_validate);
 				
-				if (fnr != null) {
+				if (fnr != null && node.parentNode != null) {
 					node.nodeValue = fnr;
 				}
 			}

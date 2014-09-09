@@ -247,7 +247,7 @@ C8O = {
 			} else if (elt.nodeType == Node.TEXT_NODE) {
 				var fnr = fn(elt.nodeValue, data);
 				
-				if (fnr != null) {
+				if (fnr != null && node.parentNode != null) {
 					elt.nodeValue = fnr;
 				}
 			}
