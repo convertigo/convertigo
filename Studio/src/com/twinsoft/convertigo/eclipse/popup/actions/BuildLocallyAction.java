@@ -30,9 +30,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -62,6 +65,7 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.mozilla.javascript.edu.emory.mathcs.backport.java.util.Arrays;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -89,6 +93,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 	private String projectName = null;
 	private String errorLines = null;
 	
+	private ProcessBuilder processBuilder;
 	private Process process;
 	private boolean processCanceled = false;
     String cmdOutput;
@@ -501,7 +506,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 			for (File c : f.listFiles())
 				delete(c);
 			}
-		if (!f.delete()){
+		
+		if (f.exists() && !f.delete()){
 		    Engine.logEngine.error("Failed to delete file: " + f);
 			return false;
 		}else {
@@ -518,22 +524,20 @@ public class BuildLocallyAction extends MyAbstractAction {
 	 * @return
 	 * @throws Throwable
 	 */
-	private String runCordovaCommand(String Command, File projectDir) throws Throwable {
-		String[] envp = null;
-		Map<String, String> envmap;
-		envmap = System.getenv();
-		envp = new String[envmap.size()];
-		int i =0;
-		for (Map.Entry<String, String> entry : envmap.entrySet())
-			envp[i++] = entry.getKey() + "=" + entry.getValue();
-		
+	private String runCordovaCommand(List<String> commands, File projectDir) throws Throwable {
 		String shell = getShellCommand("cordova");
 		
-		process = Runtime.getRuntime().exec(shell + " " + Command,
-											envp,
-											projectDir
-		);
+		List<String> cordovaCommands = new ArrayList<String>();
+		cordovaCommands.add(shell);
 		
+		for (String str : commands) {
+			cordovaCommands.add(str);
+		}
+		
+		processBuilder = new ProcessBuilder(cordovaCommands);
+		processBuilder.directory(projectDir);
+		process = processBuilder.start();
+				
 		InputStream is = process.getInputStream();
 		InputStream es = process.getErrorStream();
 		
@@ -584,7 +588,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 			 * Handle plugins in the config.xml file and test to see if the plugin is not already installed
 			 */
 			Engine.logEngine.info("Checking installed plugins... ");
-			String installedPlugins = runCordovaCommand("plugin list ", cordovaDir);
+			String installedPlugins = runCordovaCommand(Arrays.asList(new String[]{"plugin", "list"}), cordovaDir);
 			NodeList plugins = xpathApi.selectNodeList(doc.getDocumentElement(), "//*[local-name()='plugin']");
 			for(int i=0; i< plugins.getLength(); i++) {
 				String options = "";
@@ -615,9 +619,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 					Engine.logEngine.info("Adding plugin " + pluginName);
 					// if we have a gitUrl use it in priority
 					if (gitUrl != null)
-						runCordovaCommand("plugin add " + gitUrl + options, cordovaDir);
+						runCordovaCommand(Arrays.asList(new String[]{"plugin", "add", gitUrl + options}) , cordovaDir);
 					else
-						runCordovaCommand("plugin add " + pluginName + (version != null ? "@" + version: "") + options, cordovaDir);
+						runCordovaCommand(Arrays.asList(new String[]{"plugin", "add", pluginName + (version != null ? "@" + version: "") + options}), cordovaDir);
 				}	
 			}
 
@@ -881,7 +885,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		// Implement Compatibility matrix
 		// Step 1: Check cordova version, compatibility over 3.3.x
 		File privateDir = getPrivateDir();
-		String version = runCordovaCommand("-v", privateDir);
+		String version = runCordovaCommand(Arrays.asList(new String[]{"-v"}), privateDir);
 		
 		Pattern pattern = Pattern.compile("^(\\d)+\\.(\\d)+\\.");
 		Matcher matcher = pattern.matcher(version);
@@ -1080,7 +1084,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 						
     					if (customDialog.open() == SWT.YES) {
     						//create a local Cordova Environment
-    						runCordovaCommand("create " + BuildLocallyAction.cordovaDir + " " + applicationId + " " + applicationName , privateDir);
+    						runCordovaCommand(Arrays.asList(new String[]{"create", BuildLocallyAction.cordovaDir, applicationId, applicationName}) , privateDir);
     						
     						Engine.logEngine.info("Cordova environment is now ready.");
     					} else {
@@ -1115,14 +1119,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 					        	File cordovaDir = getCordovaDir();
 					        	cordovaPlatform = computeCordovaPlatform(mobileDevice.getType().toLowerCase());				        	
 								
-					        	runCordovaCommand("platform add " + cordovaPlatform, cordovaDir);
+					        	runCordovaCommand(Arrays.asList(new String[]{"platform", "add", cordovaPlatform}), cordovaDir);
 					        	ProcessConfigXMLResources(wwwDir, cordovaPlatform, cordovaDir);
 					        	
 					        	// Step 4: Build or Run using Cordova the specific platform.
 					        	if (run) {
-					        		runCordovaCommand("run " + cordovaPlatform + " --"+option+ " --" + target , cordovaDir);
+					        		runCordovaCommand(Arrays.asList(new String[]{"run", cordovaPlatform, "--" + option, "--" + target }) , cordovaDir);
 					        	} else {
-					        		runCordovaCommand("build " + cordovaPlatform + " --"+option, cordovaDir);
+					        		runCordovaCommand(Arrays.asList(new String[]{"build", cordovaPlatform, "--" + option}), cordovaDir);
 					        	}
 					        	
 					        	// Step 5: Show dialog with path to apk/ipa/xap
@@ -1277,8 +1281,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 				protected IStatus run(IProgressMonitor arg0) {
 					try {
 
-						runCordovaCommand("platform rm "
-								+ platformName,
+						runCordovaCommand(Arrays.asList(new String[]{"platform", "rm",
+								platformName}),
 								getCordovaDir());
 
 						return org.eclipse.core.runtime.Status.OK_STATUS;
