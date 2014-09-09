@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.beans.steps;
 import java.beans.PropertyDescriptor;
 
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
+import com.twinsoft.convertigo.beans.steps.SmtpStep.SmtpAuthType;
 
 public class SmtpStepBeanInfo extends MySimpleBeanInfo {
     
@@ -75,7 +76,7 @@ public class SmtpStepBeanInfo extends MySimpleBeanInfo {
             properties[6] = new PropertyDescriptor("smtpAuthType", beanClass, "getSmtpAuthType", "setSmtpAuthType");
             properties[6].setDisplayName(getExternalizedString("property.smtpAuthType.display_name"));
             properties[6].setShortDescription(getExternalizedString("property.smtpAuthType.short_description"));
-            properties[6].setPropertyEditorClass(getEditorClass("PropertyWithTagsEditorAdvance"));
+            properties[6].setPropertyEditorClass(SmtpAuthType.class);
             properties[6].setExpert(true);
             
 			properties[7] = new PropertyDescriptor("sourceDefinition", beanClass, "getSourceDefinition", "setSourceDefinition");
