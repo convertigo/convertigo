@@ -82,7 +82,7 @@ public class SapJcoConnectorDesignComposite extends Composite {
 		this.setLayout(gridLayout);
 		
 		Composite composite = new Composite(this, SWT.NONE);
-		composite.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, true, 1, 1));
+		composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		composite.setLayout(new GridLayout(3, false));
 		
 		Label lblNewLabel = new Label(composite, SWT.NONE);
@@ -121,7 +121,7 @@ public class SapJcoConnectorDesignComposite extends Composite {
 		tblclmnBapiName.setText("Bapi Name");
 		
 		tblclmnDescription = new TableColumn(table, SWT.NONE);
-		tblclmnDescription.setWidth(200);
+		tblclmnDescription.setWidth(500);
 		tblclmnDescription.setText("Description");
 
 		tblclmnGroupName = new TableColumn(table, SWT.NONE);
@@ -199,6 +199,8 @@ public class SapJcoConnectorDesignComposite extends Composite {
 		        ConvertigoPlugin.logDebug("Search done.");
 		        
 		        if (jcoDoc != null) {
+		        	table.removeAll();
+		        	
 		        	NodeList items = jcoDoc.getElementsByTagName("item");
 		        	for (int i=0; i<items.getLength(); i++) {
 		        		Element item = (Element) items.item(i);
