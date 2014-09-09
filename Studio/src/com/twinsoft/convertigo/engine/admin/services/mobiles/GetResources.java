@@ -22,13 +22,8 @@
 
 package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
-import java.io.File;
-import java.io.FileFilter;
-
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
 import org.codehaus.jettison.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
@@ -58,46 +53,7 @@ public class GetResources extends JSonService {
 			response.put(Keys.flashUpdateEnabled.name(), true);
 			response.put(Keys.requireUserConfirmation.name(), mobileResourceHelper.mobileApplication.getRequireUserConfirmation());
 			
-			boolean changed = false;
-			if (Engine.isStudioMode() && mobileResourceHelper.destDir.exists()) {
-				try {
-					for (File directory: mobileResourceHelper.mobileDir) {
-						FileUtils.listFiles(directory, new IOFileFilter() {
-
-							public boolean accept(File file) {
-								if (MobileResourceHelper.defaultFilter.accept(file)) {
-									if (FileUtils.isFileNewer(file, mobileResourceHelper.destDir)) {
-										throw new RuntimeException();
-									}
-									return true;
-								} else {
-									return false;
-								}
-							}
-
-							public boolean accept(File file, String path) {
-								return accept(new File(file, path));
-							}
-							
-						}, MobileResourceHelper.defaultFilter);
-					}
-				} catch (RuntimeException e) {
-					changed = true;
-				}
-			}
-
-			if (!mobileResourceHelper.destDir.exists() || changed) {
-				mobileResourceHelper.prepareFiles(new FileFilter() {
-					
-					public boolean accept(File pathname) {
-						boolean ok = MobileResourceHelper.defaultFilter.accept(pathname) &&
-							! new File(mobileResourceHelper.getCurrentMobileDir(), "config.xml").equals(pathname) &&
-							! new File(mobileResourceHelper.getCurrentMobileDir(), "res").equals(pathname);
-						return ok;
-					}
-					
-				});
-			}
+			mobileResourceHelper.prepareFilesForFlashupdate();
 			
 			mobileResourceHelper.listFiles(response);
 		} else {

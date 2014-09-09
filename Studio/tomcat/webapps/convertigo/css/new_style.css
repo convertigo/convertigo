@@ -326,7 +326,7 @@ ul li {
 .qrcode_row div {
 	padding: 4px;
 }	
-.qrcode_platform, .qrcode_install, .qrcode_version, .qrcode_phonegap_version {
+.qrcode_platform, .qrcode_install, .qrcode_version, .qrcode_phonegap_version, .platform_revision {
 	font-family: Verdana, sans-serif;
 	font-weight: bold;
 }

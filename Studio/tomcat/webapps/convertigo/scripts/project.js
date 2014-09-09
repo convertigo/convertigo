@@ -28,6 +28,7 @@ function addMobilePlatform($platform, $parent) {
 	setName($platform_div.find(".platform_name"), $platform);
 	$platform_div.find(".qrcode_platform").text($platform.attr("displayName"));
 	$platform_div.find(".qrcode_install").text($platform.attr("packageType"));
+	$platform_div.find(".platform_revision").text($platform.attr("revision"));
 	
 	var params = $.param({
 		project: vars.projectName,

@@ -72,7 +72,11 @@ public class MobileResourceHelper {
 	private String endpoint;
 	
 	public MobileResourceHelper(HttpServletRequest request, String buildFolder) throws EngineException, ServiceException {		
-		this(Keys.project.value(request), Keys.platform.value(request), "_private/" + buildFolder + "_" + Keys.platform.value(request));
+		this(request, buildFolder, Keys.project.value(request), Keys.platform.value(request));
+	}
+	
+	public MobileResourceHelper(HttpServletRequest request, String buildFolder, String project, String platform) throws EngineException, ServiceException {		
+		this(project, platform, "_private/" + buildFolder + "_" + platform);
 		endpoint = mobileApplication.getComputedEndpoint(request);
 	}
 	
@@ -388,5 +392,64 @@ public class MobileResourceHelper {
 		ZipUtils.makeZip(mobileArchiveFile.getPath(), destDir.getPath(), null);
 		
 		return mobileArchiveFile;
+	}
+
+	public void prepareFilesForFlashupdate() throws ServiceException {
+		boolean changed = false;
+		final File lastEndpoint = new File(destDir, ".endpoint");
+		
+		if (Engine.isStudioMode() && destDir.exists()) {
+			try {
+				for (File directory: mobileDir) {
+					FileUtils.listFiles(directory, new IOFileFilter() {
+
+						public boolean accept(File file) {
+							if (MobileResourceHelper.defaultFilter.accept(file)) {
+								if (FileUtils.isFileNewer(file, destDir)) {
+									throw new RuntimeException();
+								}
+								return true;
+							} else {
+								return false;
+							}
+						}
+
+						public boolean accept(File file, String path) {
+							return accept(new File(file, path));
+						}
+						
+					}, MobileResourceHelper.defaultFilter);
+				}
+				
+				changed = !endpoint.equals(FileUtils.readFileToString(lastEndpoint, "UTF-8"));
+			} catch (Exception e) {
+				changed = true;
+			}
+		}
+
+		if (!destDir.exists() || changed) {
+			prepareFiles(new FileFilter() {
+				
+				public boolean accept(File pathname) {
+					boolean ok = MobileResourceHelper.defaultFilter.accept(pathname) &&
+						! new File(currentMobileDir, "config.xml").equals(pathname) &&
+						! new File(currentMobileDir, "res").equals(pathname) &&
+						! lastEndpoint.equals(pathname);
+					return ok;
+				}
+				
+			});
+			
+			try {
+				FileUtils.write(lastEndpoint, endpoint, "UTF-8");
+				lastEndpoint.setLastModified(destDir.lastModified());
+			} catch (IOException e) {
+				throw new ServiceException("Failed to write last endpoint", e);
+			}
+		}
+	}
+
+	public String getRevision() {
+		return Long.toString(destDir.lastModified());
 	}
 }
