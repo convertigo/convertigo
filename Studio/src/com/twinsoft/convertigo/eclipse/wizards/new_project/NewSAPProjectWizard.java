@@ -22,11 +22,11 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
-public class NewSQLConnectorWizard extends NewProjectWizard {
+public class NewSAPProjectWizard extends NewProjectWizard {
 
-	public NewSQLConnectorWizard() {
+	public NewSAPProjectWizard() {
 		super();
-		this.templateId = NewProjectWizard.TEMPLATE_SQL_CONNECTOR;
+		this.templateId = NewProjectWizard.TEMPLATE_SAP_CONNECTOR;
 	}
 
 }

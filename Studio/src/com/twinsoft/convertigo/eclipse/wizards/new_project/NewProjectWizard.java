@@ -84,6 +84,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public NewProjectWizardPage11 page11;
 	public NewProjectWizardPageSummarySampleProject pageSummarySampleProject;
 	public ConfigureSQLConnectorPage configureSQLConnectorPage;
+	public ConfigureSAPConnectorPage configureSAPConnectorPage;
 
 	// Holds the current selection when the wizard was called
 	private ISelection selection;
@@ -117,6 +118,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int TEMPLATE_SEQUENCE_CONNECTOR = 500;
 	public static final int TEMPLATE_WEB_SERVICE_REFERENCE = 700;
 	public static final int TEMPLATE_SQL_CONNECTOR = 701;
+	public static final int TEMPLATE_INTERACTION_HUB = 1000;
+	public static final int TEMPLATE_SITE_CLIPPER = 1100;
+	public static final int TEMPLATE_SAP_CONNECTOR = 1200;
+	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE = 1300;
+
 	// generic sample
 	public static final int SAMPLE_HELLO_WORLD = 620;
 	// documentation samples
@@ -151,9 +157,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int DEMOS_LEGACYCRM = 902;
 	public static final int DEMOS_MASHUP = 903;
 	
-	public static final int TEMPLATE_INTERACTION_HUB = 1000;
-	public static final int TEMPLATE_SITE_CLIPPER = 1100;
-	public static final int TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE = 1300;
+	
 	// mobile samples
 	public static final int SAMPLE_MOBILE_VACATION = 1310;
 	public static final int SAMPLE_MOBILE_SIMPLE_APP = 1311;
@@ -163,7 +167,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final int SAMPLE_MOBILE_C8O_WEB_MOBILE = 1315;
 	public static final int SAMPLE_MOBILE_LOCAL_CACHE = 1316;
 	// sequencer samples
-	public static final int SAMPLE_SEQUENCER_1 = 1400;
+	public static final int SAMPLE_SEQUENCER_1 = 510;
 
 	// FILE NAMES
 	// to import blank project
@@ -176,6 +180,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String CICS_INTEGRATION_TEMPLATE_PROJECT_FILE_NAME = "template_CICS.car";
 	public static final String SEQUENCE_TEMPLATE_PROJECT_FILE_NAME = "template_sequence.car";
 	public static final String SQL_TEMPLATE_PROJECT_FILE_NAME = "template_SQL.car";
+	public static final String SAP_TEMPLATE_PROJECT_FILE_NAME = "template_SAP.car";
 	public static final String INTERACTION_HUB_TEMPLATE_PROJECT_FILE_NAME = "template_interactionHub.car";
 	public static final String SITE_CLIPPER_TEMPLATE_PROJECT_FILE_NAME = "template_siteClipper.car";
 	public static final String JQUERYMOBILE_MOBILE_EMPTY_TEMPLATE_PROJECT_FILE_NAME = "template_mobileJQueryMobile.car";
@@ -333,6 +338,15 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			addPage(page2);
 			addPage(configureSQLConnectorPage);
 			break;
+			
+		case TEMPLATE_SAP_CONNECTOR:
+			page1 = new NewProjectWizardPage1(selection);
+			page2 = new NewProjectWizardPage2(selection);
+			configureSAPConnectorPage = new ConfigureSAPConnectorPage(selection);
+			addPage(page1);
+			addPage(page2);
+			addPage(configureSAPConnectorPage);
+			break;
 
 		case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
 		case TEMPLATE_SEQUENCE_CONNECTOR:
@@ -430,6 +444,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case TEMPLATE_EAI_CICS_COMMEAREA:
 			case TEMPLATE_SEQUENCE_CONNECTOR:
 			case TEMPLATE_SQL_CONNECTOR:
+			case TEMPLATE_SAP_CONNECTOR:
 			case TEMPLATE_INTERACTION_HUB:
 			case TEMPLATE_SITE_CLIPPER:
 			case TEMPLATE_MOBILE_EMPTY_JQUERYMOBILE:
@@ -537,6 +552,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SQL_TEMPLATE_PROJECT_FILE_NAME;
 			oldProjectName = SQL_TEMPLATE_PROJECT_FILE_NAME.substring(0,
 					SQL_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
+			break;
+		case TEMPLATE_SAP_CONNECTOR:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAP_TEMPLATE_PROJECT_FILE_NAME;
+			oldProjectName = SAP_TEMPLATE_PROJECT_FILE_NAME.substring(0,
+					SAP_TEMPLATE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case TEMPLATE_SEQUENCE_CONNECTOR:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SEQUENCE_TEMPLATE_PROJECT_FILE_NAME;
@@ -919,6 +939,40 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 						configureSQLConnectorPage.getPassword());
 				monitor.setTaskName("Password updated");
 				monitor.worked(1);
+							
+				break;
+				
+			case TEMPLATE_SAP_CONNECTOR:
+				// TODO
+				// change emulator technology
+				// and change service code
+//				property = (Element) XMLUtils.findNodeByAttributeValue(
+//						connectorProperties, "name", "jdbcURL");
+//				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
+//						configureSQLConnectorPage.getJdbcURL());
+//				monitor.setTaskName("JDBC URL updated");
+//				monitor.worked(1);
+//
+//				property = (Element) XMLUtils.findNodeByAttributeValue(
+//						connectorProperties, "name", "jdbcDriverClassName");
+//				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
+//						configureSQLConnectorPage.getJdbcDriver());
+//				monitor.setTaskName("JDBC driver updated");
+//				monitor.worked(1);
+//
+//				property = (Element) XMLUtils.findNodeByAttributeValue(
+//						connectorProperties, "name", "jdbcUserName");
+//				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
+//						configureSQLConnectorPage.getUsername());
+//				monitor.setTaskName("Username updated");
+//				monitor.worked(1);
+//
+//				property = (Element) XMLUtils.findNodeByAttributeValue(
+//						connectorProperties, "name", "jdbcUserPassword");
+//				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
+//						configureSQLConnectorPage.getPassword());
+//				monitor.setTaskName("Password updated");
+//				monitor.worked(1);
 							
 				break;
 				

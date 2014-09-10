@@ -164,6 +164,10 @@
             name="SQL"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
       <category
+            id="com.twinsoft.convertigo.eclipse.convertigosap"
+            name="SAP"
+            parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>
+      <category
             id="com.twinsoft.convertigo.eclipse.convertigomobile"
             name="Mobile"
             parentCategory="com.twinsoft.convertigo.eclipse.convertigo"/>  
@@ -306,13 +310,24 @@
 <!-- SQL projects -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosql"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSQLConnectorWizard"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSQLProjectWizard"
              icon="icons/studio/sqlconnector_color_32x32.gif"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSQLConnectorWizard"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSQLProjectWizard"
              name="SQL project"
              preferredPerspectives="convertigo"
              project="true">
              <description>Creates a SQL project.</description>
+             </wizard>
+<!-- SAP projects -->
+       <wizard
+             category="com.twinsoft.convertigo.eclipse.convertigo/com.twinsoft.convertigo.eclipse.convertigosap"
+             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSAPProjectWizard"
+             icon="icons/studio/sapconnector_color_32x32.gif"
+             id="com.twinsoft.convertigo.eclipse.wizards.NewSAPProjectWizard"
+             name="SAP BAPI JCO project"
+             preferredPerspectives="convertigo"
+             project="true">
+             <description>Creates a SAP BAPI JCO project.</description>
              </wizard>
 <!-- Site Clipper connector projects -->
        <wizard
