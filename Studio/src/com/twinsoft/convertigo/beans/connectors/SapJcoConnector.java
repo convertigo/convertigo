@@ -52,7 +52,7 @@ public class SapJcoConnector extends Connector {
 	private transient SapJcoProviderImpl provider = null;
 	
     public class SapJcoProviderImpl extends SapJCoProvider {
-
+    	
 		@Override
 		protected String getDestinationName() {
 			return getQName();
@@ -98,35 +98,7 @@ public class SapJcoConnector extends Connector {
 			return context;
 		}
 
-    }
-    
-	public SapJcoConnector() {
-		super();
-		
-        try
-        {
-    		provider = new SapJcoProviderImpl();
-    		provider.init();
-    		Engine.logBeans.debug("[SapConnector] Provider created");
-        }
-        catch (Exception e)
-        {
-			Engine.logBeans.error("[SapConnector] An error occured while creating provider", e);
-        }
-	}
-
-	@Override
-	public SapJcoConnector clone() throws CloneNotSupportedException {
-		SapJcoConnector clonedObject = null;
-		try {
-			clonedObject = (SapJcoConnector) super.clone();
-			clonedObject.provider = provider;
-		} catch (Exception e) {
-			Engine.logBeans.error("[SapConnector] Failed to clone connector : " + e.getMessage());
-		}
-		return clonedObject;
-	}
-	
+    }	
 	
 	@Override
 	public void release() {
@@ -135,10 +107,10 @@ public class SapJcoConnector extends Connector {
 		try {
 			if (provider != null) {
 				provider.release();
-				Engine.logBeans.debug("[SapConnector] Provider released");
+				Engine.logBeans.debug("(SapConnector) Provider released");
 			}
         } catch (Exception ee) {
-			Engine.logBeans.error("[SapConnector] An error occured while releasing provider", ee);
+			Engine.logBeans.error("(SapConnector) An error occured while releasing provider", ee);
 		}
 		finally {
 			provider = null;
@@ -183,7 +155,7 @@ public class SapJcoConnector extends Connector {
 	
 	@Override
 	public void prepareForTransaction(Context context) throws EngineException {
-		provider.prepareCustomDestination((SapJcoTransaction)context.requestedObject);
+		getSapJCoProvider().prepareCustomDestination((SapJcoTransaction) context.requestedObject);
 	}
 
 	public static Document executeJCoSearch(SapJcoConnector connector, String pattern) throws EngineException {
@@ -264,7 +236,18 @@ public class SapJcoConnector extends Connector {
 		this.language = language;
 	}
 	
-	public SapJcoProviderImpl getSapJCoProvider() {
+	public SapJcoProviderImpl getSapJCoProvider() throws EngineException {
+		if (provider == null) {
+	        try {
+	    		provider = new SapJcoProviderImpl();
+	    		provider.init();
+	    		Engine.logBeans.debug("(SapConnector) Provider created");
+	        } catch (Exception e) {
+	        	provider = null;
+				Engine.logBeans.error("(SapConnector) An error occured while creating provider", e);
+				throw new EngineException("(SapConnector) An error occured while creating provider", e);
+	        }
+		}
 		return provider;
 	}
 	
