@@ -943,37 +943,57 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 				break;
 				
 			case TEMPLATE_SAP_CONNECTOR:
-				// TODO
 				// change emulator technology
 				// and change service code
-//				property = (Element) XMLUtils.findNodeByAttributeValue(
-//						connectorProperties, "name", "jdbcURL");
-//				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-//						configureSQLConnectorPage.getJdbcURL());
-//				monitor.setTaskName("JDBC URL updated");
-//				monitor.worked(1);
-//
-//				property = (Element) XMLUtils.findNodeByAttributeValue(
-//						connectorProperties, "name", "jdbcDriverClassName");
-//				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-//						configureSQLConnectorPage.getJdbcDriver());
-//				monitor.setTaskName("JDBC driver updated");
-//				monitor.worked(1);
-//
-//				property = (Element) XMLUtils.findNodeByAttributeValue(
-//						connectorProperties, "name", "jdbcUserName");
-//				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-//						configureSQLConnectorPage.getUsername());
-//				monitor.setTaskName("Username updated");
-//				monitor.worked(1);
-//
-//				property = (Element) XMLUtils.findNodeByAttributeValue(
-//						connectorProperties, "name", "jdbcUserPassword");
-//				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
-//						configureSQLConnectorPage.getPassword());
-//				monitor.setTaskName("Password updated");
-//				monitor.worked(1);
-							
+				
+				// Application Server Host
+				property = (Element) XMLUtils.findNodeByAttributeValue(
+						connectorProperties, "name", "ashost");
+				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
+						configureSAPConnectorPage.getAsHost());
+				monitor.setTaskName("Application Server Host updated");
+				monitor.worked(1);
+				
+				// System Number
+				property = (Element) XMLUtils.findNodeByAttributeValue(
+						connectorProperties, "name", "systemNumber");
+				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
+						configureSAPConnectorPage.getSystemNumber());
+				monitor.setTaskName("System number updated");
+				monitor.worked(1);
+				
+				// Client
+				property = (Element) XMLUtils.findNodeByAttributeValue(
+						connectorProperties, "name", "client");
+				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
+						configureSAPConnectorPage.getClient());
+				monitor.setTaskName("Client updated");
+				monitor.worked(1);
+				
+				// User
+				property = (Element) XMLUtils.findNodeByAttributeValue(
+						connectorProperties, "name", "user");
+				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
+						configureSAPConnectorPage.getUser());
+				monitor.setTaskName("User updated");
+				monitor.worked(1);
+				
+				// Password
+				property = (Element) XMLUtils.findNodeByAttributeValue(
+						connectorProperties, "name", "password");
+				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
+						configureSAPConnectorPage.getPassword());
+				monitor.setTaskName("Password updated");
+				monitor.worked(1);
+				
+				// Language
+				property = (Element) XMLUtils.findNodeByAttributeValue(
+						connectorProperties, "name", "language");
+				((Element) property.getElementsByTagName("java.lang.String").item(0)).setAttribute("value",
+						configureSAPConnectorPage.getLanguage());
+				monitor.setTaskName("Language updated");
+				monitor.worked(1);
+				
 				break;
 				
 			case TEMPLATE_SITE_CLIPPER:
@@ -1047,6 +1067,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			monitor.setTaskName("Old xml file deleted");
 			monitor.worked(1);
 			
+			//TODO: Handle two xsd file for SAP connector
 			try {
 				String xsdInternalPath = newProjectDir + "/" + Project.XSD_FOLDER_NAME + "/" + Project.XSD_INTERNAL_FOLDER_NAME;
 				File xsdInternalDir = new File(xsdInternalPath).getCanonicalFile();

@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL: http://sourceus.twinsoft.fr/svn/CEMS/trunk/Studio/src/com/twinsoft/convertigo/eclipse/wizards/NewProjectWizardPage3.java $
- * $Author: fabienb $
+ * $URL: http://sourceus.twinsoft.fr/svn/CEMS/trunk/Studio/src/com/twinsoft/convertigo/eclipse/wizards/new_project/ConfigureSAPConnectorPage.java $
+ * $Author: julienda $
  * $Revision: 28379 $
  * $Date: 2011-09-27 11:38:59 +0200 (mar., 27 sept. 2011) $
  */
@@ -32,27 +32,28 @@ import org.eclipse.swt.widgets.Composite;
 
 public class ConfigureSAPConnectorPage extends WizardPage {
 
-	private String jdbcURL;
-	private String jdbcDriver;
-	private String username;
+	private String asHost;
+	private String systemNumber = "00";
+	private String client = "000";
+	private String user = "SAP*";
 	private String password;
+	private String language = "en";
 	
 	/**
-	 * Constructor for SampleNewWizardPage.
-	 * 
-	 * @param pageName
+	 * Constructor for ConfigureSAPConnectorPage
+	 * @param selection
 	 */
 	public ConfigureSAPConnectorPage(ISelection selection) {
 		super("wizardPage");
-		setTitle("Define SQL connector parameters");
-		setDescription("This step configures the SQL connector parameters");
+		setTitle("Define SAP connector parameters");
+		setDescription("This step configures the SAP connector parameters");
 	}
 
 	/**
 	 * @see IDialogPage#createControl(Composite)
 	 */
 	public void createControl(Composite parent) {
-		Composite container = new ConfigureSQLConnectorComposite(parent, SWT.NULL,
+		Composite container = new ConfigureSAPConnectorComposite(parent, SWT.NULL,
 				new ModifyListener() {
 					public void modifyText(ModifyEvent e) {
 						dialogChanged();
@@ -63,22 +64,45 @@ public class ConfigureSAPConnectorPage extends WizardPage {
 		dialogChanged();
 	}
 
-	private void initialize() {
-	}
+	private void initialize() {}
 
 	private void dialogChanged() {
-		jdbcDriver = ((ConfigureSQLConnectorComposite) getControl()).getJdbcDriver();
-
-		jdbcURL = ((ConfigureSQLConnectorComposite) getControl()).getJdbcURL();
-		if (jdbcURL.length() == 0) {
-			updateStatus("Please enter a valid JDBC URL");
+		asHost = ((ConfigureSAPConnectorComposite) getControl()).getAsHost();
+		if (asHost.length() == 0) {
+			updateStatus("Please enter a \"Application Server Host\".");
 			return;
 		}
-
-		username = ((ConfigureSQLConnectorComposite) getControl()).getUsername();
-
-		password = ((ConfigureSQLConnectorComposite) getControl()).getPassword();
-
+		
+		systemNumber = ((ConfigureSAPConnectorComposite) getControl()).getSystemNumber();
+		if (systemNumber.length() == 0) {
+			updateStatus("Please enter a \"System Number\".");
+			return;
+		}
+		
+		client = ((ConfigureSAPConnectorComposite) getControl()).getClient();
+		if (client.length() == 0) {
+			updateStatus("Please enter a \"Client\".");
+			return;
+		}
+		
+		user = ((ConfigureSAPConnectorComposite) getControl()).getUser();
+		if (user.length() == 0) {
+			updateStatus("Please enter an \"User\".");
+			return;
+		}
+		
+		password = ((ConfigureSAPConnectorComposite) getControl()).getPassword();
+		if (password.length() == 0) {
+			updateStatus("Please enter a \"Password\".");
+			return;
+		}
+		
+		language = ((ConfigureSAPConnectorComposite) getControl()).getLanguage();
+		if (language.length() == 0) {
+			updateStatus("Please enter a valid \"Language\".");
+			return;
+		}
+		
 		updateStatus(null);
 	}
 
@@ -87,20 +111,36 @@ public class ConfigureSAPConnectorPage extends WizardPage {
 		setPageComplete(message == null);
 	}
 
-	public String getJdbcURL() {
-		return jdbcURL;
+	public String getAsHost() {
+		return asHost;
 	}
 
-	public String getJdbcDriver() {
-		return jdbcDriver;
+	public void setAsHost(String asHost) {
+		this.asHost = asHost;
 	}
 
-	public String getUsername() {
-		return username;
+	public String getSystemNumber() {
+		return systemNumber;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
+	public void setSystemNumber(String systemNumber) {
+		this.systemNumber = systemNumber;
+	}
+
+	public String getClient() {
+		return client;
+	}
+
+	public void setClient(String client) {
+		this.client = client;
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public void setUser(String user) {
+		this.user = user;
 	}
 
 	public String getPassword() {
@@ -109,5 +149,13 @@ public class ConfigureSAPConnectorPage extends WizardPage {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getLanguage() {
+		return language;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;
 	}
 }

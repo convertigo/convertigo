@@ -42,11 +42,11 @@ public class SapJcoConnector extends Connector {
 
 	private static final long serialVersionUID = -9176104169720510775L;
 	
-	private String asHost="";
-	private String systemNumber ="00";
+	private String asHost = "";
+	private String systemNumber = "00";
 	private String client = "000";
 	private String user = "SAP*";
-	private String password ="";
+	private String password = "";
 	private String language = "en";
 
 	private transient SapJcoProviderImpl provider = null;
