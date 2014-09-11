@@ -36,6 +36,7 @@ C8O = {
 		first_call: "false",
 		log_level: "warn", /** none, error, warn, info, debug, trace */
 		log_line: "false",
+		log_remote: "false",
 		requester_prefix: "",
 		xsl_side: "none"
 	},
@@ -391,21 +392,25 @@ C8O = {
 	},
 	
 	_define: {
+		dictionnary: null,
 		hooks: {},
 		init_wait: [],
 		last_call_params: {},
 		local_cache_db: null,
 		local_cache_db_size: 2 * 1024 * 1024,
 		log_levels: ["none", "error", "warn", "info", "debug", "trace"],
+		log_buffer: [],
+		log_remote_path: null,
+		log_remote_pending: false,
 		pendingXhrCpt: 0,
-		plugins_path: "",
+		plugins_path: null,
 		project: null,
 		recall_params: {__context: "", __connector: ""},
 		re_format_time: new RegExp(" *(\\d*?)([\\d ]{4})((?:\\.[\\d ]{3})|(?: {4})) *"), // replace by "$1$2$3"
 		re_i18n: new RegExp("__MSG_(.*?)__"),
 		re_plus: new RegExp("\\+", "g"),
 		start_time: new Date().getTime(),
-		dictionnary: null
+		uid: Math.round((new Date().getTime() * Math.random())).toString(36)
 	},
 
 	_call: function (data) {
@@ -823,6 +828,16 @@ C8O = {
 						msg += "\n\t\t" + new Error().stack.split("\n")[3];
 					}
 					var time = (new Date().getTime() - C8O._define.start_time) / 1000;
+					
+					if (C8O.vars.log_remote == "true" && C8O._define.log_remote_path != null) {
+						C8O._define.log_buffer.push({
+							time:  time,
+							level: level,
+							msg:   msg
+						});
+						C8O._log_remote();
+					}
+					
 					time = ("	" + time + "	").replace(	C8O._define.re_format_time, "$1$2$3");
 					
 					if (level.length == 4) {
@@ -832,6 +847,33 @@ C8O = {
 					console.log(time + " [" + level + "] " + msg);
 				}
 			}
+		}
+	},
+	
+	_log_remote: function () {
+		if (C8O._define.log_buffer.length && !C8O._define.log_remote_pending) {
+			var data = {
+				logs: C8O.toJSON(C8O._define.log_buffer),
+				env: C8O.toJSON({
+					project: C8O._define.project,
+					uid: C8O._define.uid
+				})
+			};
+			C8O._define.log_remote_pending = true;
+			C8O._define.log_buffer = [];
+			$.ajax({
+				data: data,
+				dataType: "json",
+				type: "POST",
+				url: C8O._define.log_remote_path
+			}).always(function () {
+				C8O._define.log_remote_pending = false;				
+			}).done(function () {
+				C8O._log_remote();
+			}).fail(function (jqXHR, textStatus, errorThrown) {
+				C8O.vars.log_remote = "false";
+				C8O.log.error("c8o.core: _log_remote failed to perform remote logging", "textStatus: '" + textStatus + "' errorThrown: '" + errorThrown + "'");
+			});
 		}
 	},
 	
@@ -1010,6 +1052,7 @@ $.ajaxSetup({
 			C8O.log.trace("c8o.core: current project is " + C8O._define.project + " in webapp mode");
 			
 			C8O._define.plugins_path = window.location.href.replace(new RegExp("/projects/.*"), "/scripts/7.2.0/c8o.plugin.");
+			C8O._define.log_remote_path = window.location.href.replace(new RegExp("/projects/.*"), "/admin/services/logs.Add");
 		} else {
 			matcher = C8O.vars.endpoint_url.match(new RegExp("/projects/([^/]+)"));
 			if (matcher != null) {
@@ -1017,6 +1060,7 @@ $.ajaxSetup({
 				C8O.log.debug("c8o.core: current project is " + C8O._define.project + " in mobile mode");
 				
 				C8O._define.plugins_path = C8O.vars.endpoint_url.replace(new RegExp("/projects/.*"), "/scripts/7.2.0/c8o.plugin.");
+				C8O._define.log_remote_path = C8O.vars.endpoint_url.replace(new RegExp("/projects/.*"), "/admin/services/logs.Add");
 			} else {
 				C8O.log.warn("c8o.core: cannot determine the current project using " + window.location.href + " or " + C8O.vars.endpoint_url);
 			}
