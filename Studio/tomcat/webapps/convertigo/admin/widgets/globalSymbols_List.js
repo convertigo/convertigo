@@ -25,7 +25,7 @@ function globalSymbols_List_init() {
 	
 	$("#addSymbol").button({
 		icons : {
-			primary : "ui-icon-circle-plus"
+			primary : "ui-icon-plus"
 		}
 	}).click(function(){
 		addSymbol();
@@ -74,7 +74,7 @@ function globalSymbols_List_init() {
 	
 	$("#symbolsListButtonDeleteAll").button({				
 		icons : {
-			primary : "ui-icon-closethick"
+			primary : "ui-icon-trash"
 		}
 	}).click(function(){
 		showConfirm("Are you sure you want to delete all symbols?", function() {
@@ -91,7 +91,7 @@ function globalSymbols_List_init() {
 	//hidden buttons bars
 	$("#selectAll").button({				
 		icons : {
-			primary : "ui-icon-closethick"
+			primary : "ui-icon-close"
 		}
 	}).click(function(){
 		$(".selected-symbols").prop("checked", 
@@ -105,7 +105,7 @@ function globalSymbols_List_init() {
 	
 	$("#validExport").button({				
 		icons : {
-			primary : "ui-icon-closethick"
+			primary : "ui-icon-check"
 		}
 	}).click(function(){
 		exportSymbolFile();
@@ -113,7 +113,7 @@ function globalSymbols_List_init() {
 	
 	$("#cancelExport").button({				
 		icons : {
-			primary : "ui-icon-closethick"
+			primary : "ui-icon-cancel"
 		}
 	}).click(function(){
 		$(".selected-symbols").prop("checked",false);
