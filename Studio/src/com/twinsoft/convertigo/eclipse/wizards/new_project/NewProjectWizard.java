@@ -1067,7 +1067,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			monitor.setTaskName("Old xml file deleted");
 			monitor.worked(1);
 			
-			//TODO: Handle two xsd file for SAP connector
 			try {
 				String xsdInternalPath = newProjectDir + "/" + Project.XSD_FOLDER_NAME + "/" + Project.XSD_INTERNAL_FOLDER_NAME;
 				File xsdInternalDir = new File(xsdInternalPath).getCanonicalFile();
