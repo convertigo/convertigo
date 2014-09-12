@@ -1949,7 +1949,42 @@
                      class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceImportFromXsdAction"
                      enablesFor="1"
                      id="convertigo.action.swe.importXSD"
-                     label="Import step&apos;s structure from schema"
+                     label="Create steps structure from XSD schema"
+                     menubarPath="import">
+                  <enablement>
+                     <and>
+                        <not>
+                           <objectState
+                                 name="objectClassName"
+                                 value="com.twinsoft.convertigo.beans.steps.XMLElementStep">
+                           </objectState>
+                        </not>
+                        <not>
+                           <objectState
+                                 name="objectClassName"
+                                 value="com.twinsoft.convertigo.beans.steps.IfThenElseStep">
+                           </objectState>
+                        </not>
+                        <not>
+                           <objectState
+                                 name="objectClassName"
+                                 value="com.twinsoft.convertigo.beans.steps.IfExistThenElseStep">
+                           </objectState>
+                        </not>
+                        <not>
+                           <objectState
+                                 name="objectClassName"
+                                 value="com.twinsoft.convertigo.beans.steps.IfInThenElseStep">
+                           </objectState>
+                        </not>
+                     </and>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceImportFromXmlAction"
+                     enablesFor="1"
+                     id="convertigo.action.swe.importXML"
+                     label="Create steps structure from XML"
                      menubarPath="import">
                   <enablement>
                      <and>
@@ -2263,14 +2298,14 @@
                   class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceImportFromXsdAction"
                   enablesFor="1"
                   id="convertigo.action.seq.importXSD"
-                  label="Import step&apos;s structure from schema"
+                  label="Create steps structure from XSD schema"
                   menubarPath="import">
             </action>
             <action
                   class="com.twinsoft.convertigo.eclipse.popup.actions.SequenceImportFromXmlAction"
                   enablesFor="1"
                   id="convertigo.action.seq.importXML"
-                  label="Import step&apos;s structure from xml"
+                  label="Create steps structure from XML"
                   menubarPath="import">
             </action>
             <action
