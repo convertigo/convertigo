@@ -780,13 +780,13 @@
       </objectContribution>
 
       
-      <!-- Uncomment for local build menu 
       <objectContribution
 	       id="convertigo.CordovaContribution"
 	       objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.MobilePlatformTreeObject">
 	       <menu
 	         	 id="convertigo.menu.action.cordova"
              	 label="Cordova"
+             	 icon="icons/studio/cordova_build_local_menu_16x16.png"
              	 path="cordova">
              	<groupMarker name="content"/>
            </menu>
@@ -821,19 +821,18 @@
 	       <action
 	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
 	             enablesFor="1"
-	             icon="icons/studio/build_locally_16x16.png"
+	             icon="icons/studio/build_locally_release_16x16.png"
 	             id="convertigo.action.buildLocallyRelease"
 	             label="Local build(Release)"
 	             menubarPath="convertigo.menu.action.cordova/build" />
 	       <action
 	             class="com.twinsoft.convertigo.eclipse.popup.actions.BuildLocallyAction"
 	             enablesFor="1"
-	             icon="icons/studio/build_locally_16x16.png"
+	             icon="icons/studio/build_locally_debug_16x16.png"
 	             id="convertigo.action.buildLocallyDebug"
 	             label="Local build(Debug)"
 	             menubarPath="convertigo.menu.action.cordova/build" />
-	       
-	  </objectContribution>-->
+	  </objectContribution>
 
 	  <objectContribution
 	        id="convertigo.launchMobileApplicationProjectContribution"
