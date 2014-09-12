@@ -28,12 +28,11 @@
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
     <preference name="fullscreen"                 value="true" />           <!-- all: hides the status bar at the top of the screen -->
     <preference name="SplashScreen"    			  value="splash" />         <!-- all: the splash screen resource if built without phonegap build -->
-    <preference name="AutoHideSplashScreen"       value="false" />          <!-- ios: set to false to use the navigator.splashscreen API  -->
+    <preference name="AutoHideSplashScreen"       value="false" />          <!-- ios: set to false, the splash screen must be hidden using a JavaScript API (navigator.splashscreen API)  -->
     <preference name="prerendered-icon"           value="true" />           <!-- ios: if icon is prerendered, iOS will not apply it's gloss to the app's icon on the user's home screen -->
     <preference name="ios-statusbarstyle"         value="black-opaque" />   <!-- ios: black-translucent will appear black because the PhoneGap webview doesn't go beneath the status bar -->
     <preference name="detect-data-types"          value="true" />           <!-- ios: controls whether data types (such as phone no. and dates) are automatically turned into links by the system -->
     <preference name="exit-on-suspend"            value="false" />          <!-- ios: if set to true, app will terminate when home button is pressed -->
-    <preference name="auto-hide-splash-screen"    value="true" />           <!-- ios: if set to false, the splash screen must be hidden using a JavaScript API -->
     
     <!-- To avoid app scrolling -->
 <!--    <preference name="DisallowOverscroll" value="true" /> -->
