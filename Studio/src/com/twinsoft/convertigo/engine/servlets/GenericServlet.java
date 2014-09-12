@@ -277,7 +277,6 @@ public abstract class GenericServlet extends HttpServlet {
 					if (supervision != null) {
 						Engine.logContext
 								.debug("[GenericServlet] Supervision mode => invalidating HTTP session in 30s.");
-						// request.getSession().setMaxInactiveInterval(30);
 						removeSession(request, 30);
 					}
 
@@ -286,7 +285,7 @@ public abstract class GenericServlet extends HttpServlet {
 					// scope
 					if (request.getAttribute("convertigo.requireEndOfContext") != null) {
 						removeContext(request);
-						removeSession(request, 0);
+						removeSession(request, 1);
 					}
 
 					// Removes context when finished
@@ -301,7 +300,7 @@ public abstract class GenericServlet extends HttpServlet {
 						}
 					} else {
 						// other cases (remove context if exist __removeContext
-						// or __removeContext=true)
+						// or __removeContext=true/false)
 						if (!("false".equals(removeContextParam))) {
 							removeContext(request);
 						}
@@ -310,9 +309,16 @@ public abstract class GenericServlet extends HttpServlet {
 					// Removes session when finished
 					String removeSessionParam = request.getParameter(Parameter.RemoveSession.getName());
 					if (removeSessionParam != null) {
-						int interval = removeSessionParam.equals("") ? 0 : Integer.parseInt(
-								removeSessionParam, 10);
-						removeSession(request, interval);
+						// __removeSession or __removeSession=true/false
+						// or __removeSession=xx (where xx is a number of seconds)
+						if (!("false".equals(removeSessionParam))) {
+							int interval = 1;
+							try {
+								interval = Integer.parseInt(removeSessionParam, 10);
+							}
+							catch (Exception e) {}
+							removeSession(request, interval);
+						}
 					}
 
 				}
