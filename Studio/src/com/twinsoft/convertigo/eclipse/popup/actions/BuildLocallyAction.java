@@ -591,7 +591,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 			String installedPlugins = runCordovaCommand(Arrays.asList(new String[]{"plugin", "list"}), cordovaDir);
 			NodeList plugins = xpathApi.selectNodeList(doc.getDocumentElement(), "//*[local-name()='plugin']");
 			for(int i=0; i< plugins.getLength(); i++) {
-				String options = "";
+				List<String> options = new ArrayList<String>();
 				Node plugin = plugins.item(i);
 				String pluginName = plugin.getAttributes().getNamedItem("name").getTextContent();
 				String gitUrl = null;
@@ -600,12 +600,13 @@ public class BuildLocallyAction extends MyAbstractAction {
 				/**
 				 * Build an optional --variable <NAME>=<VALUE> list
 				 */
-				NodeList pluginParams = xpathApi.selectNodeList(plugin, "//param");
+				NodeList pluginParams = xpathApi.selectNodeList(plugin, "./param");
 				if (pluginParams.getLength() > 0) {
 					for (int j=0; j< pluginParams.getLength(); j++) {
 						Node param = pluginParams.item(j);
 						if (param.getAttributes().getNamedItem("name") != null && param.getAttributes().getNamedItem("value") != null) {
-							options += " --variable " + param.getAttributes().getNamedItem("name").getTextContent() + "=" + param.getAttributes().getNamedItem("value").getTextContent(); 
+							options.add("--variable");
+							options.add(param.getAttributes().getNamedItem("name").getTextContent() + "=" + param.getAttributes().getNamedItem("value").getTextContent());
 						}
 					}
 				}
@@ -618,10 +619,25 @@ public class BuildLocallyAction extends MyAbstractAction {
 				if (installedPlugins.toLowerCase().indexOf(pluginName.toLowerCase()) == -1) {
 					Engine.logEngine.info("Adding plugin " + pluginName);
 					// if we have a gitUrl use it in priority
-					if (gitUrl != null)
-						runCordovaCommand(Arrays.asList(new String[]{"plugin", "add", gitUrl + options}) , cordovaDir);
-					else
-						runCordovaCommand(Arrays.asList(new String[]{"plugin", "add", pluginName + (version != null ? "@" + version: "") + options}), cordovaDir);
+					
+					List<String> arguments = new ArrayList<String>();
+					
+					if (gitUrl != null) {
+						arguments.add("plugin");
+						arguments.add("add");
+						arguments.add(gitUrl);
+					}
+					else {
+						arguments.add("plugin");
+						arguments.add("add");
+						arguments.add(pluginName + (version != null ? "@" + version: ""));
+					}
+					
+					if (!options.isEmpty())
+						for (String opt : options)
+							arguments.add(opt);
+					
+					runCordovaCommand(arguments , cordovaDir);
 				}	
 			}
 
