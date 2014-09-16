@@ -39,7 +39,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 	propertyValue, objectName, objectType;
 	private Set<String> undefinedSymbols;
 	private Display display;
- 
+
 	/**
 	 * Create the dialog.
 	 * @param parentShell, errorMessage
@@ -86,7 +86,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		gridData.verticalSpan = 6;
 		
 		StyledText emptySpace1 = new StyledText(container, SWT.WRAP);
-		emptySpace1.setEditable(false);
+		emptySpace1.setEnabled(false);
 		emptySpace1.setText("     ");
 		emptySpace1.setLayoutData(gridData);
 		emptySpace1.setBackground(back);
@@ -103,7 +103,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		gridData.verticalSpan = 4;
 		
 		StyledText emptySpace2 = new StyledText(container, SWT.WRAP);
-		emptySpace2.setEditable(false);
+		emptySpace2.setEnabled(false);
 		emptySpace2.setText(" ");
 		emptySpace2.setLayoutData(gridData);
 		emptySpace2.setBackground(back);
@@ -112,17 +112,14 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 		
 		textFailure = new StyledText(container, SWT.WRAP);
+		textFailure.setEnabled(false);
 		if (undefinedSymbols.size() == 1) {
 			textFailure.setText("Undefined Global Symbol: " + undefinedSymbols.iterator().next());
-			textFailure.setFocus();
 		}
-		
-		if (undefinedSymbols.size() > 1) {
+		else if (undefinedSymbols.size() > 1) {
 			textFailure.setText(undefinedSymbols.size()+" undefined Global Symbols: " + undefinedSymbols);
-			textFailure.setFocus();
 		}
 		
-		textFailure.setEditable(false);
 		FontData[] fD = textFailure.getFont().getFontData();
 		fD[0].setHeight(10);
 		textFailure.setFont( new Font(display, fD[0]));
@@ -136,7 +133,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 			styleBold.fontStyle = SWT.BOLD;
 			textFailure.setStyleRange(styleBold);
 		}
-		if (undefinedSymbols.size() > 1) {
+		else if (undefinedSymbols.size() > 1) {
 			styleBold = new StyleRange();
 			styleBold.start = 0;
 			styleBold.length = (undefinedSymbols.size()+"").length();
@@ -148,12 +145,12 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		
 		labelProject = new StyledText(container, SWT.WRAP);
-		labelProject.setEditable(false);
+		labelProject.setEnabled(false);
 		labelProject.setText("     ●  Project: "+projectName);
 		labelProject.setLayoutData(gridData);
 		labelProject.setBackground(back);
 		
-		if (projectName!=null) {
+		if (projectName != null) {
 			styleBold = new StyleRange();
 			styleBold.start = 17;
 			styleBold.length = projectName.length();
@@ -165,7 +162,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		
 		labelObjectType = new StyledText(container, SWT.WRAP);
-		labelObjectType.setEditable(false);
+		labelObjectType.setEnabled(false);
 		labelObjectType.setText("     ●  "+objectType+": "+objectName);
 		labelObjectType.setLayoutData(gridData);
 		labelObjectType.setBackground(back);
@@ -182,7 +179,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		
 		labelProperty = new StyledText(container, SWT.WRAP);
-		labelProperty.setEditable(false);
+		labelProperty.setEnabled(false);
 		labelProperty.setText("     ●  " + propertyName + ": " + propertyValue);
 		labelProperty.setLayoutData(gridData);
 		labelProperty.setBackground(back);
@@ -194,7 +191,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 			styleBold.fontStyle = SWT.BOLD;
 			labelProperty.setStyleRange(styleBold);
 		}
-		
+
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 3;
 		gridData.grabExcessHorizontalSpace = true;
