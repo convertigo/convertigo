@@ -83,8 +83,8 @@ public class SqlQueryEditorComposite extends AbstractDialogComposite {
 		Shell newShell = this.parentDialog.getShell();
 
 		// mods jmc 22/10/2013
-		nWidth = newShell.getSize().x;
-		nHeight = newShell.getSize().y;
+		nWidth = (int) (0.50 * newShell.getSize().x);
+		nHeight = (int) (0.60 * newShell.getSize().y);
 		Display display = newShell.getDisplay();
 		
 		Point pt = display.getCursorLocation();
