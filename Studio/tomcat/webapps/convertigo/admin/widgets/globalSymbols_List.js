@@ -116,14 +116,7 @@ function globalSymbols_List_init() {
 			primary : "ui-icon-cancel"
 		}
 	}).click(function(){
-		$(".selected-symbols").prop("checked",false);
-		$('#symbolsList').hideCol('checkboxes');
-		$('#symbolsList').showCol('btnEdit');
-		$('#symbolsList').showCol('btnDelete');
-		$("#addSymbol").button("enable");
-		$("#importSymbol").button("enable");
-		$("#symbolsListButtonDeleteAll").button("enable");
-		$("#exportSymbolsButtonAction").hide();
+		hideExportSymbolsPanel();
 	});
 	
 	callService("global_symbols.List", function(xml) {
@@ -199,10 +192,22 @@ function globalSymbols_List_init() {
 	});
 }
 
+function hideExportSymbolsPanel() {
+	$(".selected-symbols").prop("checked",false);
+	$('#symbolsList').hideCol('checkboxes');
+	$('#symbolsList').showCol('btnEdit');
+	$('#symbolsList').showCol('btnDelete');
+	$("#addSymbol").button("enable");
+	$("#importSymbol").button("enable");
+	$("#symbolsListButtonDeleteAll").button("enable");
+	$("#exportSymbolsButtonAction").hide();
+}
+
 function globalSymbols_List_update() {
 	callService("global_symbols.List", function(xml) {
 		updateGlobalSymbolsList(xml);
 	});
+	hideExportSymbolsPanel();
 }
 
 function updateGlobalSymbolsList(xml) {
