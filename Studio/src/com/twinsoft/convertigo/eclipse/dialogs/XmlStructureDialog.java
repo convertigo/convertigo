@@ -70,11 +70,16 @@ public class XmlStructureDialog extends Dialog implements Runnable {
 		this.parentObject = parentObject;
 	}
 	
+	public XmlStructureDialog(Shell parentShell, Object parentObject, String xmlContent) {
+		this(parentShell, ObjectsExplorerComposite.class, "Xml structure", parentObject);
+		xml = xmlContent;
+	}
+	
 	private XmlStructureDialogComposite schemaObjectsDialogComposite = null;
 	private ProgressBar progressBar = null;
 	private Label labelProgression = null;
 	private Hashtable<String, Step> stepsMap = new Hashtable<String, Step>(50);
-	
+
 	@Override
 	protected Control createDialogArea(Composite parent) {
 		Composite composite = (Composite) super.createDialogArea(parent);
@@ -82,7 +87,11 @@ public class XmlStructureDialog extends Dialog implements Runnable {
 		try {
 			GridData gridData = new GridData (GridData.HORIZONTAL_ALIGN_FILL | GridData.FILL_BOTH);
 			
-			schemaObjectsDialogComposite = new XmlStructureDialogComposite(composite,SWT.NONE,parentObject);
+			if (xml == null)
+				schemaObjectsDialogComposite = new XmlStructureDialogComposite(composite, SWT.NONE, parentObject);
+			else
+				schemaObjectsDialogComposite = new XmlStructureDialogComposite(composite, SWT.NONE, parentObject, xml);
+			
 			schemaObjectsDialogComposite.setLayoutData(gridData);
 			labelProgression = schemaObjectsDialogComposite.labelProgression;
 			progressBar = schemaObjectsDialogComposite.progressBar;
@@ -128,6 +137,15 @@ public class XmlStructureDialog extends Dialog implements Runnable {
 			
 			if (schemaObjectsDialogComposite != null) {
 				xml = (String)schemaObjectsDialogComposite.getValue(null);
+				
+				/* 
+					We need to delete "\n", "\r" and "\n" in order to create "Complex".
+					I noticed that if we don't do it, "Element" are created instead
+					of "Complex".
+				*/
+				xml = xml.replace("\n", "");
+				xml = xml.replace("\r", "");
+				xml = xml.replace("\t", "");
 			}
 			
 			Thread thread = new Thread(this);
@@ -229,7 +247,8 @@ public class XmlStructureDialog extends Dialog implements Runnable {
 							createStep(step, children.item(i));
 						}
 						
-						if (parent != null) stepsMap.put(tagname, step);
+						if (parent != null)
+							stepsMap.put(tagname, step);
 					}
 				}
 				break;

@@ -22,10 +22,14 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -38,6 +42,7 @@ import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject;
+import com.twinsoft.convertigo.engine.Engine;
 
 public class SequenceImportFromXmlAction extends MyAbstractAction {
 
@@ -60,36 +65,50 @@ public class SequenceImportFromXmlAction extends MyAbstractAction {
     			SequenceTreeObject sequenceTreeObject = (SequenceTreeObject) ((databaseObject instanceof Sequence) ? databaseObjectTreeObject:databaseObjectTreeObject.getParentDatabaseObjectTreeObject());
     			Sequence sequence = (databaseObject instanceof Sequence) ? (Sequence)databaseObject:((StepWithExpressions)databaseObject).getSequence();
     			
-    			XmlStructureDialog dlg = new XmlStructureDialog(shell, sequence);
-				if (dlg.open() == Window.OK) {
-					if (dlg.result instanceof Throwable) {
-						throw (Throwable)dlg.result;
-					}
-					else {
-						Step step = (Step)dlg.result;
-						if (step != null) {
-							if (databaseObject instanceof Sequence) {
-								sequence.addStep(step);
-								sequence.hasChanged = true;
-							}
-							else {
-								StepWithExpressions swe = (StepWithExpressions)databaseObject;
-								swe.addStep(step);
-								swe.hasChanged = true;
-							}
-							
-							sequence.hasChanged = true;
-							
-							// Reload sequence in tree without updating its schema for faster reload
-							ConvertigoPlugin.logDebug("Reload sequence: start");
-							explorerView.reloadTreeObject(sequenceTreeObject);
-							ConvertigoPlugin.logDebug("Reload sequence: end");
-							
-							// Select target dbo in tree
-							explorerView.objectSelected(new CompositeEvent(databaseObject));
-						}
-					}
-	        	}
+    			// Open a file dialog to search a XML file
+    			FileDialog fileDialog = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.SAVE);
+            	fileDialog.setText("Import schema file");
+            	fileDialog.setFilterExtensions(new String[]{"*.xml"});
+            	fileDialog.setFilterNames(new String[]{"Schema files"});
+            	fileDialog.setFilterPath(Engine.PROJECTS_PATH);
+    			
+            	String filePath = fileDialog.open();
+
+            	if (filePath != null) {
+            		// Get XML content from the file
+            		String xmlContent = new String(Files.readAllBytes(Paths.get(filePath)));
+            		
+            		// Open and add XML content to the dialog area
+            		XmlStructureDialog dlg = new XmlStructureDialog(shell, sequence, xmlContent);
+
+    				if (dlg.open() == Window.OK) {
+    					if (dlg.result instanceof Throwable) {
+    						throw (Throwable)dlg.result;
+    					}
+    					else {
+    						Step step = (Step)dlg.result;
+    						if (step != null) {
+    							if (databaseObject instanceof Sequence) {
+    								sequence.addStep(step);
+    							}
+    							else {
+    								StepWithExpressions swe = (StepWithExpressions)databaseObject;
+    								swe.addStep(step);
+    							}
+    							
+    							sequence.hasChanged = true;
+    							
+    							// Reload sequence in tree without updating its schema for faster reload
+    							ConvertigoPlugin.logDebug("Reload sequence: start");
+    							explorerView.reloadTreeObject(sequenceTreeObject);
+    							ConvertigoPlugin.logDebug("Reload sequence: end");
+    							
+    							// Select target dbo in tree
+    							explorerView.objectSelected(new CompositeEvent(databaseObject));
+    						}
+    					}
+    	        	}
+            	}
     		}
         }
         catch (Throwable e) {

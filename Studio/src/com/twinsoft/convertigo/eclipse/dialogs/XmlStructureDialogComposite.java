@@ -42,6 +42,13 @@ public class XmlStructureDialogComposite extends MyAbstractDialogComposite {
 		
 		initialize();
 	}
+	
+	public XmlStructureDialogComposite(Composite parent, int style, Object parentObject, String xmlContent) {
+		super(parent, style);
+		
+		initialize();
+		xml.setText(xmlContent);
+	}
 
 	protected void initialize() {
 		Label label0 = new Label (this, SWT.NONE);
