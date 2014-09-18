@@ -22,9 +22,10 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.File;
+import java.nio.charset.Charset;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
@@ -43,6 +44,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SequenceTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class SequenceImportFromXmlAction extends MyAbstractAction {
 
@@ -76,7 +78,9 @@ public class SequenceImportFromXmlAction extends MyAbstractAction {
 
             	if (filePath != null) {
             		// Get XML content from the file
-            		String xmlContent = new String(Files.readAllBytes(Paths.get(filePath)));
+            		File xmlFile = new File(filePath);
+            		Charset charset = XMLUtils.getEncoding(xmlFile);
+            		String xmlContent = FileUtils.readFileToString(xmlFile, charset.name());
             		
             		// Open and add XML content to the dialog area
             		XmlStructureDialog dlg = new XmlStructureDialog(shell, sequence, xmlContent);

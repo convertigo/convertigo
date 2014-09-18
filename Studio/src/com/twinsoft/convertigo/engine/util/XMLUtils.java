@@ -36,6 +36,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Array;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -1157,5 +1158,29 @@ public class XMLUtils {
 		handleElement(elt, json, ignoreStepIds);
 		String result = json.toString(1);
 		return result;
+	}
+	
+	public static Charset getEncoding(File file) {
+		return getEncoding(file, Charset.defaultCharset());
+	}
+	
+	public static Charset getEncoding(File file, Charset charset) {
+		InputStream is = null;
+		try {
+			byte[] buffer = new byte[128];
+			 is = new FileInputStream(file);
+			int nb = is.read(buffer);
+			String encoding = new String(buffer, 0, nb, "ASCII").replaceFirst("[\\d\\D]*encoding=\"(.*?)\"[\\d\\D]*", "$1");
+			charset = Charset.forName(encoding);
+		} catch (Exception e) {
+			Engine.logEngine.debug("failed to detect xml encoding", e);
+		} finally {
+			if (is != null) {
+				try {
+					is.close();
+				} catch (IOException e) {}
+			}
+		}
+		return charset;
 	}
 }

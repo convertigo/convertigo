@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2011 Convertigo SA.
+ * Copyright (c) 2001-2014 Convertigo SA.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License
@@ -14,15 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL: $
- * $Author: $
- * $Revision: $
- * $Date: $
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
  */
 
 package com.twinsoft.convertigo.eclipse.dialogs;
-
-import java.util.Hashtable;
 
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -78,7 +76,7 @@ public class XmlStructureDialog extends Dialog implements Runnable {
 	private XmlStructureDialogComposite schemaObjectsDialogComposite = null;
 	private ProgressBar progressBar = null;
 	private Label labelProgression = null;
-	private Hashtable<String, Step> stepsMap = new Hashtable<String, Step>(50);
+//	private Hashtable<String, Step> stepsMap = new Hashtable<String, Step>(50);
 
 	@Override
 	protected Control createDialogArea(Composite parent) {
@@ -137,15 +135,6 @@ public class XmlStructureDialog extends Dialog implements Runnable {
 			
 			if (schemaObjectsDialogComposite != null) {
 				xml = (String)schemaObjectsDialogComposite.getValue(null);
-				
-				/* 
-					We need to delete "\n", "\r" and "\n" in order to create "Complex".
-					I noticed that if we don't do it, "Element" are created instead
-					of "Complex".
-				*/
-				xml = xml.replace("\n", "");
-				xml = xml.replace("\r", "");
-				xml = xml.replace("\t", "");
 			}
 			
 			Thread thread = new Thread(this);
@@ -205,7 +194,7 @@ public class XmlStructureDialog extends Dialog implements Runnable {
 			result = e;
 		}
 		finally {
-			stepsMap.clear();
+//			stepsMap.clear();
 			try {
 				progressBarThread.interrupt();
 				
@@ -228,10 +217,10 @@ public class XmlStructureDialog extends Dialog implements Runnable {
 		switch (nodeType) {
 			case Node.ELEMENT_NODE:
 				Element element = (Element)node;
-				String tagname = element.getTagName();
-				if (stepsMap.containsKey(tagname)) {
-					step = deepClone(parent, (Step)stepsMap.get(tagname));
-				}
+//				String tagname = element.getTagName();
+//				if (stepsMap.containsKey(tagname)) {
+//					step = deepClone(parent, (Step)stepsMap.get(tagname));
+//				}
 				
 				if (step == null) {
 					step = createElementStep(parent,element);
@@ -247,8 +236,8 @@ public class XmlStructureDialog extends Dialog implements Runnable {
 							createStep(step, children.item(i));
 						}
 						
-						if (parent != null)
-							stepsMap.put(tagname, step);
+//						if (parent != null)
+//							stepsMap.put(tagname, step);
 					}
 				}
 				break;
@@ -262,24 +251,24 @@ public class XmlStructureDialog extends Dialog implements Runnable {
 		return step;
 	}
 	
-	private Step deepClone(Object parent, Step step) throws EngineException {
-		Step cloned = null;
-		try {
-			cloned = (Step)step.clone();
-			cloned.priority = cloned.getNewOrderValue();
-			cloned.bNew = true;
-			addStepToParent(parent, cloned);
-			
-			if (step instanceof StepWithExpressions) {
-				StepWithExpressions swe = (StepWithExpressions)step;
-				for (Step child: swe.getSteps()) {
-					deepClone(cloned, child);
-				}
-			}
-			
-		} catch (CloneNotSupportedException e) {}
-		return cloned;
-	}
+//	private Step deepClone(Object parent, Step step) throws EngineException {
+//		Step cloned = null;
+//		try {
+//			cloned = (Step)step.clone();
+//			cloned.priority = cloned.getNewOrderValue();
+//			cloned.bNew = true;
+//			addStepToParent(parent, cloned);
+//			
+//			if (step instanceof StepWithExpressions) {
+//				StepWithExpressions swe = (StepWithExpressions)step;
+//				for (Step child: swe.getSteps()) {
+//					deepClone(cloned, child);
+//				}
+//			}
+//			
+//		} catch (CloneNotSupportedException e) {}
+//		return cloned;
+//	}
 	
 	private Step createElementStep(Object parent, Element element) throws EngineException {
 		Step step = null;
@@ -299,7 +288,7 @@ public class XmlStructureDialog extends Dialog implements Runnable {
 			String localName = element.getLocalName();
 			String elementNodeName = (localName == null) ? tagName:localName;
 			Node firstChild = element.getFirstChild();
-			boolean isComplex = ((firstChild != null) && (firstChild.getNodeType() != Node.TEXT_NODE));
+			boolean isComplex = firstChild != null && firstChild.getNextSibling() != null;
 			
 			setTextLabel("Creating \""+elementNodeName+"\" step");
 			if (isComplex){
