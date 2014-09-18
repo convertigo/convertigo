@@ -48,13 +48,13 @@
 	<preference name="permissions" value="none"/>
 	
     <!-- Core plugins mandatory for FlashUpdate service -->
-    <gap:plugin name="org.apache.cordova.device" />
-    <gap:plugin name="org.apache.cordova.file" />
-    <gap:plugin name="org.apache.cordova.file-transfer" />
-    <gap:plugin name="org.apache.cordova.splashscreen" />
-    
-	<!-- Useful for debugging -->
-	<gap:plugin name="org.apache.cordova.console" />
+	<gap:plugin name="org.apache.cordova.device" version="0.2.8"/>
+	<gap:plugin name="org.apache.cordova.file" version="1.0.1"/>
+	<gap:plugin name="org.apache.cordova.file-transfer" version="0.4.2"/>
+	<gap:plugin name="org.apache.cordova.splashscreen" version="0.2.7"/>
+
+	<!-- Useful for debugging --> 
+	<gap:plugin name="org.apache.cordova.console" version="0.2.7"/>
     
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
 <!--     <gap:plugin name="org.apache.cordova.battery-status" /> -->
