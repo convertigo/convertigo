@@ -220,7 +220,7 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 				}
 			});
 			buttonDoThis.setText("Do this for all current project symbols");
-			buttonDoThis.setLayoutData(gridData);	
+			buttonDoThis.setLayoutData(gridData);
 		}
 		return container;
 	}
@@ -253,10 +253,9 @@ public class GlobalsSymbolsWarnDialog extends Dialog {
 		} else {
 			buttonOk = createButton(parent, IDialogConstants.OK_ID, "Create symbols", true);
 		}
-		
 		buttonOk.setEnabled(true);
 		
-		buttonIgnore = createButton(parent, IDialogConstants.CLOSE_ID, "Ignore", true);
+		buttonIgnore = createButton(parent, IDialogConstants.CLOSE_ID, "Ignore", false);
 		buttonIgnore.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
