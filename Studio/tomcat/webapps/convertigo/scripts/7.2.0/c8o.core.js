@@ -161,7 +161,7 @@ C8O = {
 	},
 
 	canLog: function (level) {
-		return $.inArray(level, C8O._define.log_levels) <= $.inArray(C8O.vars.log_level, C8O._define.log_levels);
+		return C8O._canLogConsole(level) || C8O._canLogRemote(level);
 	},
 	
 	convertHTML: function (input, output) {
@@ -400,8 +400,11 @@ C8O = {
 		local_cache_db_size: 2 * 1024 * 1024,
 		log_levels: ["none", "error", "warn", "info", "debug", "trace"],
 		log_buffer: [],
+		log_remote_env: null,
+		log_remote_init_env: null,
 		log_remote_path: null,
 		log_remote_pending: false,
+		log_remote_level: "trace",
 		pendingXhrCpt: 0,
 		plugins_path: null,
 		project: null,
@@ -499,6 +502,18 @@ C8O = {
 			};
 			doCall(true);
 		}
+	},
+	
+	_canLogConsole: function (level) {
+		return window.console &&
+			window.console.log &&
+			$.inArray(level, C8O._define.log_levels) <= $.inArray(C8O.vars.log_level, C8O._define.log_levels);
+	},
+	
+	_canLogRemote: function (level) {
+		return C8O.vars.log_remote == "true" &&
+			C8O._define.log_remote_path != null &&
+			$.inArray(level, C8O._define.log_levels) <= $.inArray(C8O._define.log_remote_level, C8O._define.log_levels);
 	},
 	
 	_findAndSelf: function ($elt, selector) {
@@ -799,45 +814,48 @@ C8O = {
 	},
 	
 	_log: function (level, msg, e) {
-		if (C8O.canLog(level)) {
+		var isLogConsole = C8O._canLogConsole(level);
+		var isLogRemote = C8O._canLogRemote(level);
+		
+		if (isLogConsole || isLogRemote) {
 			var ret;
 			if (ret = C8O._hook("log", level, msg, e)) {
-				if (window.console && window.console.log) {
-					if (typeof(ret) == "string") {
-						msg = ret;
-					}
-					if (C8O.isDefined(e)) {
-						var err = "";
-						if (C8O.isDefined(e.stack) && e.stack.length) {
-							err += e.stack;
-						} else if (typeof(e.toString) == "function") {
-							err += e.toString();
-						} else {
-							if (C8O.isDefined(e.name)) {
-								err += e.name + ": ";
-							}
-							if (C8O.isDefined(e.message)) {
-								err += e.message;
-							} else {
-								err += C8O.toJSON(e);
-							}
+				if (typeof(ret) == "string") {
+					msg = ret;
+				}
+				if (C8O.isDefined(e)) {
+					var err = "";
+					if (C8O.isDefined(e.stack) && e.stack.length) {
+						err += e.stack;
+					} else if (typeof(e.toString) == "function") {
+						err += e.toString();
+					} else {
+						if (C8O.isDefined(e.name)) {
+							err += e.name + ": ";
 						}
-						msg += "\n" + err;
+						if (C8O.isDefined(e.message)) {
+							err += e.message;
+						} else {
+							err += C8O.toJSON(e);
+						}
 					}
-					if (C8O.vars.log_line == "true" && navigator.userAgent.indexOf("Chrome") != -1) {
-						msg += "\n\t\t" + new Error().stack.split("\n")[3];
-					}
-					var time = (new Date().getTime() - C8O._define.start_time) / 1000;
-					
-					if (C8O.vars.log_remote == "true" && C8O._define.log_remote_path != null) {
-						C8O._define.log_buffer.push({
-							time:  time,
-							level: level,
-							msg:   msg
-						});
-						C8O._log_remote();
-					}
-					
+					msg += "\n" + err;
+				}
+				if (C8O.vars.log_line == "true" && navigator.userAgent.indexOf("Chrome") != -1) {
+					msg += "\n\t\t" + new Error().stack.split("\n")[3];
+				}
+				var time = (new Date().getTime() - C8O._define.start_time) / 1000;
+				
+				if (isLogRemote) {
+					C8O._define.log_buffer.push({
+						time:  time,
+						level: level,
+						msg:   msg
+					});
+					C8O._log_remote();
+				}
+				
+				if (isLogConsole) {
 					time = ("	" + time + "	").replace(	C8O._define.re_format_time, "$1$2$3");
 					
 					if (level.length == 4) {
@@ -854,13 +872,13 @@ C8O = {
 		if (C8O._define.log_buffer.length && !C8O._define.log_remote_pending) {
 			var data = {
 				logs: C8O.toJSON(C8O._define.log_buffer),
-				env: C8O.toJSON({
-					project: C8O._define.project,
-					uid: C8O._define.uid
-				})
+				env: C8O.toJSON($.extend({}, C8O._define.log_remote_env, C8O._define.log_remote_init_env))
 			};
+			
+			C8O._define.log_remote_init_env = null;
 			C8O._define.log_remote_pending = true;
 			C8O._define.log_buffer = [];
+			
 			$.ajax({
 				data: data,
 				dataType: "json",
@@ -868,7 +886,8 @@ C8O = {
 				url: C8O._define.log_remote_path
 			}).always(function () {
 				C8O._define.log_remote_pending = false;				
-			}).done(function () {
+			}).done(function (data) {
+				C8O._define.log_remote_level = data.remoteLogLevel; 
 				C8O._log_remote();
 			}).fail(function (jqXHR, textStatus, errorThrown) {
 				C8O.vars.log_remote = "false";
@@ -1065,6 +1084,14 @@ $.ajaxSetup({
 				C8O.log.warn("c8o.core: cannot determine the current project using " + window.location.href + " or " + C8O.vars.endpoint_url);
 			}
 		}
+		
+		C8O._define.log_remote_env = {
+			uid: C8O._define.uid
+		};
+		
+		C8O._define.log_remote_init_env = {
+			project: C8O._define.project
+		};
 		
 		var params = C8O._parseQuery();
 		

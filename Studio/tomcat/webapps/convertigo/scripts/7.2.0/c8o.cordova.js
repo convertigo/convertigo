@@ -195,6 +195,15 @@ if ("cordova" in window) {
 					try {
 						$.extend(true, C8O._define.cordovaEnv, data);
 						
+						if (C8O.getCordovaEnv("remoteLogLevel")) {
+							C8O._define.log_remote_level = C8O.getCordovaEnv("remoteLogLevel");
+						}
+						
+						if (!C8O._define.log_remote_init_env) {
+							C8O._define.log_remote_init_env = {};
+						}
+						
+						C8O._define.log_remote_init_env = {cordova_uuid: C8O.getCordovaEnv("uuid")}
 					} catch (err) {
 						C8O.log.error("c8o.cdv : deviceready catch init env", err);
 					}

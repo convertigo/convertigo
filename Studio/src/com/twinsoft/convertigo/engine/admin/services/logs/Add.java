@@ -22,6 +22,10 @@
 
 package com.twinsoft.convertigo.engine.admin.services.logs;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -36,48 +40,77 @@ import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.Log4jHelper.mdcKeys;
 
 @ServiceDefinition(
-		name = "Add",
-		roles = { Role.ANONYMOUS },
-		parameters = {},
-		returnValue = ""
-	)
+	name = "Add",
+	roles = { Role.ANONYMOUS },
+	parameters = {},
+	returnValue = ""
+)
 public class Add extends JSonService {
-	
+
 	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
-		JSONArray logs = new JSONArray(request.getParameter("logs"));
-		JSONObject env = new JSONObject(request.getParameter("env"));
-		
-		HttpSession httpSession = request.getSession();
-				
-		Log4jHelper.mdcSet(new LogParameters());
-		Log4jHelper.mdcPut(mdcKeys.ClientIP, request.getRemoteAddr());
-		Log4jHelper.mdcPut(mdcKeys.Project, env.getString("project"));
-		Log4jHelper.mdcPut(mdcKeys.UID, env.getString("uid"));
-		Log4jHelper.mdcPut(mdcKeys.ContextID, httpSession.getId());
-		
-		if (EnginePropertiesManager.getProperty(PropertyName.NET_REVERSE_DNS).equalsIgnoreCase("true")) {
-			Log4jHelper.mdcPut(mdcKeys.ClientHostName, request.getRemoteHost());
-		}
-		
-		if (httpSession.getAttribute("authenticatedUser") != null) {
-			Log4jHelper.mdcPut(mdcKeys.User, httpSession.getAttribute("authenticatedUser").toString());			
-		}
-		
-		for (int i = 0; i < logs.length(); i++) {
-			JSONObject log = logs.getJSONObject(i);
-			Level level = Level.toLevel(log.getString("level"), Level.OFF);
-			if (Engine.logDevices.isEnabledFor(level)) {
-				String msg = log.getString("msg");
-				String time = log.getString("time");
-				msg = "(" + time + ") " + msg;
-				Engine.logDevices.log(level, msg);
+		try {
+			JSONArray logs = new JSONArray(request.getParameter("logs"));
+			JSONObject env = new JSONObject(request.getParameter("env"));
+
+			String uid = env.getString("uid");
+
+			if (uid == null) {
+				throw new IllegalArgumentException();
 			}
+
+			HttpSession httpSession = request.getSession();
+			
+			Map<String, LogParameters> logParametersMap = GenericUtils.cast(httpSession.getAttribute(Add.class.getCanonicalName()));
+
+			if (logParametersMap == null) {
+				httpSession.setAttribute(Add.class.getCanonicalName(), logParametersMap = new HashMap<String, LogParameters>());
+			}
+
+			LogParameters logParameters = logParametersMap.get(uid);
+
+			if (logParameters == null) {
+				logParametersMap.put(uid, logParameters = new LogParameters());
+				
+				logParameters.put(mdcKeys.ContextID.toString().toLowerCase(), httpSession.getId());
+			}
+
+			Log4jHelper.mdcSet(logParameters);
+			
+			logParameters.put(mdcKeys.ClientIP.toString().toLowerCase(), request.getRemoteAddr());
+
+			if (EnginePropertiesManager.getProperty(PropertyName.NET_REVERSE_DNS).equalsIgnoreCase("true")) {
+				Log4jHelper.mdcPut(mdcKeys.ClientHostName, request.getRemoteHost());
+			}
+			
+			for (Iterator<String> iKey = GenericUtils.cast(env.keys()); iKey.hasNext();) {
+				String key = iKey.next();
+				logParameters.put(key.toLowerCase(), env.get(key));
+			}
+
+			if (httpSession.getAttribute("authenticatedUser") != null) {
+				Log4jHelper.mdcPut(mdcKeys.User, httpSession.getAttribute("authenticatedUser").toString());			
+			}
+
+			for (int i = 0; i < logs.length(); i++) {
+				JSONObject log = logs.getJSONObject(i);
+				Level level = Level.toLevel(log.getString("level"), Level.OFF);
+				
+				if (Engine.logDevices.isEnabledFor(level)) {
+					String msg = log.getString("msg");
+					String time = log.getString("time");
+					msg = "(" + time + ") " + msg;
+					Engine.logDevices.log(level, msg);
+				}
+			}
+			
+			response.put("remoteLogLevel", Engine.logDevices.getLevel().toString().toLowerCase());
+		} finally {
+			Log4jHelper.mdcClear();
 		}
-		
-		Log4jHelper.mdcClear();
 	}	 
 }

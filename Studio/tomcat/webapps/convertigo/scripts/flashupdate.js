@@ -42,7 +42,6 @@ var F = {
 	debugStream: "",
 	fsProtocol: null,
 	cordovaVersion: null,
-	splashRemoveMode: "afterUpdate",
 	clickEvent: typeof(document.ontouchstart) == "undefined" ? "click" : "touchstart",
 			
 	env: {
@@ -65,6 +64,10 @@ var F = {
 		platformName: null,
 		projectName: null,
 		remoteBase: null,
+		remoteLogLevel: "trace",
+		remoteRevision: null,
+		remoteVersion: null,
+		splashRemoveMode: "afterUpdate",
 		timeout: 0,
 		uuid: "n/a",
 		webLocalBase: null
@@ -151,7 +154,7 @@ var F = {
 			url: url,
 			success: function (data) {
 				try {
-					$.extend(true, F.env, data);
+					$.extend(true, F.env, data, F.currentFiles.resourcesEnv);
 					
 					if (F.env.firstLaunch) {
 						$("#main").show();
@@ -263,7 +266,7 @@ var F = {
 		F.env.isLocal = true;
 		
 		F.write("env.json", JSON.stringify(F.env), function () {
-			F.debug("env.json written");
+			F.debug("redirectLocal env.json written");
 			
 			if (wasLocal) {
 				window.location.reload();
@@ -342,15 +345,14 @@ var F = {
 					try {
 						F.remoteFiles = data;
 						
-						if (data.splashRemoveMode) {
-							F.splashRemoveMode = data.splashRemoveMode;
-						}
+						$.extend(true, F.env, data.env);
 						
-						if (data.env) {
-							$.extend(true, F.env, data.env);
-						}
+						F.write("env.json", JSON.stringify(F.env), function () {
+							F.debug("isFlashUpdate env.json written");
+							
+							F.isFlashUpdate();
+						});
 						
-						F.isFlashUpdate();
 					} catch (err) {
 						F.error("catch isFlashUpdate success", err);
 					}
@@ -428,7 +430,7 @@ var F = {
 	redirectApp: function () {
 		F.debug("redirectApp");
 		
-		if (F.splashRemoveMode == "afterUpdate") {
+		if (F.env.splashRemoveMode != "manual") {
 			F.removeSplash();
 		}
 		
@@ -503,7 +505,7 @@ var F = {
 		if (fromApp) {
 			F.remoteFiles = F.currentFiles;
 		} else {
-			if (F.splashRemoveMode == "beforeUpdate") {
+			if (F.env.splashRemoveMode == "beforeUpdate") {
 				F.removeSplash();
 			}
 			$("#progress").show();

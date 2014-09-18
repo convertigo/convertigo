@@ -60,12 +60,16 @@ public class GetResources extends JSonService {
 			response.put(Keys.flashUpdateEnabled.name(), false);
 		}
 		
-		response.put("splashRemoveMode", mobileResourceHelper.mobileApplication.getSplashRemoveMode().name());
-		
 		JSONObject env = new JSONObject();
 		env.put("currentRevision", mobileResourceHelper.destDir.lastModified());
 		env.put("currentVersion", mobileResourceHelper.mobileApplication.getComputedApplicationVersion());
+		response.put("resourcesEnv", env);
 		
+		env = new JSONObject();
+		env.put("remoteLogLevel", Engine.logDevices.getLevel().toString().toLowerCase());
+		env.put("remoteRevision", mobileResourceHelper.destDir.lastModified());
+		env.put("remoteVersion", mobileResourceHelper.mobileApplication.getComputedApplicationVersion());
+		env.put("splashRemoveMode", mobileResourceHelper.mobileApplication.getSplashRemoveMode().name());
 		response.put("env", env);
 	}	 
 }
