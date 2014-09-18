@@ -286,10 +286,11 @@ $.extend(true, C8O, {
  *  getCordovaEnv function
  *  ** Needs cordova.js + c8o.cordova.js **
  *  return the specific value of the cordova environment or the whole environment (without parameter)
- *  the following keys should be present:
+ *  the following keys can be used:
  *  	applicationAuthorName, applicationAuthorEmail, applicationAuthorWebsite, applicationDescription, applicationId, applicationName,
  *  	builtRevision, builtVersion, currentRevision, currentVersion,
  *  	endPoint, platform, platformName, projectName, uuid.
+ *  This method can only be used after the C8O library environment initialization (you can use it in the init_finished hook and after).
  *  
  *  key (optional): string of the environment key to return, or the whole key/value environment object if no parameter
  *  return: specific value or whole the cordova environment
