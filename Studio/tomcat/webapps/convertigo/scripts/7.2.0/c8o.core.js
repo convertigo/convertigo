@@ -36,7 +36,7 @@ C8O = {
 		first_call: "false",
 		log_level: "warn", /** none, error, warn, info, debug, trace */
 		log_line: "false",
-		log_remote: "false",
+		log_remote: "true",
 		requester_prefix: "",
 		xsl_side: "none"
 	},
@@ -403,7 +403,7 @@ C8O = {
 		log_remote_env: null,
 		log_remote_init_env: null,
 		log_remote_path: null,
-		log_remote_pending: false,
+		log_remote_pending: null,
 		log_remote_level: "trace",
 		pendingXhrCpt: 0,
 		plugins_path: null,
@@ -869,14 +869,14 @@ C8O = {
 	},
 	
 	_log_remote: function () {
-		if (C8O._define.log_buffer.length && !C8O._define.log_remote_pending) {
+		if (C8O._define.log_buffer.length && !C8O._define.log_remote_pending) {			
 			var data = {
 				logs: C8O.toJSON(C8O._define.log_buffer),
 				env: C8O.toJSON($.extend({}, C8O._define.log_remote_env, C8O._define.log_remote_init_env))
 			};
 			
 			C8O._define.log_remote_init_env = null;
-			C8O._define.log_remote_pending = true;
+			C8O._define.log_remote_pending = C8O._define.log_remote_level;
 			C8O._define.log_buffer = [];
 			
 			$.ajax({
@@ -884,12 +884,21 @@ C8O = {
 				dataType: "json",
 				type: "POST",
 				url: C8O._define.log_remote_path
-			}).always(function () {
-				C8O._define.log_remote_pending = false;				
 			}).done(function (data) {
-				C8O._define.log_remote_level = data.remoteLogLevel; 
+				C8O._define.log_remote_level = data.remoteLogLevel;
+				
+				if (!C8O._canLogRemote(C8O._define.log_remote_pending)) {
+					for (var i = 0; i < C8O._define.log_buffer.length; i++) {
+						if (!C8O._canLogRemote(C8O._define.log_buffer[i].level)) {
+							C8O._define.log_buffer.splice(i--, 1)
+						};
+					}
+				}
+				
+				C8O._define.log_remote_pending = null;	
 				C8O._log_remote();
 			}).fail(function (jqXHR, textStatus, errorThrown) {
+				C8O._define.log_remote_pending = null;	
 				C8O.vars.log_remote = "false";
 				C8O.log.error("c8o.core: _log_remote failed to perform remote logging", "textStatus: '" + textStatus + "' errorThrown: '" + errorThrown + "'");
 			});

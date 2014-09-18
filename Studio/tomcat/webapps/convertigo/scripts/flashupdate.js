@@ -64,7 +64,6 @@ var F = {
 		platformName: null,
 		projectName: null,
 		remoteBase: null,
-		remoteLogLevel: "trace",
 		remoteRevision: null,
 		remoteVersion: null,
 		splashRemoveMode: "afterUpdate",
@@ -429,10 +428,6 @@ var F = {
 	
 	redirectApp: function () {
 		F.debug("redirectApp");
-		
-		if (F.env.splashRemoveMode != "manual") {
-			F.removeSplash();
-		}
 		
 		window.location.href = window.location.href.replace(F.reTailUrl, "$1/app.html");
 	},

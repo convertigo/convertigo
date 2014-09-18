@@ -66,7 +66,6 @@ public class GetResources extends JSonService {
 		response.put("resourcesEnv", env);
 		
 		env = new JSONObject();
-		env.put("remoteLogLevel", Engine.logDevices.getLevel().toString().toLowerCase());
 		env.put("remoteRevision", mobileResourceHelper.destDir.lastModified());
 		env.put("remoteVersion", mobileResourceHelper.mobileApplication.getComputedApplicationVersion());
 		env.put("splashRemoveMode", mobileResourceHelper.mobileApplication.getSplashRemoveMode().name());

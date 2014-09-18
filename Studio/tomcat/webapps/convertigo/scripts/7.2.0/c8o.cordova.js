@@ -195,15 +195,15 @@ if ("cordova" in window) {
 					try {
 						$.extend(true, C8O._define.cordovaEnv, data);
 						
-						if (C8O.getCordovaEnv("remoteLogLevel")) {
-							C8O._define.log_remote_level = C8O.getCordovaEnv("remoteLogLevel");
-						}
-						
 						if (!C8O._define.log_remote_init_env) {
 							C8O._define.log_remote_init_env = {};
 						}
 						
-						C8O._define.log_remote_init_env = {cordova_uuid: C8O.getCordovaEnv("uuid")}
+						C8O._define.log_remote_init_env.cordova_uuid = C8O.getCordovaEnv("uuid");
+						
+						if (C8O.getCordovaEnv("splashRemoveMode") != "manual") {
+							C8O.splashscreenHide();
+						}
 					} catch (err) {
 						C8O.log.error("c8o.cdv : deviceready catch init env", err);
 					}
@@ -572,10 +572,10 @@ if ("cordova" in window) {
 		C8O.log.info("c8o.cdv : cordova on deviceready");
 		
 		if (C8O._hook("device_ready")) {
-			C8O.log.info("c8o.cdv : window.plugins " + window.plugins);
+			C8O.log.info("c8o.cdv : window.plugins defined ? " + C8O.isDefined(window.plugins));
 
 			if (C8O.isDefined(window.plugins)) {
-				C8O.log.info("c8o.cdv : window.plugins.pushNotification " + window.plugins.pushNotification);
+				C8O.log.info("c8o.cdv : window.plugins.pushNotification defined ? " + C8O.isDefined(window.plugins.pushNotification));
 				
 				if (C8O.isDefined(window.plugins.pushNotification)) {
 					var pushNotification = window.plugins.pushNotification;
@@ -589,8 +589,8 @@ if ("cordova" in window) {
 
 						if (C8O.isDefined(C8O.cordova.androidSenderID) && C8O.cordova.androidSenderID.length > 0) {
 							options = {
-									"senderID": C8O.cordova.androidSenderID,
-									"ecb": "C8O._cordova_onNotificationGCM"
+								"senderID": C8O.cordova.androidSenderID,
+								"ecb": "C8O._cordova_onNotificationGCM"
 							};
 						} else {
 							C8O.log.error("c8o.cordova: no senderID for ");
@@ -600,31 +600,31 @@ if ("cordova" in window) {
 						C8O.log.info("c8o.cordova: IOs detected");
 
 						options = {
-								"badge": "true",
-								"sound": "true",
-								"alert": "true",
-								"ecb": "C8O._cordova_onNotificationAPN"
+							"badge": "true",
+							"sound": "true",
+							"alert": "true",
+							"ecb": "C8O._cordova_onNotificationAPN"
 						};
 					}
 
 					pushNotification.register(
-							function (result) {
-								if (device.platform == "android" || device.platform == "Android") {
-									C8O.log.info("c8o.cdv : PushNotificationRegistered for Android: " + result);
-								} else {
-									C8O.log.info("c8o.cdv : PushNotificationRegistered for iOS: " + result);
-									if (typeof result == "string") {
-										if (C8O._hook("push_register_success", result)) {
-											C8O._cordova_notify_push_server("apns:" + result);
-										}
+						function (result) {
+							if (device.platform == "android" || device.platform == "Android") {
+								C8O.log.info("c8o.cdv : PushNotificationRegistered for Android: " + result);
+							} else {
+								C8O.log.info("c8o.cdv : PushNotificationRegistered for iOS: " + result);
+								if (typeof result == "string") {
+									if (C8O._hook("push_register_success", result)) {
+										C8O._cordova_notify_push_server("apns:" + result);
 									}
 								}
-							},
-							function (error) {
-								C8O.log.error("c8o.cdv : PushNotificationRegistered Failed: " + error);
-								C8O._hook("push_register_failed", error);
-							},
-							options
+							}
+						},
+						function (error) {
+							C8O.log.error("c8o.cdv : PushNotificationRegistered Failed: " + error);
+							C8O._hook("push_register_failed", error);
+						},
+						options
 					);
 				}
 			}

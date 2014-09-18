@@ -71,6 +71,7 @@ $.extend(true, C8O, {
 //		first_call: "true", /** true/false: automatically call convertigo using the page query/hash parameters, after the init_finished hook */
 //		log_level: "warn", /** none/error/warn/info/debug/trace: filter logs that appear in the browser console */
 //		log_line: "false", /** true/false: add an extra line on Chrome console with a link to the log */
+//		log_remote: "true", /** true/false: send client log to the C8O "Devices" logger depending on its log level */
 //		requester_prefix: "", /** string prepend to the .xml or .cxml requester */
 //		resize_offset: "50", /** integer: number of pixel added to the automatic resize */
 //		send_portal_username: "true", /** true/false: (gatein only) automatically add a portal_username parameter with the name of the logger user */
