@@ -1070,7 +1070,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			try {
 				String xsdInternalPath = newProjectDir + "/" + Project.XSD_FOLDER_NAME + "/" + Project.XSD_INTERNAL_FOLDER_NAME;
 				File xsdInternalDir = new File(xsdInternalPath).getCanonicalFile();
-				boolean needConnectorRename = !(oldConnectorName.equals(newConnectorName));
+				boolean needConnectorRename = !(oldConnectorName.toUpperCase().equals(newConnectorName.toUpperCase()));
 				if (needConnectorRename) {
 					File srcDir = new File(xsdInternalDir+ "/"+ oldConnectorName).getCanonicalFile();
 					File destDir = new File(xsdInternalDir+ "/"+ newConnectorName).getCanonicalFile();
