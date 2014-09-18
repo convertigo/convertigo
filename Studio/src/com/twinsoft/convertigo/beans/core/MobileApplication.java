@@ -62,9 +62,9 @@ public class MobileApplication extends DatabaseObject {
 	}
 	
 	public enum SplashRemoveMode {
-		beforeUpdate("Before Update"),
-		afterUpdate("After Update"),
-		manual("Manual or Timeout");
+		beforeUpdate("Before Flash Update"),
+		afterUpdate("After Flash Update"),
+		manual("Manual");
 		
 		private final String label;
 		
