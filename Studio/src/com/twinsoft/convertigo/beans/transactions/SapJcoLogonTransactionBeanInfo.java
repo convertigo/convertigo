@@ -33,8 +33,8 @@ public class SapJcoLogonTransactionBeanInfo extends MySimpleBeanInfo {
 			beanClass = SapJcoLogonTransaction.class;
 			additionalBeanClass = com.twinsoft.convertigo.beans.transactions.SapJcoTransaction.class;
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/saptransaction_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/saptransaction_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/saplogontransaction_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/saplogontransaction_color_32x32.png";
 
 			properties = new PropertyDescriptor[1];
 			
