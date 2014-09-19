@@ -1168,15 +1168,14 @@ public class XMLUtils {
 	}
 	
 	public static Charset getEncoding(File file) {
-		return getEncoding(file, Charset.defaultCharset());
+		return getEncoding(file, null);
 	}
 	
 	public static Charset getEncoding(File file, Charset charset) {
 		InputStream is = null;
 		try {
 			byte[] buffer = new byte[128];
-			 is = new FileInputStream(file);
-			int nb = is.read(buffer);
+			int nb = (is = new FileInputStream(file)).read(buffer);
 			String encoding = new String(buffer, 0, nb, "ASCII").replaceFirst("[\\d\\D]*encoding=\"(.*?)\"[\\d\\D]*", "$1");
 			charset = Charset.forName(encoding);
 		} catch (Exception e) {
@@ -1188,6 +1187,16 @@ public class XMLUtils {
 				} catch (IOException e) {}
 			}
 		}
-		return charset;
+		
+		return charset == null ? Charset.defaultCharset() : charset;
+	}
+	
+	public static Charset getEncoding(byte[] bytes, Charset charset) {
+		try {
+			String encoding = new String(bytes, 0, Math.min(bytes.length, 128), "ASCII").replaceFirst("[\\d\\D]*encoding=\"(.*?)\"[\\d\\D]*", "$1");
+			charset = Charset.forName(encoding);
+		} catch (Exception e) { }
+		
+		return charset == null ? Charset.defaultCharset() : charset;
 	}
 }

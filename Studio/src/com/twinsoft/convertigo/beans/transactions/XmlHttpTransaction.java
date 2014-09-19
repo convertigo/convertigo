@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.transactions;
 
 import java.io.File;
+import java.nio.charset.Charset;
 
 import javax.xml.namespace.QName;
 
@@ -59,7 +60,7 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 	private boolean ignoreSoapEnveloppe = false;
 	
 	private static final long serialVersionUID = 1494278577299328199L;
-
+	
 	public XmlHttpTransaction(){
 		super();
 	}
@@ -104,9 +105,11 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 	public void makeDocument(byte[] httpData) throws Exception {
 		Engine.logBeans.trace("makeDocument : " + getEncodingCharSet());
 		
-		String sdata = new String(httpData, xmlEncoding);
+		Charset charset = XMLUtils.getEncoding(httpData, Charset.forName(xmlEncoding));
+		
+		String sdata = new String(httpData, charset);
+		sdata = sdata.replaceFirst("[\\d\\D]*?<", "<");
 		Engine.logBeans.trace("makeDocument afternewString: " + sdata);
-
 		
 		Document xmlHttpDocument = requester.parseDOM(sdata);
 		if (Engine.logBeans.isTraceEnabled())
@@ -144,29 +147,29 @@ public class XmlHttpTransaction extends AbstractHttpTransaction implements IElem
 			XMLUtils.copyDocument(xmlHttpDocument, context.outputDocument);
     }
 
-	private Node importNodeWithNoPrefix(Document document, Node node, boolean deep) {
-		Node newNode = null;
-		
-		if (node instanceof Element) {
-			String localName = node.getNodeName().substring(node.getNodeName().indexOf(":")+1);
-			newNode = document.createElement(localName);
-
-			NodeList childNodes = node.getChildNodes();
-			int len = childNodes.getLength();
-			Node child;
-	        for (int i = 0 ; i < len ; i++) {
-	        	child = childNodes.item(i);
-	        	if (deep && (child instanceof Element)) {
-	        		newNode.appendChild(importNodeWithNoPrefix(document, child, deep));
-	        	}
-	        	else {
-	        		newNode.appendChild(document.importNode(child, deep));
-	        	}
-	        }
-		}
-			
-		return newNode;
-	}
+//	private Node importNodeWithNoPrefix(Document document, Node node, boolean deep) {
+//		Node newNode = null;
+//		
+//		if (node instanceof Element) {
+//			String localName = node.getNodeName().substring(node.getNodeName().indexOf(":")+1);
+//			newNode = document.createElement(localName);
+//
+//			NodeList childNodes = node.getChildNodes();
+//			int len = childNodes.getLength();
+//			Node child;
+//	        for (int i = 0 ; i < len ; i++) {
+//	        	child = childNodes.item(i);
+//	        	if (deep && (child instanceof Element)) {
+//	        		newNode.appendChild(importNodeWithNoPrefix(document, child, deep));
+//	        	}
+//	        	else {
+//	        		newNode.appendChild(document.importNode(child, deep));
+//	        	}
+//	        }
+//		}
+//			
+//		return newNode;
+//	}
 	
 	private Element getSoapBodyResponseElement(Element element) {
 		NodeList childNodes = element.getChildNodes();
