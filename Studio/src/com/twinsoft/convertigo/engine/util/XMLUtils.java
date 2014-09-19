@@ -835,7 +835,14 @@ public class XMLUtils {
 	}
 
 	static public Document parseDOM(File file) throws SAXException, IOException, EngineException {
-		return parseDOM(new FileInputStream(file));
+		InputStream is = null;
+		try {
+			return parseDOM(is = new FileInputStream(file));
+		} finally {
+			try {
+				is.close();
+			} catch (Exception e) {}
+		}
 	}
 
 	static public Document parseDOM(String filename) throws SAXException, IOException, EngineException {

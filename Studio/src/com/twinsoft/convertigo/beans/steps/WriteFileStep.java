@@ -54,9 +54,9 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	private static final long serialVersionUID = 1935459983330667718L;
 	
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
-	private boolean appendTimestamp=false;
+	private boolean appendTimestamp = false;
 	private String dataFile = "";	
-	private String encoding="iso-8859-1";
+	private String encoding= "UTF-8";
 	private boolean appendResult=false;
 	private transient String filePath;
 	
