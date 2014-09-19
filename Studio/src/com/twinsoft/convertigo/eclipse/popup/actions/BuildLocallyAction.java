@@ -1035,7 +1035,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 										+ " - Blackberry 10 \n"
 										+ " - Android\n"
 										+ "\n"
-										+ "For the moment, this platform is not possible to \"build locally\":\n"
+										+ "For the moment, these platforms cannot be  \"build locally\":\n"
 										+ " - Blackberry 10\n"
 										+ " - Windows 8\n");
 
