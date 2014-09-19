@@ -64,7 +64,23 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.steps.CopyStep;
+import com.twinsoft.convertigo.beans.steps.CreateDirectoryStep;
+import com.twinsoft.convertigo.beans.steps.DeleteStep;
+import com.twinsoft.convertigo.beans.steps.DuplicateStep;
+import com.twinsoft.convertigo.beans.steps.ExceptionStep;
 import com.twinsoft.convertigo.beans.steps.IteratorStep;
+import com.twinsoft.convertigo.beans.steps.LogStep;
+import com.twinsoft.convertigo.beans.steps.ParallelStep;
+import com.twinsoft.convertigo.beans.steps.PushNotificationStep;
+import com.twinsoft.convertigo.beans.steps.RemoveContextStep;
+import com.twinsoft.convertigo.beans.steps.RenameStep;
+import com.twinsoft.convertigo.beans.steps.SerialStep;
+import com.twinsoft.convertigo.beans.steps.SimpleStep;
+import com.twinsoft.convertigo.beans.steps.SmtpStep;
+import com.twinsoft.convertigo.beans.steps.SourceStep;
+import com.twinsoft.convertigo.beans.steps.WriteFileStep;
+import com.twinsoft.convertigo.beans.steps.XMLErrorStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree;
 import com.twinsoft.convertigo.engine.Engine;
@@ -388,6 +404,22 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		else {
 			tItem = new TreeItem((TreeItem)parent,  SWT.NONE);
 			lastItem = tItem;
+
+			/*
+				All these steps have to be disabled in the Tree.
+			*/
+			boolean disableStep = 
+							databaseObject instanceof ParallelStep || databaseObject instanceof SerialStep ||
+							databaseObject instanceof ExceptionStep || databaseObject instanceof SourceStep ||
+							databaseObject instanceof SimpleStep || databaseObject instanceof XMLErrorStep ||
+							databaseObject instanceof CopyStep || databaseObject instanceof CreateDirectoryStep ||
+							databaseObject instanceof DeleteStep || databaseObject instanceof DuplicateStep ||
+							databaseObject instanceof RenameStep || databaseObject instanceof WriteFileStep ||
+							databaseObject instanceof LogStep || databaseObject instanceof PushNotificationStep ||
+							databaseObject instanceof RemoveContextStep || databaseObject instanceof SmtpStep;
+			
+			if (disableStep)
+				tItem.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
 		}
 
 		// associate our object with the tree Item.
@@ -400,12 +432,15 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		}
 		
 		if (!stepFound && (lastSelectableItem == null)) {
-			if (!(tItem.getForeground().equals(Display.getCurrent().getSystemColor(SWT.COLOR_RED))))
+			if (!(tItem.getForeground().equals(Display.getCurrent().getSystemColor(SWT.COLOR_RED)))) {
 				lastSelectableItem = tItem;
+			}
 		}
 		
 		// disable all steps after founded one
-		if (stepFound) tItem.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+		if (stepFound) {
+			tItem.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+		}
 		
 		// now recurse on children steps
 		List<Step> v = new Vector<Step>();
@@ -415,7 +450,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		else if ((databaseObject instanceof StepWithExpressions) && (((StepWithExpressions)databaseObject).hasSteps())) {
 			v = ((StepWithExpressions)databaseObject).getSteps();
 		}
-		
+
 		for (int i =0; i< v.size() ; i++) {
 			addStepsInTree(tItem, (Step)v.get(i));
 		}
@@ -486,7 +521,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 			XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), true);
 			XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep == null ? step:targetStep);
 			Document stepDoc = XmlSchemaUtils.getDomInstance(xso);
-//			Document stepDoc = step.getWsdlDom();
+			//Document stepDoc = step.getWsdlDom();
 			if (stepDoc != null) { // stepDoc can be null for non "xml" step : e.g jIf
 				Document doc = step.getSequence().createDOM();
 				Element root = (Element)doc.importNode(stepDoc.getDocumentElement(), true);
@@ -519,7 +554,6 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 				else clean();
 			}
 			else clean();
-			
 		} catch (Exception e) {
 			clean();
 			ConvertigoPlugin.errorMessageBox(StringUtils.readStackTraceCauses(e));
