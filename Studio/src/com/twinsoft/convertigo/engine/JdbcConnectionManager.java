@@ -80,7 +80,7 @@ public class JdbcConnectionManager implements AbstractManager {
 		
 		BasicDataSource pool = new BasicDataSource();
 
-		pool.setDriverClassName(connector.getRealJdbcDriverClassName());
+		pool.setDriverClassName(connector.getJdbcDriverClassName());
 		
 		String jdbcURL = connector.getRealJdbcURL();
 		Engine.logEngine.debug("(JdbcConnectionManager) JDBC URL: " + jdbcURL);
@@ -199,7 +199,7 @@ public class JdbcConnectionManager implements AbstractManager {
 		}
 		else {
 			// Attempt to load the database driver
-			String jdbcDriverClassName = connector.getRealJdbcDriverClassName();
+			String jdbcDriverClassName = connector.getJdbcDriverClassName();
 			Engine.logEngine.debug("(JdbcConnectionManager) JDBC driver: " + jdbcDriverClassName);
 			Class.forName(jdbcDriverClassName);
 			Engine.logEngine.debug("(JdbcConnectionManager) JDBC driver loaded");
