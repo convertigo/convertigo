@@ -38,8 +38,6 @@
     <icon src="res/icon/icon62tile.png" 	gap:platform="winphone"   gap:role="background" />
     <icon src="res/icon/icon173tile.png" 	gap:platform="winphone"   gap:role="background" />
 	
-	<gap:splash src="splash.png" />
-	
 	<!-- Windows Phone 8 splash -->
     <gap:splash src="res/splash/splash.jpg" 		     gap:platform="winphone" />
 	
