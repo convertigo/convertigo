@@ -51,7 +51,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	
 	private static final long serialVersionUID = 3915732415195665643L;
 	
-	enum ApnsNotificationType {
+	public enum ApnsNotificationType {
 		Message,
 		Badge,
 		Sound
