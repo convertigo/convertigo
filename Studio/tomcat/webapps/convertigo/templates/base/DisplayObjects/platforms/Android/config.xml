@@ -18,6 +18,9 @@
 
 	<description>$(ApplicationDescription)$</description>
 
+	<!-- This parameter defines the application's version number in app store -->
+	<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" id="$(ApplicationID)$" versionCode="4" version="$(ApplicationVersion)$">
+
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
 	 
 	<gap:platform name="android"/>

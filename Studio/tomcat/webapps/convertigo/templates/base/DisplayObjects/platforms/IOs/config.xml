@@ -18,6 +18,11 @@
 
 	<description>$(ApplicationDescription)$</description>
 
+	<!-- This parameter defines the application's version number in app store -->
+	<gap:config-file platform="ios" parent="CFBundleShortVersionString">
+    	<string>$(ApplicationVersion)$</string>
+	</gap:config-file>
+	
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
 	 
 	<gap:platform name="ios"/>
