@@ -782,13 +782,13 @@
 	<group name="SAP">
 		<category>
 			<beans>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.connectors.SapJcoConnector">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.connectors.SapJcoConnector">
                     <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.core.Project"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.SapJcoTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.SapJcoTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SapJcoConnector"/>
                 </bean>
-				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.SapJcoLogonTransaction">
+				<bean enable="true" documented="true" classname="com.twinsoft.convertigo.beans.transactions.SapJcoLogonTransaction">
 					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.SapJcoConnector"/>
                 </bean>
             </beans>
