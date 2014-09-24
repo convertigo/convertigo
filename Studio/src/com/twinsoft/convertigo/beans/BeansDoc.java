@@ -29,6 +29,8 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.FileWriter;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -144,12 +146,17 @@ public class BeansDoc {
 
 		Class<?> databaseObjectClass = databaseObject.getClass();
 		BeanInfo beanInfo = Introspector.getBeanInfo(databaseObjectClass);
-		BeanDescriptor databaseObjectBeanDescriptor = beanInfo
-				.getBeanDescriptor();
-		PropertyDescriptor[] propertyDescriptors = beanInfo
-				.getPropertyDescriptors();
+		BeanDescriptor databaseObjectBeanDescriptor = beanInfo.getBeanDescriptor();
+		PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
 		
-
+		Arrays.sort(propertyDescriptors, new Comparator<PropertyDescriptor>() {
+			@Override
+			public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
+				return o1.getDisplayName().compareTo(o2.getDisplayName());
+			}
+			
+		} );
+		
 		Element elementBean = document.createElement("bean");
 		parentElement.appendChild(elementBean);
 
