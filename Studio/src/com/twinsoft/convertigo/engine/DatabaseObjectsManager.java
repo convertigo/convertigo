@@ -663,10 +663,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 					
 					// rename project in xml file
 					if (keepOldReferences) {
-						ProjectUtils.renameProjectFile(Engine.PROJECTS_PATH, archiveProjectName, projectName);
+						ProjectUtils.renameXmlProject(Engine.PROJECTS_PATH, archiveProjectName, projectName);
 					}
 					else {
-						ProjectUtils.renameXmlProject(Engine.PROJECTS_PATH, archiveProjectName, projectName);						
+						ProjectUtils.renameProjectFile(Engine.PROJECTS_PATH, archiveProjectName, projectName);						
 					}
 					Engine.logDatabaseObjectManager.debug("Project renamed from \"" + archiveProjectName
 							+ "\" to \"" + projectName + "\"");
