@@ -201,6 +201,9 @@ function hideExportSymbolsPanel() {
 	$("#importSymbol").button("enable");
 	$("#symbolsListButtonDeleteAll").button("enable");
 	$("#exportSymbolsButtonAction").hide();
+
+	$("#validExport").button("disable");
+	$("#selectAll .ui-button-text").text("Select all");	
 }
 
 function globalSymbols_List_update() {
@@ -368,6 +371,9 @@ function exportSymbolButtonsToggle() {
 		$('#symbolsList').showCol('checkboxes');
 		$('#symbolsList').hideCol('btnEdit');
 		$('#symbolsList').hideCol('btnDelete');
+
+		$("#validExport").button("disable");
+		$("#selectAll .ui-button-text").text("Select all");	
 	}
 	//Disable buttons from buttons bar
 	$("#addSymbol").button(status);
