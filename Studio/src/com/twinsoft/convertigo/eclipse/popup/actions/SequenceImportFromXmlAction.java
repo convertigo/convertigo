@@ -69,9 +69,9 @@ public class SequenceImportFromXmlAction extends MyAbstractAction {
     			
     			// Open a file dialog to search a XML file
     			FileDialog fileDialog = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.SAVE);
-            	fileDialog.setText("Import schema file");
+            	fileDialog.setText("Import XML file");
             	fileDialog.setFilterExtensions(new String[]{"*.xml"});
-            	fileDialog.setFilterNames(new String[]{"Schema files"});
+            	fileDialog.setFilterNames(new String[]{"XML"});
             	fileDialog.setFilterPath(Engine.PROJECTS_PATH);
     			
             	String filePath = fileDialog.open();
