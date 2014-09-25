@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" id="$(ApplicationID)$" version="$(ApplicationVersion)$">
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" id="$(ApplicationID)$" version="$(ApplicationVersion)$" versionCode="1">
 	<!-- Find configuration details for this file here : http://docs.build.phonegap.com/en_US/3.3.0/ -->
     
 	<!-- Available template variables, replaced before build by Convertigo -->	
@@ -17,9 +17,6 @@
 	<name>$(ApplicationName)$</name>
 
 	<description>$(ApplicationDescription)$</description>
-
-	<!-- This parameter defines the application's version number in app store -->
-	<widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" id="$(ApplicationID)$" versionCode="4" version="$(ApplicationVersion)$">
 
 	<author href="$(ApplicationAuthorWebsite)$" email="$(ApplicationAuthorEmail)$">$(ApplicationAuthorName)$</author>
 	 
