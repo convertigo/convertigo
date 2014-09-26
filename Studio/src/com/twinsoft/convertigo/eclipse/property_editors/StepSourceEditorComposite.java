@@ -39,6 +39,8 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
@@ -137,7 +139,6 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		twsCachedXPathAPI = new TwsCachedXPathAPI();
 		
 		initialize();
-		
 	}
 
 	private void initialize() {
@@ -205,7 +206,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 	public Object getValue() {
 		return stepSourceDefinition;
 	}
-
+	
 	private void createButtons() {
 		int nbResults = stepSourceDefinition.size();
 		
@@ -222,12 +223,19 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		
 		buttonRemove = new Button (this, SWT.PUSH);
 		buttonRemove.setText("Remove Source");
+		
 		buttonRemove.setEnabled(nbResults > 0);
 		buttonRemove.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				removeSource();
 			}
 			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		buttonRemove.addPaintListener(new PaintListener() {
+			@Override
+			public void paintControl(PaintEvent e) {
+				buttonRemove.setSize(135, 25);
 			}
 		});
 		
@@ -261,8 +269,9 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 				tree.setFocus();
 			}
 			else {
-				buttonRemove.setText("Remove Broken Source!");
+				buttonRemove.setText("Remove Broken Source");
 				tree.setEnabled(false);
+				ConvertigoPlugin.warningMessageBox("No previous step is available for source selection.");
 			}
 		}
 	}
