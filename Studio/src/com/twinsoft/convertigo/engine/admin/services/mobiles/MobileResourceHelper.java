@@ -76,28 +76,18 @@ public class MobileResourceHelper {
 	}
 	
 	public MobileResourceHelper(HttpServletRequest request, String buildFolder, String project, String platform) throws EngineException, ServiceException {		
-		this(project, platform, "_private/" + buildFolder + "_" + platform);
+		this(getMobilePlatform(project, platform), "_private/" + buildFolder + "_" + platform);
 		endpoint = mobileApplication.getComputedEndpoint(request);
 	}
 	
-	private MobileResourceHelper(String application, String platform, String destSubDir) throws EngineException, ServiceException {
-		if (!Engine.theApp.databaseObjectsManager.existsProject(application)) {
-			throw new ServiceException("Unable to get resources of the application '" + application
-					+ "'; reason: the project does not exist");
-		}
+	public MobileResourceHelper(MobilePlatform mobilePlatform, String destSubDir) throws EngineException, ServiceException {
+		this.mobilePlatform = mobilePlatform;
+		mobileApplication = mobilePlatform.getParent();
+		project = mobileApplication.getProject();
 		
-		project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(application);
-		
-		mobileApplication = project.getMobileApplication();
 		endpoint = mobileApplication.getEndpoint();
 		
-		if (mobileApplication == null) {
-			throw new ServiceException("The application " + project.getName() + " doesn't contain a mobileApplication object.");
-		}
-		
-		mobilePlatform = mobileApplication.getMobilePlatformByName(platform);
-		
-		projectDir = new File(Engine.PROJECTS_PATH + "/" + application);
+		projectDir = new File(project.getDirPath());
 		destDir = new File(projectDir, destSubDir);
 		mobileDir = Arrays.asList(mobileApplication.getResourceFolder(), mobilePlatform.getResourceFolder());
 	}
@@ -301,11 +291,7 @@ public class MobileResourceHelper {
 		file.setLastModified(lastModified);
 	}
 	
-	File getCurrentMobileDir() {
-		return currentMobileDir;
-	}
-	
-	public File makeZipPackage() throws Exception {
+	public File preparePackage() throws Exception {
 		
 		FlashUpdateBuildMode buildMode = mobileApplication.getBuildMode();		
 		
@@ -344,12 +330,8 @@ public class MobileResourceHelper {
 		listFiles(json);
 		FileUtils.write(new File(destDir, "files.json"), json.toString());
 		
-		String remoteBase = endpoint + "/projects/" + project.getName() + "/" + destDir.toURI().toString().substring(projectDir.toURI().toString().length());
-		remoteBase = remoteBase.replaceFirst("www", "flashupdate");
-		if (remoteBase.endsWith("/")) {
-			remoteBase = remoteBase.substring(0, remoteBase.length() - 1);
-		}
-		
+		String remoteBase = endpoint + "/projects/" + project.getName() + "/_private/mobile/flashupdate_" + this.mobilePlatform.getName();
+				
 		json = new JSONObject();
 		json.put("applicationAuthorName", mobileApplication.getApplicationAuthorName());
 		json.put("applicationAuthorEmail", mobileApplication.getApplicationAuthorEmail());
@@ -386,6 +368,12 @@ public class MobileResourceHelper {
 				.replace("$(PlatformType)$", mobilePlatform.getType());
 
 		FileUtils.write(configFile, configText, "UTF-8");
+		
+		return destDir;
+	}
+	
+	public File makeZipPackage() throws Exception {
+		preparePackage();
 
 		// Build the ZIP file for the mobile device
 		File mobileArchiveFile = new File(destDir.getParentFile(), project.getName() + ".zip");
@@ -451,5 +439,22 @@ public class MobileResourceHelper {
 
 	public String getRevision() {
 		return Long.toString(destDir.lastModified());
+	}
+	
+	private static MobilePlatform getMobilePlatform(String projectName, String platform) throws ServiceException, EngineException {
+		if (!Engine.theApp.databaseObjectsManager.existsProject(projectName)) {
+			throw new ServiceException("Unable to get resources of the application '" + projectName
+					+ "'; reason: the project does not exist");
+		}
+		
+		Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
+		
+		MobileApplication mobileApplication = project.getMobileApplication();
+		
+		if (mobileApplication == null) {
+			throw new ServiceException("The application " + project.getName() + " doesn't contain a mobileApplication object.");
+		}
+		
+		return mobileApplication.getMobilePlatformByName(platform);
 	}
 }

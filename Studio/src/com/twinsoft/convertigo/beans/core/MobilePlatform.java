@@ -65,6 +65,11 @@ public abstract class MobilePlatform extends DatabaseObject {
 		checkFolder();
 	}
 	
+	@Override
+	public MobileApplication getParent() {
+		return (MobileApplication) parent;
+	}
+	
 	public String getRelativeResourcePath() {
 		return "DisplayObjects/platforms/" + getName();
 	}
@@ -106,5 +111,9 @@ public abstract class MobilePlatform extends DatabaseObject {
 
 	public String getType() {
 		return getClass().getSimpleName();
+	}
+	
+	public String getCordovaPlatform() {
+		return getClass().getSimpleName().toLowerCase();
 	}
 }

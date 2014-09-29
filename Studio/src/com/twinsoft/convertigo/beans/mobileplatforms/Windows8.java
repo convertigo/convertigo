@@ -32,4 +32,9 @@ public class Windows8 extends MobilePlatform {
 	public String getPackageType() {
 		return "xap";
 	}
+
+	@Override
+	public String getCordovaPlatform() {
+		return "win8";
+	}
 }

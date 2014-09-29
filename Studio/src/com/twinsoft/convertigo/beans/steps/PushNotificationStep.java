@@ -231,7 +231,7 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 				}
 			}
 		} catch (Exception e) { 
-			Engine.logBeans.error("Push notification, Android device execption: " + e);
+			Engine.logBeans.error("Push notification, Android device exception: " + e);
 		} 
 	}
 	

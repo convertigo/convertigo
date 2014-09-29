@@ -42,4 +42,9 @@ public class WindowsPhone7 extends MobilePlatform implements WindowsPhoneKeyProv
 	public String getPackageType() {
 		return "xap";
 	}
+
+	@Override
+	public String getCordovaPlatform() {
+		return "wp7";
+	}
 }

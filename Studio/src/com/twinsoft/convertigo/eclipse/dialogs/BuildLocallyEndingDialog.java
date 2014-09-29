@@ -37,16 +37,19 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import com.twinsoft.convertigo.beans.core.MobilePlatform;
+import com.twinsoft.convertigo.beans.mobileplatforms.IOs;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class BuildLocallyEndingDialog extends Dialog {
 	
-	private String applicationBuildedPath;
+	private File applicationBuilded;
 	private String applicationName;
-	private String cordovaPlatform;
+	private MobilePlatform mobilePlatform;
 	private int exitValue;
 	private String errorLines;
 	
@@ -54,12 +57,12 @@ public class BuildLocallyEndingDialog extends Dialog {
 	 * Create the dialog.
 	 * @param parentShell
 	 */
-	public BuildLocallyEndingDialog(Shell parentShell, String applicationBuildedPath, 
-			String applicationName, int exitValue, String errorLines, String cordovaPlatform) {
+	public BuildLocallyEndingDialog(Shell parentShell, File applicationBuilded, 
+			String applicationName, int exitValue, String errorLines, MobilePlatform mobilePlatform) {
 		super(parentShell);
-		this.applicationBuildedPath = applicationBuildedPath;
+		this.applicationBuilded = applicationBuilded;
 		this.applicationName = applicationName;
-		this.cordovaPlatform = cordovaPlatform;
+		this.mobilePlatform = mobilePlatform;
 		this.exitValue = exitValue;
 		this.errorLines = errorLines;
 	}
@@ -93,7 +96,7 @@ public class BuildLocallyEndingDialog extends Dialog {
 		if (exitValue == 0){
 			message = "Application \"" + applicationName
 					+ "\" has been successfully built locally."
-					+ "\nThe builded file for \""+cordovaPlatform+"\" platform is located here:";
+					+ "\nThe builded file for \"" + mobilePlatform.getCordovaPlatform() + "\" platform is located here:";
 		//Error ending
 		} else {
 			message = "An error occurred on the \"" + applicationName + "\" application during the \"Local build\"!";
@@ -104,14 +107,31 @@ public class BuildLocallyEndingDialog extends Dialog {
 		data = new GridData(GridData.FILL_HORIZONTAL);
 		data.grabExcessHorizontalSpace = true;
 		
-		if (exitValue == 0){
-			Text absolutePath = new Text(container, SWT.NONE);
-			absolutePath.setText(applicationBuildedPath);
-			absolutePath.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
-			absolutePath.setEditable(false);
-			absolutePath.setLayoutData(data);
+		if (exitValue == 0) {			
+			Link absolutePath = new Link(container, SWT.WRAP);
 			
-			if (cordovaPlatform.equals("ios")){
+			String href = applicationBuilded.getParentFile().getAbsolutePath();
+			String text = applicationBuilded.getAbsolutePath();
+			
+			try {
+				href = applicationBuilded.getParentFile().getCanonicalPath();
+				text = applicationBuilded.getCanonicalPath();
+			} catch (IOException e1) {}
+			
+			absolutePath.setText("<a href=\"" + href + "\">" + text + "</a>\nYou can click to open the parent folder");
+			absolutePath.setLayoutData(data);
+			absolutePath.addSelectionListener(new SelectionListener() {
+				
+				public void widgetSelected(SelectionEvent e) {
+					org.eclipse.swt.program.Program.launch(e.text);
+				}
+				
+				public void widgetDefaultSelected(SelectionEvent e) {	
+				}
+				
+			});
+			
+			if (mobilePlatform instanceof IOs) {
 				Label iosNotify = new Label(container, SWT.NONE);
 				data = new GridData(GridData.FILL_HORIZONTAL);
 				data.grabExcessHorizontalSpace = true;
@@ -120,19 +140,14 @@ public class BuildLocallyEndingDialog extends Dialog {
 				iosNotify.setLayoutData(data);
 			}
 		
-		} else {
-
-			if (errorLines != null && !errorLines.equals("")){
-				Text absolutePath = new Text(container, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-				absolutePath.setText(errorLines);
-				absolutePath.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
-				absolutePath.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
-				absolutePath.setEditable(false);
-				absolutePath.setLayoutData(data);
-			}
+		} else if (errorLines != null && !errorLines.equals("")){
+			Text absolutePath = new Text(container, SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+			absolutePath.setText(errorLines);
+			absolutePath.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+			absolutePath.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
+			absolutePath.setEditable(false);
+			absolutePath.setLayoutData(data);
 		}
-		
-
 		
 		return container;
 	}
@@ -146,7 +161,7 @@ public class BuildLocallyEndingDialog extends Dialog {
 		Button button = createButton(parent, IDialogConstants.OK_ID, "OK", true);
 		button.setEnabled(true);
 		
-		if (!cordovaPlatform.equals(null) && cordovaPlatform.equals("ios") && exitValue == 0) {
+		if (mobilePlatform instanceof IOs && exitValue == 0) {
 			Button openXcode = createButton(parent, IDialogConstants.OPEN_ID, "Open Xcode", true);
 			openXcode.setEnabled(true);
 			openXcode.addSelectionListener(new SelectionListener() {
@@ -154,15 +169,12 @@ public class BuildLocallyEndingDialog extends Dialog {
 				public void widgetSelected(SelectionEvent e) {
 
 					try {
-						Runtime runtime = Runtime.getRuntime();
-						File buildedFile = new File(applicationBuildedPath);
-						if (buildedFile.exists()) {
-							runtime.exec( "open " + applicationBuildedPath );
+						if (applicationBuilded.exists()) {
+							new ProcessBuilder("open", applicationBuilded.getCanonicalPath()).start();
 						}
 						
 					} catch (IOException e1) {
-						Engine.logEngine.error("Error when trying to open the xcode project:\n" + 
-								e1.getMessage(), e1);
+						Engine.logEngine.error("Error when trying to open the xcode project:\n" + e1.getMessage(), e1);
 					} finally {
 						close();
 					}
