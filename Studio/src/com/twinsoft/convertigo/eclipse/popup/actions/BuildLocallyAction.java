@@ -643,11 +643,11 @@ public class BuildLocallyAction extends MyAbstractAction {
 								runCordovaCommand(cordovaDir, "run", cordovaPlatform, "--" + option, "--" + target);
 							} else {
 								runCordovaCommand(cordovaDir, "build", cordovaPlatform, "--" + option);
+
+								// Step 4: Show dialog with path to apk/ipa/xap
+								showLocationInstallFile(mobilePlatform, applicationName, (processCanceled ? 0 : process.exitValue()), errorLines, option);
 							}
-
-							// Step 4: Show dialog with path to apk/ipa/xap
-							showLocationInstallFile(mobilePlatform, applicationName, (processCanceled ? 0 : process.exitValue()), errorLines, option);					        	
-
+							
 							return org.eclipse.core.runtime.Status.OK_STATUS;
 						} catch (Throwable e) {
 							ConvertigoPlugin.logException(e, "Error when processing Cordova build");
