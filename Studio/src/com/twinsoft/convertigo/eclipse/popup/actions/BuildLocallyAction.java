@@ -164,12 +164,30 @@ public class BuildLocallyAction extends MyAbstractAction {
 	private String runCordovaCommand(File projectDir, List<String> cordovaCommands) throws Throwable {
 		String shell = is(OS.win32) ? "cordova.cmd" : "cordova";
 		
+		String additionalPath = ConvertigoPlugin.getLocalBuildAdditionalPath();
+		if (additionalPath.length() > 0) {
+			for (String path: additionalPath.split(Pattern.quote(File.pathSeparator))) {
+				File candidate = new File(path, shell);
+				if (candidate.exists()) {
+					shell = candidate.getCanonicalPath();
+					break;
+				}
+			}
+		}
+		
 		cordovaCommands.add(0, shell);
 		
 		ProcessBuilder processBuilder = new ProcessBuilder(cordovaCommands);
 		processBuilder.directory(projectDir);
+		
+		if (additionalPath.length() > 0) {
+			String path = processBuilder.environment().get("PATH");
+			path = additionalPath + File.pathSeparator + path;
+			processBuilder.environment().put("PATH", path);
+		}
+		
 		process = processBuilder.start();
-				
+		
 		InputStream is = process.getInputStream();
 		InputStream es = process.getErrorStream();
 		

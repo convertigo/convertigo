@@ -166,6 +166,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
     public static final String PREFERENCE_TRACEPLAYER_PORT = "traceplayer.port";
     public static final String PREFERENCE_IGNORE_NEWS = "news.ignore";
     public static final String PREFERENCE_XMLSCHEMA_VALIDATE = "xmlschema.validate";
+    public static final String PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH = "localBuild.additionalPath";
     
     public static Display getDisplay() {
         Display display = Display.getCurrent();
@@ -912,9 +913,14 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		});
 	}
 	
-	static public int getTraceplayerPort(){
+	static public int getTraceplayerPort() {
         IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
         return preferenceStore.getInt(ConvertigoPlugin.PREFERENCE_TRACEPLAYER_PORT);
+	}
+	
+	static public String getLocalBuildAdditionalPath() {
+        IPreferenceStore preferenceStore = ConvertigoPlugin.getDefault().getPreferenceStore();
+        return preferenceStore.getString(ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH);
 	}
 	
 	static public void setLogLevel(int logLevel) {

@@ -22,10 +22,14 @@
 
 package com.twinsoft.convertigo.eclipse.preferences;
 
+import java.io.File;
+
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -42,6 +46,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	private BooleanFieldEditor cbIgnoreNews = null;
 	private BooleanFieldEditor cbValidateXmlSchema = null;
 	private IntegerFieldEditor intTracePlayerPort = null;
+	private StringFieldEditor localBuildAdditionalPath = null;
 	
 	public StudioPreferencePage() {
 		super();
@@ -60,6 +65,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		// General options
 		Group groupGeneral = new Group(top, SWT.SHADOW_IN);
 		groupGeneral.setText("General options");
+		groupGeneral.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	
 		intTracePlayerPort = new IntegerFieldEditor(
 				ConvertigoPlugin.PREFERENCE_TRACEPLAYER_PORT,
@@ -109,7 +115,17 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		
 		comboLevel.setPage(this);
 		comboLevel.setPreferenceStore(getPreferenceStore());
-		comboLevel.load();		
+		comboLevel.load();
+
+		Group groupLocalBuild = new Group(top, SWT.SHADOW_IN);
+		groupLocalBuild.setText("Local Build");
+		groupLocalBuild.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		localBuildAdditionalPath = new StringFieldEditor(
+				ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH,
+				"Additional PATH\nfolders separated by '" + File.pathSeparator + "'", groupLocalBuild);
+		localBuildAdditionalPath.setPage(this);
+		localBuildAdditionalPath.setPreferenceStore(getPreferenceStore());
+		localBuildAdditionalPath.load();
 
 		return top;
 	}
@@ -124,6 +140,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		intTracePlayerPort.loadDefault();
 		cbIgnoreNews.loadDefault();
 		cbValidateXmlSchema.loadDefault();
+		localBuildAdditionalPath.loadDefault();
 		
 		super.performDefaults();
 	}
@@ -142,6 +159,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		intTracePlayerPort.store();
 		cbIgnoreNews.store();
 		cbValidateXmlSchema.store();
+		localBuildAdditionalPath.store();
 		
 		return super.performOk();
 	}
