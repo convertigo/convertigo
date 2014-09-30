@@ -24,7 +24,6 @@ package com.twinsoft.convertigo.eclipse.property_editors;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Vector;
 
 import javax.xml.transform.TransformerException;
@@ -39,8 +38,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
@@ -50,6 +47,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.w3c.dom.Document;
@@ -66,23 +64,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.steps.CopyStep;
-import com.twinsoft.convertigo.beans.steps.CreateDirectoryStep;
-import com.twinsoft.convertigo.beans.steps.DeleteStep;
-import com.twinsoft.convertigo.beans.steps.DuplicateStep;
-import com.twinsoft.convertigo.beans.steps.ExceptionStep;
 import com.twinsoft.convertigo.beans.steps.IteratorStep;
-import com.twinsoft.convertigo.beans.steps.LogStep;
-import com.twinsoft.convertigo.beans.steps.ParallelStep;
-import com.twinsoft.convertigo.beans.steps.PushNotificationStep;
-import com.twinsoft.convertigo.beans.steps.RemoveContextStep;
-import com.twinsoft.convertigo.beans.steps.RenameStep;
-import com.twinsoft.convertigo.beans.steps.SerialStep;
-import com.twinsoft.convertigo.beans.steps.SimpleStep;
-import com.twinsoft.convertigo.beans.steps.SmtpStep;
-import com.twinsoft.convertigo.beans.steps.SourceStep;
-import com.twinsoft.convertigo.beans.steps.WriteFileStep;
-import com.twinsoft.convertigo.beans.steps.XMLErrorStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree;
 import com.twinsoft.convertigo.engine.Engine;
@@ -110,6 +92,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 	private Step step = null;
 	private Button buttonNew = null;
 	private Button buttonRemove = null;
+	private Label noPreviousLabel = null;
 	private StepXpathEvaluatorComposite xpathEvaluator = null;
 	private TwsCachedXPathAPI twsCachedXPathAPI = null;
 	private XMLVector<String> stepSourceDefinition = null;
@@ -149,6 +132,10 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		createButtons();
 		createSashForm();
 		selectResult();
+		
+		if (lastSelectableItem != null) {
+			noPreviousLabel.setVisible(false);
+		}
 		
 		// Generates xpath when item is selected with mouse clic
 		twsDomTree.addMouseListener(new MouseAdapter(){
@@ -210,7 +197,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 	private void createButtons() {
 		int nbResults = stepSourceDefinition.size();
 		
-		buttonNew = new Button (this, SWT.PUSH);
+		buttonNew = new Button(this, SWT.PUSH);
 		buttonNew.setText("New Source");
 		buttonNew.setEnabled(nbResults == 0);
 		buttonNew.addSelectionListener(new SelectionListener() {
@@ -221,9 +208,8 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 			}
 		});
 		
-		buttonRemove = new Button (this, SWT.PUSH);
+		buttonRemove = new Button(this, SWT.PUSH);
 		buttonRemove.setText("Remove Source");
-		
 		buttonRemove.setEnabled(nbResults > 0);
 		buttonRemove.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
@@ -232,16 +218,14 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
-		buttonRemove.addPaintListener(new PaintListener() {
-			@Override
-			public void paintControl(PaintEvent e) {
-				buttonRemove.setSize(135, 25);
-			}
-		});
+		
+		noPreviousLabel = new Label(this, SWT.NONE);
+		noPreviousLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+		noPreviousLabel.setText("no previous step is available for source selection");
 		
 		GridData gd = new GridData ();
 		gd.horizontalSpan = 6;
-		buttonRemove.setLayoutData(gd);
+		noPreviousLabel.setLayoutData(gd);
 	}
 	
 	public void selectItemsInTree(TreeItem[] items) {
@@ -269,9 +253,9 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 				tree.setFocus();
 			}
 			else {
-				buttonRemove.setText("Remove Broken Source");
+				buttonRemove.setText("Remove Broken Source!");
+				layout(true);
 				tree.setEnabled(false);
-				ConvertigoPlugin.warningMessageBox("No previous step is available for source selection.");
 			}
 		}
 	}
@@ -413,31 +397,25 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		else {
 			tItem = new TreeItem((TreeItem)parent,  SWT.NONE);
 			lastItem = tItem;
-
-			/*
-				All these steps have to be disabled in the Tree.
-			*/
-			boolean disableStep = 
-							databaseObject instanceof ParallelStep || databaseObject instanceof SerialStep ||
-							databaseObject instanceof ExceptionStep || databaseObject instanceof SourceStep ||
-							databaseObject instanceof SimpleStep || databaseObject instanceof XMLErrorStep ||
-							databaseObject instanceof CopyStep || databaseObject instanceof CreateDirectoryStep ||
-							databaseObject instanceof DeleteStep || databaseObject instanceof DuplicateStep ||
-							databaseObject instanceof RenameStep || databaseObject instanceof WriteFileStep ||
-							databaseObject instanceof LogStep || databaseObject instanceof PushNotificationStep ||
-							databaseObject instanceof RemoveContextStep || databaseObject instanceof SmtpStep;
 			
-			if (disableStep)
-				tItem.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+			if (databaseObject instanceof Step) {
+				Step step = (Step) databaseObject;
+				
+				if (!step.isEnable() || !step.isXml()) {
+					tItem.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+				}
+			}
 		}
 
 		// associate our object with the tree Item.
 		tItem.setData(databaseObject);
-		tItem.setText(databaseObject.toString());
+		
 		if (databaseObject.priority == step.priority) {
 			tItem.setText("* " + databaseObject.toString());
 			stepFound = true;
 			stepItem = tItem;
+		} else {
+			tItem.setText(databaseObject.toString());
 		}
 		
 		if (!stepFound && (lastSelectableItem == null)) {
@@ -452,16 +430,14 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		}
 		
 		// now recurse on children steps
-		List<Step> v = new Vector<Step>();
-		if ((databaseObject instanceof Sequence) && (((Sequence)databaseObject).hasSteps())) {
-			v = ((Sequence)databaseObject).getSteps();
-		}
-		else if ((databaseObject instanceof StepWithExpressions) && (((StepWithExpressions)databaseObject).hasSteps())) {
-			v = ((StepWithExpressions)databaseObject).getSteps();
-		}
-
-		for (int i =0; i< v.size() ; i++) {
-			addStepsInTree(tItem, (Step)v.get(i));
+		if (databaseObject instanceof StepWithExpressions) {
+			for (Step step: ((StepWithExpressions) databaseObject).getSteps()) {
+				addStepsInTree(tItem, step);			
+			}
+		} else if (databaseObject instanceof Sequence) {
+			for (Step step: ((Sequence) databaseObject).getSteps()) {
+				addStepsInTree(tItem, step);			
+			}
 		}
 	}
 	
@@ -472,8 +448,9 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 				TreeItem tItem = stepItem;
 				while (tItem.getParentItem().getData() instanceof Step) {
 					tItem = tItem.getParentItem();
-					if (((Step)tItem.getData()).isXml())
-							tItem.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+					if (((Step) tItem.getData()).isXml()) {
+						tItem.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
+					}
 				}
 			}
 		}
@@ -530,7 +507,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 			XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), true);
 			XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep == null ? step:targetStep);
 			Document stepDoc = XmlSchemaUtils.getDomInstance(xso);
-			//Document stepDoc = step.getWsdlDom();
+			
 			if (stepDoc != null) { // stepDoc can be null for non "xml" step : e.g jIf
 				Document doc = step.getSequence().createDOM();
 				Element root = (Element)doc.importNode(stepDoc.getDocumentElement(), true);
