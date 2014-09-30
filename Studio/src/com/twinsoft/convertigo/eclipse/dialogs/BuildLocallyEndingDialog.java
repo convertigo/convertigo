@@ -107,9 +107,7 @@ public class BuildLocallyEndingDialog extends Dialog {
 		data = new GridData(GridData.FILL_HORIZONTAL);
 		data.grabExcessHorizontalSpace = true;
 		
-		if (exitValue == 0) {			
-			Link absolutePath = new Link(container, SWT.WRAP);
-			
+		if (exitValue == 0) {
 			String href = applicationBuilded.getParentFile().getAbsolutePath();
 			String text = applicationBuilded.getAbsolutePath();
 			
@@ -118,9 +116,21 @@ public class BuildLocallyEndingDialog extends Dialog {
 				text = applicationBuilded.getCanonicalPath();
 			} catch (IOException e1) {}
 			
-			absolutePath.setText("<a href=\"" + href + "\">" + text + "</a>\nYou can click to open the parent folder");
+			Text absolutePath = new Text(container, SWT.NONE);
+			absolutePath.setText(text);
+			absolutePath.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
+			absolutePath.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
+			absolutePath.setEditable(false);
 			absolutePath.setLayoutData(data);
-			absolutePath.addSelectionListener(new SelectionListener() {
+			
+			data = new GridData(GridData.FILL_HORIZONTAL);
+			data.grabExcessHorizontalSpace = true;
+			
+			Link link = new Link(container, SWT.WRAP);
+			
+			link.setText("<a href=\"" + href + "\">Click here to open the parent folder.</a>");
+			link.setLayoutData(data);
+			link.addSelectionListener(new SelectionListener() {
 				
 				public void widgetSelected(SelectionEvent e) {
 					org.eclipse.swt.program.Program.launch(e.text);
