@@ -183,7 +183,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 		cordovaCommands.add(0, shellFullpath);
 		
 		ProcessBuilder processBuilder = new ProcessBuilder(cordovaCommands);
-		processBuilder.directory(projectDir);
+		processBuilder.directory(projectDir.getCanonicalFile());
 		processBuilder.environment().put("PATH", paths);
 		
 		process = processBuilder.start();
@@ -807,7 +807,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 			removeCordovaPlatformJob.setUser(true);
 			removeCordovaPlatformJob.schedule();
 		}
-		
 	}
 	
 	/**
