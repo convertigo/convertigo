@@ -171,11 +171,13 @@ public class BuildLocallyAction extends MyAbstractAction {
 		String shellFullpath = getFullPath(paths, shell);
 		
 		if (shellFullpath == null) {
-			if (is(OS.mac) || is(OS.mac)) {
+			if (is(OS.mac) || is(OS.linux)) {
 				shellFullpath = getFullPath("/usr/local/bin", shell);
 			}
 			if (shellFullpath == null) {
 				shellFullpath = shell;
+			} else {
+				paths += File.pathSeparator + "/usr/local/bin";
 			}
 		}
 		
