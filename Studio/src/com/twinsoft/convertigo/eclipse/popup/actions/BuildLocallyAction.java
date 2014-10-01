@@ -133,7 +133,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 	final int versionMinimalRequiredDecimalPart = 3;
 	final int versionMinimalRequiredFractionalPart = 4;
 	
-	private String projectName = null;
 	private String errorLines = null;
 	
 	private Process process;
@@ -341,6 +340,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 			
 			//iOS
 			if (mobilePlatform instanceof  IOs) {
+				String applicationName = mobilePlatform.getParent().getComputedApplicationName();
 				
 				// Copy the icons to the correct res directory
 				NodeIterator icons = xpathApi.selectNodeIterator(doc, "//icon[@platform = 'ios']");
@@ -352,7 +352,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 					File iconSrc = new File(wwwDir, source);
 					
 					String iconName = iOSIconsCorrespondences.get(width + "x" + height);
-					File dest = new File(cordovaDir, "platforms/" + platform + "/" + projectName + "/Resources/icons/" + iconName );
+					File dest = new File(cordovaDir, "platforms/" + platform + "/" + applicationName + "/Resources/icons/" + iconName );
 
 					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					
@@ -370,7 +370,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 					File splashSrc = new File(wwwDir, source);
 					
 					String splashName = iOSSplashCorrespondences.get(width + "x" + height);
-					File dest = new File(cordovaDir, "platforms/" + platform + "/" + projectName + "/Resources/splash/" + splashName);
+					File dest = new File(cordovaDir, "platforms/" + platform + "/" + applicationName + "/Resources/splash/" + splashName);
 					
 					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					
