@@ -161,30 +161,29 @@ public class BuildLocallyAction extends MyAbstractAction {
 	 * @return
 	 * @throws Throwable
 	 */
+	
 	private String runCordovaCommand(File projectDir, List<String> cordovaCommands) throws Throwable {
 		String shell = is(OS.win32) ? "cordova.cmd" : "cordova";
 		
-		String additionalPath = ConvertigoPlugin.getLocalBuildAdditionalPath();
-		if (additionalPath.length() > 0) {
-			for (String path: additionalPath.split(Pattern.quote(File.pathSeparator))) {
-				File candidate = new File(path, shell);
-				if (candidate.exists()) {
-					shell = candidate.getCanonicalPath();
-					break;
-				}
+		String paths = ConvertigoPlugin.getLocalBuildAdditionalPath();
+		paths = (paths.length() > 0 ? paths + File.pathSeparator : "") + System.getenv("PATH");
+		
+		String shellFullpath = getFullPath(paths, shell);
+		
+		if (shellFullpath == null) {
+			if (is(OS.mac) || is(OS.mac)) {
+				shellFullpath = getFullPath("/usr/local/bin", shell);
+			}
+			if (shellFullpath == null) {
+				shellFullpath = shell;
 			}
 		}
 		
-		cordovaCommands.add(0, shell);
+		cordovaCommands.add(0, shellFullpath);
 		
 		ProcessBuilder processBuilder = new ProcessBuilder(cordovaCommands);
 		processBuilder.directory(projectDir);
-		
-		if (additionalPath.length() > 0) {
-			String path = processBuilder.environment().get("PATH");
-			path = additionalPath + File.pathSeparator + path;
-			processBuilder.environment().put("PATH", path);
-		}
+		processBuilder.environment().put("PATH", paths);
 		
 		process = processBuilder.start();
 		
@@ -890,5 +889,15 @@ public class BuildLocallyAction extends MyAbstractAction {
 	
 	private boolean is(OS os) {
 		return getOsLocal() == os;
+	}
+
+	private static String getFullPath(String paths, String command) throws IOException {
+		for (String path: paths.split(Pattern.quote(File.pathSeparator))) {
+			File candidate = new File(path, command);
+			if (candidate.exists()) {
+				return candidate.getCanonicalPath();
+			}
+		}
+		return null;
 	}
 }
