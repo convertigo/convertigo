@@ -60,7 +60,7 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 	
 	protected Control createContents(Composite parent) {
 		Composite top = new Composite(parent, SWT.NONE);
-		top.setLayout(new GridLayout());
+		top.setLayout(new GridLayout(1, false));
 		
 		// General options
 		Group groupGeneral = new Group(top, SWT.SHADOW_IN);
@@ -122,11 +122,14 @@ public class StudioPreferencePage extends PreferencePage implements IWorkbenchPr
 		groupLocalBuild.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		localBuildAdditionalPath = new StringFieldEditor(
 				ConvertigoPlugin.PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH,
-				"Additional PATH\nfolders separated by '" + File.pathSeparator + "'", groupLocalBuild);
+				"Additional PATH (folders separated by '" + File.pathSeparator + "')", groupLocalBuild);
 		localBuildAdditionalPath.setPage(this);
 		localBuildAdditionalPath.setPreferenceStore(getPreferenceStore());
 		localBuildAdditionalPath.load();
-
+		
+		BooleanFieldEditor btest = new BooleanFieldEditor("", "", groupLocalBuild);
+		btest.getDescriptionControl(groupLocalBuild).setVisible(false);
+		
 		return top;
 	}
 
