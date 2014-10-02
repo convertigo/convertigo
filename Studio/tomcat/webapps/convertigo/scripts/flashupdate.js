@@ -215,6 +215,13 @@ var F = {
 		}, function (err) {
 			F.error("requestFileSystem failed", err);
 		});
+		
+		// retry since cordova 3.5
+		window.setTimeout(function () {
+			if (F.flashUpdateDir == null) {
+				F.getFlashUpdateDir();
+			}
+		}, 100);
 	},
  	
 	hasLocal: function () {

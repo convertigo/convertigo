@@ -200,6 +200,9 @@ public class MobileResourceHelper {
 										String sJs = FileUtils.readFileToString(outFile);
 										sJs = sJs.replaceAll(Pattern.quote("endpoint_url: \"\""), "endpoint_url: \"" + endPoint + "\"");
 										writeStringToFile(outFile, sJs);
+									} else if (file.endsWith(".cordova.js")) {
+										line = line.replace(".cordova.js", ".cordovalib.js");
+										FileUtils.moveFile(outFile, new File(destDir, file.replace(".cordova.js", ".cordovalib.js")));
 									}
 									
 									if (file.matches(".*/flashupdate_.*?\\.css")) {
