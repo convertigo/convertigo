@@ -100,7 +100,7 @@ public class WriteXMLStep extends WriteFileStep {
 				try {
 					randomAccessFile = new RandomAccessFile(fullPathName, "rw");
 					FileChannel fc = randomAccessFile.getChannel();
-					ByteBuffer buf = ByteBuffer.allocate(128);
+					ByteBuffer buf = ByteBuffer.allocate(60);
 					int nb = fc.read(buf);
 					String sbuf = new String(buf.array(), 0, nb, "ASCII");
 					String enc = sbuf.replaceFirst("^.*encoding=\"", "").replaceFirst("\"[\\d\\D]*$", "");
@@ -119,7 +119,19 @@ public class WriteXMLStep extends WriteFileStep {
 					
 					nb = fc.read(buf, pos);
 					
-					sbuf = new String(buf.array(), 0, nb, enc);
+					boolean isUTF8 = Charset.forName(enc) == Charset.forName("UTF-8");
+					
+					if (isUTF8) {
+						for (int i = 0; i < buf.capacity(); i++) {
+							sbuf = new String(buf.array(), i, nb - i, enc);
+							if (!sbuf.startsWith("�")) {
+								pos += i;
+								break;
+							}	
+						}
+					} else {
+						sbuf = new String(buf.array(), 0, nb, enc);
+					}
 					
 					int lastTagIndex = sbuf.lastIndexOf("</");
 					if (lastTagIndex == -1) {
@@ -133,6 +145,11 @@ public class WriteXMLStep extends WriteFileStep {
 						}
 					} else {
 						content.append(sbuf.substring(lastTagIndex));
+						
+						if (isUTF8) {
+							String before = sbuf.substring(0, lastTagIndex);
+							lastTagIndex = before.getBytes(enc).length;
+						}
 					}
 					fc.write(ByteBuffer.wrap(content.toString().getBytes(enc)), pos + lastTagIndex);
 				} finally {
