@@ -133,6 +133,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 	final int versionMinimalRequiredDecimalPart = 3;
 	final int versionMinimalRequiredFractionalPart = 4;
 	
+	private String cordovaVersion = null;
+	
 	private String errorLines = null;
 	
 	private Process process;
@@ -479,9 +481,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 	 */
 	private boolean checkPlatformCompatibility(MobilePlatform platform) throws Throwable {	    
 		// Implement Compatibility matrix
-		// Step 1: Check cordova version, compatibility over 3.3.x
-		File privateDir = getPrivateDir();
-		String version = runCordovaCommand(privateDir, "-v");
+		// Step 1: Check cordova version, compatibility over 3.4.x
+		String version = getCordovaVersion();
 		
 		Pattern pattern = Pattern.compile("^(\\d)+\\.(\\d)+\\.");
 		Matcher matcher = pattern.matcher(version);
@@ -512,6 +513,13 @@ public class BuildLocallyAction extends MyAbstractAction {
 		return false;
 	}
 	
+	private String getCordovaVersion() throws Throwable {
+		if (cordovaVersion == null) {
+			cordovaVersion = runCordovaCommand(getPrivateDir(), "-v");
+		}
+		return cordovaVersion;
+	}
+
 	@Override
 	public void run() {
 		String actionID = action.getId();
@@ -660,9 +668,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 
 							// Step 2: Add platform and Read And process Config.xml to copy needed icons and splash resources
 							File cordovaDir = getCordovaDir();
-							String cordovaPlatform = mobilePlatform.getCordovaPlatform();				        	
+							String cordovaPlatform = mobilePlatform.getCordovaPlatform();
+							
+							if (mobilePlatform instanceof Android && getCordovaVersion().startsWith("3.5.0")) {
+								runCordovaCommand(cordovaDir, "platform", "add", cordovaPlatform + "@3.5.1", "--usenpm");
+							} else {
+								runCordovaCommand(cordovaDir, "platform", "add", cordovaPlatform);
+							}
 
-							runCordovaCommand(cordovaDir, "platform", "add", cordovaPlatform);
 							processConfigXMLResources(wwwDir, mobilePlatform, cordovaDir);
 
 							// Step 3: Build or Run using Cordova the specific platform.
@@ -740,7 +753,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 	private void showLocationInstallFile(final MobilePlatform mobilePlatform, 
 			final String applicationName, final int exitValue, final String errorLines, final String buildOption) {
 		final Display display = Display.getDefault();
-		display.syncExec(new Runnable() {
+		display.asyncExec(new Runnable() {
 			@Override
 			public void run() {
 				File buildedFile = getAbsolutePathOfBuildedFile(applicationName, mobilePlatform, buildOption);
