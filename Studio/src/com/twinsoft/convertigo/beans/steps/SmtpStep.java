@@ -271,7 +271,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 
 					Transformer transformer = fileXSL != null ?
 							XMLUtils.getNewTransformer(new StreamSource(fileXSL)) : XMLUtils.getNewTransformer();
-
+					
 					transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 					transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
 					transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
@@ -283,26 +283,31 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 					XMLCopyStep.createCopy(this, workingDoc, root);
 					
 					NodeList list = root.getChildNodes();
-					
 					if (list != null) {
-						for (int i = 0; i < list.getLength(); i++) {
-							Node currentNode = list.item(i);
-							switch (currentNode.getNodeType()) {
-							case Node.ATTRIBUTE_NODE: 
-							case Node.TEXT_NODE:
-							case Node.CDATA_SECTION_NODE: 
-							case Node.COMMENT_NODE:
-								if (fileXSL == null) {
-									sw.write(currentNode.getNodeValue());
+						int nbNodes = list.getLength();
+						if (nbNodes > 0) {
+							for (int i = 0; i < nbNodes; i++) {
+								Node currentNode = list.item(i);
+								switch (currentNode.getNodeType()) {
+								case Node.ATTRIBUTE_NODE: 
+								case Node.TEXT_NODE:
+								case Node.CDATA_SECTION_NODE: 
+								case Node.COMMENT_NODE:
+									if (fileXSL == null) {
+										sw.write(currentNode.getNodeValue());
+									}
+									break;
+								case Node.ELEMENT_NODE:
+									transformer.transform(new DOMSource(currentNode), new StreamResult(sw));
+									break;
+								default:
+									transformer.transform(new DOMSource(currentNode), new StreamResult(sw));
 								}
-								break;
-							case Node.ELEMENT_NODE:
-								transformer.transform(new DOMSource(currentNode), new StreamResult(sw));
-								break;
-							default:
-								transformer.transform(new DOMSource(currentNode), new StreamResult(sw));
 							}
+						} else {
+							transformer.transform(new DOMSource(sequence.context.outputDocument), new StreamResult(sw));
 						}
+
 					} else {
 						transformer.transform(new DOMSource(sequence.context.outputDocument), new StreamResult(sw));
 					}
