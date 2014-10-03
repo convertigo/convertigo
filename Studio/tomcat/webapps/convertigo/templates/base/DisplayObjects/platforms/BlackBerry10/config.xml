@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <widget xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" xmlns:rim="http://www.blackberry.com/ns/widgets" id="$(ApplicationID)$" version="$(ApplicationVersion)$">
     <!-- Temporary config.xml file, because BlackBerry 10 build is not yet supported by build.phonegap.com -->
-	<!-- Find configuration details for this file here : http://docs.build.phonegap.com/en_US/3.3.0/ -->
+	<!-- Find configuration details for this file here : http://docs.build.phonegap.com/ -->
     
 	<!-- Available template variables, replaced before build by Convertigo -->	
 	<!-- $(ApplicationID)$ : the unique identifier for your application. To support all supported platforms, this *must* be reverse-domain name style (e.g. 'com.yourcompany.yourapp') -->
@@ -24,7 +24,7 @@
 	<gap:platform name="blackberry10"/>
 	
 	<!-- Customize your app and platform with the preference element. -->
-    <preference name="phonegap-version"           value="3.5.0" />          <!-- all: current version of PhoneGap -->
+    <preference name="phonegap-version"           value="3.6.3" />          <!-- all: current version of PhoneGap -->
     <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
     <preference name="fullscreen"                 value="true" />           <!-- all: hides the status bar at the top of the screen -->
