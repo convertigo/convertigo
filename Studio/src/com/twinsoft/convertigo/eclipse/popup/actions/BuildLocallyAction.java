@@ -176,10 +176,19 @@ public class BuildLocallyAction extends MyAbstractAction {
 			if (is(OS.mac) || is(OS.linux)) {
 				defaultPaths = "/usr/local/bin";
 			} else if (is(OS.win32)) {
-				defaultPaths = "C:\\Program Files\\nodejs";
+				String programFiles = System.getenv("ProgramW6432");
+				if (programFiles != null && programFiles.length() > 0) {
+					defaultPaths = programFiles + File.separator + "nodejs";
+				}
+				
+				programFiles = System.getenv("ProgramFiles");
+				if (programFiles != null && programFiles.length() > 0) {
+					defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + programFiles + File.separator + "nodejs";
+				}
+				
 				String appData = System.getenv("APPDATA");
 				if (appData != null && appData.length() > 0) {
-					defaultPaths += File.pathSeparator + appData + File.separator + "npm";
+					defaultPaths = (defaultPaths == null ? "" : defaultPaths + File.pathSeparator) + appData + File.separator + "npm";
 				}
 			}
 			shellFullpath = defaultPaths == null ? null : getFullPath(defaultPaths, shell);
