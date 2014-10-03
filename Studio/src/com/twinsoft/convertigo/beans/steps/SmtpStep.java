@@ -283,31 +283,26 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 					XMLCopyStep.createCopy(this, workingDoc, root);
 					
 					NodeList list = root.getChildNodes();
-					if (list != null) {
+					if (list != null && list.getLength() > 0) {
 						int nbNodes = list.getLength();
-						if (nbNodes > 0) {
-							for (int i = 0; i < nbNodes; i++) {
-								Node currentNode = list.item(i);
-								switch (currentNode.getNodeType()) {
-								case Node.ATTRIBUTE_NODE: 
-								case Node.TEXT_NODE:
-								case Node.CDATA_SECTION_NODE: 
-								case Node.COMMENT_NODE:
-									if (fileXSL == null) {
-										sw.write(currentNode.getNodeValue());
-									}
-									break;
-								case Node.ELEMENT_NODE:
-									transformer.transform(new DOMSource(currentNode), new StreamResult(sw));
-									break;
-								default:
-									transformer.transform(new DOMSource(currentNode), new StreamResult(sw));
+						for (int i = 0; i < nbNodes; i++) {
+							Node currentNode = list.item(i);
+							switch (currentNode.getNodeType()) {
+							case Node.ATTRIBUTE_NODE: 
+							case Node.TEXT_NODE:
+							case Node.CDATA_SECTION_NODE: 
+							case Node.COMMENT_NODE:
+								if (fileXSL == null) {
+									sw.write(currentNode.getNodeValue());
 								}
+								break;
+							case Node.ELEMENT_NODE:
+								transformer.transform(new DOMSource(currentNode), new StreamResult(sw));
+								break;
+							default:
+								transformer.transform(new DOMSource(currentNode), new StreamResult(sw));
 							}
-						} else {
-							transformer.transform(new DOMSource(sequence.context.outputDocument), new StreamResult(sw));
 						}
-
 					} else {
 						transformer.transform(new DOMSource(sequence.context.outputDocument), new StreamResult(sw));
 					}
