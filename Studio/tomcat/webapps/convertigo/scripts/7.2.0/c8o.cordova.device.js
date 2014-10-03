@@ -633,7 +633,7 @@ if ("cordova" in window) {
 	});
 
 } else {
-	C8O.log.warn("c8o.cdv : no cordova available, ignore c8o.cordova.js");
+	C8O.log.warn("c8o.cdv : no cordova available, ignore c8o.cordova.device.js");
 	
 	$.extend(true, C8O, {
 		deleteAllCacheEntries: function (success, error) {
