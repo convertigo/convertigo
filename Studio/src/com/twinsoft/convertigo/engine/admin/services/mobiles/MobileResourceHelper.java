@@ -166,7 +166,7 @@ public class MobileResourceHelper {
 				
 				List<File> filesToDelete = new LinkedList<File>();
 				
-				for (File htmlFile :FileUtils.listFiles(destDir, new String[] {"html"}, true)) {
+				for (File htmlFile : FileUtils.listFiles(destDir, new String[] {"html"}, true)) {
 					String htmlContent = FileUtils.readFileToString(htmlFile);
 					StringBuffer sbIndexHtml = new StringBuffer();
 					BufferedReader br = new BufferedReader(new StringReader(htmlContent));
@@ -188,7 +188,7 @@ public class MobileResourceHelper {
 									file = file.replace("scripts/", "js/");
 									File outFile = new File(destDir, file);
 									outFile.getParentFile().mkdirs();
-									FileUtils.copyFile(inFile, outFile);
+									FileUtils.copyFile(inFile, outFile, true);
 									line = line.replaceFirst("\"\\.\\./\\.\\./\\.\\./\\.\\./.*?\"", "\"" + file + "\"");
 									
 									if (needImages) {
@@ -259,12 +259,15 @@ public class MobileResourceHelper {
 			}
 			
 			long latestFile = 0;
+			File lastFile = null;
 			for (File file : FileUtils.listFiles(destDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
 				long curFile = file.lastModified();
 				if (latestFile < curFile) {
 					latestFile = curFile;
+					lastFile = file;
 				}
 			}
+			Engine.logEngine.info("(MobileResourceHelper) prepareFiles, lastestFile is '" + latestFile + "' for " + lastFile);
 			destDir.setLastModified(latestFile);
 		} catch (ServiceException e) {
 			throw e;
@@ -399,6 +402,7 @@ public class MobileResourceHelper {
 						public boolean accept(File file) {
 							if (MobileResourceHelper.defaultFilter.accept(file)) {
 								if (FileUtils.isFileNewer(file, destDir)) {
+									Engine.logEngine.info("(MobileResourceHelper) prepareFilesForFlashupdate, '" + file.lastModified() + "' newer than '" + destDir.lastModified() + "' for: " + file);
 									throw new RuntimeException();
 								}
 								return true;
@@ -434,8 +438,10 @@ public class MobileResourceHelper {
 			});
 			
 			try {
+				long revision = destDir.lastModified();
 				FileUtils.write(lastEndpoint, endpoint, "UTF-8");
-				lastEndpoint.setLastModified(destDir.lastModified());
+				lastEndpoint.setLastModified(revision);
+				destDir.setLastModified(revision);
 			} catch (IOException e) {
 				throw new ServiceException("Failed to write last endpoint", e);
 			}
