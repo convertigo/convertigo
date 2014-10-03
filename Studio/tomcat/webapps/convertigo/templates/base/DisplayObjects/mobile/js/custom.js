@@ -7,7 +7,7 @@
  * * jquery(.min).js
  * * c8o.core.js
  * * c8o.jquerymobile.js
- * * ~ c8o.cordova.js (for builded application)
+ * * ~ c8o.cordova.device.js (for builded application)
  * * ctf.core.js
  * * ctf.jquerymobile.js
  * * custom.js (this file)
@@ -51,7 +51,7 @@ $.extend(true, C8O, {
 	},
 	
 	/**
-	 * cordova read-only variables values can only be set directly here, not dynamically. Used by c8o.cordova.js
+	 * cordova read-only variables values can only be set directly here, not dynamically. Used by c8o.cordova.device.js
 	 */
 	cordova: {
 //		androidSenderID: ""
@@ -74,7 +74,7 @@ $.extend(true, C8O, {
 //		log_line: "false", /** true/false: add an extra line on Chrome console with a link to the log */
 //		log_remote: "true", /** true/false: send client log to the C8O "Devices" logger depending on its log level */		
 //		requester_prefix: "", /** string prepend to the .xml or .cxml requester */
-/** c8o.cordova.js vars */
+/** c8o.cordova.device.js vars */
 //		local_cache_parallel_downloads: 5 /** for local cache response to store, set the maximum number of parallel downloads for attachments. 0 will disable download */		
 	},
 	
@@ -285,7 +285,7 @@ $.extend(true, C8O, {
 
 /**
  *  getCordovaEnv function
- *  ** Needs cordova.js + c8o.cordova.js **
+ *  ** Needs cordova.js + c8o.cordova.device.js **
  *  return the specific value of the cordova environment or the whole environment (without parameter)
  *  the following keys can be used:
  *  	applicationAuthorName, applicationAuthorEmail, applicationAuthorWebsite, applicationDescription, applicationId, applicationName,
@@ -358,14 +358,14 @@ $.extend(true, C8O, {
 
 /**
  *  splashscreenHide function
- *  ** Needs cordova.js + c8o.cordova.js **
+ *  ** Needs cordova.js + c8o.cordova.device.js **
  *  Hide the cordova splashscreen if any
  */
 //C8O.splashscreenHide();
 
 /**
  *  splashscreenHide function
- *  ** Needs cordova.js + c8o.cordova.js **
+ *  ** Needs cordova.js + c8o.cordova.device.js **
  *  Hide the cordova splashscreen if any
  */
 //C8O.splashscreenShow();
@@ -470,7 +470,7 @@ $.extend(true, C8O, {
 
 /**
  *  device_ready hook
- *  ** Needs cordova.js + c8o.cordova.js **
+ *  ** Needs cordova.js + c8o.cordova.device.js **
  *  used at device startup (doesn't work on browser) to initialize device things
  *  or break the processing
  *  
@@ -526,7 +526,7 @@ $.extend(true, C8O, {
 
 /**
  *  local_cache_check_attachment hook
- *  ** Needs cordova.js + c8o.cordova.js **
+ *  ** Needs cordova.js + c8o.cordova.device.js **
  *  Hook called when a url will be downloaded for the local cache
  *  
  *  url: "string" the current url to download
@@ -560,7 +560,7 @@ $.extend(true, C8O, {
 
 /**
  *  push_notification hook
- *  ** Needs cordova.js + c8o.cordova.js **
+ *  ** Needs cordova.js + c8o.cordova.device.js **
  *  Hook called when a notification is received on the mobile device
  *  
  *  sender: "string" sender of the notification : GCM (Google) or APN (Apple)
@@ -579,7 +579,7 @@ $.extend(true, C8O, {
 
 /**
  *  push_register_failed hook
- *  ** Needs cordova.js + c8o.cordova.js **
+ *  ** Needs cordova.js + c8o.cordova.device.js **
  *  Hook called when the registration failed on the mobile
  *  
  *  error: "string" cause of the error
@@ -590,7 +590,7 @@ $.extend(true, C8O, {
 
 /**
  *  push_register_success hook
- *  ** Needs cordova.js + c8o.cordova.js **
+ *  ** Needs cordova.js + c8o.cordova.device.js **
  *  Hook called when the registration success on the mobile
  *  
  *  result: content from the notification system

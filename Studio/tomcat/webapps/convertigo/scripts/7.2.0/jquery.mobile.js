@@ -1,6 +1,6 @@
 /*!
-* jQuery Mobile 1.4.3
-* Git HEAD hash: b9c6473e3d90af26570e6f14e5a0307897ab385c <> Date: Tue Jul 1 2014 15:37:36 UTC
+* jQuery Mobile 1.4.4
+* Git HEAD hash: b4150fb1c561b614da796c210877fb25e74cf622 <> Date: Fri Sep 12 2014 16:43:26 UTC
 * http://jquerymobile.com
 *
 * Copyright 2010, 2014 jQuery Foundation, Inc. and othercontributors
@@ -30,7 +30,7 @@
 	$.extend( $.mobile, {
 
 		// Version of the jQuery Mobile Framework
-		version: "1.4.3",
+		version: "1.4.4",
 
 		// Deprecated and no longer used in 1.4 remove in 1.5
 		// Define the url parameter used for referencing widget-generated sub-pages.
@@ -2476,7 +2476,8 @@ if ( !$.support.boxShadow ) {
 
 			//Returns true if both urls have the same domain.
 			isSameDomain: function( absUrl1, absUrl2 ) {
-				return path.parseUrl( absUrl1 ).domain === path.parseUrl( absUrl2 ).domain;
+				return path.parseUrl( absUrl1 ).domain.toLowerCase() ===
+					path.parseUrl( absUrl2 ).domain.toLowerCase();
 			},
 
 			//Returns true for any relative variant.
@@ -2523,19 +2524,21 @@ if ( !$.support.boxShadow ) {
 			},
 
 			convertUrlToDataUrl: function( absUrl ) {
-				var u = path.parseUrl( absUrl );
+				var result = absUrl,
+					u = path.parseUrl( absUrl );
+
 				if ( path.isEmbeddedPage( u ) ) {
 					// For embedded pages, remove the dialog hash key as in getFilePath(),
 					// and remove otherwise the Data Url won't match the id of the embedded Page.
-					return u.hash
+					result = u.hash
 						.split( dialogHashKey )[0]
 						.replace( /^#/, "" )
 						.replace( /\?.*$/, "" );
 				} else if ( path.isSameDomain( u, this.documentBase ) ) {
-					return u.hrefNoHash.replace( this.documentBase.domain, "" ).split( dialogHashKey )[0];
+					result = u.hrefNoHash.replace( this.documentBase.domain, "" ).split( dialogHashKey )[0];
 				}
 
-				return window.decodeURIComponent(absUrl);
+				return window.decodeURIComponent( result );
 			},
 
 			//get path from current hash, or from a file path
@@ -2584,7 +2587,9 @@ if ( !$.support.boxShadow ) {
 			//could be mailto, etc
 			isExternal: function( url ) {
 				var u = path.parseUrl( url );
-				return u.protocol && u.domain !== this.documentUrl.domain ? true : false;
+
+				return !!( u.protocol &&
+					( u.domain.toLowerCase() !== this.documentUrl.domain.toLowerCase() ) );
 			},
 
 			hasProtocol: function( url ) {
@@ -2606,14 +2611,25 @@ if ( !$.support.boxShadow ) {
 			},
 
 			squash: function( url, resolutionUrl ) {
-				var href, cleanedUrl, search, stateIndex,
+				var href, cleanedUrl, search, stateIndex, docUrl,
 					isPath = this.isPath( url ),
 					uri = this.parseUrl( url ),
 					preservedHash = uri.hash,
 					uiState = "";
 
-				// produce a url against which we can resole the provided path
-				resolutionUrl = resolutionUrl || (path.isPath(url) ? path.getLocation() : path.getDocumentUrl());
+				// produce a url against which we can resolve the provided path
+				if ( !resolutionUrl ) {
+					if ( isPath ) {
+						resolutionUrl = path.getLocation();
+					} else {
+						docUrl = path.getDocumentUrl( true );
+						if ( path.isPath( docUrl.hash ) ) {
+							resolutionUrl = path.squash( docUrl.href );
+						} else {
+							resolutionUrl = docUrl.href;
+						}
+					}
+				}
 
 				// If the url is anything but a simple string, remove any preceding hash
 				// eg #foo/bar -> foo/bar
@@ -2682,11 +2698,10 @@ if ( !$.support.boxShadow ) {
 				return ( hasHash ? "#" : "" ) + hash.replace( /([!"#$%&'()*+,./:;<=>?@[\]^`{|}~])/g, "\\$1" );
 			},
 
-			// return the substring of a filepath before the sub-page key, for making
-			// a server request
+			// return the substring of a filepath before the dialogHashKey, for making a server
+			// request
 			getFilePath: function( path ) {
-				var splitkey = "&" + $.mobile.subPageUrlKey;
-				return path && path.split( splitkey )[0].split( dialogHashKey )[0];
+				return path && path.split( dialogHashKey )[0];
 			},
 
 			// check if the specified url refers to the first page in the main
@@ -4023,7 +4038,7 @@ if ( eventCaptureSupported ) {
 					emitted = false;
 
 				context.move = function( event ) {
-					if ( !start ) {
+					if ( !start || event.isDefaultPrevented() ) {
 						return;
 					}
 
@@ -4670,9 +4685,8 @@ $.widget( "mobile.page", {
 			return $.mobile.navigate.history;
 		},
 
-		// TODO use _getHistory
 		_getActiveHistory: function() {
-			return $.mobile.navigate.history.getActive();
+			return this._getHistory().getActive();
 		},
 
 		// TODO the document base should be determined at creation
@@ -4732,20 +4746,15 @@ $.widget( "mobile.page", {
 				//
 				// TODO move check to history object or path object?
 				to = !$.mobile.path.isPath( to ) ? ( $.mobile.path.makeUrlAbsolute( "#" + to, this._getDocumentBase() ) ) : to;
-
-				// If we're about to go to an initial URL that contains a
-				// reference to a non-existent internal page, go to the first
-				// page instead. We know that the initial hash refers to a
-				// non-existent page, because the initial hash did not end
-				// up in the initial history entry
-				// TODO move check to history object?
-				if ( to === $.mobile.path.makeUrlAbsolute( "#" + history.initialDst, this._getDocumentBase() ) &&
-					history.stack.length &&
-					history.stack[0].url !== history.initialDst.replace( $.mobile.dialogHashKey, "" ) ) {
-					to = this._getInitialContent();
-				}
 			}
 			return to || this._getInitialContent();
+		},
+
+		_transitionFromHistory: function( direction, defaultTransition ) {
+			var history = this._getHistory(),
+				entry = ( direction === "back" ? history.getLast() : history.getActive() );
+
+			return ( entry && entry.transition ) || defaultTransition;
 		},
 
 		_handleDialog: function( changePageOptions, data ) {
@@ -4753,7 +4762,10 @@ $.widget( "mobile.page", {
 
 			// If current active page is not a dialog skip the dialog and continue
 			// in the same direction
-			if ( activeContent && !activeContent.hasClass( "ui-dialog" ) ) {
+			// Note: The dialog widget is deprecated as of 1.4.0 and will be removed in 1.5.0.
+			// Thus, as of 1.5.0 activeContent.data( "mobile-dialog" ) will always evaluate to
+			// falsy, so the second condition in the if-statement below can be removed altogether.
+			if ( activeContent && !activeContent.data( "mobile-dialog" ) ) {
 				// determine if we're heading forward or backward and continue
 				// accordingly past the current dialog
 				if ( data.direction === "back" ) {
@@ -4774,7 +4786,9 @@ $.widget( "mobile.page", {
 				// as most of this is lost by the domCache cleaning
 				$.extend( changePageOptions, {
 					role: active.role,
-					transition: active.transition,
+					transition: this._transitionFromHistory(
+						data.direction,
+						changePageOptions.transition ),
 					reverse: data.direction === "back"
 				});
 			}
@@ -4789,7 +4803,8 @@ $.widget( "mobile.page", {
 
 				// transition is false if it's the first page, undefined
 				// otherwise (and may be overridden by default)
-				transition = history.stack.length === 0 ? "none" : undefined,
+				transition = history.stack.length === 0 ? "none" :
+					this._transitionFromHistory( data.direction ),
 
 				// default options for the changPage calls made after examining
 				// the current state of the page and the hash, NOTE that the
@@ -4801,7 +4816,7 @@ $.widget( "mobile.page", {
 				};
 
 			$.extend( changePageOptions, data, {
-				transition: ( history.getLast() || {} ).transition || transition
+				transition: transition
 			});
 
 			// TODO move to _handleDestination ?
@@ -4809,8 +4824,7 @@ $.widget( "mobile.page", {
 			// key, and the initial destination isn't equal to the current target
 			// page, use the special dialog handling
 			if ( history.activeIndex > 0 &&
-				to.indexOf( $.mobile.dialogHashKey ) > -1 &&
-				history.initialDst !== to ) {
+				to.indexOf( $.mobile.dialogHashKey ) > -1 ) {
 
 				to = this._handleDialog( changePageOptions, data );
 
@@ -4861,7 +4875,8 @@ $.widget( "mobile.page", {
 			// NOTE do _not_ use the :jqmData pseudo selector because parenthesis
 			//      are a valid url char and it breaks on the first occurence
 			page = this.element
-				.children( "[data-" + this._getNs() +"url='" + dataUrl + "']" );
+				.children( "[data-" + this._getNs() +
+					"url='" + $.mobile.path.hashToSelector( dataUrl ) + "']" );
 
 			// If we failed to find the page, check to see if the url is a
 			// reference to an embedded page. If so, it may have been dynamically
@@ -4946,7 +4961,7 @@ $.widget( "mobile.page", {
 			// TODO tagging a page with external to make sure that embedded pages aren't
 			// removed by the various page handling code is bad. Having page handling code
 			// in many places is bad. Solutions post 1.0
-			page.attr( "data-" + this._getNs() + "url", $.mobile.path.convertUrlToDataUrl(fileUrl) )
+			page.attr( "data-" + this._getNs() + "url", this._createDataUrl( fileUrl ) )
 				.attr( "data-" + this._getNs() + "external-page", true );
 
 			return page;
@@ -4995,8 +5010,7 @@ $.widget( "mobile.page", {
 		//      or require ordering such that other bits are sprinkled in between parts that
 		//      could be abstracted out as a group
 		_loadSuccess: function( absUrl, triggerData, settings, deferred ) {
-			var fileUrl = this._createFileUrl( absUrl ),
-				dataUrl = this._createDataUrl( absUrl );
+			var fileUrl = this._createFileUrl( absUrl );
 
 			return $.proxy(function( html, textStatus, xhr ) {
 				//pre-parse html to check for a data-url,
@@ -5016,6 +5030,11 @@ $.widget( "mobile.page", {
 					dataUrlRegex.test( RegExp.$1 ) &&
 					RegExp.$1 ) {
 					fileUrl = $.mobile.path.getFilePath( $("<div>" + RegExp.$1 + "</div>").text() );
+
+					// We specify that, if a data-url attribute is given on the page div, its value
+					// must be given non-URL-encoded. However, in this part of the code, fileUrl is
+					// assumed to be URL-encoded, so we URL-encode the retrieved value here
+					fileUrl = this.window[ 0 ].encodeURIComponent( fileUrl );
 				}
 
 				//dont update the base tag if we are prefetching
@@ -5042,7 +5061,7 @@ $.widget( "mobile.page", {
 				// Note that it is the responsibility of the listener/handler
 				// that called preventDefault(), to resolve/reject the
 				// deferred object within the triggerData.
-				if ( this._triggerWithDeprecated( "load" ).event.isDefaultPrevented() ) {
+				if ( this._triggerWithDeprecated( "load", triggerData ).event.isDefaultPrevented() ) {
 					return;
 				}
 
@@ -5052,13 +5071,6 @@ $.widget( "mobile.page", {
 				}
 
 				this._include( content, settings );
-
-				// Enhancing the content may result in new dialogs/sub content being inserted
-				// into the DOM. If the original absUrl refers to a sub-content, that is the
-				// real content we are interested in.
-				if ( absUrl.indexOf( "&" + $.mobile.subPageUrlKey ) > -1 ) {
-					content = this.element.children( "[data-" + this._getNs() +"url='" + dataUrl + "']" );
-				}
 
 				// Remove loading message.
 				if ( settings.showLoadMsg ) {
@@ -5587,12 +5599,6 @@ $.widget( "mobile.page", {
 				} else {
 					url += "#" + $.mobile.dialogHashKey;
 				}
-
-				// tack on another dialogHashKey if this is the same as the initial hash
-				// this makes sure that a history entry is created for this dialog
-				if ( $.mobile.navigate.history.activeIndex === 0 && url === $.mobile.navigate.history.initialDst ) {
-					url += $.mobile.dialogHashKey;
-				}
 			}
 
 			// if title element wasn't found, try the page div data attr too
@@ -5635,7 +5641,7 @@ $.widget( "mobile.page", {
 				};
 
 				if ( settings.changeHash !== false && $.mobile.hashListeningEnabled ) {
-					$.mobile.navigate( url, params, true);
+					$.mobile.navigate( this.window[ 0 ].encodeURI( url ), params, true);
 				} else if ( toPage[ 0 ] !== $.mobile.firstPage[ 0 ] ) {
 					$.mobile.navigate.history.add( url, params );
 				}
@@ -6048,9 +6054,10 @@ $.widget( "mobile.page", {
 			//            lists and select dialogs, just write a hash in the link they
 			//            create. This means the actual URL path is based on whatever
 			//            the current value of the base tag is at the time this code
-			//            is called. For now we are just assuming that any url with a
-			//            hash in it is an application page reference.
-			if ( href.search( "#" ) !== -1 ) {
+			//            is called.
+			if ( href.search( "#" ) !== -1 &&
+				!( $.mobile.path.isExternal( href ) && $.mobile.path.isAbsoluteUrl( href ) ) ) {
+
 				href = href.replace( /[^#]*#/, "" );
 				if ( !href ) {
 					//link was an empty hash meant purely
@@ -6831,9 +6838,9 @@ $.widget( "mobile.collapsible", {
 		this._renderedOptions = this._getOptions( this.options );
 
 		if ( this.options.enhanced ) {
-			ui.heading = $( ".ui-collapsible-heading", this.element[ 0 ] );
+			ui.heading = this.element.children( ".ui-collapsible-heading" );
 			ui.content = ui.heading.next();
-			ui.anchor = $( "a", ui.heading[ 0 ] ).first();
+			ui.anchor = ui.heading.children();
 			ui.status = ui.anchor.children( ".ui-collapsible-heading-status" );
 		} else {
 			this._enhance( elem, ui );
@@ -7367,7 +7374,7 @@ $.widget( "mobile.navbar", {
 	_create: function() {
 
 		var $navbar = this.element,
-			$navbtns = $navbar.find( "a" ),
+			$navbtns = $navbar.find( "a, button" ),
 			iconpos = $navbtns.filter( ":jqmData(icon)" ).length ? this.options.iconpos : undefined;
 
 		$navbar.addClass( "ui-navbar" )
@@ -8023,14 +8030,13 @@ $.widget( "mobile.checkboxradio", $.extend( {
 	},
 
 	refresh: function() {
-		var hasIcon = this._hasIcon(),
-			isChecked = this.element[ 0 ].checked,
+		var isChecked = this.element[ 0 ].checked,
 			active = $.mobile.activeBtnClass,
 			iconposClass = "ui-btn-icon-" + this.options.iconpos,
 			addClasses = [],
 			removeClasses = [];
 
-		if ( hasIcon ) {
+		if ( this._hasIcon() ) {
 			removeClasses.push( active );
 			addClasses.push( iconposClass );
 		} else {
@@ -8045,6 +8051,8 @@ $.widget( "mobile.checkboxradio", $.extend( {
 			addClasses.push( this.uncheckedClass );
 			removeClasses.push( this.checkedClass );
 		}
+
+		this.widget().toggleClass( "ui-state-disabled", this.element.prop( "disabled" ) );
 
 		this.label
 			.addClass( addClasses.join( " " ) )
@@ -8161,8 +8169,8 @@ $.widget( "mobile.button", {
 	},
 
 	_destroy: function() {
-			this.element.insertBefore( this.button );
-			this.button.remove();
+			this.element.insertBefore( this.wrapper );
+			this.wrapper.remove();
 	},
 
 	_getIconClasses: function( options ) {
@@ -8959,7 +8967,7 @@ $.widget( "mobile.slider", $.extend( {
 
 			// update control"s value
 			if ( isInput ) {
-				valueChanged = control.val() !== newval;
+				valueChanged = parseFloat( control.val() ) !== newval;
 				control.val( newval );
 			} else {
 				valueChanged = control[ 0 ].selectedIndex !== newval;
@@ -9030,6 +9038,8 @@ $.widget( "mobile.slider", $.extend( {
 		this.slider
 			.toggleClass( "ui-state-disabled", value )
 			.attr( "aria-disabled", value );
+
+		this.element.toggleClass( "ui-state-disabled", value );
 	}
 
 }, $.mobile.behaviors.formReset ) );
@@ -9453,6 +9463,7 @@ $.widget( "mobile.flipswitch", $.extend({
 			//if the first handle is dragged send the event to the first slider
 			$.data( this._inputFirst.get(0), "mobile-slider" ).dragging = true;
 			$.data( this._inputFirst.get(0), "mobile-slider" ).refresh( event );
+			$.data( this._inputFirst.get(0), "mobile-slider" )._trigger( "start" );
 			return false;
 		},
 
@@ -9505,6 +9516,11 @@ $.widget( "mobile.flipswitch", $.extend({
 			if ( options.highlight !== undefined ) {
 				this._setHighlight( options.highlight );
 			}
+
+			if ( options.disabled !== undefined ) {
+				this._setDisabled( options.disabled );
+			}
+
 			this._super( options );
 			this.refresh();
 		},
@@ -9611,6 +9627,11 @@ $.widget( "mobile.flipswitch", $.extend({
 			this._inputLast.slider( "option", "highlight", value );
 		},
 
+		_setDisabled: function( value ) {
+			this._inputFirst.prop( "disabled", value );
+			this._inputLast.prop( "disabled", value );
+		},
+
 		_destroy: function() {
 			this._label.prependTo( this.element );
 			this.element.removeClass( "ui-rangeslider ui-mini" );
@@ -9635,16 +9656,21 @@ $.widget( "mobile.flipswitch", $.extend({
 		_create: function() {
 			this._super();
 
-			if ( !!this.options.clearBtn || this.isSearch ) {
+			if ( this.isSearch ) {
+				this.options.clearBtn = true;
+			}
+
+			if ( !!this.options.clearBtn && this.inputNeedsWrap ) {
 				this._addClearBtn();
 			}
 		},
 
 		clearButton: function() {
-
-			return $( "<a href='#' class='ui-input-clear ui-btn ui-icon-delete ui-btn-icon-notext ui-corner-all" +
-    "' title='" + this.options.clearBtnText + "'>" + this.options.clearBtnText + "</a>" );
-
+			return $( "<a href='#' tabindex='-1' aria-hidden='true' " +
+				"class='ui-input-clear ui-btn ui-icon-delete ui-btn-icon-notext ui-corner-all'>" +
+				"</a>" )
+					.attr( "title", this.options.clearBtnText )
+					.text( this.options.clearBtnText );
 		},
 
 		_clearBtnClick: function( event ) {
@@ -9737,7 +9763,9 @@ $.widget( "mobile.flipswitch", $.extend({
 
 		_destroy: function() {
 			this._super();
-			this._destroyClear();
+			if ( this.options.clearBtn ) {
+				this._destroyClear();
+			}
 		}
 
 	});
@@ -9803,7 +9831,7 @@ $.widget( "mobile.flipswitch", $.extend({
 							}, this ),
 						"transition" );
 				}
-				this._timeout();
+				this._prepareHeightUpdate();
 			}
 		},
 
@@ -10496,7 +10524,9 @@ $.widget( "mobile.popup", {
 			target = $( targetElement );
 			if ( 0 === target.parents().filter( ui.container[ 0 ] ).length ) {
 				$( this.document[ 0 ].activeElement ).one( "focus", function(/* theEvent */) {
-					target.blur();
+					if ( targetElement.nodeName.toLowerCase() !== "body" ) {
+				            target.blur();
+				        }
 				});
 				ui.focusElement.focus();
 				theEvent.preventDefault();
@@ -11100,11 +11130,6 @@ $.widget( "mobile.popup", {
 			url = $.mobile.path.parseLocation().hash + hashkey;
 		}
 
-		// Tack on an extra hashkey if this is the first page and we've just reconstructed the initial hash
-		if ( urlHistory.activeIndex === 0 && url === urlHistory.initialDst ) {
-			url += hashkey;
-		}
-
 		// swallow the the initial navigation event, and bind for the next
 		this.window.one( "beforenavigate", function( theEvent ) {
 			theEvent.preventDefault();
@@ -11618,10 +11643,15 @@ $.widget( "mobile.selectmenu", $.mobile.selectmenu, {
 			}
 
 			parent = option.parentNode;
-			text = $option.getEncodedText();
-			anchor  = document.createElement( "a" );
 			classes = [];
 
+			// Although using .text() here raises the risk that, when we later paste this into the
+			// list item we end up pasting possibly malicious things like <script> tags, that risk
+			// only arises if we do something like $( "<li><a href='#'>" + text + "</a></li>" ). We
+			// don't do that. We do document.createTextNode( text ) instead, which guarantees that
+			// whatever we paste in will end up as text, with characters like <, > and & escaped.
+			text = $option.text();
+			anchor = document.createElement( "a" );
 			anchor.setAttribute( "href", "#" );
 			anchor.appendChild( document.createTextNode( text ) );
 
@@ -11992,7 +12022,7 @@ $.fn.buttonMarkup.defaults = {
 };
 
 $.extend( $.fn.buttonMarkup, {
-	initSelector: "a:jqmData(role='button'), .ui-bar > a, .ui-bar > :jqmData(role='controlgroup') > a, button"
+	initSelector: "a:jqmData(role='button'), .ui-bar > a, .ui-bar > :jqmData(role='controlgroup') > a, button:not(:jqmData(role='navbar') button)"
 });
 
 })( jQuery );
@@ -12300,7 +12330,7 @@ $.widget( "mobile.controlgroup", $.extend( {
 
 				// Skip back button creation if one is already present
 				if ( !backButton.attached ) {
-					backButton.element = ( backButton.element ||
+					this.backButton = backButton.element = ( backButton.element ||
 						$( "<a role='button' href='javascript:void(0);' " +
 							"class='ui-btn ui-corner-all ui-shadow ui-btn-left " +
 								( theme ? "ui-btn-" + theme + " " : "" ) +
@@ -12325,6 +12355,27 @@ $.widget( "mobile.controlgroup", $.extend( {
 					"role": "heading",
 					"aria-level": "1"
 				});
+		},
+		_destroy: function() {
+			var currentTheme;
+
+			this.element.children( "h1, h2, h3, h4, h5, h6" )
+				.removeClass( "ui-title" )
+				.removeAttr( "role" )
+				.removeAttr( "aria-level" );
+
+			if ( this.role === "header" ) {
+				this.element.children( "a, button" )
+					.removeClass( "ui-btn-left ui-btn-right ui-btn ui-shadow ui-corner-all" );
+				if ( this.backButton) {
+					this.backButton.remove();
+				}
+			}
+
+			currentTheme = this.options.theme ? this.options.theme : "inherit";
+			this.element.removeClass( "ui-bar-" + currentTheme );
+
+			this.element.removeClass( "ui-" + this.role ).removeAttr( "role" );
 		}
 	});
 
@@ -12358,6 +12409,7 @@ $.widget( "mobile.controlgroup", $.extend( {
 
 		_create: function() {
 			this._super();
+			this.pagecontainer = $( ":mobile-pagecontainer" );
 			if ( this.options.position === "fixed" && !this.options.supportBlacklist() ) {
 				this._makeFixed();
 			}
@@ -12600,12 +12652,30 @@ $.widget( "mobile.controlgroup", $.extend( {
 		},
 
 		_destroy: function() {
-			var $el = this.element,
-				header = $el.hasClass( "ui-header" );
+			var pageClasses, toolbarClasses, hasFixed, header, hasFullscreen,
+				page = this.pagecontainer.pagecontainer( "getActivePage" );
 
-			$el.closest( ".ui-page" ).css( "padding-" + ( header ? "top" : "bottom" ), "" );
-			$el.removeClass( "ui-header-fixed ui-footer-fixed ui-header-fullscreen ui-footer-fullscreen in out fade slidedown slideup ui-fixed-hidden" );
-			$el.closest( ".ui-page" ).removeClass( "ui-page-header-fixed ui-page-footer-fixed ui-page-header-fullscreen ui-page-footer-fullscreen" );
+			this._super();
+			if ( this.options.position === "fixed" ) {
+				hasFixed = $(  "body>.ui-" + this.role + "-fixed" )
+							.add( page.find( ".ui-" + this.options.role + "-fixed" ) )
+							.not( this.element ).length > 0;
+				hasFullscreen = $(  "body>.ui-" + this.role + "-fixed" )
+							.add( page.find( ".ui-" + this.options.role + "-fullscreen" ) )
+							.not( this.element ).length > 0;
+				toolbarClasses =  "ui-header-fixed ui-footer-fixed ui-header-fullscreen in out" +
+					" ui-footer-fullscreen fade slidedown slideup ui-fixed-hidden";
+				this.element.removeClass( toolbarClasses );
+				if ( !hasFullscreen ) {
+					pageClasses = "ui-page-" + this.role + "-fullscreen";
+				}
+				if ( !hasFixed ) {
+					header = this.role === "header";
+					pageClasses += " ui-page-" + this.role + "-fixed";
+					page.css( "padding-" + ( header ? "top" : "bottom" ), "" );
+				}
+				page.removeClass( pageClasses );
+			}
 		}
 
 	});
@@ -13808,6 +13878,9 @@ $.widget( "mobile.table", $.mobile.table, {
 	},
 
 	_addLabels: function( cells, label, contents ) {
+		if ( contents.length === 1 && contents[ 0 ].nodeName.toLowerCase() === "abbr" ) {
+			contents = contents.eq( 0 ).attr( "title" );
+		}
 		// .not fixes #6006
 		cells
 			.not( ":has(b." + label + ")" )
@@ -14188,6 +14261,24 @@ $.widget( "mobile.filterable", $.mobile.filterable, {
 		return ret;
 	},
 
+	// The listview implementation accompanying this filterable backcompat layer will call
+	// filterable.refresh() after it's done refreshing the listview to make sure the filterable
+	// filters out any new items added. However, when the listview refresh has been initiated by
+	// the filterable itself, then such filtering has already taken place, and calling the
+	// filterable's refresh() method will cause an infinite recursion. We stop this by setting a
+	// flag that will cause the filterable's refresh() method to short-circuit.
+	_refreshChildWidget: function() {
+		this._refreshingChildWidget = true;
+		this._superApply( arguments );
+		this._refreshingChildWidget = false;
+	},
+
+	refresh: function() {
+		if ( !this._refreshingChildWidget ) {
+			this._superApply( arguments );
+		}
+	},
+
 	_destroy: function() {
 		if ( this._isSearchInternal() ) {
 			this._search.remove();
@@ -14235,29 +14326,18 @@ $.widget( "mobile.listview", $.mobile.listview, {
 		return this._super();
 	},
 
-	_afterListviewRefresh: function() {
-		var filterable = this.element.data( "mobile-filterable" );
-
-		if ( this.options.filter === true && filterable ) {
-			this._preventRefreshLoop = true;
-			filterable.refresh();
-		}
-	},
-
-	// Eliminate infinite recursion caused by the fact that we call filterable.refresh() from
-	// _afterListviewRefresh() above, which, in turn, calls _refreshChildWidget(), which, in
-	// turn, calls listview refresh(), which would, in turn, calls _afterListviewRefresh()
-	// above, if we wouldn't prevent that right here.
 	refresh: function() {
-		var returnValue;
+		var filterable;
 
-		if ( !this._preventRefreshLoop ) {
-			returnValue = this._superApply( arguments );
+		this._superApply( arguments );
+
+		if ( this.options.filter === true ) {
+			filterable = this.element.data( "mobile-filterable" );
+
+			if ( filterable ) {
+				filterable.refresh();
+			}
 		}
-
-		this._preventRefreshLoop = false;
-
-		return returnValue;
 	}
 });
 
@@ -15196,7 +15276,7 @@ $.widget( "ui.tabs", {
 				$pages = $( ":jqmData(role='page'), :jqmData(role='dialog')" ),
 				hash = path.stripHash( path.stripQueryParams(path.parseLocation().hash) ),
 				theLocation = $.mobile.path.parseLocation(),
-				hashPage = document.getElementById( hash );
+				hashPage = hash ? document.getElementById( hash ) : undefined;
 
 			// if no pages are found, create one with body's inner html
 			if ( !$pages.length ) {
@@ -15210,7 +15290,7 @@ $.widget( "ui.tabs", {
 				// unless the data url is already set set it to the pathname
 				if ( !$this[ 0 ].getAttribute( "data-" + $.mobile.ns + "url" ) ) {
 					$this.attr( "data-" + $.mobile.ns + "url", $this.attr( "id" ) ||
-						theLocation.pathname + theLocation.search );
+						path.convertUrlToDataUrl( theLocation.pathname + theLocation.search ) );
 				}
 			});
 
@@ -15246,11 +15326,6 @@ $.widget( "ui.tabs", {
 				( $( hashPage ).is( ":jqmData(role='page')" ) ||
 					$.mobile.path.isPath( hash ) ||
 					hash === $.mobile.dialogHashKey ) ) ) {
-
-				// Store the initial destination
-				if ( $.mobile.path.isHashValid( location.hash ) ) {
-					$.mobile.navigate.history.initialDst = hash.replace( "#", "" );
-				}
 
 				// make sure to set initial popstate state if it exists
 				// so that navigation back to the initial page works properly
