@@ -472,6 +472,7 @@ C8O = {
 							}
 						}
 					}, function () {
+						delete data.__localCache;
 						doCall(false);
 					});
 					return;
@@ -588,7 +589,10 @@ C8O = {
 				});
 				return;
 			} catch (err) {
-				C8O.log.warn("c8o.core: failed to open the local cache database", err);
+				C8O.log.warn("c8o.core: failed to open the local cache database (log level debug to see more)");
+				if (C8O.canLog("debug")) {
+					C8O.log.debug("c8o.core: failed to open the local cache database, details:", err);
+				}
 				C8O._define.local_cache_db = false;
 			}
 		}
