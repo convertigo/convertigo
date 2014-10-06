@@ -101,6 +101,12 @@
                label="&amp;Print project"
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
          <action
+               class="com.twinsoft.convertigo.eclipse.actions.OpenDiscoveryConnectorsAction"
+               icon="icons/svn_add_connector.gif"
+               id="com.twinsoft.convertigo.OpenDiscoveryConnectorsAction"
+               label="&amp;Open SVN Discovery Connectors"
+               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
+         <action
                class="com.twinsoft.convertigo.eclipse.actions.AdministrationAction"
                icon="icons/administration_16x16.gif"
                id="com.twinsoft.convertigo.Administration"
@@ -118,12 +124,6 @@
                icon="icons/setupwizard_16x16.gif"
                id="com.twinsoft.convertigo.Setup"
                label="&amp;Configure Studio"
-               menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
-         <action
-               class="com.twinsoft.convertigo.eclipse.actions.OpenDiscoveryConnectorsAction"
-               icon="icons/setupwizard_16x16.gif"
-               id="com.twinsoft.convertigo.OpenDiscoveryConnectorsAction"
-               label="&amp;Open SVN Discovery Connectors"
                menubarPath="com.twinsoft.convertigo.menu/com.twinsoft.convertigo.separator"/>
       </actionSet>
    </extension>

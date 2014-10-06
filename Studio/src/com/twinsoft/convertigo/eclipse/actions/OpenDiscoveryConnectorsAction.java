@@ -39,29 +39,25 @@ public class OpenDiscoveryConnectorsAction implements IWorkbenchWindowActionDele
 	
 	public void run(IAction action) {
 		try {
-			ConvertigoPlugin.logInfo("OpenDiscoveryConnectorsAction launch");
 			Job job = new Job(SVNUIMessages.Operation_DiscoveryConnectors) {
+				
 				protected IStatus run(IProgressMonitor monitor) {
-					ConvertigoPlugin.logInfo("OpenDiscoveryConnectorsAction job started");
 					try {
-						DiscoveryConnectorsHelper discovery = new DiscoveryConnectorsHelper();														
+						DiscoveryConnectorsHelper discovery = new DiscoveryConnectorsHelper();
 						discovery.run(monitor);
-						
-						ConvertigoPlugin.logInfo("OpenDiscoveryConnectorsAction finished");
 					} catch (Throwable t) {
-						//shouldn't prevent plug-in start 
-						ConvertigoPlugin.logException(t, SVNUIMessages.Operation_DiscoveryConnectors_Error); 
+						ConvertigoPlugin.logException(t, SVNUIMessages.Operation_DiscoveryConnectors_Error);
 					}
 					return Status.OK_STATUS;
 				}
+				
 			};
 			job.setSystem(true);
 			job.setUser(false);
 			job.schedule();
 		} catch (Exception e) {
-			e.printStackTrace();
+			ConvertigoPlugin.logException(e, "Cannot open the SVN discovery wizard", true);
 		}
-//		org.eclipse.swt.program.Program.launch(Engine.USER_WORKSPACE_PATH);
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
