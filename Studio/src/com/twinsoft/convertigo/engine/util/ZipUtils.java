@@ -68,7 +68,7 @@ public class ZipUtils {
 	public static void makeZip(String archiveFileName, String sDir, String sRelativeDir) throws Exception {
 		FileOutputStream fos = new FileOutputStream(archiveFileName);
 		ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
-		int nbZipEntries = ZipUtils.putEntries(zos, sDir, sRelativeDir, new Vector<File>());
+		int nbZipEntries = ZipUtils.putEntries(zos, sDir, sRelativeDir, Collections.<File>emptyList());
 		if (nbZipEntries > 0) zos.close();
 	}
     
@@ -99,18 +99,17 @@ public class ZipUtils {
 		if (nbZipEntries > 0) zos.close();
 	}
     
-	private static int putEntries(ZipOutputStream zos, String sDir, String sRelativeDir, List<File> excludedFiles) throws Exception {
+	private static int putEntries(ZipOutputStream zos, String sDir, String sRelativeDir, final List<File> excludedFiles) throws Exception {
 		Engine.logEngine.trace("==========================================================");
 		Engine.logEngine.trace("sDir=" + sDir);
 		Engine.logEngine.trace("sRelativeDir=" + sRelativeDir);
 		Engine.logEngine.trace("excludedFiles=" + excludedFiles);
     	
-		final List<File> _excludedFiles = excludedFiles;
 		File dir = new File(sDir);
 		String[] files = dir.list(new FilenameFilter() {
 			public boolean accept(File dir, String name) {
 				File file = new File(dir, name);
-				return (!_excludedFiles.contains(file));
+				return (!excludedFiles.contains(file));
 			}
 		});
 

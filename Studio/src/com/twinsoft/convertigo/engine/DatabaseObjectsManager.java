@@ -453,26 +453,30 @@ public class DatabaseObjectsManager implements AbstractManager {
 	public void makeProjectBackup(String projectName) throws EngineException {
 		try {
 			String projectDir = Engine.PROJECTS_PATH + "/" + projectName;
-
-			Calendar calendar = Calendar.getInstance();
-			int iMonth = (calendar.get(Calendar.MONTH) + 1);
-			int iDay = calendar.get(Calendar.DAY_OF_MONTH);
-			String day = (iDay < 10 ? "0" + iDay : iDay + "");
-			String month = (iMonth < 10 ? "0" + iMonth : iMonth + "");
-			String stamp = calendar.get(Calendar.YEAR) + "-" + month + "-" + day;
-			String projectArchiveFilename = Engine.PROJECTS_PATH + "/" + projectName + "_" + stamp + ".zip";
-
-			File file = new File(projectArchiveFilename);
-			int i = 1;
-			while (file.exists()) {
-				projectArchiveFilename = Engine.PROJECTS_PATH + "/" + projectName + "_" + stamp + "_" + i
-						+ ".zip";
-				file = new File(projectArchiveFilename);
-				i++;
+			
+			if (new File(projectDir).exists()) {
+				Calendar calendar = Calendar.getInstance();
+				int iMonth = (calendar.get(Calendar.MONTH) + 1);
+				int iDay = calendar.get(Calendar.DAY_OF_MONTH);
+				String day = (iDay < 10 ? "0" + iDay : iDay + "");
+				String month = (iMonth < 10 ? "0" + iMonth : iMonth + "");
+				String stamp = calendar.get(Calendar.YEAR) + "-" + month + "-" + day;
+				String projectArchiveFilename = Engine.PROJECTS_PATH + "/" + projectName + "_" + stamp + ".zip";
+	
+				File file = new File(projectArchiveFilename);
+				int i = 1;
+				while (file.exists()) {
+					projectArchiveFilename = Engine.PROJECTS_PATH + "/" + projectName + "_" + stamp + "_" + i
+							+ ".zip";
+					file = new File(projectArchiveFilename);
+					i++;
+				}
+	
+				// Creating backup
+				ZipUtils.makeZip(projectArchiveFilename, projectDir, projectName);
+			} else {
+				Engine.logEngine.warn("Cannot make project archive, the folder '" + projectDir + "' doesn't exist.");
 			}
-
-			// Creating backup
-			ZipUtils.makeZip(projectArchiveFilename, projectDir, projectName);
 		} catch (Exception e) {
 			throw new EngineException(
 					"Unable to make backup archive for the project \"" + projectName + "\".", e);

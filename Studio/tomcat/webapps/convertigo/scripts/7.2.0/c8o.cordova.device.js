@@ -574,6 +574,8 @@ if ("cordova" in window) {
 		if (C8O._hook("device_ready")) {
 			C8O.log.info("c8o.cdv : window.plugins defined ? " + C8O.isDefined(window.plugins));
 
+			var devicePlatform = device.platform.toUpperCase();
+			
 			if (C8O.isDefined(window.plugins)) {
 				C8O.log.info("c8o.cdv : window.plugins.pushNotification defined ? " + C8O.isDefined(window.plugins.pushNotification));
 				
@@ -584,7 +586,7 @@ if ("cordova" in window) {
 
 					var options;
 
-					if (device.platform == "android" || device.platform == "Android") {
+					if (devicePlatform == "ANDROID") {
 						C8O.log.info("c8o.cdv : Android detected");
 
 						if (C8O.isDefined(C8O.cordova.androidSenderID) && C8O.cordova.androidSenderID.length > 0) {
@@ -593,11 +595,11 @@ if ("cordova" in window) {
 								"ecb": "C8O._cordova_onNotificationGCM"
 							};
 						} else {
-							C8O.log.error("c8o.cordova: no senderID for ");
+							C8O.log.error("c8o.cdv : no senderID for ");
 							C8O._hook("push_register_failed", "missing senderID");
 						}
 					} else {
-						C8O.log.info("c8o.cordova: IOs detected");
+						C8O.log.info("c8o.cdv : IOs detected");
 
 						options = {
 							"badge": "true",
@@ -609,9 +611,9 @@ if ("cordova" in window) {
 
 					pushNotification.register(
 						function (result) {
-							if (device.platform == "android" || device.platform == "Android") {
+							if (devicePlatform == "ANDROID") {
 								C8O.log.info("c8o.cdv : PushNotificationRegistered for Android: " + result);
-							} else {
+							} else if (devicePlatform == "IOS") {
 								C8O.log.info("c8o.cdv : PushNotificationRegistered for iOS: " + result);
 								if (typeof result == "string") {
 									if (C8O._hook("push_register_success", result)) {
@@ -626,6 +628,16 @@ if ("cordova" in window) {
 						},
 						options
 					);
+				}
+			}
+			
+			if (devicePlatform == "IOS" && C8O.isDefined(StatusBar)) {
+				C8O.log.debug("c8o.cdv : IOs detected");
+				
+				if (StatusBar.isVisible) {
+					StatusBar.overlaysWebView(false);
+					StatusBar.styleBlackOpaque();
+					StatusBar.backgroundColorByName("black");
 				}
 			}
 		}

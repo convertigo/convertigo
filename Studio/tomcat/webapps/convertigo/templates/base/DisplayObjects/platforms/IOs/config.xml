@@ -35,7 +35,6 @@
     <preference name="SplashScreen"    			  value="splash" />         <!-- all: the splash screen resource if built without phonegap build -->
     <preference name="AutoHideSplashScreen"       value="false" />          <!-- ios: set to false, the splash screen must be hidden using a JavaScript API (navigator.splashscreen API)  -->
     <preference name="prerendered-icon"           value="true" />           <!-- ios: if icon is prerendered, iOS will not apply it's gloss to the app's icon on the user's home screen -->
-    <preference name="ios-statusbarstyle"         value="black-opaque" />   <!-- ios: black-translucent will appear black because the PhoneGap webview doesn't go beneath the status bar -->
     <preference name="detect-data-types"          value="true" />           <!-- ios: controls whether data types (such as phone no. and dates) are automatically turned into links by the system -->
     <preference name="exit-on-suspend"            value="false" />          <!-- ios: if set to true, app will terminate when home button is pressed -->
     
@@ -79,17 +78,8 @@
 	<!-- Useful for debugging -->
 	<gap:plugin name="org.apache.cordova.console" />
 	
-	<!-- Status bar plugin for iOS 7 -->
-	<gap:plugin name="com.phonegap.plugin.statusbar" />
-	
-	<!-- Status bar plugin use -->	
-	<gap:config-file platform="ios" parent="UIStatusBarHidden">
-	    <false/>
-	</gap:config-file>
-	
-	<gap:config-file platform="ios" parent="UIViewControllerBasedStatusBarAppearance">
-	    <true/>
-	</gap:config-file>
+	<!-- Status bar plugin for iOS 7+ -->
+	<gap:plugin name="org.apache.cordova.statusbar" />
     
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
 <!--     <gap:plugin name="org.apache.cordova.battery-status" /> -->

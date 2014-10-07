@@ -682,7 +682,8 @@ public class ProjectTreeObject extends DatabaseObjectTreeObject implements IEdit
 						}
 						// close other file editors
 						else if (editorInput instanceof FileEditorInput) {
-							if (((FileEditorInput)editorInput).getFile().getLocation().toString().indexOf(project.getName()) != -1) {
+							IPath fullpath = ((FileEditorInput)editorInput).getFile().getFullPath();
+							if (fullpath.toString().replaceFirst("/(.*?)/.*", "$1").equals(project.getName())) {
 								closeEditor(activePage, editorRef);
 							}
 						}
