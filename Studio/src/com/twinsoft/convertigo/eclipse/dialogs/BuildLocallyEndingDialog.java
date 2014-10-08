@@ -47,7 +47,7 @@ import com.twinsoft.convertigo.engine.Engine;
 
 public class BuildLocallyEndingDialog extends Dialog {
 	
-	private File applicationBuilded;
+	private File applicationBuilt;
 	private MobilePlatform mobilePlatform;
 	private int exitValue;
 	private String errorLines;
@@ -56,9 +56,9 @@ public class BuildLocallyEndingDialog extends Dialog {
 	 * Create the dialog.
 	 * @param parentShell
 	 */
-	public BuildLocallyEndingDialog(Shell parentShell, File applicationBuilded, int exitValue, String errorLines, MobilePlatform mobilePlatform) {
+	public BuildLocallyEndingDialog(Shell parentShell, File applicationBuilt, int exitValue, String errorLines, MobilePlatform mobilePlatform) {
 		super(parentShell);
-		this.applicationBuilded = applicationBuilded;
+		this.applicationBuilt = applicationBuilt;
 		this.mobilePlatform = mobilePlatform;
 		this.exitValue = exitValue;
 		this.errorLines = errorLines;
@@ -96,7 +96,7 @@ public class BuildLocallyEndingDialog extends Dialog {
 		if (exitValue == 0){
 			message = "Application \"" + applicationName
 					+ "\" has been successfully built locally."
-					+ "\nThe builded file for \"" + mobilePlatform.getCordovaPlatform() + "\" platform is located here:";
+					+ "\nThe built file for \"" + mobilePlatform.getCordovaPlatform() + "\" platform is located here:";
 		//Error ending
 		} else {
 			message = "An error occurred on the \"" + applicationName + "\" application during the \"Local build\"!";
@@ -108,12 +108,12 @@ public class BuildLocallyEndingDialog extends Dialog {
 		data.grabExcessHorizontalSpace = true;
 		
 		if (exitValue == 0) {
-			String href = applicationBuilded.getParentFile().getAbsolutePath();
-			String text = applicationBuilded.getAbsolutePath();
+			String href = applicationBuilt.getParentFile().getAbsolutePath();
+			String text = applicationBuilt.getAbsolutePath();
 			
 			try {
-				href = applicationBuilded.getParentFile().getCanonicalPath();
-				text = applicationBuilded.getCanonicalPath();
+				href = applicationBuilt.getParentFile().getCanonicalPath();
+				text = applicationBuilt.getCanonicalPath();
 			} catch (IOException e1) {}
 			
 			Text absolutePath = new Text(container, SWT.NONE);
@@ -179,8 +179,8 @@ public class BuildLocallyEndingDialog extends Dialog {
 				public void widgetSelected(SelectionEvent e) {
 
 					try {
-						if (applicationBuilded.exists()) {
-							new ProcessBuilder("open", applicationBuilded.getCanonicalPath()).start();
+						if (applicationBuilt.exists()) {
+							new ProcessBuilder("open", applicationBuilt.getCanonicalPath()).start();
 						}
 						
 					} catch (IOException e1) {

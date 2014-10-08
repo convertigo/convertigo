@@ -803,10 +803,10 @@ public class BuildLocallyAction extends MyAbstractAction {
 		ConvertigoPlugin.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				File buildedFile = getAbsolutePathOfBuildedFile(mobilePlatform, buildOption);
+				File builtFile = getAbsolutePathOfBuiltFile(mobilePlatform, buildOption);
 				
 				BuildLocallyEndingDialog buildSuccessDialog = new BuildLocallyEndingDialog(
-					ConvertigoPlugin.getMainShell(), buildedFile, exitValue, errorLines, mobilePlatform
+					ConvertigoPlugin.getMainShell(), builtFile, exitValue, errorLines, mobilePlatform
 				);
 				
 				buildSuccessDialog.open();
@@ -815,21 +815,21 @@ public class BuildLocallyAction extends MyAbstractAction {
     	
 	}
 	
-	private File getAbsolutePathOfBuildedFile(MobilePlatform mobilePlatform, String buildMode) {
+	private File getAbsolutePathOfBuiltFile(MobilePlatform mobilePlatform, String buildMode) {
 		String applicationName = mobilePlatform.getParent().getComputedApplicationName();
 		String cordovaPlatform = mobilePlatform.getCordovaPlatform();
-		String buildedPath = "/platforms/" + cordovaPlatform + "/";
+		String builtPath = "/platforms/" + cordovaPlatform + "/";
 		String buildMd = buildMode.equals("debug") ? "Debug" : "Release";
 		
 		if (mobilePlatform instanceof Android) {
-			buildedPath += "ant-build/" + applicationName + "-" + buildMode + ".apk";
+			builtPath += "ant-build/" + applicationName + "-" + buildMode + ".apk";
 		} else if (mobilePlatform instanceof IOs){
 			// iOS
-			buildedPath += applicationName + ".xcodeproj";
+			builtPath += applicationName + ".xcodeproj";
 		} else if (mobilePlatform instanceof WindowsPhone8) {
-			buildedPath += "Bin/" + buildMd + "/CordovaAppProj_" + buildMd + "_AnyCPU.xap";
+			builtPath += "Bin/" + buildMd + "/CordovaAppProj_" + buildMd + "_AnyCPU.xap";
 		} else if (mobilePlatform instanceof WindowsPhone7) {
-			buildedPath += "Bin/" + buildMd + "/com.convertigo.mobile." + applicationName + ".xap";
+			builtPath += "Bin/" + buildMd + "/com.convertigo.mobile." + applicationName + ".xap";
 		} else if (mobilePlatform instanceof BlackBerry10) {
 			//TODO : Handle BB10
 		} else if (mobilePlatform instanceof Windows8){
@@ -838,7 +838,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 			return null;
 		}
 		
-		return new File (getCordovaDir(), buildedPath);
+		return new File (getCordovaDir(), builtPath);
 	}
 
 	/**
