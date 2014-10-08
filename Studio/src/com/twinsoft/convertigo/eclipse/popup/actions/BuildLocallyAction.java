@@ -252,6 +252,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 			Document doc = XMLUtils.loadXml(new File(wwwDir, "config.xml"));
 			CachedXPathAPI xpathApi = new CachedXPathAPI();
 			String platform = mobilePlatform.getCordovaPlatform();
+			File defaultSplash = null;
+			File defaultIcon = null;
 			
 			/*
 			 * Handle plugins in the config.xml file and test to see if the plugin is not already installed
@@ -260,6 +262,22 @@ public class BuildLocallyAction extends MyAbstractAction {
 			String installedPlugins = runCordovaCommand(cordovaDir, "plugin", "list").toLowerCase();
 			
 			NodeIterator plugins = xpathApi.selectNodeIterator(doc, "//*[local-name()='plugin']");
+			
+			Element singleElement = (Element) xpathApi.selectSingleNode(doc, "//*[local-name()='splash' and @src and not(@platform)]");
+			if (singleElement != null) {
+				defaultSplash = new File(wwwDir, singleElement.getAttribute("src"));
+				if (!defaultSplash.exists()) {
+					defaultSplash = null;
+				}
+			}
+			
+			singleElement = (Element) xpathApi.selectSingleNode(doc, "//*[local-name()='icon' and @src and not(@platform)]");
+			if (singleElement != null) {
+				defaultIcon = new File(wwwDir, singleElement.getAttribute("src"));
+				if (!defaultIcon.exists()) {
+					defaultIcon = null;
+				}
+			}
 			
 			for (Element plugin = (Element) plugins.nextNode(); plugin != null; plugin = (Element) plugins.nextNode()) {
 				List<String> options = new LinkedList<String>();
@@ -311,6 +329,10 @@ public class BuildLocallyAction extends MyAbstractAction {
 			//ANDROID
 			if (mobilePlatform instanceof Android) {
 				
+				if (defaultIcon != null) {
+					FileUtils.copyFile(defaultIcon, new File(cordovaDir, "platforms/" + platform + "/res/drawable/icon.png"));
+				}
+				
 				// Copy the icons to the correct res directory
 				NodeIterator icons = xpathApi.selectNodeIterator(doc, "//icon[@platform = 'android']");
 				for (Element icon = (Element) icons.nextNode(); icon != null; icon = (Element) icons.nextNode()) {
@@ -331,6 +353,10 @@ public class BuildLocallyAction extends MyAbstractAction {
 						
 						FileUtils.copyFile(iconSrc, dest);
 					}
+				}
+				
+				if (defaultSplash != null) {
+					FileUtils.copyFile(defaultSplash, new File(cordovaDir, "platforms/" + platform + "/res/drawable/splash.png"));
 				}
 				
 				// now the stuff for splashes
