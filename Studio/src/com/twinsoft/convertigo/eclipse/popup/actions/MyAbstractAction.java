@@ -86,13 +86,7 @@ public abstract class MyAbstractAction extends Action implements IObjectActionDe
 	}
 	
 	public Shell getParentShell() {
-		if (targetPart == null) {
-			Shell shell = Display.getDefault().getActiveShell();
-			shell = ((shell == null) ? new Shell():shell);
-			return shell;
-		}
-		else
-			return targetPart.getSite().getShell();
+		return targetPart == null ? ConvertigoPlugin.getMainShell() : targetPart.getSite().getShell();
 	}
 	
 	public IWorkbenchPage getActivePage() {

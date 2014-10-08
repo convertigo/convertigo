@@ -48,7 +48,6 @@ import com.twinsoft.convertigo.engine.Engine;
 public class BuildLocallyEndingDialog extends Dialog {
 	
 	private File applicationBuilded;
-	private String applicationName;
 	private MobilePlatform mobilePlatform;
 	private int exitValue;
 	private String errorLines;
@@ -57,14 +56,13 @@ public class BuildLocallyEndingDialog extends Dialog {
 	 * Create the dialog.
 	 * @param parentShell
 	 */
-	public BuildLocallyEndingDialog(Shell parentShell, File applicationBuilded, 
-			String applicationName, int exitValue, String errorLines, MobilePlatform mobilePlatform) {
+	public BuildLocallyEndingDialog(Shell parentShell, File applicationBuilded, int exitValue, String errorLines, MobilePlatform mobilePlatform) {
 		super(parentShell);
 		this.applicationBuilded = applicationBuilded;
-		this.applicationName = applicationName;
 		this.mobilePlatform = mobilePlatform;
 		this.exitValue = exitValue;
 		this.errorLines = errorLines;
+		setBlockOnOpen(false);
 	}
 
 	@Override
@@ -83,6 +81,8 @@ public class BuildLocallyEndingDialog extends Dialog {
 	 */
 	@Override
 	protected Control createDialogArea(Composite parent) {
+		String applicationName = mobilePlatform.getParent().getApplicationName();
+		
 		Composite container = (Composite) super.createDialogArea(parent);
 		container.setLayout(new GridLayout(1, true));
 		

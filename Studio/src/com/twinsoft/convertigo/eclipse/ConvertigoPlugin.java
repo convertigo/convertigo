@@ -168,12 +168,24 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
     public static final String PREFERENCE_XMLSCHEMA_VALIDATE = "xmlschema.validate";
     public static final String PREFERENCE_LOCAL_BUILD_ADDITIONAL_PATH = "localBuild.additionalPath";
     
-    public static Display getDisplay() {
-        Display display = Display.getCurrent();
-        //may be null if outside the UI thread
-        if (display == null)
-           display = Display.getDefault();
+    private static Display display = null;
+    public static synchronized Display getDisplay() {
+    	if (display == null) {
+    		display = Display.getCurrent();
+	        //may be null if outside the UI thread
+	        if (display == null) {
+	           display = Display.getDefault();
+	        }
+    	}
         return display;		
+    }
+    
+    private static Shell mainShell = null;
+    public static synchronized Shell getMainShell() {
+    	if (mainShell == null || mainShell.isDisposed()) {
+    		mainShell = getDefault().getWorkbench().getActiveWorkbenchWindow().getShell();
+    	}
+    	return mainShell;
     }
     
     public static class PscException extends Exception {
@@ -338,7 +350,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 		display.syncExec(new Runnable() {
 			public void run() {
 				try {
-					messageBox(display.getActiveShell(), message, SWT.OK | SWT.ICON_INFORMATION);
+					messageBox(null, message, SWT.OK | SWT.ICON_INFORMATION);
 				}
 				catch (Exception e){
 					ConvertigoPlugin.logException(e, "Error while trying to open message box");
@@ -350,8 +362,9 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 	private static int messageBox(Shell shell, String message, int options) {
 		try {
 			if (shell == null) {
-				shell = getDefault().getWorkbench().getActiveWorkbenchWindow().getShell();
+				shell = getMainShell();
 			}
+			
 	    	MessageBox messageBox = new MessageBox(shell, options);
 	    	messageBox.setText("Convertigo");
 	    	if (message == null) message = "(null message)";
@@ -374,8 +387,7 @@ public class ConvertigoPlugin extends AbstractUIPlugin implements IStartup {
 			
 			public void run() {
 				try {
-					Shell shell = display.getActiveShell();
-		        	ProjectDeployErrorDialog projectDeployErrorDialog = new ProjectDeployErrorDialog(shell, errorMessage, causeStackTrace);
+		        	ProjectDeployErrorDialog projectDeployErrorDialog = new ProjectDeployErrorDialog(getMainShell(), errorMessage, causeStackTrace);
 		        	projectDeployErrorDialog.open();
 		    		if (projectDeployErrorDialog.getReturnCode() != Window.CANCEL) {
 		    		}

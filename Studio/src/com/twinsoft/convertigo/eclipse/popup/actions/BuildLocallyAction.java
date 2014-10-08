@@ -42,7 +42,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.w3c.dom.Document;
@@ -606,11 +605,10 @@ public class BuildLocallyAction extends MyAbstractAction {
 	 * 
 	 */
 	private void buildLocally(final String option, final boolean run, final String target) {
-		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
+		Cursor waitCursor = new Cursor(ConvertigoPlugin.getDisplay(), SWT.CURSOR_WAIT);
 		Shell shell = getParentShell();
 		shell.setCursor(waitCursor);
-
+		
 		try {
 			final MobilePlatform mobilePlatform = getMobilePlatform();
 			
@@ -660,10 +658,6 @@ public class BuildLocallyAction extends MyAbstractAction {
 					return;
 				}
 
-				// get the application name from the Mobile devices's property or if empty the project's name
-				final String applicationName = mobileApplication.getComputedApplicationName();
-				final String applicationId = mobileApplication.getComputedApplicationId();
-
 				// Cordova Env will be created in the _private directory
 				final File privateDir = new File(Engine.PROJECTS_PATH + "/" + ConvertigoPlugin.projectManager.currentProject.getName() + "/_private");
 
@@ -699,7 +693,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 
 					if (customDialog.open() == SWT.YES) {
 						//create a local Cordova Environment
-						runCordovaCommand(privateDir, "create", BuildLocallyAction.cordovaDir, applicationId, applicationName);
+						runCordovaCommand(privateDir, "create", BuildLocallyAction.cordovaDir, mobileApplication.getComputedApplicationId(), mobileApplication.getComputedApplicationName());
 
 						Engine.logEngine.info("Cordova environment is now ready.");
 					} else {
@@ -737,7 +731,9 @@ public class BuildLocallyAction extends MyAbstractAction {
 								runCordovaCommand(cordovaDir, "build", cordovaPlatform, "--" + option);
 
 								// Step 4: Show dialog with path to apk/ipa/xap
-								showLocationInstallFile(mobilePlatform, applicationName, (processCanceled ? 0 : process.exitValue()), errorLines, option);
+								if (!processCanceled) {
+									showLocationInstallFile(mobilePlatform, process.exitValue(), errorLines, option);
+								}
 							}
 							
 							return org.eclipse.core.runtime.Status.OK_STATUS;
@@ -802,16 +798,15 @@ public class BuildLocallyAction extends MyAbstractAction {
 		}
 	}
 	
-	private void showLocationInstallFile(final MobilePlatform mobilePlatform, 
-			final String applicationName, final int exitValue, final String errorLines, final String buildOption) {
-		final Display display = Display.getDefault();
-		display.asyncExec(new Runnable() {
+	private void showLocationInstallFile(final MobilePlatform mobilePlatform, final int exitValue, final String errorLines, final String buildOption) {
+		
+		ConvertigoPlugin.getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				File buildedFile = getAbsolutePathOfBuildedFile(applicationName, mobilePlatform, buildOption);
+				File buildedFile = getAbsolutePathOfBuildedFile(mobilePlatform, buildOption);
 				
 				BuildLocallyEndingDialog buildSuccessDialog = new BuildLocallyEndingDialog(
-					display.getActiveShell(), buildedFile, applicationName, exitValue, errorLines, mobilePlatform
+					ConvertigoPlugin.getMainShell(), buildedFile, exitValue, errorLines, mobilePlatform
 				);
 				
 				buildSuccessDialog.open();
@@ -820,7 +815,8 @@ public class BuildLocallyAction extends MyAbstractAction {
     	
 	}
 	
-	private File getAbsolutePathOfBuildedFile(String applicationName, MobilePlatform mobilePlatform, String buildMode) {
+	private File getAbsolutePathOfBuildedFile(MobilePlatform mobilePlatform, String buildMode) {
+		String applicationName = mobilePlatform.getParent().getComputedApplicationName();
 		String cordovaPlatform = mobilePlatform.getCordovaPlatform();
 		String buildedPath = "/platforms/" + cordovaPlatform + "/";
 		String buildMd = buildMode.equals("debug") ? "Debug" : "Release";
