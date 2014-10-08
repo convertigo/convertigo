@@ -848,14 +848,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 	 */
 	private void removeCordovaPlatform () {
 		final MobilePlatform mobilePlatform = getMobilePlatform();
-		if (mobilePlatform != null) {
+		
+		if (mobilePlatform != null && getCordovaDir().exists()) {
 			final String platformName = mobilePlatform.getCordovaPlatform();
 			
 			Job removeCordovaPlatformJob = new Job("Remove " + platformName + " platform on cordova in progress...") {
 				@Override
 				protected IStatus run(IProgressMonitor arg0) {
 					try {
-
 						runCordovaCommand(getCordovaDir(), "platform", "rm", platformName);
 
 						return org.eclipse.core.runtime.Status.OK_STATUS;
@@ -875,6 +875,8 @@ public class BuildLocallyAction extends MyAbstractAction {
 			};
 			removeCordovaPlatformJob.setUser(true);
 			removeCordovaPlatformJob.schedule();
+		} else {
+			Engine.logEngine.error("The platform isn't removed because the Cordova environment doesn't exist.");
 		}
 	}
 	
