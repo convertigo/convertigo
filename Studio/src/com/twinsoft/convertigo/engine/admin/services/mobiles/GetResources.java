@@ -45,6 +45,9 @@ public class GetResources extends JSonService {
 		String platform = Keys.platform.value(request);
 		String uuid = Keys.uuid.value(request);
 		
+		// request the session to set the affinity
+		request.getSession();
+		
 		Engine.logAdmin.debug("(mobile.GetResources) Requested for project " + project + " by the platform " + platform + " and the uuid " + uuid);
 		
 		final MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(request, "mobile/flashupdate");
