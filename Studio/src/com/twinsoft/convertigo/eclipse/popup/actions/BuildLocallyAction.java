@@ -328,9 +328,10 @@ public class BuildLocallyAction extends MyAbstractAction {
 
 			//ANDROID
 			if (mobilePlatform instanceof Android) {
+				File resFolder = new File(cordovaDir, "platforms/" + platform + "/res");
 				
 				if (defaultIcon != null) {
-					FileUtils.copyFile(defaultIcon, new File(cordovaDir, "platforms/" + platform + "/res/drawable/icon.png"));
+					FileUtils.copyFile(defaultIcon, new File(resFolder, "drawable/icon.png"));
 				}
 				
 				// Copy the icons to the correct res directory
@@ -340,14 +341,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 					String density = icon.getAttribute("gap:density");
 					
 					File iconSrc = new File(wwwDir, source);
-					File dest = new File(cordovaDir, "platforms/" + platform + "/res/drawable-" + density + "/icon.png");
+					File dest = new File(resFolder, "drawable-" + density + "/icon.png");
 					
 					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					
 					FileUtils.copyFile(iconSrc, dest);
 					if (density.equalsIgnoreCase("ldpi")) {
 						// special case for ldpi assume it goes also in the drawable folder
-						dest = new File(cordovaDir, "platforms/" + platform + "/res/drawable/icon.png");
+						dest = new File(resFolder, "drawable/icon.png");
 						
 						Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 						
@@ -356,7 +357,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 				}
 				
 				if (defaultSplash != null) {
-					FileUtils.copyFile(defaultSplash, new File(cordovaDir, "platforms/" + platform + "/res/drawable/splash.png"));
+					FileUtils.copyFile(defaultSplash, new File(resFolder, "drawable/splash.png"));
 				}
 				
 				// now the stuff for splashes
@@ -367,14 +368,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 					String density = splash.getAttribute("gap:density");
 					
 					File splashSrc = new File(wwwDir, source);
-					File dest = new File(cordovaDir, "platforms/" + platform + "/res/drawable-" + density + "/splash.png");
+					File dest = new File(resFolder, "drawable-" + density + "/splash.png");
 					
 					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					
 					FileUtils.copyFile(splashSrc, dest);
 					if (density.equalsIgnoreCase("ldpi")) {
 						// special case for ldpi assume it goes also in the drawable folder
-						dest = new File(cordovaDir, "platforms/" + platform + "/res/drawable/splash.png");
+						dest = new File(resFolder, "drawable/splash.png");
 						
 						Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 						
@@ -387,6 +388,14 @@ public class BuildLocallyAction extends MyAbstractAction {
 			if (mobilePlatform instanceof  IOs) {
 				String applicationName = mobilePlatform.getParent().getComputedApplicationName();
 				
+				File iconFolder = new File(cordovaDir, "platforms/" + platform + "/" + applicationName + "/Resources/icons");
+				
+				if (defaultIcon != null) {
+					for (String iconName: iOSIconsCorrespondences.values()) {
+						FileUtils.copyFile(defaultIcon, new File(iconFolder, iconName));
+					}
+				}
+				
 				// Copy the icons to the correct res directory
 				NodeIterator icons = xpathApi.selectNodeIterator(doc, "//icon[@platform = 'ios']");
 				for (Element icon = (Element) icons.nextNode(); icon != null; icon = (Element) icons.nextNode()) {
@@ -397,11 +406,19 @@ public class BuildLocallyAction extends MyAbstractAction {
 					File iconSrc = new File(wwwDir, source);
 					
 					String iconName = iOSIconsCorrespondences.get(width + "x" + height);
-					File dest = new File(cordovaDir, "platforms/" + platform + "/" + applicationName + "/Resources/icons/" + iconName );
+					File dest = new File(iconFolder, iconName );
 
 					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					
 					FileUtils.copyFile(iconSrc, dest);
+				}
+				
+				File splashFolder = new File(cordovaDir, "platforms/" + platform + "/" + applicationName + "/Resources/splash");
+				
+				if (defaultSplash != null) {
+					for (String splashName: iOSSplashCorrespondences.values()) {
+						FileUtils.copyFile(defaultSplash, new File(splashFolder, splashName));
+					}
 				}
 				
 				// now the stuff for splashes
@@ -415,7 +432,7 @@ public class BuildLocallyAction extends MyAbstractAction {
 					File splashSrc = new File(wwwDir, source);
 					
 					String splashName = iOSSplashCorrespondences.get(width + "x" + height);
-					File dest = new File(cordovaDir, "platforms/" + platform + "/" + applicationName + "/Resources/splash/" + splashName);
+					File dest = new File(splashFolder, splashName);
 					
 					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					
