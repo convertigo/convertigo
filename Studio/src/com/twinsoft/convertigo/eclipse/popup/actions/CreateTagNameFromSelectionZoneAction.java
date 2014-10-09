@@ -44,6 +44,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ScreenClassTreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
+import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.twinj.Javelin;
 
@@ -61,40 +62,47 @@ public class CreateTagNameFromSelectionZoneAction extends MyAbstractAction {
 		shell.setCursor(waitCursor);
         
 		try {
-			ProjectExplorerView explorerView = getProjectExplorerView();
+			final ProjectExplorerView explorerView = getProjectExplorerView();
 			IWorkbenchPart wpart = getActivePart();
 			if ((explorerView != null) && (wpart != null) && (wpart instanceof ConnectorEditor)) {
 				ConnectorEditor connectorEditor = (ConnectorEditor)wpart;
 				ConnectorEditorPart connectorEditorPart = connectorEditor.getConnectorEditorPart();
 				AbstractConnectorComposite connectorComposite = connectorEditorPart.getConnectorComposite();
 				if ((connectorComposite != null) && (connectorComposite instanceof JavelinConnectorComposite)) {
-					Javelin javelin = ((JavelinConnectorComposite)connectorComposite).getJavelin();
+					final Javelin javelin = ((JavelinConnectorComposite)connectorComposite).getJavelin();
 					ScreenClass currentScreenClass = ((JavelinConnector) connectorEditorPart.getConnector()).getCurrentScreenClass();
 					Engine.theApp.fireObjectDetected(new EngineEvent(currentScreenClass));
 					
-					ScreenClassTreeObject lastDetectedScreenClassTreeObject = explorerView.getLastDetectedScreenClassTreeObject();
+					final ScreenClassTreeObject lastDetectedScreenClassTreeObject = explorerView.getLastDetectedScreenClassTreeObject();
 					if (lastDetectedScreenClassTreeObject != null) {
-						ScreenClass lastDetectedScreenClass = (ScreenClass)lastDetectedScreenClassTreeObject.getObject();
-						TagName tagName = new TagName();
+						final ScreenClass lastDetectedScreenClass = (ScreenClass)lastDetectedScreenClassTreeObject.getObject();
+						final TagName tagName = new TagName();
 						
-						InputDialog dlg = new InputDialog(shell,"New TagName", "Please enter a tag name :", "_configure_tag_name_", null);
+						final InputDialog dlg = new InputDialog(shell,"New TagName", "Please enter a tag name :", "_configure_tag_name_", null);
 				        if (dlg.open() == Window.OK) {
-				        	String name = dlg.getValue();
-				        	
-				        	Rectangle zone = javelin.getSelectionZone();
-				        	
-			    			tagName.setTagName(StringUtils.normalize(name));
-				            tagName.setSelectionScreenZone(new XMLRectangle(zone.x, zone.y, zone.width, zone.height));
-				            tagName.setSelectionAttribute(javelin.getCharAttribute(zone.x, zone.y));
-				            tagName.setSelectionType("");
-				            tagName.hasChanged = true;
-				            tagName.bNew = true;
-				            
-			    			lastDetectedScreenClass.addExtractionRule(tagName);
-				            
-				            explorerView.reloadTreeObject(lastDetectedScreenClassTreeObject);
+				        	display.asyncExec(new Runnable() {
+				    			public void run() {
+				    				try {
+							        	String name = dlg.getValue();
+							        	
+							        	Rectangle zone = javelin.getSelectionZone();
+							        	
+						    			tagName.setTagName(StringUtils.normalize(name));
+							            tagName.setSelectionScreenZone(new XMLRectangle(zone.x, zone.y, zone.width, zone.height));
+							            tagName.setSelectionAttribute(javelin.getCharAttribute(zone.x, zone.y));
+							            tagName.setSelectionType("");
+							            tagName.hasChanged = true;
+							            tagName.bNew = true;
+							            
+						    			lastDetectedScreenClass.addExtractionRule(tagName);
+							            
+							            explorerView.reloadTreeObject(lastDetectedScreenClassTreeObject);
+				    				} catch (Exception e) {
+				    					ConvertigoPlugin.logException(e, "Unable to create screen class from selection zone!");
+				    				}
+				    			}
+				        	});
 				        }
-			            
 			            javelin.setSelectionZone(new Rectangle(0, 0, 0, 0));
 					}
 				}
