@@ -37,6 +37,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.util.StringEx;
 
@@ -524,6 +525,10 @@ public class PobiXslUtils {
 			}
 		}
 		return nextUrl;
+	}
+	
+	public static String getSymbolValue(String symbolName) {
+		return Engine.theApp.databaseObjectsManager.getSymbolValue(symbolName);
 	}
 	
 	public static String makeUrlSuivi(String backurl) {
