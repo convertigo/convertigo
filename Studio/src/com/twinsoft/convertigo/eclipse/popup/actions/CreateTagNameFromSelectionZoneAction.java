@@ -78,7 +78,7 @@ public class CreateTagNameFromSelectionZoneAction extends MyAbstractAction {
 						final ScreenClass lastDetectedScreenClass = (ScreenClass)lastDetectedScreenClassTreeObject.getObject();
 						final TagName tagName = new TagName();
 						
-						final InputDialog dlg = new InputDialog(shell,"New TagName", "Please enter a tag name :", "_configure_tag_name_", null);
+						final InputDialog dlg = new InputDialog(shell,"New TagName", "Please enter a tag name :", "_configure_a_tag_name_", null);
 				        if (dlg.open() == Window.OK) {
 				        	display.asyncExec(new Runnable() {
 				    			public void run() {
