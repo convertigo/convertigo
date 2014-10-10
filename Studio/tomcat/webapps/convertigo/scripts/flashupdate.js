@@ -440,7 +440,7 @@ var F = {
 	redirectApp: function () {
 		F.debug("redirectApp");
 		
-		window.location.href = window.location.href.replace(F.reTailUrl, "$1/app.html");
+		window.location.href = window.location.href.replace(F.reTailUrl, "$1/app.html").replace(new RegExp("//","g"),"/");
 	},
 	
 	filesIndexer: function (files) {
