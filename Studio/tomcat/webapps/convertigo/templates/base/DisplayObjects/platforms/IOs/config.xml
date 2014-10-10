@@ -31,7 +31,7 @@
     <preference name="phonegap-version"           value="3.6.3" />          <!-- all: current version of PhoneGap -->
     <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
-    <preference name="fullscreen"                 value="true" />           <!-- all: hides the status bar at the top of the screen -->
+    <preference name="fullscreen"                 value="false" />          <!-- all: hides the status bar at the top of the screen -->
     <preference name="SplashScreen"    			  value="splash" />         <!-- all: the splash screen resource if built without phonegap build -->
     <preference name="AutoHideSplashScreen"       value="false" />          <!-- ios: set to false, the splash screen must be hidden using a JavaScript API (navigator.splashscreen API)  -->
     <preference name="prerendered-icon"           value="true" />           <!-- ios: if icon is prerendered, iOS will not apply it's gloss to the app's icon on the user's home screen -->
