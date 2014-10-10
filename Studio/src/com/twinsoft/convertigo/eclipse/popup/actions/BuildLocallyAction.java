@@ -202,7 +202,11 @@ public class BuildLocallyAction extends MyAbstractAction {
 		
 		ProcessBuilder processBuilder = new ProcessBuilder(cordovaCommands);
 		processBuilder.directory(projectDir.getCanonicalFile());
-		processBuilder.environment().put("PATH", paths);
+		
+		Map<String, String> pbEnv = processBuilder.environment();
+		
+		// must set "Path" for Windows 8.1 64
+		pbEnv.put(pbEnv.get("PATH") == null ? "Path" : "PATH", paths);
 		
 		process = processBuilder.start();
 		

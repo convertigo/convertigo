@@ -176,38 +176,42 @@ var F = {
 		
 		window.requestFileSystem(LocalFileSystem.PERSISTENT, quota, function (fileSystem) {
 			try {
-				var fuPath = "flashupdate";
+				var wwwPath = "www";
 				
 				if (!F.fsProtocol && F.env.platform == "Android") {
-					fuPath = "/data/data/" + F.env.applicationId + "/flashupdate";
+					wwwPath = "/data/data/" + F.env.applicationId + "/" + wwwPath;
 				}
 				
-				F.debug("getDirectory " + fuPath);
-							
-				fileSystem.root.getDirectory(fuPath, {create: true}, function (flashUpdateDir) {
-					F.flashUpdateDir = flashUpdateDir;
+				F.debug("getDirectory " + wwwPath);
+				
+				fileSystem.root.getDirectory(wwwPath, {create: true}, function (wwwDir) {
+					F.debug("getDirectory www/flashupdate");
 					
-					if (F.fsProtocol || F.env.platform == "blackberry10") {
-						F.env.localBase = flashUpdateDir.toURL();
-					}
-					
-					if (!F.env.localBase) {
-						F.env.localBase = flashUpdateDir.fullPath;
-					}
-					
-					F.env.webLocalBase = flashUpdateDir.nativeURL ? flashUpdateDir.nativeURL : F.env.localBase;
-					if (!F.env.webLocalBase) {
-						F.env.webLocalBase = flashUpdateDir.fullPath;
-					}
-					
-					F.env.localBase = F.env.localBase.replace(new RegExp("/$"), "");
-					F.env.webLocalBase = F.env.webLocalBase.replace(new RegExp("/$"), "");
-					
-					if (F.env.isLocal) {
-						F.isFlashUpdate();
-					} else {
-						F.hasLocal();
-					}
+					wwwDir.getDirectory("flashupdate", {create: true}, function (flashUpdateDir) {
+						F.flashUpdateDir = flashUpdateDir;
+						
+						if (F.fsProtocol || F.env.platform == "blackberry10") {
+							F.env.localBase = flashUpdateDir.toURL();
+						}
+						
+						if (!F.env.localBase) {
+							F.env.localBase = flashUpdateDir.fullPath;
+						}
+						
+						F.env.webLocalBase = flashUpdateDir.nativeURL ? flashUpdateDir.nativeURL : F.env.localBase;
+						if (!F.env.webLocalBase) {
+							F.env.webLocalBase = flashUpdateDir.fullPath;
+						}
+						
+						F.env.localBase = F.env.localBase.replace(new RegExp("/$"), "");
+						F.env.webLocalBase = F.env.webLocalBase.replace(new RegExp("/$"), "");
+												
+						if (F.env.isLocal) {
+							F.isFlashUpdate();
+						} else {
+							F.hasLocal();
+						}
+					});
 				});
 			} catch (err) {
 				F.error("getDirectory flashupdate failed", err);
