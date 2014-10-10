@@ -62,6 +62,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper;
+import com.twinsoft.convertigo.engine.util.ImageUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class BuildLocallyAction extends MyAbstractAction {
@@ -445,6 +446,15 @@ public class BuildLocallyAction extends MyAbstractAction {
 			
 			//WINPHONE
 			if (mobilePlatform instanceof WindowsPhone7 || mobilePlatform instanceof WindowsPhone8) {
+				File resFolder = new File(cordovaDir, "platforms/" + platform);
+				File destIcon = new File(resFolder, "ApplicationIcon.png");
+				File destBackground = new File(resFolder, "Background.png");
+				File destSplashScreen = new File(resFolder, "SplashScreenImage.jpg");
+				
+				if (defaultIcon != null) {
+					FileUtils.copyFile(defaultIcon, destIcon);
+					FileUtils.copyFile(defaultIcon, destBackground);
+				}
 
 				NodeIterator icons = xpathApi.selectNodeIterator(doc, "//icon[@platform = 'winphone']");
 				for (Element icon = (Element) icons.nextNode(); icon != null; icon = (Element) icons.nextNode()) {
@@ -452,20 +462,21 @@ public class BuildLocallyAction extends MyAbstractAction {
 					String role = icon.hasAttribute("gap:role") ? icon.getAttribute("gap:role") : "";
 					
 					File iconSrc = new File(wwwDir, source);
-					File dest = new File(cordovaDir, "platforms/" + platform + "/ApplicationIcon.png");
 					
-					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
+					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + destIcon.getAbsolutePath());
 					
-					FileUtils.copyFile(iconSrc, dest);
+					FileUtils.copyFile(iconSrc, destIcon);
 					
 					if (role.equalsIgnoreCase("background")) {
 						// special case for background 
-						dest = new File(cordovaDir, "platforms/" + platform + "/Background.png");
+						Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + destBackground.getAbsolutePath());
 						
-						Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
-						
-						FileUtils.copyFile(iconSrc, dest);
+						FileUtils.copyFile(iconSrc, destBackground);
 					}
+				}
+				
+				if (defaultSplash != null) {
+					ImageUtils.pngToJpg(defaultSplash, destSplashScreen);
 				}
 				
 				// now the stuff for splashes
@@ -475,11 +486,10 @@ public class BuildLocallyAction extends MyAbstractAction {
 					String source = splash.getAttribute("src");
 					
 					File splashSrc = new File(wwwDir, source);
-					File dest = new File(cordovaDir, "platforms/" + platform + "/SplashScreenImage.jpg");
 					
-					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
+					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + destSplashScreen.getAbsolutePath());
 					
-					FileUtils.copyFile(splashSrc, dest);
+					FileUtils.copyFile(splashSrc, destSplashScreen);
 				}
 			}
 

@@ -23,7 +23,7 @@
 	<gap:platform name="winphone"/>
 	
 	<!-- Customize your app and platform with the preference element. -->
-    <preference name="phonegap-version"           value="3.3.0" />          <!-- all: current version of PhoneGap -->
+    <preference name="phonegap-version"           value="3.6.3" />          <!-- all: current version of PhoneGap -->
     <preference name="orientation"                value="default" />        <!-- all: default means both landscape and portrait are enabled -->
     <preference name="target-device"              value="universal" />      <!-- all: possible values handset, tablet, or universal -->
     <preference name="fullscreen"                 value="true" />           <!-- all: hides the status bar at the top of the screen -->
@@ -37,22 +37,24 @@
     <icon src="res/icon/icon62tile.png" 	gap:platform="winphone"   gap:role="background" />
     <icon src="res/icon/icon173tile.png" 	gap:platform="winphone"   gap:role="background" />
 	
+	<gap:splash src="splash.png" />
+	
 	<!-- Windows Phone 8 splash -->
     <gap:splash src="res/splash/splash.jpg" 		     gap:platform="winphone" />
 	
 	<!-- If you do not want any permissions to be added to your app, add the
     following tag to your config.xml; you will still have the INTERNET
     permission on your app, which PhoneGap requires. -->
-	<preference name="permissions" value="none"/>
+	<preference name="permissions" value="none" />
 	
     <!-- Core plugins mandatory for FlashUpdate service -->
-	<gap:plugin name="org.apache.cordova.device" version="0.2.8"/>
-	<gap:plugin name="org.apache.cordova.file" version="1.0.1"/>
-	<gap:plugin name="org.apache.cordova.file-transfer" version="0.4.2"/>
-	<gap:plugin name="org.apache.cordova.splashscreen" version="0.2.7"/>
+	<gap:plugin name="org.apache.cordova.device" />
+	<gap:plugin name="org.apache.cordova.file" />
+	<gap:plugin name="org.apache.cordova.file-transfer" />
+	<gap:plugin name="org.apache.cordova.splashscreen" />
 
 	<!-- Useful for debugging --> 
-	<gap:plugin name="org.apache.cordova.console" version="0.2.7"/>
+	<gap:plugin name="org.apache.cordova.console"/>
     
 	<!-- Other optional Core plugins, comment them out (ctrl+shit+c) if you want to reduce the package size and permissions -->
 <!--     <gap:plugin name="org.apache.cordova.battery-status" /> -->
@@ -68,6 +70,7 @@
 <!--     <gap:plugin name="org.apache.cordova.media" /> -->
 <!--     <gap:plugin name="org.apache.cordova.network-information" /> -->
 <!--     <gap:plugin name="org.apache.cordova.vibration" /> -->
+<!--     <gap:plugin name="org.apache.cordova.statusbar" /> -->
 
     <!-- Other optional plugins -->
 <!--     <gap:plugin name="com.phonegap.plugins.pushplugin" /> -->
@@ -76,5 +79,5 @@
 	<!-- Other plugins and documentation can be find here : https://build.phonegap.com/plugins -->
 	
 	<!-- Expose access to all URIs, including the file and http protocols -->
-	<access origin="*" subdomains="true"/>
+	<access origin="*" subdomains="true" />
 </widget>

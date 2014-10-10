@@ -80,6 +80,7 @@
 <!--     <gap:plugin name="org.apache.cordova.media" /> -->
 <!--     <gap:plugin name="org.apache.cordova.network-information" /> -->
 <!--     <gap:plugin name="org.apache.cordova.vibration" /> -->
+<!--     <gap:plugin name="org.apache.cordova.statusbar" /> -->
 
     <!-- Other optional plugins -->
 <!--     <gap:plugin name="com.phonegap.plugins.pushplugin" /> -->
