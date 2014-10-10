@@ -26,7 +26,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.regex.Pattern;
 
 import javax.xml.transform.TransformerException;
@@ -798,17 +797,21 @@ public class PobiXslUtils {
 		int month = Integer.parseInt(key.substring(2, 4), 10);
 		int year = Integer.parseInt(key.substring(4, 6), 10) + 1900;
 		
-		//Test des cas personnes nees a l'etranger 0000AA ou 00MMAA
-		if ( !(day == 0 && month == 0 ) 
-			&& ( (month < 1 || month > 12) || (day < 0 || day > 31)
+		//traitement pour laisser passer le cas 29/02/2000 qui est bissextile
+		// et qui ne passait pas car intAnnee est égale à 1900 qui n'est pas bissextile.
+		int intAnneeSaisie = Integer.parseInt(key.substring(4, 6), 10);
+		int compensation = 0;
+		if (intAnneeSaisie == 0) compensation = 100;
+		
+		//Test des cas personnes nées à l'etranger 0000AA et 00MMAA
+		if (!((day == 0) && (((month >= 0) && (month <= 12)))) 
+			&& ( (month < 1 || month > 12) || (day < 1 || day > 31)
 				|| (year < 1900 || year > 2050)
 				|| ((month == 4 || month == 6 || month == 9 || month == 11) && day == 31 )))
 		{
 			return false;
 		}
-		else if (month == 2 && ((day > 29) || ((day == 29 &&
-					(year%4 != 0 || (year%4 == 0 &&
-					(year%100 == 0 && year%400 != 0 )))))))
+		else if ((month == 2) && ((day > 29) || ((day == 29) && (!EstAnneeBissextile((year + compensation))))))
 		{
 			return false;
 		}
@@ -816,6 +819,26 @@ public class PobiXslUtils {
 		return true;
 	}
 	
+	private static boolean EstAnneeBissextile(int annee) {
+		String regExp = "[0-9]+";
+	    //String strErrorMsg = "l'année n'est pas au format numérique!";
+
+
+	    // teste si l'année est au format numérique
+	    if (!Pattern.matches(regExp, String.valueOf(annee))) {
+	        //alert(strErrorMsg);
+	        return false;
+	    }
+
+	    // une année bissextile est une année divisible par 4 ET non divisible par 100
+	    // OU BIEN elle est simplement divisible par 400.
+	    if (((annee % 4 == 0) && (annee % 100 != 0)) || (annee % 400 == 0)) {
+	        return true;
+	    }
+		
+		return false;
+	}
+
 	// public static qui verifie qu'on a bien un numéro SIREN
 	private static boolean bCheckSirenNumber(String sString) {
 		int iLengthIdent = sString.length(); // longueur de l'identifiant
@@ -867,11 +890,6 @@ public class PobiXslUtils {
 		return nAlgoSiren;
 	}
 
-	private static boolean bCheckDate(int nDay, int nMonth, int nYear) {
-		Date ladate = new Date(nYear, nMonth-1, nDay);
-		return ((nYear == (ladate.getYear())) && (nMonth == (ladate.getMonth() + 1)) && (nDay == ladate.getDate()));
-	}
-	
 	// public static qui vérifie la validité de la date
 	private static boolean bCheckBirthDay(String sDate) {
 		boolean bIsDate = false;
@@ -882,19 +900,28 @@ public class PobiXslUtils {
 		}
 		else {
 			try {
-				// exception encore
-				if ((sDate.substring(0, 2).equals("00"))
-						&& (Integer.parseInt(sDate.substring(2, 4)) >= 0)
-						&& (Integer.parseInt(sDate.substring(2, 4)) < 13)
-						&& (Integer.parseInt(sDate.substring(4, 6)) >= 0)
-						&& (Integer.parseInt(sDate.substring(4, 6)) < 100)) {
-					bIsDate = true;
+				bIsDate = true;
+				int day = Integer.parseInt(sDate.substring(0, 2), 10);
+				int month = Integer.parseInt(sDate.substring(2, 4), 10);
+				int year = Integer.parseInt(sDate.substring(4, 6), 10) + 1900;
+				
+				//traitement pour laisser passer le cas 29/02/2000 qui est bissextile
+				// et qui ne passait pas car intAnnee est égale à 1900 qui n'est pas bissextile.
+				int intAnneeSaisie = Integer.parseInt(sDate.substring(4, 6), 10);
+				int compensation = 0;
+				if (intAnneeSaisie == 0) compensation = 100;
+				
+				//Test des cas personnes nées à l'etranger 0000AA et 00MMAA
+				if (!((day == 0) && (((month >= 0) && (month <= 12)))) 
+					&& ( (month < 1 || month > 12) || (day < 1 || day > 31)
+						|| (year < 1900 || year > 2050)
+						|| ((month == 4 || month == 6 || month == 9 || month == 11) && day == 31 )))
+				{
+					return false;
 				}
-				else {
-					bIsDate = bCheckDate(
-							Integer.parseInt(sDate.substring(0, 2)),
-							Integer.parseInt(sDate.substring(2, 4)),
-							Integer.parseInt("20" + sDate.substring(4, 6)));
+				else if ((month == 2) && ((day > 29) || ((day == 29) && (!EstAnneeBissextile((year + compensation))))))
+				{
+					return false;
 				}
 			}
 			catch (NumberFormatException e) {
