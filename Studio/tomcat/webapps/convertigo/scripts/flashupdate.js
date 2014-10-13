@@ -203,8 +203,11 @@ var F = {
 							F.env.webLocalBase = flashUpdateDir.fullPath;
 						}
 						
-						F.env.localBase = F.env.localBase.replace(new RegExp("/$"), "");
-						F.env.webLocalBase = F.env.webLocalBase.replace(new RegExp("/$"), "");
+						var reLastSlash = new RegExp("/$");
+						var reDoubleSlash = new RegExp("//","g");
+						
+						F.env.localBase = F.env.localBase.replace(reDoubleSlash, "/").replace(reLastSlash, "");
+						F.env.webLocalBase = F.env.webLocalBase.replace(reDoubleSlash, "/").replace(reLastSlash, "");
 												
 						if (F.env.isLocal) {
 							F.isFlashUpdate();
@@ -440,7 +443,7 @@ var F = {
 	redirectApp: function () {
 		F.debug("redirectApp");
 		
-		window.location.href = window.location.href.replace(F.reTailUrl, "$1/app.html").replace(new RegExp("//","g"),"/");
+		window.location.href = window.location.href.replace(F.reTailUrl, "$1/app.html");
 	},
 	
 	filesIndexer: function (files) {
