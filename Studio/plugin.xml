@@ -471,13 +471,13 @@
 <!-- Mobile sample projects -->
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerSimpleAppWizard"
+            class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobilizerSearchRoomWizard"
             icon="icons/studio/mobile_HighEnd_color_32x32.png"
-            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerSimpleAppWizard"
+            id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobilizerSearchRoomWizard"
             name="Searching conference rooms mobile sample project"
             preferredPerspectives="convertigo"
             project="true">
-            <description>Imports a mobile sample project allowing to search a conference room, and localize them on a map. The project is based on jQuery Mobile and CTF frameworks.</description> 
+            <description>Imports a mobile sample project allowing to search a conference room, and localize them on a map. The project is based on jQuery Mobile and CTF frameworks, and uses the local cache. When the mobile application receives a response from Convertigo, it is cached locally thanks to JavaScript code. When the mobile application cannot reach Convertigo, or cannot access the network, or when data is stored locally, the local data are used. </description> 
        </wizard>
        <wizard
             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
@@ -497,7 +497,7 @@
              name="Mobile US Directory sample project"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports a sample project creating a US Directory mobile application. The project is based on jQuery Mobile and CTF frameworks, and makes searches on the US Directory website to dynamically get data.</description>
+          <description>Imports a sample project creating a US Directory mobile application. The project is based on jQuery Mobile and CTF frameworks, and makes searches on the US Directory website to dynamically get data. It also uses the local cache. When the mobile application receives a response from Convertigo, it is cached locally thanks to JavaScript code. When the mobile application cannot reach Convertigo, or cannot access the network, or when data is stored locally, the local data are used. </description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
@@ -507,7 +507,7 @@
              name="MobTV sample project"
              preferredPerspectives="convertigo"
              project="true">
-          <description>Imports a sample project creating a MobTV mobile application. The project is based on jQuery Mobile and CTF frameworks, and makes searches on the programme-tv.net website to dynamically get data.</description>
+          <description>Imports a sample project creating a MobTV mobile application. The project is based on jQuery Mobile and CTF frameworks, and makes searches on the programme-tv.net website to dynamically get data. It also uses the local cache. When the mobile application receives a response from Convertigo, it is cached locally thanks to JavaScript code. When the mobile application cannot reach Convertigo, or cannot access the network, or when data is stored locally, the local data are used. </description>
        </wizard>
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
@@ -519,17 +519,6 @@
              project="true">
           <description>Imports a vacation management mobile application sample project. The project is based on jQuery Mobile and CTF frameworks, and uses fake data from XML files in the project loaded thanks to a sequence.</description>
        </wizard>
-       <wizard
-             category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos/com.twinsoft.convertigo.eclipse.convertigomobilesamples"
-             class="com.twinsoft.convertigo.eclipse.wizards.new_project.NewSampleMobileLocalCacheWizard"
-             icon="icons/studio/demo_localcache_color_32x32.png"
-             id="com.twinsoft.convertigo.eclipse.wizards.NewSampleMobileLocalCacheWizard"
-             name="Local cache sample project"
-             preferredPerspectives="convertigo"
-             project="true">
-          <description>Imports a mobile sample project similar to the Searching conference rooms mobile sample project but which includes local cache feature. When the mobile application receives a response from Convertigo, it is cached locally thanks to JavaScript code. When the mobile application cannot reach Convertigo, or cannot access the network, the local data are used.</description>
-       </wizard>
-       
 <!-- HelloWorld sample project -->
        <wizard
              category="com.twinsoft.convertigo.eclipse.convertigo_samples_demos"

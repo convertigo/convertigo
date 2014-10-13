@@ -160,12 +160,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	
 	// mobile samples
 	public static final int SAMPLE_MOBILE_VACATION = 1310;
-	public static final int SAMPLE_MOBILE_SIMPLE_APP = 1311;
+	public static final int SAMPLE_MOBILE_SEARCH_ROOM = 1311;
 	public static final int SAMPLE_MOBILE_CTF_GALLERY = 1312;
 	public static final int SAMPLE_MOBILE_USDIRECTORY = 1313;
 	public static final int SAMPLE_MOBILE_MOBTV = 1314;
-	public static final int SAMPLE_MOBILE_C8O_WEB_MOBILE = 1315;
-	public static final int SAMPLE_MOBILE_LOCAL_CACHE = 1316;
+	
 	// sequencer samples
 	public static final int SAMPLE_SEQUENCER_1 = 510;
 
@@ -194,12 +193,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 	public static final String SITECLIPPER_DOC_PROJECT_FILE_NAME = "sampleDocumentationSiteClipper.car";
 	// mobile samples
 	public static final String SAMPLE_MOBILE_VACATION_PROJECT_FILE_NAME = "sampleMobileVacation.car";
-	public static final String SAMPLE_MOBILE_SIMPLE_APP_PROJECT_FILE_NAME = "sampleMobileJQuery.car";
+	public static final String SAMPLE_MOBILE_SEARCH_ROOM_PROJECT_FILE_NAME = "sampleMobileSearchRoom.car";
 	public static final String SAMPLE_MOBILE_CTF_GALLERY_PROJECT_FILE_NAME = "sampleMobileCtfGallery.car";
 	public static final String SAMPLE_MOBILE_USDIRECTORY_PROJECT_FILE_NAME = "sampleMobileUsDirectoryDemo.car";
 	public static final String SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME = "sampleMobileMobTV.car";
-	public static final String SAMPLE_MOBILE_C8O_WEB_MOBILE_PROJECT_FILE_NAME = "sampleMobileConvertigoWebMobile.car";
-	public static final String SAMPLE_MOBILE_LOCAL_CACHE_PROJECT_FILE_NAME = "sampleMobileLocalCache.car";
 	// libraries
 	public static final String GOOGLE_MAPS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleMaps.car";
 	public static final String GOOGLE_SPREADSHEETS_LIBRARY_PROJECT_FILE_NAME = "lib_GoogleSpreadsheets.car";
@@ -260,12 +257,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_DOCUMENTATION_CWI:
 		case SAMPLE_DOCUMENTATION_SITECLIPPER:
 		case SAMPLE_MOBILE_VACATION:
-		case SAMPLE_MOBILE_SIMPLE_APP:
+		case SAMPLE_MOBILE_SEARCH_ROOM:
 		case SAMPLE_MOBILE_CTF_GALLERY:
 		case SAMPLE_MOBILE_USDIRECTORY:
 		case SAMPLE_MOBILE_MOBTV:
-		case SAMPLE_MOBILE_C8O_WEB_MOBILE:
-		case SAMPLE_MOBILE_LOCAL_CACHE:
 		case LIBRARY_GOOGLE_MAPS:
 		case LIBRARY_GOOGLE_SPREADSHEETS:
 		case LIBRARY_GOOGLE_DOCS:
@@ -471,12 +466,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			case SAMPLE_DOCUMENTATION_CWI:
 			case SAMPLE_DOCUMENTATION_SITECLIPPER:
 			case SAMPLE_MOBILE_VACATION:
-			case SAMPLE_MOBILE_SIMPLE_APP:
+			case SAMPLE_MOBILE_SEARCH_ROOM:
 			case SAMPLE_MOBILE_CTF_GALLERY:
 			case SAMPLE_MOBILE_USDIRECTORY:
 			case SAMPLE_MOBILE_MOBTV:
-			case SAMPLE_MOBILE_C8O_WEB_MOBILE:
-			case SAMPLE_MOBILE_LOCAL_CACHE:
 			case LIBRARY_GOOGLE_MAPS:
 			case LIBRARY_GOOGLE_SPREADSHEETS:
 			case LIBRARY_GOOGLE_DOCS:
@@ -1274,9 +1267,9 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_VACATION_PROJECT_FILE_NAME;
 			projectName = SAMPLE_MOBILE_VACATION_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_VACATION_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
-		case SAMPLE_MOBILE_SIMPLE_APP:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_SIMPLE_APP_PROJECT_FILE_NAME;
-			projectName = SAMPLE_MOBILE_SIMPLE_APP_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_SIMPLE_APP_PROJECT_FILE_NAME.indexOf(".car"));
+		case SAMPLE_MOBILE_SEARCH_ROOM:
+			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_SEARCH_ROOM_PROJECT_FILE_NAME;
+			projectName = SAMPLE_MOBILE_SEARCH_ROOM_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_SEARCH_ROOM_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		case SAMPLE_MOBILE_CTF_GALLERY:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_CTF_GALLERY_PROJECT_FILE_NAME;
@@ -1289,14 +1282,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 		case SAMPLE_MOBILE_MOBTV:
 			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME;
 			projectName = SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_MOB_TV_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case SAMPLE_MOBILE_C8O_WEB_MOBILE:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_C8O_WEB_MOBILE_PROJECT_FILE_NAME;
-			projectName = SAMPLE_MOBILE_C8O_WEB_MOBILE_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_C8O_WEB_MOBILE_PROJECT_FILE_NAME.indexOf(".car"));
-			break;
-		case SAMPLE_MOBILE_LOCAL_CACHE:
-			projectArchivePath = Engine.TEMPLATES_PATH + "/project/" + SAMPLE_MOBILE_LOCAL_CACHE_PROJECT_FILE_NAME;
-			projectName = SAMPLE_MOBILE_LOCAL_CACHE_PROJECT_FILE_NAME.substring(0, SAMPLE_MOBILE_LOCAL_CACHE_PROJECT_FILE_NAME.indexOf(".car"));
 			break;
 		default:
 			return null;

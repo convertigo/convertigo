@@ -22,11 +22,11 @@
 
 package com.twinsoft.convertigo.eclipse.wizards.new_project;
 
-public class NewSampleMobileLocalCacheWizard extends NewProjectWizard {
+public class NewSampleMobilizerSearchRoomWizard extends NewProjectWizard {
 
-	public NewSampleMobileLocalCacheWizard() {
+	public NewSampleMobilizerSearchRoomWizard() {
 		super();
-		this.templateId = NewProjectWizard.SAMPLE_MOBILE_LOCAL_CACHE;
+		this.templateId = NewProjectWizard.SAMPLE_MOBILE_SEARCH_ROOM;
 	}
 
 }
