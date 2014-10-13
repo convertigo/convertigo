@@ -188,6 +188,10 @@ var F = {
 					F.debug("getDirectory www/flashupdate");
 					
 					wwwDir.getDirectory("flashupdate", {create: true}, function (flashUpdateDir) {
+						if (F.flashUpdateDir != null) {
+							return; // break if the retry is useless
+						}
+						
 						F.flashUpdateDir = flashUpdateDir;
 						
 						if (F.fsProtocol || F.env.platform == "blackberry10") {
@@ -228,7 +232,7 @@ var F = {
 			if (F.flashUpdateDir == null) {
 				F.getFlashUpdateDir();
 			}
-		}, 100);
+		}, 500);
 	},
  	
 	hasLocal: function () {
