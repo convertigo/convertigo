@@ -42,7 +42,7 @@ $.extend(true, C8O, {
 	},
 	
 	fileEntryToURL: function (entry) {
-		return entry.toURL().replace(new RegExp("//","g"), "/").replace(new RegExp("/$"), "");
+		return entry.toURL().replace(new RegExp("(:/+)|(/)/*","g"), "$1$2").replace(new RegExp("/$"), "");
 	}
 });
 

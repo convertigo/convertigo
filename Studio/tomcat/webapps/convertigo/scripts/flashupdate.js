@@ -208,10 +208,10 @@ var F = {
 						}
 						
 						var reLastSlash = new RegExp("/$");
-						var reDoubleSlash = new RegExp("//","g");
+						var reDoubleSlash = new RegExp("(:/+)|(/)/*","g");
 						
-						F.env.localBase = F.env.localBase.replace(reDoubleSlash, "/").replace(reLastSlash, "");
-						F.env.webLocalBase = F.env.webLocalBase.replace(reDoubleSlash, "/").replace(reLastSlash, "");
+						F.env.localBase = F.env.localBase.replace(reDoubleSlash, "$1$2").replace(reLastSlash, "");
+						F.env.webLocalBase = F.env.webLocalBase.replace(reDoubleSlash, "$1$2").replace(reLastSlash, "");
 												
 						if (F.env.isLocal) {
 							F.isFlashUpdate();
