@@ -39,6 +39,10 @@ $.extend(true, C8O, {
 			projectName: null,
 			uuid: null
 		}
+	},
+	
+	fileEntryToURL: function (entry) {
+		return entry.toURL().replace(new RegExp("//","g"), "/").replace(new RegExp("/$"), "");
 	}
 });
 
@@ -237,13 +241,20 @@ if ("cordova" in window) {
 						function(fileSystem) {
 							C8O.log.debug("c8o.cdv : _get_cache_db LocalFileSystem retrieved");
 							
-							fileSystem.root.getDirectory("_c8o_local_cache", {create: true}, function (local_cache_dir) {
-								C8O.log.debug("c8o.cdv : _get_cache_db '_c8o_local_cache' directory retrieved");
-								
-								C8O._define.local_cache_dir = local_cache_dir;
-								C8O._core_get_cache_db(success, error);
+							fileSystem.root.getDirectory("www", {create: true}, function (www_dir) {
+									www_dir.getDirectory("_c8o_local_cache", {create: true}, function (local_cache_dir) {
+									C8O.log.debug("c8o.cdv : _get_cache_db '_c8o_local_cache' directory retrieved");
+									
+									C8O._define.local_cache_dir = local_cache_dir;
+									C8O._core_get_cache_db(success, error);
+								}, function (err) {
+									C8O.log.error("c8o.cdv : _get_cache_db 'www/_c8o_local_cache' directory not retrieved", err);
+									
+									C8O._define.local_cache_dir = false;
+									error(err);
+								});
 							}, function (err) {
-								C8O.log.error("c8o.cdv : _get_cache_db '_c8o_local_cache' directory not retrieved", err);
+								C8O.log.error("c8o.cdv : _get_cache_db 'www' directory not retrieved", err);
 								
 								C8O._define.local_cache_dir = false;
 								error(err);
@@ -299,10 +310,10 @@ if ("cordova" in window) {
 							dirName,
 							{create: false},
 							function(dirEntry) {
-								C8O.log.trace("c8o.cdv : _local_cache_delete_entry directory retrieved: " + dirEntry.toURL());
+								C8O.log.trace("c8o.cdv : _local_cache_delete_entry directory retrieved: " + C8O.fileEntryToURL(dirEntry));
 								
 								dirEntry.removeRecursively(function () {
-									C8O.log.debug("c8o.cdv : _local_cache_delete_entry directory removed: " + dirEntry.toURL());
+									C8O.log.debug("c8o.cdv : _local_cache_delete_entry directory removed: " + C8O.fileEntryToURL(dirEntry));
 								},
 								function (err) {
 									C8O.log.error("c8o.cdv : _local_cache_delete_entry error removing file entry", err);
@@ -345,7 +356,7 @@ if ("cordova" in window) {
 						urls_to_download.push({
 							nodes: [this],
 							url: value,
-							filepath: C8O._define.local_cache_dir.toURL() + "/" + dirName + "/" + urls_to_download.length + match[1]
+							filepath: C8O.fileEntryToURL(C8O._define.local_cache_dir) + "/" + dirName + "/" + urls_to_download.length + match[1]
 						});
 						C8O.log.debug("c8o.cdv : _local_cache_download_attachments adding url:" + value + " to " + urls_to_download[urls_duplicated[value]].filepath);
 					} else {
@@ -417,7 +428,7 @@ if ("cordova" in window) {
 						for (var i = 0; i < results.rows.length; i++) {
 							var item = results.rows.item(i);
 							
-							C8O.log.debug("c8o.cdv : _local_cache_handle_expired entry '" + item.key + "' expired with data:" + item.data + " since:" + new Date(item.expirydate).toISOString());
+							C8O.log.debug("c8o.cdv : _local_cache_handle_expired entry '" + item.key + "' expired with data:" + item.data + " since:" + new Date(item.expirydate * 1).toISOString());
 							C8O._local_cache_delete_entry(item.key, removed, function (err) {
 								C8O.log.info("c8o.cdv : _local_cache_handle_expired failed to remove '" + item.key + "'", err);
 								removed();
@@ -456,17 +467,17 @@ if ("cordova" in window) {
 				"" + now.getTime(),
 				{create: true},
 				function (dirEntry) {
-					C8O.log.trace("c8o.cdv : _local_cache_insert the directory '" + dirEntry.toURL() + "' created, requesting cache.xml");
+					C8O.log.trace("c8o.cdv : _local_cache_insert the directory '" + C8O.fileEntryToURL(dirEntry) + "' created, requesting cache.xml");
 					
 					dirEntry.getFile(
 						"cache.xml", 
 						{create: true},
 						function(fileEntry) {
-							C8O.log.debug("c8o.cdv : _local_cache_insert file created: " + fileEntry.toURL());
+							C8O.log.debug("c8o.cdv : _local_cache_insert file created: " + C8O.fileEntryToURL(fileEntry));
 							
 							fileEntry.createWriter(
 								function(writer) {
-									C8O.log.trace("c8o.cdv : _local_cache_insert writer created for file: " + fileEntry.toURL());
+									C8O.log.trace("c8o.cdv : _local_cache_insert writer created for file: " + C8O.fileEntryToURL(fileEntry));
 									
 									writer.onwriteend = function(evt) {
 										C8O.log.debug("c8o.cdv : _local_cache_insert write done: " + C8O.toJSON(evt));
@@ -542,7 +553,7 @@ if ("cordova" in window) {
 		_core_local_cache_search_entry_success: C8O._local_cache_search_entry_success,
 		
 		_local_cache_search_entry_success: function (dirName, success, error) {
-			var cacheURL = C8O._define.local_cache_dir.toURL() + "/" + dirName + "/cache.xml";
+			var cacheURL = C8O.fileEntryToURL(C8O._define.local_cache_dir) + "/" + dirName + "/cache.xml";
 			
 			C8O.log.debug("c8o.cdv : _local_cache_search_entry_success try to ajax load: " + cacheURL);
 			
@@ -639,6 +650,10 @@ if ("cordova" in window) {
 					StatusBar.styleBlackOpaque();
 					StatusBar.backgroundColorByName("black");
 				}
+			}
+			
+			if (C8O.isUndefined(window.openDatabase) && C8O.isDefined(sqlitePlugin)) {
+				window.openDatabase = sqlitePlugin.openDatabase;
 			}
 		}
 		C8O.log.debug("c8o.cdv : end deviceready");

@@ -962,6 +962,7 @@ C8O = {
 						
 						C8O._onCallError(jqXHR, textStatus, errorThrown);
 					});
+					return;
 				}
 			}
 		}
@@ -976,6 +977,12 @@ C8O = {
 	
 	_onCallAjaxSuccess: function (xml, status, jqXHR) {
 		C8O.log.debug("c8o.core: Ajax success, request is: ", jqXHR.C8O_data);
+		
+		if (xml == null) {
+			C8O.log.debug("c8o.core: xml is null, call the error handler"); // WP8 case with no network
+			C8O._onCallError(jqXHR, "error", "xml is null");
+			return;
+		}
 		
 		if (C8O.isDefined(jqXHR.C8O_data.__localCache)) {
 			var cacheOptions = jqXHR.C8O_data.__localCache;

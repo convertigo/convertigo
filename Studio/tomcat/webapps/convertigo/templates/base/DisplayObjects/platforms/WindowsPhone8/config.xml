@@ -76,6 +76,9 @@
 <!--     <gap:plugin name="com.phonegap.plugins.pushplugin" /> -->
 <!--     <gap:plugin name="com.phonegap.plugins.barcodescanner" /> -->
 	
+	<!-- Plugin for the local-cache feature, can be removed if not used. Install GIT for local build -->
+	<gap:plugin name="com.brodysoft.sqliteplugin" git="https://github.com/brodysoft/Cordova-SQLitePlugin.git"/>
+	
 	<!-- Other plugins and documentation can be find here : https://build.phonegap.com/plugins -->
 	
 	<!-- Expose access to all URIs, including the file and http protocols -->
