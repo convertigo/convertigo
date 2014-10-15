@@ -109,10 +109,15 @@ C8O = {
 					action: action,
 					target: targetName
 				});
+				var triggered = false;
 				var $iframe = $("<iframe/>").attr({
 					src: "",
 					style: "display: none"
-				}).appendTo("body").one("load", function () {
+				}).appendTo("body").on("load", function () {
+					if (!triggered) {
+						C8O.log.debug("c8o.core: iframe load before submit");
+					}
+					
 					C8O.log.debug("c8o.core: call using a form response");
 					
 					var fakeXHR = {
@@ -132,6 +137,7 @@ C8O = {
 				});
 				$iframe[0].contentWindow.name = targetName;
 				window.setTimeout(function () {
+					var triggered = true;
 					$form.trigger("submit." + targetName);
 				}, 0);
 				return;
