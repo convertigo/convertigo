@@ -100,7 +100,7 @@ public class ConfigureSAPConnectorComposite extends Composite {
 		label.setText("Password");
 		label.setLayoutData( new GridData (GridData.FILL, GridData.CENTER, false, false) );
 		
-		password = new Text(this, SWT.NONE);
+		password = new Text(this, SWT.PASSWORD);
 		password.setLayoutData( new GridData (GridData.FILL, GridData.CENTER, true, false));
 		password.addModifyListener(modifyListener);
 		
