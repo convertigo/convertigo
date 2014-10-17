@@ -1102,6 +1102,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 
 		// Remove Studio context
 		Engine.theApp.contextManager.remove(context);
+		connector.release();
 
 		// Deregister as Engine listener
 		Engine.theApp.removeEngineListener(this);
