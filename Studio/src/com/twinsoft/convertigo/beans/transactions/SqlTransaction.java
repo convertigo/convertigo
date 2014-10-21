@@ -801,10 +801,16 @@ public class SqlTransaction extends TransactionWithVariables {
 							// Retry once (should not happens)
 							catch (Exception e) {
 								if (runningThread.bContinue) {
-									if (Engine.logBeans.isTraceEnabled())
+									if (Engine.logBeans.isTraceEnabled()) {
 										Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
-									if (Engine.logBeans.isDebugEnabled())
+									}
+									if (Engine.logBeans.isDebugEnabled()) {
 										Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
+									}
+									if (e instanceof SQLNonTransientConnectionException) {
+										Engine.logBeans.debug("(SqlTransaction) SQLNonTransientConnectionException occurs, closing the connector's connection");
+										connector.close();
+									}
 									query = prepareQuery(logHiddenValues, sqlQueryInfos);
 									try {
 										nb = preparedStatement.executeUpdate();
