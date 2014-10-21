@@ -91,6 +91,12 @@ public class SqlConnector extends Connector {
 	private int jdbcMaxConnection = 10;
 	
 	private boolean keepConnectionAliveAfterTransaction = true;
+
+	private long idleConnectionTestTime = 60;
+	
+	private boolean testOnBorrow = false;
+	
+    private boolean connectionPool = true;
 	
 	public SqlConnector() {
 		super();
@@ -498,5 +504,30 @@ public class SqlConnector extends Connector {
 			return true;
 		}
 		return super.isCipheredProperty(propertyName);
+	}
+	
+
+	public long getIdleConnectionTestTime() {
+	        return idleConnectionTestTime;
+	}
+
+	public void setIdleConnectionTestTime(long idleConnectionTestTime) {
+	        this.idleConnectionTestTime = idleConnectionTestTime;
+	}
+
+	public boolean getConnectionPool() {
+	        return connectionPool;
+	}
+
+	public void setConnectionPool(boolean connectionPool) {
+	        this.connectionPool = connectionPool;
+	}
+
+	public boolean getTestOnBorrow() {
+		return testOnBorrow;
+	}
+	
+	public void setTestOnBorrow(boolean testOnBorrow) {
+		this.testOnBorrow = testOnBorrow;
 	}
 }

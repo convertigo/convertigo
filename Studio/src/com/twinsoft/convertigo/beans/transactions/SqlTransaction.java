@@ -26,6 +26,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.SQLNonTransientConnectionException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,7 +50,6 @@ import org.w3c.dom.ProcessingInstruction;
 import com.twinsoft.convertigo.beans.connectors.SqlConnector;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
@@ -417,10 +417,16 @@ public class SqlTransaction extends TransactionWithVariables {
 				// Retry once (should not happens)
 				catch(Exception e) {
 					if (runningThread.bContinue) {
-						if (Engine.logBeans.isTraceEnabled())
+						if (Engine.logBeans.isTraceEnabled()) {
 							Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
-						if (Engine.logBeans.isDebugEnabled())
+						}
+						if (Engine.logBeans.isDebugEnabled()) {
 							Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
+						}
+						if (e instanceof SQLNonTransientConnectionException) {
+							Engine.logBeans.debug("(SqlTransaction) SQLNonTransientConnectionException occurs, closing the connector's connection");
+							connector.close();
+						}
 						query = prepareQuery(logHiddenValues);
 						rs = preparedStatement.executeQuery();
 					}
@@ -581,10 +587,16 @@ public class SqlTransaction extends TransactionWithVariables {
 				// Retry once (should not happens)
 				catch (Exception e) {
 					if (runningThread.bContinue) {
-						if (Engine.logBeans.isTraceEnabled())
+						if (Engine.logBeans.isTraceEnabled()) {
 							Engine.logBeans.trace("(SqlTransaction) An exception occured :" + e.getMessage());
-						if (Engine.logBeans.isDebugEnabled())
+						}
+						if (Engine.logBeans.isDebugEnabled()) {
 							Engine.logBeans.debug("(SqlTransaction) Retry executing query '" + Visibility.Logs.replaceValues(logHiddenValues, query) + "'.");
+						}
+						if (e instanceof SQLNonTransientConnectionException) {
+							Engine.logBeans.debug("(SqlTransaction) SQLNonTransientConnectionException occurs, closing the connector's connection");
+							connector.close();
+						}
 						query = prepareQuery(logHiddenValues);
 						nb = preparedStatement.executeUpdate();
 					}
@@ -629,6 +641,7 @@ public class SqlTransaction extends TransactionWithVariables {
 			}
 			catch(SQLException e) {;}
 			preparedStatement = null;
+			connector.close();
 		}
 	
 		if (studioMode) {
