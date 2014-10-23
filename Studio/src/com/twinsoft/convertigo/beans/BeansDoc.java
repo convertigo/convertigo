@@ -58,15 +58,18 @@ public class BeansDoc {
 
 	public static void main(String[] args) throws Exception {
 
+		// Pseudo initialization of the C8O engine...
+
+		// Loggers
 		Engine.logBeans = Logger.getLogger(BeansDoc.class);
 		Engine.logContext = Logger.getLogger(BeansDoc.class);
 		Engine.logEngine = Logger.getLogger(BeansDoc.class);
 
+		// Starting the DBO database exploration...
 		Document documentBeansDoc = XMLUtils.getDefaultDocumentBuilder().newDocument();
 		ProcessingInstruction pi = documentBeansDoc.createProcessingInstruction("xml",
 				"version=\"1.0\" encoding=\"UTF-8\"");
 		documentBeansDoc.appendChild(pi);
-
 
 		Element dbdRoot = documentBeansDoc.createElement("database_objects");
 		documentBeansDoc.appendChild(dbdRoot);
@@ -137,13 +140,10 @@ public class BeansDoc {
 
 		Class<?> databaseObjectClass = databaseObject.getClass();
 		BeanInfo beanInfo = Introspector.getBeanInfo(databaseObjectClass);
-		BeanDescriptor databaseObjectBeanDescriptor = beanInfo
-				.getBeanDescriptor();
-		PropertyDescriptor[] propertyDescriptors = beanInfo
-				.getPropertyDescriptors();
+		BeanDescriptor databaseObjectBeanDescriptor = beanInfo.getBeanDescriptor();
+		PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
 		int len = propertyDescriptors.length;
 		
-
 		Element elementBean = document.createElement("bean");
 		parentElement.appendChild(elementBean);
 
@@ -207,7 +207,7 @@ public class BeansDoc {
 				if (databaseObjectPropertyDescriptor.isHidden()) {
 					continue;
 				}
-	
+
 				Method getter = databaseObjectPropertyDescriptor.getReadMethod();
 				Method setter = databaseObjectPropertyDescriptor.getWriteMethod();
 	
@@ -278,7 +278,7 @@ public class BeansDoc {
 		}
 		else {
 			elementSub = document.createElement("short_description");
-			elementText = document.createTextNode("Not yet documented.\nFor more information, do not hesitate to contact us in the forum in our Developer Network web site: http://www.convertigo.com/itcenter.html");
+			elementText = document.createTextNode("Not yet documented.\nFor more information, do not hesitate to contact us in the forum in our Developer Network website: http://www.convertigo.com/itcenter.html");
 			elementSub.appendChild(elementText);
 			elementBean.appendChild(elementSub);
 		}
