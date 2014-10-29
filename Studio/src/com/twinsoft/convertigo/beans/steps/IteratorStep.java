@@ -71,6 +71,11 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		IteratorStep copiedObject = (IteratorStep) super.copy();
 		return copiedObject;
 	}
+	
+	@Override
+	public boolean isPickable() {
+		return isEnable();
+	}
 
 	@Override
 	public String toString() {

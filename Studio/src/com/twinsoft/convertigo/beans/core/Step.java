@@ -230,6 +230,10 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return xml;
 	}
 	
+	public boolean isPickable() {
+		return isXml() && isEnable();
+	}
+	
 	public boolean isXmlOrOutput() {
 		return isXml() || isOutput();
 	}

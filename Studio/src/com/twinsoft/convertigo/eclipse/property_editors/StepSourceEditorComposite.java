@@ -401,7 +401,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 			if (databaseObject instanceof Step) {
 				Step step = (Step) databaseObject;
 				
-				if (!step.isEnable() || !step.isXml()) {
+				if (!step.isPickable()) {
 					tItem.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_RED));
 				}
 			}
