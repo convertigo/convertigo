@@ -55,6 +55,7 @@ import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpState;
 import org.mozilla.javascript.Scriptable;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
@@ -400,9 +401,10 @@ public class Context extends AbstractContext implements Cloneable {
 	}
 	
 	public Node addTextNode(Node parentNode, String tagName, String text) {
-		Element newElement = outputDocument.createElement(tagName);
+		Document doc = parentNode.getOwnerDocument();
+		Element newElement = doc.createElement(tagName);
 		if(text!=null){
-			Text textElement = outputDocument.createTextNode(text);
+			Text textElement = doc.createTextNode(text);
 			newElement.appendChild(textElement);
 		}
 		parentNode.appendChild(newElement);
