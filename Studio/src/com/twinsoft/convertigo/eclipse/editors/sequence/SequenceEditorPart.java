@@ -689,7 +689,9 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 			if (source instanceof org.w3c.dom.Document) {
 				org.w3c.dom.Document document = (org.w3c.dom.Document) event.getSource();
 				String sequenceName = document.getDocumentElement().getAttribute("sequence");
-				if (sequenceName.equals(sequence.getName()))
+				String projectName = document.getDocumentElement().getAttribute("project");
+				
+				if (sequenceName.equals(sequence.getName())  && projectName.equals(this.projectName))
 					isSourceFromSequence = true;
 			}
 		}
