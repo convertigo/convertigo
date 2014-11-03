@@ -180,6 +180,21 @@ public class SapJcoConnector extends Connector {
 		return getSapJCoProvider().createSapJcoTransaction(bapiName);
 	}
 	
+	public void removeSerializedData(String bapiName) {
+		try {
+			String filePath = getSapJCoProvider().getJcoFunctionFilePath(bapiName);
+			File file = new File(filePath);
+			if (file.exists()) {
+				if (!file.delete()) {
+					throw new EngineException("Unable to delete file \""+filePath+"\"");
+				}
+			}
+		} catch (Exception e) {
+			Engine.logEngine.warn("Unable to remove serialized data for bapi named \""+bapiName+"\"", e);
+		}
+		
+	}
+	
 	protected String getJcoFunctionDirPath() {
 		String dirPath = Engine.PROJECTS_PATH + "/" + getProject().getName() + "/_private/bapis/"+getName();
 		File dir = new File(dirPath);
