@@ -85,7 +85,6 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 	private SashForm xpathSashForm = null;
 	private TwsDomTree twsDomTree = null;
 	private TreeItem lastSelectedItem = null;
-	private TreeItem lastItem = null;
 	private TreeItem lastSelectableItem = null;
 	private Tree tree = null;
 	private Document currentDom = null;
@@ -240,10 +239,14 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 			tree.setEnabled(true);
 			long priority = Long.parseLong((String)stepSourceDefinition.elementAt(0),10);
 			TreeItem tItem = null;
+
 			try {
-				tItem = (priority == 0) ? findParentStepInTree():findStepInTree(null,priority);
-			}
-			catch (Exception e) {}
+				if (priority == 0) {
+					tItem = lastSelectableItem != null ? lastSelectableItem : findParentStepInTree();
+				} else {
+					tItem = findStepInTree(null, priority);
+				}
+			} catch (Exception e) {}
 			
 			if (tItem != null) {
 				tree.setSelection(tItem);
@@ -251,8 +254,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 				event.item = tItem;
 				tree.notifyListeners(SWT.Selection, event);
 				tree.setFocus();
-			}
-			else {
+			} else {
 				buttonRemove.setText("Remove Broken Source!");
 				layout(true);
 				tree.setEnabled(false);
@@ -372,7 +374,10 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		
 		addStepsInTree(tree, step.getParentSequence());
 		disableStepsInTree();
-		tree.showItem(lastItem);
+		
+		if (lastSelectableItem != null) {
+			tree.showItem(lastSelectableItem);
+		}
 	}
 	
 	public static String getClassName(Class<?> c) {
@@ -396,7 +401,6 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		}
 		else {
 			tItem = new TreeItem((TreeItem)parent,  SWT.NONE);
-			lastItem = tItem;
 			
 			if (databaseObject instanceof Step) {
 				Step step = (Step) databaseObject;
@@ -412,6 +416,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		
 		if (databaseObject.priority == step.priority) {
 			tItem.setText("* " + databaseObject.toString());
+			tree.showItem(tItem);
 			stepFound = true;
 			stepItem = tItem;
 		} else {
