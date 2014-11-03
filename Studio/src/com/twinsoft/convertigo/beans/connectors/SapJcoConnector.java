@@ -181,7 +181,7 @@ public class SapJcoConnector extends Connector {
 	}
 	
 	protected String getJcoFunctionDirPath() {
-		String dirPath = getProject().getDirPath()+"/bapis/"+getName();
+		String dirPath = Engine.PROJECTS_PATH + "/" + getProject().getName() + "/_private/bapis/"+getName();
 		File dir = new File(dirPath);
 		if (!dir.exists())
 			dir.mkdirs();
