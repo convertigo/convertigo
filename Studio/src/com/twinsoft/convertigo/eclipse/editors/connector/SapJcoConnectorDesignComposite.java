@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.eclipse.editors.connector;
 
+import java.io.File;
+
 import javax.swing.event.EventListenerList;
 
 import org.eclipse.swt.SWT;
@@ -254,6 +256,13 @@ public class SapJcoConnectorDesignComposite extends Composite {
 					if (sapJcoTransaction != null) {
 						Transaction transaction = sapConnector.getTransactionByName(bapiName);
 						if (transaction != null) {
+							try {
+								File xsdFile = new File(transaction.getSchemaFilePath());
+								if (xsdFile.exists()) {
+									xsdFile.delete();
+								}
+							}
+							catch (Exception e) {}
 							sapConnector.remove(transaction);			
 						}
 						sapJcoTransaction.setComment(bapiDesc);
