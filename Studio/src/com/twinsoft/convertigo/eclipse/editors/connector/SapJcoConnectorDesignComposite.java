@@ -46,6 +46,7 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
+import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.editors.CompositeEvent;
@@ -248,8 +249,13 @@ public class SapJcoConnectorDesignComposite extends Composite {
 					String bapiName = item.getText(0);
 					String bapiDesc = item.getText(1);
 					ConvertigoPlugin.logDebug("Creating transaction for BAPI '"+bapiName+"' ...");
+					sapConnector.removeSerializedData(bapiName);
 					SapJcoTransaction sapJcoTransaction = SapJcoConnector.createSapJcoTransaction(sapConnector, bapiName);
 					if (sapJcoTransaction != null) {
+						Transaction transaction = sapConnector.getTransactionByName(bapiName);
+						if (transaction != null) {
+							sapConnector.remove(transaction);			
+						}
 						sapJcoTransaction.setComment(bapiDesc);
 						sapConnector.add(sapJcoTransaction);
 						fireObjectChanged(new CompositeEvent(sapConnector));
