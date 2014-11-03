@@ -423,10 +423,8 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 			tItem.setText(databaseObject.toString());
 		}
 		
-		if (!stepFound && (lastSelectableItem == null)) {
-			if (!(tItem.getForeground().equals(Display.getCurrent().getSystemColor(SWT.COLOR_RED)))) {
-				lastSelectableItem = tItem;
-			}
+		if (!stepFound && !(tItem.getForeground().equals(Display.getCurrent().getSystemColor(SWT.COLOR_RED)))) {
+			lastSelectableItem = tItem;
 		}
 		
 		// disable all steps after founded one
