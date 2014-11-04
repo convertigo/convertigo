@@ -455,7 +455,7 @@ public class SchemaManager implements AbstractManager {
 												} else {
 													// the type already exists, merge it
 													XmlSchemaComplexType currentCType = (XmlSchemaComplexType) type;
-													merge(currentCType, cType);
+													merge(schema, currentCType, cType);
 													cType = currentCType;
 												}
 
@@ -540,7 +540,7 @@ public class SchemaManager implements AbstractManager {
 
 						@Override
 						protected boolean on(XmlSchemaObject obj) {
-							SchemaMeta.setSchema(obj, xs);
+							SchemaMeta.setSchema(obj, xs);							
 							return super.on(obj);
 						}
 						
@@ -734,8 +734,7 @@ public class SchemaManager implements AbstractManager {
 					// for source picker
 					//DatabaseObject dbo2 = SchemaMeta.getReferencedDatabaseObjects(e2).iterator().next();
 					//SchemaMeta.setXmlSchemaObject(xmlSchema,dbo2,e1);
-					
-					SchemaMeta.getReferencedDatabaseObjects(e1).addAll(SchemaMeta.getReferencedDatabaseObjects(e2));
+					SchemaMeta.adoptReferences(xmlSchema, e1, e2);
 					return 0;
 				}
 			}
@@ -815,12 +814,12 @@ public class SchemaManager implements AbstractManager {
 		return map;
 	}
 	
-	private static void merge(XmlSchemaComplexType first, XmlSchemaComplexType second) {
+	private static void merge(XmlSchema schema, XmlSchemaComplexType first, XmlSchemaComplexType second) {
 		// check if the type is dynamic and can be merged
 		if (SchemaMeta.isDynamic(first)) {
 			
 			// merge attributes
-			mergeAttributes(first.getAttributes(), second.getAttributes());
+			mergeAttributes(schema, first.getAttributes(), second.getAttributes());
 			
 			// merge sequence of xsd:element if any
 			XmlSchemaSequence firstSequence = (XmlSchemaSequence) first.getParticle();
@@ -836,28 +835,28 @@ public class SchemaManager implements AbstractManager {
 				}
 				
 				// merge sequence
-				mergeParticules(firstSequence, secondSequence);
+				mergeParticules(schema, firstSequence, secondSequence);
 			} else {
 				// suppose the type contains an extension
 				XmlSchemaSimpleContent firstContent = (XmlSchemaSimpleContent) first.getContentModel();
 				XmlSchemaSimpleContent secondContent = (XmlSchemaSimpleContent) second.getContentModel();
 				
 				if (firstContent != null && secondContent != null) {
-					SchemaMeta.getReferencedDatabaseObjects(firstContent).addAll(SchemaMeta.getReferencedDatabaseObjects(secondContent));
+					SchemaMeta.adoptReferences(schema, firstContent, secondContent);
 					
 					XmlSchemaSimpleContentExtension firstContentExtension = (XmlSchemaSimpleContentExtension) firstContent.getContent();
 					XmlSchemaSimpleContentExtension secondContentExtension = (XmlSchemaSimpleContentExtension) secondContent.getContent();
 		
-					mergeAttributes(firstContentExtension.getAttributes(), secondContentExtension.getAttributes());
+					mergeAttributes(schema, firstContentExtension.getAttributes(), secondContentExtension.getAttributes());
 					
-					SchemaMeta.getReferencedDatabaseObjects(firstContentExtension).addAll(SchemaMeta.getReferencedDatabaseObjects(secondContentExtension));
+					SchemaMeta.adoptReferences(schema, firstContentExtension, secondContentExtension);
 				}
 			}
 		}
-		SchemaMeta.getReferencedDatabaseObjects(first).addAll(SchemaMeta.getReferencedDatabaseObjects(second));
+		SchemaMeta.adoptReferences(schema, first, second);
 	}
 	
-	private static void mergeAttributes(XmlSchemaObjectCollection first, XmlSchemaObjectCollection second) {
+	private static void mergeAttributes(XmlSchema schema, XmlSchemaObjectCollection first, XmlSchemaObjectCollection second) {
 		// merge only if there attributes
 		if (first.getCount() != 0 && second.getCount() != 0) {
 			// copy and sort attributes
@@ -878,7 +877,7 @@ public class SchemaManager implements AbstractManager {
 						aFirst.setUse(XmlSchemaUtils.attributeUseOptional);
 					}
 					first.add(aFirst);
-					SchemaMeta.getReferencedDatabaseObjects(aFirst).addAll(SchemaMeta.getReferencedDatabaseObjects(aSecond));
+					SchemaMeta.adoptReferences(schema, aFirst, aSecond);
 					aFirst = GenericUtils.nextOrNull(iFirst);
 					aSecond = GenericUtils.nextOrNull(iSecond);
 				} else if (compare < 0) {
@@ -908,7 +907,7 @@ public class SchemaManager implements AbstractManager {
 		}
 	}
 	
-	private static void mergeParticules(XmlSchemaGroupBase first, XmlSchemaGroupBase second) {
+	private static void mergeParticules(final XmlSchema schema, XmlSchemaGroupBase first, XmlSchemaGroupBase second) {
 		// wrap element collection in a standard java List interface
 		List<XmlSchemaParticle> lFirst = new XmlSchemaUtils.XmlSchemaObjectCollectionList<XmlSchemaParticle>(first.getItems());
 		List<XmlSchemaParticle> result = new ArrayList<XmlSchemaParticle>(first.getItems().getCount() + second.getItems().getCount());
@@ -917,7 +916,7 @@ public class SchemaManager implements AbstractManager {
 		GenericUtils.merge(lFirst, new XmlSchemaUtils.XmlSchemaObjectCollectionList<XmlSchemaParticle>(second.getItems()), result, minor, new Comparator<XmlSchemaParticle>() {
 			public int compare(XmlSchemaParticle first, XmlSchemaParticle second) {
 				if (first instanceof XmlSchemaGroupBase && first.getClass().equals(second.getClass())) {
-					mergeParticules((XmlSchemaGroupBase) first, (XmlSchemaGroupBase) second);
+					mergeParticules(schema, (XmlSchemaGroupBase) first, (XmlSchemaGroupBase) second);
 					return 0;
 				} else if (first instanceof XmlSchemaElement && second instanceof XmlSchemaElement) {
 					XmlSchemaElement eFirst = (XmlSchemaElement) first;
@@ -929,13 +928,13 @@ public class SchemaManager implements AbstractManager {
 						XmlSchemaComplexType tSecond = (XmlSchemaComplexType) eSecond.getSchemaType();
 						if (tSecond != null) {
 							if (tFirst != null) {
-								merge(tFirst, tSecond);
+								merge(schema, tFirst, tSecond);
 							} else {
 								eFirst.setSchemaTypeName(null);
 								eFirst.setSchemaType(tSecond);
 							}
 						}
-						SchemaMeta.getReferencedDatabaseObjects(eFirst).addAll(SchemaMeta.getReferencedDatabaseObjects(eSecond));
+						SchemaMeta.adoptReferences(schema, eFirst, eSecond);
 					}
 					return comp;
 				}
@@ -954,7 +953,7 @@ public class SchemaManager implements AbstractManager {
 			lFirst.add(element);
 		}
 		
-		SchemaMeta.getReferencedDatabaseObjects(first).addAll(SchemaMeta.getReferencedDatabaseObjects(second));
+		SchemaMeta.adoptReferences(schema, first, second);
 	}
 	
 	public void clearCache(String projectName) {
