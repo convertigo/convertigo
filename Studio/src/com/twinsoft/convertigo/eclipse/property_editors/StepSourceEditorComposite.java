@@ -501,14 +501,14 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 			String xpath = getSourceXPath();
 			String anchor = step.getAnchor();
 			
-			Step targetStep = null;
-			if (step instanceof IteratorStep) {
-				targetStep = getTargetStep(step);
+			Step targetStep = step;
+			while (targetStep instanceof IteratorStep) {
+				targetStep = getTargetStep(targetStep);
 			}
 			
 			Project project = step.getProject();
 			XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), true);
-			XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep == null ? step:targetStep);
+			XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep);
 			Document stepDoc = XmlSchemaUtils.getDomInstance(xso);
 			
 			if (stepDoc != null) { // stepDoc can be null for non "xml" step : e.g jIf

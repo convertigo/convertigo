@@ -1,6 +1,7 @@
 package com.twinsoft.convertigo.engine.enums;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -88,12 +89,9 @@ public enum SchemaMeta {
 		return set;
 	}
 	
-	public static void addReferencedDatabaseObjects(XmlSchemaObject first, XmlSchemaObject second) {
-		getReferencedDatabaseObjects(first).addAll(getReferencedDatabaseObjects(second));
-	}
-	
-	public static void setSchema(XmlSchemaObject xso, XmlSchema schema) {
+	public static <T extends XmlSchemaObject> T setSchema(T xso, XmlSchema schema) {
 		xso.addMetaInfo(ownerSchema, schema);
+		return xso;
 	}
 	
 	public static XmlSchema getSchema(XmlSchemaObject xso) {
@@ -166,5 +164,16 @@ public enum SchemaMeta {
 	
 	public static XmlSchemaObject getXmlSchemaObject(XmlSchema schema, DatabaseObject databaseObject) {
 		return getXmlSchemaObject(schema).get(databaseObject);
+	}
+
+	public static void adoptReferences(XmlSchema schema, XmlSchemaObject first, XmlSchemaObject second) {
+		Set<DatabaseObject> dbos = SchemaMeta.getReferencedDatabaseObjects(first);
+		for (Iterator<DatabaseObject> iDbo = SchemaMeta.getReferencedDatabaseObjects(second).iterator(); iDbo.hasNext(); iDbo.remove()) {
+			DatabaseObject dbo = iDbo.next();
+			if (SchemaMeta.getXmlSchemaObject(schema, dbo) == second) {
+				SchemaMeta.setXmlSchemaObject(schema, dbo, first);
+			}
+			dbos.add(dbo);
+		}
 	}
 }
