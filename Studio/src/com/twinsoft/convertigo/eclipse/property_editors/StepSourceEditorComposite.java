@@ -22,25 +22,10 @@
 
 package com.twinsoft.convertigo.eclipse.property_editors;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Vector;
-
-import javax.xml.transform.TransformerException;
-
-import org.apache.ws.commons.schema.XmlSchema;
-import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -50,55 +35,66 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
-import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.beans.steps.IteratorStep;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.editors.connector.htmlconnector.TwsDomTree;
-import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerHelper;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
-import com.twinsoft.convertigo.engine.util.StringUtils;
-import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
-import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
-import com.twinsoft.util.Log;
-import com.twinsoft.util.StringEx;
 
-public class StepSourceEditorComposite extends AbstractDialogComposite implements IStepSourceEditor {
+public class StepSourceEditorComposite extends AbstractDialogComposite {
 
+	private SourcePickerHelper sourcePicker = null;
 	private SashForm sashForm = null;
 	private SashForm treesSashForm = null;
 	private SashForm xpathSashForm = null;
-	private TwsDomTree twsDomTree = null;
 	private TreeItem lastSelectedItem = null;
 	private TreeItem lastSelectableItem = null;
 	private Tree tree = null;
-	private Document currentDom = null;
 	private Step step = null;
 	private Button buttonNew = null;
 	private Button buttonRemove = null;
 	private Label noPreviousLabel = null;
-	private StepXpathEvaluatorComposite xpathEvaluator = null;
-	private TwsCachedXPathAPI twsCachedXPathAPI = null;
-	private XMLVector<String> stepSourceDefinition = null;
-	private String regexpForPredicates = "\\[\\D{1,}\\]";
+
+	private static boolean stepFound;
+	private static TreeItem stepItem = null;
+	
+	private Step sourceStep = null;
+	private String sourceXpath = null;
+	private boolean sourceChanged = false;
 	
 	public StepSourceEditorComposite(Composite parent, int style, AbstractDialogCellEditor cellEditor) {
 		super(parent, style, cellEditor);
+		
+		sourcePicker = new SourcePickerHelper() {
+			@Override
+			protected void clean() {
+				super.clean();
+				enableOK(false);
+			}
+			
+			@Override
+			protected String onDisplayXhtml(String xpath) {
+				if (lastSelectedItem == null) {
+					sourceStep = step;
+					sourceXpath = xpath;
+				}
+				else {
+					sourceChanged = true;
+					if (sourceStep == null)
+						sourceStep = step;
+					if (sourceXpath == null)
+						sourceXpath = xpath;
+				}
+
+				xpath = ((!sourceChanged || (step.priority == sourceStep.priority)) ? sourceXpath:".");
+				enableOK(true);
+				return xpath;
+			}
+		};
 		
 		if (cellEditor.databaseObjectTreeObject == null) {
 			Composite parentEditorComposite = cellEditor.getControl().getParent();
@@ -115,11 +111,8 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 				step = (Step)((Variable)object).getParent();
 		}
 		
-		//stepSourceDefinition = (XMLVector)((XMLVector)cellEditor.getEditorData()).clone();
-		stepSourceDefinition  = GenericUtils.cast(GenericUtils.clone(cellEditor.getEditorData()));
-		
-		twsCachedXPathAPI = new TwsCachedXPathAPI();
-		
+		sourcePicker.setStepSourceDefinition(GenericUtils.<XMLVector<String>>cast(GenericUtils.clone(cellEditor.getEditorData())));
+				
 		initialize();
 	}
 
@@ -135,66 +128,25 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		if (lastSelectableItem != null) {
 			noPreviousLabel.setVisible(false);
 		}
-		
-		// Generates xpath when item is selected with mouse clic
-		twsDomTree.addMouseListener(new MouseAdapter(){
-			public void mouseDown(MouseEvent e){
-				Point point = new Point(e.x, e.y);
-				TreeItem  treeItem = twsDomTree.getTree().getItem(point);
-				if (treeItem!=null) {
-					Object object = treeItem.getData();
-					if ((object != null) && (object instanceof Node)) {
-						xpathEvaluator.generateAbsoluteXpath(true, (Node)object);
-					}
-				}
-			}
-		});
-		twsDomTree.addKeyListener(new KeyAdapter() {
-			public void keyReleased(KeyEvent e) {
-				try {
-					TreeItem treeItem = twsDomTree.getTree().getSelection()[0];
-					if (treeItem!=null) {
-						Object object = treeItem.getData();
-						if ((object != null) && (object instanceof Node)) {
-							xpathEvaluator.generateAbsoluteXpath(true, (Node)object);
-						}
-					}
-				}
-				catch (Exception ex) {}
-			}
-		});
-		
-		//setSize(new org.eclipse.swt.graphics.Point(402,289));
 	}
 
 	private void addNewSource() {
-		stepSourceDefinition = new XMLVector<String>();
+		XMLVector<String> stepSourceDefinition = new XMLVector<String>();
 		stepSourceDefinition.addElement("0");
 		stepSourceDefinition.addElement(".");
+		sourcePicker.setStepSourceDefinition(stepSourceDefinition);
 	}
 	
 	private void setSourcePriority(long priority) {
-		stepSourceDefinition.setElementAt(""+priority, 0);
-	}
-	
-	private void setSourceXPath(String xpath) {
-		stepSourceDefinition.setElementAt(xpath, 1);
-	}
-
-	private String getSourceXPath() {
-		return (String)stepSourceDefinition.elementAt(1);
-	}
-
-	public Document getDom() {
-		return currentDom;
+		sourcePicker.getStepSourceDefinition().setElementAt(""+priority, 0);
 	}
 	
 	public Object getValue() {
-		return stepSourceDefinition;
+		return sourcePicker.getStepSourceDefinition();
 	}
 	
 	private void createButtons() {
-		int nbResults = stepSourceDefinition.size();
+		int nbResults = sourcePicker.getStepSourceDefinition().size();
 		
 		buttonNew = new Button(this, SWT.PUSH);
 		buttonNew.setText("New Source");
@@ -227,17 +179,12 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		noPreviousLabel.setLayoutData(gd);
 	}
 	
-	public void selectItemsInTree(TreeItem[] items) {
-		Tree tree = twsDomTree.getTree();
-		tree.setSelection(items);
-		tree.setFocus();
-	}
-	
 	private void selectResult() {
 		lastSelectedItem = null;
-		if (stepSourceDefinition.size() > 0) {
+		XMLVector<String> stepSourceDefinition = sourcePicker.getStepSourceDefinition();
+		if (sourcePicker.getStepSourceDefinition().size() > 0) {
 			tree.setEnabled(true);
-			long priority = Long.parseLong((String)stepSourceDefinition.elementAt(0),10);
+			long priority = Long.parseLong(stepSourceDefinition.elementAt(0), 10);
 			TreeItem tItem = null;
 
 			try {
@@ -277,8 +224,8 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 	private void createSource() {
 		addNewSource();
 		tree.deselectAll();
-		twsDomTree.getTree().removeAll();
-		buttonNew.setEnabled(stepSourceDefinition.size() == 0);
+		sourcePicker.getTwsDomTree().getTree().removeAll();
+		buttonNew.setEnabled(sourcePicker.getStepSourceDefinition().size() == 0);
 		buttonRemove.setEnabled(true);
 		selectResult();
 	}
@@ -287,10 +234,10 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		lastSelectedItem = null;
 		tree.deselectAll();
 		tree.setEnabled(false);
-		twsDomTree.getTree().removeAll();
+		sourcePicker.getTwsDomTree().getTree().removeAll();
 		
-		xpathEvaluator.removeAnchor();
-		stepSourceDefinition = new XMLVector<String>();
+		sourcePicker.getXpathEvaluator().removeAnchor();
+		sourcePicker.setStepSourceDefinition(new XMLVector<String>());
 
 		buttonRemove.setEnabled(false);
 		buttonNew.setEnabled(true);
@@ -324,7 +271,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		treesSashForm.setOrientation(SWT.HORIZONTAL );
 		treesSashForm.setLayoutData(gd);
 		createSequenceTree();
-		createXhtmlTree();
+		sourcePicker.createXhtmlTree(treesSashForm);
 		treesSashForm.setWeights(new int[]{40,60});
 	}
 	
@@ -337,7 +284,8 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		xpathSashForm = new SashForm(sashForm, SWT.NONE);
 		xpathSashForm.setOrientation(SWT.HORIZONTAL );
 		xpathSashForm.setLayoutData(gd);
-		createXPathEvaluator();
+		
+		sourcePicker.createXPathEvaluator(new StepXpathEvaluatorComposite(xpathSashForm, SWT.NONE, sourcePicker));
 	}
 	
 	private void createSequenceTree() {
@@ -349,7 +297,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 
 		tree = new Tree(treesSashForm, SWT.BORDER);
 		tree.setLayoutData (gd);
-		tree.setEnabled(stepSourceDefinition.size()>0);
+		tree.setEnabled(sourcePicker.getStepSourceDefinition().size()>0);
 		tree.addSelectionListener(
 			new org.eclipse.swt.events.SelectionListener() {
 				public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
@@ -362,7 +310,7 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 						DatabaseObject databaseObject = (DatabaseObject)tItem.getData();
 						if (databaseObject instanceof Step) {
 							setSourcePriority(databaseObject.priority);
-							displayTargetWsdlDom((Step)databaseObject);
+							sourcePicker.displayTargetWsdlDom(databaseObject);
 						}
 					}
 					lastSelectedItem = tItem;
@@ -379,17 +327,6 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 			tree.showItem(lastSelectableItem);
 		}
 	}
-	
-	public static String getClassName(Class<?> c) {
-	    String FQClassName = c.getName();
-	    int firstChar;
-	    firstChar = FQClassName.lastIndexOf ('.') + 1;
-	    if ( firstChar > 0 ) FQClassName = FQClassName.substring ( firstChar );
-	    return FQClassName;
-    }
-
-	private static boolean stepFound;
-	private static TreeItem stepItem = null;
 	
 	private void addStepsInTree(Object parent, DatabaseObject databaseObject) {
 		TreeItem tItem;
@@ -482,194 +419,9 @@ public class StepSourceEditorComposite extends AbstractDialogComposite implement
 		return null;
 	}
 	
-	private Step sourceStep = null;
-	private String sourceXpath = null;
-	private boolean sourceChanged = false;
-	
-	private Step getTargetStep(Step step) throws EngineException {
-		if (step != null && (step instanceof IStepSourceContainer)) {
-			StepSource source = new StepSource(step,((IStepSourceContainer)step).getSourceDefinition());
-			if (source != null && !source.isEmpty()) {
-				return source.getStep();
-			}
-		}
-		return step;
-	}
-	
-	private void displayTargetWsdlDom(Step step) {
-		try {
-			String xpath = getSourceXPath();
-			String anchor = step.getAnchor();
-			
-			Step targetStep = step;
-			while (targetStep instanceof IteratorStep) {
-				targetStep = getTargetStep(targetStep);
-			}
-			
-			Project project = step.getProject();
-			XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), true);
-			XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep);
-			Document stepDoc = XmlSchemaUtils.getDomInstance(xso);
-			
-			if (stepDoc != null) { // stepDoc can be null for non "xml" step : e.g jIf
-				Document doc = step.getSequence().createDOM();
-				Element root = (Element)doc.importNode(stepDoc.getDocumentElement(), true);
-				doc.replaceChild(root, doc.getDocumentElement());
-				removeUserDefinedNodes(doc.getDocumentElement());
-				
-				boolean shouldDisplayDom = (!(!step.isXml() && (step instanceof StepWithExpressions) && !(step instanceof IteratorStep)));
-				if ((doc != null) && (shouldDisplayDom)) {
-					if (lastSelectedItem == null) {
-						sourceStep = step;
-						sourceXpath = xpath;
-					}
-					else {
-						sourceChanged = true;
-						if (sourceStep == null)
-							sourceStep = step;
-						if (sourceXpath == null)
-							sourceXpath = xpath;
-					}
-					
-					xpath = ((!sourceChanged || (step.priority == sourceStep.priority)) ? sourceXpath:".");
-					
-					if (ConvertigoPlugin.getLogLevel() == Log.LOGLEVEL_DEBUG3)
-						ConvertigoPlugin.logDebug3(XMLUtils.prettyPrintDOM(doc));
-					displayXhtml(doc);
-					xpathEvaluator.removeAnchor();
-					xpathEvaluator.displaySelectionXpathWithAnchor(twsDomTree, anchor, xpath);
-					enableOK(true);
-				}
-				else clean();
-			}
-			else clean();
-		} catch (Exception e) {
-			clean();
-			ConvertigoPlugin.errorMessageBox(StringUtils.readStackTraceCauses(e));
-		}
-	}
-	
-	private void clean() {
-		setSourceXPath(".");
-		twsDomTree.removeAll();
-		xpathEvaluator.removeAnchor();
-		enableOK(false);
-	}
-	
 	private void enableOK(boolean enabled) {
 		if (parentDialog != null) {
 			((EditorFrameworkDialog)parentDialog).enableOK(enabled);
 		}
-	}
-	
-	private void removeUserDefinedNodes(Element parent) {
-		HashSet<Node> toRemove = new HashSet<Node>();
-		
-		NodeList list = parent.getChildNodes();
-		for (int i=0; i<list.getLength(); i++) {
-			Node node = list.item(i);
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				((Element)node).removeAttribute("done");
-				((Element)node).removeAttribute("hashcode");
-				if (node.getNodeName().equals("schema-type")) {
-					toRemove.add(node);
-				}
-				else {
-					removeUserDefinedNodes((Element)node);
-				}
-			}
-		}
-		Iterator<Node> it = toRemove.iterator();
-		while (it.hasNext()) {
-			parent.removeChild(it.next());
-		}
-		toRemove.clear();
-	}
-	
-	/**
-	 * This method initializes xhtmlTree	
-	 *
-	 */
-	private void createXhtmlTree() {
-		GridData gd = new GridData();
-		gd.horizontalAlignment = GridData.FILL;
-		gd.verticalAlignment = GridData.FILL;
-		gd.grabExcessVerticalSpace = true;
-		gd.grabExcessHorizontalSpace = true;
-		
-		twsDomTree = new TwsDomTree(treesSashForm, SWT.BORDER | SWT.MULTI);
-		twsDomTree.getTree().setLayoutData(gd);
-	}
-
-	public void displayXhtml(Document dom){
-		try {
-			currentDom = dom;
-			twsDomTree.fillDomTree(dom);
-		}
-		catch (Exception e) {
-			ConvertigoPlugin.logException(e, "Error while filling DOM tree");
-		}
-	}
-	
-	public TreeItem[] findTreeItems(String xpath){
-		TreeItem[] items = new TreeItem[]{};
-		try {
-			xpath = xpath.replaceAll(regexpForPredicates, "");
-			
-			NodeList nl = twsCachedXPathAPI.selectNodeList(currentDom, xpath);
-			if (nl.getLength()>0) {
-				TreeItem tItem = twsDomTree.findTreeItem(nl.item(0));
-				Vector<TreeItem> v = new Vector<TreeItem>();
-				while (tItem != null) {
-					v.addElement(tItem);
-					tItem = tItem.getParentItem();
-				}
-				items = (TreeItem[])v.toArray(new TreeItem[]{});
-			}
-		} catch (TransformerException e) {
-			ConvertigoPlugin.logException(e, "Error while finding items in tree");
-		}
-		return items;
-	}
-
-	/* Removed buggy method: see #1680 */
-//	public void selectElementsInTree(String xpath){
-//		try {
-//			String newXpath = xpathEvaluator.getAnchor() + xpath.substring(1);
-//			newXpath = newXpath.replaceAll(regexpForPredicates, "");
-//			
-//			NodeList nl = twsCachedXPathAPI.selectNodeList(currentDom, newXpath);
-//			for(int i=0;i<nl.getLength();i++)
-//				twsDomTree.selectElementInTree(nl.item(i));
-//		} catch (TransformerException e) {
-//			ConvertigoPlugin.logException(e, "Error while selecting in tree");
-//		}
-//	}
-	
-	private void createXPathEvaluator() {
-		xpathEvaluator = new StepXpathEvaluatorComposite(xpathSashForm,SWT.NONE,this);
-		GridData gd = new GridData();
-		gd.horizontalAlignment = GridData.FILL;
-		gd.verticalAlignment = GridData.FILL;
-		gd.grabExcessVerticalSpace = true;
-		gd.grabExcessHorizontalSpace = true;
-		xpathEvaluator.setLayoutData(gd);
-		
-		xpathEvaluator.getXpath().addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				String anchor = xpathEvaluator.getAnchor();
-				StringEx sx = new StringEx(xpathEvaluator.getXpath().getText());
-				sx.replace(anchor, ".");
-				String text = sx.toString();
-				if (!text.equals("")) {
-					setSourceXPath(text);
-				}
-				//TODO: disable/enable OK button
-			}
-		});
-	}
-
-	public Object getDragData() {
-		return null;
 	}
 }
