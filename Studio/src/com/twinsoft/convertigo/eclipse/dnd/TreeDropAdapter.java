@@ -106,7 +106,16 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 	@Override
 	public void drop(DropTargetEvent event) {
 		if (event.data == null) {
-			return;
+			// case of DND drop with stepSource on Linux, see #4473
+			for (TransferData transferData : event.dataTypes) {
+				if (StepSourceTransfer.getInstance().isSupportedType(transferData)) {
+					event.data = StepSourceTransfer.getInstance().getStepSource();
+					break;
+				}
+			}
+			if (event.data == null) {
+				return;
+			}
 		}
 		
 		detail = event.detail;
