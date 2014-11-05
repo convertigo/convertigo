@@ -26,6 +26,7 @@ import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DragSourceListener;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
@@ -58,40 +59,23 @@ public class StepSourceXpathEvaluatorComposite extends StepXpathEvaluatorComposi
 			}
 		});
 		
-		DragSource source;
-		source = new DragSource(getXpath(), ops);
-		source.setTransfer(dragTransfers);
-		source.addDragListener(new DragSourceAdapter() {	 	   	
-			@Override
-			public void dragSetData(DragSourceEvent event) {
-		 	     // Provide the data of the requested type.
-				if (StepSourceTransfer.getInstance().isSupportedType(event.dataType)) {
-					event.data = getDragData();
-				}
-		 	}
-			
+		DragSourceListener listener = new DragSourceAdapter() {
 			@Override
 			public void dragStart(DragSourceEvent event) {
 				event.doit = !getXpath().getText().equals("");
+				if (event.doit) {
+					StepSourceTransfer.getInstance().setStepSource(getDragData());
+				}
 			}
-		});
+		};
+		
+		DragSource source = new DragSource(getXpath(), ops);
+		source.setTransfer(dragTransfers);
+		source.addDragListener(listener);
 		
 		source = new DragSource(getLabel(), ops);
 		source.setTransfer(dragTransfers);
-		source.addDragListener(new DragSourceAdapter() {
-			@Override
-			public void dragSetData(DragSourceEvent event) {
-		 	     // Provide the data of the requested type.
-				if (StepSourceTransfer.getInstance().isSupportedType(event.dataType)) {
-					event.data = getDragData();
-				}
-		 	}
-			
-			@Override
-			public void dragStart(DragSourceEvent event) {
-				event.doit = !getXpath().getText().equals("");
-			}
-		});
+		source.addDragListener(listener);
 	}
 	
 }

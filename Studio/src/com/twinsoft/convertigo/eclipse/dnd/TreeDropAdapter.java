@@ -414,7 +414,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				if (targetTreeObject.getObject() instanceof IStepSourceContainer) {
 					Object ob = targetTreeObject.getObject();
 					Step targetStep = (Step)((ob instanceof StepVariable) ? ((StepVariable)ob).getParent():ob);
-					StepSource stepSource = (StepSource)StepSourceTransfer.getInstance().nativeToJava(transferType);
+					StepSource stepSource = StepSourceTransfer.getInstance().getStepSource();
 					if (stepSource != null) {
 						// Check for drop to a step in the same sequence
 						Long key = new Long(stepSource.getPriority());

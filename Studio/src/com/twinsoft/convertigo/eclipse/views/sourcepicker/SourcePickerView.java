@@ -220,13 +220,12 @@ public class SourcePickerView extends ViewPart implements StepSourceListener {
 		
 		DragSource source = new DragSource(sourcePicker.getTwsDomTree().getTree(), ops);
 		source.setTransfer(transfers);
-		source.addDragListener(new DragSourceAdapter() {
+		source.addDragListener(new DragSourceAdapter() {			
 			@Override
-			public void dragSetData(DragSourceEvent event) {
-				if (StepSourceTransfer.getInstance().isSupportedType(event.dataType)) {
-					event.data = sourcePicker.getDragData();
-				}
-		 	}
+			public void dragStart(DragSourceEvent event) {
+				event.doit = true;
+				StepSourceTransfer.getInstance().setStepSource(sourcePicker.getDragData());
+			}
 		});
 		
 	}
