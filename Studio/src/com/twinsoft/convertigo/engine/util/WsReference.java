@@ -276,8 +276,17 @@ public class WsReference {
 		   	if (iface != null) {
 			   	
 			   	// Export WSDL file(s) to project directory and modify reference local file path
-			   	String wsdlPath = iface.getWsdlContext().export(projectDir+ "/wsdl");
-			   	webServiceReference.setFilepath(".//" + wsdlPath.substring(wsdlPath.indexOf("/wsdl")+1));
+		   		String folderName = iface.getBindingName().getLocalPart();
+		   		File filePath = new File(projectDir + "/wsdl/" + folderName);
+		   		
+		   		for (int index = 1; filePath.exists(); index++) {
+		   			filePath = new File(projectDir + "/wsdl/" + folderName + index);
+		   		}
+		   		
+			   	String wsdlPath = iface.getWsdlContext().export(filePath.getPath());
+			   	wsdlPath = new File(wsdlPath).toURI().getPath();
+			   	webServiceReference.setFilepath(".//" + wsdlPath.substring(wsdlPath.indexOf("/wsdl") + 1));
+			   	webServiceReference.setName("Import_WS_" + filePath.getName());
 			   	
 			   	Definition definition = iface.getWsdlContext().getDefinition();
 			   	XmlSchemaCollection xmlSchemaCollection = WSDLUtils.readSchemas(definition);
@@ -364,13 +373,11 @@ public class WsReference {
 	private XmlHttpTransaction createTransaction(XmlSchemaCollection xmlSchemaCollection, XmlSchema xmlSchema, WsdlInterface iface, WsdlOperation operation, List<RequestableHttpVariable> variables, String projectName, HttpConnector httpConnector) throws ParserConfigurationException, SAXException, IOException, EngineException {
 		XmlHttpTransaction xmlHttpTransaction = null;
 	   	WsdlRequest request;
-	   	//String responseXml;
 	   	String requestXml;
 	   	String transactionName, comment;
-	   	String actionName, operationName;
+	   	String operationName;
 	   	
 	   	if (operation != null) {
-	   		actionName = operation.getAction();
 	   		comment = operation.getDescription();
 	   		try {comment = (comment.equals("") ? operation.getBindingOperation().getDocumentationElement().getTextContent():comment);} catch (Exception e) {}
 	   		operationName = operation.getName();
