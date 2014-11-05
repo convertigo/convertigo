@@ -64,11 +64,11 @@ public class SourcePickerView extends ViewPart implements StepSourceListener {
 	private final String remove_source 			= "Remove source";
 	
 	public SourcePickerView() {
-		sourcePicker = new SourcePickerHelper();
 	}
 
 	@Override
 	public void createPartControl(Composite parent) {
+		sourcePicker = new SourcePickerHelper();
 		GridLayout gl = new GridLayout(3,false);
 		content = new Composite(parent, SWT.NONE);
 		content.setLayout(gl);
