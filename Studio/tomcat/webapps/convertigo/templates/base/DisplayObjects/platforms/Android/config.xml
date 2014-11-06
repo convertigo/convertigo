@@ -38,19 +38,24 @@
 	<icon src="icon.png"/>
 	
 	<!-- Android icons -->
-	<icon src="res/icon/icon36ldpi.png"   gap:platform="android" gap:density="ldpi" />
-    <icon src="res/icon/icon48mdpi.png"   gap:platform="android" gap:density="mdpi" />
-    <icon src="res/icon/icon72hdpi.png"   gap:platform="android" gap:density="hdpi" />
-    <icon src="res/icon/icon96xhdpi.png"  gap:platform="android" gap:density="xhdpi" />
+	<icon src="res/icon/icon36ldpi.png"   gap:platform="android" gap:qualifier="ldpi" />
+    <icon src="res/icon/icon48mdpi.png"   gap:platform="android" gap:qualifier="mdpi" />
+    <icon src="res/icon/icon72hdpi.png"   gap:platform="android" gap:qualifier="hdpi" />
+    <icon src="res/icon/icon96xhdpi.png"  gap:platform="android" gap:qualifier="xhdpi" />
 <!--     <icon src="res/icon/android/icon144xxhdpi.png"  gap:platform="android"    gap:density="xxhdpi" /> -->
 	
 	<gap:splash src="splash.png" />
 	
 	<!-- Android splash -->
-	<gap:splash src="res/splash/ldpi.png"  gap:platform="android" gap:density="ldpi" />
-    <gap:splash src="res/splash/mdpi.png"  gap:platform="android" gap:density="mdpi" />
-    <gap:splash src="res/splash/hdpi.png"  gap:platform="android" gap:density="hdpi" />
-    <gap:splash src="res/splash/xhdpi.png" gap:platform="android" gap:density="xhdpi" />
+	<gap:splash src="res/splash/ldpi.png"  gap:platform="android" gap:qualifier="ldpi" />
+    <gap:splash src="res/splash/mdpi.png"  gap:platform="android" gap:qualifier="mdpi" />
+    <gap:splash src="res/splash/hdpi.png"  gap:platform="android" gap:qualifier="hdpi" />
+    <gap:splash src="res/splash/xhdpi.png" gap:platform="android" gap:qualifier="xhdpi" />
+    <gap:splash src="res/splash/landscape-ldpi.png" gap:platform="android" gap:qualifier="land-ldpi" />
+	<gap:splash src="res/splash/landscape-mdpi.png" gap:platform="android" gap:qualifier="land-mdpi" />
+	<gap:splash src="res/splash/landscape-hdpi.png" gap:platform="android" gap:qualifier="land-hdpi" />
+	<gap:splash src="res/splash/landscape-xhdpi.png" gap:platform="android" gap:qualifier="land-xhdpi" />
+    
 	
 	<!-- If you do not want any permissions to be added to your app, add the
     following tag to your config.xml; you will still have the INTERNET

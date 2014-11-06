@@ -342,15 +342,15 @@ public class BuildLocallyAction extends MyAbstractAction {
 				NodeIterator icons = xpathApi.selectNodeIterator(doc, "//icon[@platform = 'android']");
 				for (Element icon = (Element) icons.nextNode(); icon != null; icon = (Element) icons.nextNode()) {
 					String source = icon.getAttribute("src");
-					String density = icon.getAttribute("gap:density");
+					String gapAttrib = icon.getAttribute(icon.hasAttribute("gap:qualifier") ? "gap:qualifier" : "gap:density");
 					
 					File iconSrc = new File(wwwDir, source);
-					File dest = new File(resFolder, "drawable-" + density + "/icon.png");
+					File dest = new File(resFolder, "drawable-" + gapAttrib + "/icon.png");
 					
 					Engine.logEngine.debug("Copying " + iconSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					
 					FileUtils.copyFile(iconSrc, dest);
-					if (density.equalsIgnoreCase("ldpi")) {
+					if (gapAttrib.equalsIgnoreCase("ldpi")) {
 						// special case for ldpi assume it goes also in the drawable folder
 						dest = new File(resFolder, "drawable/icon.png");
 						
@@ -369,15 +369,15 @@ public class BuildLocallyAction extends MyAbstractAction {
 				NodeIterator splashes = xpathApi.selectNodeIterator(doc, "//*[local-name()='splash' and @platform = 'android']");
 				for (Element splash = (Element) splashes.nextNode(); splash != null; splash = (Element) splashes.nextNode()) {
 					String source = splash.getAttribute("src");
-					String density = splash.getAttribute("gap:density");
+					String gapAttrib = splash.getAttribute(splash.hasAttribute("gap:qualifier") ? "gap:qualifier" : "gap:density");
 					
 					File splashSrc = new File(wwwDir, source);
-					File dest = new File(resFolder, "drawable-" + density + "/splash.png");
+					File dest = new File(resFolder, "drawable-" + gapAttrib + "/splash.png");
 					
 					Engine.logEngine.debug("Copying " + splashSrc.getAbsolutePath() + " to " + dest.getAbsolutePath());
 					
 					FileUtils.copyFile(splashSrc, dest);
-					if (density.equalsIgnoreCase("ldpi")) {
+					if (gapAttrib.equalsIgnoreCase("ldpi")) {
 						// special case for ldpi assume it goes also in the drawable folder
 						dest = new File(resFolder, "drawable/splash.png");
 						
