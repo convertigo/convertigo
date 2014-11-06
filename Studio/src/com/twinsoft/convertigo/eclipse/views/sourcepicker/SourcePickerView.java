@@ -351,7 +351,6 @@ public class SourcePickerView extends ViewPart implements StepSourceListener {
 		sourcePicker.getTwsDomTree().removeAll();
 		sourcePicker.getXpathEvaluator().removeAnchor();
 		sourcePicker.getXpathEvaluator().getXpath().setText("");
-		sourcePicker = null;
 	}
 
 	public Object getObject() {
