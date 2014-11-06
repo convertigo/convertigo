@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.eclipse.views.sourcepicker;
 
+import java.util.Date;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.dnd.DND;
@@ -64,10 +66,13 @@ public class SourcePickerView extends ViewPart implements StepSourceListener {
 	private final String remove_source 			= "Remove source";
 	
 	public SourcePickerView() {
+		System.out.println(new Date().toString() + " #4474 : SourcePickerView constructor");
 	}
 
 	@Override
 	public void createPartControl(Composite parent) {
+		System.out.println(new Date().toString() + " #4474 : SourcePickerView createPartControl()");
+		
 		sourcePicker = new SourcePickerHelper();
 		GridLayout gl = new GridLayout(3,false);
 		content = new Composite(parent, SWT.NONE);
@@ -240,6 +245,8 @@ public class SourcePickerView extends ViewPart implements StepSourceListener {
 	}
 	
 	public void sourceSelected(StepSourceEvent stepSourceEvent) {
+		System.out.println(new Date().toString() + " #4474 : SourcePickerView sourceSelected() sourcePicker=" + sourcePicker);
+		System.out.println(new Date().toString() + " #4474 : SourcePickerView sourceSelected() twsDomTree=" + sourcePicker.getTwsDomTree());
 		sourcePicker.getTwsDomTree().removeAll();
 		sourcePicker.getXpathEvaluator().removeAnchor();
 		sourcePicker.getXpathEvaluator().getXpath().setText("");
@@ -345,6 +352,7 @@ public class SourcePickerView extends ViewPart implements StepSourceListener {
 	}
 	
 	public void close() {
+		System.out.println(new Date().toString() + " #4474 : SourcePickerView close()");
 		selectedDbo = null;
 		sourcePicker.setStepSourceDefinition(null);
 		fillHelpContent();
