@@ -25,7 +25,6 @@ package com.twinsoft.convertigo.beans.steps;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class DoWhileStep extends LoopStep {
@@ -69,16 +68,6 @@ public class DoWhileStep extends LoopStep {
 			code += " \n} while ("+ condition +") ;\n";
 		}
 		return code;
-	}
-
-	@Override
-	protected boolean workOnSource() {
-		return false;
-	}
-
-	@Override
-	protected StepSource getSource() {
-		return null;
 	}
 
 	@Override

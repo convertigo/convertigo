@@ -15,7 +15,6 @@ import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.ISchemaParticleGenerator;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -147,16 +146,6 @@ public class GenerateHashCodeStep extends Step implements ISchemaParticleGenerat
 		}
 
 		return Engine.theApp.filePropertyManager.getFilepathFromProperty(entry,	getProject().getName());
-	}
-
-	@Override
-	protected boolean workOnSource() {
-		return false;
-	}
-
-	@Override
-	protected StepSource getSource() {
-		return null;
 	}
 
 	@Override

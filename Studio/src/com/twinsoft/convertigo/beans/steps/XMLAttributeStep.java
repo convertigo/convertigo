@@ -37,7 +37,6 @@ import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
 import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
@@ -68,8 +67,6 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 
 	private String nodeText = "";
 	
-	private transient StepSource source = null;
-	
 	public XMLAttributeStep() {
 		super();
 		setOutput(true);
@@ -79,7 +76,6 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 	@Override
     public XMLAttributeStep clone() throws CloneNotSupportedException {
     	XMLAttributeStep clonedObject = (XMLAttributeStep) super.clone();
-    	clonedObject.source = null;
         return clonedObject;
     }
 
@@ -97,15 +93,6 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 			label += (sourceDefinition.size() > 0) ? " @("+ getLabel()+")":"";
 		} catch (EngineException e) {}
 		return "@"+ nodeName + label + (!text.equals("") ? " // "+text:"");
-	}
-
-	protected boolean workOnSource() {
-		return true;
-	}
-
-	protected StepSource getSource() {
-		if (source == null) source = new StepSource(this,sourceDefinition);
-		return source;
 	}
 	
 	public String getNodeName() {
@@ -139,7 +126,6 @@ public class XMLAttributeStep extends Step implements IStepSourceContainer, ISch
 
 	public void setSourceDefinition(XMLVector<String> sourceDefinition) {
 		this.sourceDefinition = sourceDefinition;
-		source = new StepSource(this,sourceDefinition);
 	}
 
 	@Override

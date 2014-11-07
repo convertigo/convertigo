@@ -31,7 +31,6 @@ import org.hibernate.exception.JDBCConnectionException;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.billing.BillingException;
-import com.twinsoft.convertigo.engine.billing.GAnalyticsTicketManager;
 import com.twinsoft.convertigo.engine.billing.HibernateTicketManager;
 import com.twinsoft.convertigo.engine.billing.ITicketManager;
 import com.twinsoft.convertigo.engine.billing.Ticket;

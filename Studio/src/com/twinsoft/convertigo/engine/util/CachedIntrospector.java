@@ -3,9 +3,12 @@ package com.twinsoft.convertigo.engine.util;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 import org.xml.sax.Attributes;
@@ -13,15 +16,102 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.steps.SmartType;
 import com.twinsoft.convertigo.engine.Engine;
 
 public class CachedIntrospector {
-	private final static Map<Class<? extends DatabaseObject>, BeanInfo> cache = Collections.synchronizedMap(new WeakHashMap<Class<? extends DatabaseObject>, BeanInfo>());
+	public enum Property {
+		sourceDefinition,
+		sourcesDefinition,
+		smartType;
+	}
+	
+	private final static Map<Class<? extends DatabaseObject>, BeanInfo> cacheBeanInfo = Collections.synchronizedMap(new WeakHashMap<Class<? extends DatabaseObject>, BeanInfo>());
+	private final static Map<Class<? extends DatabaseObject>, Map<Property, Set<PropertyDescriptor>>> cacheProperties = Collections.synchronizedMap(new WeakHashMap<Class<? extends DatabaseObject>, Map<Property, Set<PropertyDescriptor>>>());
 
+	public static <T> Set<T> getPropertyValues(DatabaseObject databaseObject, Property property) {
+		Set<PropertyDescriptor> propertyDescriptors = getPropertyDescriptors(databaseObject, property);
+		Set<T> values = new HashSet<T>(propertyDescriptors.size());
+		for (PropertyDescriptor propertyDescriptor: propertyDescriptors) {
+			try {
+				values.add(GenericUtils.<T>cast(propertyDescriptor.getReadMethod().invoke(databaseObject)));
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to getPropertyValue for " + databaseObject, e);
+			}
+		}
+		return values;
+	}
+	
+	public static <T> T getPropertyValue(DatabaseObject databaseObject, Property property) {
+		PropertyDescriptor propertyDescriptor = getPropertyDescriptor(databaseObject, property);
+		if (propertyDescriptor != null) {
+			try {
+				return GenericUtils.cast(propertyDescriptor.getReadMethod().invoke(databaseObject));
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to getPropertyValue for " + databaseObject, e);
+			}
+		}
+		return null;
+	}
+	
+	public static PropertyDescriptor getPropertyDescriptor(DatabaseObject databaseObject, Property property) {
+		Set<PropertyDescriptor> propertyDescriptors = getPropertyDescriptors(databaseObject.getClass(), property);
+		return propertyDescriptors.isEmpty() ? null : propertyDescriptors.iterator().next();
+	}
+	
+	public static Set<PropertyDescriptor> getPropertyDescriptors(DatabaseObject databaseObject, Property property) {
+		return getPropertyDescriptors(databaseObject.getClass(), property);
+	}
+	
+	public static Set<PropertyDescriptor> getPropertyDescriptors(Class<? extends DatabaseObject> beanClass, Property property) {
+		try {
+			Map<Property, Set<PropertyDescriptor>> beanProperties = cacheProperties.get(beanClass);
+			if (beanProperties == null) {
+				cacheProperties.put(beanClass, beanProperties = new WeakHashMap<Property, Set<PropertyDescriptor>>());
+			}
+			Set<PropertyDescriptor> propertyDescriptors = beanProperties.get(property);
+			if (propertyDescriptors == null) {
+				BeanInfo beanInfo = getBeanInfo(beanClass);
+				for (PropertyDescriptor propertyDescriptor: beanInfo.getPropertyDescriptors()) {
+					boolean add = false;
+					switch (property) {
+					case sourceDefinition:
+						add = "sourceDefinition".equals(propertyDescriptor.getName());
+						break;
+					case sourcesDefinition:
+						add = "sourcesDefinition".equals(propertyDescriptor.getName());
+						break;
+					case smartType:
+						add = propertyDescriptor.getPropertyType().equals(SmartType.class);
+						break;
+					}
+					if (add) {
+						if (propertyDescriptors == null) {
+							propertyDescriptors = new HashSet<PropertyDescriptor>();
+						}
+						propertyDescriptors.add(propertyDescriptor);
+					}
+				}
+				if (propertyDescriptors == null) {
+					beanProperties.put(property, propertyDescriptors = GenericUtils.<Set<PropertyDescriptor>>cast(Collections.EMPTY_SET));
+				} else {
+					beanProperties.put(property, propertyDescriptors = Collections.unmodifiableSet(propertyDescriptors));
+				}
+			}
+			return propertyDescriptors;
+		} catch (IntrospectionException e) {
+			throw new RuntimeException("Failed to getPropertyDescriptors for " + beanClass, e);
+		}
+	}
+	
+	public static BeanInfo getBeanInfo(DatabaseObject databaseObject) throws IntrospectionException {
+		return getBeanInfo(databaseObject.getClass());
+	}
+	
 	public static BeanInfo getBeanInfo(Class<? extends DatabaseObject> beanClass) throws IntrospectionException {
-		BeanInfo beanInfo = cache.get(beanClass);
+		BeanInfo beanInfo = cacheBeanInfo.get(beanClass);
 		if (beanInfo == null) {
-			cache.put(beanClass, beanInfo = Introspector.getBeanInfo(beanClass));
+			cacheBeanInfo.put(beanClass, beanInfo = Introspector.getBeanInfo(beanClass));
 		}
 		return beanInfo;
 	}
@@ -58,6 +148,7 @@ public class CachedIntrospector {
 		} catch (Exception e) {
 			// silent exception
 		}
+		
 		time = System.currentTimeMillis() - time;
 		Engine.logEngine.info("(CachedIntrospector) " + count[0] + " beans prefetched in " + time + " ms");
 	}

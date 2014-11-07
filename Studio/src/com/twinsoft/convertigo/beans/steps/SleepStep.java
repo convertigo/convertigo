@@ -26,7 +26,6 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -81,13 +80,6 @@ public class SleepStep extends Step {
 		}
 		return false;
 	}
-
-
-	@Override
-	protected StepSource getSource() {
-		return null;
-	}
-
 	
 	@Override
 	public String toString() {
@@ -99,11 +91,6 @@ public class SleepStep extends Step {
 	@Override
 	public String toJsString() {
 		return "";
-	}
-
-	@Override
-	protected boolean workOnSource() {
-		return false;
 	}
 
 }

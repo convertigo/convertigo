@@ -137,16 +137,6 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 		return copiedObject;
 	}
 
-	@Override
-	protected boolean workOnSource() {
-		return false;
-	}
-	
-	@Override
-	protected StepSource getSource() {
-		return null;
-	}
-
 	public String getProjectName() {
 		return projectName;
 	}

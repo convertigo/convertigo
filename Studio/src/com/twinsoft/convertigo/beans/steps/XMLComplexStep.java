@@ -31,7 +31,6 @@ import org.mozilla.javascript.Scriptable;
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -67,14 +66,6 @@ public class XMLComplexStep extends StepWithExpressions implements IComplexTypeA
 		String text = this.getComment();
 		String tag = "<"+ getStepNodeName() +"> " + xmlQName.getQName();
 		return tag + (!text.equals("") ? " // "+text:"");
-	}
-	
-	protected boolean workOnSource() {
-		return false;
-	}
-
-	protected StepSource getSource() {
-		return null;
 	}
 	
 	public String getNodeName() {

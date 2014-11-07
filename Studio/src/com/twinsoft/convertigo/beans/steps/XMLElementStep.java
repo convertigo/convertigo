@@ -38,7 +38,6 @@ import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -52,8 +51,6 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 	private String nodeName = "element";
 	private String nodeText = "";
 	
-	private transient StepSource source = null;
-	
 	public XMLElementStep() {
 		super();
 		setOutput(true);
@@ -63,7 +60,6 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 	@Override
     public XMLElementStep clone() throws CloneNotSupportedException {
     	XMLElementStep clonedObject = (XMLElementStep) super.clone();
-    	clonedObject.source = null;
         return clonedObject;
     }
 
@@ -86,15 +82,6 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 		return "<"+ getStepNodeName() +">" + label + " " + xmlQName.getQName() + (!text.equals("") ? " // "+text:"");
 	}
 	
-	protected boolean workOnSource() {
-		return true;
-	}
-	
-	protected StepSource getSource() {
-		if (source == null) source = new StepSource(this,sourceDefinition);
-		return source;
-	}
-	
 	public String getNodeName() {
 		return nodeName;
 	}
@@ -113,8 +100,9 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 
 	@Override
 	public String getStepNodeName() {
-		if (!getXmlElementRefAffectation().isEmpty())
-			return getXmlElementRefAffectation().getQName().getLocalPart();		
+		if (!getXmlElementRefAffectation().isEmpty()) {
+			return getXmlElementRefAffectation().getQName().getLocalPart();
+		}
 		return getNodeName();
 	}
 	
@@ -124,7 +112,6 @@ public class XMLElementStep extends StepWithExpressions implements IStepSourceCo
 
 	public void setSourceDefinition(XMLVector<String> sourceDefinition) {
 		this.sourceDefinition = sourceDefinition;
-		source = new StepSource(this,sourceDefinition);
 	}
 
 	@Override

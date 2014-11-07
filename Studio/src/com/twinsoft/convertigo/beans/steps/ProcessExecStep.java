@@ -47,7 +47,6 @@ import org.w3c.dom.Node;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
@@ -129,11 +128,6 @@ public class ProcessExecStep extends Step {
 	}
 
 	@Override
-	protected StepSource getSource() {
-		return null;
-	}
-
-	@Override
 	public String toString() {
 		return "Exec " + commandLine;
 	}
@@ -141,11 +135,6 @@ public class ProcessExecStep extends Step {
 	@Override
 	public String toJsString() {
 		return "";
-	}
-
-	@Override
-	protected boolean workOnSource() {
-		return false;
 	}
 
 	@Override

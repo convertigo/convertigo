@@ -32,7 +32,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -57,14 +56,6 @@ public class RemoveAuthenticatedUserStep extends Step implements IComplexTypeAff
     	RemoveAuthenticatedUserStep copiedObject = (RemoveAuthenticatedUserStep) super.copy();
         return copiedObject;
     }
-	
-	protected boolean workOnSource() {
-		return false;
-	}
-
-	protected StepSource getSource() {
-		return null;
-	}
 
 	@Override
 	public String getStepNodeName() {

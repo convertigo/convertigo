@@ -365,7 +365,7 @@ public class StepTreeObject extends DatabaseObjectTreeObject implements IEditabl
 		}
 		if (name.equals("workOnSource")) {
 			Boolean bool = Boolean.valueOf(value);
-			return bool.equals(Boolean.valueOf(getObject() instanceof IStepSourceContainer));
+			return bool == getObject().workOnSource();
 		}
 		if (name.equals("canChangeTo")) {
 			Boolean bool = Boolean.valueOf(value);

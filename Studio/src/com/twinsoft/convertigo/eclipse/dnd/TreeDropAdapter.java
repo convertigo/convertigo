@@ -22,22 +22,31 @@
 
 package com.twinsoft.convertigo.eclipse.dnd;
 
+import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerDropAdapter;
 import org.eclipse.jface.wizard.WizardDialog;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.TransferData;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.views.properties.PropertySheet;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -49,7 +58,6 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.common.XPath;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.IXPathable;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Statement;
@@ -62,6 +70,8 @@ import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
 import com.twinsoft.convertigo.beans.statements.XpathableStatement;
 import com.twinsoft.convertigo.beans.steps.IThenElseContainer;
 import com.twinsoft.convertigo.beans.steps.SequenceStep;
+import com.twinsoft.convertigo.beans.steps.SmartType;
+import com.twinsoft.convertigo.beans.steps.SmartType.Mode;
 import com.twinsoft.convertigo.beans.steps.TransactionStep;
 import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.beans.transactions.HtmlTransaction;
@@ -86,6 +96,9 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.NewObjectWizard;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.ObjectWithSameNameException;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector.Property;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 public class TreeDropAdapter extends ViewerDropAdapter {
@@ -420,11 +433,13 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 			if (target instanceof TreeObject) {
 				TreeObject targetTreeObject = (TreeObject) target;
 				// Check for drop to a step which contains a stepSource definition
-				if (targetTreeObject.getObject() instanceof IStepSourceContainer) {
-					Object ob = targetTreeObject.getObject();
-					Step targetStep = (Step)((ob instanceof StepVariable) ? ((StepVariable)ob).getParent():ob);
+				//if (targetTreeObject.getObject() instanceof IStepSourceContainer) {
+				Object ob = targetTreeObject.getObject();
+				if (ob instanceof Step && ((Step) ob).canWorkOnSource()) {
 					StepSource stepSource = StepSourceTransfer.getInstance().getStepSource();
 					if (stepSource != null) {
+						Step targetStep = (Step)((ob instanceof StepVariable) ? ((StepVariable) ob).getParent() : ob);
+						
 						// Check for drop to a step in the same sequence
 						Long key = new Long(stepSource.getPriority());
 						Step sourceStep = targetStep.getSequence().loadedSteps.get(key);
@@ -466,9 +481,9 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 	}
 		
-	private void performDrop(Object data, ProjectExplorerView explorerView, TreeObject targetTreeObject) throws EngineException, IOException {
+	private void performDrop(Object data, final ProjectExplorerView explorerView, TreeObject targetTreeObject) throws EngineException, IOException {
 		boolean needReload = false;
-		DatabaseObject dbo;
+		final DatabaseObject dbo;
 		
 		if (data instanceof String) {
 			String source = data.toString();
@@ -489,7 +504,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 					case ObjectsFolderTreeObject.FOLDER_TYPE_INHERITED_SCREEN_CLASSES:
 						if (dbo instanceof HtmlScreenClass) {
 							// Creates an inherited screen class with an XPath criteria for this screen class
-							HtmlScreenClass newSc = createHtmlScreenClass(dbo.priority+1);
+							HtmlScreenClass newSc = createHtmlScreenClass(dbo.priority + 1);
 							((HtmlScreenClass)dbo).addInheritedScreenClass(newSc);
 							newSc.addCriteria(createXPath(source));
 							needReload = true;
@@ -594,23 +609,84 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 		}
 		else if (data instanceof StepSource) {
 			if (targetTreeObject instanceof DatabaseObjectTreeObject) {
-				DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject)targetTreeObject;
+				final DatabaseObjectTreeObject databaseObjectTreeObject = (DatabaseObjectTreeObject)targetTreeObject;
 				dbo = (DatabaseObject)targetTreeObject.getObject();
 				
-				if (dbo instanceof IStepSourceContainer) {
-					// Retrieve Source definition
-					XMLVector<String> sourceDefinition = new XMLVector<String>();
-					sourceDefinition.add(((StepSource)data).getPriority());
-					sourceDefinition.add(((StepSource)data).getXpath());
-					
-					// Use setPropertyValue in order to set object's value and fire necessary events
-					databaseObjectTreeObject.setPropertyValue("sourceDefinition", sourceDefinition);
-					
-			        // Properties view needs to be refreshed
-					if (databaseObjectTreeObject.equals(explorerView.getFirstSelectedTreeObject()))
-						refreshPropertiesView(explorerView, databaseObjectTreeObject);
-				}
+				final Set<PropertyDescriptor> propertyDescriptors = new TreeSet<PropertyDescriptor>(new Comparator<PropertyDescriptor>() {
+
+					@Override
+					public int compare(PropertyDescriptor o1, PropertyDescriptor o2) {
+						return o1.getDisplayName().compareTo(o2.getDisplayName());
+					}
+				});
 				
+				propertyDescriptors.addAll(CachedIntrospector.getPropertyDescriptors(dbo, Property.smartType));
+				propertyDescriptors.addAll(CachedIntrospector.getPropertyDescriptors(dbo, Property.sourceDefinition));
+				propertyDescriptors.addAll(CachedIntrospector.getPropertyDescriptors(dbo, Property.sourcesDefinition));
+				
+				if (!propertyDescriptors.isEmpty()) {
+					// Retrieve Source definition
+					final XMLVector<String> sourceDefinition = new XMLVector<String>();
+					sourceDefinition.add(((StepSource) data).getPriority());
+					sourceDefinition.add(((StepSource) data).getXpath());
+					
+					SelectionListener selectionListener = new SelectionListener() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							PropertyDescriptor propertyDescriptor = (e == null) ?
+									propertyDescriptors.iterator().next() :
+									(PropertyDescriptor) e.widget.getData();
+							String propertyName = propertyDescriptor.getName();
+							
+							if (propertyDescriptor.getPropertyType().isAssignableFrom(SmartType.class)) {
+								SmartType smartType = new SmartType();
+								smartType.setMode(Mode.SOURCE);
+								smartType.setSourceDefinition(sourceDefinition);
+								
+								databaseObjectTreeObject.setPropertyValue(propertyDescriptor.getName(), smartType);
+							} else if (propertyName.equals("sourceDefinition")) {
+								// Use setPropertyValue in order to set object's value and fire necessary events
+								databaseObjectTreeObject.setPropertyValue(propertyDescriptor.getName(), sourceDefinition);							
+							} else if (propertyName.equals("sourcesDefinition")) {
+								try {
+									XMLVector<XMLVector<Object>> sourcesDefinition = GenericUtils.cast(propertyDescriptor.getReadMethod().invoke(dbo));
+									sourcesDefinition = new XMLVector<XMLVector<Object>>(sourcesDefinition); // make a copy to make a property change
+									XMLVector<Object> row = new XMLVector<Object>();
+									row.add("");
+									row.add(sourceDefinition);
+									row.add("");
+									sourcesDefinition.add(row);
+									databaseObjectTreeObject.setPropertyValue(propertyName, sourcesDefinition);
+								} catch (Exception ex) {
+									ConvertigoPlugin.logError("failed to add to sourcesDefinition of " + dbo.getName());
+								}
+							}
+							
+							// Properties view needs to be refreshed
+							refreshPropertiesView(explorerView, databaseObjectTreeObject);
+						}
+						
+						@Override
+						public void widgetDefaultSelected(SelectionEvent e) {
+						}
+					};
+					
+					if (propertyDescriptors.size() == 1) {
+						selectionListener.widgetSelected(null);
+					} else {
+						Shell shell = ConvertigoPlugin.getMainShell();
+						Menu dropMenu = new Menu(shell, SWT.POP_UP);
+		                shell.setMenu(dropMenu);
+		                
+		                for (PropertyDescriptor propertyDescriptor: propertyDescriptors) {
+			                MenuItem itemCheck = new MenuItem(dropMenu, SWT.NONE);
+			                itemCheck.setText(propertyDescriptor.getDisplayName());
+			                itemCheck.setData(propertyDescriptor);
+			                itemCheck.addSelectionListener(selectionListener);
+		                }
+		                dropMenu.setVisible(true);
+					}
+				}				
 			}
 		}
 	}
@@ -625,7 +701,10 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 
 	private void refreshPropertiesView(ProjectExplorerView explorerView, TreeObject treeObject) {
 		StructuredSelection structuredSelection = new StructuredSelection(treeObject);
-		ConvertigoPlugin.getDefault().getPropertiesView().selectionChanged((IWorkbenchPart)explorerView, structuredSelection);
+		
+		PropertySheet propertySheet = ConvertigoPlugin.getDefault().getPropertiesView();
+		propertySheet.partActivated(explorerView);
+		propertySheet.selectionChanged(explorerView, structuredSelection);
 	}
 	
 	private XPath createXPath(String source) throws EngineException {

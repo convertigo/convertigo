@@ -32,7 +32,6 @@ import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -156,16 +155,6 @@ public class LogStep extends Step implements ITagsProperty {
 			};
 		}
 		return new String[0];
-	}
-
-	@Override
-	protected boolean workOnSource() {
-		return false;
-	}
-
-	@Override
-	protected StepSource getSource() {
-		return null;
 	}
 	
     @Override

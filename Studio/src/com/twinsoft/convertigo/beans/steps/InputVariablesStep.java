@@ -24,7 +24,6 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.ISchemaParticleGenerator;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -65,14 +64,6 @@ public class InputVariablesStep extends Step implements ISchemaParticleGenerator
 		String text = this.getComment();
 		String tag = "<" + nodeName + ">";
 		return tag + (!text.equals("") ? " // " + text : "");
-	}
-
-	protected boolean workOnSource() {
-		return false;
-	}
-
-	protected StepSource getSource() {
-		return null;
 	}
 
 	public String getNodeName() {

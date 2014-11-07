@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.steps;
 
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -38,29 +37,25 @@ public class FunctionStep extends StepWithExpressions {
 		super();
 	}
 	
+	@Override
     public FunctionStep clone() throws CloneNotSupportedException {
     	FunctionStep clonedObject = (FunctionStep) super.clone();
     	clonedObject.returnedValue = null;
         return clonedObject;
     }
 	
+	@Override
     public FunctionStep copy() throws CloneNotSupportedException {
     	FunctionStep copiedObject = (FunctionStep) super.copy();
         return copiedObject;
     }
     
+	@Override
 	public String toString() {
 		return "function "+ getName() +"()";
 	}
 	
-	protected boolean workOnSource() {
-		return false;
-	}
-	
-	protected StepSource getSource() {
-		return null;
-	}
-	
+	@Override
 	protected void reset() throws EngineException {
 		super.reset();
 		returnedValue = null;

@@ -22,6 +22,8 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
+import java.beans.PropertyDescriptor;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Display;
@@ -29,7 +31,6 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
-import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
@@ -37,6 +38,9 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.StepSourceEvent;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.TreeObject;
 import com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector;
+import com.twinsoft.convertigo.engine.util.CachedIntrospector.Property;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class ShowStepInPickerAction extends MyAbstractAction {
 
@@ -63,30 +67,35 @@ public class ShowStepInPickerAction extends MyAbstractAction {
 	    				if (selectedDbo != null) {
 	    					StepSourceEvent event = null;
 	    					if (showSource) {
-	    						if (selectedDbo instanceof IStepSourceContainer) {
-	            					XMLVector<String> sourceDefinition = ((IStepSourceContainer) selectedDbo).getSourceDefinition();
+	    						PropertyDescriptor propertyDescriptor = CachedIntrospector.getPropertyDescriptor(selectedDbo, Property.sourceDefinition);
+	    						if (propertyDescriptor != null) {
+	    							XMLVector<String> sourceDefinition = GenericUtils.cast(propertyDescriptor.getReadMethod().invoke(selectedDbo));
+	    							
 	            					if (!sourceDefinition.isEmpty()) {
 	                					Long key = new Long(sourceDefinition.firstElement());
 	                					String xpath = sourceDefinition.lastElement();
 	                    				Step sourceStep = ((Step)selectedDbo).getSequence().loadedSteps.get(key);
-	                    				if (sourceStep != null)
+	                    				if (sourceStep != null) {
 	                    					event = new StepSourceEvent(sourceStep, xpath);
-	                    				else
+	                    				} else {
 	                						throw new Exception("Source isn't valid");
+	                    				}
+	            					} else {
+	            						throw new Exception("No Source defined"); 
 	            					}
-	            					else
-	            						throw new Exception("No Source defined");
 	    						}
-	    					}
-	    					else
+	    					} else {
 	    						event = new StepSourceEvent(selectedDbo);
+	    					}
 	    					
 	    					if (event != null) {
 	            				SourcePickerView spv = ConvertigoPlugin.getDefault().getSourcePickerView();
-	            				if (spv == null)
-	            					spv = (SourcePickerView)getActivePage().showView("com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView");
-	            				if (spv != null)
+	            				if (spv == null) {
+	            					spv = (SourcePickerView) getActivePage().showView("com.twinsoft.convertigo.eclipse.views.sourcepicker.SourcePickerView");
+	            				}
+	            				if (spv != null) {
 	            					spv.sourceSelected(event);
+	            				}
 	    					}
 	    				}
     				}

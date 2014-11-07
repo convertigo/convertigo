@@ -32,7 +32,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
@@ -63,14 +62,6 @@ public class SessionGetStep extends Step implements IComplexTypeAffectation {
     	SessionGetStep copiedObject = (SessionGetStep) super.copy();
         return copiedObject;
     }
-	
-	protected boolean workOnSource() {
-		return false;
-	}
-
-	protected StepSource getSource() {
-		return null;
-	}
 
 	@Override
 	public String getStepNodeName() {

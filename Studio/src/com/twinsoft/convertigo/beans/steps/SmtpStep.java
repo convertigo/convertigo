@@ -57,7 +57,6 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
@@ -99,8 +98,7 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 	private String xslFilepath = "";
 	private String contentType = "";
 	private XMLVector<XMLVector<String>> attachments = new XMLVector<XMLVector<String>>();
-
-	private transient StepSource source = null;
+	
 	private transient String sMessageText = "";
 	private transient String sContentType;
 	private transient List<BodyPart> bodyParts = new LinkedList<BodyPart>();
@@ -114,7 +112,6 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 	@Override
     public SmtpStep clone() throws CloneNotSupportedException {
     	SmtpStep clonedObject = (SmtpStep) super.clone();
-    	clonedObject.source = null;
         return clonedObject;
     }
 
@@ -133,17 +130,6 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 		} catch (EngineException e) {}
 		return smtpServer + label + (!text.equals("") ? " // " + text : "");
 	}
-
-	protected boolean workOnSource() {
-		return true;
-	}
-	
-	protected StepSource getSource() {
-		if (source == null) {
-			source = new StepSource(this, sourceDefinition);
-		}
-		return source;
-	}
 	
 	public XMLVector<String> getSourceDefinition() {
 		return sourceDefinition;
@@ -151,7 +137,6 @@ public class SmtpStep extends Step implements IStepSourceContainer {
 
 	public void setSourceDefinition(XMLVector<String> sourceDefinition) {
 		this.sourceDefinition = sourceDefinition;
-		source = new StepSource(this, sourceDefinition);
 	}
 
 	public String getSmtpServer() {

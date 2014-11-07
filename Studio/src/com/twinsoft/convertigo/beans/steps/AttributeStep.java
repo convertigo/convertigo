@@ -42,7 +42,6 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.core.ISchemaAttributeGenerator;
 import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -81,11 +80,6 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
     	AttributeStep copiedObject = (AttributeStep) super.copy();
         return copiedObject;
     }
-	
-	@Override
-	protected StepSource getSource() {
-		return null;
-	}
 
 	@Override
 	public String toJsString() {
@@ -96,11 +90,6 @@ public class AttributeStep extends Step implements ISchemaAttributeGenerator, IS
 	public String toString() {
 		String text = this.getComment();
 		return "@"+ nodeName + (!text.equals("") ? " // "+text:"");
-	}
-	
-	@Override
-	protected boolean workOnSource() {
-		return false;
 	}
 
 	@Override

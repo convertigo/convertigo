@@ -30,7 +30,6 @@ import org.apache.ws.commons.schema.XmlSchemaGroupBase;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
-
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -50,7 +49,6 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 	private String startIndex = "0";
 	
 	private transient Iterator iterator = null;
-	private transient StepSource source = null;
 	private transient Integer iterations = null;
 	
 	public IteratorStep() {
@@ -61,7 +59,6 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
     public IteratorStep clone() throws CloneNotSupportedException {
     	IteratorStep clonedObject = (IteratorStep) super.clone();
     	clonedObject.iterator = null;
-    	clonedObject.source = null;
     	clonedObject.iterations = null;
         return clonedObject;
     }
@@ -86,17 +83,6 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 		} catch (EngineException e) {}
 		return getName() + label + (!text.equals("") ? " // "+text:"");
 	}
-
-	@Override
-	protected boolean workOnSource() {
-		return true;
-	}
-
-	@Override
-	protected StepSource getSource() {
-		if (source == null) source = new StepSource(this,sourceDefinition);
-		return source;
-	}
 	
 	public XMLVector<String> getSourceDefinition() {
 		return sourceDefinition;
@@ -104,7 +90,6 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 
 	public void setSourceDefinition(XMLVector<String> sourceDefinition) {
 		this.sourceDefinition = sourceDefinition;
-		source = new StepSource(this,sourceDefinition);
 	}
 
 	public String getStartIndex() {
@@ -213,6 +198,10 @@ public class IteratorStep extends LoopStep implements IStepSourceContainer {
 			group.setMaxOccurs(max);
 		} catch (Exception e) { }
 		return particle;
+	}
+	
+	@Override protected StepSource getSource() {
+		return super.getSource();
 	}
 	
 	class Iterator {

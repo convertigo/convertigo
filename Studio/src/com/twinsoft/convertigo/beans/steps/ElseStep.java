@@ -27,7 +27,6 @@ import org.apache.ws.commons.schema.XmlSchemaCollection;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
@@ -48,14 +47,6 @@ public class ElseStep extends StepWithExpressions {
 	public ElseStep copy() throws CloneNotSupportedException {
 		ElseStep copiedObject = (ElseStep)super.copy();
 		return copiedObject;
-	}
-	
-	protected StepSource getSource() {
-		return null;
-	}
-
-	protected boolean workOnSource() {
-		return false;
 	}
 
 	@Override

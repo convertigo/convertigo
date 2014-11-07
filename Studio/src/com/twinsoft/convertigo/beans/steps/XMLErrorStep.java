@@ -34,12 +34,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.ConvertigoError;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.ErrorType;
+import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class XMLErrorStep extends StepWithExpressions implements IComplexTypeAffectation {
 
@@ -71,14 +71,6 @@ public class XMLErrorStep extends StepWithExpressions implements IComplexTypeAff
     	XMLErrorStep copiedObject = (XMLErrorStep) super.copy();
         return copiedObject;
     }
-	
-	protected boolean workOnSource() {
-		return false;
-	}
-
-	protected StepSource getSource() {
-		return null;
-	}
 
 	@Override
 	public String getStepNodeName() {
@@ -147,5 +139,10 @@ public class XMLErrorStep extends StepWithExpressions implements IComplexTypeAff
 
 	public void setDetails(SmartType details) {
 		this.details = details;
+	}
+	
+	@Override
+	public String toString() {
+		return "[" + StringUtils.reduce(code.toString(), 8) + "] " + StringUtils.reduce(message.toString(), 30);
 	}
 }

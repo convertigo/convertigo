@@ -30,7 +30,6 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
@@ -165,14 +164,6 @@ public abstract class BlockStep extends StepWithExpressions {
 				elseStep = null;
 			}
 		}
-	}
-
-	protected StepSource getSource() {
-		return null;
-	}
-
-	protected boolean workOnSource() {
-		return false;
 	}
 
 	protected boolean hasToEvaluateBeforeNextStep() throws EngineException {

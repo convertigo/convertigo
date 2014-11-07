@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.beans.steps;
 
 import java.io.File;
+
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaAttribute;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
@@ -36,8 +37,8 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
@@ -76,11 +77,6 @@ public class ListDirStep extends Step {
 	}
 
 	@Override
-	protected StepSource getSource() {
-		return null;
-	}
-
-	@Override
 	public String toJsString() {
 		return "";
 	}
@@ -88,11 +84,6 @@ public class ListDirStep extends Step {
 	@Override
 	public String toString() {
 		return "List "+ sourceDirectory;
-	}
-	
-	@Override
-	protected boolean workOnSource() {
-		return false;
 	}
 
 	@Override

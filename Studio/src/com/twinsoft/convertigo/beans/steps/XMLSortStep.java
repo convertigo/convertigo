@@ -70,8 +70,6 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 	private String optionSort = "";
 	private Order orderSort = Order.Ascending;
 	private TypeOrder typeSort = TypeOrder.String;
-
-	private transient StepSource source = null;
 	
 	public XMLSortStep() {
 		super();
@@ -82,7 +80,6 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 	@Override
     public XMLSortStep clone() throws CloneNotSupportedException {
     	XMLSortStep clonedObject = (XMLSortStep) super.clone();
-    	clonedObject.source = null;
         return clonedObject;
     }
 
@@ -102,15 +99,6 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 		}
 		return "sortOf" + label + (!text.equals("") ? " // "+text:"");
 	}
-
-	protected boolean workOnSource() {
-		return true;
-	}
-
-	protected StepSource getSource() {
-		if (source == null) source = new StepSource(this, sourceDefinition);
-		return source;
-	}
 	
 	@Override
 	public String toJsString() {
@@ -123,7 +111,6 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 
 	public void setSourceDefinition(XMLVector<String> sourceDefinition) {
 		this.sourceDefinition = sourceDefinition;
-		source = new StepSource(this,sourceDefinition);
 	}
 	
 	public String getSortXPATHDefinition() {
@@ -261,7 +248,7 @@ public class XMLSortStep extends XMLCopyStep implements IStepSourceContainer {
 		if (!source.isEmpty()) {
 			Step sourceStep = source.getStep();
 			if (sourceStep instanceof IteratorStep) {
-				source = ((IteratorStep)sourceStep).getSource();
+				source = ((IteratorStep) sourceStep).getSource();
 			}
 		}
 		return source;

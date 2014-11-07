@@ -26,7 +26,6 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -83,23 +82,13 @@ public abstract class BranchStep extends StepWithExpressions {
 		String text = this.getComment();
 		return getName() + (!text.equals("") ? " // "+text:"");
 	}
-
-	
-	protected boolean workOnSource() {
-		return false;
-	}
-	
-	protected StepSource getSource() {
-		return null;
-	}
 	
 	private void evaluateMaxNumberOfThreads(Context javascriptContext, Scriptable scope) throws EngineException {
 		maxNumberOfThreadsInteger = evaluateToInteger(javascriptContext, scope, maxNumberOfThreads, "maxNumberOfThreads", true);
 	}
 
     @Override
-	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException
-    {
+	protected boolean executeNextStep(Context javascriptContext, Scriptable scope) throws EngineException {
     	if (isEnable()) {
 	    	if (hasSteps()) {
 	    		int num = numberOfSteps();
