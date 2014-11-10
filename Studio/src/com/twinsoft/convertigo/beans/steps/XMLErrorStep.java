@@ -143,6 +143,11 @@ public class XMLErrorStep extends StepWithExpressions implements IComplexTypeAff
 	
 	@Override
 	public String toString() {
-		return "[" + StringUtils.reduce(code.toString(), 8) + "] " + StringUtils.reduce(message.toString(), 30);
+		String str = "[" + StringUtils.reduce(code.toString(), 8) + "] " + StringUtils.reduce(message.toString(), 30);
+		try {
+			return str + getLabel();
+		} catch (Exception e) {
+			return str;
+		}
 	}
 }

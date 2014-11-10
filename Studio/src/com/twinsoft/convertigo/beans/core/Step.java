@@ -506,6 +506,11 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 	}
 	
 	protected String getSpecificLabel() throws EngineException {
+		for (StepSource stepSource: getSources()) {
+			if (stepSource.isBroken()) {
+				return " (" + stepSource.getLabel() + ")";
+			}
+		}
 		return "";
 	}
 	
