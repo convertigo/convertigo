@@ -99,7 +99,7 @@ public class SqlTransaction extends TransactionWithVariables {
 	private String maxResult = "";
 
 	private enum SqlKeywords {
-		select, update, insert, delete, replace, create_table, drop_table, truncate_table, commit, rollback, unknown;
+		select, update, insert, delete, replace, create_table, drop_table, truncate_table, commit, rollback, doubledash, unknown;
 	}	
 
 	private enum AutoCommitMode {
@@ -188,7 +188,9 @@ public class SqlTransaction extends TransactionWithVariables {
 		private Map<String, String> parametersMap = new HashMap<String, String>();
 
 		private void findType(){
-			if (query.toUpperCase().indexOf("SELECT") == 0)
+			if (query.toUpperCase().indexOf("--") == 0)				// == 0 means starts with
+				type = SqlKeywords.doubledash;
+			else if (query.toUpperCase().indexOf("SELECT") == 0)
 				type = SqlKeywords.select;
 			else if (query.toUpperCase().indexOf("UPDATE") == 0)
 				type = SqlKeywords.update;
@@ -345,7 +347,9 @@ public class SqlTransaction extends TransactionWithVariables {
 			for ( String query : sqlQueries ){
 				if ( query != null && !query.trim().replaceAll(" ", "").equals("")) {
 					SqlQueryInfos sqlQueryInfos = new SqlQueryInfos(query, this, updateDefinitions);
-					preparedSqlQueries.add(sqlQueryInfos);
+					// skip sql comments (-- query....)
+					if (sqlQueryInfos.getType() != SqlKeywords.doubledash)
+						preparedSqlQueries.add(sqlQueryInfos);
 				}
 			}
 		}
