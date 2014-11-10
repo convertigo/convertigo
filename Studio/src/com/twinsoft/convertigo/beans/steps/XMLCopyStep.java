@@ -47,8 +47,6 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 	private static final long serialVersionUID = 4871778624030668414L;
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	
-	private transient StepSource source = null;
-	
 	public XMLCopyStep() {
 		super();
 		setOutput(true);
@@ -58,7 +56,6 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 	@Override
     public XMLCopyStep clone() throws CloneNotSupportedException {
     	XMLCopyStep clonedObject = (XMLCopyStep) super.clone();
-    	clonedObject.source = null;
         return clonedObject;
     }
 
@@ -78,15 +75,6 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 		}
 		return "copyOf" + label + (!text.equals("") ? " // "+text:"");
 	}
-
-	protected boolean workOnSource() {
-		return true;
-	}
-
-	protected StepSource getSource() {
-		if (source == null) source = new StepSource(this,sourceDefinition);
-		return source;
-	}
 	
 	public String toJsString() {
 		return "";
@@ -98,7 +86,6 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 
 	public void setSourceDefinition(XMLVector<String> sourceDefinition) {
 		this.sourceDefinition = sourceDefinition;
-		source = new StepSource(this,sourceDefinition);
 	}
 
 	@Override
@@ -155,7 +142,7 @@ public class XMLCopyStep extends Step implements IStepSourceContainer {
 		if (!source.isEmpty()) {
 			Step sourceStep = source.getStep();
 			if (sourceStep instanceof IteratorStep) {
-				source = ((IteratorStep)sourceStep).getSource();
+				source = ((IteratorStep) sourceStep).getSource();
 			}
 		}
 		return source;

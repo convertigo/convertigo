@@ -27,7 +27,6 @@ import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -37,8 +36,6 @@ public abstract class TestStep extends BlockStep implements IStepSourceContainer
 
 	private XMLVector<String> sourceDefinition = new XMLVector<String>();
 	
-	private transient StepSource source = null;
-	
 	public TestStep() {
 		super();
 	}
@@ -46,7 +43,6 @@ public abstract class TestStep extends BlockStep implements IStepSourceContainer
 	@Override
     public TestStep clone() throws CloneNotSupportedException {
     	TestStep clonedObject = (TestStep) super.clone();
-    	clonedObject.source = null;
         return clonedObject;
     }
 
@@ -65,17 +61,6 @@ public abstract class TestStep extends BlockStep implements IStepSourceContainer
 		} catch (EngineException e) {}
 		return getName() + label + (!text.equals("") ? " // "+text:"");
 	}
-
-	@Override
-	protected boolean workOnSource() {
-		return true;
-	}
-
-	@Override
-	protected StepSource getSource() {
-		if (source == null) source = new StepSource(this,sourceDefinition);
-		return source;
-	}
 	
 	public XMLVector<String> getSourceDefinition() {
 		return sourceDefinition;
@@ -83,7 +68,6 @@ public abstract class TestStep extends BlockStep implements IStepSourceContainer
 
 	public void setSourceDefinition(XMLVector<String> sourceDefinition) {
 		this.sourceDefinition = sourceDefinition;
-		source = new StepSource(this,sourceDefinition);
 	}
 
 	protected abstract boolean executeTest(Context javascriptContext, Scriptable scope) throws EngineException;

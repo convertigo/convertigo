@@ -2,6 +2,7 @@ package com.twinsoft.convertigo.beans.steps;
 
 import java.io.Serializable;
 
+import org.apache.xpath.XPathAPI;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -17,16 +18,18 @@ public class SmartType implements XMLizable, Serializable, Cloneable {
 	private static final long serialVersionUID = 6063228569094166129L;
 	
 	public enum Mode {
-		PLAIN("TX", "Plain text"),
-		JS("JS", "JavaScript expression"),
-		SOURCE("SC", "Source definition");
+		PLAIN("TX", "Plain text", ""),
+		JS("JS", "JavaScript expression", "="),
+		SOURCE("SC", "Source definition", "@");
 		
 		String label;
 		String tooltip;
+		String prefix;
 		
-		Mode(String label, String tooltip) {
+		Mode(String label, String tooltip, String prefix) {
 			this.label = label;
 			this.tooltip = tooltip;
+			this.prefix = prefix;
 		}
 		
 		public String label() {
@@ -35,6 +38,10 @@ public class SmartType implements XMLizable, Serializable, Cloneable {
 		
 		public String tooltip() {
 			return tooltip;
+		}
+		
+		public String prefix() {
+			return prefix;
 		}
 	}
 	
@@ -51,7 +58,7 @@ public class SmartType implements XMLizable, Serializable, Cloneable {
 			if (isUseExpression()) {
 				expression = self.getTextContent();
 			} else {
-				sourceDefinition.readXml(self.getFirstChild());
+				sourceDefinition.readXml(XPathAPI.selectSingleNode(self, "*"));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -115,7 +122,7 @@ public class SmartType implements XMLizable, Serializable, Cloneable {
 	
 	@Override
 	public String toString() {
-		return mode.label() + ": " + toStringContent();
+		return mode.prefix() + toStringContent();
 	}
 	
 	public String toStringContent() {

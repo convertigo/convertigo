@@ -228,4 +228,10 @@ public class StringUtils {
 		return buf.toString();
 	}
 
+	public static String reduce(String str, int max) {
+		if (str.length() > max) {
+			return str.subSequence(0, max - 1) + "…";
+		}
+		return str;
+	}
 }

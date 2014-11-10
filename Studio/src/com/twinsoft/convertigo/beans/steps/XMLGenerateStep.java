@@ -26,7 +26,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 
 abstract public class XMLGenerateStep extends Step {
@@ -69,14 +68,6 @@ abstract public class XMLGenerateStep extends Step {
     
 	public String toJsString() {
 		return "";
-	}
-	
-	protected boolean workOnSource() {
-		return false;
-	}
-	
-	protected StepSource getSource() {
-		return null;
 	}
 	
 	public String getNodeName() {

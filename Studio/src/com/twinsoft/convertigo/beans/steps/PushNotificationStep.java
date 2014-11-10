@@ -66,8 +66,6 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	private String GCMApiKey = "\"<configure your api key here>\"";
 	private int    AndroidTimeToLive = 3600;
 	
-
-	private transient StepSource source = null;
 	private transient StepSource tokenSource = null;
 	private transient String     sClientCertificate;
 	private transient String     sCertificatePassword;
@@ -87,13 +85,6 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	public void setAndroidTimeToLive(int androidTimeToLive) {
 		AndroidTimeToLive = androidTimeToLive;
 	}
-
-	protected StepSource getSource() {
-		if (source == null) {
-			source = new StepSource(this, sourceDefinition);
-		}
-		return source;
-	}
 	
 	protected StepSource getTokenSource() {
 		if (tokenSource == null) {
@@ -108,7 +99,6 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 
 	public void setSourceDefinition(XMLVector<String> sourceDefinition) {
 		this.sourceDefinition = sourceDefinition;
-		source = new StepSource(this, sourceDefinition);
 	}	
 	
 	
@@ -156,7 +146,6 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	@Override
     public PushNotificationStep clone() throws CloneNotSupportedException {
     	PushNotificationStep clonedObject = (PushNotificationStep) super.clone();
-    	clonedObject.source = null;
         return clonedObject;
     }
 
@@ -169,10 +158,6 @@ public class PushNotificationStep extends Step implements IStepSourceContainer {
 	@Override
 	public String toString() {
 		return "Push Notification";
-	}
-
-	protected boolean workOnSource() {
-		return true;
 	}
 
 	protected String getAbsoluteFilePath(String entry) throws EngineException {

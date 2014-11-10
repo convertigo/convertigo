@@ -25,7 +25,6 @@ package com.twinsoft.convertigo.beans.steps;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class IfStep extends BlockStep {
@@ -69,16 +68,6 @@ public class IfStep extends BlockStep {
 			code += " \n}\n";
 		}
 		return code;
-	}
-
-    @Override
-	protected boolean workOnSource() {
-		return false;
-	}
-
-    @Override
-	protected StepSource getSource() {
-		return null;
 	}
 
     @Override

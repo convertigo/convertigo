@@ -208,4 +208,8 @@ public class StepSource {
 		else if (label.startsWith(".")) label = label.substring(1);
 		return label;
 	}
+
+	public boolean isBroken() {
+		return owner.getParentSequence().loadedSteps.get(new Long(getPriority())) == null;
+	}
 }

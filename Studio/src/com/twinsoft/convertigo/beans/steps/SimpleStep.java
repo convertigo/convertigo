@@ -26,7 +26,6 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 
 /**
@@ -63,14 +62,6 @@ import com.twinsoft.convertigo.engine.EngineException;
 	@Override
 	public String toString() {
 		return this.getName();
-	}
-
-	protected boolean workOnSource() {
-		return false;
-	}
-	
-	protected StepSource getSource() {
-		return null;
 	}
 
 	public String getExpression() {

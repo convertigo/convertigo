@@ -8,7 +8,6 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 
@@ -132,16 +131,6 @@ public class CopyStep extends Step {
 			throw new EngineException("Please fill the Source property field.");
 
 		return Engine.theApp.filePropertyManager.getFilepathFromProperty(entry, getProject().getName());
-	}
-
-	@Override
-	protected boolean workOnSource() {
-		return false;
-	}
-
-	@Override
-	protected StepSource getSource() {
-		return null;
 	}
 
 	@Override

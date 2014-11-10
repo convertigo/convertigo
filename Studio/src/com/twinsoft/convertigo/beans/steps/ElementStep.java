@@ -43,7 +43,6 @@ import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.IElementRefAffectation;
 import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -98,14 +97,6 @@ public class ElementStep extends StepWithExpressions implements IComplexTypeAffe
 		XmlQName xmlQName = getXmlElementRefAffectation();
 		xmlQName = xmlQName.isEmpty() ? getXmlComplexTypeAffectation():xmlQName;
 		return "<"+ getStepNodeName() +">" + label + " " + xmlQName.getQName() + (!text.equals("") ? " // "+text:"");
-	}
-
-	protected boolean workOnSource() {
-		return false;
-	}
-	
-	protected StepSource getSource() {
-		return null;
 	}
 
 	public String getNodeName() {

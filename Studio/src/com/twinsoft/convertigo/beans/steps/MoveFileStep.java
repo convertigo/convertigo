@@ -32,7 +32,6 @@ import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -98,14 +97,6 @@ public class MoveFileStep extends Step {
 
 	public void setNewFilename(String newFilename) {
 		this.newFilename = newFilename;
-	}
-
-	protected boolean workOnSource() {
-		return false;
-	}
-
-	protected StepSource getSource() {
-		return null;
 	}
 
 	public String toJsString() {

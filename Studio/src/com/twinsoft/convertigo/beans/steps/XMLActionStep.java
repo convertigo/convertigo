@@ -30,7 +30,6 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.ISimpleTypeAffectation;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepEvent;
 import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
@@ -97,14 +96,6 @@ abstract public class XMLActionStep extends Step implements ISimpleTypeAffectati
 		return "";
 	}
 	
-	protected boolean workOnSource() {
-		return false;
-	}
-	
-	protected StepSource getSource() {
-		return null;
-	}
-	
 	public String getNodeName() {
 		return nodeName;
 	}
@@ -159,18 +150,6 @@ abstract public class XMLActionStep extends Step implements ISimpleTypeAffectati
 				return (String) xmlv.get(2);
 		}
 		return null;
-	}
-
-	@Override
-	public void stepMoved(StepEvent stepEvent) {
-		if (sourcesDefinition.size() > 0) {
-			for (int i=0; i<sourcesDefinition.size();i++) {
-				StepSource stepSource = getDefinitionsSource(i);
-				if (stepSource != null) {
-					stepSource.updateTargetStep((Step)stepEvent.getSource(), (String)stepEvent.data);
-				}
-			}
-		}
 	}
 
 	@Override

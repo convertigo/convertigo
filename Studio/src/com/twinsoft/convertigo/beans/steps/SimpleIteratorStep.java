@@ -97,11 +97,6 @@ public class SimpleIteratorStep extends LoopStep {
 	}
 
 	@Override
-	protected boolean workOnSource() {
-		return false;
-	}
-
-	@Override
 	protected boolean stepExecute(Context javascriptContext, Scriptable scope) throws EngineException {
 		if (isEnable()) {
 			try {

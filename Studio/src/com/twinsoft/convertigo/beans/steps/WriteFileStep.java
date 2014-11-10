@@ -60,8 +60,6 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	private boolean appendResult=false;
 	private transient String filePath;
 	
-	private transient StepSource source = null;
-	
 	public WriteFileStep() {
 		super();
 	}
@@ -69,7 +67,6 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 	@Override
     public WriteFileStep clone() throws CloneNotSupportedException {
     	WriteFileStep clonedObject = (WriteFileStep) super.clone();
-    	clonedObject.source = null;
         return clonedObject;
     }
 	
@@ -125,24 +122,12 @@ public abstract class WriteFileStep extends Step implements IStepSourceContainer
 		this.encoding = encoding;
 	}
 	
-	@Override
-	protected boolean workOnSource() {
-		return true;
-	}
-	
-	@Override
-	protected StepSource getSource() {
-		if (source == null) source = new StepSource(this,sourceDefinition);
-		return source;
-	}
-	
 	public XMLVector<String> getSourceDefinition() {
 		return sourceDefinition;
 	}
 
 	public void setSourceDefinition(XMLVector<String> sourceDefinition) {
 		this.sourceDefinition = sourceDefinition;
-		source = new StepSource(this,sourceDefinition);
 	}
 
 	@Override

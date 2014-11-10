@@ -29,7 +29,6 @@ import org.w3c.dom.NodeList;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepSource;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public class SourceStep extends Step implements IStepSourceContainer {
@@ -40,15 +39,12 @@ public class SourceStep extends Step implements IStepSourceContainer {
 	
 	private String variableName = "myNodeList";
 	
-	private transient StepSource source = null;
-	
 	public SourceStep() {
 		super();
 	}
 
     public SourceStep clone() throws CloneNotSupportedException {
     	SourceStep clonedObject = (SourceStep) super.clone();
-    	clonedObject.source = null;
         return clonedObject;
     }
 
@@ -67,15 +63,6 @@ public class SourceStep extends Step implements IStepSourceContainer {
 		} catch (EngineException e) {}
 		return variableName + label + (!text.equals("") ? " // "+text:"");
 	}
-
-	protected boolean workOnSource() {
-		return true;
-	}
-	
-	protected StepSource getSource() {
-		if (source == null) source = new StepSource(this,sourceDefinition);
-		return source;
-	}
 	
 	public XMLVector<String> getSourceDefinition() {
 		return sourceDefinition;
@@ -83,7 +70,6 @@ public class SourceStep extends Step implements IStepSourceContainer {
 
 	public void setSourceDefinition(XMLVector<String> sourceDefinition) {
 		this.sourceDefinition = sourceDefinition;
-		source = new StepSource(this,sourceDefinition);
 	}
 
 	public String getVariableName() {
