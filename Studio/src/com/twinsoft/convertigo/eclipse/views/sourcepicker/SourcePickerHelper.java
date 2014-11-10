@@ -39,6 +39,7 @@ import com.twinsoft.convertigo.eclipse.property_editors.IStepSourceEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.StepXpathEvaluatorComposite;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.SchemaManager.Option;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.TwsCachedXPathAPI;
@@ -72,7 +73,7 @@ public class SourcePickerHelper implements IStepSourceEditor {
 				}
 				
 				Project project = step.getProject();
-				XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), true);
+				XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), Option.fullSchema);
 				XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep);
 				Document stepDoc = xso!= null ? XmlSchemaUtils.getDomInstance(xso) : null;
 				if (stepDoc != null) { // stepDoc can be null for non "xml" step : e.g jIf

@@ -66,6 +66,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeObjectListener;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.schema.SchemaViewContentProvider.Root;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.SchemaManager.Option;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
 import com.twinsoft.convertigo.engine.util.EngineListenerHelper;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
@@ -511,7 +512,7 @@ public class SchemaView extends ViewPart implements IPartListener, ISelectionLis
 	
 						public void run() {
 							try {
-								final XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName, fullSchema);
+								final XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(projectName, fullSchema ? Option.fullSchema : null);
 	
 								Display.getDefault().asyncExec(new Runnable() {
 	

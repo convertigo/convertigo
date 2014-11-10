@@ -34,11 +34,11 @@ import org.apache.ws.commons.schema.XmlSchemaObject;
 import org.apache.ws.commons.schema.XmlSchemaObjectCollection;
 import org.apache.ws.commons.schema.XmlSchemaParticle;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 
@@ -130,7 +130,7 @@ public class TransactionXSDTypesDialogComposite extends MyAbstractDialogComposit
 		try {
 			String tns = transaction.getProject().getTargetNamespace();
 			String projectName = transaction.getProject().getName();
-			XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(projectName, false);
+			XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(projectName);
 			QName responseTypeQName = new QName(tns, transaction.getXsdResponseTypeName());
 			XmlSchemaComplexType xmlSchemaType = (XmlSchemaComplexType) schema.getTypeByName(responseTypeQName);
 			XmlSchemaParticle xmlSchemaParticle = xmlSchemaType.getParticle();

@@ -29,6 +29,7 @@ import org.apache.ws.commons.schema.XmlSchemaImport;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.SchemaManager.Option;
 
 public class ProjectSchemaReference extends ImportXsdSchemaReference {
 	private static final long serialVersionUID = 6345829826119228229L;
@@ -60,7 +61,7 @@ public class ProjectSchemaReference extends ImportXsdSchemaReference {
 			}
 			
 			// load schema
-			XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(pname);
+			XmlSchemaCollection xmlSchemaCollection = Engine.theApp.schemaManager.getSchemasForProject(pname, Option.noCache);
 			for (XmlSchema xmlSchema : xmlSchemaCollection.getXmlSchemas()) {
 				if (collection.schemaForNamespace(xmlSchema.getTargetNamespace()) != null) continue;
 				collection.read(xmlSchema.getSchemaDocument(), null);

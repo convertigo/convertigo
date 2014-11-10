@@ -68,6 +68,24 @@ import com.twinsoft.convertigo.engine.util.XmlSchemaWalker;
 
 public class SchemaManager implements AbstractManager {
 	
+	public enum Option {
+		fullSchema,
+		noCache;
+		
+		boolean is(Option[] options) {
+			for (Option option: options) {
+				if (option == this) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		boolean not(Option[] options) {
+			return !is(options);
+		}
+	}
+	
 	private class XmlSchemaCacheEntry {
 		XmlSchema schema;
 		XmlSchema fullSchema;
@@ -83,22 +101,16 @@ public class SchemaManager implements AbstractManager {
 	public void destroy() throws EngineException {
 		schemaCache.clear();
 	}
-
-	public XmlSchema getSchemaForProject(String projectName) throws Exception {
-		return getSchemaForProject(projectName, false);
-	}
 	
-	public XmlSchemaCollection getSchemasForProject(String projectName) throws Exception {
-		return SchemaMeta.getCollection(getSchemaForProject(projectName));
-	}
-	
-	public XmlSchemaCollection getSchemasForProject(String projectName, boolean fullSchema) throws Exception {
-		return SchemaMeta.getCollection(getSchemaForProject(projectName, fullSchema));
+	public XmlSchemaCollection getSchemasForProject(String projectName, Option... options) throws Exception {
+		return SchemaMeta.getCollection(getSchemaForProject(projectName, options));
 	}
 
-	public XmlSchema getSchemaForProject(final String projectName, final boolean fullSchema) throws Exception {
+	public XmlSchema getSchemaForProject(final String projectName, Option... options) throws Exception {
 		long timeStart = System.currentTimeMillis();
-
+		
+		final boolean fullSchema = Option.fullSchema.is(options);
+		
 		// get directly the project reference (read only)
 		final Project project = Engine.theApp.databaseObjectsManager.getOriginalProjectByName(projectName);
 		XmlSchemaCacheEntry cacheEntry = getCacheEntry(projectName);
@@ -120,7 +132,16 @@ public class SchemaManager implements AbstractManager {
 			// empty schema for the current project
 			final XmlSchema schema = XmlSchemaUtils.makeDynamicReadOnly(project, new XmlSchema(project.getTargetNamespace(), collection));
 			SchemaMeta.setCollection(schema, collection);
-
+			
+			if (Option.noCache.not(options)) {
+				cacheEntry.lastChange = lastChange;
+				if (fullSchema) {
+					cacheEntry.fullSchema = schema;
+				} else {
+					cacheEntry.schema = schema;
+				}
+			}
+			
 			try {
 				schema.setElementFormDefault(new XmlSchemaForm(project.getSchemaElementForm().name()));
 				schema.setAttributeFormDefault(new XmlSchemaForm(project.getSchemaElementForm().name()));
@@ -471,7 +492,7 @@ public class SchemaManager implements AbstractManager {
 										XmlSchemaObject object;
 										if (step instanceof XMLCopyStep && !fullSchema) {
 											XmlSchemaCollection collection;
-											XmlSchema schema = SchemaManager.this.getSchemaForProject(projectName, true);
+											XmlSchema schema = SchemaManager.this.getSchemaForProject(projectName, Option.fullSchema);
 											collection = SchemaMeta.getCollection(schema);
 											object = step.getXmlSchemaObject(collection, schema);
 										} else {
@@ -579,13 +600,6 @@ public class SchemaManager implements AbstractManager {
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw e;
-			}
-
-			cacheEntry.lastChange = lastChange;
-			if (fullSchema) {
-				cacheEntry.fullSchema = schema;
-			} else {
-				cacheEntry.schema = schema;
 			}
 
 			return schema;
