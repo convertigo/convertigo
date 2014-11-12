@@ -150,9 +150,22 @@ public class ProjectUtils {
 			if (!newFile.exists()) {
 				if (oldFile.renameTo(newFile)) {
 					List<Replacement> replacements = new ArrayList<Replacement>();
+					replacements.add(new Replacement("<!--<Project : " + sourceProjectName + ">", "<!--<Project : " + targetProjectName + ">"));
+					replacements.add(new Replacement("<!--</Project : " + sourceProjectName + ">", "<!--</Project : " + targetProjectName + ">"));
+					
+					// For call sequence
+					replacements.add(new Replacement("<property name=\"sourceSequence\"><java.lang.String value=\"" + sourceProjectName,
+													 "<property name=\"sourceSequence\"><java.lang.String value=\"" + targetProjectName));
+					
+					// For call transaction
+					replacements.add(new Replacement("<property name=\"sourceTransaction\"><java.lang.String value=\"" + sourceProjectName,
+													 "<property name=\"sourceTransaction\"><java.lang.String value=\"" + targetProjectName));
+					makeReplacementsInFile(replacements, newPath);
+					replacements.clear();
+					
 					replacements.add(new Replacement("value=\""+sourceProjectName+"\"", "value=\""+targetProjectName+"\""));
 					replacements.add(new Replacement("value=\""+sourceProjectName+"\\.", "value=\""+targetProjectName+"\\.")); // for call steps
-					makeReplacementsInFile(replacements, newPath);
+					makeReplacementsInFile(replacements, newPath, "<!--<Project");
 				}
 				else {
 					throw new Exception("Unable to rename \""+oldPath+"\" to \""+newPath+"\"");
