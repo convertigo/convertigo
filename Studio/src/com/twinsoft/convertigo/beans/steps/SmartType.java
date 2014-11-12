@@ -128,6 +128,22 @@ public class SmartType implements XMLizable, Serializable, Cloneable {
 	public String toStringContent() {
 		return mode == Mode.SOURCE ? sourceDefinition.toString() : expression.toString();
 	}
+	
+	public String toString(Step owner) {
+		return mode.prefix() + toStringContent(owner);
+	}
+	
+	public String toStringContent(Step owner) {
+		if (mode == Mode.SOURCE) {
+			StepSource source = new StepSource(owner, sourceDefinition);
+			try {
+				return "(" + source.getLabel() + ")";
+			} catch (EngineException e) {
+				
+			}
+		}
+		return toStringContent();
+	}
 
 	@Override
 	public boolean equals(Object obj) {
