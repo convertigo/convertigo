@@ -509,6 +509,7 @@ public class SchemaManager implements AbstractManager {
 									// re-use read only type									
 									XmlSchemaElement elt = XmlSchemaUtils.makeDynamic(step, new XmlSchemaElement());
 									SchemaMeta.getReferencedDatabaseObjects(type).add(step);
+									SchemaMeta.setXmlSchemaObject(schema, step, elt);
 									elt.setName(step.getStepNodeName());
 									elt.setSchemaTypeName(typeQName);
 									particleChildren.add(elt);
