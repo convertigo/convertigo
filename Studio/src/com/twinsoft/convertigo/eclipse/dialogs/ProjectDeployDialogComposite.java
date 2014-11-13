@@ -84,8 +84,11 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 	}
 	
     void fillList() {
-    	if (list.isDisposed())
+    	if (list.isDisposed()) {
     		return;
+    	}
+    	
+    	list.removeAll();
         
         Set<String> deploymentConfigurationNames = new HashSet<String>();        
         deploymentConfigurationNames = ConvertigoPlugin.deploymentConfigurationManager.getAllDeploymentConfigurationNames();
@@ -294,24 +297,7 @@ public class ProjectDeployDialogComposite extends MyAbstractDialogComposite {
 					} catch (IOException e1) {
 						ConvertigoPlugin.logException(e1, "Unable to remove the deployment configurations");
 					}
-					list.remove(index);
 					fillList();
-//					if (list.getItemCount() > 0) {
-//						list.select(0);
-//						
-//						if (!item.equals(messageList)) {
-//							DeploymentConfiguration dc = ConvertigoPlugin.deploymentConfigurationManager.get((list.getItem(0)));
-//							fillDialog(dc);
-//						}
-//					}			
-//					else {
-//						clearDialog();
-//			        	list.add(messageList);
-//			        	delButton.setEnabled(false);
-//			        	changeOkButtonState();
-//					}
-//					list.setRedraw(true);
-//					list.redraw();
 			    }				  
 			}
 			
