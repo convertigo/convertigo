@@ -24,6 +24,9 @@ package com.twinsoft.convertigo.eclipse.views.projectexplorer;
 
 import java.util.EventObject;
 
+import com.twinsoft.convertigo.beans.core.StepSource;
+import com.twinsoft.convertigo.engine.EngineException;
+
 public class StepSourceEvent extends EventObject {
 
 	private static final long serialVersionUID = 7366613673147349254L;
@@ -32,6 +35,11 @@ public class StepSourceEvent extends EventObject {
 	
 	public StepSourceEvent(Object step) {
 		super(step);
+	}
+	
+	public StepSourceEvent(StepSource source) throws EngineException {
+		super(source.getStep());
+		this.xpath = source.getXpath();
 	}
 	
 	public StepSourceEvent(Object step, String xpath) {

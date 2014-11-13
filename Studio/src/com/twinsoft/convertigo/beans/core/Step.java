@@ -299,7 +299,7 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 		return value == null ? null : new StepSource(this, value);
 	}
 	
-	protected Set<StepSource> getSources() {
+	public Set<StepSource> getSources() {
 		Set<SmartType> smartTypes = CachedIntrospector.getPropertyValues(this, Property.smartType);
 		XMLVector<String> sourceDefinition = CachedIntrospector.getPropertyValue(this, Property.sourceDefinition);
 		XMLVector<XMLVector<Object>> sourcesDefinition = CachedIntrospector.getPropertyValue(this, Property.sourcesDefinition);
