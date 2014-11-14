@@ -49,6 +49,7 @@ import org.apache.ws.commons.schema.resolver.DefaultURIResolver;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.SAXException;
@@ -257,6 +258,27 @@ public class XmlSchemaUtils {
 					super.walkElement(xmlSchema, obj);
 				}
 				parent = myParent;
+			}
+
+			@Override
+			protected void walkSimpleType(XmlSchema xmlSchema, XmlSchemaSimpleType obj) {
+				if (parent instanceof Element) {
+					Element xParent = (Element) parent;
+					String value = "";
+										
+					if (obj != null) {
+						XmlSchemaSimpleTypeContent simpleTypeContent = obj.getContent();
+						if (simpleTypeContent != null && simpleTypeContent instanceof XmlSchemaSimpleTypeRestriction) {
+							XmlSchemaObjectCollection facets = ((XmlSchemaSimpleTypeRestriction) simpleTypeContent).getFacets();
+							if (facets != null && facets.getCount() > 0) {
+								value = "" + ((XmlSchemaFacet) facets.getItem(0)).getValue();
+							}
+						}
+					}
+					
+					Text text = doc.createTextNode(value);
+					xParent.appendChild(text);
+				}
 			}
 
 			@Override

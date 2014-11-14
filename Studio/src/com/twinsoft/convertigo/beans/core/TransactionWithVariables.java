@@ -419,6 +419,36 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		}
 	}
 	
+	public Object getParameterValue(String parameterName) {
+		Object variableValue = null;
+		
+		int variableVisibility = getVariableVisibility(parameterName);
+		
+		// Transaction parameter
+		variableValue = variables.get(parameterName);
+		if (variableValue != null)
+			Engine.logBeans.trace("(TransactionWithVariables) parameter value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+
+		// Otherwise context parameter
+		if (variableValue == null) {
+			variableValue = (context.get(parameterName) == null ? null : context.get(parameterName));
+			if (variableValue != null)
+				Engine.logBeans.trace("(TransactionWithVariables) context value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+		}
+
+		// Otherwise default transaction parameter value
+		if (variableValue == null) {
+			variableValue = getVariableValue(parameterName);
+			if (variableValue != null)
+				Engine.logBeans.trace("(TransactionWithVariables) default value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
+		}
+
+		if (variableValue == null)
+			Engine.logBeans.trace("(TransactionWithVariables) none value found");
+
+		return variableValue;
+	}
+	
 	public Object getVariableValue(String requestedVariableName) {
 		// Request parameter value (see parseInputDocument())
 		Object value = ((variables == null) ? null: variables.get(requestedVariableName));
@@ -438,7 +468,7 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		}
 		
 		if ((value != null) && (value instanceof Vector)) {
-			value = ((Vector<?>) value).toArray(new String[] {});
+			value = ((Vector<?>) value).toArray(new Object[] {});
 		}
 		return value;
 	}
@@ -478,16 +508,8 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 			bMulti = false;
 			variableNode = (Element) variableNodes.item(i);
 			variableName = variableNode.getAttribute("name");
-			variableValue = variableNode.getAttribute("value");
+			variableValue = (variableNode.hasAttribute("value") ? variableNode.getAttribute("value") : null);
 			valueAttrNode = variableNode.getAttributeNode("value");
-			
-			// Handle complex xml variable
-			if ((valueAttrNode == null) && (variableNode.hasChildNodes() || variableNode.hasAttributes())) {
-				String sValue = XMLUtils.prettyPrintElement(variableNode, true, false);
-				sValue = sValue.replaceAll("<variable name=\""+variableName+"\">", "");
-				sValue = sValue.replaceAll("</variable>", "");
-				variableValue = sValue;
-			}
 			
 			variableMethod = null;
 			
@@ -536,26 +558,35 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 				variable = (RequestableVariable)getVariable(variableName);
 			}
 			
-			// Multivalued variable ?
-			if ((variable != null) && (variable.isMultiValued())) {
-				Object current = variables.get(variableName);
-				if (current == null) {
-					Vector<String> vCurrent = new Vector<String>();
-					
-					if (variableNode.hasChildNodes() || variableNode.hasAttributes())
-						vCurrent.add(variableValue);
-					else if (valueAttrNode != null)
-						vCurrent.add(variableValue);
-					
-					variables.put(variableName, vCurrent);
-				}
-				else {
-					Vector<String> vCurrent = GenericUtils.cast(current);
-					vCurrent.add(variableValue);
-				}
+			// Structured value?
+			Object scopeValue = null;
+			if (getProject().isStrictMode()) {
+				scopeValue = (variableValue != null) ? variableValue : variableNode.getChildNodes();
 			}
 			else {
-				variables.put(variableName, variableValue);
+				if (variableValue != null) {
+					scopeValue = variableValue;
+				}
+				else {
+					String sValue = XMLUtils.prettyPrintElement(variableNode, true, false);
+					sValue = sValue.replaceAll("<variable name=\""+variableName+"\">", "");
+					sValue = sValue.replaceAll("</variable>", "");
+					scopeValue = sValue;
+				}
+			}
+			
+			// Multivalued variable ?
+			if ((variable != null) && (variable.isMultiValued())) {
+				Vector<Object> current = GenericUtils.cast(variables.get(variableName));
+				if (current == null) {
+					current = new Vector<Object>();
+					variables.put(variableName, current);
+				}
+				if (variableValue == null || valueAttrNode != null) {
+					current.add(scopeValue);
+				}
+			} else {
+				variables.put(variableName, scopeValue);
 			}
 		}
 		

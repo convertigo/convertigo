@@ -22,15 +22,13 @@
 
 package com.twinsoft.convertigo.beans.transactions;
 
-import java.io.IOException;
-
 import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
 import com.twinsoft.convertigo.beans.connectors.SapJcoConnector.SapJcoProviderImpl;
@@ -71,38 +69,41 @@ public class SapJcoTransaction extends TransactionWithVariables {
 		// TODO Auto-generated method stub
 	}
 	
-	
-	@Override
-	public Object getVariableValue(String requestedVariableName) {
-		Object value = super.getVariableValue(requestedVariableName);
-		if (value != null) {
-			String sDocument = "<sap_variable>";
-			if (value instanceof String[]) {
-				String[] values = GenericUtils.cast(value);
+	private void appendParameterValue(Element parent, String parameterName, Object parameterValue) {
+		if (parent != null && parameterValue != null) {
+			if (parameterValue instanceof Object[]) {
+				Object[] values = GenericUtils.cast(parameterValue);
 				for (int i=0; i<values.length; i++) {
-					boolean addVarTagName = values[i].indexOf(requestedVariableName) == -1;
-					sDocument += addVarTagName ? "<"+requestedVariableName+">":"";
-					sDocument += String.valueOf(values[i]);
-					sDocument += addVarTagName ? "</"+requestedVariableName+">":"";
+					appendParameterValue(parent, parameterName, values[i]);
 				}
 			}
-			else if (value instanceof String) {
-				boolean addVarTagName = String.valueOf(value).indexOf(requestedVariableName) == -1;
-				sDocument += addVarTagName ? "<"+requestedVariableName+">":"";
-				sDocument += String.valueOf(value);
-				sDocument += addVarTagName ? "</"+requestedVariableName+">":"";
+			else if (parameterValue instanceof NodeList) {
+				Document doc = parent.getOwnerDocument();
+				NodeList nl = (NodeList)parameterValue;
+				for (int i=0; i<nl.getLength(); i++) {
+					parent.appendChild(doc.importNode(nl.item(i),true));
+				}
 			}
-			sDocument += "</sap_variable>";
-			
-			try {
-				return XMLUtils.parseDOMFromString(sDocument);
-			} catch (SAXException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
+			else if (parameterValue instanceof String) {
+				Document doc = parent.getOwnerDocument();
+				boolean addVarElement = ((String)parameterValue).indexOf(parameterName) == -1;
+				Element varElement = (Element) (addVarElement ? parent.appendChild(doc.createElement(parameterName)):parent);
+				varElement.appendChild(doc.createTextNode((String) parameterValue));
 			}
 		}
-		return value;
+	}
+	
+	@Override
+	public Object getParameterValue(String parameterName) {
+		Object parameterValue = super.getParameterValue(parameterName);
+		if (parameterValue != null) {
+			Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
+			Element sapVariable = doc.createElement("sap_variable");
+			appendParameterValue(sapVariable, parameterName, parameterValue);
+			doc.appendChild(sapVariable);
+			return doc;
+		}
+		return parameterValue;
 	}
 	
 	@Override

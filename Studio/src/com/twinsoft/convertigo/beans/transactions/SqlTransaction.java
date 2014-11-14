@@ -57,6 +57,7 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
+import com.twinsoft.convertigo.engine.util.ParameterUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -241,8 +242,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				
 				while (matcher.find()) {
 					String parameterName = matcher.group(1);
-					String parameterValue = getParameterValue(parameterName, 
-							sqlTransaction.getVariableVisibility(parameterName)).toString();
+					String parameterValue = ParameterUtils.toString(sqlTransaction.getParameterValue(parameterName));
 					preparedSqlQuery = preparedSqlQuery.replace("{{"+parameterName+"}}", parameterValue);
 					
 					// Add the parameterName into the ArrayList if is looks like {{id}}.	
@@ -259,8 +259,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				
 				while (matcher.find()) {
 					String parameterName = matcher.group(2);	
-					String parameterValue = getParameterValue(parameterName, 
-							sqlTransaction.getVariableVisibility(parameterName)).toString();
+					String parameterValue = ParameterUtils.toString(sqlTransaction.getParameterValue(parameterName));
 	
 					// Add the parameterName into the ArrayList if is looks like {id} and not {{id}}.	
 					orderedParametersList.add(parameterName);
@@ -357,9 +356,12 @@ public class SqlTransaction extends TransactionWithVariables {
 		return preparedSqlQueries;
 	}
 	
-	private Object getParameterValue(String parameterName, int variableVisibility){
+	@Override
+	public Object getParameterValue(String parameterName){
 		Object variableValue = null;
 
+		int variableVisibility = getVariableVisibility(parameterName);
+		
 		// Scope parameter
 		if (scope != null) {
 			variableValue = scope.get(parameterName, scope);
@@ -371,7 +373,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				Engine.logBeans.trace("(SqlTransaction) scope value: "+ Visibility.Logs.printValue(variableVisibility,variableValue));
 		}
 		
-		// Otherwise Transaction parameter (USELESS)
+		// Otherwise Transaction parameter (USELESS because variable is in scope!)
 		if (variableValue == null) {
 			variableValue = variables.get(parameterName);
 			if (variableValue != null)
@@ -397,7 +399,7 @@ public class SqlTransaction extends TransactionWithVariables {
 		
 		return variableValue = ((variableValue == null)? new String(""):variableValue);
 	}
-
+	
 	private String prepareQuery(List<String> logHiddenValues, SqlQueryInfos sqlQueryInfos) throws 
 		SQLException, ClassNotFoundException, EngineException {
 		
@@ -666,8 +668,12 @@ public class SqlTransaction extends TransactionWithVariables {
 											}
 											String resu = "";
 											if (ob != null) {
-												if (ob instanceof byte[]) resu = new String((byte[]) ob, "UTF-8"); // See #3043
-												else resu = ob.toString();
+												if (ob instanceof byte[]) {
+													resu = new String((byte[]) ob, "UTF-8"); // See #3043
+												}
+												else {
+													resu = ob.toString();
+												}
 											}
 											Engine.logBeans.trace("(SqlTransaction) Retrieved value ("+resu+") for column " + columnName + ", line " + (j-1) + ".");
 											line.set(index-1, resu);
@@ -936,7 +942,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				if (sqlQuery.orderedParametersList != null && variables != null){
 					if (sqlQuery.orderedParametersList.size() != 0 && variables.size() != 0){
 						for (String key : sqlQuery.orderedParametersList){
-							String valueKey = getParameterValue( key, this.getVariableVisibility(key) ).toString();
+							String valueKey = ParameterUtils.toString(getParameterValue(key));
 							String valueVar = variables.get(key);
 							if( !valueKey.equals(valueVar))
 								return false;	
@@ -946,7 +952,7 @@ public class SqlTransaction extends TransactionWithVariables {
 				
 				if (sqlQuery.otherParametersList != null && sqlQuery.otherParametersList.size() != 0) {
 					for (String key : sqlQuery.otherParametersList){
-						String valueKey = getParameterValue( key, this.getVariableVisibility(key) ).toString();
+						String valueKey = ParameterUtils.toString(getParameterValue(key));
 						String valueVar = variables.get(key);
 						if( !valueKey.equals(valueVar))
 							return false;	

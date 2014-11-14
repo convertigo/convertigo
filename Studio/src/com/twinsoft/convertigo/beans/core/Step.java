@@ -549,22 +549,29 @@ public abstract class Step extends DatabaseObject implements StepListener, IShee
 			int nodeType = node.getNodeType();
 			switch (nodeType) {
 				case Node.ELEMENT_NODE:
-					len = node.getChildNodes().getLength();
-					Node firstChild = node.getFirstChild();
-					if (firstChild != null) {
-						int firstChildType = firstChild.getNodeType();
-						switch (firstChildType) {
-							case Node.CDATA_SECTION_NODE:
-							case Node.TEXT_NODE: 
-								return ((len<2) ? firstChild.getNodeValue():XMLUtils.getNormalizedText(node));
-							case Node.ELEMENT_NODE: 
-								return XMLUtils.prettyPrintElement((Element)node, true, false);
-							default: 
-								return null;
+					if (sequence.getProject().isStrictMode()) {
+						Step.removeUselessAttributes((Element)node);
+						return XMLUtils.prettyPrintElement((Element)node, true, false);
+					}
+					else {
+						len = node.getChildNodes().getLength();
+						Node firstChild = node.getFirstChild();
+						if (firstChild != null) {
+							int firstChildType = firstChild.getNodeType();
+							switch (firstChildType) {
+								case Node.CDATA_SECTION_NODE:
+								case Node.TEXT_NODE: 
+									return ((len<2) ? firstChild.getNodeValue():XMLUtils.getNormalizedText(node));
+								case Node.ELEMENT_NODE: 
+									Step.removeUselessAttributes((Element)node);
+									return XMLUtils.prettyPrintElement((Element)node, true, false);
+								default: 
+									return null;
+							}
+						} else {
+							Engine.logBeans.warn("Applied XPath on step '"+ this +"' returned node with null value ('"+node.getNodeName()+"')");
+							return null;
 						}
-					} else {
-						Engine.logBeans.warn("Applied XPath on step '"+ this +"' returned node with null value ('"+node.getNodeName()+"')");
-						return null;
 					}
 				case Node.CDATA_SECTION_NODE:
 				case Node.TEXT_NODE:

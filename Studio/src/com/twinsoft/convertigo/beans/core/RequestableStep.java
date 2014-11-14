@@ -264,7 +264,6 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	    		Engine.logBeans.error("[RequestableStep] Could not backup wsdlTypes for step \""+ getName() +"\" (v 4.6.0)", e);
 	    	}
         }
-        
 	}
 	
     protected String getWsdlBackupDir() throws Exception {
@@ -774,6 +773,7 @@ public abstract class RequestableStep extends Step implements IVariableContainer
 	            	if (bInternalInvoke) {
 	            		Engine.logBeans.debug("(RequestableStep) Internal invoke requested");
 		            	InternalRequester internalRequester = new InternalRequester();
+		            	internalRequester.setStrictMode(getProject().isStrictMode());
 		            	
 		            	internalRequester.inputData = request;
 		        		Object result = internalRequester.processRequest(request);

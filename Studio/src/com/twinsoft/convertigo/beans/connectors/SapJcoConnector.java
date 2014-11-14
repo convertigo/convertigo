@@ -161,6 +161,8 @@ public class SapJcoConnector extends Connector {
 	public static Document executeJCoSearch(SapJcoConnector connector, String pattern) throws EngineException {
 		SapJcoTransaction transaction = (SapJcoTransaction)connector.newTransaction();
 		transaction.setBapiName("RFC_FUNCTION_SEARCH");
+		transaction.context = connector.context;
+		transaction.setParent(connector);
 		RequestableVariable variable = new RequestableVariable();
 		variable.setName("FUNCNAME");
 		variable.setValueOrNull(pattern);

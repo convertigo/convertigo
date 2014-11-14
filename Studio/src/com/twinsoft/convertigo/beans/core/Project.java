@@ -33,12 +33,14 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.ProjectUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
+import com.twinsoft.convertigo.engine.util.XMLUtils;
 
 /**
  * This class manages a Convertigo Project.
@@ -108,6 +110,8 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	 * The schema element form
 	 */
 	private XsdForm schemaElementForm = XsdForm.unqualified;
+	
+	private boolean bStrictMode = true;
 	
 	/**
 	 * The default connector for this project.
@@ -255,6 +259,15 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	 */
 	public void setSchemaElementForm(XsdForm schemaElementForm) {
 		this.schemaElementForm = XsdForm.unqualified; // schemaElementForm
+	}
+	
+	
+	public boolean isStrictMode() {
+		return bStrictMode;
+	}
+	
+	public void setStrictMode(boolean strictMode) {
+		bStrictMode = strictMode;
 	}
 	
 	@Override
@@ -419,7 +432,7 @@ public class Project extends DatabaseObject implements IInfoProperty {
 		return clonedObject;
 	}
 	
-    @Override
+	@Override
 	public void configure(Element element) throws Exception {
 		super.configure(element);
 		
@@ -436,6 +449,17 @@ public class Project extends DatabaseObject implements IInfoProperty {
 	        	ProjectUtils.copyIndexFile(getName());
 	        	Engine.logDatabaseObjectManager.info("Basic index.html copied");
 		 }
+		 
+			if (VersionUtils.compare(version, "7.3.0") < 0) {
+				NodeList properties = element.getElementsByTagName("property");
+				
+				Element propVarDom = (Element) XMLUtils.findNodeByAttributeValue(properties, "name", "bStrictMode");
+				if (propVarDom == null) {
+					bStrictMode = false;
+					hasChanged = true;
+					Engine.logBeans.warn("[Project] Successfully set 'bStrictMode' property for project \""+ getName() +"\" (v 7.3.0)");
+				}
+			}
     }
     
     private transient MobileApplication mobileApplication = null;

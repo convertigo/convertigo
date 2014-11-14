@@ -23,6 +23,7 @@
 package com.twinsoft.convertigo.engine.translators;
 
 import java.lang.reflect.Array;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -40,13 +41,22 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class DefaultInternalTranslator implements Translator {
 
+	boolean bStrictMode = false;
+	
+	public void setStrictMode(boolean strictMode) {
+		this.bStrictMode = strictMode;
+	}
+	
 	public void buildInputDocument(Context context, Object inputData) throws Exception {
         Engine.logContext.debug("Making input document");
 
 		Map<String, Object> request = GenericUtils.cast(inputData);
 		
 		InputDocumentBuilder inputDocumentBuilder = new InputDocumentBuilder(context);
-        
+		
+		// Indicates whether variable values were generated using strict mode or nor(text/childs only)
+		inputDocumentBuilder.transactionVariablesElement.setAttribute("strictMode", Boolean.toString(bStrictMode));
+		
 		for (Entry<String, Object> entry : request.entrySet()) {
 			String parameterName = entry.getKey();
 			Object parameterObject = entry.getValue();
@@ -68,6 +78,7 @@ public class DefaultInternalTranslator implements Translator {
 		if (parameterObject instanceof NativeJavaObject) {
 			parameterObject = ((NativeJavaObject) parameterObject).unwrap();
 		}
+		
 		if (parameterObject.getClass().isArray()) {
 			int len = Array.getLength(parameterObject);
 			for (int i = 0 ; i < len ; i++) {
@@ -80,15 +91,26 @@ public class DefaultInternalTranslator implements Translator {
 			Node node = doc.importNode((Node) parameterObject, true);
 			Element item = doc.createElement("variable");
 			item.setAttribute("name", parameterName);
-			if (node.getNodeType() == Node.TEXT_NODE) {
-				item.setAttribute("value", node.getNodeValue());
-			} else {
-				NodeList nl = node.getChildNodes();
-				if (nl.getLength() == 1 && nl.item(0).getNodeType() == Node.TEXT_NODE) {
-					item.setAttribute("value", nl.item(0).getNodeValue());
+			
+			if (bStrictMode) { // append full structured node
+				if (node.getNodeType() == Node.ELEMENT_NODE) {
+					item.appendChild(node);
+				}
+				else {
+					item.setAttribute("value", node.getNodeValue());
+				}
+			}
+			else { // append only child nodes for a structured node
+				if (node.getNodeType() == Node.TEXT_NODE) {
+					item.setAttribute("value", node.getNodeValue());
 				} else {
-					while (nl.getLength() > 0) {
-						item.appendChild(node.removeChild(nl.item(0)));
+					NodeList nl = node.getChildNodes();
+					if (nl.getLength() == 1 && nl.item(0).getNodeType() == Node.TEXT_NODE) {
+						item.setAttribute("value", nl.item(0).getNodeValue());
+					} else {
+						while (nl.getLength() > 0) {
+							item.appendChild(node.removeChild(nl.item(0)));
+						}
 					}
 				}
 			}
@@ -101,6 +123,11 @@ public class DefaultInternalTranslator implements Translator {
 		} else if (parameterObject instanceof XMLVector) {
 			XMLVector<Object> values = GenericUtils.cast(parameterObject);
 			for (Object object : values) {
+				addParameterObject(doc, parentItem, parameterName, object);
+			}
+		} else if (parameterObject instanceof List) {
+			List<Object> list = GenericUtils.cast(parameterObject);
+			for (Object object : list) {
 				addParameterObject(doc, parentItem, parameterName, object);
 			}
 		} else {

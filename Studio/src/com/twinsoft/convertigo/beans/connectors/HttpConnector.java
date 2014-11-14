@@ -104,6 +104,7 @@ import com.twinsoft.convertigo.engine.enums.Visibility;
 import com.twinsoft.convertigo.engine.oauth.HttpOAuthConsumer;
 import com.twinsoft.convertigo.engine.plugins.VicApi;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.ParameterUtils;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
 import com.twinsoft.convertigo.engine.util.VersionUtils;
@@ -361,7 +362,7 @@ public class HttpConnector extends Connector {
 		}
 
 		// Sets or overwrites server url
-		String httpUrl = (String) getVariableValue(httpTransaction, Parameter.ConnectorConnectionString.getName());
+		String httpUrl = ParameterUtils.toString(httpTransaction.getParameterValue(Parameter.ConnectorConnectionString.getName()));
 		if (httpUrl != null)
 			setBaseUrl(httpUrl);
 		else
@@ -411,7 +412,7 @@ public class HttpConnector extends Connector {
 			if (method.equals("GET")) {
 
 				// Retrieves variable value
-				httpObjectVariableValue = getVariableValue(httpTransaction, variable);
+				httpObjectVariableValue = httpTransaction.getParameterValue(variable);
 				if (httpObjectVariableValue != null) {
 					// variable must be sent as an HTTP parameter
 					if (!bIgnoreVariable) {
@@ -421,18 +422,18 @@ public class HttpConnector extends Connector {
 								if (httpObjectVariableValue instanceof Collection<?>)
 									for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
 										queryString += ((queryString.length() != 0) ? "&" : "");
-										queryString += httpVariable + "=" + URLEncoder.encode(httpVariableValue.toString(), urlEncodingCharset);
+										queryString += httpVariable + "=" + URLEncoder.encode(ParameterUtils.toString(httpVariableValue), urlEncodingCharset);
 									}
 								else if (httpObjectVariableValue.getClass().isArray())
 									for (Object item : (Object[]) httpObjectVariableValue) {
 										queryString += ((queryString.length() != 0) ? "&" : "");
-										queryString += httpVariable + "=" + URLEncoder.encode(item.toString(), urlEncodingCharset);
+										queryString += httpVariable + "=" + URLEncoder.encode(ParameterUtils.toString(item), urlEncodingCharset);
 									}
 							}
 							// standard case
 							else {
 								queryString += ((queryString.length() != 0) ? "&" : "");
-								queryString += httpVariable + "=" + URLEncoder.encode(httpObjectVariableValue.toString(), urlEncodingCharset);
+								queryString += httpVariable + "=" + URLEncoder.encode(ParameterUtils.toString(httpObjectVariableValue), urlEncodingCharset);
 							}
 						} catch (UnsupportedEncodingException e) {
 							throw new EngineException(urlEncodingCharset + " encoding is not supported.", e);
@@ -497,7 +498,7 @@ public class HttpConnector extends Connector {
 							variablesElement.appendChild(variableElement);
 							variableElement.setAttribute("name", variable);
 
-							httpObjectVariableValue = getVariableValue(httpTransaction, variable);
+							httpObjectVariableValue = httpTransaction.getParameterValue(variable);
 							if (httpObjectVariableValue != null) {
 								if (isMultiValued) {
 									variableElement.setAttribute("multi", "true");
@@ -506,7 +507,7 @@ public class HttpConnector extends Connector {
 											Element valueElement = variablesDocument.createElement("value");
 											variableElement.appendChild(valueElement);
 											Text valueText = variablesDocument
-													.createTextNode(httpVariableValue.toString());
+													.createTextNode(ParameterUtils.toString(httpVariableValue));
 											valueElement.appendChild(valueText);
 										}
 									} else if (httpObjectVariableValue.getClass().isArray()) {
@@ -514,15 +515,15 @@ public class HttpConnector extends Connector {
 											Element valueElement = variablesDocument.createElement("value");
 											variableElement.appendChild(valueElement);
 											Text valueText = variablesDocument
-													.createTextNode(httpVariableValue.toString());
+													.createTextNode(ParameterUtils.toString(httpVariableValue));
 											valueElement.appendChild(valueText);
 										}
 									}
 								} else {
 									Element valueElement = variablesDocument.createElement("value");
 									variableElement.appendChild(valueElement);
-									Text valueText = variablesDocument.createTextNode(httpObjectVariableValue
-											.toString());
+									Text valueText = variablesDocument
+											.createTextNode(ParameterUtils.toString(httpObjectVariableValue));
 									valueElement.appendChild(valueText);
 								}
 							}
@@ -578,7 +579,7 @@ public class HttpConnector extends Connector {
 				bIgnoreVariable = true;
 
 			// Retrieves variable value
-			httpObjectVariableValue = getVariableValue(httpTransaction, variable);
+			httpObjectVariableValue = httpTransaction.getParameterValue(variable);
 			if (method.equals("POST")) {
 				// variable must be sent as an HTTP parameter
 				if (!bIgnoreVariable) {
@@ -591,18 +592,18 @@ public class HttpConnector extends Connector {
 								if (httpObjectVariableValue instanceof Collection<?>)
 									for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
 										postQuery += ((postQuery.length() != 0) ? "&" : "");
-										postQuery += httpVariable + "=" + httpVariableValue;
+										postQuery += httpVariable + "=" + ParameterUtils.toString(httpVariableValue);
 									}
 								else if (httpObjectVariableValue.getClass().isArray())
 									for (Object httpVariableValue : (Object[]) httpObjectVariableValue) {
 										postQuery += ((postQuery.length() != 0) ? "&" : "");
-										postQuery += httpVariable + "=" + httpVariableValue.toString();
+										postQuery += httpVariable + "=" + ParameterUtils.toString(httpVariableValue);
 									}
 							}
 							// standard case
 							else {
 								postQuery += ((postQuery.length() != 0) ? "&" : "");
-								postQuery += httpVariable + "=" + httpObjectVariableValue.toString();
+								postQuery += httpVariable + "=" + ParameterUtils.toString(httpObjectVariableValue);
 							}
 						}
 					}
@@ -629,7 +630,7 @@ public class HttpConnector extends Connector {
 											// multiple values
 											String httpVariableValue = "";
 											for (Object var : (Collection<?>) httpObjectVariableValue)
-												httpVariableValue += var.toString();
+												httpVariableValue += ParameterUtils.toString(var);
 											if (isLogHidden) logHiddenValues.add(httpVariableValue);
 											postQuery = postQuery.substring(0, varPatternIndex)
 													+ httpVariableValue
@@ -645,10 +646,10 @@ public class HttpConnector extends Connector {
 													+ postQuery.substring(indexAfterPattern).indexOf('>');
 											String tmpPostQuery = postQuery.substring(0, beginTagIndex);
 											for (Object httpVariableValue : (Collection<?>) httpObjectVariableValue) {
-												if (isLogHidden) logHiddenValues.add(httpVariableValue.toString());
+												if (isLogHidden) logHiddenValues.add(ParameterUtils.toString(httpVariableValue));
 												tmpPostQuery += (postQuery.substring(beginTagIndex,
 														varPatternIndex)
-														+ httpVariableValue.toString() + postQuery.substring(
+														+ ParameterUtils.toString(httpVariableValue) + postQuery.substring(
 														indexAfterPattern, endTagIndex + 1));
 											}
 											tmpPostQuery += postQuery.substring(endTagIndex + 1);
@@ -670,7 +671,7 @@ public class HttpConnector extends Connector {
 											// multiple values
 											String httpVariableValue = "";
 											for (Object item : (Object[]) httpObjectVariableValue)
-												httpVariableValue += item.toString();
+												httpVariableValue += ParameterUtils.toString(item);
 											if (isLogHidden) logHiddenValues.add(httpVariableValue);
 											postQuery = postQuery.substring(0, varPatternIndex)
 													+ httpVariableValue
@@ -686,35 +687,30 @@ public class HttpConnector extends Connector {
 													+ postQuery.substring(indexAfterPattern).indexOf('>');
 											String tmpPostQuery = postQuery.substring(0, beginTagIndex);
 											for (Object item : (Object[]) httpObjectVariableValue) {
-												if (isLogHidden) logHiddenValues.add(item.toString());
+												if (isLogHidden) logHiddenValues.add(ParameterUtils.toString(item));
 												tmpPostQuery += (postQuery.substring(beginTagIndex,
 														varPatternIndex)
-														+ item.toString() + postQuery.substring(
+														+ ParameterUtils.toString(item) + postQuery.substring(
 														indexAfterPattern, endTagIndex + 1));
 											}
 											tmpPostQuery += postQuery.substring(endTagIndex + 1);
 											postQuery = tmpPostQuery;
 										}
 									}
-								} else if (httpObjectVariableValue instanceof String) {
-									if (isLogHidden) logHiddenValues.add(httpObjectVariableValue.toString());
+								} else {
+									if (isLogHidden) logHiddenValues.add(ParameterUtils.toString(httpObjectVariableValue));
 									StringEx sx = new StringEx(postQuery);
-									sx.replaceAll("$(" + httpVariable + ")concat", httpObjectVariableValue
-											.toString());
+									sx.replaceAll("$(" + httpVariable + ")concat", ParameterUtils.toString(httpObjectVariableValue));
 									postQuery = sx.toString();
 								}
 							}
 							// Handle single valued variable
 							else {
-								if (httpObjectVariableValue instanceof String) {
-									if (isLogHidden) logHiddenValues.add(httpObjectVariableValue.toString());
-									StringEx sx = new StringEx(postQuery);
-									sx.replaceAll("$(" + httpVariable + ")noE", httpObjectVariableValue
-											.toString());
-									sx.replaceAll("$(" + httpVariable + ")", httpObjectVariableValue
-											.toString());
-									postQuery = sx.toString();
-								}
+								if (isLogHidden) logHiddenValues.add(ParameterUtils.toString(httpObjectVariableValue));
+								StringEx sx = new StringEx(postQuery);
+								sx.replaceAll("$(" + httpVariable + ")noE", ParameterUtils.toString(httpObjectVariableValue));
+								sx.replaceAll("$(" + httpVariable + ")", ParameterUtils.toString(httpObjectVariableValue));
+								postQuery = sx.toString();
 							}
 						}
 						// Remove variable from postQuery
@@ -735,17 +731,15 @@ public class HttpConnector extends Connector {
 			} else if (method.equals("")) {
 				// Replace variable value in postQuery
 				if (httpObjectVariableValue != null) {
-					if (httpObjectVariableValue instanceof String) {
-						if (!isFormUrlEncoded && (!(httpVariable.equals("")))) {// used
-																				// to
-																				// replace
-																				// empty
-																				// element
-							if (isLogHidden) logHiddenValues.add(httpObjectVariableValue.toString());
-							StringEx sx = new StringEx(postQuery);
-							sx.replaceAll(httpVariable, httpObjectVariableValue.toString());
-							postQuery = sx.toString();
-						}
+					if (!isFormUrlEncoded && (!(httpVariable.equals("")))) {// used
+																			// to
+																			// replace
+																			// empty
+																			// element
+						if (isLogHidden) logHiddenValues.add(ParameterUtils.toString(httpObjectVariableValue));
+						StringEx sx = new StringEx(postQuery);
+						sx.replaceAll(httpVariable, ParameterUtils.toString(httpObjectVariableValue));
+						postQuery = sx.toString();
 					}
 				}
 			}
@@ -761,37 +755,6 @@ public class HttpConnector extends Connector {
 	}
 
 	protected static final int BUFFER_SIZE = 8192;
-
-	protected Object getVariableValue(AbstractHttpTransaction httpTransaction, String variableName) {
-		Object variableValue = null;
-		
-		int variableVisibility = httpTransaction.getVariableVisibility(variableName);
-		
-		// Transaction parameter
-		variableValue = httpTransaction.variables.get(variableName);
-		if (variableValue != null)
-			Engine.logBeans.trace("(HttpConnector) parameter value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
-
-		// Otherwise context parameter
-		if (variableValue == null) {
-			variableValue = (context.get(variableName) == null ? null : context.get(variableName));
-			if (variableValue != null)
-				Engine.logBeans.trace("(HttpConnector) context value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
-		}
-
-		// Otherwise default transaction parameter value
-		if (variableValue == null) {
-			variableValue = httpTransaction.getVariableValue(variableName);
-			if (variableValue != null)
-				Engine.logBeans.trace("(HttpConnector) default value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
-		}
-
-		if (variableValue == null)
-			Engine.logBeans.trace("(HttpConnector) none value found");
-
-		return variableValue;
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 

@@ -45,8 +45,14 @@ import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class InternalRequester extends GenericRequester {
 	
+	boolean bStrictMode = false;
+	
     public InternalRequester() {
     }
+    
+	public void setStrictMode(boolean strictMode) {
+		this.bStrictMode = strictMode;
+	}
     
     public String getName() {
         return "InternalRequester";
@@ -192,7 +198,9 @@ public class InternalRequester extends GenericRequester {
 	}
 
 	public Translator getTranslator() {
-		return new DefaultInternalTranslator();
+		DefaultInternalTranslator defaultInternalTranslator = new DefaultInternalTranslator();
+		defaultInternalTranslator.setStrictMode(bStrictMode);
+		return defaultInternalTranslator;
 	}
 
 	public void preGetDocument() {
