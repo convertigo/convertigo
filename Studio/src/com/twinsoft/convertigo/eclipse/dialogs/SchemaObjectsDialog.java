@@ -22,8 +22,6 @@
 
 package com.twinsoft.convertigo.eclipse.dialogs;
 
-import java.util.Hashtable;
-
 import javax.xml.namespace.QName;
 
 import org.apache.ws.commons.schema.XmlSchema;
@@ -39,24 +37,12 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Step;
-import com.twinsoft.convertigo.beans.core.StepWithExpressions;
-import com.twinsoft.convertigo.beans.steps.IteratorStep;
-import com.twinsoft.convertigo.beans.steps.XMLAttributeStep;
-import com.twinsoft.convertigo.beans.steps.XMLComplexStep;
-import com.twinsoft.convertigo.beans.steps.XMLElementStep;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.wizards.new_object.ObjectsExplorerComposite;
-import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.SchemaMeta;
+import com.twinsoft.convertigo.engine.util.StepUtils;
 import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class SchemaObjectsDialog extends Dialog implements Runnable {
@@ -81,7 +67,6 @@ public class SchemaObjectsDialog extends Dialog implements Runnable {
 	private SchemaObjectsDialogComposite schemaObjectsDialogComposite = null;
 	private ProgressBar progressBar = null;
 	private Label labelProgression = null;
-	private Hashtable<String, Step> stepsMap = new Hashtable<String, Step>(50);
 	
 	@Override
 	protected Control createDialogArea(Composite parent) {
@@ -198,7 +183,7 @@ public class SchemaObjectsDialog extends Dialog implements Runnable {
 	        		Element root = document.getDocumentElement();
 	        		Element firstChild = (Element)root.getFirstChild();
 	        		if (firstChild != null)
-	        			result = createStep(null, firstChild);
+	        			result = StepUtils.createStepFromSchemaDomModel(parentObject, firstChild);
         		}
 			}
 		}
@@ -206,7 +191,6 @@ public class SchemaObjectsDialog extends Dialog implements Runnable {
 			result = e;
 		}
 		finally {
-			stepsMap.clear();
 			try {
 				progressBarThread.interrupt();
 				
@@ -220,136 +204,6 @@ public class SchemaObjectsDialog extends Dialog implements Runnable {
 			}
 			catch (Throwable e) {}
 		}
-	}
-	
-	private Step createStep(Object parent, Node node) throws EngineException {
-		Step step = null;
-		
-		int nodeType = node.getNodeType();
-		switch (nodeType) {
-			case Node.ELEMENT_NODE:
-				Element element = (Element)node;
-				String tagname = element.getTagName();
-				if (stepsMap.containsKey(tagname)) {
-					step = deepClone(parent, (Step)stepsMap.get(tagname));
-				}
-				
-				if (step == null) {
-					step = createElementStep(parent,element);
-					if (step != null) {
-						// Add attributes
-						NamedNodeMap map = element.getAttributes();
-						for (int i=0; i<map.getLength(); i++) {
-							createStep(step, map.item(i));
-						}
-						// Add elements
-						NodeList children = element.getChildNodes();
-						for (int i=0; i<children.getLength(); i++) {
-							createStep(step, children.item(i));
-						}
-						
-						if (parent != null) stepsMap.put(tagname, step);
-					}
-				}
-				break;
-			case Node.ATTRIBUTE_NODE:
-				step = createAttributeStep(parent,(Attr)node);
-				break;
-			default:
-				break;
-		}
-		
-		return step;
-	}
-	
-	private Step deepClone(Object parent, Step step) throws EngineException {
-		Step cloned = null;
-		try {
-			cloned = (Step)step.clone();
-			cloned.priority = cloned.getNewOrderValue();
-			cloned.bNew = true;
-			addStepToParent(parent, cloned);
-			
-			if (step instanceof StepWithExpressions) {
-				StepWithExpressions swe = (StepWithExpressions)step;
-				for (Step child: swe.getSteps()) {
-					deepClone(cloned, child);
-				}
-			}
-			
-		} catch (CloneNotSupportedException e) {}
-		return cloned;
-	}
-	
-	private Step createElementStep(Object parent, Element element) throws EngineException {
-		Step step = null;
-		if (element != null) {
-			if (parent != null) {
-				String occurs = element.getAttribute("maxOccurs");//element.getAttribute(xsd.getXmlGenerationDescription().getOccursAttribute());
-				if (!occurs.equals("")) {
-					if (occurs.equals("unbounded"))
-						occurs = "10";
-					if (Long.parseLong(occurs, 10) > 1) {
-						parent = createIteratorStep(parent, element);
-					}
-				}
-			}
-			
-			String tagName = element.getTagName();
-			String localName = element.getLocalName();
-			String elementNodeName = (localName == null) ? tagName:localName;
-			Node firstChild = element.getFirstChild();
-			boolean isComplex = ((firstChild != null) && (firstChild.getNodeType() != Node.TEXT_NODE));
-			
-			setTextLabel("Creating \""+elementNodeName+"\" step");
-			if (isComplex){
-				step = new XMLComplexStep();
-				((XMLComplexStep)step).setNodeName(elementNodeName);
-			}
-			else {
-				step = new XMLElementStep();
-				((XMLElementStep)step).setNodeName(elementNodeName);
-			}
-			step.bNew = true;
-			addStepToParent(parent, step);
-		}
-		return step;
-	}
-	
-	private void addStepToParent(Object parent, Step step) throws EngineException {
-		if (step != null) {
-			if (parent == null)
-				step.setSequence((Sequence)parentObject);
-			else
-				((StepWithExpressions)parent).addStep(step);
-		}
-	}
-	
-	private Step createIteratorStep(Object parent, Element element) throws EngineException {
-		Step step = (Step)parent;
-		if (parent != null) {
-			step = new IteratorStep();
-			step.bNew = true;
-			addStepToParent(parent, step);
-		}
-		return step;
-	}
-	
-	private Step createAttributeStep(Object parent, Attr attr) throws EngineException {
-		XMLAttributeStep step = null;
-		if (attr != null) {
-			String attrName = attr.getName();
-			String localName = attr.getLocalName();
-			String attributeNodeName = (localName == null) ? attrName:localName;
-			if (!attributeNodeName.equals("done"/*xsd.getXmlGenerationDescription().getDoneAttribute()*/) &&
-				!attributeNodeName.equals("occurs"/*xsd.getXmlGenerationDescription().getOccursAttribute()*/)) {
-				step = new XMLAttributeStep();
-				step.setNodeName(attributeNodeName);
-				step.bNew = true;
-				addStepToParent(parent, step);
-			}
-		}
-		return step;
 	}
 	
 	public void setTextLabel(String text) {
