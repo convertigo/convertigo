@@ -170,10 +170,11 @@ public class MobileResourceHelper {
 					String htmlContent = FileUtils.readFileToString(htmlFile);
 					StringBuffer sbIndexHtml = new StringBuffer();
 					BufferedReader br = new BufferedReader(new StringReader(htmlContent));
-					String line = br.readLine();
-					while (line != null) {
+					String includeChar = null;
+					String includeBuf = null;
+					for(String line = br.readLine(); line != null; line = br.readLine()) {
 						if (!line.contains("<!--")) {
-							if (line.contains("\"../../../../")) {
+							if (includeChar == null && line.contains("\"../../../../")) {
 								String file = line.replaceFirst(".*\"\\.\\./\\.\\./\\.\\./\\.\\./(.*?)\".*", "$1");
 								
 								if (file.endsWith("c8o.cordova.js")) {
@@ -183,19 +184,13 @@ public class MobileResourceHelper {
 								File inFile = new File(Engine.WEBAPP_PATH + "/" + file);
 								
 								if (inFile.exists()) {
-									boolean needImages = file.matches(".*jquery\\.mobile\\..*?min\\.css");
-									
 									file = file.replace("scripts/", "js/");
 									File outFile = new File(destDir, file);
 									outFile.getParentFile().mkdirs();
 									FileUtils.copyFile(inFile, outFile, true);
 									line = line.replaceFirst("\"\\.\\./\\.\\./\\.\\./\\.\\./.*?\"", "\"" + file + "\"");
 									
-									if (needImages) {
-										File inImages = new File(inFile.getParentFile(), "images");
-										File outImages = new File(outFile.getParentFile(), "images");
-										FileUtils.copyDirectory(inImages, outImages, defaultFilter, true);
-									}
+									handleJQMcssFolder(file, inFile, outFile);
 									
 									if (file.matches(".*/jquery\\.mobilelib\\..*?js")) {
 										String sJs = FileUtils.readFileToString(outFile);
@@ -213,19 +208,41 @@ public class MobileResourceHelper {
 									}
 								}
 							} else {
-								Matcher mScript = pScript.matcher(line);
-								if (mScript.find()) {
-									String uri = mScript.group(1);
+								/** Handle multilines <script> and <link> urls for the resourceCompressorManager */
+								if (includeChar == null) {
+									Matcher mStart = Pattern.compile("(?:(?:<script .*?src)|(?:<link .*?href))\\s*=\\s*(\"|')(.*?)(\\1|$)").matcher(line);
+
+									if (mStart.find()) {
+										String end = mStart.group(3);
+										if (end.length() == 0) {
+											includeChar = mStart.group(1);
+										}
+										includeBuf = mStart.group(2);
+									} else {
+										includeBuf = null;
+									}
+								} else {
+									int index = line.indexOf(includeChar);
+									if (index != -1) {
+										includeBuf += line.substring(0, index);
+										includeChar = null;
+									} else {
+										includeBuf += line;
+									}
+								}
+								
+								if (includeChar == null && includeBuf != null) {
+									String uri = includeBuf;
 									uri = htmlFile.getParent().substring(projectDir.getParent().length() + 1) + "/" + uri;
 									ResourceBundle resourceBundle = Engine.theApp.resourceCompressorManager.process(uri);
 									if (resourceBundle != null) {
 										synchronized (resourceBundle) {
-											line = line.replaceAll("(?:#|\\?).*?(?<!\\\\)(\")","$1");
 											String prepend = null;
-											for (File file : resourceBundle.getFiles()) {
-												if (file.getName().matches("c8o\\.core\\..*?js")) {
-													prepend = "C8O.vars.endpoint_url=\"" + endPoint + "\";";												
-													break;
+											for (File file: resourceBundle.getFiles()) {
+												String filename = file.getName();
+												if (filename.matches("c8o\\.core\\..*?js")) {
+													prepend = "C8O.vars.endpoint_url=\"" + endPoint + "\";";
+												} else if (handleJQMcssFolder(filename, file, resourceBundle.getVirtualFile())) {
 												}
 											}
 											if (prepend == null) {
@@ -233,7 +250,7 @@ public class MobileResourceHelper {
 											} else {
 												resourceBundle.writeFile(prepend);
 											}
-											for (File file : resourceBundle.getFiles()) {
+											for (File file: resourceBundle.getFiles()) {
 												if (file.getPath().indexOf(projectDir.getPath()) == 0) {
 													filesToDelete.add(file);
 												}
@@ -245,7 +262,6 @@ public class MobileResourceHelper {
 						}
 						
 						sbIndexHtml.append(line + "\n");
-						line = br.readLine();
 					}
 					
 					htmlContent = sbIndexHtml.toString();
@@ -253,14 +269,14 @@ public class MobileResourceHelper {
 					writeStringToFile(htmlFile, htmlContent);
 				}
 				
-				for (File file : filesToDelete) {
+				for (File file: filesToDelete) {
 					FileUtils.deleteQuietly(file);
 				}
 			}
 			
 			long latestFile = 0;
 			File lastFile = null;
-			for (File file : FileUtils.listFiles(destDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
+			for (File file: FileUtils.listFiles(destDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
 				long curFile = file.lastModified();
 				if (latestFile < curFile) {
 					latestFile = curFile;
@@ -450,6 +466,16 @@ public class MobileResourceHelper {
 
 	public String getRevision() {
 		return Long.toString(destDir.lastModified());
+	}
+	
+	private static boolean handleJQMcssFolder(String filename, File inFile, File outFile) throws IOException {
+		if (filename.matches("jquery\\.mobile\\.(?:min\\.)?css")) {
+			File inImages = new File(inFile.getParentFile(), "images");
+			File outImages = new File(outFile.getParentFile(), "images");
+			FileUtils.copyDirectory(inImages, outImages, defaultFilter, true);
+			return true;
+		}
+		return false;
 	}
 	
 	private static MobilePlatform getMobilePlatform(String projectName, String platform) throws ServiceException, EngineException {

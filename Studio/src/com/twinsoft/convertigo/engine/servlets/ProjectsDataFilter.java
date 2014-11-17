@@ -47,6 +47,9 @@ import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.ResourceCompressorManager;
+import com.twinsoft.convertigo.engine.ResourceCompressorManager.ResourceType;
+import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 public class ProjectsDataFilter implements Filter {
 	private static Pattern p_projects = Pattern.compile("/projects(/.*)");
@@ -124,10 +127,8 @@ public class ProjectsDataFilter implements Filter {
     		return;
     	}
     	
-    	boolean bFileExists = file.exists();
-    	
     	// Handle implicit document (index.html)
-    	if (bFileExists && file.isDirectory()) {
+    	if (file.exists() && file.isDirectory()) {
     		// Handle ".../projects" requests
     		s = file.getCanonicalPath();
     		if (s.endsWith("projects") || s.equals(Engine.PROJECTS_PATH)) {
@@ -152,10 +153,27 @@ public class ProjectsDataFilter implements Filter {
     		}
     	}
     	
-    	bFileExists = file.exists();
-    	Engine.logContext.debug("bFileExists=" + bFileExists);
+    	if (!file.exists() && Engine.theApp != null && Engine.theApp.resourceCompressorManager != null) {
+    		if (Engine.theApp.resourceCompressorManager.check(request, response)) {
+    			return;
+    		} else {
+    			String referer = request.getHeader("Referer");
+    			if (referer != null) {
+    				Pattern tailUrl = Pattern.compile("([^?]*/).*?\\.css(?:\\?.*)?");
+    				Matcher mRefererTail = tailUrl.matcher(referer);
+    				if (mRefererTail.matches()) {
+        				String requestURL = HttpUtils.originalRequestURL(request);
+        				String refererTail = mRefererTail.group(1);
+        				if (requestURL.startsWith(refererTail)) {
+        					String relativePath = requestURL.substring(refererTail.length());
+        					file = new File(ResourceCompressorManager.getCommonFolder(ResourceType.css), relativePath);
+        				}
+    				}
+    			}
+    		}
+    	}
     	
-    	if (bFileExists) {
+    	if (file.exists()) {
         	Engine.logContext.debug("Static file");
         	
         	// Warning date comparison: 'If-Modified-Since' header precision is second,
@@ -187,11 +205,9 @@ public class ProjectsDataFilter implements Filter {
 	    			}
 	    		}
         	}
-    	} else if (Engine.theApp != null && Engine.theApp.resourceCompressorManager != null  && Engine.theApp.resourceCompressorManager.check(request, response)) {
-    		return;
     	} else {
-        	Engine.logContext.debug("Convertigo request => follow the normal filter chain");
-        	chain.doFilter(request, response);
+    	    Engine.logContext.debug("Convertigo request => follow the normal filter chain");
+    	    chain.doFilter(request, response);
     	}
 
     	Engine.logContext.debug("Exiting projects data filter");

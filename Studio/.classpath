@@ -49,6 +49,8 @@
 	<classpathentry kind="lib" path="lib/apache/commons/commons-pool-1.6.jar"/>
 	<classpathentry kind="lib" path="lib/jco/sapjco3.jar"/>
 	<classpathentry kind="lib" path="lib/engine-sapjcoprovider.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-1.7.7.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-simple-1.7.7.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="lib" path="lib/jCharts-0.7.2.jar"/>
 	<classpathentry kind="lib" path="lib/directkit.jar"/>

@@ -43,6 +43,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.helpers.OptionConverter;
 
+import com.twinsoft.convertigo.engine.ResourceCompressorManager.CompressionOptions;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.util.Crypto2;
@@ -231,6 +232,7 @@ public class EnginePropertiesManager {
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
     	Billing ("Analytics"),
     	Notifications ("Notifications"),
+    	Minification ("Minification"),
     	MobileBuilder ("Mobile builder"),
     	@CategoryOptions(visibility = Visibility.HIDDEN)
     	ExternalBrowser ("External browser")
@@ -360,7 +362,6 @@ public class EnginePropertiesManager {
 		@PropertyOptions(propertyType = PropertyType.Text)
 		LOG4J_LOGGER_CEMS_CONTEXT_AUDIT ("log4j.logger.cems.Context.Audit", LogLevels.INFO.getValue() + ", AuditAppender", "Log4J audit context logger", PropertyCategory.Logs),
 		
-		
 		/** LOGS ADVANCE */
 		@PropertyOptions(advance = true, visibility = Visibility.HIDDEN)
 		LOG_EXPLICIT_VARIABLES ("log.explicit_variables", "contextid,project,sequence,connector,transaction,user,clientip,clienthostname", "Explicit variables", PropertyCategory.Logs),
@@ -395,7 +396,6 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		LOG4J_APPENDER_AUDITAPPENDER_MAXBACKUPINDEX ("log4j.appender.AuditAppender.MaxBackupIndex", "100", "Log4J audit appender max backup index", PropertyCategory.Logs),
 		
-
 		/** NETWORK */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		NET_REVERSE_DNS ("net.reverse_dns", "false", "Use DNS reverse search for finding host names", PropertyCategory.Network),
@@ -524,6 +524,14 @@ public class EnginePropertiesManager {
 		NOTIFICATIONS_SMTP_USER ("notifications.smtp.user", "", "STMP user", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
 		NOTIFICATIONS_SMTP_PASSWORD ("notifications.smtp.password", "", "STMP password", PropertyCategory.Notifications),
+		
+		/** MINIFICATION */
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = CompressionOptions.class)
+		MINIFICATION_LEVEL ("minification.level", CompressionOptions.strong.name(), "Minification level for the 'common' value", PropertyCategory.Minification),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		MINIFICATION_STATS ("minification.stats", "true", "Show saved space at the end of compressed resources", PropertyCategory.Minification),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		MINIFICATION_FILENAMES ("minification.filenames", "true", "Show filenames compressed", PropertyCategory.Minification),
 		
 		/** MOBILE BUILDER */
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
