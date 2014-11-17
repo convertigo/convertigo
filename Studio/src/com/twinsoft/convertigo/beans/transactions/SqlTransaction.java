@@ -43,6 +43,8 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.mozilla.javascript.Undefined;
+import org.mozilla.javascript.UniqueTag;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -356,7 +358,25 @@ public class SqlTransaction extends TransactionWithVariables {
 	
 	@Override
 	public Object getParameterValue(String parameterName){
-		Object variableValue = super.getParameterValue(parameterName);
+		Object variableValue = null;
+
+		int variableVisibility = getVariableVisibility(parameterName);
+		
+		// Scope parameter
+		if (scope != null) {
+			variableValue = scope.get(parameterName, scope);
+			if (variableValue instanceof Undefined)
+				variableValue = null;
+			if (variableValue instanceof UniqueTag && ((UniqueTag) variableValue).equals(UniqueTag.NOT_FOUND)) 
+				variableValue = null;
+			if (variableValue != null)
+				Engine.logBeans.trace("(SqlTransaction) scope value: "+ Visibility.Logs.printValue(variableVisibility,variableValue));
+		}
+
+		if (variableValue == null) {
+			variableValue = super.getParameterValue(parameterName);
+		}
+		
 		return variableValue = ((variableValue == null)? new String(""):variableValue);
 	}
 	

@@ -34,8 +34,6 @@ import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.Undefined;
-import org.mozilla.javascript.UniqueTag;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -431,19 +429,6 @@ public abstract class TransactionWithVariables extends Transaction implements IV
 		if (variableValue != null)
 			Engine.logBeans.trace("(TransactionWithVariables) parameter value: " + Visibility.Logs.printValue(variableVisibility,variableValue));
 
-		// Otherwise scope parameter
-		if (variableValue == null) {
-			if (scope != null) {
-				variableValue = scope.get(parameterName, scope);
-				if (variableValue instanceof Undefined)
-					variableValue = null;
-				if (variableValue instanceof UniqueTag && ((UniqueTag) variableValue).equals(UniqueTag.NOT_FOUND)) 
-					variableValue = null;
-				if (variableValue != null)
-					Engine.logBeans.trace("(TransactionWithVariables) scope value: "+ Visibility.Logs.printValue(variableVisibility,variableValue));
-			}
-		}
-		
 		// Otherwise context parameter
 		if (variableValue == null) {
 			variableValue = (context.get(parameterName) == null ? null : context.get(parameterName));
