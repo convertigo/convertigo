@@ -19,6 +19,7 @@
  * $Revision$
  * $Date$
  */
+
 function C8O_document_ready () {
     getOriginalFontSize();
     var _ajaxReadyStateListener = ajaxReadyStateListener;
@@ -32,10 +33,12 @@ function C8O_document_ready () {
         ajaxXmlPostData(xmlhttp, $.param(data));
         return false;
     });
+    
     doMashupEvent = function (event, event_name, data) {
         C8O.doMashupEvent(event_name, data);
     };
     return true;
 }
+
 document.write("<script type=\"text/javascript\" src=\"../../scripts/archive/jquery.1.7.1.min.js\"></script>");
 document.write("<script type=\"text/javascript\" src=\"../../scripts/archive/weblib.6.1.10.js\"></script>");

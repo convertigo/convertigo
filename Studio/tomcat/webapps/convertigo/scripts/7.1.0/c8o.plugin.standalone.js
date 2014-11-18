@@ -19,6 +19,7 @@
  * $Revision$
  * $Date$
  */
+
 C8O._init_standalone = function (params) {
     var $common = $(window.frameElement).closest("body");
     if (typeof(window.frameElement.ownerDocument.C8O_mashup) === "undefined") {
@@ -28,18 +29,22 @@ C8O._init_standalone = function (params) {
     if (params.__hub_page) {
         C8O._getScript(C8O._define.plugins_path + "hub.js", function () {
             C8O._hub.init(params);
+            
             C8O_mashup.HUB = function (message) {
                 C8O._hub.receive_event(message);
             };
+            
             $(window).unload(function() {
                 delete C8O_mashup.HUB;
             });
+            
             C8O._hub.publish_event = function (target, message) {
                 C8O_mashup[target](message);
             };
         });
     } else {
         var widget_name = params.__widget_name;
+        
         C8O.addHook("mashup_event", function (eventName, payload) {
             C8O_mashup.HUB({
                 payload : payload,
@@ -48,16 +53,20 @@ C8O._init_standalone = function (params) {
                 type : "mashup"
             });
         });
+
         C8O_mashup[widget_name] = function (message) {
             C8O._onMashupEvent(message);
         };
         $(window).unload(function() {
             delete C8O_mashup[widget_name];
         });
+
         if (!params.__context) {
             params.__context = widget_name;
         }
+        
         C8O.ro_vars.widget_name = widget_name;
+        
         C8O._init(params);
     }
 }

@@ -22,9 +22,11 @@
  *
  *******************************************************
  *******************************************************/
+
 /*******************************************************
  * Global variables *
  *******************************************************/
+
 $.extend(true, C8O, {
     /**
      * init_vars variables values can only be set before the "init_finish" hook,
@@ -40,12 +42,14 @@ $.extend(true, C8O, {
 //        i18n: "", /** in case of multi-language application, force usage of the language selected. Empty string while select the browser language */
 //        testplatform: "auto" /** auto/true/false: automatically redirect to the testplatform if no parameter is set, force testplaform if true or just call C8O if false */
     },
+    
     /**
      * ro_vars variables values can only be set directly here, not dynamically
      */
     ro_vars: {
 //        i18n_files: [] /** list of language available for the application. The first is the default language. The application must have an i18n folder with 1 file per language like: i18n/en.json */
     },
+    
     /**
      * vars variables values can be set at any time,
      * by the code, by the query or by passing arguments to C8O.call(),
@@ -76,6 +80,7 @@ $.extend(true, C8O, {
         xsl_side: "none" /** client/server/none: force the side of the xsl transformation or pure XML */
     }
 });
+
 /**
  * ReadOnly variables are also available
  * C8.ro_vars variables values can be READ at any time by the code
@@ -84,9 +89,11 @@ $.extend(true, C8O, {
  * C8O.ro_vars.portal_username: string containing the name of the current logged user (gatein only)
  * C8O.ro_vars.widget_name: string containing the name of the current widget, if any
  */
+
 /*******************************************************
  * Functions *
  *******************************************************/
+
 /**
  * addHook function
  * some part of the C8O can be customized using a hook
@@ -96,6 +103,7 @@ $.extend(true, C8O, {
  * fn: function of the handler
  */
 //C8O.addHook(name, fn);
+
 /**
  *  addRecallParameter function
  *  force C8O.call() to send automatically parameters
@@ -107,6 +115,7 @@ $.extend(true, C8O, {
  *  parameter_value (optional): initial value for this parameter
  */
 //C8O.addRecallParameter(parameter_name, parameter_value);
+
 /**
  * appendValue function
  * append value in data.key:
@@ -117,6 +126,7 @@ $.extend(true, C8O, {
  * value: any object pushed into data.key
  */
 //C8O.appendValue(data, key, value);
+
 /**
  *  doMashupEvent function
  *  dispatch a mashup event to the current container if any
@@ -126,6 +136,7 @@ $.extend(true, C8O, {
  *                             In case of HTML Element, its attributes are transformed to a key/value map object.
  */
 //C8O.doMashupEvent(event_name, payload);
+
 /**
  * call function
  * make an AJAX request to CEMS in order to execute
@@ -134,6 +145,7 @@ $.extend(true, C8O, {
  *          used as AJAX parameters
  */
 //C8O.call(data);
+
 /**
  * canLog function
  * tell if the actual C8O.vars.log_level allow to log
@@ -142,6 +154,7 @@ $.extend(true, C8O, {
  *           false > cannot log
  */
 //C8O.canLog(level);
+
 /**
  * convertHTML function
  * copy an XML element to an HTML element or create a new fragment
@@ -150,6 +163,7 @@ $.extend(true, C8O, {
  * return: HTML element, output element or a new <fragment> element with the imported input
  */
 //C8O.convertHTML(input, output);
+
 /**
  * deleteAllCacheEntries function
  * remove all local cache entries
@@ -157,6 +171,7 @@ $.extend(true, C8O, {
  * error (optional): function (err), callback of the failure for the DB cleaning
  */
 //C8O.deleteAllCacheEntries(success, error);
+
 /**
  * formToData function
  * copy all form's inputs into the data object or a new one.
@@ -167,11 +182,13 @@ $.extend(true, C8O, {
  * return: the data object or a new one with copied form's inputs values
  */
 //C8O.formToData($form, data);
+
 /**
  * getBrowserLanguage function
  * return: a string of the current detected language, in 2 characters
  */
 //C8O.getBrowserLanguage();
+
 /**
  * doNavigationBarEvent function
  * for HTML connector only
@@ -179,11 +196,13 @@ $.extend(true, C8O, {
  * action: string of value 'backward', 'forward', 'stop' or 'refresh'
  */
 //C8O.doNavigationBarEvent(action);
+
 /**
  * doReconnect function
  * reload the current window with the initial query
  */
 //C8O.doReconnect();
+
 /**
  * doResize function
  * perform a resize of the frame element if any
@@ -194,6 +213,7 @@ $.extend(true, C8O, {
  *                          see http://api.jquery.com/animate/ for more details
  */
 //C8O.doResize(height, options);
+
 /**
  * getLastCallParameter function
  * used for retrieve a parameter from the previous call
@@ -203,6 +223,7 @@ $.extend(true, C8O, {
  *             or retrieve object with key/value of all parameters
  */
 //C8O.getLastCallParameter(key);
+
 /**
  * isDefined function
  * just check the existence of the argument
@@ -211,6 +232,7 @@ $.extend(true, C8O, {
  *            false > obj doesn't exist
  */
 //C8O.isDefined(obj);
+
 /**
  * isUndefined function
  * just check the existence of the argument
@@ -219,6 +241,7 @@ $.extend(true, C8O, {
  *            false > obj exists
  */
 //C8O.isUndefined(obj);
+
 /**
  * log object
  * write the msg string into the console.log if available
@@ -231,6 +254,7 @@ $.extend(true, C8O, {
 //C8O.log.info(msg, e);
 //C8O.log.debug(msg, e);
 //C8O.log.trace(msg, e);
+
 /**
  * removeRecallParameter function
  * reversed effect of addRecallParameter function
@@ -239,6 +263,7 @@ $.extend(true, C8O, {
  * parameter_name: parameter name to remove from the list
  */
 //C8O.removeRecallParameter(parameter_name);
+
 /**
  * serializeXML function
  * return a string representation of the xmlDom Document in a XML format
@@ -246,6 +271,7 @@ $.extend(true, C8O, {
  * return: string of the xmlDom Document in a XML format
  */
 //C8O.serializeXML(xmlDom);
+
 /**
  * toJSON function
  * return a string representation of the data object (key/value) in a JSON format
@@ -253,6 +279,7 @@ $.extend(true, C8O, {
  * return: string of the data object in a JSON format
  */
 //C8O.toJSON(data);
+
 /**
  * translate function
  * if the i18n is enabled (C8O.ro_vars.files not empty)
@@ -263,18 +290,21 @@ $.extend(true, C8O, {
  * return: string translated or nothing in case of element parameter
  */
 //C8O.translate(elt);
+
 /**
  * waitHide function
  * hide the wait screen
  * by removing the element with the id wait_div
  */
 //C8O.waitHide();
+
 /**
  * waitShow function
  * show the wait screen
  * by putting the wait_div in the body element
  */
 //C8O.waitShow();
+
 /**
  * walk function
  * walk recursively a dom tree and apply a function on each text node and attributes
@@ -292,9 +322,11 @@ $.extend(true, C8O, {
  *              return: true to continue the walk, false to stop
  */
 //C8O.walk(node, data, fn, fn_validate);
+
 /*******************************************************
  * List of possible hooks *
  *******************************************************/
+
 /**
  *  call hook
  *  used before AJAX request to CEMS server
@@ -308,6 +340,7 @@ $.extend(true, C8O, {
 //C8O.addHook("call", function (data) {
 //    return true;
 //});
+
 /**
  *  call_complete hook
  *  called after the xml_response, text_response or call_error hook
@@ -321,6 +354,7 @@ $.extend(true, C8O, {
 //C8O.addHook("call_complete", function (jqXHR, textStatus, data) {
 //    return true;
 //});
+
 /**
  *  call_error hook
  *  called call_complete hook, in case of an Ajax error (network error, unparsable response)
@@ -335,6 +369,7 @@ $.extend(true, C8O, {
 //C8O.addHook("call_error", function (jqXHR, textStatus, errorThrown, data) {
 //    return true;
 //});
+
 /**
  *  document_ready hook
  *  used at page loading
@@ -347,6 +382,7 @@ $.extend(true, C8O, {
 //C8O.addHook("document_ready", function () {
 //    return true;
 //});
+
 /**
  *  get_language hook
  *  used at page loading before document_ready and when i18n is enable
@@ -362,6 +398,7 @@ $.extend(true, C8O, {
 //C8O.addHook("get_language", function (params) {
 //
 //});
+
 /**
  *  init_finished hook
  *  used at page loading after C8O initialization
@@ -376,6 +413,7 @@ $.extend(true, C8O, {
 //C8O.addHook("init_finished", function (params) {
 //    return true;
 //});
+
 /**
  *  log hook
  *  used on each C8O.log.xxx call.
@@ -394,6 +432,7 @@ $.extend(true, C8O, {
 //C8O.addHook("log", function (level, msg, e) {
 //    return false;
 //});
+
 /**
  *  mashup_event hook
  *  used for handle doMashupEvent call
@@ -406,6 +445,7 @@ $.extend(true, C8O, {
 //C8O.addHook("mashup_event", function (eventName, payload) {
 //
 //});
+
 /**
  *  receive_mashup_event hook
  *  used for handle Mashup event for this widget
@@ -423,6 +463,7 @@ $.extend(true, C8O, {
 //C8O.addHook("receive_mashup_event", function (event) {
 //    return true;
 //});
+
 /**
  *  resize_calculation hook
  *  used after the content is filled
@@ -436,6 +477,7 @@ $.extend(true, C8O, {
 //C8O.addHook("resize_calculation", function () {
 //    return true;
 //});
+
 /**
  *  result_filled hook
  *  used after the content is filled
@@ -450,6 +492,7 @@ $.extend(true, C8O, {
 //C8O.addHook("result_filled", function ($container) {
 //    return true;
 //});
+
 /**
  *  siteclipper_page_loaded hook
  *  used after a siteclipped page is loaded
@@ -460,6 +503,7 @@ $.extend(true, C8O, {
 //C8O.addHook("siteclipper_page_loaded", function (doc) {
 //
 //});
+
 /**
  *  siteclipper_page_unloaded hook
  *  used when a siteclipped page is unloaded
@@ -472,6 +516,7 @@ $.extend(true, C8O, {
 //C8O.addHook("siteclipper_page_unloaded", function ($iframe) {
 //    return true;
 //});
+
 /**
  *  text_response hook
  *  used for tweak, retrieve value or do transformation
@@ -486,6 +531,7 @@ $.extend(true, C8O, {
 //  var text = aText[0];
 //    return true;
 //});
+
 /**
  *  wait_hide hook
  *  used after xml_response execution
@@ -498,6 +544,7 @@ $.extend(true, C8O, {
 //C8O.addHook("wait_hide", function () {
 //    return true;
 //});
+
 /**
  *  wait_show hook
  *  used at C8O.call calling
@@ -511,6 +558,7 @@ $.extend(true, C8O, {
 //C8O.addHook("wait_show", function () {
 //    return true;
 //});
+
 /**
  *  xml_response hook
  *  used for tweak, retrieve value or do transformation

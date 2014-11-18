@@ -19,6 +19,7 @@
  * $Revision$
  * $Date$
  */
+
 C8O._init_df = function (params) {
     C8O.addHook("mashup_event", function (eventName, data) {
         try {
@@ -32,6 +33,7 @@ C8O._init_df = function (params) {
             }
         } catch (e) {}
     });
+
     $.ajax({
         data: params,
         success: function (xml) {

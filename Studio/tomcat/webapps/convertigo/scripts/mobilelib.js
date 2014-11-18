@@ -19,8 +19,11 @@
  * $Revision$
  * $Date$
  */
+
 /* public C8O Mobile API for CEMS 5.6.0 */
+
 Ext.namespace('C8O');
+
 Ext.apply(C8O, {
     regexp: {
         extractURL: new RegExp("(.*?/projects/)(.*?)(/.*)"),
@@ -42,6 +45,7 @@ Ext.override(Ext.data.Reader, {
     }
 });
 */
+
 /**
  * @class C8O.Server
  * @extends Ext.util.Observable
@@ -71,6 +75,7 @@ C8O.Server = Ext.extend(Ext.util.Observable, {
         }
         this.endpoint += '/request.jsonp';
     },
+    
     /**
      * Prepare an args object to a plain key/value object
      *
@@ -100,6 +105,7 @@ C8O.Server = Ext.extend(Ext.util.Observable, {
         }
         return params;
     },
+    
     /**
      * Wrapper to execute a C8O Transaction or Sequence
      *
@@ -142,6 +148,7 @@ C8O.Server = Ext.extend(Ext.util.Observable, {
             }
         });
     },
+    
     /**
      * Compute a modified endpoint in order to use requestables from another Convertigo project.
      * It's an internal method for mobilelib usage only !
@@ -155,6 +162,7 @@ C8O.Server = Ext.extend(Ext.util.Observable, {
         return mEndpoint[1] + projectName + mEndpoint[3];
     }
 });
+
 C8O.Reader = Ext.extend(Ext.data.JsonReader, {
     constructor: function (config) {
         this.store = config.store;
@@ -189,6 +197,7 @@ C8O.Reader = Ext.extend(Ext.data.JsonReader, {
         return C8O.Reader.superclass.readRecords.call(this, data);
     }
 });
+
 /**
  * @class C8O.Store
  * @extends Ext.data.Store
@@ -208,6 +217,7 @@ C8O.Reader = Ext.extend(Ext.data.JsonReader, {
  *
  */
 C8O.Store = Ext.extend(Ext.data.Store, {
+    
     /**
      * Constructor
      */
@@ -231,11 +241,13 @@ C8O.Store = Ext.extend(Ext.data.Store, {
                 }
             }
         });
+        
         /**
          * Call the default constructor with the config.
          */
         C8O.Store.superclass.constructor.call(this, config);
     },
+
     /**
      * Loads the store's data from Convertigo server.
      *
@@ -271,6 +283,7 @@ C8O.Store = Ext.extend(Ext.data.Store, {
         C8O.Store.superclass.load.call(this, {params: params});
     }
 });
+
 /**
  * Enhance tablet detection
  */
@@ -288,6 +301,7 @@ if (Ext.version.indexOf("1.1.") === 0) {
     Ext.is.AndroidTablet = Ext.is.Android && (!Ext.is.AndroidPhone);
     Ext.is.Tablet = Ext.is.iPad || (Ext.is.Android && !Ext.is.AndroidPhone) || Ext.is.Playbook;
 }
+
 Ext.onReady(function () {
     /**
      * Detect if it's a webkit browser and display a warning otherwise
@@ -306,6 +320,7 @@ Ext.onReady(function () {
             warn.remove();
         });
     }
+    
     /**
      * Enable the right css in auto mode
      */
@@ -314,11 +329,13 @@ Ext.onReady(function () {
         try {
             ua = window.frameElement.useragent;
         } catch (e) { }
+        
         var mode = (ua.indexOf('blackberry') != -1 ? 'bb6'
                 : ua.indexOf('android') != -1 ? 'android'
                 : ua.indexOf('windowsphone') != -1 ? 'windowsphone'
                 : ua.search('iphone|ipad|ipod') != -1 ? 'apple'
                 : 'senchatouch');
+        
         links.filter('link[title=' + mode + ']').set({'title': null}, false);
         Ext.select('link[title]').remove();
     }

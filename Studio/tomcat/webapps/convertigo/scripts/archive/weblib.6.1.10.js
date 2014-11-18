@@ -19,15 +19,18 @@
  * $Revision$
  * $Date$
  */
+
 C8O = {
     init_vars : {
         enc : "false", /** enable rsa encoding */
         testplatform : "auto"
     },
+    
     ro_vars : {
         widget_name : "",
         portal_username : ""
     },
+    
     vars : { /** customizable value by adding __name=value in query*/
         ajax_method : "POST", /** POST/GET */
         auto_refresh : "true", /** true/false */
@@ -41,6 +44,7 @@ C8O = {
         use_siteclipper_plugin : "true", /** true/false */
         xsl_side : "client" /** client/server */
     },
+    
     addHook : function (name, fn) {
         if ($.isFunction(fn)) {
             if (!$.isArray(C8O._define.hooks[name])) {
@@ -49,15 +53,18 @@ C8O = {
             C8O._define.hooks[name].push(fn);
         }
     },
+    
     addRecallParameter : function (parameter_name, parameter_value) {
         if (C8O.isUndefined(parameter_value)) {
             parameter_value = "";
         }
         C8O._define.recall_params[parameter_name] = parameter_value;
     },
+    
     call : function (data) {
         var key;
         C8O.waitShow();
+        
         if (typeof(data) === "string") {
             data = C8O._parseQuery({}, data);
         } else if (C8O.isUndefined(data)) {
@@ -96,7 +103,9 @@ C8O = {
                 data = C8O._parseQuery({}, $(data).serialize());
             }
         }
+        
         C8O._retrieve_vars(data);
+        
         for (key in C8O._define.recall_params) {
             if (C8O._define.recall_params.hasOwnProperty(key)) {
                 if (!C8O.isUndefined(data[key])) {
@@ -109,8 +118,10 @@ C8O = {
                 }
             }
         }
+        
         C8O._call(data);
     },
+    
     doMashupEvent : function (event_name, payload) {
         if (payload !== null && typeof(payload) === "object") {
             if (!$.isPlainObject(payload)) {
@@ -130,14 +141,17 @@ C8O = {
         }
         C8O._hook("mashup_event", event_name, payload);
     },
+    
     doNavigationBarEvent : function (type) {
         if ($.inArray(type, C8O._define.navigation_var_actions) !== -1) {
             C8O.call({ __event_action : "navbar_" + type });
         }
     },
+    
     doReconnect : function () {
         window.location.reload(false);
     },
+    
     doResize : function (height, options) {
         if (typeof(height) === "number") {
             if (C8O.isUndefined(options)) {
@@ -152,6 +166,7 @@ C8O = {
             C8O._resize(options);
         }
     },
+    
     getLastCallParameter : function (key) {
         if (C8O.isUndefined(key)) {
             return C8O._obj_clone(C8O._define.last_call_params);
@@ -159,23 +174,29 @@ C8O = {
             return C8O._define.last_call_params[key];
         }
     },
+    
     isDefined : function (obj) {
         return typeof(obj) !== "undefined";
     },
+    
     isUndefined : function (obj) {
         return typeof(obj) === "undefined";
     },
+    
     removeRecallParameter : function (parameter_name) {
         delete C8O._define.recall_params[parameter_name];
     },
+    
     waitHide : function () {
         $("#wait_div").remove();
     },
+    
     waitShow : function () {
         if ($("body #wait_div").length === 0) {
             $("body").append(C8O._define.wait_div);
         }
     },
+    
     _define : {
         clipping_attributs :
             $(["altKey", "ctrlKey", "metaKey", "shiftKey", "clientX", "clientY", "screenX", "screenY", "layerX", "layerY", "pageX", "pageY", "button"]),
@@ -187,10 +208,12 @@ C8O = {
         recall_params : {__context : "", __connector : ""},
         re_plus : new RegExp("\\+", "g")
     },
+    
     _addField : function (params, twsid, value) {
         params["__field_" + twsid] = value;
         return value;
     },
+
     _call : function (data) {
         C8O._define.last_call_params = data;
         if (C8O._hook("call", data)) {
@@ -203,6 +226,7 @@ C8O = {
             });
         }
     },
+    
     _checkDirty : function (tim) {
         clearTimeout(C8O._define.dirty_timer);
         if (tim) {
@@ -227,15 +251,18 @@ C8O = {
             C8O._define.dirty_timer = window.setTimeout("C8O._checkDirty(500)", 500);
         }
     },
+    
     _obj_replace : function (object, content) {
         for (var key in object) {
             delete object[key];
         }
         return $.extend(object, content);
     },
+    
     _obj_clone : function (object) {
         return $.extend(true, {}, object);
     },
+    
     _onSuccess : function (xml, status, xhr) {
         C8O.waitHide();
         if (C8O.vars.xsl_side === "client") {
@@ -273,6 +300,7 @@ C8O = {
             }
         }
     },
+    
     _onMashupEvent : function (event) {
         if (C8O._hook("receive_mashup_event", event)) {
             if (event.type === "call") {
@@ -280,6 +308,7 @@ C8O = {
             }
         }
     },
+    
     _resize : function (options) {
         var lowest = C8O._hook("resize_calculation");
         if (lowest !== false) {
@@ -293,6 +322,7 @@ C8O = {
             C8O.doResize(lowest, options);
         }
     },
+    
     _retrieve_vars : function (data) {
         for (key in C8O.vars) {
             if (!C8O.isUndefined(data["__" + key])) {
@@ -300,6 +330,7 @@ C8O = {
             }
         }
     },
+    
     _fillBody : function (content, resize) {
         var $container = C8O.vars.target_id;
         if (typeof($container) === "string") {
@@ -307,6 +338,7 @@ C8O = {
         } else if (C8O.isUndefined($container.jquery)){
             $container = $($container);
         }
+        
         if (C8O.vars.target_append === "true") {
             $container.append(content);
         } else {
@@ -325,12 +357,14 @@ C8O = {
             }
         }
     },
+    
     _getQuery : function () {
         var l = window.location,
             q = l.search.length > 0 ? l.search.substring(1) : "",
             h = l.hash.length > 0 ? l.hash.substring(1) : "";
         return (q.length > 0 && h.length > 0) ? (q + "&" + h) : (q.length > 0 ? q : h);
     },
+    
     _getScript : function (url, callback) {
         var script = document.createElement("script"),
             done = false;
@@ -339,6 +373,7 @@ C8O = {
             if (!done && (!this.readyState ||
                 this.readyState === "loaded" ||
                 this.readyState === "complete")) {
+                
                 done = true;
                 if (callback) {
                     callback();
@@ -349,6 +384,7 @@ C8O = {
         };
         document.getElementsByTagName("head")[0].appendChild(script);
     },
+    
     _xslStyleSheet : function (xml) {
         var node = xml.firstChild;
         while (node !== null) {
@@ -360,6 +396,7 @@ C8O = {
         }
         return null;
     },
+    
     _handleEvent : function (event) {
         var params = {
             __event_action : event.type,
@@ -398,6 +435,7 @@ C8O = {
         C8O.call(params);
         return false;
     },
+    
     _hook : function (name) {
         var ret = true, i, r;
         if ($.isArray(C8O._define.hooks[name])) {
@@ -410,6 +448,7 @@ C8O = {
         }
         return ret;
     },
+    
     _parseQuery : function (params, query) {
         var data = (C8O.isUndefined(params)) ? {}:params,
             vars = (query?query:C8O._getQuery()).split("&"),
@@ -443,6 +482,7 @@ C8O = {
         }
         return data;
     },
+    
     _postMessage : function (data) {
         if (window.postMessage) {
             try {
@@ -451,11 +491,13 @@ C8O = {
             window.parent.postMessage(data, "*");
         }
     },
+    
     _remove : function (object, attribute) {
         var res = object[attribute];
         delete object[attribute];
         return res;
     },
+    
     _xslt : function (xml, xsl) {
         if (window.XSLTProcessor) {
             var xsltProcessor = new XSLTProcessor();
@@ -466,6 +508,7 @@ C8O = {
             C8O._fillBody(xml.transformNode(xsl));
         }
     },
+    
     _init : function (params) {
         var value;
         if (C8O._remove(params, "__enc")=="true" || C8O.init_vars.enc=="true") {
@@ -497,38 +540,48 @@ C8O = {
         } else {
             C8O._define.connector = params.__connector;
             C8O._define.context = params.__context;
+
             C8O._retrieve_vars(params);
+            
             if (C8O._hook("init_finished", params) && C8O.vars.first_call === "true") {
                 C8O.call(params);
             }
+            
             if (C8O.vars.first_call === "false") {
                 C8O.waitHide();
             }
         }
     }
 }
+
 $.ajaxSettings.traditional = true;
 $.ajaxSetup({
     type : C8O.vars.ajax_method,
     dataType : "xml"
 });
+
 try {
     if (window.frameElement.src) {
         C8O._define.iframe = true;
     }
 } catch(e){
+    
 }
+
 $(document).ready(function () {
     /** No XSLT engine (see #1336) : switch to server mode */
     if (!window.XSLTProcessor && !window.ActiveXObject) {
         C8O.vars.xsl_side = "server";
     }
+    
     /** weblib_wrapper can't access to C8O object with IE (see #1778) */
     if (typeof(C8O_document_ready) !== "undefined") {
         C8O.addHook("document_ready", C8O_document_ready);
     }
+    
     // retrieve the wait_div element in memory
     C8O._define.wait_div = $("#wait_div").clone();
+    
     if (C8O._hook("document_ready")) {
         var loc = window.location,
             base = loc.href.substring(0, loc.href.indexOf("/projects/")),
@@ -536,8 +589,10 @@ $(document).ready(function () {
         if (match.length > 1) {
             var params = C8O._parseQuery();
             C8O._define.project = match[1];
+            
             var testplatform = C8O._remove(params, "__testplatform");
             testplatform = (testplatform == null) ? C8O.init_vars.testplatform : (C8O.init_vars.testplatform = testplatform);
+            
             if ("false" === testplatform || ("auto" === testplatform && !$.isEmptyObject(params))) {
                 C8O._init(params);
             } else {

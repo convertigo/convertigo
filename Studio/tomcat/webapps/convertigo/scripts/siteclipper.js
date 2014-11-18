@@ -19,6 +19,7 @@
  * $Revision$
  * $Date$
  */
+
 $(window).ready(function () {
     if (typeof(C8O_postInstructions) !== "undefined") {
         for (var i in C8O_postInstructions) {

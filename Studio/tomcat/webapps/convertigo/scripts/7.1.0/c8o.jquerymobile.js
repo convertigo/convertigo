@@ -19,16 +19,21 @@
  * $Revision$
  * $Date$
  */
+
 $.extend(true, C8O, {
     init_vars: {
     },
+    
     ro_vars: {
     },
+    
     vars: {
     },
+        
     options: {
         loading: {}
     },
+    
     waitHide: function () {
         if (C8O._hook("wait_hide") && C8O._hook("loading_stop")) {
             try {
@@ -43,6 +48,7 @@ $.extend(true, C8O, {
             $("#c8oloading").hide();
         }
     },
+    
     waitShow: function () {
         if (C8O._hook("wait_show") && C8O._hook("loading_start")) {
             $("#c8oloading").show();
@@ -57,13 +63,16 @@ $.extend(true, C8O, {
             }
         }
     },
+    
     _define: {
     },
+    
     _jqm_onDocumentReady: C8O._onDocumentReady,
     _onDocumentReady: function (params) {
         if (!$.mobile.ajaxBlacklist) {
             $("<div id=\"c8oloading\"/>").css({backgroundColor: "grey", position: "fixed", width: "100%", height: "100%", opacity: 0.5, "z-index": 9999999}).hide().appendTo("body");
         }
+        
         $(document).on("pageshow", function () {
             if ($("#c8oloading").is(":visible")) {
                 try {
@@ -77,29 +86,37 @@ $.extend(true, C8O, {
                 }
             }
         });
+        
         C8O._jqm_onDocumentReady(params);
     },
+    
     _onJqmInitFinished: function () {
         C8O.log.info("c8o.jqm : initializing jquery mobile");
         $("[data-role=page]").data("c8o-translated", true);
+        
         $.mobile.initializePage();
+        
         $(document).on("pagebeforecreate", "[data-role=page]", function () {
             C8O._onPageBeforeCreate($(this));
         });
     },
+    
     _onPageBeforeCreate: function ($page) {
         if (!$page.data("c8o-translated")) {
             C8O.log.debug("c8o.jqm : new DOM page loaded, try to translate it");
             $page.data("c8o-translated", true);
             C8O.translate($page[0]);
         }
+        
     }
 });
+
 $(document).ready(function () {
     $.mobile.autoInitializePage = false;
 });
 //For WindowsPhone accept the cross-plateform
 $.support.cors = true;
+
 C8O.addHook("init_finished", function () {
     C8O._onJqmInitFinished();
 });

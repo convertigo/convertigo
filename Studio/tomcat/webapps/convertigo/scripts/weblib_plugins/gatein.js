@@ -19,6 +19,7 @@
  * $Revision$
  * $Date$
  */
+
 C8O._init_gatein = function (params) {
     if (params.__hub_page) {
         C8O._getScript("../../scripts/weblib_plugins/hub.js", function () {
@@ -29,6 +30,7 @@ C8O._init_gatein = function (params) {
             $(window).unload(function() {
                 parent.eXo.core.Topic.unsubscribe("/convertigo/mashup", subscribeID);
             });
+            
             C8O._hub.publish_event = function (target, message) {
                 parent.eXo.core.Topic.publish("/convertigo/mashup", "/convertigo/" + target, message);
             }
@@ -41,6 +43,7 @@ C8O._init_gatein = function (params) {
             var widget_name = new RegExp("resources%2F(.*).xml#").exec(window.frameElement.src);
             widget_name = (widget_name != null && widget_name.length > 1) ? widget_name[1] : "unknow_widget";
         }
+        
         C8O.addHook("mashup_event", function (eventName, payload) {
             parent.eXo.core.Topic.publish("/convertigo/" + widget_name, "/convertigo/mashup", {
                 payload : payload,
@@ -49,16 +52,20 @@ C8O._init_gatein = function (params) {
                 type : "mashup"
             });
         });
+
         var subscribeID = parent.eXo.core.Topic.subscribe("/convertigo/" + widget_name, function (message) {
             C8O._onMashupEvent(message.message);
         });
         $(window).unload(function() {
             parent.eXo.core.Topic.unsubscribe("/convertigo/" + widget_name, subscribeID);
         });
+
         if (!params.__context) {
             params.__context = widget_name;
         }
+        
         C8O.ro_vars.widget_name = widget_name;
+        
         try {
             C8O.ro_vars.portal_username = $(top.document).find("#UIUserInfoPortlet .Name a").text();
             if (C8O.vars.send_portal_username === "true") {
@@ -67,8 +74,10 @@ C8O._init_gatein = function (params) {
         } catch (e) {
             // maybe due to cross-domain issue
         }
+        
         C8O._init(params);
     }
+    
     // fullscreen code introduced by #1734 - Zoom feature without reload for our gadgets in GateIn
     try {
         var $win = $(window.frameElement).closest(".UIWindow");
@@ -83,6 +92,7 @@ C8O._init_gatein = function (params) {
                 ).fadeTo(0, 0.7).hide();
             }
             $win.find(".ArrowDownIcon, .MinimizedIcon").remove();
+            
             var $restore_icon = $maximize_icon.removeAttr("onclick").clone().removeClass("MaximizedIcon").addClass("NormalIcon").attr("title", "Restore").hide();
             $restore_icon.insertAfter($maximize_icon);
             $maximize_icon.add($restore_icon).click(function () {

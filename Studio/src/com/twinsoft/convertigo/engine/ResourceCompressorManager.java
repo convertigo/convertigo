@@ -206,7 +206,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 							fullsize += (line.length() + 1);
 							sources.append(StringUtils.rightPad(line, 110, ' ') + String.format(" // %03d", lineCpt++));
 							if (filenames) {
-								if (lineCpt % 50 == 0) {
+								if (lineCpt % 50 == 1) {
 									sources.append(" [" + file.getName() + "]");
 								}
 							}

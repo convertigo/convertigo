@@ -19,14 +19,17 @@
  * $Revision$
  * $Date$
  */
+
 C8O = {
     init_vars: {
         enc: "false", /** enable rsa encoding */
         i18n: ""
     },
+    
     ro_vars: {
         i18n_files: []
     },
+    
     vars: { /** customizable value by adding __name=value in query*/
         ajax_method: "POST", /** POST/GET */
         endpoint_url: "",
@@ -36,6 +39,7 @@ C8O = {
         requester_prefix: "",
         xsl_side: "none"
     },
+    
     addHook: function (name, fn) {
         if ($.isFunction(fn)) {
             if (!$.isArray(C8O._define.hooks[name])) {
@@ -44,12 +48,14 @@ C8O = {
             C8O._define.hooks[name].push(fn);
         }
     },
+    
     addRecallParameter: function (parameter_name, parameter_value) {
         if (C8O.isUndefined(parameter_value)) {
             parameter_value = "";
         }
         C8O._define.recall_params[parameter_name] = parameter_value;
     },
+    
     appendValue: function (data, key, value) {
         if (!$.isArray(value)) {
             value = [value];
@@ -64,6 +70,7 @@ C8O = {
             }
         }
     },
+    
     appendValues: function (data, source) {
         if ($.isPlainObject(data) && $.isPlainObject(source)) {
             for (var key in source) {
@@ -71,13 +78,16 @@ C8O = {
             }
         }
     },
+    
     call: function (data) {
         var key;
         if (C8O.canLog("info")) {
             C8O.log.info("c8o.core: call: " + C8O.toJSON(data));
         }
+
         C8O.log.trace("c8o.core: call show wait div");
         C8O.waitShow();
+        
         if (typeof(data) == "string") {
             C8O.log.trace("c8o.core: call parse string data '" + data + "'");
             data = C8O._parseQuery({}, data);
@@ -89,6 +99,7 @@ C8O = {
             data = C8O.formToData($form);
             if ($form.find("input[type=file]").length) {
                 C8O.log.debug("c8o.core: call using a form with an input file");
+                
                 var targetName = "tn_" + new Date().getTime() + "_" + Math.floor(Math.random() * 100);
                 var action = C8O._getCallUrl();
                 $form.attr({
@@ -102,9 +113,11 @@ C8O = {
                     style: "display: none"
                 }).appendTo("body").one("load", function () {
                     C8O.log.debug("c8o.core: call using a form response");
+                    
                     var fakeXHR = {
                         C8O_data: data
                     };
+                    
                     if (C8O.vars.xsl_side == "server") {
                         fakeXHR.responseText = $iframe[0].contentWindow.document.outerHTML;
                         C8O._onCallSuccess(null, "success", fakeXHR);
@@ -125,7 +138,9 @@ C8O = {
                 C8O.log.debug("c8o.core: call using a form");
             }
         }
+        
         C8O._retrieve_vars(data);
+        
         for (key in C8O._define.recall_params) {
             if (C8O._define.recall_params.hasOwnProperty(key)) {
                 if (!C8O.isUndefined(data[key])) {
@@ -140,11 +155,14 @@ C8O = {
                 }
             }
         }
+        
         C8O._call(data);
     },
+
     canLog: function (level) {
         return $.inArray(level, C8O._define.log_levels) <= $.inArray(C8O.vars.log_level, C8O._define.log_levels);
     },
+    
     convertHTML: function (input, output) {
         if (C8O.isUndefined(output)) {
             output = document.createElement("fragment");
@@ -167,6 +185,7 @@ C8O = {
         }
         return output;
     },
+    
     formToData: function ($form, data) {
         $form = $($form);
         if (C8O.isUndefined(data)) {
@@ -178,11 +197,13 @@ C8O = {
         }
         return data;
     },
+    
     getBrowserLanguage: function () {
         var lang, nav = navigator;
         if (nav && nav.userAgent && (lang = nav.userAgent.match(/android.*\W(\w\w)-(\w\w)\W/i))) {
             lang = lang[1];
         }
+
         if (!lang && nav) {
             if (nav.language) {
                 lang = nav.language;
@@ -195,8 +216,10 @@ C8O = {
             }
             lang = lang.substr(0, 2);
         }
+        
         return lang;
     },
+    
     getLastCallParameter: function (key) {
         if (C8O.isUndefined(key)) {
             return C8O._obj_clone(C8O._define.last_call_params);
@@ -204,12 +227,15 @@ C8O = {
             return C8O._define.last_call_params[key];
         }
     },
+    
     isDefined: function (obj) {
         return typeof(obj) != "undefined";
     },
+    
     isUndefined: function (obj) {
         return typeof(obj) == "undefined";
     },
+    
     log: {
         error: function (msg, e) {
             C8O._log("error", msg, e);
@@ -227,9 +253,11 @@ C8O = {
             C8O._log("trace", msg, e);
         }
     },
+    
     removeRecallParameter: function (parameter_name) {
         delete C8O._define.recall_params[parameter_name];
     },
+    
     toJSON: function (data) {
         try {
             if (window.JSON && window.JSON.stringify) {
@@ -258,6 +286,7 @@ C8O = {
         } catch (e) { }
         return '"' + data + '"';
     },
+    
     translate: function (elt) {
         if (C8O._define.dictionnary != null) {
             if (typeof(elt) == "string") {
@@ -269,8 +298,10 @@ C8O = {
                     while (find != -1) {
                         res += txt.substring(0, find);
                         txt = txt.substring(find);
+                        
                         var match = txt.match(C8O._define.re_i18n);
                         var value = C8O._translate(match[1]);
+                                                
                         res += value;
                         txt = txt.substring(match[0].length);
                         find = txt.search(C8O._define.re_i18n);
@@ -280,12 +311,15 @@ C8O = {
             }
         }
     },
+    
     waitHide: function () {
         C8O._hook("wait_hide");
     },
+    
     waitShow: function () {
         C8O._hook("wait_show");
     },
+    
     /**
      * Walk each node and attribute and call the specified function
      */
@@ -294,6 +328,7 @@ C8O = {
             if (node.nodeType == Node.ELEMENT_NODE) {
                 for (var i = 0; i < node.attributes.length; i++) {
                     var fnr = fn.call(node, node.attributes[i].value, data);
+                    
                     if (fnr != null) {
                         node.attributes[i].value = fnr;
                     }
@@ -303,6 +338,7 @@ C8O = {
                 }
             } else if (node.nodeType == Node.TEXT_NODE) {
                 var fnr = fn.call(node, node.nodeValue, data, fn_validate);
+                
                 if (fnr != null && node.parentNode != null) {
                     node.nodeValue = fnr;
                 }
@@ -313,6 +349,7 @@ C8O = {
             });
         }
     },
+    
     _define: {
         hooks: {},
         last_call_params: {},
@@ -327,6 +364,7 @@ C8O = {
         start_time: new Date().getTime(),
         dictionnary: null
     },
+
     _call: function (data) {
         C8O._define.last_call_params = data;
         if (C8O._hook("call", data)) {
@@ -351,9 +389,11 @@ C8O = {
             C8O._define.pendingXhrCpt++;
         }
     },
+    
     _findAndSelf: function ($elt, selector) {
         return $elt.filter(selector).add($elt.find(selector));
     },
+    
     _getAttributes: function (element) {
         if (element.jquery) {
             return element.length ?
@@ -367,9 +407,11 @@ C8O = {
             return attributes;
         }
     },
+    
     _getCallUrl: function () {
         return C8O.vars.endpoint_url + C8O.vars.requester_prefix + (C8O.vars.xsl_side == "client" ? ".xml" : C8O.vars.xsl_side == "server" ? ".cxml" : ".pxml");
     },
+    
     _getFunction: function (functionObject) {
         try {
             if (typeof(functionObject) == "function") {
@@ -380,6 +422,7 @@ C8O = {
                 for (var i in parts) {
                     fn = fn[parts[i]];
                 }
+                
                 if (typeof(fn) == "function") {
                     C8O.log.trace("c8o.core: success to retrieve function " + functionObject);
                     return fn;
@@ -390,22 +433,28 @@ C8O = {
         }
         return null;
     },
+    
     _getQuery: function () {
         var l = window.location,
             q = l.search.length > 0 ? l.search.substring(1) : "",
             h = l.hash.length > 0 ? l.hash.substring(1) : "";
         return (q.length > 0 && h.length > 0) ? (q + "&" + h) : (q.length > 0 ? q : h);
     },
+    
     _getScript: function (url, callback) {
         var script = document.createElement("script"),
             done = false;
         script.src = url;
+
         C8O.log.trace("c8o.core: get script " + url);
+        
         script.onload = script.onreadystatechange = function () {
             if (!done && (!this.readyState ||
                 this.readyState == "loaded" ||
                 this.readyState == "complete")) {
+                
                 C8O.log.trace("c8o.core: script loaded " + url);
+                
                 done = true;
                 if (callback) {
                     callback();
@@ -416,17 +465,21 @@ C8O = {
         };
         document.getElementsByTagName("head")[0].appendChild(script);
     },
+    
     _hook: function (name) {
         var ret = true, i, r;
         if (name != "log") {
             C8O.log.debug("c8o.core: notify hook " + name);
         }
+        
         if ($.isArray(C8O._define.hooks[name])) {
             for (i = 0; i < C8O._define.hooks[name].length && ret; i += 1) {
                 r = C8O._define.hooks[name][i].apply(this, $.makeArray(arguments).slice(1));
+                
                 if (name != "log") {
                     C8O.log.trace("c8o.core: hook " + name + " return " + ret);
                 }
+                
                 if (!C8O.isUndefined(r)) {
                     ret = r;
                 }
@@ -434,6 +487,7 @@ C8O = {
         }
         return ret;
     },
+    
     _init: function (params) {
         var value = C8O._remove(params, "__enc");
         if (C8O.isDefined(value)) {
@@ -442,6 +496,7 @@ C8O = {
         }
         if (C8O.init_vars.enc == "true" && C8O.isUndefined(C8O._define.publickey)) {
             C8O.log.debug("c8o.core: request encryption enabled");
+            
             if (C8O.isUndefined(C8O._init_rsa)) {
                 C8O._getScript(C8O._define.plugins_path + "rsa.js", function () {
                     C8O._init_rsa(params);
@@ -452,7 +507,9 @@ C8O = {
         } else {
             C8O._define.connector = params.__connector;
             C8O._define.context = params.__context;
+
             C8O._retrieve_vars(params);
+            
             if (C8O._hook("init_finished", params) && C8O.vars.first_call == "true") {
                 C8O.log.debug("c8o.core: make the first_call");
                 C8O.call(params);
@@ -462,6 +519,7 @@ C8O = {
             }
         }
     },
+    
     _log: function (level, msg, e) {
         if (C8O.canLog(level)) {
             var ret;
@@ -493,27 +551,33 @@ C8O = {
                     }
                     var time = (new Date().getTime() - C8O._define.start_time) / 1000;
                     time = ("    " + time + "    ").replace(    C8O._define.re_format_time, "$1$2$3");
+                    
                     if (level.length == 4) {
                         level += " ";
                     }
+                    
                     console.log(time + " [" + level + "] " + msg);
                 }
             }
         }
     },
+    
     _obj_replace: function (object, content) {
         for (var key in object) {
             delete object[key];
         }
         return $.extend(object, content);
     },
+    
     _obj_clone: function (object) {
         return $.extend(true, {}, object);
     },
+    
     _onCallComplete: function (jqXHR, textStatus) {
         if (--C8O._define.pendingXhrCpt <= 0) {
             C8O._define.pendingXhrCpt = 0;
         }
+        
         if (C8O._hook("call_complete", jqXHR, textStatus, jqXHR.C8O_data)) {
             if (!C8O._define.pendingXhrCpt) {
                 C8O.waitHide();
@@ -523,19 +587,23 @@ C8O = {
             }
         }
     },
+    
     _onCallError: function (jqXHR, textStatus, errorThrown) {
         if (C8O._hook("call_error", jqXHR, textStatus, errorThrown, jqXHR.C8O_data)) {
             C8O.log.error("c8o.core: Ajax error [" + textStatus + "]", errorThrown);
         }
     },
+    
     _onCallSuccess: function (xml, status, jqXHR) {
         C8O._hook("xml_response", xml, jqXHR.C8O_data);
     },
+    
     _onDocumentReady: function (params) {
         if (C8O._hook("document_ready", params)) {
             C8O._init(params);
         };
     },
+    
     _parseQuery: function (params, query) {
         var data = C8O.isUndefined(params) ? {} : params,
             vars = (query ? query : C8O._getQuery()).split("&"),
@@ -563,11 +631,13 @@ C8O = {
         }
         return data;
     },
+    
     _remove: function (object, attribute) {
         var res = object[attribute];
         delete object[attribute];
         return res;
     },
+    
     _retrieve_vars: function (data) {
         for (key in C8O.vars) {
             if (!C8O.isUndefined(data["__" + key])) {
@@ -576,6 +646,7 @@ C8O = {
             }
         }
     },
+    
     _translate: function (str) {
         var value = C8O._define.dictionnary[str];
         if (C8O.isUndefined(value)) {
@@ -587,33 +658,42 @@ C8O = {
         return value;
     }
 }
+
 $.ajaxSettings.traditional = true;
 $.ajaxSetup({
     type: C8O.vars.ajax_method,
     dataType: "xml"
 });
+
 (function () {
     var start = function(){
         C8O.log.debug("c8o.core: start document ready");
+        
         var matcher = window.location.href.match(new RegExp("/projects/([^/]+)"));
         if (matcher != null) {
             C8O._define.project = matcher[1];
             C8O.log.trace("c8o.core: current project is " + C8O._define.project + " in webapp mode");
+            
             C8O._define.plugins_path = window.location.href.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
         } else {
             matcher = C8O.vars.endpoint_url.match(new RegExp("/projects/([^/]+)"));
             if (matcher != null) {
                 C8O._define.project = matcher[1];
                 C8O.log.debug("c8o.core: current project is " + C8O._define.project + " in mobile mode");
+                
                 C8O._define.plugins_path = C8O.vars.endpoint_url.replace(new RegExp("/projects/.*"), "/scripts/6.3.0/c8o.plugin.");
             } else {
                 C8O.log.warn("c8o.core: cannot determine the current project using " + window.location.href + " or " + C8O.vars.endpoint_url);
             }
         }
+        
         var params = C8O._parseQuery();
+        
         if (C8O.ro_vars.i18n_files.length > 0) {
             C8O.log.trace("c8o.core: i18n enabled");
+            
             var lang = C8O._hook("get_language", params);
+            
             if (typeof lang != "string") {
                 lang = C8O._remove(params, "__i18n");
                 if (typeof lang != "string") {
@@ -623,13 +703,19 @@ $.ajaxSetup({
                     }
                 }
             }
+            
             C8O.log.trace("c8o.core: current browser language is " + lang);
+            
             C8O.init_vars.i18n = ($.inArray(lang, C8O.ro_vars.i18n_files) == -1) ? C8O.ro_vars.i18n_files[0] : lang;
+            
             C8O.log.debug("c8o.core: current active language is " + C8O.init_vars.i18n);
+            
             var jqxhr = $.getJSON("i18n/" + C8O.init_vars.i18n + ".json", function (dictionnary) {
                 C8O.log.debug("c8o.core: translation dictionnary received for " + C8O.init_vars.i18n);
+                
                 C8O._define.dictionnary = dictionnary;
                 C8O.translate(document.documentElement);
+                
                 C8O.log.debug("c8o.core: translation done in " + C8O.init_vars.i18n);
             }).always(function () {
                 C8O._onDocumentReady(params);
@@ -638,6 +724,7 @@ $.ajaxSetup({
             C8O._onDocumentReady(params);
         }
     };
+    
     if (C8O.vars.endpoint_url != "") {
         $(document).on("deviceready", start);
     } else {

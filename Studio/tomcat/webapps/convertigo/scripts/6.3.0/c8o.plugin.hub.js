@@ -19,6 +19,7 @@
  * $Revision$
  * $Date$
  */
+
 C8O._hub = {
     init : function (params) {
         var basefile = document.location.pathname.replace(new RegExp("/[^/]*$"), "/hub/" + params.__hub_page);
@@ -61,6 +62,7 @@ C8O._hub = {
                                 target : $target.attr("name"),
                                 type : (typeof($target.attr("type")) === "undefined") ? "call" : $target.attr("type")
                             };
+                            
                             C8O._hub.publish_event($target.attr("name"), new_event);
                         });
                     }

@@ -25,9 +25,11 @@
  *
  *******************************************************
  *******************************************************/
+
 /*******************************************************
  * Global variables *
  *******************************************************/
+
 $.extend(true, C8O, {
     /**
      * init_vars variables values can only be set before the "init_finish" hook,
@@ -39,18 +41,21 @@ $.extend(true, C8O, {
 //        enc: "false", /** enables rsa encoding */
 //        i18n: "" /** in case of multi-language application, force usage of the language selected. Empty string will select the browser language */
     },
+    
     /**
      * ro_vars read-only variables values can only be set directly here, not dynamically
      */
     ro_vars: {
 //        i18n_files: [] /** list of language available for the application. The first is the default language. The application must have an i18n folder with 1 file per language like: i18n/en.json */
     },
+    
     /**
      * cordova read-only variables values can only be set directly here, not dynamically. Used by c8o.cordova.device.js
      */
     cordova: {
 //        androidSenderID: ""
     },
+    
     /**
      * vars variables values can be set at any time.
      * by the code, or by passing arguments to C8O.call() by adding __
@@ -71,9 +76,11 @@ $.extend(true, C8O, {
 /** c8o.cordova.device.js vars */
 //        local_cache_parallel_downloads: 5 /** for local cache response to store, set the maximum number of parallel downloads for attachments. 0 will disable download */
     },
+    
     options: {
 //        loading: {} /** loading option object argument for the $.mobile.loading("show") called by C8O.waitShow() */
     },
+    
     routingTable: [
 //        {
 //            /**
@@ -175,9 +182,11 @@ $.extend(true, C8O, {
 //        }
     ]
 });
+
 /*******************************************************
  * Functions *
  *******************************************************/
+
 /**
  * addHook function
  * some part of the C8O can be customized using a hook
@@ -187,6 +196,7 @@ $.extend(true, C8O, {
  * fn: function of the handler
  */
 //C8O.addHook(name, fn);
+
 /**
  *  addRecallParameter function
  *  force C8O.call() to send automatically parameters
@@ -198,6 +208,7 @@ $.extend(true, C8O, {
  *  parameter_value (optional): initial value for this parameter
  */
 //C8O.addRecallParameter(parameter_name, parameter_value);
+
 /**
  * appendValue function
  * append value in data.key:
@@ -208,6 +219,7 @@ $.extend(true, C8O, {
  * value: any object pushed into data.key
  */
 //C8O.appendValue(data, key, value);
+
 /**
  * appendValues function
  * merge values of the source Object into the data Object
@@ -216,6 +228,7 @@ $.extend(true, C8O, {
  * source: Object (key/value) that will be merged into data but not modified
  */
 //C8O.appendValues(data, source);
+
 /**
  * call function
  * make an AJAX request to CEMS in order to execute
@@ -224,6 +237,7 @@ $.extend(true, C8O, {
  *          used as AJAX parameters
  */
 //C8O.call(data);
+
 /**
  * canLog function
  * tell if the actual C8O.vars.log_level allow to log
@@ -232,6 +246,7 @@ $.extend(true, C8O, {
  *           false > cannot log
  */
 //C8O.canLog(level);
+
 /**
  * convertHTML function
  * copy an XML element to an HTML element or create a new fragment
@@ -240,6 +255,7 @@ $.extend(true, C8O, {
  * return: HTML element, output element or a new <fragment> element with the imported input
  */
 //C8O.convertHTML(input, output);
+
 /**
  * deleteAllCacheEntries function
  * remove all local cache entries
@@ -247,6 +263,7 @@ $.extend(true, C8O, {
  * error (optional): function (err), callback of the failure for the DB cleaning
  */
 //C8O.deleteAllCacheEntries(success, error);
+
 /**
  * formToData function
  * copy all form's inputs into the data object or a new one.
@@ -257,11 +274,13 @@ $.extend(true, C8O, {
  * return: the data object or a new one with copied form's inputs values
  */
 //C8O.formToData($form, data);
+
 /**
  * getBrowserLanguage function
  * return: a string of the current detected language, in 2 characters
  */
 //C8O.getBrowserLanguage();
+
 /**
  *  getCordovaEnv function
  *  ** Needs cordova.js + c8o.cordova.device.js **
@@ -276,6 +295,7 @@ $.extend(true, C8O, {
  *  return: specific value or whole the cordova environment
  */
 //C8O.getCordovaEnv(key);
+
 /**
  * getLastCallParameter function
  * used for retrieve a parameter from the previous call
@@ -285,6 +305,7 @@ $.extend(true, C8O, {
  *             or retrieve object with key/value of all parameters
  */
 //C8O.getLastCallParameter(key);
+
 /**
  * isDefined function
  * just check the existence of the argument
@@ -293,6 +314,7 @@ $.extend(true, C8O, {
  *            false > obj doesn't exist
  */
 //C8O.isDefined(obj);
+
 /**
  * isUndefined function
  * just check the existence of the argument
@@ -301,6 +323,7 @@ $.extend(true, C8O, {
  *            false > obj exists
  */
 //C8O.isUndefined(obj);
+
 /**
  * log object and functions
  * write the msg string into the console.log if available
@@ -313,6 +336,7 @@ $.extend(true, C8O, {
 //C8O.log.info(msg, e);
 //C8O.log.debug(msg, e);
 //C8O.log.trace(msg, e);
+
 /**
  * removeRecallParameter function
  * reversed effect of addRecallParameter function
@@ -321,6 +345,7 @@ $.extend(true, C8O, {
  * parameter_name: parameter name to remove from the list
  */
 //C8O.removeRecallParameter(parameter_name);
+
 /**
  * serializeXML function
  * return a string representation of the xmlDom Document in a XML format
@@ -328,18 +353,21 @@ $.extend(true, C8O, {
  * return: string of the xmlDom Document in a XML format
  */
 //C8O.serializeXML(xmlDom);
+
 /**
  *  splashscreenHide function
  *  ** Needs cordova.js + c8o.cordova.device.js **
  *  Hide the cordova splashscreen if any
  */
 //C8O.splashscreenHide();
+
 /**
  *  splashscreenHide function
  *  ** Needs cordova.js + c8o.cordova.device.js **
  *  Hide the cordova splashscreen if any
  */
 //C8O.splashscreenShow();
+
 /**
  * toJSON function
  * return a string representation of the data object (key/value) in a JSON format
@@ -347,6 +375,7 @@ $.extend(true, C8O, {
  * return: string of the data object in a JSON format
  */
 //C8O.toJSON(data);
+
 /**
  * translate function
  * if the i18n is enabled (C8O.ro_vars.files not empty)
@@ -357,18 +386,21 @@ $.extend(true, C8O, {
  * return: string translated or nothing in case of element parameter
  */
 //C8O.translate(elt);
+
 /**
  * waitHide function
  * hide the wait screen
  * by hiding the #c8oloading element and stop jquerymobile loading
  */
 //C8O.waitHide();
+
 /**
  * waitShow function
  * show the wait screen
  * by showing the #c8oloading element and start jquerymobile loading
  */
 //C8O.waitShow();
+
 /**
  * walk function
  * walk recursively a dom tree and apply a function on each text node and attributes
@@ -386,9 +418,11 @@ $.extend(true, C8O, {
  *              return: true to continue the walk, false to stop
  */
 //C8O.walk(node, data, fn, fn_validate);
+
 /*******************************************************
  * List of possible hooks *
  *******************************************************/
+
 /**
  *  call hook
  *  used before AJAX request to CEMS server
@@ -402,6 +436,7 @@ $.extend(true, C8O, {
 //C8O.addHook("call", function (data) {
 //    return true;
 //});
+
 /**
  *  call_complete hook
  *  called after the xml_response, text_response or call_error hook
@@ -415,6 +450,7 @@ $.extend(true, C8O, {
 //C8O.addHook("call_complete", function (jqXHR, textStatus, data) {
 //    return true;
 //});
+
 /**
  *  call_error hook
  *  called call_complete hook, in case of an Ajax error (network error, unparsable response)
@@ -429,6 +465,7 @@ $.extend(true, C8O, {
 //C8O.addHook("call_error", function (jqXHR, textStatus, errorThrown, data) {
 //    return true;
 //});
+
 /**
  *  device_ready hook
  *  ** Needs cordova.js + c8o.cordova.device.js **
@@ -441,6 +478,7 @@ $.extend(true, C8O, {
 //C8O.addHook("device_ready", function () {
 //    return true;
 //});
+
 /**
  *  document_ready hook
  *  used at page loading
@@ -453,6 +491,7 @@ $.extend(true, C8O, {
 //C8O.addHook("document_ready", function () {
 //    return true;
 //});
+
 /**
  *  get_language hook
  *  used at page loading before document_ready and when i18n is enable
@@ -468,6 +507,7 @@ $.extend(true, C8O, {
 //C8O.addHook("get_language", function (params) {
 //
 //});
+
 /**
  *  init_finished hook
  *  used at page loading after C8O initialization
@@ -481,6 +521,7 @@ $.extend(true, C8O, {
 //C8O.addHook("init_finished", function (params) {
 //    return true;
 //});
+
 /**
  *  local_cache_check_attachment hook
  *  ** Needs cordova.js + c8o.cordova.device.js **
@@ -495,6 +536,7 @@ $.extend(true, C8O, {
 //C8O.addHook("local_cache_check_attachment", function (url, element, data) {
 //    return true;
 //});
+
 /**
  *  log hook
  *  used on each C8O.log.xxx call.
@@ -513,6 +555,7 @@ $.extend(true, C8O, {
 //C8O.addHook("log", function (level, msg, e) {
 //    return false;
 //});
+
 /**
  *  push_notification hook
  *  ** Needs cordova.js + c8o.cordova.device.js **
@@ -531,6 +574,7 @@ $.extend(true, C8O, {
 //C8O.addHook("push_notification", function (sender, msg, event) {
 //    return true;
 //});
+
 /**
  *  push_register_failed hook
  *  ** Needs cordova.js + c8o.cordova.device.js **
@@ -541,6 +585,7 @@ $.extend(true, C8O, {
 //C8O.addHook("push_register_failed", function (error) {
 //
 //});
+
 /**
  *  push_register_success hook
  *  ** Needs cordova.js + c8o.cordova.device.js **
@@ -553,6 +598,7 @@ $.extend(true, C8O, {
 //C8O.addHook("push_register_success", function (result) {
 //    return true;
 //});
+
 /**
  *  xml_response hook
  *  used for tweak, retrieve value or do transformation

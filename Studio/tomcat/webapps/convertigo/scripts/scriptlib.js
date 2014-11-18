@@ -19,11 +19,14 @@
  * $Revision$
  * $Date$
  */
+
 var focusOnField = null;
 var currentFieldOnFocus = '';
 var oldSpan = null;
+
 function doAction(actionName){
     parent.inScript= true;
+    
     var CGI_BIN_GET= unescape(document.location.search);
     if(eval(document.javelin_form.__sesskey) && eval(document.javelin_form.__context)){
         if(CGI_BIN_GET != null && CGI_BIN_GET.indexOf("__sesskey", 1) != -1 && CGI_BIN_GET.indexOf("__context", 1) != -1){
@@ -37,18 +40,22 @@ function doAction(actionName){
             //document.javelin_form.__context.value= "";
         }
     }
+
     document.javelin_form.__javelin_action.value = actionName;
     document.javelin_form.__javelin_current_field.value = currentFieldOnFocus;
     document.javelin_form.submit();
 }
+
 function doMenu(actionName, data){
     document.javelin_form.__javelin_action.value = actionName;
     if(eval(focusOnField))
         focusOnField.value = data;
     document.javelin_form.submit();
 }
+
 function doAction(actionName, currentField){
     parent.inScript= true;
+    
     var CGI_BIN_GET= unescape(document.location.search);
     if(eval(document.javelin_form.__sesskey) && eval(document.javelin_form.__context)){
         if(CGI_BIN_GET != null && CGI_BIN_GET.indexOf("__sesskey", 1) != -1 && CGI_BIN_GET.indexOf("__context", 1) != -1){
@@ -62,6 +69,7 @@ function doAction(actionName, currentField){
             //document.javelin_form.__context.value= "";
         }
     }
+    
     document.javelin_form.__javelin_action.value = actionName;
     if(!eval(currentField))
         document.javelin_form.__javelin_current_field.value = currentFieldOnFocus;
@@ -69,18 +77,22 @@ function doAction(actionName, currentField){
         document.javelin_form.__javelin_current_field.value = currentField;
     document.javelin_form.submit();
 }
+
 function sendMenu(text){
     document.javelin_form.editField.value=text;
     doAction('KEnvoi');
 }
+        
 function refresh(){
     document.javelin_form.__javelin_action.value = "convertigo_refresh";
     document.javelin_form.submit();
 }
+
 function reconnect(){
     document.javelin_form.__javelin_action.value = "convertigo_reconnect";
     document.javelin_form.submit();
 }
+
 function checkInputChars(event, size, bAutoEnter, Object) {
     if (isPrintableChar(event.keyCode)) {
         if(bAutoEnter){
@@ -102,6 +114,7 @@ function checkInputChars(event, size, bAutoEnter, Object) {
         }
     }
 }
+
 function isPrintableChar(c) {
     if (c == 9 || c == 16 ) {
         return (false);
@@ -110,6 +123,7 @@ function isPrintableChar(c) {
         return (true);
     }
 }
+
 function getNextInput(Object, elt) {
     for ( i=0; i < elt.length; i++){
         if (elt[i].name == Object.name ){
@@ -132,14 +146,17 @@ function getNextInput(Object, elt) {
     }
     return Object;
 }
+
 function isField(Object) {
     if (Object == null)
         return false;
+        
     if (Object.name.indexOf("__field")!=-1) {
         return true;
     }
     else return false;
 }
+
 function moveCursor(myField) {
     curLine = currentFieldOnFocus.substring(currentFieldOnFocus.indexOf('_l')+2,currentFieldOnFocus.length);
     targetLine = myField.substring(myField.indexOf('_l')+2,myField.length);
@@ -148,6 +165,8 @@ function moveCursor(myField) {
     eval(todo);
     currentFieldOnFocus=targetField;
 }
+                
+                
 function spanClick(object, col, lin) {
     if (oldSpan != null) {
         oldSpan.style.borderStyle= 'none';
@@ -157,6 +176,7 @@ function spanClick(object, col, lin) {
     object.style.borderWidth     = '1px';
     currentFieldOnFocus         = '__field_c' + col + '_l' + lin;
 }
+
 function setFocusOnField(object) {
     if (oldSpan != null) {
         oldSpan.style.borderStyle= 'none';

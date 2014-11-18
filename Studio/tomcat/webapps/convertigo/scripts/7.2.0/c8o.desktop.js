@@ -19,14 +19,17 @@
  * $Revision$
  * $Date$
  */
+
 $.extend(true, C8O, {
     init_vars: {
         testplatform: "auto"
     },
+    
     ro_vars: {
         portal_username: "",
         widget_name: ""
     },
+    
     vars: { /** customizable value by adding __name=value in query*/
         auto_refresh: "true", /** true/false */
         auto_resize: "true", /** true/false */
@@ -38,8 +41,10 @@ $.extend(true, C8O, {
         use_siteclipper_plugin: "true", /** true/false */
         xsl_side: "client" /** client/server/none */
     },
+    
     doMashupEvent: function (event_name, payload) {
         C8O.log.debug("c8o.desk: doMashupEvent " + event_name);
+        
         if (payload != null && typeof(payload) == "object") {
             if (!$.isPlainObject(payload)) {
                 try {
@@ -61,16 +66,19 @@ $.extend(true, C8O, {
         }
         C8O._hook("mashup_event", event_name, payload);
     },
+    
     doNavigationBarEvent: function (type) {
         C8O.log.debug("c8o.desk: try to doNavigationBarEvent " + type);
         if ($.inArray(type, C8O._define.navigation_var_actions) != -1) {
             C8O.call({ __event_action: "navbar_" + type });
         }
     },
+    
     doReconnect: function () {
         C8O.log.debug("c8o.desk: doReconnect");
         window.location.reload(false);
     },
+    
     doResize: function (height, options) {
         if (typeof(height) == "number") {
             C8O.log.debug("c8o.desk: doResize to " + height);
@@ -94,11 +102,13 @@ $.extend(true, C8O, {
             C8O._resize(options);
         }
     },
+        
     waitHide: function () {
         if (C8O._hook("wait_hide")) {
             $("#wait_div").remove();
         }
     },
+    
     waitShow: function () {
         if (C8O._hook("wait_show")) {
             if ($("body #wait_div").length == 0) {
@@ -106,6 +116,7 @@ $.extend(true, C8O, {
             }
         }
     },
+    
     _define: {
         clipping_attributs:
             $(["altKey", "ctrlKey", "metaKey", "shiftKey", "clientX", "clientY", "screenX", "screenY", "layerX", "layerY", "pageX", "pageY", "button"]),
@@ -114,10 +125,12 @@ $.extend(true, C8O, {
         iframe: false,
         webclipper_path: ""
     },
+    
     _addField: function (params, twsid, value) {
         params["__field_" + twsid] = value;
         return value;
     },
+    
     _checkDirty: function (tim) {
         clearTimeout(C8O._define.dirty_timer);
         if (tim) {
@@ -142,6 +155,7 @@ $.extend(true, C8O, {
             C8O._define.dirty_timer = window.setTimeout("C8O._checkDirty(500)", 500);
         }
     },
+    
     _fillBody: function (content, resize) {
         var $container = C8O.vars.target_id;
         if (typeof($container) == "string") {
@@ -149,6 +163,7 @@ $.extend(true, C8O, {
         } else if (C8O.isUndefined($container.jquery)){
             $container = $($container);
         }
+        
         if (C8O.vars.target_append == "true") {
             $container.append(content);
         } else {
@@ -158,8 +173,10 @@ $.extend(true, C8O, {
         }
         if (C8O._hook("result_filled", $container)) {
             C8O.log.debug("c8o.desk: result filled, add clipping event if necessary and perform resize");
+            
             $("a, input[type=button], input[type=image], input[type=submit]").filter("[twsid]").unbind(".clipping").bind("click.clipping", C8O._handleEvent);
             $("form[twsid]").unbind(".clipping").bind("submit.clipping", C8O._handleEvent);
+            
             if (C8O.vars.auto_resize == "true" && window != window.parent && (C8O.isUndefined(resize) || resize)) {
                 window.setTimeout(C8O._resize, 750);
             }
@@ -168,6 +185,7 @@ $.extend(true, C8O, {
             }
         }
     },
+    
     _handleEvent: function (event) {
         var params = {
             __event_action: event.type,
@@ -206,11 +224,13 @@ $.extend(true, C8O, {
         C8O.call(params);
         return false;
     },
+    
     _desk_init: C8O._init,
     _init: function (params) {
         var value;
         if (value = C8O._remove(params, "__container")) {
             C8O.log.debug("c8o.desk: detect container " + value);
+            
             if (value == "gatein") {
                 C8O._getScript(C8O._define.plugins_path + "gatein.js", function () {
                     C8O._init_gatein(params);
@@ -224,9 +244,11 @@ $.extend(true, C8O, {
             C8O._desk_init(params);
         }
     },
+    
     _onCallSuccess: function (xml, status, jqXHR) {
         if (C8O.vars.xsl_side == "server") {
             C8O.log.debug("c8o.desk: receive xsl server response as text");
+            
             var aText = [jqXHR.responseText + ""];
             if (C8O._hook("text_response", aText)) {
                 C8O._fillBody(aText[0]);
@@ -236,6 +258,7 @@ $.extend(true, C8O, {
                 var redirect_location = $(xml.documentElement).attr("redirect_location");
                 if (!C8O.isUndefined(redirect_location)) {
                     C8O.log.debug("c8o.desk: receive a siteclipper response, prepare for redirection");
+                    
                     if (C8O.vars.use_siteclipper_plugin == "true") {
                         C8O._getScript(C8O._define.plugins_path + "siteclipper.js", function () {
                             C8O._init_siteclipper({redirect_location: redirect_location});
@@ -248,6 +271,7 @@ $.extend(true, C8O, {
                 var sheet_uri = C8O._xslStyleSheet(xml);
                 if (sheet_uri != null) {
                     C8O.log.debug("c8o.desk: receive a XML response, retrieve XSL for client transformation " + sheet_uri);
+                    
                     $.ajax({
                         url: sheet_uri,
                         success: function (xsl) {
@@ -257,6 +281,7 @@ $.extend(true, C8O, {
                     });
                 } else {
                     C8O.log.debug("c8o.desk: receive a XML response without XSL, insert XML as text");
+                    
                     if (!$.support.leadingWhitespace) {
                         C8O._fillBody($("<pre>" + jqXHR.responseText.replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</pre>"));
                     } else {
@@ -266,26 +291,33 @@ $.extend(true, C8O, {
             }
         }
     },
+    
     _onDocumentReady: function (params) {
         /** No XSLT engine (see #1336): switch to server mode */
         if (C8O.vars.xsl_side == "client" && (!window.XSLTProcessor && !window.ActiveXObject)) {
             C8O.log.debug("c8o.desk: no xsl engine, force xsl side server");
             C8O.vars.xsl_side = "server";
         }
+        
         /** weblib_wrapper can't access to C8O object with IE (see #1778) */
         if (typeof(C8O_document_ready) != "undefined") {
             C8O.log.debug("c8o.desk: register document_ready from legacy wrapper");
             C8O.addHook("document_ready", C8O_document_ready);
         }
+        
         C8O._define.webclipper_path = window.location.href.replace(new RegExp("/projects/.*"), "/webclipper/");
+        
         // retrieve the wait_div element in memory
         C8O._define.wait_div = $("#wait_div").clone();
+        
         if (C8O._hook("document_ready", params)) {
             var loc = window.location,
                 base = loc.href.substring(0, loc.href.indexOf("/projects/"));
             if (C8O._define.project != null) {
+                
                 var testplatform = C8O._remove(params, "__testplatform");
                 testplatform = (testplatform == null) ? C8O.init_vars.testplatform : (C8O.init_vars.testplatform = testplatform);
+                
                 if ("false" == testplatform || ("auto" == testplatform && !$.isEmptyObject(params))) {
                     C8O._init(params);
                 } else {
@@ -296,6 +328,7 @@ $.extend(true, C8O, {
             }
         }
     },
+    
     _onMashupEvent: function (event) {
         if (C8O._hook("receive_mashup_event", event)) {
             if (C8O.canLog("debug")) {
@@ -306,6 +339,7 @@ $.extend(true, C8O, {
             }
         }
     },
+    
     _postMessage: function (data) {
         if (window.postMessage) {
             try {
@@ -314,6 +348,7 @@ $.extend(true, C8O, {
             window.parent.postMessage(data, "*");
         }
     },
+    
     _resize: function (options) {
         var lowest = C8O._hook("resize_calculation");
         if (lowest != false) {
@@ -328,6 +363,7 @@ $.extend(true, C8O, {
             C8O.doResize(lowest, options);
         }
     },
+    
     _xslStyleSheet: function (xml) {
         var node = xml.firstChild;
         while (node != null) {
@@ -339,6 +375,7 @@ $.extend(true, C8O, {
         }
         return null;
     },
+    
     _xslt: function (xml, xsl) {
         C8O.log.debug("c8o.desk: perform xsl transformation");
         if (window.XSLTProcessor) {
@@ -351,6 +388,7 @@ $.extend(true, C8O, {
         }
     }
 });
+
 try {
     if (window.frameElement.src) {
         C8O._define.iframe = true;

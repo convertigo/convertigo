@@ -19,12 +19,14 @@
  * $Revision$
  * $Date$
  */
+
 C8O._init_rsa = function (params) {
     C8O.addHook("_call_rsa", function (data) {
         C8O.log.trace("c8o.core: make RSA encryption");
         return {__encoded: encrypt("ts=" + new Date().getTime() + "&" + $.param(data), C8O._define.publickey)};
     });
     C8O._define.publickey = "";
+
     $.ajax({
         dataType: "text",
         success: function (text) {
@@ -35,6 +37,7 @@ C8O._init_rsa = function (params) {
         url: window.location.href.replace(new RegExp("/projects/.*"), "/rsa/publickey")
     });
 }
+
 /*
 * jCryption JavaScript data encryption v1.1
 * http://www.jcryption.org/
@@ -47,6 +50,7 @@ C8O._init_rsa = function (params) {
 * If you need any further information about this plugin please
 * visit my homepage or contact me under daniel.griesser@jcryption.org
 */
+
     function setKeyPair(encryptionExponent, modulus, maxdigits) {
         var keyPair = new Object();
         setMaxDigits(parseInt(maxdigits,10));
@@ -57,15 +61,20 @@ C8O._init_rsa = function (params) {
         keyPair.barrett = new BarrettMu(keyPair.m);
         return keyPair;
     };
+
      function encrypt(taggedString, keyPair) {
         var encrypt = [];
+
         for (var i = 0; i < taggedString.length; i++) {
             encrypt[i] = taggedString.charCodeAt(i);
         }
+        
         encrypt.reverse();
+
         while (encrypt.length % keyPair.chunkSize !== 0) {
             encrypt[i++] = 0;
         }
+
         var encrypted = "";
         for(var charCounter = 0 ; charCounter < encrypt.length ; charCounter += keyPair.chunkSize) {
             var block = new BigInt();
@@ -79,6 +88,7 @@ C8O._init_rsa = function (params) {
         }
         return encrypted;
     };
+
 /*
 * BigInt, a suite of routines for performing multiple-precision arithmetic in
 * JavaScript.
@@ -108,17 +118,21 @@ var dpl10 = 15;
 var highBitMasks = new Array(0x0000, 0x8000, 0xC000, 0xE000, 0xF000, 0xF800,
 0xFC00, 0xFE00, 0xFF00, 0xFF80, 0xFFC0, 0xFFE0,
 0xFFF0, 0xFFF8, 0xFFFC, 0xFFFE, 0xFFFF);
+
 var hexatrigesimalToChar = new Array(
 '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
 'u', 'v', 'w', 'x', 'y', 'z'
 );
+
 var hexToChar = new Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 'a', 'b', 'c', 'd', 'e', 'f');
+
 var lowBitMasks = new Array(0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F,
 0x003F, 0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF,
 0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF);
+
 function setMaxDigits(value) {
     maxDigits = value;
     ZERO_ARRAY = new Array(maxDigits);
@@ -127,6 +141,7 @@ function setMaxDigits(value) {
     bigOne = new BigInt();
     bigOne.digits[0] = 1;
 }
+
 function BigInt(flag) {
     if (typeof flag == "boolean" && flag == true) {
         this.digits = null;
@@ -136,12 +151,14 @@ function BigInt(flag) {
     }
     this.isNeg = false;
 }
+
 function biCopy(bi) {
     var result = new BigInt(true);
     result.digits = bi.digits.slice(0);
     result.isNeg = bi.isNeg;
     return result;
 }
+
 function reverseStr(s) {
     var result = "";
     for (var i = s.length - 1; i > -1; --i) {
@@ -149,6 +166,7 @@ function reverseStr(s) {
     }
     return result;
 }
+
 function biToString(x, radix) {
     var b = new BigInt();
     b.digits[0] = radix;
@@ -161,6 +179,7 @@ function biToString(x, radix) {
     }
     return (x.isNeg ? "-" : "") + reverseStr(result);
 }
+
 function digitToHex(n) {
     var mask = 0xf;
     var result = "";
@@ -170,6 +189,7 @@ function digitToHex(n) {
     }
     return reverseStr(result);
 }
+
 function biToHex(x) {
     var result = "";
     var n = biHighIndex(x);
@@ -178,6 +198,7 @@ function biToHex(x) {
     }
     return result;
 }
+
 function charToHex(c) {
     var ZERO = 48;
     var NINE = ZERO + 9;
@@ -186,6 +207,7 @@ function charToHex(c) {
     var bigA = 65;
     var bigZ = 65 + 25;
     var result;
+
     if (c >= ZERO && c <= NINE) {
         result = c - ZERO;
     } else if (c >= bigA && c <= bigZ) {
@@ -197,6 +219,7 @@ function charToHex(c) {
     }
     return result;
 }
+
 function hexToDigit(s) {
     var result = 0;
     var sl = Math.min(s.length, 4);
@@ -206,6 +229,7 @@ function hexToDigit(s) {
     }
     return result;
 }
+
 function biFromHex(s) {
     var result = new BigInt();
     var sl = s.length;
@@ -214,6 +238,7 @@ function biFromHex(s) {
     }
     return result;
 }
+
 function biFromString(s, radix) {
     var isNeg = s.charAt(0) == '-';
     var istop = isNeg ? 1 : 0;
@@ -230,11 +255,14 @@ function biFromString(s, radix) {
     result.isNeg = isNeg;
     return result;
 }
+
 function biDump(b) {
     return (b.isNeg ? "-" : "") + b.digits.join(" ");
 }
+
 function biAdd(x, y) {
     var result;
+
     if (x.isNeg != y.isNeg) {
         y.isNeg = !y.isNeg;
         result = biSubtract(x, y);
@@ -253,6 +281,7 @@ function biAdd(x, y) {
     }
     return result;
 }
+
 function biSubtract(x, y) {
     var result;
     if (x.isNeg != y.isNeg) {
@@ -284,11 +313,13 @@ function biSubtract(x, y) {
     }
     return result;
 }
+
 function biHighIndex(x) {
     var result = x.digits.length - 1;
     while (result > 0 && x.digits[result] == 0) --result;
     return result;
 }
+
 function biNumBits(x) {
     var n = biHighIndex(x);
     var d = x.digits[n];
@@ -300,12 +331,14 @@ function biNumBits(x) {
     }
     return result;
 }
+
 function biMultiply(x, y) {
     var result = new BigInt();
     var c;
     var n = biHighIndex(x);
     var t = biHighIndex(y);
     var u, uv, k;
+
     for (var i = 0; i <= t; ++i) {
         c = 0;
         k = i;
@@ -319,8 +352,10 @@ function biMultiply(x, y) {
     result.isNeg = x.isNeg != y.isNeg;
     return result;
 }
+
 function biMultiplyDigit(x, y) {
     var n, c, uv;
+
     result = new BigInt();
     n = biHighIndex(x);
     c = 0;
@@ -332,12 +367,14 @@ function biMultiplyDigit(x, y) {
     result.digits[1 + n] = c;
     return result;
 }
+
 function arrayCopy(src, srcStart, dest, destStart, n) {
     var m = Math.min(srcStart + n, src.length);
     for (var i = srcStart, j = destStart; i < m; ++i, ++j) {
         dest[j] = src[i];
     }
 }
+
 function biShiftLeft(x, n) {
     var digitCount = Math.floor(n / bitsPerDigit);
     var result = new BigInt();
@@ -353,6 +390,7 @@ function biShiftLeft(x, n) {
     result.isNeg = x.isNeg;
     return result;
 }
+
 function biShiftRight(x, n) {
     var digitCount = Math.floor(n / bitsPerDigit);
     var result = new BigInt();
@@ -367,21 +405,25 @@ function biShiftRight(x, n) {
     result.isNeg = x.isNeg;
     return result;
 }
+
 function biMultiplyByRadixPower(x, n) {
     var result = new BigInt();
     arrayCopy(x.digits, 0, result.digits, n, result.digits.length - n);
     return result;
 }
+
 function biDivideByRadixPower(x, n) {
     var result = new BigInt();
     arrayCopy(x.digits, n, result.digits, 0, result.digits.length - n);
     return result;
 }
+
 function biModuloByRadixPower(x, n) {
     var result = new BigInt();
     arrayCopy(x.digits, 0, result.digits, 0, n);
     return result;
 }
+
 function biCompare(x, y) {
     if (x.isNeg != y.isNeg) {
         return 1 - 2 * Number(x.isNeg);
@@ -397,6 +439,7 @@ function biCompare(x, y) {
     }
     return 0;
 }
+
 function biDivideModulo(x, y) {
     var nb = biNumBits(x);
     var tb = biNumBits(y);
@@ -417,8 +460,10 @@ function biDivideModulo(x, y) {
         }
         return new Array(q, r);
     }
+
     q = new BigInt();
     r = x;
+
     var t = Math.ceil(tb / bitsPerDigit) - 1;
     var lambda = 0;
     while (y.digits[t] < biHalfRadix) {
@@ -427,9 +472,11 @@ function biDivideModulo(x, y) {
         ++tb;
         t = Math.ceil(tb / bitsPerDigit) - 1;
     }
+
     r = biShiftLeft(r, lambda);
     nb += lambda;
     var n = Math.ceil(nb / bitsPerDigit) - 1;
+
     var b = biMultiplyByRadixPower(y, n - t);
     while (biCompare(r, b) != -1) {
         ++q.digits[n - t];
@@ -446,6 +493,7 @@ function biDivideModulo(x, y) {
         } else {
             q.digits[i - t - 1] = Math.floor((ri * biRadix + ri1) / yt);
         }
+
         var c1 = q.digits[i - t - 1] * ((yt * biRadix) + yt1);
         var c2 = (ri * biRadixSquared) + ((ri1 * biRadix) + ri2);
         while (c1 > c2) {
@@ -453,6 +501,7 @@ function biDivideModulo(x, y) {
             c1 = q.digits[i - t - 1] * ((yt * biRadix) | yt1);
             c2 = (ri * biRadix * biRadix) + ((ri1 * biRadix) + ri2);
         }
+
         b = biMultiplyByRadixPower(y, i - t - 1);
         r = biSubtract(r, biMultiplyDigit(b, q.digits[i - t - 1]));
         if (r.isNeg) {
@@ -461,6 +510,7 @@ function biDivideModulo(x, y) {
         }
     }
     r = biShiftRight(r, lambda);
+
     q.isNeg = x.isNeg != origYIsNeg;
     if (x.isNeg) {
         if (origYIsNeg) {
@@ -471,12 +521,16 @@ function biDivideModulo(x, y) {
         y = biShiftRight(y, lambda);
         r = biSubtract(y, r);
     }
+
     if (r.digits[0] == 0 && biHighIndex(r) == 0) r.isNeg = false;
+
     return new Array(q, r);
 }
+
 function biDivide(x, y) {
     return biDivideModulo(x, y)[0];
 }
+
 function BarrettMu(m) {
     this.modulus = biCopy(m);
     this.k = biHighIndex(this.modulus) + 1;
@@ -489,6 +543,7 @@ function BarrettMu(m) {
     this.multiplyMod = BarrettMu_multiplyMod;
     this.powMod = BarrettMu_powMod;
 }
+
 function BarrettMu_modulo(x) {
     var q1 = biDivideByRadixPower(x, this.k - 1);
     var q2 = biMultiply(q1, this.mu);
@@ -507,10 +562,12 @@ function BarrettMu_modulo(x) {
     }
     return r;
 }
+
 function BarrettMu_multiplyMod(x, y) {
     var xy = biMultiply(x, y);
     return this.modulo(xy);
 }
+
 function BarrettMu_powMod(x, y) {
     var result = new BigInt();
     result.digits[0] = 1;

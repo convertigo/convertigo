@@ -1,11 +1,14 @@
 /** insert your custom css code here */
 /** Commented default style from CEMS 7.1.0 */
+
 html, body {
 /*     height: 100% */
 }
+
 body {
 /*      margin: 0px; */
 }
+
 #alertTable {
 /*     -moz-opacity: 0.97; */
 /*     background-color: #B5D3E7; */
@@ -19,9 +22,11 @@ body {
 /*     width: 33%; */
 /*     z-index: 99998; */
 }
+
 #alertTableTitle {
 /*      background-color: #0a6eb1; */
 }
+
 #menu_div {
 /*     -moz-opacity: 0.60; */
 /*     background-color: #B5D3E7; */
@@ -34,6 +39,7 @@ body {
 /*     width: 32px; */
 /*     z-index: 99998; */
 }
+
 #wait_div div {
 /*     -moz-opacity: 0.2; */
 /*     background-color: #B5D3E7; */
@@ -46,6 +52,7 @@ body {
 /*     width: 100%; */
 /*     z-index:99998 */
 }
+
 #wait_div img {
 /*     left: 50%; */
 /*     position: fixed; */

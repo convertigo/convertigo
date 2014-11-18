@@ -19,6 +19,7 @@
  * $Revision$
  * $Date$
  */
+
 $.extend(true, C8O, {
     _define: {
         ctf_mark: "__",
@@ -26,10 +27,13 @@ $.extend(true, C8O, {
     }
 });
 $.extend(true, C8O, {
+    
     vars: { /** customizable value by adding __name=value in query*/
         xsl_side: "none" /** client/server */
     },
+    
     routingTable: [],
+    
     _define: {
         re_accumulate_mode: new RegExp("^(?:(append)|(prepend)|(.*?))$"), // 1: append ; 2: preprend ; 3: replacel
         re_call_mode: new RegExp("^(?:(click)|(auto)|(?:(timer:)(.*)))$"), // 1: click ; 2: auto ; 3: timer ; 4: seconds for timer
@@ -41,23 +45,29 @@ $.extend(true, C8O, {
         re_find_ctf_markers: new RegExp(C8O._define.ctf_mark + "(?:(\\{[\\d\\D]*?\\})|(?:=(.*?)))" + C8O._define.ctf_mark), // 0: full ; 1: json ; 2: selector
         re_find_ctf_esc_start: new RegExp(C8O._define.ctf_mark_esc + "(=|\\{)", "g"),
         re_find_ctf_esc_end: new RegExp(C8O._define.ctf_mark_esc, "g"), // 0: full ; 1: json ; 2: selector
+        
         templates: {}
     },
+    
     _addTemplate: function(template) {
         var templateID = Math.floor(Math.random() * 16777215).toString(16);
         C8O._define.templates[templateID] = template;
         return templateID;
     },
+    
     _changePage: function (goToPage, options, callback) {
         if (typeof(callback) == "function") {
             callback();
         };
     },
+    
     _checkCallAuto: function($page) {
         C8O.log.debug("ctf.core: check call mode auto and timer");
         C8O._findAndSelf($page, "[data-c8o-call]").filter("[data-c8o-call-mode=auto],[data-c8o-call-mode^=timer]").each( function (index, element) {
             var $element = $(element);
+
             var c8oCallMode = $element.attr("data-c8o-call-mode").match(C8O._define.re_call_mode);
+            
             if (c8oCallMode != null) {
                 if (C8O.canLog("debug")) {
                     C8O.log.debug("ctf.core: call-mode " + c8oCallMode[0] + " for " + $element.attr("data-c8o-call"));
@@ -73,6 +83,7 @@ $.extend(true, C8O, {
             }
         });
     },
+    
     /**
      * Returns true if the given condition is true.
      *
@@ -85,6 +96,7 @@ $.extend(true, C8O, {
     _checkConditionDomSelectorOrJsFunction: function(condition, thisObject, paramsArray, $dom) {
         if (condition) {
             C8O.log.debug("ctf.core: check condition with " + condition);
+            
             // Function condition
             var functionCondition = C8O._getFunction(condition);
             if (functionCondition != null) {
@@ -106,8 +118,10 @@ $.extend(true, C8O, {
             }
             C8O.log.trace("ctf.core: applying condition return true");
         }
+        
         return true;
     },
+    
     /**
      * Finds and renders all the data-c8o-use-xxx attributes in the given component.
      */
@@ -121,6 +135,7 @@ $.extend(true, C8O, {
             }
         });
     },
+    
     _getRefData: function (rule, refs) {
         var $data = refs._self;
         if (C8O.isDefined(rule.ref)) {
@@ -132,9 +147,11 @@ $.extend(true, C8O, {
         }
         return $data;
     },
+    
     _getTemplate: function(templateID) {
         return C8O._define.templates[templateID].clone();
     },
+    
     _handleRef: function ($element, $doc, refs) {
         if (C8O.isUndefined(refs)) {
             refs = {};
@@ -147,22 +164,27 @@ $.extend(true, C8O, {
         }
         return refs;
     },
+    
     _isActivePage: function (fromPage) {
         return true;
     },
+    
     /**
      * Returns true if a given requestable is matching one of the requestables
      * in a list, false otherwise.
      */
     _isMatching: function(c8oData, checkRequestablesList) {
         var checkRequestablesArray = checkRequestablesList.split(C8O._define.re_split_comma_trim);
+        
         for (var i in checkRequestablesArray) {
             if (C8O._isMatchingSingle(c8oData, checkRequestablesArray[i])) {
                 return true;
             }
         }
+        
         return false;
     },
+    
     /**
      * Returns true if requestableObject is matching checkRequestableObject, false otherwise.
      */
@@ -170,7 +192,9 @@ $.extend(true, C8O, {
         if (checkRequestableObject == "*") {
             return true;
         }
+        
         var matches = checkRequestableObject.match(C8O._define.re_requestable);
+        
         if (matches) {
             var project1 = C8O.isDefined(c8oData.__project) ? c8oData.__project : C8O._define.project;
             var project2 = matches[1].length ? matches[1] : C8O._define.project;
@@ -187,8 +211,10 @@ $.extend(true, C8O, {
         } else {
             C8O.log.warn("ctf.core: cannot match the invalid requestable '" + checkRequestableObject + "'");
         }
+        
         return false;
     },
+    
     _makeRule: function (txt) {
         var match = txt.match(C8O._define.re_find_ctf_markers);
         try {
@@ -208,22 +234,27 @@ $.extend(true, C8O, {
             return null;
         }
     },
+    
     _makeRuleFromC8oSelector: function (c8oSelector) {
         if (c8oSelector.length < 2 || c8oSelector.charAt(0) != "{" || c8oSelector.charAt(c8oSelector.length - 1) != "}") {
             c8oSelector = "=" + c8oSelector;
         }
+        
         return C8O._makeRule(C8O._define.ctf_mark + c8oSelector + C8O._define.ctf_mark);
     },
+    
     _manageTemplate: function($element) {
         // We should first save the widget template for future reuse. If the widget has already
         // been rendered, there is a special attribute 'data-c8o-template-id', whose value is the
         // name of the saved template.
         var templateID = $element.attr("data-c8o-template-id");
+        
         var accumulate_mode = $element.attr("data-c8o-accumulate");
         if (!accumulate_mode) {
             accumulate_mode = "";
         }
         accumulate_mode = accumulate_mode.match(C8O._define.re_accumulate_mode);
+        
         if (templateID) {
             if (accumulate_mode[3] != null) {
                 // The widget has already been rendered. We must empty it and reinsert the template.
@@ -232,11 +263,13 @@ $.extend(true, C8O, {
                 C8O.log.trace("ctf.core: data-c8o-accumulate is " + accumulate_mode[0]);
             }
             var $template = C8O._getTemplate(templateID);
+
             // If we are in an iterator template, we must return the template
             var c8oEachIterator = $element.attr("data-c8o-each");
             if (c8oEachIterator) {
                 return $template;
             }
+
             if (accumulate_mode[2] == null) {
                 // In other case, just append the new clean template
                 $element.append($template);
@@ -250,16 +283,19 @@ $.extend(true, C8O, {
             var $template = $element.contents().clone();
             templateID = C8O._addTemplate($template);
             $element.attr("data-c8o-template-id", templateID);
+            
             // If we are in an iterator template, late-render or with an accumulate_mode, we must remove the template
             if ($element.attr("data-c8o-each") || $element.attr("data-c8o-late-render") || accumulate_mode[3] == null) {
                 C8O.log.trace("ctf.core: empty the new template " + templateID);
                 $element.empty();
             }
+            
             // We must return a cloned instance of the template, otherwise we will
             // modify the template stored in the template repository.
             return $template.clone();
         }
     },
+    
     _manageTemplates: function($element) {
         // Store listen and iteration templates
         // Templates should be managed deeply first (in order to handle nested templates)
@@ -270,6 +306,7 @@ $.extend(true, C8O, {
             C8O._manageTemplate($(this));
         });
     },
+    
     _onC8oCall: function(element) {
         var $element = $(element);
         // Check call condition if any
@@ -281,11 +318,14 @@ $.extend(true, C8O, {
             // The condition failed, so we abort the rendering
             return false;
         }
+
         var c8oCall = $element.attr("data-c8o-call");
         C8O.log.trace("ctf.core: data-c8o-call " + c8oCall);
+        
         if (c8oCall) {
             var c8oCallParams = {};
             var matches = c8oCall.match(C8O._define.re_requestable);
+            
             if (matches != null) {
                 if (matches[1].length) {
                     c8oCallParams["__project"] = matches[1];
@@ -300,13 +340,16 @@ $.extend(true, C8O, {
                 C8O.log.error("ctf.core: data-c8o-call '" + c8oCall + "' is not valid");
                 return false;
             }
+            
             // Find whether the call compionent is inside a form
             var $form = $element.closest("form");
             if ($form.length) {
                 C8O.log.trace("ctf.core: data-c8o-call in form");
+                
                 // Search for input fields in the form
                 C8O.formToData($form, c8oCallParams);
             }
+            
             // Search for 'data-c8o-variable' tagged elements in the link to use it
             // to build data request to C8O
             C8O._findAndSelf($form.length ? $form : $element, "[data-c8o-variable]").each(function (index, element) {
@@ -316,6 +359,7 @@ $.extend(true, C8O, {
                 C8O.log.trace("ctf.core: add data-c8o-variable " + name + "=" + value);
                 C8O.appendValue(c8oCallParams, name, value);
             });
+            
             var variables = null;
             var c8oVariables;
             if ($form.length && !$element.is("form")) {
@@ -333,8 +377,10 @@ $.extend(true, C8O, {
             if (variables != null) {
                 C8O.appendValues(c8oCallParams, variables);
             }
+            
             // now call c8o with constructed arguments
             C8O.call(c8oCallParams);
+            
             var action = null;
             try {
                 action = JSON.parse($element.attr("data-c8o-call-action"));
@@ -345,11 +391,13 @@ $.extend(true, C8O, {
         }
         return false;
     },
+    
     _onDocumentReadyEnd: function (callback, $page) {
         if (typeof(callback) == "function") {
             callback($page);
         };
     },
+    
     _onCallSuccess: function (xml, status, jqXHR) {
         C8O.log.info("ctf.core: received valid response");
         var c8oData = jqXHR.C8O_data;
@@ -363,16 +411,21 @@ $.extend(true, C8O, {
             C8O._routeResponse(xml, c8oData);
         }
     },
+    
     _processAction: function ($doc, c8oData, action) {
         if (C8O.canLog("debug")) {
             C8O.log.debug("ctf.core: analizyng action " + C8O.toJSON(action));
         }
+        
         var routeFound = true;
+        
         if (C8O.isDefined(action.fromPage)) {
             C8O.log.debug("ctf.core: required fromPage " + action.fromPage);
             routeFound = C8O._isActivePage(action.fromPage);
         }
+        
         if (routeFound) {
+
             if (C8O.isDefined(action.condition)) {
                 C8O.log.debug("ctf.core: route condition: " + action.condition);
                 var fnCondition = C8O._getFunction(action.condition);
@@ -383,6 +436,7 @@ $.extend(true, C8O, {
                 }
                 C8O.log.debug("ctf.core: route condition returns: " + routeFound);
             }
+
             if (routeFound) {
                 var goToPage = action.goToPage;
                 var afterChange = $doc == null ? function () {} :
@@ -391,11 +445,13 @@ $.extend(true, C8O, {
                         action.beforeRendering($doc, c8oData);
                     }
                     C8O._renderBindings($doc, c8oData);
+                    
                     if (action.afterRendering) {
                         action.afterRendering($doc, c8oData);
                     }
                     C8O.log.debug("ctf.core: rendering done");
                 };
+                
                 // Render in a target page
                 if (goToPage) {
                     C8O.log.info("ctf.core: route found, apply goToPage " + action.goToPage);
@@ -405,14 +461,17 @@ $.extend(true, C8O, {
                 else {
                     afterChange();
                 }
+                
                 return true;
             }
         }
         return false;
     },
+    
     _removeTemplate: function(templateID) {
         return delete C8O._define.templates[templateID];
     },
+    
     /**
      * Scans all the widgets requiring data update and render them
      */
@@ -421,14 +480,18 @@ $.extend(true, C8O, {
         if (C8O.canLog("trace")) {
             C8O.log.trace("ctf.core: c8oData = " + C8O.toJSON(c8oData));
         }
+        
         $("[data-c8o-listen]").each( function (index, element) {
             var $element = $(element);
+            
             // Get the binded attributes
             var listenRequestables = $element.attr("data-c8o-listen");
             C8O.log.trace("ctf.core: listenRequestables = '" + listenRequestables + "'");
+            
             // Check called requestable against the list of listen requestables
             if (C8O._isMatching(c8oData, listenRequestables)) {
                 C8O.log.info("ctf.core: data-c8o-listen '" + listenRequestables + "' match");
+                
                 // Check listen condition if any
                 var c8oListenCondition = $element.attr("data-c8o-listen-condition");
                 C8O.log.info("ctf.core: listen condition: " + (c8oListenCondition ? c8oListenCondition : "<none>"));
@@ -441,15 +504,20 @@ $.extend(true, C8O, {
                     C8O.log.info("ctf.core: condition failed");
                     return;
                 }
+
                 // Apply the template
                 var $c8oListenContainer = $(this);
+                
                 C8O._manageTemplate($c8oListenContainer);
+                
                 var functionBeforeRendering = C8O._getFunction($element.attr("data-c8o-before-rendering"));
                 if (functionBeforeRendering != null) {
                     C8O.log.debug("ctf.core: call data-c8o-before-rendering function '" + $element.attr("data-c8o-before-rendering") + "'");
                     functionBeforeRendering.call(element, $xmlData, c8oData);
                 }
+
                 C8O._renderWidgets($c8oListenContainer, $xmlData);
+                
                 var functionAfterRendering = C8O._getFunction($element.attr("data-c8o-after-rendering"));
                 if (functionAfterRendering != null) {
                     C8O.log.debug("ctf.core: call data-c8o-after-rendering function '" + $element.attr("data-c8o-after-rendering") + "'");
@@ -460,30 +528,42 @@ $.extend(true, C8O, {
             }
         });
     },
+    
     _renderElement: function($element, refs) {
         C8O.log.debug("ctf.core: rendering element");
+
         refs = $.extend({}, refs);
+
         // Render simple elements
         C8O.walk($element, {$element: $element, refs: refs}, C8O._renderText, C8O._validateNodeWalk);
+        
         // Render iterated elements
         C8O._findAndSelf($element, "[data-c8o-each],[data-c8o-late-render]").each(function() {
             var $c8oEachContainer = $(this);
+            
             if (C8O.isDefined($c8oEachContainer.attr("data-c8o-each"))) {
                 C8O.log.debug("ctf.core: process data-c8o-each");
+                
                 var $template = C8O._manageTemplate($c8oEachContainer);
+                
                 // Now we can iterate over the XML data
                 var rule = C8O._makeRuleFromC8oSelector($c8oEachContainer.attr("data-c8o-each"));
+                
                 if (C8O.canLog("trace")) {
                     C8O.log.trace("ctf.core: process data-c8o-each rule=" + C8O.toJSON(rule));
                 }
+                
                 if (rule != null) {
                     var $refData = C8O._getRefData(rule, refs);
                     var $self = refs._self;
                     $refData.find(rule.find).each(function (index) {
                         var $data = $(this);
                         var $item = $template.clone();
+                        
                         $data.data("index", index);
+                        
                         C8O._handleRef($c8oEachContainer, $data, refs);
+                        
                         $c8oEachContainer.append($item);
                         C8O._renderElement($item, refs);
                     });
@@ -496,6 +576,7 @@ $.extend(true, C8O, {
                     $c8oEachContainer.removeAttr("data-c8o-late-render");
                     C8O._manageTemplate($c8oEachContainer);
                     C8O._renderElement($c8oEachContainer, refs);
+                    
                     var renderFunction = $c8oEachContainer.attr("data-c8o-after-late-render-function");
                     if (C8O.isDefined(renderFunction)) {
                         renderFunction = C8O._getFunction(renderFunction);
@@ -503,19 +584,24 @@ $.extend(true, C8O, {
                             renderFunction.call($c8oEachContainer[0], refs._self, refs);
                         }
                     }
+                    
                     C8O._renderFinish($c8oEachContainer);
                 });
             }
         });
     },
+    
     _renderFinish: function($elt) {
+        
     },
+    
     _renderText: function (txt, data) {
         var $element = data.$element;
         var refs = data.refs;
         var find = txt.search(C8O._define.re_find_ctf_markers);
         var res = "";
         var elt = this.nodeType == Node.TEXT_NODE ? this.parentNode : this;
+        
         while (find != -1) {
             res += txt.substring(0, find).replace(C8O._define.re_find_ctf_esc_start, C8O._define.ctf_mark + "$1");
             txt = txt.substring(find);
@@ -523,12 +609,16 @@ $.extend(true, C8O, {
             if (rule != null) {
                 var $elt = undefined;
                 var value = undefined;
+                
                 if (C8O.canLog("trace")) {
                     C8O.log.trace("ctf.core: apply template with rule from " + txt.substring(0, rule.template.length));
                 }
+                
                 try {
                     var $data = C8O._getRefData(rule, refs);
+                    
                     var isFragment = C8O.isDefined(rule.type) || rule.type == "fragment";
+                    
                     if (C8O.isUndefined(rule.mode) || rule.mode == "find") {
                         $elt = C8O.isUndefined(rule.find) || rule.find == "." ? $data : $data.find(rule.find);
                         if ($elt.length) {
@@ -544,6 +634,7 @@ $.extend(true, C8O, {
                 } catch (e) {
                     C8O.log.error("ctf.core: selector find failed", e);
                 }
+                
                 if (C8O.isUndefined(value)) {
                     if (isFragment && C8O.isDefined($elt) && $elt.length) {
                         value = document.createElement("fragment");
@@ -561,10 +652,12 @@ $.extend(true, C8O, {
                         }
                     }
                 }
+                
                 var functionFormatter = C8O._getFunction(rule.formatter);
                 if (functionFormatter != null) {
                     try {
                         var formatted = functionFormatter.call(elt, value); // add $data in next release
+                        
                         if (typeof(formatted) == "string") {
                             value = formatted;
                         }
@@ -572,6 +665,7 @@ $.extend(true, C8O, {
                         C8O.log.error("ctf.core: call formatter '" + rule.formatter +"' failed", e);
                     }
                 }
+                
                 if (isFragment && C8O.isDefined(value.childNodes)) {
                     value = C8O.convertHTML(value).firstChild;
                     C8O.log.trace("ctf.core: template fragment insert " + value.childNodes.length + " nodes");
@@ -583,6 +677,7 @@ $.extend(true, C8O, {
                     C8O.log.trace("ctf.core: template result is '" + value + "'");
                     res += value;
                 }
+                
                 txt = txt.substring(rule.template.length);
             } else {
                 res += txt.substring(0, 1);
@@ -592,6 +687,7 @@ $.extend(true, C8O, {
         }
         return res + txt.replace(C8O._define.re_find_ctf_esc_start, C8O._define.ctf_mark + "$1");
     },
+    
     /**
      * Renders the data-c8o-use-xxx attribute in the given component,
      * i.e. removes the data-c8o-use-xxx attribute from the given element
@@ -602,6 +698,7 @@ $.extend(true, C8O, {
         $component.removeAttr("data-c8o-use-" + attributeName);
         $component.attr(attributeName, attributeValue);
     },
+
     /**
      * Renders special attributes data-c8o-use-xxx
      */
@@ -613,6 +710,7 @@ $.extend(true, C8O, {
             C8O._findUseAttributes($this);
         });
     },
+    
     /**
      * Render the specified widget using the templating engine
      *
@@ -621,13 +719,17 @@ $.extend(true, C8O, {
      */
     _renderWidgets: function ($html, $doc) {
         var refs = C8O._handleRef($html, $doc);
+        
         // Render simple elements
         C8O._renderElement($html, refs);
+
         // Render "use" attributes
         C8O._renderUseAttributes($html);
+
         // Render GUI components
         C8O._renderFinish($html);
     },
+
     /**
      * This will analyze C8O responses and route them to the correct page according to the
      * routingTable.
@@ -639,24 +741,30 @@ $.extend(true, C8O, {
      */
     _routeResponse: function(xml, c8oData) {
         var $doc = $(xml.documentElement);
+        
         if (C8O.canLog("info")) {
             C8O.log.info("ctf.core: searching route for " + C8O.toJSON(c8oData));
         }
+        
         for (var i in C8O.routingTable) {
             var entry = C8O.routingTable[i];
             C8O.log.trace("ctf.core: check routing " + entry.calledRequest);
+            
             if (C8O._isMatching(c8oData, entry.calledRequest)) {
                 for (var j in entry.actions) {
                     var action = entry.actions[j];
+                    
                     if (C8O._processAction($doc, c8oData, action)) {
                         return;
                     }
                 }
             }
         }
+        
         C8O.log.info("ctf.core: no route found, process template");
         C8O._renderBindings($doc, c8oData);
     },
+    
     _silentParseJSON: function (str) {
         if (typeof(str) == "string") {
             try {
@@ -667,6 +775,7 @@ $.extend(true, C8O, {
         }
         return {};
     },
+    
     _validateNodeWalk: function (node, data) {
         if (node.nodeType == Node.ELEMENT_NODE) {
             var $element = $(node);
@@ -684,12 +793,15 @@ $.extend(true, C8O, {
                             ret = fnIf.call(node, data.refs._self, data.refs);
                         } else {
                             var rule = C8O._makeRuleFromC8oSelector(attribute);
+    
                             if (C8O.canLog("trace")) {
                                 C8O.log.trace("ctf.core: process data-c8o-" + ifCase[i] + " rule=" + C8O.toJSON(rule));
                             }
+                            
                             if (rule != null) {
                                 var refs = data.refs;
                                 var $refData = C8O._getRefData(rule, refs);
+                                
                                 ret = C8O._findAndSelf($refData, rule.find).size();
                             } else {
                                 C8O.log.debug("ctf.core: data-c8o-" + ifCase[i] + " not processed using '" + c8oIf + "'");
@@ -707,14 +819,17 @@ $.extend(true, C8O, {
         return true;
     }
 });
+
 /**
  *  Initialize C8O MVC Framework
  */
 C8O.addHook("init_finished", function () {
     C8O.log.info("ctf.core: initializing CTF");
+    
     C8O.vars.xsl_side = "none";
     C8O.removeRecallParameter("__connector");
     C8O.addRecallParameter("__removeNamespaces", "true");
+    
     $(document).on("click", ":not(form)[data-c8o-call]", function () {
         var callMode = $(this).attr("data-c8o-call-mode");
         if (C8O.isUndefined(callMode) || callMode == "click") {
@@ -738,14 +853,18 @@ C8O.addHook("init_finished", function () {
             }
         }
     });
+    
     var onNewPage = function ($page) {
         C8O.log.info("ctf.core: new page initializing");
         C8O._checkCallAuto($page);
+
         C8O._hook("_newContent", $page);
         C8O._manageTemplates($page);
+        
         // Empty templates
         C8O.log.debug("ctf.core: initial rendering");
         C8O._renderElement($page, C8O._handleRef($page, $("<xml/>")));
     };
+    
     C8O._onDocumentReadyEnd(onNewPage, $("html:first"));
 });

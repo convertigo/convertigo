@@ -19,7 +19,9 @@
  * $Revision$
  * $Date$
  */
+
 $.extend(true, C8O, {
+    
     _cordova_notify_push_server: function (token) {
         C8O._call({
             __project: "lib_PushManager",
@@ -27,35 +29,44 @@ $.extend(true, C8O, {
             token: token
         });
     },
+    
     _cordova_onNotificationGCM: function (event) {
         switch (event.event) {
             case "registered":
                 C8O.log.debug("c8o.cordova: onNotificationGCM registered");
+                
                 if (event.regid.length > 0) {
                     C8O.log.info("c8o.cordova: onNotificationGCM registered regid: " + event.regid);
+                    
                     if (C8O._hook("push_register_success", event.regid)) {
                         C8O._cordova_notify_push_server("gcm:" + event.regid);
                     }
                 }
                 break;
+
             case "message":
                 C8O.log.debug("c8o.cordova: onNotificationGCM message");
                 C8O._hook("push_notification", "GCM", event.payload.message, event);
                 break;
+
             case "error":
                 C8O.log.debug("c8o.cordova: onNotificationGCM error");
                 break;
+                
             default:
                 C8O.log.debug("c8o.cordova: onNotificationGCM unknown GCM event :" + event.event);
                 break;
         }
     },
+
+    
     _cordova_onNotificationAPN: function (event) {
         if (C8O._hook("push_notification", "APN", event.alert, event)) {
               if (event.sound) {
                     var snd = new Media(event.sound);
                     snd.play();
               }
+    
               if (event.badge) {
                     pushNotification.setApplicationIconBadgeNumber(function () {
                         // TODO
@@ -64,18 +75,24 @@ $.extend(true, C8O, {
         }
     }
 });
+
 $(document).on("deviceready", function() {
     C8O.log.info("c8o.cordova: on deviceready");
     if (C8O._hook("device_ready")) {
         navigator.splashscreen.hide();
         C8O.log.info("c8o.cordova:window.plugins " + window.plugins);
         C8O.log.info("c8o.cordova:window.plugins.pushNotification " + window.plugins.pushNotification);
+        
         if (C8O.isDefined(window.plugins) && C8O.isDefined(window.plugins.pushNotification)) {
             var pushNotification = window.plugins.pushNotification;
+            
             C8O.log.info("c8o.cordova: pushNotification detected");
+            
             var options;
+            
             if (device.platform == 'android' || device.platform == 'Android') {
                 C8O.log.info("c8o.cordova: Android detected");
+                
                 if (C8O.isDefined(C8O.cordova.androidSenderID) && C8O.cordova.androidSenderID.length > 0) {
                     options = {
                         "senderID": C8O.cordova.androidSenderID,
@@ -87,6 +104,7 @@ $(document).on("deviceready", function() {
                 }
             } else {
                 C8O.log.info("c8o.cordova: IOs detected");
+                
                 options = {
                     "badge": "true",
                     "sound": "true",
@@ -94,6 +112,7 @@ $(document).on("deviceready", function() {
                     "ecb": "C8O._cordova_onNotificationAPN"
                 };
             }
+            
             pushNotification.register(
                 function (result) {
                     if (device.platform == 'android' || device.platform == 'Android') {
