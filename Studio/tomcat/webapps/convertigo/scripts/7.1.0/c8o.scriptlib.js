@@ -19,29 +19,25 @@
  * $Revision$
  * $Date$
  */
-
 function C8O_document_ready () {
-	getOriginalFontSize();
-	var _ajaxReadyStateListener = ajaxReadyStateListener;
-	ajaxReadyStateListener = function () {
-		_ajaxReadyStateListener();
-		if (xmlhttp.readyState == 4) {
-			C8O.doResize();
-		}
-	};
-	C8O.addHook("call", function (data) {
-		ajaxXmlPostData(xmlhttp, $.param(data));
-		return false;
-	});
-	
-	doMashupEvent = function (event, event_name, data) {
-		C8O.doMashupEvent(event_name, data);
-	};
-	
-	C8O.log.debug("c8o.scriptlib: initialization finished");
-	return true;
+    getOriginalFontSize();
+    var _ajaxReadyStateListener = ajaxReadyStateListener;
+    ajaxReadyStateListener = function () {
+        _ajaxReadyStateListener();
+        if (xmlhttp.readyState == 4) {
+            C8O.doResize();
+        }
+    };
+    C8O.addHook("call", function (data) {
+        ajaxXmlPostData(xmlhttp, $.param(data));
+        return false;
+    });
+    doMashupEvent = function (event, event_name, data) {
+        C8O.doMashupEvent(event_name, data);
+    };
+    C8O.log.debug("c8o.scriptlib: initialization finished");
+    return true;
 }
-
 document.write("<script type=\"text/javascript\" src=\"../../scripts/7.1.0/jquery.min.js\"><!--script--></script>");
 document.write("<script type=\"text/javascript\" src=\"../../scripts/7.1.0/c8o.core.js\"><!--script--></script>");
 document.write("<script type=\"text/javascript\" src=\"../../scripts/7.1.0/c8o.desktop.js\"><!--script--></script>");

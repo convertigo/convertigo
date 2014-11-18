@@ -19,90 +19,74 @@
  * $Revision$
  * $Date$
  */
-
 $.extend(true, C8O, {
-	init_vars: {
-	},
-	
-	ro_vars: {
-	},
-	
-	vars: {
-	},
-		
-	options: {
-		loading: {}
-	},
-	
-	waitHide: function () {
-		if (C8O._hook("wait_hide") && C8O._hook("loading_stop")) {
-			try {
-				$.mobile.loading("hide");
-			} catch (e) {
-				if (C8O.isDefined(e.message) && e.message.indexOf("'loader'") == -1) {
-					C8O.log.error("c8o.jqm : failed to hide loading", e);
-				} else {
-					C8O.log.trace("c8o.jqm : failed to hide loading " + e);
-				}
-			}
-			$("#c8oloading").hide();
-		}
-	},
-	
-	waitShow: function () {
-		if (C8O._hook("wait_show") && C8O._hook("loading_start")) {
-			$("#c8oloading").show();
-			try {
-				$.mobile.loading("show", C8O.options.loading);
-			} catch (e) {
-				if (C8O.isDefined(e.message) && e.message.indexOf("'loader'") == -1) {
-       		 		C8O.log.error("c8o.jqm : failed to show loading", e);
-				} else {
-					C8O.log.trace("c8o.jqm : failed to hide loading " + e);
-				}
-			}
-		}
-	},
-	
-	_define: {
-	},
-	
-	_jqm_onDocumentReady: C8O._onDocumentReady,
-	_onDocumentReady: function (params) {
-		if (!$.mobile.ajaxBlacklist) {
-			$("<div id=\"c8oloading\"/>").css({backgroundColor: "grey", position: "fixed", width: "100%", height: "100%", opacity: 0.5, "z-index": 99}).hide().appendTo("body");
-		}
-		
-		C8O._jqm_onDocumentReady(params);
-	},
-	
-	_onJqmInitFinished: function () {
-		C8O.log.info("c8o.jqm : initializing jquery mobile");
-		$("[data-role=page]").data("c8o-translated", true);
-		
-		$.mobile.initializePage();
-		
-		$(document).on("pagebeforecreate", "[data-role=page]", function () {
-			C8O._onPageBeforeCreate($(this));
-		});
-	},
-	
-	_onPageBeforeCreate: function ($page) {
-		if (!$page.data("c8o-translated")) {
-			C8O.log.debug("c8o.jqm : new DOM page loaded, try to translate it");
-			$page.data("c8o-translated", true);
-			C8O.translate($page[0]);
-		}
-		
-	}
+    init_vars: {
+    },
+    ro_vars: {
+    },
+    vars: {
+    },
+    options: {
+        loading: {}
+    },
+    waitHide: function () {
+        if (C8O._hook("wait_hide") && C8O._hook("loading_stop")) {
+            try {
+                $.mobile.loading("hide");
+            } catch (e) {
+                if (C8O.isDefined(e.message) && e.message.indexOf("'loader'") == -1) {
+                    C8O.log.error("c8o.jqm : failed to hide loading", e);
+                } else {
+                    C8O.log.trace("c8o.jqm : failed to hide loading " + e);
+                }
+            }
+            $("#c8oloading").hide();
+        }
+    },
+    waitShow: function () {
+        if (C8O._hook("wait_show") && C8O._hook("loading_start")) {
+            $("#c8oloading").show();
+            try {
+                $.mobile.loading("show", C8O.options.loading);
+            } catch (e) {
+                if (C8O.isDefined(e.message) && e.message.indexOf("'loader'") == -1) {
+                        C8O.log.error("c8o.jqm : failed to show loading", e);
+                } else {
+                    C8O.log.trace("c8o.jqm : failed to hide loading " + e);
+                }
+            }
+        }
+    },
+    _define: {
+    },
+    _jqm_onDocumentReady: C8O._onDocumentReady,
+    _onDocumentReady: function (params) {
+        if (!$.mobile.ajaxBlacklist) {
+            $("<div id=\"c8oloading\"/>").css({backgroundColor: "grey", position: "fixed", width: "100%", height: "100%", opacity: 0.5, "z-index": 99}).hide().appendTo("body");
+        }
+        C8O._jqm_onDocumentReady(params);
+    },
+    _onJqmInitFinished: function () {
+        C8O.log.info("c8o.jqm : initializing jquery mobile");
+        $("[data-role=page]").data("c8o-translated", true);
+        $.mobile.initializePage();
+        $(document).on("pagebeforecreate", "[data-role=page]", function () {
+            C8O._onPageBeforeCreate($(this));
+        });
+    },
+    _onPageBeforeCreate: function ($page) {
+        if (!$page.data("c8o-translated")) {
+            C8O.log.debug("c8o.jqm : new DOM page loaded, try to translate it");
+            $page.data("c8o-translated", true);
+            C8O.translate($page[0]);
+        }
+    }
 });
-
 $(document).ready(function () {
-	$.mobile.autoInitializePage = false;
+    $.mobile.autoInitializePage = false;
 });
 //For WindowsPhone accept the cross-plateform
 $.support.cors = true;
-
 C8O.addHook("init_finished", function () {
-	C8O._onJqmInitFinished();
+    C8O._onJqmInitFinished();
 });

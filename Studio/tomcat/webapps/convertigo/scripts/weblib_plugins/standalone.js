@@ -19,27 +19,23 @@
  * $Revision$
  * $Date$
  */
-
 C8O._init_standalone = function (params) {
-	var widget_name = params.__widget_name;
-	C8O.ro_vars.widget_name = widget_name;
-	
-	C8O.addHook("mashup_event", function (eventName, data) {
-		parent.C8O_hub.publish({
-				data: data,
-				name: eventName,
-				origin: widget_name,
-				type: "mashup"
-		});
-	});
-	
-	parent.C8O_hub.subscribe(widget_name, function (event) {
-		if (event.type === "call")
-			C8O.call(event.data);
-	});
-		
-	if (!params.__context) {
-		params.__context = widget_name;
-	}
-	C8O._init(params);
+    var widget_name = params.__widget_name;
+    C8O.ro_vars.widget_name = widget_name;
+    C8O.addHook("mashup_event", function (eventName, data) {
+        parent.C8O_hub.publish({
+                data: data,
+                name: eventName,
+                origin: widget_name,
+                type: "mashup"
+        });
+    });
+    parent.C8O_hub.subscribe(widget_name, function (event) {
+        if (event.type === "call")
+            C8O.call(event.data);
+    });
+    if (!params.__context) {
+        params.__context = widget_name;
+    }
+    C8O._init(params);
 }

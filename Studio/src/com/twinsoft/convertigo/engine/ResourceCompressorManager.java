@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -200,15 +201,16 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 					if (compression == CompressionOptions.lines) {
 						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), resourceEntry.getEncoding()));
 						int lineCpt = 1;
+						
 						for (String line = br.readLine(); line != null; line = br.readLine()) {
 							fullsize += (line.length() + 1);
-							
-							sources.append(String.format("/* %03d */ ", lineCpt++) + line + "\n");
+							sources.append(StringUtils.rightPad(line, 110, ' ') + String.format(" // %03d", lineCpt++));
 							if (filenames) {
-								if (lineCpt % 100 == 0) {
-									sources.append("/* >> IN " + file.getName() + " << */\n");
+								if (lineCpt % 50 == 0) {
+									sources.append(" [" + file.getName() + "]");
 								}
 							}
+							sources.append('\n');
 						}
 						br.close();
 					} else {

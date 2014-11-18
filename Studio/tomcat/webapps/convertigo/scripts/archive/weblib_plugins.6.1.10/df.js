@@ -19,31 +19,29 @@
  * $Revision$
  * $Date$
  */
-
 C8O._init_df = function (params) {
-	C8O.addHook("mashup_event", function (eventName, data) {
-		try {
-			if (window.parent.tcResponseItemClickedJSON) {
-				if (eventName.indexOf('FormSubmitted_') === 0) {
-					window.parent.tcFormResponseSubmitted( window.name, document, eventName );
-				} else {
-					window.parent.tcResponseItemClickedJSON(window.name, eventName, data);
-				}
-				return;
-			}
-		} catch (e) {}
-	});
-
-	$.ajax({
-		data: params,
-		success: function (xml) {
-			$(xml).find("parameter").each(function () {
-				var $param = $(this);
-				C8O.addRecallParameter($param.attr("name"), $param.attr("value"));
-			});
-			C8O._init({});
-		},
-		type: "GET",
-		url: "../../df/dfe/interface/provider"
-	});
+    C8O.addHook("mashup_event", function (eventName, data) {
+        try {
+            if (window.parent.tcResponseItemClickedJSON) {
+                if (eventName.indexOf('FormSubmitted_') === 0) {
+                    window.parent.tcFormResponseSubmitted( window.name, document, eventName );
+                } else {
+                    window.parent.tcResponseItemClickedJSON(window.name, eventName, data);
+                }
+                return;
+            }
+        } catch (e) {}
+    });
+    $.ajax({
+        data: params,
+        success: function (xml) {
+            $(xml).find("parameter").each(function () {
+                var $param = $(this);
+                C8O.addRecallParameter($param.attr("name"), $param.attr("value"));
+            });
+            C8O._init({});
+        },
+        type: "GET",
+        url: "../../df/dfe/interface/provider"
+    });
 }

@@ -19,23 +19,22 @@
  * $Revision$
  * $Date$
  */
-
 $(window).ready(function () {
-	if (typeof(C8O_postInstructions) !== "undefined") {
-		for (var i in C8O_postInstructions) {
-			var postInstruction = C8O_postInstructions[i];
-			var type = postInstruction.type;
-			if (type == "SetValue") {
-				$(postInstruction.path).val(postInstruction.value);
-			} else if (type == "SetChecked") {
-				if (postInstruction.checked) {
-					$(postInstruction.path).prop("checked", true);
-				} else {
-					$(postInstruction.path).prop("checked", false);
-				}
-			} else if (type == "Click") {
-				$(postInstruction.path).click();
-			}
-		}
-	}
+    if (typeof(C8O_postInstructions) !== "undefined") {
+        for (var i in C8O_postInstructions) {
+            var postInstruction = C8O_postInstructions[i];
+            var type = postInstruction.type;
+            if (type == "SetValue") {
+                $(postInstruction.path).val(postInstruction.value);
+            } else if (type == "SetChecked") {
+                if (postInstruction.checked) {
+                    $(postInstruction.path).prop("checked", true);
+                } else {
+                    $(postInstruction.path).prop("checked", false);
+                }
+            } else if (type == "Click") {
+                $(postInstruction.path).click();
+            }
+        }
+    }
 });

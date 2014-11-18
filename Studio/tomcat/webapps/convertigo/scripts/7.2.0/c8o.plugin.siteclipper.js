@@ -19,53 +19,46 @@
  * $Revision$
  * $Date$
  */
-
 C8O._init_siteclipper = function (params) {
-	if (params.redirect_location) {
-		var $siteclipped = $("<iframe id=\"siteclipped\" src=\"" + params.redirect_location + "\" height=\"100%\" width=\"100%\" frameborder=\"0\"></iframe>");
-		
-		C8O.vars.resize_offset = "0";
-		C8O._fillBody($siteclipped, false);
-
-		$siteclipped.load(function () {
-			var timer = false;
-			
-			if (C8O._define.iframe && C8O.vars.auto_resize === "true") {
-				var $doc = $(this.contentWindow.document);
-				var exHeight = 0;
-				var reHeight = function () {
-					if (exHeight !== $doc.height()) {
-						var curHeight = 0;
-						$doc.find("*:not(html, body)").each(function () {
-							curHeight = Math.max(curHeight, this.offsetTop + this.offsetHeight);
-						});
-						C8O.doResize(curHeight + 25, {
-							complete : function () {
-								exHeight = $doc.height();
-							}
-						});
-					}
-				}
-				
-				timer = window.setInterval(reHeight, 250);
-				reHeight();
-			}
-			var onunload = function () {
-				if (timer) {
-					window.clearInterval(timer);
-				}
-				if (C8O._hook("siteclipper_page_unloaded", $siteclipped)) {
-					C8O.doResize(50);
-				};
-			}
-			
-			if (window.attachEvent) {
-				this.contentWindow.attachEvent('onunload', onunload);
-			} else {
-				$(this.contentWindow).bind("unload", onunload);
-			}
-			
-			C8O._hook("siteclipper_page_loaded", this.contentWindow.document);
-		});
-	}
+    if (params.redirect_location) {
+        var $siteclipped = $("<iframe id=\"siteclipped\" src=\"" + params.redirect_location + "\" height=\"100%\" width=\"100%\" frameborder=\"0\"></iframe>");
+        C8O.vars.resize_offset = "0";
+        C8O._fillBody($siteclipped, false);
+        $siteclipped.load(function () {
+            var timer = false;
+            if (C8O._define.iframe && C8O.vars.auto_resize === "true") {
+                var $doc = $(this.contentWindow.document);
+                var exHeight = 0;
+                var reHeight = function () {
+                    if (exHeight !== $doc.height()) {
+                        var curHeight = 0;
+                        $doc.find("*:not(html, body)").each(function () {
+                            curHeight = Math.max(curHeight, this.offsetTop + this.offsetHeight);
+                        });
+                        C8O.doResize(curHeight + 25, {
+                            complete : function () {
+                                exHeight = $doc.height();
+                            }
+                        });
+                    }
+                }
+                timer = window.setInterval(reHeight, 250);
+                reHeight();
+            }
+            var onunload = function () {
+                if (timer) {
+                    window.clearInterval(timer);
+                }
+                if (C8O._hook("siteclipper_page_unloaded", $siteclipped)) {
+                    C8O.doResize(50);
+                };
+            }
+            if (window.attachEvent) {
+                this.contentWindow.attachEvent('onunload', onunload);
+            } else {
+                $(this.contentWindow).bind("unload", onunload);
+            }
+            C8O._hook("siteclipper_page_loaded", this.contentWindow.document);
+        });
+    }
 }
