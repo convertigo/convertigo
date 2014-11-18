@@ -34,8 +34,10 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
@@ -48,6 +50,7 @@ import org.apache.commons.httpclient.methods.FileRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -59,6 +62,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.ResourceCompressorManager.ResourceBundle;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
@@ -71,6 +75,20 @@ public class LaunchBuild extends XmlService {
 
 	private static final Pattern alphaNumPattern = Pattern.compile("[\\.\\w]*");
 	private static final Object buildLock = new Object();
+	
+	public static final IOFileFilter defaultFilter = new IOFileFilter() {
+		
+		public boolean accept(File file) {
+			String filename = file.getName();
+			return !filename.equals(".DS_Store") && !filename.equalsIgnoreCase("thumbs.db")
+					&& !filename.equals(".svn");
+		}
+
+		public boolean accept(File file, String path) {
+			return accept(new File(file, path));
+		}
+		
+	};
 	
 	private String originalMobileResourcesPath;
 	private String tmpMobileResourcesPath;
@@ -116,6 +134,7 @@ public class LaunchBuild extends XmlService {
 			// Check forbidden characters in resources file names (only alphanumeric
 			// chars) if a BlackBerry build is required
 			Project project = Engine.theApp.databaseObjectsManager.getProjectByName(application);
+			File projectDir = new File(project.getDirPath());
 			List<MobileDevice> mobileDevices = project.getMobileDeviceList();
 			for (MobileDevice mobileDevice : mobileDevices) {
 				if (mobileDevice instanceof BlackBerry6) {
@@ -145,10 +164,12 @@ public class LaunchBuild extends XmlService {
 				// needed
 				sIndexHtml = resolveFile(sIndexHtml, "scripts/mobilelib.js", "js/mobilelib.js");
 			} else {
+				List<File> filesToDelete = new LinkedList<File>();
 				StringBuffer sbIndexHtml = new StringBuffer();
 				BufferedReader br = new BufferedReader(new StringReader(sIndexHtml));
-				String line = br.readLine();
-				while (line != null) {
+				String includeChar = null;
+				String includeBuf = null;
+				for(String line = br.readLine(); line != null; line = br.readLine()) {
 					if (!line.contains("<!--") && line.contains("\"../../../../")) {
 						String file = line.replaceFirst(".*\"\\.\\./\\.\\./\\.\\./\\.\\./(.*?)\".*", "$1");
 						File inFile = new File(Engine.WEBAPP_PATH + "/" + file);
@@ -173,9 +194,60 @@ public class LaunchBuild extends XmlService {
 							sJs = sJs.replaceAll(Pattern.quote("url : \"../../\""), "url : \"" + endPoint + "/\"");
 							FileUtils.writeStringToFile(serverJsFile, sJs);
 						}
+					} else {
+						/** Handle multilines <script> and <link> urls for the resourceCompressorManager */
+						if (includeChar == null) {
+							Matcher mStart = Pattern.compile("(?:(?:<script .*?src)|(?:<link .*?href))\\s*=\\s*(\"|')(.*?)(\\1|$)").matcher(line);
+
+							if (mStart.find()) {
+								String end = mStart.group(3);
+								if (end.length() == 0) {
+									includeChar = mStart.group(1);
+								}
+								includeBuf = mStart.group(2);
+							} else {
+								includeBuf = null;
+							}
+						} else {
+							int index = line.indexOf(includeChar);
+							if (index != -1) {
+								includeBuf += line.substring(0, index);
+								includeChar = null;
+							} else {
+								includeBuf += line;
+							}
+						}
+						
+						if (includeChar == null && includeBuf != null) {
+							String uri = includeBuf;
+							uri = indexHtmlFile.getParent().substring(projectDir.getParent().length() + 1) + "/" + uri;
+							ResourceBundle resourceBundle = Engine.theApp.resourceCompressorManager.process(uri);
+							if (resourceBundle != null) {
+								synchronized (resourceBundle) {
+									String prepend = null;
+									for (File file: resourceBundle.getFiles()) {
+										String filename = file.getName();
+										if (filename.matches("c8o\\.core\\..*?js")) {
+											prepend = "C8O.vars.endpoint_url=\"" + endPoint + "\";";
+										} else if (handleJQMcssFolder(filename, file, resourceBundle.getVirtualFile())) {
+										}
+									}
+									if (prepend == null) {
+										resourceBundle.writeFile();
+									} else {
+										resourceBundle.writeFile(prepend);
+									}
+									for (File file: resourceBundle.getFiles()) {
+										if (file.getPath().indexOf(projectDir.getPath()) == 0) {
+											filesToDelete.add(file);
+										}
+									}											
+								}
+							}
+						}
 					}
+					
 					sbIndexHtml.append(line + "\n");
-					line = br.readLine();
 				}
 				
 				sIndexHtml = sbIndexHtml.toString();
@@ -270,5 +342,15 @@ public class LaunchBuild extends XmlService {
 				checkAlphaNumericCharsInFileNames(file);
 			}
 		}
+	}
+	
+	private static boolean handleJQMcssFolder(String filename, File inFile, File outFile) throws IOException {
+		if (filename.matches("jquery\\.mobile\\.(?:min\\.)?css")) {
+			File inImages = new File(inFile.getParentFile(), "images");
+			File outImages = new File(outFile.getParentFile(), "images");
+			FileUtils.copyDirectory(inImages, outImages, defaultFilter, true);
+			return true;
+		}
+		return false;
 	}
 }

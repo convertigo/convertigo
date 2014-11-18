@@ -21,23 +21,23 @@
  */
 
 function C8O_document_ready () {
-	getOriginalFontSize();
-	var _ajaxReadyStateListener = ajaxReadyStateListener;
-	ajaxReadyStateListener = function () {
-		_ajaxReadyStateListener();
-		if (xmlhttp.readyState == 4) {
-			C8O.doResize();
-		}
-	};
-	C8O.addHook("call", function (data) {
-		ajaxXmlPostData(xmlhttp, $.param(data));
-		return false;
-	});
-	
-	doMashupEvent = function (event, event_name, data) {
-		C8O.doMashupEvent(event_name, data);
-	};
-	return true;
+    getOriginalFontSize();
+    var _ajaxReadyStateListener = ajaxReadyStateListener;
+    ajaxReadyStateListener = function () {
+        _ajaxReadyStateListener();
+        if (xmlhttp.readyState == 4) {
+            C8O.doResize();
+        }
+    };
+    C8O.addHook("call", function (data) {
+        ajaxXmlPostData(xmlhttp, $.param(data));
+        return false;
+    });
+    
+    doMashupEvent = function (event, event_name, data) {
+        C8O.doMashupEvent(event_name, data);
+    };
+    return true;
 }
 
 document.write("<script type=\"text/javascript\" src=\"../../scripts/archive/jquery.1.8.2.min.js\"></script>");

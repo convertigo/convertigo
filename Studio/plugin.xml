@@ -173,7 +173,17 @@
       <library name="lib/axis2-1.6.2/lib/xalan-2.7.0.jar"/>
       <library name="lib/axis2-1.6.2/lib/xml-resolver-1.2.jar"/>
       <library name="lib/axis2-1.6.2/lib/xmlbeans-2.3.0.jar"/>
-      <library name="lib/axis2-1.6.2/lib/XmlSchema-1.4.7.jar"/>   </runtime>
+      <library name="lib/axis2-1.6.2/lib/XmlSchema-1.4.7.jar"/>
+      <library name="lib/wro4j-core-1.6.3.jar">
+         <export
+               name="*">
+         </export>
+      </library>
+      <library name="lib/wro4j-extensions-1.6.3.jar">
+         <export
+               name="*">
+         </export>
+      </library>   </runtime>
 
    <requires>
       <import plugin="org.eclipse.ui"/>

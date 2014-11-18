@@ -185,14 +185,16 @@ public class EnginePreferencePage extends PreferencePage implements IWorkbenchPr
                 	int selectedIndex = 0;
                 	int i = 0;
         			for (ComboEnum comboItem : property.getCombo()) {
-        				comboDisplay = comboItem.getDisplay();
-        				comboValue = comboItem.getValue();
-            			propertyEditor.add(comboDisplay);
-            			propertyEditor.setData(comboDisplay, comboValue);
-            			if (value.equals(comboValue)) {
-            				selectedIndex = i;
-            			}
-            			i++;
+						comboDisplay = comboItem.getDisplay();
+						if (comboDisplay != null) {
+							comboValue = comboItem.getValue();
+							propertyEditor.add(comboDisplay);
+							propertyEditor.setData(comboDisplay, comboValue);
+							if (value.equals(comboValue)) {
+								selectedIndex = i;
+							}
+							i++;
+						}
 					}
         			propertyEditor.select(selectedIndex);
 

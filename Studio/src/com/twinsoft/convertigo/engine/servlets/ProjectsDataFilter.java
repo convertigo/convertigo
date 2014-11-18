@@ -45,6 +45,7 @@ import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
+import com.twinsoft.convertigo.engine.ResourceCompressorManager;
 
 public class ProjectsDataFilter implements Filter {
 	private static Pattern p_projects = Pattern.compile("/projects(/.*)");
@@ -100,10 +101,8 @@ public class ProjectsDataFilter implements Filter {
     		return;
     	}
     	
-    	boolean bFileExists = file.exists();
-    	
     	// Handle implicit document (index.html)
-    	if (bFileExists && file.isDirectory()) {
+    	if (file.exists() && file.isDirectory()) {
     		// Handle ".../projects" requests
     		s = file.getCanonicalPath();
     		if (s.endsWith("projects")) {
@@ -128,10 +127,18 @@ public class ProjectsDataFilter implements Filter {
     		}
     	}
     	
-    	bFileExists = file.exists();
-    	Engine.logContext.debug("bFileExists=" + bFileExists);
+    	if (!file.exists() && Engine.theApp != null && Engine.theApp.resourceCompressorManager != null) {
+    		if (Engine.theApp.resourceCompressorManager.check(request, response)) {
+    			return;
+    		} else {
+    			File commonResource = ResourceCompressorManager.getCommonCssResource(request);
+    			if (commonResource != null) {
+    				file = commonResource;
+    			}
+    		}
+    	}
     	
-    	if (bFileExists) {
+    	if (file.exists()) {
         	Engine.logContext.debug("Static file");
         	
         	// Warning date comparison: 'If-Modified-Since' header precision is second,

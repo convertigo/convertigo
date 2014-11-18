@@ -544,4 +544,8 @@ public class Project extends DatabaseObject implements ITagsProperty, IInfoPrope
 		return getInfoForProperty(propertyName, Locale.getDefault());
 	}
 
+	public String getDirPath() {
+		return Engine.PROJECTS_PATH + "/" + getName();
+	}
+
 }

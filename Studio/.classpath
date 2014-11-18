@@ -40,6 +40,8 @@
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/mex-1.6.2-impl.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/neethi-3.0.2.jar"/>
 	<classpathentry kind="lib" path="lib/internal/vt220-v34405.jar"/>
+	<classpathentry kind="lib" path="lib/wro4j-core-1.6.3.jar"/>
+	<classpathentry kind="lib" path="lib/wro4j-extensions-1.6.3.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="lib" path="lib/cos.jar"/>
 	<classpathentry kind="lib" path="lib/jCharts-0.7.2.jar"/>

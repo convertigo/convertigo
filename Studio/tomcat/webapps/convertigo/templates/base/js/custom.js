@@ -10,53 +10,53 @@
  *******************************************************/
 
 $.extend(true, C8O, {
-	/**
-	 * init_vars variables values can only be set before the first C8O.call(),
-	 * by the code or by the first query,
-	 * their values must be strings, 
-	 * their state cannot be modified later.
-	 * 
-	 * If set by query, variable name should be preceded by __
-	 * for example: ?__enc=true&...
-	 */
-	init_vars : {
-//		enc : "false", /** enables rsa encoding */
-//		testplatform : "auto" /** auto/true/false : automatically redirect to the testplatform if no parameter is set, force testplaform if true or just call C8O if false */
-	},
-	/**
-	 * vars variables values can be set at any time, 
-	 * by the code, by the query or by passing arguments to C8O.call(), 
-	 * their values must be strings,
-	 * their state cannot be modified later.
-	 * 
-	 * Value can be modified by code, 
-	 * for example: C8O.vars.ajax_method="GET"
-	 * 
-	 * If set by query, variable name should be preceded by __
-	 * for example: ?__ajax_method=GET&...
-	 */
-	vars : {
-//		ajax_method : "POST", /** POST/GET : http method to request CEMS */
-//		auto_refresh : "true", /** true/false : allow auto refresh feature for clipping */
-//		auto_resize : "true", /** true/false : allow weblib to perform resize after content filled */
-//		first_call : "true", /** true/false : automatically call convertigo using the page query/hash parameters, after the init_finished hook */
-//		requester_prefix : "", /** string prepend to the .xml or .cxml requester */
-//		resize_offset : "50", /** integer : number of pixel added to the automatic resize */
-//		send_portal_username : "true", /** true/false : (gatein only) automatically add a portal_username parameter with the name of the logger user */
-//		target_append : "false", /** true/false : append content to target_id or to body element */
-//		target_id : "", /** element id : element id for result insertion or a selected jquery object */
-//		use_siteclipper_plugin : "true", /** true/false : use the iframe encapsulation for siteclipper request */
-//		xsl_side : "client" /** client/server : force the side of the xsl transformation */
-	}
+    /**
+     * init_vars variables values can only be set before the first C8O.call(),
+     * by the code or by the first query,
+     * their values must be strings,
+     * their state cannot be modified later.
+     *
+     * If set by query, variable name should be preceded by __
+     * for example: ?__enc=true&...
+     */
+    init_vars : {
+//        enc : "false", /** enables rsa encoding */
+//        testplatform : "auto" /** auto/true/false : automatically redirect to the testplatform if no parameter is set, force testplaform if true or just call C8O if false */
+    },
+    /**
+     * vars variables values can be set at any time,
+     * by the code, by the query or by passing arguments to C8O.call(),
+     * their values must be strings,
+     * their state cannot be modified later.
+     *
+     * Value can be modified by code,
+     * for example: C8O.vars.ajax_method="GET"
+     *
+     * If set by query, variable name should be preceded by __
+     * for example: ?__ajax_method=GET&...
+     */
+    vars : {
+//        ajax_method : "POST", /** POST/GET : http method to request CEMS */
+//        auto_refresh : "true", /** true/false : allow auto refresh feature for clipping */
+//        auto_resize : "true", /** true/false : allow weblib to perform resize after content filled */
+//        first_call : "true", /** true/false : automatically call convertigo using the page query/hash parameters, after the init_finished hook */
+//        requester_prefix : "", /** string prepend to the .xml or .cxml requester */
+//        resize_offset : "50", /** integer : number of pixel added to the automatic resize */
+//        send_portal_username : "true", /** true/false : (gatein only) automatically add a portal_username parameter with the name of the logger user */
+//        target_append : "false", /** true/false : append content to target_id or to body element */
+//        target_id : "", /** element id : element id for result insertion or a selected jquery object */
+//        use_siteclipper_plugin : "true", /** true/false : use the iframe encapsulation for siteclipper request */
+//        xsl_side : "client" /** client/server : force the side of the xsl transformation */
+    }
 });
 
 /**
  * ReadOnly variables are also available
- * C8.ro_vars variables values can be READ at any time by the code 
+ * C8.ro_vars variables values can be READ at any time by the code
  * and must not be modified.
- * 
+ *
  * C8O.ro_vars.portal_username : string containing the name of the current logged user (gatein only)
- * C8O.ro_vars.widget_name : string containing the name of the current widget, if any 
+ * C8O.ro_vars.widget_name : string containing the name of the current widget, if any
  */
 
 
@@ -75,7 +75,7 @@ $.extend(true, C8O, {
  */
 //C8O.addHook(name, fn);
 
-/** 
+/**
  *  addRecallParameter function
  *  force C8O.call() to send automatically parameters
  *  added by this function with its last value
@@ -96,7 +96,7 @@ $.extend(true, C8O, {
  */
 //C8O.call(data)
 
-/** 
+/**
  *  doMashupEvent function
  *  dispatch a mashup event to the current container if any
  *  via the invocation of mashup_event hook
@@ -194,13 +194,13 @@ $.extend(true, C8O, {
  *  used before AJAX request to CEMS server
  *  can tweak data before sending
  *  or perform request itself
- *  
+ *
  *  data : key/value map of parameters sent to CEMS
  *  return : true > lets weblib perform the call
  *             false > weblib doen't perform the call
  */
 //C8O.addHook("call", function (data) {
-//	return true;
+//    return true;
 //});
 
 
@@ -209,12 +209,12 @@ $.extend(true, C8O, {
  *  used at page loading
  *  can perform some DOM tweak
  *  or break the processing of request
- *  
+ *
  *  return : true > lets weblib perform the init
  *             false > break the processing of request
  */
 //C8O.addHook("document_ready", function () {
-//	return true;
+//    return true;
 //});
 
 /**
@@ -222,12 +222,12 @@ $.extend(true, C8O, {
  *  used at page loading after weblib initialization
  *  can modify data parameter of the first call
  *  or break the processing of request
- *  
+ *
  *  return : true > lets weblib perform the first call
  *             false > break the processing of request
  */
 //C8O.addHook("init_finished", function (data) {
-//	return true;
+//    return true;
 //});
 
 /**
@@ -235,7 +235,7 @@ $.extend(true, C8O, {
  *  used for handle doMashupEvent call
  *  and used to implement how to forward event
  *  to the 'mashup' container
- *  
+ *
  *  eventName : name of the event
  *  payload : key/value map object
  */
@@ -247,38 +247,38 @@ $.extend(true, C8O, {
  *  receive_mashup_event hook
  *  used for handle Mashup event for this widget
  *  to the 'mashup' container
- *  
+ *
  *  event.origin : widget name of the event source
  *  event.name : name of the event
  *  event.payload : key/value map object
  *  event.target : widget name of the event target
  *  event.type : type of the event, the default is 'call'
- *  
+ *
  *  return : true > lets weblib consume the event
  *             false > event ignored by weblib
  */
 //C8O.addHook("receive_mashup_event", function (event) {
-//	return true;
+//    return true;
 //});
 
 /**
  *  xml_response hook
  *  used for tweak, retrieve value or do transformation
  *  using the XML response from CEMS
- *  
+ *
  *  xml : pure DOM document
  *  return : true > lets weblib perform the xml
  *             false > break the processing of xml
  */
 //C8O.addHook("xml_response", function (xml) {
-//	return true;
+//    return true;
 //});
 
 /**
  *  text_response hook
  *  used for tweak, retrieve value or do transformation
  *  using the text response from CEMS (after a server XSL transformation)
- *  
+ *
  *  aText : array with only one string, aText[0], of the text received
  *            and can be replaced by a new value
  *  return : true > lets weblib perform the inclusion in the DOM
@@ -286,7 +286,7 @@ $.extend(true, C8O, {
  */
 //C8O.addHook("text_response", function (aText) {
 //  var text = aText[0];
-//	return true;
+//    return true;
 //});
 
 /**
@@ -294,13 +294,13 @@ $.extend(true, C8O, {
  *  used after the content is filled
  *  for calculate the height of the
  *  iframe element
- *  
- *  return : false > bypass weblib resize 
+ *
+ *  return : false > bypass weblib resize
  *             type of 'number' > height for the iframe
  *             other > do standard resize
  */
 //C8O.addHook("resize_calculation", function () {
-//	return true;
+//    return true;
 //});
 
 
@@ -309,36 +309,36 @@ $.extend(true, C8O, {
  *  used after the content is filled
  *  but before set event listener
  *  and iframe resize
- *  
+ *
  *  $container : jquery object where the content has been added
- *  
- *  return : true > lets weblib perform the init 
+ *
+ *  return : true > lets weblib perform the init
  *             false > bypass weblib resize
  */
 //C8O.addHook("result_filled", function ($container) {
-//	return true;
+//    return true;
 //});
 
 /**
  *  siteclipper_page_loaded hook
  *  used after a siteclipped page is loaded
  *  and automatically resized
- *  
+ *
  *  doc : document object of the current siteclipped page loaded
  */
 //C8O.addHook("siteclipper_page_loaded", function (doc) {
-//	
+//
 //});
 
 /**
  *  siteclipper_page_unloaded hook
  *  used when a siteclipped page is unloaded
- *  
+ *
  *  $iframe : jQuery object with the iframe container of the siteclipped page selected
- *  
- *  return : true > lets weblib perform recude the iframe 
+ *
+ *  return : true > lets weblib perform recude the iframe
  *             false > bypass weblib resize
  */
 //C8O.addHook("siteclipper_page_unloaded", function ($iframe) {
-//	return true;
+//    return true;
 //});

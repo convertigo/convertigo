@@ -180,6 +180,11 @@ public class Engine {
 	public ProxyManager proxyManager;
 	
 	/**
+	 * The resource compressor manager for minification
+	 */
+	public ResourceCompressorManager resourceCompressorManager;
+	
+	/**
 	 * Loggers
 	 */
 	public static Logger logConvertigo;
@@ -409,6 +414,13 @@ public class Engine {
 					Engine.theApp.tracePlayerManager.init();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to run the trace player.", e);
+				}
+				
+				try {
+					Engine.theApp.resourceCompressorManager = new ResourceCompressorManager();
+					Engine.theApp.resourceCompressorManager.init();
+				} catch (Exception e) {
+					Engine.logEngine.error("Unable to run the resource compressor.", e);
 				}
 				
 				Engine.logEngine
@@ -739,6 +751,10 @@ public class Engine {
 				Engine.logEngine.info("Removing the proxy manager");
 				if (Engine.theApp.proxyManager != null) {
 					Engine.theApp.proxyManager.destroy();
+				}
+				
+				if (Engine.theApp.resourceCompressorManager != null) {
+					Engine.theApp.resourceCompressorManager.destroy();
 				}
 				
 				if (Engine.theApp.rsaManager != null) {

@@ -87,11 +87,14 @@ public class List extends XmlService{
 	
 	        		if (property.getType() == PropertyType.Combo) {
 	        			for (ComboEnum ce : property.getCombo()) {
-	        				Element comboValueElement = document.createElement("item");
-	        				comboValueElement.setAttribute("value", ce.getValue());
-	        				Text comboValueText = document.createTextNode(ce.getDisplay());
-	        				comboValueElement.appendChild(comboValueText);
-	        				propertyElement.appendChild(comboValueElement);
+	        				String display = ce.getDisplay();
+	        				if (display != null) {
+		        				Element comboValueElement = document.createElement("item");
+		        				comboValueElement.setAttribute("value", ce.getValue());
+		        				Text comboValueText = document.createTextNode(display);
+		        				comboValueElement.appendChild(comboValueText);
+		        				propertyElement.appendChild(comboValueElement);
+	        				}
 	        			}
 	        		}
 	        	}
