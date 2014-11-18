@@ -49,13 +49,23 @@ public class StepUtils {
 	}
 
 	private static Step createStepFromXmlModel(Object parent, Node node, boolean deepClone) throws EngineException {
+		Sequence mainSequence = null;
+		if (parent instanceof Sequence) {
+			mainSequence = (Sequence)parent;
+		}
+		else if (parent instanceof StepWithExpressions) {
+			mainSequence = ((StepWithExpressions)parent).getSequence();
+		}
+		if (mainSequence == null)
+			throw new EngineException("Unable to create step's structure : sequence is null");
+		
 		Hashtable<String, Step> stepsMap = new Hashtable<String, Step>(50);
-		Step step = createStep(stepsMap, parent, node, deepClone);
+		Step step = createStep(mainSequence, stepsMap, null, node, deepClone);
 		stepsMap.clear();
 		return step;
 	}
 	
-	private static Step createStep(Hashtable<String, Step> stepsMap, Object parent, Node node, boolean deepClone) throws EngineException {
+	private static Step createStep(Sequence mainSequence, Hashtable<String, Step> stepsMap, Object parent, Node node, boolean deepClone) throws EngineException {
 		Step step = null;
 		
 		int nodeType = node.getNodeType();
@@ -64,21 +74,21 @@ public class StepUtils {
 				Element element = (Element)node;
 				String tagname = element.getTagName();
 				if (deepClone && stepsMap.containsKey(tagname)) {
-					step = deepClone(parent, (Step)stepsMap.get(tagname));
+					step = deepClone(mainSequence, parent, stepsMap.get(tagname));
 				}
 				
 				if (step == null) {
-					step = createElementStep(parent,element);
+					step = createElementStep(mainSequence, parent,element);
 					if (step != null) {
 						// Add attributes
 						NamedNodeMap map = element.getAttributes();
 						for (int i=0; i<map.getLength(); i++) {
-							createStep(stepsMap, step, map.item(i), deepClone);
+							createStep(mainSequence, stepsMap, step, map.item(i), deepClone);
 						}
 						// Add elements
 						NodeList children = element.getChildNodes();
 						for (int i=0; i<children.getLength(); i++) {
-							createStep(stepsMap, step, children.item(i), deepClone);
+							createStep(mainSequence, stepsMap, step, children.item(i), deepClone);
 						}
 						
 						if (parent != null) stepsMap.put(tagname, step);
@@ -86,7 +96,7 @@ public class StepUtils {
 				}
 				break;
 			case Node.ATTRIBUTE_NODE:
-				step = createAttributeStep(parent,(Attr)node);
+				step = createAttributeStep(mainSequence, parent,(Attr)node);
 				break;
 			default:
 				break;
@@ -95,18 +105,18 @@ public class StepUtils {
 		return step;
 	}
 	
-	private static Step deepClone(Object parent, Step step) throws EngineException {
+	private static Step deepClone(Sequence mainSequence, Object parent, Step step) throws EngineException {
 		Step cloned = null;
 		try {
 			cloned = (Step)step.clone();
 			cloned.priority = cloned.getNewOrderValue();
 			cloned.bNew = true;
-			addStepToParent(parent, cloned);
+			addStepToParent(mainSequence, parent, cloned);
 			
 			if (step instanceof StepWithExpressions) {
 				StepWithExpressions swe = (StepWithExpressions)step;
 				for (Step child: swe.getSteps()) {
-					deepClone(cloned, child);
+					deepClone(mainSequence, cloned, child);
 				}
 			}
 			
@@ -114,7 +124,7 @@ public class StepUtils {
 		return cloned;
 	}
 	
-	private static Step createElementStep(Object parent, Element element) throws EngineException {
+	private static Step createElementStep(Sequence mainSequence, Object parent, Element element) throws EngineException {
 		Step step = null;
 		if (element != null) {
 			if (parent != null) {
@@ -123,7 +133,7 @@ public class StepUtils {
 					if (occurs.equals("unbounded"))
 						occurs = "10";
 					if (Long.parseLong(occurs, 10) > 1) {
-						parent = createIteratorStep(parent, element);
+						parent = createIteratorStep(mainSequence, parent, element);
 					}
 				}
 			}
@@ -143,31 +153,31 @@ public class StepUtils {
 				((XMLElementStep)step).setNodeName(elementNodeName);
 			}
 			step.bNew = true;
-			addStepToParent(parent, step);
+			addStepToParent(mainSequence, parent, step);
 		}
 		return step;
 	}
 	
-	private static void addStepToParent(Object parent, Step step) throws EngineException {
+	private static void addStepToParent(Sequence mainSequence, Object parent, Step step) throws EngineException {
 		if (step != null) {
-			if (parent instanceof Sequence)
-				step.setSequence((Sequence)parent);
+			if (parent == null)
+				step.setSequence(mainSequence);
 			else
 				((StepWithExpressions)parent).addStep(step);
 		}
 	}
 	
-	private static Step createIteratorStep(Object parent, Element element) throws EngineException {
+	private static Step createIteratorStep(Sequence mainSequence, Object parent, Element element) throws EngineException {
 		Step step = (Step)parent;
 		if (parent != null) {
 			step = new IteratorStep();
 			step.bNew = true;
-			addStepToParent(parent, step);
+			addStepToParent(mainSequence, parent, step);
 		}
 		return step;
 	}
 	
-	private static Step createAttributeStep(Object parent, Attr attr) throws EngineException {
+	private static Step createAttributeStep(Sequence mainSequence, Object parent, Attr attr) throws EngineException {
 		XMLAttributeStep step = null;
 		if (attr != null) {
 			String attrName = attr.getName();
@@ -178,7 +188,7 @@ public class StepUtils {
 				step = new XMLAttributeStep();
 				step.setNodeName(attributeNodeName);
 				step.bNew = true;
-				addStepToParent(parent, step);
+				addStepToParent(mainSequence, parent, step);
 			}
 		}
 		return step;
