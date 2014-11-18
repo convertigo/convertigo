@@ -62,6 +62,8 @@ import com.twinsoft.convertigo.beans.core.StepWithExpressions;
 import com.twinsoft.convertigo.beans.statements.HandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScDefaultHandlerStatement;
 import com.twinsoft.convertigo.beans.statements.ScHandlerStatement;
+import com.twinsoft.convertigo.beans.steps.TransactionStep;
+import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.property_editors.AbstractDialogCellEditor;
 import com.twinsoft.convertigo.eclipse.property_editors.ArrayOrNullEditor;
@@ -982,6 +984,14 @@ public class DatabaseObjectTreeObject extends TreeParent implements TreeObjectLi
 			DatabaseObject databaseObject = getObject();
 			Boolean bool = Boolean.valueOf(value);
 			return bool.equals(Boolean.valueOf(databaseObject instanceof StepWithExpressions));
+		}		
+		if (name.equals("isTargetForSapTransaction")) {
+			DatabaseObject databaseObject = getObject();
+			Boolean bool = Boolean.valueOf(value);
+			try {
+				return bool.equals(Boolean.valueOf(((TransactionStep)databaseObject.getParent()).getTargetTransaction() instanceof SapJcoTransaction));
+			} catch (Throwable e) {}
+			return false;
 		}		
 		if (name.equals("objectClassName")) {
 			DatabaseObject databaseObject = getObject();

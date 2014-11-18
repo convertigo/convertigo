@@ -1810,6 +1810,12 @@
             <objectContribution
                   id="convertigo.variable2Contribution"
                   objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2">
+               <visibility>
+                   <objectState
+                         name="objectClassName"
+                         value="com.twinsoft.convertigo.beans.variables.StepVariable">
+                   </objectState>
+               </visibility>
                <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.VariableGenerateFromXmlAndLinkAction"
                      enablesFor="1"
@@ -1819,8 +1825,8 @@
                   <enablement>
                      <and>
                        <objectState
-                             name="objectClassName"
-                             value="com.twinsoft.convertigo.beans.variables.StepVariable">
+                             name="isTargetForSapTransaction"
+                             value="true">
                        </objectState>
                      </and>
                   </enablement>
