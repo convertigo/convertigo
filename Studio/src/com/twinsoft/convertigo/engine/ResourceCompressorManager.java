@@ -363,7 +363,11 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 							if (options.has(GlobalOptions.resources.name())) {
 								resources = options.getJSONArray(GlobalOptions.resources.name());
 								if (options.has(GlobalOptions.compression.name())) {
-									compression = CompressionOptions.valueOf(options.getString(GlobalOptions.compression.name()).toLowerCase());
+									try {
+										compression = CompressionOptions.valueOf(options.getString(GlobalOptions.compression.name()).toLowerCase());
+									} catch (IllegalArgumentException e) {
+										Engine.logEngine.info("(ResourceCompressor) Bad compression name requested: " + options.getString(FileOptions.compression.name()) + " (use common setting)");
+									}
 								}
 							}
 						} catch (JSONException e1) {
@@ -403,7 +407,11 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 									encoding = option.getString(FileOptions.encoding.name());
 								}
 								if (option.has(FileOptions.compression.name())) {
-									resourceCompression = CompressionOptions.valueOf(option.getString(FileOptions.compression.name()));
+									try {
+										resourceCompression = CompressionOptions.valueOf(option.getString(FileOptions.compression.name()));
+									} catch (IllegalArgumentException e) {
+										Engine.logEngine.info("(ResourceCompressor) Bad compression name requested: " + option.getString(FileOptions.compression.name()) + " (use common setting)");
+									}
 								}
 							} else {
 								filepath = optionObject.toString();
@@ -453,7 +461,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 				}
 			}
 		} catch (Exception e) {
-			Engine.logEngine.trace("(ResourceCompressor) Failed to process compressed resources", e);
+			Engine.logEngine.warn("(ResourceCompressor) Failed to process compressed resources", e);
 		}
 		
 		return null;
