@@ -192,7 +192,7 @@ public class Engine {
 	public SchemaManager schemaManager;
 	
 	/**
-	 * The external browser manager
+	 * The resource compressor manager for minification
 	 */
 	public ResourceCompressorManager resourceCompressorManager;
 
@@ -444,7 +444,7 @@ public class Engine {
 					Engine.theApp.resourceCompressorManager.init();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to run the resource compressor.", e);
-				} 
+				}
 				
 				try {
 					Engine.theApp.pluginsManager = new PluginsManager();
@@ -801,6 +801,10 @@ public class Engine {
 				Engine.logEngine.info("Removing the proxy manager");
 				if (Engine.theApp.proxyManager != null) {
 					Engine.theApp.proxyManager.destroy();
+				}
+				
+				if (Engine.theApp.resourceCompressorManager != null) {
+					Engine.theApp.resourceCompressorManager.destroy();
 				}
 				
 				if (Engine.theApp.rsaManager != null) {

@@ -42,9 +42,10 @@ import com.twinsoft.convertigo.engine.util.HttpUtils;
 public class ResourceCompressorManager implements AbstractManager, PropertyChangeEventListener {
 	static final File compressorCacheDirectory = new File(Engine.USER_WORKSPACE_PATH + "/compressor");
 	static final Pattern requestPattern = Pattern.compile("(.*?/projects/|^)(((.*?)/.*?([^/]*?\\.(?:(js)|(css))))(?:\\?(.*)|$))");
+	static final Pattern tailCssUrl = Pattern.compile("([^?]*/).*?\\.css(?:\\?.*)?");
 	
 	// Sample of use:
-	// <script src="js/all.js?{compression:'standard', resources:['/jquery.min.js','/jquery.mobilelib.js','/ctf.core.js','custom.js','/jquery.mobile.min.js']}"></script>
+	// <script src="js/all.js?{compression:'strong', resources:['/jquery.min','/jquery.mobilelib','/ctf.core','custom','/jquery.mobile.min']}"></script>
 	
 	private enum RequestPart {
 		fullRequest(0), beforeProject(1), fullFromProject(2), pathFromProject(3), projectName(4), fileName(5), jsCase(6), cssCase(7), query(8);
@@ -495,7 +496,23 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 		}
 	}
 	
-	static public File getCommonFolder(ResourceType resourceType) {
+	static private File getCommonFolder(ResourceType resourceType) {
 		return new File(Engine.WEBAPP_PATH + (resourceType == ResourceType.js ? "/scripts" : "/css"));
+	}
+	
+	static public File getCommonCssResource(HttpServletRequest request) {
+		String referer = request.getHeader("Referer");
+		if (referer != null) {
+			Matcher mRefererTail = tailCssUrl.matcher(referer);
+			if (mRefererTail.matches()) {
+				String requestURL = HttpUtils.originalRequestURL(request);
+				String refererTail = mRefererTail.group(1);
+				if (requestURL.startsWith(refererTail)) {
+					String relativePath = requestURL.substring(refererTail.length());
+					return new File(getCommonFolder(ResourceType.css), relativePath);
+				}
+			}
+		}
+		return null;
 	}
 }

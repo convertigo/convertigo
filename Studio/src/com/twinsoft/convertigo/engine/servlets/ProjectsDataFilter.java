@@ -48,8 +48,6 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.ResourceCompressorManager;
-import com.twinsoft.convertigo.engine.ResourceCompressorManager.ResourceType;
-import com.twinsoft.convertigo.engine.util.HttpUtils;
 
 public class ProjectsDataFilter implements Filter {
 	private static Pattern p_projects = Pattern.compile("/projects(/.*)");
@@ -157,18 +155,9 @@ public class ProjectsDataFilter implements Filter {
     		if (Engine.theApp.resourceCompressorManager.check(request, response)) {
     			return;
     		} else {
-    			String referer = request.getHeader("Referer");
-    			if (referer != null) {
-    				Pattern tailUrl = Pattern.compile("([^?]*/).*?\\.css(?:\\?.*)?");
-    				Matcher mRefererTail = tailUrl.matcher(referer);
-    				if (mRefererTail.matches()) {
-        				String requestURL = HttpUtils.originalRequestURL(request);
-        				String refererTail = mRefererTail.group(1);
-        				if (requestURL.startsWith(refererTail)) {
-        					String relativePath = requestURL.substring(refererTail.length());
-        					file = new File(ResourceCompressorManager.getCommonFolder(ResourceType.css), relativePath);
-        				}
-    				}
+    			File commonResource = ResourceCompressorManager.getCommonCssResource(request);
+    			if (commonResource != null) {
+    				file = commonResource;
     			}
     		}
     	}
