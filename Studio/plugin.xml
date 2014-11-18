@@ -1806,7 +1806,25 @@
                      </objectState>
                   </enablement>
                </action>
-               
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.variable2Contribution"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.VariableTreeObject2">
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.VariableGenerateFromXmlAndLinkAction"
+                     enablesFor="1"
+                     id="convertigo.action.variable.generateAndLink"
+                     label="Generate and Link structure"
+                     menubarPath="link">
+                  <enablement>
+                     <and>
+                       <objectState
+                             name="objectClassName"
+                             value="com.twinsoft.convertigo.beans.variables.StepVariable">
+                       </objectState>
+                     </and>
+                  </enablement>
+               </action>
             </objectContribution>
             <objectContribution
                   id="convertigo.httpStatementContribution"
