@@ -30,7 +30,6 @@ import org.w3c.dom.Element;
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Variable;
-import com.twinsoft.convertigo.engine.util.XmlSchemaUtils;
 
 public class RequestableVariable extends Variable implements ITagsProperty {
 
@@ -63,21 +62,6 @@ public class RequestableVariable extends Variable implements ITagsProperty {
 		}
 		catch(Exception e) {
 			throw new Exception("Missing \"newPriority\" attribute");
-		}
-		
-		/*TODO : REMOVE THIS PART BEFORE THE 7.0.0 RELEASE !!!!
-		 * R
-		 *  E
-		 *   M
-		 *    O
-		 *     V
-		 *      E
-		 * Minor migration for 7.0.0 dev project (already migrated)
-		 * The real migration is in Migration7_0_0.java 
-		 */
-		if (xmlTypeAffectation != null && xmlTypeAffectation.getQName().getLocalPart().length() == 0) {
-			QName qName = XmlSchemaUtils.getSchemaDataTypeName(getSchemaType());
-			this.xmlTypeAffectation = new XmlQName(qName);
 		}
 	}
 	
