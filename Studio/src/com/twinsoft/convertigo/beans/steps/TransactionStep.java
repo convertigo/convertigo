@@ -180,13 +180,9 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 		}
 	}
 
-	protected void prepareForRequestable(Context javascriptContext, Scriptable scope)
-			throws MalformedURLException, EngineException {
-		Project targetProject = getTargetProject(projectName);
-		Connector targetConnector = (connectorName.equals("") ? targetProject.getDefaultConnector()
-				: targetProject.getConnectorByName(connectorName));
-		Transaction targetTransaction = (transactionName.equals("") ? targetConnector.getDefaultTransaction()
-				: targetConnector.getTransactionByName(transactionName));
+	protected void prepareForRequestable(Context javascriptContext, Scriptable scope) throws MalformedURLException, EngineException {
+		Transaction targetTransaction = getTargetTransaction();
+		Connector targetConnector = targetTransaction.getConnector();
 
 		String ctxName = getContextName(javascriptContext, scope);
 		boolean useSequenceJSession = sequence.useSameJSessionForSteps();
@@ -365,17 +361,21 @@ public class TransactionStep extends RequestableStep implements ITagsProperty {
 	}
 
 	public void importVariableDefinition() throws EngineException {
-		Project p = getTargetProject(projectName);
-		Connector connector = (connectorName.equals("") ? p.getDefaultConnector() : p
-				.getConnectorByName(connectorName));
-		Transaction transaction = (transactionName.equals("") ? connector.getDefaultTransaction() : connector
-				.getTransactionByName(transactionName));
-
-		if (transaction instanceof TransactionWithVariables) {
-			importVariableDefinition(transaction);
+		Transaction targetTransaction = getTargetTransaction();
+		if (targetTransaction != null && targetTransaction instanceof TransactionWithVariables) {
+			importVariableDefinition(targetTransaction);
 		}
 	}
 
+	public Transaction getTargetTransaction() throws EngineException {
+		Project p = getTargetProject(projectName);
+		Connector connector = (connectorName.equals("") ? p.getDefaultConnector() : p
+				.getConnectorByName(connectorName));
+		Transaction targetTransaction = (transactionName.equals("") ? connector.getDefaultTransaction() : connector
+				.getTransactionByName(transactionName));
+		return targetTransaction;
+	}
+	
 	protected byte[] executeMethod() throws IOException, URIException, MalformedURLException, EngineException {
 		Header[] requestHeaders, responseHeaders = null;
 		byte[] result = null;

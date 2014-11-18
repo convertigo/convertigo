@@ -42,6 +42,7 @@ import org.mozilla.javascript.Scriptable;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
 import com.twinsoft.convertigo.beans.core.IContextMaintainer;
 import com.twinsoft.convertigo.beans.core.ITagsProperty;
 import com.twinsoft.convertigo.beans.core.Project;
@@ -115,9 +116,7 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 	}
 	
 	protected void prepareForRequestable(Context javascriptContext, Scriptable scope) throws MalformedURLException, EngineException {
-		Project targetProject = getTargetProject(projectName);
-		List<Sequence> v = targetProject.getSequencesList();
-		Sequence targetSequence = (sequenceName.equals("") ? (v.isEmpty() ? null: (Sequence)v.get(0)):targetProject.getSequenceByName(sequenceName));
+		Sequence targetSequence = getTargetSequence();
 		
 		String ctxName = getContextName(javascriptContext, scope);
 		boolean useSequenceJSession = sequence.useSameJSessionForSteps();
@@ -260,13 +259,17 @@ public class SequenceStep extends RequestableStep implements ITagsProperty{
 	}
 	
 	public void importVariableDefinition() throws EngineException {
+		Sequence targetSequence = getTargetSequence();
+		if (targetSequence != null && targetSequence instanceof GenericSequence) {
+			importVariableDefinition(targetSequence);
+		}
+	}
+	
+	public Sequence getTargetSequence() throws EngineException {
 		Project p = getTargetProject(projectName);
 		List<Sequence> v = p.getSequencesList();
-		Sequence seq = (sequenceName.equals("") ? (v.isEmpty() ? null: (Sequence)v.get(0)):p.getSequenceByName(sequenceName));
-		
-		if (seq instanceof GenericSequence) {
-			importVariableDefinition(seq);
-		}
+		Sequence targetSequence = (sequenceName.equals("") ? (v.isEmpty() ? null: (Sequence)v.get(0)):p.getSequenceByName(sequenceName));
+		return targetSequence;
 	}
 	
     protected byte[] executeMethod() throws IOException, URIException, MalformedURLException, EngineException {
