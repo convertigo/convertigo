@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -256,7 +256,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 				
 				result = sources.toString();
 				
-				FileUtils.writeStringToFile(cacheFile, result, "utf-8");
+				FileUtils.write(cacheFile, result, "utf-8");
 				
 				for (ResourceEntry resourceEntry : resources) {
 					resourceEntry.update();
@@ -278,11 +278,11 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 		}
 		
 		public void writeFile() throws IOException {
-			FileUtils.writeStringToFile(virtualFile, getResult(), "utf-8");
+			FileUtils.write(virtualFile, getResult(), "utf-8");
 		}
 		
 		public void writeFile(String prepend) throws IOException {
-			FileUtils.writeStringToFile(virtualFile, getResult() + "\n" + prepend, "utf-8");
+			FileUtils.write(virtualFile, getResult() + "\n" + prepend, "utf-8");
 		}
 		
 		public ResourceType getResourceType() {
