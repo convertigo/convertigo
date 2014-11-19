@@ -5,20 +5,124 @@
 		<meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
 		<title>Index</title>
 		
-<!-- 	Switch back easy to the library version of the project creation by toggling comments ( ctrl + shift + c )  -->
+		<!--
+			By default, your project will use the latest JS and CSS resources version provided in the Convertigo server where it is deployed.
+			If you want to use a specific version, use the version option. Be sure to use the same version for all the links to the resources. 
+			
+			C8O minifier merges several CSS files or JS files in one resource. It is used in the link and script inclusion tags. 
+			These inclusion tags must be declared following a specific syntax, described here after:
+			 * Include a file that does not exist in your project, .css or .js extension (name of the file regrouping all resources in one).
+			 	* For example js/all.js, js/common.js, other/file.js, allstyles.css …
+			 * Add a JSON object as query string to configure options and the list of resources to merge.
+			 	* For example js/all.js?{json options}
+			 
+			 * {json options} can be an array of resources to merge: 
+			 	* Resource names that start with a '!' are ignored/not merged.
+			 	* File names can end without '.js' or '.css' extension: it uses the extension of the file regrouping all resources.
+			 	* Each resource can include dedicated options in a JSON structure {json resource options}.
+			 	* For example: js/all.js?['res1', '!res2', {res3 json resource options} …]
+			 	
+			 * {json options} can be a JSON structure with the following keys:
+			 	* files (mandatory): array of resources to merge:
+			 		* Resource names that start with a '!' are ignored/not merged.
+			 		* File names can end without '.js' or '.css' extension: it uses the extension of the file regrouping all resources.
+			 		* Each resource can include dedicated options in a JSON structure {json resource options}.
+			 		* For example: 'files':['res1', 'res2', {res3 json resource options} …]
+			 	* compression (optional): compression level for all 'files', except for resources that define their own 'compression' or files that end with '.min'.
+			 	  Possible values: 
+			 		* common: (default) uses the compression level defined in the Convertigo Server Engine (strong by default)
+			 		* none  : no compression at all
+			 		* lines : no compression + add the original file's line numbers (ideal for debug)
+			 		* light : fast and efficient resource compression
+			 		* strong: heavy and more efficient compression (can modify some code, should be strongly tested)
+			 	* stats (optional): true/false. Overwrites the default value set in Convertigo Server Engine (default to true). 
+			 		* When activated, it adds a comment at the end of the compressed file with the size earned by the compression.
+			 	* filenames (optional): true/false. Overwrites the default value set in Convertigo Server Engine (default to true).
+			 		* When activated, it adds comments with the original filenames before and after their content in the merged resource file.
+			 	* version (optional): Allows to define a specific/previous Convertigo version to use this version's resources. 
+			 		* '': (default) uses the latest version's resources
+			 		* '6.3.0', '7.1.0', '7.2.0' or '7.3.0': Used to load common resources from a specific/previous Convertigo release
+			 		* ignored if it contains a value that does not match a released Convertigo version. 
+			 	* For example js/all.js?{'files':['/c8o.core'], 'compression':'light', 'stats':'false', 'filenames':'true', 'version':'7.3.0'}
+			 
+			 * {json resource option} configures one resource dedicated options. It can be a json structure with the following keys:
+			 	* file (mandatory): the name of the resource
+			 		* Is ignored/not merged if starts with '!'.
+			 		* Can end without '.js' or '.css' extension: it uses the extension of the file regrouping all resources.
+			 		* Can start with '/': it uses a common resource of Convertigo Server.
+			 		* If does not start with '/' or '!': it uses a file relative to the file regrouping all resources:
+			 			* js/all.js?['custom'] will load js/custom.js as the file regrouping all resources is declared as being in 'js' folder.
+			 			* common.js?['file1.js','script/file2'] will load file1.js and script/files2.js.
+			 	* compression (optional): forces the compression level (even for files that end with '.min')
+			 	  Possible values: 
+			 		* common: (default) uses the compression level defined in the Convertigo Server Engine (strong by default)
+			 		* none  : no compression at all
+			 		* lines : no compression + add the original file's line numbers (ideal for debug)
+			 		* light : fast and efficient resource compression
+			 		* strong: heavy and more efficient compression (can modify some code, should be strongly tested)
+			 	* encoding: sets the encoding used to read the resources, default is 'utf-8'
+			 	* For example: js/all.js?['res1', {'file':'res2', 'compression':'strong','encoding':'ISO-8859-1'}]
+		-->
 		
-		<link href="../../css/weblib.css" type="text/css" rel="stylesheet"/>
-<!-- 		<link href="../../css/archive/weblib.6.2.0.css" type="text/css" rel="stylesheet"/> -->
-
-		<link href="css/custom.css" type="text/css" rel="stylesheet"/>
+		<!-- CSS inclusions -->
 		
-		<script src="../../scripts/jquery.min.js" type="text/javascript"></script>
-<!-- 		<script src="../../scripts/archive/jquery.1.9.1.min.js" type="text/javascript"></script> -->
+		<!--
+		/weblib.css:
+			* Convertigo Weblib CSS
+			* Provides the application default CSS.
+		custom.css:
+			* Local project custom css
+			* will hold all your custom CSS styles
+		-->
+		<link type="text/css" rel="stylesheet" href="css/all.css?[
+			'/weblib',
+			{'file': 'custom', 'compression': 'common'}
+		]"/>
+		<!-- Following commented line is the same inclusion but referencing the original Convertigo version number -->
+		<!-- 
+		<link type="text/css" rel="stylesheet" href="css/all.css?{
+			'files': [
+				'/weblib', 
+				{'file': 'custom', 'compression': 'common'}
+			], 
+			'version':'6.2.0'
+		}"/> 
+		 -->
 		
-		<script src="../../scripts/weblib.js" type="text/javascript"></script>
-<!-- 		<script src="../../scripts/archive/weblib.6.2.0.js" type="text/javascript"></script> -->
 		
-		<script src="js/custom.js" type="text/javascript"></script>
+		<!-- Scripts inclusions -->
+		
+		<!--
+       	/jquery(.min).js:
+       		* jQuery library (1.x)
+       		* Convertigo applications are based on JQuery. the following links will reference the current jQuery library.
+       	/weblib.js:
+       		* Convertigo Weblib library
+       		* The following link will reference the Convertigo library: Convertigo Weblib library.  
+			* It provides your application's access to the Convertigo Server, API to call Convertigo Server and response management. 
+			* Be sure all the link remains placed in the original inclusion order.
+		custom.js:
+			* Local project custom script
+			* will hold all your custom logic and controller.
+        -->
+        <script src="js/all.js?[
+        	'/jquery.min',
+        	'/weblib',
+        	{'file': 'custom', 'compression': 'common'}
+        ]"></script>
+        <!-- Following commented line is the same inclusion but referencing the original Convertigo version number -->
+        <!-- 
+        <script src="js/all.js?{
+        	'files': [
+	        	'/jquery.min',
+    	    	'/weblib',
+        		{'file': 'custom', 'compression': 'common'}
+        	], 
+        	'version':'6.2.0'
+        }"></script>
+         -->
+        
+        
 	</head>
 	<body>	
 		<div id="wait_div">
