@@ -66,17 +66,23 @@ public class SourcePickerHelper implements IStepSourceEditor {
 				Step step = (Step)dbo;
 				String xpath = getSourceXPath();
 				String anchor = step.getAnchor();
+				Document stepDoc = null;
 				
 				Step targetStep = step;
 				while (targetStep instanceof IteratorStep) {
 					targetStep = getTargetStep(targetStep);
 				}
 				
-				Project project = step.getProject();
-				XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), Option.fullSchema);
-				XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep);
-				Document stepDoc = xso!= null ? XmlSchemaUtils.getDomInstance(xso) : null;
-				if (stepDoc != null) { // stepDoc can be null for non "xml" step : e.g jIf
+				if (targetStep != null) {
+					Project project = step.getProject();
+					XmlSchema schema = Engine.theApp.schemaManager.getSchemaForProject(project.getName(), Option.fullSchema);
+					XmlSchemaObject xso = SchemaMeta.getXmlSchemaObject(schema, targetStep);
+					if (xso != null) {
+						stepDoc = XmlSchemaUtils.getDomInstance(xso);	
+					}
+				}
+				
+				if (stepDoc != null/* && !(targetStep instanceof IteratorStep)*/) { // stepDoc can be null for non "xml" step : e.g jIf
 					Document doc = step.getSequence().createDOM();
 					Element root = (Element)doc.importNode(stepDoc.getDocumentElement(), true);
 					doc.replaceChild(root, doc.getDocumentElement());
@@ -87,16 +93,14 @@ public class SourcePickerHelper implements IStepSourceEditor {
 						displayXhtml(doc);
 						xpathEvaluator.removeAnchor();
 						xpathEvaluator.displaySelectionXpathWithAnchor(twsDomTree, anchor, xpath);
+						return;
 					}
-					else clean();
 				}
-				else clean();
 			}
-			else clean();
 		} catch (Exception e) {
-			clean();
 			ConvertigoPlugin.logException(e, StringUtils.readStackTraceCauses(e));
 		}
+		clean();
 	}
 	
 	private void removeUserDefinedNodes(Element parent) {
@@ -142,6 +146,8 @@ public class SourcePickerHelper implements IStepSourceEditor {
 			com.twinsoft.convertigo.beans.core.StepSource source = new com.twinsoft.convertigo.beans.core.StepSource(step,((IStepSourceContainer)step).getSourceDefinition());
 			if (source != null && !source.isEmpty()) {
 				return source.getStep();
+			} else {
+				return null;
 			}
 		}
 		return step;
