@@ -62,7 +62,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 	}
 	
 	private enum GlobalOptions {
-		compression, resources, stats, filenames
+		compression, files, stats, filenames, version
 	}
 	
 	private enum FileOptions {
@@ -141,10 +141,10 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 		private File cacheFile;
 		private ResourceType resourceType;
 		private File virtualFile;
+		private boolean filenames = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.MINIFICATION_FILENAMES);
+		private boolean stats = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.MINIFICATION_STATS);
 		
 		private ResourceBundle(ResourceType resourceType, File virtualFile, String key) {
-			this.resourceType= resourceType; 
-			this.virtualFile = virtualFile;
 			key = key.replaceFirst("(.*?)/_private/(?:flashupdate|mobile)/", "$1/DisplayObjects/mobile/");
 			key = DigestUtils.md5Hex(key) + DigestUtils.shaHex(key) + "." + resourceType.name();
 			cacheFile = new File(compressorCacheDirectory, key);
@@ -175,8 +175,6 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 			String result = "";
 			if (!cacheFile.exists() || checkNewer()) {
 				StringWriter sources = new StringWriter();
-				boolean filenames = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.MINIFICATION_FILENAMES);
-				boolean stats = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.MINIFICATION_STATS);
 				
 				int fullsize = 0;
 				
@@ -293,8 +291,22 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 			return virtualFile;
 		}
 
-		public File getCommonFolder() {
-			return ResourceCompressorManager.getCommonFolder(resourceType);
+		public File getCommonFolder(String version) {
+			File commonFolder = ResourceCompressorManager.getCommonFolder(resourceType);
+			File versionFolder;
+			if (version.length() > 0 && (versionFolder = new File(commonFolder, version)).exists()) {
+				return versionFolder;
+			} else {
+				return commonFolder;
+			}
+		}
+		
+		public void setFilenames(boolean filenames) {
+			this.filenames = filenames;
+		}
+
+		public void setStats(boolean stats) {
+			this.stats = stats;
 		}
 	}
 	
@@ -338,6 +350,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 				String key = RequestPart.fullFromProject.value(requestMatcher) + settingKey;
 				CompressionOptions compression = CompressionOptions.common;
 				CompressionOptions commonCompression = EnginePropertiesManager.getPropertyAsEnum(PropertyName.MINIFICATION_LEVEL);
+				String version = "";
 				
 				ResourceBundle resourceBundle;
 				synchronized (cache) {
@@ -353,14 +366,15 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 				}
 				synchronized (resourceBundle) {
 					if (!resourceBundle.isInit()) {
-						JSONArray resources = null;
+						JSONArray files = null;
 						JSONObject options = null;
 						String query = RequestPart.query.value(requestMatcher);
 						Engine.logEngine.trace("(ResourceCompressor) Parse JSON query '" + query + "'");
 						try {
 							options = new JSONObject(query);
-							if (options.has(GlobalOptions.resources.name())) {
-								resources = options.getJSONArray(GlobalOptions.resources.name());
+							
+							if (options.has(GlobalOptions.files.name())) {
+								files = options.getJSONArray(GlobalOptions.files.name());
 								if (options.has(GlobalOptions.compression.name())) {
 									try {
 										compression = CompressionOptions.valueOf(options.getString(GlobalOptions.compression.name()).toLowerCase());
@@ -369,31 +383,46 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 									}
 								}
 							}
+							
+							if (options.has(GlobalOptions.version.name())) {
+								version = options.getString(GlobalOptions.version.name());
+							}
+							
+							try {
+								boolean filenames = Boolean.parseBoolean(options.getString(GlobalOptions.filenames.name()));
+								resourceBundle.setFilenames(filenames);
+							} catch (Exception e) {};
+							
+							try {
+								boolean stats = Boolean.parseBoolean(options.getString(GlobalOptions.stats.name()));
+								resourceBundle.setStats(stats);
+							} catch (Exception e) {};
+							
 						} catch (JSONException e1) {
 							
 						}
 						try {
-							if (resources == null) {
-								resources = new JSONArray(query);
+							if (files == null) {
+								files = new JSONArray(query);
 							}
 						} catch (JSONException e2) {
-							resources = new JSONArray();
+							files = new JSONArray();
 							if (options != null) {
-								resources.put(options);
+								files.put(options);
 							} else if (query.length() == 0) {
-								resources.put(RequestPart.fileName.value(requestMatcher));
+								files.put(RequestPart.fileName.value(requestMatcher));
 							} else {
-								resources.put(query);
+								files.put(query);
 							}
 						}
 						
 						File relativeFile = new File(Engine.PROJECTS_PATH + "/" + RequestPart.pathFromProject.value(requestMatcher)).getParentFile();
 						Engine.logEngine.trace("(ResourceCompressor) Solve relative resource from '" + relativeFile.toString() + "'");
 						
-						int optionsLength = resources.length();
+						int optionsLength = files.length();
 						resourceBundle.init(optionsLength);
 						for (int i = 0; i < optionsLength; i++) {
-							Object optionObject = resources.get(i);
+							Object optionObject = files.get(i);
 							String filepath = null;
 							String encoding = "utf-8";
 							CompressionOptions resourceCompression = null;
@@ -425,7 +454,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 									resourceCompression = filepath.endsWith(".min" + fileExtension) ? CompressionOptions.none : compression;
 								}
 								
-								File file = new File(filepath.startsWith("/") ? resourceBundle.getCommonFolder() : relativeFile, filepath);
+								File file = new File(filepath.startsWith("/") ? resourceBundle.getCommonFolder(version) : relativeFile, filepath);
 								
 								if (file.exists()) {
 									Engine.logEngine.trace("(ResourceCompressor) Add file '" + file + "' (" + encoding +")");
