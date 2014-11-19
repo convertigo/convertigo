@@ -978,14 +978,15 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 					if (isCompatibleConfiguration(scheme != null && scheme.equals(shuttle.getRequest(QueryPart.scheme)))) {
 						if (Engine.theApp.proxyManager.isEnabled()) {
 							String proxyHost = hostConfiguration.getProxyHost();
-							if (proxyHost == null){
+							if (proxyHost == null) {
 								proxyHost = "";
 							}
 							if (isCompatibleConfiguration(proxyHost.equals(Engine.theApp.proxyManager.getProxyServer()))){
 								//don't test the proxy port if the proxy host is null
-								isCompatibleConfiguration(hostConfiguration.getProxyPort() == Engine.theApp.proxyManager.getProxyPort());
-								isCompatibleConfiguration(hostConfiguration.getParams().getParameter("hostConfId").equals(Engine.theApp.proxyManager.getHostConfId()));
-							}	
+								if (isCompatibleConfiguration(hostConfiguration.getProxyPort() == Engine.theApp.proxyManager.getProxyPort())) {
+									isCompatibleConfiguration(hostConfiguration.getParams().getParameter("hostConfId").equals(Engine.theApp.proxyManager.getHostConfId()));	
+								}
+							}
 						}
 					}
 				}
