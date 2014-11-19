@@ -7,50 +7,71 @@
 		
 		<!--
 			By default, your project will use the latest JS and CSS resources version provided in the Convertigo server
-			where it is deployed. If you want to use a specific version, comment out the current links and comment in
+			where it is deployed. If you want to use a specific version, add the prefix
 			the /x.x.x version of links to the resource you want to use. Be sure to use the same version for all the links
 			to the resources.
 			
-			Also, all links are by default on the minified version of the resources. We provide for your convenience links
-			to the non minifed versions, just commend out the non minified and comment in the minified links if you want to
-			use	them.
+			You can merge CSS and JS files using the C8O minifier:
+			 * just include a file that doesn't exist in your project, with a .css or .js extension
+			 	* like js/all.js, js/common.js, other/file.js, allstyles.css …
+			 * add a JSON query string with options and list of resource to merge and minify
+			 	* like js/all.js?{json options}
+			 * {json options} can be an array of resources to merge. Ignore resources start with a '!'.
+			 	* like js/all.js?['res1', '!res2', {res3 json resource option} …]
+			 * {json options} can be a json structure with the following keys:
+			 	* files (mandatory): JS array of resources to merge
+			 		* ['res1', 'res2', {res3 json resource option} …]
+			 	* compression (optional): compression level for 'files', except for resource that defined its 'compression'
+			 	  or a file ends with '.min' without its own 'compression'.
+			 	  Possible values: 
+			 		* common: (default) use the compression defined in the Engine parameter
+			 		* none  : no compression at all
+			 		* lines : no compression + add the original file line number (ideal for debug)
+			 		* light : fast and efficient resource compression
+			 		* strong: heavy and more efficient compression
+			 	* stats (optional): true/false, appends or not the size saved by the compression at the end of the merged resource
+			 	* filenames (optional): true/false, appends or not the filename before and after it's content in the merged resource
+			 	* version (optional):
+			 		* '': (default) for the latest version
+			 		* '6.3.0', '7.1.0', '7.2.0' or '7.3.0': Used to load common resources from a previous Convertigo release
+			 		* ignored if it doesn't exist
+			 	* like js/all.js?{'compression':'light', 'stats':'false', 'files':['/c8o.core'], 'version':'7.3.0'}
+			 * {json resource option} can be a json structure with the following keys:
+			 	* file (mandatory): the name of the resource
+			 		* ends without extension '.js' or '.css': use the extension of the included resource
+			 		* starts with '!': ignored, not merged
+			 		* starts with '/': use a common resource of Convertigo
+			 		* not starts with '/' or '!': use a relative file of the included resource:
+			 			* js/all.js?['custom'] > load js/custom.js
+			 			* common.js?['file1.js','script/file2'] > load file1.js and script/files2.js
+			 	* compression (optional): force the compression level (common, none, lines, light, strong)
+			 	* encoding: set the encoding used to read the resource, default is 'utf-8'
+			 	* like js/all.js?['res1', {'file':'res2', 'compression':'strong','encoding':'8859-1'}]
 		-->
 		
 		<!-- CSS inclusions -->
-		
 		<!--
-			Convertigo c8o CSS
-			=====================
-			Provides the application default CSS.
+		/c8o.desktop.css:
+			* Convertigo c8o CSS
+			* Provides the application default CSS.
+		custom.css:
+			* Local project custom css
+			* will hold all your custom CSS styles
 		-->
-		<link href="../../css/c8o.desktop.css" type="text/css" rel="stylesheet"/>
-<!-- 	<link href="../../css/7.2.0/c8o.desktop.css" type="text/css" rel="stylesheet"/> -->
-
-		<!--
-			Local project custom css
-			===================================
-			custom.css will hold all your custom CSS styles
-		-->
-		<link href="css/custom.css" type="text/css" rel="stylesheet"/>
 		
+		<link type="text/css" rel="stylesheet" href="css/all.css?[
+			'/c8o.desktop',
+			{'file': 'custom', 'compression': 'common'}
+		]"/>
 		
 		<!-- Scripts inclusions -->
-		
 		<!--
-        	jQuery library (1.x)
-        	==============
-        	Convertigo applications are based on JQuery. the following links will reference the current jQuery
-        	library.
-        -->
-		<script src="../../scripts/jquery.min.js" type="text/javascript"></script>
-<!-- 	<script src="../../scripts/7.2.0/jquery.min.js" type="text/javascript"></script> -->
-<!-- 	<script src="../../scripts/jquery.js" type="text/javascript"></script> -->
-<!-- 	<script src="../../scripts/7.2.0/jquery.js" type="text/javascript"></script> -->
-		
-		<!--
-			Convertigo jQuery c8o lib
-			===============================
-			The following links will reference the Convertigo libraries: Convertigo core library, Convertigo desktop dedicated library, 
+       	/jquery(.min).js:
+       		* jQuery library (1.x)
+       		* Convertigo applications are based on JQuery. the following links will reference the current jQuery library.
+       	/c8o.core.js, c8o.desktop & ctf.core.js:
+       		* Convertigo jQuery c8o lib
+       		* The following links will reference the Convertigo libraries: Convertigo core library, Convertigo desktop dedicated library, 
 			Convertigo Templating Framework library.  
 			They provide your application's access to the Convertigo Server, automatic call of Convertigo Server and response management. 
 			Be sure all the links remain placed in the original inclusion order.
@@ -60,29 +81,23 @@
 			You can find documentation about Convertigo Templating Framework here:
 			http://help.convertigo.com/latest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
 			or
-			http://help.convertigo.com/7.2.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
+			http://help.convertigo.com/7.3.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/convertigoTemplatingFramework.html
 			
 			You can find documentation about Convertigo Internationalization Framework (CTF plugin) here:
 			http://help.convertigo.com/latest/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
 			or
-			http://help.convertigo.com/7.2.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
-			
-		-->
-		<script src="../../scripts/c8o.core.js" type="text/javascript"></script>
-		<script src="../../scripts/c8o.desktop.js" type="text/javascript"></script>
-<!-- 	<script src="../../scripts/ctf.core.js" type="text/javascript"></script> -->
-		
-<!-- 	<script src="../../scripts/7.2.0/c8o.core.js" type="text/javascript"></script> -->
-<!-- 	<script src="../../scripts/7.2.0/c8o.desktop.js" type="text/javascript"></script> -->
-<!-- 	<script src="../../scripts/7.2.0/ctf.core.js" type="text/javascript"></script> -->
-		
-		<!--
-			Local project custom script
-			===================================
-			custom.js will hold all your custom logic and controller.
-			WARNING : Be sure this link is the last link referenced in the <head> section.  
-		-->
-		<script src="js/custom.js" type="text/javascript"></script>
+			http://help.convertigo.com/7.3.0/topic/com.twinsoft.convertigo.studio.help/help/helpRefManual/internationalization.html
+		custom.js:
+			* Local project custom script
+			* will hold all your custom logic and controller.
+        -->
+        <script src="js/all.js?[
+        	'/jquery.min',
+        	'/c8o.core',
+        	'/c8o.desktop'
+        	'!/ctf.core.js'
+        	{'file': 'custom', 'compression': 'common'}
+        ]"></script>
 	</head>
 	<body>	
 		<div id="wait_div">
