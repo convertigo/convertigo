@@ -28,22 +28,22 @@
 			 		* File names can end without '.js' or '.css' extension: it uses the extension of the file regrouping all resources.
 			 		* Each resource can include dedicated options in a JSON structure {json resource options}.
 			 		* For example: 'files':['res1', 'res2', {res3 json resource options} …]
-			 	* compression (optional): compression level for all 'files', except for resources that define their own 'compression' or files that end with '.min'.
+			 	* minification (optional): minification level for all 'files', except for resources that define their own 'minification' or files that end with '.min'.
 			 	  Possible values: 
-			 		* common: (default) uses the compression level defined in the Convertigo Server Engine (strong by default)
-			 		* none  : no compression at all
-			 		* lines : no compression + add the original file's line numbers (ideal for debug)
-			 		* light : fast and efficient resource compression
-			 		* strong: heavy and more efficient compression (can modify some code, should be strongly tested)
+			 		* common: (default) uses the minification level defined in the Convertigo Server Engine (strong by default)
+			 		* none  : no minification at all
+			 		* lines : no minification + add the original file's line numbers (ideal for debug)
+			 		* light : fast and efficient resource minification
+			 		* strong: heavy and more efficient minification (can modify some code, should be strongly tested)
 			 	* stats (optional): true/false. Overwrites the default value set in Convertigo Server Engine (default to true). 
-			 		* When activated, it adds a comment at the end of the compressed file with the size earned by the compression.
+			 		* When activated, it adds a comment at the end of the minified file with the size earned by the minification.
 			 	* filenames (optional): true/false. Overwrites the default value set in Convertigo Server Engine (default to true).
 			 		* When activated, it adds comments with the original filenames before and after their content in the merged resource file.
 			 	* version (optional): Allows to define a specific/previous Convertigo version to use this version's resources. 
 			 		* '': (default) uses the latest version's resources
 			 		* '6.3.0', '7.1.0', '7.2.0' or '7.3.0': Used to load common resources from a specific/previous Convertigo release
 			 		* ignored if it contains a value that does not match a released Convertigo version. 
-			 	* For example js/all.js?{'files':['/c8o.core'], 'compression':'light', 'stats':'false', 'filenames':'true', 'version':'7.3.0'}
+			 	* For example js/all.js?{'files':['/c8o.core'], 'minification':'light', 'stats':'false', 'filenames':'true', 'version':'7.3.0'}
 			 
 			 * {json resource option} configures one resource dedicated options. It can be a json structure with the following keys:
 			 	* file (mandatory): the name of the resource
@@ -53,15 +53,15 @@
 			 		* If does not start with '/' or '!': it uses a file relative to the file regrouping all resources:
 			 			* js/all.js?['custom'] will load js/custom.js as the file regrouping all resources is declared as being in 'js' folder.
 			 			* common.js?['file1.js','script/file2'] will load file1.js and script/files2.js.
-			 	* compression (optional): forces the compression level (even for files that end with '.min')
+			 	* minification (optional): forces the minification level (even for files that end with '.min')
 			 	  Possible values: 
-			 		* common: (default) uses the compression level defined in the Convertigo Server Engine (strong by default)
-			 		* none  : no compression at all
-			 		* lines : no compression + add the original file's line numbers (ideal for debug)
-			 		* light : fast and efficient resource compression
-			 		* strong: heavy and more efficient compression (can modify some code, should be strongly tested)
+			 		* common: (default) uses the minification level defined in the Convertigo Server Engine (strong by default)
+			 		* none  : no minification at all
+			 		* lines : no minification + add the original file's line numbers (ideal for debug)
+			 		* light : fast and efficient resource minification
+			 		* strong: heavy and more efficient minification (can modify some code, should be strongly tested)
 			 	* encoding: sets the encoding used to read the resources, default is 'utf-8'
-			 	* For example: js/all.js?['res1', {'file':'res2', 'compression':'strong','encoding':'ISO-8859-1'}]
+			 	* For example: js/all.js?['res1', {'file':'res2', 'minification':'strong','encoding':'ISO-8859-1'}]
 		-->
 		
 		
@@ -77,14 +77,14 @@
 		
 		<link type="text/css" rel="stylesheet" href="css/all.css?[
 			'/c8o.desktop',
-			{'file': 'custom', 'compression': 'common'}
+			{'file': 'custom', 'minification': 'common'}
 		]"/>
 		<!-- Following commented line is the same inclusion but referencing the original Convertigo version number -->
 		<!-- 
 		<link type="text/css" rel="stylesheet" href="css/all.css?{
 			'files': [
 				'/c8o.desktop', 
-				{'file': 'custom', 'compression': 'common'}
+				{'file': 'custom', 'minification': 'common'}
 			], 
 			'version':'7.3.0'
 		}"/> 
@@ -123,7 +123,7 @@
         	'/c8o.core',
         	'/c8o.desktop',
         	'!/ctf.core.js',
-        	{'file': 'custom', 'compression': 'common'}
+        	{'file': 'custom', 'minification': 'common'}
         ]"></script>
         <!-- Following commented line is the same inclusion but referencing the original Convertigo version number -->
         <!-- 
@@ -133,7 +133,7 @@
         		'/c8o.core',
         		'/c8o.desktop',
         		'!/ctf.core.js',
-    	    	{'file': 'custom', 'compression': 'common'}
+    	    	{'file': 'custom', 'minification': 'common'}
         	], 
         	'version':'7.3.0'
         }"></script>
