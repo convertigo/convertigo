@@ -64,6 +64,7 @@
 			 	* For example: js/all.js?['res1', {'file':'res2', 'compression':'strong','encoding':'ISO-8859-1'}]
 		-->
 		
+		
 		<!-- CSS inclusions -->
 		<!--
 		/c8o.desktop.css:
@@ -78,7 +79,18 @@
 			'/c8o.desktop',
 			{'file': 'custom', 'compression': 'common'}
 		]"/>
-		
+		<!-- Following commented line is the same inclusion but referencing the original Convertigo version number -->
+		<!-- 
+		<link type="text/css" rel="stylesheet" href="css/all.css?{
+			'files': [
+				'/c8o.desktop', 
+				{'file': 'custom', 'compression': 'common'}
+			], 
+			'version':'7.3.0'
+		}"/> 
+		 -->
+		 
+		 
 		<!-- Scripts inclusions -->
 		<!--
        	/jquery(.min).js:
@@ -109,10 +121,24 @@
         <script src="js/all.js?[
         	'/jquery.min',
         	'/c8o.core',
-        	'/c8o.desktop'
-        	'!/ctf.core.js'
+        	'/c8o.desktop',
+        	'!/ctf.core.js',
         	{'file': 'custom', 'compression': 'common'}
         ]"></script>
+        <!-- Following commented line is the same inclusion but referencing the original Convertigo version number -->
+        <!-- 
+        <script src="js/all.js?{
+        	'files': [
+	        	'/jquery.min',
+        		'/c8o.core',
+        		'/c8o.desktop',
+        		'!/ctf.core.js',
+    	    	{'file': 'custom', 'compression': 'common'}
+        	], 
+        	'version':'7.3.0'
+        }"></script>
+         -->
+         
 	</head>
 	<body>	
 		<div id="wait_div">
