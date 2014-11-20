@@ -527,11 +527,11 @@ public class EnginePropertiesManager {
 		
 		/** MINIFICATION */
 		@PropertyOptions(propertyType = PropertyType.Combo, combo = MinificationOptions.class)
-		MINIFICATION_LEVEL ("minification.level", MinificationOptions.strong.name(), "Minification level for the 'common' value", PropertyCategory.Minification),
+		MINIFICATION_LEVEL ("minification.level", MinificationOptions.strong.name(), "Common minification level", PropertyCategory.Minification),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
-		MINIFICATION_STATS ("minification.stats", "true", "Show saved space at the end of compressed resources", PropertyCategory.Minification),
+		MINIFICATION_STATS ("minification.stats", "true", "Show statistics", PropertyCategory.Minification),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
-		MINIFICATION_FILENAMES ("minification.filenames", "true", "Show filenames compressed", PropertyCategory.Minification),
+		MINIFICATION_FILENAMES ("minification.filenames", "true", "Show filenames", PropertyCategory.Minification),
 		
 		/** MOBILE BUILDER */
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
