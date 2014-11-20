@@ -194,7 +194,7 @@ public class Engine {
 	/**
 	 * The resource compressor manager for minification
 	 */
-	public ResourceCompressorManager resourceCompressorManager;
+	public MinificationManager minificationManager;
 
 	/**
 	 * The plugins manager
@@ -440,10 +440,10 @@ public class Engine {
 				}
 				
 				try {
-					Engine.theApp.resourceCompressorManager = new ResourceCompressorManager();
-					Engine.theApp.resourceCompressorManager.init();
+					Engine.theApp.minificationManager = new MinificationManager();
+					Engine.theApp.minificationManager.init();
 				} catch (Exception e) {
-					Engine.logEngine.error("Unable to run the resource compressor.", e);
+					Engine.logEngine.error("Unable to run the minification manager.", e);
 				}
 				
 				try {
@@ -803,8 +803,8 @@ public class Engine {
 					Engine.theApp.proxyManager.destroy();
 				}
 				
-				if (Engine.theApp.resourceCompressorManager != null) {
-					Engine.theApp.resourceCompressorManager.destroy();
+				if (Engine.theApp.minificationManager != null) {
+					Engine.theApp.minificationManager.destroy();
 				}
 				
 				if (Engine.theApp.rsaManager != null) {
@@ -817,10 +817,6 @@ public class Engine {
 				
 				if (Engine.theApp.schemaManager != null) {
 					Engine.theApp.schemaManager.destroy();
-				}
-				
-				if (Engine.theApp.resourceCompressorManager != null) {
-					Engine.theApp.resourceCompressorManager.destroy();
 				}
 
 				if (Engine.theApp.pluginsManager != null) {

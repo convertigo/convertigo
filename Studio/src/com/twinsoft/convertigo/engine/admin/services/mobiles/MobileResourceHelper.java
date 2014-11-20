@@ -28,7 +28,7 @@ import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.mobileplatforms.BlackBerry;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.ResourceCompressorManager.ResourceBundle;
+import com.twinsoft.convertigo.engine.MinificationManager.ResourceBundle;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.util.ZipUtils;
 
@@ -234,7 +234,7 @@ public class MobileResourceHelper {
 								if (includeChar == null && includeBuf != null) {
 									String uri = includeBuf;
 									uri = htmlFile.getParent().substring(projectDir.getParent().length() + 1) + "/" + uri;
-									ResourceBundle resourceBundle = Engine.theApp.resourceCompressorManager.process(uri);
+									ResourceBundle resourceBundle = Engine.theApp.minificationManager.process(uri);
 									if (resourceBundle != null) {
 										synchronized (resourceBundle) {
 											String prepend = null;
