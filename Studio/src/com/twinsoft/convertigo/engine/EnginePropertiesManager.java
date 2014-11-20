@@ -510,14 +510,6 @@ public class EnginePropertiesManager {
 		CARIOCA_SESSION_KEY_LIFE_TIME ("carioca.session_key.life_time", "60", "Default session key life time (in seconds)", PropertyCategory.Carioca),
 		CARIOCA_URL ("carioca.url", "${user.workspace}/minime", "Carioca access URL", PropertyCategory.Carioca),
 		
-		/** MINIFICATION */
-		@PropertyOptions(propertyType = PropertyType.Combo, combo = MinificationOptions.class)
-		MINIFICATION_LEVEL ("minification.level", MinificationOptions.strong.name(), "Minification level for the 'common' value", PropertyCategory.Minification),
-		@PropertyOptions(propertyType = PropertyType.Boolean)
-		MINIFICATION_STATS ("minification.stats", "true", "Show saved space at the end of compressed resources", PropertyCategory.Minification),
-		@PropertyOptions(propertyType = PropertyType.Boolean)
-		MINIFICATION_FILENAMES ("minification.filenames", "true", "Show filenames compressed", PropertyCategory.Minification),
-
 		/** SUPERVISION */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		BILLING_ENABLED ("billing.enabled", "false", "Enable supervision", PropertyCategory.Billing),
@@ -547,7 +539,15 @@ public class EnginePropertiesManager {
 		NOTIFICATIONS_SMTP_USER ("notifications.smtp.user", "", "STMP user", PropertyCategory.Notifications),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
 		NOTIFICATIONS_SMTP_PASSWORD ("notifications.smtp.password", "", "STMP password", PropertyCategory.Notifications),
-		
+
+		/** MINIFICATION */
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = MinificationOptions.class)
+		MINIFICATION_LEVEL ("minification.level", MinificationOptions.strong.name(), "Common minification level", PropertyCategory.Minification),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		MINIFICATION_STATS ("minification.stats", "true", "Show statistics", PropertyCategory.Minification),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		MINIFICATION_FILENAMES ("minification.filenames", "true", "Show filenames", PropertyCategory.Minification),
+
 		/** MOBILE BUILDER */
 		MOBILE_BUILDER_USERNAME ("mobile.builder.username", "", "Mobile builder username", PropertyCategory.MobileBuilder),
 		@PropertyOptions(propertyType = PropertyType.PasswordPlain, ciphered = true)
