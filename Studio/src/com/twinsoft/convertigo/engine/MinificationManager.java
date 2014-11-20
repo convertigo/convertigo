@@ -39,13 +39,13 @@ import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 
-public class ResourceCompressorManager implements AbstractManager, PropertyChangeEventListener {
-	static final File compressorCacheDirectory = new File(Engine.USER_WORKSPACE_PATH + "/compressor");
+public class MinificationManager implements AbstractManager, PropertyChangeEventListener {
+	static final File minificationCacheDirectory = new File(Engine.USER_WORKSPACE_PATH + "/minification");
 	static final Pattern requestPattern = Pattern.compile("(.*?/projects/|^)(((.*?)/.*?([^/]*?\\.(?:(js)|(css))))(?:\\?(.*)|$))");
 	static final Pattern tailCssUrl = Pattern.compile("([^?]*/).*?\\.css(?:\\?.*)?");
 	
 	// Sample of use:
-	// <script src="js/all.js?{compression:'strong', resources:['/jquery.min','/jquery.mobilelib','/ctf.core','custom','/jquery.mobile.min']}"></script>
+	// <script src="js/all.js?{'minification':'strong', 'resources':['/jquery.min','/jquery.mobilelib','/ctf.core','custom','/jquery.mobile.min']}"></script>
 	
 	private enum RequestPart {
 		fullRequest(0), beforeProject(1), fullFromProject(2), pathFromProject(3), projectName(4), fileName(5), jsCase(6), cssCase(7), query(8);
@@ -62,23 +62,23 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 	}
 	
 	private enum GlobalOptions {
-		compression, files, stats, filenames, version
+		minification, files, stats, filenames, version
 	}
 	
 	private enum FileOptions {
-		compression, file, encoding
+		minification, file, encoding
 	}
 	
-	public enum CompressionOptions implements ComboEnum {
+	public enum MinificationOptions implements ComboEnum {
 		common(null),
 		none("none (no minification)"),
-		lines("lines (no minification + lines)"),
+		lines("lines (no minification + lines in comment)"),
 		light("light (express minification)"),
 		strong("strong (strong minification)");
 		
 		final String display;
 		
-		CompressionOptions(String display) {
+		MinificationOptions(String display) {
 			this.display = display;
 		}
 		
@@ -107,12 +107,12 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 		private File file;
 		private long lastChange = -1;
 		private String encoding;
-		private CompressionOptions compression;
+		private MinificationOptions minification;
 		
-		private ResourceEntry(File file, String encoding, CompressionOptions compression) {
+		private ResourceEntry(File file, String encoding, MinificationOptions minification) {
 			this.file = file;
 			this.encoding = encoding;
-			this.compression = compression;
+			this.minification = minification;
 		}
 		
 		private boolean isNewer() {
@@ -131,8 +131,8 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 			return encoding;
 		}
 		
-		private CompressionOptions getCompression() {
-			return compression;
+		private MinificationOptions getMinification() {
+			return minification;
 		}
 	}
 	
@@ -147,11 +147,11 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 		private ResourceBundle(ResourceType resourceType, File virtualFile, String key) {
 			key = key.replaceFirst("(.*?)/_private/(?:flashupdate|mobile)/", "$1/DisplayObjects/mobile/");
 			key = DigestUtils.md5Hex(key) + DigestUtils.shaHex(key) + "." + resourceType.name();
-			cacheFile = new File(compressorCacheDirectory, key);
+			cacheFile = new File(minificationCacheDirectory, key);
 		}
 		
 		private void init(int size) {
-			resources = new ArrayList<ResourceCompressorManager.ResourceEntry>(size);
+			resources = new ArrayList<MinificationManager.ResourceEntry>(size);
 		}
 		
 		private boolean isInit() {
@@ -179,7 +179,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 				int fullsize = 0;
 				
 				if (filenames) {
-					sources.append("/*/!\\ C8O resource compressor: ");
+					sources.append("/*/!\\ C8O resource minification: ");
 				
 					for (ResourceEntry resourceEntry : resources) {
 						sources.append(resourceEntry.getFile().getName() + " ");
@@ -190,12 +190,12 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 				
 				for (ResourceEntry resourceEntry : resources) {
 					File file = resourceEntry.getFile();
-					CompressionOptions compression = resourceEntry.getCompression();
+					MinificationOptions minification = resourceEntry.getMinification();
 					
 					if (filenames) {
 						sources.append("/*/!\\ <" + file.getName() + "> */\n");
 					}
-					if (compression == CompressionOptions.lines) {
+					if (minification == MinificationOptions.lines) {
 						BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), resourceEntry.getEncoding()));
 						int lineCpt = 1;
 						
@@ -211,32 +211,32 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 						}
 						br.close();
 					} else {
-						String uncompressed = FileUtils.readFileToString(file, resourceEntry.getEncoding());
-						fullsize += uncompressed.length();
+						String raw = FileUtils.readFileToString(file, resourceEntry.getEncoding());
+						fullsize += raw.length();
 						
-						if (compression == CompressionOptions.none) {
-							sources.append(uncompressed);
+						if (minification == MinificationOptions.none) {
+							sources.append(raw);
 						} else {
-							StringWriter compressed = new StringWriter();
+							StringWriter minified = new StringWriter();
 							try {
 								if (resourceType == ResourceType.js) {
-									if (compression == CompressionOptions.light) {
-										new JSMinProcessor().process(new StringReader(uncompressed), compressed);
+									if (minification == MinificationOptions.light) {
+										new JSMinProcessor().process(new StringReader(raw), minified);
 									} else {
-										new UglifyJsProcessor().process(new StringReader(uncompressed), compressed);
-										compressed.append(';');
+										new UglifyJsProcessor().process(new StringReader(raw), minified);
+										minified.append(';');
 									}
 								} else {
-									if (compression == CompressionOptions.light) {
-										new CssMinProcessor().process(new StringReader(uncompressed), compressed);
+									if (minification == MinificationOptions.light) {
+										new CssMinProcessor().process(new StringReader(raw), minified);
 									} else {
-										new CssCompressorProcessor().process(new StringReader(uncompressed), compressed);
+										new CssCompressorProcessor().process(new StringReader(raw), minified);
 									}
 								}
-								sources.append(compressed.toString());
+								sources.append(minified.toString());
 							} catch (Throwable e) {
 								e.printStackTrace();
-								sources.append(uncompressed);
+								sources.append(raw);
 							}
 						}
 					}
@@ -250,7 +250,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 					sources.append("/*/!\\ " + saved + "%  saved */");
 				}
 				
-				Engine.logEngine.debug("(ResourceCompressor) Write new compressed [saved " + saved + "%] '" + resourceType + "' response to: " + cacheFile);
+				Engine.logEngine.debug("(MinificationManager) Write new minified [saved " + saved + "%] '" + resourceType + "' response to: " + cacheFile);
 				
 				result = sources.toString();
 				
@@ -260,7 +260,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 					resourceEntry.update();
 				}
 			} else {
-				Engine.logEngine.trace("(ResourceCompressor) Serve existing compressed result from: " + cacheFile);
+				Engine.logEngine.trace("(MinificationManager) Serve existing minified result from: " + cacheFile);
 				result = FileUtils.readFileToString(cacheFile, "utf-8");
 				cacheFile.setLastModified(System.currentTimeMillis());
 			}
@@ -292,7 +292,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 		}
 
 		public File getCommonFolder(String version) {
-			File commonFolder = ResourceCompressorManager.getCommonFolder(resourceType);
+			File commonFolder = MinificationManager.getCommonFolder(resourceType);
 			File versionFolder;
 			if (version.length() > 0 && (versionFolder = new File(commonFolder, version)).exists()) {
 				return versionFolder;
@@ -310,7 +310,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 		}
 	}
 	
-	private Map<String, ResourceBundle> cache = new HashMap<String, ResourceCompressorManager.ResourceBundle>();
+	private Map<String, ResourceBundle> cache = new HashMap<String, MinificationManager.ResourceBundle>();
 	private String settingKey;
 	
 	public boolean check(HttpServletRequest request, HttpServletResponse response) {
@@ -330,7 +330,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 				response.setCharacterEncoding("utf-8");
 				response.getWriter().write(resourceBundle.getResult());
 			} catch (IOException e) {
-				Engine.logEngine.error("(ResourceCompressor) Failed to write compressed result", e);
+				Engine.logEngine.error("(MinificationManager) Failed to write minified result", e);
 			}
 			return true;
 		} else {			
@@ -339,7 +339,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 	}
 	
 	public ResourceBundle process(String requestedFile) {
-		Engine.logEngine.trace("(ResourceCompressor) Check request compatibility of '" + requestedFile + "'");
+		Engine.logEngine.trace("(MinificationManager) Check request compatibility of '" + requestedFile + "'");
 		Matcher requestMatcher = requestPattern.matcher(requestedFile);
 		return requestMatcher == null ? null : process(requestMatcher);
 	}
@@ -348,8 +348,8 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 		try {
 			if (requestMatcher.matches() && RequestPart.query.value(requestMatcher) != null) {
 				String key = RequestPart.fullFromProject.value(requestMatcher) + settingKey;
-				CompressionOptions compression = CompressionOptions.common;
-				CompressionOptions commonCompression = EnginePropertiesManager.getPropertyAsEnum(PropertyName.MINIFICATION_LEVEL);
+				MinificationOptions minification = MinificationOptions.common;
+				MinificationOptions commonMinification = EnginePropertiesManager.getPropertyAsEnum(PropertyName.MINIFICATION_LEVEL);
 				String version = "";
 				
 				ResourceBundle resourceBundle;
@@ -359,9 +359,9 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 						String virtualFilePath = Engine.PROJECTS_PATH + "/" + RequestPart.pathFromProject.value(requestMatcher);
 						resourceBundle = new ResourceBundle(ResourceType.get(requestMatcher), new File(virtualFilePath), key);
 						cache.put(key, resourceBundle);
-						Engine.logEngine.debug("(ResourceCompressor) Create resourceBundle '" + key + "'");
+						Engine.logEngine.debug("(MinificationManager) Create resourceBundle '" + key + "'");
 					} else {
-						Engine.logEngine.trace("(ResourceCompressor) Re-use resourceBundle '" + key + "'");
+						Engine.logEngine.trace("(MinificationManager) Re-use resourceBundle '" + key + "'");
 					}
 				}
 				synchronized (resourceBundle) {
@@ -369,17 +369,17 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 						JSONArray files = null;
 						JSONObject options = null;
 						String query = RequestPart.query.value(requestMatcher);
-						Engine.logEngine.trace("(ResourceCompressor) Parse JSON query '" + query + "'");
+						Engine.logEngine.trace("(MinificationManager) Parse JSON query '" + query + "'");
 						try {
 							options = new JSONObject(query);
 							
 							if (options.has(GlobalOptions.files.name())) {
 								files = options.getJSONArray(GlobalOptions.files.name());
-								if (options.has(GlobalOptions.compression.name())) {
+								if (options.has(GlobalOptions.minification.name())) {
 									try {
-										compression = CompressionOptions.valueOf(options.getString(GlobalOptions.compression.name()).toLowerCase());
+										minification = MinificationOptions.valueOf(options.getString(GlobalOptions.minification.name()).toLowerCase());
 									} catch (IllegalArgumentException e) {
-										Engine.logEngine.info("(ResourceCompressor) Bad compression name requested: " + options.getString(FileOptions.compression.name()) + " (use common setting)");
+										Engine.logEngine.info("(MinificationManager) Bad minification level requested: " + options.getString(FileOptions.minification.name()) + " (use common setting)");
 									}
 								}
 							}
@@ -417,7 +417,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 						}
 						
 						File relativeFile = new File(Engine.PROJECTS_PATH + "/" + RequestPart.pathFromProject.value(requestMatcher)).getParentFile();
-						Engine.logEngine.trace("(ResourceCompressor) Solve relative resource from '" + relativeFile.toString() + "'");
+						Engine.logEngine.trace("(MinificationManager) Solve relative resource from '" + relativeFile.toString() + "'");
 						
 						int optionsLength = files.length();
 						resourceBundle.init(optionsLength);
@@ -425,7 +425,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 							Object optionObject = files.get(i);
 							String filepath = null;
 							String encoding = "utf-8";
-							CompressionOptions resourceCompression = null;
+							MinificationOptions resourceMinification = null;
 							if (optionObject instanceof JSONObject) {
 								JSONObject option = (JSONObject) optionObject;
 								if (option.has(FileOptions.file.name())) {
@@ -434,11 +434,11 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 								if (option.has(FileOptions.encoding.name())) {
 									encoding = option.getString(FileOptions.encoding.name());
 								}
-								if (option.has(FileOptions.compression.name())) {
+								if (option.has(FileOptions.minification.name())) {
 									try {
-										resourceCompression = CompressionOptions.valueOf(option.getString(FileOptions.compression.name()));
+										resourceMinification = MinificationOptions.valueOf(option.getString(FileOptions.minification.name()));
 									} catch (IllegalArgumentException e) {
-										Engine.logEngine.info("(ResourceCompressor) Bad compression name requested: " + option.getString(FileOptions.compression.name()) + " (use common setting)");
+										Engine.logEngine.info("(MinificationManager) Bad minification level requested: " + option.getString(FileOptions.minification.name()) + " (use common setting)");
 									}
 								}
 							} else {
@@ -450,37 +450,37 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 								if (!filepath.endsWith(fileExtension)) {
 									filepath += fileExtension;
 								}
-								if (resourceCompression == null) {
-									resourceCompression = filepath.endsWith(".min" + fileExtension) ? CompressionOptions.none : compression;
+								if (resourceMinification == null) {
+									resourceMinification = filepath.endsWith(".min" + fileExtension) ? MinificationOptions.none : minification;
 								}
 								
 								File file = new File(filepath.startsWith("/") ? resourceBundle.getCommonFolder(version) : relativeFile, filepath);
 								
 								if (file.exists()) {
-									Engine.logEngine.trace("(ResourceCompressor) Add file '" + file + "' (" + encoding +")");
-									if (resourceCompression == CompressionOptions.common) {
-										resourceCompression = commonCompression;
+									Engine.logEngine.trace("(MinificationManager) Add file '" + file + "' (" + encoding +")");
+									if (resourceMinification == MinificationOptions.common) {
+										resourceMinification = commonMinification;
 									}
-									resourceBundle.add(new ResourceEntry(file, encoding, resourceCompression));
+									resourceBundle.add(new ResourceEntry(file, encoding, resourceMinification));
 								} else if (!filepath.startsWith("!")) {
-									Engine.logEngine.debug("(ResourceCompressor) Failed to add file '" + file + "' [" + filepath +"]");
+									Engine.logEngine.debug("(MinificationManager) Failed to add file '" + file + "' [" + filepath +"]");
 								}
 							}
 						}
 					}
 					
 					// clear old entries
-					synchronized (compressorCacheDirectory) {
+					synchronized (minificationCacheDirectory) {
 						long now = System.currentTimeMillis();
-						if (now - compressorCacheDirectory.lastModified() > 3600000) { // check 1 time / hour
-							Engine.logEngine.trace("(ResourceCompressor) Check cache files to suppress");
-							for (File file : compressorCacheDirectory.listFiles()) {
+						if (now - minificationCacheDirectory.lastModified() > 3600000) { // check 1 time / hour
+							Engine.logEngine.trace("(MinificationManager) Check cache files to suppress");
+							for (File file : minificationCacheDirectory.listFiles()) {
 								if (now - file.lastModified() > 172800000) { // delete older than 48H
-									Engine.logEngine.debug("(ResourceCompressor) Suppress old cache file: " + file);
+									Engine.logEngine.debug("(MinificationManager) Suppress old cache file: " + file);
 									FileUtils.deleteQuietly(file);
 								}
 							}
-							compressorCacheDirectory.setLastModified(now);
+							minificationCacheDirectory.setLastModified(now);
 						}
 					}
 					
@@ -489,7 +489,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 				}
 			}
 		} catch (Exception e) {
-			Engine.logEngine.warn("(ResourceCompressor) Failed to process compressed resources", e);
+			Engine.logEngine.warn("(MinificationManager) Failed to process minified resources", e);
 		}
 		
 		return null;
@@ -497,7 +497,7 @@ public class ResourceCompressorManager implements AbstractManager, PropertyChang
 	
 	public void init() throws EngineException {
 		refreshSettingKey();
-		compressorCacheDirectory.mkdirs();
+		minificationCacheDirectory.mkdirs();
 		Engine.theApp.eventManager.addListener(this, PropertyChangeEventListener.class);
 	}
 	

@@ -62,7 +62,7 @@ import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
-import com.twinsoft.convertigo.engine.ResourceCompressorManager.ResourceBundle;
+import com.twinsoft.convertigo.engine.MinificationManager.ResourceBundle;
 import com.twinsoft.convertigo.engine.admin.services.ServiceException;
 import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
@@ -221,7 +221,7 @@ public class LaunchBuild extends XmlService {
 						if (includeChar == null && includeBuf != null) {
 							String uri = includeBuf;
 							uri = indexHtmlFile.getParent().substring(projectDir.getParent().length() + 1) + "/" + uri;
-							ResourceBundle resourceBundle = Engine.theApp.resourceCompressorManager.process(uri);
+							ResourceBundle resourceBundle = Engine.theApp.minificationManager.process(uri);
 							if (resourceBundle != null) {
 								synchronized (resourceBundle) {
 									String prepend = null;

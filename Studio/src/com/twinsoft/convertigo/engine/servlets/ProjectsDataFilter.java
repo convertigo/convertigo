@@ -45,7 +45,7 @@ import com.twinsoft.convertigo.beans.connectors.SiteClipperConnector;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
-import com.twinsoft.convertigo.engine.ResourceCompressorManager;
+import com.twinsoft.convertigo.engine.MinificationManager;
 
 public class ProjectsDataFilter implements Filter {
 	private static Pattern p_projects = Pattern.compile("/projects(/.*)");
@@ -127,11 +127,11 @@ public class ProjectsDataFilter implements Filter {
     		}
     	}
     	
-    	if (!file.exists() && Engine.theApp != null && Engine.theApp.resourceCompressorManager != null) {
-    		if (Engine.theApp.resourceCompressorManager.check(request, response)) {
+    	if (!file.exists() && Engine.theApp != null && Engine.theApp.minificationManager != null) {
+    		if (Engine.theApp.minificationManager.check(request, response)) {
     			return;
     		} else {
-    			File commonResource = ResourceCompressorManager.getCommonCssResource(request);
+    			File commonResource = MinificationManager.getCommonCssResource(request);
     			if (commonResource != null) {
     				file = commonResource;
     			}

@@ -43,7 +43,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.helpers.OptionConverter;
 
-import com.twinsoft.convertigo.engine.ResourceCompressorManager.CompressionOptions;
+import com.twinsoft.convertigo.engine.MinificationManager.MinificationOptions;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.util.Crypto2;
@@ -511,8 +511,8 @@ public class EnginePropertiesManager {
 		CARIOCA_URL ("carioca.url", "${user.workspace}/minime", "Carioca access URL", PropertyCategory.Carioca),
 		
 		/** MINIFICATION */
-		@PropertyOptions(propertyType = PropertyType.Combo, combo = CompressionOptions.class)
-		MINIFICATION_LEVEL ("minification.level", CompressionOptions.strong.name(), "Minification level for the 'common' value", PropertyCategory.Minification),
+		@PropertyOptions(propertyType = PropertyType.Combo, combo = MinificationOptions.class)
+		MINIFICATION_LEVEL ("minification.level", MinificationOptions.strong.name(), "Minification level for the 'common' value", PropertyCategory.Minification),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
 		MINIFICATION_STATS ("minification.stats", "true", "Show saved space at the end of compressed resources", PropertyCategory.Minification),
 		@PropertyOptions(propertyType = PropertyType.Boolean)
