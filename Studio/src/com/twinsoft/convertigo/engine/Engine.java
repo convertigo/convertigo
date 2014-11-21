@@ -226,6 +226,7 @@ public class Engine {
 	public static Logger logExternalBrowser;
 	public static Logger logAudit;
 	public static Logger logDevices;
+	public static Logger logSecurityTokenManager;
 
 	/**
 	 * The Log object for the application.
@@ -362,6 +363,7 @@ public class Engine {
 			Engine.logDatabaseObjectManager = Logger.getLogger("cems.DatabaseObjectManager");
 			Engine.logProxyManager = Logger.getLogger("cems.ProxyManager");
 			Engine.logDevices = Logger.getLogger("cems.Devices");
+			Engine.logSecurityTokenManager = Logger.getLogger("cems.SecurityTokenManager");
 
 			// Logger for compatibility issues
 			Engine.log = new LogWrapper(Engine.logConvertigo);
