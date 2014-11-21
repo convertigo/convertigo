@@ -147,6 +147,8 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 		private boolean stats = EnginePropertiesManager.getPropertyAsBoolean(PropertyName.MINIFICATION_STATS);
 		
 		private ResourceBundle(ResourceType resourceType, File virtualFile, String key) {
+			this.resourceType= resourceType; 
+			this.virtualFile = virtualFile;
 			key = key.replaceFirst("(.*?)/_private/(?:flashupdate|mobile)/", "$1/DisplayObjects/mobile/");
 			key = DigestUtils.md5Hex(key) + DigestUtils.shaHex(key) + "." + resourceType.name();
 			cacheFile = new File(minificationCacheDirectory, key);
@@ -247,7 +249,7 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 					}
 				}
 				
-				int saved = (100 - (sources.getBuffer().length() * 100 / fullsize));
+				int saved = fullsize > 0 ? (100 - (sources.getBuffer().length() * 100 / fullsize)) : 0;
 				if (stats) {
 					sources.append("/*/!\\ " + saved + "%  saved */");
 				}
