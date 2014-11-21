@@ -80,7 +80,7 @@ public class SecurityToken {
 				this.data.put(key, json.getString(key));
 			}
 		} catch (JSONException e) {
-			Engine.logEngine.warn("(SecurityToken) Failed to decode JSON data", e);
+			Engine.logSecurityTokenManager.warn("(SecurityToken) Failed to decode JSON data", e);
 		}
 	}
 

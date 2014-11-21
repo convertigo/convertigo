@@ -69,14 +69,14 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 	public synchronized SecurityToken consumeToken(String tokenID) throws NoSuchSecurityTokenException, ExpiredSecurityTokenException {
 		SecurityToken token = null;
 		
-		Engine.logEngine.trace("(SecurityTokenManager) Try to consume tokenID: " + tokenID);
+		Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Try to consume tokenID: '" + tokenID + "'");
 		
 		removeExpired();
 		
 		if (tokens != null) {
 			token = tokens.get(tokenID);
-			if (Engine.logEngine.isTraceEnabled()) {
-				Engine.logEngine.trace("(SecurityTokenManager) Memory tokens manager retrieves: " + token);
+			if (Engine.logSecurityTokenManager.isDebugEnabled()) {
+				Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Memory tokens manager retrieves: " + token);
 			}
 		}
 		if (sessionFactory != null) {
@@ -86,12 +86,15 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 			} finally {
 				session.close();
 			}
-			if (Engine.logEngine.isTraceEnabled()) {
-				Engine.logEngine.trace("(SecurityTokenManager) Database tokens manager retrieves: " + token);
+			if (Engine.logSecurityTokenManager.isDebugEnabled()) {
+				Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Database tokens manager retrieves: " + token);
 			}
 		}
 		
-		if (token == null) throw new NoSuchSecurityTokenException(tokenID);
+		if (token == null) {
+			Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Not found tokenID: '" + tokenID + "'");
+			throw new NoSuchSecurityTokenException(tokenID);
+		}
 
 		if (tokens != null) {
 			tokens.remove(tokenID);	
@@ -105,15 +108,19 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 			}
 		}
 
-		if (token.isExpired()) throw new ExpiredSecurityTokenException(tokenID);
+		if (token.isExpired()) {
+			Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Expired tokenID: '" + tokenID + "'");
+			throw new ExpiredSecurityTokenException(tokenID);
+		}
 		
+		Engine.logSecurityTokenManager.debug("(SecurityTokenManager) The security token is: '" + token + "'");
 		return token;
 	}
 	
 	public SecurityToken generateToken(String userID, Map<String, String> data) {
 		String tokenID = new BigInteger(130, random).toString(32);
 		
-		Engine.logEngine.trace("(SecurityTokenManager) Generate a new tokenID: " + tokenID);
+		Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Generate a new tokenID: '" + tokenID + "' for userID: '" + userID);
 		
 		removeExpired();
 		
@@ -172,7 +179,7 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 				try {
 					sessionFactory = cfg.buildSessionFactory();
 				} catch (HibernateException e) {
-					Engine.logEngine.error("(SecurityTokenManager) Hibernate session factory creation failed", e);
+					Engine.logSecurityTokenManager.error("(SecurityTokenManager) Hibernate session factory creation failed", e);
 				}
 			}
 			break;
@@ -213,7 +220,7 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 	
 	private void removeExpired() {
 		if (System.currentTimeMillis() >= nextExpireCheck) {
-			Engine.logEngine.debug("(SecurityTokenManager) Remove all expired tokens …");
+			Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Remove all expired tokens …");
 			
 			if (tokens != null) {
 				int removeCpt = 0;
@@ -224,7 +231,7 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 						removeCpt++;
 					}
 				}
-				Engine.logEngine.info("(SecurityTokenManager) Memory tokens manager removes: " + removeCpt + " token(s)");		
+				Engine.logSecurityTokenManager.info("(SecurityTokenManager) Memory tokens manager removes: " + removeCpt + " token(s)");		
 			}
 			
 			if (sessionFactory != null) {
@@ -235,7 +242,7 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 				} finally {
 					session.close();
 				}
-				Engine.logEngine.info("(SecurityTokenManager) Database tokens manager removes: " + removeCpt + " token(s)");
+				Engine.logSecurityTokenManager.info("(SecurityTokenManager) Database tokens manager removes: " + removeCpt + " token(s)");
 			}
 			
 			nextCheck();
