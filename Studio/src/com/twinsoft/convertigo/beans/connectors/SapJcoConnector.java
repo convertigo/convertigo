@@ -35,7 +35,7 @@ import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.enums.Visibility;
-import com.twinsoft.convertigo.engine.providers.SapJCoProvider;
+import com.twinsoft.convertigo.engine.providers.sapjco.SapJCoProvider;
 
 
 public class SapJcoConnector extends Connector {

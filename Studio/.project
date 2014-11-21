@@ -55,9 +55,9 @@
 			<locationURI>WORKSPACE_LOC/CemsHtmlParsers_7.3.x/src/com/twinsoft/convertigo/engine/parsers</locationURI>
 		</link>
 		<link>
-			<name>src/com/twinsoft/convertigo/engine/providers</name>
+			<name>src/com/twinsoft/convertigo/engine/providers/sapjco</name>
 			<type>2</type>
-			<locationURI>WORKSPACE_LOC/SapConnector_7.3.x/src/com/twinsoft/convertigo/engine/providers</locationURI>
+			<locationURI>WORKSPACE_LOC/SapConnector_7.3.x/src/com/twinsoft/convertigo/engine/providers/sapjco</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

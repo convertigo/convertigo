@@ -58,7 +58,7 @@ import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserManager;
 import com.twinsoft.convertigo.engine.plugins.AbstractBiller;
 import com.twinsoft.convertigo.engine.plugins.PluginsManager;
-import com.twinsoft.convertigo.engine.providers.SapJcoDestinationDataProvider;
+import com.twinsoft.convertigo.engine.providers.sapjco.SapJcoDestinationDataProvider;
 import com.twinsoft.convertigo.engine.requesters.Requester;
 import com.twinsoft.convertigo.engine.scheduler.SchedulerManager;
 import com.twinsoft.convertigo.engine.util.CachedIntrospector;
