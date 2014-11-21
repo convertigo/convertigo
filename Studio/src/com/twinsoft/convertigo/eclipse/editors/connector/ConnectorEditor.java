@@ -135,7 +135,7 @@ public class ConnectorEditor extends EditorPart implements ISaveablePart2  {
 	public int promptToSaveOnClose() {
 		MessageBox messageBox = new MessageBox(Display.getCurrent().getActiveShell(), SWT.ICON_WARNING);
 		messageBox.setText("Convertigo");
-		messageBox.setMessage("A transaction is currently running.\nThe connector can't be closed.");
+		messageBox.setMessage("A transaction is currently running.\nThe connector editor can't be closed.");
 		messageBox.open();
 		
 		return CANCEL;

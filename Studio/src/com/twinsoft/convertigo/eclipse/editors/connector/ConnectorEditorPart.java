@@ -81,6 +81,7 @@ import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineListener;
 import com.twinsoft.convertigo.engine.KeyExpiredException;
 import com.twinsoft.convertigo.engine.MaxCvsExceededException;
+import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -1209,7 +1210,6 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 				try {
 					toolItemStopTransaction.setEnabled(false);
 					toolItemGenerateXml.setEnabled(true);
-					editor.setDirty(false);
 				} catch (Exception e) {
 				}
 			}
@@ -1232,18 +1232,14 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 
 	private boolean checkEventSource(EventObject event) {
 		boolean isSourceFromConnector = false;
-		Object source = event.getSource();
-		if (event instanceof EngineEvent) {
-			if (source instanceof DatabaseObject) {
-				Connector connector = ((DatabaseObject) source).getConnector();
-				if ((connector != null) && (connector.equals(this.connector)))
+		if (event instanceof RequestableEngineEvent) {
+			RequestableEngineEvent requestableEvent = (RequestableEngineEvent) event;
+			
+			String connectorName = requestableEvent.getConnectorName();
+			if (connectorName != null) {
+				if (connectorName.equals(connector.getName()) && requestableEvent.getProjectName().equals(connector.getProject().getName())) {
 					isSourceFromConnector = true;
-			}
-			if (source instanceof org.w3c.dom.Document) {
-				org.w3c.dom.Document document = (org.w3c.dom.Document) event.getSource();
-				String connectorName = document.getDocumentElement().getAttribute("connector");
-				if (connectorName.equals(connector.getName()))
-					isSourceFromConnector = true;
+				}
 			}
 		}
 		return isSourceFromConnector;
@@ -1261,14 +1257,13 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 			}
 		}
 		lastGeneratedDocument = (org.w3c.dom.Document) engineEvent.getSource();
-		if (lastGeneratedDocument.getDocumentElement().getAttribute("project").equals(projectName)) {
-			final String strXML = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
-			getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					xmlView.getDocument().set(strXML);
-				}
-			});
-		}
+		final String strXML = XMLUtils.prettyPrintDOMWithEncoding(lastGeneratedDocument);
+		getDisplay().asyncExec(new Runnable() {
+			public void run() {
+				xmlView.getDocument().set(strXML);
+				editor.setDirty(false);
+			}
+		});
 	}
 
 	public void clearEditor(EngineEvent engineEvent) {

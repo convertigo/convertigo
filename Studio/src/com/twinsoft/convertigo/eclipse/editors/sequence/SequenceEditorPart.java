@@ -46,13 +46,11 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.wst.sse.ui.internal.StructuredTextViewer;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.beans.core.Sequence;
-import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.sequences.GenericSequence;
 import com.twinsoft.convertigo.eclipse.AnimatedGif;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -64,6 +62,7 @@ import com.twinsoft.convertigo.engine.ContextManager;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineEvent;
 import com.twinsoft.convertigo.engine.EngineListener;
+import com.twinsoft.convertigo.engine.RequestableEngineEvent;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.util.XMLUtils;
 
@@ -82,7 +81,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	private Image imageStop = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/stop.d.png"));
 	private Image imageDisableStop = new Image(Display.getCurrent(), getClass().getResourceAsStream("/com/twinsoft/convertigo/eclipse/editors/images/stop.png"));
 	
-    protected IEditorPart editor = null;
+    protected SequenceEditor editor = null;
 	private Sequence sequence;
     private String contextID = null;
     private String projectName = null;
@@ -94,7 +93,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	
 	private AnimatedGif animatedWait;
 	
-	public SequenceEditorPart(IEditorPart editor, Sequence sequence, Composite parent, int style) {
+	public SequenceEditorPart(SequenceEditor editor, Sequence sequence, Composite parent, int style) {
 		super(parent, style);
 		this.editor = editor;
 		this.sequence = sequence;
@@ -583,7 +582,9 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 	
 	public void getDocument(String sequenceName, String testcaseName, boolean isStubRequested) {
     	final Map<String, String[]> parameters = new HashMap<String, String[]>();
-    	    	
+    	
+    	editor.setDirty(true);
+    	
 		if (sequenceName == null) {
         	sequenceName = sequence.getName();
 		}
@@ -622,6 +623,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				xmlView.getDocument().set(strXML);
+		    	editor.setDirty(false);
 			}
 		});
 	}
@@ -662,7 +664,7 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 		if (!checkEventSource(engineEvent))
 			return;
     	
-    	getDisplay().syncExec(new Runnable() {
+    	getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				animatedWait.stop();
 				
@@ -674,25 +676,14 @@ public class SequenceEditorPart extends Composite implements EngineListener{
 
 	private boolean checkEventSource(EventObject event) {
 		boolean isSourceFromSequence = false;
-		Object source = event.getSource();
-		if (event instanceof EngineEvent) {
-			if (source instanceof DatabaseObject) {
-				Sequence sequence = null;
-				if (source instanceof Sequence) sequence = ((Sequence)source);
-				if (source instanceof Step) sequence = ((Step)source).getParentSequence();
-				if ((sequence != null)
-						&& (sequence.getOriginal() == this.sequence)
-						&& (sequence.getProject() == this.sequence.getProject())) {
+		if (event instanceof RequestableEngineEvent) {
+			RequestableEngineEvent requestableEvent = (RequestableEngineEvent) event;
+			
+			String sequenceName = requestableEvent.getSequenceName();
+			if (sequenceName != null) {
+				if (sequenceName.equals(sequence.getName()) && requestableEvent.getProjectName().equals(sequence.getProject().getName())) {
 					isSourceFromSequence = true;
 				}
-			}
-			if (source instanceof org.w3c.dom.Document) {
-				org.w3c.dom.Document document = (org.w3c.dom.Document) event.getSource();
-				String sequenceName = document.getDocumentElement().getAttribute("sequence");
-				String projectName = document.getDocumentElement().getAttribute("project");
-
-				if (sequenceName.equals(sequence.getName()) && projectName.equals(this.projectName))
-					isSourceFromSequence = true;
 			}
 		}
 		return isSourceFromSequence;

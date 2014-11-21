@@ -28,16 +28,19 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.ISaveablePart2;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 import org.w3c.dom.Document;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
-public class SequenceEditor extends EditorPart {
-
+public class SequenceEditor extends EditorPart implements ISaveablePart2 {
+	private boolean dirty = false;
+	
 	public void doSave(IProgressMonitor monitor) {
 	}
 
@@ -59,11 +62,16 @@ public class SequenceEditor extends EditorPart {
 	}
 
 	public boolean isDirty() {
-		return false;
+		return dirty;
+	}
+	
+	public void setDirty(boolean dirty) {
+		this.dirty = dirty;
+		firePropertyChange(EditorPart.PROP_DIRTY);
 	}
 
 	public boolean isSaveAsAllowed() {
-		return false;
+		return true;
 	}
 
 	SequenceEditorPart sequenceEditorPart;
@@ -117,5 +125,14 @@ public class SequenceEditor extends EditorPart {
 	public Document getLastGeneratedDocument() {
 		return sequenceEditorPart.lastGeneratedDocument;
 	}
-	
+
+	@Override
+	public int promptToSaveOnClose() {
+		MessageBox messageBox = new MessageBox(Display.getCurrent().getActiveShell(), SWT.ICON_WARNING);
+		messageBox.setText("Convertigo");
+		messageBox.setMessage("A sequence is currently running.\nThe sequence editor can't be closed.");
+		messageBox.open();
+		
+		return CANCEL;
+	}
 }
