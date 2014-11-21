@@ -28,8 +28,10 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.ISaveablePart2;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 import org.w3c.dom.Document;
@@ -37,8 +39,9 @@ import org.w3c.dom.Document;
 import com.twinsoft.convertigo.beans.core.ScreenClass;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 
-public class ConnectorEditor extends EditorPart {
-
+public class ConnectorEditor extends EditorPart implements ISaveablePart2  {
+	private boolean dirty = false;
+	
 	public void doSave(IProgressMonitor monitor) {
 	}
 
@@ -60,11 +63,16 @@ public class ConnectorEditor extends EditorPart {
 	}
 
 	public boolean isDirty() {
-		return false;
+		return dirty;
+	}
+	
+	public void setDirty(boolean dirty) {
+		this.dirty = dirty;
+		firePropertyChange(EditorPart.PROP_DIRTY);
 	}
 
 	public boolean isSaveAsAllowed() {
-		return false;
+		return true;
 	}
 
 	ConnectorEditorPart connectorEditorPart;
@@ -121,5 +129,15 @@ public class ConnectorEditor extends EditorPart {
 	
 	public ScreenClass getLastDetectedScreenClass() {
 		return connectorEditorPart.getLastDetectedScreenClass();
+	}
+
+	@Override
+	public int promptToSaveOnClose() {
+		MessageBox messageBox = new MessageBox(Display.getCurrent().getActiveShell(), SWT.ICON_WARNING);
+		messageBox.setText("Convertigo");
+		messageBox.setMessage("A transaction is currently running.\nThe connector can't be closed.");
+		messageBox.open();
+		
+		return CANCEL;
 	}
 }

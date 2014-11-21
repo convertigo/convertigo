@@ -52,7 +52,6 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.wst.sse.ui.internal.StructuredTextViewer;
 
 import com.twinsoft.convertigo.beans.connectors.CicsConnector;
@@ -88,7 +87,7 @@ import com.twinsoft.convertigo.engine.util.XMLUtils;
 @SuppressWarnings("restriction")
 public class ConnectorEditorPart extends Composite implements Runnable, EngineListener {
 
-	protected IEditorPart editor = null;
+	protected ConnectorEditor editor = null;
 	private SashForm sashForm = null;
 	private Composite compositeOutput = null;
 	protected AbstractConnectorComposite compositeConnector = null;
@@ -172,7 +171,7 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	private Canvas canvas = null;
 	private AnimatedGif animatedWait;
 
-	public ConnectorEditorPart(IEditorPart editor, Connector connector, Composite parent, int style) {
+	public ConnectorEditorPart(ConnectorEditor editor, Connector connector, Composite parent, int style) {
 		super(parent, style);
 		this.editor = editor;
 		this.connector = connector;
@@ -1158,6 +1157,8 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 	public void getDocument(String transactionName, String testcaseName, boolean isStubRequested) {
 		final Map<String, String[]> parameters = new HashMap<String, String[]>();
 		
+		editor.setDirty(true);
+		
 		parameters.put(Parameter.Connector.getName(), new String[]{connector.getName()});
 		
 		if (transactionName != null) {
@@ -1201,13 +1202,14 @@ public class ConnectorEditorPart extends Composite implements Runnable, EngineLi
 		if (!checkEventSource(engineEvent))
 			return;
 
-		getDisplay().syncExec(new Runnable() {
+		getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				animatedWait.stop();
 
 				try {
 					toolItemStopTransaction.setEnabled(false);
 					toolItemGenerateXml.setEnabled(true);
+					editor.setDirty(false);
 				} catch (Exception e) {
 				}
 			}
