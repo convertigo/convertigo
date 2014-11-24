@@ -58,6 +58,7 @@ import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.common.XPath;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
+import com.twinsoft.convertigo.beans.core.IStepSourceContainer;
 import com.twinsoft.convertigo.beans.core.IXPathable;
 import com.twinsoft.convertigo.beans.core.Sequence;
 import com.twinsoft.convertigo.beans.core.Statement;
@@ -435,7 +436,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				// Check for drop to a step which contains a stepSource definition
 				//if (targetTreeObject.getObject() instanceof IStepSourceContainer) {
 				Object ob = targetTreeObject.getObject();
-				if (ob instanceof Step && ((Step) ob).canWorkOnSource()) {
+				if (ob instanceof Step && ((Step) ob).canWorkOnSource() || ob instanceof IStepSourceContainer) {
 					StepSource stepSource = StepSourceTransfer.getInstance().getStepSource();
 					if (stepSource != null) {
 						Step targetStep = (Step)((ob instanceof StepVariable) ? ((StepVariable) ob).getParent() : ob);
