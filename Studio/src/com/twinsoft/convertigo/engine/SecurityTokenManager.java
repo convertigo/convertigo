@@ -28,33 +28,28 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.hibernate.HibernateException;
-import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
-import org.hibernate.cfg.Configuration;
 import org.hibernate.criterion.Restrictions;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.SecurityTokenMode;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
-import com.twinsoft.convertigo.engine.util.XMLUtils;
+import com.twinsoft.convertigo.engine.helpers.HibernateHelper;
 
 public class SecurityTokenManager implements AbstractManager, PropertyChangeEventListener {
 
 	private Map<String, SecurityToken> tokens;
 	private SecureRandom random;
-	private SessionFactory sessionFactory;
+	private HibernateHelper hibernateHelper;
 	private long nextExpireCheck;
 	
 	public void destroy() throws EngineException {
 		tokens = null;
 		random = null;
-		if (sessionFactory != null) {
-			sessionFactory.close();
-			sessionFactory = null;
+		if (hibernateHelper != null) {
+			hibernateHelper.destroy();
+			hibernateHelper = null;
 		}
 		Engine.theApp.eventManager.removeListener(this, PropertyChangeEventListener.class);
 	}
@@ -66,32 +61,39 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 		configureStorage();
 	}
 
-	public synchronized SecurityToken consumeToken(String tokenID) throws NoSuchSecurityTokenException, ExpiredSecurityTokenException {
-		SecurityToken token = null;
+	public synchronized SecurityToken consumeToken(final String tokenID) throws NoSuchSecurityTokenException, ExpiredSecurityTokenException {
+		final SecurityToken[] token = {null};
 		
 		Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Try to consume tokenID: '" + tokenID + "'");
 		
 		removeExpired();
 		
 		if (tokens != null) {
-			token = tokens.get(tokenID);
+			token[0] = tokens.get(tokenID);
 			if (Engine.logSecurityTokenManager.isDebugEnabled()) {
-				Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Memory tokens manager retrieves: " + token);
-			}
-		}
-		if (sessionFactory != null) {
-			StatelessSession session = sessionFactory.openStatelessSession();
-			try {
-				token = (SecurityToken) session.createCriteria(SecurityToken.class).add(Restrictions.eq("tokenID", tokenID)).uniqueResult();
-			} finally {
-				session.close();
-			}
-			if (Engine.logSecurityTokenManager.isDebugEnabled()) {
-				Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Database tokens manager retrieves: " + token);
+				Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Memory tokens manager retrieves: " + token[0]);
 			}
 		}
 		
-		if (token == null) {
+		if (hibernateHelper != null) {
+			hibernateHelper.retry(new Runnable() {
+				@Override
+				public void run() {
+					StatelessSession session = hibernateHelper.getSession();
+					try {
+						token[0] = (SecurityToken) session.createCriteria(SecurityToken.class).add(Restrictions.eq("tokenID", tokenID)).uniqueResult();
+					} finally {
+						session.close();
+					}
+				}
+			});
+			
+			if (Engine.logSecurityTokenManager.isDebugEnabled()) {
+				Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Database tokens manager retrieves: " + token[0]);
+			}
+		}
+		
+		if (token[0] == null) {
 			Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Not found tokenID: '" + tokenID + "'");
 			throw new NoSuchSecurityTokenException(tokenID);
 		}
@@ -99,22 +101,18 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 		if (tokens != null) {
 			tokens.remove(tokenID);	
 		}
-		if (sessionFactory != null) {
-			StatelessSession session = sessionFactory.openStatelessSession();
-			try {
-				session.delete(token);
-			} finally {
-				session.close();
-			}
+		
+		if (hibernateHelper != null) {
+			hibernateHelper.delete(token[0]);
 		}
 
-		if (token.isExpired()) {
+		if (token[0].isExpired()) {
 			Engine.logSecurityTokenManager.debug("(SecurityTokenManager) Expired tokenID: '" + tokenID + "'");
 			throw new ExpiredSecurityTokenException(tokenID);
 		}
 		
-		Engine.logSecurityTokenManager.debug("(SecurityTokenManager) The security token is: '" + token + "'");
-		return token;
+		Engine.logSecurityTokenManager.debug("(SecurityTokenManager) The security token is: '" + token[0] + "'");
+		return token[0];
 	}
 	
 	public SecurityToken generateToken(String userID, Map<String, String> data) {
@@ -131,13 +129,8 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 		if (tokens != null) {
 			tokens.put(tokenID, token);
 		}
-		if (sessionFactory != null) {
-			StatelessSession session = sessionFactory.openStatelessSession();
-			try {
-				session.insert(token);
-			} finally {
-				session.close();
-			}
+		if (hibernateHelper != null) {
+			hibernateHelper.insert(token);
 		}
 		
 		return token;
@@ -150,49 +143,36 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 			if (tokens == null) {
 				tokens = new HashMap<String, SecurityToken>();
 			}
-			if (sessionFactory != null) {
-				sessionFactory.close();
-				sessionFactory = null;
+			if (hibernateHelper != null) {
+				hibernateHelper.destroy();
+				hibernateHelper = null;
 			}
 			break;
 		case database:
 			if (tokens != null) {
 				tokens = null;
 			}
-			if (sessionFactory == null) {
-				Document doc = XMLUtils.getDefaultDocumentBuilder().newDocument();
-				Element elt = doc.createElement("session-factory");
-				addProperty(elt, "hibernate.connection.driver_class", EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_PERSISTENCE_JDBC_DRIVER));
-				addProperty(elt, "hibernate.connection.url", EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_PERSISTENCE_JDBC_URL));
-				addProperty(elt, "hibernate.connection.username", EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_PERSISTENCE_JDBC_USERNAME));
-				addProperty(elt, "hibernate.connection.password", EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_PERSISTENCE_JDBC_PASSWORD));
-				addProperty(elt, "hibernate.dialect", EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_PERSISTENCE_DIALECT));
-				addProperty(elt, "hibernate.hbm2ddl.auto", "update");
-				addProperty(elt, "hibernate.connection.autocommit", "true");
-				addProperty(elt, "hibernate.jdbc.batch_size", "1");
-				doc.appendChild(doc.createElement("hibernate-configuration")).appendChild(elt);
-
-				Configuration cfg = new Configuration();
-				cfg.addAnnotatedClass(com.twinsoft.convertigo.engine.SecurityToken.class);
-				cfg.configure(doc);
-				
+			if (hibernateHelper == null) {
 				try {
-					sessionFactory = cfg.buildSessionFactory();
-				} catch (HibernateException e) {
-					Engine.logSecurityTokenManager.error("(SecurityTokenManager) Hibernate session factory creation failed", e);
+					hibernateHelper = new HibernateHelper(
+						Engine.logSecurityTokenManager,
+						EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_PERSISTENCE_DIALECT),
+						EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_PERSISTENCE_JDBC_DRIVER),
+						EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_PERSISTENCE_JDBC_URL),
+						EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_PERSISTENCE_JDBC_USERNAME),
+						EnginePropertiesManager.getProperty(PropertyName.SECURITY_TOKEN_PERSISTENCE_JDBC_PASSWORD),
+						EnginePropertiesManager.getPropertyAsLong(PropertyName.SECURITY_TOKEN_PERSISTENCE_MAX_RETRY),
+						com.twinsoft.convertigo.engine.SecurityToken.class
+					);
+				} catch (EngineException e) {
+					hibernateHelper = null;
+					Engine.logSecurityTokenManager.error("(SecurityTokenManager) Failed to create hibernate helper", e);
 				}
 			}
 			break;
 		default:
 			break;
 		}
-	}
-	
-	private void addProperty(Element element, String name, String value) {
-		Element property = element.getOwnerDocument().createElement("property");
-		property.setAttribute("name", name);
-		property.setTextContent(value);
-		element.appendChild(property);
 	}
 	
 	public void onEvent(PropertyChangeEvent event) {
@@ -203,9 +183,10 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 			case SECURITY_TOKEN_PERSISTENCE_JDBC_PASSWORD:
 			case SECURITY_TOKEN_PERSISTENCE_JDBC_URL:
 			case SECURITY_TOKEN_PERSISTENCE_JDBC_USERNAME:
-				if (sessionFactory != null) {
-					sessionFactory.close();
-					sessionFactory = null;
+			case SECURITY_TOKEN_PERSISTENCE_MAX_RETRY:
+				if (hibernateHelper != null) {
+					hibernateHelper.destroy();
+					hibernateHelper = null;
 				}
 			case SECURITY_TOKEN_MODE:
 				configureStorage();
@@ -215,7 +196,7 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 	}
 	
 	private void nextCheck() {
-		nextExpireCheck = System.currentTimeMillis() + (3600 * 1000);
+		nextExpireCheck = System.currentTimeMillis() + (5 * 60 * 1000);
 	}
 	
 	private void removeExpired() {
@@ -234,14 +215,8 @@ public class SecurityTokenManager implements AbstractManager, PropertyChangeEven
 				Engine.logSecurityTokenManager.info("(SecurityTokenManager) Memory tokens manager removes: " + removeCpt + " token(s)");		
 			}
 			
-			if (sessionFactory != null) {
-				int removeCpt = 0;
-				StatelessSession session = sessionFactory.openStatelessSession();
-				try {
-					 removeCpt = session.createQuery("delete from " + SecurityToken.class.getSimpleName() + " where expiryDate < " + System.currentTimeMillis()).executeUpdate();
-				} finally {
-					session.close();
-				}
+			if (hibernateHelper != null) {
+				int removeCpt = hibernateHelper.update("delete from " + SecurityToken.class.getSimpleName() + " where expiryDate < " + System.currentTimeMillis());
 				Engine.logSecurityTokenManager.info("(SecurityTokenManager) Database tokens manager removes: " + removeCpt + " token(s)");
 			}
 			

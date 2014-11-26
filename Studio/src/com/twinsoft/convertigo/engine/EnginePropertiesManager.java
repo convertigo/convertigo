@@ -230,7 +230,7 @@ public class EnginePropertiesManager {
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
     	Carioca ("Legacy Carioca portal"),
     	@CategoryOptions(visibility = Visibility.HIDDEN_CLOUD)
-    	Billing ("Analytics"),
+    	Analytics ("Analytics"),
     	Notifications ("Notifications"),
     	Minification ("Minification"),
     	MobileBuilder ("Mobile builder"),
@@ -475,6 +475,8 @@ public class EnginePropertiesManager {
 		SECURITY_TOKEN_PERSISTENCE_JDBC_USERNAME ("security_token.persistence.jdbc.username", "", "JDBC username", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
 		SECURITY_TOKEN_PERSISTENCE_JDBC_PASSWORD ("security_token.persistence.jdbc.password", "", "JDBC password", PropertyCategory.SecurityToken),
+		@PropertyOptions(advance = true)
+		SECURITY_TOKEN_PERSISTENCE_MAX_RETRY ("security_token.persistence.jdbc.maxretry", "4", "JDBC max retry on connection failed", PropertyCategory.SecurityToken),
 		
 		/** SSL */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
@@ -499,19 +501,25 @@ public class EnginePropertiesManager {
 
 		/** ANALYTICS */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
-		BILLING_ENABLED ("billing.enabled", "false", "Enable analytics", PropertyCategory.Billing),
+		ANALYTICS_PERSISTENCE_ENABLED ("billing.enabled", "false", "Enable persistence analytics (JDBC)", PropertyCategory.Analytics),
+		@PropertyOptions(propertyType = PropertyType.Boolean)
+		ANALYTICS_GOOGLE_ENABLED ("billing.google.enabled", "false", "Enable google analytics", PropertyCategory.Analytics),
 
 		/** ANALYTICS ADVANCE */
 		@PropertyOptions(advance = true)
-		BILLING_PERSISTENCE_DIALECT ("billing.persistence.dialect", "org.hibernate.dialect.HSQLDialect", "SQL Dialect", PropertyCategory.Billing),
+		ANALYTICS_PERSISTENCE_DIALECT ("billing.persistence.dialect", "org.hibernate.dialect.MySQL5InnoDBDialect", "Persistence SQL Dialect", PropertyCategory.Analytics),
 		@PropertyOptions(advance = true)
-		BILLING_PERSISTENCE_JDBC_DRIVER ("billing.persistence.jdbc.driver", "org.hsqldb.jdbcDriver", "JDBC driver", PropertyCategory.Billing),
+		ANALYTICS_PERSISTENCE_JDBC_DRIVER ("billing.persistence.jdbc.driver", "org.mariadb.jdbc.Driver", "Persistence JDBC driver", PropertyCategory.Analytics),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
-		BILLING_PERSISTENCE_JDBC_PASSWORD ("billing.persistence.jdbc.password", "", "JDBC password", PropertyCategory.Billing),
+		ANALYTICS_PERSISTENCE_JDBC_PASSWORD ("billing.persistence.jdbc.password", "", "Persistence JDBC password", PropertyCategory.Analytics),
 		@PropertyOptions(advance = true)
-		BILLING_PERSISTENCE_JDBC_URL ("billing.persistence.jdbc.url", "jdbc:hsqldb:file:${user.workspace}/databases/hsqldb_billing", "JDBC URL", PropertyCategory.Billing),
+		ANALYTICS_PERSISTENCE_JDBC_URL ("billing.persistence.jdbc.url", "jdbc:mysql://localhost:3306/c8oAnalytics", "Persistence JDBC URL", PropertyCategory.Analytics),
 		@PropertyOptions(advance = true)
-		BILLING_PERSISTENCE_JDBC_USERNAME ("billing.persistence.jdbc.username", "sa", "JDBC username", PropertyCategory.Billing),
+		ANALYTICS_PERSISTENCE_JDBC_USERNAME ("billing.persistence.jdbc.username", "", "Persistence JDBC username", PropertyCategory.Analytics),
+		@PropertyOptions(advance = true)
+		ANALYTICS_PERSISTENCE_MAX_RETRY ("billing.persistence.jdbc.maxretry", "2", "JDBC max retry on connection failed", PropertyCategory.Analytics),
+		@PropertyOptions(advance = true)
+		ANALYTICS_GOOGLE_ID ("billing.google.analytics.id", "", "Google Analytics ID", PropertyCategory.Analytics),
 
 		/** NOTIFICATIONS */
 		@PropertyOptions(propertyType = PropertyType.Boolean)

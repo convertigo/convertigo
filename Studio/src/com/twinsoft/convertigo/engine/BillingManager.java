@@ -22,15 +22,16 @@
 
 package com.twinsoft.convertigo.engine;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Properties;
 
 import org.hibernate.exception.JDBCConnectionException;
 
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.billing.BillingException;
+import com.twinsoft.convertigo.engine.billing.GoogleAnalyticsTicketManager;
 import com.twinsoft.convertigo.engine.billing.HibernateTicketManager;
 import com.twinsoft.convertigo.engine.billing.ITicketManager;
 import com.twinsoft.convertigo.engine.billing.Ticket;
@@ -44,7 +45,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 	
 	private Collection<Ticket> tickets;
 	
-	private ITicketManager manager;
+	private Collection<ITicketManager> managers = new ArrayList<ITicketManager>(2);
 	
 	private Thread consumer;
 	
@@ -55,7 +56,8 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 	public void init() throws EngineException {
 		customer_name = Engine.isCloudMode() ? Engine.cloud_customer_name : (Engine.isStudioMode() ? "CONVERTIGO Studio" : "CONVERTIGO Server");
 		Engine.theApp.eventManager.addListener(this, PropertyChangeEventListener.class);
-		if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.BILLING_ENABLED)) {
+		if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_PERSISTENCE_ENABLED) ||
+			EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED)) {
 			isDestroying = false;
 			tickets = new LinkedList<Ticket>();
 			consumer = new Thread(new Runnable() {
@@ -73,7 +75,9 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 								}
 							}
 							if (ticket != null) {
-								manager.addTicket(ticket);
+								for (ITicketManager manager: managers) {
+									manager.addTicket(ticket);
+								}
 							}
 						} catch (JDBCConnectionException e) {
 							Throwable cause = e.getCause();
@@ -107,7 +111,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 	
 	public synchronized void insertBilling(Context context, Long responseTime, Long score) throws EngineException {
 		if (isDestroying) return;
-		if (manager == null) return;
+		if (managers.isEmpty()) return;
 		if (context == null) return;
 		if (context.requestedObject == null) return;
 		
@@ -116,7 +120,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			username = (username == null) ? context.tasUserName:username;
 			username = (username == null) ? "user":username;
 			
-			Ticket ticket = manager.newTicket();
+			Ticket ticket = new Ticket();
 			ticket.setCreationDate(System.currentTimeMillis());
 			ticket.setClientIp(context.remoteAddr);
 			ticket.setCustomerName(customer_name);
@@ -134,35 +138,36 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 				tickets.add(ticket);
 				tickets.notify();
 			}
-		} catch (BillingException e) {
+		} catch (Exception e) {
 			throw new EngineException("Ticket create failed", e);
 		}
 	}
 
 	private synchronized void renewManager(boolean justDestroy) throws EngineException {
-		if (manager != null) {
+		for (ITicketManager manager: managers) {
 			try {
 				manager.destroy();
 			} catch (BillingException e) {
 				throw new EngineException("TicketManager failed to destroy", e);
 			}
-			manager = null;
 		}
+		managers.clear();
+		
 		if (!justDestroy) {
-			try {
-				Properties configuration = new Properties();
-				configuration.setProperty("hibernate.connection.driver_class", EnginePropertiesManager.getProperty(PropertyName.BILLING_PERSISTENCE_JDBC_DRIVER));
-				configuration.setProperty("hibernate.connection.url", EnginePropertiesManager.getProperty(PropertyName.BILLING_PERSISTENCE_JDBC_URL));
-				configuration.setProperty("hibernate.connection.username", EnginePropertiesManager.getProperty(PropertyName.BILLING_PERSISTENCE_JDBC_USERNAME));
-				configuration.setProperty("hibernate.connection.password", EnginePropertiesManager.getProperty(PropertyName.BILLING_PERSISTENCE_JDBC_PASSWORD));
-				configuration.setProperty("hibernate.dialect", EnginePropertiesManager.getProperty(PropertyName.BILLING_PERSISTENCE_DIALECT));
-				manager = new HibernateTicketManager(configuration, Engine.logBillers);
-				
-				// TODO : Have the  GAnalyticsTicketManager activated using engine configuration console..
-				// manager = new GAnalyticsTicketManager(configuration, Engine.logBillers);
-				
-			} catch (Throwable t) {
-				throw new EngineException("TicketManager instanciation failed", t);
+			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_PERSISTENCE_ENABLED)) {
+				try {
+					managers.add(new HibernateTicketManager(Engine.logBillers));
+				} catch (Throwable t) {
+					throw new EngineException("TicketManager instanciation failed", t);
+				}			
+			}
+			
+			if (EnginePropertiesManager.getPropertyAsBoolean(PropertyName.ANALYTICS_GOOGLE_ENABLED)) {
+				try {
+					managers.add(new GoogleAnalyticsTicketManager(EnginePropertiesManager.getProperty(PropertyName.ANALYTICS_GOOGLE_ID), Engine.logBillers));
+				} catch (Throwable t) {
+					throw new EngineException("TicketManager instanciation failed", t);
+				}
 			}
 		}
 	}
@@ -170,7 +175,8 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 	public void onEvent(PropertyChangeEvent event) {
 		PropertyName name = event.getKey();
 		switch (name) {
-			case BILLING_ENABLED:
+			case ANALYTICS_PERSISTENCE_ENABLED:
+			case ANALYTICS_GOOGLE_ENABLED:
 				try {
 					destroy();
 				} catch(EngineException e) {
@@ -182,11 +188,11 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 					Engine.logBillers.error("Error on BillingManager.init", e);
 				}
 				break;
-			case BILLING_PERSISTENCE_DIALECT:
-			case BILLING_PERSISTENCE_JDBC_DRIVER:
-			case BILLING_PERSISTENCE_JDBC_PASSWORD:
-			case BILLING_PERSISTENCE_JDBC_URL:
-			case BILLING_PERSISTENCE_JDBC_USERNAME:
+			case ANALYTICS_PERSISTENCE_DIALECT:
+			case ANALYTICS_PERSISTENCE_JDBC_DRIVER:
+			case ANALYTICS_PERSISTENCE_JDBC_PASSWORD:
+			case ANALYTICS_PERSISTENCE_JDBC_URL:
+			case ANALYTICS_PERSISTENCE_JDBC_USERNAME:
 				try {
 					renewManager(false);
 				} catch (EngineException e) {
