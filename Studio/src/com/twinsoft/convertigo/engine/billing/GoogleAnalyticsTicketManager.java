@@ -25,7 +25,6 @@ package com.twinsoft.convertigo.engine.billing;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,17 +40,12 @@ import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.ProxyManager;
 
-public class GAnalyticsTicketManager implements ITicketManager {
+public class GoogleAnalyticsTicketManager implements ITicketManager {
 	private 	Logger log;
 	protected 	ProxyManager proxyManager;
 	private 	HttpClient GAClient;
 	private 	String[] urls = { "http://www.google-analytics.com/collect" };
-
-	
-	private String generateUniqueID() {
-		String uniqueID = "" + System.currentTimeMillis() + Math.round(300 * Math.random());
-		return (uniqueID);
-	}
+	private		String analyticsID;
 	
 	private HttpClient prepareHttpClient(String[] url) throws EngineException,	MalformedURLException {
 		final Pattern scheme_host_pattern = Pattern.compile("https://(.*?)(?::([\\d]*))?(/.*|$)");
@@ -91,28 +85,32 @@ public class GAnalyticsTicketManager implements ITicketManager {
 		return client;
 	}
 	
-	public GAnalyticsTicketManager(Properties configuration, Logger log) throws BillingException {
+	public GoogleAnalyticsTicketManager(String analyticsID, Logger log) throws BillingException {
+		if (analyticsID.length() == 0) {
+			throw new BillingException("Google Analytics ID must not be empty");
+		}
+		this.analyticsID = analyticsID;
 		this.log = log;
-		this.log.info("(GAnalyticsTicketManager) initialized");
+		this.log.info("(GoogleAnalyticsTicketManager) initialized");
 		try {
 			GAClient = prepareHttpClient(urls);
 		} catch (EngineException e) {
-			log.error("(GAnalyticsTicketManager) error creating GAanalytics HttpClient", e);
+			log.error("(GoogleAnalyticsTicketManager) error creating GAanalytics HttpClient", e);
 		} catch (MalformedURLException e) {
-			log.error("(GAnalyticsTicketManager) error creating GAanalytics HttpClient, bad url", e);
+			log.error("(GoogleAnalyticsTicketManager) error creating GAanalytics HttpClient, bad url", e);
 		}
 	}
 
 	public synchronized void addTicket(Ticket ticket) throws BillingException {
 		if (log.isDebugEnabled()) {
-			log.debug("(GAnalyticsTicketManager) addTicket " + ticket);
+			log.debug("(GoogleAnalyticsTicketManager) addTicket " + ticket);
 		}
 		PostMethod method = new PostMethod(urls[0]);
 		method.setRequestHeader("Content-Type",	"application/x-www-form-urlencoded");
 
 		// set parameters for POST method
 		method.setParameter("v", "1");
-		method.setParameter("tid", "UA-660091-7"); // TODO : this must be retrieved from the projects's "G Analytics" property
+		method.setParameter("tid", analyticsID); // TODO : this must be retrieved from the projects's "Google Analytics" property
 		method.setParameter("cid", ticket.getSessionID());
 		method.setParameter("uid", ticket.getUserName());
 		method.setParameter("uip", ticket.getClientIp());
@@ -125,24 +123,26 @@ public class GAnalyticsTicketManager implements ITicketManager {
 		// execute HTTP post with parameters
 		if (GAClient != null) {
 			try {
-				GAClient.executeMethod(method);
+				int httpCode = GAClient.executeMethod(method);
+				String body = method.getResponseBodyAsString();
+				log.debug("[" + httpCode + "] " + body);				
 			} catch (MalformedURLException e) {
-				log.error("(GAnalyticsTicketManager) error creating GAanalytics HttpClient, bad url", e);
+				log.error("(GoogleAnalyticsTicketManager) error creating GAanalytics HttpClient, bad url", e);
 			} catch (HttpException e) {
-				log.error("(GAnalyticsTicketManager) error creating GAanalytics HttpClient, Error in HTTP request", e);
+				log.error("(GoogleAnalyticsTicketManager) error creating GAanalytics HttpClient, Error in HTTP request", e);
 			} catch (IOException e) {
-				log.error("(GAnalyticsTicketManager) error creating GAanalytics HttpClient, I/O error", e);
+				log.error("(GoogleAnalyticsTicketManager) error creating GAanalytics HttpClient, I/O error", e);
 			}
 		}
 	}
 
 	public synchronized Ticket peekTicket() throws BillingException {
-		log.warn("(GAnalyticsTicketManager) peekTicket not implemenented");
+		log.warn("(GoogleAnalyticsTicketManager) peekTicket not implemenented");
 		return null;
 	}
 
 	public synchronized void removeTicket(Ticket ticket) throws BillingException {
-		log.warn("(GAnalyticsTicketManager) removeTicket not implemenented");
+		log.warn("(GoogleAnalyticsTicketManager) removeTicket not implemenented");
 	}
 	
 	public Ticket newTicket() throws BillingException {
