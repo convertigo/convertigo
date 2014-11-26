@@ -25,7 +25,6 @@ package com.twinsoft.convertigo.engine;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Properties;
 
 import org.hibernate.exception.JDBCConnectionException;
 
@@ -149,13 +148,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 		}
 		if (!justDestroy) {
 			try {
-				Properties configuration = new Properties();
-				configuration.setProperty("hibernate.connection.driver_class", EnginePropertiesManager.getProperty(PropertyName.BILLING_PERSISTENCE_JDBC_DRIVER));
-				configuration.setProperty("hibernate.connection.url", EnginePropertiesManager.getProperty(PropertyName.BILLING_PERSISTENCE_JDBC_URL));
-				configuration.setProperty("hibernate.connection.username", EnginePropertiesManager.getProperty(PropertyName.BILLING_PERSISTENCE_JDBC_USERNAME));
-				configuration.setProperty("hibernate.connection.password", EnginePropertiesManager.getProperty(PropertyName.BILLING_PERSISTENCE_JDBC_PASSWORD));
-				configuration.setProperty("hibernate.dialect", EnginePropertiesManager.getProperty(PropertyName.BILLING_PERSISTENCE_DIALECT));
-				manager = new HibernateTicketManager(configuration, Engine.logBillers);
+				manager = new HibernateTicketManager(Engine.logBillers);
 			} catch (Throwable t) {
 				throw new EngineException("TicketManager instanciation failed", t);
 			}
@@ -182,6 +175,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			case BILLING_PERSISTENCE_JDBC_PASSWORD:
 			case BILLING_PERSISTENCE_JDBC_URL:
 			case BILLING_PERSISTENCE_JDBC_USERNAME:
+			case BILLING_PERSISTENCE_MAX_RETRY:
 				try {
 					renewManager(false);
 				} catch (EngineException e) {

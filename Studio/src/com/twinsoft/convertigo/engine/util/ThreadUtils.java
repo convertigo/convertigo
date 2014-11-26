@@ -28,4 +28,10 @@ public class ThreadUtils {
 	public static void stopThread(Thread thread) {
 		thread.stop();
 	}
+	
+	public static void sleep(long millis) {
+		try {
+			Thread.sleep(millis);
+		} catch (InterruptedException e) { }
+	}
 }

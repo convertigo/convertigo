@@ -490,6 +490,8 @@ public class EnginePropertiesManager {
 		SECURITY_TOKEN_PERSISTENCE_JDBC_USERNAME ("security_token.persistence.jdbc.username", "", "JDBC username", PropertyCategory.SecurityToken),
 		@PropertyOptions(advance = true, propertyType = PropertyType.PasswordPlain, ciphered = true)
 		SECURITY_TOKEN_PERSISTENCE_JDBC_PASSWORD ("security_token.persistence.jdbc.password", "", "JDBC password", PropertyCategory.SecurityToken),
+		@PropertyOptions(advance = true)
+		SECURITY_TOKEN_PERSISTENCE_MAX_RETRY ("security_token.persistence.jdbc.maxretry", "4", "JDBC max retry on connection failed", PropertyCategory.SecurityToken),
 		
 		/** SSL */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
@@ -527,6 +529,8 @@ public class EnginePropertiesManager {
 		BILLING_PERSISTENCE_JDBC_URL ("billing.persistence.jdbc.url", "jdbc:hsqldb:file:${user.workspace}/databases/hsqldb_billing", "JDBC URL", PropertyCategory.Billing),
 		@PropertyOptions(advance = true)
 		BILLING_PERSISTENCE_JDBC_USERNAME ("billing.persistence.jdbc.username", "sa", "JDBC Username", PropertyCategory.Billing),
+		@PropertyOptions(advance = true)
+		BILLING_PERSISTENCE_MAX_RETRY ("billing.persistence.jdbc.maxretry", "2", "JDBC max retry on connection failed", PropertyCategory.Billing),
 
 		/** NOTIFICATIONS */
 		@PropertyOptions(propertyType = PropertyType.Boolean)
