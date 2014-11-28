@@ -68,7 +68,7 @@ var F = {
 		remoteVersion: null,
 		splashRemoveMode: "afterUpdate",
 		timeout: 0,
-		uuid: "n/a",
+		uuid: null,
 		webLocalBase: null
 	},
 	

@@ -39,6 +39,7 @@ import org.apache.log4j.Logger;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.ProxyManager;
+import com.twinsoft.convertigo.engine.util.UuidUtils;
 
 public class GoogleAnalyticsTicketManager implements ITicketManager {
 	private 	Logger log;
@@ -110,15 +111,33 @@ public class GoogleAnalyticsTicketManager implements ITicketManager {
 
 		// set parameters for POST method
 		method.setParameter("v", "1");
-		method.setParameter("tid", analyticsID); // TODO : this must be retrieved from the projects's "Google Analytics" property
-		method.setParameter("cid", ticket.getSessionID());
+		method.setParameter("tid", analyticsID);
+		
+		String cid = ticket.getDeviceUUID();
+		if (cid.isEmpty()) {
+			cid = ticket.getSessionID();
+		}
+		try {
+			cid = UuidUtils.toUUID(cid).toString();
+		} catch (Exception e) {
+			log.debug("(GoogleAnalyticsTicketManager) failed to get DeviceUUID", e);
+		}
+		
+		method.setParameter("cid", cid);
 		method.setParameter("uid", ticket.getUserName());
 		method.setParameter("uip", ticket.getClientIp());
 		
 		method.setParameter("t", "event");
 		method.setParameter("an", ticket.getProjectName());
-		method.setParameter("ec", ticket.getRequestableType());
-		method.setParameter("ea", ticket.getRequestableName());
+		method.setParameter("ec", ticket.getProjectName());
+		
+		StringBuffer requestableName = new StringBuffer(ticket.getConnectorName());
+		if (requestableName.length() > 0) {
+			requestableName.append('.');
+		}
+		method.setParameter("ea", requestableName.append(ticket.getRequestableName()).toString());
+		method.setParameter("ev", Long.toString(ticket.getResponseTime()));
+		method.setParameter("ua", ticket.getUserAgent());
 		
 		// execute HTTP post with parameters
 		if (GAClient != null) {

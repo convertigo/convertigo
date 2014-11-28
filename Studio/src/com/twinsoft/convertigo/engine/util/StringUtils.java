@@ -25,7 +25,7 @@ package com.twinsoft.convertigo.engine.util;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import com.twinsoft.util.*;
+import com.twinsoft.util.StringEx;
 
 public class StringUtils {
     

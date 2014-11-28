@@ -55,6 +55,8 @@ public enum Parameter {
 	Transaction("__transaction"),
 	MotherSequenceContext("__motherContext"),
 	UserReference("__user_reference"),
+	UIid("__uid"),
+	DeviceUUID("__uuid"),
 	Xslt("__xslt"),
 
 	SecurityToken("__security_token"),

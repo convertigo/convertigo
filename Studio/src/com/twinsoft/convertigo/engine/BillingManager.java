@@ -35,6 +35,7 @@ import com.twinsoft.convertigo.engine.billing.GoogleAnalyticsTicketManager;
 import com.twinsoft.convertigo.engine.billing.HibernateTicketManager;
 import com.twinsoft.convertigo.engine.billing.ITicketManager;
 import com.twinsoft.convertigo.engine.billing.Ticket;
+import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 
@@ -110,15 +111,23 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 	}
 	
 	public synchronized void insertBilling(Context context, Long responseTime, Long score) throws EngineException {
-		if (isDestroying) return;
-		if (managers.isEmpty()) return;
-		if (context == null) return;
-		if (context.requestedObject == null) return;
+		if (isDestroying) {
+			return;
+		}
+		if (managers.isEmpty()) {
+			return;
+		}
+		if (context == null) {
+			return;
+		}
+		if (context.requestedObject == null) {
+			return;
+		}
 		
 		try {
-			String username = (String)context.get("username");
-			username = (username == null) ? context.tasUserName:username;
-			username = (username == null) ? "user":username;
+			String username = (String) context.get("username");
+			username = username == null ? context.tasUserName : username;
+			username = username == null ? "user" : username;
 			
 			Ticket ticket = new Ticket();
 			ticket.setCreationDate(System.currentTimeMillis());
@@ -126,13 +135,23 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			ticket.setCustomerName(customer_name);
 			ticket.setUserName(username);
 			ticket.setProjectName(context.projectName);
-			ticket.setConnectorName((context.connectorName == null) ? "":context.connectorName);
-			ticket.setConnectorType((context.connector == null) ? "":context.connector.getClass().getSimpleName());
+			ticket.setConnectorName(context.connectorName == null ? "" : context.connectorName);
+			ticket.setConnectorType(context.connector == null ? "" : context.connector.getClass().getSimpleName());
 			ticket.setRequestableName(context.requestedObject.getName());
 			ticket.setRequestableType(context.requestedObject.getClass().getSimpleName());
-			ticket.setResponseTime((responseTime == null) ? context.statistics.getLatestDuration(EngineStatistics.GET_DOCUMENT):responseTime);
-			ticket.setScore((score == null) ? context.requestedObject.getScore():score);
+			ticket.setResponseTime(responseTime == null ? context.statistics.getLatestDuration(EngineStatistics.GET_DOCUMENT) : responseTime);
+			ticket.setScore(score == null ? context.requestedObject.getScore() : score);
 			ticket.setSessionID(context.httpSession.getId());
+			ticket.setUserAgent(context.userAgent);
+			
+			String uiid = (String) context.httpSession.getAttribute(Parameter.UIid.name());
+			String deviceUUID = (String) context.httpSession.getAttribute(Parameter.DeviceUUID.name());
+			if (uiid != null) {
+				ticket.setUiID(uiid);
+			}
+			if (deviceUUID != null) {
+				ticket.setDeviceUUID(deviceUUID);
+			}
 			
 			synchronized (tickets) {
 				tickets.add(ticket);
@@ -193,6 +212,7 @@ public class BillingManager implements AbstractManager, PropertyChangeEventListe
 			case ANALYTICS_PERSISTENCE_JDBC_PASSWORD:
 			case ANALYTICS_PERSISTENCE_JDBC_URL:
 			case ANALYTICS_PERSISTENCE_JDBC_USERNAME:
+			case ANALYTICS_GOOGLE_ID:
 				try {
 					renewManager(false);
 				} catch (EngineException e) {

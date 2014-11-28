@@ -192,6 +192,23 @@ if ("cordova" in window) {
             
             C8O.log.debug("c8o.cdv : deviceready retrieve env from: " + url);
             
+            var checkEnv = function () {
+                if (!C8O._define.log_remote_init_env) {
+                    C8O._define.log_remote_init_env = {};
+                }
+                
+                var uuid = C8O.getCordovaEnv("uuid");
+                if (uuid == null) {
+                	try {
+                		C8O.getCordovaEnv().uuid = uuid = device.uuid;
+                	} catch (err) {}
+                }
+                C8O._define.log_remote_init_env.cordova_uuid = uuid;
+                C8O.addRecallParameter("__uuid", uuid);
+            	
+                C8O._init(params);
+            };
+            
             $.ajax({
                 dataType: "json",
                 url: url,
@@ -199,25 +216,18 @@ if ("cordova" in window) {
                     try {
                         $.extend(true, C8O._define.cordovaEnv, data);
                         
-                        if (!C8O._define.log_remote_init_env) {
-                            C8O._define.log_remote_init_env = {};
-                        }
-                        
-                        C8O._define.log_remote_init_env.cordova_uuid = C8O.getCordovaEnv("uuid");
-                        
                         if (C8O.getCordovaEnv("splashRemoveMode") != "manual") {
                             C8O.splashscreenHide();
                         }
                     } catch (err) {
                         C8O.log.error("c8o.cdv : deviceready catch init env", err);
                     }
-                    
-                    C8O._init(params);
+                    checkEnv();
                 },
                 error: function (xhr, status, err) {
                     C8O.log.error("c8o.cdv : deviceready failed to retrieve env.json file: " + url, err);
                     
-                    C8O._init(params);
+                    checkEnv();
                 }
             });
         },

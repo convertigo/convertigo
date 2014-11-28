@@ -208,9 +208,15 @@ public class InternalRequester extends GenericRequester {
 		Engine.logContext.debug("Context ID: " + contextID);
 
 		context.servletPath = null;
-		context.userAgent = "Convertigo engine internal requester";
-		context.remoteAddr = "127.0.0.1";
-		context.remoteHost = "localhost";
+		if (context.userAgent == null) {
+			context.userAgent = "Convertigo engine internal requester";
+		}
+		if (context.remoteAddr == null) {
+			context.remoteAddr = "127.0.0.1";
+		}
+		if (context.remoteHost == null) {
+			context.remoteHost = "localhost";
+		}
 	}
 
 	public void setStyleSheet(Document document) {

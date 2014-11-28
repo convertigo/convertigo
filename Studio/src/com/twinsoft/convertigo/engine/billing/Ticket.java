@@ -25,6 +25,7 @@ package com.twinsoft.convertigo.engine.billing;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 
 @Entity
 public class Ticket {
@@ -42,7 +43,12 @@ public class Ticket {
 	protected String requestableName	= "";
 	protected String requestableType	= "";
 	protected String sessionID			= "";
+	protected String uiID				= "";
+	protected String deviceUUID			= "";
 	
+	@Transient
+	protected String userAgent			= "";
+
 	public Ticket() {
 	}
 
@@ -151,12 +157,36 @@ public class Ticket {
 	public void setSessionID(String sessionID) {
 		this.sessionID = sessionID;
 	}
+
+	public String getUiID() {
+		return uiID;
+	}
+
+	public void setUiID(String uiID) {
+		this.uiID = uiID;
+	}
+
+	public String getDeviceUUID() {
+		return deviceUUID;
+	}
+
+	public void setDeviceUUID(String deviceUUID) {
+		this.deviceUUID = deviceUUID;
+	}
 	
-	
+	public String getUserAgent() {
+		return userAgent;
+	}
+
+	public void setUserAgent(String userAgent) {
+		this.userAgent = userAgent;
+	}
+
 	@Override
 	public String toString() {
 		return 	"{creationDate: '" + creationDate + "', responseTime: '" + responseTime + "', score: '" + score + "', clientIp: '" + clientIp + "', customerName: '"
 		+ customerName + "', userName: '" + userName + "', projectName: '" + projectName + "', connectorName: '" + connectorName + "', connectorType: '"
-		+ connectorType + "', requestableName: '" + requestableName + "', requestableType: '" + requestableType + "'}";
+		+ connectorType + "', requestableName: '" + requestableName + "', requestableType: '" + requestableType + "', sessionID: '"
+		+ sessionID + "', uiID: '" + uiID + "', deviceUUID: '" + deviceUUID + "'}";
 	}
 }

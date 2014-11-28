@@ -521,6 +521,11 @@ public abstract class GenericRequester extends Requester {
 				if (context.httpServletRequest == null) {
 					context.httpServletRequest = parentContext.httpServletRequest;
 				}
+				
+				context.userAgent = parentContext.userAgent;
+				context.remoteAddr = parentContext.remoteAddr;
+				context.remoteHost = parentContext.remoteHost;
+
 				context.parentContext = parentContext;
 				Engine.logContext.debug("Setting mother sequence context: " + parameterValue);
 			}
@@ -560,6 +565,20 @@ public abstract class GenericRequester extends Requester {
 			if (parameterValue != null) {
 				context.userReference = parameterValue;
 				Engine.logContext.info("User reference = '" + parameterValue + "'");
+			}
+		}
+		// This is the user UI id
+		else if (parameterName.equals(Parameter.UIid.getName())) {
+			if (parameterValue != null && context.httpSession != null) {
+				context.httpSession.setAttribute(Parameter.UIid.name(), parameterValue);
+				Engine.logContext.info("User UI id = '" + parameterValue + "'");
+			}
+		}
+		// This is the Device UUID
+		else if (parameterName.equals(Parameter.DeviceUUID.getName())) {
+			if (parameterValue != null) {
+				context.httpSession.setAttribute(Parameter.DeviceUUID.name(), parameterValue);
+				Engine.logContext.info("User device UUID = '" + parameterValue + "'");
 			}
 		}
 	}
