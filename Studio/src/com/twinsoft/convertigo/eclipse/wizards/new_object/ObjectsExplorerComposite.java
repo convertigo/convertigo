@@ -421,32 +421,20 @@ public class ObjectsExplorerComposite extends Composite {
 		if (cleanDescription.charAt(0) == ' ')
 			cleanDescription = cleanDescription.substring(1);
 
-		cleanDescription = cleanDescription.replaceAll("((?m)\\*\\*\\*.*$)",(bHtml?"<ul>$1</ul>":""));
-		cleanDescription  = cleanDescription.replaceAll("(\\*\\*\\*)",(bHtml?"</li><li>":""));
-				
-		// Replace all {{...}}}
-		cleanDescription = cleanDescription.replaceAll("\\{\\{Reference\\}\\}",(bHtml?"<i>":""));
-		cleanDescription = cleanDescription.replaceAll("\\{\\{-Reference\\}\\}",(bHtml?"</i>":""));
+		// replace orangetwinsoft class by text color style
+		cleanDescription = cleanDescription.replaceAll("class=\"orangetwinsoft\"",(bHtml?"style=\"color=#FC870A;\"":""));
 		
-		cleanDescription = cleanDescription.replaceAll("\\{\\{Produit/Fonction\\}\\}",(bHtml?"<b>":""));
-		cleanDescription = cleanDescription.replaceAll("\\{\\{-Produit/Fonction\\}\\}",(bHtml?"</b>":""));
-
-		cleanDescription = cleanDescription.replaceAll("\\{\\{Orange Twinsoft\\}\\}",(bHtml?"<font color=\"#FC870A\">":""));
-		cleanDescription = cleanDescription.replaceAll("\\{\\{-Orange Twinsoft\\}\\}",(bHtml?"</font>":""));
+		// replace computer class by new font
+		cleanDescription = cleanDescription.replaceAll("class=\"computer\"",(bHtml?"style=\"font-family: lucida Console;\"":""));
 		
-		cleanDescription = cleanDescription.replaceAll("\\{\\{Computer\\}\\}",(bHtml?"<font size=\"2.5\" face=\"lucida Console\">":""));
-		cleanDescription = cleanDescription.replaceAll("\\{\\{-Computer\\}\\}",(bHtml?"</font>":""));
-		
-		// Replace all \s\n
-		cleanDescription = cleanDescription.replaceAll("(\\s\\\n)",(bHtml?"<br/><br/>":""));
-		
-		// Replace all \n\s
-		cleanDescription = cleanDescription.replaceAll("(\\\n\\s)",(bHtml?"<br/><br/>":""));
+		// Double BR tags
+		cleanDescription = cleanDescription.replaceAll("<br/>",(bHtml?"<br/><br/>":""));
 
 		//Clean <ul><li></li></ul>
-		cleanDescription  = cleanDescription.replaceAll("<ul><\\/li>",(bHtml?"<ul>":""));
-		cleanDescription  = cleanDescription.replaceAll("<\\/ul>",(bHtml?"<\\/li><\\/ul>":""));
-		cleanDescription = cleanDescription.replaceAll("(\\*\\*\\*[^\\\n]*\\\n)",(bHtml?"<ul>$1<\\/ul>":""));	
+		// TODO is it still usefull ?
+//		cleanDescription  = cleanDescription.replaceAll("<ul><\\/li>",(bHtml?"<ul>":""));
+//		cleanDescription  = cleanDescription.replaceAll("<\\/ul>",(bHtml?"<\\/li><\\/ul>":""));
+//		cleanDescription = cleanDescription.replaceAll("(\\*\\*\\*[^\\\n]*\\\n)",(bHtml?"<ul>$1<\\/ul>":""));	
 		
 		return cleanDescription;
 	}
