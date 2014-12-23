@@ -418,23 +418,18 @@ public class ObjectsExplorerComposite extends Composite {
 	private String cleanDescription(String description, boolean bHtml) {
 		String cleanDescription = description;
 		// Replace first space
-		if (cleanDescription.charAt(0) == ' ')
+		if (cleanDescription.charAt(0) == ' ') {
 			cleanDescription = cleanDescription.substring(1);
+		}
 
 		// replace orangetwinsoft class by text color style
-		cleanDescription = cleanDescription.replaceAll("class=\"orangetwinsoft\"",(bHtml?"style=\"color=#FC870A;\"":""));
+		cleanDescription = cleanDescription.replace("class=\"orangetwinsoft\"", (bHtml ? "style=\"color=#FC870A;\"" : ""));
 		
 		// replace computer class by new font
-		cleanDescription = cleanDescription.replaceAll("class=\"computer\"",(bHtml?"style=\"font-family: lucida Console;\"":""));
+		cleanDescription = cleanDescription.replace("class=\"computer\"", (bHtml ? "style=\"font-family: lucida Console;\"" : ""));
 		
 		// Double BR tags
-		cleanDescription = cleanDescription.replaceAll("<br/>",(bHtml?"<br/><br/>":""));
-
-		//Clean <ul><li></li></ul>
-		// TODO is it still usefull ?
-//		cleanDescription  = cleanDescription.replaceAll("<ul><\\/li>",(bHtml?"<ul>":""));
-//		cleanDescription  = cleanDescription.replaceAll("<\\/ul>",(bHtml?"<\\/li><\\/ul>":""));
-//		cleanDescription = cleanDescription.replaceAll("(\\*\\*\\*[^\\\n]*\\\n)",(bHtml?"<ul>$1<\\/ul>":""));	
+		cleanDescription = cleanDescription.replaceAll("<br/>(?:<br/>)?", (bHtml ? "<br/><br/>" : ""));
 		
 		return cleanDescription;
 	}
