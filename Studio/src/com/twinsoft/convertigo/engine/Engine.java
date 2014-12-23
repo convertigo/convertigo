@@ -40,6 +40,7 @@ import javax.swing.event.EventListenerList;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.auth.AuthPolicy;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
@@ -266,6 +267,8 @@ public class Engine {
 		}
 
 		cloud_customer_name = System.getProperty("convertigo.cloud.customer_name");
+		
+		AuthPolicy.registerAuthScheme(AuthPolicy.NTLM, com.jivesoftware.authHelper.customescheme.ntlm2.CustomNTLM2Scheme.class);
 	}
 	
 	private static boolean bInitPathsDone = false;
