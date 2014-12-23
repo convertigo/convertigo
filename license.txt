@@ -232,6 +232,10 @@ FOP
   | http://xmlgraphics.apache.org/fop/
   | ASL 2.0
 ------------------------------------------------------
+HttpclientAuthHelper
+  | https://github.com/DovAmir/httpclientAuthHelper
+  | ASL 2.0
+------------------------------------------------------
 Jaxen
   | http://www.jaxen.org
   | ASL 2.0
