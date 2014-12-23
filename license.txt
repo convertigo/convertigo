@@ -292,6 +292,10 @@ Httpclient
   | http://www.innovation.ch/java/HTTPClient
   | LGPL 2.1
 ------------------------------------------------------
+httpclientAuthHelper
+  | https://github.com/DovAmir/httpclientAuthHelper
+  | ASL 2.0
+------------------------------------------------------
 Jacob
   | http://sourceforge.net/projects/jacob-project
   | LGPL 2.1

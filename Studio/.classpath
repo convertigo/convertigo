@@ -30,6 +30,7 @@
 	<classpathentry kind="lib" path="lib/apache/commons/commons-lang-2.5.jar" sourcepath="/ExternalJavaSources/commons-lang-2.5-src.zip"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-fileupload-1.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-io-2.2.jar" sourcepath="/ExternalJavaSources/commons-io-2.2-src.zip"/>
+	<classpathentry kind="lib" path="lib/apache/commons/commons-codec-1.6.jar" sourcepath="/ExternalJavaSources/commons-codec-1.6-sources.jar"/>
 	<classpathentry kind="lib" path="lib/apache/xmlgraphics/xmlgraphics-commons-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/internal/bull-v24323.jar"/>
 	<classpathentry kind="lib" path="lib/internal/phaos.jar"/>
@@ -108,8 +109,6 @@
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/axis2-xmlbeans-1.6.2.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/bcel-5.1.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-cli-1.2.jar"/>
-	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-codec-1.3.jar"/>
-	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-fileupload-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-httpclient-3.1.jar" sourcepath="/ExternalJavaSources/commons-httpclient-3.1-src.zip"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/geronimo-annotation_1.0_spec-1.1.jar"/>
@@ -147,5 +146,6 @@
 	<classpathentry kind="lib" path="lib/axis2-1.6.2/lib/XmlSchema-1.4.7.jar"/>
 	<classpathentry kind="lib" path="lib/signpost-core-1.2.1.2.jar"/>
 	<classpathentry kind="lib" path="lib/internal/ibm-v35876.jar"/>
+	<classpathentry kind="lib" path="lib/httpclientAuthHelper.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

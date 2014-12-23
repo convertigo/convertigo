@@ -1,0 +1,49 @@
+body {
+	font-family: sans-serif, Arial, Tahoma;
+}
+#conv{
+	right:0;
+	top:0;
+	position: absolute;
+	margin-left:5%;
+	margin-right:3%;
+	padding-left:2%;
+	padding-right:2%;
+	border:5px solid #0086b2;
+	background-color: white;
+}
+h1 {
+	color: white;
+	background-color: #0086b2;
+	margin-top:1%;
+	padding-left:1%;
+}
+h2 {
+	color: #0086b2;
+	margin-left:1%;
+}
+table{
+	margin: 0 auto;
+	border:4px solid #0086b2;
+}
+#info{
+	border:2px dotted #0086b2;
+}
+p{
+	margin-left:2%;
+}
+span{
+	background-color: green;
+	color : white;
+	font-weight:bold;
+	padding-left:4px;
+	padding-right:4px;
+}
+#stopProcess{
+	right: 5%;
+	position: absolute;
+}
+#output{
+	background-color: black;
+	color: yellow; 
+}
