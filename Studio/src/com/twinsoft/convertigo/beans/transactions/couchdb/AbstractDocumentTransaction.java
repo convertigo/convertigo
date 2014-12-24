@@ -33,10 +33,14 @@ public abstract class AbstractDocumentTransaction extends AbstractDatabaseTransa
 
 	private static final long serialVersionUID = 3030579754950212900L;
 	
+	protected static final CouchDbParameter var_id 			= CouchDbParameter.Private_id;
+	protected static final CouchDbParameter var_ids			= CouchDbParameter.Private_ids;
+	protected static final CouchDbParameter var_rev 		= CouchDbParameter.Private_rev;
+	
 	protected static final CouchDbParameter var_filepath 	= CouchDbParameter.Param_filepath;
 	protected static final CouchDbParameter var_filename 	= CouchDbParameter.Path_filename;
-	protected static final CouchDbParameter var_docs 		= CouchDbParameter.Param_docs;
-	protected static final CouchDbParameter var_document 	= CouchDbParameter.Param_document;
+	protected static final CouchDbParameter var_datas 		= CouchDbParameter.Param_datas;
+	protected static final CouchDbParameter var_data 		= CouchDbParameter.Param_data;
 	protected static final CouchDbParameter var_docid 		= CouchDbParameter.Path_docid;
 	protected static final CouchDbParameter var_docrev 		= CouchDbParameter.Param_docrev;
 	protected static final CouchDbParameter var_viewname 	= CouchDbParameter.Path_viewname;

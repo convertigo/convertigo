@@ -22,14 +22,19 @@
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class UpdateDocumentTransaction extends AbstractDocumentTransaction {
 
@@ -47,22 +52,31 @@ public class UpdateDocumentTransaction extends AbstractDocumentTransaction {
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_database, var_document});
+		return Arrays.asList(new CouchDbParameter[] {var_database, var_id, var_data});
 	}
 		
 	@Override
 	protected Object invoke() {
 		try {
-			// get whole document if one
-			JsonElement jsond = toJson(getGson(), new JsonParser(), getParameterValue(var_document));
-			JsonObject jsonDocument = jsond == null ? new JsonObject(): jsond.getAsJsonObject();
+			JsonObject jsonDocument = new JsonObject();
 			
 			// add document members from variables
 			for (RequestableVariable variable : getVariablesList()) {
 				String variableName = variable.getName();
-				if (getDeclaredParameters().contains(variableName)) continue;
 				JsonElement jsonv = toJson(getGson(), new JsonParser(), getParameterValue(variableName));
-				if (jsonv != null) jsonDocument.add(variableName, jsonv);
+				if (jsonv != null) {
+					if (jsonv instanceof JsonPrimitive) { // comes from a simple variable
+						jsonDocument.add(variableName, jsonv);
+					}
+					else if (jsonv instanceof JsonObject) { // comes from a complex variable
+						JsonObject jsonObject = jsonv.getAsJsonObject();
+						Set<Entry<String, JsonElement>> set = jsonObject.entrySet();
+						for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
+							Entry<String, JsonElement> entry = it.next();
+							jsonDocument.add(entry.getKey(), entry.getValue());
+						}
+					}
+				}
 			}
 			
 			addRevToDoc(jsonDocument);

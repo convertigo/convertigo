@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
@@ -31,8 +33,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.providers.couchdb.api.Document;
+import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class BulkDocumentsTransaction extends AbstractDocumentTransaction {
 
@@ -50,7 +54,7 @@ public class BulkDocumentsTransaction extends AbstractDocumentTransaction {
 	
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
-		return Arrays.asList(new CouchDbParameter[] {var_database, var_docs});
+		return Arrays.asList(new CouchDbParameter[] {var_database, var_ids, var_datas});
 	}
 	
 	@Override
@@ -61,15 +65,12 @@ public class BulkDocumentsTransaction extends AbstractDocumentTransaction {
 	@Override
 	protected Object invoke() {
 		try {
-			// get documents if ones
-			JsonElement jsonVar = toJson(getGson(), new JsonParser(), getParameterValue(var_docs));
-			JsonArray jsonDocuments = jsonVar == null ? new JsonArray(): jsonVar.getAsJsonArray();
+			JsonArray jsonDocuments = new JsonArray();
 			
 			// add document members from variables
 			for (RequestableVariable variable : getVariablesList()) {
 				if (variable.isMultiValued()) {
 					String variableName = variable.getName();
-					if (CouchDbParameter.contains(getDeclaredParameters(),variableName)) continue;
 					JsonElement jsonv = toJson(getGson(), new JsonParser(), getParameterValue(variableName));
 					if (jsonv != null) {
 						JsonArray jsonArray = jsonv.getAsJsonArray();
@@ -78,7 +79,19 @@ public class BulkDocumentsTransaction extends AbstractDocumentTransaction {
 						}
 						for (int i=0; i<jsonArray.size(); i++) {
 							JsonObject jsonDocument = jsonDocuments.get(i).getAsJsonObject();
-							jsonDocument.add(variableName, jsonArray.get(i));
+							JsonElement jsonItem = jsonArray.get(i);
+							if (jsonItem instanceof JsonPrimitive) { // comes from a simple variable
+								jsonDocument.add(variableName, jsonItem);
+							}
+							else if (jsonItem instanceof JsonObject) { // comes from a complex variable
+								JsonObject jsonObject = jsonItem.getAsJsonObject();
+								Set<Entry<String, JsonElement>> set = jsonObject.entrySet();
+								for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
+									Entry<String, JsonElement> entry = it.next();
+									jsonDocument.add(entry.getKey(), entry.getValue());
+								}
+							}
+							
 						}
 					}
 				}

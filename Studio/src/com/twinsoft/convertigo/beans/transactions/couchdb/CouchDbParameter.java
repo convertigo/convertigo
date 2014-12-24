@@ -7,6 +7,10 @@ import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.EngineException;
 
 public enum CouchDbParameter {
+	Private_id("_id",false,-1),
+	Private_ids("_id",true,-1),
+	Private_rev("_rev",false,-1),
+	
 	Path_database("dbname",false,0),
 	Path_docid("docid", false,0),
 	Path_viewname("viewname", false,0),
@@ -16,8 +20,8 @@ public enum CouchDbParameter {
 	Path_value("value",false,0),
 	
 	Param_filepath("filepath", false,1),	
-	Param_docs("document", true,1),
-	Param_document("document", false,1),
+	Param_datas("data", true,1),
+	Param_data("data", false,1),
 	Param_docrev("docrev", false,1),
 	Param_view_limit("limit", false,1),
 	Param_view_skip("skip", false,1),
@@ -31,6 +35,7 @@ public enum CouchDbParameter {
 	Param_user_password("password",false,1),
 	;
 	
+	final int TYPE_PRIVATE = -1;
 	final int TYPE_QUERY_PATH = 0;
 	final int TYPE_QUERY_PARAMETER = 1;
 	

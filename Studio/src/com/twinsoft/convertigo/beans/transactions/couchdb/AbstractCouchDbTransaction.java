@@ -206,8 +206,22 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			JsonObject jsonVariable = jsonXml.getAsJsonObject().get("variable").getAsJsonObject();
 			JsonObject jsonAttr = jsonVariable.get("attr").getAsJsonObject();
 			JsonElement jsonAttrValue = jsonAttr.get("value");
-			JsonElement jsonAttrName = jsonAttr.get("name");
-			return (jsonAttrValue != null) ? jsonAttrValue : jsonVariable.get(jsonAttrName.getAsString());
+			
+			// this is a simple variable
+			if (jsonAttrValue != null) {
+				return jsonAttrValue;
+			}
+			// this is a complex variable
+			else {
+				jsonVariable.remove("attr");
+				JsonObject jsonChildren = new JsonObject();
+				Set<Entry<String, JsonElement>> set = jsonVariable.entrySet();
+				for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
+					Entry<String, JsonElement> entry = it.next();
+					jsonChildren.add(entry.getKey(), entry.getValue());
+				}
+				return jsonChildren;
+			}
 		}
 		return jsonXml;
 	}
