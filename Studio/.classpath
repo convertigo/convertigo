@@ -147,5 +147,7 @@
 	<classpathentry kind="lib" path="lib/signpost-core-1.2.1.2.jar"/>
 	<classpathentry kind="lib" path="lib/internal/ibm-v35876.jar"/>
 	<classpathentry kind="lib" path="lib/httpclientAuthHelper.jar"/>
+	<classpathentry kind="lib" path="lib/engine-couchdbprovider.jar"/>
+	<classpathentry kind="lib" path="lib/gson-2.2.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

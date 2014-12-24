@@ -38,6 +38,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
+import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.connectors.SapJcoConnector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
@@ -211,6 +212,9 @@ public class ConnectorTreeObject extends DatabaseObjectTreeObject {
 						catch (Exception e) {
 							ConvertigoPlugin.logWarning(e, "Could not update SAP destination !");
 						}
+					}
+					else if (connector instanceof CouchDbConnector) {
+						((CouchDbConnector)connector).release();
 					}
 				}
 			}

@@ -27,7 +27,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -44,6 +43,7 @@ import org.w3c.dom.Document;
 import com.twinsoft.convertigo.beans.common.DefaultBlockFactory;
 import com.twinsoft.convertigo.beans.common.EmulatorTechnology;
 import com.twinsoft.convertigo.beans.connectors.CicsConnector;
+import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.connectors.ExternalBrowserConnector;
 import com.twinsoft.convertigo.beans.connectors.HtmlConnector;
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
@@ -70,6 +70,7 @@ import com.twinsoft.convertigo.beans.core.Step;
 import com.twinsoft.convertigo.beans.core.TestCase;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.Variable;
+import com.twinsoft.convertigo.beans.references.ImportXsdSchemaReference;
 import com.twinsoft.convertigo.beans.references.WebServiceReference;
 import com.twinsoft.convertigo.beans.screenclasses.HtmlScreenClass;
 import com.twinsoft.convertigo.beans.screenclasses.JavelinScreenClass;
@@ -94,6 +95,8 @@ import com.twinsoft.convertigo.beans.transactions.SapJcoLogonTransaction;
 import com.twinsoft.convertigo.beans.transactions.SapJcoTransaction;
 import com.twinsoft.convertigo.beans.transactions.SiteClipperTransaction;
 import com.twinsoft.convertigo.beans.transactions.SqlTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
+import com.twinsoft.convertigo.beans.transactions.couchdb.GetServerInfoTransaction;
 import com.twinsoft.convertigo.beans.variables.RequestableHttpVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
@@ -483,6 +486,11 @@ public class NewObjectWizard extends Wizard {
 							sapLogonTransaction.addCredentialsVariables();
 						}
 
+						if (newBean instanceof AbstractCouchDbTransaction) {
+							AbstractCouchDbTransaction abstractCouchDbTransaction = (AbstractCouchDbTransaction)newBean;
+							abstractCouchDbTransaction.createVariables();
+						}
+
 						ConvertigoPlugin.logInfo("New object class '"+ this.className +"' named '" + newBean.getName() + "' has been added");
 		    			monitor.setTaskName("Object setted up");
 		    			monitor.worked(1);
@@ -662,6 +670,18 @@ public class NewObjectWizard extends Wizard {
 			transaction.setName("Default_transaction");
 			externalBrowserConnector.add(transaction);
 			externalBrowserConnector.setDefaultTransaction(transaction);
+		}
+		else if (connector instanceof CouchDbConnector) {
+			CouchDbConnector couchDbConnector = (CouchDbConnector)connector;
+			
+			// TODO : check reference exist - copy xsd file
+			ImportXsdSchemaReference reference = new ImportXsdSchemaReference();
+			reference.setFilepath(".//xsd/CouchDb.xsd");
+			couchDbConnector.getProject().add(reference);
+			
+			GetServerInfoTransaction transaction = new GetServerInfoTransaction();
+			couchDbConnector.add(transaction);
+			couchDbConnector.setDefaultTransaction(transaction);
 		}
     }
     

@@ -59,6 +59,11 @@
 			<type>2</type>
 			<locationURI>WORKSPACE_LOC/SapConnector_7.3.x/src/com/twinsoft/convertigo/engine/providers/sapjco</locationURI>
 		</link>
+		<link>
+			<name>src/com/twinsoft/convertigo/engine/providers/couchdb</name>
+			<type>2</type>
+			<locationURI>WORKSPACE_LOC/CouchDBConnector_7.3.x/src/com/twinsoft/convertigo/engine/providers/couchdb</locationURI>
+		</link>
 <!-- 		<link> -->
 <!-- 			<name>src/com/jivesoftware</name> -->
 <!-- 			<type>2</type> -->
