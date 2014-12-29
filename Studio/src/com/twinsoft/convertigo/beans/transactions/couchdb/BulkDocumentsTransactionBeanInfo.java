@@ -21,6 +21,8 @@
  */
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
+import java.beans.PropertyDescriptor;
+
 import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 
 public class BulkDocumentsTransactionBeanInfo extends MySimpleBeanInfo {
@@ -37,6 +39,12 @@ public class BulkDocumentsTransactionBeanInfo extends MySimpleBeanInfo {
 
 			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/couchdb/databasetransaction_color_16x16.png";
 			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/couchdb/databasetransaction_color_32x32.png";
+			
+			properties = new PropertyDescriptor[1];
+			
+            properties[0] = new PropertyDescriptor("handleUpdate", beanClass, "isHandleUpdate", "setHandleUpdate");
+			properties[0].setDisplayName(getExternalizedString("property.handleUpdate.display_name"));
+			properties[0].setShortDescription(getExternalizedString("property.handleUpdate.short_description"));
 			
 		}
 		catch(Exception e) {

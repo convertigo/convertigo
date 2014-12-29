@@ -42,10 +42,20 @@ public class BulkDocumentsTransaction extends AbstractDocumentTransaction {
 
 	private static final long serialVersionUID = -7182426831481176387L;
 
+	private boolean handleUpdate = true;
+	
 	public BulkDocumentsTransaction() {
 		super();
 	}
 	
+	public boolean isHandleUpdate() {
+		return handleUpdate;
+	}
+
+	public void setHandleUpdate(boolean handleUpdate) {
+		this.handleUpdate = handleUpdate;
+	}
+
 	@Override
 	public BulkDocumentsTransaction clone() throws CloneNotSupportedException {
 		BulkDocumentsTransaction clonedObject =  (BulkDocumentsTransaction) super.clone();
@@ -103,7 +113,7 @@ public class BulkDocumentsTransaction extends AbstractDocumentTransaction {
 				if (getIdFromDoc(jsonDoc) == null) { // create case
 					addIdToDoc(jsonDoc);
 				}
-				else { // update case
+				else if (isHandleUpdate()) { // update case
 					addRevToDoc(jsonDoc);
 				}
 			}
@@ -115,7 +125,7 @@ public class BulkDocumentsTransaction extends AbstractDocumentTransaction {
 			return getCouchDBDocument().bulk(encode(jsonString));
 		}
 		catch (Throwable t) {
-			throw new RuntimeException("Unable to create new document", t);
+			throw new RuntimeException("Unable to bulk documents", t);
 		}		
 	}
 
