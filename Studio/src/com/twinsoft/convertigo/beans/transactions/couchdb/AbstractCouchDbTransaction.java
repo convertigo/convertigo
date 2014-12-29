@@ -65,8 +65,8 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 
 	private static final long serialVersionUID = 8218411805775719448L;
 	
-	protected static final String COUCHDB_XSD_NAMESPACE = "http://www.convertigo.com/convertigo/couchdb";
-	protected static final String COUCHDB_XSD_LOCATION = "../../CouchDb.xsd";
+	public static final String COUCHDB_XSD_NAMESPACE = "http://www.convertigo.com/convertigo/couchdb";
+	public static final String COUCHDB_XSD_LOCATION = "http://localhost:18080/convertigo/xsd/couchdb/CouchDb.xsd";
 	
 	private XmlQName xmlComplexTypeAffectation = new XmlQName();
 	
@@ -246,12 +246,25 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	
 	private static void toXml(Entry<String, JsonElement> entry, Element parentElement) {
 		String key = entry.getKey();
-		if (key != null) {
-			key = StringUtils.normalize(key);
-		}		
-		Element child = parentElement.getOwnerDocument().createElement(key);
-		parentElement.appendChild(child);
-		toXml(entry.getValue(), child);
+		if (key == null) {
+			key = "object";
+		}
+		
+		if ("_attachments".equals(parentElement.getNodeName())) {
+			Element att = parentElement.getOwnerDocument().createElement("attachment");
+			Element att_name = parentElement.getOwnerDocument().createElement("name");
+			Text att_txt = parentElement.getOwnerDocument().createTextNode(key);
+			att_name.appendChild(att_txt);
+			att.appendChild(att_name);
+			parentElement.appendChild(att);
+			toXml(entry.getValue(), att);
+		}
+		else {
+			String normalisedKey = StringUtils.normalize(key);
+			Element child = parentElement.getOwnerDocument().createElement(normalisedKey);
+			parentElement.appendChild(child);
+			toXml(entry.getValue(), child);
+		}
 	}
 	
 	private static void toXml(JsonElement jsone, Element parentElement) {

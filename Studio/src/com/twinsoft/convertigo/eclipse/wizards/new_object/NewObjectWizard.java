@@ -674,9 +674,9 @@ public class NewObjectWizard extends Wizard {
 		else if (connector instanceof CouchDbConnector) {
 			CouchDbConnector couchDbConnector = (CouchDbConnector)connector;
 			
-			// TODO : check reference exist - copy xsd file
+			// TODO : check reference exist
 			ImportXsdSchemaReference reference = new ImportXsdSchemaReference();
-			reference.setFilepath(".//xsd/CouchDb.xsd");
+			reference.setUrlpath(AbstractCouchDbTransaction.COUCHDB_XSD_LOCATION);
 			couchDbConnector.getProject().add(reference);
 			
 			GetServerInfoTransaction transaction = new GetServerInfoTransaction();
