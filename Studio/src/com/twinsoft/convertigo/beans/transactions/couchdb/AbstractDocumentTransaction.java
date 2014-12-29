@@ -46,6 +46,9 @@ public abstract class AbstractDocumentTransaction extends AbstractDatabaseTransa
 	protected static final CouchDbParameter var_viewname 	= CouchDbParameter.Path_viewname;
 	protected static final CouchDbParameter var_view_limit	= CouchDbParameter.Param_view_limit;
 	protected static final CouchDbParameter var_view_skip	= CouchDbParameter.Param_view_skip;
+	protected static final CouchDbParameter var_view_key	= CouchDbParameter.Param_view_key;
+	protected static final CouchDbParameter var_view_startkey	= CouchDbParameter.Param_view_startkey;
+	protected static final CouchDbParameter var_view_endkey		= CouchDbParameter.Param_view_endkey;
 	
 	protected static final String doc_id 		= "_id";
 	protected static final String doc_rev 		= "_rev";

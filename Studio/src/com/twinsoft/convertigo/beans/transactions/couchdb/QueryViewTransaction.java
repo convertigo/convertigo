@@ -22,7 +22,9 @@
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.twinsoft.convertigo.engine.util.ParameterUtils;
 
@@ -43,18 +45,30 @@ public class QueryViewTransaction extends AbstractDocumentTransaction {
 	@Override
 	public List<CouchDbParameter> getDeclaredParameters() {
 		return Arrays.asList(new CouchDbParameter[] {var_database, var_docid, var_viewname, 
-				var_view_limit, var_view_skip});
+				var_view_limit, var_view_skip, var_view_key, var_view_startkey, var_view_endkey});
 	}
 
 	@Override
 	protected Object invoke() {
 		String docId = ParameterUtils.toString(getParameterValue(var_docid));
 		String viewName = ParameterUtils.toString(getParameterValue(var_viewname));
+		
+		String key = ParameterUtils.toString(getParameterValue(var_view_key));
+		String startkey = ParameterUtils.toString(getParameterValue(var_view_startkey));
+		String endkey = ParameterUtils.toString(getParameterValue(var_view_endkey));
 		String _limit = ParameterUtils.toString(getParameterValue(var_view_limit));
 		String _skip = ParameterUtils.toString(getParameterValue(var_view_skip));
 		Integer limit = (_limit == null ? null:Double.valueOf(_limit).intValue());
 		Integer skip = (_skip == null ? null:Double.valueOf(_skip).intValue());
-		return getCouchDBDocument().view(docId, viewName, limit, skip, null);
+		
+		Map<String,Object> options = new HashMap<String, Object>();
+		options.put(var_view_key.variableName(), key);
+		options.put(var_view_startkey.variableName(), startkey);
+		options.put(var_view_endkey.variableName(), endkey);
+		options.put(var_view_limit.variableName(), limit);
+		options.put(var_view_skip.variableName(), skip);
+		
+		return getCouchDBDocument().view(docId, viewName, options, null);
 	}
 
 }
