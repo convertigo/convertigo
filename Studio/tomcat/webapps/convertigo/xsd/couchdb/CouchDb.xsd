@@ -543,9 +543,11 @@
 			<xsd:element name="item" minOccurs="0" maxOccurs="unbounded">
 				<xsd:complexType>
 					<xsd:sequence>
-						<xsd:element name="ok" type="xsd:boolean"/>
+						<xsd:element name="ok" minOccurs="0" type="xsd:boolean"/>
 						<xsd:element name="id" type="xsd:string"/>
-						<xsd:element name="rev" type="xsd:string"/>
+						<xsd:element name="rev" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="error" minOccurs="0" type="xsd:string"/>
+						<xsd:element name="reason" minOccurs="0" type="xsd:string"/>
 					</xsd:sequence>
 				</xsd:complexType>
 			</xsd:element>
