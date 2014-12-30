@@ -73,60 +73,58 @@ public class BulkDocumentsTransaction extends AbstractDocumentTransaction {
 	}
 	
 	@Override
-	protected Object invoke() {
-		try {
-			JsonArray jsonDocuments = new JsonArray();
-			
-			// add document members from variables
-			for (RequestableVariable variable : getVariablesList()) {
-				if (variable.isMultiValued()) {
-					String variableName = variable.getName();
-					JsonElement jsonv = toJson(getGson(), new JsonParser(), getParameterValue(variableName));
-					if (jsonv != null) {
-						JsonArray jsonArray = jsonv.getAsJsonArray();
-						while (jsonDocuments.size() < jsonArray.size()) {
-							jsonDocuments.add(new JsonObject());
+	protected Object invoke() throws Exception {
+		JsonArray jsonDocuments = new JsonArray();
+		
+		// add document members from variables
+		for (RequestableVariable variable : getVariablesList()) {
+			if (variable.isMultiValued()) {
+				String variableName = variable.getName();
+				JsonElement jsonv = toJson(getGson(), new JsonParser(), getParameterValue(variableName));
+				if (jsonv != null) {
+					JsonArray jsonArray = jsonv.getAsJsonArray();
+					while (jsonDocuments.size() < jsonArray.size()) {
+						jsonDocuments.add(new JsonObject());
+					}
+					for (int i=0; i<jsonArray.size(); i++) {
+						JsonObject jsonDocument = jsonDocuments.get(i).getAsJsonObject();
+						JsonElement jsonItem = jsonArray.get(i);
+						if (jsonItem instanceof JsonPrimitive) { // comes from a simple variable
+							jsonDocument.add(variableName, jsonItem);
 						}
-						for (int i=0; i<jsonArray.size(); i++) {
-							JsonObject jsonDocument = jsonDocuments.get(i).getAsJsonObject();
-							JsonElement jsonItem = jsonArray.get(i);
-							if (jsonItem instanceof JsonPrimitive) { // comes from a simple variable
-								jsonDocument.add(variableName, jsonItem);
+						else if (jsonItem instanceof JsonObject) { // comes from a complex variable
+							JsonObject jsonObject = jsonItem.getAsJsonObject();
+							Set<Entry<String, JsonElement>> set = jsonObject.entrySet();
+							for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
+								Entry<String, JsonElement> entry = it.next();
+								jsonDocument.add(entry.getKey(), entry.getValue());
 							}
-							else if (jsonItem instanceof JsonObject) { // comes from a complex variable
-								JsonObject jsonObject = jsonItem.getAsJsonObject();
-								Set<Entry<String, JsonElement>> set = jsonObject.entrySet();
-								for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
-									Entry<String, JsonElement> entry = it.next();
-									jsonDocument.add(entry.getKey(), entry.getValue());
-								}
-							}
-							
 						}
+						
 					}
 				}
 			}
-			
-			Iterator<JsonElement> it = jsonDocuments.iterator();
-			while (it.hasNext()) {
-				JsonObject jsonDoc = it.next().getAsJsonObject();
-				if (getIdFromDoc(jsonDoc) == null) { // create case
-					addIdToDoc(jsonDoc);
-				}
-				else if (isHandleUpdate()) { // update case
+		}
+		
+		Iterator<JsonElement> it = jsonDocuments.iterator();
+		while (it.hasNext()) {
+			JsonObject jsonDoc = it.next().getAsJsonObject();
+			if (getIdFromDoc(jsonDoc) == null) { // create case
+				addIdToDoc(jsonDoc);
+			}
+			else if (isHandleUpdate()) { // update case
+				try {
 					addRevToDoc(jsonDoc);
 				}
+				catch (Throwable t) {}
 			}
-			
-			JsonObject jsonDocs = new JsonObject();
-			jsonDocs.add("docs", jsonDocuments);
-			
-			String jsonString = jsonDocs.toString();
-			return getCouchDBDocument().bulk(encode(jsonString));
 		}
-		catch (Throwable t) {
-			throw new RuntimeException("Unable to bulk documents", t);
-		}		
+		
+		JsonObject jsonDocs = new JsonObject();
+		jsonDocs.add("docs", jsonDocuments);
+		
+		String jsonString = jsonDocs.toString();
+		return getCouchDBDocument().bulk(encode(jsonString));
 	}
 
 	@Override

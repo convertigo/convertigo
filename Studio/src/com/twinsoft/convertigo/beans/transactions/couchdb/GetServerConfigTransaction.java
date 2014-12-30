@@ -50,7 +50,7 @@ public class GetServerConfigTransaction extends AbstractServerTransaction {
 	}
 
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		String section = ParameterUtils.toString(getParameterValue(var_section));
 		String key = ParameterUtils.toString(getParameterValue(var_key));
 		JsonElement json = getCouchDbContext().config().get(section, key);

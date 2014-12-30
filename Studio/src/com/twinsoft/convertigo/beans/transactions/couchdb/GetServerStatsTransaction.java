@@ -48,7 +48,7 @@ public class GetServerStatsTransaction extends AbstractServerTransaction {
 	}
 
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		String section = ParameterUtils.toString(getParameterValue(var_section));
 		String key = ParameterUtils.toString(getParameterValue(var_key));
 		return getCouchDbContext().stats(section, key);

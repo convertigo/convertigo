@@ -46,7 +46,7 @@ public class LogoutUserTransaction extends AbstractServerTransaction {
 	}
 
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		return getCouchDbContext().session().logout();
 	}
 

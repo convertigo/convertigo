@@ -46,15 +46,10 @@ public class RemoveDocumentAttachmentTransaction extends AbstractDocumentTransac
 	}
 		
 	@Override
-	protected Object invoke() {
-		try {
-			String docId = ParameterUtils.toString(getParameterValue(var_docid));
-			String attName = ParameterUtils.toString(getParameterValue(var_filename));
-			return getCouchDBDocument().removeAttachment(docId, getDocLastRev(docId), attName);
-		}
-		catch (Throwable t) {
-			throw new RuntimeException("Unable to remove attachment from document", t);
-		}		
+	protected Object invoke() throws Exception {
+		String docId = ParameterUtils.toString(getParameterValue(var_docid));
+		String attName = ParameterUtils.toString(getParameterValue(var_filename));
+		return getCouchDBDocument().removeAttachment(docId, getDocLastRev(docId), attName);
 	}
 
 }

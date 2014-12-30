@@ -48,7 +48,7 @@ public class DeleteDocumentTransaction extends AbstractDocumentTransaction {
 	}
 
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		String docId = ParameterUtils.toString(getParameterValue(var_docid));
 		return getCouchDBDocument().delete(docId);
 	}

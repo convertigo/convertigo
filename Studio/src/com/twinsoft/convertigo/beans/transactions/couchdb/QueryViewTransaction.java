@@ -49,7 +49,7 @@ public class QueryViewTransaction extends AbstractDocumentTransaction {
 	}
 
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		String docId = ParameterUtils.toString(getParameterValue(var_docid));
 		String viewName = ParameterUtils.toString(getParameterValue(var_viewname));
 		

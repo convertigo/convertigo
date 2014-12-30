@@ -46,17 +46,12 @@ public class GetDocumentAttachmentTransaction extends AbstractDocumentTransactio
 	}
 		
 	@Override
-	protected Object invoke() {
-		try {
-			String docId = ParameterUtils.toString(getParameterValue(var_docid));
-			String docRev = ParameterUtils.toString(getParameterValue(var_docrev));
-			String attName = ParameterUtils.toString(getParameterValue(var_filename));
-			String attPath = ParameterUtils.toString(getParameterValue(var_filepath));
-			return getCouchDBDocument().getAttachment(docId, docRev, attName, getFileURI(attPath));
-		}
-		catch (Throwable t) {
-			throw new RuntimeException("Unable to retrieve attachment from document", t);
-		}		
+	protected Object invoke() throws Exception {
+		String docId = ParameterUtils.toString(getParameterValue(var_docid));
+		String docRev = ParameterUtils.toString(getParameterValue(var_docrev));
+		String attName = ParameterUtils.toString(getParameterValue(var_filename));
+		String attPath = ParameterUtils.toString(getParameterValue(var_filepath));
+		return getCouchDBDocument().getAttachment(docId, docRev, attName, getFileURI(attPath));
 	}
 
 }

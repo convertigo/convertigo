@@ -48,7 +48,7 @@ public class LogonUserTransaction extends AbstractServerTransaction {
 	}
 
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		String uname = ParameterUtils.toString(getParameterValue(var_name));
 		String upwd = ParameterUtils.toString(getParameterValue(var_password));
 		return getCouchDbContext().session().logon(uname, upwd);

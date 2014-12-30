@@ -46,7 +46,7 @@ public class GetServerUpdatesTransaction extends AbstractServerTransaction {
 	}
 	
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		String sFeed = ParameterUtils.toString(getParameterValue(var_feed));
 		String feed = (sFeed == null) ? null:String.valueOf(sFeed);
 		String sTimeout = ParameterUtils.toString(getParameterValue(var_timeout));

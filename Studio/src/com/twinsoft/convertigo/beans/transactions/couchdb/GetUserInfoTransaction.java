@@ -46,7 +46,7 @@ public class GetUserInfoTransaction extends AbstractServerTransaction {
 	}
 
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		return getCouchDbContext().session().info();
 	}
 

@@ -46,15 +46,10 @@ public class AddDocumentAttachmentTransaction extends AbstractDocumentTransactio
 	}
 		
 	@Override
-	protected Object invoke() {
-		try {
-			String docId = ParameterUtils.toString(getParameterValue(var_docid));
-			String attPath = ParameterUtils.toString(getParameterValue(var_filepath));
-			return getCouchDBDocument().addAttachment(docId, getDocLastRev(docId), getFileURI(attPath));
-		}
-		catch (Throwable t) {
-			throw new RuntimeException("Unable to add attachment to document", t);
-		}		
+	protected Object invoke() throws Exception {
+		String docId = ParameterUtils.toString(getParameterValue(var_docid));
+		String attPath = ParameterUtils.toString(getParameterValue(var_filepath));
+		return getCouchDBDocument().addAttachment(docId, getDocLastRev(docId), getFileURI(attPath));
 	}
 }
 

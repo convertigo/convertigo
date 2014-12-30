@@ -48,7 +48,7 @@ public class GetDocumentTransaction extends AbstractDocumentTransaction {
 	}
 
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		String docId = ParameterUtils.toString(getParameterValue(var_docid));
 		String docRev = ParameterUtils.toString(getParameterValue(var_docrev));
 		return getCouchDBDocument().get(docId, docRev);

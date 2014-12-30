@@ -48,7 +48,7 @@ public class RestartServerTransaction extends AbstractServerTransaction {
 	}
 	
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		Object json = getCouchDbContext().restart();
 		try {
 			if (json instanceof JsonElement) {

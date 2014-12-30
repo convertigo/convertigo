@@ -146,7 +146,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		}
 	}
 	
-	protected abstract Object invoke();
+	protected abstract Object invoke() throws Exception;
 
 	protected CouchDbProvider getCouchDbClient() {
 		return connector.getCouchDbClient();
@@ -160,12 +160,16 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return getCouchDbClient().context();
 	}
 	
-	protected void makeDocument(Object result) {
+	protected void makeDocument(Object result) throws Exception {
+		if (result == null) return;
 		Engine.logBeans.debug("(CouchDBTransaction) making document...");
 		Document doc = context.outputDocument;
-		Element response = (Element) context.outputDocument.getDocumentElement().appendChild(doc.createElement("couchdb_output"));
+		Element root = doc.getDocumentElement();
 		if (result instanceof JsonElement) {
-			toXml((JsonElement)result, response);
+			JsonElement jsonResult = (JsonElement)result;
+			Element couchdb_output = doc.createElement("couchdb_output");
+			toXml(jsonResult, couchdb_output);
+			root.appendChild(couchdb_output);
 		}
 		Engine.logBeans.debug("(CouchDBTransaction) Document generated!");
 	}
@@ -246,7 +250,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	
 	private static void toXml(Entry<String, JsonElement> entry, Element parentElement) {
 		String key = entry.getKey();
-		if (key == null) {
+		if (key == null || "".equals(key)) {
 			key = "object";
 		}
 		

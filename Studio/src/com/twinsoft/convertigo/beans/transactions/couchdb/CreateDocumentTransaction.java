@@ -62,38 +62,33 @@ public class CreateDocumentTransaction extends AbstractDocumentTransaction {
 	}
 	
 	@Override
-	protected Object invoke() {
-		try {
-			JsonObject jsonDocument = new JsonObject();
-			
-			// add document members from variables
-			for (RequestableVariable variable : getVariablesList()) {
-				String variableName = variable.getName();
-				JsonElement jsonv = toJson(getGson(), new JsonParser(), getParameterValue(variableName));
-				if (jsonv != null) {
-					if (jsonv instanceof JsonPrimitive) { // comes from a simple variable
-						jsonDocument.add(variableName, jsonv);
-					}
-					else if (jsonv instanceof JsonObject) { // comes from a complex variable
-						JsonObject jsonObject = jsonv.getAsJsonObject();
-						Set<Entry<String, JsonElement>> set = jsonObject.entrySet();
-						for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
-							Entry<String, JsonElement> entry = it.next();
-							jsonDocument.add(entry.getKey(), entry.getValue());
-						}
+	protected Object invoke() throws Exception {
+		JsonObject jsonDocument = new JsonObject();
+		
+		// add document members from variables
+		for (RequestableVariable variable : getVariablesList()) {
+			String variableName = variable.getName();
+			JsonElement jsonv = toJson(getGson(), new JsonParser(), getParameterValue(variableName));
+			if (jsonv != null) {
+				if (jsonv instanceof JsonPrimitive) { // comes from a simple variable
+					jsonDocument.add(variableName, jsonv);
+				}
+				else if (jsonv instanceof JsonObject) { // comes from a complex variable
+					JsonObject jsonObject = jsonv.getAsJsonObject();
+					Set<Entry<String, JsonElement>> set = jsonObject.entrySet();
+					for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
+						Entry<String, JsonElement> entry = it.next();
+						jsonDocument.add(entry.getKey(), entry.getValue());
 					}
 				}
 			}
-			
-			addIdToDoc(jsonDocument);
-			removeRevFromDoc(jsonDocument);
-			
-			String jsonString = jsonDocument.toString();
-			return getCouchDBDocument().create(encode(jsonString));
 		}
-		catch (Throwable t) {
-			throw new RuntimeException("Unable to create new document", t);
-		}		
+		
+		addIdToDoc(jsonDocument);
+		removeRevFromDoc(jsonDocument);
+		
+		String jsonString = jsonDocument.toString();
+		return getCouchDBDocument().create(encode(jsonString));
 	}
 
 	@Override

@@ -44,7 +44,7 @@ public class ReplicateDatabaseTransaction extends AbstractDatabaseTransaction {
 	}
 
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		return getCouchDbContext().replicate(null);
 	}
 

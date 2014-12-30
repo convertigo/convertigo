@@ -48,7 +48,7 @@ public class ExistDocumentTransaction extends AbstractDocumentTransaction {
 	}
 
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		String docId = ParameterUtils.toString(getParameterValue(var_docid));
 		return getCouchDBDocument().exist(docId);
 	}

@@ -34,9 +34,6 @@ public class RemoveServerConfigTransaction extends AbstractServerTransaction {
 
 	private static final long serialVersionUID = 1267816514021649947L;
 	
-	private static final String path_section = "section";
-	private static final String path_key = "key";
-	
 	public RemoveServerConfigTransaction() {
 		super();
 	}
@@ -53,7 +50,7 @@ public class RemoveServerConfigTransaction extends AbstractServerTransaction {
 	}
 	
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		String section = ParameterUtils.toString(getParameterValue(var_section));
 		String key = ParameterUtils.toString(getParameterValue(var_key));
 		JsonElement json = getCouchDbContext().config().remove(section, key);

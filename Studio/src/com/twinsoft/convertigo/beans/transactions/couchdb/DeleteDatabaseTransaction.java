@@ -46,7 +46,7 @@ public class DeleteDatabaseTransaction extends AbstractDatabaseTransaction {
 	}
 	
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		return getCouchDbContext().delete(getTargetDatabase());
 	}
 

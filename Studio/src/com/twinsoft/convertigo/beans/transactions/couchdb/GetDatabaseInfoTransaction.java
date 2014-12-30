@@ -46,7 +46,7 @@ public class GetDatabaseInfoTransaction extends AbstractDatabaseTransaction {
 	}
 
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		return getCouchDBDatabase().info();
 	}
 

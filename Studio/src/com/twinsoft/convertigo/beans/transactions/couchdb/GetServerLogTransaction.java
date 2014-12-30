@@ -48,7 +48,7 @@ public class GetServerLogTransaction extends AbstractServerTransaction {
 	}
 	
 	@Override
-	protected Object invoke() {
+	protected Object invoke() throws Exception {
 		String sBytes = ParameterUtils.toString(getParameterValue(var_bytes));
 		Integer bytes = (sBytes == null) ? null:Integer.valueOf(sBytes);
 		String sOffset = ParameterUtils.toString(getParameterValue(var_offset));
