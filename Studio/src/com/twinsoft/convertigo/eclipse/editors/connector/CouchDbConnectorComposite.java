@@ -83,17 +83,15 @@ public class CouchDbConnectorComposite extends AbstractConnectorComposite implem
 	}
 	
 	private void setTextData(String data) {
-		if (data != null) {
-			final String couchDbData = data;
-			httpData.getDisplay().asyncExec(new Runnable() {
-				public void run() {
-					try {
-						httpData.setText(couchDbData);
-					}
-					catch (Exception e) {;}
-				};
-			});
-		}
+		final String couchDbData = data;
+		httpData.getDisplay().asyncExec(new Runnable() {
+			public void run() {
+				try {
+					httpData.setText(couchDbData == null ? "":couchDbData);
+				}
+				catch (Exception e) {;}
+			};
+		});
 	}
 	
 	public void initConnector(Transaction transaction) {
