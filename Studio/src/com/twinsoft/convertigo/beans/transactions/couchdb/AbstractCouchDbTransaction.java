@@ -49,6 +49,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import com.twinsoft.convertigo.beans.common.XmlQName;
 import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
+import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.core.IComplexTypeAffectation;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
@@ -100,15 +101,19 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			}
 		}
 		catch (Exception e) {
-			Engine.logBeans.error("Unable to add needed variable(s) for CreateDatabaseTransaction", e);
+			Engine.logBeans.error("Unable to add needed variable(s) for CouchDbTransaction", e);
 		}
 	}
 	
 	@Override
-	public void removeVariable(RequestableVariable variable) {
-		if (!CouchDbParameter.contains(getDeclaredParameters(),variable.getName())) {
-			super.removeVariable(variable);
+	public void remove(DatabaseObject databaseObject) throws EngineException {
+		if (databaseObject instanceof RequestableVariable) {
+			RequestableVariable variable = (RequestableVariable)databaseObject;
+			if (CouchDbParameter.contains(getDeclaredParameters(),variable.getName())) {
+				throw new EngineException("You are not allowed to remove the variable named '"+variable.getName()+"'");
+			}
 		}
+		super.remove(databaseObject);
 	}
 
 	@Override
