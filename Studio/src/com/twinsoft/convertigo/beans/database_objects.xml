@@ -903,6 +903,9 @@
                 </bean>
             </beans>
             <beans groupname="Custom transactions">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.CustomTransaction">
+					<parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
             </beans>
 		</category>
 	</group>

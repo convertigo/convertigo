@@ -24,6 +24,8 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
@@ -35,6 +37,10 @@ import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
 import org.codehaus.jettison.json.JSONException;
+import org.mozilla.javascript.NativeArray;
+import org.mozilla.javascript.NativeJavaArray;
+import org.mozilla.javascript.NativeJavaObject;
+import org.mozilla.javascript.NativeObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -188,7 +194,45 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		
 		JsonElement jsonElement = null;
 		
-		if (object instanceof Vector) {
+		if (object instanceof NativeObject) {
+			JsonObject jsonChildren = new JsonObject();
+			NativeObject nativeObject = (NativeObject)object;
+			for (Iterator<Entry<Object, Object>> it = GenericUtils.cast(nativeObject.entrySet().iterator()); it.hasNext();) {
+				Entry<Object, Object> entry = it.next();
+				jsonChildren.add(entry.getKey().toString(), toJson(gson, parser, entry.getValue()));
+			}
+			return jsonChildren;
+		}
+		if (object instanceof NativeJavaObject) {
+			NativeJavaObject nativeJavaObject = (NativeJavaObject)object;
+			return toJson(gson, parser, nativeJavaObject.unwrap());
+		}
+		else if (object instanceof NativeJavaArray) {
+			Object ob = ((NativeJavaArray)object).unwrap();
+			return toJson(gson, parser, Arrays.asList((Object[])ob));
+		}
+		else if (object instanceof NativeArray) {
+			NativeArray array = (NativeArray)object;
+			JsonArray jsonArray = new JsonArray();
+			for (int j=0; j<array.getLength(); j++) {
+				jsonArray.add(toJson(gson, parser, array.get(j,array)));
+			}
+			jsonElement = jsonArray;
+		}
+		else if ((object instanceof org.mozilla.javascript.Scriptable)) {
+			org.mozilla.javascript.Scriptable jsObj = (org.mozilla.javascript.Scriptable)object;
+		    return toJson(gson, parser, String.valueOf(jsObj.toString()));
+		} else if (object.getClass().isArray()) {
+			return toJson(gson, parser, Arrays.asList((Object[])object));
+		}
+		else if (object instanceof Collection<?>) {
+			JsonArray jsonArray = new JsonArray();
+			for (Object o : (Collection<?>) object) {
+				jsonArray.add(toJson(gson, parser, o));
+			}
+			jsonElement = jsonArray;
+		}		
+		else if (object instanceof Vector) {
 			Vector<Object> v = GenericUtils.cast(object);
 			JsonArray jsonArray = new JsonArray();
 			for (int i = 0; i< v.size(); i++) {
@@ -214,11 +258,14 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		if (isInputDomVariable(element)) {
 			JsonObject jsonVariable = jsonXml.getAsJsonObject().get("variable").getAsJsonObject();
 			JsonObject jsonAttr = jsonVariable.get("attr").getAsJsonObject();
+			JsonElement jsonAttrName = jsonAttr.get("name");
 			JsonElement jsonAttrValue = jsonAttr.get("value");
-			
+
 			// this is a simple variable
 			if (jsonAttrValue != null) {
-				return jsonAttrValue;
+				JsonObject jsonobject = new JsonObject();
+				jsonobject.add(jsonAttrName.getAsString(), jsonAttrValue);
+				return jsonobject;
 			}
 			// this is a complex variable
 			else {
