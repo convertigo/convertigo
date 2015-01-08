@@ -35,8 +35,8 @@ public class CreateDocumentTransactionBeanInfo extends MySimpleBeanInfo {
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/couchdb/databasetransaction_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/couchdb/databasetransaction_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/databasetransaction_color_32x32.png";
 			
 		}
 		catch(Exception e) {
