@@ -33,7 +33,7 @@ public class AbstractCouchDbTransactionBeanInfo extends MySimpleBeanInfo {
 			beanClass = AbstractCouchDbTransaction.class;
 			additionalBeanClass = TransactionWithVariables.class;
 
-			resourceBundle = getResourceBundle("../res/couchdb/AbstractCouchDbTransaction");
+			resourceBundle = getResourceBundle("res/AbstractCouchDbTransaction");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

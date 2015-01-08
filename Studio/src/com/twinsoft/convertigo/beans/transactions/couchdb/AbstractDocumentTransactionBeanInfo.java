@@ -30,7 +30,7 @@ public class AbstractDocumentTransactionBeanInfo extends MySimpleBeanInfo {
 			beanClass = AbstractDocumentTransaction.class;
 			additionalBeanClass = AbstractDatabaseTransaction.class;
 
-			resourceBundle = getResourceBundle("../res/couchdb/AbstractDocumentTransaction");
+			resourceBundle = getResourceBundle("res/AbstractDocumentTransaction");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");

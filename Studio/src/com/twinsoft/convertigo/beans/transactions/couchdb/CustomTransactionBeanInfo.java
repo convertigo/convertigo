@@ -32,13 +32,13 @@ public class CustomTransactionBeanInfo extends MySimpleBeanInfo {
 			beanClass = CustomTransaction.class;
 			additionalBeanClass = AbstractCouchDbTransaction.class;
 
-			resourceBundle = getResourceBundle("../res/couchdb/CustomTransaction");
+			resourceBundle = getResourceBundle("res/CustomTransaction");
 			
 			displayName = getExternalizedString("display_name");
 			shortDescription = getExternalizedString("short_description");
 
-			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/images/couchdb/customtransaction_color_16x16.png";
-			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/images/couchdb/customtransaction_color_32x32.png";
+			iconNameC16 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/customtransaction_color_16x16.png";
+			iconNameC32 = "/com/twinsoft/convertigo/beans/transactions/couchdb/images/customtransaction_color_32x32.png";
 			
 			properties = new PropertyDescriptor[3];
 			
