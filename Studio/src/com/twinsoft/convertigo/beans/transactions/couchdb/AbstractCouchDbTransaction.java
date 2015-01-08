@@ -189,6 +189,24 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return super.getParameterValue(param.variableName());
 	}
 	
+	protected static void addJson(JsonObject jsonObject, String propertyName, JsonElement jsonElement) {
+		if (jsonElement != null) {
+			if (jsonElement instanceof JsonPrimitive) { // comes from a simple variable
+				jsonObject.add(propertyName, jsonElement);
+			}
+			else if (jsonElement instanceof JsonArray) {
+				jsonObject.add(propertyName, jsonElement);
+			}
+			else if (jsonElement instanceof JsonObject) { // comes from a complex variable
+				Set<Entry<String, JsonElement>> set = jsonElement.getAsJsonObject().entrySet();
+				for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
+					Entry<String, JsonElement> entry = it.next();
+					jsonObject.add(entry.getKey(), entry.getValue());
+				}
+			}
+		}
+	}
+	
 	protected static JsonElement toJson(Gson gson, JsonParser parser, Object object) throws JsonSyntaxException, JSONException {
 		if (object == null) return null;
 		
@@ -232,14 +250,14 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 			}
 			jsonElement = jsonArray;
 		}		
-		else if (object instanceof Vector) {
+		/*else if (object instanceof Vector) {
 			Vector<Object> v = GenericUtils.cast(object);
 			JsonArray jsonArray = new JsonArray();
 			for (int i = 0; i< v.size(); i++) {
 				jsonArray.add(toJson(gson, parser, v.get(i)));
 			}
 			jsonElement = jsonArray;
-		}
+		}*/
 		else if (object instanceof Element) {
 			jsonElement = toJson(parser, (Element)object);
 		}

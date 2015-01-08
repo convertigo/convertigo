@@ -22,20 +22,14 @@
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.Map.Entry;
-
 import javax.xml.namespace.QName;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.providers.couchdb.api.Document;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class CreateDocumentTransaction extends AbstractDocumentTransaction {
 
@@ -68,20 +62,9 @@ public class CreateDocumentTransaction extends AbstractDocumentTransaction {
 		// add document members from variables
 		for (RequestableVariable variable : getVariablesList()) {
 			String variableName = variable.getName();
-			JsonElement jsonv = toJson(getGson(), new JsonParser(), getParameterValue(variableName));
-			if (jsonv != null) {
-				if (jsonv instanceof JsonPrimitive) { // comes from a simple variable
-					jsonDocument.add(variableName, jsonv);
-				}
-				else if (jsonv instanceof JsonObject) { // comes from a complex variable
-					JsonObject jsonObject = jsonv.getAsJsonObject();
-					Set<Entry<String, JsonElement>> set = jsonObject.entrySet();
-					for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
-						Entry<String, JsonElement> entry = it.next();
-						jsonDocument.add(entry.getKey(), entry.getValue());
-					}
-				}
-			}
+			if (variableName.equals(var_database.variableName())) continue;
+			JsonElement jsonElement = toJson(getGson(), new JsonParser(), getParameterValue(variableName));
+			addJson(jsonDocument, variableName, jsonElement);
 		}
 		
 		addIdToDoc(jsonDocument);

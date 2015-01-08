@@ -24,19 +24,14 @@ package com.twinsoft.convertigo.beans.transactions.couchdb;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.Map.Entry;
-
 import javax.xml.namespace.QName;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.providers.couchdb.api.Document;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
 
 public class BulkDocumentsTransaction extends AbstractDocumentTransaction {
 
@@ -88,19 +83,7 @@ public class BulkDocumentsTransaction extends AbstractDocumentTransaction {
 					}
 					for (int i=0; i<jsonArray.size(); i++) {
 						JsonObject jsonDocument = jsonDocuments.get(i).getAsJsonObject();
-						JsonElement jsonItem = jsonArray.get(i);
-						if (jsonItem instanceof JsonPrimitive) { // comes from a simple variable
-							jsonDocument.add(variableName, jsonItem);
-						}
-						else if (jsonItem instanceof JsonObject) { // comes from a complex variable
-							JsonObject jsonObject = jsonItem.getAsJsonObject();
-							Set<Entry<String, JsonElement>> set = jsonObject.entrySet();
-							for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
-								Entry<String, JsonElement> entry = it.next();
-								jsonDocument.add(entry.getKey(), entry.getValue());
-							}
-						}
-						
+						addJson(jsonDocument, variableName, jsonArray.get(i));
 					}
 				}
 			}

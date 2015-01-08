@@ -29,10 +29,10 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -57,33 +57,95 @@ public class UpdateDocumentTransaction extends AbstractDocumentTransaction {
 		
 	@Override
 	protected Object invoke() throws Exception {
+		// build input document
 		JsonObject jsonDocument = new JsonObject();
 		
 		// add document members from variables
 		for (RequestableVariable variable : getVariablesList()) {
 			String variableName = variable.getName();
-			JsonElement jsonv = toJson(getGson(), new JsonParser(), getParameterValue(variableName));
-			if (jsonv != null) {
-				if (jsonv instanceof JsonPrimitive) { // comes from a simple variable
-					jsonDocument.add(variableName, jsonv);
-				}
-				else if (jsonv instanceof JsonObject) { // comes from a complex variable
-					JsonObject jsonObject = jsonv.getAsJsonObject();
-					Set<Entry<String, JsonElement>> set = jsonObject.entrySet();
-					for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
-						Entry<String, JsonElement> entry = it.next();
-						jsonDocument.add(entry.getKey(), entry.getValue());
-					}
-				}
-			}
+			if (variableName.equals(var_database.variableName())) continue;
+			JsonElement jsonElement = toJson(getGson(), new JsonParser(), getParameterValue(variableName));
+			addJson(jsonDocument, variableName, jsonElement);
 		}
 		
-		addRevToDoc(jsonDocument);
+		// retrieve document from database
+		JsonObject jsonDatabaseDoc = getCouchDBDocument().get(getIdFromDoc(jsonDocument), null).getAsJsonObject();
 		
-		String jsonString = jsonDocument.toString();
+		// merge documents
+		merge(jsonDatabaseDoc,jsonDocument);
+		
+		String jsonString = jsonDatabaseDoc.toString();
 		return getCouchDBDocument().update(encode(jsonString));
 	}
 
+	private static void merge(JsonObject jsonTarget, JsonObject jsonSource) {
+		Set<Entry<String, JsonElement>> set = jsonSource.entrySet();
+		for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
+			Entry<String, JsonElement> entry = it.next();
+			String key = entry.getKey();
+			if (jsonTarget.has(key)) {
+				mergeEntries(getEntry(jsonTarget, key), entry);
+			}
+			else {
+				jsonTarget.add(key, entry.getValue());
+			}
+		}
+	}
+	
+	private static void merge(JsonArray targetArray, JsonArray sourceArray) {
+		int targetSize = targetArray.size();
+		int sourceSize = sourceArray.size();
+		
+		/*while (targetSize > sourceSize) {
+			targetArray.remove(targetSize-1);
+			targetSize--;
+		}*/
+		
+		for (int i=0; i<sourceSize; i++) {
+			JsonElement targetValue = targetSize > i ? targetArray.get(i):null;
+			JsonElement sourceValue = sourceArray.get(i);
+			if (sourceValue!=null && targetValue!=null) {
+				if (targetValue.isJsonObject() && sourceValue.isJsonObject()) {
+					merge(targetValue.getAsJsonObject(), sourceValue.getAsJsonObject());
+				}
+				else if (targetValue.isJsonArray() && sourceValue.isJsonArray()) {
+					merge(targetValue.getAsJsonArray(), sourceValue.getAsJsonArray());
+				}
+				else {
+					targetArray.set(i, sourceValue);
+				}
+			}
+			else if (sourceValue!=null && targetValue==null) {
+				targetArray.add(sourceValue);
+			}
+		}
+	}
+	
+	private static void mergeEntries(Entry<String, JsonElement> targetEntry, Entry<String, JsonElement> sourceEntry) {
+		JsonElement targetValue = targetEntry.getValue();
+		JsonElement sourceValue = sourceEntry.getValue();
+		if (targetValue.isJsonObject() && sourceValue.isJsonObject()) {
+			merge(targetValue.getAsJsonObject(), sourceValue.getAsJsonObject());
+		}
+		else if (targetValue.isJsonArray() && sourceValue.isJsonArray()) {
+			merge(targetValue.getAsJsonArray(), sourceValue.getAsJsonArray());
+		}
+		else {
+			targetEntry.setValue(sourceValue);
+		}
+	}
+
+	private static Entry<String, JsonElement> getEntry(JsonObject jso, String key) {
+		Set<Entry<String, JsonElement>> set = jso.entrySet();
+		for (Iterator<Entry<String, JsonElement>> it = GenericUtils.cast(set.iterator()); it.hasNext();) {
+			Entry<String, JsonElement> entry = it.next();
+			if (entry.getKey().equals(key)) {
+				return entry;
+			}
+		}
+		return null;
+	}
+	
 	@Override
 	public QName getComplexTypeAffectation() {
 		return new QName(COUCHDB_XSD_NAMESPACE, "docUpdateType");
