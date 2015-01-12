@@ -62,9 +62,14 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
+import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
+import org.apache.commons.httpclient.methods.OptionsMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.PutMethod;
+import org.apache.commons.httpclient.methods.TraceMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.io.IOUtils;
@@ -124,7 +129,12 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		
 		public enum HttpMethodType {
 			GET,
-			POST;
+			POST,
+			PUT,
+			DELETE,
+			HEAD,
+			OPTIONS,
+			TRACE;
 		}
 		
 		public enum DynamicVariable {
@@ -742,14 +752,30 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			if (httpMethod == null) {
 				try {
 					switch (shuttle.getRequestHttpMethodType()) {
-					case GET :
+					case GET:
 						httpMethod = new GetMethod(uri);
 						break;
-					case POST :
+					case POST:
 						httpMethod = new PostMethod(uri);
 						((PostMethod) httpMethod).setRequestEntity(new InputStreamRequestEntity(shuttle.request.getInputStream()));
 						break;
-					default :
+					case PUT:
+						httpMethod = new PutMethod(uri);
+						((PutMethod) httpMethod).setRequestEntity(new InputStreamRequestEntity(shuttle.request.getInputStream()));
+						break;
+					case DELETE:
+						httpMethod = new DeleteMethod(uri);
+						break;
+					case HEAD:
+						httpMethod = new HeadMethod(uri);
+						break;
+					case OPTIONS:
+						httpMethod = new OptionsMethod(uri);
+						break;
+					case TRACE:
+						httpMethod = new TraceMethod(uri);
+						break;
+					default:
 						throw new ServletException("(SiteClipperConnector) unknown http method " + shuttle.request.getMethod());
 					}
 					httpMethod.setFollowRedirects(false);
