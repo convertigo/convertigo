@@ -104,6 +104,10 @@ public class PluginsManager {
     	}
     }
     
+	public String getProperty(String key, String defaultValue) {
+		return properties.getProperty(key, defaultValue);
+	}
+    
     public synchronized void fireHttpConnectorGetDataStart(Context context) {
     	for (Plugin plugin : plugins.values()) {
     		try {

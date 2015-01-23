@@ -30,6 +30,7 @@ import java.util.Vector;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.beans.core.TransactionWithVariables;
 import com.twinsoft.convertigo.engine.Context;
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -47,7 +48,12 @@ public class InfogreffeBiller extends LCABiller {
 	
 	public void insertBilling(Context context) throws EngineException {
 		// set the properties
-		inf.setProp(context);
+		try {
+			inf.setProp(loadFromFile(context));
+		} catch (Exception e) {
+			Engine.logEngine.error("[Infogreffe] Unable to load properties from file",e);
+		}
+		
 		// fill the errors from the context 
 		// and the handling from the properties
 		inf.setErrors(context);

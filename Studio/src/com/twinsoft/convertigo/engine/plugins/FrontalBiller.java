@@ -23,8 +23,11 @@
 package com.twinsoft.convertigo.engine.plugins;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 import com.twinsoft.convertigo.beans.connectors.HttpConnector;
@@ -33,30 +36,86 @@ import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.engine.CertificateManager;
 import com.twinsoft.convertigo.engine.Context;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.util.StringEx;
 
 public abstract class FrontalBiller extends Biller {
+	
+	private static final String PROPERTIES_FRONTAL_BILLER_COSTS_POLICY = "frontal.biller.costs.policy";
+	private static final String DATABASE_POLICY = "database";
+	private static final String FILE_POLICY = "file";
 	
 	public static final String PROPERTIES_SQL_REQUEST_INSERT_REQUEST = "sql.request.insert_request";
 	public static final String PROPERTIES_SQL_REQUEST_GET_REQUEST = "sql.request.get_request";
 	public static final String PROPERTIES_SQL_REQUEST_DELETE_REQUESTS = "sql.request.delete_requests";
-
-	public static final String POBI_PROPERTIES_FILE_NAME = "/frontal.properties";
 	
+	public static final String PROPERTIES_SQL_REQUEST_GET_COSTS = "sql.request.get_costs";
+
 	public FrontalBiller() throws IOException {
 		super();
 	}
 	
-	Properties frontalProperties;
+	Properties costProperties;
 	String certificate;
 	
 	protected String getService(Context context, Object data) {
 		return context.tasServiceCode;
 	}
 	
+	protected Properties loadFromDatabase(Context context) {
+		Properties properties = new Properties();
+		
+		String projectName = context.projectName;
+		String sSqlRequest = null;
+		try {
+			Engine.logBillers.debug("[FrontalBiller] Trying to retrieve costs from database for project \""+projectName+"\"");
+			
+			StringEx sqlRequest = new StringEx(sqlRequester.getProperty(PROPERTIES_SQL_REQUEST_GET_COSTS));
+			sqlRequest.replace("{project}", projectName);
+			sSqlRequest = sqlRequest.toString();
+			
+			Statement statement = null;
+			ResultSet resultSet = null;
+			try {
+				statement = sqlRequester.connection.createStatement();
+				resultSet = statement.executeQuery(sSqlRequest);
+				
+				String key, value;
+				while (resultSet.next()) {
+					key = resultSet.getString("key");
+					value = resultSet.getString("value");
+					properties.put(key, value);
+				}
+			}
+			finally {
+				if (resultSet != null) {
+					resultSet.close();
+				}
+				if (statement != null) {
+					statement.close();
+				}
+			}
+		}
+		catch(SQLException e) {
+			Engine.logBillers.warn("[FrontalBiller] Unable to retrieve costs for project \"" + projectName + "\".\n" + e.getMessage() + " (error code: " + e.getErrorCode() + ")\nSQL: " + sSqlRequest);
+		}
+		catch(Exception e) {
+			Engine.logBillers.error("[FrontalBiller] Unable to retrieve costs for project \"" + projectName + "\".", e);
+		}
+		
+		return properties;
+	}
+	
+	protected Properties loadCosts(Context context) throws FileNotFoundException, IOException {
+		String policy = Engine.theApp.pluginsManager.getProperty(PROPERTIES_FRONTAL_BILLER_COSTS_POLICY, FILE_POLICY);
+		if (DATABASE_POLICY.equals(policy))
+			return loadFromDatabase(context);
+		// FILE_POLICY : default
+		return loadFromFile(context);
+	}
+	
 	public double getCost(Context context, Object data) {
 		try {
-			frontalProperties = new Properties();
-			frontalProperties.load(new FileInputStream(Engine.CONFIGURATION_PATH + POBI_PROPERTIES_FILE_NAME));
+			costProperties = loadCosts(context);
 			
 			Connector connector = context.getConnector();
 			CertificateManager certificateManager = null;

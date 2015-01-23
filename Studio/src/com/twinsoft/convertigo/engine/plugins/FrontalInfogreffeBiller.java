@@ -23,7 +23,6 @@
 package com.twinsoft.convertigo.engine.plugins;
 
 import java.io.IOException;
-
 import javax.xml.transform.TransformerException;
 
 import org.w3c.dom.Element;
@@ -46,7 +45,7 @@ public class FrontalInfogreffeBiller extends FrontalBiller {
 
 	public double getCostImpl(Context context, Object data) throws Exception {
 		// set the properties
-		inf.setProp(context);
+		inf.setProp(loadCosts(context));
 		// fill the errors from the context 
 		// and the handling from the properties
 		inf.setErrors(context);
