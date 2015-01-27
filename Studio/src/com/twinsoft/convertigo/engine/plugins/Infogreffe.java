@@ -222,19 +222,19 @@ public class Infogreffe {
 		String jour = "";
 		Calendar date = Calendar.getInstance();
 		
-		if (date.get(Calendar.DAY_OF_WEEK) == 0)
+		if (date.get(Calendar.DAY_OF_WEEK) == 1)
 			jour = "Dimanche";
-		else if (date.get(Calendar.DAY_OF_WEEK) == 1)
-			jour = "Lundi";
 		else if (date.get(Calendar.DAY_OF_WEEK) == 2)
-			jour = "Mardi";
+			jour = "Lundi";
 		else if (date.get(Calendar.DAY_OF_WEEK) == 3)
-			jour = "Mercredi";
+			jour = "Mardi";
 		else if (date.get(Calendar.DAY_OF_WEEK) == 4)
-			jour = "Jeudi";
+			jour = "Mercredi";
 		else if (date.get(Calendar.DAY_OF_WEEK) == 5)
-			jour = "Vendredi";
+			jour = "Jeudi";
 		else if (date.get(Calendar.DAY_OF_WEEK) == 6)
+			jour = "Vendredi";
+		else if (date.get(Calendar.DAY_OF_WEEK) == 7)
 			jour = "Samedi";
 		// date jour
 		int dateJour = date.get(Calendar.DAY_OF_MONTH);
@@ -265,7 +265,7 @@ public class Infogreffe {
 		else if (date.get(Calendar.MONTH) == 11)
 			mois = "Décembre"; 
 		// annee
-		int annee = date.get(Calendar.YEAR) + 1900;
+		int annee = date.get(Calendar.YEAR);
 		// heure
 		int heure = date.get(Calendar.HOUR_OF_DAY);
 		String heureStr = "" + heure;
