@@ -46,7 +46,7 @@ public class FrontalInfogreffeBiller extends FrontalBiller {
 
 	public double getCostImpl(Context context, Object data) throws Exception {
 		// set the properties
-		inf.setProp(context);
+		inf.setProp(loadCosts(context));
 		// fill the errors from the context 
 		// and the handling from the properties
 		inf.setErrors(context);

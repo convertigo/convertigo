@@ -43,8 +43,8 @@ public abstract class PobiBiller extends FrontalBiller {
 	public abstract double getCostImpl(Context context, Object data) throws Exception;
 
 	protected double getFibenCost(String module) {
-		double point = Double.parseDouble(frontalProperties.getProperty("cost.fiben.point"));
-		int modulePoints = Integer.parseInt(frontalProperties.getProperty("cost.fiben.module." + module));
+		double point = Double.parseDouble(costProperties.getProperty("cost.fiben.point","1.0"));
+		int modulePoints = Integer.parseInt(costProperties.getProperty("cost.fiben.module." + module,"0"));
 		double cost = point * modulePoints;
 		//System.out.println("Module: " + module);
 		//System.out.println("Point: " + point);
@@ -95,8 +95,8 @@ public abstract class PobiBiller extends FrontalBiller {
 		}
 
 		if (bNewRequest) {
-			double moduleCost = Double.parseDouble(frontalProperties.getProperty("cost.dun.module." + code));
-			double pointCost = Double.parseDouble(frontalProperties.getProperty("cost.point"));
+			double moduleCost = Double.parseDouble(costProperties.getProperty("cost.dun.module." + code,"0.0"));
+			double pointCost = Double.parseDouble(costProperties.getProperty("cost.point","1.0"));
 			double cost = (moduleCost / pointCost);
 			BigDecimal bd = new BigDecimal(cost);
 			bd = bd.setScale(2,BigDecimal.ROUND_HALF_UP);
@@ -188,7 +188,7 @@ public abstract class PobiBiller extends FrontalBiller {
 		}
 
 		if (bNewRequest) {
-			String sCost = frontalProperties.getProperty("cost." + application + ".reponse");
+			String sCost = costProperties.getProperty("cost." + application + ".reponse","0.0");
 			double responseCost = Double.parseDouble(sCost) * nbp;
 
 			sqlRequest = new StringEx(sqlRequester.getProperty(PobiBiller.PROPERTIES_SQL_REQUEST_INSERT_REQUEST));

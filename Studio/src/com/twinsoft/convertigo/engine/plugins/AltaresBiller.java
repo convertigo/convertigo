@@ -46,7 +46,7 @@ public class AltaresBiller extends FrontalBiller {
 	 */
 	public double getCostImpl(Context context, Object data) throws Exception {
 		// Set the properties
-		altares.setProp(context);
+		altares.setProp(loadCosts(context));
 		
 		// Do not bill responses from cache
 		if (altares.isResponseFromCache(context))

@@ -58,18 +58,6 @@ public class Altares {
 		this.prop = prop;
 	}
 	
-	public void setProp(Context context) {
-		String propertiesFileName 	= context.getProjectDirectory() + "/biller.properties";
-		Properties property			= new Properties();
-		try {
-			property.load(new FileInputStream(propertiesFileName));
-		} catch (Exception e) {
-			Engine.logEngine.debug("[Altares] Billing aborted because an exception occured while loading properties : " + e.getMessage() + ".");
-			property = null;
-		}
-		setProp(property);
-	}
-	
 	public boolean isResponseFromCache(Context context) {
 		Document document 		= context.outputDocument;
 		Element documentElement = document.getDocumentElement();
@@ -114,8 +102,6 @@ public class Altares {
 	}
 	
 	public double getCost(Context context) {
-		if (prop == null) setProp(context);
-		
 		String pkey = context.projectName.indexOf("AltaresIdentite")!=-1 ? "altares.identite":"altares.risque";
 		double moduleCost = Double.parseDouble(prop.getProperty("cost."+ pkey + "."+ context.transactionName,"0.0"));
 		double pointCost = Double.parseDouble(prop.getProperty("cost."+ pkey+ ".point","1.0"));

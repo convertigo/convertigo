@@ -31,7 +31,6 @@ import itlm.directkit.NoSuchDebitRequestReferenceException;
 import itlm.directkit.NullParameterException;
 import itlm.directkit.ServiceNotAvailableException;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Hashtable;
@@ -230,10 +229,8 @@ public class LCABiller extends AbstractBiller {
 		String contextName 			= context.name.equals("default") || context.name.startsWith("studio_") ? "" : context.name;
 		String refDA 				= (String)getSessionAttribute(context, "refDA_" + contextName + "_" + context.transactionName);
 		String authorisationUrl		= (String)getSessionAttribute(context, "authorisationUrl_" + contextName + "_" + context.transactionName);
-		String propertiesFileName 	= context.getProjectDirectory() + "/biller.properties";
-		Properties prop 			= new Properties();
 		try {
-			prop.load(new FileInputStream(propertiesFileName));
+			Properties prop 	= loadFromFile(context);
 			String storeId 		= prop.getProperty("storeId");
 			double[] prix 		= getPrices(prop, (Transaction)context.requestedObject);
 			if (prix == null) {

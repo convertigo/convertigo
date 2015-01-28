@@ -309,9 +309,6 @@ public class Infogreffe {
 				Engine.logEngine.trace("[Infogreffe] Error found : '" + elem.getNodeValue() + "'.");
 			}
 		}
-		// if prop is not set, set it from context
-		if (prop == null)
-			setProp(context);
 		
 		// fill the errorCodes vector with the error codes
 		// and check the corresponding handling in the properties
@@ -609,17 +606,5 @@ public class Infogreffe {
 
 	public void setProp(Properties prop) {
 		this.prop = prop;
-	}
-	
-	public void setProp(Context context) {
-		String propertiesFileName 	= context.getProjectDirectory() + "/biller.properties";
-		Properties property			= new Properties();
-		try {
-			property.load(new FileInputStream(propertiesFileName));
-		} catch (Exception e) {
-			Engine.logEngine.debug("[Infogreffe] Billing aborted because an exception occured while loading properties : " + e.getMessage() + ".");
-			property = null;
-		}
-		setProp(property);
 	}
 }
