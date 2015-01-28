@@ -37,7 +37,6 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.UndefinedSymbolsException;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.util.StringEx;
 
@@ -528,11 +527,7 @@ public class PobiXslUtils {
 	}
 	
 	public static String getSymbolValue(String symbolName) {
-		try {
-			return Engine.theApp.databaseObjectsManager.getCompiledValue(symbolName);
-		} catch (UndefinedSymbolsException e) {
-			return null;
-		}
+		return Engine.theApp.databaseObjectsManager.symbolsGetValue(symbolName);
 	}
 	
 	public static String makeUrlSuivi(String backurl) {
