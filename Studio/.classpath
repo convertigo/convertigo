@@ -45,7 +45,7 @@
 	<classpathentry kind="lib" path="lib/gcm/gcm-server.jar"/>
 	<classpathentry kind="lib" path="lib/wro4j-core-1.6.3.jar"/>
 	<classpathentry kind="lib" path="lib/wro4j-extensions-1.6.3.jar"/>
-	<classpathentry kind="lib" path="lib/rhino-1.7-R4.jar" sourcepath="/ExternalJavaSources/rhino-1.7R4"/>
+	<classpathentry kind="lib" path="lib/rhino-1.7-R5pre.jar"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-lang3-3.1.jar"/>
 	<classpathentry kind="lib" path="lib/apache/commons/commons-pool-1.6.jar"/>
 	<classpathentry kind="lib" path="lib/jco/sapjco3.jar"/>
