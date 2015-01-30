@@ -206,6 +206,15 @@
         <servlet-name>ExternalBrowserServlet</servlet-name>
         <url-pattern>/ebs</url-pattern>
     </servlet-mapping>
+    
+    <servlet>
+		<servlet-name>CouchDbProxyServlet</servlet-name>
+		<servlet-class>com.twinsoft.convertigo.engine.cdbproxy.CouchDbProxyServlet</servlet-class>
+	</servlet>
+    <servlet-mapping>
+        <servlet-name>DbProxyServlet</servlet-name>
+        <url-pattern>/cdb/*</url-pattern>
+    </servlet-mapping>
 	
     <!-- HTTP print entry point -->
 	<!--  Disabled in this version

@@ -99,6 +99,7 @@ import com.twinsoft.convertigo.engine.LogParameters;
 import com.twinsoft.convertigo.engine.MySSLSocketFactory;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HtmlLocation;
+import com.twinsoft.convertigo.engine.enums.HttpMethodType;
 import com.twinsoft.convertigo.engine.helpers.DomainsFilterHelper;
 import com.twinsoft.convertigo.engine.helpers.ScreenClassHelper;
 import com.twinsoft.convertigo.engine.parsers.XulRecorder;
@@ -125,16 +126,6 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			String value(Map<String, String> parameters) {
 				return parameters.get(name());
 			}
-		}
-		
-		public enum HttpMethodType {
-			GET,
-			POST,
-			PUT,
-			DELETE,
-			HEAD,
-			OPTIONS,
-			TRACE;
 		}
 		
 		public enum DynamicVariable {
