@@ -212,7 +212,7 @@
 		<servlet-class>com.twinsoft.convertigo.engine.cdbproxy.CouchDbProxyServlet</servlet-class>
 	</servlet>
     <servlet-mapping>
-        <servlet-name>DbProxyServlet</servlet-name>
+        <servlet-name>CouchDbProxyServlet</servlet-name>
         <url-pattern>/cdb/*</url-pattern>
     </servlet-mapping>
 	
