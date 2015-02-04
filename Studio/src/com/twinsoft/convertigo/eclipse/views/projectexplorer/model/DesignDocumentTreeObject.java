@@ -100,7 +100,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		
 		try {
 			DesignDocument dd = getObject();
-			JSONObject jso =dd.getJSONObject();
+			JSONObject jso = dd.getJSONObject();
 			jso.put(KEY_VIEWS, views);
 			dd.hasChanged = true;
 			hasBeenModified(true);
@@ -115,6 +115,13 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 	
 	public DesignDocumentViewTreeObject addNewView() {
 		return addView(null);
+	}
+	
+	public void removeView(DesignDocumentViewTreeObject view) {
+		if (view != null) {
+			fViews.removeChild(view);
+			hasBeenModified();
+		}
 	}
 	
 	protected DesignDocumentViewTreeObject addView(DesignDocumentViewTreeObject view) {
