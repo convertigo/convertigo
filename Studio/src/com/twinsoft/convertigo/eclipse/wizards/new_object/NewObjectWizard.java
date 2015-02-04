@@ -219,6 +219,10 @@ public class NewObjectWizard extends Wizard {
 				objectExplorerPageTitle = "New Mobile Platform";
 				objectExplorerPageMessage = "Please select a mobile platform template.";
 			}
+			else if (beanClass.equals(com.twinsoft.convertigo.beans.core.Document.class)) {
+				objectExplorerPageTitle = "New Document";
+				objectExplorerPageMessage = "Please select a document template.";
+			}
 			
 			addBeanPages(objectExplorerPageTitle, objectExplorerPageMessage, beanClass);
 		}

@@ -807,6 +807,13 @@
                 </bean>
             </beans>
         </category>
+        <category name="Documents">
+        	<beans groupname="CouchDB documents">
+				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.couchdb.DesignDocument">
+                    <parent allowInheritance="true" classname="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+                </bean>
+        	</beans>
+        </category>
         <category name="Transactions">
         	<beans groupname="Server transactions">
 				<bean enable="true" documented="false" classname="com.twinsoft.convertigo.beans.transactions.couchdb.GetServerInfoTransaction">

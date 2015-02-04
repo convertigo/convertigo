@@ -172,6 +172,8 @@ import com.twinsoft.convertigo.eclipse.trace.TracePlayerThread;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DocumentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.HandlersDeclarationTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.IEditableTreeObject;
@@ -240,6 +242,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_DBO_TESTCASE = 0x110;
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILEAPPLICATION = 0x112;
 	public static final int TREE_OBJECT_TYPE_DBO_MOBILEPLATFORM = 0x111;
+	public static final int TREE_OBJECT_TYPE_DBO_DOCUMENT = 0x113;
 
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE = 0x300;
 	public static final int TREE_OBJECT_TYPE_DBO_PROPERTY_TABLE_ROW = 0x301;
@@ -261,6 +264,7 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 	public static final int TREE_OBJECT_TYPE_FOLDER_VARIABLES = 0x20A;
 	public static final int TREE_OBJECT_TYPE_FOLDER_TESTCASES = 0x20B;
 	public static final int TREE_OBJECT_TYPE_FOLDER_MOBILEPLATFORMS = 0x20C;
+	public static final int TREE_OBJECT_TYPE_FOLDER_DOCUMENTS = 0x20D;
 
 	public static final int TREE_OBJECT_TYPE_MISC = 0x8000;						// 1000 0000 0000 0000
 
@@ -1329,6 +1333,15 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 						} else if (databaseObject instanceof BlockFactory) {
 							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, parentTreeObject.getObject() != databaseObject.getParent());
 
+						} else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Document) {
+							folderType = ObjectsFolderTreeObject.FOLDER_TYPE_DOCUMENTS;
+							com.twinsoft.convertigo.beans.core.Document document = (com.twinsoft.convertigo.beans.core.Document)databaseObject;
+							String documentRenderer = document.getRenderer();
+							if (documentRenderer.equals("DesignDocumentTreeObject"))
+								databaseObjectTreeObject = new DesignDocumentTreeObject(viewer, document, false);
+							else
+								databaseObjectTreeObject = new DocumentTreeObject(viewer, document, false);
+
 						} else {
 							// unknow DBO case !!!
 							databaseObjectTreeObject = new DatabaseObjectTreeObject(viewer, databaseObject, false);
@@ -2095,6 +2108,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_TESTCASES) {
 				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_TESTCASES;
 			}
+			else if (folderType == ObjectsFolderTreeObject.FOLDER_TYPE_DOCUMENTS) {
+				return ProjectExplorerView.TREE_OBJECT_TYPE_FOLDER_DOCUMENTS;
+			}
 		}
 		else if (treeNode instanceof HandlersDeclarationTreeObject) {
 			return ProjectExplorerView.TREE_OBJECT_TYPE_HANDLERS_DECLARATION;
@@ -2190,6 +2206,9 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 				else {
 					result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_SCREEN_CLASS;
 				}
+			}
+			else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Document) {
+				result = ProjectExplorerView.TREE_OBJECT_TYPE_DBO_DOCUMENT;
 			}
 
 			if (((DatabaseObjectTreeObject)treeNode).isInherited) {

@@ -1195,9 +1195,10 @@ public class DatabaseObjectsManager implements AbstractManager {
 				childNodeName = childNode.getNodeName();
 
 				if ((!childNodeName.equalsIgnoreCase("property"))
-						&& (!childNodeName.equalsIgnoreCase("handlers"))
-						&& (!childNodeName.equalsIgnoreCase("wsdltype"))) {
-					importDatabaseObject(childNode, databaseObject);
+					&& (!childNodeName.equalsIgnoreCase("handlers"))
+					&& (!childNodeName.equalsIgnoreCase("wsdltype"))
+					&& (!childNodeName.equalsIgnoreCase("docdata"))) {
+						importDatabaseObject(childNode, databaseObject);
 				}
 			}
 

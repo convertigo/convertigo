@@ -1309,6 +1309,13 @@
                label="Transaction"
                menubarPath="convertigo.menu.new/content"/>
          <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDocumentAction"
+               enablesFor="1"
+               icon="icons/studio/new.gif"
+               id="convertigo.action.newDocument"
+               label="Document"
+               menubarPath="convertigo.menu.new/content"/>
+         <action
                class="com.twinsoft.convertigo.eclipse.popup.actions.SetDefaultConnectorAction"
                enablesFor="1"
                id="convertigo.action.setDefaultConnector"
@@ -2402,6 +2409,62 @@
                      label="Export variables to main sequence"
                      menubarPath="export">
                </action>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.objectDesignDocument"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject">
+               <!--<visibility>
+                  <objectState
+                        name="isInherited"
+                        value="false">
+                  </objectState>
+               </visibility>-->
+               <menu
+                     id="convertigo.menu.document.new"
+                     label="New"
+                     path="new">
+                  <groupMarker
+                        name="content">
+                  </groupMarker>
+                  <separator
+                        name="additions">
+                  </separator>
+               </menu>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.CreateDesignDocumentViewAction"
+                     enablesFor="1"
+                     icon="icons/studio/new.gif"
+                     id="convertigo.action.newDocumentView"
+                     label="Row"
+                     menubarPath="convertigo.menu.document.new/content">
+               </action>
+               <!--<action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
+                     enablesFor="1"
+                     icon="icons/studio/clipboard_paste.gif"
+                     id="convertigo.action.pasteAction"
+                     label="Paste"
+                     menubarPath="clipboard">
+                  <enablement>
+                     <objectState
+                           name="canPaste"
+                           value="true"/>
+                  </enablement>
+               </action>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCopyAction"
+                     enablesFor="+"
+                     icon="icons/studio/clipboard_copy.gif"
+                     id="convertigo.action.copyAction"
+                     label="Copy"
+                     menubarPath="clipboard"/>
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardCutAction"
+                     enablesFor="+"
+                     icon="icons/studio/clipboard_cut.gif"
+                     id="convertigo.action.cutAction"
+                     label="Cut"
+                     menubarPath="clipboard"/>-->
             </objectContribution>
             <objectContribution
                   id="convertigo.objectTableProperty"

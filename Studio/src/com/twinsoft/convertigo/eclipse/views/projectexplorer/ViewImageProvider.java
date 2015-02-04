@@ -34,6 +34,8 @@ import org.eclipse.swt.widgets.Display;
 
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableRowTreeObject;
@@ -167,6 +169,16 @@ public class ViewImageProvider {
 			FolderTreeObject t_folder = (FolderTreeObject) object;
 			if (t_folder.getParent() instanceof DatabaseObjectTreeObject) {
 				databaseObjectTreeObject = (DatabaseObjectTreeObject) t_folder.getParent();
+			}
+		} else if (object instanceof DesignDocumentViewTreeObject) {
+			DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject)object;
+			if (ddvto != null) {
+				databaseObjectTreeObject = (DatabaseObjectTreeObject) ddvto.getTreeObjectOwner();
+			}
+		} else if (object instanceof DesignDocumentFunctionTreeObject) {
+			DesignDocumentFunctionTreeObject ddfto = (DesignDocumentFunctionTreeObject)object;
+			if (ddfto != null) {
+				databaseObjectTreeObject = (DatabaseObjectTreeObject) ddfto.getTreeObjectOwner();
 			}
 		}
 		

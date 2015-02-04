@@ -346,6 +346,7 @@ public class TreeDropAdapter extends ViewerDropAdapter {
 				if (!(childNodeName.equalsIgnoreCase("property")) && 
 					!(childNodeName.equalsIgnoreCase("handlers")) &&
 					!(childNodeName.equalsIgnoreCase("wsdltype")) &&
+					!(childNodeName.equalsIgnoreCase("docdata")) &&
 					!(childNodeName.equalsIgnoreCase("dnd"))) {
 					paste(childNode, databaseObject, bChangeName);
 				}

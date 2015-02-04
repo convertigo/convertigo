@@ -253,6 +253,8 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 			addTransaction((Transaction) databaseObject);
 		else if (databaseObject instanceof Pool)
 			addPool((Pool) databaseObject);
+		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Document)
+			addDocument((com.twinsoft.convertigo.beans.core.Document) databaseObject);
 		else throw new EngineException("You cannot add to a connector a database object of type " + databaseObject.getClass().getName());
 	}
 
@@ -265,6 +267,8 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 			removePool((Pool) databaseObject);
 		else if (databaseObject instanceof Transaction)
 			removeTransaction((Transaction) databaseObject);
+		else if (databaseObject instanceof com.twinsoft.convertigo.beans.core.Document)
+			removeDocument((com.twinsoft.convertigo.beans.core.Document)databaseObject);
 		else throw new EngineException("You cannot remove from a connector a database object of type " + databaseObject.getClass().getName());
 		super.remove(databaseObject);
 	}
@@ -343,6 +347,39 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 		super.add(pool);
 	}
     
+	/**
+	 * The vector of documents for this connector.
+	 */
+	transient private List<com.twinsoft.convertigo.beans.core.Document> vDocuments = new Vector<com.twinsoft.convertigo.beans.core.Document>();
+	
+	public com.twinsoft.convertigo.beans.core.Document getDocumentByName(String documentName) {
+		checkSubLoaded();
+		for (com.twinsoft.convertigo.beans.core.Document document : vDocuments)
+			if (document.getName().equalsIgnoreCase(documentName)) return document;
+		return null;
+	}
+
+	public List<com.twinsoft.convertigo.beans.core.Document> getDocumentsList() {
+		checkSubLoaded();
+		return sort(vDocuments);
+	}
+	
+	public void removeDocument(com.twinsoft.convertigo.beans.core.Document document) throws EngineException {
+		checkSubLoaded();
+		vDocuments.remove(document);
+	}
+	
+	/**
+	 * Adds a document.
+	 */
+	protected void addDocument(com.twinsoft.convertigo.beans.core.Document document) throws EngineException {
+		checkSubLoaded();
+		String newDatabaseObjectName = getChildBeanName(vDocuments, document.getName(), document.bNew);
+		document.setName(newDatabaseObjectName);
+		vDocuments.add(document);
+		super.add(document);
+	}
+	
 	@Override
 	public Connector clone() throws CloneNotSupportedException {
 		Connector clonedObject = (Connector) super.clone();
@@ -350,6 +387,7 @@ public abstract class Connector extends DatabaseObject implements ITagsProperty{
 		clonedObject.connectorListeners = new EventListenerList();
 		clonedObject.vTransactions = new Vector<Transaction>();
 		clonedObject.vPools = new Vector<Pool>();
+		clonedObject.vDocuments = new Vector<com.twinsoft.convertigo.beans.core.Document>();
 		clonedObject.debugging = false;
 		return clonedObject;
 	}

@@ -44,6 +44,8 @@ import com.twinsoft.convertigo.beans.core.MySimpleBeanInfo;
 import com.twinsoft.convertigo.beans.core.Project;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentFunctionTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.FolderTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.HandlersDeclarationTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableColumnTreeObject;
@@ -181,6 +183,14 @@ class ViewLabelProvider extends LabelProvider implements IFontProvider, IColorPr
 			else if (obj instanceof PropertyTableColumnTreeObject) {
 				iconName = "/com/twinsoft/convertigo/beans/core/images/bean_property_16x16.png";
 				image = ViewImageProvider.getImageFromCache(iconName, (PropertyTableColumnTreeObject)obj);
+			}
+			else if (obj instanceof DesignDocumentViewTreeObject) {
+				iconName = "/com/twinsoft/convertigo/beans/couchdb/images/view_color_16x16.png";
+				image = ViewImageProvider.getImageFromCache(iconName, (DesignDocumentViewTreeObject)obj);
+			}
+			else if (obj instanceof DesignDocumentFunctionTreeObject) {
+				iconName = "/com/twinsoft/convertigo/beans/couchdb/images/function_color_16x16.png";
+				image = ViewImageProvider.getImageFromCache(iconName, (DesignDocumentFunctionTreeObject)obj);
 			}
 			else {
 				throw new IllegalArgumentException("Unexpected tree item object");
