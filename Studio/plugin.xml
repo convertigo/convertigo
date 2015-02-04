@@ -2413,12 +2413,6 @@
             <objectContribution
                   id="convertigo.objectDesignDocument"
                   objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject">
-               <!--<visibility>
-                  <objectState
-                        name="isInherited"
-                        value="false">
-                  </objectState>
-               </visibility>-->
                <menu
                      id="convertigo.menu.document.new"
                      label="New"
@@ -2437,6 +2431,18 @@
                      id="convertigo.action.newDocumentView"
                      label="Row"
                      menubarPath="convertigo.menu.document.new/content">
+               </action>
+            </objectContribution>
+            <objectContribution
+                  id="convertigo.objectDesignDocumentView"
+                  objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject">
+               <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.DeleteDesignDocumentViewAction"
+                     enablesFor="1"
+                     icon="icons/studio/delete.gif"
+                     id="convertigo.action.deleteDocumentView"
+                     label="Delete"
+                     menubarPath="delete">
                </action>
                <!--<action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.ClipboardPasteAction"
@@ -2466,6 +2472,7 @@
                      label="Cut"
                      menubarPath="clipboard"/>-->
             </objectContribution>
+            
             <objectContribution
                   id="convertigo.objectTableProperty"
                   objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject">
