@@ -234,6 +234,7 @@ public class EnginePropertiesManager {
     	Notifications ("Notifications"),
     	Minification ("Minification"),
     	MobileBuilder ("Mobile builder"),
+    	CDB ("Convertigo storage"),
     	@CategoryOptions(visibility = Visibility.HIDDEN)
     	ExternalBrowser ("External browser")
     	;
@@ -570,6 +571,8 @@ public class EnginePropertiesManager {
 		@PropertyOptions(advance = true)
 		MOBILE_BUILDER_PLATFORM_URL ("mobile.builder.platform_url", "https://build.convertigo.net/cmb/PhoneGapBuilder", "Mobile builder platform URL", PropertyCategory.MobileBuilder),
 		
+		/** CDB */
+		CDB_URL ("cdb.url", "http://127.0.0.1:5984", "Convertigo storage URL", PropertyCategory.CDB),
 		
 		/** EXTERNAL BROWSER */
 		@PropertyOptions(propertyType = PropertyType.Array)

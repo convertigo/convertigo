@@ -105,6 +105,7 @@ import com.twinsoft.convertigo.engine.helpers.ScreenClassHelper;
 import com.twinsoft.convertigo.engine.parsers.XulRecorder;
 import com.twinsoft.convertigo.engine.siteclipper.clientinstruction.IClientInstruction;
 import com.twinsoft.convertigo.engine.util.CaseInsensitiveLinkedMap;
+import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
 import com.twinsoft.convertigo.engine.util.Log4jHelper;
@@ -147,8 +148,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		}
 		
 		// PATTERN only used by Shuttle
-		private final static Pattern variables_pattern = Pattern.compile("\\$(" + StringUtils.join(DynamicVariable.values(), '|') + ")\\$");		
-		private final static Pattern charset_pattern = Pattern.compile("(.*?)( ?; ?charset=(.*)|$)", Pattern.CASE_INSENSITIVE);
+		private final static Pattern variables_pattern = Pattern.compile("\\$(" + StringUtils.join(DynamicVariable.values(), '|') + ")\\$");
 		private final static Pattern and_pattern = Pattern.compile(",");
 		private final static Pattern equal_pattern = Pattern.compile("=");
 		
@@ -433,15 +433,9 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		
 		public String getResponseCharset() {
 			if (responseCharset == null) {
-				Matcher charset_matcher = charset_pattern.matcher(getResponseContentType());
-				if (charset_matcher.matches()) {
-					responseMimeType = charset_matcher.group(1);
-					responseCharset = charset_matcher.group(3);
-				}
-				if (responseCharset == null || responseCharset.length() == 0) {
-					responseCharset = defaultResponseCharset;
-				}
-				
+				ContentTypeDecoder contentType = new ContentTypeDecoder(getResponseContentType());
+				responseMimeType = contentType.getMimeType();
+				responseCharset = contentType.getCharset(defaultResponseCharset);				
 			}
 			return responseCharset;
 		}

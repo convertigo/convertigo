@@ -29,6 +29,7 @@ import org.apache.catalina.Context;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 
+import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.util.Log;
 
@@ -118,6 +119,7 @@ public class EmbeddedTomcat implements Runnable {
 		catch(Throwable e) {
 			String stackTrace = Log.getStackTrace(e);
 			System.out.println("(EmbeddedTomcat) Unexpected exception while launching Tomcat:\n" + stackTrace);
+			Engine.isStartFailed = true;			
 		}
 	}
 	

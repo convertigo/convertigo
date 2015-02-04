@@ -1,9 +1,9 @@
 package com.twinsoft.convertigo.engine.cdbproxy;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Collections;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -14,7 +14,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -25,18 +24,21 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.entity.StringEntity;
 
+import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager;
+import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.enums.HeaderName;
 import com.twinsoft.convertigo.engine.enums.HttpMethodType;
+import com.twinsoft.convertigo.engine.enums.MimeType;
+import com.twinsoft.convertigo.engine.util.ContentTypeDecoder;
 
 public class CouchDbProxyServlet extends HttpServlet {
 	private static final long serialVersionUID = -5147185931965387561L;
 
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		HttpClient client = HttpClients.createDefault();
-		Pattern pSplitDB = Pattern.compile("/(.*?)(/.*)");
 		StringBuffer debug = new StringBuffer();
 		
 		HttpRequestBase newRequest;
@@ -54,19 +56,17 @@ public class CouchDbProxyServlet extends HttpServlet {
 		default: throw new ServletException("Invalid HTTP method");
 		}
 		
-		Matcher mSplitDB = pSplitDB.matcher(request.getPathInfo());
-		
-		if (!mSplitDB.matches()) {
-			
-		}
 		
 		try {
-			debug.append("URI: " + mSplitDB.group(2) + "\n");
-			newRequest.setURI(new URIBuilder()
-				.setScheme("http")
-				.setHost("127.0.0.1")
-				.setPort(5984)
-				.setPath(mSplitDB.group(2))
+			StringBuilder sb = new StringBuilder(EnginePropertiesManager.getProperty(PropertyName.CDB_URL));
+			if (sb.length() != 0 &&  sb.charAt(sb.length() - 1) == '/') {
+				sb.deleteCharAt(sb.length() - 1);
+			}
+			sb.append(request.getPathInfo());
+			
+			new URI("");
+			debug.append(method.name() + " URI: " + sb.toString() + "\n");
+			newRequest.setURI(new URIBuilder(sb.toString())
 				.setCustomQuery(request.getQueryString())
 				.build());
 		} catch (URISyntaxException e) {
@@ -74,20 +74,46 @@ public class CouchDbProxyServlet extends HttpServlet {
 			e.printStackTrace();
 		}
 		
-		if (newRequest instanceof HttpEntityEnclosingRequest) {
-			((HttpEntityEnclosingRequest) newRequest).setEntity(new InputStreamEntity(request.getInputStream()));
+		for (String headerName: Collections.list(request.getHeaderNames())) {
+			for (String headerValue: Collections.list(request.getHeaders(headerName))) {
+				debug.append("request Header: " + headerName + "=" + headerValue + "\n");
+//				newRequest.addHeader(headerName, headerValue);
+			}
 		}
 		
-		HttpResponse newResponse = client.execute(newRequest);
-		IOUtils.copy(newResponse.getEntity().getContent(), response.getOutputStream());
+		if (newRequest instanceof HttpEntityEnclosingRequest) {
+			if (request.getHeader(HeaderName.ContentType.value()).equals("application/json")) {
+				String requestEntity = IOUtils.toString(request.getInputStream(), "UTF-8");
+				debug.append("request Entity:\n" + requestEntity + "\n");
+				((HttpEntityEnclosingRequest) newRequest).setEntity(new StringEntity(requestEntity, "UTF-8"));
+			} else {
+				((HttpEntityEnclosingRequest) newRequest).setEntity(new InputStreamEntity(request.getInputStream()));
+			}
+		}
+		
+		HttpResponse newResponse = Engine.theApp.httpClient4.execute(newRequest);
+		
+		debug.append("CT value: " + newResponse.getEntity().getContentType().getValue() + "\n");
+		ContentTypeDecoder contentType = new ContentTypeDecoder(newResponse.getEntity().getContentType().getValue());
+		
+		if (contentType.mimeType() == MimeType.Plain) {
+			String charset = contentType.getCharset("UTF-8");
+			String responseEntity = IOUtils.toString(newResponse.getEntity().getContent(), charset);
+			debug.append("response Entity:\n" + responseEntity + "\n");
+			IOUtils.write(responseEntity, response.getOutputStream(), charset);
+		} else {
+			IOUtils.copy(newResponse.getEntity().getContent(), response.getOutputStream());
+		}
 		
 		for (Header header: newResponse.getAllHeaders()) {
 			if (!HeaderName.TransferEncoding.value().equalsIgnoreCase(header.getName())) {
-				debug.append("Header: " + header.getName() + "=" + header.getValue() + "\n");
+				debug.append("response Header: " + header.getName() + "=" + header.getValue() + "\n");
 				response.addHeader(header.getName(), header.getValue());
 			}
 		}
 		
-		System.err.println(debug.toString());
+		if (contentType.mimeType() == MimeType.Plain) {
+			System.err.println(debug.toString());
+		}
 	}	
 }

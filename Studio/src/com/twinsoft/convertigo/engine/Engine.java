@@ -44,6 +44,8 @@ import org.apache.commons.httpclient.auth.AuthPolicy;
 import org.apache.commons.httpclient.cookie.CookiePolicy;
 import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.httpclient.params.HttpConnectionManagerParams;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -256,7 +258,9 @@ public class Engine {
 	public EventManager eventManager;
 
 	public HttpClient httpClient;
-	public MultiThreadedHttpConnectionManager connectionManager;
+	
+	public org.apache.http.client.HttpClient httpClient4;
+	
 	public RsaManager rsaManager;
 
 	static {
@@ -605,8 +609,8 @@ public class Engine {
 				// Initialize the HttpClient
 				try {
 					Engine.logEngine.debug("HttpClient initializing...");
-					Engine.theApp.connectionManager = new MultiThreadedHttpConnectionManager();
-					// Engine.theApp.connectionManager.setConnectionStaleCheckingEnabled(true);
+					MultiThreadedHttpConnectionManager connectionManager = new MultiThreadedHttpConnectionManager();
+					PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
 
 					int maxTotalConnections = 100;
 					try {
@@ -630,28 +634,27 @@ public class Engine {
 								.warn("Unable to retrieve the max number of connections per host; defaults to 100.");
 					}
 
-					// Engine.theApp.connectionManager.setMaxConnectionsPerHost(maxTotalConnections);
-					// Engine.theApp.connectionManager.setMaxTotalConnections(maxConnectionsPerHost);
-
 					HttpConnectionManagerParams httpConnectionManagerParams = new HttpConnectionManagerParams();
 					httpConnectionManagerParams.setDefaultMaxConnectionsPerHost(maxConnectionsPerHost);
 					httpConnectionManagerParams.setMaxTotalConnections(maxTotalConnections);
-					Engine.theApp.connectionManager.setParams(httpConnectionManagerParams);
+					connectionManager.setParams(httpConnectionManagerParams);
 
-					HttpClientParams httpClientParams = ((HttpClientParams) HttpClientParams
-							.getDefaultParams());
+					connManager.setDefaultMaxPerRoute(maxConnectionsPerHost);
+					connManager.setMaxTotal(maxTotalConnections);
+					
+					HttpClientParams httpClientParams = (HttpClientParams) HttpClientParams.getDefaultParams();
 					httpClientParams.setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY);
 					/** #741 : belambra wants only one Set-Cookie header */
 					httpClientParams.setParameter("http.protocol.single-cookie-header", Boolean.TRUE);
 
-					Engine.theApp.httpClient = new HttpClient(Engine.theApp.connectionManager);
+					Engine.theApp.httpClient = new HttpClient(connectionManager);
+					Engine.theApp.httpClient4 = HttpClients.custom().setConnectionManager(connManager).build();
 
 					Engine.logEngine.debug("HttpClient initialized!");
 				} catch (Exception e) {
-					Engine.theApp.connectionManager = null;
 					Engine.logEngine.error("Unable to initialize the HttpClient.", e);
 				}
-
+				
 				// Initialization of the schedule manager
 				Engine.theApp.schedulerManager = new SchedulerManager(true);
 
