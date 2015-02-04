@@ -31,6 +31,8 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
+import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
+import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.util.GenericUtils;
 
@@ -55,6 +57,17 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 	@Override
 	public DesignDocument getObject() {
 		return (DesignDocument)super.getObject();
+	}
+
+	@Override
+	public boolean rename(String newName, boolean bDialog) {
+		if (getObject().bNew) {
+			return super.rename(newName, bDialog);
+		}
+		else {
+			ConvertigoPlugin.logException(new ConvertigoException("The document named \"" + newName + "\" can't be renamed anymore."), "Unable to change the object name.", bDialog);
+			return false;
+		}
 	}
 
 	@Override
