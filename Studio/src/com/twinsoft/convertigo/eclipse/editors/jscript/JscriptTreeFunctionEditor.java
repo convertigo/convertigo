@@ -14,10 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see<http://www.gnu.org/licenses/>.
  *
- * $URL: svn://devus.twinsoft.fr/convertigo/CEMS_opensource/trunk/Studio/src/com/twinsoft/convertigo/eclipse/editors/jscript/JscriptTransactionEditor.java $
- * $Author: nicolasa $
- * $Revision: 31300 $
- * $Date: 2012-08-03 16:50:19 +0200 (ven., 03 août 2012) $
+ * $URL$
+ * $Author$
+ * $Revision$
+ * $Date$
  */
 
 package com.twinsoft.convertigo.eclipse.editors.jscript;
