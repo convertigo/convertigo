@@ -22,10 +22,14 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
+
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.TreeParent;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject.FunctionObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject.ViewObject;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 
@@ -75,6 +79,20 @@ public class DesignDocumentViewTreeObject extends TreeParent {
 	}
 	
 	protected void hasBeenModified() {
+		JSONObject functions = new JSONObject();
+		for (TreeObject to : getChildren()) {
+			DesignDocumentFunctionTreeObject ddfto = (DesignDocumentFunctionTreeObject)to;
+			FunctionObject fo = ddfto.getObject();
+			try {
+				functions.put(fo.name, fo.getStringObject());
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		getObject().setJSONObject(functions);
+		
 		DesignDocumentTreeObject ddto = getDesignDocumentTreeObject();
 		if (ddto != null) {
 			ddto.hasBeenModified();

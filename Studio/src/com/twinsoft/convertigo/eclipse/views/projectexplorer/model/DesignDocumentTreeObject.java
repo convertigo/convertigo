@@ -104,7 +104,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 			DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject)to;
 			ViewObject viewObject = ddvto.getObject();
 			try {
-				views.put(viewObject.name, viewObject.getObject());
+				views.put(viewObject.name, viewObject.getJSONObject());
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -230,10 +230,14 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 			this.name = name;
 		}
 		
-		protected JSONObject getObject() {
+		protected JSONObject getJSONObject() {
 			return jsonObject;
 		}
 		
+		protected void setJSONObject(JSONObject jsonObject) {
+			this.jsonObject = jsonObject;
+		}
+
 		protected FunctionObject getMap() {
 			if (hasMap()) {
 				try {
@@ -249,7 +253,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		protected FunctionObject createMap() {
 			if (!hasMap()) {
 				try {
-					jsonObject.put(KEY_MAP, "\"function (doc) {emit(doc._id, doc._rev);}\"");
+					jsonObject.put(KEY_MAP, "\"function (doc) {\r\n\temit(doc._id, doc._rev);\r\n}\"");
 					return getMap();
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
@@ -274,7 +278,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		protected FunctionObject createReduce() {
 			if (!hasReduce()) {
 				try {
-					jsonObject.put(KEY_REDUCE, "\"function (keys, values) {return sum(values);}\"");
+					jsonObject.put(KEY_REDUCE, "\"function (keys, values) {\r\n\treturn sum(values);\r\n}\"");
 					return getReduce();
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
@@ -296,6 +300,14 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		
 		FunctionObject(String name, String function) {
 			this.name = name;
+			this.function = function;
+		}
+
+		public String getStringObject() {
+			return function;
+		}
+
+		public void setStringObject(String function) {
 			this.function = function;
 		}
 
