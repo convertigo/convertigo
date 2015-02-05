@@ -22,39 +22,10 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-
-public class DatabaseObjectRenameAction extends MyAbstractAction {
+public class DatabaseObjectRenameAction extends TreeObjectRenameAction {
 
 	public DatabaseObjectRenameAction() {
 		super();
+		this.type = "database object";
 	}
-
-	public void run() {
-		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
-		Shell shell = getParentShell();
-		shell.setCursor(waitCursor);
-        
-		try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-    		if (explorerView != null)
-    			explorerView.renameSelectedTreeObject();
-		}
-		catch (Throwable e) {
-			ConvertigoPlugin.logException(e, "Unable to rename the object!");
-		}
-        finally {
-			shell.setCursor(null);
-			waitCursor.dispose();
-        }
-	}
-
 }

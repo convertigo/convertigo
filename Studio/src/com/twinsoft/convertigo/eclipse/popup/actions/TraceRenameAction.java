@@ -22,38 +22,10 @@
 
 package com.twinsoft.convertigo.eclipse.popup.actions;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
-import com.twinsoft.convertigo.eclipse.views.projectexplorer.ProjectExplorerView;
-
-public class TraceRenameAction extends MyAbstractAction {
+public class TraceRenameAction extends TreeObjectRenameAction {
 
 	public TraceRenameAction() {
 		super();
+		this.type = "trace";
 	}
-
-	public void run() {
-		Display display = Display.getDefault();
-		Cursor waitCursor = new Cursor(display, SWT.CURSOR_WAIT);		
-		
-		Shell shell = getParentShell();
-		shell.setCursor(waitCursor);
-        
-		try {
-    		ProjectExplorerView explorerView = getProjectExplorerView();
-			if (explorerView != null)
-				explorerView.renameSelectedTreeObject();
-		}
-		catch (Throwable e) {
-			ConvertigoPlugin.logException(e, "Unable to rename trace file!");
-		}
-        finally {
-			shell.setCursor(null);
-			waitCursor.dispose();
-        }
-	}
-	
 }

@@ -2437,6 +2437,13 @@
                   id="convertigo.objectDesignDocumentView"
                   objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject">
                <action
+                     class="com.twinsoft.convertigo.eclipse.popup.actions.ViewRenameAction"
+                     enablesFor="1"
+                     id="convertigo.action.renameView"
+                     label="Rename"
+                     menubarPath="main">
+               </action>
+               <action
                      class="com.twinsoft.convertigo.eclipse.popup.actions.DeleteDesignDocumentViewAction"
                      enablesFor="1"
                      icon="icons/studio/delete.gif"
@@ -2472,7 +2479,6 @@
                      label="Cut"
                      menubarPath="clipboard"/>-->
             </objectContribution>
-            
             <objectContribution
                   id="convertigo.objectTableProperty"
                   objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.PropertyTableTreeObject">
