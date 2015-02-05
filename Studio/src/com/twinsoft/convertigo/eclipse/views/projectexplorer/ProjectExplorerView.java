@@ -173,6 +173,7 @@ import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTree
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.CriteriaTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DatabaseObjectTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentTreeObject;
+import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DesignDocumentViewTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.DocumentTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ExtractionRuleTreeObject;
 import com.twinsoft.convertigo.eclipse.views.projectexplorer.model.HandlersDeclarationTreeObject;
@@ -886,6 +887,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 							oldName = ((DatabaseObject) ((DatabaseObjectTreeObject) theTreeObject).getObject()).getName();
 						} else if (theTreeObject instanceof TraceTreeObject) {
 							oldName = ((TraceTreeObject) theTreeObject).getName();
+						} else if (theTreeObject instanceof DesignDocumentViewTreeObject) {
+							oldName = ((DesignDocumentViewTreeObject) theTreeObject).getName();
 						}
 						
 						switch (e.type) {
@@ -929,6 +932,11 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 												item.setText(newName);
 												traceTreeObject.hasChanged = false;
 												needRefresh = true;
+											}
+										} else if (theTreeObject instanceof DesignDocumentViewTreeObject) {
+											DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject)theTreeObject;
+											if (ddvto.rename(newName, Boolean.TRUE)) {
+												item.setText(newName);
 											}
 										}
 									//FALL THROUGH
@@ -1042,6 +1050,8 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 					text.setText(((DatabaseObjectTreeObject)theTreeObject).getName());
 				} else if (theTreeObject instanceof TraceTreeObject) {
 					text.setText(((TraceTreeObject)theTreeObject).getName());
+				} else if (theTreeObject instanceof DesignDocumentViewTreeObject) {
+					text.setText(((DesignDocumentViewTreeObject)theTreeObject).getName());
 				}
 				text.selectAll();
 				text.setFocus();
@@ -1986,8 +1996,12 @@ public class ProjectExplorerView extends ViewPart implements ObjectsProvider, Co
 
 	public void renameSelectedTreeObject() {
 		TreeObject treeObject = getFirstSelectedTreeObject();
-		if ((treeObject != null) && ((treeObject instanceof DatabaseObjectTreeObject) || (treeObject instanceof TraceTreeObject))) {
-			edit(treeObject);
+		if ((treeObject != null) && 
+			((treeObject instanceof DatabaseObjectTreeObject) || 
+			(treeObject instanceof TraceTreeObject) ||
+			(treeObject instanceof DesignDocumentViewTreeObject)
+			)) {
+				edit(treeObject);
 		}
 	}
 	
