@@ -74,21 +74,17 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 	public Object getPropertyValue(Object id) {
 		String propertyName = (String)id;
 		if (KEY_ID.equals(propertyName)) {
-			if (getObject().bNew)
-				return null;
 			try {
 				return getObject().getJSONObject().getString(KEY_ID);
 			} catch (JSONException e) {
-				return null;
+				return "";
 			}
 		}
 		else if (KEY_REV.equals(propertyName)) {
-			if (getObject().bNew)
-				return null;
 			try {
 				return getObject().getJSONObject().getString(KEY_REV);
 			} catch (JSONException e) {
-				return null;
+				return "";
 			}
 		}
 		return super.getPropertyValue(id);
@@ -253,7 +249,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		protected FunctionObject createMap() {
 			if (!hasMap()) {
 				try {
-					jsonObject.put(KEY_MAP, "\"function (doc) {\r\n\temit(doc._id, doc._rev);\r\n}\"");
+					jsonObject.put(KEY_MAP, "function (doc) {\r\n\temit(doc._id, doc._rev);\r\n}");
 					return getMap();
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
@@ -278,7 +274,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		protected FunctionObject createReduce() {
 			if (!hasReduce()) {
 				try {
-					jsonObject.put(KEY_REDUCE, "\"function (keys, values) {\r\n\treturn sum(values);\r\n}\"");
+					jsonObject.put(KEY_REDUCE, "function (keys, values) {\r\n\treturn sum(values);\r\n}");
 					return getReduce();
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block

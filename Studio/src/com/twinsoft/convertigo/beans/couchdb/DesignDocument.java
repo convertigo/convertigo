@@ -22,7 +22,6 @@
 
 package com.twinsoft.convertigo.beans.couchdb;
 
-import org.codehaus.jettison.json.JSONException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -33,9 +32,9 @@ public class DesignDocument extends JsonDocument {
 
 	private static final long serialVersionUID = -1523783503757936794L;
 
-	private static final String KEY_ID = "_id";
-	private static final String KEY_REV = "_rev";
-	private static final String PATH_DESIGN = "_design/";
+//	private static final String KEY_ID = "_id";
+//	private static final String KEY_REV = "_rev";
+//	private static final String PATH_DESIGN = "_design/";
 	
 	public DesignDocument() {
 		super();
@@ -55,7 +54,7 @@ public class DesignDocument extends JsonDocument {
 	@Override
 	public Element toXml(Document document) throws EngineException {
 		if (jsonDocument != null) {
-			if (bNew) {
+			/*if (bNew) {
 				jsonDocument.remove(KEY_ID);
 				jsonDocument.remove(KEY_REV);
 				try {
@@ -64,7 +63,7 @@ public class DesignDocument extends JsonDocument {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			}
+			}*/
 		}
 		return super.toXml(document);
 	}
@@ -74,7 +73,7 @@ public class DesignDocument extends JsonDocument {
 	// The properties values are handled by the renderer : see DesignDocumentTreeObject
 	//---------------------------------------------------------------------------------
 	public String getId() {
-		return null;
+		return "";
 	}
 
 	public void setId(String id) {
@@ -82,7 +81,7 @@ public class DesignDocument extends JsonDocument {
 	}
 	
 	public String getRevision() {
-		return null;
+		return "";
 	}
 
 	public void setRevision(String revision) {

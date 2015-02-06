@@ -61,13 +61,12 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 	@Override
 	public String getFunction() {
 		String function = new String(getObject().getStringObject());
-		function = function.substring(1,function.length()-1);
 		return function;
 	}
 
 	@Override
 	public void setFunction(String function) {
-		getObject().setStringObject("\""+function+"\"");
+		getObject().setStringObject(function);
 		hasBeenModified();
 	}
 	
@@ -91,9 +90,6 @@ public class DesignDocumentFunctionTreeObject extends TreeParent implements IEdi
 	}
 
 	public void openJscriptHandlerEditor(IProject project) {
-		//ProjectExplorerView explorerView = ConvertigoPlugin.getDefault().getProjectExplorerView();
-		
-		//TreeObject selectedFunction = explorerView.getFirstSelectedTreeObject();
 		TreeObject object = getTreeObjectOwner();
 		
 		Document document = (Document)object.getObject();

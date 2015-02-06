@@ -22,9 +22,20 @@
 
 package com.twinsoft.convertigo.beans.connectors;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.codehaus.jettison.json.JSONObject;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
 import com.twinsoft.convertigo.beans.core.Transaction;
+import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractCouchDbTransaction;
 import com.twinsoft.convertigo.beans.transactions.couchdb.AbstractDatabaseTransaction;
 import com.twinsoft.convertigo.engine.Context;
@@ -174,4 +185,85 @@ public class CouchDbConnector extends Connector {
 		return null;
 	}
 
+	public void importCouchDbDesignDocuments() {
+		List<String> list = getCouchDbDesignDocuments();
+		for (String jsonString : list) {
+			try {
+				JSONObject jsonDocument = new JSONObject(jsonString);
+				String _id = jsonDocument.getString("_id");
+				String docName = _id.replaceAll("_design/", "");
+				if (getDocumentByName(docName) == null) { // document does'nt exist locally
+					DesignDocument ddoc = new DesignDocument();
+					ddoc.setName(docName);
+					ddoc.setJSONObject(jsonDocument);
+					ddoc.bNew = true;
+					ddoc.hasChanged = true;
+					
+					addDocument(ddoc);
+					
+					this.hasChanged = true;
+				}
+			} catch (Exception e) {
+				Engine.logBeans.warn("[CouchDbConnector] Unable to create design document from json '"+jsonString+"'", e);
+			}
+		}
+	}
+	
+	private List<String> getCouchDbDesignDocuments() {
+		CouchDbProvider provider = getCouchDbClient();
+		String targetDbName = getDatabaseName();
+		
+		List<String> docList = new ArrayList<String>();
+		JsonElement json = null, rows = null;
+		JsonObject row = null, doc = null;
+		JsonArray arr = null;
+		int size;
+		
+		Integer limit = 10;
+		
+		Map<String, Object> options = new HashMap<String, Object>();
+		options.put("startkey", "\"_design/\"");
+		options.put("endkey", "\"_design0\"");
+		options.put("include_docs", "true");
+		options.put("limit", limit);
+		
+		String startkey = null, startkey_docid = null;
+		boolean bContinue;
+		
+		do {
+			bContinue = false;
+			try {
+				json = provider.context().db(targetDbName).document().all(options, null);
+				if (json.isJsonObject()) {
+					rows = json.getAsJsonObject().get("rows");
+					if (rows.isJsonArray()) {
+						arr = rows.getAsJsonArray();
+						size = arr.size();
+						if (size > 0) {
+							for (int i=0; i<size; i++) {
+								row = arr.get(i).getAsJsonObject();
+								doc = row.get("doc").getAsJsonObject();
+								docList.add(doc.toString());
+							}
+							if (size == limit && row != null) {
+								startkey = "\""+row.get("key").getAsString()+"\"";
+								startkey_docid = "\""+row.get("id").getAsString()+"\"";
+								
+								bContinue = true;
+								options.put("startkey", startkey);
+								options.put("startkey_docid", startkey_docid);
+								options.put("skip",new Integer(1));
+							}
+						}
+					}
+				}
+			}
+			catch (Throwable t) {
+				bContinue = false;
+				Engine.logBeans.error("[CouchDbConnector] Unable to retrieve design documents from database", t);
+			}
+		} while (bContinue);
+		
+		return docList;
+	}
 }

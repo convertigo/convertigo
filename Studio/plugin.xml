@@ -1337,6 +1337,22 @@
          </action>
       </objectContribution>
       <objectContribution
+            id="convertigo.connectorContribution"
+            objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.ConnectorTreeObject">
+         <visibility>
+            <objectState
+                name="objectClassName"
+                value="com.twinsoft.convertigo.beans.connectors.CouchDbConnector"/>
+         </visibility>
+         <action
+               class="com.twinsoft.convertigo.eclipse.popup.actions.ImportDesignDocumentsFromDatabaseAction"
+               enablesFor="1"
+               id="convertigo.action.importDesignDocument"
+               label="Import design documents"
+               menubarPath="convertigo.menu.import">
+         </action>
+      </objectContribution>
+      <objectContribution
             id="convertigo.sheetContribution"
             objectClass="com.twinsoft.convertigo.eclipse.views.projectexplorer.model.SheetTreeObject">
          <action
