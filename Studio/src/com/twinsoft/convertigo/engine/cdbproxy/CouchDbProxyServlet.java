@@ -1,9 +1,7 @@
 package com.twinsoft.convertigo.engine.cdbproxy;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -25,6 +23,7 @@ import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
+import org.json.JSONObject;
 
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
@@ -54,8 +53,7 @@ public class CouchDbProxyServlet extends HttpServlet {
 		case PUT: newRequest = new HttpPut(); break;
 		case TRACE: newRequest = new HttpTrace(); break;
 		default: throw new ServletException("Invalid HTTP method");
-		}
-		
+		} 
 		
 		try {
 			StringBuilder sb = new StringBuilder(EnginePropertiesManager.getProperty(PropertyName.CDB_URL));
@@ -64,7 +62,6 @@ public class CouchDbProxyServlet extends HttpServlet {
 			}
 			sb.append(request.getPathInfo());
 			
-			new URI("");
 			debug.append(method.name() + " URI: " + sb.toString() + "\n");
 			newRequest.setURI(new URIBuilder(sb.toString())
 				.setCustomQuery(request.getQueryString())
@@ -74,17 +71,23 @@ public class CouchDbProxyServlet extends HttpServlet {
 			e.printStackTrace();
 		}
 		
-		for (String headerName: Collections.list(request.getHeaderNames())) {
-			for (String headerValue: Collections.list(request.getHeaders(headerName))) {
-				debug.append("request Header: " + headerName + "=" + headerValue + "\n");
+//		for (String headerName: Collections.list(request.getHeaderNames())) {
+//			for (String headerValue: Collections.list(request.getHeaders(headerName))) {
+//				debug.append("request Header: " + headerName + "=" + headerValue + "\n");
 //				newRequest.addHeader(headerName, headerValue);
-			}
-		}
+//			}
+//		}
 		
 		if (newRequest instanceof HttpEntityEnclosingRequest) {
 			if (request.getHeader(HeaderName.ContentType.value()).equals("application/json")) {
 				String requestEntity = IOUtils.toString(request.getInputStream(), "UTF-8");
 				debug.append("request Entity:\n" + requestEntity + "\n");
+				try {
+					JSONObject json = new JSONObject(requestEntity);
+					json.put("c8oACL", "good");
+					requestEntity = json.toString();
+					debug.append("request new Entity:\n" + requestEntity + "\n");
+				} catch (Exception e) {}
 				((HttpEntityEnclosingRequest) newRequest).setEntity(new StringEntity(requestEntity, "UTF-8"));
 			} else {
 				((HttpEntityEnclosingRequest) newRequest).setEntity(new InputStreamEntity(request.getInputStream()));
@@ -93,21 +96,33 @@ public class CouchDbProxyServlet extends HttpServlet {
 		
 		HttpResponse newResponse = Engine.theApp.httpClient4.execute(newRequest);
 		
-		debug.append("CT value: " + newResponse.getEntity().getContentType().getValue() + "\n");
+//		debug.append("CT value: " + newResponse.getEntity().getContentType().getValue() + "\n");
 		ContentTypeDecoder contentType = new ContentTypeDecoder(newResponse.getEntity().getContentType().getValue());
 		
 		if (contentType.mimeType() == MimeType.Plain) {
 			String charset = contentType.getCharset("UTF-8");
 			String responseEntity = IOUtils.toString(newResponse.getEntity().getContent(), charset);
+			
 			debug.append("response Entity:\n" + responseEntity + "\n");
+			
+			try {
+				JSONObject json = new JSONObject(responseEntity);
+				Object removed = json.remove("c8oACL");
+				if (removed != null) {
+					responseEntity = json.toString();
+					debug.append("response new Entity:\n" + responseEntity + "\n");
+				}
+			} catch (Exception e) {}
+			
 			IOUtils.write(responseEntity, response.getOutputStream(), charset);
 		} else {
 			IOUtils.copy(newResponse.getEntity().getContent(), response.getOutputStream());
 		}
 		
 		for (Header header: newResponse.getAllHeaders()) {
-			if (!HeaderName.TransferEncoding.value().equalsIgnoreCase(header.getName())) {
-				debug.append("response Header: " + header.getName() + "=" + header.getValue() + "\n");
+			if (!HeaderName.TransferEncoding.value().equalsIgnoreCase(header.getName())
+					&& !HeaderName.ContentLength.value().equalsIgnoreCase(header.getName())) {
+//				debug.append("response Header: " + header.getName() + "=" + header.getValue() + "\n");
 				response.addHeader(header.getName(), header.getValue());
 			}
 		}
