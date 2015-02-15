@@ -35,6 +35,6 @@ public class Windows8 extends MobilePlatform {
 
 	@Override
 	public String getCordovaPlatform() {
-		return "win8";
+		return "windows8";
 	}
 }
