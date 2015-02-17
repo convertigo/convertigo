@@ -13,7 +13,7 @@ public class ContentTypeDecoder {
 	String charset = null;
 	
 	public ContentTypeDecoder(String contentType) {
-		Matcher matcher = pattern.matcher(contentType);
+		Matcher matcher = pattern.matcher(contentType == null ? "" : contentType);
 		if (matcher.matches()) {
 			mimeType = matcher.group(1);
 			charset = matcher.group(2);

@@ -34,6 +34,7 @@ public enum MimeType {
 	Xhtml ("application/xhtml+xml", new String[]{"xhtml","xht"}),
 	Javascript ("application/javascript", new String[]{"js"}),
 	JavascriptDeprecated ("text/javascript", new String[]{"js"}),
+	Json ("application/json", new String[]{"json"}),
 	Css ("text/css", new String[]{"css"}),
 	Plain ("text/plain", new String[]{"txt","text","conf","def","list","log","in"}),
 	VOID ("", new String[]{""}),

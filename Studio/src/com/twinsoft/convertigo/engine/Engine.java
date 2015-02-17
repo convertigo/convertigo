@@ -57,6 +57,7 @@ import com.twinsoft.convertigo.beans.core.RequestableObject;
 import com.twinsoft.convertigo.beans.core.Transaction;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.cache.CacheManager;
+import com.twinsoft.convertigo.engine.cdbproxy.CouchDbProxyManager;
 import com.twinsoft.convertigo.engine.enums.Parameter;
 import com.twinsoft.convertigo.engine.externalbrowser.ExternalBrowserManager;
 import com.twinsoft.convertigo.engine.plugins.AbstractBiller;
@@ -203,6 +204,11 @@ public class Engine {
 	 * The plugins manager
 	 */
 	public PluginsManager pluginsManager;
+
+	/**
+	 * The plugins manager
+	 */
+	public CouchDbProxyManager couchDbProxyManager;
 	
 	/**
 	 * Loggers
@@ -229,6 +235,7 @@ public class Engine {
 	public static Logger logExternalBrowser;
 	public static Logger logAudit;
 	public static Logger logDevices;
+	public static Logger logCouchDbManager;
 	public static Logger logSecurityTokenManager;
 
 	/**
@@ -370,6 +377,7 @@ public class Engine {
 			Engine.logDatabaseObjectManager = Logger.getLogger("cems.DatabaseObjectManager");
 			Engine.logProxyManager = Logger.getLogger("cems.ProxyManager");
 			Engine.logDevices = Logger.getLogger("cems.Devices");
+			Engine.logCouchDbManager = Logger.getLogger("cems.CouchDbManager");
 			Engine.logSecurityTokenManager = Logger.getLogger("cems.SecurityTokenManager");
 
 			// Logger for compatibility issues
@@ -456,14 +464,20 @@ public class Engine {
 				}
 				
 				try {
+					Engine.theApp.couchDbProxyManager = new CouchDbProxyManager();
+					Engine.theApp.couchDbProxyManager.init();
+				} catch (Exception e) {
+					Engine.logEngine.error("Unable to run the couchDbProxy manager.", e);
+				}
+				
+				try {
 					Engine.theApp.pluginsManager = new PluginsManager();
 					Engine.theApp.pluginsManager.init();
 				} catch (Exception e) {
 					Engine.logEngine.error("Unable to run the plugins manager.", e);
 				}
 				
-				Engine.logEngine
-						.info("Current working directory is '" + System.getProperty("user.dir") + "'.");
+				Engine.logEngine.info("Current working directory is '" + System.getProperty("user.dir") + "'.");
 
 				// Creating the Carioca Authentication objects
 				Engine.logEngine.debug("Creating the Carioca Authentication objects");
@@ -813,6 +827,10 @@ public class Engine {
 				
 				if (Engine.theApp.minificationManager != null) {
 					Engine.theApp.minificationManager.destroy();
+				}
+
+				if (Engine.theApp.couchDbProxyManager != null) {
+					Engine.theApp.couchDbProxyManager.destroy();
 				}
 				
 				if (Engine.theApp.rsaManager != null) {

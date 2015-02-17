@@ -112,6 +112,8 @@ import com.twinsoft.convertigo.engine.util.Log4jHelper;
 import com.twinsoft.convertigo.engine.util.RegexpUtils;
 import com.twinsoft.convertigo.engine.util.RhinoUtils;
 import com.twinsoft.convertigo.engine.util.URLUtils;
+import com.twinsoft.convertigo.engine.util.UrlParser;
+import com.twinsoft.convertigo.engine.util.UrlParser.UrlFields;
 
 public class SiteClipperConnector extends Connector implements IScreenClassContainer<SiteClipperScreenClass>, IDomainsFilterContainer {
 	private static final long serialVersionUID = -1802468058387036775L;
@@ -491,10 +493,10 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		
 		public String makeAbsoluteURL(String url, boolean withHost) {
 			if (url != null && url.length() != 0) {
-				Matcher scheme_host_matcher = scheme_host_pattern.matcher(url);
-				if (scheme_host_matcher.find()) {
+				UrlFields urlFields = UrlParser.parse(url);
+				if (urlFields != null) {
 					// url of type scheme://url is replaced by ...siteclipper/scheme/url
-					url = getRequest(QueryPart.full_siteclipper_path) + '/' + SchemeHost.convert(scheme_host_matcher);
+					url = getRequest(QueryPart.full_siteclipper_path) + '/' + convertUrl(urlFields);
 				} else if (url.startsWith("/")) {
 					// url of type /uri is replaced by ...siteclipper/current_scheme/current_host/uri
 					url = getRequest(DynamicVariable.host_path) + url;
@@ -589,44 +591,6 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			return url_matcher.group(order);
 		}
 	}
-	
-	private enum SchemeHost {
-		scheme(1),
-		host(2),
-		port(3),
-		uri(4);
-		
-		int order;
-		
-		SchemeHost(int order) {
-			this.order = order;
-		}
-		
-		String value(Matcher scheme_host_matcher) {
-			String value = scheme_host_matcher.group(order); 
-			return value == null ? "" : value;
-		}
-
-		static String convert(Matcher scheme_host_matcher) {
-			String scheme = SchemeHost.scheme.value(scheme_host_matcher);
-			String host = SchemeHost.host.value(scheme_host_matcher);
-			String port = SchemeHost.port.value(scheme_host_matcher);
-			String uri = SchemeHost.uri.value(scheme_host_matcher);
-			if (port.length() != 0) {
-				port = "," + port;
-			}
-			
-			return scheme + "/" + host + port + uri;
-		}
-		
-		static String convert(String targetURL) {
-			Matcher scheme_host_matcher = scheme_host_pattern.matcher(targetURL);
-			if (scheme_host_matcher.matches()) {
-				return convert(scheme_host_matcher);
-			}
-			return targetURL;
-		}
-	}
 
 	public enum Scheme {
 		http,
@@ -639,7 +603,6 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	}
 	
 	private final static Pattern url_pattern = Pattern.compile("((((.*?)/projects/(.*?))/(.*?)\\.siteclipper)/(.*?)/(.*?)(,([\\d]*))?)($|/.*)");
-	private final static Pattern scheme_host_pattern = Pattern.compile("(.*?)://(.*?)(?::([\\d]*))?(/.*|$)");
 	private final static Pattern url_tail = Pattern.compile("(.*)/.*?$");
 
 	// Use of HashSet to speedup Collection.contains because hash checking seams speeder than list walking
@@ -688,7 +651,7 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 		String requestURL = HttpUtils.originalRequestURL(context.httpServletRequest);
 		Engine.logSiteClipper.debug("(SiteClipperConnector) Retrieve requestURL to modify : " + requestURL);
 		
-		targetURL = SchemeHost.convert(targetURL);
+		targetURL = convertUrl(targetURL);
 		
 		String tail_url = URLUtils.mapToQuery(query, ",", "=") + ".siteclipper/" + targetURL;
 		Matcher matcher_tail = url_tail.matcher(requestURL);
@@ -969,6 +932,17 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 	private static long getScore(long nb) {
 		long score = nb / 10000; // score is incremented by one per 10K of read bytes
 		return score;
+	}
+	
+	private static String convertUrl(UrlFields urlFields) {
+		String port = urlFields.getPort();
+		port = port == null ? "" : ("," + port);
+		
+		return urlFields.getScheme() + "/" + urlFields.getHost() + port + urlFields.getPath();
+	}
+	
+	private static String convertUrl(String url) {
+		return convertUrl(UrlParser.parse(url));
 	}
 	
 	private boolean isCompatibleConfiguration(boolean testEquals){
