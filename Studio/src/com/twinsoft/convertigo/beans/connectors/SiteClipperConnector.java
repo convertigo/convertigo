@@ -74,10 +74,9 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
 import org.mozilla.javascript.Scriptable;
 
+import com.google.gson.JsonArray;
 import com.twinsoft.convertigo.beans.common.XMLVector;
 import com.twinsoft.convertigo.beans.core.Connector;
 import com.twinsoft.convertigo.beans.core.ConnectorEvent;
@@ -862,13 +861,9 @@ public class SiteClipperConnector extends Connector implements IScreenClassConta
 			}
 
 			if (shuttle.postInstructions != null) {
-				JSONArray instructions = new JSONArray();
+				JsonArray instructions = new JsonArray();
 				for (IClientInstruction instruction : shuttle.postInstructions) {
-					try {
-						instructions.put(instruction.getInstruction());
-					} catch (JSONException e) {
-						Engine.logSiteClipper.error("(SiteClipperConnector) Failed to add a post instruction due to a JSONException", e);
-					}
+					instructions.add(instruction.getInstruction());
 				}
 				String codeToInject = "<script>C8O_postInstructions = " + instructions.toString() + "</script>\n"
 				+ "<script src=\"" + shuttle.getRequest(QueryPart.full_convertigo_path) + "/scripts/jquery.min.js\"></script>\n"

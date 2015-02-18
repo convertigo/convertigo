@@ -33,10 +33,10 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
-import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.AuthenticationException;
@@ -49,6 +49,7 @@ import com.twinsoft.convertigo.engine.admin.services.XmlService;
 import com.twinsoft.convertigo.engine.admin.services.at.ServiceDefinition;
 import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelper.Keys;
 import com.twinsoft.convertigo.engine.enums.Accessibility;
+import com.twinsoft.convertigo.engine.util.Json;
 
 @ServiceDefinition(name = "GetBuildStatus", roles = { Role.ANONYMOUS }, parameters = {}, returnValue = "")
 public class GetBuildStatus extends XmlService {
@@ -81,7 +82,7 @@ public class GetBuildStatus extends XmlService {
 		
 		PostMethod method = new PostMethod(url.toString());
 
-		JSONObject jsonResult;
+		JsonObject jsonResult;
 		try {
 			method.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 			method.setRequestBody(new NameValuePair[] {
@@ -102,7 +103,7 @@ public class GetBuildStatus extends XmlService {
 						+ "' (final app name: '" + mobileApplication.getComputedApplicationName() + "').\n" + sResult);
 			}
 
-			jsonResult = new JSONObject(sResult);
+			jsonResult = Json.newJsonObject(sResult);
 		} finally {
 			method.releaseConnection();
 		}
@@ -112,18 +113,18 @@ public class GetBuildStatus extends XmlService {
 		statusElement.setAttribute(Keys.platform.name(), platformName);
 		
 		if (jsonResult.has(platformName + "_status")) {
-			statusElement.setAttribute("status", jsonResult.getString(platformName + "_status"));
+			statusElement.setAttribute("status", jsonResult.get(platformName + "_status").getAsString());
 		}
 		else {
 			statusElement.setAttribute("status", "none");
 		}
 
 		if (jsonResult.has(platformName + "_error")) {
-			statusElement.setAttribute("error", jsonResult.getString(platformName + "_error"));
+			statusElement.setAttribute("error", jsonResult.get(platformName + "_error").getAsString());
 		}
 
-		statusElement.setAttribute("version", jsonResult.has("version") ? jsonResult.getString("version") : "n/a");
-		statusElement.setAttribute("phonegap_version", jsonResult.has("phonegap_version") ? jsonResult.getString("phonegap_version") : "n/a");
+		statusElement.setAttribute("version", jsonResult.has("version") ? jsonResult.get("version").getAsString() : "n/a");
+		statusElement.setAttribute("phonegap_version", jsonResult.has("phonegap_version") ? jsonResult.get("phonegap_version").getAsString() : "n/a");
 
 		document.getDocumentElement().appendChild(statusElement);
 	}

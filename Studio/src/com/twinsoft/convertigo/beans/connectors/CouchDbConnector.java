@@ -27,8 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jettison.json.JSONObject;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -43,6 +41,7 @@ import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbProperties;
 import com.twinsoft.convertigo.engine.providers.couchdb.CouchDbProvider;
+import com.twinsoft.convertigo.engine.util.Json;
 import com.twinsoft.convertigo.engine.util.ParameterUtils;
 
 public class CouchDbConnector extends Connector {
@@ -189,13 +188,13 @@ public class CouchDbConnector extends Connector {
 		List<String> list = getCouchDbDesignDocuments();
 		for (String jsonString : list) {
 			try {
-				JSONObject jsonDocument = new JSONObject(jsonString);
-				String _id = jsonDocument.getString("_id");
+				JsonObject jsonDocument = Json.newJsonObject(jsonString);
+				String _id = jsonDocument.get("_id").getAsString();
 				String docName = _id.replaceAll("_design/", "");
 				if (getDocumentByName(docName) == null) { // document does'nt exist locally
 					DesignDocument ddoc = new DesignDocument();
 					ddoc.setName(docName);
-					ddoc.setJSONObject(jsonDocument);
+					ddoc.setJsonObject(jsonDocument);
 					ddoc.bNew = true;
 					ddoc.hasChanged = true;
 					

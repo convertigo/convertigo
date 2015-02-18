@@ -22,16 +22,17 @@
 
 package com.twinsoft.convertigo.beans.core;
 
-import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Element;
 
+import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.util.Json;
 
 public class JsonDocument extends Document {
 
 	private static final long serialVersionUID = -158097183400259342L;
 
-	transient protected JSONObject jsonDocument = new JSONObject();
+	transient protected JsonObject jsonDocument = new JsonObject();
 	
 	public JsonDocument() {
 		super();
@@ -49,7 +50,7 @@ public class JsonDocument extends Document {
 		
 		// load document
 		if (docdata != null) {
-			jsonDocument = new JSONObject(docdata);
+			jsonDocument = Json.newJsonObject(docdata);
 		}
 	}
 
@@ -63,11 +64,11 @@ public class JsonDocument extends Document {
 		return super.toXml(document);
 	}
 
-	public JSONObject getJSONObject() {
+	public JsonObject getJsonObject() {
 		return jsonDocument;
 	}
 
-	public void setJSONObject(JSONObject jsonObject) {
+	public void setJsonObject(JsonObject jsonObject) {
 		jsonDocument = jsonObject;
 	}
 }

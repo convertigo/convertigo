@@ -23,21 +23,22 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 
 import ro.isdc.wro.extensions.processor.js.UglifyJsProcessor;
 import ro.isdc.wro.model.resource.processor.impl.css.CssCompressorProcessor;
 import ro.isdc.wro.model.resource.processor.impl.css.CssMinProcessor;
 import ro.isdc.wro.model.resource.processor.impl.js.JSMinProcessor;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.ComboEnum;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyCategory;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEvent;
 import com.twinsoft.convertigo.engine.events.PropertyChangeEventListener;
 import com.twinsoft.convertigo.engine.util.HttpUtils;
+import com.twinsoft.convertigo.engine.util.Json;
 
 public class MinificationManager implements AbstractManager, PropertyChangeEventListener {
 	static final File minificationCacheDirectory = new File(Engine.USER_WORKSPACE_PATH + "/minification");
@@ -370,79 +371,79 @@ public class MinificationManager implements AbstractManager, PropertyChangeEvent
 				}
 				synchronized (resourceBundle) {
 					if (!resourceBundle.isInit()) {
-						JSONArray files = null;
-						JSONObject options = null;
+						JsonArray files = null;
+						JsonObject options = null;
 						String query = RequestPart.query.value(requestMatcher);
 						Engine.logEngine.trace("(MinificationManager) Parse JSON query '" + query + "'");
 						try {
-							options = new JSONObject(query);
+							options = Json.newJsonObject(query);
 							
 							if (options.has(GlobalOptions.files.name())) {
-								files = options.getJSONArray(GlobalOptions.files.name());
+								files = options.get(GlobalOptions.files.name()).getAsJsonArray();
 								if (options.has(GlobalOptions.minification.name())) {
 									try {
-										minification = MinificationOptions.valueOf(options.getString(GlobalOptions.minification.name()).toLowerCase());
+										minification = MinificationOptions.valueOf(options.get(GlobalOptions.minification.name()).getAsString().toLowerCase());
 									} catch (IllegalArgumentException e) {
-										Engine.logEngine.info("(MinificationManager) Bad minification level requested: " + options.getString(FileOptions.minification.name()) + " (use common setting)");
+										Engine.logEngine.info("(MinificationManager) Bad minification level requested: " + options.get(FileOptions.minification.name()).getAsString() + " (use common setting)");
 									}
 								}
 							}
 							
 							if (options.has(GlobalOptions.version.name())) {
-								version = options.getString(GlobalOptions.version.name());
+								version = options.get(GlobalOptions.version.name()).getAsString();
 							}
 							
 							try {
-								boolean filenames = Boolean.parseBoolean(options.getString(GlobalOptions.filenames.name()));
+								boolean filenames = Boolean.parseBoolean(options.get(GlobalOptions.filenames.name()).getAsString());
 								resourceBundle.setFilenames(filenames);
 							} catch (Exception e) {};
 							
 							try {
-								boolean stats = Boolean.parseBoolean(options.getString(GlobalOptions.stats.name()));
+								boolean stats = Boolean.parseBoolean(options.get(GlobalOptions.stats.name()).getAsString());
 								resourceBundle.setStats(stats);
 							} catch (Exception e) {};
 							
-						} catch (JSONException e1) {
+						} catch (Exception e1) {
 							
 						}
 						try {
 							if (files == null) {
-								files = new JSONArray(query);
+								files = Json.newJsonArray(query);
 							}
-						} catch (JSONException e2) {
-							files = new JSONArray();
+						} catch (Exception e2) {
+							files = new JsonArray();
 							if (options != null) {
-								files.put(options);
+								files.add(options);
 							} else if (query.length() == 0) {
-								files.put(RequestPart.fileName.value(requestMatcher));
+								files.add(new JsonPrimitive(RequestPart.fileName.value(requestMatcher)));
 							} else {
-								files.put(query);
+								files.add(new JsonPrimitive(query));
 							}
 						}
 						
 						File relativeFile = new File(Engine.PROJECTS_PATH + "/" + RequestPart.pathFromProject.value(requestMatcher)).getParentFile();
 						Engine.logEngine.trace("(MinificationManager) Solve relative resource from '" + relativeFile.toString() + "'");
 						
-						int optionsLength = files.length();
+						int optionsLength = files.size();
 						resourceBundle.init(optionsLength);
 						for (int i = 0; i < optionsLength; i++) {
 							Object optionObject = files.get(i);
 							String filepath = null;
 							String encoding = "utf-8";
 							MinificationOptions resourceMinification = null;
-							if (optionObject instanceof JSONObject) {
-								JSONObject option = (JSONObject) optionObject;
+							if (optionObject instanceof JsonObject) {
+								JsonObject option = (JsonObject) optionObject;
 								if (option.has(FileOptions.file.name())) {
-									filepath = option.getString(FileOptions.file.name());
+									filepath = option.get(FileOptions.file.name()).getAsString();
 								}
 								if (option.has(FileOptions.encoding.name())) {
-									encoding = option.getString(FileOptions.encoding.name());
+									encoding = option.get(FileOptions.encoding.name()).getAsString();
 								}
 								if (option.has(FileOptions.minification.name())) {
 									try {
-										resourceMinification = MinificationOptions.valueOf(option.getString(FileOptions.minification.name()));
+										resourceMinification = MinificationOptions.valueOf(option.get(FileOptions.minification.name()).getAsString());
 									} catch (IllegalArgumentException e) {
-										Engine.logEngine.info("(MinificationManager) Bad minification level requested: " + option.getString(FileOptions.minification.name()) + " (use common setting)");
+										Engine.logEngine.info("(MinificationManager) Bad minification level requested: " + option.get(FileOptions.minification.name()).getAsString() + " (use common setting)");
 									}
 								}
 							} else {

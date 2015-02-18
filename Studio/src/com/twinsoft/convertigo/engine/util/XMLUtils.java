@@ -59,8 +59,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.tools.CatalogResolver;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.DOMException;
@@ -74,6 +72,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.beans.common.XMLizable;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
@@ -1125,45 +1124,55 @@ public class XMLUtils {
 		return localName;
 	}
 	
-	public static  void handleElement(Element elt, JSONObject obj, boolean ignoreStepIds) throws JSONException {
+	public static  void handleElement(Element elt, JsonObject obj, boolean ignoreStepIds) {
 		String key = elt.getTagName();
 		
-		JSONObject value = new JSONObject();
+		JsonObject value = new JsonObject();
 		NodeList nl = elt.getChildNodes();
-		for(int i=0;i<nl.getLength();i++) {
+		
+		for (int i = 0; i < nl.getLength(); i++) {
 			Node node = nl.item(i);
+			
 			if(node.getNodeType()==Node.ELEMENT_NODE) {
 				Element child = (Element) node;
 				handleElement(child, value, ignoreStepIds);
 			}
 		}
 		
-		JSONObject attr = new JSONObject();
+		JsonObject attr = new JsonObject();
 		NamedNodeMap nnm = elt.getAttributes();
-		for(int i=0;i<nnm.getLength();i++) {
+		
+		for (int i = 0; i < nnm.getLength(); i++) {
 			Node node = nnm.item(i);
-			if (ignoreStepIds && (node.getNodeName() != "step_id"))
-				attr.accumulate(node.getNodeName(), node.getNodeValue());
+			
+			if (ignoreStepIds && (node.getNodeName() != "step_id")) {
+				Json.accumulate(attr, node.getNodeName(), node.getNodeValue());
+			}
 		}
 		
-		if(value.length()==0) {
+		if (Json.isEmpty(value)) {
 			String content = elt.getTextContent();
-			if(attr.length()==0) obj.accumulate(key, content);
-			else value.accumulate("text", content);
+			
+			if (Json.isEmpty(attr)) {
+				Json.accumulate(obj, key, content);
+			} else {
+				Json.accumulate(value, "text", content);
+			}
 		}
 		
-		if(attr.length()!=0)
-			value.accumulate("attr", attr);
+		if (!Json.isEmpty(attr)) {
+			Json.accumulate(value, "attr", attr);
+		}
 		
-		if(value.length()!=0)
-			obj.accumulate(key, value);
+		if (!Json.isEmpty(value)) {
+			Json.accumulate(obj, key, value);
+		}
 	}
 	
-	public static String XmlToJson(Element elt, boolean ignoreStepIds) throws JSONException
-	{
-		JSONObject json = new JSONObject();
+	public static String XmlToJson(Element elt, boolean ignoreStepIds) {
+		JsonObject json = new JsonObject();
 		handleElement(elt, json, ignoreStepIds);
-		String result = json.toString(1);
+		String result = Json.toPrettyJson(json);
 		return result;
 	}
 	

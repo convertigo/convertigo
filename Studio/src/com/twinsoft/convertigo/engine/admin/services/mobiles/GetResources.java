@@ -24,8 +24,7 @@ package com.twinsoft.convertigo.engine.admin.services.mobiles;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.codehaus.jettison.json.JSONObject;
-
+import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.engine.AuthenticatedSessionManager.Role;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.services.JSonService;
@@ -40,7 +39,7 @@ import com.twinsoft.convertigo.engine.admin.services.mobiles.MobileResourceHelpe
 	)
 public class GetResources extends JSonService {
 	
-	protected void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception {
+	protected void getServiceResult(HttpServletRequest request, JsonObject response) throws Exception {
 		String project = Keys.project.value(request);
 		String platform = Keys.platform.value(request);
 		String uuid = Keys.uuid.value(request);
@@ -53,25 +52,25 @@ public class GetResources extends JSonService {
 		final MobileResourceHelper mobileResourceHelper = new MobileResourceHelper(request, "mobile/flashupdate");
 		
 		if (mobileResourceHelper.mobileApplication.getEnableFlashUpdate()) {
-			response.put(Keys.flashUpdateEnabled.name(), true);
-			response.put(Keys.requireUserConfirmation.name(), mobileResourceHelper.mobileApplication.getRequireUserConfirmation());
+			response.addProperty(Keys.flashUpdateEnabled.name(), true);
+			response.addProperty(Keys.requireUserConfirmation.name(), mobileResourceHelper.mobileApplication.getRequireUserConfirmation());
 			
 			mobileResourceHelper.prepareFilesForFlashupdate();
 			
 			mobileResourceHelper.listFiles(response);
 		} else {
-			response.put(Keys.flashUpdateEnabled.name(), false);
+			response.addProperty(Keys.flashUpdateEnabled.name(), false);
 		}
 		
-		JSONObject env = new JSONObject();
-		env.put("currentRevision", mobileResourceHelper.destDir.lastModified());
-		env.put("currentVersion", mobileResourceHelper.mobileApplication.getComputedApplicationVersion());
-		response.put("resourcesEnv", env);
+		JsonObject env = new JsonObject();
+		env.addProperty("currentRevision", mobileResourceHelper.destDir.lastModified());
+		env.addProperty("currentVersion", mobileResourceHelper.mobileApplication.getComputedApplicationVersion());
+		response.add("resourcesEnv", env);
 		
-		env = new JSONObject();
-		env.put("remoteRevision", mobileResourceHelper.destDir.lastModified());
-		env.put("remoteVersion", mobileResourceHelper.mobileApplication.getComputedApplicationVersion());
-		env.put("splashRemoveMode", mobileResourceHelper.mobileApplication.getSplashRemoveMode().name());
-		response.put("env", env);
+		env = new JsonObject();
+		env.addProperty("remoteRevision", mobileResourceHelper.destDir.lastModified());
+		env.addProperty("remoteVersion", mobileResourceHelper.mobileApplication.getComputedApplicationVersion());
+		env.addProperty("splashRemoveMode", mobileResourceHelper.mobileApplication.getSplashRemoveMode().name());
+		response.add("env", env);
 	}	 
 }

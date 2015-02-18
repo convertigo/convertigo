@@ -17,10 +17,9 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.beans.core.MobileApplication;
 import com.twinsoft.convertigo.beans.core.MobileApplication.FlashUpdateBuildMode;
 import com.twinsoft.convertigo.beans.core.MobilePlatform;
@@ -292,21 +291,21 @@ public class MobileResourceHelper {
 		}
 	}
 	
-	public void listFiles(JSONObject response) throws JSONException, IOException {
+	public void listFiles(JsonObject response) throws IOException {
 		File canonicalDir = destDir.getCanonicalFile();
 		int uriDirectoryLength = canonicalDir.toURI().toString().length();
-		JSONArray jArray = new JSONArray();
+		JsonArray jArray = new JsonArray();
 		
 		for (File f : FileUtils.listFiles(canonicalDir, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
 			File canonnicalF = f.getCanonicalFile();
-			JSONObject jObj = new JSONObject();
-			jObj.put("uri", URLDecoder.decode(canonnicalF.toURI().toString().substring(uriDirectoryLength), "UTF-8"));
-			jObj.put("date", canonnicalF.lastModified());
-			jObj.put("size", canonnicalF.length());
-			jArray.put(jObj);
+			JsonObject jObj = new JsonObject();
+			jObj.addProperty("uri", URLDecoder.decode(canonnicalF.toURI().toString().substring(uriDirectoryLength), "UTF-8"));
+			jObj.addProperty("date", canonnicalF.lastModified());
+			jObj.addProperty("size", canonnicalF.length());
+			jArray.add(jObj);
 		}
-		response.put("files", jArray);
-		response.put("date", destDir.lastModified());
+		response.add("files", jArray);
+		response.addProperty("date", destDir.lastModified());
 	}
 	
 	private void writeStringToFile(File file, String content) throws IOException {
@@ -321,7 +320,7 @@ public class MobileResourceHelper {
 		
 		String finalApplicationName = mobileApplication.getComputedApplicationName();		
 		
-		JSONObject json = new JSONObject();
+		JsonObject json = new JsonObject();
 		
 		if (buildMode == FlashUpdateBuildMode.full) {
 			prepareFiles();
@@ -346,7 +345,7 @@ public class MobileResourceHelper {
 				}
 				
 			});
-			json.put("lightBuild", true);
+			json.addProperty("lightBuild", true);
 		} else {
 			throw new ServiceException("Unknow build mode: " + buildMode);
 		}
@@ -356,22 +355,22 @@ public class MobileResourceHelper {
 		
 		String remoteBase = endpoint + "/projects/" + project.getName() + "/_private/mobile/flashupdate_" + this.mobilePlatform.getName();
 				
-		json = new JSONObject();
-		json.put("applicationAuthorName", mobileApplication.getApplicationAuthorName());
-		json.put("applicationAuthorEmail", mobileApplication.getApplicationAuthorEmail());
-		json.put("applicationAuthorWebsite", mobileApplication.getApplicationAuthorSite());
-		json.put("applicationDescription", mobileApplication.getApplicationDescription());
-		json.put("applicationId", mobileApplication.getComputedApplicationId());
-		json.put("applicationName", finalApplicationName);
-		json.put("builtRevision", destDir.lastModified());
-		json.put("builtVersion", mobileApplication.getComputedApplicationVersion());
-		json.put("currentRevision", destDir.lastModified());
-		json.put("currentVersion", mobileApplication.getComputedApplicationVersion());
-		json.put("endPoint", endpoint);
-		json.put("platformName", mobilePlatform.getName());
-		json.put("projectName", project.getName());
-		json.put("remoteBase", remoteBase);
-		json.put("timeout", mobileApplication.getFlashUpdateTimeout());
+		json = new JsonObject();
+		json.addProperty("applicationAuthorName", mobileApplication.getApplicationAuthorName());
+		json.addProperty("applicationAuthorEmail", mobileApplication.getApplicationAuthorEmail());
+		json.addProperty("applicationAuthorWebsite", mobileApplication.getApplicationAuthorSite());
+		json.addProperty("applicationDescription", mobileApplication.getApplicationDescription());
+		json.addProperty("applicationId", mobileApplication.getComputedApplicationId());
+		json.addProperty("applicationName", finalApplicationName);
+		json.addProperty("builtRevision", destDir.lastModified());
+		json.addProperty("builtVersion", mobileApplication.getComputedApplicationVersion());
+		json.addProperty("currentRevision", destDir.lastModified());
+		json.addProperty("currentVersion", mobileApplication.getComputedApplicationVersion());
+		json.addProperty("endPoint", endpoint);
+		json.addProperty("platformName", mobilePlatform.getName());
+		json.addProperty("projectName", project.getName());
+		json.addProperty("remoteBase", remoteBase);
+		json.addProperty("timeout", mobileApplication.getFlashUpdateTimeout());
 		
 		FileUtils.write(new File(destDir, "env.json"), json.toString());
 		

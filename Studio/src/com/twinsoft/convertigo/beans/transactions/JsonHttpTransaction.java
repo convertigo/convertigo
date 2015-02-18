@@ -22,19 +22,19 @@
 
 package com.twinsoft.convertigo.beans.transactions;
 
-import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EngineException;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.Json;
 import com.twinsoft.convertigo.engine.util.StringUtils;
 
 public class JsonHttpTransaction extends AbstractHttpTransaction {
@@ -105,13 +105,13 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 			// JSON Object
 			if (firstToken == '{') {
 				Engine.logBeans.debug("Detected JSON object");
-				JSONObject jsonObject = new JSONObject(jsonData);
+				JsonObject jsonObject = Json.newJsonObject(jsonData);
 				jsonToXml(jsonObject, null, outputDocumentRootElement);
 			}
 			// JSON Array
 			else if (firstToken == '[') {
 				Engine.logBeans.debug("Detected JSON array");
-				JSONArray jsonArray = new JSONArray(jsonData);
+				JsonArray jsonArray = Json.newJsonArray(jsonData);
 				jsonToXml(jsonArray, null, outputDocumentRootElement);
 			} else {
 				throw new EngineException(
@@ -124,7 +124,7 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 		}
 	}
 
-	private void jsonToXml(Object object, String objectKey, Element parentElement) throws JSONException {
+	private void jsonToXml(Object object, String objectKey, Element parentElement) {
 		Engine.logBeans.debug("Converting JSON to XML: object=" + object.toString() + "; objectKey=\""
 				+ objectKey + "\"");
 
@@ -156,9 +156,9 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 			}
 		}
 		// Array value case
-		else if (object instanceof JSONArray) {
-			JSONArray array = (JSONArray) object;
-			int len = array.length();
+		else if (object instanceof JsonArray) {
+			JsonArray array = (JsonArray) object;
+			int len = array.size();
 
 			Element arrayElement = parentElement;
 			String arrayItemObjectKey = null;
@@ -183,8 +183,8 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 			}
 		}
 		// JSON object value case
-		else if (object instanceof JSONObject) {
-			JSONObject json = (JSONObject) object;
+		else if (object instanceof JsonObject) {
+			JsonObject json = (JsonObject) object;
 
 			Element element = context.outputDocument.createElement(objectKey == null ? "object" : objectKey);
 			if (objectKey != null && !objectKey.equals(originalObjectKey)) {
@@ -204,11 +204,9 @@ public class JsonHttpTransaction extends AbstractHttpTransaction {
 			if (includeDataType) {
 				element.setAttribute("type", "object");
 			}
-
-			Iterator<String> keys = GenericUtils.cast(json.keys());
-			while (keys.hasNext()) {
-				String key = keys.next();
-				jsonToXml(json.get(key), key, element);
+			
+			for (Entry<String, JsonElement> entry: json.entrySet()) {
+				jsonToXml(entry.getValue(), entry.getKey(), element);
 			}
 		}
 	}

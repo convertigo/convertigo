@@ -25,8 +25,7 @@ package com.twinsoft.convertigo.engine.admin.services;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.codehaus.jettison.json.JSONObject;
-
+import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.admin.util.ServiceUtils;
 
@@ -37,7 +36,7 @@ public abstract class JSonService implements Service {
         	response.setContentType("text/javascript");
         	response.setCharacterEncoding("UTF-8");
         	
-			JSONObject json = new JSONObject();
+			JsonObject json = new JsonObject();
 			
             getServiceResult(request, json);
             String sJSON = json.toString();
@@ -49,5 +48,5 @@ public abstract class JSonService implements Service {
 		}
 	}
 
-	protected abstract void getServiceResult(HttpServletRequest request, JSONObject response) throws Exception;
+	protected abstract void getServiceResult(HttpServletRequest request, JsonObject response) throws Exception;
 }

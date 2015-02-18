@@ -22,11 +22,11 @@
 package com.twinsoft.convertigo.beans.transactions.couchdb;
 
 import java.io.UnsupportedEncodingException;
-import java.util.List;
-import java.util.Map.Entry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
@@ -36,7 +36,6 @@ import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaComplexType;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 import org.apache.ws.commons.schema.XmlSchemaSequence;
-import org.codehaus.jettison.json.JSONException;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.NativeJavaObject;
@@ -207,7 +206,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		}
 	}
 	
-	protected static JsonElement toJson(Gson gson, JsonParser parser, Object object) throws JsonSyntaxException, JSONException {
+	protected static JsonElement toJson(Gson gson, JsonParser parser, Object object) throws JsonSyntaxException {
 		if (object == null) return null;
 		
 		JsonElement jsonElement = null;
@@ -271,7 +270,7 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 		return jsonElement;
 	}
 	
-	private static JsonElement toJson(JsonParser parser, Element element) throws JsonSyntaxException, JSONException {
+	private static JsonElement toJson(JsonParser parser, Element element) throws JsonSyntaxException {
 		JsonElement jsonXml = parser.parse(XMLUtils.XmlToJson(element, true));
 		if (isInputDomVariable(element)) {
 			JsonObject jsonVariable = jsonXml.getAsJsonObject().get("variable").getAsJsonObject();

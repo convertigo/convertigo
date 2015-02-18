@@ -28,19 +28,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.SortedMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonPrimitive;
 import com.twinsoft.convertigo.engine.Engine;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager;
 import com.twinsoft.convertigo.engine.EnginePropertiesManager.PropertyName;
@@ -75,7 +75,7 @@ public class LogManager {
 	private boolean has_more_results = true;
 	private boolean need_renew = true;
 
-	private JSONArray candidate = null;
+	private JsonArray candidate = null;
 	private String line = null;
 	
 	public LogManager() {
@@ -92,9 +92,9 @@ public class LogManager {
 		}
 	}
 	
-	public JSONArray getLines() throws IOException {
+	public JsonArray getLines() throws IOException {
 		long end_time = System.currentTimeMillis() + timeout;
-		JSONArray json_array = new JSONArray();
+		JsonArray json_array = new JsonArray();
 		Context js_context = null;
 		if (js_filter != null) {
 			js_context = Context.enter();
@@ -106,31 +106,35 @@ public class LogManager {
 				reset();
 			}
 			
-			StringBuffer sb = candidate != null ? ((StringBuffer) candidate.get(4)) : null;
 			if (line == null) {
 				line = br.readLine();
 			}
-			while (line != null && json_array.length() < max_lines && (timeout == -1  || System.currentTimeMillis() < end_time)) {
+			while (line != null && json_array.size() < max_lines && (timeout == -1  || System.currentTimeMillis() < end_time)) {
 				boolean find = false;
 				if (line.startsWith("!")) {
 					try {
 						addCandidate(js_context, json_array);
 						delim.reset(line);
-						candidate = new JSONArray(Arrays.asList(nextToken(), nextToken(), nextToken(), nextToken())); // category, time, level, thread
-						candidate.put(sb = new StringBuffer()); // message
+						candidate = new JsonArray();
+						candidate.add(new JsonPrimitive(nextToken())); // category
+						candidate.add(new JsonPrimitive(nextToken())); // time
+						candidate.add(new JsonPrimitive(nextToken())); // level
+						candidate.add(new JsonPrimitive(nextToken())); // thread
+						candidate.add(JsonNull.INSTANCE); // message
 						String next  = nextToken();
 						while (next.startsWith("$")) {
-							candidate.put(next.substring(1));
+							candidate.add(new JsonPrimitive(next.substring(1)));
 							next = nextToken();
 						}
-						sb.append(endToken());
+						candidate.set(4, new JsonPrimitive(endToken()));
 						find = true;
 					} catch (Exception e){
 						// probably not a valid line
 					};
 				}
-				if (!find && sb != null) {
-					sb.append('\n').append(line);
+				if (!find && candidate != null) {
+					String message = candidate.get(4).getAsString() + '\n' + line;
+					candidate.set(4, new JsonPrimitive(message));
 				}
 				line = br.readLine();
 			}
@@ -138,8 +142,8 @@ public class LogManager {
 			if (!has_more_results) {
 				addCandidate(js_context, json_array);
 			}
-		} catch (JSONException e) {
-			throw new IOException("unlikely JSONException : " + e.getMessage());
+		} catch (Exception e) {
+			throw new IOException("unlikely Exception : " + e.getMessage());
 		} finally {
 			if (js_context != null) {
 				Context.exit();
@@ -228,19 +232,19 @@ public class LogManager {
 		return is.getTimedFiles();
 	}
 	
-	private void addCandidate(Context js_context, JSONArray result) {
+	private void addCandidate(Context js_context, JsonArray result) {
 		if (candidate != null) {
 			if (js_filter != null) {
 				try {
 					Scriptable scope = js_context.initStandardObjects(null, true);
-					scope.put("category", scope, candidate.getString(0));
-					scope.put("time", scope, candidate.getString(1));
-					scope.put("level", scope, candidate.getString(2));
-					scope.put("thread", scope, candidate.getString(3));
-					scope.put("message", scope, candidate.getString(4));
+					scope.put("category", scope, candidate.get(0).getAsString());
+					scope.put("time", scope, candidate.get(1).getAsString());
+					scope.put("level", scope, candidate.get(2).getAsString());
+					scope.put("thread", scope, candidate.get(3).getAsString());
+					scope.put("message", scope, candidate.get(4).getAsString());
 					StringBuffer extra = new StringBuffer();
-					for (int i = 5; i < candidate.length(); i++) {
-						String sub_extra = candidate.getString(i);
+					for (int i = 5; i < candidate.size(); i++) {
+						String sub_extra = candidate.get(i).getAsString();
 						extra.append(sub_extra).append(' ');
 						delim_extra.reset(sub_extra);
 						if (delim_extra.matches() && delim_extra.groupCount() == 2) {
@@ -252,13 +256,13 @@ public class LogManager {
 					}
 					scope.setParentScope(js_utils);
 					if (Context.toBoolean(js_filter.exec(js_context, scope))) {
-						result.put(candidate);
+						result.add(candidate);
 					}
 				} catch (Exception e) {
 					// TODO: handle exception
 				}
 			} else {
-				result.put(candidate);
+				result.add(candidate);
 			}
 			candidate = null;
 		}

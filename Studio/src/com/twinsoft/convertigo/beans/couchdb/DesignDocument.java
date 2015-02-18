@@ -89,4 +89,10 @@ public class DesignDocument extends JsonDocument {
 	}
 	//*********************************************************************************
 	
+	@Override
+	public void setName(String newName) throws EngineException {
+		super.setName(newName);
+		if (jsonDocument != null) {
+		}
+	}
 }

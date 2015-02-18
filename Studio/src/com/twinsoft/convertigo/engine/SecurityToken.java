@@ -1,17 +1,15 @@
 package com.twinsoft.convertigo.engine;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
-
-import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.google.gson.JsonElement;
+import com.twinsoft.convertigo.engine.util.Json;
 
 @Entity
 public class SecurityToken {
@@ -66,20 +64,18 @@ public class SecurityToken {
 	}
 
 	public String getJsonData() {
-		String jsonData = new JSONObject(data).toString(); 
+		String jsonData = Json.toJson(data); 
 		return jsonData;
 	}
 
 	public void setJsonData(String data) {
 		this.data = new HashMap<String, String>();
-		JSONObject json;
+		
 		try {
-			json = new JSONObject(data);
-			for (Iterator<String> i = GenericUtils.cast(json.keys()); i.hasNext();) {
-				String key = i.next();
-				this.data.put(key, json.getString(key));
+			for (Entry<String, JsonElement> entry: Json.newJsonObject(data).entrySet()) {
+				this.data.put(entry.getKey(), entry.getValue().getAsString());
 			}
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			Engine.logSecurityTokenManager.warn("(SecurityToken) Failed to decode JSON data", e);
 		}
 	}

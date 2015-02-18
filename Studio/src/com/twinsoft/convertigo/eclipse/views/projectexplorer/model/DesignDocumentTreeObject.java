@@ -22,19 +22,19 @@
 
 package com.twinsoft.convertigo.eclipse.views.projectexplorer.model;
 
-import java.util.Iterator;
+import java.util.Map.Entry;
 
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
-import com.twinsoft.convertigo.engine.util.GenericUtils;
+import com.twinsoft.convertigo.engine.util.Json;
 
 public class DesignDocumentTreeObject extends DocumentTreeObject {
 
@@ -56,7 +56,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 
 	@Override
 	public DesignDocument getObject() {
-		return (DesignDocument)super.getObject();
+		return (DesignDocument) super.getObject();
 	}
 
 	@Override
@@ -75,15 +75,15 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		String propertyName = (String)id;
 		if (KEY_ID.equals(propertyName)) {
 			try {
-				return getObject().getJSONObject().getString(KEY_ID);
-			} catch (JSONException e) {
+				return getObject().getJsonObject().get(KEY_ID).getAsString();
+			} catch (Exception e) {
 				return "";
 			}
 		}
 		else if (KEY_REV.equals(propertyName)) {
 			try {
-				return getObject().getJSONObject().getString(KEY_REV);
-			} catch (JSONException e) {
+				return getObject().getJsonObject().get(KEY_REV).getAsString();
+			} catch (Exception e) {
 				return "";
 			}
 		}
@@ -95,22 +95,17 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 	}
 	
 	protected synchronized void hasBeenModified() {
-		JSONObject views = new JSONObject();
+		JsonObject views = new JsonObject();
 		for (TreeObject to : fViews.getChildren()) {
 			DesignDocumentViewTreeObject ddvto = (DesignDocumentViewTreeObject)to;
 			ViewObject viewObject = ddvto.getObject();
-			try {
-				views.put(viewObject.name, viewObject.getJSONObject());
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			views.add(viewObject.name, viewObject.getJsonObject());
 		}
 		
 		try {
 			DesignDocument dd = getObject();
-			JSONObject jso = dd.getJSONObject();
-			jso.put(KEY_VIEWS, views);
+			JsonObject jso = dd.getJsonObject();
+			jso.add(KEY_VIEWS, views);
 			dd.hasChanged = true;
 			hasBeenModified(true);
 		} catch (Exception e) {
@@ -134,7 +129,8 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 	}
 	
 	protected DesignDocumentViewTreeObject addView(DesignDocumentViewTreeObject view) {
-		DesignDocumentViewTreeObject ddvto = (view == null) ? newView():view;
+		DesignDocumentViewTreeObject ddvto = (view == null) ? newView() : view;
+		
 		if (ddvto != null) {
 			fViews.addChild(ddvto);
 			hasBeenModified();
@@ -162,37 +158,34 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 	protected ViewObject createViewObject() {
 		int index = 1;
 		String viewName = getDefaultViewName();
+		
 		while (hasView(viewName)) {
 			viewName = getDefaultViewName() + index++;
 		}
-		ViewObject view = new ViewObject(viewName, new JSONObject());
+		
+		ViewObject view = new ViewObject(viewName, new JsonObject());
 		view.createMap();
 		view.createReduce();
 		return view;
 	}
 	
 	private void loadViews() {
-		JSONObject jsonDocument = getObject().getJSONObject();
-		JSONObject views = null;
-		try {
-			views = jsonDocument.getJSONObject(KEY_VIEWS);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		JsonObject jsonDocument = getObject().getJsonObject();
+		JsonObject views = null;
+		
+		views = jsonDocument.get(KEY_VIEWS).getAsJsonObject();
 		
 		if (views != null) {
-			Iterator<String> it = GenericUtils.cast(views.keys());
-			if (it.hasNext())
+			if (!Json.isEmpty(views)) {
 				addChild(fViews);
+			}
 			
-			while(it.hasNext()) {
-				String key = it.next();
+			for (Entry<String, JsonElement> entry: views.entrySet()) {
 				try {
-					ViewObject view = new ViewObject(key, views.getJSONObject(key));
+					ViewObject view = new ViewObject(entry.getKey(), entry.getValue().getAsJsonObject());
 					fViews.addChild(new DesignDocumentViewTreeObject(viewer, view));
-				} catch (JSONException e) {
-					Engine.logBeans.warn("[DesignDocument] view named '"+key+"' is null; skipping...");
+				} catch (Exception e) {
+					Engine.logBeans.warn("[DesignDocument] view named '" + entry.getKey() + "' is null; skipping...");
 				}
 			}
 		}
@@ -203,9 +196,9 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		private static final String KEY_REDUCE = "reduce";
 		
 		private String name = null;
-		private JSONObject jsonObject = null;
+		private JsonObject jsonObject = null;
 		
-		ViewObject(String name, JSONObject jsonObject) {
+		ViewObject(String name, JsonObject jsonObject) {
 			this.name = name;
 			this.jsonObject = jsonObject;
 		}
@@ -226,60 +219,40 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 			this.name = name;
 		}
 		
-		protected JSONObject getJSONObject() {
+		protected JsonObject getJsonObject() {
 			return jsonObject;
 		}
 		
-		protected void setJSONObject(JSONObject jsonObject) {
+		protected void setJsonObject(JsonObject jsonObject) {
 			this.jsonObject = jsonObject;
 		}
 
 		protected FunctionObject getMap() {
 			if (hasMap()) {
-				try {
-					return new FunctionObject(KEY_MAP, jsonObject.getString(KEY_MAP));
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				return new FunctionObject(KEY_MAP, jsonObject.get(KEY_MAP).getAsString());
 			}
 			return null;
 		}
 		
 		protected FunctionObject createMap() {
 			if (!hasMap()) {
-				try {
-					jsonObject.put(KEY_MAP, "function (doc) {\r\n\temit(doc._id, doc._rev);\r\n}");
-					return getMap();
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				jsonObject.addProperty(KEY_MAP, "function (doc) {\r\n\temit(doc._id, doc._rev);\r\n}");
+				return getMap();
 			}
 			return null;
 		}
 		
 		protected FunctionObject getReduce() {
 			if (hasReduce()) {
-				try {
-					return new FunctionObject(KEY_REDUCE, jsonObject.getString(KEY_REDUCE));
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				return new FunctionObject(KEY_REDUCE, jsonObject.get(KEY_REDUCE).getAsString());
 			}
 			return null;
 		}
 		
 		protected FunctionObject createReduce() {
 			if (!hasReduce()) {
-				try {
-					jsonObject.put(KEY_REDUCE, "function (keys, values) {\r\n\treturn sum(values);\r\n}");
-					return getReduce();
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				jsonObject.addProperty(KEY_REDUCE, "function (keys, values) {\r\n\treturn sum(values);\r\n}");
+				return getReduce();
 			}
 			return null;
 		}
