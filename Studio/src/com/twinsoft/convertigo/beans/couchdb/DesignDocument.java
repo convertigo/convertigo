@@ -25,16 +25,14 @@ package com.twinsoft.convertigo.beans.couchdb;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.JsonDocument;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.CouchKey;
 
 public class DesignDocument extends JsonDocument {
 
 	private static final long serialVersionUID = -1523783503757936794L;
-
-//	private static final String KEY_ID = "_id";
-//	private static final String KEY_REV = "_rev";
-//	private static final String PATH_DESIGN = "_design/";
 	
 	public DesignDocument() {
 		super();
@@ -54,16 +52,10 @@ public class DesignDocument extends JsonDocument {
 	@Override
 	public Element toXml(Document document) throws EngineException {
 		if (jsonDocument != null) {
-			/*if (bNew) {
-				jsonDocument.remove(KEY_ID);
-				jsonDocument.remove(KEY_REV);
-				try {
-					jsonDocument.put(KEY_ID, PATH_DESIGN + getName());
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}*/
+			if (bNew) {
+				CouchKey._rev.remove(jsonDocument);
+				CouchKey._id.add(jsonDocument, CouchKey._design.key() + getName());
+			}
 		}
 		return super.toXml(document);
 	}
@@ -90,9 +82,7 @@ public class DesignDocument extends JsonDocument {
 	//*********************************************************************************
 	
 	@Override
-	public void setName(String newName) throws EngineException {
-		super.setName(newName);
-		if (jsonDocument != null) {
-		}
+	public CouchDbConnector getConnector() {
+		return (CouchDbConnector) super.getConnector();
 	}
 }

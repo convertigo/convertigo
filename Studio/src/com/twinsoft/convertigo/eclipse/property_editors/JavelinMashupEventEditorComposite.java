@@ -249,7 +249,7 @@ public class JavelinMashupEventEditorComposite extends AbstractDialogComposite {
 	
 	private JsonObject getJsonObject(JsonObject json, String key) {
 		try {
-			return json.get(key).getAsJsonObject();
+			return json.getAsJsonObject(key);
 		} catch (Exception e) {}
 		return null;
 	}

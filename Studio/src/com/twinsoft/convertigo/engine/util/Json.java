@@ -1,17 +1,11 @@
 package com.twinsoft.convertigo.engine.util;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.twinsoft.convertigo.beans.common.XMLVector;
 
 public class Json {
 	static public final Gson gson = new Gson();
@@ -56,18 +50,5 @@ public class Json {
 	
 	public static String toPrettyJson(Object object) {
 		return prettyGson.toJson(object);
-	}
-	
-	public static void main(String [] args) {
-		XMLVector<String> vec = new XMLVector<String>();
-		vec.add("v1");
-		vec.add("v2");
-		
-		List<String> lst = Arrays.asList("v1","v2");
-		
-		Map<String, String> data = new HashMap<String, String>();
-		data.put("bob", "eponge");
-		data.put("pat", "étoile");
-		System.out.println(gson.toJson(data));
 	}
 }

@@ -5,11 +5,12 @@ import java.util.List;
 import com.twinsoft.convertigo.beans.variables.RequestableMultiValuedVariable;
 import com.twinsoft.convertigo.beans.variables.RequestableVariable;
 import com.twinsoft.convertigo.engine.EngineException;
+import com.twinsoft.convertigo.engine.enums.CouchKey;
 
 public enum CouchDbParameter {
-	Private_id("_id",false,-1),
-	Private_ids("_id",true,-1),
-	Private_rev("_rev",false,-1),
+	Private_id(CouchKey._id.key(),false,-1),
+	Private_ids(CouchKey._id.key(),true,-1),
+	Private_rev(CouchKey._rev.key(),false,-1),
 	
 	Path_database("dbname",false,0),
 	Path_docid("docid", false,0),

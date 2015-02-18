@@ -27,6 +27,7 @@ import java.net.URI;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.providers.couchdb.api.Document;
 
 public abstract class AbstractDocumentTransaction extends AbstractDatabaseTransaction {
@@ -50,12 +51,9 @@ public abstract class AbstractDocumentTransaction extends AbstractDatabaseTransa
 	protected static final CouchDbParameter var_view_startkey	= CouchDbParameter.Param_view_startkey;
 	protected static final CouchDbParameter var_view_endkey		= CouchDbParameter.Param_view_endkey;
 	
-	protected static final String doc_id 		= "_id";
-	protected static final String doc_rev 		= "_rev";
-
 	protected static final String doc_base_path 	= "";
-	protected static final String doc_design_path 	= "_design/";
-	protected static final String doc_global_path 	= "_global/";
+	protected static final String doc_design_path 	= CouchKey._design.key();
+	protected static final String doc_global_path 	= CouchKey._global.key();
 	
 	public AbstractDocumentTransaction() {
 		super();
@@ -76,18 +74,13 @@ public abstract class AbstractDocumentTransaction extends AbstractDatabaseTransa
 	}
 	
 	protected String getIdFromDoc(JsonObject jsonDocument) {
-		if (jsonDocument == null) return null;
-		JsonElement jsonDocId = jsonDocument.get(doc_id);
-		if (jsonDocId != null) {
-			return jsonDocId.getAsString();
-		}
-		return null;
+		return CouchKey._id.string(jsonDocument);
 	}
 	
 	protected void addIdToDoc(JsonObject jsonDocument) {
 		if (jsonDocument == null) return;
 		if (getIdFromDoc(jsonDocument) == null) {
-			jsonDocument.addProperty(doc_id, generateID());
+			CouchKey._id.add(jsonDocument, generateID());
 		}
 	}
 	
@@ -97,8 +90,7 @@ public abstract class AbstractDocumentTransaction extends AbstractDatabaseTransa
 		if (docId != null) {
 			String docRev = getDocLastRev(docId);
 			if (docRev != null) {
-				jsonDocument.remove(doc_rev);
-				jsonDocument.addProperty(doc_rev, docRev);
+				CouchKey._rev.add(jsonDocument, docRev);
 			}
 		}
 	}
@@ -114,7 +106,7 @@ public abstract class AbstractDocumentTransaction extends AbstractDatabaseTransa
 		
 	protected void removeRevFromDoc(JsonObject jsonDocument) {
 		if (jsonDocument == null) return;
-		jsonDocument.remove(doc_rev);
+		jsonDocument.remove(CouchKey._rev.key());
 	}
 	
 	protected URI getFileURI(String filePath) {

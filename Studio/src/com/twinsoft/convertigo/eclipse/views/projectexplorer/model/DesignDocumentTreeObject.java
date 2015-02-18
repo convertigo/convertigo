@@ -29,29 +29,25 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.twinsoft.convertigo.beans.connectors.CouchDbConnector;
 import com.twinsoft.convertigo.beans.core.DatabaseObject;
 import com.twinsoft.convertigo.beans.couchdb.DesignDocument;
 import com.twinsoft.convertigo.eclipse.ConvertigoPlugin;
 import com.twinsoft.convertigo.engine.ConvertigoException;
 import com.twinsoft.convertigo.engine.Engine;
+import com.twinsoft.convertigo.engine.cdbproxy.CouchDbProxyManager;
+import com.twinsoft.convertigo.engine.enums.CouchKey;
 import com.twinsoft.convertigo.engine.util.Json;
 
 public class DesignDocumentTreeObject extends DocumentTreeObject {
-
-	private static final String KEY_ID = "_id";
-	private static final String KEY_REV = "_rev";
-	private static final String KEY_VIEWS = "views";
-
 	private FolderTreeObject fViews = null;
-	
-	public DesignDocumentTreeObject(Viewer viewer, DatabaseObject object) {
-		super(viewer, object);
-	}
+	private String lastRev = "?";
 
 	public DesignDocumentTreeObject(Viewer viewer, DatabaseObject object, boolean inherited) {
 		super(viewer, object, inherited);
 		fViews = new FolderTreeObject(viewer, "Views");
 		loadViews();
+		syncDocument();
 	}
 
 	@Override
@@ -73,19 +69,15 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 	@Override
 	public Object getPropertyValue(Object id) {
 		String propertyName = (String)id;
-		if (KEY_ID.equals(propertyName)) {
+		if (CouchKey._id.key().equals(propertyName)) {
 			try {
-				return getObject().getJsonObject().get(KEY_ID).getAsString();
+				return CouchKey._id.string(getObject().getJsonObject());
 			} catch (Exception e) {
 				return "";
 			}
 		}
-		else if (KEY_REV.equals(propertyName)) {
-			try {
-				return getObject().getJsonObject().get(KEY_REV).getAsString();
-			} catch (Exception e) {
-				return "";
-			}
+		else if (CouchKey._rev.key().equals(propertyName)) {
+			return lastRev;
 		}
 		return super.getPropertyValue(id);
 	}
@@ -105,9 +97,11 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		try {
 			DesignDocument dd = getObject();
 			JsonObject jso = dd.getJsonObject();
-			jso.add(KEY_VIEWS, views);
+			CouchKey.views.add(jso, views);
 			dd.hasChanged = true;
 			hasBeenModified(true);
+			
+			syncDocument();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -115,6 +109,16 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		
         TreeViewer viewer = (TreeViewer) getAdapter(TreeViewer.class);
     	viewer.update(this, null);
+	}
+	
+	private void syncDocument() {
+		DesignDocument dd = getObject();
+		JsonObject jso = dd.getJsonObject();
+		
+		if (CouchKey._id.has(jso)) {
+			CouchDbConnector couchDbConnector = dd.getConnector();
+			lastRev = CouchDbProxyManager.syncDocument(couchDbConnector.getCouchDbClient(), couchDbConnector.getDatabaseName(), jso.toString());
+		}
 	}
 	
 	public DesignDocumentViewTreeObject addNewView() {
@@ -173,11 +177,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		JsonObject jsonDocument = getObject().getJsonObject();
 		JsonObject views = null;
 		
-		try {
-			views = jsonDocument.get(KEY_VIEWS).getAsJsonObject();
-		} catch (Exception e) {
-			// new document or no views
-		}
+		views = jsonDocument.getAsJsonObject(CouchKey.views.key());
 		
 		if (views != null) {
 			if (!Json.isEmpty(views)) {
@@ -195,10 +195,7 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		}
 	}
 	
-	public class ViewObject {
-		private static final String KEY_MAP = "map";
-		private static final String KEY_REDUCE = "reduce";
-		
+	public class ViewObject {		
 		private String name = null;
 		private JsonObject jsonObject = null;
 		
@@ -208,11 +205,11 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		}
 
 		public boolean hasMap() {
-			return jsonObject.has(KEY_MAP);
+			return CouchKey.map.has(jsonObject);
 		}
 		
 		public boolean hasReduce() {
-			return jsonObject.has(KEY_REDUCE);
+			return CouchKey.reduce.has(jsonObject);
 		}
 		
 		public String getName() {
@@ -233,14 +230,14 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 
 		protected FunctionObject getMap() {
 			if (hasMap()) {
-				return new FunctionObject(KEY_MAP, jsonObject.get(KEY_MAP).getAsString());
+				return new FunctionObject(CouchKey.map.key(), CouchKey.map.string(jsonObject));
 			}
 			return null;
 		}
 		
 		protected FunctionObject createMap() {
 			if (!hasMap()) {
-				jsonObject.addProperty(KEY_MAP, "function (doc) {\r\n\temit(doc._id, doc._rev);\r\n}");
+				jsonObject.addProperty(CouchKey.map.key(), "function (doc) {\r\n\temit(doc._id, doc._rev);\r\n}");
 				return getMap();
 			}
 			return null;
@@ -248,14 +245,14 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		
 		protected FunctionObject getReduce() {
 			if (hasReduce()) {
-				return new FunctionObject(KEY_REDUCE, jsonObject.get(KEY_REDUCE).getAsString());
+				return new FunctionObject(CouchKey.reduce.key(), CouchKey.reduce.string(jsonObject));
 			}
 			return null;
 		}
 		
 		protected FunctionObject createReduce() {
 			if (!hasReduce()) {
-				jsonObject.addProperty(KEY_REDUCE, "function (keys, values) {\r\n\treturn sum(values);\r\n}");
+				jsonObject.addProperty(CouchKey.reduce.key(), "function (keys, values) {\r\n\treturn sum(values);\r\n}");
 				return getReduce();
 			}
 			return null;

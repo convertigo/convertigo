@@ -273,8 +273,8 @@ public abstract class AbstractCouchDbTransaction extends TransactionWithVariable
 	private static JsonElement toJson(JsonParser parser, Element element) throws JsonSyntaxException {
 		JsonElement jsonXml = parser.parse(XMLUtils.XmlToJson(element, true));
 		if (isInputDomVariable(element)) {
-			JsonObject jsonVariable = jsonXml.getAsJsonObject().get("variable").getAsJsonObject();
-			JsonObject jsonAttr = jsonVariable.get("attr").getAsJsonObject();
+			JsonObject jsonVariable = jsonXml.getAsJsonObject().getAsJsonObject("variable");
+			JsonObject jsonAttr = jsonVariable.getAsJsonObject("attr");
 			JsonElement jsonAttrName = jsonAttr.get("name");
 			JsonElement jsonAttrValue = jsonAttr.get("value");
 
