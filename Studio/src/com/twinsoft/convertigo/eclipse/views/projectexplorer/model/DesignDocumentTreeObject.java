@@ -173,7 +173,11 @@ public class DesignDocumentTreeObject extends DocumentTreeObject {
 		JsonObject jsonDocument = getObject().getJsonObject();
 		JsonObject views = null;
 		
-		views = jsonDocument.get(KEY_VIEWS).getAsJsonObject();
+		try {
+			views = jsonDocument.get(KEY_VIEWS).getAsJsonObject();
+		} catch (Exception e) {
+			// new document or no views
+		}
 		
 		if (views != null) {
 			if (!Json.isEmpty(views)) {
